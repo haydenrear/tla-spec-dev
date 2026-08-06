@@ -1,0 +1,124 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket PA-05",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-05/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-05/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-05/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "A scaffolded card carries the anchors and scoring rules inline, and `check` still rejects an uncited score >= 2 and a 4 with no refuses_to_claim.",
+        "Arms are emitted under opaque labels; the mapping lands in a separate file; scaffolding twice over the same path REFUSES rather than overwriting.",
+        "History is readable per example, with instrument changes marked between rows, and the reading rules are in references/eval_scorecard.md.",
+        "Every new behaviour ships a test that FAILS on the parent commit."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q",
+        "python3 examples/validation/scorecards/score_tools.py scaffold specs/results/scorecards/ports-as-adapters --example ab_quota_ledger --arms A,B,C --judges 2",
+        "python3 examples/validation/scorecards/score_tools.py check specs/results/scorecards/ports-as-adapters"
+      ]
+    },
+    "blocks": [
+      "PA-06"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "examples/validation/scorecards/score_tools.py",
+        "references/eval_scorecard.md",
+        "specs/results/scorecards/SELF-IMPROVEMENT.md"
+      ]
+    },
+    "depends_on": [
+      "PA-01"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/134",
+    "goals": [
+      {
+        "contribution": "enabling",
+        "expected_effect": "none -- enabling only; PA-06 decides this goal with the card this ticket scaffolds",
+        "goal": "GOAL-port-reach",
+        "local_signal": "scaffold a card, fill one dimension, and confirm `check` rejects it uncited"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none -- enabling only",
+        "goal": "GOAL-cases-drive-ports",
+        "local_signal": "N/A: tooling ticket"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none -- enabling only; the complexity figures land in the mechanical block this scaffold emits",
+        "goal": "GOAL-complexity-measurable",
+        "local_signal": "N/A: tooling ticket"
+      }
+    ],
+    "id": "PA-05",
+    "implementation_scope": [
+      "examples/validation/scorecards/",
+      "references/eval_scorecard.md",
+      "specs/results/scorecards/SELF-IMPROVEMENT.md",
+      "tests/"
+    ],
+    "model_delta_expectation": "none -- eval harness under examples/validation/, out of model by representation_scope",
+    "objective": "A BLOCKER ON PA-06, deliberately: the evaluation must use this, not hand-author around it. Two halves. (1) SCAFFOLD THE CARD. For two epics every scorecard was hand-authored from the rubric by whichever agent was judging. That is how a dimension key or the `refuses_to_claim` requirement drifts, and it puts the burden of remembering five sets of anchors on the judge. Add `score_tools.py scaffold`, emitting one skeleton per arm per judge with the anchors and the scoring rules INLINE, so a judge reads the bar for a score in the same file where the score is written. MAKE BLINDING THE DEFAULT rather than something each eval remembers. Emit arms under opaque labels and write the mapping to an unblinding file the judge is not given. An eval that wants unblinded scoring should have to undo that deliberately. Both prior rounds blinded correctly by discipline; discipline is not a mechanism. Refuse to overwrite an existing card. A scaffold that clobbers a measurement is worse than no scaffold. (2) TEACH THE SCORER TO READ HISTORY, which is the half that matters more. `specs/results/scorecards/SELF-IMPROVEMENT.md` carries every epic's rows, and the metric is the DELTA. But this project has just proved that a row can go stale without anyone noticing: the predecessor's instrument was repaired AFTER its measurement, and two of its sealed numbers stopped describing the instrument that produced them. A scorer comparing naively across that boundary would have compared two different instruments and called the difference progress. So add a way to SEE a scorecard's history beside the changes that affect it -- `score_tools.py history --example E` or equivalent -- showing rows over time WITH the instrument changes between them marked, and write the reading rules into `references/eval_scorecard.md`: - A row is comparable to another row ONLY on the same example AND across an unchanged instrument. Name the instrument change or do not compare. - Never average across examples: a deliberately incoherent fixture is SUPPOSED to score low on D3. - A number that moved because the instrument was repaired is not improvement. Say which happened. - A sealed card is never edited. When one goes stale, the ledger records WHICH number and WHY, beside it. Worked examples exist and should be used: the guard-relaxation row moving 0 -> 3 of 3 is a real mechanism gain; the D1 3 appearing on BOTH arms is an attribution correction, not a gain; and \"controls green on both arms\" is a sealed number known-wrong for one arm.",
+    "promotion_order": 50,
+    "promotion_predecessor": "PA-04",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Scaffold the scorecard, and teach the scorer to read its own history",
+    "wave": 4
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-05/specs/tickets/PA-05",
+  "ticket_id": "PA-05",
+  "ticket_index": 4,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-05/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-05/specs/tickets"
+}

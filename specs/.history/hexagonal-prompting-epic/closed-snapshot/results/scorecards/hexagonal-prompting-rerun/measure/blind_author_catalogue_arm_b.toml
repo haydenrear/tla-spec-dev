@@ -1,0 +1,295 @@
+# Blind fault catalogue for implementation TWO (artifact_Q).
+#
+# Same fifteen classes as catalogue_P.toml, in the same order, with the same
+# `semantic` where the two implementations can express it. The EDITS differ
+# because the two programs keep their state differently -- ONE stores
+# `available` and TWO derives it -- and holding the semantic fixed rather than
+# the diff fixed is the only way a per-arm number means anything.
+#
+# Two classes could not be made byte-parallel and are marked in
+# `gap_targeted`: BA-Q07 (the cross-aspect write is a DELETION here, because
+# TWO has no `available` to write to) and BA-Q12 (the state a rejection
+# corrupts is the id counter, because `available` is not stored).
+#
+# `observation` names a driver in ./observations.py.
+
+[catalogue]
+id = "BLIND-AUTHOR-Q"
+anchored_on = "quota_ledger/domain.py"
+
+# --------------------------------------------------------------------------
+# guard faults
+# --------------------------------------------------------------------------
+
+[[mutants]]
+id = "BA-Q01"
+fault_class = "guard_order_inversion"
+gap_targeted = "Any corpus in which no single call trips two guards at once. Each guard is individually right; only an input that is BOTH closed and non-positive separates them. Also invisible to any oracle that checks status without checking reason."
+boundary_kind = "invariant"
+boundary_ref = "reserve -- 'Rejects, in this order' (tenant_closed precedes amount_not_positive)"
+refine_variable = "reason"
+refine_action = "RefuseReserveClosed"
+observation = "C01_guard_order"
+path = "quota_ledger/domain.py"
+find = '''
+        if tenant in self._closed:
+            return Result.rejected("tenant_closed")
+        if amount < 1:
+            return Result.rejected("amount_not_positive")'''
+replace = '''
+        if amount < 1:
+            return Result.rejected("amount_not_positive")
+        if tenant in self._closed:
+            return Result.rejected("tenant_closed")'''
+description = "reserve checks amount before closedness, inverting two of the four declared rejection precedences."
+semantic = "A reserve that is both against a closed tenant and non-positive reports amount_not_positive instead of tenant_closed. Every single-fault input is unaffected."
+
+[[mutants]]
+id = "BA-Q02"
+fault_class = "guard_boundary_shift"
+gap_targeted = "Coverage that never reserves EXACTLY the amount still available. Off-by-one at a boundary is only visible at the boundary."
+boundary_kind = "invariant"
+boundary_ref = "reserve -- 'quota_exceeded -- amount is greater than available(tenant)'"
+refine_variable = "available"
+refine_action = "Reserve"
+observation = "C02_boundary"
+path = "quota_ledger/domain.py"
+find = "        if amount > self.available(tenant):"
+replace = "        if amount >= self.available(tenant):"
+description = "reserve rejects an amount equal to the remaining availability."
+semantic = "The last unit of a tenant's quota becomes unreservable: a reserve for exactly available(tenant) is refused as quota_exceeded. Strictly smaller reserves are unaffected."
+
+[[mutants]]
+id = "BA-Q03"
+fault_class = "guard_relaxation"
+gap_targeted = "Any corpus built from accepting edges alone. If the program is never asked to refuse, a refusal that stops happening is not an observable event. Also survives a state-only oracle when amount is 0: accepting a 0 leaves every numeric variable where it was."
+boundary_kind = "invariant"
+boundary_ref = "reserve -- 'amount_not_positive -- amount is less than 1'"
+refine_variable = "live"
+refine_action = "RefuseReserveNotPositive"
+observation = "C03_relaxation"
+path = "quota_ledger/domain.py"
+find = '''
+        if amount < 1:
+            return Result.rejected("amount_not_positive")'''
+replace = '''
+        if amount < 0:
+            return Result.rejected("amount_not_positive")'''
+description = "reserve admits a zero amount, allocating a real reservation id for nothing."
+semantic = "reserve(t, 0) is accepted and burns a reservation id on a zero-sized hold. Negative amounts are still refused, so the reason vocabulary looks intact."
+
+[[mutants]]
+id = "BA-Q04"
+fault_class = "guard_basis_confusion"
+gap_targeted = "Single-reservation corpora. The first reserve against a fresh tenant behaves identically because available == quota at that moment; the fault only shows on the second reserve."
+boundary_kind = "invariant"
+boundary_ref = "R1 -- conservation"
+refine_variable = "available"
+refine_action = "Reserve"
+observation = "C04_basis"
+path = "quota_ledger/domain.py"
+find = "        if amount > self.available(tenant):"
+replace = "        if amount > self._quota[tenant]:"
+description = "reserve checks the amount against the tenant's whole quota instead of what is left of it."
+semantic = "Reservations can be granted past the quota: two 6-unit holds succeed against a quota of 10 and available goes negative. Conservation is broken while nothing is rejected."
+
+[[mutants]]
+id = "BA-Q05"
+fault_class = "reason_substitution"
+gap_targeted = "Anything derived from QuotaLedger.tla. Tenants is a CONSTANT set, so an unknown tenant is not a reachable input in the model and there is no unknown_tenant refusal edge; a model-derived corpus cannot construct the input and a model-derived oracle has no proposition about it."
+boundary_kind = "invariant"
+boundary_ref = "reserve -- 'unknown_tenant -- no such tenant', and R4's six-reason vocabulary"
+refine_variable = "reason"
+refine_action = "(none -- QuotaLedger.tla has no unknown-tenant edge)"
+observation = "C05_reason"
+path = "quota_ledger/domain.py"
+find = '''
+        if tenant not in self._quota:
+            return Result.rejected("unknown_tenant")
+        if tenant in self._closed:
+            return Result.rejected("tenant_closed")
+        if amount < 1:'''
+replace = '''
+        if tenant not in self._quota:
+            return Result.rejected("tenant_closed")
+        if tenant in self._closed:
+            return Result.rejected("tenant_closed")
+        if amount < 1:'''
+description = "reserve reports an unknown tenant as tenant_closed."
+semantic = "The refusal still happens and still changes nothing; the caller is told the tenant is closed rather than that it does not exist. close_tenant still reports unknown_tenant, so the two commands now disagree about the same tenant."
+
+# --------------------------------------------------------------------------
+# effect faults
+# --------------------------------------------------------------------------
+
+[[mutants]]
+id = "BA-Q06"
+fault_class = "effect_misrouted_conservation_preserving"
+gap_targeted = "R1 alone. Built to keep conservation TRUE: the amount leaves the hold and lands in committed, so available + held + committed still equals quota at every step. Only a rule relating memory to the DURABLE side (R2) sees it. Note this is nastier in TWO than in ONE, because TWO derives `available` and its NOTES claim R1 is 'true by construction' -- which it still is, and the program is still wrong."
+boundary_kind = "invariant"
+boundary_ref = "R2 -- the durable ledger agrees with memory; release -- 'returns its amount to available. Writes nothing to the ledger.'"
+refine_variable = "committed"
+refine_action = "Release"
+observation = "C06_release"
+path = "quota_ledger/domain.py"
+find = '''
+        # happens: a release leaves no trace in the journal.
+        del self._outstanding[reservation_id]
+        return Result.accepted()'''
+replace = '''
+        # happens: a release leaves no trace in the journal.
+        released = self._outstanding.pop(reservation_id)
+        self._committed[released.tenant] += released.amount
+        return Result.accepted()'''
+description = "release credits the amount to committed instead of letting it fall back into available."
+semantic = "A released hold is counted as committed. committed(t) rises with no COMMIT line behind it, so memory and the durable ledger disagree, while total conservation still holds exactly."
+
+[[mutants]]
+id = "BA-Q07"
+fault_class = "cross_aspect_write"
+gap_targeted = "Any view that projects only one aspect. The symptom is on available (reservations aspect); the cause is the disappearance of the committed term (ledger aspect) from the query that joins them. NOT byte-parallel with BA-P07: TWO has no stored `available` for Commit to write to, so the same behavior is produced by deleting the join instead of adding a write. A slice that projects available without committed, or committed without available, cannot express the fault at all."
+boundary_kind = "invariant"
+boundary_ref = "commit -- 'available(tenant) is not changed', and R1 -- conservation"
+refine_variable = "available"
+refine_action = "Commit"
+observation = "C07_commit_refund"
+path = "quota_ledger/domain.py"
+find = "        return self._quota[tenant] - self._held(tenant) - self._committed[tenant]"
+replace = "        return self._quota[tenant] - self._held(tenant)"
+description = "available forgets to subtract what has been committed, so committing hands the quota back."
+semantic = "Committing refunds the reservation. The tenant can spend the same quota twice; every ledger line written remains correct in isolation."
+
+[[mutants]]
+id = "BA-Q08"
+fault_class = "durable_content_running_total"
+gap_targeted = "Any effect mapping that records THAT a durable write happened without asserting WHAT it said. The port is called, once, on the right action, with the right tenant and amount -- only the fourth field is wrong."
+boundary_kind = "port"
+boundary_ref = "R2 -- 'the running total on each COMMIT line equals the sum of that tenant's COMMIT amounts up to and including that line'"
+refine_variable = "ledger"
+refine_action = "Commit"
+observation = "C08_running_total"
+path = "quota_ledger/domain.py"
+find = '''        self._journal.append(f"COMMIT {reservation.tenant} {reservation.amount} {total}")'''
+replace = '''        self._journal.append(f"COMMIT {reservation.tenant} {reservation.amount} {reservation.amount}")'''
+description = "the COMMIT record repeats the amount where the running total belongs."
+semantic = "Each COMMIT line's fourth field is that commit's own amount rather than the tenant's total to date. The first commit of a tenant is indistinguishable from correct. Memory is untouched."
+
+[[mutants]]
+id = "BA-Q09"
+fault_class = "durable_content_close_total"
+gap_targeted = "Same silent-mapping gap as BA-Q08, plus: a corpus that closes tenants only at quota exhaustion never separates 'committed' from 'quota'. The fault needs a close after a PARTIAL commit."
+boundary_kind = "port"
+boundary_ref = "R3 -- 'exactly one CLOSE line, whose total equals committed(tenant)'"
+refine_variable = "ledger"
+refine_action = "CloseTenant"
+observation = "C09_close_total"
+path = "quota_ledger/domain.py"
+find = '''        self._journal.append(f"CLOSE {tenant} {self._committed[tenant]}")'''
+replace = '''        self._journal.append(f"CLOSE {tenant} {self._quota[tenant]}")'''
+description = "the CLOSE record carries the tenant's quota instead of its committed total."
+semantic = "A closed tenant's final durable total overstates what was committed, unless the tenant happened to commit its entire quota. Memory is untouched and the line count is right."
+
+[[mutants]]
+id = "BA-Q10"
+fault_class = "accumulator_overwrite"
+gap_targeted = "Single-commit sequences. One commit per tenant is exactly the case where assignment and accumulation agree. Needs two commits on the SAME tenant."
+boundary_kind = "invariant"
+boundary_ref = "commit -- 'increases committed(tenant) by the reservation's amount'; R1, R2"
+refine_variable = "committed"
+refine_action = "Commit"
+observation = "C10_accumulator"
+path = "quota_ledger/domain.py"
+find = "        total = self._committed[reservation.tenant] + reservation.amount"
+replace = "        total = reservation.amount"
+description = "commit assigns the new committed total instead of adding to it."
+semantic = "committed(t) becomes the amount of the most recent commit rather than the sum of all of them. Conservation and the durable running totals both break, consistently with each other."
+
+[[mutants]]
+id = "BA-Q11"
+fault_class = "identity_reuse"
+gap_targeted = "Corpora that never resolve a reservation before allocating the next one. Ids stay distinct as long as nothing is committed or released. In TWO this also silently reorders outstanding_ids, because the ids ARE the dict keys the order comes from."
+boundary_kind = "invariant"
+boundary_ref = "reserve -- 'Ids are allocated r1, r2, r3, ... in order of acceptance and are never reused'"
+refine_variable = "holder"
+refine_action = "Reserve"
+observation = "C11_id_reuse"
+path = "quota_ledger/domain.py"
+find = '''
+        self._issued += 1
+        reservation_id = f"r{self._issued}"'''
+replace = '''
+        reservation_id = f"r{len(self._outstanding) + 1}"'''
+description = "reservation ids are numbered from the count of live reservations, so an id is reused once its predecessor is resolved."
+semantic = "After a commit or release, the freed id is handed out again. Two different holds can share an id, and a later commit can silently overwrite a live reservation."
+
+[[mutants]]
+id = "BA-Q12"
+fault_class = "rejection_not_inert"
+gap_targeted = "Every oracle that reads only status and reason on a refused call. The refusal is correct and the damage is to state nobody diffs across a rejection. NOT byte-parallel with BA-P12: TWO does not store `available`, so the only state a refused reserve can corrupt is the id counter -- which is unmodeled in QuotaLedger.tla (ids there are drawn from a CONSTANT set, not allocated), so no model-derived oracle has a variable to notice it with. The model's RejectionIsInert checks only that the reason is non-'none', which this satisfies."
+boundary_kind = "invariant"
+boundary_ref = "R4 -- 'A command that returns status == rejected performs no state change'"
+refine_variable = "(none -- the id counter is unmodeled)"
+refine_action = "RefuseReserveOverQuota"
+observation = "C12_rejection_inert"
+path = "quota_ledger/domain.py"
+find = '''
+        if amount > self.available(tenant):
+            return Result.rejected("quota_exceeded")
+
+        self._issued += 1'''
+replace = '''
+        self._issued += 1
+        if amount > self.available(tenant):
+            return Result.rejected("quota_exceeded")
+'''
+description = "reserve burns a reservation id before the quota guard, so a refused reserve consumes an id."
+semantic = "An over-quota reserve is still refused with quota_exceeded, but the next accepted reserve skips an id. The declared sequence r1, r2, r3, ... in order of acceptance develops gaps that depend on refused history."
+
+# --------------------------------------------------------------------------
+# durable-medium faults
+# --------------------------------------------------------------------------
+
+[[mutants]]
+id = "BA-Q13"
+fault_class = "append_only_violation"
+gap_targeted = "Any check that reads back only the LAST line, or asserts the most recent write rather than the whole sequence. Single-write traces are unaffected. Also: TWO's own suite runs every behavioral case twice, once against InMemoryJournal, and the in-memory adapter is untouched by this -- so a green half of a parametrized run is not evidence here."
+boundary_kind = "port"
+boundary_ref = "R5 -- 'the ledger is append-only and ordered. Nothing is ever rewritten, reordered, or removed.'"
+refine_variable = "ledger"
+refine_action = "Commit"
+observation = "C13_append_only"
+path = "quota_ledger/file_journal.py"
+find = '''        with self._path.open("a", encoding="utf-8") as handle:'''
+replace = '''        with self._path.open("w", encoding="utf-8") as handle:'''
+description = "the durable writer truncates the file on every write, so only the newest record survives."
+semantic = "The durable ledger holds exactly one line -- the last one written. Everything committed or closed earlier is destroyed on disk."
+
+[[mutants]]
+id = "BA-Q14"
+fault_class = "observation_order_violation"
+gap_targeted = "The single-digit ceiling. Lexicographic and numeric order agree on r1..r9. The model makes it worse: ResIds is a small CONSTANT set, so a model-derived corpus can never allocate a tenth id. Aimed squarely at TWO's stated reliance on dict insertion order -- the plausible 'fix' for someone who distrusts that guarantee is exactly this sort, and it is wrong."
+boundary_kind = "invariant"
+boundary_ref = "outstanding_ids() -- 'the ids of all live reservations, ascending'"
+refine_variable = "live"
+refine_action = "Reserve"
+observation = "C14_outstanding_order"
+path = "quota_ledger/domain.py"
+find = "        return list(self._outstanding)"
+replace = "        return sorted(self._outstanding)"
+description = "outstanding_ids sorts ids as strings, so r10 comes before r2."
+semantic = "Once ten reservations have been allocated, the reported order of live reservations is lexicographic rather than allocation order. Fewer than ten, the two orders coincide exactly."
+
+[[mutants]]
+id = "BA-Q15"
+fault_class = "construction_not_empty"
+gap_targeted = "Every harness that hands the constructor a fresh temporary path. The fault needs a pre-existing file at the ledger path, which no generated corpus will produce because the ledger path is not part of the modeled state. This is the class I most expect nothing to catch."
+boundary_kind = "port"
+boundary_ref = "'The ledger file starts empty', and R2 -- the durable ledger agrees with memory"
+refine_variable = "ledger"
+refine_action = "Init"
+observation = "C15_construction"
+path = "quota_ledger/file_journal.py"
+find = '''        self._path.write_text("", encoding="utf-8")'''
+replace = "        self._path.touch()"
+description = "construction creates the ledger file but does not empty an existing one."
+semantic = "A ledger constructed over an existing file inherits its lines. The reader immediately observes COMMIT and CLOSE records for totals memory says are zero, so R2 and R3 are false from the first observation, with no command having run."

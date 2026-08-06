@@ -1,0 +1,280 @@
+{
+  "schema": "tla-spec-dev/architecture-reflexion",
+  "schema_version": 2,
+  "map": "/Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex6_jenga/specs/program_model/architecture_map.yaml",
+  "code_root": "/Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex6_jenga/hub",
+  "language": "python",
+  "measured": {
+    "modules_scanned": 6,
+    "modules_mapped": 6,
+    "edges_extracted": 7,
+    "component_pairs": 3,
+    "ported_pairs": [
+      [
+        "billing",
+        "notify"
+      ],
+      [
+        "billing",
+        "orders"
+      ],
+      [
+        "notify",
+        "orders"
+      ]
+    ],
+    "unported_pairs": [],
+    "divergence_detectable": false,
+    "internal_edges": 0,
+    "external_imports": {
+      "__future__": [
+        "hub/billing/audit.py:3",
+        "hub/notify/flags.py:3",
+        "hub/orders/lifecycle.py:3"
+      ]
+    }
+  },
+  "basis": {
+    "map_origin": "/Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex6_jenga/specs/program_model/architecture_map.yaml",
+    "map_language": "python",
+    "map_digest": "sha256:998f01192bad17c0e0652ca463dff9eed951234c2474a937e80e8f6206fc72e3",
+    "placements": {
+      "billing/__init__.py": "billing",
+      "billing/audit.py": "billing",
+      "notify/__init__.py": "notify",
+      "notify/flags.py": "notify",
+      "orders/__init__.py": "orders",
+      "orders/lifecycle.py": "orders"
+    },
+    "code_root": "/Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex6_jenga/hub",
+    "scanned_modules": [
+      "billing/__init__.py",
+      "billing/audit.py",
+      "notify/__init__.py",
+      "notify/flags.py",
+      "orders/__init__.py",
+      "orders/lifecycle.py"
+    ],
+    "architecture_digest": "sha256:9536d2161c7f9ae0335e23cbe5bc181a91d7275644993ec390962688a326a9e3",
+    "architecture_components": [
+      "billing",
+      "notify",
+      "orders"
+    ],
+    "architecture_ports": [
+      [
+        "billing",
+        "notify"
+      ],
+      [
+        "billing",
+        "orders"
+      ],
+      [
+        "notify",
+        "orders"
+      ]
+    ],
+    "architecture_port_actions": {
+      "billing|notify": [
+        "Bill",
+        "Close",
+        "Notify",
+        "Place"
+      ],
+      "billing|orders": [
+        "Bill",
+        "Close",
+        "Notify",
+        "Place"
+      ],
+      "notify|orders": [
+        "Bill",
+        "Close",
+        "Notify",
+        "Place"
+      ]
+    },
+    "comparison_ran": true
+  },
+  "convergences": [
+    {
+      "from": "billing/audit.py",
+      "to": "notify/flags.py",
+      "kind": "import",
+      "symbol": "hub.notify.flags.DirtyFlags",
+      "file": "hub/billing/audit.py",
+      "line": 5,
+      "site": "hub/billing/audit.py:5",
+      "from_component": "billing",
+      "to_component": "notify",
+      "pair": [
+        "billing",
+        "notify"
+      ],
+      "port": "P3",
+      "port_actions": [
+        "Bill",
+        "Close",
+        "Notify",
+        "Place"
+      ]
+    },
+    {
+      "from": "billing/audit.py",
+      "to": "orders/lifecycle.py",
+      "kind": "import",
+      "symbol": "hub.orders.lifecycle.Lifecycle",
+      "file": "hub/billing/audit.py",
+      "line": 20,
+      "site": "hub/billing/audit.py:20",
+      "from_component": "billing",
+      "to_component": "orders",
+      "pair": [
+        "billing",
+        "orders"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "Bill",
+        "Close",
+        "Notify",
+        "Place"
+      ]
+    },
+    {
+      "from": "billing/audit.py",
+      "to": "orders/lifecycle.py",
+      "kind": "call",
+      "symbol": "Lifecycle.__dict__.get",
+      "file": "hub/billing/audit.py",
+      "line": 22,
+      "site": "hub/billing/audit.py:22",
+      "from_component": "billing",
+      "to_component": "orders",
+      "pair": [
+        "billing",
+        "orders"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "Bill",
+        "Close",
+        "Notify",
+        "Place"
+      ]
+    },
+    {
+      "from": "notify/flags.py",
+      "to": "billing/audit.py",
+      "kind": "import",
+      "symbol": "hub.billing.audit.AuditTrail",
+      "file": "hub/notify/flags.py",
+      "line": 17,
+      "site": "hub/notify/flags.py:17",
+      "from_component": "notify",
+      "to_component": "billing",
+      "pair": [
+        "billing",
+        "notify"
+      ],
+      "port": "P3",
+      "port_actions": [
+        "Bill",
+        "Close",
+        "Notify",
+        "Place"
+      ]
+    },
+    {
+      "from": "notify/flags.py",
+      "to": "orders/lifecycle.py",
+      "kind": "import",
+      "symbol": "hub.orders.lifecycle.Lifecycle",
+      "file": "hub/notify/flags.py",
+      "line": 18,
+      "site": "hub/notify/flags.py:18",
+      "from_component": "notify",
+      "to_component": "orders",
+      "pair": [
+        "notify",
+        "orders"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "Bill",
+        "Close",
+        "Notify",
+        "Place"
+      ]
+    },
+    {
+      "from": "orders/lifecycle.py",
+      "to": "billing/audit.py",
+      "kind": "import",
+      "symbol": "hub.billing.audit.AuditTrail",
+      "file": "hub/orders/lifecycle.py",
+      "line": 5,
+      "site": "hub/orders/lifecycle.py:5",
+      "from_component": "orders",
+      "to_component": "billing",
+      "pair": [
+        "billing",
+        "orders"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "Bill",
+        "Close",
+        "Notify",
+        "Place"
+      ]
+    },
+    {
+      "from": "orders/lifecycle.py",
+      "to": "notify/flags.py",
+      "kind": "import",
+      "symbol": "hub.notify.flags.DirtyFlags",
+      "file": "hub/orders/lifecycle.py",
+      "line": 6,
+      "site": "hub/orders/lifecycle.py:6",
+      "from_component": "orders",
+      "to_component": "notify",
+      "pair": [
+        "notify",
+        "orders"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "Bill",
+        "Close",
+        "Notify",
+        "Place"
+      ]
+    }
+  ],
+  "divergences": [],
+  "absences": [],
+  "unmapped_modules": [],
+  "unrealized_components": [],
+  "blind_spots": [
+    {
+      "kind": "unfalsifiable_coherence",
+      "detail": "every one of the 3 component pair(s) in this architecture has a port, so no code edge could have been a divergence. 'No divergences' here is a property of the declared architecture, not a measurement of the code, and a coherent verdict would be true by construction. (This is what a model whose actions all touch the same variables produces under any partition.)",
+      "where": "/Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex6_jenga/specs/program_model/Jenga.tla"
+    }
+  ],
+  "ignored_suppression_keys": [],
+  "verdict": {
+    "architecture_scan": "unmappable",
+    "reasons": [
+      "[unfalsifiable_coherence] every one of the 3 component pair(s) in this architecture has a port, so no code edge could have been a divergence. 'No divergences' here is a property of the declared architecture, not a measurement of the code, and a coherent verdict would be true by construction. (This is what a model whose actions all touch the same variables produces under any partition.) (/Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex6_jenga/specs/program_model/Jenga.tla)"
+    ],
+    "blocks_promotion": false
+  },
+  "advisory": {
+    "blocks_promotion": false,
+    "suggests_moves": false,
+    "note": "This report states measured facts about the code's dependency graph relative to a declared map. It names no module that should move and proposes no boundary. A divergent verdict never refuses a close, a promotion, or a case generation."
+  }
+}

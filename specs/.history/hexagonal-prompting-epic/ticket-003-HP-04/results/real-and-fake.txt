@@ -1,0 +1,29 @@
+generated Scenario_RecordAfterDelivery_cases (exit 0)
+generated Scenario_DeliveryPath_cases (exit 0)
+
+=== GIVEN corpus -> REAL adapter (FileLedgerStore, on disk) ===
+validated 5 adapter mappings for 3 labels
+EFFECT ORACLES CARRIED from /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-04/examples/validation/ex4_pipeline_coherent/specs/program_model/case_adapters.toml: LedgerStorePort -> specs.program_model.providers:ledger_store_provider
+executed 6 cases in batch
+EXIT=0
+
+=== GIVEN corpus -> FAKE adapter (InMemoryLedgerStore) ===
+validated 5 adapter mappings for 3 labels
+EFFECT ORACLES CARRIED from /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-04/specs/tickets/HP-04/results/real_and_fake/case_adapters_fake.toml: LedgerStorePort -> fake_ledger_store:fake_ledger_store_provider
+executed 6 cases in batch
+EXIT=0
+
+=== SLICE corpus -> REAL mapping (must run, and must say what it does NOT carry) ===
+validated 5 adapter mappings for 4 labels
+EFFECT ORACLES **NOT** CARRIED from /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-04/examples/validation/ex4_pipeline_coherent/specs/program_model/case_adapters.toml: LedgerStorePort. This corpus enters no action that emits on them -- for a case-module SLICE that is a fact about the slice, not a misconfiguration. A green result here is a statement about the ports listed as CARRIED and says NOTHING about the ports listed here; treat its kill count as a FLOOR.
+executed 50 cases in batch
+EXIT=0
+
+=== SLICE corpus -> FAKE mapping ===
+validated 5 adapter mappings for 4 labels
+EFFECT ORACLES **NOT** CARRIED from /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-04/specs/tickets/HP-04/results/real_and_fake/case_adapters_fake.toml: LedgerStorePort. This corpus enters no action that emits on them -- for a case-module SLICE that is a fact about the slice, not a misconfiguration. A green result here is a statement about the ports listed as CARRIED and says NOTHING about the ports listed here; treat its kill count as a FLOOR.
+executed 50 cases in batch
+EXIT=0
+
+=== the fixture is untouched ===
+(empty above == clean)

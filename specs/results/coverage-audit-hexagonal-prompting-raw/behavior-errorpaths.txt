@@ -1,0 +1,830 @@
+scripts/budgets.py:126:    try:
+scripts/budgets.py:128:    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+scripts/budgets.py:130:    try:
+scripts/budgets.py:132:    except Exception:
+scripts/budgets.py:142:    can arrive as the string ``"0.8"``; comparing that against a float raises.
+scripts/budgets.py:149:    try:
+scripts/budgets.py:151:    except (TypeError, ValueError):
+scripts/analyze_architecture.py:190:        raise DeclaredPartitionError(
+scripts/analyze_architecture.py:198:            raise DeclaredPartitionError(
+scripts/analyze_architecture.py:203:            raise DeclaredPartitionError(f"{origin}: component #{index} has no `name:`")
+scripts/analyze_architecture.py:205:            raise DeclaredPartitionError(f"{origin}: component `{name}` is declared twice")
+scripts/analyze_architecture.py:209:            raise DeclaredPartitionError(
+scripts/analyze_architecture.py:214:            raise DeclaredPartitionError(
+scripts/analyze_architecture.py:225:                raise DeclaredPartitionError(
+scripts/analyze_architecture.py:586:    # MF-030 fail-closed: resolve_module raises on any hierarchy construct the
+scripts/analyze_architecture.py:621:        try:
+scripts/analyze_architecture.py:623:        except DeclaredPartitionError:
+scripts/analyze_architecture.py:716:    try:
+scripts/analyze_architecture.py:720:    except ImportError:
+scripts/analyze_architecture.py:722:    except Exception as exc:
+scripts/analyze_architecture.py:724:    try:
+scripts/analyze_architecture.py:728:    except Exception as exc:
+scripts/analyze_architecture.py:730:    raise DeclaredPartitionError(
+scripts/analyze_architecture.py:1058:    try:
+scripts/analyze_architecture.py:1060:    except ModuleResolutionError as exc:
+scripts/analyze_architecture.py:1070:    except DeclaredPartitionError as exc:
+scripts/analyze_architecture.py:1087:        try:
+scripts/analyze_architecture.py:1089:        except (ReflexionMapError, CodeExtractionError) as exc:
+scripts/analyze_architecture.py:1103:        try:
+scripts/analyze_architecture.py:1105:        except BaselineError as exc:
+scripts/analyze_architecture.py:1121:        try:
+scripts/analyze_architecture.py:1123:        except EvidencePathError as exc:
+scripts/analyze_architecture.py:1192:    raise SystemExit(main())
+scripts/analyze_complexity.py:62:   nothing. ``--tlc-report``/``--baseline-tlc`` compare TLC runs and raise a
+scripts/analyze_complexity.py:319:        raise ModuleResolutionError(
+scripts/analyze_complexity.py:331:        raise UnsupportedModuleConstructError(
+scripts/analyze_complexity.py:339:        raise UnsupportedModuleConstructError(
+scripts/analyze_complexity.py:374:            raise UnresolvedExtendsError(
+scripts/analyze_complexity.py:1439:        """True when the scan raised no complexity warnings.
+scripts/analyze_complexity.py:1442:        False result means "the scan raised warnings the owner should read", not
+scripts/analyze_complexity.py:1496:    # resolve_module raises ModuleResolutionError (fails closed) on any
+scripts/analyze_complexity.py:1579:        try:
+scripts/analyze_complexity.py:1583:        except Exception:
+scripts/analyze_complexity.py:2194:    raised no complexity warnings; a False value means the caller should print
+scripts/analyze_complexity.py:2203:    try:
+scripts/analyze_complexity.py:2205:    except ModuleResolutionError as exc:
+scripts/analyze_complexity.py:2215:        # at or under the cap -- an incomplete bound raises the
+scripts/analyze_complexity.py:2271:    try:
+scripts/analyze_complexity.py:2279:    except ModuleResolutionError as exc:
+scripts/analyze_complexity.py:2296:        try:
+scripts/analyze_complexity.py:2298:        except EvidencePathError as exc:
+scripts/analyze_complexity.py:2306:    # the scan raised -- complexity never blocks promotion.
+scripts/analyze_complexity.py:2337:    raise SystemExit(main())
+scripts/architecture_reflexion.py:195:def _expand_module_entry(entry: str, code_root: Path, origin: str) -> list[Path]:
+scripts/architecture_reflexion.py:206:        raise ReflexionMapError(f"{origin}: an empty module entry")
+scripts/architecture_reflexion.py:209:        try:
+scripts/architecture_reflexion.py:211:        except OSError:  # pragma: no cover - defensive
+scripts/architecture_reflexion.py:216:            raise ReflexionMapError(
+scripts/architecture_reflexion.py:224:    raise ReflexionMapError(
+scripts/architecture_reflexion.py:258:        raise ReflexionMapError(
+scripts/architecture_reflexion.py:267:        raise ReflexionMapError(
+scripts/architecture_reflexion.py:275:        raise ReflexionMapError(
+scripts/architecture_reflexion.py:283:            raise ReflexionMapError(
+scripts/architecture_reflexion.py:289:            raise ReflexionMapError(f"{origin}: map entry #{index} names no `component:`")
+scripts/architecture_reflexion.py:291:            raise ReflexionMapError(f"{origin}: component `{name}` is mapped twice")
+scripts/architecture_reflexion.py:296:            raise ReflexionMapError(
+scripts/architecture_reflexion.py:307:                    raise ReflexionMapError(
+scripts/architecture_reflexion.py:412:        try:
+scripts/architecture_reflexion.py:414:        except ValueError:
+scripts/architecture_reflexion.py:672:        raise CodeExtractionError(f"code root is not a directory: {code_root}")
+scripts/architecture_reflexion.py:687:        raise CodeExtractionError(
+scripts/architecture_reflexion.py:699:        try:
+scripts/architecture_reflexion.py:701:        except (SyntaxError, UnicodeDecodeError, OSError) as exc:
+scripts/architecture_reflexion.py:1005:        raise ReflexionMapError(
+scripts/architecture_reflexion.py:1339:        raise BaselineError(f"baseline scan not found: {path}")
+scripts/architecture_reflexion.py:1341:    try:
+scripts/architecture_reflexion.py:1343:    except json.JSONDecodeError as exc:
+scripts/architecture_reflexion.py:1344:        raise BaselineError(
+scripts/architecture_reflexion.py:1351:        raise BaselineError(f"{path}: not a JSON object")
+scripts/architecture_reflexion.py:1354:        raise BaselineError(
+scripts/architecture_reflexion.py:1363:        raise BaselineError(
+scripts/architecture_reflexion.py:1370:        raise BaselineError(
+scripts/architecture_reflexion.py:1378:            raise BaselineError(
+scripts/architecture_reflexion.py:1971:    try:
+scripts/architecture_reflexion.py:1973:    except ValueError:
+scripts/architecture_reflexion.py:2195:        raise CodeExtractionError(f"code root not found or not a directory: {code_root}")
+scripts/architecture_reflexion.py:2198:        raise ReflexionMapError(f"map file not found: {map_file}")
+scripts/architecture_reflexion.py:2199:    try:
+scripts/architecture_reflexion.py:2201:    except DeclaredPartitionError as exc:
+scripts/architecture_reflexion.py:2202:        raise ReflexionMapError(str(exc)) from exc
+scripts/architecture_reflexion.py:2256:    try:
+scripts/architecture_reflexion.py:2260:    except ModuleResolutionError as exc:
+scripts/architecture_reflexion.py:2267:    except DeclaredPartitionError as exc:
+scripts/architecture_reflexion.py:2271:    try:
+scripts/architecture_reflexion.py:2273:    except (ReflexionMapError, CodeExtractionError) as exc:
+scripts/architecture_reflexion.py:2280:        try:
+scripts/architecture_reflexion.py:2282:        except BaselineError as exc:
+scripts/architecture_reflexion.py:2299:        try:
+scripts/architecture_reflexion.py:2301:        except EvidencePathError as exc:
+scripts/architecture_reflexion.py:2325:    raise SystemExit(main())
+scripts/close_spec_workflow.py:10:try:
+scripts/close_spec_workflow.py:12:except ImportError:  # pragma: no cover - direct script execution
+scripts/close_spec_workflow.py:56:    raise SystemExit(main())
+scripts/close-spec-workflow.py:8:    raise SystemExit(main())
+scripts/case_modules.py:39:try:  # package import
+scripts/case_modules.py:41:except ImportError:  # pragma: no cover - direct script execution
+scripts/case_modules.py:56:    """The declaration could not be read. Never raised for weak coverage."""
+scripts/case_modules.py:147:    try:  # package import
+scripts/case_modules.py:149:    except ImportError:  # pragma: no cover - direct script execution
+scripts/case_modules.py:214:        try:
+scripts/case_modules.py:216:        except OSError as error:
+scripts/case_modules.py:217:            raise ModuleSearchError(f"could not read {current}: {error}") from error
+scripts/case_modules.py:230:                raise ModuleSearchError(
+scripts/case_modules.py:242:                raise ModuleSearchError(
+scripts/case_modules.py:392:        raise CaseModuleError("\n".join(f"- {error}" for error in errors))
+scripts/case_modules.py:425:    try:
+scripts/case_modules.py:427:    except (CaseModuleError, ValueError) as error:
+scripts/case_modules.py:489:        raise CaseModuleError(
+scripts/case_modules.py:494:    try:
+scripts/case_modules.py:496:    except json.JSONDecodeError as error:
+scripts/case_modules.py:497:        raise CaseModuleError(f"{path} is not readable JSON: {error}") from error
+scripts/case_modules.py:499:        raise CaseModuleError(f"{path} is not a case-coverage record")
+scripts/case_modules.py:762:    try:
+scripts/case_modules.py:764:    except ImportError:  # pragma: no cover - direct script execution
+scripts/case_modules.py:802:    try:
+scripts/case_modules.py:814:    except CaseModuleError as error:
+scripts/case_modules.py:868:    raise SystemExit(main())
+scripts/close-ticket.py:8:    raise SystemExit(main())
+scripts/close_tickets.py:18:try:
+scripts/close_tickets.py:20:except ImportError:  # pragma: no cover - direct script execution
+scripts/close_tickets.py:164:    history_entry: str = "closed-snapshot",
+scripts/close_tickets.py:175:            raise SystemExit(f"cannot accept new workflow state: missing model directory: {desired_dir}")
+scripts/close_tickets.py:178:            raise SystemExit(
+scripts/close_tickets.py:196:            raise SystemExit(
+scripts/close_tickets.py:273:    raise SystemExit(main())
+scripts/corpus_diagnostics.py:63:try:
+scripts/corpus_diagnostics.py:65:except ImportError:  # pragma: no cover - direct script execution
+scripts/corpus_diagnostics.py:535:    ``report.passed`` and either fix the diagram or raise the cap.
+scripts/corpus_diagnostics.py:538:        raise ValueError(f"unsupported view {view!r}; expected one of {sorted(CAP_BUDGET_FOR_VIEW)}")
+scripts/corpus_diagnostics.py:600:    """The exact manifest edit that raises the cap, with its rationale slot.
+scripts/corpus_diagnostics.py:610:        f"ACCEPT PATH -- raise the cap, with a rationale, in {where}:\n"
+scripts/corpus_diagnostics.py:808:    """Hard gate: print and raise ``SystemExit(2)`` when over cap.
+scripts/corpus_diagnostics.py:826:        "REFUSING to accept this corpus. Fix the diagram, or raise the cap with a\n"
+scripts/corpus_diagnostics.py:830:    raise SystemExit(2)
+scripts/corpus_diagnostics.py:893:        try:
+scripts/corpus_diagnostics.py:895:        except ImportError:  # pragma: no cover - direct script execution
+scripts/corpus_diagnostics.py:903:        raise SystemExit(f"ERROR: no generated cases or trace JSON files in {cases_dir}")
+scripts/corpus_diagnostics.py:945:    raise SystemExit(main())
+scripts/close_ticket.py:9:try:
+scripts/close_ticket.py:11:except ImportError:  # pragma: no cover - direct script execution
+scripts/close_ticket.py:58:    raise SystemExit(main())
+scripts/effect_conformance_report.py:74:    try:
+scripts/effect_conformance_report.py:76:    except EffectDeclarationError as exc:
+scripts/effect_conformance_report.py:176:    raise SystemExit(main())
+scripts/complexity_ledger.py:69:  GATES NOTHING. A ticket that raised structural divergence records that and
+scripts/complexity_ledger.py:73:  entry: a drop whose disappeared edges are not enumerated is ``unverified``
+scripts/complexity_ledger.py:96:try:  # pragma: no cover - import shim for direct script execution
+scripts/complexity_ledger.py:98:except ImportError:  # pragma: no cover
+scripts/complexity_ledger.py:102:try:  # pragma: no cover
+scripts/complexity_ledger.py:104:except ImportError:  # pragma: no cover
+scripts/complexity_ledger.py:194:# NOTHING about the code: a ticket that raised structural divergence records
+scripts/complexity_ledger.py:337:    Everything here except ``claim`` is DERIVED from the report file. The map and
+scripts/complexity_ledger.py:388:    entry: dict[str, Any]
+scripts/complexity_ledger.py:494:        entry: dict[str, Any] = {"cap": cap, "used": used}
+scripts/complexity_ledger.py:603:    would raise on a YAML ledger -- and a fallback that fails on the real input
+scripts/complexity_ledger.py:610:    try:  # pragma: no cover - exercised only without pyyaml
+scripts/complexity_ledger.py:612:    except ImportError:  # pragma: no cover
+scripts/complexity_ledger.py:630:def append_entry(path: Path, entry: dict[str, Any]) -> Path:
+scripts/complexity_ledger.py:661:        entry: dict[str, Any] = {"before": before, "after": after, "delta": change}
+scripts/complexity_ledger.py:868:    try:
+scripts/complexity_ledger.py:870:    except (OSError, json.JSONDecodeError) as exc:
+scripts/complexity_ledger.py:932:        raise LedgerError(
+scripts/complexity_ledger.py:939:        raise LedgerError(f"complexity ledger input is not a mapping: {path}")
+scripts/extract_spec_manifest.py:61:        raise ValueError(
+scripts/extract_spec_manifest.py:106:            raise ValueError(
+scripts/extract_spec_manifest.py:113:            raise ValueError(
+scripts/extract_spec_manifest.py:123:        raise ValueError(f"expected key/value entry, got: {content!r}")
+scripts/extract_spec_manifest.py:135:            raise ValueError("tabs are not supported in spec manifests")
+scripts/extract_spec_manifest.py:174:            raise ValueError(f"unexpected indentation at: {content!r}")
+scripts/extract_spec_manifest.py:201:            raise ValueError(f"unexpected indentation at: {content!r}")
+scripts/extract_spec_manifest.py:249:            # parser raised "unexpected indentation" on any manifest carrying a
+scripts/extract_spec_manifest.py:256:            # entire "raise the cap with a rationale" accept path depends on
+scripts/extract_spec_manifest.py:279:        raise ValueError(f"unparsed manifest content at row {index + 1}")
+scripts/extract_spec_manifest.py:281:        raise ValueError("manifest root must be a mapping")
+scripts/extract_spec_manifest.py:391:    raise SystemExit(main())
+scripts/effect_conformance.py:183:#: HP-04: an adapter accepted a case and then raised. Ranked below
+scripts/effect_conformance.py:358:    and the first ``apply()``-only adapter raised ``TypeError``, killing the run
+scripts/effect_conformance.py:553:        raise EffectDeclarationError(f"effects block must be a mapping, got {type(data).__name__}")
+scripts/effect_conformance.py:559:        raise EffectDeclarationError(f"effects block must be a mapping, got {type(block).__name__}")
+scripts/effect_conformance.py:566:        raise EffectDeclarationError("effects.components must be a mapping of component -> ports")
+scripts/effect_conformance.py:570:            raise EffectDeclarationError(f"effects.components.{component} must be a mapping")
+scripts/effect_conformance.py:573:            raise EffectDeclarationError(f"effects.components.{component}.ports must be a mapping")
+scripts/effect_conformance.py:576:                raise EffectDeclarationError(f"port {component}.{port} must be a mapping")
+scripts/effect_conformance.py:582:                raise EffectDeclarationError(f"port {component}.{port} declares no type")
+scripts/effect_conformance.py:584:                raise EffectDeclarationError(
+scripts/effect_conformance.py:589:                raise EffectDeclarationError(f"port {component}.{port} declares no target pattern")
+scripts/effect_conformance.py:591:                raise EffectDeclarationError(f"duplicate port name {port!r}")
+scripts/effect_conformance.py:598:        raise EffectDeclarationError("effects.actions must be a mapping of action -> [port]")
+scripts/effect_conformance.py:605:            raise EffectDeclarationError(f"effects.actions.{action} must be a list of port names")
+scripts/effect_conformance.py:608:                raise EffectDeclarationError(
+scripts/effect_conformance.py:903:        try:
+scripts/effect_conformance.py:905:        except ImportError:  # pragma: no cover
+scripts/effect_conformance.py:1001:                try:
+scripts/effect_conformance.py:1005:                except OSError:
+scripts/effect_conformance.py:1065:    try:
+scripts/effect_conformance.py:1067:    except (TypeError, ValueError, OSError):
+scripts/effect_conformance.py:1192:        # An adapter that RAISED is the one exception, and it is not a new gate:
+scripts/effect_conformance.py:1193:        # before HP-04 that exception propagated and killed the whole command,
+scripts/effect_conformance.py:1252:            # "Driven" is not "measured": an adapter that raised was called and
+scripts/effect_conformance.py:1537:            # so the boundary is fully accounted for and no finding is raised.
+scripts/effect_conformance.py:1640:        try:
+scripts/effect_conformance.py:1642:        except OSError:  # pragma: no cover - defensive
+scripts/effect_conformance.py:1823:            try:
+scripts/effect_conformance.py:1826:            except Exception as exc:  # noqa: BLE001 -- reported, not swallowed
+scripts/export_testgraph_cases.py:13:try:
+scripts/export_testgraph_cases.py:24:except ImportError:  # pragma: no cover - direct script execution
+scripts/export_testgraph_cases.py:49:        raise ValueError(f"case {case.name} is {case_view(case)!r}, not external")
+scripts/export_testgraph_cases.py:51:        raise ValueError(f"case {case.name} is hidden and must not be exported as a Test Graph step")
+scripts/export_testgraph_cases.py:153:            raise SystemExit(f"ERROR: --manifest {resolved} does not exist")
+scripts/export_testgraph_cases.py:161:        raise SystemExit(
+scripts/export_testgraph_cases.py:236:    try:
+scripts/export_testgraph_cases.py:241:    except ChannelEnforcementError as exc:
+scripts/export_testgraph_cases.py:242:        raise SystemExit(str(exc))
+scripts/export_testgraph_cases.py:251:        raise SystemExit("ERROR: no external cases selected")
+scripts/export_testgraph_cases.py:263:    raise SystemExit(main())
+scripts/generate_cases_from_tlc_dump.py:26:try:
+scripts/generate_cases_from_tlc_dump.py:32:except ImportError:  # pragma: no cover - direct script execution
+scripts/generate_cases_from_tlc_dump.py:125:    try:
+scripts/generate_cases_from_tlc_dump.py:127:    except subprocess.CalledProcessError as error:
+scripts/generate_cases_from_tlc_dump.py:148:        raise SystemExit("\n".join(lines)) from error
+scripts/generate_cases_from_tlc_dump.py:334:    raise ValueError(f"expected string or list of strings, got {value!r}")
+scripts/generate_cases_from_tlc_dump.py:353:        raise ValueError(f"action metadata root must be a mapping: {metadata_path}")
+scripts/generate_cases_from_tlc_dump.py:360:            raise ValueError(f"action metadata for {action} must be a mapping")
+scripts/generate_cases_from_tlc_dump.py:363:            raise ValueError(f"unsupported layer for {action}: {layer}")
+scripts/generate_cases_from_tlc_dump.py:366:            raise ValueError(f"unsupported controllability for {action}: {controllability}")
+scripts/generate_cases_from_tlc_dump.py:497:        raise ValueError(f"object path must be module:object, got {path!r}")
+scripts/generate_cases_from_tlc_dump.py:515:        try:
+scripts/generate_cases_from_tlc_dump.py:517:        except TypeError as exc:
+scripts/generate_cases_from_tlc_dump.py:519:                raise
+scripts/generate_cases_from_tlc_dump.py:535:    try:
+scripts/generate_cases_from_tlc_dump.py:537:    except TypeError as exc:
+scripts/generate_cases_from_tlc_dump.py:539:            raise
+scripts/generate_cases_from_tlc_dump.py:542:        raise TypeError(f"state projector must return a dict, got {type(projected).__name__}")
+scripts/generate_cases_from_tlc_dump.py:560:    try:
+scripts/generate_cases_from_tlc_dump.py:571:    except TypeError as exc:
+scripts/generate_cases_from_tlc_dump.py:573:            raise
+scripts/generate_cases_from_tlc_dump.py:699:            raise ValueError("negative generation needs the module and config text")
+scripts/generate_cases_from_tlc_dump.py:923:        "            raise AssertionError(f\"unexpected input for {self.case.name}: {value!r}\")\n"
+scripts/generate_cases_from_tlc_dump.py:925:        "            raise AssertionError(f\"case already consumed: {self.case.name}\")\n"
+scripts/generate_cases_from_tlc_dump.py:1022:    try:
+scripts/generate_cases_from_tlc_dump.py:1024:    except case_modules.ModuleSearchError as error:
+scripts/generate_cases_from_tlc_dump.py:1033:        raise SystemExit(f"ERROR: {error}") from error
+scripts/generate_cases_from_tlc_dump.py:1102:    try:
+scripts/generate_cases_from_tlc_dump.py:1104:    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+scripts/generate_cases_from_tlc_dump.py:1107:    try:
+scripts/generate_cases_from_tlc_dump.py:1114:    except Exception as exc:  # a scan that cannot parse must not block generation
+scripts/generate_cases_from_tlc_dump.py:1354:            raise Unevaluable(f"unrecognized character at offset {index}: {text[index:index + 12]!r}")
+scripts/generate_cases_from_tlc_dump.py:1369:    Deliberately partial. Every construct it does not implement raises
+scripts/generate_cases_from_tlc_dump.py:1385:            raise Unevaluable("unexpected end of expression")
+scripts/generate_cases_from_tlc_dump.py:1397:            raise Unevaluable(f"expected {token!r}, found {self.peek()!r}")
+scripts/generate_cases_from_tlc_dump.py:1403:            raise Unevaluable(f"trailing tokens from {self.peek()!r}")
+scripts/generate_cases_from_tlc_dump.py:1493:            raise Unevaluable("unexpected end of expression")
+scripts/generate_cases_from_tlc_dump.py:1543:            raise Unevaluable(f"unsupported construct: {token}")
+scripts/generate_cases_from_tlc_dump.py:1556:        raise Unevaluable(f"unsupported token {token!r}")
+scripts/generate_cases_from_tlc_dump.py:1568:                    raise Unevaluable(f"bad binding name {name!r}")
+scripts/generate_cases_from_tlc_dump.py:1586:            try:
+scripts/generate_cases_from_tlc_dump.py:1592:            except Unevaluable:
+scripts/generate_cases_from_tlc_dump.py:1609:            try:
+scripts/generate_cases_from_tlc_dump.py:1615:            except Unevaluable:
+scripts/generate_cases_from_tlc_dump.py:1618:        try:
+scripts/generate_cases_from_tlc_dump.py:1628:        except Unevaluable:
+scripts/generate_cases_from_tlc_dump.py:1630:        raise Unevaluable("unsupported bracket expression (EXCEPT, function set, ...)")
+scripts/generate_cases_from_tlc_dump.py:1641:            raise cached
+scripts/generate_cases_from_tlc_dump.py:1643:    try:
+scripts/generate_cases_from_tlc_dump.py:1645:    except Unevaluable as error:
+scripts/generate_cases_from_tlc_dump.py:1647:        raise
+scripts/generate_cases_from_tlc_dump.py:1648:    except RecursionError as error:  # pragma: no cover - pathological input
+scripts/generate_cases_from_tlc_dump.py:1651:        raise wrapped from error
+scripts/generate_cases_from_tlc_dump.py:1665:    try:
+scripts/generate_cases_from_tlc_dump.py:1667:    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+scripts/generate_cases_from_tlc_dump.py:1830:        try:
+scripts/generate_cases_from_tlc_dump.py:1832:        except Unevaluable:
+scripts/generate_cases_from_tlc_dump.py:1834:        except RecursionError:  # pragma: no cover - pathological input
+scripts/generate_cases_from_tlc_dump.py:1845:            raise Unevaluable("operator expansion too deep")
+scripts/generate_cases_from_tlc_dump.py:1852:            raise Unevaluable("primed variable")
+scripts/generate_cases_from_tlc_dump.py:1861:                    raise Unevaluable(f"index {key!r} outside function domain")
+scripts/generate_cases_from_tlc_dump.py:1865:                    raise Unevaluable("sequence index out of range")
+scripts/generate_cases_from_tlc_dump.py:1867:            raise Unevaluable("application of a non-function")
+scripts/generate_cases_from_tlc_dump.py:1878:                raise Unevaluable("non-integer range bound")
+scripts/generate_cases_from_tlc_dump.py:1883:                raise Unevaluable("non-boolean IF condition")
+scripts/generate_cases_from_tlc_dump.py:1894:                raise Unevaluable("multi-argument function constructor")
+scripts/generate_cases_from_tlc_dump.py:1903:                raise Unevaluable("multi-variable set filter")
+scripts/generate_cases_from_tlc_dump.py:1909:                    raise Unevaluable("non-boolean set filter")
+scripts/generate_cases_from_tlc_dump.py:1919:        raise Unevaluable(f"unsupported node {kind}")
+scripts/generate_cases_from_tlc_dump.py:1930:            raise Unevaluable(f"variable {name} absent from this state")
+scripts/generate_cases_from_tlc_dump.py:1931:        raise Unevaluable(f"unbound name {name}")
+scripts/generate_cases_from_tlc_dump.py:1937:                raise Unevaluable("Cardinality of a non-set")
+scripts/generate_cases_from_tlc_dump.py:1943:                raise Unevaluable("Len of a non-sequence")
+scripts/generate_cases_from_tlc_dump.py:1947:                raise Unevaluable("Head of a non-sequence")
+scripts/generate_cases_from_tlc_dump.py:1951:                raise Unevaluable("Tail of a non-sequence")
+scripts/generate_cases_from_tlc_dump.py:1955:                raise Unevaluable("Append to a non-sequence")
+scripts/generate_cases_from_tlc_dump.py:1959:            raise Unevaluable(f"unresolvable operator {name}/{len(values)}")
+scripts/generate_cases_from_tlc_dump.py:1968:                raise Unevaluable("negation of a non-boolean")
+scripts/generate_cases_from_tlc_dump.py:1972:                raise Unevaluable("negation of a non-integer")
+scripts/generate_cases_from_tlc_dump.py:1979:            raise Unevaluable("DOMAIN of a non-function")
+scripts/generate_cases_from_tlc_dump.py:1982:                raise Unevaluable("SUBSET of a non-set or an oversized set")
+scripts/generate_cases_from_tlc_dump.py:1991:                raise Unevaluable("UNION of a non-set")
+scripts/generate_cases_from_tlc_dump.py:1995:                    raise Unevaluable("UNION over a non-set member")
+scripts/generate_cases_from_tlc_dump.py:1998:        raise Unevaluable(f"unsupported unary {operator}")
+scripts/generate_cases_from_tlc_dump.py:2004:                raise Unevaluable("non-boolean operand")
+scripts/generate_cases_from_tlc_dump.py:2015:                raise Unevaluable("non-boolean operand")
+scripts/generate_cases_from_tlc_dump.py:2032:                raise Unevaluable("membership in a non-set")
+scripts/generate_cases_from_tlc_dump.py:2036:                raise Unevaluable("membership in a non-set")
+scripts/generate_cases_from_tlc_dump.py:2040:                raise Unevaluable("subset of a non-set")
+scripts/generate_cases_from_tlc_dump.py:2044:                raise Unevaluable("comparison of non-integers")
+scripts/generate_cases_from_tlc_dump.py:2054:                raise Unevaluable("arithmetic on non-integers")
+scripts/generate_cases_from_tlc_dump.py:2062:                raise Unevaluable("division by zero")
+scripts/generate_cases_from_tlc_dump.py:2066:                raise Unevaluable("set operation on a non-set")
+scripts/generate_cases_from_tlc_dump.py:2072:        raise Unevaluable(f"unsupported operator {operator}")
+scripts/generate_cases_from_tlc_dump.py:2081:                raise Unevaluable("quantifier over a non-set")
+scripts/generate_cases_from_tlc_dump.py:2109:                raise Unevaluable("non-boolean quantifier body")
+scripts/generate_cases_from_tlc_dump.py:2150:    try:
+scripts/generate_cases_from_tlc_dump.py:2152:    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+scripts/generate_cases_from_tlc_dump.py:2164:        try:
+scripts/generate_cases_from_tlc_dump.py:2166:        except Unevaluable as error:
+scripts/generate_cases_from_tlc_dump.py:2184:        try:
+scripts/generate_cases_from_tlc_dump.py:2189:                    raise Unevaluable("quantifier domain is not a set")
+scripts/generate_cases_from_tlc_dump.py:2193:        except Unevaluable as error:
+scripts/generate_cases_from_tlc_dump.py:2349:    try:
+scripts/generate_cases_from_tlc_dump.py:2351:    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+scripts/generate_cases_from_tlc_dump.py:2354:    try:
+scripts/generate_cases_from_tlc_dump.py:2356:    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+scripts/generate_cases_from_tlc_dump.py:2727:        raise SystemExit(f"ERROR: config not found: {cfg_path} (spec directory: {spec_dir})")
+scripts/generate_cases_from_tlc_dump.py:2737:    try:
+scripts/generate_cases_from_tlc_dump.py:2742:    except SpecTreePathError as error:
+scripts/generate_cases_from_tlc_dump.py:2772:        raise SystemExit(f"ERROR: no states parsed from {dot_path}")
+scripts/generate_cases_from_tlc_dump.py:2848:    # nonzero -- fix the diagram, or raise the cap with a recorded rationale.
+scripts/generate_cases_from_tlc_dump.py:2886:        raise SystemExit(
+scripts/generate_cases_from_tlc_dump.py:2915:    raise SystemExit(main())
+scripts/fitness_functions.py:23:  surfaced as INVALID rather than raised.
+scripts/fitness_functions.py:139:        raise RuleError(
+scripts/fitness_functions.py:144:        raise RuleError(f"unknown op {op_name!r}; one of: {', '.join(_OPS)}")
+scripts/fitness_functions.py:146:        raise RuleError(f"leaf on fact {fact!r} is missing 'value'")
+scripts/fitness_functions.py:152:            raise RuleError("fact 'variable_domain' needs var: <variable name>")
+scripts/fitness_functions.py:155:            raise RuleError(
+scripts/fitness_functions.py:167:    try:
+scripts/fitness_functions.py:169:    except TypeError as exc:
+scripts/fitness_functions.py:170:        raise RuleError(
+scripts/fitness_functions.py:185:        raise RuleError(f"rule node must be a non-empty mapping, got {node!r}")
+scripts/fitness_functions.py:190:            raise RuleError(f"'{combinator}' node has extra keys: {sorted(keys - {combinator})}")
+scripts/fitness_functions.py:193:            raise RuleError(f"'{combinator}' takes a non-empty list of rule nodes")
+scripts/fitness_functions.py:213:            raise RuleError(f"'not' node has extra keys: {sorted(keys - {'not'})}")
+scripts/fitness_functions.py:218:    raise RuleError(
+scripts/fitness_functions.py:257:        if "rule" not in entry:
+scripts/fitness_functions.py:280:        try:
+scripts/fitness_functions.py:284:        except Exception as exc:
+scripts/fitness_functions.py:293:    try:
+scripts/fitness_functions.py:295:    except Exception as exc:
+scripts/fitness_functions.py:308:    try:
+scripts/fitness_functions.py:310:    except Exception:
+scripts/fitness_functions.py:327:    Config problems land in ``errors`` (surfaced advisorily), never raise.
+scripts/fitness_functions.py:416:        try:
+scripts/fitness_functions.py:418:        except RuleError as exc:
+scripts/fitness_functions.py:444:    are no built-in rules. Never raises; never influences any exit code.
+scripts/generate_docs.py:37:    raise SystemExit(main())
+scripts/kill_test.py:232:        raise KillTestCatalogError(f"{source}: catalog root must be a mapping")
+scripts/kill_test.py:235:        raise KillTestCatalogError(
+scripts/kill_test.py:245:            raise KillTestCatalogError(f"{source}: mutant #{index} is not a mapping")
+scripts/kill_test.py:248:            raise KillTestCatalogError(
+scripts/kill_test.py:255:            raise KillTestCatalogError(
+scripts/kill_test.py:261:            raise KillTestCatalogError(f"{source}: duplicate mutant id {mutant_id!r}")
+scripts/kill_test.py:304:        raise KillTestCatalogError(
+scripts/kill_test.py:308:    try:
+scripts/kill_test.py:310:    except ModuleNotFoundError:  # pragma: no cover - Python < 3.11
+scripts/kill_test.py:311:        try:
+scripts/kill_test.py:313:        except ModuleNotFoundError as exc:
+scripts/kill_test.py:320:            raise KillTestCatalogError(
+scripts/kill_test.py:328:    try:
+scripts/kill_test.py:330:    except Exception as exc:  # noqa: BLE001 - surfaced as a refusal
+scripts/kill_test.py:331:        raise KillTestCatalogError(f"{path}: could not parse catalog: {exc}") from exc
+scripts/kill_test.py:474:                raise KillTestCatalogError(
+scripts/kill_test.py:529:    The restore is in a ``finally`` so an exception mid-run cannot leave a
+scripts/kill_test.py:536:        raise KillTestCatalogError(f"mutant {mutant.id}: no such file {target}")
+scripts/kill_test.py:539:        raise KillTestCatalogError(
+scripts/kill_test.py:546:        raise KillTestCatalogError(f"mutant {mutant.id}: substitution changed nothing")
+scripts/kill_test.py:547:    try:
+scripts/kill_test.py:1072:    try:
+scripts/kill_test.py:1076:    except ModuleNotFoundError:
+scripts/kill_test.py:1078:    try:
+scripts/kill_test.py:1082:    except Exception:  # noqa: BLE001
+scripts/infer_action_params.py:26:``except-index``
+scripts/infer_action_params.py:50:    Like ``except-index``, the recovery CONSUMES an observation: "which element
+scripts/infer_action_params.py:82:EXCEPT_INDEX = "except-index"
+scripts/infer_action_params.py:180:        ``except-index`` spends "which index of ``v`` changed" and
+scripts/infer_action_params.py:306:    Preference order is guard-pinned, then except-index, then set-membership,
+scripts/infer_action_params.py:322:    # 2. except-index: `v' = [v EXCEPT ![param] = ...]`, possibly inside an IF.
+scripts/infer_action_params.py:324:        except_index = re.compile(
+scripts/infer_action_params.py:328:        if except_index.search(body):
+scripts/infer_action_params.py:834:    raise SystemExit(main())
+scripts/new_ticket_workflow.py:78:        raise SystemExit("ticket ids must contain at least one safe path character")
+scripts/new_ticket_workflow.py:108:        try:
+scripts/new_ticket_workflow.py:110:        except ValueError:
+scripts/new_ticket_workflow.py:143:            raise SystemExit(
+scripts/new_ticket_workflow.py:183:        raise SystemExit(
+scripts/new_ticket_workflow.py:340:        raise SystemExit(f"missing ticket plan: {path}")
+scripts/new_ticket_workflow.py:343:        raise SystemExit(f"ticket plan must contain a tickets list: {path}")
+scripts/new_ticket_workflow.py:350:        raise SystemExit("ticket plan has no tickets list")
+scripts/new_ticket_workflow.py:360:    raise SystemExit(f"ticket {ticket_ref!r} was not found in {plan_source}")
+scripts/new_ticket_workflow.py:1107:    raise SystemExit(main())
+scripts/run_kill_test.py:133:        try:
+scripts/run_kill_test.py:136:        except (OSError, json.JSONDecodeError) as exc:
+scripts/run_kill_test.py:151:    try:
+scripts/run_kill_test.py:153:    except KillTestCatalogError as exc:
+scripts/run_kill_test.py:191:        try:
+scripts/run_kill_test.py:193:        except (OSError, json.JSONDecodeError) as exc:
+scripts/run_kill_test.py:200:    try:
+scripts/run_kill_test.py:212:    except KillTestCatalogError as exc:
+scripts/run_kill_test.py:235:    raise SystemExit(main())
+scripts/scaffold_spec.py:38:        raise SystemExit(f"refusing to overwrite existing file: {path}")
+scripts/scaffold_spec.py:54:        raise SystemExit(f"unsupported views: {', '.join(sorted(unknown))}")
+scripts/scaffold_spec.py:327:        raise NotImplementedError(
+scripts/scaffold_spec.py:450:        raise NotImplementedError("load the TLA `before` state into the real component")
+scripts/scaffold_spec.py:453:        raise NotImplementedError("project real internal state back into the Internal.tla shape")
+scripts/scaffold_spec.py:456:        raise NotImplementedError
+scripts/scaffold_spec.py:461:        raise NotImplementedError("call the real Create boundary")
+scripts/scaffold_spec.py:482:        raise NotImplementedError(
+scripts/scaffold_spec.py:494:        raise NotImplementedError
+scripts/scaffold_spec.py:499:        raise NotImplementedError("drive the real public Submit surface")
+scripts/scaffold_spec.py:515:        raise NotImplementedError(
+scripts/scaffold_spec.py:536:            raise AssertionError(
+scripts/scaffold_spec.py:585:    raise ValueError(f"no adapter output projection for {view} action {action}")
+scripts/scaffold_spec.py:592:        raise ValueError(f"response for {response_key!r} not found in TLC state")
+scripts/scaffold_spec.py:599:    raise TypeError(f"expected TLC mapping, got {value!r}")
+scripts/scaffold_spec.py:874:    raise SystemExit(main())
+scripts/run_generated_case_adapters.py:29:try:
+scripts/run_generated_case_adapters.py:40:except ImportError:  # pragma: no cover - direct script execution
+scripts/run_generated_case_adapters.py:52:try:
+scripts/run_generated_case_adapters.py:54:except ModuleNotFoundError:  # pragma: no cover
+scripts/run_generated_case_adapters.py:205:                raise ValueError(f"[adapters.{label}] must be a table")
+scripts/run_generated_case_adapters.py:208:                raise ValueError(f"[adapters.{label}] must define adapter = \"module:object\"")
+scripts/run_generated_case_adapters.py:211:                raise ValueError(f"[adapters.{label}] output_projection must be \"module:object\"")
+scripts/run_generated_case_adapters.py:214:                raise ValueError(f"[adapters.{label}] expected_projection must be \"module:object\"")
+scripts/run_generated_case_adapters.py:228:                raise ValueError(f"[[adapter]] entry {index} must be a table")
+scripts/run_generated_case_adapters.py:232:                raise ValueError(f"[[adapter]] entry {index} must define adapter = \"module:object\"")
+scripts/run_generated_case_adapters.py:236:                raise ValueError(f"[[adapter]] entry {index} must define label or labels")
+scripts/run_generated_case_adapters.py:251:                raise ValueError(f"[actions.{label}] must be a table")
+scripts/run_generated_case_adapters.py:254:                raise ValueError(f"[actions.{label}] adapter must be \"module:object\"")
+scripts/run_generated_case_adapters.py:257:                raise ValueError(f"[actions.{label}] output_projection must be \"module:object\"")
+scripts/run_generated_case_adapters.py:260:                raise ValueError(f"[actions.{label}] expected_projection must be \"module:object\"")
+scripts/run_generated_case_adapters.py:263:                raise ValueError(f"[actions.{label}] projector must be \"module:object\"")
+scripts/run_generated_case_adapters.py:266:                raise ValueError(f"[actions.{label}] assertion must be \"module:object\"")
+scripts/run_generated_case_adapters.py:283:        raise ValueError(f"no adapter mappings found in {path}")
+scripts/run_generated_case_adapters.py:317:                raise ValueError(f"duplicate [adapters.{label}] table")
+scripts/run_generated_case_adapters.py:325:                raise ValueError(f"duplicate [actions.{label}] table")
+scripts/run_generated_case_adapters.py:333:                raise ValueError(f"duplicate [effect_providers.{port_name}] table")
+scripts/run_generated_case_adapters.py:338:            raise ValueError(f"unsupported TOML line: {raw_line!r}")
+scripts/run_generated_case_adapters.py:342:            raise ValueError(f"duplicate key {key!r} in TOML table")
+scripts/run_generated_case_adapters.py:355:    raise ValueError(f"unsupported TOML value: {value!r}")
+scripts/run_generated_case_adapters.py:361:        raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:374:    try:
+scripts/run_generated_case_adapters.py:379:    except Exception as exc:
+scripts/run_generated_case_adapters.py:380:        raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:401:        raise RuntimeError(
+scripts/run_generated_case_adapters.py:412:        raise EffectProviderConfigurationError("[effect_providers] must contain one table per typed port")
+scripts/run_generated_case_adapters.py:417:            raise EffectProviderConfigurationError("semantic effect provider port names must be non-empty and trimmed")
+scripts/run_generated_case_adapters.py:419:            raise EffectProviderConfigurationError(f"[effect_providers.{name}] must be a table")
+scripts/run_generated_case_adapters.py:422:            raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:427:            raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:442:    try:
+scripts/run_generated_case_adapters.py:445:    except (ImportError, AttributeError) as exc:
+scripts/run_generated_case_adapters.py:446:        raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:458:        raise EffectProviderConfigurationError(f"generated port {module_name}:{port_name} is not a Protocol")
+scripts/run_generated_case_adapters.py:460:        raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:469:    try:
+scripts/run_generated_case_adapters.py:472:    except Exception as exc:
+scripts/run_generated_case_adapters.py:473:        raise EffectProviderConfigurationError(f"could not load provider {reference!r}: {exc}") from exc
+scripts/run_generated_case_adapters.py:475:        raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:488:    try:
+scripts/run_generated_case_adapters.py:490:    except Exception as exc:
+scripts/run_generated_case_adapters.py:491:        raise TypeError(
+scripts/run_generated_case_adapters.py:517:            raise TypeError(
+scripts/run_generated_case_adapters.py:539:                raise TypeError(
+scripts/run_generated_case_adapters.py:549:            raise TypeError(
+scripts/run_generated_case_adapters.py:572:    try:
+scripts/run_generated_case_adapters.py:574:    except Exception as exc:
+scripts/run_generated_case_adapters.py:575:        raise EffectProviderConfigurationError(f"invalid provider mapping {mapping_path}: {exc}") from exc
+scripts/run_generated_case_adapters.py:579:            raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:589:            raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:594:    try:
+scripts/run_generated_case_adapters.py:597:    except ValueError as exc:
+scripts/run_generated_case_adapters.py:598:        raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:605:        raise EffectProviderConfigurationError("spec_manifest.yaml ports must be a mapping")
+scripts/run_generated_case_adapters.py:607:        raise EffectProviderConfigurationError("actions.yml actions must be a mapping")
+scripts/run_generated_case_adapters.py:626:                raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:633:            raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:649:            raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:655:            raise EffectProviderConfigurationError(f"actions.yml action {action} must be a mapping")
+scripts/run_generated_case_adapters.py:657:            raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:664:            raise EffectProviderConfigurationError(f"actions.yml action {action} effect_ports must be a list of port names")
+scripts/run_generated_case_adapters.py:670:                raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:675:                raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:681:                raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:686:                raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:712:    # CM-F5 / EV-03-DF-02, closed by HP-04. This used to raise.
+scripts/run_generated_case_adapters.py:754:        raise SystemExit(
+scripts/run_generated_case_adapters.py:813:        raise SystemExit(
+scripts/run_generated_case_adapters.py:894:        raise TypeError(f"binding for {mapping.label} does not define an executable adapter")
+scripts/run_generated_case_adapters.py:930:        try:
+scripts/run_generated_case_adapters.py:932:        except TypeError as exc:
+scripts/run_generated_case_adapters.py:935:        raise last_type_error
+scripts/run_generated_case_adapters.py:936:    raise TypeError(f"{callable_obj!r} is not callable")
+scripts/run_generated_case_adapters.py:946:    raise TypeError(f"{obj!r} is not callable and does not define one of {method_names}")
+scripts/run_generated_case_adapters.py:966:        raise AssertionError(f"projected-state assertion for {assertion_context.case.name} requires a projector")
+scripts/run_generated_case_adapters.py:1040:        raise AssertionError(f"adapter output mismatch for {case.name}: {result.output!r} != {case.output!r}")
+scripts/run_generated_case_adapters.py:1050:            raise AssertionError(f"adapter after-state mismatch for {case.name}: {detail}")
+scripts/run_generated_case_adapters.py:1056:            raise AssertionError(
+scripts/run_generated_case_adapters.py:1076:                raise AssertionError(f"projected state mismatch for {assertion_context.case.name}: {detail}")
+scripts/run_generated_case_adapters.py:1079:            raise AssertionError(
+scripts/run_generated_case_adapters.py:1095:        raise AssertionError(f"projected state assertion returned False for {assertion_context.case.name}")
+scripts/run_generated_case_adapters.py:1158:        raise SystemExit(f"ERROR: adapter capability validation failed for {len(rejected)} cases\n{details}{suffix}")
+scripts/run_generated_case_adapters.py:1233:    raise SystemExit(main())
+scripts/run_generated_case_adapters.py:1251:            raise AssertionError(f"no adapter mapping for case {case.name}: {sorted(case.labels)}")
+scripts/run_generated_case_adapters.py:1253:            raise SystemExit(f"ERROR: case {case.name} via {mapping.label} has no executable adapter")
+scripts/run_generated_case_adapters.py:1282:    try:
+scripts/run_generated_case_adapters.py:1284:    except Exception as exc:
+scripts/run_generated_case_adapters.py:1285:        raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:1289:    try:
+scripts/run_generated_case_adapters.py:1295:    except RuntimeError as exc:
+scripts/run_generated_case_adapters.py:1296:        raise EffectProviderConfigurationError(str(exc)) from exc
+scripts/run_generated_case_adapters.py:1300:        raise EffectProviderConfigurationError(
+scripts/run_generated_case_adapters.py:1325:    Provider cleanup must receive the real exception so ordinary context
+scripts/run_generated_case_adapters.py:1328:    cleanup exception is retained separately before normal ExitStack unwinding
+scripts/run_generated_case_adapters.py:1347:        try:
+scripts/run_generated_case_adapters.py:1349:        except Exception as cleanup_error:
+scripts/run_generated_case_adapters.py:1351:            raise
+scripts/run_generated_case_adapters.py:1473:            try:
+scripts/run_generated_case_adapters.py:1475:            except BaseException as exc:
+scripts/run_generated_case_adapters.py:1476:                raise _EffectProviderPhaseFailure(
+scripts/run_generated_case_adapters.py:1496:    try:
+scripts/run_generated_case_adapters.py:1498:    except ImportError:  # pragma: no cover - direct script execution
+scripts/run_generated_case_adapters.py:1530:    try:
+scripts/run_generated_case_adapters.py:1538:    except _EffectProviderPhaseFailure as exc:
+scripts/run_generated_case_adapters.py:1548:        raise SystemExit(f"ERROR: semantic effect provider bind failed\n{diagnostic}") from exc
+scripts/run_generated_case_adapters.py:1549:    except EffectProviderConfigurationError as exc:
+scripts/run_generated_case_adapters.py:1550:        raise SystemExit(f"ERROR: invalid semantic effect provider configuration: {exc}") from exc
+scripts/run_generated_case_adapters.py:1616:                try:
+scripts/run_generated_case_adapters.py:1618:                except Exception as exc:
+scripts/run_generated_case_adapters.py:1620:                        raise
+scripts/run_generated_case_adapters.py:1633:                try:
+scripts/run_generated_case_adapters.py:1635:                except Exception as exc:
+scripts/run_generated_case_adapters.py:1637:                        raise
+scripts/run_generated_case_adapters.py:1659:            try:
+scripts/run_generated_case_adapters.py:1673:            except Exception as exc:
+scripts/run_generated_case_adapters.py:1687:        try:
+scripts/run_generated_case_adapters.py:1696:                            try:
+scripts/run_generated_case_adapters.py:1698:                            except Exception as exc:
+scripts/run_generated_case_adapters.py:1700:                                    raise
+scripts/run_generated_case_adapters.py:1762:                    try:
+scripts/run_generated_case_adapters.py:1772:                                try:
+scripts/run_generated_case_adapters.py:1785:                                except Exception:
+scripts/run_generated_case_adapters.py:1788:                                    raise
+scripts/run_generated_case_adapters.py:1792:                                    raise TypeError(
+scripts/run_generated_case_adapters.py:1802:                                try:
+scripts/run_generated_case_adapters.py:1831:                                except Exception as exc:
+scripts/run_generated_case_adapters.py:1840:                                        try:
+scripts/run_generated_case_adapters.py:1847:                                        except Exception as exc:
+scripts/run_generated_case_adapters.py:1852:                                raise application_error
+scripts/run_generated_case_adapters.py:1854:                                raise teardown_error
+scripts/run_generated_case_adapters.py:1855:                    except Exception as exc:
+scripts/run_generated_case_adapters.py:1859:                    try:
+scripts/run_generated_case_adapters.py:1865:                    except Exception as exc:
+scripts/run_generated_case_adapters.py:1872:                    # cleanup exception independently so no failure can replace
+scripts/run_generated_case_adapters.py:1981:                try:
+scripts/run_generated_case_adapters.py:1995:                except Exception as exc:
+scripts/run_generated_case_adapters.py:2012:    # like a broken assertion. Nothing between here and the raise consults a
+scripts/run_generated_case_adapters.py:2013:    # justification, an annotation, or a manifest entry: recording a finding is
+scripts/run_generated_case_adapters.py:2033:        raise SystemExit(f"ERROR: {len(failures)} batched case executions failed\n{details}{suffix}")
+scripts/run_generated_case_adapters.py:2061:        raise SystemExit("ERROR: --fuzz-runs must be at least 1")
+scripts/run_generated_case_adapters.py:2063:        raise SystemExit("ERROR: --fuzz-iteration must be non-negative")
+scripts/run_generated_case_adapters.py:2071:        raise SystemExit(
+scripts/run_generated_case_adapters.py:2166:        if not entry:
+scripts/run_generated_case_adapters.py:2183:        raise SystemExit(f"ERROR: {len(failures)} generated case programs failed\n{details}")
+scripts/run_generated_case_adapters.py:2257:    try:
+scripts/run_generated_case_adapters.py:2259:    except ChannelEnforcementError as exc:
+scripts/run_generated_case_adapters.py:2260:        raise SystemExit(str(exc))
+scripts/run_generated_case_adapters.py:2263:        raise SystemExit("ERROR: no cases selected")
+scripts/run_generated_case_adapters.py:2264:    try:
+scripts/run_generated_case_adapters.py:2271:    except EffectProviderConfigurationError as exc:
+scripts/run_generated_case_adapters.py:2272:        raise SystemExit(f"ERROR: invalid semantic effect provider configuration: {exc}") from exc
+scripts/run_generated_case_adapters.py:2279:        raise SystemExit("ERROR: --fuzz-runs must be at least 1")
+scripts/run_generated_case_adapters.py:2281:        raise SystemExit("ERROR: --fuzz-iteration must be non-negative")
+scripts/run_generated_case_adapters.py:2284:        raise SystemExit(
+scripts/run_generated_case_adapters.py:2305:            try:
+scripts/run_generated_case_adapters.py:2307:            except EffectDeclarationError as exc:
+scripts/run_generated_case_adapters.py:2308:                raise SystemExit(f"ERROR: malformed effect declarations: {exc}")
+scripts/run_generated_case_adapters.py:2347:    raise SystemExit(main())
+scripts/spec_paths.py:9:    try:
+scripts/spec_paths.py:11:    except ValueError:
+scripts/spec_paths.py:25:        raise SystemExit(f"ERROR: spec not found: {resolved}")
+scripts/spec_paths.py:88:        raise EvidencePathError(
+scripts/spec_paths.py:149:        raise SpecTreePathError(
+scripts/spec_evolution.py:18:try:
+scripts/spec_evolution.py:20:except ImportError:  # pragma: no cover - direct script execution
+scripts/spec_evolution.py:23:try:
+scripts/spec_evolution.py:25:except ImportError:  # pragma: no cover - direct script execution
+scripts/spec_evolution.py:85:        raise SystemExit("ERROR: history path segments must contain at least one safe character")
+scripts/spec_evolution.py:91:    try:
+scripts/spec_evolution.py:93:    except ValueError:
+scripts/spec_evolution.py:98:    try:
+scripts/spec_evolution.py:100:    except (OSError, subprocess.CalledProcessError):
+scripts/spec_evolution.py:180:        raise SystemExit(f"ERROR: missing desired program ticket plan: {path}")
+scripts/spec_evolution.py:183:        raise SystemExit(f"ERROR: ticket plan must be a mapping: {path}")
+scripts/spec_evolution.py:185:        raise SystemExit(f"ERROR: ticket plan must contain a tickets list: {path}")
+scripts/spec_evolution.py:212:        raise SystemExit("ERROR: ticket plan has no tickets list")
+scripts/spec_evolution.py:224:    raise SystemExit(f"ERROR: ticket {ticket_ref!r} was not found in desired_program_model/ticket_plan.yaml")
+scripts/spec_evolution.py:258:        f"- Entry: `{manifest['entry_name']}`\n",
+scripts/spec_evolution.py:418:    try:
+scripts/spec_evolution.py:420:    except (OSError, ValueError):
+scripts/spec_evolution.py:421:        try:
+scripts/spec_evolution.py:423:        except Exception:  # noqa: BLE001 - an unreadable ticket.yaml means "no evidence"
+scripts/spec_evolution.py:440:        try:
+scripts/spec_evolution.py:442:        except StopIteration:
+scripts/spec_evolution.py:631:        raise ModelSelectionError(
+scripts/spec_evolution.py:635:    raise ModelSelectionError(
+scripts/spec_evolution.py:660:    raises :class:`ModelSelectionError` rather than picking alphabetically,
+scripts/spec_evolution.py:677:            raise ModelSelectionError(
+scripts/spec_evolution.py:686:            raise ModelSelectionError(
+scripts/spec_evolution.py:723:    raise ModelSelectionError(
+scripts/spec_evolution.py:747:    try:
+scripts/spec_evolution.py:749:    except analyze_complexity.ModuleResolutionError as error:
+scripts/spec_evolution.py:837:    try:
+scripts/spec_evolution.py:839:    except ModelSelectionError as error:
+scripts/spec_evolution.py:840:        raise SystemExit(
+scripts/spec_evolution.py:845:        raise SystemExit(
+scripts/spec_evolution.py:852:        raise SystemExit(
+scripts/spec_evolution.py:862:    try:
+scripts/spec_evolution.py:864:    except complexity_ledger.LedgerError as error:
+scripts/spec_evolution.py:865:        raise SystemExit(f"ERROR: {error}") from error
+scripts/spec_evolution.py:898:        raise SystemExit(
+scripts/spec_evolution.py:933:        raise SystemExit(f"ERROR: ticket {resolved_ticket_id} is not closed in ticket_plan.yaml: status={status or '(missing)'}")
+scripts/spec_evolution.py:962:        raise SystemExit(
+scripts/spec_evolution.py:991:        raise SystemExit(f"ERROR: refusing to overwrite existing history entry: {entry_dir}")
+scripts/spec_evolution.py:1122:            raise SystemExit("ERROR: cannot write closed workflow snapshot with open tickets:\n" + "\n".join(f"- {item}" for item in open_tickets))
+scripts/spec_evolution.py:1140:        raise SystemExit(f"ERROR: refusing to overwrite existing history entry: {entry_dir}")
+scripts/spec_evolution.py:1247:    print(f"recorded spec history entry: {result.entry_dir}")
+scripts/tla_spec_dev.py:12:try:
+scripts/tla_spec_dev.py:14:except ModuleNotFoundError:  # pragma: no cover - Python < 3.11 fallback
+scripts/tla_spec_dev.py:28:    try:
+scripts/tla_spec_dev.py:30:    except Exception:
+scripts/tla_spec_dev.py:716:        next_step="Consider whether the architecture can be redesigned to make the program simpler (analyze complexity + references/complexity_intuition.md), or raise the cap with a recorded rationale.",
+scripts/tla_spec_dev.py:813:    raise SystemExit(main())
+specs/current/adapter_case_runtime.py:30:    raise RuntimeError("could not locate tla-spec-dev repository root")
+specs/current/adapter_case_runtime.py:124:    This is the honest failure mode for case execution and it is raised, never
+specs/current/adapter_case_runtime.py:149:        raise BeforeStateUnreachable(f"setup_phase {phase} is outside the modelled pipeline")
+specs/current/adapter_case_runtime.py:182:            raise BeforeStateUnreachable(f"no replay defined for {step}")
+specs/current/adapter_case_runtime.py:191:            raise BeforeStateUnreachable(
+specs/current/adapter_case_runtime.py:215:        raise BeforeStateUnreachable(f"cannot record budgets before scaffold project: {manifest} missing")
+specs/current/adapter_case_runtime.py:342:        raise AssertionError(f"{getattr(case, 'name')}: projected after-state disagrees with the model -- {detail}")
+specs/current/adapter_case_runtime.py:358:        raise BeforeStateUnreachable(f"ticket plan missing at {plan_path}; workflow was not scaffolded")
+specs/current/adapter_case_runtime.py:388:        raise BeforeStateUnreachable(f"ticket {ticket!r} has no {tree} model to mark ready")
+specs/current/adapter_case_runtime.py:420:        raise BeforeStateUnreachable(
+specs/current/adapter_case_runtime.py:430:            raise BeforeStateUnreachable(
+specs/current/adapter_case_runtime.py:440:            raise BeforeStateUnreachable(
+specs/current/adapter_case_runtime.py:487:def recover_ticket_except_index(case: object) -> str:
+specs/current/adapter_case_runtime.py:488:    """MF-029 except-index recovery of the `ticket` argument.
+specs/current/adapter_case_runtime.py:503:        raise BeforeStateUnreachable(
+specs/current/production_adapters.py:44:    recover_ticket_except_index,
+specs/current/production_adapters.py:63:      2. recovers the `ticket` argument by MF-029 except-index on `ticket_state`;
+specs/current/production_adapters.py:91:        try:
+specs/current/production_adapters.py:92:            ticket = recover_ticket_except_index(case)
+specs/current/production_adapters.py:93:        except BeforeStateUnreachable as exc:
+specs/current/production_adapters.py:110:        ticket = recover_ticket_except_index(case)
+specs/current/production_adapters.py:185:            raise AssertionError(f"{getattr(case, 'name')}: stutter changed state")
+specs/current/production_adapters.py:687:    # recovered the same way UpdateTicket does it -- MF-029 except-index over the
+specs/current/production_adapters.py:698:        try:
+specs/current/production_adapters.py:699:            ticket = recover_ticket_except_index(case)
+specs/current/production_adapters.py:700:        except BeforeStateUnreachable as exc:
+specs/current/production_adapters.py:720:        ticket = recover_ticket_except_index(case)
+specs/current/production_adapters.py:727:            raise BeforeStateUnreachable(f"open ticket {ticket} failed: {opened.stderr[-600:]}")
+specs/current/production_adapters.py:1581:        try:
+specs/current/production_adapters.py:1584:        except json.JSONDecodeError:
+specs/current/production_adapters.py:1824:            "raised_cap_exit_code": under.returncode,
+specs/current/production_adapters.py:1832:            "cap_raise_accept_path_offered": accept_path,
+specs/current/production_adapters.py:1848:    `justification_does_not_change_the_verdict`: two fixtures identical except
+specs/current/production_adapters.py:1946:    3. `waiver_does_not_change_the_verdict` -- two catalogs identical except
+specs/current/production_adapters.py:2248:        validated_entry: dict[str, object] = {}
+scripts/skill_feedback.py:156:class CloseOutEntry:
+scripts/skill_feedback.py:461:    print(f"  appended entry: {record['close_out_entry']}")
+scripts/generate_python.py:63:        raise ValueError("manifest must define at least one state class")
+scripts/generate_python.py:87:    raise ValueError(f"no port method found for command {command_name}")
+scripts/generate_python.py:198:                "        raise NotImplementedError(\n"
+scripts/generate_python.py:245:            "    try:\n",
+scripts/generate_python.py:247:            "    except AssertionError as exc:\n",
+scripts/generate_python.py:258:            "            raise AssertionError(f\"no generated transition dispatcher for {method_name}\")\n",
+scripts/generate_python.py:279:                    "            raise AssertionError(\n",
+scripts/generate_python.py:285:            lines.append(f"    raise NotImplementedError(\"No invariant template configured for {name}\")\n\n\n")
+scripts/generate_python.py:319:            lines.append(f"    raise NotImplementedError(\"No transition template configured for {method_name}\")\n\n\n")
+scripts/generate_python.py:330:    lines.append("    raise AssertionError(f\"no transition validator for {command.__class__.__name__}\")\n")
+scripts/generate_python.py:372:        "try:\n",
+scripts/generate_python.py:374:        "except Exception:  # pragma: no cover\n",
+scripts/generate_python.py:379:        "        raise RuntimeError(\"Hypothesis is required for generated strategies\")\n\n\n",
+scripts/generate_python.py:408:        lines.append(f"    raise NotImplementedError(\"No state strategy template configured for {state}\")\n\n\n")
+scripts/generate_python.py:480:    lines.append("    raise AssertionError(f\"no method mapping for {command.__class__.__name__}\")\n")
+scripts/generate_python.py:492:# line -- and until HP-05 the scaffold shipped a `raise NotImplementedError`
+scripts/generate_python.py:773:        "    try:\n",
+scripts/generate_python.py:775:        "    except (TypeError, KeyError, IndexError):\n",
+scripts/generate_python.py:784:        "            raise AssertionError(\n",
+scripts/generate_python.py:803:        "                raise AssertionError(\n",
+scripts/generate_python.py:810:        "                raise AssertionError(\n",
+scripts/generate_python.py:967:        raise SystemExit("\n".join(f"ERROR: {error}" for error in errors))
+scripts/generate_python.py:1017:    raise SystemExit(main())
+specs/desired_program_model/spec_manifest.yaml:32:  # NEGOTIATED 2026-07-19 (owner decision), raised from the documented default
+scripts/testgraph_channels.py:48:try:
+scripts/testgraph_channels.py:50:except ImportError:  # pragma: no cover - direct script execution
+scripts/testgraph_channels.py:143:        try:
+scripts/testgraph_channels.py:145:        except ImportError:  # pragma: no cover - direct script execution
+scripts/testgraph_channels.py:149:        raise ValueError(f"{path}: bindings root must be a mapping")
+scripts/testgraph_channels.py:157:        raise ChannelEnforcementError(
+scripts/testgraph_channels.py:249:        raise ChannelEnforcementError(source, violations)
+scripts/testgraph_channels.py:339:    try:
+scripts/testgraph_channels.py:341:    except (OSError, SyntaxError):
+scripts/testgraph_channels.py:398:        raise ChannelEnforcementError(
+scripts/testgraph_channels.py:480:        raise ChannelEnforcementError(source, violations)
+scripts/onboard_program_model.py:90:        try:
+scripts/onboard_program_model.py:92:        except ValueError:
+scripts/onboard_program_model.py:496:        raise NotImplementedError(
+scripts/onboard_program_model.py:647:SCAFFOLD: every ``apply``/``observe`` below raises NotImplementedError. Replace
+scripts/onboard_program_model.py:688:        raise NotImplementedError(
+scripts/onboard_program_model.py:694:        raise NotImplementedError(
+scripts/onboard_program_model.py:699:        raise NotImplementedError
+scripts/onboard_program_model.py:704:        raise NotImplementedError("call the real RegisterActor boundary")
+scripts/onboard_program_model.py:709:        raise NotImplementedError("call the real AcceptRecord boundary")
+scripts/onboard_program_model.py:714:        raise NotImplementedError("call the real PublishRecord boundary")
+scripts/onboard_program_model.py:743:        raise NotImplementedError(
+scripts/onboard_program_model.py:755:        raise NotImplementedError
+scripts/onboard_program_model.py:760:        raise NotImplementedError("drive the real public RegisterActor surface")
+scripts/onboard_program_model.py:765:        raise NotImplementedError("drive the real public AcceptRecord surface")
+scripts/onboard_program_model.py:770:        raise NotImplementedError("drive the real public publish-worker surface")
+scripts/onboard_program_model.py:789:        raise NotImplementedError(
+scripts/onboard_program_model.py:811:            raise AssertionError(
+scripts/onboard_program_model.py:898:    raise ValueError(f"no adapter output projection for {{view}} action {{action}}")
+scripts/onboard_program_model.py:905:        raise ValueError(f"response for {{response_key!r}} not found in TLC state")
+scripts/onboard_program_model.py:908:        raise ValueError(f"malformed TLC response for {{response_key!r}}: {{response!r}}")
+scripts/onboard_program_model.py:915:    raise TypeError(f"expected TLC mapping, got {{value!r}}")
+scripts/onboard_program_model.py:1262:    try:
+scripts/onboard_program_model.py:1264:    except ImportError:
+scripts/onboard_program_model.py:1302:    raise SystemExit(pytest.main([__file__]))
+scripts/onboard_program_model.py:1408:    raise SystemExit(main())
+specs/desired_program_model/TlaSpecDevCli.tla:489:  /\ result' = CommandResult(TRUE, NoReason, "Fix the diagram, or raise the cap with a rationale")
+specs/desired_program_model/TlaSpecDevCli.tla:667:                      -> CommandResult(FALSE, NoReason, "Fix the diagram, or raise the cap with a rationale")
+scripts/scaffold_spec_workflow.py:53:    raise SystemExit(main())
+specs/current/TlaSpecDevCli.tla:489:  /\ result' = CommandResult(TRUE, NoReason, "Fix the diagram, or raise the cap with a rationale")
+specs/current/TlaSpecDevCli.tla:667:                      -> CommandResult(FALSE, NoReason, "Fix the diagram, or raise the cap with a rationale")
+scripts/start_ticket.py:9:try:
+scripts/start_ticket.py:11:except ImportError:  # pragma: no cover - direct script execution
+scripts/start_ticket.py:39:    raise SystemExit(main())
+specs/program_model/adapter_case_runtime.py:30:    raise RuntimeError("could not locate tla-spec-dev repository root")
+specs/program_model/adapter_case_runtime.py:124:    This is the honest failure mode for case execution and it is raised, never
+specs/program_model/adapter_case_runtime.py:149:        raise BeforeStateUnreachable(f"setup_phase {phase} is outside the modelled pipeline")
+specs/program_model/adapter_case_runtime.py:182:            raise BeforeStateUnreachable(f"no replay defined for {step}")
+specs/program_model/adapter_case_runtime.py:191:            raise BeforeStateUnreachable(
+specs/program_model/adapter_case_runtime.py:215:        raise BeforeStateUnreachable(f"cannot record budgets before scaffold project: {manifest} missing")
+specs/program_model/adapter_case_runtime.py:342:        raise AssertionError(f"{getattr(case, 'name')}: projected after-state disagrees with the model -- {detail}")
+specs/program_model/adapter_case_runtime.py:358:        raise BeforeStateUnreachable(f"ticket plan missing at {plan_path}; workflow was not scaffolded")
+specs/program_model/adapter_case_runtime.py:388:        raise BeforeStateUnreachable(f"ticket {ticket!r} has no {tree} model to mark ready")
+specs/program_model/adapter_case_runtime.py:420:        raise BeforeStateUnreachable(
+specs/program_model/adapter_case_runtime.py:430:            raise BeforeStateUnreachable(
+specs/program_model/adapter_case_runtime.py:440:            raise BeforeStateUnreachable(
+specs/program_model/adapter_case_runtime.py:487:def recover_ticket_except_index(case: object) -> str:
+specs/program_model/adapter_case_runtime.py:488:    """MF-029 except-index recovery of the `ticket` argument.
+specs/program_model/adapter_case_runtime.py:503:        raise BeforeStateUnreachable(
+specs/current/spec_manifest.yaml:35:  # NEGOTIATED 2026-07-19 (owner decision), raised from the documented default
+specs/desired_program_model/adapter_case_runtime.py:30:    raise RuntimeError("could not locate tla-spec-dev repository root")
+specs/desired_program_model/adapter_case_runtime.py:124:    This is the honest failure mode for case execution and it is raised, never
+specs/desired_program_model/adapter_case_runtime.py:149:        raise BeforeStateUnreachable(f"setup_phase {phase} is outside the modelled pipeline")
+specs/desired_program_model/adapter_case_runtime.py:182:            raise BeforeStateUnreachable(f"no replay defined for {step}")
+specs/desired_program_model/adapter_case_runtime.py:191:            raise BeforeStateUnreachable(
+specs/desired_program_model/adapter_case_runtime.py:215:        raise BeforeStateUnreachable(f"cannot record budgets before scaffold project: {manifest} missing")
+specs/desired_program_model/adapter_case_runtime.py:342:        raise AssertionError(f"{getattr(case, 'name')}: projected after-state disagrees with the model -- {detail}")
+specs/desired_program_model/adapter_case_runtime.py:358:        raise BeforeStateUnreachable(f"ticket plan missing at {plan_path}; workflow was not scaffolded")
+specs/desired_program_model/adapter_case_runtime.py:388:        raise BeforeStateUnreachable(f"ticket {ticket!r} has no {tree} model to mark ready")
+specs/desired_program_model/adapter_case_runtime.py:420:        raise BeforeStateUnreachable(
+specs/desired_program_model/adapter_case_runtime.py:430:            raise BeforeStateUnreachable(
+specs/desired_program_model/adapter_case_runtime.py:440:            raise BeforeStateUnreachable(
+specs/desired_program_model/adapter_case_runtime.py:487:def recover_ticket_except_index(case: object) -> str:
+specs/desired_program_model/adapter_case_runtime.py:488:    """MF-029 except-index recovery of the `ticket` argument.
+specs/desired_program_model/adapter_case_runtime.py:503:        raise BeforeStateUnreachable(
+specs/program_model/production_adapters.py:44:    recover_ticket_except_index,
+specs/program_model/production_adapters.py:63:      2. recovers the `ticket` argument by MF-029 except-index on `ticket_state`;
+specs/program_model/production_adapters.py:91:        try:
+specs/program_model/production_adapters.py:92:            ticket = recover_ticket_except_index(case)
+specs/program_model/production_adapters.py:93:        except BeforeStateUnreachable as exc:
+specs/program_model/production_adapters.py:110:        ticket = recover_ticket_except_index(case)
+specs/program_model/production_adapters.py:185:            raise AssertionError(f"{getattr(case, 'name')}: stutter changed state")
+specs/program_model/production_adapters.py:687:    # recovered the same way UpdateTicket does it -- MF-029 except-index over the
+specs/program_model/production_adapters.py:698:        try:
+specs/program_model/production_adapters.py:699:            ticket = recover_ticket_except_index(case)
+specs/program_model/production_adapters.py:700:        except BeforeStateUnreachable as exc:
+specs/program_model/production_adapters.py:720:        ticket = recover_ticket_except_index(case)
+specs/program_model/production_adapters.py:727:            raise BeforeStateUnreachable(f"open ticket {ticket} failed: {opened.stderr[-600:]}")
+specs/program_model/production_adapters.py:1581:        try:
+specs/program_model/production_adapters.py:1584:        except json.JSONDecodeError:
+specs/program_model/production_adapters.py:1824:            "raised_cap_exit_code": under.returncode,
+specs/program_model/production_adapters.py:1832:            "cap_raise_accept_path_offered": accept_path,
+specs/program_model/production_adapters.py:1848:    `justification_does_not_change_the_verdict`: two fixtures identical except
+specs/program_model/production_adapters.py:1946:    3. `waiver_does_not_change_the_verdict` -- two catalogs identical except
+specs/program_model/production_adapters.py:2248:        validated_entry: dict[str, object] = {}
+specs/desired_program_model/production_adapters.py:44:    recover_ticket_except_index,
+specs/desired_program_model/production_adapters.py:63:      2. recovers the `ticket` argument by MF-029 except-index on `ticket_state`;
+specs/desired_program_model/production_adapters.py:91:        try:
+specs/desired_program_model/production_adapters.py:92:            ticket = recover_ticket_except_index(case)
+specs/desired_program_model/production_adapters.py:93:        except BeforeStateUnreachable as exc:
+specs/desired_program_model/production_adapters.py:110:        ticket = recover_ticket_except_index(case)
+specs/desired_program_model/production_adapters.py:185:            raise AssertionError(f"{getattr(case, 'name')}: stutter changed state")
+specs/desired_program_model/production_adapters.py:687:    # recovered the same way UpdateTicket does it -- MF-029 except-index over the
+specs/desired_program_model/production_adapters.py:698:        try:
+specs/desired_program_model/production_adapters.py:699:            ticket = recover_ticket_except_index(case)
+specs/desired_program_model/production_adapters.py:700:        except BeforeStateUnreachable as exc:
+specs/desired_program_model/production_adapters.py:720:        ticket = recover_ticket_except_index(case)
+specs/desired_program_model/production_adapters.py:727:            raise BeforeStateUnreachable(f"open ticket {ticket} failed: {opened.stderr[-600:]}")
+specs/desired_program_model/production_adapters.py:1581:        try:
+specs/desired_program_model/production_adapters.py:1584:        except json.JSONDecodeError:
+specs/desired_program_model/production_adapters.py:1824:            "raised_cap_exit_code": under.returncode,
+specs/desired_program_model/production_adapters.py:1832:            "cap_raise_accept_path_offered": accept_path,
+specs/desired_program_model/production_adapters.py:1848:    `justification_does_not_change_the_verdict`: two fixtures identical except
+specs/desired_program_model/production_adapters.py:1946:    3. `waiver_does_not_change_the_verdict` -- two catalogs identical except
+specs/desired_program_model/production_adapters.py:2248:        validated_entry: dict[str, object] = {}
+specs/program_model/spec_manifest.yaml:35:  # NEGOTIATED 2026-07-19 (owner decision), raised from the documented default
+specs/program_model/TlaSpecDevCli.tla:489:  /\ result' = CommandResult(TRUE, NoReason, "Fix the diagram, or raise the cap with a rationale")
+specs/program_model/TlaSpecDevCli.tla:667:                      -> CommandResult(FALSE, NoReason, "Fix the diagram, or raise the cap with a rationale")

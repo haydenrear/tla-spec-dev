@@ -1,0 +1,3076 @@
+{
+  "schema": "tla-spec-dev/architecture-reflexion",
+  "schema_version": 2,
+  "map": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ac04/base/specs/program_model/architecture_map.yaml",
+  "code_root": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ac04/base/scripts",
+  "language": "python",
+  "measured": {
+    "modules_scanned": 34,
+    "modules_mapped": 34,
+    "edges_extracted": 258,
+    "component_pairs": 6,
+    "ported_pairs": [
+      [
+        "corpus",
+        "surface"
+      ],
+      [
+        "corpus",
+        "tickets"
+      ],
+      [
+        "kill",
+        "surface"
+      ],
+      [
+        "surface",
+        "tickets"
+      ]
+    ],
+    "unported_pairs": [
+      [
+        "corpus",
+        "kill"
+      ],
+      [
+        "kill",
+        "tickets"
+      ]
+    ],
+    "divergence_detectable": true,
+    "internal_edges": 140,
+    "external_imports": {
+      "__future__": [
+        "scripts/analyze_architecture.py:50",
+        "scripts/analyze_complexity.py:69",
+        "scripts/architecture_reflexion.py:71",
+        "scripts/budgets.py:27",
+        "scripts/case_modules.py:29",
+        "scripts/close_spec_workflow.py:4",
+        "scripts/close_ticket.py:4",
+        "scripts/close_tickets.py:9",
+        "scripts/complexity_ledger.py:76",
+        "scripts/corpus_diagnostics.py:56",
+        "scripts/effect_conformance.py:86",
+        "scripts/effect_conformance_report.py:24",
+        "scripts/export_testgraph_cases.py:4",
+        "scripts/extract_spec_manifest.py:8",
+        "scripts/fitness_functions.py:32",
+        "scripts/generate_cases_from_tlc_dump.py:10",
+        "scripts/generate_docs.py:4",
+        "scripts/generate_python.py:4",
+        "scripts/infer_action_params.py:50",
+        "scripts/kill_test.py:88",
+        "scripts/new_ticket_workflow.py:9",
+        "scripts/onboard_program_model.py:24",
+        "scripts/run_generated_case_adapters.py:10",
+        "scripts/run_kill_test.py:21",
+        "scripts/scaffold_spec.py:22",
+        "scripts/scaffold_spec_workflow.py:4",
+        "scripts/skill_feedback.py:30",
+        "scripts/spec_evolution.py:3",
+        "scripts/spec_paths.py:3",
+        "scripts/start_ticket.py:4",
+        "scripts/testgraph_channels.py:41",
+        "scripts/tla_spec_dev.py:4"
+      ],
+      "argparse": [
+        "scripts/analyze_architecture.py:52",
+        "scripts/analyze_complexity.py:71",
+        "scripts/architecture_reflexion.py:73",
+        "scripts/case_modules.py:31",
+        "scripts/close_spec_workflow.py:6",
+        "scripts/close_ticket.py:6",
+        "scripts/close_tickets.py:11",
+        "scripts/corpus_diagnostics.py:937",
+        "scripts/effect_conformance_report.py:26",
+        "scripts/export_testgraph_cases.py:6",
+        "scripts/extract_spec_manifest.py:10",
+        "scripts/generate_cases_from_tlc_dump.py:12",
+        "scripts/generate_docs.py:6",
+        "scripts/generate_python.py:6",
+        "scripts/infer_action_params.py:407",
+        "scripts/new_ticket_workflow.py:11",
+        "scripts/onboard_program_model.py:26",
+        "scripts/run_generated_case_adapters.py:12",
+        "scripts/run_kill_test.py:23",
+        "scripts/scaffold_spec.py:24",
+        "scripts/scaffold_spec_workflow.py:6",
+        "scripts/start_ticket.py:6",
+        "scripts/tla_spec_dev.py:6"
+      ],
+      "ast": [
+        "scripts/architecture_reflexion.py:74",
+        "scripts/generate_cases_from_tlc_dump.py:13",
+        "scripts/testgraph_channels.py:43"
+      ],
+      "asyncio": [
+        "scripts/run_generated_case_adapters.py:829"
+      ],
+      "builtins": [
+        "scripts/effect_conformance.py:88"
+      ],
+      "contextlib": [
+        "scripts/kill_test.py:96",
+        "scripts/run_generated_case_adapters.py:14"
+      ],
+      "copy": [
+        "scripts/run_generated_case_adapters.py:13"
+      ],
+      "dataclasses": [
+        "scripts/analyze_architecture.py:55",
+        "scripts/analyze_complexity.py:76",
+        "scripts/architecture_reflexion.py:77",
+        "scripts/case_modules.py:34",
+        "scripts/complexity_ledger.py:79",
+        "scripts/corpus_diagnostics.py:59",
+        "scripts/effect_conformance.py:94",
+        "scripts/export_testgraph_cases.py:7",
+        "scripts/fitness_functions.py:35",
+        "scripts/generate_cases_from_tlc_dump.py:19",
+        "scripts/infer_action_params.py:53",
+        "scripts/kill_test.py:97",
+        "scripts/new_ticket_workflow.py:16",
+        "scripts/run_generated_case_adapters.py:24",
+        "scripts/skill_feedback.py:33",
+        "scripts/spec_evolution.py:13",
+        "scripts/spec_evolution.py:5",
+        "scripts/testgraph_channels.py:44"
+      ],
+      "datetime": [
+        "scripts/complexity_ledger.py:80",
+        "scripts/skill_feedback.py:34",
+        "scripts/spec_evolution.py:14"
+      ],
+      "filecmp": [
+        "scripts/close_tickets.py:12"
+      ],
+      "fnmatch": [
+        "scripts/effect_conformance.py:89",
+        "scripts/kill_test.py:90"
+      ],
+      "hashlib": [
+        "scripts/run_generated_case_adapters.py:15"
+      ],
+      "importlib": [
+        "scripts/generate_cases_from_tlc_dump.py:14",
+        "scripts/run_generated_case_adapters.py:16"
+      ],
+      "inspect": [
+        "scripts/run_generated_case_adapters.py:17"
+      ],
+      "json": [
+        "scripts/analyze_architecture.py:53",
+        "scripts/analyze_complexity.py:72",
+        "scripts/architecture_reflexion.py:75",
+        "scripts/case_modules.py:32",
+        "scripts/complexity_ledger.py:78",
+        "scripts/corpus_diagnostics.py:885",
+        "scripts/effect_conformance.py:90",
+        "scripts/effect_conformance_report.py:27",
+        "scripts/export_testgraph_cases.py:8",
+        "scripts/fitness_functions.py:281",
+        "scripts/kill_test.py:91",
+        "scripts/new_ticket_workflow.py:12",
+        "scripts/run_generated_case_adapters.py:18",
+        "scripts/run_kill_test.py:24",
+        "scripts/spec_evolution.py:6"
+      ],
+      "keyword": [
+        "scripts/generate_python.py:7"
+      ],
+      "math": [
+        "scripts/analyze_complexity.py:73",
+        "scripts/corpus_diagnostics.py:58"
+      ],
+      "operator": [
+        "scripts/fitness_functions.py:34"
+      ],
+      "os": [
+        "scripts/effect_conformance.py:91",
+        "scripts/run_generated_case_adapters.py:19",
+        "scripts/tla_spec_dev.py:7"
+      ],
+      "pathlib": [
+        "scripts/analyze_architecture.py:56",
+        "scripts/analyze_complexity.py:77",
+        "scripts/architecture_reflexion.py:78",
+        "scripts/budgets.py:30",
+        "scripts/case_modules.py:35",
+        "scripts/close_spec_workflow.py:8",
+        "scripts/close_ticket.py:7",
+        "scripts/close_tickets.py:15",
+        "scripts/complexity_ledger.py:81",
+        "scripts/corpus_diagnostics.py:60",
+        "scripts/effect_conformance.py:95",
+        "scripts/effect_conformance_report.py:29",
+        "scripts/export_testgraph_cases.py:10",
+        "scripts/extract_spec_manifest.py:12",
+        "scripts/fitness_functions.py:36",
+        "scripts/generate_cases_from_tlc_dump.py:20",
+        "scripts/generate_docs.py:8",
+        "scripts/generate_python.py:10",
+        "scripts/infer_action_params.py:54",
+        "scripts/kill_test.py:98",
+        "scripts/new_ticket_workflow.py:17",
+        "scripts/onboard_program_model.py:29",
+        "scripts/run_generated_case_adapters.py:25",
+        "scripts/run_kill_test.py:26",
+        "scripts/scaffold_spec.py:25",
+        "scripts/scaffold_spec_workflow.py:7",
+        "scripts/skill_feedback.py:35",
+        "scripts/spec_evolution.py:15",
+        "scripts/spec_paths.py:5",
+        "scripts/start_ticket.py:7",
+        "scripts/testgraph_channels.py:45",
+        "scripts/tla_spec_dev.py:10"
+      ],
+      "re": [
+        "scripts/analyze_complexity.py:74",
+        "scripts/extract_spec_manifest.py:11",
+        "scripts/generate_cases_from_tlc_dump.py:15",
+        "scripts/generate_python.py:8",
+        "scripts/infer_action_params.py:52",
+        "scripts/kill_test.py:92",
+        "scripts/new_ticket_workflow.py:13",
+        "scripts/onboard_program_model.py:27",
+        "scripts/skill_feedback.py:32",
+        "scripts/spec_evolution.py:7"
+      ],
+      "shlex": [
+        "scripts/run_generated_case_adapters.py:20",
+        "scripts/spec_evolution.py:8"
+      ],
+      "shutil": [
+        "scripts/close_spec_workflow.py:7",
+        "scripts/close_tickets.py:13",
+        "scripts/effect_conformance.py:92",
+        "scripts/generate_cases_from_tlc_dump.py:16",
+        "scripts/kill_test.py:93",
+        "scripts/new_ticket_workflow.py:14",
+        "scripts/spec_evolution.py:9"
+      ],
+      "socket": [
+        "scripts/effect_conformance.py:775"
+      ],
+      "spec_double_compiler": [
+        "scripts/effect_conformance_report.py:144",
+        "scripts/run_generated_case_adapters.py:1027",
+        "scripts/run_generated_case_adapters.py:1058",
+        "scripts/run_generated_case_adapters.py:1307",
+        "scripts/run_generated_case_adapters.py:1334",
+        "scripts/run_generated_case_adapters.py:1373",
+        "scripts/run_generated_case_adapters.py:1374",
+        "scripts/run_generated_case_adapters.py:1453",
+        "scripts/run_generated_case_adapters.py:1520",
+        "scripts/run_generated_case_adapters.py:418",
+        "scripts/run_generated_case_adapters.py:822",
+        "scripts/run_generated_case_adapters.py:843",
+        "scripts/run_generated_case_adapters.py:978"
+      ],
+      "stat": [
+        "scripts/spec_evolution.py:12"
+      ],
+      "subprocess": [
+        "scripts/effect_conformance.py:93",
+        "scripts/generate_cases_from_tlc_dump.py:17",
+        "scripts/kill_test.py:94",
+        "scripts/run_generated_case_adapters.py:21",
+        "scripts/spec_evolution.py:10",
+        "scripts/tla_spec_dev.py:8"
+      ],
+      "sys": [
+        "scripts/analyze_architecture.py:54",
+        "scripts/analyze_complexity.py:75",
+        "scripts/architecture_reflexion.py:76",
+        "scripts/budgets.py:29",
+        "scripts/case_modules.py:33",
+        "scripts/close_tickets.py:14",
+        "scripts/corpus_diagnostics.py:814",
+        "scripts/corpus_diagnostics.py:886",
+        "scripts/corpus_diagnostics.py:912",
+        "scripts/corpus_diagnostics.py:918",
+        "scripts/effect_conformance_report.py:28",
+        "scripts/export_testgraph_cases.py:9",
+        "scripts/generate_cases_from_tlc_dump.py:18",
+        "scripts/generate_docs.py:7",
+        "scripts/generate_python.py:9",
+        "scripts/kill_test.py:95",
+        "scripts/new_ticket_workflow.py:15",
+        "scripts/new_ticket_workflow.py:45",
+        "scripts/onboard_program_model.py:28",
+        "scripts/run_generated_case_adapters.py:22",
+        "scripts/run_kill_test.py:25",
+        "scripts/spec_evolution.py:11",
+        "scripts/tla_spec_dev.py:9"
+      ],
+      "tempfile": [
+        "scripts/run_generated_case_adapters.py:23"
+      ],
+      "tomli": [
+        "scripts/kill_test.py:312"
+      ],
+      "tomllib": [
+        "scripts/kill_test.py:309",
+        "scripts/run_generated_case_adapters.py:53",
+        "scripts/tla_spec_dev.py:13"
+      ],
+      "types": [
+        "scripts/run_generated_case_adapters.py:26"
+      ],
+      "typing": [
+        "scripts/analyze_architecture.py:57",
+        "scripts/analyze_complexity.py:78",
+        "scripts/architecture_reflexion.py:79",
+        "scripts/budgets.py:31",
+        "scripts/case_modules.py:36",
+        "scripts/close_tickets.py:16",
+        "scripts/complexity_ledger.py:82",
+        "scripts/corpus_diagnostics.py:61",
+        "scripts/effect_conformance.py:96",
+        "scripts/effect_conformance_report.py:30",
+        "scripts/export_testgraph_cases.py:11",
+        "scripts/extract_spec_manifest.py:13",
+        "scripts/fitness_functions.py:37",
+        "scripts/generate_cases_from_tlc_dump.py:21",
+        "scripts/generate_python.py:11",
+        "scripts/infer_action_params.py:55",
+        "scripts/kill_test.py:99",
+        "scripts/new_ticket_workflow.py:18",
+        "scripts/run_generated_case_adapters.py:27",
+        "scripts/skill_feedback.py:36",
+        "scripts/spec_evolution.py:16",
+        "scripts/testgraph_channels.py:46"
+      ],
+      "yaml": [
+        "scripts/analyze_architecture.py:682",
+        "scripts/complexity_ledger.py:90",
+        "scripts/fitness_functions.py:291",
+        "scripts/fitness_functions.py:309",
+        "scripts/kill_test.py:1073"
+      ]
+    }
+  },
+  "basis": {
+    "map_origin": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ac04/base/specs/program_model/architecture_map.yaml",
+    "map_language": "python",
+    "map_digest": "sha256:a9523e7d75705e7b4b7ae3745bcf1736c5c11e2b7342ae17274e6063cf4331a4",
+    "placements": {
+      "analyze_architecture.py": "corpus",
+      "analyze_complexity.py": "corpus",
+      "architecture_reflexion.py": "corpus",
+      "budgets.py": "surface",
+      "case_modules.py": "corpus",
+      "close-spec-workflow.py": "tickets",
+      "close-ticket.py": "tickets",
+      "close_spec_workflow.py": "tickets",
+      "close_ticket.py": "tickets",
+      "close_tickets.py": "tickets",
+      "complexity_ledger.py": "corpus",
+      "corpus_diagnostics.py": "corpus",
+      "effect_conformance.py": "corpus",
+      "effect_conformance_report.py": "corpus",
+      "export_testgraph_cases.py": "corpus",
+      "extract_spec_manifest.py": "surface",
+      "fitness_functions.py": "corpus",
+      "generate_cases_from_tlc_dump.py": "corpus",
+      "generate_docs.py": "surface",
+      "generate_python.py": "surface",
+      "infer_action_params.py": "surface",
+      "kill_test.py": "kill",
+      "new_ticket_workflow.py": "tickets",
+      "onboard_program_model.py": "surface",
+      "run_generated_case_adapters.py": "corpus",
+      "run_kill_test.py": "kill",
+      "scaffold_spec.py": "surface",
+      "scaffold_spec_workflow.py": "surface",
+      "skill_feedback.py": "surface",
+      "spec_evolution.py": "tickets",
+      "spec_paths.py": "surface",
+      "start_ticket.py": "tickets",
+      "testgraph_channels.py": "corpus",
+      "tla_spec_dev.py": "surface"
+    },
+    "code_root": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ac04/base/scripts",
+    "scanned_modules": [
+      "analyze_architecture.py",
+      "analyze_complexity.py",
+      "architecture_reflexion.py",
+      "budgets.py",
+      "case_modules.py",
+      "close-spec-workflow.py",
+      "close-ticket.py",
+      "close_spec_workflow.py",
+      "close_ticket.py",
+      "close_tickets.py",
+      "complexity_ledger.py",
+      "corpus_diagnostics.py",
+      "effect_conformance.py",
+      "effect_conformance_report.py",
+      "export_testgraph_cases.py",
+      "extract_spec_manifest.py",
+      "fitness_functions.py",
+      "generate_cases_from_tlc_dump.py",
+      "generate_docs.py",
+      "generate_python.py",
+      "infer_action_params.py",
+      "kill_test.py",
+      "new_ticket_workflow.py",
+      "onboard_program_model.py",
+      "run_generated_case_adapters.py",
+      "run_kill_test.py",
+      "scaffold_spec.py",
+      "scaffold_spec_workflow.py",
+      "skill_feedback.py",
+      "spec_evolution.py",
+      "spec_paths.py",
+      "start_ticket.py",
+      "testgraph_channels.py",
+      "tla_spec_dev.py"
+    ],
+    "architecture_digest": "sha256:a550b70225ca71619b7cd27d4c5ca5581f1bc89944de897e824cf65f1e1fbd3c",
+    "architecture_components": [
+      "corpus",
+      "kill",
+      "surface",
+      "tickets"
+    ],
+    "architecture_ports": [
+      [
+        "corpus",
+        "surface"
+      ],
+      [
+        "corpus",
+        "tickets"
+      ],
+      [
+        "kill",
+        "surface"
+      ],
+      [
+        "surface",
+        "tickets"
+      ]
+    ],
+    "architecture_port_actions": {
+      "corpus|surface": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ],
+      "corpus|tickets": [
+        "RunSpecUnitTests"
+      ],
+      "kill|surface": [
+        "RunKillTest"
+      ],
+      "surface|tickets": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    "comparison_ran": true
+  },
+  "convergences": [
+    {
+      "from": "analyze_architecture.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "import",
+      "symbol": "scripts.extract_spec_manifest.parse_simple_yaml",
+      "file": "scripts/analyze_architecture.py",
+      "line": 690,
+      "site": "scripts/analyze_architecture.py:690",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "analyze_architecture.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "call",
+      "symbol": "parse_simple_yaml",
+      "file": "scripts/analyze_architecture.py",
+      "line": 692,
+      "site": "scripts/analyze_architecture.py:692",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "analyze_complexity.py",
+      "to": "budgets.py",
+      "kind": "import",
+      "symbol": "scripts.budgets.DEFAULT_BUDGETS",
+      "file": "scripts/analyze_complexity.py",
+      "line": 1354,
+      "site": "scripts/analyze_complexity.py:1354",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "analyze_complexity.py",
+      "to": "budgets.py",
+      "kind": "call",
+      "symbol": "load_budgets",
+      "file": "scripts/analyze_complexity.py",
+      "line": 1466,
+      "site": "scripts/analyze_complexity.py:1466",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "analyze_complexity.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "import",
+      "symbol": "scripts.extract_spec_manifest.load_manifest",
+      "file": "scripts/analyze_complexity.py",
+      "line": 1446,
+      "site": "scripts/analyze_complexity.py:1446",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "analyze_complexity.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "call",
+      "symbol": "load_manifest",
+      "file": "scripts/analyze_complexity.py",
+      "line": 1448,
+      "site": "scripts/analyze_complexity.py:1448",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "case_modules.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "import",
+      "symbol": "extract_spec_manifest.load_manifest",
+      "file": "scripts/case_modules.py",
+      "line": 39,
+      "site": "scripts/case_modules.py:39",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "case_modules.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "import",
+      "symbol": "extract_spec_manifest.load_manifest",
+      "file": "scripts/case_modules.py",
+      "line": 42,
+      "site": "scripts/case_modules.py:42",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "case_modules.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "call",
+      "symbol": "load_manifest",
+      "file": "scripts/case_modules.py",
+      "line": 174,
+      "site": "scripts/case_modules.py:174",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "case_modules.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "call",
+      "symbol": "load_manifest",
+      "file": "scripts/case_modules.py",
+      "line": 540,
+      "site": "scripts/case_modules.py:540",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "case_modules.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "call",
+      "symbol": "load_manifest",
+      "file": "scripts/case_modules.py",
+      "line": 545,
+      "site": "scripts/case_modules.py:545",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "close_tickets.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "import",
+      "symbol": "scripts.extract_spec_manifest.load_manifest",
+      "file": "scripts/close_tickets.py",
+      "line": 34,
+      "site": "scripts/close_tickets.py:34",
+      "from_component": "tickets",
+      "to_component": "surface",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "close_tickets.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "call",
+      "symbol": "load_manifest",
+      "file": "scripts/close_tickets.py",
+      "line": 38,
+      "site": "scripts/close_tickets.py:38",
+      "from_component": "tickets",
+      "to_component": "surface",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "complexity_ledger.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "import",
+      "symbol": "extract_spec_manifest.parse_simple_yaml",
+      "file": "scripts/complexity_ledger.py",
+      "line": 403,
+      "site": "scripts/complexity_ledger.py:403",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "complexity_ledger.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "import",
+      "symbol": "extract_spec_manifest.parse_simple_yaml",
+      "file": "scripts/complexity_ledger.py",
+      "line": 405,
+      "site": "scripts/complexity_ledger.py:405",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "complexity_ledger.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "call",
+      "symbol": "parse_simple_yaml",
+      "file": "scripts/complexity_ledger.py",
+      "line": 406,
+      "site": "scripts/complexity_ledger.py:406",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "corpus_diagnostics.py",
+      "to": "budgets.py",
+      "kind": "import",
+      "symbol": "budgets.load_budgets",
+      "file": "scripts/corpus_diagnostics.py",
+      "line": 64,
+      "site": "scripts/corpus_diagnostics.py:64",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "corpus_diagnostics.py",
+      "to": "budgets.py",
+      "kind": "import",
+      "symbol": "budgets.load_budgets",
+      "file": "scripts/corpus_diagnostics.py",
+      "line": 66,
+      "site": "scripts/corpus_diagnostics.py:66",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "corpus_diagnostics.py",
+      "to": "budgets.py",
+      "kind": "call",
+      "symbol": "load_budgets",
+      "file": "scripts/corpus_diagnostics.py",
+      "line": 543,
+      "site": "scripts/corpus_diagnostics.py:543",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "effect_conformance_report.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "import",
+      "symbol": "extract_spec_manifest.load_manifest",
+      "file": "scripts/effect_conformance_report.py",
+      "line": 42,
+      "site": "scripts/effect_conformance_report.py:42",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "effect_conformance_report.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "call",
+      "symbol": "load_manifest",
+      "file": "scripts/effect_conformance_report.py",
+      "line": 61,
+      "site": "scripts/effect_conformance_report.py:61",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "export_testgraph_cases.py",
+      "to": "spec_paths.py",
+      "kind": "import",
+      "symbol": "spec_paths.resolve_existing_from_cwd",
+      "file": "scripts/export_testgraph_cases.py",
+      "line": 22,
+      "site": "scripts/export_testgraph_cases.py:22",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "export_testgraph_cases.py",
+      "to": "spec_paths.py",
+      "kind": "import",
+      "symbol": "spec_paths.resolve_existing_from_cwd",
+      "file": "scripts/export_testgraph_cases.py",
+      "line": 28,
+      "site": "scripts/export_testgraph_cases.py:28",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "export_testgraph_cases.py",
+      "to": "spec_paths.py",
+      "kind": "call",
+      "symbol": "resolve_existing_from_cwd",
+      "file": "scripts/export_testgraph_cases.py",
+      "line": 151,
+      "site": "scripts/export_testgraph_cases.py:151",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "export_testgraph_cases.py",
+      "to": "spec_paths.py",
+      "kind": "call",
+      "symbol": "resolve_existing_from_cwd",
+      "file": "scripts/export_testgraph_cases.py",
+      "line": 214,
+      "site": "scripts/export_testgraph_cases.py:214",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "export_testgraph_cases.py",
+      "to": "spec_paths.py",
+      "kind": "call",
+      "symbol": "resolve_existing_from_cwd",
+      "file": "scripts/export_testgraph_cases.py",
+      "line": 215,
+      "site": "scripts/export_testgraph_cases.py:215",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "import",
+      "symbol": "extract_spec_manifest.load_manifest",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 26,
+      "site": "scripts/generate_cases_from_tlc_dump.py:26",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "import",
+      "symbol": "extract_spec_manifest.load_manifest",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 32,
+      "site": "scripts/generate_cases_from_tlc_dump.py:32",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "call",
+      "symbol": "load_manifest",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 299,
+      "site": "scripts/generate_cases_from_tlc_dump.py:299",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "infer_action_params.py",
+      "kind": "import",
+      "symbol": "infer_action_params.UNCHECKED",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 27,
+      "site": "scripts/generate_cases_from_tlc_dump.py:27",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "infer_action_params.py",
+      "kind": "import",
+      "symbol": "infer_action_params.UNCHECKED",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 33,
+      "site": "scripts/generate_cases_from_tlc_dump.py:33",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "infer_action_params.py",
+      "kind": "call",
+      "symbol": "infer_params",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 394,
+      "site": "scripts/generate_cases_from_tlc_dump.py:394",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "infer_action_params.py",
+      "kind": "call",
+      "symbol": "unchecked_param_names",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 406,
+      "site": "scripts/generate_cases_from_tlc_dump.py:406",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "infer_action_params.py",
+      "kind": "call",
+      "symbol": "build_recipes_from_path",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 1046,
+      "site": "scripts/generate_cases_from_tlc_dump.py:1046",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "infer_action_params.py",
+      "kind": "call",
+      "symbol": "render_audit",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 1075,
+      "site": "scripts/generate_cases_from_tlc_dump.py:1075",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "infer_action_params.py",
+      "kind": "call",
+      "symbol": "unchecked_param_names",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 1077,
+      "site": "scripts/generate_cases_from_tlc_dump.py:1077",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "spec_paths.py",
+      "kind": "import",
+      "symbol": "spec_paths.resolve_existing_from_cwd",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 28,
+      "site": "scripts/generate_cases_from_tlc_dump.py:28",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "spec_paths.py",
+      "kind": "import",
+      "symbol": "spec_paths.resolve_existing_from_cwd",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 34,
+      "site": "scripts/generate_cases_from_tlc_dump.py:34",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "spec_paths.py",
+      "kind": "call",
+      "symbol": "resolve_existing_spec_input",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 298,
+      "site": "scripts/generate_cases_from_tlc_dump.py:298",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "spec_paths.py",
+      "kind": "call",
+      "symbol": "resolve_existing_from_cwd",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 1016,
+      "site": "scripts/generate_cases_from_tlc_dump.py:1016",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "spec_paths.py",
+      "kind": "call",
+      "symbol": "resolve_spec_dir",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 1017,
+      "site": "scripts/generate_cases_from_tlc_dump.py:1017",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "spec_paths.py",
+      "kind": "call",
+      "symbol": "resolve_existing_spec_input",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 1018,
+      "site": "scripts/generate_cases_from_tlc_dump.py:1018",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "spec_paths.py",
+      "kind": "call",
+      "symbol": "resolve_spec_relative_path",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 1022,
+      "site": "scripts/generate_cases_from_tlc_dump.py:1022",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "generate_cases_from_tlc_dump.py",
+      "to": "spec_paths.py",
+      "kind": "call",
+      "symbol": "resolve_spec_relative_path",
+      "file": "scripts/generate_cases_from_tlc_dump.py",
+      "line": 1025,
+      "site": "scripts/generate_cases_from_tlc_dump.py:1025",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "kill_test.py",
+      "to": "budgets.py",
+      "kind": "import",
+      "symbol": "scripts.budgets.load_budgets",
+      "file": "scripts/kill_test.py",
+      "line": 103,
+      "site": "scripts/kill_test.py:103",
+      "from_component": "kill",
+      "to_component": "surface",
+      "pair": [
+        "kill",
+        "surface"
+      ],
+      "port": "P3",
+      "port_actions": [
+        "RunKillTest"
+      ]
+    },
+    {
+      "from": "kill_test.py",
+      "to": "budgets.py",
+      "kind": "call",
+      "symbol": "load_budgets",
+      "file": "scripts/kill_test.py",
+      "line": 944,
+      "site": "scripts/kill_test.py:944",
+      "from_component": "kill",
+      "to_component": "surface",
+      "pair": [
+        "kill",
+        "surface"
+      ],
+      "port": "P3",
+      "port_actions": [
+        "RunKillTest"
+      ]
+    },
+    {
+      "from": "kill_test.py",
+      "to": "budgets.py",
+      "kind": "import",
+      "symbol": "scripts.budgets._read_manifest",
+      "file": "scripts/kill_test.py",
+      "line": 1079,
+      "site": "scripts/kill_test.py:1079",
+      "from_component": "kill",
+      "to_component": "surface",
+      "pair": [
+        "kill",
+        "surface"
+      ],
+      "port": "P3",
+      "port_actions": [
+        "RunKillTest"
+      ]
+    },
+    {
+      "from": "kill_test.py",
+      "to": "budgets.py",
+      "kind": "call",
+      "symbol": "_read_manifest",
+      "file": "scripts/kill_test.py",
+      "line": 1081,
+      "site": "scripts/kill_test.py:1081",
+      "from_component": "kill",
+      "to_component": "surface",
+      "pair": [
+        "kill",
+        "surface"
+      ],
+      "port": "P3",
+      "port_actions": [
+        "RunKillTest"
+      ]
+    },
+    {
+      "from": "new_ticket_workflow.py",
+      "to": "budgets.py",
+      "kind": "import",
+      "symbol": "scripts.budgets.budgets_block",
+      "file": "scripts/new_ticket_workflow.py",
+      "line": 27,
+      "site": "scripts/new_ticket_workflow.py:27",
+      "from_component": "tickets",
+      "to_component": "surface",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "new_ticket_workflow.py",
+      "to": "budgets.py",
+      "kind": "call",
+      "symbol": "budgets_block",
+      "file": "scripts/new_ticket_workflow.py",
+      "line": 643,
+      "site": "scripts/new_ticket_workflow.py:643",
+      "from_component": "tickets",
+      "to_component": "surface",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "new_ticket_workflow.py",
+      "to": "budgets.py",
+      "kind": "call",
+      "symbol": "budgets_block",
+      "file": "scripts/new_ticket_workflow.py",
+      "line": 712,
+      "site": "scripts/new_ticket_workflow.py:712",
+      "from_component": "tickets",
+      "to_component": "surface",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "new_ticket_workflow.py",
+      "to": "complexity_ledger.py",
+      "kind": "import",
+      "symbol": "scripts.complexity_ledger",
+      "file": "scripts/new_ticket_workflow.py",
+      "line": 29,
+      "site": "scripts/new_ticket_workflow.py:29",
+      "from_component": "tickets",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "tickets"
+      ],
+      "port": "P4",
+      "port_actions": [
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "new_ticket_workflow.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "import",
+      "symbol": "scripts.extract_spec_manifest.load_manifest",
+      "file": "scripts/new_ticket_workflow.py",
+      "line": 50,
+      "site": "scripts/new_ticket_workflow.py:50",
+      "from_component": "tickets",
+      "to_component": "surface",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "new_ticket_workflow.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "call",
+      "symbol": "load_manifest",
+      "file": "scripts/new_ticket_workflow.py",
+      "line": 54,
+      "site": "scripts/new_ticket_workflow.py:54",
+      "from_component": "tickets",
+      "to_component": "surface",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "new_ticket_workflow.py",
+      "to": "onboard_program_model.py",
+      "kind": "import",
+      "symbol": "scripts.onboard_program_model.missing_baseline_files",
+      "file": "scripts/new_ticket_workflow.py",
+      "line": 28,
+      "site": "scripts/new_ticket_workflow.py:28",
+      "from_component": "tickets",
+      "to_component": "surface",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "new_ticket_workflow.py",
+      "to": "onboard_program_model.py",
+      "kind": "call",
+      "symbol": "missing_baseline_files",
+      "file": "scripts/new_ticket_workflow.py",
+      "line": 140,
+      "site": "scripts/new_ticket_workflow.py:140",
+      "from_component": "tickets",
+      "to_component": "surface",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "run_generated_case_adapters.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "import",
+      "symbol": "extract_spec_manifest.load_manifest",
+      "file": "scripts/run_generated_case_adapters.py",
+      "line": 37,
+      "site": "scripts/run_generated_case_adapters.py:37",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "run_generated_case_adapters.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "import",
+      "symbol": "extract_spec_manifest.load_manifest",
+      "file": "scripts/run_generated_case_adapters.py",
+      "line": 48,
+      "site": "scripts/run_generated_case_adapters.py:48",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "run_generated_case_adapters.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "call",
+      "symbol": "load_manifest",
+      "file": "scripts/run_generated_case_adapters.py",
+      "line": 247,
+      "site": "scripts/run_generated_case_adapters.py:247",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "run_generated_case_adapters.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "call",
+      "symbol": "load_manifest",
+      "file": "scripts/run_generated_case_adapters.py",
+      "line": 546,
+      "site": "scripts/run_generated_case_adapters.py:546",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "run_generated_case_adapters.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "call",
+      "symbol": "load_manifest",
+      "file": "scripts/run_generated_case_adapters.py",
+      "line": 547,
+      "site": "scripts/run_generated_case_adapters.py:547",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "run_generated_case_adapters.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "call",
+      "symbol": "load_manifest",
+      "file": "scripts/run_generated_case_adapters.py",
+      "line": 1433,
+      "site": "scripts/run_generated_case_adapters.py:1433",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "run_generated_case_adapters.py",
+      "to": "spec_paths.py",
+      "kind": "import",
+      "symbol": "spec_paths.resolve_existing_from_cwd",
+      "file": "scripts/run_generated_case_adapters.py",
+      "line": 38,
+      "site": "scripts/run_generated_case_adapters.py:38",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "run_generated_case_adapters.py",
+      "to": "spec_paths.py",
+      "kind": "import",
+      "symbol": "spec_paths.resolve_existing_from_cwd",
+      "file": "scripts/run_generated_case_adapters.py",
+      "line": 49,
+      "site": "scripts/run_generated_case_adapters.py:49",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "run_generated_case_adapters.py",
+      "to": "spec_paths.py",
+      "kind": "call",
+      "symbol": "resolve_existing_from_cwd",
+      "file": "scripts/run_generated_case_adapters.py",
+      "line": 136,
+      "site": "scripts/run_generated_case_adapters.py:136",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "run_generated_case_adapters.py",
+      "to": "spec_paths.py",
+      "kind": "call",
+      "symbol": "resolve_existing_from_cwd",
+      "file": "scripts/run_generated_case_adapters.py",
+      "line": 151,
+      "site": "scripts/run_generated_case_adapters.py:151",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "run_generated_case_adapters.py",
+      "to": "spec_paths.py",
+      "kind": "call",
+      "symbol": "resolve_existing_spec_input",
+      "file": "scripts/run_generated_case_adapters.py",
+      "line": 152,
+      "site": "scripts/run_generated_case_adapters.py:152",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "run_generated_case_adapters.py",
+      "to": "spec_paths.py",
+      "kind": "call",
+      "symbol": "resolve_spec_relative_path",
+      "file": "scripts/run_generated_case_adapters.py",
+      "line": 2157,
+      "site": "scripts/run_generated_case_adapters.py:2157",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "analyze_complexity.py",
+      "kind": "import",
+      "symbol": "scripts.analyze_complexity",
+      "file": "scripts/spec_evolution.py",
+      "line": 717,
+      "site": "scripts/spec_evolution.py:717",
+      "from_component": "tickets",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "tickets"
+      ],
+      "port": "P4",
+      "port_actions": [
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "analyze_complexity.py",
+      "kind": "call",
+      "symbol": "analyze_complexity.resolve_module",
+      "file": "scripts/spec_evolution.py",
+      "line": 720,
+      "site": "scripts/spec_evolution.py:720",
+      "from_component": "tickets",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "tickets"
+      ],
+      "port": "P4",
+      "port_actions": [
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "analyze_complexity.py",
+      "kind": "call",
+      "symbol": "analyze_complexity._parse_cfg_named_entry",
+      "file": "scripts/spec_evolution.py",
+      "line": 729,
+      "site": "scripts/spec_evolution.py:729",
+      "from_component": "tickets",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "tickets"
+      ],
+      "port": "P4",
+      "port_actions": [
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "analyze_complexity.py",
+      "kind": "call",
+      "symbol": "analyze_complexity.parse_cfg_invariants",
+      "file": "scripts/spec_evolution.py",
+      "line": 745,
+      "site": "scripts/spec_evolution.py:745",
+      "from_component": "tickets",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "tickets"
+      ],
+      "port": "P4",
+      "port_actions": [
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "analyze_complexity.py",
+      "kind": "call",
+      "symbol": "analyze_complexity.parse_cfg_constants",
+      "file": "scripts/spec_evolution.py",
+      "line": 760,
+      "site": "scripts/spec_evolution.py:760",
+      "from_component": "tickets",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "tickets"
+      ],
+      "port": "P4",
+      "port_actions": [
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "complexity_ledger.py",
+      "kind": "import",
+      "symbol": "complexity_ledger",
+      "file": "scripts/spec_evolution.py",
+      "line": 26,
+      "site": "scripts/spec_evolution.py:26",
+      "from_component": "tickets",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "tickets"
+      ],
+      "port": "P4",
+      "port_actions": [
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "complexity_ledger.py",
+      "kind": "call",
+      "symbol": "complexity_ledger.load_input",
+      "file": "scripts/spec_evolution.py",
+      "line": 835,
+      "site": "scripts/spec_evolution.py:835",
+      "from_component": "tickets",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "tickets"
+      ],
+      "port": "P4",
+      "port_actions": [
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "complexity_ledger.py",
+      "kind": "call",
+      "symbol": "complexity_ledger.collect_metrics",
+      "file": "scripts/spec_evolution.py",
+      "line": 850,
+      "site": "scripts/spec_evolution.py:850",
+      "from_component": "tickets",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "tickets"
+      ],
+      "port": "P4",
+      "port_actions": [
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "complexity_ledger.py",
+      "kind": "call",
+      "symbol": "complexity_ledger.ledger_path",
+      "file": "scripts/spec_evolution.py",
+      "line": 851,
+      "site": "scripts/spec_evolution.py:851",
+      "from_component": "tickets",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "tickets"
+      ],
+      "port": "P4",
+      "port_actions": [
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "complexity_ledger.py",
+      "kind": "call",
+      "symbol": "complexity_ledger.load_ledger",
+      "file": "scripts/spec_evolution.py",
+      "line": 852,
+      "site": "scripts/spec_evolution.py:852",
+      "from_component": "tickets",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "tickets"
+      ],
+      "port": "P4",
+      "port_actions": [
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "complexity_ledger.py",
+      "kind": "call",
+      "symbol": "complexity_ledger.evaluate",
+      "file": "scripts/spec_evolution.py",
+      "line": 853,
+      "site": "scripts/spec_evolution.py:853",
+      "from_component": "tickets",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "tickets"
+      ],
+      "port": "P4",
+      "port_actions": [
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "complexity_ledger.py",
+      "kind": "call",
+      "symbol": "complexity_ledger.previous_entry",
+      "file": "scripts/spec_evolution.py",
+      "line": 859,
+      "site": "scripts/spec_evolution.py:859",
+      "from_component": "tickets",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "tickets"
+      ],
+      "port": "P4",
+      "port_actions": [
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "complexity_ledger.py",
+      "kind": "call",
+      "symbol": "complexity_ledger.render_report",
+      "file": "scripts/spec_evolution.py",
+      "line": 861,
+      "site": "scripts/spec_evolution.py:861",
+      "from_component": "tickets",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "tickets"
+      ],
+      "port": "P4",
+      "port_actions": [
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "complexity_ledger.py",
+      "kind": "call",
+      "symbol": "complexity_ledger.append_entry",
+      "file": "scripts/spec_evolution.py",
+      "line": 866,
+      "site": "scripts/spec_evolution.py:866",
+      "from_component": "tickets",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "tickets"
+      ],
+      "port": "P4",
+      "port_actions": [
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "complexity_ledger.py",
+      "kind": "call",
+      "symbol": "complexity_ledger.append_entry",
+      "file": "scripts/spec_evolution.py",
+      "line": 873,
+      "site": "scripts/spec_evolution.py:873",
+      "from_component": "tickets",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "tickets"
+      ],
+      "port": "P4",
+      "port_actions": [
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "import",
+      "symbol": "scripts.extract_spec_manifest.load_manifest",
+      "file": "scripts/spec_evolution.py",
+      "line": 61,
+      "site": "scripts/spec_evolution.py:61",
+      "from_component": "tickets",
+      "to_component": "surface",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "call",
+      "symbol": "load_manifest",
+      "file": "scripts/spec_evolution.py",
+      "line": 65,
+      "site": "scripts/spec_evolution.py:65",
+      "from_component": "tickets",
+      "to_component": "surface",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "skill_feedback.py",
+      "kind": "import",
+      "symbol": "skill_feedback.emit_skill_feedback",
+      "file": "scripts/spec_evolution.py",
+      "line": 19,
+      "site": "scripts/spec_evolution.py:19",
+      "from_component": "tickets",
+      "to_component": "surface",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "skill_feedback.py",
+      "kind": "import",
+      "symbol": "skill_feedback.emit_skill_feedback",
+      "file": "scripts/spec_evolution.py",
+      "line": 21,
+      "site": "scripts/spec_evolution.py:21",
+      "from_component": "tickets",
+      "to_component": "surface",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "skill_feedback.py",
+      "kind": "call",
+      "symbol": "emit_skill_feedback",
+      "file": "scripts/spec_evolution.py",
+      "line": 983,
+      "site": "scripts/spec_evolution.py:983",
+      "from_component": "tickets",
+      "to_component": "surface",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "skill_feedback.py",
+      "kind": "call",
+      "symbol": "emit_skill_feedback",
+      "file": "scripts/spec_evolution.py",
+      "line": 1105,
+      "site": "scripts/spec_evolution.py:1105",
+      "from_component": "tickets",
+      "to_component": "surface",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "spec_evolution.py",
+      "to": "skill_feedback.py",
+      "kind": "call",
+      "symbol": "print_skill_feedback_report",
+      "file": "scripts/spec_evolution.py",
+      "line": 1198,
+      "site": "scripts/spec_evolution.py:1198",
+      "from_component": "tickets",
+      "to_component": "surface",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "testgraph_channels.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "import",
+      "symbol": "extract_spec_manifest.load_manifest",
+      "file": "scripts/testgraph_channels.py",
+      "line": 49,
+      "site": "scripts/testgraph_channels.py:49",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "testgraph_channels.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "import",
+      "symbol": "extract_spec_manifest.load_manifest",
+      "file": "scripts/testgraph_channels.py",
+      "line": 51,
+      "site": "scripts/testgraph_channels.py:51",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "testgraph_channels.py",
+      "to": "extract_spec_manifest.py",
+      "kind": "call",
+      "symbol": "load_manifest",
+      "file": "scripts/testgraph_channels.py",
+      "line": 141,
+      "site": "scripts/testgraph_channels.py:141",
+      "from_component": "corpus",
+      "to_component": "surface",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "analyze_architecture.py",
+      "kind": "import",
+      "symbol": "scripts.analyze_architecture",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 156,
+      "site": "scripts/tla_spec_dev.py:156",
+      "from_component": "surface",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "analyze_architecture.py",
+      "kind": "call",
+      "symbol": "analyze_architecture.run",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 158,
+      "site": "scripts/tla_spec_dev.py:158",
+      "from_component": "surface",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "analyze_architecture.py",
+      "kind": "import",
+      "symbol": "scripts.analyze_architecture.add_arguments",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 659,
+      "site": "scripts/tla_spec_dev.py:659",
+      "from_component": "surface",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "analyze_architecture.py",
+      "kind": "call",
+      "symbol": "_add_architecture_arguments",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 661,
+      "site": "scripts/tla_spec_dev.py:661",
+      "from_component": "surface",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "analyze_complexity.py",
+      "kind": "import",
+      "symbol": "scripts.analyze_complexity",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 144,
+      "site": "scripts/tla_spec_dev.py:144",
+      "from_component": "surface",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "analyze_complexity.py",
+      "kind": "call",
+      "symbol": "analyze_complexity.run",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 146,
+      "site": "scripts/tla_spec_dev.py:146",
+      "from_component": "surface",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "analyze_complexity.py",
+      "kind": "import",
+      "symbol": "scripts.analyze_complexity.add_arguments",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 630,
+      "site": "scripts/tla_spec_dev.py:630",
+      "from_component": "surface",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "analyze_complexity.py",
+      "kind": "call",
+      "symbol": "_add_analyze_arguments",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 632,
+      "site": "scripts/tla_spec_dev.py:632",
+      "from_component": "surface",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "corpus_diagnostics.py",
+      "kind": "import",
+      "symbol": "scripts.corpus_diagnostics",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 150,
+      "site": "scripts/tla_spec_dev.py:150",
+      "from_component": "surface",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "corpus_diagnostics.py",
+      "kind": "call",
+      "symbol": "corpus_diagnostics.run",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 152,
+      "site": "scripts/tla_spec_dev.py:152",
+      "from_component": "surface",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "corpus_diagnostics.py",
+      "kind": "import",
+      "symbol": "scripts.corpus_diagnostics.add_arguments",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 687,
+      "site": "scripts/tla_spec_dev.py:687",
+      "from_component": "surface",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "corpus_diagnostics.py",
+      "kind": "call",
+      "symbol": "_add_corpus_arguments",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 689,
+      "site": "scripts/tla_spec_dev.py:689",
+      "from_component": "surface",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "effect_conformance_report.py",
+      "kind": "import",
+      "symbol": "scripts.effect_conformance_report",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 168,
+      "site": "scripts/tla_spec_dev.py:168",
+      "from_component": "surface",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "effect_conformance_report.py",
+      "kind": "call",
+      "symbol": "effect_conformance_report.run",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 170,
+      "site": "scripts/tla_spec_dev.py:170",
+      "from_component": "surface",
+      "to_component": "corpus",
+      "pair": [
+        "corpus",
+        "surface"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "AnalyzeComplexity",
+        "AnalyzeCorpus",
+        "RunEffectConformance",
+        "RunSpecUnitTests"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "new_ticket_workflow.py",
+      "kind": "import",
+      "symbol": "scripts.new_ticket_workflow",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 105,
+      "site": "scripts/tla_spec_dev.py:105",
+      "from_component": "surface",
+      "to_component": "tickets",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "new_ticket_workflow.py",
+      "kind": "call",
+      "symbol": "new_ticket_workflow.scaffold",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 110,
+      "site": "scripts/tla_spec_dev.py:110",
+      "from_component": "surface",
+      "to_component": "tickets",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "new_ticket_workflow.py",
+      "kind": "import",
+      "symbol": "scripts.new_ticket_workflow.scaffold_ticket_directory",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 127,
+      "site": "scripts/tla_spec_dev.py:127",
+      "from_component": "surface",
+      "to_component": "tickets",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "new_ticket_workflow.py",
+      "kind": "call",
+      "symbol": "scaffold_ticket_directory",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 130,
+      "site": "scripts/tla_spec_dev.py:130",
+      "from_component": "surface",
+      "to_component": "tickets",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "run_kill_test.py",
+      "kind": "import",
+      "symbol": "scripts.run_kill_test",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 181,
+      "site": "scripts/tla_spec_dev.py:181",
+      "from_component": "surface",
+      "to_component": "kill",
+      "pair": [
+        "kill",
+        "surface"
+      ],
+      "port": "P3",
+      "port_actions": [
+        "RunKillTest"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "run_kill_test.py",
+      "kind": "call",
+      "symbol": "run_kill_test_module.run",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 183,
+      "site": "scripts/tla_spec_dev.py:183",
+      "from_component": "surface",
+      "to_component": "kill",
+      "pair": [
+        "kill",
+        "surface"
+      ],
+      "port": "P3",
+      "port_actions": [
+        "RunKillTest"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "run_kill_test.py",
+      "kind": "import",
+      "symbol": "scripts.run_kill_test.add_arguments",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 592,
+      "site": "scripts/tla_spec_dev.py:592",
+      "from_component": "surface",
+      "to_component": "kill",
+      "pair": [
+        "kill",
+        "surface"
+      ],
+      "port": "P3",
+      "port_actions": [
+        "RunKillTest"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "run_kill_test.py",
+      "kind": "call",
+      "symbol": "_add_kill_test_arguments",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 594,
+      "site": "scripts/tla_spec_dev.py:594",
+      "from_component": "surface",
+      "to_component": "kill",
+      "pair": [
+        "kill",
+        "surface"
+      ],
+      "port": "P3",
+      "port_actions": [
+        "RunKillTest"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "spec_evolution.py",
+      "kind": "import",
+      "symbol": "scripts.spec_evolution.create_ticket_history_entry",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 187,
+      "site": "scripts/tla_spec_dev.py:187",
+      "from_component": "surface",
+      "to_component": "tickets",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "spec_evolution.py",
+      "kind": "call",
+      "symbol": "create_ticket_history_entry",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 189,
+      "site": "scripts/tla_spec_dev.py:189",
+      "from_component": "surface",
+      "to_component": "tickets",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    },
+    {
+      "from": "tla_spec_dev.py",
+      "to": "spec_evolution.py",
+      "kind": "call",
+      "symbol": "print_commit_recommendation",
+      "file": "scripts/tla_spec_dev.py",
+      "line": 202,
+      "site": "scripts/tla_spec_dev.py:202",
+      "from_component": "surface",
+      "to_component": "tickets",
+      "pair": [
+        "surface",
+        "tickets"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "CloseTicket",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "UpdateTicketCurrent",
+        "UpdateTicketDesired"
+      ]
+    }
+  ],
+  "divergences": [],
+  "absences": [],
+  "unmapped_modules": [],
+  "unrealized_components": [],
+  "blind_spots": [
+    {
+      "kind": "dynamic_import",
+      "detail": "`importlib.import_module(...)` is called with a computed module name; the edge it creates cannot be resolved statically",
+      "where": "scripts/generate_cases_from_tlc_dump.py:447"
+    },
+    {
+      "kind": "dynamic_import",
+      "detail": "`importlib.import_module(...)` is called with a computed module name; the edge it creates cannot be resolved statically",
+      "where": "scripts/run_generated_case_adapters.py:131"
+    },
+    {
+      "kind": "dynamic_import",
+      "detail": "`importlib.import_module(...)` is called with a computed module name; the edge it creates cannot be resolved statically",
+      "where": "scripts/run_generated_case_adapters.py:401"
+    },
+    {
+      "kind": "first_party_outside_code_root",
+      "detail": "`spec_double_compiler` is imported by the scanned tree and lives beside it in /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ac04/base, but outside --code. Its edges are not in this graph, and no component of the map can be held to them. Widen --code, or accept that this dependency is unmeasured",
+      "where": "scripts/effect_conformance_report.py:144, scripts/run_generated_case_adapters.py:1027, scripts/run_generated_case_adapters.py:1058, scripts/run_generated_case_adapters.py:1307"
+    },
+    {
+      "kind": "non_python_file",
+      "detail": "is in the scanned tree and has no extractor in this build; whatever dependencies it declares are invisible to this check",
+      "where": "scripts/run_tlc.sh"
+    }
+  ],
+  "ignored_suppression_keys": [],
+  "verdict": {
+    "architecture_scan": "unmappable",
+    "reasons": [
+      "[dynamic_import] `importlib.import_module(...)` is called with a computed module name; the edge it creates cannot be resolved statically (scripts/generate_cases_from_tlc_dump.py:447)",
+      "[dynamic_import] `importlib.import_module(...)` is called with a computed module name; the edge it creates cannot be resolved statically (scripts/run_generated_case_adapters.py:131)",
+      "[dynamic_import] `importlib.import_module(...)` is called with a computed module name; the edge it creates cannot be resolved statically (scripts/run_generated_case_adapters.py:401)",
+      "[first_party_outside_code_root] `spec_double_compiler` is imported by the scanned tree and lives beside it in /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ac04/base, but outside --code. Its edges are not in this graph, and no component of the map can be held to them. Widen --code, or accept that this dependency is unmeasured (scripts/effect_conformance_report.py:144, scripts/run_generated_case_adapters.py:1027, scripts/run_generated_case_adapters.py:1058, scripts/run_generated_case_adapters.py:1307)",
+      "[non_python_file] is in the scanned tree and has no extractor in this build; whatever dependencies it declares are invisible to this check (scripts/run_tlc.sh)"
+    ],
+    "blocks_promotion": false
+  },
+  "advisory": {
+    "blocks_promotion": false,
+    "suggests_moves": false,
+    "note": "This report states measured facts about the code's dependency graph relative to a declared map. It names no module that should move and proposes no boundary. A divergent verdict never refuses a close, a promotion, or a case generation."
+  }
+}

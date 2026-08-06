@@ -1,0 +1,394 @@
+examples/distributed_history/ecommerce_backend/domain.py:164:            carts.setdefault(row["account_id"], []).append(row["sku"])
+examples/distributed_history/ecommerce_backend/service.py:289:    port = int(os.environ.get("ECOMMERCE_PORT", "18080"))
+examples/distributed_history/ecommerce_backend/service.py:290:    db_path = os.environ.get("ECOMMERCE_DB", "/tmp/ecommerce-example.db")
+examples/distributed_history/ecommerce_backend/service.py:291:    EcommerceHandler.role = os.environ.get("ECOMMERCE_ROLE", "monolith")
+examples/distributed_history/ecommerce_backend/service.py:312:    return os.environ.get("ECOMMERCE_DATABASE_URL", "http://database-service")
+examples/distributed_history/ecommerce_backend/service.py:316:    return os.environ.get("ECOMMERCE_QUEUE_URL", "http://queue-service")
+examples/distributed_history/ecommerce_backend/service.py:320:    return os.environ.get("ECOMMERCE_ACCOUNT_URL", "http://account-service")
+examples/distributed_history/ecommerce_backend/service.py:324:    return os.environ.get("ECOMMERCE_CART_URL", "http://cart-service")
+examples/distributed_history/ecommerce_backend/service.py:328:    return os.environ.get("ECOMMERCE_CHECKOUT_URL", "http://checkout-service")
+examples/distributed_history/ecommerce_backend/service.py:332:    return os.environ.get("ECOMMERCE_WORKER_URL", "http://worker-service")
+examples/distributed_history/scripts/regenerate_tlc_cases.py:24:REPO_ROOT = Path(os.environ.get("TLA_SPEC_DEV_ROOT", EXAMPLE_ROOT.parents[1])).resolve()
+examples/distributed_history/scripts/regenerate_tlc_cases.py:33:    env = os.environ.copy()
+examples/distributed_history/scripts/regenerate_tlc_cases.py:40:    parser.add_argument("--tlc2", default=os.environ.get("TLC2", "tlc2"), help="TLC executable. Defaults to $TLC2 or tlc2.")
+examples/distributed_history/specs/program_model/adapters.py:65:        base_url = os.environ.get("ECOMMERCE_BASE_URL", "http://127.0.0.1:18080")
+examples/distributed_history/specs/program_model/adapters.py:72:        base_url = context.shared.get("base_url") or os.environ.get("ECOMMERCE_BASE_URL", "http://127.0.0.1:18080")
+examples/distributed_history/specs/program_model/adapters.py:87:        base_url = os.environ.get("ECOMMERCE_BASE_URL", "http://127.0.0.1:18080").rstrip("/")
+examples/distributed_history/specs/program_model/adapters.py:158:        base_url = context.shared.get("base_url") or os.environ.get("ECOMMERCE_BASE_URL", "http://127.0.0.1:18080")
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:17:REPO = Path(os.environ.get("TLA_SPEC_DEV_ROOT", ROOT.parents[1])).resolve()
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:41:    env = os.environ.copy()
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:22:        val argv = mutableListOf<String>()
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:23:        argv += jbangPath
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:24:        argv += rt.entryFile
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:25:        argv += standardArgs(invocation)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:28:        val process = ProcessBuilder(argv)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:20:        val argv = mutableListOf<String>()
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:21:        argv += uvPath
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:22:        argv += "run"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:23:        argv += rt.entryFile
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:24:        argv += standardArgs(invocation)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:27:        val process = ProcessBuilder(argv)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:22:        val argv = invocationFor(runtime, file, tools) + "--describe-out=${out.absolutePath}"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:24:        val process = ProcessBuilder(argv)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:32:                    "Run directly to debug: ${argv.joinToString(" ")}")
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:17:    enum class Source { PATH, CACHED, DOWNLOADED }
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:25: *   1. If `override-<tool>-version` is set AND the version on PATH matches
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:26: *      it, use PATH.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:27: *   2. If `override-<tool>-version` is set AND PATH differs (or tool isn't
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:28: *      on PATH), download the override version to `<project>/.bin/`.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:29: *   3. If no override, use whatever's on PATH.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:30: *   4. If no override and not on PATH, download the default version.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:37: * precedence over anything else on PATH when the plugin drives them.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:84:        // Rule 1 / 3: use PATH when override matches or no override is set.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:87:                return ResolvedTool(toolName, pathVersion, pathBin, ResolvedTool.Source.PATH)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:104:        val path = System.getenv("PATH") ?: return null
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:125:    private fun runCapture(vararg argv: String): String? = try {
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:126:        val p = ProcessBuilder(*argv).redirectErrorStream(true).start()
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:223:    private fun shell(vararg argv: String) {
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:224:        val p = ProcessBuilder(*argv).redirectErrorStream(true).start()
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:227:        if (code != 0) error("[toolchain] command failed (exit=$code): ${argv.joinToString(" ")}\n$out")
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:12: * for each child a node spawns. The record carries argv, timestamps,
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/context.py:30:    def parse(cls, argv: list[str] | None = None) -> "NodeContext":
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/context.py:31:        argv = argv if argv is not None else sys.argv[1:]
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/context.py:37:        for raw in argv:
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:42:    argv: list[str],
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:47:    """Spawn ``argv`` with stdout+stderr captured to :func:`log_file`,
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:51:    ``{**os.environ, "FOO": "bar"}`` to extend the inherited env).
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:60:            command=list(argv),
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:71:                argv,
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:84:                    command=list(argv),
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:95:            command=list(argv),
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:106:        command=list(argv),
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:167:        self.metrics.setdefault(
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/runner.py:34:            describe_out = _find_arg(sys.argv[1:], "--describe-out=")
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/runner.py:55:            result_out = _find_arg(sys.argv[1:], "--result-out=")
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/runner.py:81:def _find_arg(argv: list[str], prefix: str) -> str | None:
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/runner.py:82:    for a in argv:
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:46:    if os.environ.get("ECOMMERCE_KEEP_K3D", "0") == "1" or os.environ.get("ECOMMERCE_DELETE_K3D") == "0":
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:48:    cluster = os.environ.get("ECOMMERCE_K3D_CLUSTER", "ecommerce-history")
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:50:    mode = os.environ.get("ECOMMERCE_TEST_MODE", "k3d")
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:61:    env = os.environ.copy()
+examples/distributed_history/test_graph/sources/run_external_cases.py:37:    repo = Path(os.environ.get("TLA_SPEC_DEV_ROOT", root.parents[1])).resolve()
+examples/distributed_history/test_graph/sources/run_external_cases.py:66:    env = os.environ.copy()
+examples/effect_providers/atomic_publisher/application.py:127:    value = os.environ.get("ATOMIC_PUBLISHER_MUTANT") or None
+examples/effect_providers/atomic_publisher/conformance.py:170:    previous = os.environ.pop("ATOMIC_PUBLISHER_MUTANT", None)
+examples/effect_providers/atomic_publisher/conformance.py:202:            os.environ["ATOMIC_PUBLISHER_MUTANT"] = previous
+examples/effect_providers/atomic_publisher/conformance.py:210:    previous = os.environ.get("ATOMIC_PUBLISHER_MUTANT")
+examples/effect_providers/atomic_publisher/conformance.py:213:            os.environ["ATOMIC_PUBLISHER_MUTANT"] = mutant
+examples/effect_providers/atomic_publisher/conformance.py:236:            os.environ.pop("ATOMIC_PUBLISHER_MUTANT", None)
+examples/effect_providers/atomic_publisher/conformance.py:238:            os.environ["ATOMIC_PUBLISHER_MUTANT"] = previous
+examples/effect_providers/atomic_publisher/external_adapter.py:25:        env = os.environ.copy()
+examples/effect_providers/atomic_publisher/regenerate.py:28:    parser.add_argument("--tlc2", default=os.environ.get("TLC2", "tlc2"))
+examples/effect_providers/atomic_publisher/regenerate.py:144:    env = os.environ.copy()
+examples/effect_providers/atomic_publisher/run_experiment.py:236:    env = os.environ.copy()
+examples/effect_providers/atomic_publisher/run_experiment.py:271:    env = os.environ.copy()
+examples/effect_providers/atomic_publisher/run_experiment.py:574:    base_commit = os.environ.get("EFFECT_EXAMPLE_FRAMEWORK_BASE", "141e63b")
+examples/effect_providers/atomic_publisher/test_atomic_publisher.py:28:        self.previous_mutant = os.environ.pop("ATOMIC_PUBLISHER_MUTANT", None)
+examples/effect_providers/atomic_publisher/test_atomic_publisher.py:32:            os.environ["ATOMIC_PUBLISHER_MUTANT"] = self.previous_mutant
+examples/effect_providers/atomic_publisher/test_atomic_publisher.py:34:            os.environ.pop("ATOMIC_PUBLISHER_MUTANT", None)
+examples/effect_providers/atomic_publisher/validate.py:244:    env = os.environ.copy()
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:35:    return os.environ.get("LEGACY_PAYMENT_MUTANT", "CONTROL")
+examples/effect_providers/legacy_payment_http/payment_effects/baseline.py:64:    original = os.environ.get("LEGACY_PAYMENT_MUTANT")
+examples/effect_providers/legacy_payment_http/payment_effects/baseline.py:69:                os.environ.pop("LEGACY_PAYMENT_MUTANT", None)
+examples/effect_providers/legacy_payment_http/payment_effects/baseline.py:71:                os.environ["LEGACY_PAYMENT_MUTANT"] = mutant
+examples/effect_providers/legacy_payment_http/payment_effects/baseline.py:91:            os.environ.pop("LEGACY_PAYMENT_MUTANT", None)
+examples/effect_providers/legacy_payment_http/payment_effects/baseline.py:93:            os.environ["LEGACY_PAYMENT_MUTANT"] = original
+examples/effect_providers/legacy_payment_http/payment_effects/external.py:28:        env = os.environ.copy()
+examples/effect_providers/legacy_payment_http/payment_effects/probes.py:18:    prior = os.environ.get("LEGACY_PAYMENT_TRANSCRIPT")
+examples/effect_providers/legacy_payment_http/payment_effects/probes.py:19:    os.environ["LEGACY_PAYMENT_TRANSCRIPT"] = transcript_path
+examples/effect_providers/legacy_payment_http/payment_effects/probes.py:63:            os.environ.pop("LEGACY_PAYMENT_TRANSCRIPT", None)
+examples/effect_providers/legacy_payment_http/payment_effects/probes.py:65:            os.environ["LEGACY_PAYMENT_TRANSCRIPT"] = prior
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:378:        destination = os.environ.get("LEGACY_PAYMENT_TRANSCRIPT")
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:663:    env = os.environ.copy()
+examples/effect_providers/legacy_payment_http/tests/test_project.py:91:        with patch.dict(os.environ, {"LEGACY_PAYMENT_MUTANT": "PH-05"}):
+examples/effect_providers/legacy_payment_http/tests/test_project.py:192:            prior = os.environ.get("LEGACY_PAYMENT_TRANSCRIPT")
+examples/effect_providers/legacy_payment_http/tests/test_project.py:193:            os.environ["LEGACY_PAYMENT_TRANSCRIPT"] = str(transcript)
+examples/effect_providers/legacy_payment_http/tests/test_project.py:216:                    os.environ.pop("LEGACY_PAYMENT_TRANSCRIPT", None)
+examples/effect_providers/legacy_payment_http/tests/test_project.py:218:                    os.environ["LEGACY_PAYMENT_TRANSCRIPT"] = prior
+examples/effect_providers/legacy_payment_http/validate.py:149:    env = os.environ.copy()
+examples/effect_providers/legacy_payment_http/validate.py:187:    tlc2 = os.environ.get("TLC2_BIN") or shutil.which("tlc2")
+examples/effect_providers/legacy_payment_http/validate.py:189:        raise RuntimeError("tlc2 is required (set TLC2_BIN or add tlc2 to PATH)")
+examples/effect_providers/reminder_worker/adapter.py:29:        mutant = os.environ.get("REMINDER_MUTANT") or None
+examples/effect_providers/reminder_worker/adapter.py:44:        trace_path = os.environ.get("REMINDER_TRACE_LOG")
+examples/effect_providers/reminder_worker/adapter.py:48:            os.environ.get("REMINDER_MUTANT") or None,
+examples/effect_providers/reminder_worker/external_adapter.py:24:        environment = os.environ.copy()
+examples/effect_providers/reminder_worker/providers.py:207:            cleanup_path = os.environ.get("REMINDER_CLEANUP_LOG")
+examples/effect_providers/reminder_worker/regenerate.py:38:    parser.add_argument("--tlc2", default=os.environ.get("TLC2", "tlc2"))
+examples/effect_providers/reminder_worker/regenerate.py:62:    projection_env = os.environ.copy()
+examples/effect_providers/reminder_worker/run_experiment.py:194:    environment = os.environ.copy()
+examples/effect_providers/reminder_worker/run_experiment.py:264:    environment = os.environ.copy()
+examples/effect_providers/reminder_worker/run_experiment.py:351:    prior = os.environ.get("REMINDER_MUTANT")
+examples/effect_providers/reminder_worker/run_experiment.py:353:        os.environ.pop("REMINDER_MUTANT", None)
+examples/effect_providers/reminder_worker/run_experiment.py:355:        os.environ["REMINDER_MUTANT"] = mutant
+examples/effect_providers/reminder_worker/run_experiment.py:387:            os.environ.pop("REMINDER_MUTANT", None)
+examples/effect_providers/reminder_worker/run_experiment.py:389:            os.environ["REMINDER_MUTANT"] = prior
+examples/effect_providers/reminder_worker/test_reminder_worker.py:126:            environment = os.environ.copy()
+examples/effect_providers/reminder_worker/validate.py:380:    env = os.environ.copy()
+examples/effect_providers/reminder_worker/validate.py:385:        tlc2 = os.environ.get("TLC2") or shutil.which("tlc2")
+examples/run_distributed_history_validation.py:64:    env = os.environ.copy()
+examples/run_distributed_history_validation.py:235:    env = os.environ.copy()
+examples/run_distributed_history_validation.py:288:            negative_env = os.environ.copy()
+examples/validation/ex1_scaffold_only/taskq/taskq.py:20:    return Path(os.environ.get("TASKQ_STATE", Path(__file__).parent / "taskq.json"))
+examples/validation/ex1_scaffold_only/taskq/taskq.py:63:def main(argv: list[str]) -> int:
+examples/validation/ex1_scaffold_only/taskq/taskq.py:64:    if not argv:
+examples/validation/ex1_scaffold_only/taskq/taskq.py:67:    command, args = argv[0], argv[1:]
+examples/validation/ex1_scaffold_only/taskq/taskq.py:84:    raise SystemExit(main(sys.argv[1:]))
+examples/validation/runs/ex4-run1/artifacts/df02_blast.py:22:FIXTURE = Path(sys.argv[1]).resolve()
+examples/validation/runs/ex4-run1/artifacts/df02_blast.py:23:REPO = Path(sys.argv[2]).resolve()
+examples/validation/runs/ex4-run1/artifacts/df02_blast.py:24:OUT = Path(sys.argv[3]).resolve()
+examples/validation/runs/ex4-run1/artifacts/df02_blast.py:64:        by_comp.setdefault(var_comp[var], []).append(mod)
+examples/validation/runs/ex4-run1/artifacts/kill_matrix.py:17:FIXTURE = Path(sys.argv[1]).resolve()
+examples/validation/runs/ex4-run1/artifacts/kill_matrix.py:18:REPO = Path(sys.argv[2]).resolve()
+examples/validation/runs/ex4-run1/artifacts/kill_matrix.py:19:CORPUS = Path(sys.argv[3]).resolve()
+examples/validation/runs/ex4-run1/artifacts/kill_matrix.py:20:OUT = Path(sys.argv[4]).resolve()
+examples/validation/runs/ex4-run1/artifacts/kill_matrix.py:21:LABEL = sys.argv[5] if len(sys.argv) > 5 else "run1"
+examples/validation/runs/ex4-run1/artifacts/kill_matrix.py:32:    env = dict(os.environ)
+examples/validation/runs/ex4-run1/artifacts/kill_matrix.py:34:    env["PATH"] = f"{Path.home()}/.skill-manager/bin/cli:" + env.get("PATH", "")
+examples/validation/runs/ex4-run1/artifacts/replay.py:18:FIXTURE = Path(sys.argv[1]).resolve()
+examples/validation/runs/ex4-run1/artifacts/replay.py:19:REPO = Path(sys.argv[2]).resolve()
+examples/validation/runs/ex4-run1/artifacts/replay.py:20:LOGDIR = Path(sys.argv[3]).resolve()
+examples/validation/runs/ex4-run1/artifacts/replay.py:21:OUT = Path(sys.argv[4]).resolve()
+examples/validation/runs/ex4-run1/artifacts/replay.py:49:            env = dict(os.environ)
+examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.sh:13:export PATH="$HOME/.skill-manager/bin/cli:$PATH"
+examples/validation/runs/ex4-run4/artifacts/kill_matrix_round2.py:32:FIXTURE = Path(sys.argv[1]).resolve()
+examples/validation/runs/ex4-run4/artifacts/kill_matrix_round2.py:33:REPO = Path(sys.argv[2]).resolve()
+examples/validation/runs/ex4-run4/artifacts/kill_matrix_round2.py:34:CORPUS = Path(sys.argv[3]).resolve()
+examples/validation/runs/ex4-run4/artifacts/kill_matrix_round2.py:35:OUT = Path(sys.argv[4]).resolve()
+examples/validation/runs/ex4-run4/artifacts/kill_matrix_round2.py:36:LABEL = sys.argv[5]
+examples/validation/runs/ex4-run4/artifacts/kill_matrix_round2.py:37:RP02 = Path(sys.argv[6]).resolve()
+examples/validation/runs/ex4-run4/artifacts/kill_matrix_round2.py:50:    env = dict(os.environ)
+examples/validation/runs/ex4-run4/artifacts/kill_matrix_round2.py:52:    env["PATH"] = f"{Path.home()}/.skill-manager/bin/cli:" + env.get("PATH", "")
+examples/validation/runs/ex4-run5/artifacts/replay.py:18:FIXTURE = Path(sys.argv[1]).resolve()
+examples/validation/runs/ex4-run5/artifacts/replay.py:19:REPO = Path(sys.argv[2]).resolve()
+examples/validation/runs/ex4-run5/artifacts/replay.py:20:LOGDIR = Path(sys.argv[3]).resolve()
+examples/validation/runs/ex4-run5/artifacts/replay.py:21:OUT = Path(sys.argv[4]).resolve()
+examples/validation/runs/ex4-run5/artifacts/replay.py:49:            env = dict(os.environ)
+examples/validation/runs/ex4-run6/artifacts/sanitize_runB.py:16:ROOT = Path(sys.argv[1])
+examples/validation/runs/ex5-run3/artifacts/df02_blast_round2.py:20:FIXTURE = Path(sys.argv[1]).resolve()
+examples/validation/runs/ex5-run3/artifacts/df02_blast_round2.py:21:REPO = Path(sys.argv[2]).resolve()
+examples/validation/runs/ex5-run3/artifacts/df02_blast_round2.py:22:OUT = Path(sys.argv[3]).resolve()
+examples/validation/runs/ex5-run3/artifacts/df02_blast_round2.py:61:        by_comp.setdefault(var_comp[var], []).append(mod)
+examples/validation/runs/ex5-run4/artifacts/sanitize_runA.py:16:ROOT = Path(sys.argv[1])
+scripts/analyze_architecture.py:302:                    reaches.setdefault(other.cid, []).append(action.name)
+scripts/analyze_architecture.py:356:                pairs.setdefault((left, right), []).append(action.name)
+scripts/analyze_architecture.py:1165:def main(argv: list[str] | None = None) -> int:
+scripts/analyze_architecture.py:1171:    return run(parser.parse_args(argv))
+scripts/analyze_complexity.py:2312:def main(argv: list[str] | None = None) -> int:
+scripts/analyze_complexity.py:2318:    return run(parser.parse_args(argv))
+scripts/architecture_reflexion.py:513:        self.graph.external_imports.setdefault(dotted.split(".")[0], []).append(
+scripts/architecture_reflexion.py:695:            index.setdefault(name, rel)
+scripts/architecture_reflexion.py:2297:def main(argv: list[str] | None = None) -> int:
+scripts/architecture_reflexion.py:2307:    return run(parser.parse_args(argv))
+scripts/case_modules.py:306:    base = dict(os.environ if env is None else env)
+scripts/case_modules.py:830:def main(argv: list[str] | None = None) -> int:
+scripts/case_modules.py:863:    args = parser.parse_args(argv)
+scripts/complexity_ledger.py:595:    data.setdefault("entries", [])
+scripts/complexity_ledger.py:635:    ledger.setdefault("entries", []).append(entry)
+scripts/corpus_diagnostics.py:414:            per_field.setdefault(name, []).append(value)
+scripts/corpus_diagnostics.py:548:        groups.setdefault(group_key_for(case, scope), []).append(case)
+scripts/corpus_diagnostics.py:610:        f"ACCEPT PATH -- raise the cap, with a rationale, in {where}:\n"
+scripts/effect_conformance.py:1216:        coverage_by_case.setdefault(observation.case, set()).update(observation.covered_types)
+scripts/generate_cases_from_tlc_dump.py:900:        if f"-D{case_modules.TLA_LIBRARY_PROPERTY}" in os.environ.get("JAVA_TOOL_OPTIONS", ""):
+scripts/infer_action_params.py:592:            counts = tally.setdefault((action, name), [0, 0])
+scripts/run_generated_case_adapters.py:267:            current_list = loaded.setdefault("adapter", [])
+scripts/run_generated_case_adapters.py:273:            adapters = loaded.setdefault("adapters", {})
+scripts/run_generated_case_adapters.py:281:            actions = loaded.setdefault("actions", {})
+scripts/run_generated_case_adapters.py:289:            providers = loaded.setdefault("effect_providers", {})
+scripts/run_generated_case_adapters.py:1516:            runnable_by_kind.setdefault(adapter_kind(mapping), []).append((point, mapping))
+scripts/run_generated_case_adapters.py:2029:    if not args.batch or not args.python or os.environ.get("SPEC_DOUBLE_BATCH_REEXEC") == "1":
+scripts/run_generated_case_adapters.py:2055:    env = os.environ.copy()
+scripts/run_generated_case_adapters.py:2096:    # keeping the command a plain argv with the interpreter first.
+scripts/run_generated_case_adapters.py:2097:    for entry in (os.environ.get("PYTHONPATH") or "").split(os.pathsep):
+scripts/run_kill_test.py:118:def main(argv: list[str] | None = None) -> int:
+scripts/run_kill_test.py:126:    args = parser.parse_args(argv)
+scripts/skill_feedback.py:336:### SF-000c — PATH wrapper ran pre-epic code for an entire epic
+scripts/skill_feedback.py:338:- target: `tla-spec-dev` PATH wrapper -> ~/.skill-manager/skills/spec-double-compiler
+scripts/skill_feedback.py:343:- surface: skill installation / PATH shim
+scripts/tla_spec_dev.py:280:    base_env = os.environ.copy()
+scripts/tla_spec_dev.py:736:def main(argv: list[str] | None = None) -> int:
+scripts/tla_spec_dev.py:738:    args = parser.parse_args(argv)
+specs/current/production_adapters.py:252:            **os.environ,
+specs/current/production_adapters.py:1785:            "ACCEPT PATH" in over.stdout
+specs/current/production_adapters.py:2030:            "text = pathlib.Path(sys.argv[1]).read_text()\n"
+specs/current/production_adapters.py:2031:            "missing = [m for m in sys.argv[2:] if m not in text]\n"
+specs/desired_program_model/production_adapters.py:252:            **os.environ,
+specs/desired_program_model/production_adapters.py:1585:            "ACCEPT PATH" in over.stdout
+specs/desired_program_model/production_adapters.py:1830:            "text = pathlib.Path(sys.argv[1]).read_text()\n"
+specs/desired_program_model/production_adapters.py:1831:            "missing = [m for m in sys.argv[2:] if m not in text]\n"
+specs/program_model/production_adapters.py:252:            **os.environ,
+specs/program_model/production_adapters.py:1585:            "ACCEPT PATH" in over.stdout
+specs/program_model/production_adapters.py:1830:            "text = pathlib.Path(sys.argv[1]).read_text()\n"
+specs/program_model/production_adapters.py:1831:            "missing = [m for m in sys.argv[2:] if m not in text]\n"
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:180:        per.setdefault(area(l.split(":", 1)[0]), 0)
+specs/results/epic-close/sweep-raw-run5/ca5_changed_enum.sh:18:'\b(environ|getenv|putenv|setdefault|argv|load_dotenv|expanduser|PATH)\b'
+specs/results/epic-close/sweep-raw-run5/ca5_changed_enum.sh:27:'\b(getenv|flag|enabled|config)\b|\.get\("|--no-|--allow'
+specs/results/epic-close/sweep-raw-run5/ca5_delta_check.sh:14:'\b(environ|getenv|putenv|setdefault|argv|load_dotenv|expanduser|PATH)\b'
+specs/results/epic-close/sweep-raw-run5/ca5_delta_check.sh:23:'\b(getenv|flag|enabled|config)\b|\.get\("|--no-|--allow'
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:22:        val argv = mutableListOf<String>()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:23:        argv += jbangPath
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:24:        argv += rt.entryFile
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:25:        argv += standardArgs(invocation)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:28:        val process = ProcessBuilder(argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:20:        val argv = mutableListOf<String>()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:21:        argv += uvPath
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:22:        argv += "run"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:23:        argv += rt.entryFile
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:24:        argv += standardArgs(invocation)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:27:        val process = ProcessBuilder(argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:22:        val argv = invocationFor(runtime, file, tools) + "--describe-out=${out.absolutePath}"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:24:        val process = ProcessBuilder(argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:32:                    "Run directly to debug: ${argv.joinToString(" ")}")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:17:    enum class Source { PATH, CACHED, DOWNLOADED }
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:25: *   1. If `override-<tool>-version` is set AND the version on PATH matches
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:26: *      it, use PATH.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:27: *   2. If `override-<tool>-version` is set AND PATH differs (or tool isn't
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:28: *      on PATH), download the override version to `<project>/.bin/`.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:29: *   3. If no override, use whatever's on PATH.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:30: *   4. If no override and not on PATH, download the default version.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:37: * precedence over anything else on PATH when the plugin drives them.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:84:        // Rule 1 / 3: use PATH when override matches or no override is set.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:87:                return ResolvedTool(toolName, pathVersion, pathBin, ResolvedTool.Source.PATH)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:104:        val path = System.getenv("PATH") ?: return null
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:125:    private fun runCapture(vararg argv: String): String? = try {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:126:        val p = ProcessBuilder(*argv).redirectErrorStream(true).start()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:223:    private fun shell(vararg argv: String) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:224:        val p = ProcessBuilder(*argv).redirectErrorStream(true).start()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:227:        if (code != 0) error("[toolchain] command failed (exit=$code): ${argv.joinToString(" ")}\n$out")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:12: * for each child a node spawns. The record carries argv, timestamps,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:30:    def parse(cls, argv: list[str] | None = None) -> "NodeContext":
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:31:        argv = argv if argv is not None else sys.argv[1:]
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:37:        for raw in argv:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:42:    argv: list[str],
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:47:    """Spawn ``argv`` with stdout+stderr captured to :func:`log_file`,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:51:    ``{**os.environ, "FOO": "bar"}`` to extend the inherited env).
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:60:            command=list(argv),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:71:                argv,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:84:                    command=list(argv),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:95:            command=list(argv),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:106:        command=list(argv),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:167:        self.metrics.setdefault(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:34:            describe_out = _find_arg(sys.argv[1:], "--describe-out=")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:55:            result_out = _find_arg(sys.argv[1:], "--result-out=")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:81:def _find_arg(argv: list[str], prefix: str) -> str | None:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:82:    for a in argv:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:84:    for label, argv in [
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:89:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:145:    for label, argv in [
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:149:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:49:    for label, argv in commands:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:50:        record = procs.run(ctx, label, argv, cwd=repo_dir)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:81:    env = dict(os.environ)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:72:    for label, argv in commands:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:73:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:24:def run_and_assert(ctx, result: NodeResult, label: str, argv: list[str], expected: list[str]) -> NodeResult:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:25:    record = procs.run(ctx, label, argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:35:def run_and_assert_exit(ctx, result: NodeResult, label: str, argv: list[str], expected_exit: int, expected: list[str]) -> NodeResult:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:36:    record = procs.run(ctx, label, argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:60:    for label, argv, expected in commands:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:61:        result = run_and_assert(ctx, result, label, argv, expected)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_install.py:30:        os.environ.get("TLA_SPEC_DEV_SOURCE_REPO")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_install.py:36:        **os.environ,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:22:        val argv = mutableListOf<String>()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:23:        argv += jbangPath
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:24:        argv += rt.entryFile
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:25:        argv += standardArgs(invocation)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:28:        val process = ProcessBuilder(argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:20:        val argv = mutableListOf<String>()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:21:        argv += uvPath
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:22:        argv += "run"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:23:        argv += rt.entryFile
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:24:        argv += standardArgs(invocation)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:27:        val process = ProcessBuilder(argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:22:        val argv = invocationFor(runtime, file, tools) + "--describe-out=${out.absolutePath}"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:24:        val process = ProcessBuilder(argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:32:                    "Run directly to debug: ${argv.joinToString(" ")}")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:17:    enum class Source { PATH, CACHED, DOWNLOADED }
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:25: *   1. If `override-<tool>-version` is set AND the version on PATH matches
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:26: *      it, use PATH.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:27: *   2. If `override-<tool>-version` is set AND PATH differs (or tool isn't
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:28: *      on PATH), download the override version to `<project>/.bin/`.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:29: *   3. If no override, use whatever's on PATH.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:30: *   4. If no override and not on PATH, download the default version.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:37: * precedence over anything else on PATH when the plugin drives them.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:84:        // Rule 1 / 3: use PATH when override matches or no override is set.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:87:                return ResolvedTool(toolName, pathVersion, pathBin, ResolvedTool.Source.PATH)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:104:        val path = System.getenv("PATH") ?: return null
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:125:    private fun runCapture(vararg argv: String): String? = try {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:126:        val p = ProcessBuilder(*argv).redirectErrorStream(true).start()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:223:    private fun shell(vararg argv: String) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:224:        val p = ProcessBuilder(*argv).redirectErrorStream(true).start()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:227:        if (code != 0) error("[toolchain] command failed (exit=$code): ${argv.joinToString(" ")}\n$out")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:12: * for each child a node spawns. The record carries argv, timestamps,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:30:    def parse(cls, argv: list[str] | None = None) -> "NodeContext":
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:31:        argv = argv if argv is not None else sys.argv[1:]
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:37:        for raw in argv:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:42:    argv: list[str],
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:47:    """Spawn ``argv`` with stdout+stderr captured to :func:`log_file`,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:51:    ``{**os.environ, "FOO": "bar"}`` to extend the inherited env).
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:60:            command=list(argv),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:71:                argv,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:84:                    command=list(argv),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:95:            command=list(argv),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:106:        command=list(argv),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:167:        self.metrics.setdefault(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:34:            describe_out = _find_arg(sys.argv[1:], "--describe-out=")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:55:            result_out = _find_arg(sys.argv[1:], "--result-out=")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:81:def _find_arg(argv: list[str], prefix: str) -> str | None:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:82:    for a in argv:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:84:    for label, argv in [
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:89:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:145:    for label, argv in [
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:149:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:49:    for label, argv in commands:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:50:        record = procs.run(ctx, label, argv, cwd=repo_dir)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:81:    env = dict(os.environ)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:72:    for label, argv in commands:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:73:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:24:def run_and_assert(ctx, result: NodeResult, label: str, argv: list[str], expected: list[str]) -> NodeResult:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:25:    record = procs.run(ctx, label, argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:35:def run_and_assert_exit(ctx, result: NodeResult, label: str, argv: list[str], expected_exit: int, expected: list[str]) -> NodeResult:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:36:    record = procs.run(ctx, label, argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:60:    for label, argv, expected in commands:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:61:        result = run_and_assert(ctx, result, label, argv, expected)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_install.py:30:        os.environ.get("TLA_SPEC_DEV_SOURCE_REPO")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_install.py:36:        **os.environ,
+test_graph/sources/effect_provider_examples.py:56:        **os.environ,
+test_graph/sources/spec_workflow_close_ticket.py:125:    for label, argv in [
+test_graph/sources/spec_workflow_close_ticket.py:130:        record = procs.run(ctx, label, argv, cwd=repo)
+test_graph/sources/spec_workflow_complete_ticket.py:145:    for label, argv in [
+test_graph/sources/spec_workflow_complete_ticket.py:149:        record = procs.run(ctx, label, argv, cwd=repo)
+test_graph/sources/spec_workflow_create_repo.py:49:    for label, argv in commands:
+test_graph/sources/spec_workflow_create_repo.py:50:        record = procs.run(ctx, label, argv, cwd=repo_dir)
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:125:        children.setdefault(ppid, []).append(pid)
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:162:    env = dict(os.environ)
+test_graph/sources/spec_workflow_start_ticket.py:72:    for label, argv in commands:
+test_graph/sources/spec_workflow_start_ticket.py:73:        record = procs.run(ctx, label, argv, cwd=repo)
+test_graph/sources/tla_spec_dev_cli_help.py:24:def run_and_assert(ctx, result: NodeResult, label: str, argv: list[str], expected: list[str]) -> NodeResult:
+test_graph/sources/tla_spec_dev_cli_help.py:25:    record = procs.run(ctx, label, argv)
+test_graph/sources/tla_spec_dev_cli_help.py:35:def run_and_assert_exit(ctx, result: NodeResult, label: str, argv: list[str], expected_exit: int, expected: list[str]) -> NodeResult:
+test_graph/sources/tla_spec_dev_cli_help.py:36:    record = procs.run(ctx, label, argv)
+test_graph/sources/tla_spec_dev_cli_help.py:60:    for label, argv, expected in commands:
+test_graph/sources/tla_spec_dev_cli_help.py:61:        result = run_and_assert(ctx, result, label, argv, expected)
+test_graph/sources/tla_spec_dev_cli_install.py:30:        os.environ.get("TLA_SPEC_DEV_SOURCE_REPO")
+test_graph/sources/tla_spec_dev_cli_install.py:36:        **os.environ,
+tests/test_architecture_reflexion.py:745:        for banned in ("os.environ", "getenv", "config", "options", "args", "allow", "assume"):
+tests/test_architecture_reflexion.py:1023:        for banned in ("os.environ", "getenv", "config", "options", "args", "allow", "assume"):
+tests/test_case_modules.py:547:        "argv",
+tests/test_corpus_diagnostics.py:459:    assert "ACCEPT PATH" in result.stdout
+tests/test_effect_conformance.py:751:        for forbidden in ("config", "flag", "os.environ", "getattr(", "manifest", "if "):
+tests/test_effect_provider_fuzzing.py:141:        env = os.environ.copy()
+tests/test_effect_provider_fuzzing.py:1165:LOG = Path(os.environ["EFFECT_REPLAY_EVENT_LOG"])
+tests/test_effect_provider_fuzzing.py:1166:FAIL_PHASE = os.environ["EFFECT_REPLAY_FAILURE_PHASE"]
+tests/test_effect_provider_fuzzing.py:1311:    env = os.environ.copy()
+tests/test_export_testgraph_cases.py:141:        "argv",
+tests/test_kill_test.py:468:        for smell in ("if ", "or ", "and ", "getattr", "os.environ", "allow", "override"):
+tests/test_skill_feedback.py:261:    # The PATH wrapper that ran pre-epic code for the entire epic.
+tests/test_skill_feedback.py:263:        "\n### SF-003 — PATH wrapper executed pre-epic code for the whole epic\n"
+tests/test_skill_feedback.py:265:        "- target: tla-spec-dev PATH wrapper -> ~/.skill-manager/skills/spec-double-compiler\n"
+tests/test_skill_feedback.py:270:        "- surface: skill installation / PATH shim\n"
+tests/test_tla_spec_dev_cli.py:56:        *argv, first_expected, second_expected = args
+tests/test_tla_spec_dev_cli.py:57:        result = run_cli(*argv)
+tests/test_tla_spec_dev_cli.py:332:        **os.environ,

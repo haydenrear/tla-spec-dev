@@ -1,0 +1,19 @@
+# PA-04 instrument "corpus-action-bound": THE CONTRAST, and the pre-PA-04 world.
+#
+# The same corpus, the same adapters, the same runner -- and NO [ports.*] table.
+# Every port case binds to its ACTION here, exactly as every binding in this
+# project did before this ticket. `--wiring fake` has nothing to swap, so both
+# wirings run the real composition point and one side of the port is executed by
+# nothing.
+#
+# This column exists so a divergence in the port columns is attributable to the
+# BINDING rather than to the corpus, the adapters or the wiring flag. It is the
+# same argument PA-03 made structurally and could not run: a corpus is a pure
+# function of (model, manifest, flags), so no change confined to generation can
+# make the arms differ. If corpus-action-bound and corpus-port-swap disagree on
+# a mutant, the mapping is the only thing between them.
+
+[[adapter]]
+labels = ["Reserve", "Commit", "Release", "CloseTenant"]
+adapter = "port_journal_adapters:RealJournalAdapter"
+kind = "transition"

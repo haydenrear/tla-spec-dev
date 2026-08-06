@@ -1,0 +1,69 @@
+{
+  "scorecard_version": 1,
+  "epic": "architectural-coherence",
+  "example": "ex4_pipeline_coherent",
+  "run_id": "20260803-j2",
+  "arm": null,
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "judge": {"model": "claude-opus-5[1m]", "pass": 2, "blind_to_arm": true},
+  "dimensions": {
+    "D1": {
+      "score": 2,
+      "citations": [
+        "examples/validation/ex4_pipeline_coherent/specs/program_model/providers.py:88-103",
+        "examples/validation/ex4_pipeline_coherent/specs/program_model/adapters.py:104-112",
+        "examples/validation/runs/ex4-run4/artifacts/kill_matrix.json:1-10",
+        "examples/validation/runs/ex4-run6/artifacts/mutant_results.json:1-16"
+      ],
+      "rationale": "I re-derived the matrices from the raw JSON rather than the write-ups. Wrong-value and wrong-content faults are caught through assertions on content, not shape: the ARM B provider compares persisted bytes against the modeled after-state and separately fails a write the model did not make (providers.py:88-103), and the adapter hard-fails an UNCHECKED argument rather than degrading to a no-op (adapters.py:104-112). Measured: seeded faults 4 of 6 ARM A, 6 of 6 ARM B; 12-mutant catalogue wrong-write 4 of 4 ARM A, durable ARM B only; blind 16-mutant catalogue view 10 of 16, pytest 10 of 16, union 14 of 16. Anchor 3 is NOT met and the artifact is the reason it is not: guard relaxation 0 of 3 (0 of 4 on the blind catalogue, on all five corpus instruments) and ordering 0 of 3 and 0 of 2, killed by nothing at all including pytest. The durable-side kills (F3, F5, M10) are ARM-B-only, but that is anchor 2's own description -- a content assertion reaching an observation surface -- not a structurally unreachable class; counting it for anchor 3 would collapse the two anchors.",
+      "refuses_to_claim": null
+    },
+    "D2": {
+      "score": 2,
+      "citations": [
+        "examples/validation/ex4_pipeline_coherent/specs/program_model/Pipeline.tla:24-99",
+        "examples/validation/runs/ex4-run4/artifacts/ex4_descriptor.txt:38-45",
+        "examples/validation/ex4_pipeline_coherent/README.md:89-98"
+      ],
+      "rationale": "Measured by me at scoring time: bound 4,096 = 4^6, six subsets of a two-item set with no representation padding; emergent Q = 0.194 (two components), declared Q = 0.133 over three; one dense row (`delivered`, 3/5) and NO dense columns; every variable read by a configured invariant. That is complexity proportional to behavior with no god-state -- anchor 2. It cannot reach 3 and does not pretend to: no simplification was made here. The fixture deliberately ADDED a variable and an action relative to the owner's probe model, and states the reason (a two-component partition has one pair, that pair is ported, so no code edge could ever diverge -- README:89-98). That is an increase argued from what the fixture must be able to measure, which is honest but is not a measured reduction. One gap recorded, not scored down further: the manifest carries no justification: table, so the descriptor's dead-weight analysis is skipped on this fixture.",
+      "refuses_to_claim": null
+    },
+    "D3": {
+      "score": 3,
+      "citations": [
+        "examples/validation/ex4_pipeline_coherent/pipeline/ledger/journal.py:27-49",
+        "examples/validation/ex4_pipeline_coherent/specs/program_model/case_adapters.toml:21-23",
+        "examples/validation/ex4_pipeline_coherent/specs/program_model/case_adapters_corpus_only.toml:21-23",
+        "examples/validation/ex4_pipeline_coherent/specs/program_model/providers.py:38-68",
+        "examples/validation/runs/ex4-run4/artifacts/kill_matrix.json:6-30"
+      ],
+      "rationale": "The domain does not import its I/O: `Journal` takes the store as a constructor argument and calls it through one method (journal.py:27-49); the only concrete store, FileLedgerStore, lives in specs/, outside the code root (providers.py:38-54). The named swap is `specs.program_model.providers:silent_ledger_store_provider` <-> `:ledger_store_provider`, two declared mappings differing in one line each (case_adapters.toml:21-23 vs case_adapters_corpus_only.toml:21-23), with zero bytes of pipeline/ changed. The evidence is runtime, not topological, which is what the card requires: on the control the two bindings produce byte-identical stdout (same sha256 in kill_matrix.json), and F3/F5/M10 die under ARM B and survive under ARM A -- which can only happen if the domain really calls the bound store during execution. Not 4: the port has never been exercised against a double, because the generated fake's persist raises NotImplementedError (generated/pipeline_contract/fake.py:19-21), so 'real adapter AND a fake, same cases passing against both' is not satisfied by two real file-backed stores.",
+      "refuses_to_claim": null
+    },
+    "D4": {
+      "score": 4,
+      "citations": [
+        "examples/validation/ex4_pipeline_coherent/evidence/case_module_coverage.txt:8-18",
+        "examples/validation/runs/ex4-run4/artifacts/kill_matrix.json:4-20",
+        "examples/validation/runs/ex4-run5/artifacts/run_comparison.json:1-6",
+        "examples/validation/ex4_pipeline_coherent/tests/test_behavior.py:23-113"
+      ],
+      "rationale": "The behavioral envelope is enumerated action by action and shown to hold: 330 model-derived cases over five actions with per-action counts (Accept 22, Deliver 66, Enqueue 110, Fail 88, Record 44; UNCOVERED: none), plus eight hand-written conformance tests which I ran on the byte-identical twin and saw green. The check is model-derived -- the corpus comes from the TLC state graph, not from hand-written assertions. And it is demonstrated capable of failing, repeatedly and with a green control first: 6 seeded faults, a 12-mutant catalogue and a blind 16-mutant catalogue, each with control exit 0 and per-detector attribution, re-derived by me from the raw JSON; 38 of 38 executions byte-identical across two independently generated corpora and 6 of 6 replays reproducing the same failing cases. Caveat stated rather than buried: ex4 has no baseline-versus-simplified pair, so this 4 reads as 'the behavioral envelope is enumerated and the check is provably falsifiable', not as a preservation result across a refactor.",
+      "refuses_to_claim": "The record refuses to claim the union of the two case modules is equivalent to the view's corpus (case_module_coverage.txt:20 states cross-aspect interleaving is not in the table), and refuses to claim parameter recovery generalizes beyond the actions its corpus entered (evidence/param_recovery_audit.md:21)."
+    },
+    "D5": {
+      "score": 3,
+      "citations": [
+        "examples/validation/ex4_pipeline_coherent/README.md:126-135",
+        "examples/validation/ex4_pipeline_coherent/README.md:183-204",
+        "examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.txt:93-99",
+        "examples/validation/ex4_pipeline_coherent/evidence/param_recovery_audit.md:19-21"
+      ],
+      "rationale": "Anchors 2 and 3 are met in the fixture itself. It states what it cannot answer before anyone asks (the composition root has nowhere to live, README:126-135); it carries an amendment retracting its own earlier claim in the artifact rather than in a report ('the paragraph above is superseded, and it was WRONG on its second half', README:183-204) and keeps the superseded audit beside the corrected one; the runner refuses with exit 1 rather than executing a slice corpus whose declared port no selected case requires -- under BOTH shipped mappings (case_modules_worked_example.txt:93-99), which is a refusal that costs the fixture its own cheapest artifact. Unflattering results are everywhere in the record (guard relaxation and ordering at zero in its own kill matrix; evidence/df02_nondecomposing_partition/ keeps a `coherent` printed on a partition that does not decompose). Held at 3: ANSWER KEY 1 still presents `coherent` as this fixture's ground truth with no note that round 2 measured that same verdict flipping to `unmappable` when the generated package moves one directory, with zero bytes of Python changed. This fixture amends its README when a finding lands; the finding that undercuts its headline did not get one.",
+      "refuses_to_claim": null
+    }
+  },
+  "total": 14,
+  "contested": [],
+  "verdict": "The strongest measured artifact in the set -- a real port swap proven at runtime, a green control with three independent mutant catalogues, and determinism at 38 of 38 -- whose own numbers say the hard fault classes are still at zero and whose headline `coherent` is conditional on a package-nesting accident its README does not mention."
+}

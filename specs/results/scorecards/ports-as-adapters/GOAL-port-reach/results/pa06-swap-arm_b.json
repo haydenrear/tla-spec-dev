@@ -1,0 +1,725 @@
+{
+  "binding": "rerun_arm_b_binding",
+  "cases": "quota_port",
+  "catalogues": [
+    "specs/results/scorecards/hexagonal-prompting-rerun/measure/catalogue_arm_b.toml",
+    "specs/results/scorecards/hexagonal-prompting-rerun/measure/controls_arm_b.toml"
+  ],
+  "control_red": [
+    {
+      "instrument": "corpus-action-bound",
+      "must_be": "KILLED",
+      "mutant": "M07-positive-control-wrong-hold",
+      "observed_cell": "SURVIVED",
+      "role": "positive",
+      "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+      "witness_action": "Reserve",
+      "witness_basis": "measured",
+      "witness_ran_accepting": 294
+    },
+    {
+      "instrument": "corpus-port-swap:fake",
+      "must_be": "KILLED",
+      "mutant": "M07-positive-control-wrong-hold",
+      "observed_cell": "SURVIVED",
+      "role": "positive",
+      "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+      "witness_action": "Reserve",
+      "witness_basis": "measured",
+      "witness_ran_accepting": 294
+    },
+    {
+      "instrument": "corpus-port-swap:real",
+      "must_be": "KILLED",
+      "mutant": "M07-positive-control-wrong-hold",
+      "observed_cell": "SURVIVED",
+      "role": "positive",
+      "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+      "witness_action": "Reserve",
+      "witness_basis": "measured",
+      "witness_ran_accepting": 294
+    }
+  ],
+  "controls_on_unmutated_code": {
+    "corpus-action-bound": {
+      "bound_by": {
+        "CloseTenant (action) -> port_journal_adapters:ArmRealAdapter": 362,
+        "Commit (action) -> port_journal_adapters:ArmRealAdapter": 388,
+        "Release (action) -> port_journal_adapters:ArmRealAdapter": 436,
+        "Reserve (action) -> port_journal_adapters:ArmRealAdapter": 669
+      },
+      "cases": 1855,
+      "failures": [],
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 362,
+          "ran_accepting": 352,
+          "ran_refusing": 10,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 388,
+          "ran_accepting": 384,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 436,
+          "ran_accepting": 432,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 357,
+          "ran_accepting": 294,
+          "ran_refusing": 63,
+          "skipped": 312
+        }
+      },
+      "port_bindings": [],
+      "skipped_by_rule": {
+        "model named a different free id; this API allocates the next one": 28,
+        "refused only by a constraint on `r`, which this API allocates": 18,
+        "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+      },
+      "total_failed": 0,
+      "total_ran": 1543,
+      "total_skipped": 312,
+      "wiring": "real",
+      "wiring_notes": []
+    },
+    "corpus-port-swap:fake": {
+      "bound_by": {
+        "port:ledger.LedgerAppendPort (port) -> port_journal_adapters:ArmBFakeAdapter": 1855
+      },
+      "cases": 1855,
+      "failures": [],
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 362,
+          "ran_accepting": 352,
+          "ran_refusing": 10,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 388,
+          "ran_accepting": 384,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 436,
+          "ran_accepting": 432,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 357,
+          "ran_accepting": 294,
+          "ran_refusing": 63,
+          "skipped": 312
+        }
+      },
+      "port_bindings": [
+        "ledger.LedgerAppendPort"
+      ],
+      "skipped_by_rule": {
+        "model named a different free id; this API allocates the next one": 28,
+        "refused only by a constraint on `r`, which this API allocates": 18,
+        "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+      },
+      "total_failed": 0,
+      "total_ran": 1543,
+      "total_skipped": 312,
+      "wiring": "fake",
+      "wiring_notes": [
+        "PORT ledger.LedgerAppendPort: wiring=fake -> port_journal_adapters:ArmBFakeAdapter (real: port_journal_adapters:ArmRealAdapter)"
+      ]
+    },
+    "corpus-port-swap:real": {
+      "bound_by": {
+        "port:ledger.LedgerAppendPort (port) -> port_journal_adapters:ArmRealAdapter": 1855
+      },
+      "cases": 1855,
+      "failures": [],
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 362,
+          "ran_accepting": 352,
+          "ran_refusing": 10,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 388,
+          "ran_accepting": 384,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 436,
+          "ran_accepting": 432,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 357,
+          "ran_accepting": 294,
+          "ran_refusing": 63,
+          "skipped": 312
+        }
+      },
+      "port_bindings": [
+        "ledger.LedgerAppendPort"
+      ],
+      "skipped_by_rule": {
+        "model named a different free id; this API allocates the next one": 28,
+        "refused only by a constraint on `r`, which this API allocates": 18,
+        "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+      },
+      "total_failed": 0,
+      "total_ran": 1543,
+      "total_skipped": 312,
+      "wiring": "real",
+      "wiring_notes": []
+    }
+  },
+  "instruments": [
+    "corpus-action-bound",
+    "corpus-port-swap:real",
+    "corpus-port-swap:fake"
+  ],
+  "per_mutant": {
+    "M01-guard-zero-amount": {
+      "applied_exactly_once": true,
+      "cells": {
+        "corpus-action-bound": "KILLED",
+        "corpus-port-swap:fake": "KILLED",
+        "corpus-port-swap:real": "KILLED"
+      },
+      "control_role": null,
+      "control_verdict": {},
+      "evidence": {
+        "corpus-action-bound": {
+          "failures": [
+            "case_1775_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1775_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r1', 't': 't1'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1776_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1776_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r2', 't': 't1'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1793_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1793_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r1', 't': 't2'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))"
+          ],
+          "total_failed": 4,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:fake": {
+          "failures": [
+            "case_1775_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1775_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r1', 't': 't1'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1776_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1776_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r2', 't': 't1'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1793_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1793_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r1', 't': 't2'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))"
+          ],
+          "total_failed": 4,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:real": {
+          "failures": [
+            "case_1775_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1775_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r1', 't': 't1'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1776_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1776_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r2', 't': 't1'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1793_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1793_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r1', 't': 't2'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))"
+          ],
+          "total_failed": 4,
+          "total_ran": 1543,
+          "total_skipped": 312
+        }
+      },
+      "fault_class": "guard_relaxation",
+      "occurrences_of_find": 1,
+      "path": "quota_ledger/domain.py"
+    },
+    "M02-guard-over-quota": {
+      "applied_exactly_once": true,
+      "cells": {
+        "corpus-action-bound": "KILLED",
+        "corpus-port-swap:fake": "KILLED",
+        "corpus-port-swap:real": "KILLED"
+      },
+      "control_role": null,
+      "control_verdict": {},
+      "evidence": {
+        "corpus-action-bound": {
+          "failures": [
+            "case_1777_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1777_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 1, 'r': 'r1', 't': 't1'}, reason='a <= available[t]', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1778_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1778_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 1, 'r': 'r2', 't': 't1'}, reason='a <= available[t]', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1779_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1779_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 2, 'r': 'r1', 't': 't1'}, reason='a <= available[t]', changed={}, outcome_fields=('reason', 'status'))"
+          ],
+          "total_failed": 35,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:fake": {
+          "failures": [
+            "case_1777_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1777_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 1, 'r': 'r1', 't': 't1'}, reason='a <= available[t]', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1778_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1778_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 1, 'r': 'r2', 't': 't1'}, reason='a <= available[t]', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1779_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1779_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 2, 'r': 'r1', 't': 't1'}, reason='a <= available[t]', changed={}, outcome_fields=('reason', 'status'))"
+          ],
+          "total_failed": 35,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:real": {
+          "failures": [
+            "case_1777_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1777_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 1, 'r': 'r1', 't': 't1'}, reason='a <= available[t]', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1778_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1778_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 1, 'r': 'r2', 't': 't1'}, reason='a <= available[t]', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1779_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1779_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 2, 'r': 'r1', 't': 't1'}, reason='a <= available[t]', changed={}, outcome_fields=('reason', 'status'))"
+          ],
+          "total_failed": 35,
+          "total_ran": 1543,
+          "total_skipped": 312
+        }
+      },
+      "fault_class": "guard_relaxation",
+      "occurrences_of_find": 1,
+      "path": "quota_ledger/domain.py"
+    },
+    "M03-guard-close-with-outstanding": {
+      "applied_exactly_once": true,
+      "cells": {
+        "corpus-action-bound": "KILLED",
+        "corpus-port-swap:fake": "KILLED",
+        "corpus-port-swap:real": "KILLED"
+      },
+      "control_role": null,
+      "control_verdict": {},
+      "evidence": {
+        "corpus-action-bound": {
+          "failures": [
+            "case_1761_close_tenant__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1761_close_tenant__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't1'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1762_close_tenant__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1762_close_tenant__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't2'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1763_close_tenant__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1763_close_tenant__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't1'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))"
+          ],
+          "total_failed": 6,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:fake": {
+          "failures": [
+            "case_1761_close_tenant__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1761_close_tenant__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't1'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1762_close_tenant__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1762_close_tenant__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't2'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1763_close_tenant__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1763_close_tenant__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't1'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))"
+          ],
+          "total_failed": 6,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:real": {
+          "failures": [
+            "case_1761_close_tenant__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1761_close_tenant__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't1'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1762_close_tenant__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1762_close_tenant__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't2'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))",
+            "case_1763_close_tenant__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1763_close_tenant__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't1'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))"
+          ],
+          "total_failed": 6,
+          "total_ran": 1543,
+          "total_skipped": 312
+        }
+      },
+      "fault_class": "guard_relaxation",
+      "occurrences_of_find": 1,
+      "path": "quota_ledger/domain.py"
+    },
+    "M04-durable-stale-total": {
+      "applied_exactly_once": true,
+      "cells": {
+        "corpus-action-bound": "SURVIVED",
+        "corpus-port-swap:fake": "SURVIVED",
+        "corpus-port-swap:real": "SURVIVED"
+      },
+      "control_role": null,
+      "control_verdict": {},
+      "evidence": {
+        "corpus-action-bound": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:fake": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:real": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        }
+      },
+      "fault_class": "durable_content",
+      "occurrences_of_find": 1,
+      "path": "quota_ledger/domain.py"
+    },
+    "M05-durable-close-line-zero-and-swallowed": {
+      "applied_exactly_once": true,
+      "cells": {
+        "corpus-action-bound": "KILLED",
+        "corpus-port-swap:fake": "KILLED",
+        "corpus-port-swap:real": "KILLED"
+      },
+      "control_role": null,
+      "control_verdict": {},
+      "evidence": {
+        "corpus-action-bound": {
+          "failures": [
+            "case_0092_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0092_close_tenant__port_ledger_ledgerappendport: ledger: expected (('COMMIT', 't1', 1), ('CLOSE', 't1', 1)), actual (('COMMIT', 't1', 1), ('CLOSE', 't1', 0))",
+            "case_0135_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0135_close_tenant__port_ledger_ledgerappendport: ledger: expected (('COMMIT', 't2', 1), ('CLOSE', 't2', 1)), actual (('COMMIT', 't2', 1), ('CLOSE', 't2', 0))",
+            "case_0172_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0172_close_tenant__port_ledger_ledgerappendport: ledger: expected (('COMMIT', 't1', 2), ('CLOSE', 't1', 2)), actual (('COMMIT', 't1', 2), ('CLOSE', 't1', 0))"
+          ],
+          "total_failed": 282,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:fake": {
+          "failures": [
+            "case_0092_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0092_close_tenant__port_ledger_ledgerappendport: ledger: expected (('COMMIT', 't1', 1), ('CLOSE', 't1', 1)), actual (('COMMIT', 't1', 1), ('CLOSE', 't1', 0))",
+            "case_0135_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0135_close_tenant__port_ledger_ledgerappendport: ledger: expected (('COMMIT', 't2', 1), ('CLOSE', 't2', 1)), actual (('COMMIT', 't2', 1), ('CLOSE', 't2', 0))",
+            "case_0172_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0172_close_tenant__port_ledger_ledgerappendport: ledger: expected (('COMMIT', 't1', 2), ('CLOSE', 't1', 2)), actual (('COMMIT', 't1', 2), ('CLOSE', 't1', 0))"
+          ],
+          "total_failed": 282,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:real": {
+          "failures": [
+            "case_0092_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0092_close_tenant__port_ledger_ledgerappendport: ledger: expected (('COMMIT', 't1', 1), ('CLOSE', 't1', 1)), actual (('COMMIT', 't1', 1), ('CLOSE', 't1', 0))",
+            "case_0135_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0135_close_tenant__port_ledger_ledgerappendport: ledger: expected (('COMMIT', 't2', 1), ('CLOSE', 't2', 1)), actual (('COMMIT', 't2', 1), ('CLOSE', 't2', 0))",
+            "case_0172_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0172_close_tenant__port_ledger_ledgerappendport: ledger: expected (('COMMIT', 't1', 2), ('CLOSE', 't1', 2)), actual (('COMMIT', 't1', 2), ('CLOSE', 't1', 0))"
+          ],
+          "total_failed": 282,
+          "total_ran": 1543,
+          "total_skipped": 312
+        }
+      },
+      "fault_class": "durable_content",
+      "occurrences_of_find": 1,
+      "path": "quota_ledger/domain.py"
+    },
+    "M06-wrong-status-on-release": {
+      "applied_exactly_once": true,
+      "cells": {
+        "corpus-action-bound": "SURVIVED",
+        "corpus-port-swap:fake": "SURVIVED",
+        "corpus-port-swap:real": "SURVIVED"
+      },
+      "control_role": null,
+      "control_verdict": {},
+      "evidence": {
+        "corpus-action-bound": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:fake": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:real": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        }
+      },
+      "fault_class": "output_oracle",
+      "occurrences_of_find": 1,
+      "path": "quota_ledger/domain.py"
+    },
+    "M07-positive-control-wrong-hold": {
+      "applied_exactly_once": true,
+      "cells": {
+        "corpus-action-bound": "SURVIVED",
+        "corpus-port-swap:fake": "SURVIVED",
+        "corpus-port-swap:real": "SURVIVED"
+      },
+      "control_role": "positive -- must die on every instrument that can execute an accepted Reserve",
+      "control_verdict": {
+        "declared_role": "positive -- must die on every instrument that can execute an accepted Reserve",
+        "green": false,
+        "instruments_decided": [
+          "corpus-action-bound",
+          "corpus-port-swap:fake",
+          "corpus-port-swap:real"
+        ],
+        "instruments_not_decidable": [],
+        "instruments_wrong": [
+          "corpus-action-bound",
+          "corpus-port-swap:fake",
+          "corpus-port-swap:real"
+        ],
+        "must_be": "KILLED",
+        "role": "positive",
+        "role_scope": {
+          "actions_named_in_prose": [
+            "Reserve"
+          ],
+          "executable_as_written": true,
+          "scope": "witness-scoped"
+        },
+        "witness_action": "Reserve",
+        "witnesses": {
+          "corpus-action-bound": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "corpus-port-swap:fake": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "corpus-port-swap:real": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          }
+        }
+      },
+      "evidence": {
+        "corpus-action-bound": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:fake": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:real": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        }
+      },
+      "fault_class": "wrong_value",
+      "occurrences_of_find": 1,
+      "path": "quota_ledger/domain.py"
+    },
+    "M08-cross-aspect-commit-refunds-the-hold": {
+      "applied_exactly_once": true,
+      "cells": {
+        "corpus-action-bound": "SURVIVED",
+        "corpus-port-swap:fake": "SURVIVED",
+        "corpus-port-swap:real": "SURVIVED"
+      },
+      "control_role": null,
+      "control_verdict": {},
+      "evidence": {
+        "corpus-action-bound": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:fake": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:real": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        }
+      },
+      "fault_class": "cross_aspect",
+      "occurrences_of_find": 1,
+      "path": "quota_ledger/domain.py"
+    },
+    "M09-negative-control-ledger-order": {
+      "applied_exactly_once": true,
+      "cells": {
+        "corpus-action-bound": "KILLED",
+        "corpus-port-swap:fake": "SURVIVED",
+        "corpus-port-swap:real": "KILLED"
+      },
+      "control_role": "negative -- RETIRED at EVAL-STABLE; see eval/controls.toml. Still runs, still scored in its class row, decides nothing.",
+      "control_verdict": {
+        "decides_nothing": true,
+        "declared_role": "negative -- RETIRED at EVAL-STABLE; see eval/controls.toml. Still runs, still scored in its class row, decides nothing.",
+        "green": true,
+        "instruments_wrong": [],
+        "measured_cells": {
+          "corpus-action-bound": "KILLED",
+          "corpus-port-swap:fake": "SURVIVED",
+          "corpus-port-swap:real": "KILLED"
+        },
+        "replaced_by": "N01-negative-control-outstanding-id-order",
+        "retirement_reason": "Retired for the reason given in full in examples/validation/ab/eval/controls.toml:\nM09 reverses a SEQUENCE and this model represents its ledger as one\n(`ledger' = Append(ledger, ...)`, projected as a tuple and compared\npositionally), so ordering is expressible and the corpus sees it. The retirement\nis a property of the MODEL, so it holds on every tree measured against that\nmodel. M09 is not deleted, not re-seeded and not excused: it still runs and is\nstill scored in the `ordering` class row. What it stops doing is deciding\nwhether the instrument works.",
+        "role": "negative (RETIRED)",
+        "witnesses": {}
+      },
+      "evidence": {
+        "corpus-action-bound": {
+          "failures": [
+            "case_0053_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0053_close_tenant__port_ledger_ledgerappendport: ledger: expected (('CLOSE', 't1', 0), ('CLOSE', 't2', 0)), actual (('CLOSE', 't2', 0), ('CLOSE', 't1', 0))",
+            "case_0058_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0058_close_tenant__port_ledger_ledgerappendport: ledger: expected (('CLOSE', 't2', 0), ('CLOSE', 't1', 0)), actual (('CLOSE', 't1', 0), ('CLOSE', 't2', 0))",
+            "case_0092_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0092_close_tenant__port_ledger_ledgerappendport: ledger: expected (('COMMIT', 't1', 1), ('CLOSE', 't1', 1)), actual (('CLOSE', 't1', 1), ('COMMIT', 't1', 1))"
+          ],
+          "total_failed": 854,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:fake": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:real": {
+          "failures": [
+            "case_0053_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0053_close_tenant__port_ledger_ledgerappendport: ledger: expected (('CLOSE', 't1', 0), ('CLOSE', 't2', 0)), actual (('CLOSE', 't2', 0), ('CLOSE', 't1', 0))",
+            "case_0058_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0058_close_tenant__port_ledger_ledgerappendport: ledger: expected (('CLOSE', 't2', 0), ('CLOSE', 't1', 0)), actual (('CLOSE', 't1', 0), ('CLOSE', 't2', 0))",
+            "case_0092_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0092_close_tenant__port_ledger_ledgerappendport: ledger: expected (('COMMIT', 't1', 1), ('CLOSE', 't1', 1)), actual (('CLOSE', 't1', 1), ('COMMIT', 't1', 1))"
+          ],
+          "total_failed": 854,
+          "total_ran": 1543,
+          "total_skipped": 312
+        }
+      },
+      "fault_class": "ordering",
+      "occurrences_of_find": 1,
+      "path": "quota_ledger/file_journal.py"
+    },
+    "M10-apply-only-double-refund": {
+      "applied_exactly_once": true,
+      "cells": {
+        "corpus-action-bound": "SURVIVED",
+        "corpus-port-swap:fake": "SURVIVED",
+        "corpus-port-swap:real": "SURVIVED"
+      },
+      "control_role": null,
+      "control_verdict": {},
+      "evidence": {
+        "corpus-action-bound": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:fake": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:real": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        }
+      },
+      "fault_class": "wrong_value",
+      "occurrences_of_find": 1,
+      "path": "quota_ledger/domain.py"
+    },
+    "N01-negative-control-outstanding-id-order": {
+      "applied_exactly_once": true,
+      "cells": {
+        "corpus-action-bound": "SURVIVED",
+        "corpus-port-swap:fake": "SURVIVED",
+        "corpus-port-swap:real": "SURVIVED"
+      },
+      "control_role": "negative -- must survive every generated instrument; a kill RETRACTS the set-shape limit and is a finding",
+      "control_verdict": {
+        "declared_role": "negative -- must survive every generated instrument; a kill RETRACTS the set-shape limit and is a finding",
+        "green": true,
+        "instruments_decided": [
+          "corpus-action-bound",
+          "corpus-port-swap:fake",
+          "corpus-port-swap:real"
+        ],
+        "instruments_not_decidable": [],
+        "instruments_wrong": [],
+        "must_be": "SURVIVED",
+        "role": "negative",
+        "role_scope": {
+          "actions_named_in_prose": [],
+          "executable_as_written": true,
+          "scope": "universal"
+        },
+        "witness_action": "Reserve",
+        "witnesses": {
+          "corpus-action-bound": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "corpus-port-swap:fake": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "corpus-port-swap:real": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          }
+        }
+      },
+      "evidence": {
+        "corpus-action-bound": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:fake": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:real": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        }
+      },
+      "fault_class": "ordering",
+      "occurrences_of_find": 1,
+      "path": "quota_ledger/domain.py"
+    }
+  },
+  "retired_controls": {
+    "M09-negative-control-ledger-order": {
+      "mutant": "M09-negative-control-ledger-order",
+      "reason": "Retired for the reason given in full in examples/validation/ab/eval/controls.toml:\nM09 reverses a SEQUENCE and this model represents its ledger as one\n(`ledger' = Append(ledger, ...)`, projected as a tuple and compared\npositionally), so ordering is expressible and the corpus sees it. The retirement\nis a property of the MODEL, so it holds on every tree measured against that\nmodel. M09 is not deleted, not re-seeded and not excused: it still runs and is\nstill scored in the `ordering` class row. What it stops doing is deciding\nwhether the instrument works.\n",
+      "replaced_by": "N01-negative-control-outstanding-id-order",
+      "was": "negative"
+    }
+  },
+  "subject": "arm_b",
+  "tree": "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b",
+  "unmutated_control_failed": []
+}

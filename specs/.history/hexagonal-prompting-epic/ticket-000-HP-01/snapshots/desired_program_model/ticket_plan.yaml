@@ -1,0 +1,638 @@
+version: 1
+name: "hexagonal-prompting-epic"
+updated: null
+purpose: >-
+  A test-case generator and a prompt, measured by a scorecard. Not a static
+  analyzer.
+
+  The predecessor epic shipped four architecture levers and measured them
+  twice. Bug detection did not move by a single cell -- 4 of 6, 6 of 6, 0 of 3
+  guard relaxation, 0 of 3 ordering, identical before and after seven repair
+  tickets. Every check it shipped was defeated cheaply: six lines of YAML in
+  round 1, a 41-line re-export file in round 2, both with every declaration
+  digest unchanged. Its own coverage audit, on reaching `pass`, reported that
+  the remaining unmodelled surface is bookkeeping, that coverage and case
+  generation are DIRECTLY OPPOSED on this model (closing gaps grew the corpus
+  to 18,391x its own cap), and that the effect oracle cannot see across a
+  process boundary at all.
+
+  Meanwhile the most valuable result the project has produced came from an
+  agent READING A README and noticing the public surface was false of the
+  model. No metric contains it and no gate could reach it.
+
+  So this epic inverts the bet. Architecture guidance becomes a PROMPT, not a
+  schema the tool checks -- on the hypothesis that an agent working from the
+  diagram, far from the code, will produce a modular design if simply asked.
+  The toolchain's job narrows to what TLA+ and TLC are actually good at:
+  generating edge cases, including the rejected inputs no corpus has ever
+  emitted. And the whole thing is decided by an A/B eval scored on the
+  standardized scorecard by agent judges, because a number computed from an
+  artifact can be optimized by editing the artifact, while a judgement that
+  must cite the artifact can only be satisfied by changing what the artifact is.
+
+  If the prompt arm catches more bugs and is simpler at equal behavior, we have
+  won, and we won by prompting. If it is indistinguishable from the control,
+  the prompt is decoration and we learn that in one round instead of after
+  another epic of analyzer work. Both outcomes are worth the run.
+
+planning_rules:
+  current_model_rule: "Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection."
+  unit_validation_rule: "Run current-model TLC and adapter/unit tests before adding graph execution."
+  graph_rule: "Add graph or integration nodes only after current-model validation passes."
+  semantic_model_rule: >-
+    Do not add test graph nodes, pytest jobs, CI workflow steps, integration
+    harnesses, or validation scripts as TLA+ program state/actions. The modeled
+    program surface is the shipped CLI lifecycle. The predecessor's four
+    rulings carry forward verbatim in substance -- the experimental fuzzing
+    surface stays modeled; case generation is MODELED (superseding the dead
+    `generate` ruling); refusal branches and per-flag variants are out-of-model
+    EXCEPT the six guard-weakening flags, which are modeled; advisory internals
+    and wrapper scripts are harness plumbing. THE STANDING PROVISO: an
+    out-of-model FILE does not make an out-of-model EFFECT.
+  representation_scope_rule: >-
+    `implementation_scope` is EDIT PERMISSION, never representation scope. The
+    MF-026 audit of the predecessor halted partly on that conflation. The
+    coverage audit reads `representation_scope` and nothing else.
+  surface_cost_rule: >-
+    NEW, and it is the most important rule in this plan. The predecessor
+    measured the price of adding modeled surface: roughly 1.5 new coverage gaps
+    and 8x state space per surface-adding ticket, and a corpus that grew past
+    its own cap. Adding model surface is therefore a COST to be justified, not a
+    virtue. A ticket that adds an action or a variable states in its plan entry
+    what it buys and what the state space costs, BEFORE it is dispatched.
+  no_new_gates_rule: >-
+    This epic ships NO new blocking check, no new gate, and no new static
+    analyzer. Owner direction 2026-08-03: the hoops already built are not smart
+    enough to provide value and agents spend real time jumping through them.
+    Guidance goes in prompts; verdicts come from judged scorecards. If a ticket
+    finds itself adding a rule that refuses something, it has left scope.
+
+status:
+  workflow: "hexagonal-prompting-epic"
+  active_ticket: null
+  active_ticket_title: null
+  desired_module: "TlaSpecDevCli"
+  phase: "planning"
+
+epic:
+  id: "hexagonal-prompting"
+  branch: "epic/hexagonal-prompting"
+  default_branch: "main"
+  base_sha: "b68cbd58a3e4a2cc7bf6aeff0a5106640452b17d"
+  base_note: >-
+    Branched from main AFTER the architectural-coherence epic was merged to main
+    locally, per owner direction 2026-08-03. Nothing was pushed; the remote is
+    untouched and `skill-manager sync` was NOT run.
+  schedule_revision: 1
+  review_mode: "epic-owner-post-merge"
+  notes: >-
+    Never merge to main and never run skill-manager sync without explicit owner
+    say-so -- the 2026-08-03 main merge was explicitly authorized and LOCAL; it
+    does not generalize. Never invoke tla-spec-dev from PATH. Run pytest as
+    `uv run --with pytest --with pyyaml python -m pytest tests -q`. Validate this
+    file with the git-epic-workflow validator after every edit. FINDINGS ARE
+    FILED, NEVER FIXED INLINE, DURING A MEASUREMENT.
+
+deferment_policy:
+  mode: "batch"
+  blocking: "escalate"
+  budget: 5
+  backlog: "specs/desired_program_model/deferred_findings.yaml"
+
+representation_scope:
+  note: >-
+    What the MF-026 coverage audit measures the model against. Carried forward
+    from the predecessor's final amendment, which took four audit rounds to get
+    right. Written with explicit directory globs, because the audit's closure
+    rule treats a bare file path as scoping that file alone.
+  in_model:
+    - "scripts/**/*.py -- the shipped CLI toolchain"
+    - "specs/*/spec_manifest.yaml -- where every effect port is declared"
+    - "specs/*/TlaSpecDevCli.tla and specs/*/MC*.cfg"
+    - "specs/*/production_adapters.py and specs/*/adapter_case_runtime.py"
+  out_of_model:
+    - "tests/**, specs/*/tests/**, test_graph/** -- harnesses; semantic_model_rule forbids modeling them"
+    - "examples/** -- fixtures and eval subjects; what the toolchain is pointed AT"
+    - "specs/.history/**, specs/tickets/**, specs/results/** -- sealed history, ticket workspaces, recorded evidence"
+    - "spec_double_compiler/**, templates/** -- generator templates and harness plumbing"
+    - "skill-scripts/**, *.sh wrappers -- installer shell. SUBJECT TO THE STANDING PROVISO: out-of-model files still owe ports for effects they perform on modeled action paths."
+    - "prompts/**, references/**, *.md -- documentation and sub-agent prompts"
+
+service_catalog:
+  existing_boundaries:
+    - "scripts/generate_cases_from_tlc_dump.py -- `generate cases`, now a shipped subcommand; the surface a negative corpus enters through"
+    - "scripts/run_generated_case_adapters.py -- the corpus runner and effect-provider mapping"
+    - "scripts/effect_conformance.py -- the effect oracle, in-process CPython only"
+    - "prompts/implementation_brief.md, prompts/aspect_decomposition.md -- the prompts this epic builds on"
+    - "references/eval_scorecard.md + examples/validation/scorecards/ -- the card and its checker"
+  desired_boundaries:
+    - "A negative corpus: the DISABLED edges at each reachable state, asserted REJECTED"
+    - "A tractable corpus: a projection this model does not have, so a corpus fits its own cap"
+    - "An oracle that can load a scaffolded project's adapters and skip the ones that cannot execute"
+    - "prompts/hexagonal_implementation.md -- the architecture lever, as a PROMPT"
+  adapter_boundaries:
+    - "specs/current/tests/ -- conformance for whatever the generator surface grows"
+  known_gaps:
+    - "ORDERING stays out of scope, deliberately. Sets in the model, ordered lists in the code, sorted() at every oracle layer; measured invisible to all five corpus instruments AND the hand-written suite. It needs a profile change, not a test change."
+    - "The effect oracle cannot see across a process boundary (effect_conformance.py:1141-1145, in-process CPython only). A port for an action whose effects happen in a child is dead on arrival and NO added coverage moves it. Whether to widen it is a decision this epic may take but does not assume."
+
+epic_goals:
+  - id: GOAL-catch-bugs
+    kind: eval
+    statement: >-
+      Cases generated from the model, run through adapters, catch bugs they
+      cannot catch today -- including at least one class the whole-view corpus
+      structurally cannot reach.
+    metric: >-
+      Scorecard D1 (bug detection) per example, plus the per-class per-arm kill
+      table. D1 anchor 3 is the bar: a fault in a class the whole-view corpus
+      cannot reach on its own.
+    harness: "examples/validation/scorecards/score_tools.py check + the seeded-fault kill tables, scored by two blind judges per references/eval_scorecard.md"
+    baseline:
+      value: "D1 = 2 / 2 / 2 / 1 / 0 on ex1 / ex3 / ex4 / ex5 / ex6 -- NOTHING REACHED 3, on either judge, on any example. Guard relaxation 0 of 3 on both arms and 0 of 4 on a blind catalogue; ordering 0 of 2 on everything including the hand-written suite."
+      measured_at: "ab0dfee"
+      evidence: "specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/"
+    target: "At least one example scores D1 >= 3 from BOTH judges, and guard-relaxation kills > 0 on both the seeded catalogue and a fresh blind one."
+    evaluation_ticket: "HP-06"
+    evidence_root: "specs/results/scorecards/hexagonal-prompting/GOAL-catch-bugs"
+  - id: GOAL-simpler-same-behavior
+    kind: eval
+    statement: >-
+      Asking an agent to minimize complexity while preserving behavior produces
+      code that is measurably simpler AND demonstrably still correct -- not
+      simpler because something was deleted.
+    metric: >-
+      Scorecard D2 (complexity) and D4 (behavior preservation) TOGETHER, plus
+      the measured complexity descriptor before and after. D2 anchor 4 requires
+      D4 >= 3 by construction, which is the point: a reduction that costs
+      behavior cannot score.
+    harness: "two blind judges per references/eval_scorecard.md, plus `analyze complexity` before and after on the same artifact"
+    baseline:
+      value: "Highest D2 in the set is 3 (ex3), and BOTH judges withheld 4 for the same reason -- the reduction was not shown behavior-preserving. It deletes two model variables and two keys from a public dict with no check that could catch an external reader, and a prior run declined the identical deletion. That is the MF-020 trap: a metric can improve because an edge was deleted."
+      measured_at: "ab0dfee"
+      evidence: "specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/ex3_over_complex/"
+    target: "An arm-B artifact scores D2 = 4 from both judges, which by the rubric requires D4 >= 3 -- a simplification shown behavior-preserving by a model-derived check, not by a passing suite."
+    evaluation_ticket: "HP-06"
+    evidence_root: "specs/results/scorecards/hexagonal-prompting/GOAL-simpler-same-behavior"
+  - id: GOAL-hexagonal-in-fact
+    kind: eval
+    statement: >-
+      Asking an agent for ports and adapters produces ports and adapters in
+      FACT -- a domain that does not import its I/O, and an adapter that can be
+      swapped for a fake with the same cases passing against both.
+    metric: >-
+      Scorecard D3 (modularity). Anchor 3 requires evidence about what CALLS
+      what at runtime, not what imports what; anchor 4 requires a driven port
+      exercised by a real adapter AND a fake.
+    harness: "two blind judges per references/eval_scorecard.md, arm-blind, over the two arms' produced code"
+    baseline:
+      value: "D3 = 1 / 1-2 / 3 / 1 / 0-1. Only ex4 reaches 3 and NOTHING reaches 4. The predecessor proved import topology is not modularity: a 41-line re-export erased every divergence with the coupling proven live at runtime, and ex5's seeded 'absence' is a module taking a parameter instead of importing -- strictly better decoupling that the check calls dead architecture."
+      measured_at: "ab0dfee"
+      evidence: "specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/"
+    target: "The prompt arm scores D3 >= 3 from both judges on the majority of produced artifacts, with at least one 4."
+    evaluation_ticket: "HP-06"
+    evidence_root: "specs/results/scorecards/hexagonal-prompting/GOAL-hexagonal-in-fact"
+
+tickets:
+  - id: HP-01
+    title: "The A/B harness, the scorecard baseline, and the sealed predictions"
+    status: done
+    github_issue: null
+    schedule_revision: 1
+    depends_on: []
+    blocks: [HP-03, HP-04, HP-05, HP-06]
+    wave: 1
+    promotion_order: 10
+    promotion_predecessor: null
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/", "examples/validation/scorecards/", "examples/validation/PREDICTIONS-HP.md"]
+    objective: >-
+      Build the experiment, then get out of the way. Three parts.
+
+      (1) THE A/B TASK. One feature specification, written once, given to two
+      agents: ARM A with an ordinary implementation prompt, ARM B with HP-02's
+      hexagonal + minimize-complexity prompt. Same feature, same model, same
+      seeded-fault catalogue, same judges. The arms are declared as two prompts
+      in two files, never one prompt with a paragraph switched off, so a reader
+      of the record can see which instrument produced which number.
+
+      (2) THE SEEDED CATALOGUE, shipped as an artifact -- a
+      `seeded_faults.toml`-shaped file with exact find/replace and a harness
+      asserting each pattern occurs exactly once, so every number is
+      re-derivable. Seed a fault IN THE GAP each mechanism is supposed to lose,
+      including at least one guard-relaxation fault and one requiring a content
+      assertion. A reduction result with no mutant in the gap is not a
+      measurement.
+
+      (3) COMMIT `examples/validation/PREDICTIONS-HP.md` BEFORE any other ticket
+      is dispatched, with at least three NEGATIVE predictions -- what will NOT
+      move. RP-02 is why: it closed a real oracle leak, took parameter recovery
+      from 0 of 5 to 5 of 5, and moved the mutant matrix by zero cells. Nobody
+      predicted that, and it killed a hypothesis recorded as fact.
+
+      This ticket adds NO model surface. Per surface_cost_rule that is a feature.
+    desired_actions: []
+    implementation_scope: ["examples/validation/"]
+    goals:
+      - goal: GOAL-catch-bugs
+        contribution: enabling
+        expected_effect: "none -- enabling only; builds the catalogue and the arms every other goal is measured through"
+        local_signal: "python3 examples/validation/scorecards/score_tools.py check <dir>"
+      - goal: GOAL-simpler-same-behavior
+        contribution: enabling
+        expected_effect: "none -- enabling only; supplies the before/after descriptor capture D2 anchor 3 requires"
+        local_signal: "N/A: harness ticket"
+      - goal: GOAL-hexagonal-in-fact
+        contribution: enabling
+        expected_effect: "none -- enabling only; supplies the arm-blind judging protocol"
+        local_signal: "N/A: harness ticket"
+    acceptance:
+      commands: ["uv run --with pytest --with pyyaml python -m pytest tests -q"]
+      assertions:
+        - "Two arms exist as two prompt files; neither is the other with a section removed."
+        - "The seeded catalogue is a committed artifact with exact find/replace, a harness asserting each pattern occurs exactly once, and at least one fault in each mechanism's known gap."
+        - "PREDICTIONS-HP.md is committed before any other ticket is dispatched and contains at least three explicit NEGATIVE predictions."
+      evidence:
+        - "specs/tickets/HP-01/results/catalogue-integrity.txt"
+        - "specs/tickets/HP-01/results/catalogue-suite-verification.txt"
+        - "specs/tickets/HP-01/results/behavior-suite.txt"
+        - "specs/tickets/HP-01/results/tlc-quotaledger.txt"
+        - "specs/tickets/HP-01/results/scorecard-shape-check.txt"
+        - "specs/tickets/HP-01/results/goal-signal.txt"
+        - "specs/tickets/HP-01/results/zero-model-delta.txt"
+        - "specs/tickets/HP-01/results/spec-unit-tests.txt"
+        - "specs/tickets/HP-01/results/pytest-full.txt"
+        - "specs/tickets/HP-01/results/pytest-baseline-epic-tip.txt"
+        - "specs/tickets/HP-01/results/suite-regression-comparison.txt"
+        - "specs/tickets/HP-01/results/ex4-catalogue-parser-refusal.txt"
+      close_note: >-
+        Assertion 1: two arms as two files, verified mechanically by
+        `check_catalogue.py --arms` (neither prompt's line set is a subset of
+        the other's). Arm B's HP-02 slot is DECLARED AND UNFILLED by design --
+        HP-01 does not write the treatment it is building the experiment to
+        judge.
+
+        Assertion 2: 10 mutants, every `find` proven to occur EXACTLY ONCE,
+        apply/revert byte-identical, every mutant still parses, all four
+        declared mechanism gaps seeded, plus one positive and one negative
+        control.
+
+        Assertion 3: PREDICTIONS-HP.md carries 7 positive and 6 NEGATIVE
+        predictions, each with an ID, an instrument and a direction. Sealed
+        before any other ticket is dispatched.
+
+        MEASURED AND UNFLATTERING, recorded here rather than only in the
+        fixture: the hand-written suite kills 10 of 10 mutants. That is the bar
+        the generated corpus must clear, and if it scores lower HP-06 must say
+        the generator is worse on this fixture than a suite written in an
+        afternoon. One of HP-01's own 10 suite predictions (M02) was WRONG and
+        was corrected before dispatch, with the error recorded beside it.
+
+        Two findings FILED, not fixed: HP-01-DF-01 (the epic's own acceptance
+        command is red at the epic tip, caused by the mandated worktree Skill
+        Manager home shadowing basenames in test_source_citations.resolve_cited)
+        and HP-01-DF-02 (the shipped EV-01 catalogue is rejected by the shipped
+        kill_test parser over `effect_port` vs `port`).
+    model_delta_expectation: "none -- and that is deliberate"
+
+  - id: HP-02
+    title: "The prompt: hexagonal architecture and minimize complexity, as instructions"
+    status: planned
+    github_issue: null
+    schedule_revision: 1
+    depends_on: []
+    blocks: [HP-06]
+    wave: 1
+    promotion_order: 20
+    promotion_predecessor: HP-01
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["prompts/hexagonal_implementation.md", "references/hexagonal_prompting.md"]
+    objective: >-
+      The architecture lever of this epic, and it is a PROMPT. Not a schema, not
+      a check, not a gate. Owner direction 2026-08-03: the hoops already built
+      are not smart enough to provide value and agents spend real time jumping
+      through them, so architecture guidance moves into the ask.
+
+      The hypothesis being tested, stated so it can fail: an agent working from
+      the DIAGRAM -- far enough from the code that it is not defending existing
+      structure -- will produce a modular, testable design if simply asked for
+      one, and will preserve behavior while reducing complexity if told that is
+      the goal.
+
+      Build on what already ships: prompts/implementation_brief.md and
+      prompts/aspect_decomposition.md (AC-03). The new prompt asks for ports and
+      adapters explicitly -- a domain that does not import its I/O, driven
+      ports behind interfaces, adapters swappable for fakes -- and asks for the
+      SIMPLEST design that retains the behaviors, feeding the shipped complexity
+      descriptor in AS GUIDANCE rather than gating on it.
+
+      Two things the prompt must NOT do, both learned the hard way. It must not
+      instruct the agent to make any check pass -- "make the coherence check
+      clean" is a standing instruction to duplicate across component boundaries,
+      measured in round 2. And it must not promise that a metric improving means
+      the design improved: MF-020, a metric can improve because an edge was
+      deleted.
+    desired_actions: []
+    implementation_scope: ["prompts/", "references/"]
+    goals:
+      - goal: GOAL-hexagonal-in-fact
+        contribution: direct
+        expected_effect: "This IS the intervention. Arm B scores D3 >= 3 where arm A scores 1-2; if D3 does not separate, the prompt is decoration and the epic says so."
+        local_signal: "Run the prompt against one small fixture in the ticket worktree and read the produced structure; report it whichever way it comes out."
+      - goal: GOAL-simpler-same-behavior
+        contribution: direct
+        expected_effect: "Arm B's descriptor shows lower complexity at equal behavior; D2 separates from arm A."
+        local_signal: "python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity on the produced artifact, before and after"
+      - goal: GOAL-catch-bugs
+        contribution: guard
+        expected_effect: "Must not REDUCE bug detection. A prompt that produces prettier code whose adapters catch less has failed."
+        local_signal: "the seeded catalogue from HP-01 against the arm-B artifact"
+    acceptance:
+      commands: ["uv run --with pytest --with pyyaml python -m pytest tests -q"]
+      assertions:
+        - "The prompt asks for ports and adapters and for the simplest behavior-preserving design, and instructs the agent to make NO check pass."
+        - "It ships as a prompt file; nothing in the toolchain refuses anything as a result of this ticket."
+        - "A worked example shows the prompt used end to end."
+    model_delta_expectation: "none"
+
+  - id: HP-03
+    title: "The negative corpus: TLC's disabled edges, asserted rejected -- and a corpus that fits its own cap"
+    status: planned
+    github_issue: null
+    schedule_revision: 1
+    depends_on: [HP-01]
+    blocks: [HP-06]
+    wave: 2
+    promotion_order: 30
+    promotion_predecessor: HP-02
+    conflict_keys:
+      production: ["scripts/generate_cases_from_tlc_dump.py", "tests/test_generate_cases_from_tlc_dump.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/generation_modes.md"]
+    objective: >-
+      The single largest available increase in what a generated corpus can see,
+      and the only ticket aimed at a fault class that has measured ZERO on every
+      instrument in every round.
+
+      A generated corpus replays only ENABLED edges, so it contains no rejected
+      inputs: a service that accepts what the model forbids passes every case.
+      Round 1: 0 of 3. Round 2: 0 of 3, on both arms, AFTER RP-02 took parameter
+      recovery from 0 of 5 to 5 of 5 -- which moved nothing and thereby
+      falsified round 1's own explanation. RP-02 counted why: all 330 recovered
+      arguments are arguments the guard ACCEPTS, 0 are rejected inputs, and 220
+      refusable pairs exist in the state space a state graph can never emit. A
+      third blind catalogue reproduced it unaided: `330 'status': 'applied'` --
+      the corpus never once asks the program to reject a call.
+
+      So build the generator mode: at each reachable state, the actions whose
+      guards are DISABLED, emitted as cases asserting the call is REJECTED. TLC
+      already knows them; the profile does not widen.
+
+      AND MAKE A CORPUS TRACTABLE, because today one is not. Carries
+      RC-02-DF-04 and MF026-R4-F-01: `generate cases` on MCsmall -- the config
+      that exists to make a corpus tractable -- produces 3,678,217 cases and a
+      7.4 GB file CPython cannot import, 18,391x the manifest's own cap, and
+      this model has no tlc_projection.py while every worked example does. A
+      negative corpus nobody can run is not a mechanism.
+
+      DO NOT BUDGET ANY OF THIS AGAINST PARAMETER RECOVERY. That hypothesis is
+      dead, measured, and retracted in writing.
+    desired_actions: []
+    implementation_scope: ["scripts/generate_cases_from_tlc_dump.py", "references/generation_modes.md", "tests/"]
+    goals:
+      - goal: GOAL-catch-bugs
+        contribution: direct
+        expected_effect: "Guard-relaxation kills move off zero for the first time. If they do not, the class needs a profile change rather than a generator, and that is the epic's most valuable finding."
+        local_signal: "the HP-01 seeded catalogue's guard-relaxation class, per arm"
+      - goal: GOAL-simpler-same-behavior
+        contribution: guard
+        expected_effect: "none expected; must not grow the corpus past its cap again"
+        local_signal: "case count against the manifest cap"
+      - goal: GOAL-hexagonal-in-fact
+        contribution: guard
+        expected_effect: "none -- generator work, no architecture claim"
+        local_signal: "N/A"
+    acceptance:
+      commands:
+        - "uv run --with pytest --with pyyaml python -m pytest tests -q"
+        - "python3 scripts/tla_spec_dev.py --spec-root specs generate cases <model> --out <corpus>"
+      assertions:
+        - "A negative corpus emits, per reachable state, the disabled actions with the argument that would be refused, each asserting rejection."
+        - "Zero false rejections on the green control: no case asserts rejection of an input the model enables."
+        - "Byte-identical across two independent generations, INCLUDING its failing executions."
+        - "This model produces a corpus its own cap accepts, and the run states which projection made that true."
+        - "Per-class per-arm kill table reported. Never a single kill rate."
+    model_delta_expectation: >-
+      A generation mode may need an action. If so, state what it buys and what
+      the state space costs BEFORE dispatch, per surface_cost_rule -- the
+      predecessor measured ~1.5 new coverage gaps and 8x state space per
+      surface-adding ticket.
+
+  - id: HP-04
+    title: "Make the adapters actually run: load a scaffolded project's adapters, skip what cannot execute, run a slice"
+    status: planned
+    github_issue: null
+    schedule_revision: 1
+    depends_on: [HP-01]
+    blocks: [HP-06]
+    wave: 2
+    promotion_order: 40
+    promotion_predecessor: HP-03
+    conflict_keys:
+      production: ["scripts/effect_conformance.py", "scripts/run_generated_case_adapters.py", "tests/test_effect_conformance.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/case_modules.md"]
+    objective: >-
+      The adapters are the half that catches bugs, and three measured defects
+      stop them. All three were found by RUNNING the oracle for the first time
+      in the project's history, not by inspecting it.
+
+      RC-02-DF-02: the oracle never puts the target spec dir on sys.path, so it
+      cannot import the `case_adapters.toml` convention the CLI itself
+      scaffolds. It cannot read a project it created.
+
+      RC-02-DF-03: it never consults `can_run` and aborts the whole run on the
+      first apply()-only adapter. NINE OF SEVENTEEN adapters in this model are
+      apply()-only, so it sees 8 of 18 actions.
+
+      MF026-R4-F-01: the gap count is NOT REPRODUCIBLE -- 20 / 15 / 14 across
+      three runs of an identical corpus, a 43% spread on the number that would
+      gate, because a work directory persists between runs. Any claim resting on
+      that number is currently unciteable.
+
+      Plus CM-F5, still open and still the cheapest outside-in artifact: a slice
+      narrower than its view orphans the view's effect providers, both shipped
+      mappings bind the port, so a slice has ZERO working configurations and the
+      documented workaround needs a third file that exists nowhere. A round-2
+      blind agent lost 3 of its 15 actions to it and had to author that file --
+      and observed that the mapping it wrote is a STRICTLY WEAKER instrument
+      with no durable-write oracle, so a green slice run over-reads.
+    desired_actions: []
+    implementation_scope: ["scripts/effect_conformance.py", "scripts/run_generated_case_adapters.py", "references/case_modules.md", "tests/"]
+    goals:
+      - goal: GOAL-catch-bugs
+        contribution: direct
+        expected_effect: "The oracle sees 18 of 18 actions instead of 8, and a hand-written slice executes. More of the corpus reaching real adapters is the mechanism by which D1 can move at all."
+        local_signal: "run effect-conformance twice over the same corpus; the gap count must be identical"
+      - goal: GOAL-hexagonal-in-fact
+        contribution: direct
+        expected_effect: "An adapter swappable for a fake with the same cases passing is D3 anchor 4; this ticket is what makes that runnable."
+        local_signal: "run one aspect's corpus against a real adapter and a fake"
+      - goal: GOAL-simpler-same-behavior
+        contribution: guard
+        expected_effect: "none expected"
+        local_signal: "N/A"
+    acceptance:
+      commands:
+        - "uv run --with pytest --with pyyaml python -m pytest tests -q"
+        - "python3 scripts/tla_spec_dev.py --spec-root specs run effect-conformance --cases-dir <corpus>"
+      assertions:
+        - "The oracle loads the adapters of a freshly scaffolded project without the caller adjusting sys.path."
+        - "An adapter that cannot execute a case is SKIPPED AND REPORTED, never aborting the run."
+        - "Two runs over an identical corpus report an identical gap count. A nondeterministic oracle is a finding, however good its first run."
+        - "A slice narrower than its view runs end to end with no owner writing the author a file, and any derived mapping states which oracles it does NOT carry."
+    model_delta_expectation: "none expected -- these are defects in the harness, not missing model surface"
+
+  - id: HP-05
+    title: "Content-asserting adapters by default, and the honest report of what an adapter cannot see"
+    status: planned
+    github_issue: null
+    schedule_revision: 1
+    depends_on: [HP-01]
+    blocks: [HP-06]
+    wave: 3
+    promotion_order: 50
+    promotion_predecessor: HP-04
+    conflict_keys:
+      production: ["scripts/generate_python.py", "templates/"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/effect_providers.md"]
+    objective: >-
+      The one mechanism with a measured, replicated edge. Content-asserting
+      effect providers caught 2 of 6 seeded faults that NOTHING else caught --
+      the two durable-side ones -- reproduced cell for cell across two rounds
+      and independently replicated by a blind agent on a fresh 16-mutant
+      catalogue at 3 of 3 durable-write mutants under the checking mapping and 0
+      of 3 under the silent one. That mapping choice is worth 30% of the
+      instrument's entire yield.
+
+      So make it the DEFAULT rather than a thing an expert configures, and make
+      the alternative loud. Every kill number must name its mapping; a run under
+      a silent mapping must say so unprompted, because its kills are a floor and
+      a green run over-reads.
+
+      Advisory throughout: nothing refuses, nothing blocks. A report, not a gate.
+    desired_actions: []
+    implementation_scope: ["scripts/generate_python.py", "templates/", "references/effect_providers.md", "tests/"]
+    goals:
+      - goal: GOAL-catch-bugs
+        contribution: direct
+        expected_effect: "The default mapping catches the durable-side class that only the checking mapping has ever caught -- worth 30% of that instrument's yield when it is chosen, and it is currently not the default."
+        local_signal: "the HP-01 catalogue's durable-write class under the default mapping"
+      - goal: GOAL-hexagonal-in-fact
+        contribution: guard
+        expected_effect: "none -- must not require a particular architecture to work"
+        local_signal: "N/A"
+      - goal: GOAL-simpler-same-behavior
+        contribution: guard
+        expected_effect: "none expected"
+        local_signal: "N/A"
+    acceptance:
+      commands: ["uv run --with pytest --with pyyaml python -m pytest tests -q"]
+      assertions:
+        - "A scaffolded project's providers assert content by default."
+        - "Every run states which mapping produced its numbers, unprompted."
+        - "A run under a mapping with no durable-write oracle says so in its output, not only in documentation."
+    model_delta_expectation: "none expected"
+
+  - id: HP-06
+    title: "EVALUATION: run the A/B, judge it blind, decide the three goals"
+    status: planned
+    role: evaluation
+    owns_goals: [GOAL-catch-bugs, GOAL-simpler-same-behavior, GOAL-hexagonal-in-fact]
+    github_issue: null
+    schedule_revision: 1
+    depends_on: [HP-01, HP-02, HP-03, HP-04, HP-05]
+    blocks: []
+    wave: 4
+    promotion_order: 60
+    promotion_predecessor: HP-05
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/hexagonal-prompting/", "NEXT-EPIC.md"]
+    objective: >-
+      The epic's product and the ticket every other ticket was written against.
+      A MEASUREMENT, not a victory lap. A low or unflattering result is the
+      preferred outcome; an epic that closes with only good news about itself
+      has not been measured.
+
+      Run the A/B from HP-01 on the integrated epic tip: same feature, arm A
+      ordinary prompt, arm B the HP-02 prompt. Seed the same catalogue in both.
+      Generate cases from the model, run them through each arm's adapters, and
+      count what dies.
+
+      Then judge both arms on the scorecard, TWO JUDGES, BLIND TO ARM, per
+      references/eval_scorecard.md -- artifacts not claims, file:line for every
+      score >= 2, a named refusal for every 4, prose quality never an input. Any
+      dimension where the judges differ by more than 1 is `contested` and gets a
+      third pass citing NEW evidence.
+
+      Report baseline -> measured -> target per goal, with a verdict of `met`,
+      `missed`, or `unmeasured` and a reason. Never edit a target to match a
+      result. Never re-run selectively until a number passes. Report the run
+      that happened.
+
+      Also report, because the predecessor learned it the hard way: findings BY
+      CHANNEL -- suite re-run, fresh adversarial attack, blind author. Both
+      rounds of the predecessor produced their best finding from an agent asked
+      what it REJECTED and zero from re-running the suite. If this round's
+      findings come only from the suite, say so plainly: the suite has stopped
+      being informative, and that alarm is meant to fire before the tool
+      silently gets worse.
+
+      FILE FINDINGS, FIX NOTHING. A fix during a measurement destroys the
+      measurement.
+    desired_actions: []
+    implementation_scope: ["specs/results/scorecards/", "NEXT-EPIC.md"]
+    goals:
+      - goal: GOAL-catch-bugs
+        contribution: guard
+        expected_effect: "decides the goal; adds no behavioral delta"
+        local_signal: "N/A: this ticket is the measurement"
+      - goal: GOAL-simpler-same-behavior
+        contribution: guard
+        expected_effect: "decides the goal; adds no behavioral delta"
+        local_signal: "N/A: this ticket is the measurement"
+      - goal: GOAL-hexagonal-in-fact
+        contribution: guard
+        expected_effect: "decides the goal; adds no behavioral delta"
+        local_signal: "N/A: this ticket is the measurement"
+    acceptance:
+      commands:
+        - "uv run --with pytest --with pyyaml python -m pytest tests -q"
+        - "python3 examples/validation/scorecards/score_tools.py check specs/results/scorecards/hexagonal-prompting"
+        - "python3 examples/validation/scorecards/score_tools.py index specs/results/scorecards/hexagonal-prompting"
+      assertions:
+        - "Both arms scored by two judges blind to arm; every scorecard passes the schema check; contested dimensions adjudicated with NEW evidence."
+        - "Every prediction in PREDICTIONS-HP.md scored PASS / FAIL / SUPERSEDED. None amended."
+        - "Each goal reports baseline -> measured -> target with a verdict of met / missed / unmeasured and a reason."
+        - "Findings reported BY CHANNEL with counts, and the ratio stated as a result."
+        - "Findings FILED and NONE fixed."
+    model_delta_expectation: "none -- a measurement ticket carries no model delta"

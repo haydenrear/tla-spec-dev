@@ -1,0 +1,151 @@
+# EV-01 seeded content faults -- FIXED AND WRITTEN DOWN BEFORE ANY CORPUS RUN.
+#
+# The baseline to beat is MF-038: 9 subtle content bugs seeded into this
+# repository's own CLI, kill rate 0.31, and every one of the 9 SURVIVED
+# because "nothing reads the contents of any scaffolded file, any budget
+# value, any manifest field, any enum, or any count". Six faults are seeded
+# here, one per named class plus a second off-by-one, and each row states the
+# EXACT observable that should catch it and WHICH ARM should catch it.
+#
+# The two arms are two declared adapter mappings, not one mapping with its
+# assertions switched off:
+#   ARM A  specs/program_model/case_adapters_corpus_only.toml   (corpus alone)
+#   ARM B  specs/program_model/case_adapters.toml               (corpus + content provider)
+#
+# EV-01 ran the CONTROL only -- both arms green on the unmutated program, 330
+# cases, exit 0, evidence in evidence/control-arm*.log. The mutants are
+# deliberately NOT run here: measuring them is EV-02's job, and a fixture
+# author who scores his own instrument has removed the measurement.
+#
+# PREDICTED, NOT MEASURED. If a prediction below is wrong, the prediction is
+# the finding.
+#
+# Apply one with the shipped primitive (it always restores):
+#   python3 -c "import sys; sys.path.insert(0,'scripts'); ..."  -- or simply
+#   scripts/kill_test.py's `seeded(mutant, root)` context manager, or by hand.
+# Root for every `path` below: examples/validation/ex4_pipeline_coherent/
+
+[[mutants]]
+id = "F1-wrong-value"
+fault_class = "wrong value"
+boundary_kind = "invariant"
+boundary_ref = "LedgerIsDownstream"
+path = "pipeline/ledger/journal.py"
+find = "        self._entries.append(item)"
+replace = "        self._entries.append(item.upper())  # MUTANT F1: the ledger records a transformed value"
+description = "the ledger records i1 as I1 -- right item, wrong bytes"
+observable = "projected after-state `ledger` != model after-state; and in ARM B also the persisted bytes"
+predicted_detector = "ARM A: tla_projected_state (the `ledger` variable). ARM B: also provider_content_assertion."
+predicted_arm = "A and B"
+refine_variable = "ledger"
+refine_action = "Record"
+
+[[mutants]]
+id = "F2-wrong-field"
+fault_class = "wrong field"
+boundary_kind = "invariant"
+boundary_ref = "DeliveryExclusive"
+path = "pipeline/dispatch/failures.py"
+find = "        self._failed.add(item)"
+replace = "        self._dispatcher._delivered.add(item)  # MUTANT F2: right value, wrong field"
+description = "Fail(i) writes the item back into `delivered` instead of into `failed`"
+observable = "projected after-state `failed` and `delivered` both differ; adapter output `delivered_size` differs"
+predicted_detector = "ARM A: tla_projected_state (`failed`, `delivered`) and tla_output (`delivered_size`)."
+predicted_arm = "A and B"
+refine_variable = "failed"
+refine_action = "Fail"
+
+[[mutants]]
+id = "F3-off-by-one-durable"
+fault_class = "off-by-one count"
+boundary_kind = "effect_port"
+boundary_ref = "LedgerStorePort"
+path = "pipeline/ledger/journal.py"
+find = '        self._store.persist(PersistLedger(entries=",".join(self._entries)))'
+replace = '        self._store.persist(PersistLedger(entries=",".join(self._entries[:-1])))  # MUTANT F3: the durable ledger is one entry short'
+description = "in-memory ledger correct, persisted ledger missing its newest entry"
+observable = "the persisted file's entry count is len(ledger) - 1. NOTHING in the projected state or the adapter output reads the file."
+predicted_detector = "ARM B only: provider_content_assertion. ARM A is predicted to SURVIVE this -- it is the MF-038 shape exactly."
+predicted_arm = "B only"
+refine_variable = "ledger"
+refine_action = "Record"
+
+[[mutants]]
+id = "F4-wrong-status"
+fault_class = "wrong status"
+boundary_kind = "invariant"
+boundary_ref = "TypeInvariant"
+path = "pipeline/ingest/inbox.py"
+find = "        self._accepted.add(item)\n        return True"
+replace = "        self._accepted.add(item)\n        return False  # MUTANT F4: the state change happened; the status says it did not"
+description = "Accept(i) performs the transition and reports failure"
+observable = "adapter output `status` == 'rejected' where the model says 'applied'. The after-state is CORRECT, so a state-only oracle cannot see this."
+predicted_detector = "ARM A: tla_output (`status`). This is the class MF-038 could not see at all, because its only output oracle was a process exit code."
+predicted_arm = "A and B"
+refine_variable = "accepted"
+refine_action = "Accept"
+
+[[mutants]]
+id = "F5-swallowed-error"
+fault_class = "silently-swallowed error"
+boundary_kind = "effect_port"
+boundary_ref = "LedgerStorePort"
+path = "pipeline/ledger/journal.py"
+find = '        self._store.persist(PersistLedger(entries=",".join(self._entries)))'
+replace = '''        try:  # MUTANT F5
+            self._store.persist(PersistLedger(entries=""))
+        except Exception:
+            pass  # MUTANT F5: the durable write is wrong AND any error from it is swallowed'''
+description = "the ledger write goes out empty and the failure never reaches the caller; record() still returns True"
+observable = "the persisted file is empty while the model's `ledger` is not. No exception escapes, no status changes, and the projected state is correct."
+predicted_detector = "ARM B only: provider_content_assertion. ARM A is predicted to SURVIVE."
+predicted_arm = "B only"
+refine_variable = "ledger"
+refine_action = "Record"
+
+[[mutants]]
+id = "F6-off-by-one-in-memory"
+fault_class = "off-by-one count"
+boundary_kind = "invariant"
+boundary_ref = "TypeInvariant"
+path = "pipeline/ingest/queue.py"
+find = "        self._queue.remove(item)"
+replace = "        del self._queue[self._queue.index(item) : self._queue.index(item) + 2]  # MUTANT F6: the handoff releases one item too many"
+description = "the ingest side of Deliver drops an extra queued item"
+observable = "projected after-state `queue` is one item short; adapter output `queue_size` is one lower than the model's"
+predicted_detector = "ARM A: tla_projected_state (`queue`) and tla_output (`queue_size`)."
+predicted_arm = "A and B"
+refine_variable = "queue"
+refine_action = "Deliver"
+
+# WHY F6 EXISTS. F3 and F6 are the SAME fault class on two different surfaces.
+# If both are killed and F3 is killed only by ARM B, then detectability is a
+# property of the OBSERVATION SURFACE and not of the fault class -- which is
+# the thing MF-038's survivor analysis actually concluded ("this is a
+# shallow-oracle result, not a coverage-of-code result") and the thing the
+# aggregate kill rate hides. If instead F6 also survives ARM A, the corpus is
+# weaker than this fixture's design assumes and the fixture is the finding.
+#
+# CLASSES THIS INSTRUMENT CANNOT MEASURE, stated so nobody reads a silence as
+# a result: a fault whose only symptom is ACTING ON THE WRONG ITEM. MF-029
+# parameter inference recovers 0 of 5 parameters on this model (every action
+# is guarded by set membership), so the adapters pick the argument by diffing
+# before against after -- the oracle tells them which item. Filed as
+# EV-01-DF-01. No fault of that class is seeded, because seeding one would
+# produce a survivor that says nothing about the corpus.
+#
+# RP-02 AMENDMENT. Every row above is left exactly as EV-01 committed it -- an
+# answer key is a record and is not edited to agree with a later run. The
+# paragraph directly above is superseded on both halves:
+#
+#   * RP-02's set-membership mechanism recovers 5 of 5 parameters. All 330
+#     cases carry a real argument and the adapter no longer diffs case.after.
+#   * "This instrument cannot measure the wrong-item class" was a prediction
+#     that was never run. RP-02 ran it: two wrong-item faults were seeded and
+#     BOTH were killed, on the pre-fix instrument as well as the post-fix one.
+#     The refusal to seed one was over-cautious, and the class belongs in a
+#     future catalog rather than in a caveat.
+#
+# Still true, and now measured rather than argued: guard relaxation is
+# unkillable by this corpus. All 330 arguments are arguments the guard accepts;
+# 0 are rejected inputs. See specs/tickets/RP-02/results/mutant-catalog-rerun.md.

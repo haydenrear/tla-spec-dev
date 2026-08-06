@@ -63,6 +63,13 @@ Escapes"). A rule with an escape hatch is not a rule.
   targets it cannot see rather than reporting them clean. The member keeps its
   DEGRADED classification in the record for exactly that reason, even though
   it no longer gates.
+- AC-04's ``architecture_delta`` member was REMOVED 2026-08-04 with the static
+  architecture scanners. It was derived from a report only
+  ``analyze architecture --baseline`` could produce, so with that command gone
+  the member could never again be anything but ``not_run``. What it was for --
+  "the representation got smaller" and "the code moved toward the boundaries"
+  are different claims -- survives as advice rather than as a field:
+  references/architecture_advice.md.
 - A generated-states drop at constant distinct states and constant depth is a
   RED FLAG, not a win. MF-020 withdrew a projected -13.1% reduction that turned
   out to require deleting a legitimate idempotent re-fire transition; the
@@ -85,6 +92,11 @@ try:  # pragma: no cover - import shim for direct script execution
     from . import analyze_complexity
 except ImportError:  # pragma: no cover
     import analyze_complexity
+
+# `spec_paths` was imported here for the AC-04 architecture_delta member, whose
+# report path it resolved. The member was removed 2026-08-04 with the scanners
+# that produced the report; the import went with it rather than being left as a
+# dependency nothing exercises.
 
 try:  # pragma: no cover
     import yaml
@@ -152,15 +164,15 @@ DEGRADED_VERDICTS = {
 
 UNVERIFIED_VERDICTS = {"unknown", "deferred", "not_run", "n/a", "na", ""}
 
-# MF-026 -- the coverage audit gate. The four oracles check FIDELITY of what is
+# MF-026 -- the coverage audit. The four oracles check FIDELITY of what is
 # modeled; the coverage audit checks COMPLETENESS. Neither implies the other, so
 # the ledger records the audit verdict separately from the retention set.
 #
-# Recorded at EVERY close, including ticket closes where the audit has not run.
-# That is the point: the audit is an end-of-epic step, so most ticket closes
-# legitimately carry `not_run` -- but an epic that reached its workflow close
-# without ever running it must be VISIBLE rather than silent. Omitting the block
-# is never treated as passing.
+# NO LONGER A GATE (2026-08-04, owner direction). It is recorded at EVERY close
+# and refuses none of them -- see the block in `evaluate` for the argument, and
+# note that `passing` below is still computed and still printed, because
+# "recorded" and "recorded as a pass" are different facts. Omitting the block is
+# still never treated as passing.
 COVERAGE_AUDIT_VERDICTS = {
     "pass": "no in-scope gaps",
     "fail": "in-scope gaps -- model it or change the program",
@@ -171,6 +183,8 @@ COVERAGE_AUDIT_VERDICTS = {
 # Only `pass` is a pass. `incomplete` sits with `fail` deliberately: a sweep that
 # did not walk the surface carries no information about it, and promoting that to
 # a pass would dress an absence of evidence as a measurement (MF-027's lesson).
+# This distinction survives the gate's retirement: what was withdrawn is the
+# REFUSAL, not the vocabulary.
 COVERAGE_AUDIT_PASSING = {"pass"}
 
 # Sentinel the scaffolded template carries. It must fail every gate it touches,
@@ -316,10 +330,28 @@ def collect_metrics(
     otherwise -- never estimated, never carried forward from a previous entry.
     """
     analysis = analyze_complexity.analyze(tla_path, cfg_path, manifest_path)
+    completeness = analysis.completeness
     metrics: dict[str, Any] = {
         "variables": len(analysis.variables),
         "actions": len(analysis.actions),
+        # RP-04, same class again: `actions` is a DELTA_METRIC, and the
+        # descriptor says in prose when the count came from the FALLBACK primes
+        # heuristic ("helper operators may be listed as actions and composed
+        # actions may be missing") rather than from the next-state relation's
+        # disjuncts. The ledger recorded the bare count. Carry the attribution.
+        "action_attribution": analysis.action_attribution,
+        "actions_from_fallback_heuristic": analysis.action_attribution.startswith(
+            "FALLBACK"
+        ),
         "bound": analysis.bound,
+        # CM-01-DF-03: the bound above is a product over the variables whose
+        # domain resolved. Recording it without these three fields is how the
+        # ledger came to record "0.0% of 1,000,000, within cap" for a model TLC
+        # measures at 49,386 distinct states -- the descriptor TEXT named the
+        # nine excluded variables and the JSON threw the caveat away.
+        "bound_complete": completeness.complete,
+        "bound_resolved_variables": completeness.resolved,
+        "bound_unresolved_variables": list(completeness.unresolved),
         "modularity": analysis.modularity_score,
         "distinct_states": None,
         "generated_states": None,
@@ -333,13 +365,36 @@ def collect_metrics(
         metrics["generated_states"] = report.generated
         metrics["depth"] = report.depth
         metrics["tlc_report"] = str(tlc_report)
+        # RP-04, the same class as CM-01-DF-03 found one file over: a TLC run
+        # that did not finish still prints a distinct-state count, and
+        # `analyze` is careful to check `max_distinct_states` only when
+        # `report.complete` -- while the ledger recorded the count with no such
+        # flag and compared it against the cap regardless. Publish the flag.
+        metrics["tlc_run_complete"] = report.complete
     budgets = analysis.budgets or {}
     metrics["budget_utilization"] = _budget_utilization(metrics, budgets)
     return metrics
 
 
 def _budget_utilization(metrics: dict[str, Any], budgets: dict[str, Any]) -> dict[str, Any]:
-    """Percent-of-cap for each hard cap, in the form the manual ledgers used."""
+    """Percent-of-cap for each hard cap, in the form the manual ledgers used.
+
+    CM-01-DF-03: the state-space entry additionally reads
+    ``metrics['bound_complete']``. A bound that is a product over a SUBSET of
+    the declared variables supports one comparison and not the other:
+
+    * over the cap  -- recorded as ``within_cap: false``. Sound: every
+      unresolved variable has at least one value, so the complete bound is at
+      least the recorded one.
+    * at or under the cap -- recorded as ``within_cap: null`` with a
+      ``caveat``, and ``percent`` becomes ``percent_lower_bound``. "0.0% of
+      1,000,000, within cap" over one resolved variable of ten is not a
+      measurement, and a null here is the only honest value.
+
+    A missing ``bound_complete`` key (every ledger entry written before this
+    fix) is treated as UNKNOWN completeness, which is also not a licence to
+    claim "within cap" -- it is recorded as null with a caveat naming the gap.
+    """
     utilization: dict[str, Any] = {}
     pairs = (
         ("max_state_space_bound", "bound"),
@@ -350,13 +405,80 @@ def _budget_utilization(metrics: dict[str, Any], budgets: dict[str, Any]) -> dic
         used = metrics.get(metric_key)
         if not isinstance(cap, int) or cap <= 0 or not isinstance(used, int):
             continue
-        utilization[budget_key] = {
-            "cap": cap,
-            "used": used,
-            "percent": round(used / cap * 100, 1),
-            "within_cap": used <= cap,
-        }
+        entry: dict[str, Any] = {"cap": cap, "used": used}
+        percent = round(used / cap * 100, 1)
+        if metric_key != "bound":
+            # max_distinct_states caps ACTUAL states counted by TLC. There is no
+            # partial-RESOLUTION question to ask of a measured count -- but
+            # there is a partial-RUN one, and it has the same shape (RP-04): a
+            # TLC run that did not finish reports a count that is a floor.
+            # `tlc_run_complete` absent means no TLC report was supplied at
+            # all, in which case `used` came from a caller's own dict and is
+            # taken at face value, as before.
+            if metrics.get("tlc_run_complete") is False:
+                entry["tlc_run_complete"] = False
+                entry["percent_lower_bound"] = percent
+                entry["percent"] = None
+                entry["within_cap"] = False if used > cap else None
+                entry["caveat"] = (
+                    "the TLC run that produced this count did not finish, so the "
+                    "count is a LOWER BOUND on the reachable states"
+                    + (
+                        "; over the cap is still over the cap"
+                        if used > cap
+                        else " and 'within cap' is UNKNOWN"
+                    )
+                )
+            else:
+                entry["percent"] = percent
+                entry["within_cap"] = used <= cap
+            utilization[budget_key] = entry
+            continue
+        complete = metrics.get("bound_complete")
+        entry["bound_complete"] = complete
+        if complete is True:
+            entry["percent"] = percent
+            entry["within_cap"] = used <= cap
+        elif used > cap:
+            entry["percent_lower_bound"] = percent
+            entry["percent"] = None
+            entry["within_cap"] = False
+            entry["caveat"] = _bound_caveat(metrics, over_cap=True)
+        else:
+            entry["percent_lower_bound"] = percent
+            entry["percent"] = None
+            entry["within_cap"] = None
+            entry["caveat"] = _bound_caveat(metrics, over_cap=False)
+        utilization[budget_key] = entry
     return utilization
+
+
+def _bound_caveat(metrics: dict[str, Any], *, over_cap: bool) -> str:
+    """Why the state-space cap comparison is qualified or refused."""
+    resolved = metrics.get("bound_resolved_variables")
+    total = metrics.get("variables")
+    unresolved = metrics.get("bound_unresolved_variables") or []
+    if metrics.get("bound_complete") is None:
+        basis = (
+            "bound completeness was not recorded for this entry (written before "
+            "CM-01-DF-03 was fixed), so it is unknown whether the bound is a "
+            "product over every declared variable"
+        )
+    else:
+        basis = (
+            f"the bound is a product over {resolved} of {total} declared variables"
+            + (f" ({len(unresolved)} unresolved: {', '.join(unresolved)})" if unresolved else "")
+        )
+    if over_cap:
+        return (
+            f"{basis}, so the recorded figure is a LOWER BOUND; over the cap is "
+            "still over the cap, but the percent is a floor, not the percent"
+        )
+    return (
+        f"{basis}, so percent-of-cap is not a measurement and within_cap is "
+        "UNKNOWN -- an incomplete bound at or under the cap is not evidence of "
+        "anything"
+    )
 
 
 # --------------------------------------------------------------------------
@@ -453,6 +575,16 @@ def compute_delta(previous: dict[str, Any] | None, current: dict[str, Any]) -> d
         entry: dict[str, Any] = {"before": before, "after": after, "delta": change}
         if before:
             entry["percent"] = round(change / before * 100, 1)
+        if key == "bound":
+            # CM-01-DF-03: a bound delta is only like-for-like when BOTH sides
+            # are products over the whole representation. Two incomplete bounds
+            # differ partly because the resolver saw different amounts of the
+            # model, and a bound that changed completeness is not a comparison
+            # at all. Recorded here rather than silently folded into the
+            # direction; the direction rules are unchanged, because relaxing
+            # them is a policy call for the owner, not a side effect of a
+            # reporting fix. Read the note before reading the number.
+            entry.update(_bound_delta_comparability(previous_metrics, current))
         delta["metrics"][key] = entry
         if key in DIRECTION_METRICS and change:
             directions.append("increase" if change > 0 else "decrease")
@@ -463,6 +595,41 @@ def compute_delta(previous: dict[str, Any] | None, current: dict[str, Any]) -> d
     else:
         delta["direction"] = directions[0]
     return delta
+
+
+def _bound_delta_comparability(
+    previous_metrics: dict[str, Any], current: dict[str, Any]
+) -> dict[str, Any]:
+    """Whether a bound before/after pair is a like-for-like comparison."""
+    before = previous_metrics.get("bound_complete")
+    after = current.get("bound_complete")
+    fields: dict[str, Any] = {
+        "bound_complete_before": before,
+        "bound_complete_after": after,
+    }
+    if before is True and after is True:
+        fields["comparable"] = True
+        return fields
+    fields["comparable"] = False
+    if before is None or after is None:
+        fields["note"] = (
+            "bound completeness is unrecorded on at least one side of this "
+            "comparison (entries written before CM-01-DF-03 was fixed do not "
+            "carry it), so this delta is NOT known to be like-for-like"
+        )
+    elif before != after:
+        fields["note"] = (
+            f"bound completeness CHANGED across this comparison "
+            f"(complete={before} -> complete={after}): the two numbers are "
+            "products over different subsets of the representation, so the "
+            "delta is not a measurement of the model getting bigger or smaller"
+        )
+    else:
+        fields["note"] = (
+            "both bounds are products over a SUBSET of the declared variables, "
+            "so this delta measures the resolved subset, not the model"
+        )
+    return fields
 
 
 def _tlc_reports(previous: dict[str, Any] | None, current: dict[str, Any]) -> tuple[Any, Any]:
@@ -591,6 +758,7 @@ def evaluate(
     metrics: dict[str, Any],
     ledger_input: dict[str, Any],
     previous: dict[str, Any] | None,
+    input_dir: Path | None = None,
 ) -> LedgerVerdict:
     """Build the ledger entry and run every gate. Errors mean the close is refused."""
     errors: list[str] = []
@@ -720,39 +888,54 @@ def evaluate(
             "never auto-applied."
         )
 
-    # ---- Gate 6: the coverage audit (MF-026) -------------------------------
-    # Scope-sensitive by design, and the asymmetry is deliberate.
+    # ---- The coverage audit (MF-026): RECORDED, no longer a gate -----------
+    # RETIRED AS A BLOCKING GATE 2026-08-04 (owner direction), with the static
+    # architecture scanners. Until then a workflow close was REFUSED unless
+    # `coverage_audit.status` was `pass`, with no override flag anywhere.
     #
-    # The audit is an END-OF-EPIC step -- it runs after every mechanism ticket
-    # has landed and before final integration. So a ticket close carrying
-    # `not_run` is the normal, correct case, and failing it there would force
-    # every ticket to run a whole-epic audit or to fake a verdict. Both are
-    # worse than recording the absence.
+    # WHAT THE AUDIT IS, and why it is kept: it is the only thing in this
+    # toolchain that looks at UNMODELED surface. The four oracles all check
+    # FIDELITY of what is modeled and are bounded to it, so unmodeled surface is
+    # invisible to every one of them while they report green. That is not a
+    # theoretical hole -- the audit found `generate cases`, this project's
+    # flagship feature, with no action, no port and no CLI subcommand at all
+    # (G-6), two shipped port globs that could never fail (F-7, F-8), and the
+    # absence of any test able to detect a wrong glob (F-9). Those are real
+    # finds. Nothing else here produced any.
     #
-    # At WORKFLOW close the epic is over, and there is no later opportunity. A
-    # missing or failing audit refuses, exactly like every other gate here: a
-    # check that silently passes when its input is absent is not a check.
+    # WHY IT NO LONGER REFUSES. It is an AGENT-RUN REVIEW, not a measurement.
+    # Its verdict is a word an agent types after a sweep it also performed, and
+    # the sweep's completeness is exactly what the word asserts. A gate whose
+    # input is the graded party's own summary of their own work is not a gate;
+    # it is a place to type `pass`. The gate also had no override, which meant
+    # the cheapest way past it was always to type the word rather than to widen
+    # the sweep -- the same "make the check clean" pressure that got a format
+    # string copied across a component boundary to clear an architecture
+    # divergence (references/architecture_advice.md).
     #
-    # `incomplete` refuses alongside `fail`. A sweep that did not walk the
-    # surface carries no information about it; promoting that to a pass would
-    # dress an absence of evidence as a measurement.
-    if scope == "workflow" and not coverage_audit.passing:
-        errors.append(
-            "REJECTED -- coverage audit (MF-026) verdict is "
-            f"`{coverage_audit.normalized}`: {COVERAGE_AUDIT_VERDICTS[coverage_audit.normalized]}. "
-            "The four oracles check FIDELITY of what is modeled and are all bounded to "
-            "it; unmodeled surface is invisible to every one of them while they report "
-            "green. Run `prompts/coverage_audit.md` and record `coverage_audit.status: "
-            "pass` with its report path. In-scope gaps are closed by modeling them or "
-            "changing the program -- there is no justified/accept-as-is disposition."
-        )
-    elif not coverage_audit.passing:
-        # Recorded and printed, never silently dropped: an epic that never ran
-        # the audit must be legible from the ledger alone.
+    # WHAT REPLACES IT: nothing mechanical, deliberately. The audit runs when
+    # the owner asks for it, its report is read by a person, and its verdict is
+    # recorded here in every entry -- including `not_run`, including `fail`,
+    # including `incomplete`. Recorded is not the same as unrecorded, and it is
+    # all this member ever honestly supported.
+    if not coverage_audit.passing:
         notes.append(
-            f"coverage audit not yet run for this scope ({coverage_audit.normalized}) -- "
-            "MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+            f"coverage audit (MF-026) is `{coverage_audit.normalized}`: "
+            f"{COVERAGE_AUDIT_VERDICTS[coverage_audit.normalized]}. RECORDED, NOT "
+            "REFUSED (2026-08-04). The four oracles check fidelity of what is modeled "
+            "and are bounded to it; unmodeled surface is invisible to all of them while "
+            "they report green, and this is the only sweep that looks at it. Run "
+            "`prompts/coverage_audit.md` if you want that read on this scope."
         )
+    else:
+        notes.append(coverage_audit.describe())
+
+    # The architecture delta (AC-04) stood here: recorded, never gating. REMOVED
+    # 2026-08-04 with the scanners that produced its input. The rule it carried
+    # is not lost, only relocated -- a structural improvement asserted without
+    # the edges that disappeared is unverified by construction (MF-020), and
+    # that is now stated as advice (references/architecture_advice.md) and
+    # still enforced for the COMPLEXITY half by the transition-diff gate above.
 
     # ---- Gate 7: the narrative is required ---------------------------------
     # The machine-checked core is narrow by design; the narrative is where the
@@ -842,6 +1025,17 @@ def render_report(verdict: LedgerVerdict) -> str:
     # an explicit unknown, rendered as such, never a silent 1.
     bound = metrics.get("bound")
     bound_text = f"{bound:,}" if isinstance(bound, int) else "unknown"
+    # CM-01-DF-03: the bound never appears in this report without saying how
+    # much of the representation it covers. "bound=4" beside "variables=10"
+    # read as a small model; "bound=4 (INCOMPLETE: 1/10 variables)" reads as
+    # what it is.
+    if isinstance(bound, int) and metrics.get("bound_complete") is False:
+        bound_text += " (INCOMPLETE: {resolved}/{total} variables resolved)".format(
+            resolved=metrics.get("bound_resolved_variables"),
+            total=metrics.get("variables"),
+        )
+    elif isinstance(bound, int) and metrics.get("bound_complete") is None:
+        bound_text += " (completeness not recorded)"
     lines.append(
         "  measured: variables={variables} actions={actions} bound={bound}".format(
             variables=metrics.get("variables"),
@@ -849,14 +1043,38 @@ def render_report(verdict: LedgerVerdict) -> str:
             bound=bound_text,
         )
     )
+    if metrics.get("actions_from_fallback_heuristic"):
+        lines.append(
+            "            actions counted by the FALLBACK primes heuristic (no "
+            "next-state relation found): helpers may be counted and composed "
+            "actions may be missing"
+        )
     if isinstance(metrics.get("distinct_states"), int):
         lines.append(
             "            distinct={distinct_states:,} generated={generated_states:,} "
             "depth={depth}".format(**metrics)
         )
     for key, util in (metrics.get("budget_utilization") or {}).items():
-        flag = "within cap" if util["within_cap"] else "OVER CAP"
-        lines.append(f"            {key}: {util['used']:,} / {util['cap']:,} ({util['percent']}%, {flag})")
+        # CM-01-DF-03: `within_cap: None` is a REFUSAL to make the comparison,
+        # and it must not render as "OVER CAP" (a claim) or as "within cap"
+        # (the claim this ticket exists to stop).
+        within = util.get("within_cap")
+        if within is None:
+            flag = "cap comparison UNKNOWN -- incomplete bound"
+        else:
+            flag = "within cap" if within else "OVER CAP"
+        percent = util.get("percent")
+        if percent is None and util.get("percent_lower_bound") is not None:
+            percent_text = f">= {util['percent_lower_bound']}%"
+        elif percent is None:
+            percent_text = "percent unknown"
+        else:
+            percent_text = f"{percent}%"
+        lines.append(
+            f"            {key}: {util['used']:,} / {util['cap']:,} ({percent_text}, {flag})"
+        )
+        if util.get("caveat"):
+            lines.append(f"              caveat: {util['caveat']}")
 
     delta = entry["delta"]
     lines.append(f"  delta:    direction={delta['direction']} (vs {delta.get('previous_scope_id') or 'baseline'})")
@@ -864,6 +1082,10 @@ def render_report(verdict: LedgerVerdict) -> str:
         if isinstance(change.get("delta"), int) and change["delta"]:
             percent = f" ({change['percent']:+}%)" if "percent" in change else ""
             lines.append(f"            {key}: {change['before']:,} -> {change['after']:,} = {change['delta']:+,}{percent}")
+            # CM-01-DF-03: a bound delta that is not like-for-like says so on
+            # the line under the number, never only in the JSON.
+            if change.get("note") and change.get("comparable") is False:
+                lines.append(f"              NOT LIKE-FOR-LIKE: {change['note']}")
 
     # The licensing basis is printed next to the delta, never separately. The
     # adjacency is the point: a delta read without it is the number the
@@ -888,10 +1110,11 @@ def render_report(verdict: LedgerVerdict) -> str:
 
     # Completeness is printed next to fidelity, always -- including `not_run`.
     # The four oracles above are all bounded to what is modeled; this line is
-    # the only one that speaks to what is not.
+    # the only one that speaks to what is not. It gates nothing (2026-08-04) and
+    # is printed exactly as loudly as when it did.
     audit = entry.get("coverage_audit") or {}
     audit_status = audit.get("status", "not_run")
-    audit_flag = "" if audit.get("passing") else "  <-- does not pass"
+    audit_flag = "" if audit.get("passing") else "  <-- does not pass (recorded, not refused)"
     lines.append(f"  coverage audit (completeness, MF-026): {audit_status}{audit_flag}")
     if audit.get("report"):
         lines.append(f"            report: {audit['report']}")
@@ -967,17 +1190,18 @@ retention:
     status: "not_run"
     evidence: ""
 
-# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# Coverage audit -- MF-026. The completeness REVIEW, distinct from the three
 # retention members above, which are all FIDELITY measures bounded to what is
-# already modeled. Unmodeled surface is invisible to every one of them.
+# already modeled. Unmodeled surface is invisible to every one of them, and this
+# is the only sweep that looks at it.
 #
 #   status: pass | fail | incomplete | not_run
 #
-# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
-# step, run after the mechanism tickets land and before final integration. It is
-# recorded and reported either way so that an epic which skipped it is visible.
-# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
-# `pass`, because a sweep that did not walk the surface says nothing about it.
+# RECORDED, NEVER REFUSING (2026-08-04, owner direction). It was a hard gate at
+# workflow close with no override; it is now an optional agent-run review whose
+# verdict is written down and read by a person. `incomplete` IS STILL NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it --
+# what was withdrawn is the refusal, not the distinction.
 #
 # Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
 coverage_audit:

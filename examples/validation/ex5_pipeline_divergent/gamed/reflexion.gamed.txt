@@ -1,0 +1,43 @@
+wrote evidence: gamed/reflexion.gamed.txt
+[MEASURED] Reflexion check -- production code against the model's architecture
+  map:       gamed/architecture_map.gamed.yaml
+  code root: pipeline
+  scanned 8 Python module(s); the map places 8 of them in 3 component(s)
+  extracted 7 dependency edge(s) (imports + resolvable calls)
+  2 edge(s) stay inside one component and were not checked against a port
+
+  Is a divergence even detectable here?
+    component pairs with a port:    dispatch<->ingest, dispatch<->ledger
+    component pairs with NO port:   ingest<->ledger
+    A code edge can only diverge across a pair in the second list. When that list is
+    empty the architecture permits every pair and a clean result is true by construction.
+
+  CONVERGENCES (2) -- a crossing edge the model declares a port for
+    dispatch -> ingest  (P1) ingest/queue.py -> ingest/inbox.py  [import pipeline.ingest.inbox.Inbox]  pipeline/ingest/queue.py:11
+    dispatch -> ledger  (P2) ingest/queue.py -> ledger/journal.py  [import pipeline.ledger.journal.Journal]  pipeline/ingest/queue.py:12
+
+  DIVERGENCES (3) -- a crossing edge NO port declares
+    pipeline/ingest/inbox.py:11  ingest -> ledger: ingest/inbox.py imports pipeline.ledger.journal.format_entry from ledger/journal.py
+      no port between `ingest` and `ledger`: no action of the model touches both components, so the model does not declare that these two parts of the program interact
+    pipeline/ingest/inbox.py:39  ingest -> ledger: ingest/inbox.py calls format_entry from ledger/journal.py
+      no port between `ingest` and `ledger`: no action of the model touches both components, so the model does not declare that these two parts of the program interact
+    pipeline/ledger/journal.py:55  ledger -> ingest: ledger/journal.py imports pipeline.ingest.inbox.Inbox from ingest/inbox.py
+      no port between `ingest` and `ledger`: no action of the model touches both components, so the model does not declare that these two parts of the program interact
+
+  ABSENCES (0) -- a declared port no code edge realizes
+    none.
+
+  Out of scope: 2 import target(s) resolve outside the scanned tree
+  (standard library and third-party packages). They are not edges: the model declares
+  components of THIS program. A component that reaches an external system directly is
+  therefore invisible to this check.
+    __future__, pipeline_contract
+
+[MEASURED] Reflexion verdict
+  architecture_scan = divergent
+    - 3 code edge(s) cross a component boundary the model declares no port for
+
+  DIVERGENT is a FINDING, not a failure. This command exits 0. It names the
+  edges and the ports; it does not say which module should move (CD-01).
+
+  Advisory: nothing here blocks a close, a promotion, or a case generation.

@@ -1,0 +1,67 @@
+{
+  "scorecard_version": 1,
+  "epic": "architectural-coherence",
+  "example": "ex1_scaffold_only",
+  "run_id": "20260803-j1",
+  "arm": null,
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "judge": {"model": "claude-opus-5[1m]", "pass": 1, "blind_to_arm": true},
+  "dimensions": {
+    "D1": {
+      "score": 2,
+      "citations": [
+        "examples/validation/runs/ex1-run4/artifacts/providers.py:86-98",
+        "examples/validation/runs/ex1-run4/artifacts/kill_probe_head.txt:1-6",
+        "examples/validation/ex1_scaffold_only/taskq/tests/test_taskq.py:9-42"
+      ],
+      "rationale": "Anchor 2, on a thin instrument. The fixture itself carries no bug-detection apparatus at all -- six pytest tests over pure functions (test_taskq.py:9-42), none of which reads the persisted file, so the fixture alone would sit at anchor 0 or 1. The run evidence lifts it: providers.py:86-98 is real code that compares the persisted task map against the modeled after-state and raises, and additionally checks statuses are members of STATES and that the running cap of 2 holds in the persisted bytes. That is a content assertion, not a shape check, and it caught the one seeded fault -- finish() persisting 'pending' with message and exit code unchanged (kill_probe_head.txt:1-6), 45 points killed, every one by the provider content assertion, with a working replay and a verified green restore. Anchor 1 does not fit, because the fault required a content assertion and was not missed. Anchor 3 does not fit and is not close: n = 1 fault, one class, no catalogue, no arm split, and no attempt at a refusal, an ordering or a cross-aspect before-state -- and this is despite taskq's model encoding refusals as first-class actions, which would have made the attempt cheap.",
+      "refuses_to_claim": null
+    },
+    "D2": {
+      "score": 2,
+      "citations": [
+        "examples/validation/ex1_scaffold_only/taskq/taskq.py:34-60",
+        "examples/validation/runs/ex1-run3/artifacts/complexity_decision.md:12-45",
+        "examples/validation/runs/ex1-run4/artifacts/descriptor.txt:41-42",
+        "examples/validation/runs/ex1-run2/scoring.md:25-30"
+      ],
+      "rationale": "Anchor 2. The program is as simple as its behavior requires: taskq.py:34-60 is four pure functions over one dict, each touching that dict and one name, with a cap constant and three statuses. The relationship between the figures and the design is argued, not merely reported -- complexity_decision.md:12-45 walks unknowns, bound-vs-behavior, dense rows and clusters in the documented reading order and defends each dimension against a named consumer, which is well past anchor 1. Anchor 3 is deliberately unreachable: every run concluded 'no refactor warranted', so no simplification exists to measure. The tension I record and do not score down for: three of the four runs' descriptors show a dense row (descriptor.txt:41-42, cli touched by 9/9 actions) and two fired the max_component_actions advisory -- a variable written from everywhere by the tool's own definition. It is an artifact of the observability encoding rather than of the program, which the epic measured itself: the same 84-line program yields bound 64 with one encoding and 1,152 with another (ex1-run2:25-30). Recorded as a limit on how much a cross-project descriptor comparison can mean.",
+      "refuses_to_claim": null
+    },
+    "D3": {
+      "score": 1,
+      "citations": [
+        "examples/validation/ex1_scaffold_only/taskq/taskq.py:19-31",
+        "examples/validation/ex1_scaffold_only/taskq/taskq.py:63-80",
+        "examples/validation/runs/ex1-run4/artifacts/providers.py:11-16"
+      ],
+      "rationale": "Anchor 1. A boundary was declared -- run 4's agent added a TaskStorePort effect port with a generated Protocol -- and the production code does not follow it. taskq.py:19-31 keeps state_path/load/save inside the same module as the domain functions, doing their own os and json and filesystem work; taskq.py:63-80's main() calls load() and save() directly. Nothing is injected and no adapter is swappable. The way the declared port is actually realized is documented at providers.py:11-16: the provider owns a concrete file and 'the spec-unit adapter points TASKQ_STATE at binding.state_file and runs the real CLI'. That is environment-variable redirection of a hardcoded path, not a port -- the domain still performs its own I/O on whatever path it computes. Anchor 2 would need cross-boundary calls going through something identifiable as a port; there is none. Anchor 3 would need the domain not to import its I/O; taskq.py:10-13 imports json and os and uses them inline. The pure functions add/start/finish/listing ARE separable in principle, which is why this is 1 and not 0, but separable in principle is exactly what anchor 1 describes.",
+      "refuses_to_claim": null
+    },
+    "D4": {
+      "score": 3,
+      "citations": [
+        "examples/validation/ex1_scaffold_only/taskq/tests/test_taskq.py:9-42",
+        "examples/validation/runs/ex1-run4/scoring.md:12-12",
+        "examples/validation/runs/ex1-run4/scoring.md:28-36"
+      ],
+      "rationale": "Anchor 3, with anchor 4 withheld under rule 5. The baseline behaviors are enumerated -- lifecycle, duplicate rejection, start-requires-pending, the cap of 2, finish-requires-running, sorted listing (test_taskq.py:9-42) -- and shown to hold; and the check is model-derived rather than only hand-written: TLC-green Internal and External views in all four runs, plus an exhaustive generated corpus and a 1,640-point campaign. Anchor 4's condition is literally met once (ex1-run4:12: a deliberate behavior-breaking change, caught, with a replay that reproduced the identical failure and a verified green restore). I take the lower anchor because the model-derived half of the check has a measured hole in it that nothing closed: ex1-run4:28-36 records that pure alias wrapper actions were attributed to the inner definition site so 7 of 9 external actions SILENTLY generated zero cases until anchored, and that parameter inference recovered 0 of 454 external cases -- the same oracle-leakage and vacuity exposure that RP-02 had to fix for ex4, present here and never fixed. A check demonstrated capable of failing on one fault, over an external arm where a whole class of cases was silently empty and no argument is audited, is a 3.",
+      "refuses_to_claim": null
+    },
+    "D5": {
+      "score": 3,
+      "citations": [
+        "examples/validation/runs/ex1-run1/scoring.md:12-12",
+        "examples/validation/runs/ex1-run1/scoring.md:18-18",
+        "examples/validation/runs/ex1-run1/scoring.md:22-26",
+        "examples/validation/runs/ex1-run2/scoring.md:25-30",
+        "examples/validation/runs/ex1-run4/scoring.md:12-13"
+      ],
+      "rationale": "Anchor 3, and anchor 4 withheld. Blind spots are named unprompted and in the artifact rather than only in a report: the descriptor refuses to invent a bound and prints an explicit UNKNOWN rather than the silent bound = 1 the old path produced (ex1-run1:12), and it labels every figure [MEASURED] with 'A poor score is not a verdict' in its own output, which I saw when I ran it on the sibling fixtures. The runs refuse to certify: X-P3 is scored FAIL in runs 1, 2 and 4 (ex1-run1:18), VAL-04 is filed against the toolchain's own scaffold for contradicting the advisory doctrine (ex1-run1:22-26), and the run-1 vs run-2 divergence is reported as a fact about the descriptor's sensitivity to encoding rather than smoothed over (ex1-run2:25-30). What stops it reaching 4 is a specific over-reach in the record: ex1-run4:12 concludes 'The 0/9 era is measurably over' and ex1-run4's verdict calls the result 'the compounding the two epics were built for', from ONE seeded fault of ONE class on ONE 84-line program -- a generalization the epic's own later measurement contradicts (ROUND-2-DELTA.md:65: the mutant matrix did not move a single cell; guard relaxation and ordering still 0 of 3). Anchor 4 asks for a result unflattering to the thing being scored; the R4-X1 PARTIAL and the five filed defects qualify, but a record whose headline sentence outruns its own n does not clear the top of an honesty scale. Torn between 3 and 4, lower per rule 5.",
+      "refuses_to_claim": null
+    }
+  },
+  "total": 11,
+  "contested": [],
+  "verdict": "The entry-path fixture works and its four runs are honest about the friction, but it is a single-file program whose domain does its own I/O, whose declared port is an environment variable pointing at a path, and whose entire bug-detection evidence is one seeded fault -- from which its own record concludes that an era is over."
+}

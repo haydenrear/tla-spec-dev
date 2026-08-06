@@ -1,0 +1,89 @@
+{
+  "cases": [],
+  "dead_surface": [
+    {
+      "port": "TlaSpecDevCliPort.cli_artifact",
+      "target": "*",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.cli_artifact_delete",
+      "target": "*",
+      "type": "filesystem.delete"
+    },
+    {
+      "port": "TlaSpecDevCliPort.cli_download",
+      "target": "*",
+      "type": "network.http"
+    },
+    {
+      "port": "TlaSpecDevCliPort.cli_selftest_process",
+      "target": "*tla-spec-dev*",
+      "type": "process.spawn"
+    },
+    {
+      "port": "TlaSpecDevCliPort.corpus_process",
+      "target": "*",
+      "type": "process.spawn"
+    },
+    {
+      "port": "TlaSpecDevCliPort.evidence_report",
+      "target": "**/results/**",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.git_metadata",
+      "target": "git rev-parse*",
+      "type": "process.spawn"
+    },
+    {
+      "port": "TlaSpecDevCliPort.mutation_write",
+      "target": "*scripts/*",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.runner_process",
+      "target": "*run_generated_case_adapters*",
+      "type": "process.spawn"
+    },
+    {
+      "port": "TlaSpecDevCliPort.spec_tree",
+      "target": "**/specs/**",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.spec_tree_delete",
+      "target": "**/specs/**",
+      "type": "filesystem.delete"
+    },
+    {
+      "port": "TlaSpecDevCliPort.test_process",
+      "target": "*pytest*",
+      "type": "process.spawn"
+    }
+  ],
+  "declared_ports": [
+    "TlaSpecDevCliPort.cli_artifact",
+    "TlaSpecDevCliPort.cli_artifact_delete",
+    "TlaSpecDevCliPort.cli_download",
+    "TlaSpecDevCliPort.cli_selftest_process",
+    "TlaSpecDevCliPort.corpus_process",
+    "TlaSpecDevCliPort.evidence_report",
+    "TlaSpecDevCliPort.git_metadata",
+    "TlaSpecDevCliPort.mutation_write",
+    "TlaSpecDevCliPort.runner_process",
+    "TlaSpecDevCliPort.spec_tree",
+    "TlaSpecDevCliPort.spec_tree_delete",
+    "TlaSpecDevCliPort.test_process"
+  ],
+  "gaps": [],
+  "ignored_suppression_keys": [],
+  "observable_scope": "in-process CPython only: builtins.open, os/shutil/pathlib mutators, subprocess spawns and socket.connect patched in THIS interpreter. No patch crosses a process boundary; JVM, JBang/uv node, and child-process work is not observed (MF-027)",
+  "observed_effects": [],
+  "ok": false,
+  "out_of_process_observations": [],
+  "summary": "effect conformance dead_surface: 0 observed effect(s) over 0 case(s), 12 declared port(s), 0 gap(s), 12 dead port(s), 0 unobservable target(s)",
+  "suppression_policy": "withdrawn 2026-07-18: no justification, annotation, or manifest entry suppresses a gap report. MF-027: the same holds for an unobservable target -- no configuration downgrades that verdict to a pass",
+  "unobservable_targets": [],
+  "verdict": "dead_surface"
+}

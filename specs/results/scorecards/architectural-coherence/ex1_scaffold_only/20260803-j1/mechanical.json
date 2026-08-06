@@ -1,0 +1,73 @@
+{
+  "example": "ex1_scaffold_only",
+  "run_id": "20260803-j1",
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "note": "Recorded, never scored. The fixture ships NO specs (README: 'This project has no spec workflow yet'), so no descriptor or architecture figure is obtainable from the fixture itself -- every model-side figure below is from_record, produced by an agent's scaffold in a scratch copy and preserved under runs/. Nothing here was re-derivable by the judge.",
+  "fixture_contents": {
+    "source": "reproduced_by_judge",
+    "production_lines": 84,
+    "production_files": ["taskq.py"],
+    "tests": 6,
+    "specs": 0,
+    "adapters": 0,
+    "providers_in_fixture": 0,
+    "architecture_declarations": 0
+  },
+  "complexity_descriptor": {
+    "source": "from_record",
+    "reason_not_reproduced": "no .tla/.cfg ships with the fixture; each run scaffolded its own model in a scratch copy",
+    "per_run": {
+      "ex1-run1": {"view": "External", "bound": 64, "modularity_q": 0.0, "dense_rows": ["lastCli 9/12", "tasks 7/12"], "warnings": ["component C1 touched by 12 actions, exceeding max_component_actions 8"], "tlc_internal": "292 generated / 139 distinct / depth 10", "tlc_external": "15,148 / 1,377 / depth 11"},
+      "ex1-run2": {"view": "External", "bound": 1152, "modularity_q": 0.044, "dense_rows": ["cliExit 8/12", "cliMessage 8/12", "tasks 7/12"], "warnings": [], "internal_bound": 64, "tlc_distinct": {"internal": 139, "external": 1238}},
+      "ex1-run3": {"view": "External", "bound": 1024, "modularity_q": 0.0, "dense_rows": ["exitCode 8/8", "lastOutcome 7/8", "tasks 7/8"], "warnings": [], "unknowns": 0, "internal_bound": 512, "tlc_distinct": {"internal": 298, "external": 488}},
+      "ex1-run4": {"view": "External", "bound": 64, "modularity_q": 0.0, "dense_rows": ["cli 9/9", "tasks 7/9"], "warnings": ["component C1 touched by 9 actions, exceeding max_component_actions 8"]}
+    },
+    "encoding_sensitivity_finding": "the same 84-line program yielded bound 64 (run 1 lastCli-record style) and 1,152 (run 2 bounded CLI observables); recorded in ex1-run2/scoring.md:25-30 as a fact about the descriptor, not about the program"
+  },
+  "architecture_scan": {"source": "n/a", "value": null, "reason": "no architecture_components.yaml or architecture_map.yaml exists for this fixture in any run"},
+  "case_counts": {
+    "source": "from_record",
+    "ex1-run4": {"internal_cases": 328, "external_cases": 454, "campaign_execution_points": 1640}
+  },
+  "kill_counts": {
+    "source": "from_record",
+    "arms": "none declared; a single mapping, no corpus-only vs corpus-plus-provider split",
+    "seeded_faults": 1,
+    "fault": "taskq.py finish() persists 'pending' instead of 'done'; message and exit code unchanged",
+    "killed": 1,
+    "points_killed": 45,
+    "effect_fuzz_failure_lines_verified_by_owner": 48,
+    "detector": "provider content assertion (persisted map != modeled after-state)",
+    "control": "1,640-point campaign green before the probe; restore verified green after",
+    "hard_classes_attempted": {"guard_relaxation": 0, "ordering": 0, "cross_aspect_before_state": 0},
+    "note": "n = 1 fault, one class, no catalogue. The 45 is a POINT count, not a mutant count."
+  },
+  "parameter_recovery": {
+    "source": "from_record",
+    "internal": "328 of 328",
+    "external": "0 of 454",
+    "note": "the external arm carries no recovered arguments; this is the same exposure RP-02 closed for ex4 and it was never closed here"
+  },
+  "determinism": {
+    "source": "from_record",
+    "replay": "the recorded replay command reproduced the identical failure (same case, iteration, derived seed)",
+    "executions_compared_across_runs": null,
+    "reason_null": "no run-to-run byte-comparison matrix was taken for this fixture"
+  },
+  "prediction_outcomes": {
+    "source": "from_record",
+    "E1-P1..E1-P5": "PASS in runs 1, 2, 3",
+    "R3-E1": "PASS (run 3) -- first run needing no route-arounds",
+    "R4-E1": "PASS (run 4)",
+    "X-P3": "FAIL in runs 1, 2 and 4; PASS in run 3",
+    "X-P1, X-P2": "PASS in all four runs"
+  },
+  "open_defects_from_this_example": [
+    "VAL-04 (major): scaffold epilog and generated manifest comment call budgets hard gates, contradicting the shipped advisory doctrine",
+    "VAL-05: the justification: table schema is documented nowhere",
+    "VAL-06 / VAL-16 / VAL-17: domain-resolver limits (operator-defined sets, multi-line membership conjuncts, multi-view TypeInvariant naming) -- fixed by run 3",
+    "VAL-07: R/W matrix attributes writes to syntactic primers, so wrapper actions vanish from the matrix and the action count",
+    "R4-DF-02..R4-DF-05, including R4-DF-04: 7 of 9 external actions silently generated ZERO cases until anchored"
+  ],
+  "runtime": {"source": "n/a", "value": null, "reason": "no timing recorded in the run artifacts; not estimated"}
+}

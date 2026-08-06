@@ -1,0 +1,80 @@
+{
+  "example": "ex6_jenga",
+  "run_id": "20260803-j1",
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "note": "Recorded, never scored. reproduced_by_judge figures were re-run read-only at this commit with python3 scripts/tla_spec_dev.py.",
+  "complexity_descriptor": {
+    "source": "reproduced_by_judge",
+    "command": "python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity specs/program_model/Jenga.tla specs/program_model/Jenga.cfg",
+    "manifest": "none (tool warned and used documented default budgets)",
+    "variables": 4,
+    "actions": 5,
+    "state_space_bound": 1344,
+    "bound_completeness": "COMPLETE: product over 4 of 4 declared variables; domains from TypeInvariant",
+    "dimension_cardinalities": {"status": 16, "auditLog": 7, "dirty": 2, "lastCommand": 6},
+    "modularity_q": 0.0,
+    "emergent_components": 1,
+    "dense_rows": ["dirty (5/5)", "lastCommand (5/5)", "auditLog (4/5)", "status (4/5)"],
+    "dense_columns": ["Bill", "Close", "Notify", "Place"],
+    "complexity_warnings": 0
+  },
+  "architecture_declared": {
+    "source": "reproduced_by_judge",
+    "partition_source": "DECLARED",
+    "components": ["billing", "notify", "orders"],
+    "component_count_check": "OK (3, rule >= 2)",
+    "modularity_q": -0.1856,
+    "modularity_q_check": "FAIL (rule > 0)",
+    "crossing_action_fraction": 0.8,
+    "crossing_action_fraction_check": "FAIL (rule <= 0.5)",
+    "partition_decomposes": false
+  },
+  "architecture_reflexion": {
+    "source": "reproduced_by_judge",
+    "verdict": "unmappable",
+    "exit_code": 0,
+    "modules_scanned": 6,
+    "modules_mapped": 6,
+    "edges_extracted": 7,
+    "internal_edges": 0,
+    "convergences": 7,
+    "divergences": 0,
+    "absences": 0,
+    "divergence_detectable": false,
+    "unported_pairs": "none (all 3 pairs ported)",
+    "basis_limits": ["unfalsifiable_coherence", "partition_does_not_decompose"],
+    "blind_spots": [],
+    "clean_result_supportable": false,
+    "out_of_scope_imports": ["__future__"]
+  },
+  "convergence_count_discrepancy": {
+    "finding": "examples/validation/runs/ex6-run1/scoring.md:11 states 'convergences 6'.",
+    "contradicted_by": [
+      "examples/validation/runs/ex6-run1/artifacts/ex6_reflexion.txt:14 -> CONVERGENCES (7)",
+      "examples/validation/runs/ex6-run2/artifacts/ex6_reflexion.txt:27 -> CONVERGENCES (7)",
+      "examples/validation/ex6_jenga/evidence/reflexion.txt:15 -> CONVERGENCES (7)",
+      "judge rerun at ab0dfee -> CONVERGENCES (7)"
+    ],
+    "assessment": "Transcription error in a round-1 scoring summary. The committed primary artifact from the same run says 7. Recorded, not scored.",
+    "severity": "minor / evidence integrity"
+  },
+  "real_jenga_control": {
+    "source": "from_record",
+    "target": "this repository's own specs/program_model/TlaSpecDevCli.tla",
+    "emergent": {"components": 1, "modularity_q": 0.0, "crossing_action_fraction": 0.0, "verdict": "unmappable", "single_writer_ownership": "NOT MEASURABLE"},
+    "declared_4_component": {"modularity_q": -0.025485, "crossing_action_fraction": 0.6, "verdict": "unmappable", "basis_limits": ["partition_does_not_decompose"], "blind_spots": ["3x dynamic_import", "first_party_outside_code_root", "non_python_file"], "exit_code": 0},
+    "note": "Filed as EV-03-DF-01: the AC-02 ticket note claiming this repository is 'falsifiable-and-clean under a four-component partition' is false on the repaired tree and still stands uncorrected in ticket_plan.yaml."
+  },
+  "round1_vs_round2": {
+    "verdict": "unmappable -> unmappable (unchanged)",
+    "reasons_reported": "1 -> 2 (partition_does_not_decompose added)",
+    "one_component_declared_partition_on_ex5": "coherent (round 1, false clean) -> unmappable (round 2)",
+    "DP2": "MISSED -> CAUGHT",
+    "DP2b": "CONFIRMED -> CLOSED on the measured path"
+  },
+  "case_counts": {"source": "n/a", "value": null, "reason": "fixture ships no corpus, no adapters, no case modules"},
+  "kill_counts": {"source": "n/a", "value": null, "reason": "fixture ships no seeded faults and no instrument to kill them with"},
+  "determinism": {"source": "n/a", "value": null, "reason": "no generation step in this fixture; verdict reproduced identically across round 1, round 2 and the judge's rerun"},
+  "tests": {"source": "reproduced_by_judge", "value": 0, "note": "no tests directory exists under examples/validation/ex6_jenga"},
+  "runtime": {"judge_rerun_seconds": null, "note": "two analyze commands, each a few seconds; not instrumented, so null rather than estimated"}
+}

@@ -1,0 +1,240 @@
+scripts/analyze_architecture.py:1126:        out_path.parent.mkdir(parents=True, exist_ok=True)
+scripts/analyze_architecture.py:1127:        out_path.write_text(rendered, encoding="utf-8")
+scripts/analyze_complexity.py:2301:        out_path.parent.mkdir(parents=True, exist_ok=True)
+scripts/analyze_complexity.py:2302:        out_path.write_text(rendered, encoding="utf-8")
+scripts/architecture_reflexion.py:2304:        out_path.parent.mkdir(parents=True, exist_ok=True)
+scripts/architecture_reflexion.py:2305:        out_path.write_text(rendered, encoding="utf-8")
+scripts/case_modules.py:479:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/case_modules.py:480:    path.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+scripts/case_modules.py:822:        out.parent.mkdir(parents=True, exist_ok=True)
+scripts/case_modules.py:823:        out.write_text(json.dumps(report_payload(report), indent=2, sort_keys=True) + "\n")
+scripts/close_spec_workflow.py:49:                shutil.rmtree(path)
+scripts/close_tickets.py:122:    dst.mkdir(parents=True, exist_ok=True)
+scripts/close_tickets.py:127:        dst_files[relative].unlink()
+scripts/close_tickets.py:131:        destination.parent.mkdir(parents=True, exist_ok=True)
+scripts/close_tickets.py:232:            shutil.rmtree(directory)
+scripts/complexity_ledger.py:632:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/complexity_ledger.py:636:    path.write_text(_dump_ledger(ledger), encoding="utf-8")
+scripts/complexity_ledger.py:1562:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/complexity_ledger.py:1564:        path.write_text(TEMPLATE, encoding="utf-8")
+scripts/effect_conformance.py:619:        self.root.mkdir(parents=True, exist_ok=True)
+scripts/effect_conformance.py:656:        path.mkdir(parents=True, exist_ok=True)
+scripts/effect_conformance.py:688:        self._patch_module(os, "unlink", "filesystem.delete", 0)
+scripts/effect_conformance.py:690:        self._patch_module(os, "mkdir", "filesystem.write", 0)
+scripts/effect_conformance.py:691:        self._patch_module(os, "makedirs", "filesystem.write", 0)
+scripts/effect_conformance.py:692:        self._patch_module(shutil, "rmtree", "filesystem.delete", 0)
+scripts/effect_conformance.py:698:        self._patch_path_method("write_text", "filesystem.write")
+scripts/effect_conformance.py:699:        self._patch_path_method("write_bytes", "filesystem.write")
+scripts/effect_conformance.py:700:        self._patch_path_method("mkdir", "filesystem.write")
+scripts/effect_conformance.py:701:        self._patch_path_method("unlink", "filesystem.delete")
+scripts/effect_conformance.py:1156:        path.parent.mkdir(parents=True, exist_ok=True)
+scripts/effect_conformance.py:1157:        path.write_text(json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+scripts/effect_conformance.py:1259:        # One boundary crossing can trip several patches at once (Path.mkdir
+scripts/effect_conformance.py:1260:        # calls os.mkdir; shutil.copy calls open). Collapsing identical
+scripts/effect_conformance_report.py:149:    work_dir.mkdir(parents=True, exist_ok=True)
+scripts/effect_conformance_report.py:163:            case_dir.mkdir(parents=True, exist_ok=True)
+scripts/export_testgraph_cases.py:94:    out_dir.mkdir(parents=True, exist_ok=True)
+scripts/export_testgraph_cases.py:99:        path.write_text(json.dumps(trace, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+scripts/export_testgraph_cases.py:114:    (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+scripts/generate_cases_from_tlc_dump.py:96:    dot_path.parent.mkdir(parents=True, exist_ok=True)
+scripts/generate_cases_from_tlc_dump.py:140:        shutil.rmtree(metadir, ignore_errors=True)
+scripts/generate_cases_from_tlc_dump.py:669:    package_dir.mkdir(parents=True, exist_ok=True)
+scripts/generate_cases_from_tlc_dump.py:882:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/generate_cases_from_tlc_dump.py:883:    path.write_text(content)
+scripts/generate_cases_from_tlc_dump.py:1145:    java spawn at :115, the metadir `rmtree` at :139, the package writes at
+scripts/generate_docs.py:30:    args.out.parent.mkdir(parents=True, exist_ok=True)
+scripts/generate_docs.py:31:    args.out.write_text(render_docs(manifest, args.manifest))
+scripts/generate_python.py:517:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/generate_python.py:518:    path.write_text(content)
+scripts/infer_action_params.py:825:        args.out.parent.mkdir(parents=True, exist_ok=True)
+scripts/infer_action_params.py:826:        args.out.write_text(audit)
+scripts/kill_test.py:548:        target.write_text(patched, encoding="utf-8")
+scripts/kill_test.py:551:        target.write_text(original, encoding="utf-8")
+scripts/kill_test.py:834:        path.parent.mkdir(parents=True, exist_ok=True)
+scripts/kill_test.py:835:        path.write_text(
+scripts/new_ticket_workflow.py:204:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/new_ticket_workflow.py:205:    path.write_text(content, encoding="utf-8")
+scripts/new_ticket_workflow.py:217:    dst.parent.mkdir(parents=True, exist_ok=True)
+scripts/new_ticket_workflow.py:222:        dst.write_text(fallback, encoding="utf-8")
+scripts/new_ticket_workflow.py:265:            dst.parent.mkdir(parents=True, exist_ok=True)
+scripts/new_ticket_workflow.py:297:            dst.parent.mkdir(parents=True, exist_ok=True)
+scripts/onboard_program_model.py:78:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/onboard_program_model.py:79:    path.write_text(content, encoding="utf-8")
+scripts/onboard_program_model.py:809:        artifact.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+scripts/run_generated_case_adapters.py:1103:    program_path.parent.mkdir(parents=True, exist_ok=True)
+scripts/run_generated_case_adapters.py:1104:    case_work_dir.mkdir(parents=True, exist_ok=True)
+scripts/run_generated_case_adapters.py:1168:    program_path.write_text(content)
+scripts/run_generated_case_adapters.py:1388:        context_work_dir.mkdir(parents=True, exist_ok=True)
+scripts/run_generated_case_adapters.py:1540:        group_work_dir.mkdir(parents=True, exist_ok=True)
+scripts/run_generated_case_adapters.py:1647:                    case_work_dir.mkdir(parents=True, exist_ok=True)
+scripts/run_generated_case_adapters.py:2228:    work_dir.mkdir(parents=True, exist_ok=True)
+scripts/scaffold_spec.py:39:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/scaffold_spec.py:40:    path.write_text(content)
+scripts/scaffold_spec.py:534:        artifact.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+scripts/scaffold_spec.py:796:    (target / "generated").mkdir(exist_ok=True)
+scripts/scaffold_spec.py:797:    (target / "tests").mkdir(exist_ok=True)
+scripts/scaffold_spec_workflow.py:13:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/scaffold_spec_workflow.py:14:    path.write_text(content)
+scripts/skill_feedback.py:423:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/skill_feedback.py:426:        path.write_text(render_template(), encoding="utf-8")
+scripts/skill_feedback.py:437:    path.write_text(existing + entry, encoding="utf-8")
+scripts/spec_evolution.py:135:    destination.parent.mkdir(parents=True, exist_ok=True)
+scripts/spec_evolution.py:137:        shutil.copytree(source, destination, ignore=copy_ignore)
+scripts/spec_evolution.py:154:            shutil.rmtree(state_dir)
+scripts/spec_evolution.py:251:    (entry_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+scripts/spec_evolution.py:277:    (entry_dir / "summary.md").write_text("".join(lines))
+scripts/spec_evolution.py:371:        destination.parent.mkdir(parents=True, exist_ok=True)
+scripts/spec_evolution.py:385:        shutil.rmtree(dst)
+scripts/spec_evolution.py:477:            target.unlink()
+scripts/spec_evolution.py:992:    entry_dir.mkdir(parents=True)
+scripts/spec_evolution.py:1141:    entry_dir.mkdir(parents=True)
+scripts/spec_paths.py:63:    `out_path.parent.mkdir(parents=True); out_path.write_text(...)`, so an
+scripts/tla_spec_dev.py:177:    `spec_tree_delete` (the TLC metadir `rmtree`).
+specs/current/TlaSpecDevCli.tla:818:\* scripts/generate_cases_from_tlc_dump.py spawned java/TLC, rmtree'd its
+specs/current/adapter_case_runtime.py:158:    target_repo.mkdir(parents=True, exist_ok=True)
+specs/current/adapter_case_runtime.py:219:        manifest.write_text(text, encoding="utf-8")
+specs/current/adapter_case_runtime.py:362:    plan_path.write_text(
+specs/current/adapter_case_runtime.py:385:            tla.write_text(text.rstrip("\n") + "\n" + marker + "\n", encoding="utf-8")
+specs/current/production_adapters.py:305:        bin_dir.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:306:        cache_dir.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:594:    path.parent.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:595:    path.write_text(PASSING_COMPLEXITY_LEDGER, encoding="utf-8")
+specs/current/production_adapters.py:644:                tla.write_text(text, encoding="utf-8")
+specs/current/production_adapters.py:645:        (model_dir / "MC.cfg").write_text(FIXTURE_CFG, encoding="utf-8")
+specs/current/production_adapters.py:650:                manifest.write_text(current + FIXTURE_MODEL_DECLARATION, encoding="utf-8")
+specs/current/production_adapters.py:792:            plan_path.write_text(plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1), encoding="utf-8")
+specs/current/production_adapters.py:858:        unseeded.write_text("MUST_SURVIVE_PROMOTION = True\n", encoding="utf-8")
+specs/current/production_adapters.py:860:        probe.parent.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:861:        probe.write_text("current-only directory\n", encoding="utf-8")
+specs/current/production_adapters.py:867:            plan_path.write_text(plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1), encoding="utf-8")
+specs/current/production_adapters.py:957:                plan_path.write_text(
+specs/current/production_adapters.py:984:            plan_path.write_text(
+specs/current/production_adapters.py:992:            feedback.write_text(
+specs/current/production_adapters.py:1054:        test_path.parent.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:1055:        test_path.write_text("def test_spec_unit_cli():\n    assert True\n", encoding="utf-8")
+specs/current/production_adapters.py:1339:    directory.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:1342:    tla_path.write_text(tla, encoding="utf-8")
+specs/current/production_adapters.py:1343:    cfg_path.write_text(cfg, encoding="utf-8")
+specs/current/production_adapters.py:1344:    (directory / "spec_manifest.yaml").write_text(manifest, encoding="utf-8")
+specs/current/production_adapters.py:1717:    package.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:1718:    (package / "__init__.py").write_text(
+specs/current/production_adapters.py:1721:    (package / "cases.py").write_text(
+specs/current/production_adapters.py:1725:    manifest.write_text(
+specs/current/production_adapters.py:1869:            spec_dir.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:1870:            (spec_dir / "spec_manifest.yaml").write_text(body, encoding="utf-8")
+specs/current/production_adapters.py:1980:        directory.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:1981:        (directory / "spec_manifest.yaml").write_text(self._MANIFEST, encoding="utf-8")
+specs/current/production_adapters.py:1982:        (directory / "MC.cfg").write_text(self._CFG, encoding="utf-8")
+specs/current/production_adapters.py:1983:        (directory / "kill_mutants.toml").write_text(catalog, encoding="utf-8")
+specs/current/production_adapters.py:1984:        (directory / "src.py").write_text(source, encoding="utf-8")
+specs/current/production_adapters.py:2029:        detector.write_text(
+specs/current/production_adapters.py:2183:                plan_path.write_text(
+specs/current/production_adapters.py:2193:                plan_path.write_text(
+specs/current/production_adapters.py:2224:        degraded_input.write_text(
+specs/current/production_adapters.py:2239:        validated_input.write_text(NOT_RUN_FUZZING_LEDGER, encoding="utf-8")
+specs/current/production_adapters.py:2337:    `build_parser` never saw the java/TLC spawn, the metadir `rmtree` or the
+specs/current/production_adapters.py:2484:            repo.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:2493:                plan_path.write_text(
+specs/current/spec_manifest.yaml:152:        #   install-tla-spec-dev.sh:20  mkdir -p "$SKILL_MANAGER_BIN_DIR" "$SKILL_MANAGER_CACHE_DIR"
+specs/current/spec_manifest.yaml:154:        #   install-tlc2.sh:18          mkdir -p "$JAR_DIR" ($SKILL_MANAGER_BIN_DIR/.spec-double-compiler)
+specs/current/spec_manifest.yaml:238:        # performs destructive deletes, all under the spec tree: rmtree of TLC
+specs/current/spec_manifest.yaml:240:        # workflow close), rmtree of project `current/` before promotion
+specs/current/spec_manifest.yaml:242:        # unlink of seeded paths the ticket dropped (:477). filesystem.write
+specs/current/spec_manifest.yaml:334:    # TLC metadir `rmtree` in run_tlc_dump's finally branch.
+specs/desired_program_model/TlaSpecDevCli.tla:818:\* scripts/generate_cases_from_tlc_dump.py spawned java/TLC, rmtree'd its
+specs/desired_program_model/adapter_case_runtime.py:158:    target_repo.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/adapter_case_runtime.py:219:        manifest.write_text(text, encoding="utf-8")
+specs/desired_program_model/adapter_case_runtime.py:362:    plan_path.write_text(
+specs/desired_program_model/adapter_case_runtime.py:385:            tla.write_text(text.rstrip("\n") + "\n" + marker + "\n", encoding="utf-8")
+specs/desired_program_model/production_adapters.py:305:        bin_dir.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:306:        cache_dir.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:594:    path.parent.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:595:    path.write_text(PASSING_COMPLEXITY_LEDGER, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:644:                tla.write_text(text, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:645:        (model_dir / "MC.cfg").write_text(FIXTURE_CFG, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:650:                manifest.write_text(current + FIXTURE_MODEL_DECLARATION, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:792:            plan_path.write_text(plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1), encoding="utf-8")
+specs/desired_program_model/production_adapters.py:858:        unseeded.write_text("MUST_SURVIVE_PROMOTION = True\n", encoding="utf-8")
+specs/desired_program_model/production_adapters.py:860:        probe.parent.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:861:        probe.write_text("current-only directory\n", encoding="utf-8")
+specs/desired_program_model/production_adapters.py:867:            plan_path.write_text(plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1), encoding="utf-8")
+specs/desired_program_model/production_adapters.py:957:                plan_path.write_text(
+specs/desired_program_model/production_adapters.py:984:            plan_path.write_text(
+specs/desired_program_model/production_adapters.py:992:            feedback.write_text(
+specs/desired_program_model/production_adapters.py:1054:        test_path.parent.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:1055:        test_path.write_text("def test_spec_unit_cli():\n    assert True\n", encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1339:    directory.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:1342:    tla_path.write_text(tla, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1343:    cfg_path.write_text(cfg, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1344:    (directory / "spec_manifest.yaml").write_text(manifest, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1717:    package.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:1718:    (package / "__init__.py").write_text(
+specs/desired_program_model/production_adapters.py:1721:    (package / "cases.py").write_text(
+specs/desired_program_model/production_adapters.py:1725:    manifest.write_text(
+specs/desired_program_model/production_adapters.py:1869:            spec_dir.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:1870:            (spec_dir / "spec_manifest.yaml").write_text(body, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1980:        directory.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:1981:        (directory / "spec_manifest.yaml").write_text(self._MANIFEST, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1982:        (directory / "MC.cfg").write_text(self._CFG, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1983:        (directory / "kill_mutants.toml").write_text(catalog, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1984:        (directory / "src.py").write_text(source, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:2029:        detector.write_text(
+specs/desired_program_model/production_adapters.py:2183:                plan_path.write_text(
+specs/desired_program_model/production_adapters.py:2193:                plan_path.write_text(
+specs/desired_program_model/production_adapters.py:2224:        degraded_input.write_text(
+specs/desired_program_model/production_adapters.py:2239:        validated_input.write_text(NOT_RUN_FUZZING_LEDGER, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:2337:    `build_parser` never saw the java/TLC spawn, the metadir `rmtree` or the
+specs/desired_program_model/production_adapters.py:2484:            repo.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:2493:                plan_path.write_text(
+specs/desired_program_model/spec_manifest.yaml:150:        #   install-tla-spec-dev.sh:20  mkdir -p "$SKILL_MANAGER_BIN_DIR" "$SKILL_MANAGER_CACHE_DIR"
+specs/desired_program_model/spec_manifest.yaml:152:        #   install-tlc2.sh:18          mkdir -p "$JAR_DIR" ($SKILL_MANAGER_BIN_DIR/.spec-double-compiler)
+specs/desired_program_model/spec_manifest.yaml:236:        # performs destructive deletes, all under the spec tree: rmtree of TLC
+specs/desired_program_model/spec_manifest.yaml:238:        # workflow close), rmtree of project `current/` before promotion
+specs/desired_program_model/spec_manifest.yaml:240:        # unlink of seeded paths the ticket dropped (:477). filesystem.write
+specs/desired_program_model/spec_manifest.yaml:332:    # TLC metadir `rmtree` in run_tlc_dump's finally branch.
+specs/program_model/adapter_case_runtime.py:151:    target_repo.mkdir(parents=True, exist_ok=True)
+specs/program_model/adapter_case_runtime.py:212:        manifest.write_text(text, encoding="utf-8")
+specs/program_model/adapter_case_runtime.py:355:    plan_path.write_text(
+specs/program_model/adapter_case_runtime.py:378:            tla.write_text(text.rstrip("\n") + "\n" + marker + "\n", encoding="utf-8")
+specs/program_model/production_adapters.py:304:        bin_dir.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:305:        cache_dir.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:593:    path.parent.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:594:    path.write_text(PASSING_COMPLEXITY_LEDGER, encoding="utf-8")
+specs/program_model/production_adapters.py:643:                tla.write_text(text, encoding="utf-8")
+specs/program_model/production_adapters.py:644:        (model_dir / "MC.cfg").write_text(FIXTURE_CFG, encoding="utf-8")
+specs/program_model/production_adapters.py:649:                manifest.write_text(current + FIXTURE_MODEL_DECLARATION, encoding="utf-8")
+specs/program_model/production_adapters.py:791:            plan_path.write_text(plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1), encoding="utf-8")
+specs/program_model/production_adapters.py:857:        unseeded.write_text("MUST_SURVIVE_PROMOTION = True\n", encoding="utf-8")
+specs/program_model/production_adapters.py:859:        probe.parent.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:860:        probe.write_text("current-only directory\n", encoding="utf-8")
+specs/program_model/production_adapters.py:866:            plan_path.write_text(plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1), encoding="utf-8")
+specs/program_model/production_adapters.py:956:                plan_path.write_text(
+specs/program_model/production_adapters.py:983:            plan_path.write_text(
+specs/program_model/production_adapters.py:991:            feedback.write_text(
+specs/program_model/production_adapters.py:1053:        test_path.parent.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:1054:        test_path.write_text("def test_spec_unit_cli():\n    assert True\n", encoding="utf-8")
+specs/program_model/production_adapters.py:1338:    directory.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:1341:    tla_path.write_text(tla, encoding="utf-8")
+specs/program_model/production_adapters.py:1342:    cfg_path.write_text(cfg, encoding="utf-8")
+specs/program_model/production_adapters.py:1343:    (directory / "spec_manifest.yaml").write_text(manifest, encoding="utf-8")
+specs/program_model/production_adapters.py:1516:    package.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:1517:    (package / "__init__.py").write_text(
+specs/program_model/production_adapters.py:1520:    (package / "cases.py").write_text(
+specs/program_model/production_adapters.py:1524:    manifest.write_text(
+specs/program_model/production_adapters.py:1668:            spec_dir.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:1669:            (spec_dir / "spec_manifest.yaml").write_text(body, encoding="utf-8")
+specs/program_model/production_adapters.py:1779:        directory.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:1780:        (directory / "spec_manifest.yaml").write_text(self._MANIFEST, encoding="utf-8")
+specs/program_model/production_adapters.py:1781:        (directory / "MC.cfg").write_text(self._CFG, encoding="utf-8")
+specs/program_model/production_adapters.py:1782:        (directory / "kill_mutants.toml").write_text(catalog, encoding="utf-8")
+specs/program_model/production_adapters.py:1783:        (directory / "src.py").write_text(source, encoding="utf-8")
+specs/program_model/production_adapters.py:1828:        detector.write_text(
+specs/program_model/production_adapters.py:1982:                plan_path.write_text(
+specs/program_model/production_adapters.py:1992:                plan_path.write_text(
+specs/program_model/production_adapters.py:2023:        degraded_input.write_text(
+specs/program_model/production_adapters.py:2038:        validated_input.write_text(NOT_RUN_FUZZING_LEDGER, encoding="utf-8")
+specs/program_model/spec_manifest.yaml:152:        #   install-tla-spec-dev.sh:20  mkdir -p "$SKILL_MANAGER_BIN_DIR" "$SKILL_MANAGER_CACHE_DIR"
+specs/program_model/spec_manifest.yaml:154:        #   install-tlc2.sh:18          mkdir -p "$JAR_DIR" ($SKILL_MANAGER_BIN_DIR/.spec-double-compiler)
+specs/program_model/spec_manifest.yaml:238:        # performs destructive deletes, all under the spec tree: rmtree of TLC
+specs/program_model/spec_manifest.yaml:240:        # workflow close), rmtree of project `current/` before promotion
+specs/program_model/spec_manifest.yaml:242:        # unlink of seeded paths the ticket dropped (:477). filesystem.write

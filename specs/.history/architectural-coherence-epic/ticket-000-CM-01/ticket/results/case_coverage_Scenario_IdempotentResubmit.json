@@ -1,0 +1,43 @@
+{
+  "actions": {
+    "RunFulfillmentWorker": 2,
+    "RunFulfillmentWorkerNoop": 2,
+    "SubmitDuplicateAddCartItem": 4,
+    "SubmitDuplicateCheckout": 4,
+    "SubmitDuplicateCreateAccount": 4
+  },
+  "case_module": {
+    "actions": [
+      "SubmitDuplicateCreateAccount",
+      "SubmitDuplicateAddCartItem",
+      "SubmitDuplicateCheckout",
+      "RunFulfillmentWorker",
+      "RunFulfillmentWorkerNoop"
+    ],
+    "claim": "Resubmitting an already-applied command is independent of the reachable configuration it is replayed from. The Given asserts one pre-state (the account exists, the cart holds sku-1, order-1 is accepted and queued) instead of enumerating the 504 distinct projected before-states the whole view reaches, and that assertion IS the 504 -> 12 reduction. What it claims is irrelevant to duplicate handling: cart contents and order fan-out. If duplicate handling ever reads either, the claim is false and the Given must go.",
+    "extends": "External",
+    "form": "given",
+    "name": "Scenario_IdempotentResubmit",
+    "view": "external"
+  },
+  "cases": 16,
+  "declared_view_actions": [
+    "RunFulfillmentWorker",
+    "RunFulfillmentWorkerNoop",
+    "SubmitAddCartItem",
+    "SubmitAddCartItemMissingAccount",
+    "SubmitCheckout",
+    "SubmitCheckoutEmptyCart",
+    "SubmitCheckoutMissingAccount",
+    "SubmitCreateAccount",
+    "SubmitDuplicateAddCartItem",
+    "SubmitDuplicateCheckout",
+    "SubmitDuplicateCreateAccount"
+  ],
+  "generated_outside_declared_scope": [],
+  "module": "Scenario_IdempotentResubmit",
+  "scope_actions_not_declared_for_view": [],
+  "source": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/case-modules/testgraph/Scenario_IdempotentResubmit_cases",
+  "view": "external",
+  "zero_case_actions_in_scope": []
+}

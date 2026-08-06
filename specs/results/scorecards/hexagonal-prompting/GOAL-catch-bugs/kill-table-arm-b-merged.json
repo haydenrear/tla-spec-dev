@@ -1,0 +1,197 @@
+{
+  "arm": "B",
+  "catalogue": "specs/results/scorecards/hexagonal-prompting/measure/catalogue_arm_b.toml",
+  "controls": {
+    "corpus-neg": {
+      "cases": 118,
+      "failed_on_green": 0,
+      "failures": [],
+      "mapping": "case_adapters.map-none.toml",
+      "ran": 94,
+      "skipped": 24
+    },
+    "corpus-slice-led": {
+      "cases": 56,
+      "failed_on_green": 0,
+      "failures": [],
+      "mapping": "case_adapters.map-none.toml",
+      "ran": 10,
+      "skipped": 46
+    },
+    "corpus-slice-res": {
+      "cases": 2438,
+      "failed_on_green": 0,
+      "failures": [],
+      "mapping": "case_adapters.map-none.toml",
+      "ran": 220,
+      "skipped": 2218
+    },
+    "corpus-whole": {
+      "cases": 43128,
+      "failed_on_green": 0,
+      "failures": [],
+      "mapping": "case_adapters.map-none.toml",
+      "ran": 3440,
+      "skipped": 39688
+    },
+    "map-checking": {
+      "cases": 43128,
+      "failed_on_green": 0,
+      "failures": [],
+      "mapping": "case_adapters.map-checking.toml",
+      "ran": 3440,
+      "skipped": 39688
+    },
+    "map-silent": {
+      "cases": 43128,
+      "failed_on_green": 0,
+      "failures": [],
+      "mapping": "case_adapters.map-silent.toml",
+      "ran": 3440,
+      "skipped": 39688
+    },
+    "suite": {
+      "failed_on_green": 0
+    }
+  },
+  "instruments": [
+    "corpus-whole",
+    "corpus-neg",
+    "corpus-slice-res",
+    "corpus-slice-led",
+    "map-silent",
+    "map-checking",
+    "suite"
+  ],
+  "mutants_re_anchored": 8,
+  "per_class": {
+    "durable_content": {
+      "corpus-neg": "0 of 2",
+      "corpus-slice-led": "0 of 2",
+      "corpus-slice-res": "0 of 2",
+      "corpus-whole": "1 of 2",
+      "map-checking": "2 of 2",
+      "map-silent": "1 of 2",
+      "suite": "2 of 2"
+    },
+    "guard_relaxation": {
+      "corpus-neg": "3 of 3",
+      "corpus-slice-led": "0 of 3",
+      "corpus-slice-res": "0 of 3",
+      "corpus-whole": "0 of 3",
+      "map-checking": "0 of 3",
+      "map-silent": "0 of 3",
+      "suite": "3 of 3"
+    },
+    "ordering": {
+      "corpus-neg": "0 of 1",
+      "corpus-slice-led": "1 of 1",
+      "corpus-slice-res": "0 of 1",
+      "corpus-whole": "1 of 1",
+      "map-checking": "1 of 1",
+      "map-silent": "1 of 1",
+      "suite": "1 of 1"
+    },
+    "output_oracle": {
+      "corpus-neg": "0 of 1",
+      "corpus-slice-led": "0 of 1",
+      "corpus-slice-res": "1 of 1",
+      "corpus-whole": "1 of 1",
+      "map-checking": "1 of 1",
+      "map-silent": "1 of 1",
+      "suite": "1 of 1"
+    },
+    "wrong_value": {
+      "corpus-neg": "1 of 1",
+      "corpus-slice-led": "0 of 1",
+      "corpus-slice-res": "1 of 1",
+      "corpus-whole": "1 of 1",
+      "map-checking": "1 of 1",
+      "map-silent": "1 of 1",
+      "suite": "1 of 1"
+    }
+  },
+  "per_mutant": {
+    "M01-guard-zero-amount": {
+      "corpus-neg": "KILLED",
+      "corpus-slice-led": "SURVIVED",
+      "corpus-slice-res": "SURVIVED",
+      "corpus-whole": "SURVIVED",
+      "map-checking": "SURVIVED",
+      "map-silent": "SURVIVED",
+      "suite": "KILLED"
+    },
+    "M02-guard-over-quota": {
+      "corpus-neg": "KILLED",
+      "corpus-slice-led": "SURVIVED",
+      "corpus-slice-res": "SURVIVED",
+      "corpus-whole": "SURVIVED",
+      "map-checking": "SURVIVED",
+      "map-silent": "SURVIVED",
+      "suite": "KILLED"
+    },
+    "M03-guard-close-with-outstanding": {
+      "corpus-neg": "KILLED",
+      "corpus-slice-led": "SURVIVED",
+      "corpus-slice-res": "SURVIVED",
+      "corpus-whole": "SURVIVED",
+      "map-checking": "SURVIVED",
+      "map-silent": "SURVIVED",
+      "suite": "KILLED"
+    },
+    "M04-durable-stale-total": {
+      "corpus-neg": "SURVIVED",
+      "corpus-slice-led": "SURVIVED",
+      "corpus-slice-res": "SURVIVED",
+      "corpus-whole": "SURVIVED",
+      "map-checking": "KILLED",
+      "map-silent": "SURVIVED",
+      "suite": "KILLED"
+    },
+    "M05-durable-close-line-zero-and-swallowed": {
+      "corpus-neg": "SURVIVED",
+      "corpus-slice-led": "SURVIVED",
+      "corpus-slice-res": "SURVIVED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED",
+      "suite": "KILLED"
+    },
+    "M06-wrong-status-on-release": {
+      "corpus-neg": "SURVIVED",
+      "corpus-slice-led": "SURVIVED",
+      "corpus-slice-res": "KILLED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED",
+      "suite": "KILLED"
+    },
+    "M07-positive-control-wrong-hold": {
+      "corpus-neg": "KILLED",
+      "corpus-slice-led": "SURVIVED",
+      "corpus-slice-res": "KILLED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED",
+      "suite": "KILLED"
+    },
+    "M09-negative-control-ledger-order": {
+      "corpus-neg": "SURVIVED",
+      "corpus-slice-led": "KILLED",
+      "corpus-slice-res": "SURVIVED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED",
+      "suite": "KILLED"
+    }
+  },
+  "provenance": {
+    "corpus-neg": "run1",
+    "corpus-slice-led": "run2-corrected-slice-adapter",
+    "corpus-slice-res": "run2-corrected-slice-adapter",
+    "corpus-whole": "run1",
+    "map-checking": "run1",
+    "map-silent": "run1",
+    "suite": "run1"
+  }
+}

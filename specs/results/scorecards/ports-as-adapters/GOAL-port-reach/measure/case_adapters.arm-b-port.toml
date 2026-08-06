@@ -1,0 +1,15 @@
+# PA-04, ARM B: the declared port, bound, with the arm's OWN fake beside it.
+#
+# Arm B ships `Journal` as a Protocol in its domain, `FileJournal` as the real
+# driven adapter and `InMemoryJournal` as the fake, and exports all three. This
+# table is the first thing outside arm B's own tests to name the second one.
+
+[ports."ledger.LedgerAppendPort"]
+adapter = "port_journal_adapters:ArmRealAdapter"
+fake = "port_journal_adapters:ArmBFakeAdapter"
+kind = "ledger-journal-port"
+
+[[adapter]]
+labels = ["Reserve", "Commit", "Release", "CloseTenant"]
+adapter = "port_journal_adapters:ArmRealAdapter"
+kind = "transition"

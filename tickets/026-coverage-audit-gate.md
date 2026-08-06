@@ -1,5 +1,10 @@
 # Coverage Audit Gate
 
+> **The GATE was retired 2026-08-04 (owner direction); the AUDIT is kept.** The
+> workflow close no longer refuses on a non-`pass` verdict. See
+> `references/coverage_audit.md`, "Status", for the argument. This ticket
+> remains the record of why the audit exists and what it found.
+
 Status: Open
 
 An end-of-epic sub-agent procedure that finds what the model **does not
@@ -61,7 +66,7 @@ Required sweeps, each producing a table where **every row carries a verdict**
 
 The report ends with a verdict and, for each gap, a proposed model update.
 
-## Gate semantics
+## Gate semantics *(the refusal was retired 2026-08-04; the dispositions stand)*
 
 **In-scope gaps are hard.** An uncovered behavior or effect inside the epic's
 declared scope fails promotion. Per the fourth governing rule: model it, or

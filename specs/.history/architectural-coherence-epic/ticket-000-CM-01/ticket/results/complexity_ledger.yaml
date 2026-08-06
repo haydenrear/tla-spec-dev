@@ -1,0 +1,138 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+# Zero model delta: the "before" and "after" models are the same bytes
+# (results/zero-model-delta.txt), so one TLC run witnesses both. It is recorded
+# twice rather than left blank -- an unmeasured constraint cannot witness
+# retention, and a blank would read as unmeasured.
+validated_refactor:
+  tlc_before:
+    status: "green"
+    evidence: "results/tlc-current.txt"
+  tlc_after:
+    status: "green"
+    evidence: "results/tlc-current.txt"
+  behavior_tests:
+    status: "pass"
+    evidence: "results/pytest-full.txt (722 passed; 1 pre-existing failure filed as CM-01-DF-01), results/spec-unit-tests.txt (67 + 64 passed)"
+  descriptor_comparison:
+    status: "recorded"
+    evidence: "results/descriptors-before-after.txt"
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
+# step, run after the mechanism tickets land and before final integration. It is
+# recorded and reported either way so that an epic which skipped it is visible.
+# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: "No increase and no decrease: the TLA+ model is byte-identical to the accepted baseline (results/zero-model-delta.txt). Case-module declaration, per-module action scope, and the coverage report live in generation and manifest-reading code the CLI lifecycle model does not represent. No action was invented to produce a delta."
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched for a representation that would let the coverage report be derived
+    rather than declared -- i.e. recover a case module's action scope from the
+    module's own next-state relation instead of from spec_manifest.yaml. It is
+    recoverable statically (analyze_complexity.extract_next_actions already does
+    it), but it would silently agree with whatever the module happens to do,
+    which is the opposite of what a declaration is for: the value of the block
+    is that a stale scope is VISIBLE as drift. Nothing was applied. The one real
+    reduction available -- deleting the R4-DF-04 warning rather than scoping it
+    -- would have removed a true finding to silence a false one.
+  measured: false
+  applied: false
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+  CM-01 fixed CM-F1 and mechanized the case-module declaration and coverage
+  report. The defect was real and reproduced exactly as briefed: on the shipped
+  three-module example the ledger measured Core.tla against External.cfg and
+  recorded variables 0, actions 0, bound None, modularity 0.0 -- for a module
+  with no variables and no actions. It now measures External.tla + External.cfg
+  and records variables 10, actions 12, modularity 0.047
+  (results/cm-f1-model-discovery.txt). Model discovery is declared first
+  (manifest `model:`), then the outermost view of a Core/Internal/External
+  baseline, then a legacy single module; an unresolvable directory and a
+  .tla/.cfg pair whose cfg names a SPECIFICATION, invariant, or constant the
+  module does not declare are both errors -- "I could not measure this" -- never
+  a silent bound = None. Two test fixtures (tests/test_new_ticket_workflow.py,
+  tests/test_skill_feedback.py) and one spec-unit adapter fixture
+  (specs/current/production_adapters.py) were passing exactly that shape through
+  the ledger and had to become real models; that is the fix finding its own
+  blast radius, not collateral. CM-F2: per-module action scope took
+  Scenario_RejectedRequests from 7 wrong zero-case warnings to 0, with an
+  identical 14-case corpus (results/cm-f2-action-scope.txt). The probe
+  reproduces: 160 / 16 / 14 and 732 for the whole view
+  (results/case_module_coverage.txt). The aggregation report gates nothing and
+  exits 0 on uncovered actions. Two findings deferred: CM-01-DF-01 (the
+  pre-existing red doc-phrase test) and CM-01-DF-02 (parse_cfg_invariants
+  returns the keyword line that terminates an INVARIANT block, which forced a
+  CFG_KEYWORDS workaround in the new validator).

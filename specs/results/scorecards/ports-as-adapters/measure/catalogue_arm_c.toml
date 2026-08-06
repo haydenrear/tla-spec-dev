@@ -1,0 +1,212 @@
+# PA-06: the SEALED catalogue re-anchored onto arm C.
+#
+# `examples/validation/ab/seeded_faults.toml` is sealed and is NOT amended.
+# Each of its ten mutants declares a `semantic` in arm-independent terms; this
+# file writes arm-specific find/replace producing that semantic, and
+# `check_catalogue.py --root <arm_c> --catalogue <this>` re-proves exactly-once,
+# byte-identical revert and parse-after-mutation on THIS tree.
+#
+# Written in the SAME SHAPE as EVAL-RERUN's `catalogue_arm_a.toml` and
+# `catalogue_arm_b.toml`, and deliberately in the same ORDER with the same
+# `semantic` strings, so a per-arm score compares three implementations rather
+# than three catalogues.
+#
+# `seeded_by` is a fact about the DIFF, not about the arm's quality:
+#
+#   perturbation -- an existing statement changed.
+#   addition     -- a statement invented and inserted.
+#
+# EVERY ROW ON ARM C IS A PERTURBATION, exactly as on arm A. Arm C is a flat
+# single-module implementation with a stored `_available`, so every sealed
+# semantic has a one-token form here. That is a FACT ABOUT ARM C'S SHAPE and is
+# reported, never scored.
+#
+# ORDER OF AUTHORSHIP, stated because the epic's discipline turns on it: arm C's
+# tree was produced by a blind agent, then this file was written against the
+# tree it produced. There is no other order available -- a re-anchoring cannot
+# precede the code it anchors into. What is NOT permitted, and did not happen,
+# is choosing an anchoring after seeing a kill result: this file was authored
+# and integrity-checked BEFORE arm C was run through any instrument.
+
+[catalogue]
+id = "PA-06-arm-c"
+anchored_on = "quota_ledger.py"
+root = "specs/results/scorecards/ports-as-adapters/arms/arm_c/"
+extends = "examples/validation/ab/seeded_faults.toml"
+
+[[mutants]]
+id = "M01-guard-zero-amount"
+fault_class = "guard_relaxation"
+gap_targeted = "a corpus replays only ENABLED edges; a zero-amount reserve is a refusal no positive state graph emits"
+seeded_by = "perturbation"
+path = "quota_ledger.py"
+find = "        if amount < 1:"
+replace = "        if amount < 0:  # MUTANT M01"
+description = "reserve(t, 0) is accepted, allocating a reservation the feature forbids"
+semantic = "The amount_not_positive guard admits amount == 0."
+boundary_kind = "invariant"
+boundary_ref = "R4-rejection-changes-nothing"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "M02-guard-over-quota"
+fault_class = "guard_relaxation"
+gap_targeted = "the same enabled-edges gap, on a guard a suite is less likely to exhaust"
+seeded_by = "perturbation"
+path = "quota_ledger.py"
+find = "        if amount > self._available[tenant]:"
+replace = "        if amount > self._quota[tenant]:  # MUTANT M02"
+description = "the quota guard compares against the total quota rather than what remains"
+semantic = "A second reservation that fits the quota but not the remainder is accepted; available goes negative."
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "M03-guard-close-with-outstanding"
+fault_class = "guard_relaxation"
+gap_targeted = "TWO gaps at once: the enabled-edges gap AND the aspect slice gap -- the guard reads RESERVATIONS while the effect writes LEDGER"
+seeded_by = "perturbation"
+path = "quota_ledger.py"
+find = """        if any(held_tenant == tenant for held_tenant, _ in self._outstanding.values()):
+            return Result(status="rejected", reason="outstanding_reservations")"""
+replace = """        if False:  # MUTANT M03
+            return Result(status="rejected", reason="outstanding_reservations")"""
+description = "close_tenant succeeds while reservations are still outstanding"
+semantic = "The outstanding_reservations guard is removed; a CLOSE line is written whose total a later commit contradicts."
+boundary_kind = "invariant"
+boundary_ref = "R3-close-is-final-and-singular"
+refine_variable = "closed"
+refine_action = "CloseTenant"
+
+[[mutants]]
+id = "M04-durable-stale-total"
+fault_class = "durable_content"
+gap_targeted = "a silent mapping has no durable-write oracle; the in-memory state is entirely correct"
+seeded_by = "perturbation"
+path = "quota_ledger.py"
+find = '        self._append_line(f"COMMIT {tenant} {amount} {self._committed[tenant]}")'
+replace = '        self._append_line(f"COMMIT {tenant} {amount} {self._committed[tenant] - amount}")  # MUTANT M04'
+description = "the durable running total is one commit stale; committed() in memory is correct"
+semantic = "Each COMMIT line's running-total field carries the total BEFORE this commit."
+boundary_kind = "port"
+boundary_ref = "LedgerAppendPort"
+refine_variable = "committed"
+refine_action = "Commit"
+
+[[mutants]]
+id = "M05-durable-close-line-zero-and-swallowed"
+fault_class = "durable_content"
+gap_targeted = "the same silent-mapping gap, compounded: the write is wrong AND any error from it never reaches the caller"
+seeded_by = "perturbation"
+path = "quota_ledger.py"
+find = '        self._append_line(f"CLOSE {tenant} {self._committed[tenant]}")'
+replace = """        try:  # MUTANT M05
+            self._append_line(f"CLOSE {tenant} 0")
+        except Exception:
+            pass"""
+description = "every CLOSE line reports a final total of 0, and a failed durable write is swallowed"
+semantic = "close_tenant writes CLOSE <t> 0 regardless of what was committed, and discards any write failure."
+boundary_kind = "port"
+boundary_ref = "LedgerAppendPort"
+refine_variable = "committed"
+refine_action = "CloseTenant"
+
+[[mutants]]
+id = "M06-wrong-status-on-release"
+fault_class = "output_oracle"
+gap_targeted = "an oracle that compares only projected AFTER-STATE; here the after-state is entirely correct"
+seeded_by = "perturbation"
+path = "quota_ledger.py"
+find = """        self._available[tenant] += amount
+        # "Writes nothing to the ledger" — no _append_line call here.
+        return Result(status="accepted", reservation_id=reservation_id)"""
+replace = """        self._available[tenant] += amount
+        # "Writes nothing to the ledger" — no _append_line call here.
+        return Result(status="rejected", reason="unknown_reservation")  # MUTANT M06"""
+description = "release performs the full transition and reports that it did not"
+semantic = "release(r) applies its correct effect and returns rejected/unknown_reservation."
+boundary_kind = "invariant"
+boundary_ref = "R4-rejection-changes-nothing"
+refine_variable = "available"
+refine_action = "Release"
+
+[[mutants]]
+id = "M07-positive-control-wrong-hold"
+fault_class = "wrong_value"
+control_role = "positive -- must die on every instrument that can execute an accepted Reserve"
+gap_targeted = "none. In nobody's gap, on purpose: blatant, visible in projected state and in every downstream durable line."
+seeded_by = "perturbation"
+path = "quota_ledger.py"
+find = "        self._available[tenant] -= amount"
+replace = "        self._available[tenant] -= amount + 1  # MUTANT M07"
+description = "reserve deducts one more than it holds, so conservation breaks on the first call"
+semantic = "reserve(t, n) reduces available(t) by n+1. This is the FAITHFUL seeding: identical to the sealed catalogue's."
+faithful_seeding_note = """
+IDENTICAL IN SHAPE TO ARM A'S, and that is not a coincidence to be read as a
+similarity between the arms. Arm C, like arm A, STORES `_available` and deducts
+from it in `reserve`, so the sealed semantic has its one-token form here and no
+substitution is needed. Arm B is the arm that needed one, because arm B derives
+`available()`. `M07`'s arm-C and arm-A cells ARE the same experiment; its arm-B
+cells are NOT, which is why M07 is outside the strictly comparable set on every
+pairing that involves arm B.
+"""
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "M08-cross-aspect-commit-refunds-the-hold"
+fault_class = "cross_aspect"
+gap_targeted = "a slice narrower than its view orphans the other aspect's variables; neither single-aspect slice constrains what Commit does to `available`"
+seeded_by = "perturbation"
+path = "quota_ledger.py"
+find = """        self._committed[tenant] += amount
+        # available(tenant) is deliberately left untouched: the amount was"""
+replace = """        self._committed[tenant] += amount
+        self._available[tenant] += amount  # MUTANT M08
+        # available(tenant) is deliberately left untouched: the amount was"""
+description = "commit credits the ledger correctly AND gives the hold back"
+semantic = "committed(t) and every ledger line are correct; available(t) is inflated and R1 breaks."
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+refine_variable = "available"
+refine_action = "Commit"
+
+[[mutants]]
+id = "M09-negative-control-ledger-order"
+fault_class = "ordering"
+control_role = "negative -- RETIRED at EVAL-STABLE; see eval/controls.toml. Still runs, still scored in its class row, decides nothing."
+gap_targeted = "declared as the set-shape gap, and measured to be nothing of the kind on this model"
+seeded_by = "perturbation"
+path = "quota_ledger.py"
+find = """        with open(self._ledger_path, "a") as f:
+            f.write(line + "\\n")"""
+replace = """        existing = self._ledger_path.read_text()  # MUTANT M09
+        self._ledger_path.write_text(line + "\\n" + existing)  # MUTANT M09"""
+description = "the ledger is written newest-first; every line is present and byte-correct"
+semantic = "Ledger lines are prepended rather than appended. Only R5's ordering is violated."
+boundary_kind = "port"
+boundary_ref = "LedgerAppendPort"
+refine_variable = "committed"
+refine_action = "Commit"
+
+[[mutants]]
+id = "M10-apply-only-double-refund"
+fault_class = "wrong_value"
+gap_targeted = "an action whose adapter is apply()-only was invisible to the oracle before HP-04"
+seeded_by = "perturbation"
+path = "quota_ledger.py"
+find = """        tenant, amount = self._outstanding.pop(reservation_id)
+        self._available[tenant] += amount"""
+replace = """        tenant, amount = self._outstanding.pop(reservation_id)
+        self._available[tenant] += amount * 2  # MUTANT M10"""
+description = "release returns double the reserved amount to available"
+semantic = "release(r) credits available(t) with 2x the reservation amount. R1 breaks upward."
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+refine_variable = "available"
+refine_action = "Release"

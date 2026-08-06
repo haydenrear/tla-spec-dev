@@ -135,6 +135,7 @@ ignore open tickets.
 
 The snapshot step also records a workflow-scope complexity-ledger entry from
 `specs/results/complexity_ledger_input.yaml`. That input must exist and pass
-the ledger gates, and at workflow close its `coverage_audit` status must be
-`pass` — `not_run`, `incomplete`, and `fail` all refuse the close (run
-`prompts/coverage_audit.md` first).
+the ledger gates. Its `coverage_audit` status is recorded and printed at every
+close and refuses none of them (changed 2026-08-04); `pass` still means "the
+surface was walked and no in-scope gap was found", so run
+`prompts/coverage_audit.md` if you want that read.

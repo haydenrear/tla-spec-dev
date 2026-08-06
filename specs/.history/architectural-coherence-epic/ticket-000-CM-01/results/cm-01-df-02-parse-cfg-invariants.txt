@@ -1,0 +1,9 @@
+CM-01-DF-02 reproduction -- parse_cfg_invariants swallows the terminating keyword line
+
+input: 'SPECIFICATION Spec\nINVARIANT Inv\nCONSTANT\n  X = 1\n'
+observed: ['Inv', 'CONSTANT']
+expected: ['Inv']
+
+input: examples/distributed_history/specs/program_model/External.cfg
+observed: ['Invariant', 'CONSTANTS']
+expected: ['Invariant']

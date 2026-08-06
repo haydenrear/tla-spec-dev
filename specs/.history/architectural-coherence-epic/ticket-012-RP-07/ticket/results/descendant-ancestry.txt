@@ -1,0 +1,21 @@
+RP-07 -- ancestry of the leaked descendant reported by the executor
+
+Captured by a 0.4s `ps -eo pid,ppid,lstart,state,comm,args` sampler running
+alongside `./gradlew specWorkflow` on the UNMODIFIED probe. That run failed with
+  node spec.workflow.failure_cleanup_probe errored:
+  node launcher exited with live descendants: 16844
+
+sample: === 1785445715.047720000 ===
+
+1: /sbin/launchd
+ 22673: /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL
+  16778: perl -e use strict;\012use warnings;\012use POSIX qw(setsid WNOHANG WIFEXITED WEXITSTATUS WIFSIGNALED WTERMSIG);\012use Time::HiRes qw(usleep);\012\012my $status_file = shift @ARGV;\012my @command = @ARGV;\012die "managed command is empty\n" unless @command;\012my $write_status = sub {\012    my ($s
+   16779: /opt/homebrew/bin/uv run sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.failure_cleanup_probe --runId=20260730-210826 --reportDir=/Users/hayde/IdeaProjects/wt-rp07-specworkflow-probe/test_graph/build/validation-reports/20260730-210826 --result-out=/Users/hayde/IdeaProjects/wt-
+    16788: /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-1f4a0ee04b859342/bin/python3 sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.failure_cleanup_probe --runId=20260730-210826 --reportDir=/Users/hayde/IdeaProjects/wt-rp07-specworkflow-probe/test_graph/buil
+     16792: /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.appname=gradlew -classpath /Users/hayde/IdeaProjects/wt-rp07-specworkflow-probe/test_graph/build/validation-reports/20260730-210826/cleanup-failure-probe-test-graph/gradle/wrapper/gradle-wrap
+      16807: /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL
+       16844: /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java -cp /Users/hayde/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-embeddable/2.0.21/79346ed53db48b18312a472602eb5c057070c54d/kotlin-compiler-embeddable-2.0.21.jar:/Users/hayde/.gradle/caches/modules-2/files-2.1/org.jetbra
+
+PID 16844 was observed live in 61 consecutive samples (~24s) and survived the
+node. Its --daemon-autoshutdownIdleSeconds=7200 is the Kotlin compile daemon's
+default two-hour idle lifetime: it is designed to outlive the build.

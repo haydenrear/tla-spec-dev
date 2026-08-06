@@ -1,0 +1,144 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket RC-01",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "architecture_components.yaml",
+      "architecture_map.yaml",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-rc-01-reconciliation/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-rc-01-reconciliation/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-rc-01-reconciliation/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "All nine gaps closed by modeling or by changing the program. NO gap closed by a justification, an accepted risk, or a scope waiver -- those dispositions do not exist for an in-scope gap.",
+        "GenerateCases is reachable from the shipped parser and declares corpus_process, spec_tree and spec_tree_delete. Case-module generation is no longer invisible to all four oracles.",
+        "cli_artifact either matches a path the install flow actually writes, or is removed; if removed, port-cli_artifact stops being seeded in kill_mutants.toml. The install path's real effects, INCLUDING network, are declared.",
+        "A close under --accept-new or --allow-open is a distinguishable modeled state from a close under the guard, and ClosedTicketsPassedSpecUnitTests still holds where it should.",
+        "The three manifests say 10 variables and 16 actions, and no manifest comment cites an amendment that does not exist.",
+        "TlaSpecDevCli.tla:649 no longer claims the scan only prints.",
+        "specs/current and specs/desired_program_model remain semantically equal after the work."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q",
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --scope project",
+        "python3 scripts/tla_spec_dev.py --spec-root specs run effect-conformance --cases-dir <generated corpus>"
+      ],
+      "evidence": "specs/results/rc01-*"
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [
+        "specs/current/production_adapters.py",
+        "specs/desired_program_model/production_adapters.py",
+        "specs/current/spec_manifest.yaml",
+        "specs/desired_program_model/spec_manifest.yaml"
+      ],
+      "production": [
+        "scripts/tla_spec_dev.py",
+        "scripts/analyze_architecture.py",
+        "scripts/architecture_reflexion.py",
+        "scripts/case_modules.py"
+      ],
+      "test_graph": [],
+      "tla": [
+        "specs/current/TlaSpecDevCli.tla",
+        "specs/desired_program_model/TlaSpecDevCli.tla"
+      ],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [
+        "specs/*/production_adapters.py"
+      ],
+      "graph_after_unit_pass": [],
+      "model_actions": [
+        "GenerateCases",
+        "the weakened-close transition"
+      ],
+      "model_state": [
+        "architecture_delta or a widened architecture_scan domain"
+      ],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "EV-03"
+    ],
+    "desired_actions": [
+      "GenerateCases",
+      "CloseTicketWeakened (or the equivalent weakened-close transition)"
+    ],
+    "eval_relation": {
+      "eval_ticket": "the MF-026 re-audit, then EV-03's recorded numbers as the regression baseline",
+      "forbidden_to_tune": [
+        "nothing -- but do not touch examples/validation/, and file any eval finding rather than fixing it"
+      ],
+      "instrument": "the MF-026 re-audit for the gaps; EV-03's round-2 delta table for the regression",
+      "measures": "Whether modeling previously-invisible surface CHANGES ANY MEASURED NUMBER. It should not change the eval kill matrix at all -- these are representation gaps, not behavior changes -- and if it does, that is a finding about the previous rounds rather than about this ticket.",
+      "null_result": "Nine gaps closed and every eval number identical to round 2. That is the EXPECTED outcome and it is a real result: it would mean the model grew to cover shipped surface without disturbing anything measured."
+    },
+    "github_issue": null,
+    "id": "RC-01",
+    "implementation_scope": [
+      "scripts/",
+      "specs/current/",
+      "specs/desired_program_model/",
+      "tests/"
+    ],
+    "model_delta_expectation": "SUBSTANTIAL and deliberate: two new actions, at least one new variable or a widened domain, and new effect ports on existing actions. Record the state-space cost in the ledger the way AC-01's 4.6x was recorded. This is the first ticket in the epic whose whole purpose is model delta.",
+    "objective": "The MF-026 coverage audit returned `fail` with nine in-scope gaps, each anchored on a file `representation_scope` names IN MODEL, each closable only by modeling it or changing the program. There is no third disposition. This ticket closes all nine and the epic cannot promote until it does. The audit's own framing, which is the reason this ticket exists at all: every oracle in this toolchain is bounded to what is already modeled, so unmodeled surface is invisible to all four and all four report green. Two eval rounds could not have caught any of this. G-6 (the headline). CASE-MODULE GENERATION IS ENTIRELY UNREPRESENTED and it is this epic's flagship feature. `scripts/case_modules.py` ships a standalone main() unreachable from the parser, writing a coverage record and a JSON report; `generate_cases_from_tlc_dump.py` spawns java/TLC, rmtree's a metadir, and writes generated packages. No action, no port, no CLI subcommand -- and CM-01 AND RP-03 BOTH CLOSED \"ZERO MODEL DELTA\" against surface the model does not contain. Add a `GenerateCases` action carrying corpus_process (spawn), spec_tree (write) and spec_tree_delete (the metadir rmtree), reachable from the shipped parser. Fold in the parameter-recovery audit write (infer_action_params.py:825-826) with evidence_report; it is a generation-time artifact. G-1. `AnalyzeArchitecture` -- the epic's only new action -- has no row in `effects.actions` in any of the three manifests, and it is the only non-stutter action without one. The manifest's own rule says an ABSENT row claims \"unmapped\" while an EMPTY row claims \"performs no distinct effect\", and TlaSpecDevCli.tla states that each action's @port lines mirror its row. There is no row to mirror. G-2 / G-3. `analyze architecture --out` and `architecture_reflexion --out` perform unconstrained undeclared filesystem writes: the path is a bare string, so a write can land anywhere, while the nearest candidate port targets only **/results/**. Declare the port and constrain the path, or drop --out and let callers redirect stdout (the descriptor already goes to stdout). G-4. TlaSpecDevCli.tla:649 reads \"No @port: the scan reads the model and the source tree and prints.\" It does not only print -- G-2 and G-3 are its writes. This is the honest-in-prose / misleading-in-artifact class RP-02 was opened for, except the MODEL now carries the misleading record. G-5. All three manifests state \"9 variables and 15 actions\" for a model with 10 and 16. AC-01 added `architecture_scan` and `AnalyzeArchitecture` and did not update the comment. Same class as EV-01-DF-03, which RP-05 was opened to repair. Add the counts to whatever check RP-05 used for architecture_components.yaml so the next variable cannot leave it stale. G-7. Two manifest comments cite \"the 2026-07-22 scope amendment\" as their authority; no such amendment exists in this plan, and the restored ruling is dated 2026-08-01. One of them says case generation is \"EXPERIMENTAL surface, deliberately unmodeled\" -- which becomes AFFIRMATIVELY FALSE the moment G-6 lands. Both comments are edited by hand; classification cannot fix a stale pointer. G-8. AC-04's `architecture_delta` ledger member and its four attribution verdicts (code_only, unattributable, unverified, improved-with-RED-FLAG) are externally observable results of `analyze architecture --baseline` with no modeled state. The refusals AC-04 shipped are exactly the ones a reader would want the model to guarantee. Record the state-count cost the way AC-01's 4.6x was recorded. G-9. THE DEAD PORT, verified independently by the owner. `cli_artifact` is the ONLY port declared for BuildSkillCli and InstallLocalCli and it targets **/.venv/**, while `grep -rn '\\.venv' scripts/*.py skill-scripts/*.sh` returns ZERO hits. It is dead model surface by the manifest's own rule, and `port-cli_artifact` is seeded in kill_mutants.toml and listed in kill_tests -- SO THE KILL TEST HAS BEEN SEEDING A FAULT FOR A PORT NOTHING EXERCISES. What the install path actually does: mkdir into $SKILL_MANAGER_BIN_DIR / $SKILL_MANAGER_CACHE_DIR, cat > \"$WRAPPER\", spawn \"$WRAPPER\" --help, mkdir \"$JAR_DIR\", curl -fL \"$JAR_URL\", mv the jar into place. Declare what it does, INCLUDING the network port ESC-6 named -- the standing proviso is that an out-of-model FILE does not make an out-of-model EFFECT. PLUS the owner decision that is not a numbered gap: MODEL THE SIX GUARD-WEAKENING FLAGS (--accept-new, --allow-open, --no-promote-current, --validate-only, --force, --dry-run) as a weakened-close transition, so a close taken under one is a DIFFERENT STATE from one taken under the guard. CloseTicket guards on TicketSpecUnitTestsPassed and TLC proves ClosedTicketsPassedSpecUnitTests over 1,292,951 states, while --accept-new and --allow-open exist specifically to bypass that precondition and no oracle could see the difference. Six of 78; the granularity limitation covering the other 72 is untouched.",
+    "promotion_order": 150,
+    "promotion_predecessor": "EV-03",
+    "schedule_revision": 6,
+    "status": "planned",
+    "title": "Reconciliation: model the nine MF-026 gaps, including case generation and the six guard-weakening flags",
+    "wave": 9
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-rc-01-reconciliation/specs/tickets/RC-01",
+  "ticket_id": "RC-01",
+  "ticket_index": 14,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-rc-01-reconciliation/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-rc-01-reconciliation/specs/tickets"
+}

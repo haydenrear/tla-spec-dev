@@ -1,0 +1,226 @@
+[effect-mapping] NO DURABLE-WRITE ORACLE: LedgerAppendPort (kind: durable_write) is bound to the SILENT provider quota_ledger_effects.effect_providers:SilentLedgerAppendPortProvider under mapping /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-06/specs/results/scorecards/hexagonal-prompting/measure/case_adapters.map-silent.toml. Nothing compares what crossed this port against the model, so kills counted under this mapping are a FLOOR, not a total, and a green run over-reads.
+[effect-mapping] DURABLE-WRITE ORACLE ACTIVE: LedgerAppendPort (kind: durable_write) is bound to quota_ledger_effects.effect_providers:ContentAssertingLedgerAppendPortProvider under mapping /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-06/specs/results/scorecards/hexagonal-prompting/measure/case_adapters.map-checking.toml, asserting 1 content field(s) against the modeled after-state: append.total == committed[tenant]
+{
+  "arm": "A",
+  "arm_root": "specs/results/scorecards/hexagonal-prompting/arms/arm_a",
+  "catalogue": "specs/results/scorecards/hexagonal-prompting/measure/catalogue_arm_a.toml",
+  "controls": {
+    "corpus-neg": {
+      "cases": 118,
+      "failed_on_green": 0,
+      "failures": [],
+      "mapping": "case_adapters.map-none.toml",
+      "ran": 94,
+      "skipped": 24
+    },
+    "corpus-slice-led": {
+      "cases": 56,
+      "failed_on_green": 10,
+      "failures": [
+        "case_0001_close_tenant: AssertionError: adapter after-state mismatch for case_0001_close_tenant: amt: expected None, actual {}; available: expected None, actual {'t1': 2, 't2': 2}; holder: expected None, actual {}; live: expected None, actual frozenset()",
+        "case_0002_close_tenant: AssertionError: adapter after-state mismatch for case_0002_close_tenant: amt: expected None, actual {}; available: expected None, actual {'t1': 2, 't2': 2}; holder: expected None, actual {}; live: expected None, actual frozenset()",
+        "case_0005_close_tenant: AssertionError: adapter after-state mismatch for case_0005_close_tenant: amt: expected None, actual {}; available: expected None, actual {'t1': 2, 't2': 2}; holder: expected None, actual {}; live: expected None, actual frozenset()"
+      ],
+      "mapping": "case_adapters.map-none.toml",
+      "ran": 10,
+      "skipped": 46
+    },
+    "corpus-slice-res": {
+      "cases": 2438,
+      "failed_on_green": 220,
+      "failures": [
+        "case_0018_release: AssertionError: adapter after-state mismatch for case_0018_release: committed: expected None, actual {'t1': 0, 't2': 0}; ledger: expected None, actual ()",
+        "case_0029_release: AssertionError: adapter after-state mismatch for case_0029_release: committed: expected None, actual {'t1': 0, 't2': 0}; ledger: expected None, actual ()",
+        "case_0039_release: AssertionError: adapter after-state mismatch for case_0039_release: committed: expected None, actual {'t1': 0, 't2': 0}; ledger: expected None, actual ()"
+      ],
+      "mapping": "case_adapters.map-none.toml",
+      "ran": 220,
+      "skipped": 2218
+    },
+    "corpus-whole": {
+      "cases": 43128,
+      "failed_on_green": 0,
+      "failures": [],
+      "mapping": "case_adapters.map-none.toml",
+      "ran": 3440,
+      "skipped": 39688
+    },
+    "map-checking": {
+      "cases": 43128,
+      "failed_on_green": 0,
+      "failures": [],
+      "mapping": "case_adapters.map-checking.toml",
+      "ran": 3440,
+      "skipped": 39688
+    },
+    "map-silent": {
+      "cases": 43128,
+      "failed_on_green": 0,
+      "failures": [],
+      "mapping": "case_adapters.map-silent.toml",
+      "ran": 3440,
+      "skipped": 39688
+    },
+    "suite": {
+      "failed_on_green": 0
+    }
+  },
+  "instruments": [
+    "corpus-whole",
+    "corpus-neg",
+    "corpus-slice-res",
+    "corpus-slice-led",
+    "map-silent",
+    "map-checking",
+    "suite"
+  ],
+  "mutants_re_anchored": 10,
+  "per_class": {
+    "cross_aspect": {
+      "corpus-neg": "0 of 1",
+      "corpus-slice-led": "0 of 1",
+      "corpus-slice-res": "0 of 1",
+      "corpus-whole": "1 of 1",
+      "map-checking": "1 of 1",
+      "map-silent": "1 of 1",
+      "suite": "1 of 1"
+    },
+    "durable_content": {
+      "corpus-neg": "0 of 2",
+      "corpus-slice-led": "0 of 2",
+      "corpus-slice-res": "0 of 2",
+      "corpus-whole": "1 of 2",
+      "map-checking": "2 of 2",
+      "map-silent": "1 of 2",
+      "suite": "2 of 2"
+    },
+    "guard_relaxation": {
+      "corpus-neg": "3 of 3",
+      "corpus-slice-led": "0 of 3",
+      "corpus-slice-res": "0 of 3",
+      "corpus-whole": "0 of 3",
+      "map-checking": "0 of 3",
+      "map-silent": "0 of 3",
+      "suite": "3 of 3"
+    },
+    "ordering": {
+      "corpus-neg": "0 of 1",
+      "corpus-slice-led": "0 of 1",
+      "corpus-slice-res": "0 of 1",
+      "corpus-whole": "1 of 1",
+      "map-checking": "1 of 1",
+      "map-silent": "1 of 1",
+      "suite": "1 of 1"
+    },
+    "output_oracle": {
+      "corpus-neg": "0 of 1",
+      "corpus-slice-led": "0 of 1",
+      "corpus-slice-res": "0 of 1",
+      "corpus-whole": "1 of 1",
+      "map-checking": "1 of 1",
+      "map-silent": "1 of 1",
+      "suite": "1 of 1"
+    },
+    "wrong_value": {
+      "corpus-neg": "0 of 2",
+      "corpus-slice-led": "0 of 2",
+      "corpus-slice-res": "0 of 2",
+      "corpus-whole": "1 of 2",
+      "map-checking": "1 of 2",
+      "map-silent": "1 of 2",
+      "suite": "2 of 2"
+    }
+  },
+  "per_mutant": {
+    "M01-guard-zero-amount": {
+      "corpus-neg": "KILLED",
+      "corpus-slice-led": "CONTROL_RED",
+      "corpus-slice-res": "CONTROL_RED",
+      "corpus-whole": "SURVIVED",
+      "map-checking": "SURVIVED",
+      "map-silent": "SURVIVED",
+      "suite": "KILLED"
+    },
+    "M02-guard-over-quota": {
+      "corpus-neg": "KILLED",
+      "corpus-slice-led": "CONTROL_RED",
+      "corpus-slice-res": "CONTROL_RED",
+      "corpus-whole": "SURVIVED",
+      "map-checking": "SURVIVED",
+      "map-silent": "SURVIVED",
+      "suite": "KILLED"
+    },
+    "M03-guard-close-with-outstanding": {
+      "corpus-neg": "KILLED",
+      "corpus-slice-led": "CONTROL_RED",
+      "corpus-slice-res": "CONTROL_RED",
+      "corpus-whole": "SURVIVED",
+      "map-checking": "SURVIVED",
+      "map-silent": "SURVIVED",
+      "suite": "KILLED"
+    },
+    "M04-durable-stale-total": {
+      "corpus-neg": "SURVIVED",
+      "corpus-slice-led": "CONTROL_RED",
+      "corpus-slice-res": "CONTROL_RED",
+      "corpus-whole": "SURVIVED",
+      "map-checking": "KILLED",
+      "map-silent": "SURVIVED",
+      "suite": "KILLED"
+    },
+    "M05-durable-close-line-zero-and-swallowed": {
+      "corpus-neg": "SURVIVED",
+      "corpus-slice-led": "CONTROL_RED",
+      "corpus-slice-res": "CONTROL_RED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED",
+      "suite": "KILLED"
+    },
+    "M06-wrong-status-on-release": {
+      "corpus-neg": "SURVIVED",
+      "corpus-slice-led": "CONTROL_RED",
+      "corpus-slice-res": "CONTROL_RED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED",
+      "suite": "KILLED"
+    },
+    "M07-positive-control-wrong-hold": {
+      "corpus-neg": "SURVIVED",
+      "corpus-slice-led": "CONTROL_RED",
+      "corpus-slice-res": "CONTROL_RED",
+      "corpus-whole": "SURVIVED",
+      "map-checking": "SURVIVED",
+      "map-silent": "SURVIVED",
+      "suite": "KILLED"
+    },
+    "M08-cross-aspect-commit-refunds-the-hold": {
+      "corpus-neg": "SURVIVED",
+      "corpus-slice-led": "CONTROL_RED",
+      "corpus-slice-res": "CONTROL_RED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED",
+      "suite": "KILLED"
+    },
+    "M09-negative-control-ledger-order": {
+      "corpus-neg": "SURVIVED",
+      "corpus-slice-led": "CONTROL_RED",
+      "corpus-slice-res": "CONTROL_RED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED",
+      "suite": "KILLED"
+    },
+    "M10-apply-only-double-refund": {
+      "corpus-neg": "SURVIVED",
+      "corpus-slice-led": "CONTROL_RED",
+      "corpus-slice-res": "CONTROL_RED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED",
+      "suite": "KILLED"
+    }
+  }
+}

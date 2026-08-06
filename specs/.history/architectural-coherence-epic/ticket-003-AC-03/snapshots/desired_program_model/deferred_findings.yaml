@@ -1,0 +1,295 @@
+findings:
+  - id: CM-01-DF-01
+    found_by: "CM-01"
+    found_at_commit: "cb12fd1"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: ["references/generation_modes.md", "tests/test_new_ticket_workflow.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      tests/test_new_ticket_workflow.py::test_skill_requires_two_minute_case_generation_budget
+      asserts three phrases in references/generation_modes.md -- "hard
+      two-minute budget", "Distinguish compressible modeling detail from",
+      "concrete options for lowering" -- that the c72d03a documentation refresh
+      removed from that file. The first assertion fails. The test is a
+      documentation-content guard; nothing in the toolchain's behavior is
+      broken. Either the refresh dropped guidance it should have kept (fix the
+      doc) or the guard outlived the wording it guards (fix the test); that
+      decision belongs to whoever owns the refresh, not to a ticket that
+      happens to run pytest.
+    reproduction: >-
+      `uv run --with pytest --with pyyaml -m pytest
+      tests/test_new_ticket_workflow.py::test_skill_requires_two_minute_case_generation_budget
+      -q`. Observed on main at c72d03a, on epic/architectural-coherence at
+      cb12fd1, and on feature/120-cm01-case-modules before and after every CM-01
+      change: 1 failed. Failure text: AssertionError: assert 'hard two-minute
+      budget' in '# Generation Modes\n\nSpec Double Compiler has two related
+      generation paths...'.
+    evidence: ["specs/.history/architectural-coherence-epic/ticket-000-CM-01/results/pytest-full.txt"]
+    why_out_of_scope: >-
+      Pre-existing and explicitly excluded by the CM-01 work order and the
+      epic plan's dispatch note. Neither references/generation_modes.md nor
+      this test is in CM-01's conflict keys.
+    suggested_fix: >-
+      Decide whether the three phrases are guidance the refresh should have
+      kept. If yes, restore them to references/generation_modes.md; if no,
+      delete the three assertions. Do not "fix" it by weakening the assertion
+      to a substring that happens to still be present.
+    blast_radius: "None. No other ticket in this epic touches either file."
+    disposition: pending
+    disposition_ticket: null
+
+  - id: CM-01-DF-02
+    found_by: "CM-01"
+    found_at_commit: "cb12fd1"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: ["scripts/analyze_complexity.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      analyze_complexity.parse_cfg_invariants returns the bare TLC keyword line
+      that TERMINATES an INVARIANT block as if it were another invariant name.
+      A cfg reading "INVARIANT Invariant" followed by a bare "CONSTANTS" line
+      yields ['Invariant', 'CONSTANTS']. The line that is supposed to close the
+      block (scripts/analyze_complexity.py:1629) tests `re.match("^[A-Z]+\\b")
+      and not re.fullmatch(identifier)`, and every all-caps keyword also
+      fullmatches the identifier pattern, so the guard never fires and the
+      keyword falls through to the in-block branch. Harmless where the result is
+      only used to look up a definition (a keyword resolves to nothing and is
+      skipped), which is why it survived. It is not harmless for any caller that
+      treats an unresolvable invariant name as a finding: CM-01's model-pair
+      validator had to skip TLC keywords explicitly
+      (scripts/spec_evolution.py CFG_KEYWORDS) to avoid manufacturing a
+      mismatch on the shipped example, whose External.cfg has exactly this
+      shape.
+    reproduction: >-
+      python3 -c "import sys; sys.path.insert(0,'.'); from
+      scripts.analyze_complexity import parse_cfg_invariants as p;
+      print(p('SPECIFICATION Spec\\nINVARIANT Inv\\nCONSTANT\\n  X = 1\\n'))".
+      Observed: ['Inv', 'CONSTANT']. Expected: ['Inv']. Also reproduces on
+      examples/distributed_history/specs/program_model/External.cfg, which
+      yields ['Invariant', 'CONSTANTS'].
+    evidence: ["specs/.history/architectural-coherence-epic/ticket-000-CM-01/results/cm-01-df-02-parse-cfg-invariants.txt"]
+    why_out_of_scope: >-
+      scripts/analyze_complexity.py is outside CM-01's conflict keys and inside
+      AC-01's, which is in the same wave.
+    suggested_fix: >-
+      Close the block on a recognised TLC config keyword rather than on
+      "all-caps but not an identifier". A keyword list is the honest test; the
+      current shape cannot distinguish CONSTANTS from an invariant named
+      CONSTANTS, and neither can any regex over the same input.
+    blast_radius: >-
+      AC-01 and AC-04 both own scripts/analyze_complexity.py. Fixing it would
+      let scripts/spec_evolution.py drop its CFG_KEYWORDS workaround, which is
+      commented with this finding's id.
+    disposition: pending
+    disposition_ticket: null
+
+  - id: CM-01-DF-03
+    found_by: "CM-01"
+    found_at_commit: "3503e58"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: ["scripts/analyze_complexity.py", "scripts/complexity_ledger.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      A PARTIALLY resolved state-space bound is compared against
+      max_state_space_bound as if it were complete, while a FULLY unresolved one
+      is correctly refused. On the shipped example's External view, 9 of 10
+      variables have no resolvable domain; the descriptor says so plainly under
+      "excluded (no resolvable domain)", but the resulting bound of 4 is then
+      carried into the ledger's budget_utilization as "used 4, percent 0.0,
+      within_cap true" against a 1,000,000 cap -- for a model TLC measures at
+      49,386 distinct states. An "upper bound" four orders of magnitude below a
+      measured reachable count is not an upper bound, and 0.0%-of-cap is a
+      comfort claim derived from one variable. With ZERO resolvable variables
+      the same code path emits "state-space upper bound UNKNOWN ... cannot be
+      compared against max_state_space_bound" and records no utilization. The
+      asymmetry is the defect: partial resolution is treated as full, and only
+      total failure is treated as unknown. Found while verifying that the CM-F1
+      fix made the ledger measure the right model -- it does, and the number it
+      now measures is itself misleading on any model without a TypeInvariant.
+    reproduction: >-
+      python3 -c "import sys; sys.path.insert(0,'.'); from pathlib import Path;
+      from scripts import complexity_ledger as cl; d =
+      Path('examples/distributed_history/specs/program_model');
+      m=cl.collect_metrics(d/'External.tla', d/'External.cfg',
+      d/'spec_manifest.yaml', None); print(m['bound'],
+      m['budget_utilization'])". Observed: 4 {'max_state_space_bound': {'cap':
+      1000000, 'used': 4, 'percent': 0.0, 'within_cap': True}}. Same call with
+      Core.tla yields bound None, no utilization, and an explicit UNKNOWN
+      violation. TLC on External.tla/External.cfg: 49,386 distinct states
+      (reproduced 2026-07-27, examples/case_modules/MEASUREMENTS.md).
+    evidence: ["specs/.history/architectural-coherence-epic/ticket-000-CM-01/results/cm-01-df-03-partial-bound.txt"]
+    why_out_of_scope: >-
+      scripts/analyze_complexity.py is in AC-01's and AC-04's conflict keys and
+      scripts/complexity_ledger.py is in AC-04's; neither is in CM-01's.
+    suggested_fix: >-
+      Carry the resolved/excluded variable counts alongside the bound and refuse
+      the cap comparison whenever any variable is excluded, with the same
+      "cannot be compared" wording the zero case already uses -- a partial
+      product is a lower bound on an upper bound, which is not a thing a cap can
+      be checked against. Reporting the partial product as a fact is fine;
+      comparing it is not.
+    blast_radius: >-
+      The repository's own model resolves every variable (bound 699,840 at
+      CM-01's close), so no ledger entry in this epic is affected. Any project
+      whose model has no TypeInvariant/TypeOK is -- including the shipped
+      worked example.
+    disposition: pending
+    disposition_ticket: null
+  - id: AC-DF-01
+    filed_by: AC-01
+    filed_on: "2026-07-27"
+    status: deferred
+    severity: low
+    blocking: false
+    title: >
+      tests/test_new_ticket_workflow.py::test_skill_requires_two_minute_case_generation_budget
+      asserts a doc phrase the c72d03a refresh removed
+    reproduction: >
+      uv run --with pytest --with pyyaml -m pytest
+      tests/test_new_ticket_workflow.py::test_skill_requires_two_minute_case_generation_budget -q
+      -- fails at `assert "hard two-minute budget" in generation_modes`.
+      Reproduced on the epic branch at cb12fd1 with no AC-01 changes applied,
+      so it predates this ticket.
+    detail: >
+      The test asserts the literal phrase "hard two-minute budget" appears in
+      references/generation_modes.md. The c72d03a SKILL.md/reference refresh
+      rewrote that page and the phrase went with it. The SKILL.md half of the
+      same test still passes, so the budget itself is still documented; only the
+      reference-page phrasing assertion is stale. Either the phrase is restored
+      to generation_modes.md or the assertion is retargeted at whatever wording
+      now carries the budget.
+    outside_conflict_keys: true
+    owner_note: >
+      Named as already-red in the AC-01/AC-02/AC-03 work orders and explicitly
+      excluded from this ticket's scope.
+
+  - id: AC-03-DF-01
+    found_by: "AC-03"
+    found_at_commit: "e73b7d1"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/analyze_architecture.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The architecture descriptor encodes "not measurable with one component"
+      two different ways in the same JSON payload, and one of them is
+      indistinguishable from a real measurement. For a single-component
+      partition, `measured.ownership.single_writer_violations` is `null` and
+      `measured.ownership.single_writer_basis` carries the reason -- correct,
+      and exactly the MF-027 discipline. But
+      `measured.partition.components[0].owns` is the empty list `[]`, with no
+      accompanying reason anywhere in the JSON. The TEXT renderer prints
+      `owns: NOT MEASURABLE with one component -- every variable would be
+      trivially owned`; the JSON does not. A consumer that branches on `owns`
+      reads `[]` as "this component owns nothing", which is a plausible
+      architectural fact, when the field means "the question is undefined
+      here". That is the false-clean shape the whole command exists to refuse,
+      surviving in the machine-readable half of the contract that AC-02 and
+      AC-03 actually read.
+    reproduction: >-
+      python3 scripts/tla_spec_dev.py --spec-root specs analyze architecture
+      specs/current/TlaSpecDevCli.tla specs/current/MC.cfg --format json |
+      python3 -c "import json,sys; d=json.load(sys.stdin)['measured'];
+      print('owns      =', d['partition']['components'][0]['owns']);
+      print('violations=', d['ownership']['single_writer_violations']);
+      print('basis     =', d['ownership']['single_writer_basis'])".
+      Observed at e73b7d1: `owns = []`, `violations = None`,
+      `basis = 'NOT MEASURABLE: ...'`. Compare the same run with
+      `--format text`, which prints the NOT MEASURABLE sentence for `owns`.
+    evidence:
+      - "specs/tickets/AC-03/results/architecture_descriptor_emergent.json"
+      - "specs/tickets/AC-03/results/implementation_brief_REFUSED_emergent.md"
+    why_out_of_scope: >-
+      scripts/analyze_architecture.py is AC-01's production surface and AC-02's
+      live conflict key; AC-03's keys are prompts/, templates/,
+      references/case_modules.md and SKILL.md. AC-03 defends against it in the
+      consumer instead: Gate A of prompts/implementation_brief.md refuses to
+      render before the field can be read, and the prompt names this field
+      explicitly as one that lies.
+    suggested_fix: >-
+      Emit `owns: null` (not `[]`) whenever ownership is undefined for the
+      partition, and add a sibling reason field the way `single_writer_basis`
+      does for violations. Do not fix it by documenting the convention -- a
+      consumer that must read prose to interpret a field is the problem.
+    blast_radius: >-
+      AC-02's reflexion check reads the same payload. Any consumer branching on
+      a truthiness test over `owns` is affected.
+    disposition: pending
+    disposition_ticket: null
+
+  - id: AC-03-DF-02
+    found_by: "AC-03"
+    found_at_commit: "e73b7d1"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/analyze_complexity.py", "scripts/analyze_architecture.py", "references/architecture_coherence.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      "This model does not decompose" is a statement about the SEARCH, not
+      about the model, and the descriptor states it as though it were about the
+      model. The emergent partition comes from greedy modularity maximization,
+      which on specs/current/TlaSpecDevCli.tla terminates at the trivial
+      one-component partition (Q = 0.000) and produces the report "this model
+      DOES NOT DECOMPOSE ... There is no cut to name". Exhaustive enumeration
+      of all 115,975 set partitions of that model's 10 variables, scored with
+      the SHIPPED `analyze_complexity.modularity` and the SHIPPED three
+      criteria, finds **2 partitions that meet all three criteria** -- the best
+      at Q = 0.0029 with a crossing-action fraction of 0.188 (versus the 0.5
+      rule). The shipped tool confirms it when the partition is handed back as
+      a declaration: `--components` on
+      `[corpus_gate, effect_conformance] | [the rest]` prints "MEASURED RESULT:
+      the partition is a cut -- every criterion above is met." This matters
+      beyond one number: references/architecture_coherence.md calls the
+      non-decomposition of this repository's two real targets "the epic's most
+      load-bearing measurement", and AC-03's non-vacuity precondition, AC-02's
+      `unmappable` verdict, and the case for declared partitions all rest on
+      it. The finding does not overturn the refusal doctrine -- refusing to
+      invent a cut is still right, and a Q of 0.003 is negligible structure --
+      but the wording claims more than greedy search establishes.
+    reproduction: >-
+      python3 specs/tickets/AC-03/results/ac03_df02_exhaustive_partition_search.py
+      (checked in, ~40s, no dependencies beyond the repository). Observed at
+      e73b7d1: "partitions examined: 115975 / partitions meeting ALL THREE
+      criteria: 2 / shipped emergent partition: 1 component(s), Q = 0.000000,
+      decomposes = False". Then confirm with the shipped CLI using the
+      `--components` file printed in that script's docstring.
+    evidence:
+      - "specs/tickets/AC-03/results/ac03_df02_exhaustive_partition_search.py"
+      - "specs/tickets/AC-03/results/ac03_df02_exhaustive_partition_search.txt"
+    why_out_of_scope: >-
+      Both scanner scripts are outside AC-03's conflict keys, and
+      references/architecture_coherence.md is AC-02's key. AC-03 touches
+      neither; its prompts consume whatever the descriptor reports.
+    suggested_fix: >-
+      Say what was searched. "Greedy modularity maximization found no partition
+      meeting the criteria" is true and checkable; "this model does not
+      decompose" is neither. Exhaustive search is tractable at this variable
+      count and intractable in general, so the honest fix is the wording plus a
+      named search method in `partition.origin`, not a better search. Do NOT
+      fix it by adopting the exhaustive search and proposing the partition it
+      finds -- naming a cut the project did not declare is the CD-01 failure
+      this command exists to avoid.
+    blast_radius: >-
+      Wording only in the tool; but references/architecture_coherence.md,
+      SKILL.md's architecture-descriptor paragraph, and AC-01's and AC-03's
+      close-out summaries all repeat the stronger claim.
+    disposition: pending
+    disposition_ticket: null

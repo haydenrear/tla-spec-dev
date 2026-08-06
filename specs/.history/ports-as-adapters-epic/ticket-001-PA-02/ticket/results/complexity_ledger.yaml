@@ -1,0 +1,84 @@
+# Complexity ledger input -- MF-019 standing objective. PA-02.
+#
+# PA-02 SHIPS A REPORTING INSTRUMENT AND CHANGES NO MODEL. `model_delta_expectation`
+# in the plan is "none expected -- a reporting tool, not program behaviour the model
+# represents", and nothing under specs/tickets/PA-02/desired differs from
+# specs/current. So there is no complexity delta of the MODEL to license, in either
+# direction, and the members below say so rather than borrowing a green from a run
+# that measured something else.
+#
+# The irony is on the record deliberately: the ticket that builds the missing
+# instrument for PRODUCED-CODE complexity contributes nothing to this ledger, which
+# is about MODEL complexity. They are two different measurements and this file is
+# not where the new one lands. The new figures land in a scorecard's mechanical
+# block -- specs/tickets/PA-02/results/code_complexity.json and
+# code_complexity_runs.txt carry the run PA-06 will read.
+
+# No decrease is claimed, so there is nothing here to license. Recorded as
+# not_applicable rather than green: an unmeasured constraint cannot witness
+# retention, and neither can one that was never at risk.
+validated_refactor:
+  tlc_before:
+    status: "not_applicable"
+    evidence: "no model change; specs/tickets/PA-02/desired == specs/current"
+  tlc_after:
+    status: "not_applicable"
+    evidence: "no model change; specs/tickets/PA-02/desired == specs/current"
+  behavior_tests:
+    status: "pass"
+    evidence: "specs/tickets/PA-02/results/pytest.txt -- 1071 passed"
+  descriptor_comparison:
+    status: "not_applicable"
+    evidence: "no before/after model descriptor exists because the model did not move"
+
+# Fuzzing-era retention members: RECORDED, non-gating since CD-09. None ran for
+# this ticket and `not_run` is the honest value.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: "no model or adapter change; the kill catalogue was not exercised by PA-02"
+  effect_conformance:
+    status: "not_run"
+    evidence: "no effect port added, moved or renamed by PA-02"
+  external_coverage:
+    status: "not_run"
+    evidence: "no external view exists in this repository; see view_split in the plan"
+
+# Coverage audit -- MF-026, RECORDED and no longer refusing.
+coverage_audit:
+  status: "not_run"
+  report: ""
+  in_scope_gaps: null
+  scope_source: ""
+
+# Model complexity did not increase. Repository code complexity DID: one new
+# ~700-line script and one new test module. That growth adds no modeled state,
+# action or state space, and it is named here rather than left unsaid.
+justification: >-
+  No modeled surface was added. One new script (scripts/code_complexity.py) and
+  one new test module were added to the repository. What they carry -- reporting
+  figures over produced Python -- is a measurement of artifacts, not a program
+  behaviour the TLA+ model represents, so it adds no state, no action and no
+  state-space cost.
+
+# The recursive refinement loop -- REQUIRED at every close.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched for a model reduction PA-02 could carry and found none available to
+    it: the ticket touches no TLA+, no manifest, no adapter and no cfg. The one
+    reduction considered and REJECTED was internal to the new instrument -- a
+    `--compare` mode printing a per-figure delta between two trees, which is
+    shorter to read and would have made PA-06's job easier. Rejected under
+    MF-020: a printed signed number is read as a direction, and a figure can
+    fall because an edge was deleted. The instrument prints two tables and the
+    reader owns the comparison. tests/test_code_complexity.py
+    ::test_no_comparison_mode_exists holds that decision in place.
+  measured: false
+  applied: false
+  approved_by: ""
+
+transition_diff: ""
+
+narrative: "specs/tickets/PA-02/results/NARRATIVE.md"

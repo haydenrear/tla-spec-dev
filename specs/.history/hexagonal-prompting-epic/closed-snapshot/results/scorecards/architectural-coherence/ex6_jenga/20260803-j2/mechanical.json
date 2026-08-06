@@ -1,0 +1,49 @@
+{
+  "example": "ex6_jenga",
+  "run_id": "20260803-j2",
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "note": "Recorded, never scored.",
+  "measured_by_judge": {
+    "reflexion_declared_partition": {
+      "command": "analyze architecture specs/program_model/Jenga.tla Jenga.cfg --components architecture_components.yaml --code hub --map architecture_map.yaml",
+      "exit": 0,
+      "verdict": "unmappable",
+      "basis_limits": ["unfalsifiable_coherence", "partition_does_not_decompose"],
+      "blind_spots": [],
+      "modules_scanned": 6, "modules_mapped": 6, "components": 3,
+      "edges_extracted": 7, "internal_edges": 0,
+      "convergences": 7, "divergences": 0, "absences": 0,
+      "divergence_detectable": false,
+      "partition_decomposes": false,
+      "modularity_q": -0.1856,
+      "crossing_action_fraction": 0.8,
+      "component_count_rule": "OK (3 >= 2)",
+      "clean_result_supportable": false,
+      "answer_key_match": "matches every row the README states; the README lists one reason where the current tool reports two (an under-claim, recorded by ex6-run2)"
+    },
+    "complexity_descriptor": {
+      "variables": 4, "actions": 5,
+      "state_space_bound": 1344,
+      "bound_completeness": "COMPLETE: product over 4 of 4 declared variables; domains from TypeInvariant",
+      "modularity_q_emergent": 0.0,
+      "components_emergent": 1,
+      "dense_rows": {"dirty": "5/5", "lastCommand": "5/5", "auditLog": "4/5", "status": "4/5"},
+      "dense_columns": ["Bill", "Close", "Notify", "Place"],
+      "justification_linkage": "absent -- dead-weight analysis skipped"
+    },
+    "fixture_evidence_drift": "evidence/reflexion.txt (committed) predates the round-2 verdict rule: it carries a single blind-spot reason and no partition-decomposition block, so it no longer matches the tool's output. Verdict unchanged."
+  },
+  "from_run_record": {
+    "ex6_run1": {"verdict": "unmappable", "convergences": 6, "divergences": 0, "reasons": 1, "DP-2": "MISSED", "DP-2b": "CONFIRMED"},
+    "ex6_run2": {"verdict": "unmappable", "convergences": 7, "divergences": 0, "reasons": 2, "DP-2": "CAUGHT", "DP-2b": "CLOSED on the measured path"},
+    "real_jenga_emergent": {"verdict": "unmappable", "components": 1, "modularity_q": 0.0, "crossing_action_fraction": 0.0, "single_writer": "NOT MEASURABLE"},
+    "real_jenga_declared_4_component": {"verdict": "unmappable", "modularity_q": -0.025485, "crossing_action_fraction": 0.6, "extra_blind_spots": ["3 dynamic_import", "1 first_party_outside_code_root", "1 non_python_file"], "note": "contradicts the AC-02 ticket note that this repository is falsifiable-and-clean under a four-component partition; filed EV-03-DF-01"},
+    "kill_counts": null,
+    "kill_counts_null_reason": "No cases, adapters or seeded faults exist on this fixture; both runs are mechanical with no agent.",
+    "case_counts": null,
+    "case_counts_null_reason": "No corpus is generated on this fixture.",
+    "determinism": {"round1_vs_round2_verdict": "identical (unmappable, exit 0)", "convergence_count": "6 -> 7, attributable to the extractor gaining resolvable-call edges, not to the fixture"},
+    "runtime": null,
+    "runtime_null_reason": "No wall-clock figures recorded in either ex6 run artifact."
+  }
+}

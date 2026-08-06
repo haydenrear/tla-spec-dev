@@ -1,0 +1,126 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket HP-03",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "architecture_components.yaml",
+      "architecture_map.yaml",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-03/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-03/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-03/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "A negative corpus emits, per reachable state, the disabled actions with the argument that would be refused, each asserting rejection.",
+        "Zero false rejections on the green control: no case asserts rejection of an input the model enables.",
+        "Byte-identical across two independent generations, INCLUDING its failing executions.",
+        "This model produces a corpus its own cap accepts, and the run states which projection made that true.",
+        "Per-class per-arm kill table reported. Never a single kill rate."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q",
+        "python3 scripts/tla_spec_dev.py --spec-root specs generate cases <model> --out <corpus>"
+      ]
+    },
+    "blocks": [
+      "HP-06"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/generate_cases_from_tlc_dump.py",
+        "tests/test_generate_cases_from_tlc_dump.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "references/generation_modes.md"
+      ]
+    },
+    "depends_on": [
+      "HP-01"
+    ],
+    "desired_actions": [],
+    "github_issue": null,
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "Guard-relaxation kills move off zero for the first time. If they do not, the class needs a profile change rather than a generator, and that is the epic's most valuable finding.",
+        "goal": "GOAL-catch-bugs",
+        "local_signal": "the HP-01 seeded catalogue's guard-relaxation class, per arm"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected; must not grow the corpus past its cap again",
+        "goal": "GOAL-simpler-same-behavior",
+        "local_signal": "case count against the manifest cap"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none -- generator work, no architecture claim",
+        "goal": "GOAL-hexagonal-in-fact",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "HP-03",
+    "implementation_scope": [
+      "scripts/generate_cases_from_tlc_dump.py",
+      "references/generation_modes.md",
+      "tests/"
+    ],
+    "model_delta_expectation": "A generation mode may need an action. If so, state what it buys and what the state space costs BEFORE dispatch, per surface_cost_rule -- the predecessor measured ~1.5 new coverage gaps and 8x state space per surface-adding ticket.",
+    "objective": "The single largest available increase in what a generated corpus can see, and the only ticket aimed at a fault class that has measured ZERO on every instrument in every round. A generated corpus replays only ENABLED edges, so it contains no rejected inputs: a service that accepts what the model forbids passes every case. Round 1: 0 of 3. Round 2: 0 of 3, on both arms, AFTER RP-02 took parameter recovery from 0 of 5 to 5 of 5 -- which moved nothing and thereby falsified round 1's own explanation. RP-02 counted why: all 330 recovered arguments are arguments the guard ACCEPTS, 0 are rejected inputs, and 220 refusable pairs exist in the state space a state graph can never emit. A third blind catalogue reproduced it unaided: `330 'status': 'applied'` -- the corpus never once asks the program to reject a call. So build the generator mode: at each reachable state, the actions whose guards are DISABLED, emitted as cases asserting the call is REJECTED. TLC already knows them; the profile does not widen. AND MAKE A CORPUS TRACTABLE, because today one is not. Carries RC-02-DF-04 and MF026-R4-F-01: `generate cases` on MCsmall -- the config that exists to make a corpus tractable -- produces 3,678,217 cases and a 7.4 GB file CPython cannot import, 18,391x the manifest's own cap, and this model has no tlc_projection.py while every worked example does. A negative corpus nobody can run is not a mechanism. DO NOT BUDGET ANY OF THIS AGAINST PARAMETER RECOVERY. That hypothesis is dead, measured, and retracted in writing.",
+    "promotion_order": 30,
+    "promotion_predecessor": "HP-02",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "The negative corpus: TLC's disabled edges, asserted rejected -- and a corpus that fits its own cap",
+    "wave": 2
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-03/specs/tickets/HP-03",
+  "ticket_id": "HP-03",
+  "ticket_index": 2,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-03/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-03/specs/tickets"
+}

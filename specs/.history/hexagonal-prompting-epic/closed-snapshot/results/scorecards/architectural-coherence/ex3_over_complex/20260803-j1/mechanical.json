@@ -1,0 +1,94 @@
+{
+  "example": "ex3_over_complex",
+  "run_id": "20260803-j1",
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "note": "Recorded, never scored. reproduced_by_judge figures were re-run read-only at this commit with python3 scripts/tla_spec_dev.py. The AFTER figures are from_record: the refactors happened in agents' scratch copies and the fixture ships only the pristine baseline.",
+  "complexity_descriptor_baseline": {
+    "source": "reproduced_by_judge",
+    "command": "python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity specs/program_model/OrderHub.tla specs/program_model/OrderHub.cfg",
+    "variables": 6,
+    "actions": 4,
+    "state_space_bound": 8388608,
+    "bound_completeness": "COMPLETE: product over 6 of 6 declared variables; domains from TypeOK",
+    "dimension_cardinalities": {"mode": 8, "orders": 16, "shipped": 16, "retries": 32, "auditLog": 64, "dirty": 2},
+    "modularity_q": 0.0,
+    "emergent_components": 1,
+    "dense_rows": ["auditLog (4/4)", "dirty (4/4)", "mode (4/4)"],
+    "dense_columns": ["PlaceOrder", "RetrySweep", "ShipOrder"],
+    "guard_widths_vs_declared_domains": {
+      "orders": "declared 0..15, guard enforces < 3",
+      "retries": "declared 0..31, guard enforces < 2",
+      "auditLog": "declared 0..63, guard enforces < 12",
+      "shipped": "declared 0..15, bounded by orders <= 3"
+    },
+    "advisory_warning_note": "the manifest sets max_state_space_bound 1,000,000; the baseline bound of 8,388,608 exceeds it. PREDICTIONS records the warning firing at dispatch time; my rerun's threshold block was truncated in the captured output, so the warning line itself is recorded as from_record rather than reproduced."
+  },
+  "complexity_descriptor_after_per_run": {
+    "source": "from_record",
+    "ex3-run1": {"bound": 624, "dense_rows": 1, "dense_rows_list": ["auditLog (4/4)"], "move": "honest domain sizing + delete mode and dirty from model AND code", "tlc": "717 generated / 270 distinct, green", "tests": "6/6 unmodified"},
+    "ex3-run2": {"bound": 6240, "dense_rows": 3, "dense_rows_list": ["auditLog (4/4)", "dirty (4/4)", "mode (4/4)"], "move": "representation only -- TypeOK domains tightened to behavioral widths; mode and dirty KEPT", "tlc": "1,878 generated / 717 distinct -- BYTE-IDENTICAL to baseline", "tests": "6/6 unmodified", "prediction_scored": "E3-P2 PARTIAL (dense-row clause not met)"},
+    "ex3-run3": {"bound": 624, "dense_rows": 1, "move": "same canonical call as run 1; write-only-state test applied by name", "tlc": "717 / 270, green", "tests": "6/6 byte-identical"},
+    "ex3-run4": {"bound": 624, "dense_rows": 1, "move": "same canonical call, fourth independent run; auditLog defended with a NAMED consumer (AuditJournalPort)", "tlc": "green", "tests": "6/6, assertions byte-identical"}
+  },
+  "before_after_summary": {
+    "bound": "8,388,608 -> 624 (runs 1, 3, 4) or -> 6,240 (run 2)",
+    "dense_rows": "3 -> 1 (runs 1, 3, 4) or 3 -> 3 (run 2)",
+    "attribution": "honest domain sizing alone reaches 6,240 with generated AND distinct state counts unchanged (1,878 / 717); the further 6,240 -> 624 is the deletion of mode and dirty from model and code",
+    "red_flag_test": "applied unprompted in runs 1, 3, 4: generated and distinct fell together with depth and outdegree constant, which is NOT the deleted-self-loop pattern the tool warns about"
+  },
+  "architecture_scan": {
+    "source": "n/a",
+    "value": null,
+    "reason": "no architecture_components.yaml or architecture_map.yaml ships with this fixture; the model side would be one component at Q = 0.000, i.e. unmappable"
+  },
+  "case_counts": {
+    "source": "from_record",
+    "ex3-run4": {"exhaustive_transition_cases": 716, "campaign_execution_points": 3580, "fuzz_runs": 5, "seed": 20260722, "exit": 0}
+  },
+  "kill_counts": {
+    "source": "from_record",
+    "arms": "none declared; a single mapping, no corpus-only vs corpus-plus-provider split",
+    "seeded_faults": 2,
+    "killed": 2,
+    "faults": [
+      {"id": "probe 1", "class": "dropped effect", "detector": "provider count assertion (assert_complete)", "message": "audit count violated: journal holds 0 entries but the modeled auditLog is 1"},
+      {"id": "probe 2", "class": "wrong content", "detector": "provider per-entry content assertion (record)", "message": "audit content violated: operation='place_order' but the modeled action ShipOrder audits as 'ship_order'"}
+    ],
+    "control": "3,580-point campaign green on the unmodified app; file restored byte-identically, no PROBE marker remains, tests 6/6 green",
+    "hard_classes_attempted": {"guard_relaxation": 0, "ordering": 0, "cross_aspect_before_state": 0},
+    "note": "the provider DOES carry a consecutive_seq_ordering assertion, but no ordering fault was seeded against it"
+  },
+  "fitness_functions": {
+    "source": "from_record",
+    "ex3-run1": {"rules": 3, "all_hold": true, "non_vacuity_probe": "a domain re-widened in a scratch copy until one FIRED"},
+    "ex3-run2": {"rules": 2, "all_hold": true, "non_vacuity_probe": "auditLog re-widened -> FIRED with correct trace"},
+    "ex3-run3": {"rules": 3, "all_hold": true},
+    "ex3-run4": {"rules": null, "note": "not enumerated in the run record"}
+  },
+  "determinism": {
+    "source": "from_record",
+    "run_to_run_convergence": "3 of 4 runs (1, 3, 4) reached the identical canonical refactor; run 2 diverged on WHICH move, not WHETHER, and the divergence is filed as VAL-15",
+    "byte_comparison_matrix": null,
+    "reason_null": "no run-to-run byte-identity matrix was taken for this fixture"
+  },
+  "prediction_outcomes": {
+    "source": "from_record",
+    "E3-P1": "PASS in all four runs (refactored; no budget or threshold edited)",
+    "E3-P2": "PASS in runs 1, 3, 4; PARTIAL in run 2 (dense-row clause not met)",
+    "E3-P3": "PASS in all runs; 'exemplary' in run 2",
+    "E3-P4": "PASS in all runs",
+    "E3-P5": "PASS (both runs chose to act)",
+    "R3-E3": "PASS -- convergence after the doc sharpening; VAL-15 resolved by measurement",
+    "R4-E3, R4-X2": "PASS in run 4",
+    "R4-X1": "PARTIAL -> four findings"
+  },
+  "open_defects_from_this_example": [
+    "VAL-15: the intuition doc's example-3 vs example-5 boundary is ambiguous for write-only stamped state whose only defence is prose intent",
+    "VAL-01: manifest-embedded fitness rules mis-parse under a bare python3 fallback parser (flow-style specific)",
+    "VAL-02: every scan warns about retired fuzzing-era budget keys",
+    "VAL-03: run_tlc.sh leaves a TLC states/ scratch directory in the target project's spec dir",
+    "ex3-run3 observation: the invariant-coverage section counts a TypeOK type conjunct as a semantic read, so write-only variables show clean coverage",
+    "ex3-run4 finding 1: sequence-item inline mappings broke the whole manifest (FIXED same-day at 37c6c65)"
+  ],
+  "runtime": {"source": "n/a", "value": null, "reason": "no timing recorded in the run artifacts; not estimated"}
+}

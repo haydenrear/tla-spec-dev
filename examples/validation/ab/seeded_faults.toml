@@ -1,0 +1,723 @@
+# HP-01 seeded fault catalogue -- FIXED AND WRITTEN DOWN BEFORE ANY ARM IS DISPATCHED.
+#
+# Anchored on `reference/quota_ledger.py`, which is NOT AN ARM. Literal
+# find/replace needs a tree whose bytes are fixed; the reference is that tree,
+# and anchoring there is what lets `check_catalogue.py` prove -- today, at
+# HP-01 -- that every pattern occurs EXACTLY ONCE, that apply/revert is
+# byte-identical, and that every mutant still parses. A catalogue whose
+# exactly-once property is first tested during the measurement is a catalogue
+# that can silently seed two faults at once and report the result as one.
+#
+# RE-ANCHORING AT HP-06. Arm A's and arm B's code will not contain these
+# strings, because they are different programs. Each mutant therefore carries a
+# `semantic` field stating the behavior change in ARM-INDEPENDENT terms. HP-06
+# re-anchors each mutant onto each arm's tree by writing arm-specific
+# find/replace that produces the `semantic` effect, and re-runs
+# `check_catalogue.py --root <arm-tree> --catalogue <arm-catalogue>` so the
+# exactly-once property is proven again per arm. A re-anchored mutant that
+# cannot reproduce its `semantic` on some arm is a REPORTED HOLE in that arm's
+# row, never a silent omission and never a survivor.
+#
+# WHAT DECIDES A KILL. Per the plan, results are reported as a PER-CLASS,
+# PER-ARM, PER-INSTRUMENT table. There is no aggregate kill rate in this
+# catalogue and none may be computed from it: an average over classes whose
+# whole point is that they behave differently is a number about nothing.
+#
+# THE INSTRUMENTS, named so a zero can be attributed:
+#   suite         examples/validation/ab/tests/test_behavior.py (hand-written)
+#   corpus-whole  a generated corpus over the whole model
+#   corpus-slice  a generated corpus over one aspect (RESERVATIONS or LEDGER)
+#   corpus-neg    HP-03's negative corpus: disabled edges asserted REJECTED
+#   map-checking  effect providers that assert durable CONTENT
+#   map-silent    effect providers with no durable-write oracle
+#
+# PREDICTED, NOT MEASURED. Every `predicted_*` field below is a prediction made
+# before the run. If a prediction is wrong, THE PREDICTION IS THE FINDING and it
+# is recorded as such rather than edited. This file is not amended after
+# dispatch; see examples/validation/PREDICTIONS-HP.md.
+#
+# NO SUPPRESSION KEYS. `expected_to_survive`, `known_survivor`, `waiver` and
+# friends are scanned for by scripts/kill_test.py and reported loudly. M09 is a
+# NEGATIVE CONTROL and is predicted to survive most instruments, but it is
+# declared with `control_role`, in prose, and it is counted in its class row
+# like everything else. A control that excuses itself is not a control.
+#
+# ===========================================================================
+# PA-01 EXTENSION, 2026-08-05. WHAT CHANGED AND WHAT DID NOT.
+# ===========================================================================
+#
+# NOT CHANGED, DELIBERATELY: every HP-01 row above (M01-M10), its `find`, its
+# `replace`, its predictions and `[measured_suite_baseline]`. They are sealed.
+# A row that is edited after the run that produced it is a row nobody can cite.
+# `arm_a/PROMPT.md` and `arm_b/PROMPT.md` are likewise byte-identical to the
+# prompts that produced the sealed HP numbers, so PA-06 can compare across the
+# epic boundary without naming an instrument change on those two arms. The cost
+# is recorded rather than fixed: both files still say "two-arm comparison" and
+# neither lists `arm_c/` in its do-not-open section. See PA-01-DF-02.
+#
+# ADDED: a THIRD ANCHOR TREE and the fault class it exists to make expressible.
+#
+# `reference/quota_ledger.py` is one flat module with no adapter in it. A fault
+# seeded INSIDE AN ADAPTER IMPLEMENTATION has nowhere to be in that tree, and a
+# catalogue that cannot express a class produces a zero that says nothing. So
+# `reference_ports/` carries the SAME feature, the SAME model and the SAME
+# behavioural suite with the durable side behind a port the domain declares --
+# and, crucially, TWO composition points over one domain: `quota_ledger` wires
+# the real file adapter, `quota_ledger_fake` wires the in-memory one. It is not
+# an arm, exactly as `reference/` is not an arm.
+#
+# WHY THAT CLASS. The predecessor measured, and nobody predicted, that a fault
+# in the treatment arm's own in-memory journal adapter SURVIVES EVERY
+# INSTRUMENT INCLUDING THE HAND-WRITTEN SUITE (`BA-B14`, recorded in
+# specs/results/scorecards/hexagonal-prompting/FINDINGS.md). Its sentence: "the
+# port removes places for some faults to live and creates a region no shared
+# oracle reaches". Nothing in this catalogue could express that class, so
+# nothing in it could have caught the gap. PA-M11..PA-M13 are seeded in exactly
+# that region, and PA-M11/PA-M12 are ONE SEMANTIC SEEDED ON BOTH SIDES OF ONE
+# PORT so the difference between two rows measures the size of the blind region
+# rather than the difficulty of two different faults.
+#
+# TWO MORE INSTRUMENTS, named so a zero can be attributed:
+#   suite-real    the SAME test_behavior.py, wired through `quota_ledger`
+#   suite-fake    the SAME test_behavior.py, wired through `quota_ledger_fake`
+# They are the same file and the same assertions. Only the composition point
+# differs. That is the fake/real swap used as an instrument, and it is the only
+# thing in this catalogue that can reach `journal_memory.py` at all.
+#
+# PREDICTIONS FOR THESE ROWS ARE SEALED IN examples/validation/PREDICTIONS-PA.md
+# and are scored by PA-06 as written.
+
+[catalogue]
+id = "HP-01-quota-ledger"
+anchored_on = "reference/quota_ledger.py"
+root = "examples/validation/ab/"
+feature = "FEATURE.md"
+
+# PA-01 additions to the [catalogue] table. The HP-01 keys above are untouched.
+anchored_on_ports = "reference_ports/"
+pa_extension = "PA-01"
+pa_predictions = "examples/validation/PREDICTIONS-PA.md"
+
+# ---------------------------------------------------------------------------
+# THE CONTROL PROPERTY, declared in a SIDE TABLE because M07 is a sealed HP-01
+# row and PA-01 does not amend sealed rows -- not even to add a field. The
+# declaration is PA-01's, so it lives in PA-01's table and names its subject.
+#
+# `accept-path-only`: the mutant must be INVISIBLE until an accepted `reserve`
+# executes. A positive control exists to go red when the instrument stops
+# reaching the fault, and the failure mode it is written against is HP-06's --
+# `Reserve` stopping executing. A control observable after a refusal, or from
+# construction, stays green through exactly that regression.
+#
+# `check_catalogue.py --controls` RUNS this on every declared positive control,
+# on any tree, in seconds. It reports; it refuses nothing; a BROKEN verdict is
+# recorded and never converted into anything.
+# ---------------------------------------------------------------------------
+[pa_control_properties]
+"M07-positive-control-wrong-hold" = "accept-path-only"
+"PA-M14-positive-control-accepted-hold-too-large" = "accept-path-only"
+
+# ---------------------------------------------------------------------------
+# MEASURED AT PA-01, BEFORE ANY REPAIR. The third thing in this file that is a
+# measurement rather than a prediction, and the most unflattering of the three,
+# because it is about the part of the instrument whose job is to say when the
+# rest of it is lying.
+#
+# `python3 examples/validation/ab/check_catalogue.py --controls` on each tree,
+# plus the same probe pointed at the two sealed EVAL-RERUN arm trees under
+# specs/results/scorecards/hexagonal-prompting-rerun/arms/.
+# ---------------------------------------------------------------------------
+[pa_measured_control_audit]
+measured_by = "check_catalogue.py --controls, PA-01, before the repair in the next commit"
+run_not_read = '''
+The epic owner reported arm B's M07 red from the closing ledger's prose
+(21da25b). PA-01 was asked to verify that against the artifact by RUNNING it
+rather than reading it. It ran. The owner is right, and the probe now says so
+on demand instead of the fact living in a commit message.
+'''
+result = '''
+  tree                                  M07 semantic          accept-path semantic
+  arm_a  (EVAL-RERUN sealed tree)       HOLDS                 HOLDS
+  arm_b  (EVAL-RERUN sealed tree)       BROKEN                HOLDS
+  arm_c                                 NOT MEASURABLE YET    NOT MEASURABLE YET
+  reference/                            HOLDS                 HOLDS
+  reference_ports/                      HOLDS                 HOLDS
+'''
+what_broken_means = '''
+On arm B, with M07 applied, an observable differs from correct behavior with
+ZERO accepted reserves -- at construction, after a refusal, and after an
+accepted `close_tenant` on a tenant with no live reservation. Arm B derives
+`available()` from a computed held total, so the nearest re-anchoring of M07's
+sealed semantic is wrong everywhere rather than only on the accept path.
+
+The consequence is the whole job. A positive control exists to go RED when the
+instrument stops reaching the fault; the regression it is written against is
+HP-06's, `Reserve` stopping executing. Arm B's M07 stays GREEN through exactly
+that. EVAL-RERUN's adversarial channel demonstrated it the expensive way, with
+a corpus with every Reserve case deleted:
+    ARM A: corpus-noreserve  M07 = SURVIVED   <- correct
+    ARM B: corpus-noreserve  M07 = KILLED     <- stays green through the regression
+'''
+arm_c_is_unmeasured_not_green = '''
+Arm C has no implementation yet -- it is a prompt, and its tree is built at
+PA-06. So its cell is UNMEASURED, which is not a pass. What PA-01 can and does
+supply is the thing that will decide it: the accept-path semantic, measured to
+hold on every tree that exists, and a probe that runs on any tree in seconds.
+PA-06 runs `--controls` on arm C's tree before citing a single kill number from
+arm C. A control assumed to work on an arm nobody has built is the assumption
+this whole audit exists to stop.
+'''
+what_this_does_NOT_license = '''
+It does not license deleting, re-seeding or excusing M07. M07 still runs, is
+still seeded exactly as the sealed catalogue declares it, and its kills stand
+as measurements in the `wrong_value` class row. What the audit says is narrower
+and worse: on arm B it is not a control. EVAL-SUPPRESS already retired it as
+one on that arm and replaced it (`eval/controls_rerun_arm_b.toml`); PA-01 makes
+the property that retirement turned on into something anyone can re-run.
+
+It also does not license calling the round green. GOAL-port-reach's target
+clause "no positive control is red" is the owner's target and PA-01 does not
+touch it. PA-01 supplies a control that CAN satisfy it; PA-06 decides whether
+it does.
+'''
+
+# ---------------------------------------------------------------------------
+# THE ONE THING IN THIS FILE THAT IS MEASURED RATHER THAN PREDICTED, and it is
+# unflattering to the epic's own instruments, so it goes at the top.
+# ---------------------------------------------------------------------------
+[measured_suite_baseline]
+measured_by = "check_catalogue.py --verify-suite, on the REFERENCE only, at HP-01"
+control = "suite GREEN on the unmutated reference; without that control every kill below could be an unrelated pre-existing failure"
+result = "10 of 10 mutants KILLED by the hand-written suite -- including M09, the ordering negative control"
+why_this_matters = '''
+The hand-written suite catches every fault in this catalogue. That sets the bar
+the generated corpus has to clear, and it sets it high: if a model-derived
+corpus scores below 10 of 10 here, the generator is WORSE on this fixture than
+a suite a competent engineer writes in an afternoon. That is a live possible
+outcome of this epic and the plan calls it the preferred one -- an epic that
+closes with only good news about itself has not been measured.
+
+It also means the SUITE row and the CORPUS rows must never be merged. The
+interesting quantity in this round is not "how many died" but "which
+instrument saw which class", and a table that adds them together destroys
+exactly the comparison the round exists to make.
+'''
+declared_bias = '''
+This 10 of 10 is an UPPER BOUND on hand-written suites, not a typical one. The
+suite was written before the catalogue, but by the same author who chose the
+fault classes and designed the feature to express them. A suite written by
+someone who had never seen the catalogue would very likely score lower. Nobody
+should cite this number as "hand-written suites catch everything".
+'''
+one_prediction_was_wrong = '''
+Nine of ten `predicted_suite` annotations were right. M02's was wrong, and it
+was wrong in the direction that flatters the corpus: I predicted the suite
+would MISS a guard-relaxation fault, and it caught it. The annotation is
+corrected in place with the error recorded beside it, because this catalogue is
+not yet dispatched. After dispatch it is sealed and a wrong prediction becomes
+a finding instead of an edit.
+
+This is also the argument for running `--verify-suite` at all. Had it not run,
+the catalogue would have shipped a false annotation asserting that the suite is
+blind to a class it is not blind to, and HP-06 would have inherited it as
+background fact -- which is precisely how round 1's guard-relaxation
+explanation survived an entire epic while being false.
+'''
+
+# ---------------------------------------------------------------------------
+# GUARD RELAXATION -- the class that has measured ZERO on every instrument in
+# every round. 0 of 3 in round 1, 0 of 3 in round 2 on BOTH arms, 0 of 4 on an
+# independent blind catalogue. The gap is structural: a generated corpus
+# replays only ENABLED edges, so it never once asks the program to refuse.
+# HP-03's negative corpus is the mechanism aimed at this class, and these three
+# are the faults seeded in the gap it is supposed to lose.
+# ---------------------------------------------------------------------------
+
+[[mutants]]
+id = "M01-guard-zero-amount"
+fault_class = "guard_relaxation"
+gap_targeted = "corpus replays only enabled edges; a zero-amount reserve is a refusal no state graph emits"
+boundary_kind = "invariant"
+boundary_ref = "R4-rejection-changes-nothing"
+path = "reference/quota_ledger.py"
+find = "        if amount < 1:"
+replace = "        if amount < 0:  # MUTANT M01: a zero-amount reservation is accepted"
+description = "reserve(t, 0) is accepted, allocating a reservation the feature forbids"
+semantic = "The amount_not_positive guard admits amount == 0. reserve(t, 0) returns accepted with a fresh id instead of rejected/amount_not_positive."
+observable = "status flips accepted<->rejected on an input the model DISABLES. Nothing in the after-state of an accepted-only corpus differs, because the corpus never issues this call."
+predicted_suite = "KILLED -- the suite parametrizes amount 0 explicitly"
+predicted_corpus_whole = "SURVIVES -- the whole-view corpus contains no rejected input"
+predicted_corpus_neg = "KILLED -- this is exactly the edge a negative corpus emits"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "M02-guard-over-quota"
+fault_class = "guard_relaxation"
+gap_targeted = "same enabled-edges gap, but on a guard the suite is far less likely to exhaust"
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+path = "reference/quota_ledger.py"
+find = "        if amount > self._available[tenant]:"
+replace = "        if amount > self._quota[tenant]:  # MUTANT M02: checks the total quota instead of what remains"
+description = "a tenant can over-commit: two reservations that each fit the quota but together exceed it are both accepted"
+semantic = "The quota_exceeded guard compares against the tenant's TOTAL quota rather than its remaining available. A second reservation that fits the quota but not the remainder is accepted, and available goes negative."
+observable = "R1 conservation breaks and available[t] goes negative -- but only after a SEQUENCE of two reserves whose sum crosses the quota. A single-call oracle sees nothing."
+predicted_suite = "KILLED by test_reserve_exhausts_the_quota_exactly. CORRECTED BEFORE DISPATCH -- see [measured_suite_baseline]. The original annotation said SURVIVES, reasoning that the suite 'reserves 1 more, which this mutant still rejects at quota'. That was arithmetic I got wrong: after globex reserves 4 of 4, a further reserve of 1 is NOT greater than the quota of 4, so the mutant accepts it and the expected quota_exceeded never arrives. The error is recorded rather than quietly overwritten, because it is the interesting part: the fault I reasoned was hardest for the suite to see was the one it saw."
+predicted_corpus_whole = "SURVIVES -- rejected inputs are absent"
+predicted_corpus_neg = "KILLED"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "M03-guard-close-with-outstanding"
+fault_class = "guard_relaxation"
+gap_targeted = "TWO gaps at once: the enabled-edges gap AND the aspect-slice gap -- the guard reads the RESERVATIONS aspect while the effect writes the LEDGER aspect"
+boundary_kind = "invariant"
+boundary_ref = "R3-close-is-final-and-singular"
+path = "reference/quota_ledger.py"
+find = '''        if any(held.tenant == tenant for held in self._outstanding.values()):
+            return Result.rejected("outstanding_reservations")'''
+replace = '''        if False:  # MUTANT M03: a tenant with live reservations can be closed
+            return Result.rejected("outstanding_reservations")'''
+description = "close_tenant succeeds while reservations are still outstanding, stranding held quota and writing a CLOSE line whose total is already wrong"
+semantic = "The outstanding_reservations guard is removed. close_tenant(t) is accepted while t has live reservations, and writes a CLOSE line carrying a total that a later commit will contradict."
+observable = "a refusal becomes an acceptance, AND the durable CLOSE total is stale. A LEDGER-only slice sees a well-formed CLOSE line; a RESERVATIONS-only slice never runs close_tenant at all."
+predicted_suite = "KILLED -- test_close_rejects_while_a_reservation_is_outstanding"
+predicted_corpus_whole = "SURVIVES -- rejected inputs are absent"
+predicted_corpus_slice = "SURVIVES on both slices, for two different reasons"
+predicted_corpus_neg = "KILLED"
+refine_variable = "closed"
+refine_action = "CloseTenant"
+
+# ---------------------------------------------------------------------------
+# DURABLE CONTENT -- the one mechanism with a measured, replicated edge.
+# Content-asserting providers caught 2 of 6 in round 1, reproduced cell for cell
+# in round 2, and replicated by a blind agent at 3 of 3 durable-write mutants
+# under the checking mapping and 0 of 3 under the silent one. That mapping
+# choice is worth 30% of the instrument's entire yield, and it is currently NOT
+# the default -- which is HP-05's whole ticket. These are seeded in the gap the
+# SILENT mapping is supposed to lose.
+# ---------------------------------------------------------------------------
+
+[[mutants]]
+id = "M04-durable-stale-total"
+fault_class = "durable_content"
+gap_targeted = "a silent mapping has no durable-write oracle; the in-memory state is entirely correct, so a state-only oracle is blind by construction"
+boundary_kind = "port"
+boundary_ref = "LedgerAppendPort"
+path = "reference/quota_ledger.py"
+find = '''        self._append_line(
+            f"COMMIT {reservation.tenant} {reservation.amount} "
+            f"{self._committed[reservation.tenant]}"
+        )'''
+replace = '''        self._append_line(  # MUTANT M04
+            f"COMMIT {reservation.tenant} {reservation.amount} "
+            f"{self._committed[reservation.tenant] - reservation.amount}"
+        )'''
+description = "the durable running total is one commit stale; committed() in memory is correct"
+semantic = "Each COMMIT line's running-total field carries the total BEFORE this commit rather than after. In-memory committed(t) is unaffected and correct."
+observable = "the bytes of the ledger file, and nothing else. Every query, every status, and every projected variable is correct. This is the MF-038 shape exactly: 9 of 9 content faults survived because nothing read the contents of anything."
+predicted_map_checking = "KILLED"
+predicted_map_silent = "SURVIVES"
+predicted_suite = "KILLED -- test_commit_running_total_accumulates and test_r2_the_durable_ledger_agrees_with_memory read the line contents"
+refine_variable = "committed"
+refine_action = "Commit"
+
+[[mutants]]
+id = "M05-durable-close-line-zero-and-swallowed"
+fault_class = "durable_content"
+gap_targeted = "same silent-mapping gap, compounded: the write is wrong AND any error from it never reaches the caller, so an exception-based oracle is blind too"
+boundary_kind = "port"
+boundary_ref = "LedgerAppendPort"
+path = "reference/quota_ledger.py"
+find = '        self._append_line(f"CLOSE {tenant} {self._committed[tenant]}")'
+replace = '''        try:  # MUTANT M05
+            self._append_line(f"CLOSE {tenant} 0")
+        except Exception:
+            pass  # MUTANT M05: the close total is always 0 and any write failure is swallowed'''
+description = "every CLOSE line reports a final total of 0, and a failed durable write is silently discarded"
+semantic = "close_tenant writes a CLOSE line whose total field is literally 0 regardless of what was committed, and swallows any exception the durable write raises. The command still returns accepted."
+observable = "the bytes of the CLOSE line. is_closed() is correct, the status is correct, committed() is correct. When the tenant committed nothing the mutant is INDISTINGUISHABLE from correct -- so a case that closes an untouched tenant cannot kill it."
+predicted_map_checking = "KILLED"
+predicted_map_silent = "SURVIVES"
+predicted_suite = "KILLED by test_close_writes_the_final_total; NOT killed by test_close_with_nothing_committed_writes_zero, which the mutant satisfies exactly"
+refine_variable = "committed"
+refine_action = "CloseTenant"
+
+# ---------------------------------------------------------------------------
+# CROSS-ASPECT -- the gap the CASE-MODULE slice is supposed to lose. Round 1
+# concluded "case modules kill exactly what the whole view kills." That was an
+# artifact of a catalogue containing no cross-aspect mutant; with one
+# deliberately placed the claim fell to 9 of 10. M08 is that mutant, placed on
+# purpose. Its symptom lands in the RESERVATIONS aspect while its cause is a
+# LEDGER-aspect action, so a slice built for either aspect alone misses it:
+# the LEDGER slice does not project `available`, and the RESERVATIONS slice
+# does not contain `Commit` as an action.
+# ---------------------------------------------------------------------------
+
+[[mutants]]
+id = "M08-cross-aspect-commit-refunds-the-hold"
+fault_class = "cross_aspect"
+gap_targeted = "a slice narrower than its view orphans the other aspect's variables (CM-F5); neither single-aspect slice constrains what Commit does to `available`"
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+path = "reference/quota_ledger.py"
+find = "        self._committed[reservation.tenant] += reservation.amount"
+replace = '''        self._committed[reservation.tenant] += reservation.amount
+        self._available[reservation.tenant] += reservation.amount  # MUTANT M08: committing also refunds the hold, so quota never depletes'''
+description = "commit credits the ledger correctly AND gives the hold back, so a tenant can commit its quota indefinitely"
+semantic = "commit(r) performs the correct LEDGER-aspect effect and additionally returns the reservation's amount to available(t). committed(t) and every ledger line are correct; available(t) is inflated and R1 conservation breaks."
+observable = "available(t) after a commit, which is a RESERVATIONS-aspect variable written by a LEDGER-aspect action. Every ledger line is byte-correct, so no durable-content oracle fires. The LEDGER slice does not project `available`; the RESERVATIONS slice does not run `Commit`."
+predicted_corpus_whole = "KILLED -- the whole view projects both aspects"
+predicted_corpus_slice = "SURVIVES on BOTH the LEDGER slice and the RESERVATIONS slice. If it dies on a slice, the slice is wider than its declared aspect and THAT is the finding."
+predicted_map_checking = "no effect either way -- the durable side is correct"
+predicted_suite = "KILLED -- test_commit_moves_the_hold_into_committed_and_writes_one_line asserts available is unchanged"
+refine_variable = "available"
+refine_action = "Commit"
+
+# ---------------------------------------------------------------------------
+# OUTPUT-ONLY -- the class a state-only oracle cannot see at all. MF-038 could
+# not see it because its only output oracle was a process exit code.
+# ---------------------------------------------------------------------------
+
+[[mutants]]
+id = "M06-wrong-status-on-release"
+fault_class = "output_oracle"
+gap_targeted = "an oracle that compares only projected AFTER-STATE; here the after-state is entirely correct and only the reported status is wrong"
+boundary_kind = "invariant"
+boundary_ref = "R4-rejection-changes-nothing"
+path = "reference/quota_ledger.py"
+find = '''        self._available[reservation.tenant] += reservation.amount
+        return Result.accepted(reservation_id)'''
+replace = '''        self._available[reservation.tenant] += reservation.amount
+        return Result.rejected("unknown_reservation")  # MUTANT M06: the state change happened and the status denies it'''
+description = "release performs the full transition and reports that it did not"
+semantic = "release(r) applies its correct effect and then returns rejected/unknown_reservation. This inverts R4: a rejection is supposed to mean nothing changed, and here everything changed."
+observable = "the returned status only. available(), outstanding_ids(), committed() and the ledger are all exactly correct."
+predicted_suite = "KILLED -- test_release_returns_the_hold_and_writes_nothing asserts the status"
+predicted_corpus_whole = "KILLED only if the corpus asserts the reported status, not merely the after-state. If it survives, the corpus is state-only and that is a finding about the corpus, not about this fault."
+refine_variable = "available"
+refine_action = "Release"
+
+# ---------------------------------------------------------------------------
+# APPLY-ONLY BLIND SPOT -- HP-04's gap. The oracle never consults `can_run` and
+# aborts on the first apply()-only adapter; NINE OF SEVENTEEN adapters in the
+# repository's own model are apply()-only, so it sees 8 of 18 actions. `Release`
+# is the action here most likely to get an apply()-only adapter: it has no
+# durable effect and no interesting output, so there is nothing obvious for a
+# provider to assert.
+# ---------------------------------------------------------------------------
+
+[[mutants]]
+id = "M10-apply-only-double-refund"
+fault_class = "wrong_value"
+gap_targeted = "an action whose adapter is apply()-only is invisible to the oracle before HP-04; N05 predicts HP-04 makes it visible WITHOUT making it killable"
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+path = "reference/quota_ledger.py"
+find = "        self._available[reservation.tenant] += reservation.amount"
+replace = "        self._available[reservation.tenant] += reservation.amount * 2  # MUTANT M10: releasing credits back twice the hold"
+description = "release returns double the reserved amount to available, so releasing manufactures quota"
+semantic = "release(r) credits available(t) with 2x the reservation amount instead of 1x. R1 conservation breaks upward."
+observable = "available(t) after a release. Straightforward IF the oracle observes Release at all -- which before HP-04 it does not, because it aborts on the first apply()-only adapter."
+predicted_before_hp04 = "SURVIVES -- the oracle never reaches Release"
+predicted_after_hp04 = "KILLED IF the Release adapter observes state; SURVIVES if HP-04 makes the adapter merely RUN without giving it an assertion. N05 predicts the latter."
+predicted_suite = "KILLED -- test_release_returns_the_hold_and_writes_nothing"
+refine_variable = "available"
+refine_action = "Release"
+
+# ---------------------------------------------------------------------------
+# POSITIVE CONTROL -- exists so that a table of zeros can be told apart from a
+# broken instrument. If M07 survives, every other number in the round is void
+# and HP-06 reports the instrument as unciteable rather than reporting kills.
+# ---------------------------------------------------------------------------
+
+[[mutants]]
+id = "M07-positive-control-wrong-hold"
+fault_class = "wrong_value"
+control_role = "positive -- must die on every instrument on every arm"
+gap_targeted = "none. This mutant is in nobody's gap, on purpose: it is blatant, visible in projected state, in outputs, and in every downstream durable line."
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+path = "reference/quota_ledger.py"
+find = "        self._available[tenant] -= amount"
+replace = "        self._available[tenant] -= amount + 1  # MUTANT M07: the hold is one unit too large"
+description = "reserve deducts one more than it holds, so conservation breaks immediately on the first call"
+semantic = "reserve(t, n) reduces available(t) by n+1. R1 conservation breaks on the very first accepted reservation."
+observable = "available(t) immediately after any accepted reserve. Nothing subtle about it."
+predicted_suite = "KILLED"
+predicted_corpus_whole = "KILLED"
+predicted_corpus_slice = "KILLED on the RESERVATIONS slice"
+predicted_map_silent = "KILLED -- needs no durable oracle at all"
+refine_variable = "available"
+refine_action = "Reserve"
+
+# ---------------------------------------------------------------------------
+# NEGATIVE CONTROL -- ordering. The plan puts ordering OUT OF SCOPE
+# deliberately: sets in the model, ordered lists in the code, sorted() at every
+# oracle layer, measured invisible to all five corpus instruments in both
+# rounds. It is seeded ANYWAY, and here is why.
+#
+# The predecessor recorded exactly this kind of claim as a caveat, never ran
+# it, and was later shown wrong about a different never-run caveat -- EV-01
+# declined to seed a wrong-item fault on the argument that it "could not be
+# measured", and when RP-02 finally seeded two, BOTH died, on the pre-fix
+# instrument as well as the post-fix one. An unrun caveat is not a result.
+#
+# So M09 converts a documented assumption into a measured one at the cost of
+# one row. It is predicted to SURVIVE every model-derived corpus instrument and
+# to DIE to the hand-written suite -- and that split is the point: it is the
+# sharpest available measurement of what a corpus structurally cannot see, and
+# it is a direct input to HP-06's findings-by-channel report.
+# ---------------------------------------------------------------------------
+
+[[mutants]]
+id = "M09-negative-control-ledger-order"
+fault_class = "ordering"
+control_role = "negative -- predicted to survive every corpus instrument; a kill here RETRACTS a documented limit and is a finding"
+gap_targeted = "the model uses sets and every oracle layer sorts, so no generated corpus can express line order; the plan states this needs a profile change rather than a test change"
+boundary_kind = "port"
+boundary_ref = "LedgerAppendPort"
+path = "reference/quota_ledger.py"
+find = '''        with self._ledger_path.open("a", encoding="utf-8") as handle:
+            handle.write(line + "\n")'''
+replace = '''        existing = self._ledger_path.read_text(encoding="utf-8")  # MUTANT M09
+        self._ledger_path.write_text(line + "\n" + existing, encoding="utf-8")  # MUTANT M09: lines land in reverse order; every line is present and byte-correct'''
+description = "the ledger is written newest-first; every line is present and individually correct, only the order is reversed"
+semantic = "Ledger lines are prepended rather than appended. The SET of lines is identical to correct behavior; only R5's ordering is violated."
+observable = "the ORDER of ledger_lines(), and nothing else. Every line is byte-identical to the correct one. Any oracle that compares the ledger as a set, or sorts it, sees nothing."
+predicted_corpus_whole = "SURVIVES"
+predicted_corpus_slice = "SURVIVES"
+predicted_corpus_neg = "SURVIVES"
+predicted_map_checking = "SURVIVES if the content assertion compares as a set or sorts; KILLED if it compares the sequence. Which one it does is itself worth reporting."
+predicted_suite = "KILLED -- test_r5_the_ledger_is_append_only_and_ordered compares the list positionally"
+refine_variable = "committed"
+refine_action = "Commit"
+
+# ---------------------------------------------------------------------------
+# THE SECOND THING IN THIS FILE THAT IS MEASURED RATHER THAN PREDICTED. Like
+# [measured_suite_baseline] above it is unflattering, and for the same reason
+# it is written down: the number it reports is a number about our instruments,
+# not about any arm.
+# ---------------------------------------------------------------------------
+[pa_measured_swap_baseline]
+measured_by = "check_catalogue.py --verify-suite, on the REFERENCES only, at PA-01"
+control = "suite GREEN on all three unmutated wirings before any mutant was applied"
+result = '''
+                                          suite-real   suite-fake
+  PA-M11 real adapter drops CLOSE lines   KILLED       SURVIVED
+  PA-M12 fake adapter drops CLOSE lines   SURVIVED     KILLED
+  PA-M13 fake drifts from real on write   SURVIVED     KILLED
+  PA-M14 positive control (ports domain)  KILLED       KILLED
+
+All 20 annotations across all three wirings agreed with their predictions.
+'''
+what_it_measures = '''
+PA-M11 and PA-M12 ARE THE SAME FAULT. Same sentence, same filter, one on each
+side of one port. Under the wiring the predecessor had -- the real adapter,
+because that is what the constructor in FEATURE.md picks -- one of them dies
+and the other is untouchable. The suite is not weak: it kills the identical
+fault in the same cell of the table. Nothing runs the file.
+
+That is BA-B14 reproduced in a fixture we control, with a twin that rules out
+"the fault was subtle" as the explanation. And the remedy is measured in the
+next column: the SAME suite, the SAME assertions, the SAME domain, pointed at a
+four-line second composition point, kills both fake-side faults.
+'''
+what_it_does_NOT_show = '''
+It does not show that any ARM will produce this shape, and it must not be cited
+as though it did. It shows what a seeded fault does once the shape exists. The
+fixture was written by the same author as the mutants seeded into it, which is
+the same declared bias [measured_suite_baseline] carries and is not reduced by
+there being two anchor trees.
+
+It also does not show that anyone WOULD build the second composition point. The
+measured fact is that for a whole epic nobody did, and the cost of doing it is
+four lines. Cheap and undone is a different finding from expensive.
+'''
+
+# ===========================================================================
+# PA-01: ADAPTER-INTERNAL FAULTS. Anchored on `reference_ports/`.
+#
+# The class the predecessor proved invisible. Everything above is seeded in a
+# tree with no adapter in it, which is why nothing above could have caught
+# `BA-B14`. These four rows are the first in this catalogue's history that are
+# seeded behind a port.
+#
+# THE PAIR IS THE MEASUREMENT. PA-M11 and PA-M12 are the SAME semantic fault --
+# "the journal's read-back silently drops CLOSE lines" -- seeded once in the
+# real adapter and once in the fake. Their `find` strings are near-identical on
+# purpose. Neither row is interesting alone; the DIFFERENCE between the two
+# rows, under the same instrument, is the size of the region the port creates.
+# A per-instrument table that reports PA-M11 killed and PA-M12 surviving has
+# measured the blind spot in one cell. A kill-count total would hide it
+# entirely, which is HP-06-DF-06's lesson applied before the fact.
+# ===========================================================================
+
+[[mutants]]
+id = "PA-M11-real-adapter-drops-close-lines"
+fault_class = "adapter_internal"
+gap_targeted = "none, on purpose -- this is the CONTRAST row. A fault behind a port on the side a composition point actually wires is reachable by every instrument that runs the program at all. It is here so PA-M12's survival cannot be explained by the fault being subtle."
+boundary_kind = "port"
+boundary_ref = "LedgerAppendPort"
+path = "reference_ports/journal_file.py"
+find = "        return [entry for entry in text.splitlines() if entry]"
+replace = '        return [entry for entry in text.splitlines() if entry and not entry.startswith("CLOSE")]  # MUTANT PA-M11: the real adapter never reads back a CLOSE line'
+description = "the real adapter writes every line correctly and hides the CLOSE lines when the record is read back"
+semantic = "The real adapter's read-back filters out every line beginning CLOSE. The bytes on disk are correct; what the domain and every reader see is missing one line per closed tenant. In-memory committed(), is_closed() and available() are all correct."
+observable = "ledger_lines() through the REAL wiring, after any accepted close_tenant. Nothing else changes."
+predicted_suite_real = "KILLED -- test_close_writes_the_final_total and test_close_with_nothing_committed_writes_zero both assert a CLOSE line is present"
+predicted_suite_fake = "SURVIVES -- the fake wiring never constructs this adapter, so the fault is not on the executed path"
+predicted_corpus_whole = "KILLED IF the corpus asserts durable content through the real wiring; SURVIVES under a silent mapping"
+refine_variable = "committed"
+refine_action = "CloseTenant"
+
+[[mutants]]
+id = "PA-M12-fake-adapter-drops-close-lines"
+fault_class = "adapter_internal"
+gap_targeted = "THE REGION BEHIND A PORT THAT NO COMPOSITION POINT WIRES. Identical semantic to PA-M11, seeded on the other side of the same port. Before `quota_ledger_fake.py` existed there was no composition point pointing at this adapter, so no case, no corpus and no suite ran a single line of it -- which is BA-B14 exactly."
+boundary_kind = "port"
+boundary_ref = "LedgerAppendPort"
+path = "reference_ports/journal_memory.py"
+find = "        return [entry for entry in self._lines if entry]"
+replace = '        return [entry for entry in self._lines if entry and not entry.startswith("CLOSE")]  # MUTANT PA-M12: the fake never reads back a CLOSE line'
+description = "the fake adapter hides CLOSE lines on read-back -- the same fault as PA-M11, on the side nothing was wired to run"
+semantic = "The fake adapter's read-back filters out every line beginning CLOSE. Identical observable to PA-M11, through the fake wiring instead of the real one."
+observable = "ledger_lines() through the FAKE wiring only. Through the real wiring this file is never imported and the mutant is not on any executed path -- it is not that the fault is hard to see, it is that nothing looks."
+predicted_suite_real = "SURVIVES -- and this survival is the whole point. It reproduces BA-B14 in a fixture we control, with a real-side twin (PA-M11) proving the fault itself is trivially visible."
+predicted_suite_fake = "KILLED -- the identical assertions, through the other composition point"
+predicted_corpus_whole = "SURVIVES on every corpus wired to the real adapter, for the same reason"
+refine_variable = "committed"
+refine_action = "CloseTenant"
+
+[[mutants]]
+id = "PA-M13-fake-drifts-from-real-on-write"
+fault_class = "adapter_internal"
+gap_targeted = "the same behind-a-port region, on the WRITE path rather than the read path, and the shape a fake fails in for real: silent drift from the adapter it stands in for. It is seeded because a pair that only ever perturbs read-back would license the conclusion that this region is a read-back problem."
+boundary_kind = "port"
+boundary_ref = "LedgerAppendPort"
+path = "reference_ports/journal_memory.py"
+find = "        self._lines.append(line)"
+replace = '        self._lines.append(" ".join(line.split()[:3]))  # MUTANT PA-M13: the fake stores only the first three fields, so every COMMIT loses its running total'
+description = "the fake records COMMIT lines with the running-total field missing; CLOSE lines, which have three fields, are unaffected"
+semantic = "The fake adapter truncates every stored line to its first three whitespace-separated fields. COMMIT lines lose the running total; CLOSE lines are byte-identical to correct. The domain and the real adapter are untouched."
+observable = "ledger_lines() through the FAKE wiring, on COMMIT lines only. A case that closes a tenant without committing anything CANNOT distinguish this mutant from correct behavior."
+predicted_suite_real = "SURVIVES -- not on the executed path"
+predicted_suite_fake = "KILLED -- test_commit_moves_the_hold_into_committed_and_writes_one_line asserts the full line"
+predicted_corpus_whole = "SURVIVES on any wiring that does not construct the fake"
+refine_variable = "committed"
+refine_action = "Commit"
+
+# ---------------------------------------------------------------------------
+# THE REPAIRED POSITIVE CONTROL. Read [pa_measured_control_audit] first; it was
+# committed, with the predictions that score this repair, BEFORE this row
+# changed. The git history carries that ordering.
+#
+# WHAT WAS WRONG, and it was not wrong on this tree. PA-M14's first form was
+# M07's semantic re-anchored here -- `self._available[tenant] -= amount + 1` --
+# and the probe says it HOLDS the accept-path property on `reference_ports/`,
+# because this tree STORES `available`. The defect is in what happens when the
+# semantic is RE-ANCHORED ONTO AN ARM. Arm B derives `available()`, the nearest
+# perturbation inflates the computed held total, and the result is observable
+# from construction, on every tenant, after a refusal. Measured BROKEN on arm B.
+#
+# A positive control whose declared semantic survives re-anchoring only onto
+# implementations that happen to share the reference's representation is a
+# control about the fixture, not about the instrument.
+#
+# WHAT THIS ROW IS NOW. The one line that runs on an ACCEPTED reserve and
+# nowhere else: the amount recorded ON the reservation at the moment it is
+# granted. `_outstanding` is written here on the accept path and only DELETED
+# by commit and release, and an oracle that installs a before-state builds
+# holdings directly -- so the only way to observe this mutant is to execute an
+# accepted `reserve` during the case. That property is REPRESENTATION-
+# INDEPENDENT, which is the whole reason for the change: it does not care
+# whether an arm stores `available` or derives it.
+#
+# Measured, with the shipped probe, on every tree that exists:
+#   arm_a HOLDS   arm_b HOLDS   reference HOLDS   reference_ports HOLDS
+# and UNMEASURED on arm C, whose tree PA-06 builds. UNMEASURED is not a pass.
+#
+# WHAT THIS DOES NOT DO. It does not weaken what the control asserts -- the
+# accept-path mutant is strictly harder to satisfy than the old one, because it
+# must be invisible everywhere else. It does not touch GOAL-port-reach's target
+# clause. It does not delete, re-seed or excuse M07. And it does not make arm
+# B's M07 cell green: that cell is red, it stays red, and EVAL-SUPPRESS's
+# retirement of it (eval/controls_rerun_arm_b.toml) stands.
+#
+# ROLE STRING WRITTEN FOR THIS TREE, NOT COPIED. EVAL-RERUN-DF-03: arm B's
+# catalogue carried arm A's role string verbatim over a mutant arm B's own data
+# contradicted. `check_catalogue.py --controls` now reports two positive
+# controls sharing a role string verbatim as a problem.
+# ---------------------------------------------------------------------------
+
+[[mutants]]
+id = "PA-M14-positive-control-accepted-hold-too-large"
+fault_class = "wrong_value"
+control_role = "positive -- must die on every instrument that executes an accepted Reserve against the reference_ports tree, under BOTH wirings, AND must be invisible until one does. The second half is the half arm B's M07 lacked, and it is the half that makes a survival here mean 'the instrument stopped reaching the accept path' rather than 'something, somewhere, changed'."
+gap_targeted = "none. Deliberately in nobody's gap: it exists so a column of survivors on `reference_ports/` can be told apart from an instrument that never ran that tree, and so that RE-ANCHORING it onto an arm preserves the property rather than the byte pattern."
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+control_property = "accept-path-only -- see [pa_control_properties] and [pa_measured_control_audit]"
+path = "reference_ports/domain.py"
+find = "        self._outstanding[reservation_id] = Reservation(reservation_id, tenant, amount)"
+replace = "        self._outstanding[reservation_id] = Reservation(reservation_id, tenant, amount + 1)  # MUTANT PA-M14: an accepted reservation holds one unit more than it was granted"
+description = "a reservation accepted during the case holds one unit more than it was granted; every reservation installed into a before-state is byte-correct"
+semantic = "The reservation created by an ACCEPTED reserve records amount+1. Immediately after the accepting call, available(t) is one too low and the new reservation's amount is one too high. Nothing else, ever: no refusal, no commit, no release and no close changes any observable, and construction is byte-correct."
+observable = "available(t) and the new reservation's amount immediately after an ACCEPTED reserve, and nothing after any other action or any refusal. Under BOTH wirings, because the fault is in the domain and neither adapter is involved."
+re_anchoring_rule = "RE-ANCHOR BY THE PROPERTY, NOT BY THE BYTES. On any arm, seed this at whatever line records the amount on a reservation the API has just accepted, then run `check_catalogue.py --controls --tree-root --root <arm tree> --impl <module>`. If it does not report HOLDS, the arm has no valid positive control and PA-06 says so and leaves the cell RED. It does not make the cell green by weakening what the control asserts. A control that cannot fail is worse than one that is honestly broken."
+predicted_suite_real = "KILLED"
+predicted_suite_fake = "KILLED"
+predicted_corpus_whole = "KILLED"
+refine_variable = "amt"
+refine_action = "Reserve"
+
+# ---------------------------------------------------------------------------
+# CLASSES DELIBERATELY NOT SEEDED, stated so no silence is read as a result.
+#
+#   * CONCURRENCY / interleaving. The feature declares no concurrency
+#     (FEATURE.md, "Not part of the feature"), so a mutant here would test a
+#     surface neither arm was asked to build.
+#   * CROSS-PROCESS effects. The effect oracle cannot see across a process
+#     boundary at all (scripts/effect_conformance.py, in-process CPython only,
+#     recorded in the plan's known_gaps). A fault of that class is dead on
+#     arrival and NO added coverage moves it; seeding one would produce a
+#     survivor that says nothing about any arm.
+#
+# PA-01 ADDS THREE MORE OMISSIONS, each of which was designed and then rejected
+# rather than merely not thought of. Recorded because "what did you reject" has
+# produced the best finding in this project for three rounds running and
+# re-running the suite has produced none.
+#
+#   * A FAULT IN THE COMPOSITION POINT (`quota_ledger.py` /
+#     `quota_ledger_fake.py`) -- e.g. wiring the fake where the real adapter
+#     belongs. Designed, then rejected: the composition point is two lines, and
+#     perturbing it makes the durable file never get written at all. That is
+#     the PA-M14 shape with less to say -- blatant, killed by everything,
+#     already covered by a declared control. It would add a row that cannot
+#     come back with a surprising value.
+#
+#   * AN EQUIVALENT MUTANT IN THE FAKE. The first draft of PA-M13 was
+#     `return self._lines` in place of the read-back comprehension: the fake
+#     hands out its own internal list instead of a copy. It is a real defect
+#     shape and it is UNOBSERVABLE here, because nothing in the feature, the
+#     suite or any corpus mutates a returned line list. It would have produced
+#     a survivor on every instrument on every arm and read exactly like
+#     PA-M12's survival while meaning something completely different -- a fault
+#     nobody can see versus a fault nobody looks at. A second draft, "the fake
+#     de-duplicates identical lines on append", was rejected for the same
+#     reason after checking: no two ledger lines this feature can produce are
+#     ever identical, because a COMMIT line carries an accumulating total.
+#
+#   * A FAULT IN THE PORT DECLARATION ITSELF (widening `LedgerJournal`'s
+#     methods, or renaming one). Rejected because it is a type error, not a
+#     behavioural fault: it breaks construction under both wirings and kills
+#     every instrument for a reason that says nothing about detection. The
+#     class it gestures at -- a declaration drifting from what executes -- is
+#     real and is handled by a test rather than a mutant
+#     (`tests/test_ab_three_arms_and_port_faults.py`), per the plan's
+#     `declaration_executability_rule`.
+#
+# None of these omissions is a judgement that the class is unimportant. All are
+# recorded here so that PA-06 reports "not seeded" rather than "not caught".

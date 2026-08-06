@@ -1,0 +1,66 @@
+### text
+[MEASURED] Reflexion check -- production code against the model's architecture
+  map:       /Users/hayde/IdeaProjects/wt-ev03-rerun/examples/validation/runs/ex5-run3/artifacts/one_map.yaml
+  code root: pipeline
+  scanned 8 Python module(s); the map places 8 of them in 1 component(s)
+  extracted 7 dependency edge(s) (imports + resolvable calls)
+  7 edge(s) stay inside one component and were not checked against a port
+
+  Measured against this partition -- the basis of every figure below:
+    source:  DECLARED
+    origin:  declared by the project in /Users/hayde/IdeaProjects/wt-ev03-rerun/examples/validation/runs/ex5-run3/artifacts/one_components.yaml
+    components: theapp
+    does this partition decompose the model?
+      [FAIL] component_count: measured 1, rule >= 2
+      [FAIL] modularity_q: measured 0.0, rule > 0
+      [OK  ] crossing_action_fraction: measured 0.0, rule <= 0.5
+      -> DOES NOT DECOMPOSE (component_count, modularity_q). The comparison still runs and every finding
+         below is real, but this program's own rule says this is not a cut, so a
+         clean result measured against it is not a clean result about the code.
+
+  Is a divergence even detectable here?
+    component pairs with a port:    (none)
+    component pairs with NO port:   (none)
+    A code edge can only diverge across a pair in the second list. When that list is
+    empty the architecture permits every pair and a clean result is true by construction.
+    divergence_detectable = false
+
+  CONVERGENCES (0) -- a crossing edge the model declares a port for
+
+  DIVERGENCES (0) -- a crossing edge NO port declares
+    none.
+
+  ABSENCES (0) -- a declared port no code edge realizes
+    none.
+
+  Out of scope: 2 import target(s) resolve outside the scanned tree
+  (standard library and third-party packages). They are not edges: the model declares
+  components of THIS program. A component that reaches an external system directly is
+  therefore invisible to this check.
+    __future__, pipeline_contract
+
+[MEASURED] Reflexion verdict
+  architecture_scan = unmappable
+    - [unfalsifiable_coherence] this architecture has 1 component(s), so it has NO component pair at all: every code edge is internal by construction and no code edge could have been a divergence. A clean result here is a property of the declared partition and says nothing whatever about the code -- six lines of YAML declaring one component would otherwise certify any codebase, however many boundaries it violates. (/Users/hayde/IdeaProjects/wt-ev03-rerun/examples/validation/ex5_pipeline_divergent/specs/program_model/Pipeline.tla)
+    - [partition_does_not_decompose] the DECLARED partition fails 2 of 3 decomposition criteria (component_count measured 1, rule >= 2; modularity_q measured 0.0, rule > 0), so this program's own published rule says it is not a cut of this model. The findings below are real and are reported in full -- what is withheld is the clean: `coherent` measured against a partition the model does not support is a different claim from `coherent` measured against one it does, and the verdict may not spend the same word on both. Declaring a coarser partition is the cheapest way to make every divergence vanish with no code change. (declared by the project in /Users/hayde/IdeaProjects/wt-ev03-rerun/examples/validation/runs/ex5-run3/artifacts/one_components.yaml)
+
+  measured against:
+    partition:              DECLARED, 1 component(s)
+    partition decomposes:   NO -- fails component_count, modularity_q
+    divergence_detectable:  FALSE -- no code edge could have been a divergence
+    a clean result is       NOT SUPPORTABLE on this basis
+
+  UNMAPPABLE is not 'clean with caveats' and not 'nothing found'. Any finding
+  listed above is real; the verdict says the check could not see the whole
+  target, so it will not certify what it did not observe. Nothing downgrades
+  this: there is no flag, key, annotation, or environment variable that turns
+  it into `coherent`.
+
+  Here it is the BASIS, not the extractor, that withholds the clean. The
+  partition is not refused and the comparison was not skipped: everything
+  above was measured, this command exits 0, and nothing is blocked. What
+  is withheld is the word `coherent`, which is a claim about the CODE --
+  and it cannot be bought by declaring a coarser boundary.
+
+  Advisory: nothing here blocks a close, a promotion, or a case generation.
+ONECOMP_EXIT=0

@@ -1,0 +1,107 @@
+OUT=/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.PF2VA8uYht
+PY=/Applications/Xcode.app/Contents/Developer/usr/bin/python3  (Python 3.9.6)
+
+=== STEP 1 -- the action set from a command ===
+Accept
+Deliver
+Enqueue
+Fail
+Record
+STEP1_EXIT=0
+
+=== STEP 2 -- the view's own corpus ===
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-08-01 19:30:24.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+331 states generated, 121 distinct states found, 0 states left on queue.
+generated internal transition cases from 121 states into /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.PF2VA8uYht/spec-unit/Pipeline_cases
+per-action coverage recorded to /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.PF2VA8uYht/spec-unit/Pipeline_cases/case_coverage.json
+parameter recovery: 330/330 cases carry arguments, 330 carry a fully recovered argument set, 0 carry at least one UNCHECKED argument (kept, never dropped); audit written to /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.PF2VA8uYht/spec-unit/Pipeline_cases/param_recovery_audit.md
+corpus gate PASS: 330 internal case(s), cap max_internal_cases_per_component = 330 per component
+source: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.PF2VA8uYht/spec-unit/Pipeline_cases
+  Enqueue / params:recovered     110   33.3%
+  Fail / params:recovered         88   26.7%
+STEP2_EXIT=0
+
+=== STEP 3a -- the SLICE, generated from specs/case_modules/ IN PLACE ===
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-08-01 19:30:25.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+51 states generated, 25 distinct states found, 0 states left on queue.
+generated internal transition cases from 25 states into /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.PF2VA8uYht/spec-unit/Scenario_DeliveryPath_cases
+per-action coverage recorded to /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.PF2VA8uYht/spec-unit/Scenario_DeliveryPath_cases/case_coverage.json
+parameter recovery: 50/50 cases carry arguments, 50 carry a fully recovered argument set, 0 carry at least one UNCHECKED argument (kept, never dropped); audit written to /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.PF2VA8uYht/spec-unit/Scenario_DeliveryPath_cases/param_recovery_audit.md
+corpus gate PASS: 50 internal case(s), cap max_internal_cases_per_component = 330 per component
+source: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.PF2VA8uYht/spec-unit/Scenario_DeliveryPath_cases
+  Deliver / params:recovered      20   40.0%
+  Enqueue / params:recovered      20   40.0%
+STEP3a_EXIT=0
+
+=== STEP 3b -- the GIVEN, generated from specs/case_modules/ IN PLACE ===
+Computing initial states...
+Finished computing initial states: 2 distinct states generated at 2026-08-01 19:30:26.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+8 states generated, 8 distinct states found, 0 states left on queue.
+generated internal transition cases from 8 states into /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.PF2VA8uYht/spec-unit/Scenario_RecordAfterDelivery_cases
+per-action coverage recorded to /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.PF2VA8uYht/spec-unit/Scenario_RecordAfterDelivery_cases/case_coverage.json
+parameter recovery: 6/6 cases carry arguments, 6 carry a fully recovered argument set, 0 carry at least one UNCHECKED argument (kept, never dropped); audit written to /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.PF2VA8uYht/spec-unit/Scenario_RecordAfterDelivery_cases/param_recovery_audit.md
+corpus gate PASS: 6 internal case(s), cap max_internal_cases_per_component = 330 per component
+source: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.PF2VA8uYht/spec-unit/Scenario_RecordAfterDelivery_cases
+  Fail / params:recovered         4   66.7%
+  Record / params:recovered       2   33.3%
+STEP3b_EXIT=0
+
+=== recovered-argument counts per corpus (RP-03's adjacent fix) ===
+  Pipeline_cases: params-bearing lines=330  UNCHECKED=1
+  Scenario_DeliveryPath_cases: params-bearing lines=50  UNCHECKED=1
+  Scenario_RecordAfterDelivery_cases: params-bearing lines=6  UNCHECKED=1
+
+=== STEP 4 -- validate + coverage ===
+Scenario_DeliveryPath: slice of Pipeline, 3 action(s)
+Scenario_RecordAfterDelivery: given of Pipeline, 2 action(s), claim recorded (458 chars)
+STEP4a_EXIT=0
+case-module coverage -- view: internal
+  manifest: specs/program_model/spec_manifest.yaml
+  declared case modules: 2 (1 slice, 1 given)
+  view action set: 5 actions, from the supplied actions metadata
+
+This is a REPORT. It states per-action coverage and gates nothing (references/architecture_tractability.md, 'Advisory, Not Blocking').
+
+action   view corpus  Scenario_DeliveryPath  Scenario_RecordAfterDelivery  modules total
+-------  -----------  ---------------------  ----------------------------  -------------
+Accept   22           10                     0                             10
+Deliver  66           20                     0                             20
+Enqueue  110          20                     0                             20
+Fail     88           0                      4                             4
+Record   44           0                      2                             2
+
+view corpus: Pipeline (330 cases)
+
+UNCOVERED: none -- every view action is entered by a measured module or covered by the view's own corpus.
+
+Cross-aspect interleaving is not in this table. Slices do not enumerate the interleavings between aspects; only a whole-view run does. Do not report the union of modules as equivalent to the view's corpus (references/case_modules.md, Integrity rule 4).
+STEP4b_EXIT=0
+
+=== STEP 5 -- EXECUTE the Given's corpus against the project's UNCHANGED adapters ===
+validated 5 adapter mappings for 3 labels
+executed 6 cases in batch
+STEP5_EXIT=0
+
+=== STEP 6 -- the SAME command on the SLICE. CM-F5: does it still refuse? ===
+ERROR: invalid semantic effect provider configuration: provider configured for semantic effect port(s) not required by any selected case: LedgerStorePort
+STEP6_EXIT=1
+
+=== STEP 6b -- CM-F5 control: the slice under the CORPUS-ONLY mapping ===
+ERROR: invalid semantic effect provider configuration: provider configured for semantic effect port(s) not required by any selected case: LedgerStorePort
+STEP6b_EXIT=1
+
+=== fingerprints of the three generated corpora ===
+944189052623960aea36dd9277c9d714c76ce18d584a67d8ed5b498170648f2e  /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.PF2VA8uYht/spec-unit/Pipeline_cases/cases.py
+1a02bbabde9cb50bc55568f60a0fe447eb759748f4cc3f6beb44b405596ae56f  /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.PF2VA8uYht/spec-unit/Scenario_DeliveryPath_cases/cases.py
+35bb9d95a1e930666e327e9fb124b121722b481c28a36e5e9bfebdaa13e2439d  /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.PF2VA8uYht/spec-unit/Scenario_RecordAfterDelivery_cases/cases.py
+
+=== the fixture is untouched ===
+(empty above == clean)

@@ -1334,3 +1334,538 @@ Finalization review 2026-07-23 (epic owner): SF-001..SF-007 filed as issues #105
 - closed_at: 2026-07-23T21:22:33+00:00
 - summary: Main-readiness workflow closed: CD-04..08 removed every validated negative side effect (redesign question, descriptor accuracy, advisory language, example repair); effect-provider epic merged with zero host-model delta and the composed surface validated by run-4 kill probes; coverage audit close-2 PASS (0 gaps); SF findings filed #105-#111, backlog carried #112-#115; promotion gate for main
 - feedback_status: none-found  # finalization review 2026-07-23: no NEW findings at this close; all prior SF findings are status: filed with issue references (#105-#111)
+
+## Close-out ticket CM-01
+
+- close_scope: ticket
+- close_id: CM-01
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-27T16:48:55+00:00
+- summary: CM-01: declared model discovery (CM-F1 fixed), case_modules: manifest block, per-module action scope (CM-F2 fixed), and the per-action coverage aggregation report. Zero TLA+ model delta.
+- feedback_status: unreviewed
+
+## Close-out ticket AC-01
+
+- close_scope: ticket
+- close_id: AC-01
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-27T16:40:39+00:00
+- summary: AC-01: analyze architecture -- components, per-variable writers and single-writer violations, ports, spanning actions; JSON descriptor (schema v1) for AC-02/AC-03; architecture_scan + AnalyzeArchitecture landed in current. Both real models measured DO NOT DECOMPOSE and the descriptor refuses rather than inventing a cut.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket AC-02
+
+- close_scope: ticket
+- close_id: AC-02
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-27T17:27:47+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+## Close-out ticket AC-03
+
+- close_scope: ticket
+- close_id: AC-03
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-27T17:20:19+00:00
+- summary: AC-03: the ask -- prompts/implementation_brief.md + templates/implementation_brief.md and prompts/aspect_decomposition.md. Zero TLA+ model delta (ticket current == desired, TLC green, figures identical to AC-01). Four end-to-end renders kept as evidence: two DEGRADED briefs from this repository's own model under a declared partition, one REFUSAL from the emergent one-component partition, one FULL brief from the worked example's Internal view. consumable_as_architecture is necessary but not sufficient for a non-vacuous brief; the prompt adds three per-render vacuity tests. Two deferred findings filed (AC-03-DF-01, AC-03-DF-02).
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket AC-04
+
+- close_scope: ticket
+- close_id: AC-04
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-27T18:02:59+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket EV-01
+
+- close_scope: ticket
+- close_id: EV-01
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-27T18:47:57+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket EV-02
+
+- close_scope: ticket
+- close_id: EV-02
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-27T19:23:28+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket RP-01
+
+- close_scope: ticket
+- close_id: RP-01
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-30T21:02:29+00:00
+- summary: (none given)
+## Close-out ticket RP-02
+
+- close_scope: ticket
+- close_id: RP-02
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-30T20:55:30+00:00
+- summary: RP-02: set-membership parameter recovery closes the ex4 oracle leak (EV-01-DF-01) and the audit now reports what the run measured (EV-02-DF-03). A fourth mechanism recovers the element that entered or left a set, cross-checked across every such conjunct of the action; ex4 goes 0 of 5 -> 5 of 5 parameters and all 330 cases carry a real argument where every one carried UNCHECKED. The adapter reads case.input.params and never touches case.after; an unrecovered argument is a hard failure there. Generation stays deterministic (two regenerations byte-identical). The audit is rendered from the corpus it audits: the sentence 'Every parameter of every action is recoverable from its state pair' is gone, nine tests assert it cannot return, an unmeasured audit declares itself STATIC, a class that recovered nothing is UNRECOVERABLE ON THIS CORPUS whatever the syntax promised, and marker-declared arguments are reported as model-declared rather than credited as recovered. THE HONEST NEGATIVE: the reconstructed 12-mutant catalog is identical before and after -- guard relaxation still 0 of 3 by corpus, 3 of 3 by hand-written tests -- because all 330 recovered arguments are arguments the guard ACCEPTS and 0 are rejected inputs (220 refusable pairs exist that a state graph can never emit). Removing the leakage half of EV-02's two causes moves nothing, so the whole remaining failure is the structural half. Separately, the wrong-item class seeded_faults.toml declined to seed as unmeasurable is killed on BOTH instruments; that caveat was a prediction never run and is amended in place. Zero TLA+ model delta.
+## Close-out ticket RP-04
+
+- close_scope: ticket
+- close_id: RP-04
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-30T20:55:30+00:00
+## Close-out ticket RP-05
+
+- close_scope: ticket
+- close_id: RP-05
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-30T20:37:59+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket RP-03
+
+- close_scope: ticket
+- close_id: RP-03
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-30T21:35:17+00:00
+## Close-out ticket RP-07
+
+- close_scope: ticket
+- close_id: RP-07
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-30T21:23:28+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket EV-03
+
+- close_scope: ticket
+- close_id: EV-03
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-30T22:24:24+00:00
+- summary: EV-03: re-ran the eval suite against the repaired tree and re-scored against the same committed predictions. RP-01 measured (203-partition sweep: 12 false cleans -> 0, zero true findings lost, 20 released). RP-02's honest negative confirmed on a second instrument (parameter recovery 0/5 -> 5/5, mutant matrix unchanged in every cell). RP-03 measured (modules generate in place, corpora carry arguments, a Given's corpus executes); CM-F5 still open and sharper. Two blind runs, both DP-1 PASS, one of which found a major new false clean (EV-03-DF-03) that the DP-1 scoring rule cannot detect. Five findings filed, none fixed. Zero model delta.
+- feedback_status: items-recorded
+
+EV-03 is a MEASUREMENT ticket and this is where its toolchain findings belong.
+All five are recorded in full in `specs/desired_program_model/deferred_findings.yaml`
+with a reproduction command, a suggested fix and a measured blast radius. This
+epic is LOCAL-ONLY by owner direction (schedule_revision 3 amendment (a)): ticket
+agents push nothing and open no issue, so `recommendation:` carries the local
+finding id rather than a URL and `status` is `recorded-local` rather than
+`filed`. Filing them upstream is the epic owner's call, not this ticket's.
+
+### SF-101
+
+- surface: scripts/architecture_reflexion.py
+- severity: major
+- summary: First-party-outside---code detection tests exactly one path
+  (`code_root.parent / name`), so a first-party package nested at `generated/pkg`,
+  `src/pkg`, `gen/pkg` or `vendor/pkg` is silently filed as third-party. Every
+  divergence is then erasable by re-exporting through it -- `coherent` on a
+  codebase with four real divergences for a 41-line diff, both digests unchanged,
+  `blind_spots: []`, `basis_limits: []`, behavioural suite green, runtime coupling
+  intact. Conversely the coherent fixture's verdict flips to `unmappable` when its
+  generated package moves up one directory with zero Python changed.
+- found_by: blind agent under EV-03, reproduced independently by the scorer
+- evidence: examples/validation/runs/ex5-run4/artifacts/reexport_attack/
+- recommendation: EV-03-DF-03 -- resolve first-party-ness against the project root
+  and the sys.path the project installs; the fix is entirely in the detection and
+  changes no verdict rule.
+- status: recorded-local
+
+### SF-102
+
+- surface: scripts/run_generated_case_adapters.py
+- severity: minor
+- summary: A slice narrower than its view orphans the view's effect providers and
+  the runner refuses its corpus. Both mappings the ex4 fixture ships bind the
+  port, so a slice excluding the effect-carrying action has ZERO working
+  configurations and the documented workaround needs a third file that exists
+  nowhere -- and the file you write has no durable-write oracle, so the resulting
+  instrument is strictly weaker than it looks. (CM-F5, sharpened.)
+- found_by: EV-03 mechanical arm and, independently, the blind aspect agent
+- evidence: examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.txt
+- recommendation: EV-03-DF-02 -- a lever that treats an unused provider on a
+  declared case module as a fact rather than a misconfiguration.
+- status: recorded-local
+
+### SF-103
+
+- surface: scripts/run_generated_case_adapters.py
+- severity: minor
+- summary: `--effect-report PATH` accepts a path and silently writes nothing, with
+  no warning and exit 0, on a project that declares effect ports through `ports:`
+  + `effect_ports:` rather than an `effects:` block. The code comment two lines
+  above the gate claims the report is written unconditionally.
+- found_by: blind agent under EV-03, verified by the scorer
+- evidence: examples/validation/runs/ex4-run6/scoring.md
+- recommendation: EV-03-DF-04 -- write the report with an explicit "no effect
+  declarations found" body, or refuse naming the files searched. Silence is the
+  one option that is wrong.
+- status: recorded-local
+
+### SF-104
+
+- surface: scripts/analyze_architecture.py, prompts/aspect_decomposition.md
+- severity: minor
+- summary: `analyze architecture` without `--components` silently substitutes an
+  emergent partition for the one the project declares, and the shipped prompt's
+  Step 1 tells a first-day engineer to run it that way. On the ex4 fixture the
+  default run erases the deliberate `Deliver` spanning action and attributes the
+  boundary crossing to a different action.
+- found_by: blind agent under EV-03, verified by the scorer
+- evidence: examples/validation/runs/ex4-run6/scoring.md
+- recommendation: EV-03-DF-05 -- name a declaration the run did not use (a fact,
+  not a suggestion, so CD-01 is not engaged), and fix the prompt.
+- status: recorded-local
+
+### SF-105
+
+- surface: references/, examples/validation/README.md
+- severity: minor
+- summary: EV-02-DF-05 re-scored STILL OPEN. No `python3` on the eval machine's
+  PATH carries `yaml`, `pytest` and `tomllib` together, and no document states an
+  interpreter requirement. Both round-2 blind agents hit it independently. EV-03
+  solved it for itself with a pinned uv venv and documented that in the validation
+  README; the toolchain docs still do not.
+- found_by: EV-03 and both blind agents
+- evidence: examples/validation/runs/ex4-run4/scoring.md
+- recommendation: EV-02-DF-05 -- state an absolute interpreter path, or declare
+  the dependency set the published commands need.
+- status: recorded-local
+
+## Close-out ticket RC-01
+
+- close_scope: ticket
+- close_id: RC-01
+- workflow: architectural-coherence-epic
+- closed_at: 2026-08-01T23:37:54+00:00
+- summary: RC-01: all nine MF-026 in-scope gaps closed by modelling them or changing the program, plus the owner's guard-weakening decision. GenerateCases + CloseTicketWeakened + architecture_delta + TicketClosedWeakened; bound 9.53x, TLC green 7.99x distinct at unchanged depth 26.
+- feedback_status: items-recorded
+
+### SF-201
+
+- surface: `scripts/spec_evolution.py::record_complexity_ledger`, and the
+  `complexity_ledger.yaml` template `scripts/new_ticket_workflow.py` scaffolds.
+- what happened: RC-01 measured a 7.99x reachable-state increase, wrote the TLC
+  output to `specs/results/rc01-tlc-current.txt`, named it as close evidence, and
+  the ledger entry still recorded `distinct_states: null`. The ledger fills those
+  figures only from one of three conventional FILENAMES inside the ticket's own
+  `results/` directory, and nothing in the scaffolded input mentions the
+  convention, offers a field for the path, or warns when none resolves.
+- why it matters: the same silence produced nulls for AC-01 (the epic's headline
+  4.6x) and EV-03. The one entry in this epic that carries a reachable-state
+  figure is AC-04's, which added no model delta at all. The machine record of the
+  standing objective has the number for the ticket that moved nothing and null
+  for the three that moved it most.
+- recommendation: add `tlc_report:` to the scaffolded ledger input with the
+  convention documented beside it, keep the filename probe as a fallback, and
+  print one line at close when neither resolves. Filed locally as RC-01-DF-04 in
+  `specs/desired_program_model/deferred_findings.yaml`.
+- status: recorded-local
+
+### SF-202
+
+- surface: `tla-spec-dev run spec-unit-tests --scope`.
+- what happened: `specs/desired_program_model/tests/` carries a 17-file
+  conformance suite that is copied forward at every `open ticket` and is never
+  executed -- project scope resolves to `specs/current` only. Its binding
+  reconciliation test had been asserting "fourteen command actions" against a
+  fifteen-action module since AC-01 closed, and no run ever said so.
+- why it matters: this is the toolchain doing to itself what the MF-026 coverage
+  audit exists to catch -- an oracle that is never pointed at a surface reports
+  nothing about it, which is not the same as reporting that it is clean.
+- recommendation: either add a scope that includes the desired tree, or stop
+  scaffolding tests into it and say plainly that the desired tree carries no
+  executable conformance. Filed locally as RC-01-DF-02.
+- status: recorded-local
+
+### SF-203
+
+- surface: `scripts/skill_feedback.py`, the close-out feedback record itself.
+- what happened: filling this block revealed that EVERY close-out entry in this
+  file -- eight of them, across this epic and its predecessor -- still reads
+  `feedback_status: unreviewed` with the boilerplate instruction untouched. The
+  close prints "feedback NOT yet filed" and closes anyway.
+- why it matters: it is a required close-out step that nothing requires. The
+  same shape as the gaps this epic's audit was opened to find: an obligation
+  stated in prose, checked by nobody, and therefore not an obligation.
+- recommendation: owner's call whether the step is real. If it is, make the
+  close refuse `unreviewed` at WORKFLOW close (it already refuses plenty else
+  there); if it is not, stop printing the warning.
+- status: recorded-local
+
+## Close-out ticket RC-02
+
+- close_scope: ticket
+- close_id: RC-02
+- workflow: architectural-coherence-epic
+- closed_at: 2026-08-02T00:53:30+00:00
+- summary: Closed MF-026 round-3 N-1 (three unattached ports attached to InstallLocalCli in all three trees, with @port mirrors and two always-on consistency tests), N-2 (generate cases --out and --dot constrained through spec_paths.resolve_spec_tree_out, which constrains the metadir rmtree by construction), and N-3 (the stale citation fixed and a file-qualified, content-anchored citation check shipped, which found eight more stale citations). Ran run effect-conformance against this model for the first time: unobservable, 57 observed effects over 8 cases, 20 gaps, 9 dead ports, 15 unobservable targets, exit 1, nothing tuned; the N-1 counterfactual measures the fix at -2 gaps and -1 dead port. generation_status stays planned because this model's corpus is 3,678,217 cases at 18,391x its own cap. TLC unchanged at 10,331,543 distinct states, depth 26.
+- feedback_status: items-recorded
+
+### SF-301
+
+- surface: `tla-spec-dev run effect-conformance`, adapter import resolution.
+- what happened: the FIRST EVER execution of this oracle against this
+  repository's own model died with `ModuleNotFoundError: No module named
+  'production_adapters'` before a single case ran. The command executes
+  adapters in-process and never puts the target spec directory on `sys.path`,
+  while `case_adapters.toml` -- the file this same CLI scaffolds -- names them
+  as bare module paths. The enforcing copy does not have the defect:
+  `run spec-unit-tests` puts the target directory on `PYTHONPATH` when it
+  spawns the runner.
+- why it matters: the standalone oracle cannot run against ANY project this CLI
+  scaffolds, which is the opposite of the documented relationship between the
+  two ("this command exists so the diff can be produced and inspected on its
+  own"). It is a direct contributor to the "no oracle has ever run" limit that
+  MF-026 has reported since round 2: the first operator to try it gets an
+  import error and cannot tell whether the oracle or their project is at fault.
+- recommendation: put the resolved spec directory and the repository root on
+  `sys.path` in `_execute_corpus` before the first `load_object`, and add a
+  regression test that points the oracle at `specs/current` with no PYTHONPATH
+  set. Filed locally as RC-02-DF-02.
+- status: recorded-local
+
+### SF-302
+
+- surface: `tla-spec-dev run effect-conformance`, case execution.
+- what happened: the oracle calls `call_adapter` for every case and never
+  consults `can_run` / `adapter_accepts_case`, so it ABORTS THE WHOLE RUN on
+  the first adapter that cannot take its case -- here `TypeError: adapter
+  <AnalyzeArchitectureAdapter> does not define run(case, ...)`, on the second
+  case. `run_generated_case_adapters` applies exactly that capability check
+  before executing anything.
+- why it matters: the two runners are documented as the same measurement in two
+  places, and they are not. It also means the oracle has no partial report: one
+  unrunnable adapter and there is no evidence at all, rather than evidence about
+  the cases that did run.
+- recommendation: call `adapter_accepts_case` and record a SKIP with its reason,
+  and REPORT the skipped set -- a case the oracle silently did not run is the
+  "unobservable read as clean" shape MF-027 removed. Filed locally as
+  RC-02-DF-03.
+- status: recorded-local
+
+### SF-303
+
+- surface: `tla-spec-dev generate cases`, and `references/case_modules.md`.
+- what happened: generating this repository's own corpus from the REDUCED
+  config MF-028 added for the purpose produces 3,678,217 cases and a 7.4 GB
+  `cases.py` -- 18,391x the manifest's own `max_internal_cases_per_component`
+  -- and the cap gate refuses it after writing the whole thing to disk. Every
+  worked example in `references/case_modules.md` pairs generation with a
+  `tlc_projection.py`; the toolchain's own model has none, and nothing in the
+  CLI says that a model of any size needs one.
+- why it matters: this is why no oracle has ever run against this model, and it
+  is invisible until someone tries. The refusal message offers "redesign" or
+  "raise the cap" and never mentions the projector, which is the actual lever:
+  projecting away the two variables the repository already documents as
+  unrecoverable takes the corpus from 3,678,217 to 628,424 with no model change.
+- recommendation: name `--state-projector` in the cap-refusal message as a third
+  way forward, and gate on the projected count before rendering, so a refused
+  corpus does not cost 7.4 GB and five minutes first. Filed locally as
+  RC-02-DF-04.
+- status: recorded-local
+
+### SF-304
+
+- surface: internal line citations across `scripts/` and `spec_manifest.yaml`.
+- what happened: RC-02 shipped a content-anchored citation check and it
+  immediately found EIGHT stale citations beyond the one the coverage audit
+  filed -- 9 of the 11 distinct citations in that surface were wrong in at least
+  one tree, including one inside the comment block the previous ticket had just
+  written.
+- why it matters: three consecutive tickets were charged with "shipping a stale
+  citation" as though it were a lapse in care. The measurement says otherwise:
+  nothing checked, and a repository that cites line numbers in durable comments
+  will always drift. This is a skill-level pattern, not a repository one --
+  every project this skill scaffolds inherits comment-heavy manifests.
+- recommendation: ship the check (or its convention) with the scaffolded
+  project, or stop encouraging line-number citations in the templates and cite
+  symbols instead. Fixed here for this repository's surface, so no deferred
+  finding was filed.
+- status: recorded-local
+
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out workflow architectural-coherence-epic
+
+- close_scope: workflow
+- close_id: architectural-coherence-epic
+- workflow: architectural-coherence-epic
+- closed_at: 2026-08-04T00:54:24+00:00
+- summary: Architectural coherence and case modules: four architecture levers, case modules, two measured eval rounds, four MF-026 audit rounds, two reconciliation tickets, and a standardized scorecard baseline
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket HP-01
+
+- close_scope: ticket
+- close_id: HP-01
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-04T12:35:37+00:00
+- summary: The A/B experiment: two declared arms, a 10-mutant seeded catalogue proven exactly-once, and 13 sealed predictions including 6 negatives. No model surface added, deliberately.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket HP-02
+
+- close_scope: ticket
+- close_id: HP-02
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-04T14:06:33+00:00
+- summary: HP-02: the hexagonal + minimize-complexity ask ships as prompts/hexagonal_implementation.md, is inlined into arm B's HP-01 slot, and is documented in references/hexagonal_prompting.md. No checker, no threshold, no gate. Local pilot ran both arms end to end: hexagonality moved as expected, complexity moved the wrong way (declared instrument could not run -- HP-02-DF-01), and the catch-bugs guard moved the wrong way by one cell on an instrument whose positive control survives. The pilot also found a hole in the prompt (a real-vs-fake test that asserts nothing); one sentence was added afterwards and is UNMEASURED.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket HP-03
+
+- close_scope: ticket
+- close_id: HP-03
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-04T14:51:24+00:00
+- summary: The negative corpus: TLC's disabled edges asserted rejected, and a projection that takes MCsmall from 3,678,217 cases to 541. Guard relaxation moved off zero for the first time -- 3 of 3 seeded, 5 of 5 fresh, against 0 of 3 and 0 of 5 for the whole-view corpus. Zero model surface added. Four findings filed, none fixed. The hand-written suite still kills 10 of 10 where the corpora together kill 8 of 10.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket HP-04
+
+- close_scope: ticket
+- close_id: HP-04
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-04T15:03:52+00:00
+- summary: The effect oracle runs: it loads a scaffolded project's adapters unaided, skips and names what it cannot drive, and reports the same numbers twice. CM-F5 closed. The mutant matrix moved by zero cells, exactly as HP-01 predicted.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket HP-05
+
+- close_scope: ticket
+- close_id: HP-05
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-04T15:28:40+00:00
+- summary: Content assertion is the default: codegen generates and binds the content-asserting effect provider, every mapping states its oracles unprompted, and M04 moves from surviving every corpus to dying under the default mapping (durable_content 1 of 2 -> 2 of 2). The generator is still worse than the suite, now by one mutant instead of two.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket HP-06
+
+- close_scope: ticket
+- close_id: HP-06
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-04T16:29:19+00:00
+- summary: EVALUATION: the A/B judged blind. GOAL-hexagonal-in-fact MET (D3 = 4 from both judges, the first 4 outside D5 in this project's history); GOAL-catch-bugs MET (D1 = 3 from both judges, guard relaxation 3 of 3 under the negative corpus and 1 of 1 on a fresh blind catalogue); GOAL-simpler-same-behavior MISSED (D2 = 2 from all four judges -- an A/B cannot reach anchor 3). The prompt produced the structure and the structure caught nothing: 49 of 49 comparable kill cells identical between the arms. The positive control is RED on arm A. 7 PASS / 4 FAIL on the sealed predictions, three of the four failures negative. Findings by channel 0 suite : 17 adversarial : 13 blind author. Twelve findings filed, none fixed; six of HP-06's own claims falsified and corrected in place.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out workflow hexagonal-prompting-epic
+
+- close_scope: workflow
+- close_id: hexagonal-prompting-epic
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-05T15:28:59+00:00
+- summary: Hexagonal prompting: architecture as a prompt, a negative corpus that reached a class nothing had reached, static scanners removed, and an A/B decided by judged scorecards on a repaired instrument
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket PA-02
+
+- close_scope: ticket
+- close_id: PA-02
+- workflow: ports-as-adapters-epic
+- closed_at: 2026-08-05T18:07:32+00:00
+- summary: PA-02: scripts/code_complexity.py -- complexity figures over PRODUCED Python. A thermometer: it reports, refuses nothing, exits 0 on every input, and nothing in the toolchain reads its output. Distinguishes both committed anchor trees and both sealed arms.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket PA-03
+
+- close_scope: ticket
+- close_id: PA-03
+- workflow: ports-as-adapters-epic
+- closed_at: 2026-08-05T18:20:16+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket PA-04
+
+- close_scope: ticket
+- close_id: PA-04
+- workflow: ports-as-adapters-epic
+- closed_at: 2026-08-05T19:27:44+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket PA-05
+
+- close_scope: ticket
+- close_id: PA-05
+- workflow: ports-as-adapters-epic
+- closed_at: 2026-08-05T18:18:14+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket PA-06
+
+- close_scope: ticket
+- close_id: PA-06
+- workflow: ports-as-adapters-epic
+- closed_at: 2026-08-05T21:23:16+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

@@ -1,0 +1,43 @@
+# PROPOSED workflow-ledger input for owner reconciliation (MF-026 gate,
+# architectural-coherence epic). ROUND 3 -- re-audited against RC-01 at 05acf8c.
+# Supersedes the round-2 `fail` block, which superseded round 1's `incomplete`.
+#
+# NOT applied by the auditing agent: a gate that writes its own verdict into the
+# ledger it reports on is self-clearing.
+#
+# Verdict FAIL. It refuses the workflow close. Do not promote and do not rewrite
+# it as a justification or a waiver.
+coverage_audit:
+  status: "fail"
+  report: "specs/results/coverage_audit_report_architectural_coherence.md"
+  in_scope_gaps: 3
+  escalations: 0
+  out_of_model_inventoried: 6064
+  scope_source: "specs/desired_program_model/ticket_plan.yaml:233-248 (representation_scope, schedule_revision 6), governed by :26-98 (semantic_model_rule) and :99-108 (representation_scope_rule)"
+  model_audited: "specs/desired_program_model/TlaSpecDevCli.tla -- 11 variables, 18 Next disjuncts"
+  commit: "05acf8c"
+  raw_evidence: "specs/results/coverage-audit-arch-coherence-raw/round3/"
+  history:
+    - "round 1 (b1fc5fe): incomplete, 12 gaps, 7 escalations (187 rows) -- HALTED at Step 0"
+    - "round 2 (b76eaf1): fail, 9 gaps, 4 escalations (121 rows)"
+    - "round 3 (this): fail, 3 gaps, 0 escalations -- every enumerated row disposed"
+  rc01_verification:
+    round_2_gaps_closed: 8
+    round_2_gaps_closed_in_half: 1        # G-9: cli_artifact retargeted, three ports left orphaned -> N-1
+    forbidden_dispositions_used: 0        # grep over rc01-gap-closure.md returns nothing
+    dispositions: "model it / change the program only"
+  gaps:
+    - "N-1  cli_download, cli_artifact_delete and cli_selftest_process are declared in the ports block of all three trees and referenced by NO effects.actions row -- dead model surface by the manifest's own rule, and G-9's network download, delete and self-test spawn remain undeclared for BuildSkillCli/InstallLocalCli. [major]"
+    - "N-2  `generate cases` writes at :96/:669/:882-883 and DELETES at :140 (shutil.rmtree at a caller-chosen path) against ports targeting **/specs/**; resolve_evidence_out was written in this commit and not applied here. Same class RC-01 closed for three analyze commands. [major]"
+    - "N-3  generate_cases_from_tlc_dump.py:1145-1146 cites :115/:139/:881-882; actual lines are :116/:140/:882-883 -- a citation stale in the commit that wrote it. [minor]"
+  corrections_to_previous_rounds:
+    - "ROUND 2 G-5 WAS OVERSTATED AND RC-01 IS RIGHT. specs/program_model really does have 9 variables and 15 Next disjuncts, so its manifest figure was correct and was left alone. Round 2 compared all three manifests against one model's figures instead of against the module beside each. RC-01's parametrized tests/test_spec_manifest_records.py is a better fix than the one round 2 proposed."
+  independently_verified_not_taken_on_trust:
+    - "Guard-flag invariant claim CONFIRMED by reproduction: reverting TicketReached to the `>=` encoding in a scratch copy makes TLC report `Invariant SpecUnitTestsRequireMeasuredCorpus is violated` (exit 12); the shipped encoding is green on MCsmall (118,573 distinct, depth 16). Counterexample is `open ticket` -> `close ticket --accept-new` with corpus_gate still unknown. Five invariants carry the fix, matching the claim. The specific figure of 1,094 violating states was NOT independently confirmed -- TLC halts at the first violation."
+    - "Boundary count recomputed: 12 ports + 14 MC.cfg invariants = 26, matching 22 -> 26. Two orphan catalog entries (port-tlc_process, inv-SpecUnitTestsRequireAnalyzedGate) date to 58d785c and are pre-existing, not RC-01's."
+  coverage_limits:
+    - "The effect oracle has still never executed against this model: generation_status is `planned`, no specs/*/generated/ exists. `generate cases` makes it REACHABLE (before RC-01 the shipped CLI had no path to a corpus at all) but it has not been RUN. N-1 is the proof of what that costs -- effect_conformance.py:977 emits DEAD MODEL SURFACE for exactly this defect, and one run would have caught it."
+    - "The manifest-record limit is narrowed, not closed: RC-01's test checks counts and citations per tree; it does not check port-to-action consistency, which is what N-1 is."
+  owner_notes:
+    - "RC-01-DF-01 (emergent decomposition flipped on one added variable) is a CORRECTNESS defect in analyze_architecture.py, not a coverage gap, and is correctly not counted here. The criterion is literally `modularity_q > 0`, ~26x below the Newman threshold the tool prints; it is sensitive to model size rather than structure. Filing rather than retuning mid-delta was right."
+    - "cli_artifact, cli_download and cli_artifact_delete all target `*`. Reported, deliberately NOT filed as a gap -- the reasoning is recorded, follows the corpus_process precedent, and the schema has no env-var interpolation. The cost is real: two modeled actions can write anywhere and no effect-conformance run can ever report a gap for them."

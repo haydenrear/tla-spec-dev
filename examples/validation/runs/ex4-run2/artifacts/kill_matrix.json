@@ -1,0 +1,150 @@
+{
+  "label": "run2",
+  "control": {
+    "A": {
+      "exit": 0,
+      "green": true
+    },
+    "B": {
+      "exit": 0,
+      "green": true
+    }
+  },
+  "mutants": {
+    "F1-wrong-value": {
+      "fault_class": "wrong value",
+      "predicted_arm": "A and B",
+      "path": "pipeline/ledger/journal.py",
+      "arms": {
+        "A": {
+          "exit": 1,
+          "killed": true,
+          "detectors": [
+            "tla_projected_state"
+          ],
+          "first_failure": "EFFECT_FUZZ_FAILURE {\"case\": \"case_0020_record\", \"error\": \"adapter after-state mismatch for case_0020_record: ledger: expected ['i1'], actual ['I1']\", \"error_type\": \"AssertionError\", \"iteration\": 0, \"phase\": \"output_assert\", \"providers\": [{\"derived_seed\": 55838218868314746247441140934805480782, \"port\": \"LedgerStorePort\", \"provider\": \"specs.program_model.providers:silent_ledger_store_provider\"}], \""
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "detectors": [
+            "provider_content_assertion",
+            "tla_projected_state"
+          ],
+          "first_failure": "EFFECT_FUZZ_FAILURE {\"case\": \"case_0020_record\", \"error\": \"adapter after-state mismatch for case_0020_record: ledger: expected ['i1'], actual ['I1']\", \"error_type\": \"AssertionError\", \"iteration\": 0, \"phase\": \"output_assert\", \"providers\": [{\"derived_seed\": 55838218868314746247441140934805480782, \"port\": \"LedgerStorePort\", \"provider\": \"specs.program_model.providers:ledger_store_provider\"}], \"replay\""
+        }
+      }
+    },
+    "F2-wrong-field": {
+      "fault_class": "wrong field",
+      "predicted_arm": "A and B",
+      "path": "pipeline/dispatch/failures.py",
+      "arms": {
+        "A": {
+          "exit": 1,
+          "killed": true,
+          "detectors": [
+            "tla_output"
+          ],
+          "first_failure": "EFFECT_FUZZ_FAILURE {\"case\": \"case_0019_fail\", \"error\": \"adapter output mismatch for case_0019_fail: {'action': 'Fail', 'status': 'applied', 'ledger_size': 0, 'queue_size': 0, 'delivered_size': 1} != {'action': 'Fail', 'delivered_size': 0, 'ledger_size': 0, 'queue_size': 0, 'status': 'applied'}\", \"error_type\": \"AssertionError\", \"iteration\": 0, \"phase\": \"output_assert\", \"providers\": [], \"replay\": \""
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "detectors": [
+            "tla_output"
+          ],
+          "first_failure": "EFFECT_FUZZ_FAILURE {\"case\": \"case_0019_fail\", \"error\": \"adapter output mismatch for case_0019_fail: {'action': 'Fail', 'status': 'applied', 'ledger_size': 0, 'queue_size': 0, 'delivered_size': 1} != {'action': 'Fail', 'delivered_size': 0, 'ledger_size': 0, 'queue_size': 0, 'status': 'applied'}\", \"error_type\": \"AssertionError\", \"iteration\": 0, \"phase\": \"output_assert\", \"providers\": [], \"replay\": \""
+        }
+      }
+    },
+    "F3-off-by-one-durable": {
+      "fault_class": "off-by-one count",
+      "predicted_arm": "B only",
+      "path": "pipeline/ledger/journal.py",
+      "arms": {
+        "A": {
+          "exit": 0,
+          "killed": false,
+          "detectors": [],
+          "first_failure": ""
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "detectors": [
+            "provider_content_assertion"
+          ],
+          "first_failure": "EFFECT_FUZZ_FAILURE {\"case\": \"case_0020_record\", \"error\": \"DETECTOR[provider_content_assertion] persisted ledger [] != modeled after-state ['i1'] (action=Record, case=case_0020_record)\", \"error_type\": \"AssertionError\", \"iteration\": 0, \"phase\": \"exit\", \"provider\": {\"derived_seed\": 55838218868314746247441140934805480782, \"port\": \"LedgerStorePort\", \"provider\": \"specs.program_model.providers:ledger_st"
+        }
+      }
+    },
+    "F4-wrong-status": {
+      "fault_class": "wrong status",
+      "predicted_arm": "A and B",
+      "path": "pipeline/ingest/inbox.py",
+      "arms": {
+        "A": {
+          "exit": 1,
+          "killed": true,
+          "detectors": [
+            "tla_output"
+          ],
+          "first_failure": "EFFECT_FUZZ_FAILURE {\"case\": \"case_0001_accept\", \"error\": \"adapter output mismatch for case_0001_accept: {'action': 'Accept', 'status': 'rejected', 'ledger_size': 0, 'queue_size': 0, 'delivered_size': 0} != {'action': 'Accept', 'delivered_size': 0, 'ledger_size': 0, 'queue_size': 0, 'status': 'applied'}\", \"error_type\": \"AssertionError\", \"iteration\": 0, \"phase\": \"output_assert\", \"providers\": [], \"r"
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "detectors": [
+            "tla_output"
+          ],
+          "first_failure": "EFFECT_FUZZ_FAILURE {\"case\": \"case_0001_accept\", \"error\": \"adapter output mismatch for case_0001_accept: {'action': 'Accept', 'status': 'rejected', 'ledger_size': 0, 'queue_size': 0, 'delivered_size': 0} != {'action': 'Accept', 'delivered_size': 0, 'ledger_size': 0, 'queue_size': 0, 'status': 'applied'}\", \"error_type\": \"AssertionError\", \"iteration\": 0, \"phase\": \"output_assert\", \"providers\": [], \"r"
+        }
+      }
+    },
+    "F5-swallowed-error": {
+      "fault_class": "silently-swallowed error",
+      "predicted_arm": "B only",
+      "path": "pipeline/ledger/journal.py",
+      "arms": {
+        "A": {
+          "exit": 0,
+          "killed": false,
+          "detectors": [],
+          "first_failure": ""
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "detectors": [
+            "provider_content_assertion"
+          ],
+          "first_failure": "EFFECT_FUZZ_FAILURE {\"case\": \"case_0020_record\", \"error\": \"DETECTOR[provider_content_assertion] persisted ledger [] != modeled after-state ['i1'] (action=Record, case=case_0020_record)\", \"error_type\": \"AssertionError\", \"iteration\": 0, \"phase\": \"exit\", \"provider\": {\"derived_seed\": 55838218868314746247441140934805480782, \"port\": \"LedgerStorePort\", \"provider\": \"specs.program_model.providers:ledger_st"
+        }
+      }
+    },
+    "F6-off-by-one-in-memory": {
+      "fault_class": "off-by-one count",
+      "predicted_arm": "A and B",
+      "path": "pipeline/ingest/queue.py",
+      "arms": {
+        "A": {
+          "exit": 1,
+          "killed": true,
+          "detectors": [
+            "tla_output"
+          ],
+          "first_failure": "EFFECT_FUZZ_FAILURE {\"case\": \"case_0025_deliver\", \"error\": \"adapter output mismatch for case_0025_deliver: {'action': 'Deliver', 'status': 'applied', 'ledger_size': 0, 'queue_size': 0, 'delivered_size': 1} != {'action': 'Deliver', 'delivered_size': 1, 'ledger_size': 0, 'queue_size': 1, 'status': 'applied'}\", \"error_type\": \"AssertionError\", \"iteration\": 0, \"phase\": \"output_assert\", \"providers\": [],"
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "detectors": [
+            "tla_output"
+          ],
+          "first_failure": "EFFECT_FUZZ_FAILURE {\"case\": \"case_0025_deliver\", \"error\": \"adapter output mismatch for case_0025_deliver: {'action': 'Deliver', 'status': 'applied', 'ledger_size': 0, 'queue_size': 0, 'delivered_size': 1} != {'action': 'Deliver', 'delivered_size': 1, 'ledger_size': 0, 'queue_size': 1, 'status': 'applied'}\", \"error_type\": \"AssertionError\", \"iteration\": 0, \"phase\": \"output_assert\", \"providers\": [],"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+HP-04 -- RC-02-DF-02 and RC-02-DF-03, on this repository's own model.
+Reconciled epic tip (HP-01, HP-02, HP-03 merged).
+
+$ env -u PYTHONPATH python3 scripts/tla_spec_dev.py --spec-root specs \
+    run effect-conformance --target specs/current \
+    --cases-dir specs/tickets/HP-04/results/corpus-all-actions
+
+The corpus is one case per modeled action, all 18. RC-02's own corpus was
+restricted to the 8 executable ones BECAUSE the oracle aborted on the ninth.
+
+effect declarations: 12 port(s) from specs/current/spec_manifest.yaml
+wrote evidence: /tmp/hp04_ev1.json
+effect conformance unobservable: 74 observed effect(s) over 8 case(s), 12 declared port(s), 15 gap(s), 9 dead port(s), 15 unobservable target(s), 10 skipped case(s)
+work dir: specs/current/.effect-conformance-work (each case started from an EMPTY directory, so two runs over an identical corpus report identical counts -- MF026-R4-F-01)
+ADAPTER REACH: 8 of 18 action(s) in this corpus DRIVEN; 10 SKIPPED. Driven: BuildSkillCli, InstallLocalCli, OpenTicket, RecordBudgets, ScaffoldProject, ScaffoldWorkflow, UpdateTicketCurrent, UpdateTicketDesired. Skipped: AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, CloseTicket, CloseTicketWeakened, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, Stutter.
+
+SKIPPED CASES -- reported, never a refusal (no_new_gates_rule). The oracle certifies NOTHING about the actions below; their ports are unexercised by this run rather than proven dead:
+  - SKIPPED [not-runnable]: case case_0001_analyze_architecture (action AnalyzeArchitecture) -- adapter production_adapters:AnalyzeArchitectureAdapter: adapter defines apply() but no run(case, work_dir), so no case can drive it; the oracle observes nothing for this action
+  - SKIPPED [not-runnable]: case case_0002_analyze_complexity (action AnalyzeComplexity) -- adapter production_adapters:AnalyzeComplexityAdapter: adapter defines apply() but no run(case, work_dir), so no case can drive it; the oracle observes nothing for this action
+  - SKIPPED [not-runnable]: case case_0003_analyze_corpus (action AnalyzeCorpus) -- adapter production_adapters:AnalyzeCorpusAdapter: adapter defines apply() but no run(case, work_dir), so no case can drive it; the oracle observes nothing for this action
+  - SKIPPED [not-runnable]: case case_0005_close_ticket (action CloseTicket) -- adapter production_adapters:CloseTicketAdapter: adapter defines apply() but no run(case, work_dir), so no case can drive it; the oracle observes nothing for this action
+  - SKIPPED [not-runnable]: case case_0006_close_ticket_weakened (action CloseTicketWeakened) -- adapter production_adapters:CloseTicketWeakenedAdapter: adapter defines apply() but no run(case, work_dir), so no case can drive it; the oracle observes nothing for this action
+  - SKIPPED [not-runnable]: case case_0007_generate_cases (action GenerateCases) -- adapter production_adapters:GenerateCasesAdapter: adapter defines apply() but no run(case, work_dir), so no case can drive it; the oracle observes nothing for this action
+  - SKIPPED [not-runnable]: case case_0011_run_effect_conformance (action RunEffectConformance) -- adapter production_adapters:RunEffectConformanceAdapter: adapter defines apply() but no run(case, work_dir), so no case can drive it; the oracle observes nothing for this action
+  - SKIPPED [not-runnable]: case case_0012_run_kill_test (action RunKillTest) -- adapter production_adapters:RunKillTestAdapter: adapter defines apply() but no run(case, work_dir), so no case can drive it; the oracle observes nothing for this action
+  - SKIPPED [not-runnable]: case case_0013_run_spec_unit_tests (action RunSpecUnitTests) -- adapter production_adapters:RunSpecUnitTestsAdapter: adapter defines apply() but no run(case, work_dir), so no case can drive it; the oracle observes nothing for this action
+  - SKIPPED [unbound]: case case_0016_stutter (action Stutter) -- adapter <unbound>: no adapter is bound for this action in case_adapters.toml
+
+REFUSED -- the sandbox could not observe the target(s) below. This report certifies NOTHING about them. The effect oracle observes the in-process CPython runtime only; it does not cross a process boundary.
+  - UNOBSERVABLE BOUNDARY: process 'bash /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-04/skill-scripts/install-tla-spec-dev.sh' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0008_install_local_cli action=InstallLocalCli]
+  ... (gaps and unobservable boundaries continue; see the JSON)
+
+At the epic tip the SAME command dies with
+  ModuleNotFoundError: No module named 'production_adapters'
+before a single case executes. With PYTHONPATH set it gets further and dies with
+  TypeError: adapter <AnalyzeArchitectureAdapter> does not define run(case, ...)
+and writes no report at all.

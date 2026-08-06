@@ -1,0 +1,31 @@
+........................................................................ [  9%]
+........................................................................ [ 19%]
+........................................................................ [ 28%]
+........................................................................ [ 38%]
+........................................................................ [ 47%]
+........................................................................ [ 57%]
+........................................................................ [ 66%]
+........................................................................ [ 76%]
+.................F...................................................... [ 85%]
+........................................................................ [ 95%]
+.....................................                                    [100%]
+=================================== FAILURES ===================================
+____________ test_skill_requires_two_minute_case_generation_budget _____________
+
+    def test_skill_requires_two_minute_case_generation_budget() -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        generation_modes = (ROOT / "references" / "generation_modes.md").read_text(encoding="utf-8")
+    
+        assert "hard 120-second timeout" in skill
+        assert "Do not simply raise the timeout" in skill
+        assert "perform bounded discovery of the state explosion" in skill
+        assert "accidental complexity" in skill
+        assert "Provide concrete recommendations" in skill
+        assert "discuss the tradeoff with the user" in skill
+>       assert "hard two-minute budget" in generation_modes
+E       AssertionError: assert 'hard two-minute budget' in '# Generation Modes\n\nSpec Double Compiler has two related generation paths. Keep them distinct.\n\n## Manifest-Drive...he TLC state-graph case path is usually the\nbetter fit because it keeps cases tied directly to the reachable model.\n'
+
+tests/test_new_ticket_workflow.py:52: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_new_ticket_workflow.py::test_skill_requires_two_minute_case_generation_budget
+1 failed, 756 passed in 14.74s

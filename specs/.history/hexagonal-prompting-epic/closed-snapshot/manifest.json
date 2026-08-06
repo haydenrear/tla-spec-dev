@@ -1,0 +1,1213 @@
+{
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/hexagonal-prompting-epic/closed-snapshot specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'close spec ticket workflow'",
+    "message": "It is recommended to commit this history directory now: specs/.history/hexagonal-prompting-epic/closed-snapshot"
+  },
+  "complexity_delta": {
+    "direction": "decrease",
+    "metrics": {
+      "actions": {
+        "after": 17,
+        "before": 18,
+        "delta": -1,
+        "percent": -5.6
+      },
+      "bound": {
+        "after": 1111320,
+        "before": 26671680,
+        "bound_complete_after": false,
+        "bound_complete_before": false,
+        "comparable": false,
+        "delta": -25560360,
+        "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+        "percent": -95.8
+      },
+      "depth": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "generated_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "variables": {
+        "after": 9,
+        "before": 11,
+        "delta": -2,
+        "percent": -18.2
+      }
+    },
+    "previous_scope_id": "HP-06"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": 3,
+      "passing": false,
+      "report": "specs/results/coverage_audit_report_hexagonal_prompting.md",
+      "scope_source": "specs/desired_program_model/ticket_plan.yaml:102-119 (representation_scope), governed by :42-55 (semantic_model_rule, representation_scope_rule) and :56-68 (surface_cost_rule, no_new_gates_rule)",
+      "status": "fail"
+    },
+    "delta": {
+      "direction": "decrease",
+      "metrics": {
+        "actions": {
+          "after": 17,
+          "before": 18,
+          "delta": -1,
+          "percent": -5.6
+        },
+        "bound": {
+          "after": 1111320,
+          "before": 26671680,
+          "bound_complete_after": false,
+          "bound_complete_before": false,
+          "comparable": false,
+          "delta": -25560360,
+          "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+          "percent": -95.8
+        },
+        "depth": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "generated_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "variables": {
+          "after": 9,
+          "before": 11,
+          "delta": -2,
+          "percent": -18.2
+        }
+      },
+      "previous_scope_id": "HP-06"
+    },
+    "errors": [],
+    "input_path": "specs/results/complexity_ledger_input.yaml",
+    "justification": "",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+      "actions": 17,
+      "actions_from_fallback_heuristic": false,
+      "bound": 1111320,
+      "bound_complete": false,
+      "bound_resolved_variables": 7,
+      "bound_unresolved_variables": [
+        "lastCommand",
+        "result"
+      ],
+      "budget_utilization": {
+        "max_state_space_bound": {
+          "bound_complete": false,
+          "cap": 1000000,
+          "caveat": "the bound is a product over 7 of 9 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent",
+          "percent": null,
+          "percent_lower_bound": 111.1,
+          "used": 1111320,
+          "within_cap": false
+        }
+      },
+      "depth": null,
+      "distinct_states": null,
+      "gate_passed": false,
+      "gate_violations": [
+        "state-space upper bound 1,111,320 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 7 of 9 declared variables, so the complete bound is at least this large)",
+        "component C1 has 7 variables (complexity_gate, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+        "component C1 is touched by 16 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+      ],
+      "generated_states": null,
+      "modularity": 0.00334800669601341,
+      "variables": 9
+    },
+    "narrative": "Workflow close of complexity-descriptor-main-readiness, the promotion gate for merging to main. The batch (CD-04..08, PRs #94-#98) removed every negative side effect the six earlier validation runs catalogued: the corpus gate now states measurements and asks the redesign question; the descriptor's domain resolution and R/W attribution are accurate on the standard patterns real agents write; every surface speaks the advisory doctrine; the shipped example passes its own documented workflow. The effect-provider epic then merged (86865d2 + integration) with zero host-model delta, adding the agent-authored provider runtime whose evals reproduced here (80/80 tests; atomic_publisher and reminder_worker fresh validations pass), and the composed surface was validated by run 4: content-asserting providers killed the exact bug class the MF-038 probe measured at 0/9 (taskq: 45/45 points, exact replay; order_hub: two probes; distributed_history: one-boundary migration with the legacy path proven). Four adoption-path defects were owner spot-fixed with regression tests (e7fcd09). SF-001..007 filed as #105-#111; remaining backlog carried as #112-#115. Measured alternatives and the findings the machine-checked core cannot express live in examples/validation/runs/ and the run 2-5 audit reports of the predecessor workflow, all sealed.",
+    "notes": [
+      "decrease proceeds past non-gating experimental retention members (CD-09): kill_rate=not_run (UNVERIFIED); effect_conformance=not_run (UNVERIFIED); external_coverage=not_run (UNVERIFIED)",
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit (MF-026) is `fail`: in-scope gaps -- model it or change the program. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+    ],
+    "recorded_at_utc": "2026-08-05T15:28:59.256391+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "Searched at workflow scope: the model is unchanged (TLC byte-identical to the CD-11 baseline through CD-04..08, the effect-provider merge, and the owner spot fixes). Refinement THIS workflow earned happened on the validation examples, not this model: run-3/run-4 agents took validated refactors on taskq (424 -> 63 distinct via the corpus-priced representation fix) and order_hub (bound 8,388,608 -> 624, four convergent runs), evidence under examples/validation/runs/.",
+      "measured": false,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "EXPERIMENTAL per the pivot; no decrease claimed.",
+        "status": "not_run",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "EXPERIMENTAL per the pivot; no decrease claimed.",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "EXPERIMENTAL per the pivot; no decrease claimed. NOTE: the merged effect-provider evals measured 36/36 preregistered mutant kills on their three fixtures (examples/effect_providers/RESULTS.md) \u2014 recorded as context, not as this repository's kill rate.",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=not_run (UNVERIFIED)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "workflow",
+    "scope_id": "hexagonal-prompting-epic",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "retained",
+        "evidence": "The -164 against the pre-removal 1,150 is EXACTLY the 135 deleted scanner tests plus their parametrisations, verified test-by-test -- no test newly failing. specs/{program_model,current,desired_program_model}/tests: 69 each, green.",
+        "status": "green",
+        "value": "986 passed / 0 failed at 24ed3fa; 1,004 / 0 at d8608ce"
+      },
+      "descriptor_comparison": {
+        "classification": "retained",
+        "evidence": "The decrease is pure DELETION of two variables (architecture_scan, architecture_delta) and their sole writer (AnalyzeArchitecture), which left together. No invariant weakened, no guard relaxed, no domain narrowed, no reachable behaviour quotiented away. Checked against MF-020, whose whole point is that a metric can improve because an edge was DELETED: here the edge was deleted deliberately, with the behaviour it carried removed in the same commit rather than orphaned, and the four oracles' scope shrank with it rather than staying wide over a smaller model. Every other action, variable and invariant is byte-identical after comment stripping. Full diff: commit 24ed3fa (9,552 deletions / 1,842 insertions / 60 files).",
+        "status": "recorded",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "retained",
+        "evidence": "MC.cfg at 24ed3fa. No error. Declared bound 26,671,680 -> 1,111,320. This is the FIRST DIVISION in this ledger's history; every prior entry multiplies.",
+        "status": "green",
+        "value": "563,963 distinct / 13.0M generated / depth 25"
+      },
+      "tlc_before": {
+        "classification": "retained",
+        "evidence": "MC.cfg at 24ed3fa~, recorded by the SCAN-REMOVE ticket BEFORE deleting a line. No error.",
+        "status": "green",
+        "value": "1,292,951 distinct / 32.1M generated / depth 26"
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=green (retained)",
+      "tlc_after=green (retained)",
+      "behavior_tests=green (retained)",
+      "descriptor_comparison=recorded (retained)"
+    ],
+    "verdict": "recorded",
+    "workflow": "hexagonal-prompting-epic"
+  },
+  "created_at_utc": "2026-08-05T15:28:59.296258+00:00",
+  "entry_name": "closed-snapshot",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "epic/hexagonal-prompting",
+    "commit": "21da25b",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "workflow-close",
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "Searched at workflow scope: the model is unchanged (TLC byte-identical to the CD-11 baseline through CD-04..08, the effect-provider merge, and the owner spot fixes). Refinement THIS workflow earned happened on the validation examples, not this model: run-3/run-4 agents took validated refactors on taskq (424 -> 63 distinct via the corpus-priced representation fix) and order_hub (bound 8,388,608 -> 624, four convergent runs), evidence under examples/validation/runs/.",
+    "measured": false,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/closed-snapshot/results/RESULTS.md",
+      "source": "specs/results/scorecards/hexagonal-prompting-rerun/RESULTS.md"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "EXPERIMENTAL per the pivot; no decrease claimed.",
+      "status": "not_run",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "EXPERIMENTAL per the pivot; no decrease claimed.",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "EXPERIMENTAL per the pivot; no decrease claimed. NOTE: the merged effect-provider evals measured 36/36 preregistered mutant kills on their three fixtures (examples/effect_providers/RESULTS.md) \u2014 recorded as context, not as this repository's kill rate.",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 79,
+    "close_out_entry": "Close-out workflow hexagonal-prompting-epic",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/105) \u2014 scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/106) \u2014 plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/107) \u2014 promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/108) \u2014 the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/109) \u2014 a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/110) \u2014 plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/111) \u2014 three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/105) \u2014 scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/106) \u2014 plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/107) \u2014 promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/108) \u2014 the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/109) \u2014 a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/110) \u2014 plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/111) \u2014 three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex5-run4/artifacts/reexport_attack/",
+        "filed": false,
+        "id": "SF-101",
+        "observed_on": "",
+        "recommendation": "EV-03-DF-03 -- resolve first-party-ness against the project root",
+        "reference": null,
+        "root_cause": "",
+        "severity": "major",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.txt",
+        "filed": false,
+        "id": "SF-102",
+        "observed_on": "",
+        "recommendation": "EV-03-DF-02 -- a lever that treats an unused provider on a",
+        "reference": null,
+        "root_cause": "",
+        "severity": "minor",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex4-run6/scoring.md",
+        "filed": false,
+        "id": "SF-103",
+        "observed_on": "",
+        "recommendation": "EV-03-DF-04 -- write the report with an explicit \"no effect",
+        "reference": null,
+        "root_cause": "",
+        "severity": "minor",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex4-run6/scoring.md",
+        "filed": false,
+        "id": "SF-104",
+        "observed_on": "",
+        "recommendation": "EV-03-DF-05 -- name a declaration the run did not use (a fact,",
+        "reference": null,
+        "root_cause": "",
+        "severity": "minor",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex4-run4/scoring.md",
+        "filed": false,
+        "id": "SF-105",
+        "observed_on": "",
+        "recommendation": "EV-02-DF-05 -- state an absolute interpreter path, or declare",
+        "reference": null,
+        "root_cause": "",
+        "severity": "minor",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-201",
+        "observed_on": "",
+        "recommendation": "add `tlc_report:` to the scaffolded ledger input with the",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-202",
+        "observed_on": "",
+        "recommendation": "either add a scope that includes the desired tree, or stop",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-203",
+        "observed_on": "",
+        "recommendation": "owner's call whether the step is real. If it is, make the",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-301",
+        "observed_on": "",
+        "recommendation": "put the resolved spec directory and the repository root on",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-302",
+        "observed_on": "",
+        "recommendation": "call `adapter_accepts_case` and record a SKIP with its reason,",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-303",
+        "observed_on": "",
+        "recommendation": "name `--state-projector` in the cap-refusal message as a third",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-304",
+        "observed_on": "",
+        "recommendation": "ship the check (or its convention) with the scaffolded",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 26,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007",
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007",
+      "SF-101",
+      "SF-102",
+      "SF-103",
+      "SF-104",
+      "SF-105",
+      "SF-201",
+      "SF-202",
+      "SF-203",
+      "SF-301",
+      "SF-302",
+      "SF-303",
+      "SF-304"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/closed-snapshot/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/closed-snapshot/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/closed-snapshot/snapshots/current",
+      "source": "specs/current"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "Hexagonal prompting: architecture as a prompt, a negative corpus that reached a class nothing had reached, static scanners removed, and an A/B decided by judged scorecards on a repaired instrument",
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "tickets": [
+    {
+      "acceptance": {
+        "assertions": [
+          "Two arms exist as two prompt files; neither is the other with a section removed.",
+          "The seeded catalogue is a committed artifact with exact find/replace, a harness asserting each pattern occurs exactly once, and at least one fault in each mechanism's known gap.",
+          "PREDICTIONS-HP.md is committed before any other ticket is dispatched and contains at least three explicit NEGATIVE predictions."
+        ],
+        "close_note": "Assertion 1: two arms as two files, verified mechanically by `check_catalogue.py --arms` (neither prompt's line set is a subset of the other's). Arm B's HP-02 slot is DECLARED AND UNFILLED by design -- HP-01 does not write the treatment it is building the experiment to judge. Assertion 2: 10 mutants, every `find` proven to occur EXACTLY ONCE, apply/revert byte-identical, every mutant still parses, all four declared mechanism gaps seeded, plus one positive and one negative control. Assertion 3: PREDICTIONS-HP.md carries 7 positive and 6 NEGATIVE predictions, each with an ID, an instrument and a direction. Sealed before any other ticket is dispatched. MEASURED AND UNFLATTERING, recorded here rather than only in the fixture: the hand-written suite kills 10 of 10 mutants. That is the bar the generated corpus must clear, and if it scores lower HP-06 must say the generator is worse on this fixture than a suite written in an afternoon. One of HP-01's own 10 suite predictions (M02) was WRONG and was corrected before dispatch, with the error recorded beside it. Two findings FILED, not fixed: HP-01-DF-01 (the epic's own acceptance command is red at the epic tip, caused by the mandated worktree Skill Manager home shadowing basenames in test_source_citations.resolve_cited) and HP-01-DF-02 (the shipped EV-01 catalogue is rejected by the shipped kill_test parser over `effect_port` vs `port`).",
+        "commands": [
+          "uv run --with pytest --with pyyaml python -m pytest tests -q"
+        ],
+        "evidence": [
+          "specs/tickets/HP-01/results/catalogue-integrity.txt",
+          "specs/tickets/HP-01/results/catalogue-suite-verification.txt",
+          "specs/tickets/HP-01/results/behavior-suite.txt",
+          "specs/tickets/HP-01/results/tlc-quotaledger.txt",
+          "specs/tickets/HP-01/results/scorecard-shape-check.txt",
+          "specs/tickets/HP-01/results/goal-signal.txt",
+          "specs/tickets/HP-01/results/zero-model-delta.txt",
+          "specs/tickets/HP-01/results/spec-unit-tests.txt",
+          "specs/tickets/HP-01/results/pytest-full.txt",
+          "specs/tickets/HP-01/results/pytest-baseline-epic-tip.txt",
+          "specs/tickets/HP-01/results/suite-regression-comparison.txt",
+          "specs/tickets/HP-01/results/ex4-catalogue-parser-refusal.txt"
+        ]
+      },
+      "blocks": [
+        "HP-03",
+        "HP-04",
+        "HP-05",
+        "HP-06"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "examples/validation/ab/",
+          "examples/validation/scorecards/",
+          "examples/validation/PREDICTIONS-HP.md"
+        ]
+      },
+      "depends_on": [],
+      "desired_actions": [],
+      "github_issue": null,
+      "goals": [
+        {
+          "contribution": "enabling",
+          "expected_effect": "none -- enabling only; builds the catalogue and the arms every other goal is measured through",
+          "goal": "GOAL-catch-bugs",
+          "local_signal": "python3 examples/validation/scorecards/score_tools.py check <dir>"
+        },
+        {
+          "contribution": "enabling",
+          "expected_effect": "none -- enabling only; supplies the before/after descriptor capture D2 anchor 3 requires",
+          "goal": "GOAL-simpler-same-behavior",
+          "local_signal": "N/A: harness ticket"
+        },
+        {
+          "contribution": "enabling",
+          "expected_effect": "none -- enabling only; supplies the arm-blind judging protocol",
+          "goal": "GOAL-hexagonal-in-fact",
+          "local_signal": "N/A: harness ticket"
+        }
+      ],
+      "id": "HP-01",
+      "implementation_scope": [
+        "examples/validation/"
+      ],
+      "model_delta_expectation": "none -- and that is deliberate",
+      "objective": "Build the experiment, then get out of the way. Three parts. (1) THE A/B TASK. One feature specification, written once, given to two agents: ARM A with an ordinary implementation prompt, ARM B with HP-02's hexagonal + minimize-complexity prompt. Same feature, same model, same seeded-fault catalogue, same judges. The arms are declared as two prompts in two files, never one prompt with a paragraph switched off, so a reader of the record can see which instrument produced which number. (2) THE SEEDED CATALOGUE, shipped as an artifact -- a `seeded_faults.toml`-shaped file with exact find/replace and a harness asserting each pattern occurs exactly once, so every number is re-derivable. Seed a fault IN THE GAP each mechanism is supposed to lose, including at least one guard-relaxation fault and one requiring a content assertion. A reduction result with no mutant in the gap is not a measurement. (3) COMMIT `examples/validation/PREDICTIONS-HP.md` BEFORE any other ticket is dispatched, with at least three NEGATIVE predictions -- what will NOT move. RP-02 is why: it closed a real oracle leak, took parameter recovery from 0 of 5 to 5 of 5, and moved the mutant matrix by zero cells. Nobody predicted that, and it killed a hypothesis recorded as fact. This ticket adds NO model surface. Per surface_cost_rule that is a feature.",
+      "promotion_order": 10,
+      "promotion_predecessor": null,
+      "schedule_revision": 1,
+      "status": "done",
+      "title": "The A/B harness, the scorecard baseline, and the sealed predictions",
+      "wave": 1
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "The prompt asks for ports and adapters and for the simplest behavior-preserving design, and instructs the agent to make NO check pass.",
+          "It ships as a prompt file; nothing in the toolchain refuses anything as a result of this ticket.",
+          "A worked example shows the prompt used end to end."
+        ],
+        "close_note": "Assertion 1: `prompts/hexagonal_implementation.md` asks for a domain that holds no handle/path/clock/env/network/global, a driven port the DOMAIN declares, a domain module that does not IMPORT its adapters, a working fake plus the identical case list against both, a named swap sentence, and an explicit prohibition on inventing ports for non-I/O. The simplicity half restates references/complexity_intuition.md's reading rules in code terms. NOT ONE NUMBER APPEARS IN THE ASK -- no threshold, no budget, no report to turn green -- and it names the round-2 duplication result and MF-020 explicitly. The same ask is inlined as arm B's Section 1 (HP-01's slot), which is the only edit made to examples/validation/. Assertion 2: two markdown files and one slot fill. Nothing in the toolchain reads them, no test enumerates them, and no checker was added -- including the \"are the two copies still in sync\" test that no_new_gates_rule forbids. `check_catalogue.py --arms` reports the slot FILLED; neither arm is a subset of the other. Assertion 3: worked end to end at specs/tickets/HP-02/results/pilot/ -- both arms dispatched verbatim to fresh agents against the shared FEATURE.md, both green on the shared suite (28 passed), the HP-01 catalogue re-anchored per arm with exactly-once and byte-identical revert proven per arm, and a per-class per-arm per-instrument kill table. THE LOCAL SIGNAL CAME BACK NEGATIVE ON TWO OF THREE GOALS, recorded here and not only in the evidence. GOAL-hexagonal-in-fact moved as expected (arm B: Protocol port, real adapter, working fake, one composition point, domain importing no I/O; arm A: none of them) -- but on my reading, not a judgement, at n=1, with the length confound now measured at 6.6x. GOAL-simpler-same-behavior moved THE WRONG WAY on the only available substitute (5 files / 274 lines against 1 / 120), reproducing the sealed N01, and its DECLARED instrument could not run at all (HP-02-DF-01). GOAL-catch-bugs, the guard, moved THE WRONG WAY BY ONE CELL: the shared suite is flat at 10/10 on both arms, but each arm's own tests scored A 4/10 against B 3/10 -- arm B wrote 3.6x the test code and caught one fault fewer -- and the arm-own instrument's positive control (M07) survives on BOTH arms, so by the catalogue's own P05 doctrine that row is not citeable as a kill measurement. AND THE PILOT FOUND A HOLE IN THE PROMPT ITSELF. Arm B's real-vs-fake test asserted `scenario(fake) == scenario(real)` -- two wirings of the SAME domain, so every domain-logic fault moves both sides identically and the test cannot fail for any fault in the rules. The artifact the prompt asked for, and that D3 anchor 4 is written about, was by construction blind to the faults D1 is about. One sentence was added to both copies of the ask afterwards; THE PILOT MEASURED THE TEXT BEFORE IT AND WAS DELIBERATELY NOT RE-RUN, so the shipped text is unmeasured and HP-06's A/B is its first measurement. Two findings FILED, not fixed: HP-02-DF-01 (the mechanical half of GOAL-simpler-same-behavior's harness has no runnable instrument on this fixture -- the scanner reads TLA+, both arms produce Python, and the one model is shared by design; three dispositions offered, the choice is the owner's) and HP-02-DF-02 (SKILL.md's index does not list the two new pages; deliberately left until HP-06 decides whether the prompt is worth pointing anyone at). PREDICTIONS-HP.md was not touched. Zero model surface added, per surface_cost_rule. WHERE THE EVIDENCE ACTUALLY IS: `close ticket` consumes specs/tickets/HP-02/ into the append-only record, so every path listed above now reads specs/.history/hexagonal-prompting-epic/ticket-001-HP-02/ticket/results/. The `evidence:` paths are kept in the pre-close form for consistency with HP-01's entry, which has the same property.",
+        "commands": [
+          "uv run --with pytest --with pyyaml python -m pytest tests -q"
+        ],
+        "evidence": [
+          "specs/tickets/HP-02/results/goal-signal.md",
+          "specs/tickets/HP-02/results/pilot-kill-table.txt",
+          "specs/tickets/HP-02/results/pilot-catalogue-integrity.txt",
+          "specs/tickets/HP-02/results/structure-reading.txt",
+          "specs/tickets/HP-02/results/catalogue-arms.txt",
+          "specs/tickets/HP-02/results/complexity-descriptor-shared-model.txt",
+          "specs/tickets/HP-02/results/skill-index-gap.txt",
+          "specs/tickets/HP-02/results/spec-unit-tests.txt",
+          "specs/tickets/HP-02/results/pytest-full.txt",
+          "specs/tickets/HP-02/results/suite-regression-comparison.txt",
+          "specs/tickets/HP-02/results/pilot/"
+        ]
+      },
+      "blocks": [
+        "HP-06"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "prompts/hexagonal_implementation.md",
+          "references/hexagonal_prompting.md"
+        ]
+      },
+      "depends_on": [],
+      "desired_actions": [],
+      "github_issue": null,
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "This IS the intervention. Arm B scores D3 >= 3 where arm A scores 1-2; if D3 does not separate, the prompt is decoration and the epic says so.",
+          "goal": "GOAL-hexagonal-in-fact",
+          "local_signal": "Run the prompt against one small fixture in the ticket worktree and read the produced structure; report it whichever way it comes out."
+        },
+        {
+          "contribution": "direct",
+          "expected_effect": "Arm B's descriptor shows lower complexity at equal behavior; D2 separates from arm A.",
+          "goal": "GOAL-simpler-same-behavior",
+          "local_signal": "python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity on the produced artifact, before and after"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "Must not REDUCE bug detection. A prompt that produces prettier code whose adapters catch less has failed.",
+          "goal": "GOAL-catch-bugs",
+          "local_signal": "the seeded catalogue from HP-01 against the arm-B artifact"
+        }
+      ],
+      "id": "HP-02",
+      "implementation_scope": [
+        "prompts/",
+        "references/"
+      ],
+      "model_delta_expectation": "none",
+      "objective": "The architecture lever of this epic, and it is a PROMPT. Not a schema, not a check, not a gate. Owner direction 2026-08-03: the hoops already built are not smart enough to provide value and agents spend real time jumping through them, so architecture guidance moves into the ask. The hypothesis being tested, stated so it can fail: an agent working from the DIAGRAM -- far enough from the code that it is not defending existing structure -- will produce a modular, testable design if simply asked for one, and will preserve behavior while reducing complexity if told that is the goal. Build on what already ships: prompts/implementation_brief.md and prompts/aspect_decomposition.md (AC-03). The new prompt asks for ports and adapters explicitly -- a domain that does not import its I/O, driven ports behind interfaces, adapters swappable for fakes -- and asks for the SIMPLEST design that retains the behaviors, feeding the shipped complexity descriptor in AS GUIDANCE rather than gating on it. Two things the prompt must NOT do, both learned the hard way. It must not instruct the agent to make any check pass -- \"make the coherence check clean\" is a standing instruction to duplicate across component boundaries, measured in round 2. And it must not promise that a metric improving means the design improved: MF-020, a metric can improve because an edge was deleted.",
+      "promotion_order": 20,
+      "promotion_predecessor": "HP-01",
+      "schedule_revision": 1,
+      "status": "done",
+      "title": "The prompt: hexagonal architecture and minimize complexity, as instructions",
+      "wave": 1
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "A negative corpus emits, per reachable state, the disabled actions with the argument that would be refused, each asserting rejection.",
+          "Zero false rejections on the green control: no case asserts rejection of an input the model enables.",
+          "Byte-identical across two independent generations, INCLUDING its failing executions.",
+          "This model produces a corpus its own cap accepts, and the run states which projection made that true.",
+          "Per-class per-arm kill table reported. Never a single kill rate."
+        ],
+        "close_note": "THE HEADLINE, AND IT IS THE FIRST TIME: guard relaxation moved off zero. 3 of 3 on HP-01's seeded catalogue and 5 of 5 on a fresh independently authored one, against 0 of 3 and 0 of 5 for the whole-view corpus on the same reference implementation and the same run. Baseline was 0 of 3, 0 of 3 and 0 of 4 across three catalogues, five instruments and two rounds. Assertion 1 MET. The mode evaluates each action's own body at every reachable state over every argument tuple its quantifier domains admit, and emits a case wherever it is definitely FALSE. 118 cases on the fixture, each carrying exact arguments and the violated conjunct verbatim as its rejection reason. Assertion 2 MET, and it is a property of the algorithm rather than of the fixture. Evaluation is three-valued; every unimplemented construct is UNKNOWN and UNKNOWN never emits, so an unsupported construct costs completeness and can never cost soundness. Cross-checked: 3,440 ENABLED edges re-evaluated at their own source states, 0 evaluated FALSE. The disabled set is computed by EVALUATING the model and never by subtracting the dump's edges -- measured, the dump holds 4,028 edges where 7,716 argument tuples are not disabled, so the subtraction would have reported enabled inputs as refusable. Assertion 3 MET including failing executions. Two full generations of a 43,246-case corpus (each with its own TLC run) are byte-identical across all six package files; two generations of the projected 541-case MCsmall corpus likewise; and two runs of the shipped runner over a corpus that FAILS 4 cases produce identical failure text, case order included. Assertion 4 PARTIALLY MET, and the shortfall is recorded rather than closed. `specs/current/tlc_projection.py` did not exist; it does now, and MCsmall goes from 3,678,217 cases / 7.4 GB (18,391x the cap) to 541 cases / 667 KB -- 6,799x -- by moving pure outputs and recorded verdicts out of the state into the asserted output, deleting no oracle. Every run now names its projection unprompted, in stdout and in docs.md. But 541 is still 2.7x the cap of 200, and HP-03 did NOT raise the cap: the accept path's suggested value is 541, the number this ticket produced, and a budget fitted to the result it must admit is not a budget. Filed HP-03-DF-02 for the owner. Assertion 5 PARTIALLY MET. Per-class per-instrument tables are reported for both catalogues with controls, and no aggregate rate is computed anywhere. The PER-ARM axis is NOT measurable at HP-03: the arms are implementations the A/B produces at HP-06 and neither has any code yet. Every number is on the fixture's reference implementation, which is explicitly not an arm. THE UNFLATTERING HALF, recorded here rather than only in the fixture. The hand-written suite kills 10 of 10. The whole-view corpus kills 5 of 10 and the two corpora together 8 of 10 -- so on this fixture the generator is still worse than a suite written in an afternoon, and HP-06 must say so. M07, a positive control the catalogue declares must die on every instrument on every arm, SURVIVES the whole-view corpus, because Reserve contributes zero executable cases. Only 3,440 of 43,128 positive cases (8.0%) are executable at all. THE COMPARISON THIS TICKET EXISTS TO MAKE. HP-01's fixture already contains the profile change -- seven explicit Refuse* actions. They produce 39,100 cases (90.7% of the corpus) carrying NO arguments, because their parameters appear nowhere in their bodies and no recovery mechanism can recover what the state pair does not contain. Zero of them are executable. The generator produces the same refusals as 118 executable cases. The negative corpus did not need a profile change; the profile change did not produce a usable negative corpus. ZERO MODEL SURFACE ADDED, per surface_cost_rule, argued rather than asserted in results/zero-model-delta.txt: a per-flag variant of the existing GenerateCases action, no new port, no second TLC run, 1x state space. Four findings FILED and none fixed. HP-03-DF-01 is the one worth reading: the fixture's model guards a reservation id its own API allocates rather than accepts, so 4 of 118 negative cases assert the rejection of a call the UNMUTATED reference correctly accepts. It is a true statement about a model that does not refine its own FEATURE.md, it was invisible to every existing instrument, and the negative corpus is what found it. HP-03-DF-04 retracts a documented limit: ordering is NOT invisible to corpora, it is invisible when the model represents the ordered thing as a set, and M09 died on the whole-view corpus because this model uses a sequence. WHERE THE EVIDENCE ACTUALLY IS: `close ticket` consumes specs/tickets/HP-03/ into the append-only record, so every path above now reads specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/ticket/results/. The measurement instruments -- the adapter, the fresh catalogue and the kill-table driver -- are sealed beside them under .../ticket/measure/. Reconciled onto epic tip 757de49 (schedule_revision 2, HP-02 merged). Re-checked HP-03's entry field by field against the amended plan: goals, contributions, expected effects, local signals, conflict keys, wave, promotion order and predecessor are all unchanged by the amendment, which touched only GOAL-simpler-same-behavior's metric and harness.",
+        "commands": [
+          "uv run --with pytest --with pyyaml python -m pytest tests -q",
+          "python3 scripts/tla_spec_dev.py --spec-root specs generate cases <model> --out <corpus>"
+        ],
+        "evidence": [
+          "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/ticket/results/negative-corpus-generation.txt",
+          "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/ticket/results/kill-table-hp01.json",
+          "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/ticket/results/kill-table-fresh.json",
+          "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/ticket/results/kill-table-dedupe-cost.json",
+          "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/ticket/results/false-rejection-analysis.txt",
+          "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/ticket/results/determinism.txt",
+          "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/ticket/results/mcsmall-tractability.txt",
+          "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/ticket/results/corpus-shape.txt",
+          "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/ticket/results/shipped-runner-negative.txt",
+          "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/ticket/results/goal-signal.txt",
+          "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/ticket/results/zero-model-delta.txt",
+          "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/ticket/results/spec-unit-tests.txt",
+          "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/ticket/results/pytest-full.txt"
+        ]
+      },
+      "blocks": [
+        "HP-06"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "scripts/generate_cases_from_tlc_dump.py",
+          "tests/test_generate_cases_from_tlc_dump.py"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "references/generation_modes.md"
+        ]
+      },
+      "depends_on": [
+        "HP-01"
+      ],
+      "desired_actions": [],
+      "github_issue": null,
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "Guard-relaxation kills move off zero for the first time. If they do not, the class needs a profile change rather than a generator, and that is the epic's most valuable finding.",
+          "goal": "GOAL-catch-bugs",
+          "local_signal": "the HP-01 seeded catalogue's guard-relaxation class, per arm"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "none expected; must not grow the corpus past its cap again",
+          "goal": "GOAL-simpler-same-behavior",
+          "local_signal": "case count against the manifest cap"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "none -- generator work, no architecture claim",
+          "goal": "GOAL-hexagonal-in-fact",
+          "local_signal": "N/A"
+        }
+      ],
+      "id": "HP-03",
+      "implementation_scope": [
+        "scripts/generate_cases_from_tlc_dump.py",
+        "references/generation_modes.md",
+        "tests/"
+      ],
+      "model_delta_expectation": "A generation mode may need an action. If so, state what it buys and what the state space costs BEFORE dispatch, per surface_cost_rule -- the predecessor measured ~1.5 new coverage gaps and 8x state space per surface-adding ticket. OUTCOME: none needed. The mode is a per-flag variant of GenerateCases, which semantic_model_rule places out-of-model, and it performs no effect that action does not already declare. 1x state space, zero new coverage gaps.",
+      "objective": "The single largest available increase in what a generated corpus can see, and the only ticket aimed at a fault class that has measured ZERO on every instrument in every round. A generated corpus replays only ENABLED edges, so it contains no rejected inputs: a service that accepts what the model forbids passes every case. Round 1: 0 of 3. Round 2: 0 of 3, on both arms, AFTER RP-02 took parameter recovery from 0 of 5 to 5 of 5 -- which moved nothing and thereby falsified round 1's own explanation. RP-02 counted why: all 330 recovered arguments are arguments the guard ACCEPTS, 0 are rejected inputs, and 220 refusable pairs exist in the state space a state graph can never emit. A third blind catalogue reproduced it unaided: `330 'status': 'applied'` -- the corpus never once asks the program to reject a call. So build the generator mode: at each reachable state, the actions whose guards are DISABLED, emitted as cases asserting the call is REJECTED. TLC already knows them; the profile does not widen. AND MAKE A CORPUS TRACTABLE, because today one is not. Carries RC-02-DF-04 and MF026-R4-F-01: `generate cases` on MCsmall -- the config that exists to make a corpus tractable -- produces 3,678,217 cases and a 7.4 GB file CPython cannot import, 18,391x the manifest's own cap, and this model has no tlc_projection.py while every worked example does. A negative corpus nobody can run is not a mechanism. DO NOT BUDGET ANY OF THIS AGAINST PARAMETER RECOVERY. That hypothesis is dead, measured, and retracted in writing.",
+      "promotion_order": 30,
+      "promotion_predecessor": "HP-02",
+      "schedule_revision": 1,
+      "status": "done",
+      "title": "The negative corpus: TLC's disabled edges, asserted rejected -- and a corpus that fits its own cap",
+      "wave": 2
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "The oracle loads the adapters of a freshly scaffolded project without the caller adjusting sys.path.",
+          "An adapter that cannot execute a case is SKIPPED AND REPORTED, never aborting the run.",
+          "Two runs over an identical corpus report an identical gap count. A nondeterministic oracle is a finding, however good its first run.",
+          "A slice narrower than its view runs end to end with no owner writing the author a file, and any derived mapping states which oracles it does NOT carry."
+        ],
+        "close_note": "ALL FOUR ASSERTIONS MET, AND THE HEADLINE RESULT IS THE ONE HP-01 PREDICTED WOULD BE UNFLATTERING: THE MUTANT MATRIX MOVED BY ZERO CELLS. Assertion 1: `run effect-conformance --target specs/current` runs with no PYTHONPATH. Also demonstrated on a project this CLI freshly scaffolded (scaffolded-project.txt), whose mapping uses a different convention again -- `specs.program_model.adapters:X` rather than the bare `production_adapters:X` this repository uses. Both resolve. Assertion 2: the oracle reports on 18 of 18 modeled actions and DRIVES 8. The 10 it does not drive are named with a machine-readable reason: 9 `not-runnable` (apply() and no run(case, work_dir)) and 1 `unbound` (Stutter, deliberately not bound). Skips enter no verdict per no_new_gates_rule and are impossible to miss. A SECOND abort was found on the way and closed the same way: an adapter that ACCEPTS a case and then RAISES used to kill the run on case 1 of 148; it is now collected per case and FAILS the run as `adapter_error`, which is not a new gate because the run already failed by crashing. Assertion 3: 20 / 20 / 20 gaps over three runs of an identical corpus sharing one work dir, with the WHOLE report identical, not merely the count. The same corpus on the epic-tip oracle gives 20 / 19 / 19 gaps and 9 / 10 / 10 dead ports. Assertion 4: the ex4 slice executes 50 cases against `specs/program_model/case_adapters.toml` -- the mapping the fixture already ships -- with no third file. Every run with semantic providers now states which oracles it CARRIES (port -> provider, so a silent provider and a content-asserting one can be told apart) and which it does NOT, with \"treat its kill count as a FLOOR\", in the run output rather than only in documentation. THE KILL TABLE, per class per arm, and it is a zero. oracle-before produced NO REPORT on the control and on all 10 mutants -- the instrument was not merely blind, it was unciteable. oracle-after kills 0 of 10, every class. M10, seeded by HP-01 into this ticket's own blind spot, SURVIVES: prediction N05 confirmed, \"visible without being killable\". The corpus runner (unchanged by this ticket) kills the positive control M07 and the cross-aspect M08, and 0 of 3 guard relaxation and 0 of 2 durable content. THE COUNTERFACTUAL IS THE USEFUL PART. Bind the SAME action to an adapter whose only difference is that it has a run(case, work_dir), and M10 dies on 8 of 8 cases. The oracle's reach was never what limited detection; nine missing methods are. Filed as HP-04-DF-01 with the measurement attached, because a survivor on its own reads as \"HP-04 did not help\". A SEVEN-OF-NINE CORRECTION, found by running rather than by reading. RC-02 reported 9 DEAD PORTS for this model. Only `cli_download` and `cli_artifact_delete` are proven dead; the other 7 are UNEXERCISED -- every action declaring them was skipped. A manifest edit made on the strength of that column would have removed live surface. AND ONE MORE BLIND SPOT, found the same way. `EffectSandbox` never patched `Path.open`, so `path.open(\"a\")` -- the idiomatic durable append -- crossed the boundary unobserved while `open(path, \"a\")` was recorded. It surfaced because the oracle \"killed\" the ORDERING NEGATIVE CONTROL: M09 swaps that append for a `Path.write_text`, so the oracle detected a change of API rather than of behavior. Patched; M09 now survives, as its own prediction says it should. Observed-effect counts rise (67 -> 84) because the oracle now sees writes it used to miss. MODEL DELTA, DECLARED RATHER THAN SLIPPED IN, against a `model_delta_expectation` of \"none expected\". `spec_tree_delete` is attached to `RunEffectConformance` because resetting the per-case work directory is a real `filesystem.delete` under `**/specs/**`, and this manifest's own rule says an undeclared effect on a modeled action path is a gap. Surface cost per surface_cost_rule: ZERO -- no new port (it is already declared and already exercised by CloseTicket, CloseTicketWeakened and GenerateCases), no new action, no new variable, and no change to the TLA state space; TLC enumerates 118,573 distinct states before and after. What it buys is assertion 3. FOUR FINDINGS FILED, NONE FIXED: HP-04-DF-01 (the nine missing run() implementations, with the counterfactual), HP-04-DF-02 (one boundary, two incompatible `effects:` schemas -- the reason the M10 instrument needed a manifest of its own), HP-04-DF-03 (a generated corpus recovers NO arguments for a refusal -- HP-03's territory, replicated on a second model), HP-04-DF-04 (`open ticket` snapshots the oracle's scratch tree into the ticket and `close ticket` would promote it into the model; measured at 706 of 801 tracked files on this ticket's own first workspace). MEASURED AND UNFLATTERING, recorded here rather than only in the fixture: the first version of this ticket's own kill-table harness reported 10 of 10 KILLED on every class, including the negative control. It was comparing reports that carried differently-named temp directories. The flattering number was the bug.",
+        "commands": [
+          "uv run --with pytest --with pyyaml python -m pytest tests -q",
+          "python3 scripts/tla_spec_dev.py --spec-root specs run effect-conformance --cases-dir <corpus>"
+        ],
+        "evidence": [
+          "specs/tickets/HP-04/results/adapter-reach.txt",
+          "specs/tickets/HP-04/results/scaffolded-project.txt",
+          "specs/tickets/HP-04/results/dead-ports-reread.txt",
+          "specs/tickets/HP-04/results/determinism-two-runs.txt",
+          "specs/tickets/HP-04/results/cmf5-baseline.txt",
+          "specs/tickets/HP-04/results/cmf5-after.txt",
+          "specs/tickets/HP-04/results/real-and-fake.txt",
+          "specs/tickets/HP-04/results/kill-table.txt",
+          "specs/tickets/HP-04/results/goal-signal.txt",
+          "specs/tickets/HP-04/results/suite-comparison.txt",
+          "specs/tickets/HP-04/results/pytest-full.txt",
+          "specs/tickets/HP-04/results/spec-unit-tests.txt",
+          "specs/tickets/HP-04/results/tlc-current-mcsmall.txt"
+        ]
+      },
+      "blocks": [
+        "HP-06"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "scripts/effect_conformance.py",
+          "scripts/run_generated_case_adapters.py",
+          "tests/test_effect_conformance.py"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "references/case_modules.md"
+        ]
+      },
+      "depends_on": [
+        "HP-01"
+      ],
+      "desired_actions": [],
+      "github_issue": null,
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "The oracle sees 18 of 18 actions instead of 8, and a hand-written slice executes. More of the corpus reaching real adapters is the mechanism by which D1 can move at all.",
+          "goal": "GOAL-catch-bugs",
+          "local_signal": "run effect-conformance twice over the same corpus; the gap count must be identical"
+        },
+        {
+          "contribution": "direct",
+          "expected_effect": "An adapter swappable for a fake with the same cases passing is D3 anchor 4; this ticket is what makes that runnable.",
+          "goal": "GOAL-hexagonal-in-fact",
+          "local_signal": "run one aspect's corpus against a real adapter and a fake"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "none expected",
+          "goal": "GOAL-simpler-same-behavior",
+          "local_signal": "N/A"
+        }
+      ],
+      "id": "HP-04",
+      "implementation_scope": [
+        "scripts/effect_conformance.py",
+        "scripts/run_generated_case_adapters.py",
+        "references/case_modules.md",
+        "tests/"
+      ],
+      "model_delta_expectation": "STATED, not \"none\". These are defects in the harness, and the harness fix made one previously-absent effect real: the oracle now DELETES its per-case work directory before each case, under `**/specs/**`. That owes a port by the manifest's own rule, so `spec_tree_delete` is attached to `RunEffectConformance` in all three trees with the `@port` mirror. Per surface_cost_rule: zero new ports, actions or variables, and no change to the state space (effects.actions is a declaration table; TLC enumerates 118,573 distinct states before and after). What it buys is the ticket's own assertion 3 -- a gap count two runs can agree on.",
+      "objective": "The adapters are the half that catches bugs, and three measured defects stop them. All three were found by RUNNING the oracle for the first time in the project's history, not by inspecting it. RC-02-DF-02: the oracle never puts the target spec dir on sys.path, so it cannot import the `case_adapters.toml` convention the CLI itself scaffolds. It cannot read a project it created. RC-02-DF-03: it never consults `can_run` and aborts the whole run on the first apply()-only adapter. NINE OF SEVENTEEN adapters in this model are apply()-only, so it sees 8 of 18 actions. MF026-R4-F-01: the gap count is NOT REPRODUCIBLE -- 20 / 15 / 14 across three runs of an identical corpus, a 43% spread on the number that would gate, because a work directory persists between runs. Any claim resting on that number is currently unciteable. Plus CM-F5, still open and still the cheapest outside-in artifact: a slice narrower than its view orphans the view's effect providers, both shipped mappings bind the port, so a slice has ZERO working configurations and the documented workaround needs a third file that exists nowhere. A round-2 blind agent lost 3 of its 15 actions to it and had to author that file -- and observed that the mapping it wrote is a STRICTLY WEAKER instrument with no durable-write oracle, so a green slice run over-reads.",
+      "promotion_order": 40,
+      "promotion_predecessor": "HP-03",
+      "schedule_revision": 1,
+      "status": "done",
+      "title": "Make the adapters actually run: load a scaffolded project's adapters, skip what cannot execute, run a slice",
+      "wave": 2
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "A scaffolded project's providers assert content by default.",
+          "Every run states which mapping produced its numbers, unprompted.",
+          "A run under a mapping with no durable-write oracle says so in its output, not only in documentation."
+        ],
+        "close_note": "THE HEADLINE, AND IT IS ONE CELL: M04 moved from surviving every corpus instrument in every previous round to DYING under the default mapping. durable_content 1 of 2 -> 2 of 2. Same corpus, same adapter, same seam, same mutants; the only difference between the columns is one line of TOML naming a provider. Assertion 1 MET, with the boundary stated. Codegen now GENERATES the content-asserting provider for every manifest port with role: effect and BINDS it in case_adapters.toml for any effect port that has none -- additive only, so a table somebody wrote is never rewritten. A real project scaffolded from scratch, given one port declaration and nothing else, ends up asserting durable content with nobody writing a line of provider code (results/scaffolded-project.txt, run end to end). What is NOT met is the moment before the declaration exists: `scaffold project` still ships a `raise NotImplementedError` provider stub and a commented-out binding, and `scaffold_spec.py` / `onboard_program_model.py` are in no ticket's conflict keys and not in HP-05's edit permission. FILED as HP-05-DF-01. Assertions 2 and 3 MET on the paths this ticket owns, with the gap named rather than papered over. Codegen prints a full mapping audit unprompted on every invocation, and each generated provider announces its own binding on stdout the first time it binds. Four situations produce the SAME closing sentence -- silent provider bound, content-asserting provider with no `content:` block, role: effect port bound to nothing, and a boundary declared under `effects:` that no provider can reach (which is exactly how HP-01's own fixture declares LedgerAppendPort): \"Nothing compares what crossed this port against the model, so kills counted under this mapping are a FLOOR, not a total, and a green run over-reads.\" All four captured verbatim in results/mapping-announcement.txt. THE GAP: the shipped runner never prints the mapping it loaded and does not pass it to the provider, so the announcement recovers the name from TLA_SPEC_DEV_MAPPING or from --mapping on the command line and says `<unnamed mapping>` when it cannot. run_generated_case_adapters.py is HP-04's conflict key. FILED as HP-05-DF-02. THREE THINGS THAT ARE UNFLATTERING, recorded here rather than only in the evidence. (1) M05 WAS ALREADY DYING. The ticket objective and the dispatch brief both say the two durable-side mutants survive both corpora. True of M04, FALSE of M05: HP-03's own committed kill table records M05 as KILLED by corpus-whole, and this run reproduces that under all three mappings. The model's CLOSE element is << \"CLOSE\", t, committed[t] >>, so its third slot IS the total and the ordinary projected-state comparison already sees a zeroed one; only the COMMIT element drops its total. ONE mutant moved, not two. (2) THE 30% FIGURE DOES NOT REPRODUCE AS A PROPORTION. On the blind agent's 16-mutant catalogue the mapping was worth 3 of 10 kills; here it is worth 1 of 6 under the checking mapping and 1 of 10 overall. The DIRECTION has now replicated three times on three fixtures. The MAGNITUDE is fixture-dependent and 30% must not be quoted as a property of the mechanism. (3) THE GENERATOR IS STILL WORSE THAN THE SUITE. Suite 10 of 10. Whole-view corpus under the checking mapping 6 of 10. Whole-view (checking) + HP-03's negative corpus 9 of 10, up from 8 of 10 -- the gap narrows from two mutants to one. The survivor is M07, the catalogue's declared POSITIVE CONTROL, which is supposed to die on every instrument and does not because it is seeded inside reserve() and Reserve contributes zero executable cases. While that control is red the wrong_value row is not citeable as a clean kill measurement. THE REPRODUCTION CONTROL, without which none of the above is readable. This instrument installs a seam the reference implementation does not have (the durable append goes through the port AND to the file), so a third column runs with no provider bound at all. It reproduces HP-03's committed `corpus-whole` column in all ten rows, so the map-checking column is a mapping effect and nothing else. Two full runs of the whole table were identical including failing executions. PER ARM: NOT MEASURABLE AT HP-05, for the reason HP-03 recorded -- the arms are implementations the A/B produces at HP-06 and neither has code yet. Every number is on the fixture's reference implementation, which is explicitly not an arm. ZERO MODEL SURFACE ADDED, argued in results/zero-model-delta.txt rather than asserted: no TLA+ action, no TLA+ variable, no new declared effect port, and TLC enumerates 3,678,218 states / 118,573 distinct before and after, the same two figures to the digit. The `content:` and `kind:` manifest keys are optional and every existing manifest generates unchanged. The standing proviso was checked: the two new files codegen writes and the append to case_adapters.toml are all writes under a `specs/` tree, which the existing `spec_tree` port already declares. NO NEW GATE. An unbound port runs, a silent provider runs, a port with no `content:` block runs, and codegen never fails because a mapping is weak. The audit is a print, not an exit code. The only thing that raises is the content assertion itself, which is the oracle firing on a failing case. PREDICTIONS-HP.md was not touched. Reconciled onto epic tip ea45ecf (HP-04 merged at 09b0ced); HP-05's plan entry was re-checked field by field against the amended plan -- goals, contributions, expected effects, local signals, conflict keys, wave, promotion order and predecessor are unchanged by the schedule_revision 2 amendment, which touched only GOAL-simpler-same-behavior. WHERE THE EVIDENCE ACTUALLY IS: `close ticket` consumes specs/tickets/HP-05/ into the append-only record, so every path above now reads specs/.history/hexagonal-prompting-epic/ticket-004-HP-05/ticket/results/. The instruments are sealed beside them under .../ticket/measure/; the 43,128-case corpus is NOT committed and .../ticket/measure/README.md carries the exact commands that regenerate it.",
+        "commands": [
+          "uv run --with pytest --with pyyaml python -m pytest tests -q"
+        ],
+        "evidence": [
+          "specs/tickets/HP-05/results/kill-table-mapping.json",
+          "specs/tickets/HP-05/results/kill-table-comparison.txt",
+          "specs/tickets/HP-05/results/mapping-announcement.txt",
+          "specs/tickets/HP-05/results/scaffolded-project.txt",
+          "specs/tickets/HP-05/results/determinism.txt",
+          "specs/tickets/HP-05/results/goal-signal.txt",
+          "specs/tickets/HP-05/results/zero-model-delta.txt",
+          "specs/tickets/HP-05/results/narrative.md",
+          "specs/tickets/HP-05/results/tlc-current-mcsmall.txt",
+          "specs/tickets/HP-05/results/spec-unit-tests.txt",
+          "specs/tickets/HP-05/results/pytest-full.txt"
+        ]
+      },
+      "blocks": [
+        "HP-06"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "scripts/generate_python.py",
+          "templates/"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "references/effect_providers.md"
+        ]
+      },
+      "depends_on": [
+        "HP-01"
+      ],
+      "desired_actions": [],
+      "github_issue": null,
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "The default mapping catches the durable-side class that only the checking mapping has ever caught -- worth 30% of that instrument's yield when it is chosen, and it is currently not the default.",
+          "goal": "GOAL-catch-bugs",
+          "local_signal": "the HP-01 catalogue's durable-write class under the default mapping"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "none -- must not require a particular architecture to work",
+          "goal": "GOAL-hexagonal-in-fact",
+          "local_signal": "N/A"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "none expected",
+          "goal": "GOAL-simpler-same-behavior",
+          "local_signal": "N/A"
+        }
+      ],
+      "id": "HP-05",
+      "implementation_scope": [
+        "scripts/generate_python.py",
+        "templates/",
+        "references/effect_providers.md",
+        "tests/"
+      ],
+      "model_delta_expectation": "none expected. OUTCOME: none. No TLA+ action, no TLA+ variable, no new effect port, 1x state space measured rather than assumed (118,573 distinct states before and after). The additions are codegen output and two optional manifest keys on an existing declaration node.",
+      "objective": "The one mechanism with a measured, replicated edge. Content-asserting effect providers caught 2 of 6 seeded faults that NOTHING else caught -- the two durable-side ones -- reproduced cell for cell across two rounds and independently replicated by a blind agent on a fresh 16-mutant catalogue at 3 of 3 durable-write mutants under the checking mapping and 0 of 3 under the silent one. That mapping choice is worth 30% of the instrument's entire yield. So make it the DEFAULT rather than a thing an expert configures, and make the alternative loud. Every kill number must name its mapping; a run under a silent mapping must say so unprompted, because its kills are a floor and a green run over-reads. Advisory throughout: nothing refuses, nothing blocks. A report, not a gate.",
+      "promotion_order": 50,
+      "promotion_predecessor": "HP-04",
+      "schedule_revision": 1,
+      "status": "done",
+      "title": "Content-asserting adapters by default, and the honest report of what an adapter cannot see",
+      "wave": 3
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Both arms scored by two judges blind to arm; every scorecard passes the schema check; contested dimensions adjudicated with NEW evidence.",
+          "Every prediction in PREDICTIONS-HP.md scored PASS / FAIL / SUPERSEDED. None amended.",
+          "Each goal reports baseline -> measured -> target with a verdict of met / missed / unmeasured and a reason.",
+          "Findings reported BY CHANNEL with counts, and the ratio stated as a result.",
+          "Findings FILED and NONE fixed."
+        ],
+        "close_note": "TWO GOALS MET, ONE MISSED, AND BOTH `met` VERDICTS CARRY A CAVEAT THAT MUST NEVER BE SEPARATED FROM THEM. GOAL-hexagonal-in-fact MET. Arm B scored D3 = 4 from BOTH blind judges against arm A's 2 and 2. THE FIRST 4 ON ANY DIMENSION BUT D5 IN THIS PROJECT'S HISTORY, and D3 had never passed 3. Both judges earned it by RUNNING the artifact's real-adapter/fake parity suite rather than believing its notes, and both checked specifically for the hole HP-02's pilot found in an earlier draft of the same prompt -- the shipped sentence that closed it was never re-measured by HP-02 and this was its first measurement. CAVEAT: 105 unique prompt lines against 16, so this round CANNOT distinguish \"hexagonal guidance helped\" from \"a longer, more specific ask helped\", and n = 1. GOAL-catch-bugs MET. D1 = 3 from both judges on arm B against a baseline where nothing reached 3 anywhere. Guard relaxation 3 of 3 under the negative corpus on the seeded catalogue and 1 of 1 on a fresh independently authored one, on both arms, against 0 of 3 under every other generated instrument. CAVEAT: THE POSITIVE CONTROL IS RED ON ARM A -- M07 survives all six generated instruments because the corpus recovers no `Reserve` argument, exactly as HP-05 recorded one ticket earlier -- so every whole-view row is a floor under a broken control. The D1 anchor is carried by `corpus-neg`, whose controls are green. GOAL-simpler-same-behavior MISSED. D2 = 2 from all four judges on both arms. The target was NOT moved. It was missed for a reason nobody predicted: neither arm made a simplification and measured one, because both implemented one specification from scratch, and D2 anchor 3 needs a before and an after OF THE SAME ARTIFACT. The owner's amendment proposed reading the arm pair as the before/after; that reading was supplied to every judge and NO JUDGE ACCEPTED IT. D2 as written cannot be scored above 2 by an A/B at all -- HP-06-DF-05, a finding about the card. THE PROMPT PRODUCED THE STRUCTURE AND THE STRUCTURE CAUGHT NOTHING. Every per-mutant verdict is IDENTICAL between the arms on 49 of 49 comparable cells across seven instruments. Arm B's own 41 tests appear in no kill table; both judges said so and both capped D1 for it. THE GENERATOR IS STILL WORSE THAN A SUITE WRITTEN IN AN AFTERNOON, and a catalogue nobody tuned beats them both down. Seeded catalogue: suite 10 of 10, generated corpora 9 of 10 with the positive control as the survivor. FRESH INDEPENDENTLY AUTHORED CATALOGUE: corpora 8 of 13, suite 9 of 13, and FOUR whole classes invisible to every instrument INCLUDING the suite. A catalogue written by the author of the mechanisms flatters both instruments by roughly a quarter. SEALED PREDICTIONS: 7 PASS, 4 FAIL, 0 SUPERSEDED, 0 UNMEASURED, and THREE OF THE FOUR FAILURES ARE NEGATIVE PREDICTIONS. P05 (the positive control dies everywhere) failed. P03 (the mapping reproduces its 30%) failed -- direction five for five, magnitude four failures to reproduce. N01 (the treatment's descriptor is not lower) failed; HP-02's pilot had recorded N01 confirmed against an EARLIER DRAFT of the prompt. N02 (ordering stays zero on every corpus) failed, reproducing HP-03's retraction on two arms. PREDICTIONS-HP.md was NOT amended. FINDINGS BY CHANNEL: 0 SUITE : 17 ADVERSARIAL : 13 BLIND AUTHOR. Sealed N06 passes for the third round running and the alarm it exists to fire is firing: 1,329 green assertions produced nothing anybody did not already know. THE SUITE HAS STOPPED BEING INFORMATIVE. For the third round the most valuable single section of the record was an agent's answer to \"what did you reject?\". TWELVE HP-06-DF-* FILED, NONE FIXED (five in deferred_findings.yaml, the budget; all twelve with file:line evidence in FINDINGS.md). SIX OF HP-06'S OWN WRITTEN CLAIMS WERE FALSIFIED by the adversarial channel and are CORRECTED IN PLACE with the correction marked and attributed. The largest: this model spells refusals out as first-class actions, so the whole-view corpus DOES contain refusal cases and HP-06's own oracle skips all 39,688 of them -- the sealed catalogue's stated mechanism does not apply to this model. The 3-of-3 survives adversarial tracing; the framing of the zeros beside it does not. THE BEST FINDING IS ABOUT A SPECIFICATION, FOR THE FOURTH EPIC RUNNING. A blind author found that the model's COMMIT record has three fields where the feature's has four: R2's running-total clause is ABSENT from the state machine, and the manifest's own port description describes a line the model never constructs. The one mechanism with a measured, replicated edge is a hand-written sentence patching a model that does not refine its own specification. The same agent found the two arms differ in UNMUTATED code on crash consistency with nothing in the fixture able to see it, and that the fixture LEAKS ITS OWN ANSWER KEY in files blind roles are permitted to read. AND THE COST OF THE PORT, WHICH NOBODY PREDICTED: a fault in arm B's in-memory adapter survives every instrument including the hand-written suite, and arm A has no counterpart. The structure removes places for some faults to live AND creates a region no shared oracle reaches. ZERO MODEL SURFACE ADDED. A measurement ticket carries no model delta; ticket-local desired and current are the whole-program state the contributors already produced.",
+        "commands": [
+          "uv run --with pytest --with pyyaml python -m pytest tests -q",
+          "python3 examples/validation/scorecards/score_tools.py check specs/results/scorecards/hexagonal-prompting",
+          "python3 examples/validation/scorecards/score_tools.py index specs/results/scorecards/hexagonal-prompting"
+        ],
+        "evidence": [
+          "specs/results/scorecards/hexagonal-prompting/RESULTS.md",
+          "specs/results/scorecards/hexagonal-prompting/PREDICTIONS-SCORED.md",
+          "specs/results/scorecards/hexagonal-prompting/FINDINGS.md",
+          "specs/results/scorecards/hexagonal-prompting/UNBLINDING.md",
+          "specs/results/scorecards/hexagonal-prompting/INDEX.md",
+          "specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/",
+          "specs/results/scorecards/hexagonal-prompting/GOAL-catch-bugs/",
+          "specs/results/scorecards/hexagonal-prompting/GOAL-simpler-same-behavior/",
+          "specs/results/scorecards/hexagonal-prompting/GOAL-hexagonal-in-fact/",
+          "specs/results/scorecards/hexagonal-prompting/arms/",
+          "specs/results/scorecards/hexagonal-prompting/measure/",
+          "specs/tickets/HP-06/results/goal-verdicts.md",
+          "specs/tickets/HP-06/results/pytest-full.txt",
+          "specs/tickets/HP-06/results/spec-unit-tests.txt",
+          "specs/tickets/HP-06/results/scorecard-check.txt",
+          "specs/tickets/HP-06/results/determinism.txt"
+        ]
+      },
+      "blocks": [],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "specs/results/scorecards/hexagonal-prompting/",
+          "NEXT-EPIC.md"
+        ]
+      },
+      "depends_on": [
+        "HP-01",
+        "HP-02",
+        "HP-03",
+        "HP-04",
+        "HP-05"
+      ],
+      "desired_actions": [],
+      "github_issue": null,
+      "goals": [
+        {
+          "contribution": "guard",
+          "expected_effect": "decides the goal; adds no behavioral delta",
+          "goal": "GOAL-catch-bugs",
+          "local_signal": "N/A: this ticket is the measurement"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "decides the goal; adds no behavioral delta",
+          "goal": "GOAL-simpler-same-behavior",
+          "local_signal": "N/A: this ticket is the measurement"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "decides the goal; adds no behavioral delta",
+          "goal": "GOAL-hexagonal-in-fact",
+          "local_signal": "N/A: this ticket is the measurement"
+        }
+      ],
+      "id": "HP-06",
+      "implementation_scope": [
+        "specs/results/scorecards/",
+        "NEXT-EPIC.md"
+      ],
+      "model_delta_expectation": "none -- a measurement ticket carries no model delta",
+      "objective": "The epic's product and the ticket every other ticket was written against. A MEASUREMENT, not a victory lap. A low or unflattering result is the preferred outcome; an epic that closes with only good news about itself has not been measured. Run the A/B from HP-01 on the integrated epic tip: same feature, arm A ordinary prompt, arm B the HP-02 prompt. Seed the same catalogue in both. Generate cases from the model, run them through each arm's adapters, and count what dies. Then judge both arms on the scorecard, TWO JUDGES, BLIND TO ARM, per references/eval_scorecard.md -- artifacts not claims, file:line for every score >= 2, a named refusal for every 4, prose quality never an input. Any dimension where the judges differ by more than 1 is `contested` and gets a third pass citing NEW evidence. Report baseline -> measured -> target per goal, with a verdict of `met`, `missed`, or `unmeasured` and a reason. Never edit a target to match a result. Never re-run selectively until a number passes. Report the run that happened. Also report, because the predecessor learned it the hard way: findings BY CHANNEL -- suite re-run, fresh adversarial attack, blind author. Both rounds of the predecessor produced their best finding from an agent asked what it REJECTED and zero from re-running the suite. If this round's findings come only from the suite, say so plainly: the suite has stopped being informative, and that alarm is meant to fire before the tool silently gets worse. FILE FINDINGS, FIX NOTHING. A fix during a measurement destroys the measurement.",
+      "owns_goals": [
+        "GOAL-catch-bugs",
+        "GOAL-simpler-same-behavior",
+        "GOAL-hexagonal-in-fact"
+      ],
+      "promotion_order": 60,
+      "promotion_predecessor": "HP-05",
+      "role": "evaluation",
+      "schedule_revision": 1,
+      "status": "done",
+      "title": "EVALUATION: run the A/B, judge it blind, decide the three goals",
+      "wave": 4
+    }
+  ],
+  "workflow_name": "hexagonal-prompting-epic"
+}

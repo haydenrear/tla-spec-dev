@@ -1,0 +1,730 @@
+{
+  "cases": [
+    "case_0001_build_skill_cli",
+    "case_0002_install_local_cli",
+    "case_0003_open_ticket",
+    "case_0004_record_budgets",
+    "case_0005_scaffold_project",
+    "case_0006_scaffold_workflow",
+    "case_0007_update_ticket_current",
+    "case_0008_update_ticket_desired"
+  ],
+  "dead_surface": [
+    {
+      "port": "TlaSpecDevCliPort.cli_artifact_delete",
+      "target": "*",
+      "type": "filesystem.delete"
+    },
+    {
+      "port": "TlaSpecDevCliPort.cli_download",
+      "target": "*",
+      "type": "network.http"
+    },
+    {
+      "port": "TlaSpecDevCliPort.corpus_process",
+      "target": "*",
+      "type": "process.spawn"
+    },
+    {
+      "port": "TlaSpecDevCliPort.evidence_report",
+      "target": "**/results/**",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.git_metadata",
+      "target": "git rev-parse*",
+      "type": "process.spawn"
+    },
+    {
+      "port": "TlaSpecDevCliPort.mutation_write",
+      "target": "*scripts/*",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.runner_process",
+      "target": "*run_generated_case_adapters*",
+      "type": "process.spawn"
+    },
+    {
+      "port": "TlaSpecDevCliPort.spec_tree_delete",
+      "target": "**/specs/**",
+      "type": "filesystem.delete"
+    },
+    {
+      "port": "TlaSpecDevCliPort.test_process",
+      "target": "*pytest*",
+      "type": "process.spawn"
+    }
+  ],
+  "declared_ports": [
+    "TlaSpecDevCliPort.cli_artifact",
+    "TlaSpecDevCliPort.cli_artifact_delete",
+    "TlaSpecDevCliPort.cli_download",
+    "TlaSpecDevCliPort.cli_selftest_process",
+    "TlaSpecDevCliPort.corpus_process",
+    "TlaSpecDevCliPort.evidence_report",
+    "TlaSpecDevCliPort.git_metadata",
+    "TlaSpecDevCliPort.mutation_write",
+    "TlaSpecDevCliPort.runner_process",
+    "TlaSpecDevCliPort.spec_tree",
+    "TlaSpecDevCliPort.spec_tree_delete",
+    "TlaSpecDevCliPort.test_process"
+  ],
+  "gaps": [
+    {
+      "action": "OpenTicket",
+      "case": "case_0003_open_ticket",
+      "message": "UNDECLARED EFFECT: filesystem.write -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0003_open_ticket/target-repo during case_0003_open_ticket (action OpenTicket) -- no declared port accepts it",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0003_open_ticket/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "OpenTicket",
+      "case": "case_0003_open_ticket",
+      "message": "UNDECLARED EFFECT: process.spawn -> /Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject during case_0003_open_ticket (action OpenTicket) -- no declared port accepts it",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "OpenTicket",
+      "case": "case_0003_open_ticket",
+      "message": "UNDECLARED EFFECT: process.spawn -> /Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay during case_0003_open_ticket (action OpenTicket) -- no declared port accepts it",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay",
+      "type": "process.spawn"
+    },
+    {
+      "action": "OpenTicket",
+      "case": "case_0003_open_ticket",
+      "message": "UNDECLARED EFFECT: process.spawn -> /Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint during case_0003_open_ticket (action OpenTicket) -- no declared port accepts it",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint",
+      "type": "process.spawn"
+    },
+    {
+      "action": "RecordBudgets",
+      "case": "case_0004_record_budgets",
+      "message": "UNDECLARED EFFECT: filesystem.write -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0004_record_budgets/target-repo during case_0004_record_budgets (action RecordBudgets) -- no declared port accepts it",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0004_record_budgets/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "RecordBudgets",
+      "case": "case_0004_record_budgets",
+      "message": "UNDECLARED EFFECT: process.spawn -> /Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject during case_0004_record_budgets (action RecordBudgets) -- no declared port accepts it",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "RecordBudgets",
+      "case": "case_0004_record_budgets",
+      "message": "UNDECLARED EFFECT: filesystem.write -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0004_record_budgets/target-repo/specs/program_model/spec_manifest.yaml during case_0004_record_budgets (action RecordBudgets) -- no declared port accepts it",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0004_record_budgets/target-repo/specs/program_model/spec_manifest.yaml",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "ScaffoldProject",
+      "case": "case_0005_scaffold_project",
+      "message": "UNDECLARED EFFECT: filesystem.write -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0005_scaffold_project/target-repo during case_0005_scaffold_project (action ScaffoldProject) -- no declared port accepts it",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0005_scaffold_project/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "ScaffoldProject",
+      "case": "case_0005_scaffold_project",
+      "message": "UNDECLARED EFFECT: process.spawn -> /Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject during case_0005_scaffold_project (action ScaffoldProject) -- no declared port accepts it",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "ScaffoldWorkflow",
+      "case": "case_0006_scaffold_workflow",
+      "message": "UNDECLARED EFFECT: filesystem.write -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0006_scaffold_workflow/target-repo during case_0006_scaffold_workflow (action ScaffoldWorkflow) -- no declared port accepts it",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0006_scaffold_workflow/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "ScaffoldWorkflow",
+      "case": "case_0006_scaffold_workflow",
+      "message": "UNDECLARED EFFECT: process.spawn -> /Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject during case_0006_scaffold_workflow (action ScaffoldWorkflow) -- no declared port accepts it",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "ScaffoldWorkflow",
+      "case": "case_0006_scaffold_workflow",
+      "message": "UNDECLARED EFFECT: process.spawn -> /Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-123 CLI scaffold ticket during case_0006_scaffold_workflow (action ScaffoldWorkflow) -- no declared port accepts it",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-123 CLI scaffold ticket",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "message": "UNDECLARED EFFECT: filesystem.write -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0007_update_ticket_current/target-repo during case_0007_update_ticket_current (action UpdateTicketCurrent) -- no declared port accepts it",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0007_update_ticket_current/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "message": "UNDECLARED EFFECT: process.spawn -> /Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject during case_0007_update_ticket_current (action UpdateTicketCurrent) -- no declared port accepts it",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "message": "UNDECLARED EFFECT: process.spawn -> /Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay during case_0007_update_ticket_current (action UpdateTicketCurrent) -- no declared port accepts it",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "message": "UNDECLARED EFFECT: process.spawn -> /Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint during case_0007_update_ticket_current (action UpdateTicketCurrent) -- no declared port accepts it",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketDesired",
+      "case": "case_0008_update_ticket_desired",
+      "message": "UNDECLARED EFFECT: filesystem.write -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0008_update_ticket_desired/target-repo during case_0008_update_ticket_desired (action UpdateTicketDesired) -- no declared port accepts it",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0008_update_ticket_desired/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "UpdateTicketDesired",
+      "case": "case_0008_update_ticket_desired",
+      "message": "UNDECLARED EFFECT: process.spawn -> /Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject during case_0008_update_ticket_desired (action UpdateTicketDesired) -- no declared port accepts it",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketDesired",
+      "case": "case_0008_update_ticket_desired",
+      "message": "UNDECLARED EFFECT: process.spawn -> /Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay during case_0008_update_ticket_desired (action UpdateTicketDesired) -- no declared port accepts it",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketDesired",
+      "case": "case_0008_update_ticket_desired",
+      "message": "UNDECLARED EFFECT: process.spawn -> /Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint during case_0008_update_ticket_desired (action UpdateTicketDesired) -- no declared port accepts it",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint",
+      "type": "process.spawn"
+    }
+  ],
+  "ignored_suppression_keys": [],
+  "observable_scope": "in-process CPython only: builtins.open, os/shutil/pathlib mutators, subprocess spawns and socket.connect patched in THIS interpreter. No patch crosses a process boundary; JVM, JBang/uv node, and child-process work is not observed (MF-027)",
+  "observed_effects": [
+    {
+      "action": "BuildSkillCli",
+      "case": "case_0001_build_skill_cli",
+      "detail": "Path.mkdir",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0001_build_skill_cli/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "InstallLocalCli",
+      "case": "case_0002_install_local_cli",
+      "detail": "Path.mkdir",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0002_install_local_cli/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "InstallLocalCli",
+      "case": "case_0002_install_local_cli",
+      "detail": "Path.mkdir",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0002_install_local_cli/bin",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "InstallLocalCli",
+      "case": "case_0002_install_local_cli",
+      "detail": "Path.mkdir",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0002_install_local_cli/cache",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "InstallLocalCli",
+      "case": "case_0002_install_local_cli",
+      "detail": "subprocess.run",
+      "target": "bash /Users/hayde/IdeaProjects/wt-rc-02-terminate/skill-scripts/install-tla-spec-dev.sh",
+      "type": "process.spawn"
+    },
+    {
+      "action": "InstallLocalCli",
+      "case": "case_0002_install_local_cli",
+      "detail": "subprocess.Popen",
+      "target": "bash /Users/hayde/IdeaProjects/wt-rc-02-terminate/skill-scripts/install-tla-spec-dev.sh",
+      "type": "process.spawn"
+    },
+    {
+      "action": "InstallLocalCli",
+      "case": "case_0002_install_local_cli",
+      "detail": "subprocess.run",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0002_install_local_cli/bin/tla-spec-dev --version",
+      "type": "process.spawn"
+    },
+    {
+      "action": "InstallLocalCli",
+      "case": "case_0002_install_local_cli",
+      "detail": "subprocess.Popen",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0002_install_local_cli/bin/tla-spec-dev --version",
+      "type": "process.spawn"
+    },
+    {
+      "action": "OpenTicket",
+      "case": "case_0003_open_ticket",
+      "detail": "Path.mkdir",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0003_open_ticket/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "OpenTicket",
+      "case": "case_0003_open_ticket",
+      "detail": "subprocess.run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "OpenTicket",
+      "case": "case_0003_open_ticket",
+      "detail": "subprocess.Popen",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "OpenTicket",
+      "case": "case_0003_open_ticket",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0003_open_ticket/target-repo/specs/program_model/spec_manifest.yaml",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "OpenTicket",
+      "case": "case_0003_open_ticket",
+      "detail": "subprocess.run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay",
+      "type": "process.spawn"
+    },
+    {
+      "action": "OpenTicket",
+      "case": "case_0003_open_ticket",
+      "detail": "subprocess.Popen",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay",
+      "type": "process.spawn"
+    },
+    {
+      "action": "OpenTicket",
+      "case": "case_0003_open_ticket",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0003_open_ticket/target-repo/specs/desired_program_model/ticket_plan.yaml",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "OpenTicket",
+      "case": "case_0003_open_ticket",
+      "detail": "subprocess.run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint",
+      "type": "process.spawn"
+    },
+    {
+      "action": "OpenTicket",
+      "case": "case_0003_open_ticket",
+      "detail": "subprocess.Popen",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint",
+      "type": "process.spawn"
+    },
+    {
+      "action": "RecordBudgets",
+      "case": "case_0004_record_budgets",
+      "detail": "Path.mkdir",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0004_record_budgets/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "RecordBudgets",
+      "case": "case_0004_record_budgets",
+      "detail": "subprocess.run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "RecordBudgets",
+      "case": "case_0004_record_budgets",
+      "detail": "subprocess.Popen",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "RecordBudgets",
+      "case": "case_0004_record_budgets",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0004_record_budgets/target-repo/specs/program_model/spec_manifest.yaml",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "ScaffoldProject",
+      "case": "case_0005_scaffold_project",
+      "detail": "Path.mkdir",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0005_scaffold_project/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "ScaffoldProject",
+      "case": "case_0005_scaffold_project",
+      "detail": "subprocess.run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "ScaffoldProject",
+      "case": "case_0005_scaffold_project",
+      "detail": "subprocess.Popen",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "ScaffoldWorkflow",
+      "case": "case_0006_scaffold_workflow",
+      "detail": "Path.mkdir",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0006_scaffold_workflow/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "ScaffoldWorkflow",
+      "case": "case_0006_scaffold_workflow",
+      "detail": "subprocess.run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "ScaffoldWorkflow",
+      "case": "case_0006_scaffold_workflow",
+      "detail": "subprocess.Popen",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "ScaffoldWorkflow",
+      "case": "case_0006_scaffold_workflow",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0006_scaffold_workflow/target-repo/specs/program_model/spec_manifest.yaml",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "ScaffoldWorkflow",
+      "case": "case_0006_scaffold_workflow",
+      "detail": "subprocess.run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-123 CLI scaffold ticket",
+      "type": "process.spawn"
+    },
+    {
+      "action": "ScaffoldWorkflow",
+      "case": "case_0006_scaffold_workflow",
+      "detail": "subprocess.Popen",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-123 CLI scaffold ticket",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "detail": "Path.mkdir",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0007_update_ticket_current/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "detail": "subprocess.run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "detail": "subprocess.Popen",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0007_update_ticket_current/target-repo/specs/program_model/spec_manifest.yaml",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "detail": "subprocess.run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "detail": "subprocess.Popen",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0007_update_ticket_current/target-repo/specs/desired_program_model/ticket_plan.yaml",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "detail": "subprocess.run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "detail": "subprocess.Popen",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0007_update_ticket_current/target-repo/specs/tickets/cli_entrypoint/desired/Core.tla",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0007_update_ticket_current/target-repo/specs/tickets/cli_entrypoint/desired/External.tla",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0007_update_ticket_current/target-repo/specs/tickets/cli_entrypoint/desired/Internal.tla",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0007_update_ticket_current/target-repo/specs/tickets/cli_entrypoint/current/Core.tla",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0007_update_ticket_current/target-repo/specs/tickets/cli_entrypoint/current/External.tla",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "UpdateTicketCurrent",
+      "case": "case_0007_update_ticket_current",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0007_update_ticket_current/target-repo/specs/tickets/cli_entrypoint/current/Internal.tla",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "UpdateTicketDesired",
+      "case": "case_0008_update_ticket_desired",
+      "detail": "Path.mkdir",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0008_update_ticket_desired/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "UpdateTicketDesired",
+      "case": "case_0008_update_ticket_desired",
+      "detail": "subprocess.run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketDesired",
+      "case": "case_0008_update_ticket_desired",
+      "detail": "subprocess.Popen",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketDesired",
+      "case": "case_0008_update_ticket_desired",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0008_update_ticket_desired/target-repo/specs/program_model/spec_manifest.yaml",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "UpdateTicketDesired",
+      "case": "case_0008_update_ticket_desired",
+      "detail": "subprocess.run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketDesired",
+      "case": "case_0008_update_ticket_desired",
+      "detail": "subprocess.Popen",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketDesired",
+      "case": "case_0008_update_ticket_desired",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0008_update_ticket_desired/target-repo/specs/desired_program_model/ticket_plan.yaml",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "UpdateTicketDesired",
+      "case": "case_0008_update_ticket_desired",
+      "detail": "subprocess.run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketDesired",
+      "case": "case_0008_update_ticket_desired",
+      "detail": "subprocess.Popen",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint",
+      "type": "process.spawn"
+    },
+    {
+      "action": "UpdateTicketDesired",
+      "case": "case_0008_update_ticket_desired",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0008_update_ticket_desired/target-repo/specs/tickets/cli_entrypoint/desired/Core.tla",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "UpdateTicketDesired",
+      "case": "case_0008_update_ticket_desired",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0008_update_ticket_desired/target-repo/specs/tickets/cli_entrypoint/desired/External.tla",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "UpdateTicketDesired",
+      "case": "case_0008_update_ticket_desired",
+      "detail": "Path.write_text",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0008_update_ticket_desired/target-repo/specs/tickets/cli_entrypoint/desired/Internal.tla",
+      "type": "filesystem.write"
+    }
+  ],
+  "ok": false,
+  "out_of_process_observations": [],
+  "summary": "effect conformance unobservable: 57 observed effect(s) over 8 case(s), 12 declared port(s), 20 gap(s), 9 dead port(s), 15 unobservable target(s)",
+  "suppression_policy": "withdrawn 2026-07-18: no justification, annotation, or manifest entry suppresses a gap report. MF-027: the same holds for an unobservable target -- no configuration downgrades that verdict to a pass",
+  "unobservable_targets": [
+    {
+      "detail": "case=case_0002_install_local_cli action=InstallLocalCli",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process 'bash /Users/hayde/IdeaProjects/wt-rc-02-terminate/skill-scripts/install-tla-spec-dev.sh' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0002_install_local_cli action=InstallLocalCli]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "bash /Users/hayde/IdeaProjects/wt-rc-02-terminate/skill-scripts/install-tla-spec-dev.sh"
+    },
+    {
+      "detail": "case=case_0002_install_local_cli action=InstallLocalCli",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process '/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0002_install_local_cli/bin/tla-spec-dev --version' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0002_install_local_cli action=InstallLocalCli]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ecwork/case_0002_install_local_cli/bin/tla-spec-dev --version"
+    },
+    {
+      "detail": "case=case_0003_open_ticket action=OpenTicket",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process '/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0003_open_ticket action=OpenTicket]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject"
+    },
+    {
+      "detail": "case=case_0003_open_ticket action=OpenTicket",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process '/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0003_open_ticket action=OpenTicket]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay"
+    },
+    {
+      "detail": "case=case_0003_open_ticket action=OpenTicket",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process '/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0003_open_ticket action=OpenTicket]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint"
+    },
+    {
+      "detail": "case=case_0004_record_budgets action=RecordBudgets",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process '/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0004_record_budgets action=RecordBudgets]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject"
+    },
+    {
+      "detail": "case=case_0005_scaffold_project action=ScaffoldProject",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process '/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0005_scaffold_project action=ScaffoldProject]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject"
+    },
+    {
+      "detail": "case=case_0006_scaffold_workflow action=ScaffoldWorkflow",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process '/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0006_scaffold_workflow action=ScaffoldWorkflow]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject"
+    },
+    {
+      "detail": "case=case_0006_scaffold_workflow action=ScaffoldWorkflow",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process '/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-123 CLI scaffold ticket' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0006_scaffold_workflow action=ScaffoldWorkflow]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-123 CLI scaffold ticket"
+    },
+    {
+      "detail": "case=case_0007_update_ticket_current action=UpdateTicketCurrent",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process '/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0007_update_ticket_current action=UpdateTicketCurrent]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject"
+    },
+    {
+      "detail": "case=case_0007_update_ticket_current action=UpdateTicketCurrent",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process '/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0007_update_ticket_current action=UpdateTicketCurrent]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay"
+    },
+    {
+      "detail": "case=case_0007_update_ticket_current action=UpdateTicketCurrent",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process '/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0007_update_ticket_current action=UpdateTicketCurrent]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint"
+    },
+    {
+      "detail": "case=case_0008_update_ticket_desired action=UpdateTicketDesired",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process '/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0008_update_ticket_desired action=UpdateTicketDesired]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject"
+    },
+    {
+      "detail": "case=case_0008_update_ticket_desired action=UpdateTicketDesired",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process '/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0008_update_ticket_desired action=UpdateTicketDesired]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs scaffold workflow CLI-028 MF-028 spike replay"
+    },
+    {
+      "detail": "case=case_0008_update_ticket_desired action=UpdateTicketDesired",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process '/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0008_update_ticket_desired action=UpdateTicketDesired]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3 /Users/hayde/IdeaProjects/wt-rc-02-terminate/scripts/tla_spec_dev.py --spec-root specs open ticket cli_entrypoint"
+    }
+  ],
+  "verdict": "unobservable"
+}

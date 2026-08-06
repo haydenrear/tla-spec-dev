@@ -1,0 +1,397 @@
+{
+  "binding": "ports_binding",
+  "cases": "quota_port",
+  "catalogues": [
+    "specs/results/scorecards/ports-as-adapters/measure/pa_m14_prerepair.toml"
+  ],
+  "control_red": [
+    {
+      "instrument": "corpus-action-bound:fake",
+      "must_be": "KILLED",
+      "mutant": "PA-M14-positive-control-ports-tree",
+      "observed_cell": "SURVIVED",
+      "role": "positive",
+      "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+      "witness_action": "Reserve",
+      "witness_basis": "measured",
+      "witness_ran_accepting": 294
+    },
+    {
+      "instrument": "corpus-action-bound:real",
+      "must_be": "KILLED",
+      "mutant": "PA-M14-positive-control-ports-tree",
+      "observed_cell": "SURVIVED",
+      "role": "positive",
+      "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+      "witness_action": "Reserve",
+      "witness_basis": "measured",
+      "witness_ran_accepting": 294
+    },
+    {
+      "instrument": "corpus-port-swap:fake",
+      "must_be": "KILLED",
+      "mutant": "PA-M14-positive-control-ports-tree",
+      "observed_cell": "SURVIVED",
+      "role": "positive",
+      "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+      "witness_action": "Reserve",
+      "witness_basis": "measured",
+      "witness_ran_accepting": 294
+    },
+    {
+      "instrument": "corpus-port-swap:real",
+      "must_be": "KILLED",
+      "mutant": "PA-M14-positive-control-ports-tree",
+      "observed_cell": "SURVIVED",
+      "role": "positive",
+      "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+      "witness_action": "Reserve",
+      "witness_basis": "measured",
+      "witness_ran_accepting": 294
+    }
+  ],
+  "controls_on_unmutated_code": {
+    "corpus-action-bound:fake": {
+      "bound_by": {
+        "CloseTenant (action) -> port_journal_adapters:RealJournalAdapter": 362,
+        "Commit (action) -> port_journal_adapters:RealJournalAdapter": 388,
+        "Release (action) -> port_journal_adapters:RealJournalAdapter": 436,
+        "Reserve (action) -> port_journal_adapters:RealJournalAdapter": 669
+      },
+      "cases": 1855,
+      "failures": [],
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 362,
+          "ran_accepting": 352,
+          "ran_refusing": 10,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 388,
+          "ran_accepting": 384,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 436,
+          "ran_accepting": 432,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 357,
+          "ran_accepting": 294,
+          "ran_refusing": 63,
+          "skipped": 312
+        }
+      },
+      "port_bindings": [],
+      "skipped_by_rule": {
+        "model named a different free id; this API allocates the next one": 28,
+        "refused only by a constraint on `r`, which this API allocates": 18,
+        "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+      },
+      "total_failed": 0,
+      "total_ran": 1543,
+      "total_skipped": 312,
+      "wiring": "fake",
+      "wiring_notes": []
+    },
+    "corpus-action-bound:real": {
+      "bound_by": {
+        "CloseTenant (action) -> port_journal_adapters:RealJournalAdapter": 362,
+        "Commit (action) -> port_journal_adapters:RealJournalAdapter": 388,
+        "Release (action) -> port_journal_adapters:RealJournalAdapter": 436,
+        "Reserve (action) -> port_journal_adapters:RealJournalAdapter": 669
+      },
+      "cases": 1855,
+      "failures": [],
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 362,
+          "ran_accepting": 352,
+          "ran_refusing": 10,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 388,
+          "ran_accepting": 384,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 436,
+          "ran_accepting": 432,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 357,
+          "ran_accepting": 294,
+          "ran_refusing": 63,
+          "skipped": 312
+        }
+      },
+      "port_bindings": [],
+      "skipped_by_rule": {
+        "model named a different free id; this API allocates the next one": 28,
+        "refused only by a constraint on `r`, which this API allocates": 18,
+        "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+      },
+      "total_failed": 0,
+      "total_ran": 1543,
+      "total_skipped": 312,
+      "wiring": "real",
+      "wiring_notes": []
+    },
+    "corpus-port-swap:fake": {
+      "bound_by": {
+        "port:ledger.LedgerAppendPort (port) -> port_journal_adapters:FakeJournalAdapter": 1855
+      },
+      "cases": 1855,
+      "failures": [],
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 362,
+          "ran_accepting": 352,
+          "ran_refusing": 10,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 388,
+          "ran_accepting": 384,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 436,
+          "ran_accepting": 432,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 357,
+          "ran_accepting": 294,
+          "ran_refusing": 63,
+          "skipped": 312
+        }
+      },
+      "port_bindings": [
+        "ledger.LedgerAppendPort"
+      ],
+      "skipped_by_rule": {
+        "model named a different free id; this API allocates the next one": 28,
+        "refused only by a constraint on `r`, which this API allocates": 18,
+        "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+      },
+      "total_failed": 0,
+      "total_ran": 1543,
+      "total_skipped": 312,
+      "wiring": "fake",
+      "wiring_notes": [
+        "PORT ledger.LedgerAppendPort: wiring=fake -> port_journal_adapters:FakeJournalAdapter (real: port_journal_adapters:RealJournalAdapter)"
+      ]
+    },
+    "corpus-port-swap:real": {
+      "bound_by": {
+        "port:ledger.LedgerAppendPort (port) -> port_journal_adapters:RealJournalAdapter": 1855
+      },
+      "cases": 1855,
+      "failures": [],
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 362,
+          "ran_accepting": 352,
+          "ran_refusing": 10,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 388,
+          "ran_accepting": 384,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 436,
+          "ran_accepting": 432,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 357,
+          "ran_accepting": 294,
+          "ran_refusing": 63,
+          "skipped": 312
+        }
+      },
+      "port_bindings": [
+        "ledger.LedgerAppendPort"
+      ],
+      "skipped_by_rule": {
+        "model named a different free id; this API allocates the next one": 28,
+        "refused only by a constraint on `r`, which this API allocates": 18,
+        "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+      },
+      "total_failed": 0,
+      "total_ran": 1543,
+      "total_skipped": 312,
+      "wiring": "real",
+      "wiring_notes": []
+    },
+    "suite-fake": {
+      "failures": [
+        "28 passed"
+      ],
+      "total_failed": 0
+    },
+    "suite-real": {
+      "failures": [
+        "28 passed"
+      ],
+      "total_failed": 0
+    }
+  },
+  "instruments": [
+    "corpus-port-swap:real",
+    "corpus-port-swap:fake",
+    "corpus-action-bound:real",
+    "corpus-action-bound:fake",
+    "suite-real",
+    "suite-fake"
+  ],
+  "per_mutant": {
+    "PA-M14-positive-control-ports-tree": {
+      "applied_exactly_once": true,
+      "cells": {
+        "corpus-action-bound:fake": "SURVIVED",
+        "corpus-action-bound:real": "SURVIVED",
+        "corpus-port-swap:fake": "SURVIVED",
+        "corpus-port-swap:real": "SURVIVED",
+        "suite-fake": "KILLED",
+        "suite-real": "KILLED"
+      },
+      "control_role": "positive -- must die on every instrument that reaches the reference_ports tree at all, under BOTH wirings",
+      "control_verdict": {
+        "declared_role": "positive -- must die on every instrument that reaches the reference_ports tree at all, under BOTH wirings",
+        "green": false,
+        "instruments_decided": [
+          "corpus-action-bound:fake",
+          "corpus-action-bound:real",
+          "corpus-port-swap:fake",
+          "corpus-port-swap:real",
+          "suite-fake",
+          "suite-real"
+        ],
+        "instruments_not_decidable": [],
+        "instruments_wrong": [
+          "corpus-action-bound:fake",
+          "corpus-action-bound:real",
+          "corpus-port-swap:fake",
+          "corpus-port-swap:real"
+        ],
+        "must_be": "KILLED",
+        "role": "positive",
+        "role_scope": {
+          "actions_named_in_prose": [],
+          "executable_as_written": true,
+          "scope": "universal"
+        },
+        "witness_action": "Reserve",
+        "witnesses": {
+          "corpus-action-bound:fake": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "corpus-action-bound:real": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "corpus-port-swap:fake": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "corpus-port-swap:real": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "suite-fake": {
+            "basis": "instrument keeps no executability accounting",
+            "observed": null,
+            "witness_action": "Reserve"
+          },
+          "suite-real": {
+            "basis": "instrument keeps no executability accounting",
+            "observed": null,
+            "witness_action": "Reserve"
+          }
+        }
+      },
+      "evidence": {
+        "corpus-action-bound:fake": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-action-bound:real": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:fake": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:real": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "suite-fake": {
+          "failures": [
+            "7 failed, 21 passed"
+          ],
+          "total_failed": 1
+        },
+        "suite-real": {
+          "failures": [
+            "7 failed, 21 passed"
+          ],
+          "total_failed": 1
+        }
+      },
+      "fault_class": "wrong_value",
+      "occurrences_of_find": 1,
+      "path": "reference_ports/domain.py"
+    }
+  },
+  "retired_controls": {},
+  "subject": "reference_ports_prerepair",
+  "tree": "examples/validation/ab/reference_ports",
+  "unmutated_control_failed": []
+}

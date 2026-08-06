@@ -1,0 +1,66 @@
+{
+  "scorecard_version": 1,
+  "epic": "architectural-coherence",
+  "example": "ex3_over_complex",
+  "run_id": "20260803-j2",
+  "arm": null,
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "judge": {"model": "claude-opus-5[1m]", "pass": 2, "blind_to_arm": true},
+  "dimensions": {
+    "D1": {
+      "score": 2,
+      "citations": [
+        "examples/validation/runs/ex3-run4/artifacts/assertion_probes.txt:6-16",
+        "examples/validation/runs/ex3-run4/artifacts/providers.py:78-83",
+        "examples/validation/runs/ex3-run4/artifacts/providers.py:87-95"
+      ],
+      "rationale": "Two seeded faults, both killed, both through content assertions rather than shape: a dropped effect caught by the count assertion (providers.py:87-95) and a wrong operation name caught by the per-entry content assertion (providers.py:78-83). I cross-checked the quoted failure strings against the provider's own f-strings and they match verbatim, which is what raises an agent-written summary above hearsay. Anchor 2 and no higher: the provider also asserts consecutive seq ordering (providers.py:72-77, :96-99) but no ordering fault was ever seeded, so the ordering class is asserted and unmeasured, not caught. No refusal or cross-aspect fault was probed either.",
+      "refuses_to_claim": null
+    },
+    "D2": {
+      "score": 3,
+      "citations": [
+        "examples/validation/ex3_over_complex/order_hub/specs/program_model/OrderHub.tla:32-64",
+        "examples/validation/runs/ex3-run4/artifacts/descriptor_before.txt:24-51",
+        "examples/validation/runs/ex3-run1/artifacts/OrderHub_after.tla:16-20",
+        "examples/validation/runs/ex3-run4/artifacts/complexity_decision.md:55-69"
+      ],
+      "rationale": "What got simpler, verified by me in the source and not taken from the report: `mode` and `dirty` are written by all four actions and read by no guard (OrderHub.tla:32-64 -- every guard reads only orders/shipped/retries/auditLog), so they were deleted; TypeOK's domains were 0..15/0..15/0..31/0..63 against behavioral caps of 3/3/2/12 and were tightened to match (OrderHub_after.tla:16-20). Before and after descriptors are both in the record: bound 8,388,608 with three dense rows (descriptor_before.txt:24-51) becomes 624 with one (descriptor_after.txt:22, :45). How behavior survived: no guard read the deleted variables, the fixture's own tests never read them (test_order_hub.py:9-53), and the MF-020 red flag is addressed directly -- generated and distinct fell together at constant depth, 1878/717 -> 717/270, depth 13 both (complexity_decision.md:65-69). Not 4: the deletion also removes two keys from `new_hub()`'s returned dict, no check existed that could have caught an external reader, and run 2 of the same fixture judged the identical deletion a design change and declined it (VAL-15). 'Shown behavior-preserving' is contested by the record itself.",
+      "refuses_to_claim": null
+    },
+    "D3": {
+      "score": 2,
+      "citations": [
+        "examples/validation/runs/ex3-run4/artifacts/providers.py:71-85",
+        "examples/validation/runs/ex3-run4/artifacts/assertion_probes.txt:6-10",
+        "examples/validation/ex3_over_complex/order_hub/order_hub.py:26-29"
+      ],
+      "rationale": "One boundary is declared -- AuditJournalPort -- and the code does route through it at runtime, which I take from a runtime fact rather than an import: probe 1 removed the `on_audit` call while leaving the counter increment, and the run failed with the provider's count assertion (assertion_probes.txt:6-10). That is evidence about what calls what, which is what the card demands. Anchor 2, and firmly no higher. There is no swap to name: the usage record says in-memory journal only, no cross-process observation, and the instrumented `order_hub.py` is not in the run record, so the seam itself is visible only through the provider and a probe. Everything else in the design is one shared mutable dict written from every operation (order_hub.py:26-29 called from :36, :44, :52, :59), Q = 0.000 single component before and after. Read D3 = 2 here as 'one real effect port bolted onto a god-state core', not as 'modular'.",
+      "refuses_to_claim": null
+    },
+    "D4": {
+      "score": 3,
+      "citations": [
+        "examples/validation/ex3_over_complex/order_hub/tests/test_order_hub.py:9-53",
+        "examples/validation/runs/ex3-run4/artifacts/complexity_decision.md:53-69",
+        "examples/validation/runs/ex3-run4/artifacts/campaign_tail.txt:1-3"
+      ],
+      "rationale": "Six behaviors are enumerated by the fixture's own suite (place-then-ship, ship<=order, order cap, retry cap, audit growth, audit cap stops everything -- test_order_hub.py:9-53) and each is shown to hold after the refactor with assertions byte-identical; I verified independently that none of those tests reads `mode` or `dirty`, so the claim is checkable rather than asserted. The check is model-derived as well as hand-written: TLC re-run green on the same invariant, plus a 716-case exhaustive transition corpus executed against the unchanged adapters (campaign_tail.txt:1-3). Not 4 by the take-the-lower rule: the deliberate behavior-breaking changes that were caught (assertion_probes.txt) exercise the effect provider built AFTER the refactor, not the instrument that validated the refactor, and they are recorded as an agent-written summary rather than raw tool output.",
+      "refuses_to_claim": null
+    },
+    "D5": {
+      "score": 3,
+      "citations": [
+        "examples/validation/runs/ex3-run4/artifacts/effect_provider_usage.yaml:10-12",
+        "examples/validation/runs/ex3-run4/artifacts/assertion_probes.txt:1-4",
+        "examples/validation/runs/ex3-run4/artifacts/complexity_decision.md:71-74",
+        "examples/validation/runs/ex3-run2/scoring.md:16-27"
+      ],
+      "rationale": "The artifacts name their own limits unprompted -- the provider's usage file states the bypass it cannot observe and that the journal is in-memory only (:10-12); the decision doc lists residual descriptor facts it is accepting rather than arguing away (:71-74); the probe file opens by refusing to treat a green campaign as evidence until the assertions are shown to bite (:1-4), which is the MF-016 doctrine applied by the artifact to itself. The record carries a genuinely unflattering result: two runs of the same fixture put the same two variables on opposite sides of the bookkeeping line (VAL-15, ex3-run2/scoring.md:16-27). Held at 3, not 4: the run verdicts generalize past the evidence ('provably kill content bugs', 'the compounding the two epics were built for') from two probes, and the one class the provider asserts but never probes -- ordering -- is nowhere named as unmeasured.",
+      "refuses_to_claim": null
+    }
+  },
+  "total": 13,
+  "contested": [],
+  "verdict": "The deliberately over-complex fixture produced the epic's best-evidenced simplification -- deletions I could verify were unread by any guard, with the deleted-edge red flag checked -- but its modularity is one effect port over an unchanged god-state, and its ordering assertion has never been probed."
+}

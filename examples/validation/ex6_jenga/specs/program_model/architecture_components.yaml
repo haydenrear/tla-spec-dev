@@ -1,0 +1,16 @@
+# A DECLARED partition of the synthetic Jenga.
+#
+# It is the honest cut a person would write for this program -- orders own the
+# lifecycle, billing owns the audit trail, notify owns the dirty flag -- and it
+# is USELESS, which is the fixture's whole point. Every action writes every
+# variable, so every component pair is ported and no code edge could diverge.
+# The correct verdict is `unmappable` with reason `unfalsifiable_coherence`,
+# never `coherent`.
+architecture:
+  components:
+    - name: orders
+      variables: [status]
+    - name: billing
+      variables: [auditLog]
+    - name: notify
+      variables: [dirty, lastCommand]

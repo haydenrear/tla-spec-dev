@@ -66,6 +66,30 @@ def previous(**overrides):
     return {"scope_id": "PREV", "verdict": "recorded", "metrics": metrics(**overrides)}
 
 
+def _write_partially_resolved_model(tmp_path: Path) -> tuple[Path, Path]:
+    """A two-variable model where the TypeInvariant sizes only one of them.
+
+    RP-04 / CM-01-DF-03: the smallest shape that reproduces the defect the
+    shipped example hit at 1-of-10 -- a bound of 2 that is a product over half
+    the representation.
+    """
+    tla = tmp_path / "Partial.tla"
+    tla.write_text(
+        "---- MODULE Partial ----\n"
+        "VARIABLES flag, free\n"
+        "TypeInvariant ==\n"
+        "  /\\ flag \\in BOOLEAN\n"
+        "Init == /\\ flag = FALSE /\\ free = 0\n"
+        "Step == /\\ flag' = ~flag /\\ free' = free + 1\n"
+        "Next == Step\n"
+        "====\n",
+        encoding="utf-8",
+    )
+    cfg = tmp_path / "MC.cfg"
+    cfg.write_text("INIT Init\nNEXT Next\nINVARIANT TypeInvariant\n", encoding="utf-8")
+    return tla, cfg
+
+
 def evaluate(current, prev, ledger_input):
     return cl.evaluate(
         scope="ticket",
@@ -493,12 +517,211 @@ class TestPersistence:
 
     def test_budget_utilization_is_recorded_as_percent_of_cap(self):
         util = cl._budget_utilization(
-            {"bound": 699840, "distinct_states": 231621},
+            {
+                "bound": 699840,
+                "bound_complete": True,
+                "bound_resolved_variables": 9,
+                "variables": 9,
+                "distinct_states": 231621,
+            },
             {"max_state_space_bound": 1000000, "max_distinct_states": 500000},
         )
         assert util["max_state_space_bound"]["percent"] == 70.0
+        assert util["max_state_space_bound"]["within_cap"] is True
         assert util["max_distinct_states"]["percent"] == 46.3
         assert util["max_distinct_states"]["within_cap"] is True
+
+
+# ---------------------------------------------------------------------------
+# RP-04 / CM-01-DF-03 -- a percent-of-cap over an INCOMPLETE bound
+# ---------------------------------------------------------------------------
+#
+# The percent above is a measurement only when the bound is a product over the
+# WHOLE declared representation. Before RP-04 the ledger computed `within_cap`
+# as a plain `used <= cap` regardless, which is how a bound of 4 taken over 1
+# of 10 variables was recorded as "0.0% of 1,000,000, within cap" for a model
+# TLC measures at 49,386 distinct states -- while the descriptor TEXT beside it
+# correctly named the nine excluded variables.
+
+
+class TestBoundCompleteness:
+    def test_incomplete_bound_under_the_cap_refuses_the_within_cap_claim(self):
+        util = cl._budget_utilization(
+            {
+                "bound": 4,
+                "bound_complete": False,
+                "bound_resolved_variables": 1,
+                "bound_unresolved_variables": ["accounts", "carts"],
+                "variables": 10,
+                "distinct_states": None,
+            },
+            {"max_state_space_bound": 1000000, "max_distinct_states": 500000},
+        )
+        entry = util["max_state_space_bound"]
+        assert entry["within_cap"] is None, "an incomplete bound is not 'within cap'"
+        assert entry["percent"] is None, "percent-of-cap over an incomplete bound"
+        assert entry["percent_lower_bound"] == 0.0
+        assert entry["bound_complete"] is False
+        assert "1 of 10 declared variables" in entry["caveat"]
+        assert "not a measurement" in entry["caveat"]
+
+    def test_incomplete_bound_over_the_cap_keeps_the_sound_direction(self):
+        """Over the cap stays over the cap: the complete bound is only larger."""
+        util = cl._budget_utilization(
+            {
+                "bound": 2799360,
+                "bound_complete": False,
+                "bound_resolved_variables": 8,
+                "bound_unresolved_variables": ["lastCommand", "result"],
+                "variables": 10,
+            },
+            {"max_state_space_bound": 1000000, "max_distinct_states": 500000},
+        )
+        entry = util["max_state_space_bound"]
+        assert entry["within_cap"] is False
+        assert entry["percent"] is None
+        assert entry["percent_lower_bound"] == 279.9
+        assert "LOWER BOUND" in entry["caveat"]
+
+    def test_unrecorded_completeness_is_not_a_licence_to_claim_within_cap(self):
+        """Pre-RP-04 entries carry no completeness; unknown is not complete."""
+        util = cl._budget_utilization(
+            {"bound": 699840, "variables": 9},
+            {"max_state_space_bound": 1000000, "max_distinct_states": 500000},
+        )
+        entry = util["max_state_space_bound"]
+        assert entry["within_cap"] is None
+        assert entry["percent"] is None
+        assert "not recorded" in entry["caveat"]
+
+    def test_measured_distinct_states_are_unaffected_by_bound_completeness(self):
+        """TLC counted them; there is no partial-resolution question to ask."""
+        util = cl._budget_utilization(
+            {"bound": 4, "bound_complete": False, "distinct_states": 49386},
+            {"max_state_space_bound": 1000000, "max_distinct_states": 500000},
+        )
+        assert util["max_distinct_states"]["percent"] == 9.9
+        assert util["max_distinct_states"]["within_cap"] is True
+
+    def test_collect_metrics_publishes_bound_completeness(self, tmp_path):
+        tla, cfg = _write_partially_resolved_model(tmp_path)
+        collected = cl.collect_metrics(tla, cfg, None)
+        assert collected["bound_complete"] is False
+        assert collected["bound_resolved_variables"] == 1
+        assert collected["bound_unresolved_variables"] == ["free"]
+        assert (
+            collected["budget_utilization"]["max_state_space_bound"]["within_cap"] is None
+        )
+
+    def test_report_never_prints_an_incomplete_bound_without_saying_so(self):
+        verdict = evaluate(
+            metrics(
+                bound=4,
+                bound_complete=False,
+                bound_resolved_variables=1,
+                bound_unresolved_variables=["carts"],
+                variables=10,
+                budget_utilization=cl._budget_utilization(
+                    {
+                        "bound": 4,
+                        "bound_complete": False,
+                        "bound_resolved_variables": 1,
+                        "bound_unresolved_variables": ["carts"],
+                        "variables": 10,
+                    },
+                    {"max_state_space_bound": 1000000},
+                ),
+            ),
+            None,
+            make_input(),
+        )
+        rendered = cl.render_report(verdict)
+        assert "INCOMPLETE: 1/10 variables resolved" in rendered
+        assert "cap comparison UNKNOWN -- incomplete bound" in rendered
+        assert "within cap)" not in rendered
+
+    def test_bound_delta_across_a_completeness_change_is_marked_not_comparable(self):
+        delta = cl.compute_delta(
+            {"scope_id": "prev", "metrics": {"bound": 1000, "bound_complete": True}},
+            {"bound": 4, "bound_complete": False},
+        )
+        bound = delta["metrics"]["bound"]
+        assert bound["delta"] == -996
+        assert bound["comparable"] is False
+        assert "completeness CHANGED" in bound["note"]
+
+    def test_bound_delta_between_two_complete_bounds_is_comparable(self):
+        delta = cl.compute_delta(
+            {"scope_id": "prev", "metrics": {"bound": 1000, "bound_complete": True}},
+            {"bound": 500, "bound_complete": True},
+        )
+        assert delta["metrics"]["bound"]["comparable"] is True
+        assert "note" not in delta["metrics"]["bound"]
+
+    # -- the same pattern, two rows over ---------------------------------
+    # Found while auditing the two files RP-04 owns for other places where the
+    # descriptor's prose is scrupulous and the recorded artifact is not.
+
+    def test_an_unfinished_tlc_run_does_not_claim_within_cap_either(self, tmp_path):
+        """`analyze` checks max_distinct_states only when report.complete."""
+        util = cl._budget_utilization(
+            {"distinct_states": 49386, "tlc_run_complete": False},
+            {"max_distinct_states": 500000},
+        )
+        entry = util["max_distinct_states"]
+        assert entry["within_cap"] is None
+        assert entry["percent"] is None
+        assert entry["percent_lower_bound"] == 9.9
+        assert "did not finish" in entry["caveat"]
+
+    def test_an_unfinished_tlc_run_over_the_cap_keeps_the_sound_claim(self):
+        util = cl._budget_utilization(
+            {"distinct_states": 900000, "tlc_run_complete": False},
+            {"max_distinct_states": 500000},
+        )
+        assert util["max_distinct_states"]["within_cap"] is False
+
+    def test_collect_metrics_records_whether_the_tlc_run_finished(self, tmp_path):
+        tla, cfg = _write_partially_resolved_model(tmp_path)
+        truncated = tmp_path / "tlc.txt"
+        truncated.write_text(
+            "1,234 states generated, 567 distinct states found, 89 states left on queue.\n",
+            encoding="utf-8",
+        )
+        collected = cl.collect_metrics(tla, cfg, None, tlc_report=truncated)
+        assert collected["distinct_states"] == 567
+        assert collected["tlc_run_complete"] is False
+
+    def test_a_fallback_action_count_carries_its_attribution(self, tmp_path):
+        """The descriptor says FALLBACK in prose; the ledger recorded a count."""
+        tla = tmp_path / "NoNext.tla"
+        tla.write_text(
+            "---- MODULE NoNext ----\n"
+            "VARIABLES flag\n"
+            "TypeInvariant == flag \\in BOOLEAN\n"
+            "Toggle == flag' = ~flag\n"
+            "====\n",
+            encoding="utf-8",
+        )
+        cfg = tmp_path / "MC.cfg"
+        cfg.write_text("INVARIANT TypeInvariant\n", encoding="utf-8")
+        collected = cl.collect_metrics(tla, cfg, None)
+        assert collected["actions_from_fallback_heuristic"] is True
+        assert collected["action_attribution"].startswith("FALLBACK")
+        verdict = evaluate(metrics(**collected), None, make_input())
+        assert "FALLBACK primes heuristic" in cl.render_report(verdict)
+
+    def test_bound_delta_over_pre_rp04_entries_is_marked_unknown(self):
+        """Every historical entry lacks completeness; the delta says so."""
+        delta = cl.compute_delta(
+            {"scope_id": "prev", "metrics": {"bound": 699840}}, {"bound": 2799360}
+        )
+        bound = delta["metrics"]["bound"]
+        assert bound["comparable"] is False
+        assert "unrecorded" in bound["note"]
+        # The direction rules are deliberately UNCHANGED: relaxing a gate is a
+        # policy call for the owner, not a side effect of a reporting fix.
+        assert delta["direction"] == "increase"
 
 
 # ---------------------------------------------------------------------------
@@ -703,7 +926,28 @@ class TestCoverageAuditIsAlwaysVisible:
     """MF-026. The four oracles check FIDELITY and are all bounded to what is
     modeled. Unmodeled surface is invisible to every one of them while they
     report green, so the completeness verdict is recorded separately -- and,
-    critically, recorded even when it is absent."""
+    critically, recorded even when it is absent.
+
+    RETIRED AS A GATE 2026-08-04 (owner direction). It refused a workflow close
+    on anything but `pass`, with no override. It is now an OPTIONAL agent-run
+    review: the verdict is recorded and printed at every close, including
+    `fail` and `incomplete`, and refuses none of them. The reason is not that
+    the audit was useless -- it is the only sweep in this toolchain that looks
+    at UNMODELED surface, and it found `generate cases` with no action, no port
+    and no CLI subcommand at all (G-6), plus two shipped port globs that could
+    never fail (F-7, F-8). The reason is that its verdict is a word the audited
+    party types about a sweep the audited party performed, and a gate with that
+    input is a place to type `pass` rather than a check.
+
+    What these tests now pin is the RECORDING, in both directions: the verdict
+    is never forgiven into a pass, and it never refuses a close.
+    """
+
+    @staticmethod
+    def _audit_note(verdict) -> str:
+        matches = [n for n in verdict.notes if "coverage audit" in n]
+        assert matches, verdict.notes
+        return " ".join(matches)
 
     def test_absent_block_is_recorded_as_not_run_never_omitted(self):
         """An omitted block is not forgiven into a pass. It becomes a visible
@@ -714,32 +958,42 @@ class TestCoverageAuditIsAlwaysVisible:
         assert verdict.entry["coverage_audit"]["passing"] is False
         assert "coverage audit" in cl.render_report(verdict)
 
-    def test_not_run_is_reported_but_does_not_refuse_a_ticket_close(self):
-        """The audit is an END-OF-EPIC step. Failing it at every ticket close
-        would force each ticket to run a whole-epic audit or to fake a verdict;
-        both are worse than recording the absence."""
-        verdict = evaluate_scoped("ticket", make_input())
-        assert not verdict.rejected
-        assert any("end-of-epic" in note for note in verdict.notes)
+    def test_not_run_is_reported_and_refuses_neither_scope(self):
+        """The audit is an END-OF-EPIC step, and since 2026-08-04 it refuses
+        nothing at either scope. Its absence is a NOTE at every close, which is
+        the strongest claim the record honestly supports."""
+        for scope in ("ticket", "workflow"):
+            verdict = evaluate_scoped(scope, make_input())
+            assert not verdict.rejected, (scope, verdict.errors)
+            assert "not_run" in self._audit_note(verdict), scope
+            assert not any("coverage audit" in e for e in verdict.errors), scope
 
-    def test_not_run_REFUSES_the_workflow_close(self):
-        """At workflow close the epic is over and there is no later chance. A
-        check that silently passes when its input is absent is not a check."""
-        verdict = evaluate_scoped("workflow", make_input())
-        assert verdict.rejected
-        assert any("coverage audit" in e for e in verdict.errors)
-
-    def test_fail_refuses_the_workflow_close(self):
+    def test_fail_is_recorded_and_does_not_refuse_the_workflow_close(self):
+        """It refused here until 2026-08-04. It now records and closes through,
+        and the entry still says `fail` -- non-gating is not unrecorded."""
         payload = make_input(coverage_audit={"status": "fail", "in_scope_gaps": 3})
-        assert evaluate_scoped("workflow", payload).rejected
+        verdict = evaluate_scoped("workflow", payload)
+        assert not verdict.rejected, verdict.errors
+        assert verdict.entry["coverage_audit"]["status"] == "fail"
+        assert verdict.entry["coverage_audit"]["passing"] is False
+        assert "fail" in self._audit_note(verdict)
+        assert "does not pass" in cl.render_report(verdict)
 
     def test_incomplete_IS_NOT_pass(self):
         """MF-027's polarity lesson, applied one level up: a sweep that did not
         walk the surface carries no information about it. Promoting that to a
-        pass would dress an absence of evidence as a measurement."""
+        pass would dress an absence of evidence as a measurement.
+
+        Retiring the REFUSAL did not retire this DISTINCTION, which is the half
+        that was ever load-bearing: `incomplete` is still not `passing`, still
+        prints its flag, and still reads as an absence of evidence in the
+        entry."""
         payload = make_input(coverage_audit={"status": "incomplete"})
         assert not cl.parse_coverage_audit(payload["coverage_audit"]).passing
-        assert evaluate_scoped("workflow", payload).rejected
+        verdict = evaluate_scoped("workflow", payload)
+        assert not verdict.rejected, verdict.errors
+        assert verdict.entry["coverage_audit"]["passing"] is False
+        assert "incomplete" in self._audit_note(verdict)
 
     def test_pass_allows_the_workflow_close_and_records_the_report_path(self):
         payload = make_input(
@@ -756,15 +1010,20 @@ class TestCoverageAuditIsAlwaysVisible:
         assert "results/coverage_audit_report.md" in cl.render_report(verdict)
 
     def test_unrecognized_verdict_never_passes(self):
-        """Same polarity as the retention set: a status nobody enumerated
-        refuses rather than silently passing. `justified` and `accept_as_is`
-        are exactly the dispositions the prompt forbids -- neither becomes a
-        pass by being written into the ledger instead."""
+        """Same polarity as the retention set: a status nobody enumerated is
+        normalized to `not_run` rather than silently passing. `justified` and
+        `accept_as_is` are exactly the dispositions the prompt forbids --
+        neither becomes a pass by being written into the ledger instead.
+
+        This survives the gate's retirement unchanged. It never was a refusal
+        rule; it is a READING rule, and reading a word nobody defined as good
+        news is the failure mode with or without a gate behind it."""
         for bogus in ("justified", "accept_as_is", "waived", "approved", "green", "ok"):
             record = cl.parse_coverage_audit({"status": bogus})
             assert record.normalized == "not_run", bogus
             assert not record.passing, bogus
-            assert evaluate_scoped("workflow", make_input(coverage_audit={"status": bogus})).rejected
+            verdict = evaluate_scoped("workflow", make_input(coverage_audit={"status": bogus}))
+            assert verdict.entry["coverage_audit"]["passing"] is False, bogus
 
     def test_template_sentinel_does_not_pass(self):
         payload = make_input(coverage_audit={"status": "TODO", "report": "TODO"})
@@ -931,3 +1190,30 @@ class TestValidatedRefactorBasis:
         parsed = cl._load_structured(cl.TEMPLATE)
         members = cl.parse_validated_refactor(parsed["validated_refactor"])
         assert all(m.unverified for m in members.values())
+
+
+# ---------------------------------------------------------------------------
+# AC-04 -- the architecture delta member: REMOVED 2026-08-04 (owner direction)
+#
+# Five test classes stood here (TestArchitectureDeltaIsRecordedAndNeverGates,
+# TestTheDeltaIsDerivedNotTyped, TestTheMF020RuleAppliedToStructure,
+# TestTheMapIdentityIsPartOfTheRecord, TestTheTemplateCarriesTheDeltaBlock).
+# They pinned three properties of a ledger member whose input was a JSON report
+# only `analyze architecture --baseline` could produce. That command and the two
+# scanner modules behind it are gone, so the member could never again be
+# anything but `not_run`, and a test suite for a field with no producer is the
+# dead surface this project keeps writing tools to find.
+#
+# Two of the three properties were never about architecture and are not lost:
+#
+#   * DERIVED, NOT TYPED -- "a member whose verdict is typed in by the author
+#     being graded is not a measurement". That is now the argument for retiring
+#     the coverage-audit gate (see TestCoverageAuditIsAlwaysVisible above), and
+#     it is written down at references/architecture_advice.md rather than
+#     enforced on one field.
+#   * MF-020 APPLIED TO STRUCTURE -- "a drop whose disappeared edges are not
+#     enumerated is unverified". The COMPLEXITY half of that rule is still
+#     mechanised, by the transition-diff gate in `evaluate`, and is still tested
+#     in this file. What went is the structural half, which had nothing left to
+#     measure.
+# ---------------------------------------------------------------------------

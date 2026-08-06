@@ -1,0 +1,116 @@
+RP-03 / EV-02-DF-02 -- a case module now generates from where the docs put it
+=============================================================================
+
+THE ACCEPTANCE PROPERTY
+-----------------------
+Generate the checked-in ex4 case modules from specs/case_modules/, IN PLACE,
+with nothing copied beside the view, and get the corpus the copy-and-delete run
+recorded.
+
+BEFORE (epic tip b2d3a35, unmodified)
+-------------------------------------
+$ cd examples/validation/ex4_pipeline_coherent
+$ PYTHONPATH=$PWD python3 $REPO/scripts/generate_cases_from_tlc_dump.py \
+    specs/case_modules/Scenario_DeliveryPath.tla specs/case_modules/Scenario_DeliveryPath.cfg \
+    --out /tmp/rp03repro --package Scenario_DeliveryPath_cases --view internal \
+    --actions-metadata specs/program_model/actions.yml ... --dedupe projected
+
+complexity scan could not analyze this model -- the module hierarchy could not
+be resolved:
+  module Scenario_DeliveryPath (Scenario_DeliveryPath.tla) EXTENDS Pipeline, but
+  Pipeline.tla was not found in .../specs/case_modules. The analyzer cannot union
+  declarations from a module it cannot read and FAILS CLOSED rather than
+  under-report the bound. If it is a library module with no VARIABLES, add it to
+  STANDARD_MODULES once verified.
+This is an 'I could not measure this' note, not a promotion block; case
+generation still proceeds.
+[... TLC starts anyway ...]
+File does not exist: .../specs/case_modules/Pipeline.tla while looking in these
+directories: jar:file:.../tla2tools.jar!/tla2sany/StandardModules/
+tla2sany.semantic.AbortException
+*** Abort messages: 1
+Cannot find source file for module Pipeline imported in module Scenario_DeliveryPath.
+Traceback (most recent call last):
+  ...
+subprocess.CalledProcessError: Command '['tlc2', '-cleanup', ... ]' returned
+non-zero exit status 150.
+
+Two independent findings confirmed while reproducing:
+  * TLC searches the directory of the .tla it is handed and the TLA-Library
+    system property. It does NOT search the current directory: running tlc2 from
+    specs/program_model/ with an absolute path to the case module fails
+    identically.
+  * TLC 2.19 has no -lib flag (`tlc2 -help` lists none), so the search path can
+    only be set as a JVM system property.
+
+AFTER (this ticket)
+-------------------
+Same command, nothing else changed:
+
+module search path: .../specs/case_modules, .../specs/program_model
+  EXTENDS resolved outside .../specs/case_modules:
+    Pipeline -> .../specs/program_model/Pipeline.tla
+complexity scan clean: state-space upper bound 4,096 (complete: all 6 declared
+variables resolved) within max_state_space_bound 1,000,000, and every component
+within its advisory thresholds
+generated internal transition cases from 25 states into
+  /private/tmp/rp03repro/spec-unit/Scenario_DeliveryPath_cases
+case module Scenario_DeliveryPath: declared slice of Pipeline with 3 action(s)
+  in scope; 2 other declared internal action(s) are outside this aspect and are
+  NOT reported as coverage holes (spec_manifest.yaml case_modules:)
+parameter recovery: 50/50 cases carry arguments
+corpus gate PASS: 50 internal case(s), cap max_internal_cases_per_component = 330
+
+Note that the manifest, the case_modules: declaration and the budgets were all
+found even though specs/case_modules/ contains no spec_manifest.yaml: the
+manifest is resolved along the same search path, because it belongs to the view.
+
+THE CORPUS IS THE SAME ONE
+--------------------------
+Generated in place vs. the committed evidence from the copy-and-delete run
+(examples/validation/ex4_pipeline_coherent/evidence/case_coverage_*.json):
+
+  Scenario_DeliveryPath        50 cases -> 50 cases
+    cases, actions, declared_view_actions, case_module: all EQUAL
+  Scenario_RecordAfterDelivery  6 cases ->  6 cases
+    cases, actions, declared_view_actions, case_module: all EQUAL
+
+WHAT THE ERROR SAYS NOW WHEN A MODULE REALLY IS MISSING
+-------------------------------------------------------
+The hierarchy is resolved BEFORE the JVM starts, so this arrives instead of a
+SANY stack (exit 1, nothing written, TLC never invoked):
+
+ERROR: module Scenario_X EXTENDS NotHere, but NotHere.tla is in none of the
+directories on the module search path:
+    /private/tmp/rp03miss/specs/case_modules  (module)
+  TLC resolves EXTENDS against the directory of the .tla it is given and the
+  TLA-Library search path -- never against the current directory. Put
+  NotHere.tla on the path with --module-path <dir containing NotHere.tla>, or
+  move the module beside it. (If NotHere is a standard library module this
+  toolchain does not know, add it to analyze_complexity.STANDARD_MODULES once
+  verified.)
+
+HOW
+---
+scripts/case_modules.py
+  resolve_search_path()      resolves the EXTENDS closure over three kinds of
+                             candidate directory, in precedence order: the
+                             module's own directory, every --module-path, then
+                             sibling directories that contain .tla files.
+                             Ambiguity between two siblings is an ERROR naming
+                             both, never a coin flip.
+  tlc_environment()          sets -DTLA-Library=<path> via JAVA_TOOL_OPTIONS,
+                             and ONLY when something resolved outside the
+                             module's own directory, so the ordinary single-
+                             directory case is byte-identical to before.
+  resolve_manifest_path()    finds spec_manifest.yaml along the same path.
+scripts/analyze_complexity.py
+  resolve_module(search_path=...) -- the scanner reads the SAME path, so the
+                             scan and the corpus cannot describe different files.
+scripts/generate_cases_from_tlc_dump.py
+  --module-path DIR (repeatable) for a view that is not a sibling; the search
+  path is resolved before anything expensive runs.
+
+Regression tests: tests/test_case_modules.py, the RP-03 block (11 tests),
+including test_the_shipped_internal_fixture_generates_from_its_documented_location
+which pins the ex4 layout itself.

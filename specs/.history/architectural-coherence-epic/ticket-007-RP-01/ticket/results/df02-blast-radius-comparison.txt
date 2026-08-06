@@ -1,0 +1,44 @@
+EV-02's 203-partition sweep of examples/validation/ex5_pipeline_divergent, rerun on RP-01.
+Harness: examples/validation/runs/ex4-run1/artifacts/df02_blast.py, UNMODIFIED.
+  $ python3 examples/validation/runs/ex4-run1/artifacts/df02_blast.py \
+      examples/validation/ex5_pipeline_divergent . <out>
+
+                       EV-02 (before)   RP-01 (after)
+  coherent                   12               0
+  divergent                  71              91
+  unmappable                120             112
+  TOTAL                     203             203
+
+THE ACCEPTANCE ASSERTION: zero partitions produce a clean the criteria do not support.
+  partitions reporting `coherent`                     : 0
+  of those, partitions that FAIL the criteria         : 0
+  (0 coherent overall is the correct answer for THIS fixture: ex5 is the
+   divergent twin, and its one honest partition finds 4 divergences + 1 absence.
+   The coherent verdict is alive and is exercised on the ex4 twin, which still
+   reports `coherent` -- see ex4-coherent-control-after.txt.)
+
+TRANSITIONS
+    coherent -> unmappable  12
+  unmappable -> divergent   20
+
+  coherent -> unmappable (12): EXACTLY EV-02's twelve false cleans. All twelve
+    fail the decomposition criteria; none is now certified. Their reports carry
+    `blind_spots: []` and `basis_limits: [partition_does_not_decompose]` (plus
+    `unfalsifiable_coherence` for the one-blob row) -- the extractor saw them
+    perfectly; the BASIS could not support the claim.
+
+  unmappable -> divergent (20): NOT a relaxation. Every one of these had
+    exactly one old blind spot, `unfalsifiable_coherence`, and carries exactly one
+    real ABSENCE:
+      old blind_spots : {('unfalsifiable_coherence',): 20}
+      new (divergences, absences): {(0, 1): 20}
+    Filing `unfalsifiable_coherence` as a blind spot MASKED 20 real absences behind
+    `unmappable`. RP-01 reclassified it as a BASIS LIMIT -- it withholds a clean and
+    never a finding -- so those 20 absences are now reported as the findings they are.
+
+MEASURED ALTERNATIVE, recorded so the choice is not re-litigated from taste.
+  RP-01's first implementation filed both basis limits as blind spots, which makes
+  them dominate every verdict. Same sweep, that implementation:
+      coherent 0 / divergent 4 / unmappable 199
+  It removes the same twelve false cleans and suppresses 67 of the 71 real divergence
+  verdicts to do it. Withholding only the CLEAN removes all twelve and suppresses none.

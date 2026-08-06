@@ -1,0 +1,52 @@
+# PA-06: PA-M14, the REPAIRED positive control, re-anchored onto arm A.
+#
+# `examples/validation/ab/seeded_faults.toml` declares PA-M14 on
+# `reference_ports/domain.py` and carries a `re_anchoring_rule` that says how to
+# move it, and it is emphatic that the rule is BY THE PROPERTY, NOT BY THE
+# BYTES:
+#
+#   "On any arm, seed this at whatever line records the amount on a reservation
+#    the API has just accepted, then run `check_catalogue.py --controls
+#    --tree-root`. If it does not report HOLDS, the arm has no valid positive
+#    control and PA-06 says so and leaves the cell RED."
+#
+# This file is P07's instrument. P07 was sealed BEFORE the repair and predicts
+# HOLDS on all three arms. Nothing here may be tuned to make it pass: the
+# anchoring below is the one line on this arm that runs on an accepted `reserve`
+# and nowhere else, and if the probe says BROKEN the cell is reported BROKEN.
+#
+# THE SEALED EVAL-RERUN CATALOGUES ARE NOT EDITED. `catalogue_arm_a.toml` is a
+# predecessor artifact; PA-06 adds a file beside it rather than amending it.
+#
+# `[pa_control_properties]` is repeated here rather than inherited. It has to
+# be: `check_catalogue.py` reads the property table out of the catalogue file it
+# is given, and `extends` is documentation rather than an include. Filed as
+# PA-06-DF-02.
+
+[catalogue]
+id = "PA-06-control-property-arm-a"
+anchored_on = "quota_ledger.py"
+root = "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_a/"
+extends = "examples/validation/ab/seeded_faults.toml"
+
+[pa_control_properties]
+"PA-M14-positive-control-accepted-hold-too-large" = "accept-path-only"
+
+[[mutants]]
+id = "PA-M14-positive-control-accepted-hold-too-large"
+fault_class = "wrong_value"
+control_role = "positive -- must die on every instrument that executes an accepted Reserve against arm A, AND must be invisible until one does. Written for THIS tree: arm A allocates a `_Reservation` in `_allocate` and stores it in `reserve`, so the amount recorded on an accepted reservation is the `amount=amount` argument in `_allocate`. EVAL-RERUN-DF-03 is why this string is not copied from another arm."
+control_property = "accept-path-only -- see [pa_control_properties]"
+gap_targeted = "none. Deliberately in nobody's gap."
+seeded_by = "perturbation"
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+path = "quota_ledger.py"
+find = "            reservation_id=f\"r{seq}\", tenant=tenant, amount=amount, seq=seq"
+replace = "            reservation_id=f\"r{seq}\", tenant=tenant, amount=amount + 1, seq=seq  # MUTANT PA-M14"
+description = "a reservation accepted during the case holds one unit more than it was granted; every reservation installed into a before-state is byte-correct"
+semantic = "The reservation created by an ACCEPTED reserve records amount+1. Immediately after the accepting call, available(t) is one too low and the new reservation's amount is one too high. Nothing else, ever."
+observable = "available(t) and the new reservation's amount immediately after an ACCEPTED reserve, and nothing after any other action or any refusal."
+re_anchoring_note = "`_allocate` is called from `reserve` and nowhere else, so perturbing it is equivalent to perturbing the accept path. The oracle's binding constructs `_Reservation` directly (rerun_arm_a_binding.install), so an installed before-state is byte-correct and the mutant is invisible until the case itself executes an accepted reserve."
+refine_variable = "amt"
+refine_action = "Reserve"

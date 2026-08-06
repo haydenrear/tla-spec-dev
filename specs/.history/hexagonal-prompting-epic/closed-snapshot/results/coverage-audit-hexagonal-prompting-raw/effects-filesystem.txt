@@ -1,0 +1,1552 @@
+scripts/analyze_architecture.py:56:from pathlib import Path
+scripts/analyze_architecture.py:60:    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+scripts/analyze_architecture.py:511:    tla_path: Path
+scripts/analyze_architecture.py:512:    cfg_path: Path
+scripts/analyze_architecture.py:513:    manifest_path: Path | None
+scripts/analyze_architecture.py:578:    tla_path: Path,
+scripts/analyze_architecture.py:579:    cfg_path: Path,
+scripts/analyze_architecture.py:580:    manifest_path: Path | None = None,
+scripts/analyze_architecture.py:582:    components_path: Path | None = None,
+scripts/analyze_architecture.py:584:    cfg_text = cfg_path.read_text(encoding="utf-8")
+scripts/analyze_architecture.py:704:def _load_yaml(path: Path) -> Any:
+scripts/analyze_architecture.py:714:    text = path.read_text(encoding="utf-8")
+scripts/analyze_architecture.py:999:def default_cfg_for(tla_path: Path) -> Path:
+scripts/analyze_architecture.py:1006:def default_manifest_for(tla_path: Path) -> Path | None:
+scripts/analyze_architecture.py:1012:    tla_path = Path(args.tla).resolve()
+scripts/analyze_architecture.py:1016:    cfg_path = Path(args.cfg).resolve() if args.cfg else default_cfg_for(tla_path)
+scripts/analyze_architecture.py:1021:        Path(args.manifest).resolve() if args.manifest else default_manifest_for(tla_path)
+scripts/analyze_architecture.py:1024:        Path(getattr(args, "components", None)).resolve()
+scripts/analyze_architecture.py:1104:            delta = structural_delta(load_baseline(Path(baseline_path)), report)
+scripts/analyze_architecture.py:1126:        out_path.parent.mkdir(parents=True, exist_ok=True)
+scripts/analyze_architecture.py:1127:        out_path.write_text(rendered, encoding="utf-8")
+scripts/architecture_reflexion.py:79:from pathlib import Path
+scripts/architecture_reflexion.py:83:    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+scripts/architecture_reflexion.py:195:def _expand_module_entry(entry: str, code_root: Path, origin: str) -> list[Path]:
+scripts/architecture_reflexion.py:207:    candidates = [code_root / text, Path(text).resolve()]
+scripts/architecture_reflexion.py:231:def load_reflexion_map(source: Any, code_root: Path, origin: str) -> ReflexionMap:
+scripts/architecture_reflexion.py:398:    root: Path
+scripts/architecture_reflexion.py:413:            return absolute.relative_to(Path.cwd()).as_posix()
+scripts/architecture_reflexion.py:418:def _is_scannable(path: Path) -> bool:
+scripts/architecture_reflexion.py:661:def extract_python_graph(code_root: Path) -> CodeGraph:
+scripts/architecture_reflexion.py:675:    files: list[tuple[str, Path]] = []
+scripts/architecture_reflexion.py:700:            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+scripts/architecture_reflexion.py:955:    code_root: Path,
+scripts/architecture_reflexion.py:1324:def load_baseline(path: Path) -> dict[str, Any]:
+scripts/architecture_reflexion.py:1337:    path = Path(path)
+scripts/architecture_reflexion.py:1340:    text = path.read_text(encoding="utf-8")
+scripts/architecture_reflexion.py:1941:            # block a consumer may never open. Everything here is needed to
+scripts/architecture_reflexion.py:1972:        return Path(str(path)).resolve().relative_to(Path.cwd()).as_posix()
+scripts/architecture_reflexion.py:2193:    code_root = Path(code).resolve()
+scripts/architecture_reflexion.py:2196:    map_file = Path(map_path).resolve()
+scripts/architecture_reflexion.py:2243:    tla_path = Path(args.tla).resolve()
+scripts/architecture_reflexion.py:2247:    cfg_path = Path(args.cfg).resolve() if args.cfg else default_cfg_for(tla_path)
+scripts/architecture_reflexion.py:2252:        Path(args.manifest).resolve() if args.manifest else default_manifest_for(tla_path)
+scripts/architecture_reflexion.py:2254:    components_path = Path(args.components).resolve() if args.components else None
+scripts/architecture_reflexion.py:2281:            delta = structural_delta(load_baseline(Path(args.baseline)), report)
+scripts/architecture_reflexion.py:2304:        out_path.parent.mkdir(parents=True, exist_ok=True)
+scripts/architecture_reflexion.py:2305:        out_path.write_text(rendered, encoding="utf-8")
+scripts/analyze_complexity.py:77:from pathlib import Path
+scripts/analyze_complexity.py:80:ROOT = Path(__file__).resolve().parents[1]
+scripts/analyze_complexity.py:294:    extended_files: list[Path]
+scripts/analyze_complexity.py:298:    tla_path: Path,
+scripts/analyze_complexity.py:300:    search_path: Sequence[Path] | None = None,
+scripts/analyze_complexity.py:301:    _seen: set[Path] | None = None,
+scripts/analyze_complexity.py:325:    text = strip_comments(resolved_path.read_text(encoding="utf-8"))
+scripts/analyze_complexity.py:349:    extended_files: list[Path] = []
+scripts/analyze_complexity.py:359:        lookup = [resolved_path.parent, *(Path(p) for p in (search_path or ()))]
+scripts/analyze_complexity.py:1295:        report.generated = int(counts.group(1).replace(",", ""))
+scripts/analyze_complexity.py:1296:        report.distinct = int(counts.group(2).replace(",", ""))
+scripts/analyze_complexity.py:1387:    tla_path: Path
+scripts/analyze_complexity.py:1388:    cfg_path: Path
+scripts/analyze_complexity.py:1389:    manifest_path: Path | None
+scripts/analyze_complexity.py:1479:    tla_path: Path,
+scripts/analyze_complexity.py:1480:    cfg_path: Path,
+scripts/analyze_complexity.py:1481:    manifest_path: Path | None,
+scripts/analyze_complexity.py:1483:    baseline_tlc: Path | None = None,
+scripts/analyze_complexity.py:1484:    current_tlc: Path | None = None,
+scripts/analyze_complexity.py:1486:    search_path: Sequence[Path] | None = None,
+scripts/analyze_complexity.py:1490:    cfg_text = cfg_path.read_text(encoding="utf-8")
+scripts/analyze_complexity.py:1699:        current_report = parse_tlc_report(current_tlc.read_text(encoding="utf-8"))
+scripts/analyze_complexity.py:1701:            baseline_report = parse_tlc_report(baseline_tlc.read_text(encoding="utf-8"))
+scripts/analyze_complexity.py:1780:#: The TLC config keywords that open a section. CM-01-DF-02: a bare keyword
+scripts/analyze_complexity.py:2185:    tla_path: Path,
+scripts/analyze_complexity.py:2186:    cfg_path: Path,
+scripts/analyze_complexity.py:2187:    manifest_path: Path | None,
+scripts/analyze_complexity.py:2189:    search_path: Sequence[Path] | None = None,
+scripts/analyze_complexity.py:2248:def default_cfg_for(tla_path: Path) -> Path:
+scripts/analyze_complexity.py:2255:def default_manifest_for(tla_path: Path) -> Path | None:
+scripts/analyze_complexity.py:2261:    tla_path = Path(args.tla).resolve()
+scripts/analyze_complexity.py:2265:    cfg_path = Path(args.cfg).resolve() if args.cfg else default_cfg_for(tla_path)
+scripts/analyze_complexity.py:2269:    manifest_path = Path(args.manifest).resolve() if args.manifest else default_manifest_for(tla_path)
+scripts/analyze_complexity.py:2276:            baseline_tlc=Path(args.baseline_tlc).resolve() if args.baseline_tlc else None,
+scripts/analyze_complexity.py:2277:            current_tlc=Path(args.tlc_report).resolve() if args.tlc_report else None,
+scripts/analyze_complexity.py:2301:        out_path.parent.mkdir(parents=True, exist_ok=True)
+scripts/analyze_complexity.py:2302:        out_path.write_text(rendered, encoding="utf-8")
+scripts/budgets.py:30:from pathlib import Path
+scripts/budgets.py:117:def _read_manifest(manifest_path: Path) -> dict[str, Any] | None:
+scripts/budgets.py:162:    manifest_path: Path | str,
+scripts/budgets.py:174:    path = Path(manifest_path)
+scripts/case_modules.py:36:from pathlib import Path
+scripts/case_modules.py:42:    sys.path.insert(0, str(Path(__file__).resolve().parent))
+scripts/case_modules.py:107:    root: Path
+scripts/case_modules.py:108:    directories: tuple[Path, ...]
+scripts/case_modules.py:109:    resolved: tuple[tuple[str, Path], ...]
+scripts/case_modules.py:110:    searched: tuple[tuple[Path, str], ...]
+scripts/case_modules.py:118:    def elsewhere(self) -> tuple[tuple[str, Path], ...]:
+scripts/case_modules.py:124:    def files_base_first(self) -> tuple[Path, ...]:
+scripts/case_modules.py:155:    tla_path: Path, extra_roots: Sequence[Path] = ()
+scripts/case_modules.py:156:) -> list[tuple[Path, str]]:
+scripts/case_modules.py:170:    root = Path(tla_path).resolve().parent
+scripts/case_modules.py:171:    directories: list[tuple[Path, str]] = [(root, "module")]
+scripts/case_modules.py:174:        resolved = Path(extra).resolve()
+scripts/case_modules.py:193:    tla_path: Path, extra_roots: Sequence[Path] = ()
+scripts/case_modules.py:203:    tla_path = Path(tla_path).resolve()
+scripts/case_modules.py:207:    resolved: dict[str, Path] = {}
+scripts/case_modules.py:208:    used: list[Path] = [root_dir]
+scripts/case_modules.py:209:    queue: list[Path] = [tla_path]
+scripts/case_modules.py:210:    visited: set[Path] = {tla_path}
+scripts/case_modules.py:215:            text = analyzer.strip_comments(current.read_text(encoding="utf-8"))
+scripts/case_modules.py:270:    spec_dir: Path, search_path: ModuleSearchPath | None = None
+scripts/case_modules.py:271:) -> Path:
+scripts/case_modules.py:284:    local = Path(spec_dir) / MANIFEST_FILENAME
+scripts/case_modules.py:288:        candidate = Path(directory) / MANIFEST_FILENAME
+scripts/case_modules.py:410:def declarations_from_manifest(manifest_path: Path) -> dict[str, CaseModuleDeclaration]:
+scripts/case_modules.py:411:    if not Path(manifest_path).is_file():
+scripts/case_modules.py:413:    return load_declarations(load_manifest(Path(manifest_path)))
+scripts/case_modules.py:417:    manifest_path: Path, module: str, *, warn_stream: Any = None
+scripts/case_modules.py:426:        return declarations_from_manifest(Path(manifest_path)).get(module)
+scripts/case_modules.py:430:                f"warning: {Path(manifest_path)} has an unusable `{CASE_MODULES_KEY}:` block, "
+scripts/case_modules.py:477:def write_coverage_record(package_dir: Path, record: dict[str, Any]) -> Path:
+scripts/case_modules.py:478:    path = Path(package_dir) / COVERAGE_FILENAME
+scripts/case_modules.py:479:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/case_modules.py:480:    path.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+scripts/case_modules.py:484:def read_coverage_record(path: Path) -> dict[str, Any]:
+scripts/case_modules.py:485:    path = Path(path)
+scripts/case_modules.py:495:        record = json.loads(path.read_text(encoding="utf-8"))
+scripts/case_modules.py:512:    manifest_path: Path
+scripts/case_modules.py:578:    manifest_path: Path,
+scripts/case_modules.py:583:    declarations = declarations_from_manifest(Path(manifest_path))
+scripts/case_modules.py:603:        manifest_path=Path(manifest_path),
+scripts/case_modules.py:759:def _load_view_actions(path: Path | None, view: str) -> list[str] | None:
+scripts/case_modules.py:770:    metadata = load_action_metadata(Path(path), Path(path).parent)
+scripts/case_modules.py:775:    manifest_path = Path(args.manifest)
+scripts/case_modules.py:798:    manifest_path = Path(args.manifest)
+scripts/case_modules.py:803:        corpora = [read_coverage_record(Path(path)) for path in args.corpus]
+scripts/case_modules.py:805:            Path(args.actions_metadata) if args.actions_metadata else None,
+scripts/case_modules.py:821:        out = Path(args.json)
+scripts/case_modules.py:822:        out.parent.mkdir(parents=True, exist_ok=True)
+scripts/case_modules.py:823:        out.write_text(json.dumps(report_payload(report), indent=2, sort_keys=True) + "\n")
+scripts/close_tickets.py:15:from pathlib import Path
+scripts/close_tickets.py:27:SKILL_ROOT = Path(__file__).resolve().parents[1]
+scripts/close_tickets.py:30:def _load_yaml(path: Path) -> dict[str, Any]:
+scripts/close_tickets.py:41:def _resolve_spec_root(repo_root: Path, spec_root: Path) -> Path:
+scripts/close_tickets.py:45:def _semantic_files(root: Path) -> dict[Path, Path]:
+scripts/close_tickets.py:67:def _semantic_file_matches(left: Path, right: Path) -> bool:
+scripts/close_tickets.py:73:def validate_equivalent(current_dir: Path, desired_dir: Path, label: str = "desired_program_model") -> list[str]:
+scripts/close_tickets.py:118:def promote_semantic_files(src: Path, dst: Path) -> list[str]:
+scripts/close_tickets.py:122:    dst.mkdir(parents=True, exist_ok=True)
+scripts/close_tickets.py:127:        dst_files[relative].unlink()
+scripts/close_tickets.py:131:        destination.parent.mkdir(parents=True, exist_ok=True)
+scripts/close_tickets.py:137:def validate_ticket_plan_closed(ticket_plan: Path) -> list[str]:
+scripts/close_tickets.py:157:    repo_root: Path,
+scripts/close_tickets.py:158:    spec_root: Path,
+scripts/close_tickets.py:162:    result_paths: list[Path] | None = None,
+scripts/close_tickets.py:167:) -> list[Path]:
+scripts/close_tickets.py:230:            print(f"would remove {directory}")
+scripts/close_tickets.py:232:            shutil.rmtree(directory)
+scripts/close_tickets.py:239:    parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root.")
+scripts/close_tickets.py:240:    parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
+scripts/close_tickets.py:245:    parser.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
+scripts/close_ticket.py:7:from pathlib import Path
+scripts/close_ticket.py:18:    parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root.")
+scripts/close_ticket.py:19:    parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
+scripts/close_ticket.py:23:    parser.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
+scripts/close_ticket.py:24:    parser.add_argument("--allow-open", action="store_true", help="Allow snapshotting a ticket whose status is not closed/done.")
+scripts/close_ticket.py:25:    parser.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
+scripts/close_ticket.py:26:    parser.add_argument("--no-promote-current", action="store_true", help="Do not replace project current/ with ticket desired/ during ticket close.")
+scripts/complexity_ledger.py:93:from pathlib import Path
+scripts/complexity_ledger.py:407:    tla_path: Path,
+scripts/complexity_ledger.py:408:    cfg_path: Path,
+scripts/complexity_ledger.py:409:    manifest_path: Path | None = None,
+scripts/complexity_ledger.py:410:    tlc_report: Path | None = None,
+scripts/complexity_ledger.py:448:    if tlc_report is not None and Path(tlc_report).exists():
+scripts/complexity_ledger.py:449:        report = analyze_complexity.parse_tlc_report(Path(tlc_report).read_text(encoding="utf-8"))
+scripts/complexity_ledger.py:575:def ledger_path(specs_dir: Path) -> Path:
+scripts/complexity_ledger.py:585:    return Path(specs_dir) / "results" / "complexity_ledger.json"
+scripts/complexity_ledger.py:588:def load_ledger(path: Path) -> dict[str, Any]:
+scripts/complexity_ledger.py:589:    if not Path(path).exists():
+scripts/complexity_ledger.py:591:    text = Path(path).read_text(encoding="utf-8")
+scripts/complexity_ledger.py:630:def append_entry(path: Path, entry: dict[str, Any]) -> Path:
+scripts/complexity_ledger.py:631:    path = Path(path)
+scripts/complexity_ledger.py:632:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/complexity_ledger.py:636:    path.write_text(_dump_ledger(ledger), encoding="utf-8")
+scripts/complexity_ledger.py:833:    raw: dict[str, Any] | None, input_dir: Path | None = None
+scripts/complexity_ledger.py:861:    base = Path(input_dir) if input_dir else Path.cwd()
+scripts/complexity_ledger.py:862:    resolved = spec_paths.resolve_existing_spec_input(Path(report), base)
+scripts/complexity_ledger.py:869:        payload = json.loads(resolved.read_text(encoding="utf-8"))
+scripts/complexity_ledger.py:929:def load_input(path: Path) -> dict[str, Any]:
+scripts/complexity_ledger.py:930:    path = Path(path)
+scripts/complexity_ledger.py:935:            "`open ticket` scaffolds this file; fill it in before closing."
+scripts/complexity_ledger.py:937:    data = _load_structured(path.read_text(encoding="utf-8"))
+scripts/complexity_ledger.py:956:    input_dir: Path | None = None,
+scripts/complexity_ledger.py:1555:# machine-checked core above cannot express. Path to a document, or prose.
+scripts/complexity_ledger.py:1560:def write_template(path: Path) -> Path:
+scripts/complexity_ledger.py:1561:    path = Path(path)
+scripts/complexity_ledger.py:1562:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/complexity_ledger.py:1564:        path.write_text(TEMPLATE, encoding="utf-8")
+scripts/effect_conformance_report.py:10:ENFORCING copy of the same measurement runs inside ``run spec-unit-tests``,
+scripts/effect_conformance_report.py:29:from pathlib import Path
+scripts/effect_conformance_report.py:31:SCRIPTS = Path(__file__).resolve().parent
+scripts/effect_conformance_report.py:46:def resolve_spec_dir(args: argparse.Namespace) -> Path:
+scripts/effect_conformance_report.py:48:        return Path(args.target)
+scripts/effect_conformance_report.py:49:    spec_root = Path(getattr(args, "spec_root", None) or "specs")
+scripts/effect_conformance_report.py:56:def load_declarations_for(spec_dir: Path):
+scripts/effect_conformance_report.py:95:    cases_dirs = [Path(d) for d in (getattr(args, "cases_dir", None) or [])]
+scripts/effect_conformance_report.py:113:        written = report.write(Path(args.out))
+scripts/effect_conformance_report.py:137:    spec_dir: Path,
+scripts/effect_conformance_report.py:138:    cases_dirs: list[Path],
+scripts/effect_conformance_report.py:151:    mapping_path = Path(getattr(args, "mapping", None) or spec_dir / "case_adapters.toml")
+scripts/effect_conformance_report.py:152:    work_dir = Path(getattr(args, "work_dir", None) or spec_dir / ".effect-conformance-work")
+scripts/effect_conformance_report.py:166:    parser.add_argument("--target", type=Path)
+scripts/effect_conformance_report.py:168:    parser.add_argument("--mapping", type=Path)
+scripts/effect_conformance_report.py:169:    parser.add_argument("--work-dir", type=Path)
+scripts/effect_conformance_report.py:170:    parser.add_argument("--out", type=Path)
+scripts/close_spec_workflow.py:8:from pathlib import Path
+scripts/close_spec_workflow.py:18:    parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root.")
+scripts/close_spec_workflow.py:19:    parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
+scripts/close_spec_workflow.py:23:    parser.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
+scripts/close_spec_workflow.py:24:    parser.add_argument("--allow-open", action="store_true", help="Allow snapshotting when ticket_plan.yaml still has open tickets.")
+scripts/close_spec_workflow.py:25:    parser.add_argument("--remove-active", action="store_true", help="Remove desired/current after they have been snapshotted.")
+scripts/close_spec_workflow.py:49:                shutil.rmtree(path)
+scripts/export_testgraph_cases.py:10:from pathlib import Path
+scripts/export_testgraph_cases.py:82:    out_dir: Path,
+scripts/export_testgraph_cases.py:86:) -> list[Path]:
+scripts/export_testgraph_cases.py:94:    out_dir.mkdir(parents=True, exist_ok=True)
+scripts/export_testgraph_cases.py:95:    written: list[Path] = []
+scripts/export_testgraph_cases.py:99:        path.write_text(json.dumps(trace, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+scripts/export_testgraph_cases.py:114:    (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+scripts/export_testgraph_cases.py:119:def default_manifest_for(cases_dir: Path) -> Path | None:
+scripts/export_testgraph_cases.py:132:def resolve_manifest(explicit: Path | None, cases_dir: Path, bindings_path: Path) -> Path:
+scripts/export_testgraph_cases.py:173:    parser.add_argument("cases_dir", type=Path, help="Generated external case package directory")
+scripts/export_testgraph_cases.py:174:    parser.add_argument("--out", type=Path, required=True, help="Directory for Test Graph trace JSON files")
+scripts/export_testgraph_cases.py:190:        type=Path,
+scripts/export_testgraph_cases.py:201:        type=Path,
+scripts/generate_docs.py:8:from pathlib import Path
+scripts/generate_docs.py:10:SCRIPT_DIR = Path(__file__).resolve().parent
+scripts/generate_docs.py:19:    parser.add_argument("manifest", type=Path)
+scripts/generate_docs.py:20:    parser.add_argument("--out", type=Path, required=True)
+scripts/generate_docs.py:30:    args.out.parent.mkdir(parents=True, exist_ok=True)
+scripts/generate_docs.py:31:    args.out.write_text(render_docs(manifest, args.manifest))
+scripts/corpus_diagnostics.py:60:from pathlib import Path
+scripts/corpus_diagnostics.py:276:    manifest_path: Path | None = None
+scripts/corpus_diagnostics.py:526:    manifest_path: Path | str | None = None,
+scripts/corpus_diagnostics.py:543:        budgets = load_budgets(manifest_path, warn=warn) if manifest_path else load_budgets(Path("__missing__"), warn=False)
+scripts/corpus_diagnostics.py:589:        manifest_path=Path(manifest_path) if manifest_path else None,
+scripts/corpus_diagnostics.py:608:    where = report.manifest_path or Path("<spec-dir>/spec_manifest.yaml")
+scripts/corpus_diagnostics.py:776:    lines.append("  2. " + accept_path_snippet(report).replace("\n", "\n     "))
+scripts/corpus_diagnostics.py:784:    manifest_path: Path | str | None = None,
+scripts/corpus_diagnostics.py:804:    manifest_path: Path | str | None,
+scripts/corpus_diagnostics.py:845:        type=Path,
+scripts/corpus_diagnostics.py:855:        type=Path,
+scripts/corpus_diagnostics.py:867:def infer_view(cases_dir: Path, cases: Sequence[Any]) -> str | None:
+scripts/corpus_diagnostics.py:880:def load_corpus(cases_dir: Path) -> tuple[list[Any], str | None]:
+scripts/corpus_diagnostics.py:888:    cases_dir = Path(cases_dir)
+scripts/corpus_diagnostics.py:904:    loaded = [json.loads(p.read_text(encoding="utf-8")) for p in traces]
+scripts/corpus_diagnostics.py:910:    cases_dir = Path(args.cases_dir).resolve()
+scripts/corpus_diagnostics.py:921:    manifest = Path(args.manifest).resolve() if args.manifest else None
+scripts/effect_conformance.py:24:   (MF-027). Its patches are monkeypatches on ``builtins.open``, ``os``,
+scripts/effect_conformance.py:25:   ``shutil``, ``pathlib.Path``, ``subprocess`` and ``socket`` objects living
+scripts/effect_conformance.py:60:     model surface: remove the port, or produce a case that exercises it.
+scripts/effect_conformance.py:123:from pathlib import Path
+scripts/effect_conformance.py:198:#: unchecked program, which is the failure mode this ticket exists to remove.
+scripts/effect_conformance.py:520:    normalized = target.replace(os.sep, "/")
+scripts/effect_conformance.py:521:    collapsed = pattern.replace(os.sep, "/").replace("**", "*")
+scripts/effect_conformance.py:523:        collapsed = collapsed.replace("**", "*")
+scripts/effect_conformance.py:712:    def __init__(self, root: Path, recorder: EffectRecorder | None = None) -> None:
+scripts/effect_conformance.py:713:        self.root = Path(root)
+scripts/effect_conformance.py:714:        self.root.mkdir(parents=True, exist_ok=True)
+scripts/effect_conformance.py:749:    def temp_dir(self, name: str) -> Path:
+scripts/effect_conformance.py:751:        path.mkdir(parents=True, exist_ok=True)
+scripts/effect_conformance.py:772:        self._originals["open"] = builtins.open
+scripts/effect_conformance.py:773:        real_open = builtins.open
+scripts/effect_conformance.py:777:                _record("filesystem.write", _abspath(file), "open")
+scripts/effect_conformance.py:780:        builtins.open = patched_open
+scripts/effect_conformance.py:782:        self._patch_module(os, "remove", "filesystem.delete", 0)
+scripts/effect_conformance.py:783:        self._patch_module(os, "unlink", "filesystem.delete", 0)
+scripts/effect_conformance.py:785:        self._patch_module(os, "mkdir", "filesystem.write", 0)
+scripts/effect_conformance.py:786:        self._patch_module(os, "makedirs", "filesystem.write", 0)
+scripts/effect_conformance.py:787:        self._patch_module(shutil, "rmtree", "filesystem.delete", 0)
+scripts/effect_conformance.py:789:        self._patch_module(shutil, "copy", "filesystem.write", 1)
+scripts/effect_conformance.py:793:        self._patch_path_method("write_text", "filesystem.write")
+scripts/effect_conformance.py:794:        self._patch_path_method("write_bytes", "filesystem.write")
+scripts/effect_conformance.py:795:        # HP-04: `Path.open` was NOT patched, so `path.open("a")` -- the
+scripts/effect_conformance.py:797:        # unobserved while `builtins.open(path, "a")` was recorded. Found by
+scripts/effect_conformance.py:799:        # replaces a `Path.open("a")` append with `Path.write_text`, and the
+scripts/effect_conformance.py:806:        self._patch_path_method("mkdir", "filesystem.write")
+scripts/effect_conformance.py:807:        self._patch_path_method("unlink", "filesystem.delete")
+scripts/effect_conformance.py:835:        original = getattr(Path, name, None)
+scripts/effect_conformance.py:838:        key = f"Path.{name}"
+scripts/effect_conformance.py:839:        self._originals[key] = (Path, name, original)
+scripts/effect_conformance.py:842:        def patched(self_path: Path, *args: Any, **kwargs: Any) -> Any:
+scripts/effect_conformance.py:846:        setattr(Path, name, patched)
+scripts/effect_conformance.py:849:        """Record ``Path.open`` in a write mode, like ``builtins.open``.
+scripts/effect_conformance.py:851:        Same mode test as the ``builtins.open`` patch, so the two idioms are
+scripts/effect_conformance.py:854:        original = getattr(Path, "open", None)
+scripts/effect_conformance.py:857:        self._originals["Path.open"] = (Path, "open", original)
+scripts/effect_conformance.py:860:        def patched(self_path: Path, mode: str = "r", *args: Any, **kwargs: Any) -> Any:
+scripts/effect_conformance.py:864:                        type="filesystem.write", target=str(_abspath(self_path)), detail="Path.open"
+scripts/effect_conformance.py:869:        setattr(Path, "open", patched)
+scripts/effect_conformance.py:920:        if "open" in self._originals:
+scripts/effect_conformance.py:921:            builtins.open = self._originals.pop("open")
+scripts/effect_conformance.py:963:        roots: Iterable[Path] | Path,
+scripts/effect_conformance.py:970:        if isinstance(roots, (str, Path)):
+scripts/effect_conformance.py:972:        self.roots = [Path(root) for root in roots]
+scripts/effect_conformance.py:1066:        return str(Path(os.fspath(value)).resolve())
+scripts/effect_conformance.py:1239:        The question RC-02-DF-03 left open, answered by the run instead of by
+scripts/effect_conformance.py:1441:                "in-process CPython only: builtins.open, os/shutil/pathlib mutators, "
+scripts/effect_conformance.py:1454:    def write(self, path: Path) -> Path:
+scripts/effect_conformance.py:1455:        path = Path(path)
+scripts/effect_conformance.py:1456:        path.parent.mkdir(parents=True, exist_ok=True)
+scripts/effect_conformance.py:1457:        path.write_text(json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+scripts/effect_conformance.py:1570:        # One boundary crossing can trip several patches at once (Path.mkdir
+scripts/effect_conformance.py:1571:        # calls os.mkdir; shutil.copy calls open). Collapsing identical
+scripts/effect_conformance.py:1617:_TOOLCHAIN_ROOT = Path(__file__).resolve().parents[1]
+scripts/effect_conformance.py:1620:def corpus_import_roots(spec_dir: Path, extra: Iterable[Path] = ()) -> list[Path]:
+scripts/effect_conformance.py:1638:    roots: list[Path] = []
+scripts/effect_conformance.py:1639:    for candidate in (Path(spec_dir), *[Path(item) for item in extra], Path.cwd(), _TOOLCHAIN_ROOT):
+scripts/effect_conformance.py:1649:def ensure_import_roots(roots: Iterable[Path]) -> list[str]:
+scripts/effect_conformance.py:1666:def reset_case_work_dir(work_dir: Path, case_name: str) -> Path:
+scripts/effect_conformance.py:1683:    case_dir = Path(work_dir) / case_name
+scripts/effect_conformance.py:1685:        shutil.rmtree(case_dir)
+scripts/effect_conformance.py:1686:    case_dir.mkdir(parents=True, exist_ok=True)
+scripts/effect_conformance.py:1708:    work_dir: Path | None = None
+scripts/effect_conformance.py:1743:    spec_dir: Path,
+scripts/effect_conformance.py:1744:    cases_dirs: Iterable[Path],
+scripts/effect_conformance.py:1745:    mapping_path: Path,
+scripts/effect_conformance.py:1746:    work_dir: Path,
+scripts/effect_conformance.py:1748:    import_roots: Iterable[Path] = (),
+scripts/effect_conformance.py:1760:    execution = CorpusExecution(work_dir=Path(work_dir))
+scripts/effect_conformance.py:1761:    execution.import_roots = ensure_import_roots(corpus_import_roots(Path(spec_dir), import_roots))
+scripts/effect_conformance.py:1763:    mappings = load_mappings(Path(mapping_path))
+scripts/effect_conformance.py:1764:    work_root = Path(work_dir)
+scripts/effect_conformance.py:1765:    work_root.mkdir(parents=True, exist_ok=True)
+scripts/effect_conformance.py:1769:        module = load_cases(Path(cases_dir))
+scripts/effect_conformance.py:1787:                        reason="no adapter is bound for this action in " + Path(mapping_path).name,
+scripts/effect_conformance.py:1809:            case_dir = reset_case_work_dir(Path(work_dir), case.name)
+scripts/effect_conformance.py:1813:            # MF-027: same assessment as the enforcing copy in
+scripts/extract_spec_manifest.py:12:from pathlib import Path
+scripts/extract_spec_manifest.py:63:            "must open and close on one line, with scalar values only"
+scripts/extract_spec_manifest.py:285:def load_manifest(path: Path) -> dict[str, Any]:
+scripts/extract_spec_manifest.py:286:    return parse_simple_yaml(path.read_text(encoding="utf-8"))
+scripts/extract_spec_manifest.py:294:def _module_path(manifest_path: Path, module_name: str) -> Path:
+scripts/extract_spec_manifest.py:298:def _baseline_module_paths(manifest_path: Path) -> list[Path]:
+scripts/extract_spec_manifest.py:306:def _spec_sources(manifest_path: Path, module_name: str) -> tuple[list[Path], str | None]:
+scripts/extract_spec_manifest.py:322:def validate_manifest(manifest: dict[str, Any], manifest_path: Path) -> list[str]:
+scripts/extract_spec_manifest.py:340:    text = "\n".join(path.read_text() for path in paths)
+scripts/extract_spec_manifest.py:377:    parser.add_argument("manifest", type=Path)
+scripts/fitness_functions.py:36:from pathlib import Path
+scripts/fitness_functions.py:271:def _load_rules_document(path: Path) -> tuple[Any, str | None]:
+scripts/fitness_functions.py:278:    text = path.read_text(encoding="utf-8")
+scripts/fitness_functions.py:316:    manifest: dict[str, Any] | None, spec_dir: Path | None
+scripts/fitness_functions.py:437:    spec_dir: Path | None,
+scripts/new_ticket_workflow.py:17:from pathlib import Path
+scripts/new_ticket_workflow.py:21:SKILL_ROOT = Path(__file__).resolve().parents[1]
+scripts/new_ticket_workflow.py:44:def _load_manifest(path: Path) -> dict[str, Any]:
+scripts/new_ticket_workflow.py:86:    repo_root: Path
+scripts/new_ticket_workflow.py:87:    spec_root: Path
+scripts/new_ticket_workflow.py:88:    program_dir: Path
+scripts/new_ticket_workflow.py:89:    tla_path: Path | None
+scripts/new_ticket_workflow.py:90:    cfg_path: Path | None
+scripts/new_ticket_workflow.py:91:    manifest_path: Path | None
+scripts/new_ticket_workflow.py:102:def _resolve_spec_root(repo_root: Path, spec_root: Path) -> Path:
+scripts/new_ticket_workflow.py:106:def _display_spec_root(repo_root: Path, spec_root: Path) -> str:
+scripts/new_ticket_workflow.py:115:def discover_baseline(repo_root: Path, spec_root: Path, fallback_module: str) -> Baseline:
+scripts/new_ticket_workflow.py:121:    package = str(manifest.get("package") or f"{_slug(module).replace('-', '_')}_cases")
+scripts/new_ticket_workflow.py:159:            match = re.search(r"(?m)^\s*-+\s*MODULE\s+([A-Za-z][A-Za-z0-9_]*)\s*-+", tla_path.read_text())
+scripts/new_ticket_workflow.py:198:def write_file(path: Path, content: str, *, force: bool, dry_run: bool) -> bool:
+scripts/new_ticket_workflow.py:204:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/new_ticket_workflow.py:205:    path.write_text(content, encoding="utf-8")
+scripts/new_ticket_workflow.py:210:def copy_file(src: Path | None, dst: Path, fallback: str, *, force: bool, dry_run: bool) -> bool:
+scripts/new_ticket_workflow.py:214:        action = f"copy {src}" if src else "write fallback"
+scripts/new_ticket_workflow.py:217:    dst.parent.mkdir(parents=True, exist_ok=True)
+scripts/new_ticket_workflow.py:222:        dst.write_text(fallback, encoding="utf-8")
+scripts/new_ticket_workflow.py:230:def carry_manifest_semantic_tail(template_text: str, baseline_manifest: Path) -> str:
+scripts/new_ticket_workflow.py:242:    accepted = baseline_manifest.read_text(encoding="utf-8")
+scripts/new_ticket_workflow.py:250:def copy_baseline_tree(src_dir: Path, dst_dir: Path, *, force: bool, dry_run: bool) -> list[Path]:
+scripts/new_ticket_workflow.py:254:    copied: list[Path] = []
+scripts/new_ticket_workflow.py:263:            print(f"would copy {src} -> {dst}")
+scripts/new_ticket_workflow.py:265:            dst.parent.mkdir(parents=True, exist_ok=True)
+scripts/new_ticket_workflow.py:273:    src_dir: Path,
+scripts/new_ticket_workflow.py:274:    dst_dir: Path,
+scripts/new_ticket_workflow.py:279:) -> list[Path]:
+scripts/new_ticket_workflow.py:284:    copied: list[Path] = []
+scripts/new_ticket_workflow.py:295:            print(f"would copy {src} -> {dst}")
+scripts/new_ticket_workflow.py:297:            dst.parent.mkdir(parents=True, exist_ok=True)
+scripts/new_ticket_workflow.py:304:def workflow_tree_seed_paths(src_dir: Path, skip_paths: set[str] | None = None) -> list[str]:
+scripts/new_ticket_workflow.py:327:def copy_optional_tree(src_dir: Path, dst_dir: Path, *, force: bool, dry_run: bool) -> list[Path]:
+scripts/new_ticket_workflow.py:333:def ticket_plan_path(specs_dir: Path) -> Path:
+scripts/new_ticket_workflow.py:337:def load_ticket_plan(specs_dir: Path) -> dict[str, Any]:
+scripts/new_ticket_workflow.py:347:def find_ticket(plan: dict[str, Any], ticket_ref: str, *, source: Path | None = None) -> tuple[int, dict[str, Any]]:
+scripts/new_ticket_workflow.py:359:    plan_source = source or Path("ticket_plan.yaml")
+scripts/new_ticket_workflow.py:368:def ticket_root_dir(specs_dir: Path, ticket_root: Path) -> Path:
+scripts/new_ticket_workflow.py:372:def project_current_source(specs_dir: Path) -> Path:
+scripts/new_ticket_workflow.py:379:    spec_root: Path = Path("specs"),
+scripts/new_ticket_workflow.py:380:    ticket_root: Path = Path("tickets"),
+scripts/new_ticket_workflow.py:391:    source_current: Path,
+scripts/new_ticket_workflow.py:392:    spec_root: Path = Path("specs"),
+scripts/new_ticket_workflow.py:393:    ticket_root: Path = Path("tickets"),
+scripts/new_ticket_workflow.py:409:1. Edit `desired/` first. It starts as a copy of the project current model;
+scripts/new_ticket_workflow.py:434:    ticket_dir: Path,
+scripts/new_ticket_workflow.py:435:    spec_root: Path = Path("specs"),
+scripts/new_ticket_workflow.py:436:    ticket_root: Path = Path("tickets"),
+scripts/new_ticket_workflow.py:457:    specs_dir: Path,
+scripts/new_ticket_workflow.py:458:    ticket_root: Path,
+scripts/new_ticket_workflow.py:459:    ticket_root_arg: Path,
+scripts/new_ticket_workflow.py:460:    ticket_dir: Path,
+scripts/new_ticket_workflow.py:464:    source_current: Path,
+scripts/new_ticket_workflow.py:465:    source_project_desired: Path,
+scripts/new_ticket_workflow.py:466:    spec_root: Path,
+scripts/new_ticket_workflow.py:544:def current_readme(ticket_id: str, title: str, baseline: Baseline, spec_root: Path = Path("specs")) -> str:
+scripts/new_ticket_workflow.py:561:   implementation. Do not copy only the feature or ticket-local subset.
+scripts/new_ticket_workflow.py:608:def current_manifest(module: str, package: str, ticket_id: str, title: str, spec_root: Path = Path("specs")) -> str:
+scripts/new_ticket_workflow.py:680:def desired_manifest(module: str, package: str, ticket_id: str, title: str, spec_root: Path = Path("specs")) -> str:
+scripts/new_ticket_workflow.py:748:def ticket_plan(ticket_id: str, title: str, module: str, spec_root: Path = Path("specs")) -> str:
+scripts/new_ticket_workflow.py:759:  current_model_rule: Update {spec_root_text}/current after each production slice lands as a whole-program working copy of {spec_root_text}/program_model, not a ticket projection.
+scripts/new_ticket_workflow.py:813:        - replace.with.graph.node
+scripts/new_ticket_workflow.py:824:def desired_state(ticket_id: str, title: str, module: str, spec_root: Path = Path("specs")) -> str:
+scripts/new_ticket_workflow.py:898:        return False, "replace ScaffoldedTicketAdapter with a ticket-specific adapter"
+scripts/new_ticket_workflow.py:903:    return current_test_for_spec_root(ticket_id, Path("specs"))
+scripts/new_ticket_workflow.py:906:def current_test_for_spec_root(ticket_id: str, spec_root: Path) -> str:
+scripts/new_ticket_workflow.py:907:    return f'''from pathlib import Path
+scripts/new_ticket_workflow.py:910:SPEC_ROOT = Path(__file__).resolve().parents[1].parent
+scripts/new_ticket_workflow.py:919:    assert "{ticket_id}" in manifest.read_text(encoding="utf-8")
+scripts/new_ticket_workflow.py:920:    assert "{ticket_id}" in plan.read_text(encoding="utf-8")
+scripts/new_ticket_workflow.py:925:    return f'''from pathlib import Path
+scripts/new_ticket_workflow.py:928:TICKET_ROOT = Path(__file__).resolve().parents[1]
+scripts/new_ticket_workflow.py:939:    assert "{ticket_id}" in ticket.read_text(encoding="utf-8")
+scripts/new_ticket_workflow.py:944:    repo_root: Path,
+scripts/new_ticket_workflow.py:949:    spec_root: Path = Path("specs"),
+scripts/new_ticket_workflow.py:950:    ticket_root: Path = Path("tickets"),
+scripts/new_ticket_workflow.py:952:) -> list[Path]:
+scripts/new_ticket_workflow.py:968:    written: list[Path] = []
+scripts/new_ticket_workflow.py:977:            "remove a project current/ path only if it appears here and the ticket dropped it; "
+scripts/new_ticket_workflow.py:1019:    repo_root: Path,
+scripts/new_ticket_workflow.py:1024:    spec_root: Path = Path("specs"),
+scripts/new_ticket_workflow.py:1025:) -> list[Path]:
+scripts/new_ticket_workflow.py:1033:    written: list[Path] = []
+scripts/new_ticket_workflow.py:1064:    # otherwise replace a real spec-unit mapping with an empty stub. A
+scripts/new_ticket_workflow.py:1094:    parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root to scaffold into.")
+scripts/new_ticket_workflow.py:1095:    parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
+scripts/generate_cases_from_tlc_dump.py:23:from pathlib import Path
+scripts/generate_cases_from_tlc_dump.py:90:    tla_path: Path,
+scripts/generate_cases_from_tlc_dump.py:91:    cfg_path: Path,
+scripts/generate_cases_from_tlc_dump.py:92:    dot_path: Path,
+scripts/generate_cases_from_tlc_dump.py:106:    dot_path.parent.mkdir(parents=True, exist_ok=True)
+scripts/generate_cases_from_tlc_dump.py:150:        shutil.rmtree(metadir, ignore_errors=True)
+scripts/generate_cases_from_tlc_dump.py:153:def load_dot(path: Path) -> tuple[dict[str, dict[str, Any]], list[Edge]]:
+scripts/generate_cases_from_tlc_dump.py:156:    for line in path.read_text().splitlines():
+scripts/generate_cases_from_tlc_dump.py:171:    raw_label = raw_label.replace(r"\"", '"')
+scripts/generate_cases_from_tlc_dump.py:346:def load_action_metadata(path: Path | None, spec_dir: Path | None = None) -> dict[str, ActionMetadata]:
+scripts/generate_cases_from_tlc_dump.py:598:        # projector may drop or rename fields, and a parameter recovered from a
+scripts/generate_cases_from_tlc_dump.py:653:    package_dir: Path,
+scripts/generate_cases_from_tlc_dump.py:716:    package_dir.mkdir(parents=True, exist_ok=True)
+scripts/generate_cases_from_tlc_dump.py:1005:def write(path: Path, content: str) -> None:
+scripts/generate_cases_from_tlc_dump.py:1006:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/generate_cases_from_tlc_dump.py:1007:    path.write_text(content)
+scripts/generate_cases_from_tlc_dump.py:1011:    tla_path: Path, extra_roots: list[Path]
+scripts/generate_cases_from_tlc_dump.py:1043:    tla_path: Path, search_path: "case_modules.ModuleSearchPath | None"
+scripts/generate_cases_from_tlc_dump.py:1058:    files = search_path.files_base_first if search_path is not None else (Path(tla_path),)
+scripts/generate_cases_from_tlc_dump.py:1060:        "\n".join(Path(path).read_text(encoding="utf-8") for path in files)
+scripts/generate_cases_from_tlc_dump.py:1064:def report_out_resolution(requested: Path, resolved: Path, spec_dir: Path) -> None:
+scripts/generate_cases_from_tlc_dump.py:1072:    if Path(requested).is_absolute():
+scripts/generate_cases_from_tlc_dump.py:1074:    cwd_candidate = (Path.cwd() / requested).resolve()
+scripts/generate_cases_from_tlc_dump.py:1080:        f"directory ({Path.cwd()}). Pass an absolute path to control it."
+scripts/generate_cases_from_tlc_dump.py:1085:    tla_path: Path,
+scripts/generate_cases_from_tlc_dump.py:1086:    cfg_path: Path,
+scripts/generate_cases_from_tlc_dump.py:1087:    spec_dir: Path,
+scripts/generate_cases_from_tlc_dump.py:1133:    package_dir: Path,
+scripts/generate_cases_from_tlc_dump.py:1180:    package_dir: Path,
+scripts/generate_cases_from_tlc_dump.py:1181:    manifest_path: Path,
+scripts/generate_cases_from_tlc_dump.py:1243:            "no-op anchoring conjunct so the wrapper owns its edges, or remove "
+scripts/generate_cases_from_tlc_dump.py:2433:            chosen.remove(name)
+scripts/generate_cases_from_tlc_dump.py:2566:    cases` can register the SAME arguments rather than a second, drifting copy.
+scripts/generate_cases_from_tlc_dump.py:2572:    scripts/generate_cases_from_tlc_dump.py:150 (shutil.rmtree), the package
+scripts/generate_cases_from_tlc_dump.py:2573:    writes at scripts/generate_cases_from_tlc_dump.py:1006-1007 (path.write_text)
+scripts/generate_cases_from_tlc_dump.py:2586:    parser.add_argument("tla", type=Path)
+scripts/generate_cases_from_tlc_dump.py:2587:    parser.add_argument("cfg", type=Path)
+scripts/generate_cases_from_tlc_dump.py:2590:        type=Path,
+scripts/generate_cases_from_tlc_dump.py:2608:        type=Path,
+scripts/generate_cases_from_tlc_dump.py:2625:    parser.add_argument("--actions-metadata", type=Path, help="YAML file with actions.<ActionName> layer/controllability/generates.")
+scripts/generate_cases_from_tlc_dump.py:2629:        type=Path,
+scripts/generate_cases_from_tlc_dump.py:2634:            "parent and `shutil.rmtree`s it in its finally branch, so an "
+scripts/generate_cases_from_tlc_dump.py:2711:        type=Path,
+scripts/generate_cases_from_tlc_dump.py:2734:    # The metadir `rmtree` in run_tlc_dump's finally branch is derived from
+scripts/generate_cases_from_tlc_dump.py:2751:    for root in [Path.cwd(), Path(__file__).resolve().parents[1], spec_dir]:
+scripts/generate_cases_from_tlc_dump.py:2800:        tla_source=tla_path.read_text(encoding="utf-8") if negative_mode != "off" else None,
+scripts/generate_cases_from_tlc_dump.py:2801:        cfg_text=cfg_path.read_text(encoding="utf-8") if negative_mode != "off" else None,
+scripts/generate_cases_from_tlc_dump.py:2861:    manifest_path: Path,
+scripts/generate_cases_from_tlc_dump.py:2864:    package_dir: Path,
+scripts/generate_cases_from_tlc_dump.py:2865:    destination: Path,
+scripts/generate_cases_from_tlc_dump.py:2866:) -> Path:
+scripts/generate_cases_from_tlc_dump.py:2881:    resolved = Path(destination).expanduser()
+scripts/generate_cases_from_tlc_dump.py:2883:        resolved.resolve() if resolved.is_absolute() else (Path.cwd() / resolved).resolve()
+scripts/generate_python.py:10:from pathlib import Path
+scripts/generate_python.py:13:SCRIPT_DIR = Path(__file__).resolve().parent
+scripts/generate_python.py:19:def spec_sources(module: str, manifest_path: Path) -> list[str]:
+scripts/generate_python.py:35:def header(module: str, manifest_path: Path) -> str:
+scripts/generate_python.py:96:def render_types(manifest: dict[str, Any], manifest_path: Path) -> str:
+scripts/generate_python.py:123:def render_ports(manifest: dict[str, Any], manifest_path: Path) -> str:
+scripts/generate_python.py:152:def render_fake(manifest: dict[str, Any], manifest_path: Path) -> str:
+scripts/generate_python.py:211:    candidate = "".join(chars).replace("__", "_")
+scripts/generate_python.py:223:    return "".join(chars).replace("__", "_")
+scripts/generate_python.py:226:def render_validators(manifest: dict[str, Any], manifest_path: Path) -> str:
+scripts/generate_python.py:358:def render_strategies(manifest: dict[str, Any], manifest_path: Path) -> str:
+scripts/generate_python.py:434:def render_traces(manifest: dict[str, Any], manifest_path: Path) -> str:
+scripts/generate_python.py:451:def render_contract_tests(manifest: dict[str, Any], manifest_path: Path) -> str:
+scripts/generate_python.py:575:def render_effect_providers(manifest: dict[str, Any], manifest_path: Path) -> str:
+scripts/generate_python.py:819:def render_docs(manifest: dict[str, Any], manifest_path: Path) -> str:
+scripts/generate_python.py:846:def render_init(manifest: dict[str, Any], manifest_path: Path) -> str:
+scripts/generate_python.py:851:def write(path: Path, content: str) -> None:
+scripts/generate_python.py:852:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/generate_python.py:853:    path.write_text(content)
+scripts/generate_python.py:871:def bind_default_providers(manifest: dict[str, Any], mapping_path: Path) -> list[str]:
+scripts/generate_python.py:882:    text = mapping_path.read_text(encoding="utf-8")
+scripts/generate_python.py:891:    mapping_path.write_text(text.rstrip("\n") + "\n" + "".join(additions), encoding="utf-8")
+scripts/generate_python.py:895:def mapping_audit(manifest: dict[str, Any], mapping_path: Path) -> list[str]:
+scripts/generate_python.py:908:        text = mapping_path.read_text(encoding="utf-8")
+scripts/generate_python.py:963:def generate(manifest_path: Path, out_dir: Path) -> Path:
+scripts/generate_python.py:991:    parser.add_argument("manifest", type=Path)
+scripts/generate_python.py:992:    parser.add_argument("--out", type=Path, required=True)
+scripts/generate_python.py:995:        type=Path,
+scripts/scaffold_spec.py:16:While a spec workflow is open, the active desired overlays DesiredCore.tla,
+scripts/scaffold_spec.py:25:from pathlib import Path
+scripts/scaffold_spec.py:33:    return "".join(part.capitalize() for part in name.replace("-", "_").split("_") if part)
+scripts/scaffold_spec.py:36:def write_if_missing(path: Path, content: str) -> None:
+scripts/scaffold_spec.py:39:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/scaffold_spec.py:40:    path.write_text(content)
+scripts/scaffold_spec.py:417:SCAFFOLD: replace each NotImplementedError with a call into the real boundary.
+scripts/scaffold_spec.py:423:from pathlib import Path
+scripts/scaffold_spec.py:444:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+scripts/scaffold_spec.py:490:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+scripts/scaffold_spec.py:534:        artifact.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+scripts/scaffold_spec.py:760:`Desired*.tla` are active overlays for an open spec workflow. Promote them into
+scripts/scaffold_spec.py:772:def scaffold(name: str, root: Path, views: set[str] | None = None) -> Path:
+scripts/scaffold_spec.py:773:    slug = name.replace("-", "_").lower()
+scripts/scaffold_spec.py:796:    (target / "generated").mkdir(exist_ok=True)
+scripts/scaffold_spec.py:797:    (target / "tests").mkdir(exist_ok=True)
+scripts/scaffold_spec.py:805:def scaffold_desired_overlays(target: Path, module: str) -> None:
+scripts/scaffold_spec.py:806:    """Active desired overlays for an open spec workflow.
+scripts/scaffold_spec.py:816:\\* Active desired semantic overlay for {module}. While a spec workflow is open,
+scripts/scaffold_spec.py:828:\\* Active desired internal projection. While a spec workflow is open, put
+scripts/scaffold_spec.py:857:    parser.add_argument("--root", type=Path, default=Path("examples"))
+scripts/infer_action_params.py:77:from pathlib import Path
+scripts/infer_action_params.py:378:def build_recipes_from_path(tla_path: Path) -> dict[str, ActionRecipe]:
+scripts/infer_action_params.py:379:    return build_recipes(Path(tla_path).read_text())
+scripts/infer_action_params.py:817:    parser.add_argument("tla", type=Path)
+scripts/infer_action_params.py:818:    parser.add_argument("--out", type=Path, help="Write the audit here instead of stdout.")
+scripts/infer_action_params.py:825:        args.out.parent.mkdir(parents=True, exist_ok=True)
+scripts/infer_action_params.py:826:        args.out.write_text(audit)
+scripts/spec_paths.py:1:"""Path helpers for spec-relative scripts."""
+scripts/spec_paths.py:5:from pathlib import Path
+scripts/spec_paths.py:8:def is_relative_to(path: Path, parent: Path) -> bool:
+scripts/spec_paths.py:16:def resolve_existing_from_cwd(path: Path) -> Path:
+scripts/spec_paths.py:19:    return (Path.cwd() / path).resolve()
+scripts/spec_paths.py:22:def resolve_spec_dir(tla_path: Path) -> Path:
+scripts/spec_paths.py:29:def resolve_existing_spec_input(path: Path, spec_dir: Path) -> Path:
+scripts/spec_paths.py:32:    cwd_candidate = (Path.cwd() / path).resolve()
+scripts/spec_paths.py:41:def resolve_spec_relative_path(path: Path, spec_dir: Path) -> Path:
+scripts/spec_paths.py:45:    cwd_candidate = (Path.cwd() / path).resolve()
+scripts/spec_paths.py:63:    `out_path.parent.mkdir(parents=True); out_path.write_text(...)`, so an
+scripts/spec_paths.py:76:def resolve_evidence_out(value: str | Path) -> Path:
+scripts/spec_paths.py:85:    resolved = Path(value).expanduser()
+scripts/spec_paths.py:86:    resolved = resolved.resolve() if resolved.is_absolute() else (Path.cwd() / resolved).resolve()
+scripts/spec_paths.py:115:    seriously, the destructive `shutil.rmtree` of the TLC metadir in
+scripts/spec_paths.py:131:def resolve_spec_tree_out(value: str | Path, spec_dir: Path, *, is_file: bool = False) -> Path:
+scripts/spec_paths.py:146:    resolved = resolve_spec_relative_path(Path(value).expanduser(), spec_dir)
+scripts/kill_test.py:98:from pathlib import Path
+scripts/kill_test.py:101:sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+scripts/kill_test.py:170:    ``find``/``replace`` is a literal, reviewable text substitution in a real
+scripts/kill_test.py:185:    replace: str
+scripts/kill_test.py:197:            "replace": self.replace,
+scripts/kill_test.py:214:    "replace",
+scripts/kill_test.py:270:                replace=str(entry["replace"]),
+scripts/kill_test.py:299:def load_catalog(path: Path) -> tuple[list[Mutant], list[str]]:
+scripts/kill_test.py:302:    path = Path(path)
+scripts/kill_test.py:329:        raw = tomllib.loads(path.read_text(encoding="utf-8"))
+scripts/kill_test.py:340:def declared_ports(manifest_path: Path) -> list[str]:
+scripts/kill_test.py:402:def declared_invariants(cfg_path: Path) -> list[str]:
+scripts/kill_test.py:415:    if not Path(cfg_path).is_file():
+scripts/kill_test.py:419:    for raw_line in Path(cfg_path).read_text(encoding="utf-8").splitlines():
+scripts/kill_test.py:442:def required_boundaries(spec_dir: Path, cfg_names: Sequence[str] | None = None) -> list[tuple[str, str]]:
+scripts/kill_test.py:451:    spec_dir = Path(spec_dir)
+scripts/kill_test.py:526:def seeded(mutant: Mutant, root: Path) -> Iterator[Path]:
+scripts/kill_test.py:530:    fault seeded in the tree. A kill test that can corrupt the working copy
+scripts/kill_test.py:534:    target = Path(root) / mutant.path
+scripts/kill_test.py:537:    original = target.read_text(encoding="utf-8")
+scripts/kill_test.py:544:    patched = original.replace(mutant.find, mutant.replace, 1)
+scripts/kill_test.py:548:        target.write_text(patched, encoding="utf-8")
+scripts/kill_test.py:551:        target.write_text(original, encoding="utf-8")
+scripts/kill_test.py:591:    root: Path,
+scripts/kill_test.py:832:    def write(self, path: Path, catalog: Sequence[Mutant] = ()) -> Path:
+scripts/kill_test.py:833:        path = Path(path)
+scripts/kill_test.py:834:        path.parent.mkdir(parents=True, exist_ok=True)
+scripts/kill_test.py:835:        path.write_text(
+scripts/kill_test.py:928:    spec_dir: Path,
+scripts/kill_test.py:931:    root: Path,
+scripts/kill_test.py:942:    spec_dir = Path(spec_dir)
+scripts/kill_test.py:1039:    spec_dir: Path,
+scripts/kill_test.py:1040:    catalog_path: Path,
+scripts/kill_test.py:1043:    root: Path,
+scripts/kill_test.py:1065:def _read_yaml(path: Path) -> Any:
+scripts/kill_test.py:1068:    path = Path(path)
+scripts/kill_test.py:1071:    text = path.read_text(encoding="utf-8")
+scripts/onboard_program_model.py:29:from pathlib import Path
+scripts/onboard_program_model.py:31:sys.path.insert(0, str(Path(__file__).resolve().parent))
+scripts/onboard_program_model.py:72:def write_file(path: Path, content: str, *, force: bool, dry_run: bool) -> bool:
+scripts/onboard_program_model.py:78:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/onboard_program_model.py:79:    path.write_text(content, encoding="utf-8")
+scripts/onboard_program_model.py:84:def _resolve_spec_root(repo_root: Path, spec_root: Path) -> Path:
+scripts/onboard_program_model.py:88:def _display_spec_root(repo_root: Path, spec_root: Path) -> str:
+scripts/onboard_program_model.py:103:\\* SCAFFOLD: replace the placeholder domain below with this repository's real
+scripts/onboard_program_model.py:127:\\* SCAFFOLD: replace these placeholder actions with the repository's real
+scripts/onboard_program_model.py:222:\\* SCAFFOLD: replace these placeholder submissions with this repository's real
+scripts/onboard_program_model.py:655:from pathlib import Path
+scripts/onboard_program_model.py:676:        """Suite-wide internal setup: open a store, clear shared tables."""
+scripts/onboard_program_model.py:681:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+scripts/onboard_program_model.py:751:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+scripts/onboard_program_model.py:809:        artifact.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+scripts/onboard_program_model.py:1179:from pathlib import Path
+scripts/onboard_program_model.py:1184:SPEC_ROOT = Path(__file__).resolve().parents[1]
+scripts/onboard_program_model.py:1213:    external = (SPEC_ROOT / "External.tla").read_text(encoding="utf-8")
+scripts/onboard_program_model.py:1220:    bindings = (SPEC_ROOT / "testgraph_bindings.yml").read_text(encoding="utf-8")
+scripts/onboard_program_model.py:1245:from pathlib import Path
+scripts/onboard_program_model.py:1250:SPEC_DIR = Path(__file__).resolve().parents[1]
+scripts/onboard_program_model.py:1257:def _runner_script() -> Path | None:
+scripts/onboard_program_model.py:1267:        Path(spec_double_compiler.__file__).resolve().parents[1]
+scripts/onboard_program_model.py:1278:def test_internal_adapters_run_in_batch(tmp_path: Path) -> None:
+scripts/onboard_program_model.py:1306:def testgraph_reminder(repo_root: Path, spec_root_text: str) -> str:
+scripts/onboard_program_model.py:1332:def has_test_graph(repo_root: Path) -> bool:
+scripts/onboard_program_model.py:1343:def missing_baseline_files(program_dir: Path) -> list[str]:
+scripts/onboard_program_model.py:1349:    repo_root: Path,
+scripts/onboard_program_model.py:1353:    spec_root: Path = Path("specs"),
+scripts/onboard_program_model.py:1354:) -> list[Path]:
+scripts/onboard_program_model.py:1381:    written: list[Path] = []
+scripts/onboard_program_model.py:1394:    parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root to scaffold into.")
+scripts/onboard_program_model.py:1395:    parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
+scripts/scaffold_spec_workflow.py:7:from pathlib import Path
+scripts/scaffold_spec_workflow.py:10:def write_if_missing(path: Path, content: str) -> None:
+scripts/scaffold_spec_workflow.py:13:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/scaffold_spec_workflow.py:14:    path.write_text(content)
+scripts/scaffold_spec_workflow.py:17:def scaffold(root: Path, specs_dir_name: str) -> Path:
+scripts/scaffold_spec_workflow.py:43:    parser.add_argument("--root", type=Path, default=Path.cwd())
+scripts/run_kill_test.py:26:from pathlib import Path
+scripts/run_kill_test.py:28:sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+scripts/run_kill_test.py:46:    parser.add_argument("--target", type=Path, help="Explicit spec directory carrying the declarations.")
+scripts/run_kill_test.py:49:        type=Path,
+scripts/run_kill_test.py:54:        type=Path,
+scripts/run_kill_test.py:80:        type=Path,
+scripts/run_kill_test.py:91:        type=Path,
+scripts/run_kill_test.py:102:    parser.add_argument("--out", type=Path, help="Write the JSON kill matrix here (ticket evidence).")
+scripts/run_kill_test.py:108:def resolve_spec_dir(args: argparse.Namespace) -> Path:
+scripts/run_kill_test.py:110:        return Path(args.target)
+scripts/run_kill_test.py:111:    spec_root = Path(getattr(args, "spec_root", "specs"))
+scripts/run_kill_test.py:134:            before = json.loads(Path(before_path).read_text(encoding="utf-8"))
+scripts/run_kill_test.py:135:            after = json.loads(Path(after_path).read_text(encoding="utf-8"))
+scripts/run_kill_test.py:143:    repo_root = Path(__file__).resolve().parents[1]
+scripts/run_kill_test.py:144:    root = Path(args.root) if getattr(args, "root", None) else repo_root
+scripts/run_kill_test.py:150:    catalog_path = Path(args.catalog) if args.catalog else spec_dir / DEFAULT_CATALOG_NAME
+scripts/run_kill_test.py:192:            baseline = json.loads(Path(args.baseline).read_text(encoding="utf-8"))
+scripts/start_ticket.py:7:from pathlib import Path
+scripts/start_ticket.py:18:    parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root.")
+scripts/start_ticket.py:19:    parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
+scripts/start_ticket.py:20:    parser.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
+scripts/run_generated_case_adapters.py:13:import copy
+scripts/run_generated_case_adapters.py:23:import tempfile
+scripts/run_generated_case_adapters.py:25:from pathlib import Path
+scripts/run_generated_case_adapters.py:166:def load_cases(cases_dir: Path):
+scripts/run_generated_case_adapters.py:176:def infer_spec_dir(cases_dir: Path, mapping: Path, explicit: Path | None) -> Path | None:
+scripts/run_generated_case_adapters.py:179:    mapping_candidate = mapping if mapping.is_absolute() else Path.cwd() / mapping
+scripts/run_generated_case_adapters.py:182:    cases_candidate = cases_dir if cases_dir.is_absolute() else Path.cwd() / cases_dir
+scripts/run_generated_case_adapters.py:191:def resolve_runtime_path(path: Path, spec_dir: Path | None) -> Path:
+scripts/run_generated_case_adapters.py:197:def load_mappings(path: Path) -> dict[str, AdapterMapping]:
+scripts/run_generated_case_adapters.py:287:def load_mapping_data(path: Path) -> dict[str, Any]:
+scripts/run_generated_case_adapters.py:293:def load_toml(path: Path) -> dict[str, Any]:
+scripts/run_generated_case_adapters.py:294:    text = path.read_text()
+scripts/run_generated_case_adapters.py:377:            value = copy.deepcopy(getattr(case, field_name)) if present else None
+scripts/run_generated_case_adapters.py:438:    import_roots: list[Path],
+scripts/run_generated_case_adapters.py:484:    return getattr(annotation, "__name__", str(annotation).replace("typing.", ""))
+scripts/run_generated_case_adapters.py:559:    spec_dir: Path | None,
+scripts/run_generated_case_adapters.py:560:    mapping_path: Path,
+scripts/run_generated_case_adapters.py:562:    import_roots: list[Path],
+scripts/run_generated_case_adapters.py:825:    mapping_path: Path,
+scripts/run_generated_case_adapters.py:826:    import_roots: list[Path],
+scripts/run_generated_case_adapters.py:892:def load_adapter(mapping: AdapterMapping, import_roots: list[Path]):
+scripts/run_generated_case_adapters.py:1117:def ensure_import_roots(import_roots: list[Path]) -> None:
+scripts/run_generated_case_adapters.py:1118:    skill_root = Path(__file__).resolve().parents[1]
+scripts/run_generated_case_adapters.py:1129:    import_roots: list[Path],
+scripts/run_generated_case_adapters.py:1165:    cases_dir: Path,
+scripts/run_generated_case_adapters.py:1166:    program_path: Path,
+scripts/run_generated_case_adapters.py:1167:    case_work_dir: Path,
+scripts/run_generated_case_adapters.py:1168:    import_roots: list[Path],
+scripts/run_generated_case_adapters.py:1170:    program_path.parent.mkdir(parents=True, exist_ok=True)
+scripts/run_generated_case_adapters.py:1171:    case_work_dir.mkdir(parents=True, exist_ok=True)
+scripts/run_generated_case_adapters.py:1173:        f"sys.path.insert(0, {str(root.resolve())!r})" for root in [Path(__file__).resolve().parents[1], *import_roots]
+scripts/run_generated_case_adapters.py:1179:from pathlib import Path
+scripts/run_generated_case_adapters.py:1213:    case_work_dir = Path({str(case_work_dir.resolve())!r})
+scripts/run_generated_case_adapters.py:1235:    program_path.write_text(content)
+scripts/run_generated_case_adapters.py:1243:    cases_dir: Path,
+scripts/run_generated_case_adapters.py:1244:    work_dir: Path,
+scripts/run_generated_case_adapters.py:1245:    import_roots: list[Path],
+scripts/run_generated_case_adapters.py:1246:) -> list[Path]:
+scripts/run_generated_case_adapters.py:1247:    programs: list[Path] = []
+scripts/run_generated_case_adapters.py:1369:def _point_work_dir(work_dir: Path, point: ExecutionPoint, *, iteration_paths: bool) -> Path:
+scripts/run_generated_case_adapters.py:1433:    work_dir: Path,
+scripts/run_generated_case_adapters.py:1455:        context_work_dir.mkdir(parents=True, exist_ok=True)
+scripts/run_generated_case_adapters.py:1487:def load_effect_declarations_for_spec(spec_dir: Path | None):
+scripts/run_generated_case_adapters.py:1517:    work_dir: Path,
+scripts/run_generated_case_adapters.py:1518:    import_roots: list[Path],
+scripts/run_generated_case_adapters.py:1520:    effect_report_path: Path | None = None,
+scripts/run_generated_case_adapters.py:1607:        group_work_dir.mkdir(parents=True, exist_ok=True)
+scripts/run_generated_case_adapters.py:1714:                    case_work_dir.mkdir(parents=True, exist_ok=True)
+scripts/run_generated_case_adapters.py:1872:                    # cleanup exception independently so no failure can replace
+scripts/run_generated_case_adapters.py:2040:    work_dir: Path,
+scripts/run_generated_case_adapters.py:2041:    import_roots: list[Path],
+scripts/run_generated_case_adapters.py:2043:    effect_report_path: Path | None = None,
+scripts/run_generated_case_adapters.py:2098:    command = [*args.python, str(Path(__file__).resolve()), str(args.cases_dir), "--mapping", str(args.mapping), "--batch"]
+scripts/run_generated_case_adapters.py:2122:    env = os.environ.copy()
+scripts/run_generated_case_adapters.py:2130:    spec_dir: Path | None,
+scripts/run_generated_case_adapters.py:2131:    import_roots: list[Path],
+scripts/run_generated_case_adapters.py:2137:        str(Path(sys.executable).absolute()),
+scripts/run_generated_case_adapters.py:2138:        str(Path(__file__).resolve()),
+scripts/run_generated_case_adapters.py:2168:        resolved = str(Path(entry).resolve())
+scripts/run_generated_case_adapters.py:2175:def execute_programs(programs: list[Path], python: list[str]) -> None:
+scripts/run_generated_case_adapters.py:2176:    failures: list[tuple[Path, int]] = []
+scripts/run_generated_case_adapters.py:2188:    parser.add_argument("cases_dir", type=Path, help="Generated case package directory")
+scripts/run_generated_case_adapters.py:2189:    parser.add_argument("--mapping", type=Path, required=True, help="TOML label-to-adapter mapping")
+scripts/run_generated_case_adapters.py:2190:    parser.add_argument("--spec-dir", type=Path, help="Spec directory used for resolving spec-relative paths")
+scripts/run_generated_case_adapters.py:2191:    parser.add_argument("--work-dir", type=Path)
+scripts/run_generated_case_adapters.py:2199:        type=Path,
+scripts/run_generated_case_adapters.py:2216:        type=Path,
+scripts/run_generated_case_adapters.py:2242:    default_import_roots = args.import_root or ([Path.cwd(), spec_dir] if spec_dir is not None else [Path.cwd()])
+scripts/run_generated_case_adapters.py:2294:    work_dir = args.work_dir or Path(tempfile.mkdtemp(prefix="spec-double-cases-"))
+scripts/run_generated_case_adapters.py:2295:    work_dir.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:10:from pathlib import Path
+specs/current/production_adapters.py:23:sys.path.insert(0, str(Path(__file__).resolve().parent))
+specs/current/production_adapters.py:62:         the real CLI (`open ticket`) and replaying the agent edits;
+specs/current/production_adapters.py:103:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:104:        work_dir = Path(work_dir or Path.cwd())
+specs/current/production_adapters.py:175:    its `case_adapters.toml` bindings are on open PR #50; this class exists only
+specs/current/production_adapters.py:182:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:215:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:216:        work_dir = Path(work_dir or Path.cwd())
+specs/current/production_adapters.py:250:    def apply(self, bin_dir: Path, cache_dir: Path) -> dict[str, object]:
+specs/current/production_adapters.py:298:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:299:        work_dir = Path(work_dir or Path.cwd())
+specs/current/production_adapters.py:305:        bin_dir.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:306:        cache_dir.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:342:    def apply(self, target_repo: Path, *, spec_root: str = "specs", name: str = "CliProject") -> dict[str, object]:
+specs/current/production_adapters.py:388:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:389:        work_dir = Path(work_dir or Path.cwd())
+specs/current/production_adapters.py:448:        target_repo: Path,
+specs/current/production_adapters.py:495:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:496:        work_dir = Path(work_dir or Path.cwd())
+specs/current/production_adapters.py:525:    root: Path,
+specs/current/production_adapters.py:526:    target_repo: Path,
+specs/current/production_adapters.py:538:# MF-019: closing a ticket requires a filled-in complexity ledger input. `open
+specs/current/production_adapters.py:582:    .replace('status: "pass"\n    evidence: "results/kill-test.json"',
+specs/current/production_adapters.py:584:    .replace('status: "clean"\n    evidence: "results/effect-conformance.txt"',
+specs/current/production_adapters.py:586:    .replace('status: "pass"\n    evidence: "results/external-coverage.txt"',
+specs/current/production_adapters.py:591:def fill_complexity_ledger(target_repo: Path, spec_root: str, ticket_id: str) -> Path:
+specs/current/production_adapters.py:594:    path.parent.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:595:    path.write_text(PASSING_COMPLEXITY_LEDGER, encoding="utf-8")
+specs/current/production_adapters.py:633:def set_ticket_model(target_repo: Path, spec_root: str, ticket_id: str, text: str) -> None:
+specs/current/production_adapters.py:644:                tla.write_text(text, encoding="utf-8")
+specs/current/production_adapters.py:645:        (model_dir / "MC.cfg").write_text(FIXTURE_CFG, encoding="utf-8")
+specs/current/production_adapters.py:648:            current = manifest.read_text(encoding="utf-8")
+specs/current/production_adapters.py:650:                manifest.write_text(current + FIXTURE_MODEL_DECLARATION, encoding="utf-8")
+specs/current/production_adapters.py:659:        target_repo: Path,
+specs/current/production_adapters.py:667:        result = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+specs/current/production_adapters.py:692:    # real `open ticket` CLI command and projects ticket_state back from the
+specs/current/production_adapters.py:713:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:714:        work_dir = Path(work_dir or Path.cwd())
+specs/current/production_adapters.py:722:        # Perform the modelled transition: the real `open ticket` CLI command.
+specs/current/production_adapters.py:725:        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket)
+specs/current/production_adapters.py:727:            raise BeforeStateUnreachable(f"open ticket {ticket} failed: {opened.stderr[-600:]}")
+specs/current/production_adapters.py:733:            last_command="tla-spec-dev open ticket",
+specs/current/production_adapters.py:781:        target_repo: Path,
+specs/current/production_adapters.py:789:        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+specs/current/production_adapters.py:792:            plan_path.write_text(plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1), encoding="utf-8")
+specs/current/production_adapters.py:826:    Runs the real ``scaffold -> open ticket -> close ticket`` lifecycle against
+specs/current/production_adapters.py:827:    a throwaway repository. Between ``open`` and ``close`` it writes two kinds
+specs/current/production_adapters.py:835:    * the project workflow test, which ``open ticket`` excludes from the ticket
+specs/current/production_adapters.py:846:        target_repo: Path,
+specs/current/production_adapters.py:854:        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+specs/current/production_adapters.py:858:        unseeded.write_text("MUST_SURVIVE_PROMOTION = True\n", encoding="utf-8")
+specs/current/production_adapters.py:860:        probe.parent.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:861:        probe.write_text("current-only directory\n", encoding="utf-8")
+specs/current/production_adapters.py:867:            plan_path.write_text(plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1), encoding="utf-8")
+specs/current/production_adapters.py:942:        target_repo: Path,
+specs/current/production_adapters.py:955:            run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket)
+specs/current/production_adapters.py:957:                plan_path.write_text(
+specs/current/production_adapters.py:958:                    plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1),
+specs/current/production_adapters.py:971:        text = feedback.read_text(encoding="utf-8") if emitted else ""
+specs/current/production_adapters.py:978:        first_manifest = json.loads(first_manifest_path.read_text(encoding="utf-8")) if first_manifest_path.is_file() else {}
+specs/current/production_adapters.py:984:            plan_path.write_text(
+specs/current/production_adapters.py:985:                plan_path.read_text(encoding="utf-8")
+specs/current/production_adapters.py:992:            feedback.write_text(
+specs/current/production_adapters.py:993:                text.replace("- feedback_status: unreviewed", "- feedback_status: items-recorded", 1) + self.FINDING,
+specs/current/production_adapters.py:998:        after = feedback.read_text(encoding="utf-8") if feedback.is_file() else ""
+specs/current/production_adapters.py:1004:        second_manifest = json.loads(second_manifest_path.read_text(encoding="utf-8")) if second_manifest_path.is_file() else {}
+specs/current/production_adapters.py:1043:        target_repo: Path,
+specs/current/production_adapters.py:1051:        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+specs/current/production_adapters.py:1054:        test_path.parent.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:1055:        test_path.write_text("def test_spec_unit_cli():\n    assert True\n", encoding="utf-8")
+specs/current/production_adapters.py:1089:        build_text = build.read_text(encoding="utf-8") if build.exists() else ""
+specs/current/production_adapters.py:1090:        readme_text = readme.read_text(encoding="utf-8") if readme.exists() else ""
+specs/current/production_adapters.py:1122:    def apply(self, target_repo: Path, *, spec_root: str = "specs", name: str = "BudgetProg") -> dict[str, object]:
+specs/current/production_adapters.py:1144:        manifest = Path(target_repo) / spec_root / "program_model" / "spec_manifest.yaml"
+specs/current/production_adapters.py:1145:        manifest_text = manifest.read_text() if manifest.is_file() else ""
+specs/current/production_adapters.py:1190:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:1191:        work_dir = Path(work_dir or Path.cwd())
+specs/current/production_adapters.py:1337:    directory: Path, module: str, tla: str, cfg: str, manifest: str = BUDGET_MANIFEST
+specs/current/production_adapters.py:1338:) -> tuple[Path, Path]:
+specs/current/production_adapters.py:1339:    directory.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:1342:    tla_path.write_text(tla, encoding="utf-8")
+specs/current/production_adapters.py:1343:    cfg_path.write_text(cfg, encoding="utf-8")
+specs/current/production_adapters.py:1344:    (directory / "spec_manifest.yaml").write_text(manifest, encoding="utf-8")
+specs/current/production_adapters.py:1367:    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+specs/current/production_adapters.py:1369:        target_repo = Path(target_repo)
+specs/current/production_adapters.py:1401:                 # spec_tree_delete declare, and the tree the metadir rmtree is
+specs/current/production_adapters.py:1558:    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+specs/current/production_adapters.py:1560:        target_repo = Path(target_repo)
+specs/current/production_adapters.py:1720:def _write_corpus_fixture(target: Path, count: int, cap: int) -> tuple[Path, Path]:
+specs/current/production_adapters.py:1723:    package.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:1724:    (package / "__init__.py").write_text(
+specs/current/production_adapters.py:1727:    (package / "cases.py").write_text(
+specs/current/production_adapters.py:1728:        CORPUS_FIXTURE_CASES.replace("__COUNT__", str(count)), encoding="utf-8"
+specs/current/production_adapters.py:1731:    manifest.write_text(
+specs/current/production_adapters.py:1749:    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+specs/current/production_adapters.py:1751:        target_repo = Path(target_repo)
+specs/current/production_adapters.py:1756:        def cli(pkg: Path, manifest: Path) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1767:        def case_count(pkg: Path) -> int:
+specs/current/production_adapters.py:1769:            return len(re.findall(r"StateGraphCase\(", (pkg / "cases.py").read_text(encoding="utf-8")))
+specs/current/production_adapters.py:1869:    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+specs/current/production_adapters.py:1871:        target_repo = Path(target_repo)
+specs/current/production_adapters.py:1873:        def fixture(name: str, body: str) -> Path:
+specs/current/production_adapters.py:1875:            spec_dir.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:1876:            (spec_dir / "spec_manifest.yaml").write_text(body, encoding="utf-8")
+specs/current/production_adapters.py:1886:        def cli(spec_dir: Path, out: Path) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1900:        plain_report = json.loads(plain_out.read_text(encoding="utf-8"))
+specs/current/production_adapters.py:1901:        justified_report = json.loads(justified_out.read_text(encoding="utf-8"))
+specs/current/production_adapters.py:1985:    def _fixture(self, directory: Path, *, catalog: str, source: str) -> Path:
+specs/current/production_adapters.py:1986:        directory.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:1987:        (directory / "spec_manifest.yaml").write_text(self._MANIFEST, encoding="utf-8")
+specs/current/production_adapters.py:1988:        (directory / "MC.cfg").write_text(self._CFG, encoding="utf-8")
+specs/current/production_adapters.py:1989:        (directory / "kill_mutants.toml").write_text(catalog, encoding="utf-8")
+specs/current/production_adapters.py:1990:        (directory / "src.py").write_text(source, encoding="utf-8")
+specs/current/production_adapters.py:1994:    def _mutant(ident: str, kind: str, ref: str, find: str, replace: str, **extra: str) -> str:
+specs/current/production_adapters.py:2002:            f'replace = "{replace}"',
+specs/current/production_adapters.py:2010:    def apply(self, target_repo: Path) -> dict[str, object]:
+specs/current/production_adapters.py:2012:        target_repo = Path(target_repo)
+specs/current/production_adapters.py:2015:        def run(spec_dir: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/current/production_adapters.py:2035:        detector.write_text(
+specs/current/production_adapters.py:2037:            "text = pathlib.Path(sys.argv[1]).read_text()\n"
+specs/current/production_adapters.py:2055:        pass_payload = json.loads(pass_out.read_text(encoding="utf-8")) if pass_out.is_file() else {}
+specs/current/production_adapters.py:2071:        surv_payload = json.loads(surv_out.read_text(encoding="utf-8")) if surv_out.is_file() else {}
+specs/current/production_adapters.py:2082:        unc_payload = json.loads(unc_out.read_text(encoding="utf-8")) if unc_out.is_file() else {}
+specs/current/production_adapters.py:2105:            json.loads(waived_out.read_text(encoding="utf-8")) if waived_out.is_file() else {}
+specs/current/production_adapters.py:2154:    Drives the real CLI (`scaffold -> open ticket -> close ticket`) against a
+specs/current/production_adapters.py:2175:        target_repo: Path,
+specs/current/production_adapters.py:2187:        def open_ticket(ticket: str) -> Path:
+specs/current/production_adapters.py:2189:                plan_path.write_text(
+specs/current/production_adapters.py:2190:                    plan_path.read_text(encoding="utf-8")
+specs/current/production_adapters.py:2194:            run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket)
+specs/current/production_adapters.py:2199:                plan_path.write_text(
+specs/current/production_adapters.py:2200:                    plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1),
+specs/current/production_adapters.py:2210:        template_scaffolded = ledger_input.is_file() and "TODO" in ledger_input.read_text(encoding="utf-8")
+specs/current/production_adapters.py:2217:        manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.is_file() else {}
+specs/current/production_adapters.py:2230:        degraded_input.write_text(
+specs/current/production_adapters.py:2231:            PASSING_COMPLEXITY_LEDGER.replace('status: "recorded"', 'status: "stale"', 1),
+specs/current/production_adapters.py:2245:        validated_input.write_text(NOT_RUN_FUZZING_LEDGER, encoding="utf-8")
+specs/current/production_adapters.py:2250:            entries = json.loads(ledger_file.read_text(encoding="utf-8")).get("entries", [])
+specs/current/production_adapters.py:2343:    `build_parser` never saw the java/TLC spawn, the metadir `rmtree` or the
+specs/current/production_adapters.py:2362:    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+specs/current/production_adapters.py:2364:        target_repo = Path(target_repo)
+specs/current/production_adapters.py:2467:    while `--accept-new` and `--allow-open` exist specifically to get past that
+specs/current/production_adapters.py:2473:    the guard, once around it with `--allow-open` -- and asserts the append-only
+specs/current/production_adapters.py:2477:    false assurance this ticket exists to remove.
+specs/current/production_adapters.py:2484:        target_repo: Path,
+specs/current/production_adapters.py:2491:        target_repo = Path(target_repo)
+specs/current/production_adapters.py:2493:        def close(repo: Path, *extra: str) -> tuple[subprocess.CompletedProcess, dict]:
+specs/current/production_adapters.py:2494:            repo.mkdir(parents=True, exist_ok=True)
+specs/current/production_adapters.py:2499:            run_cli(root, repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+specs/current/production_adapters.py:2503:                plan_path.write_text(
+specs/current/production_adapters.py:2504:                    plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1),
+specs/current/production_adapters.py:2528:                json.loads(manifest_path.read_text(encoding="utf-8"))
+specs/current/production_adapters.py:2535:        # `--allow-open` closes a ticket the plan still calls open: the
+specs/current/production_adapters.py:2537:        weakened, weakened_manifest = close(target_repo / "weakened", "--allow-open")
+specs/current/production_adapters.py:2549:                and weakened_record.get("flags") == ["--allow-open"]
+scripts/spec_evolution.py:15:from pathlib import Path
+scripts/spec_evolution.py:29:SKILL_ROOT = Path(__file__).resolve().parents[1]
+scripts/spec_evolution.py:48:    entry_dir: Path
+scripts/spec_evolution.py:57:def _load_yaml(path: Path) -> dict[str, Any]:
+scripts/spec_evolution.py:68:def resolve_spec_root(repo_root: Path, spec_root: Path) -> Path:
+scripts/spec_evolution.py:72:def resolve_workflow_path(path: Path, specs_dir: Path) -> Path:
+scripts/spec_evolution.py:75:    cwd_candidate = (Path.cwd() / path).resolve()
+scripts/spec_evolution.py:89:def rel(path: Path) -> str:
+scripts/spec_evolution.py:92:        return str(resolved.relative_to(Path.cwd().resolve()))
+scripts/spec_evolution.py:121:def make_directory_appendable(path: Path) -> None:
+scripts/spec_evolution.py:128:def make_history_appendable(specs_dir: Path, workflow: str) -> None:
+scripts/spec_evolution.py:134:def copy_snapshot(source: Path, destination: Path) -> None:
+scripts/spec_evolution.py:135:    destination.parent.mkdir(parents=True, exist_ok=True)
+scripts/spec_evolution.py:137:        shutil.copytree(source, destination, ignore=copy_ignore)
+scripts/spec_evolution.py:142:def remove_state_directories(*roots: Path) -> list[Path]:
+scripts/spec_evolution.py:144:    removed: list[Path] = []
+scripts/spec_evolution.py:154:            shutil.rmtree(state_dir)
+scripts/spec_evolution.py:159:def add_copied_path(records: list[dict[str, Any]], *, role: str, source: Path, destination: Path) -> None:
+scripts/spec_evolution.py:168:def ticket_plan_path(specs_dir: Path) -> Path:
+scripts/spec_evolution.py:172:def active_ticket_dir(specs_dir: Path, ticket_ref: str, ticket_root: Path = Path("tickets")) -> Path:
+scripts/spec_evolution.py:177:def load_ticket_plan(specs_dir: Path) -> dict[str, Any]:
+scripts/spec_evolution.py:231:def history_root(specs_dir: Path, workflow: str) -> Path:
+scripts/spec_evolution.py:235:def commit_recommendation(entry_dir: Path, message: str, *, extra_paths: list[Path] | None = None) -> HistoryEntryResult:
+scripts/spec_evolution.py:250:def write_manifest(entry_dir: Path, manifest: dict[str, Any]) -> None:
+scripts/spec_evolution.py:251:    (entry_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+scripts/spec_evolution.py:254:def write_summary(entry_dir: Path, *, title: str, summary: str, manifest: dict[str, Any]) -> None:
+scripts/spec_evolution.py:277:    (entry_dir / "summary.md").write_text("".join(lines))
+scripts/spec_evolution.py:280:def snapshot_models(specs_dir: Path, entry_dir: Path) -> list[dict[str, Any]]:
+scripts/spec_evolution.py:287:def snapshot_results(specs_dir: Path, entry_dir: Path, result_paths: list[Path]) -> list[dict[str, Any]]:
+scripts/spec_evolution.py:307:def semantic_files(root: Path) -> dict[Path, Path]:
+scripts/spec_evolution.py:317:def semantic_file_matches(left: Path, right: Path) -> bool:
+scripts/spec_evolution.py:323:def ticket_promotion_guidance(active_dir: Path) -> str:
+scripts/spec_evolution.py:339:def validate_equivalent_model_dirs(left_dir: Path, right_dir: Path, *, left_label: str = "current", right_label: str = "desired") -> list[str]:
+scripts/spec_evolution.py:362:def merge_tree(src: Path, dst: Path) -> list[dict[str, Any]]:
+scripts/spec_evolution.py:371:        destination.parent.mkdir(parents=True, exist_ok=True)
+scripts/spec_evolution.py:383:def replace_tree(src: Path, dst: Path) -> list[dict[str, Any]]:
+scripts/spec_evolution.py:385:        shutil.rmtree(dst)
+scripts/spec_evolution.py:389:def tree_relative_files(root: Path) -> set[str]:
+scripts/spec_evolution.py:404:def load_ticket_seed_manifest(active_dir: Path) -> set[str] | None:
+scripts/spec_evolution.py:407:    ``open ticket`` records the exact set of project ``current/`` paths it
+scripts/spec_evolution.py:416:    # ticket.yaml is written by `open ticket` as JSON (a YAML subset); the
+scripts/spec_evolution.py:419:        payload = json.loads(path.read_text(encoding="utf-8"))
+scripts/spec_evolution.py:436:def prune_empty_directories(root: Path) -> None:
+scripts/spec_evolution.py:446:def promote_current_tree(src: Path, dst: Path, seed: set[str] | None) -> dict[str, Any]:
+scripts/spec_evolution.py:449:    ``dst`` stays a whole-program working copy rather than becoming an
+scripts/spec_evolution.py:472:        basis = "seed manifest recorded at open; removing only seeded paths the ticket dropped"
+scripts/spec_evolution.py:477:            target.unlink()
+scripts/spec_evolution.py:493:def promote_ticket_outputs(active_dir: Path, specs_dir: Path) -> dict[str, Any]:
+scripts/spec_evolution.py:516:        "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+scripts/spec_evolution.py:524:#: `--dry-run` on scaffold/open -- weaken an EARLIER step and never reach this
+scripts/spec_evolution.py:529:    "--allow-open": "snapshots a ticket whose ticket_plan.yaml status is not closed/done",
+scripts/spec_evolution.py:542:    `--accept-new` and `--allow-open` exist precisely to get past that
+scripts/spec_evolution.py:558:        used.append("--allow-open")
+scripts/spec_evolution.py:573:def accept_new_ticket_current(active_dir: Path) -> dict[str, Any]:
+scripts/spec_evolution.py:579:        "operation": "replace ticket current with ticket desired (accept-new)",
+scripts/spec_evolution.py:605:    tla: Path
+scripts/spec_evolution.py:606:    cfg: Path
+scripts/spec_evolution.py:607:    manifest: Path | None
+scripts/spec_evolution.py:614:def _model_candidates(model_dir: Path) -> list[Path]:
+scripts/spec_evolution.py:619:def _resolve_cfg(model_dir: Path, tla_path: Path, *, source: str) -> Path:
+scripts/spec_evolution.py:647:def select_model_files(model_dir: Path) -> ModelSelection | None:
+scripts/spec_evolution.py:665:    model_dir = Path(model_dir)
+scripts/spec_evolution.py:752:    cfg_text = selection.cfg.read_text(encoding="utf-8")
+scripts/spec_evolution.py:798:def find_model_files(model_dir: Path) -> tuple[Path, Path, Path | None] | None:
+scripts/spec_evolution.py:811:def complexity_ledger_input_path(specs_dir: Path, active_dir: Path | None, scope: str) -> Path:
+scripts/spec_evolution.py:823:    specs_dir: Path,
+scripts/spec_evolution.py:828:    model_dir: Path,
+scripts/spec_evolution.py:829:    input_path: Path,
+scripts/spec_evolution.py:830:    tlc_report: Path | None = None,
+scripts/spec_evolution.py:913:    repo_root: Path,
+scripts/spec_evolution.py:914:    spec_root: Path,
+scripts/spec_evolution.py:917:    result_paths: list[Path],
+scripts/spec_evolution.py:921:    ticket_root: Path = Path("tickets"),
+scripts/spec_evolution.py:938:    # could not tell them apart. `--accept-new` and `--allow-open` exist
+scripts/spec_evolution.py:992:    entry_dir.mkdir(parents=True)
+scripts/spec_evolution.py:1014:    promoted_paths: list[Path] = []
+scripts/spec_evolution.py:1033:        promoted_paths.append(Path(skill_feedback_record["path"]))
+scripts/spec_evolution.py:1039:        promoted_paths.append(Path(complexity_record["ledger_path"]))
+scripts/spec_evolution.py:1046:    close_result = dataclasses.replace(
+scripts/spec_evolution.py:1102:    repo_root: Path,
+scripts/spec_evolution.py:1103:    spec_root: Path,
+scripts/spec_evolution.py:1105:    result_paths: list[Path],
+scripts/spec_evolution.py:1122:            raise SystemExit("ERROR: cannot write closed workflow snapshot with open tickets:\n" + "\n".join(f"- {item}" for item in open_tickets))
+scripts/spec_evolution.py:1141:    entry_dir.mkdir(parents=True)
+scripts/spec_evolution.py:1151:    extra_paths: list[Path] = []
+scripts/spec_evolution.py:1160:        extra_paths.append(Path(skill_feedback_record["path"]))
+scripts/spec_evolution.py:1163:        extra_paths.append(Path(complexity_record["ledger_path"]))
+scripts/spec_evolution.py:1165:    close_result = dataclasses.replace(
+scripts/skill_feedback.py:35:from pathlib import Path
+scripts/skill_feedback.py:89:def results_dir(specs_dir: Path) -> Path:
+scripts/skill_feedback.py:93:def skill_feedback_path(specs_dir: Path) -> Path:
+scripts/skill_feedback.py:285:- `status:` `open`, `filed`, or `wontfix`
+scripts/skill_feedback.py:408:    specs_dir: Path,
+scripts/skill_feedback.py:423:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/skill_feedback.py:426:        path.write_text(render_template(), encoding="utf-8")
+scripts/skill_feedback.py:427:    existing = path.read_text(encoding="utf-8")
+scripts/skill_feedback.py:437:    path.write_text(existing + entry, encoding="utf-8")
+scripts/skill_feedback.py:439:    status = filing_status(path.read_text(encoding="utf-8"))
+specs/current/spec_manifest.yaml:157:        #   install-tla-spec-dev.sh:20 (mkdir -p) -> $SKILL_MANAGER_BIN_DIR, $SKILL_MANAGER_CACHE_DIR
+specs/current/spec_manifest.yaml:159:        #   install-tlc2.sh:18 (mkdir -p "$JAR_DIR") -> $SKILL_MANAGER_BIN_DIR/.spec-double-compiler
+specs/current/spec_manifest.yaml:166:        # directories are REQUIRED ENVIRONMENT INPUTS -- the installers open
+specs/current/spec_manifest.yaml:246:        # performs destructive deletes, all under the spec tree: rmtree of TLC
+specs/current/spec_manifest.yaml:247:        # `states/` dirs (scripts/spec_evolution.py:154 (shutil.rmtree) via
+specs/current/spec_manifest.yaml:250:        # at workflow close), rmtree of project `current/` before promotion
+specs/current/spec_manifest.yaml:251:        # (scripts/spec_evolution.py:385 (shutil.rmtree) via
+specs/current/spec_manifest.yaml:253:        # data-loss mechanism), and unlink of seeded paths the ticket dropped
+specs/current/spec_manifest.yaml:254:        # (scripts/spec_evolution.py:477 (target.unlink)). filesystem.write
+specs/current/spec_manifest.yaml:266:        # fail-open branch on git error is out-of-model; the spawn itself is
+specs/current/spec_manifest.yaml:273:        # (scripts/kill_test.py:548 (patched) write of the mutated copy,
+specs/current/spec_manifest.yaml:311:    # substance -- the curl download, the mv unlink and the wrapper self-test
+specs/current/spec_manifest.yaml:387:    # TLC metadir `rmtree` in run_tlc_dump's finally branch.
+specs/current/spec_manifest.yaml:399:    # (scripts/effect_conformance.py:1765 (work_root.mkdir), default
+specs/current/spec_manifest.yaml:401:    # scripts/effect_conformance.py:1686 (case_dir.mkdir) per-case dirs;
+specs/current/spec_manifest.yaml:402:    # scripts/effect_conformance.py:714 (self.root.mkdir) and
+specs/current/spec_manifest.yaml:403:    # scripts/effect_conformance.py:751 (path.mkdir) sandbox roots) -- writes
+specs/current/spec_manifest.yaml:422:    # EMPTY directory (scripts/effect_conformance.py:1685 (shutil.rmtree)),
+specs/current/spec_manifest.yaml:425:    # its TLC states/ rmtree rather than leave it undeclared.
+specs/desired_program_model/TlaSpecDevCli.tla:197:\* six GUARD-WEAKENING FLAGS -- --accept-new, --allow-open,
+specs/desired_program_model/TlaSpecDevCli.tla:204:\* `--accept-new` (tla_spec_dev.py --accept-new) and `--allow-open` exist
+specs/desired_program_model/TlaSpecDevCli.tla:362:  /\ result' = CommandResult(TRUE, NoReason, "tla-spec-dev open ticket <ticket>")
+specs/desired_program_model/TlaSpecDevCli.tla:372:\* CLI: `tla-spec-dev --spec-root <root> open ticket <ticket-name>`
+specs/desired_program_model/TlaSpecDevCli.tla:386:  /\ lastCommand' = "tla-spec-dev open ticket"
+specs/desired_program_model/TlaSpecDevCli.tla:506:\* advances no ticket -- reporting is its whole job. The ENFORCING copy of the
+specs/desired_program_model/TlaSpecDevCli.tla:557:\* copy inside RunSpecUnitTests, and that difference is a considered one rather
+specs/desired_program_model/TlaSpecDevCli.tla:708:\* and `--allow-open` accepts a ticket whose plan status is not closed/done.
+specs/desired_program_model/TlaSpecDevCli.tla:728:\*   --allow-open         (close ticket)        snapshots a ticket whose plan
+specs/desired_program_model/TlaSpecDevCli.tla:734:\*   --force / --dry-run  (scaffold, open)      overwrite, or write nothing at
+specs/desired_program_model/TlaSpecDevCli.tla:832:\* scripts/generate_cases_from_tlc_dump.py spawned java/TLC, rmtree'd its
+specs/desired_program_model/TlaSpecDevCli.tla:1059:\* exactly what `--accept-new` and `--allow-open` exist to make false.
+specs/desired_program_model/TlaSpecDevCli.tla:1080:\* the thing that was missing: `--accept-new` and `--allow-open` bypassed a
+scripts/testgraph_channels.py:45:from pathlib import Path
+scripts/testgraph_channels.py:133:def load_bindings_data(path: Path) -> dict[str, Any]:
+scripts/testgraph_channels.py:268:def resolve_module_file(dotted: str, roots: Iterable[Path]) -> Path | None:
+scripts/testgraph_channels.py:320:    roots: list[Path],
+scripts/testgraph_channels.py:340:        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+scripts/testgraph_channels.py:371:    bindings_path: Path,
+scripts/testgraph_channels.py:373:    import_roots: Iterable[Path] | None = None,
+scripts/tla_spec_dev.py:10:from pathlib import Path
+scripts/tla_spec_dev.py:18:ROOT = Path(__file__).resolve().parents[1]
+scripts/tla_spec_dev.py:29:        parsed = tomllib.loads(manifest.read_text(encoding="utf-8"))
+scripts/tla_spec_dev.py:66:    repo_root = Path(args.repo_root).resolve()
+scripts/tla_spec_dev.py:72:        spec_root=Path(args.spec_root),
+scripts/tla_spec_dev.py:107:    repo_root = Path(args.repo_root).resolve()
+scripts/tla_spec_dev.py:116:        spec_root=Path(args.spec_root),
+scripts/tla_spec_dev.py:122:    print(f"next: tla-spec-dev --spec-root {args.spec_root} open ticket {ticket_id}")
+scripts/tla_spec_dev.py:129:    repo_root = Path(args.repo_root).resolve()
+scripts/tla_spec_dev.py:135:        spec_root=Path(args.spec_root),
+scripts/tla_spec_dev.py:177:    `spec_tree_delete` (the TLC metadir `rmtree`).
+scripts/tla_spec_dev.py:213:        repo_root=Path(args.repo_root).resolve(),
+scripts/tla_spec_dev.py:214:        spec_root=Path(args.spec_root),
+scripts/tla_spec_dev.py:229:def resolved_spec_root(repo_root: Path, spec_root: str) -> Path:
+scripts/tla_spec_dev.py:230:    path = Path(spec_root)
+scripts/tla_spec_dev.py:234:def active_ticket_id(specs_dir: Path) -> str | None:
+scripts/tla_spec_dev.py:247:def spec_unit_target_dirs(args: argparse.Namespace, specs_dir: Path) -> list[Path]:
+scripts/tla_spec_dev.py:250:        target = Path(args.target)
+scripts/tla_spec_dev.py:251:        return [target if target.is_absolute() else (Path(args.repo_root).resolve() / target)]
+scripts/tla_spec_dev.py:264:def unique_paths(paths: list[Path]) -> list[Path]:
+scripts/tla_spec_dev.py:265:    seen: set[Path] = set()
+scripts/tla_spec_dev.py:266:    unique: list[Path] = []
+scripts/tla_spec_dev.py:276:def has_pytest_tests(path: Path) -> bool:
+scripts/tla_spec_dev.py:280:def spec_unit_cases_dirs(args: argparse.Namespace, specs_dir: Path) -> list[Path]:
+scripts/tla_spec_dev.py:282:        return [Path(value) for value in args.cases_dir]
+scripts/tla_spec_dev.py:283:    discovered: list[Path] = []
+scripts/tla_spec_dev.py:295:    repo_root = Path(args.repo_root).resolve()
+scripts/tla_spec_dev.py:303:    base_env = os.environ.copy()
+scripts/tla_spec_dev.py:305:    def command_env(target_dir: Path) -> dict[str, str]:
+scripts/tla_spec_dev.py:306:        env = base_env.copy()
+scripts/tla_spec_dev.py:316:    empty_targets: list[Path] = []
+scripts/tla_spec_dev.py:319:        tests_dir = Path(args.tests_dir) if args.tests_dir else target_dir / "tests"
+scripts/tla_spec_dev.py:341:        mapping = Path(args.mapping) if args.mapping else target_dir / "case_adapters.toml"
+scripts/tla_spec_dev.py:413:            "Typical order: scaffold project -> scaffold workflow -> open ticket -> "
+scripts/tla_spec_dev.py:471:        next_step="tla-spec-dev open ticket <ticket>",
+scripts/tla_spec_dev.py:475:        "open",
+scripts/tla_spec_dev.py:482:        command_path="tla-spec-dev open",
+scripts/tla_spec_dev.py:483:        next_step="Choose a target: tla-spec-dev open ticket <ticket-name>.",
+scripts/tla_spec_dev.py:493:    open_ticket.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
+scripts/tla_spec_dev.py:498:        command_path="tla-spec-dev open ticket",
+scripts/tla_spec_dev.py:527:    run_spec_units.add_argument("--target", type=Path, help="Explicit spec directory to validate.")
+scripts/tla_spec_dev.py:528:    run_spec_units.add_argument("--tests-dir", type=Path, help="Test directory relative to the selected spec directory.")
+scripts/tla_spec_dev.py:530:    run_spec_units.add_argument("--mapping", type=Path, help="Adapter mapping TOML/YAML. Defaults to target case_adapters.toml.")
+scripts/tla_spec_dev.py:531:    run_spec_units.add_argument("--work-dir", type=Path, help="Work directory for generated case adapter execution.")
+scripts/tla_spec_dev.py:582:    run_effects.add_argument("--target", type=Path, help="Explicit spec directory carrying the effect declarations.")
+scripts/tla_spec_dev.py:584:    run_effects.add_argument("--mapping", type=Path, help="Adapter mapping TOML/YAML. Defaults to target case_adapters.toml.")
+scripts/tla_spec_dev.py:585:    run_effects.add_argument("--work-dir", type=Path, help="Work directory for sandboxed adapter execution.")
+scripts/tla_spec_dev.py:586:    run_effects.add_argument("--out", type=Path, help="Write the JSON diff report here (ticket results/ evidence).")
+scripts/tla_spec_dev.py:784:    close_ticket.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
+scripts/tla_spec_dev.py:785:    close_ticket.add_argument("--allow-open", action="store_true", help="Allow snapshotting a ticket whose status is not closed/done.")
+scripts/tla_spec_dev.py:786:    close_ticket.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
+scripts/tla_spec_dev.py:787:    close_ticket.add_argument("--no-promote-current", action="store_true", help="Do not replace project current/ with ticket desired/ during ticket close.")
+specs/desired_program_model/adapter_case_runtime.py:23:from pathlib import Path
+specs/desired_program_model/adapter_case_runtime.py:26:def repo_root() -> Path:
+specs/desired_program_model/adapter_case_runtime.py:27:    for parent in Path(__file__).resolve().parents:
+specs/desired_program_model/adapter_case_runtime.py:33:def run_cli(root: Path, target_repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/desired_program_model/adapter_case_runtime.py:130:def materialize_before(case: object, work_dir: Path) -> tuple[Path, str, list[dict[str, object]]]:
+specs/desired_program_model/adapter_case_runtime.py:157:    target_repo = Path(work_dir) / "target-repo"
+specs/desired_program_model/adapter_case_runtime.py:158:    target_repo.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/adapter_case_runtime.py:199:    # lifecycle the same way the setup segment is replayed: `open ticket` is a
+specs/desired_program_model/adapter_case_runtime.py:211:def _negotiate_budgets(target_repo: Path, spec_root: str):
+specs/desired_program_model/adapter_case_runtime.py:216:    text = manifest.read_text(encoding="utf-8")
+specs/desired_program_model/adapter_case_runtime.py:218:        text = text.replace("source: default", "source: negotiated", 1)
+specs/desired_program_model/adapter_case_runtime.py:219:        manifest.write_text(text, encoding="utf-8")
+specs/desired_program_model/adapter_case_runtime.py:224:    target_repo: Path,
+specs/desired_program_model/adapter_case_runtime.py:246:    specs = Path(target_repo) / spec_root
+specs/desired_program_model/adapter_case_runtime.py:253:        if manifest.exists() and "source: negotiated" in manifest.read_text(encoding="utf-8"):
+specs/desired_program_model/adapter_case_runtime.py:350:def _ensure_ticket_in_plan(plan_path: Path, ticket: str) -> None:
+specs/desired_program_model/adapter_case_runtime.py:351:    """Add `ticket` to the scaffolded plan so `open ticket` can find it.
+specs/desired_program_model/adapter_case_runtime.py:359:    text = plan_path.read_text(encoding="utf-8")
+specs/desired_program_model/adapter_case_runtime.py:362:    plan_path.write_text(
+specs/desired_program_model/adapter_case_runtime.py:369:def _mark_ticket_tree(target_repo: Path, spec_root: str, ticket: str, tree: str, marker: str) -> None:
+specs/desired_program_model/adapter_case_runtime.py:383:        text = tla.read_text(encoding="utf-8")
+specs/desired_program_model/adapter_case_runtime.py:385:            tla.write_text(text.rstrip("\n") + "\n" + marker + "\n", encoding="utf-8")
+specs/desired_program_model/adapter_case_runtime.py:392:    root: Path,
+specs/desired_program_model/adapter_case_runtime.py:393:    target_repo: Path,
+specs/desired_program_model/adapter_case_runtime.py:403:      * ``TicketOpened`` -- run ``open ticket``; the ticket workspace exists.
+specs/desired_program_model/adapter_case_runtime.py:404:      * ``TicketDesiredReady`` -- open, then mark the desired tree (the
+specs/desired_program_model/adapter_case_runtime.py:406:      * ``TicketCurrentReady`` -- open, mark desired, then mark current (the
+specs/desired_program_model/adapter_case_runtime.py:437:        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket)
+specs/desired_program_model/adapter_case_runtime.py:438:        records.append({"step": f"open ticket {ticket}", "exit_code": opened.returncode, "stderr": opened.stderr[-400:]})
+specs/desired_program_model/adapter_case_runtime.py:441:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/desired_program_model/adapter_case_runtime.py:453:    target_repo: Path,
+specs/desired_program_model/adapter_case_runtime.py:481:def _tree_has_marker(tree_dir: Path, marker: str) -> bool:
+specs/desired_program_model/adapter_case_runtime.py:484:    return any(marker in tla.read_text(encoding="utf-8") for tla in tree_dir.glob("*.tla") if not tla.name.startswith("MC"))
+specs/current/TlaSpecDevCli.tla:197:\* six GUARD-WEAKENING FLAGS -- --accept-new, --allow-open,
+specs/current/TlaSpecDevCli.tla:204:\* `--accept-new` (tla_spec_dev.py --accept-new) and `--allow-open` exist
+specs/current/TlaSpecDevCli.tla:362:  /\ result' = CommandResult(TRUE, NoReason, "tla-spec-dev open ticket <ticket>")
+specs/current/TlaSpecDevCli.tla:372:\* CLI: `tla-spec-dev --spec-root <root> open ticket <ticket-name>`
+specs/current/TlaSpecDevCli.tla:386:  /\ lastCommand' = "tla-spec-dev open ticket"
+specs/current/TlaSpecDevCli.tla:506:\* advances no ticket -- reporting is its whole job. The ENFORCING copy of the
+specs/current/TlaSpecDevCli.tla:557:\* copy inside RunSpecUnitTests, and that difference is a considered one rather
+specs/current/TlaSpecDevCli.tla:708:\* and `--allow-open` accepts a ticket whose plan status is not closed/done.
+specs/current/TlaSpecDevCli.tla:728:\*   --allow-open         (close ticket)        snapshots a ticket whose plan
+specs/current/TlaSpecDevCli.tla:734:\*   --force / --dry-run  (scaffold, open)      overwrite, or write nothing at
+specs/current/TlaSpecDevCli.tla:832:\* scripts/generate_cases_from_tlc_dump.py spawned java/TLC, rmtree'd its
+specs/current/TlaSpecDevCli.tla:1059:\* exactly what `--accept-new` and `--allow-open` exist to make false.
+specs/current/TlaSpecDevCli.tla:1080:\* the thing that was missing: `--accept-new` and `--allow-open` bypassed a
+specs/current/adapter_case_runtime.py:23:from pathlib import Path
+specs/current/adapter_case_runtime.py:26:def repo_root() -> Path:
+specs/current/adapter_case_runtime.py:27:    for parent in Path(__file__).resolve().parents:
+specs/current/adapter_case_runtime.py:33:def run_cli(root: Path, target_repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/current/adapter_case_runtime.py:130:def materialize_before(case: object, work_dir: Path) -> tuple[Path, str, list[dict[str, object]]]:
+specs/current/adapter_case_runtime.py:157:    target_repo = Path(work_dir) / "target-repo"
+specs/current/adapter_case_runtime.py:158:    target_repo.mkdir(parents=True, exist_ok=True)
+specs/current/adapter_case_runtime.py:199:    # lifecycle the same way the setup segment is replayed: `open ticket` is a
+specs/current/adapter_case_runtime.py:211:def _negotiate_budgets(target_repo: Path, spec_root: str):
+specs/current/adapter_case_runtime.py:216:    text = manifest.read_text(encoding="utf-8")
+specs/current/adapter_case_runtime.py:218:        text = text.replace("source: default", "source: negotiated", 1)
+specs/current/adapter_case_runtime.py:219:        manifest.write_text(text, encoding="utf-8")
+specs/current/adapter_case_runtime.py:224:    target_repo: Path,
+specs/current/adapter_case_runtime.py:246:    specs = Path(target_repo) / spec_root
+specs/current/adapter_case_runtime.py:253:        if manifest.exists() and "source: negotiated" in manifest.read_text(encoding="utf-8"):
+specs/current/adapter_case_runtime.py:350:def _ensure_ticket_in_plan(plan_path: Path, ticket: str) -> None:
+specs/current/adapter_case_runtime.py:351:    """Add `ticket` to the scaffolded plan so `open ticket` can find it.
+specs/current/adapter_case_runtime.py:359:    text = plan_path.read_text(encoding="utf-8")
+specs/current/adapter_case_runtime.py:362:    plan_path.write_text(
+specs/current/adapter_case_runtime.py:369:def _mark_ticket_tree(target_repo: Path, spec_root: str, ticket: str, tree: str, marker: str) -> None:
+specs/current/adapter_case_runtime.py:383:        text = tla.read_text(encoding="utf-8")
+specs/current/adapter_case_runtime.py:385:            tla.write_text(text.rstrip("\n") + "\n" + marker + "\n", encoding="utf-8")
+specs/current/adapter_case_runtime.py:392:    root: Path,
+specs/current/adapter_case_runtime.py:393:    target_repo: Path,
+specs/current/adapter_case_runtime.py:403:      * ``TicketOpened`` -- run ``open ticket``; the ticket workspace exists.
+specs/current/adapter_case_runtime.py:404:      * ``TicketDesiredReady`` -- open, then mark the desired tree (the
+specs/current/adapter_case_runtime.py:406:      * ``TicketCurrentReady`` -- open, mark desired, then mark current (the
+specs/current/adapter_case_runtime.py:437:        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket)
+specs/current/adapter_case_runtime.py:438:        records.append({"step": f"open ticket {ticket}", "exit_code": opened.returncode, "stderr": opened.stderr[-400:]})
+specs/current/adapter_case_runtime.py:441:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/current/adapter_case_runtime.py:453:    target_repo: Path,
+specs/current/adapter_case_runtime.py:481:def _tree_has_marker(tree_dir: Path, marker: str) -> bool:
+specs/current/adapter_case_runtime.py:484:    return any(marker in tla.read_text(encoding="utf-8") for tla in tree_dir.glob("*.tla") if not tla.name.startswith("MC"))
+specs/program_model/spec_manifest.yaml:157:        #   install-tla-spec-dev.sh:20 (mkdir -p) -> $SKILL_MANAGER_BIN_DIR, $SKILL_MANAGER_CACHE_DIR
+specs/program_model/spec_manifest.yaml:159:        #   install-tlc2.sh:18 (mkdir -p "$JAR_DIR") -> $SKILL_MANAGER_BIN_DIR/.spec-double-compiler
+specs/program_model/spec_manifest.yaml:166:        # directories are REQUIRED ENVIRONMENT INPUTS -- the installers open
+specs/program_model/spec_manifest.yaml:246:        # performs destructive deletes, all under the spec tree: rmtree of TLC
+specs/program_model/spec_manifest.yaml:247:        # `states/` dirs (scripts/spec_evolution.py:154 (shutil.rmtree) via
+specs/program_model/spec_manifest.yaml:250:        # at workflow close), rmtree of project `current/` before promotion
+specs/program_model/spec_manifest.yaml:251:        # (scripts/spec_evolution.py:385 (shutil.rmtree) via
+specs/program_model/spec_manifest.yaml:253:        # data-loss mechanism), and unlink of seeded paths the ticket dropped
+specs/program_model/spec_manifest.yaml:254:        # (scripts/spec_evolution.py:477 (target.unlink)). filesystem.write
+specs/program_model/spec_manifest.yaml:266:        # fail-open branch on git error is out-of-model; the spawn itself is
+specs/program_model/spec_manifest.yaml:273:        # (scripts/kill_test.py:548 (patched) write of the mutated copy,
+specs/program_model/spec_manifest.yaml:311:    # substance -- the curl download, the mv unlink and the wrapper self-test
+specs/program_model/spec_manifest.yaml:387:    # TLC metadir `rmtree` in run_tlc_dump's finally branch.
+specs/program_model/spec_manifest.yaml:399:    # (scripts/effect_conformance.py:1765 (work_root.mkdir), default
+specs/program_model/spec_manifest.yaml:401:    # scripts/effect_conformance.py:1686 (case_dir.mkdir) per-case dirs;
+specs/program_model/spec_manifest.yaml:402:    # scripts/effect_conformance.py:714 (self.root.mkdir) and
+specs/program_model/spec_manifest.yaml:403:    # scripts/effect_conformance.py:751 (path.mkdir) sandbox roots) -- writes
+specs/program_model/spec_manifest.yaml:422:    # EMPTY directory (scripts/effect_conformance.py:1685 (shutil.rmtree)),
+specs/program_model/spec_manifest.yaml:425:    # its TLC states/ rmtree rather than leave it undeclared.
+specs/program_model/production_adapters.py:10:from pathlib import Path
+specs/program_model/production_adapters.py:23:sys.path.insert(0, str(Path(__file__).resolve().parent))
+specs/program_model/production_adapters.py:62:         the real CLI (`open ticket`) and replaying the agent edits;
+specs/program_model/production_adapters.py:103:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:104:        work_dir = Path(work_dir or Path.cwd())
+specs/program_model/production_adapters.py:175:    its `case_adapters.toml` bindings are on open PR #50; this class exists only
+specs/program_model/production_adapters.py:182:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:215:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:216:        work_dir = Path(work_dir or Path.cwd())
+specs/program_model/production_adapters.py:250:    def apply(self, bin_dir: Path, cache_dir: Path) -> dict[str, object]:
+specs/program_model/production_adapters.py:298:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:299:        work_dir = Path(work_dir or Path.cwd())
+specs/program_model/production_adapters.py:305:        bin_dir.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:306:        cache_dir.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:342:    def apply(self, target_repo: Path, *, spec_root: str = "specs", name: str = "CliProject") -> dict[str, object]:
+specs/program_model/production_adapters.py:388:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:389:        work_dir = Path(work_dir or Path.cwd())
+specs/program_model/production_adapters.py:448:        target_repo: Path,
+specs/program_model/production_adapters.py:495:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:496:        work_dir = Path(work_dir or Path.cwd())
+specs/program_model/production_adapters.py:525:    root: Path,
+specs/program_model/production_adapters.py:526:    target_repo: Path,
+specs/program_model/production_adapters.py:538:# MF-019: closing a ticket requires a filled-in complexity ledger input. `open
+specs/program_model/production_adapters.py:582:    .replace('status: "pass"\n    evidence: "results/kill-test.json"',
+specs/program_model/production_adapters.py:584:    .replace('status: "clean"\n    evidence: "results/effect-conformance.txt"',
+specs/program_model/production_adapters.py:586:    .replace('status: "pass"\n    evidence: "results/external-coverage.txt"',
+specs/program_model/production_adapters.py:591:def fill_complexity_ledger(target_repo: Path, spec_root: str, ticket_id: str) -> Path:
+specs/program_model/production_adapters.py:594:    path.parent.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:595:    path.write_text(PASSING_COMPLEXITY_LEDGER, encoding="utf-8")
+specs/program_model/production_adapters.py:633:def set_ticket_model(target_repo: Path, spec_root: str, ticket_id: str, text: str) -> None:
+specs/program_model/production_adapters.py:644:                tla.write_text(text, encoding="utf-8")
+specs/program_model/production_adapters.py:645:        (model_dir / "MC.cfg").write_text(FIXTURE_CFG, encoding="utf-8")
+specs/program_model/production_adapters.py:648:            current = manifest.read_text(encoding="utf-8")
+specs/program_model/production_adapters.py:650:                manifest.write_text(current + FIXTURE_MODEL_DECLARATION, encoding="utf-8")
+specs/program_model/production_adapters.py:659:        target_repo: Path,
+specs/program_model/production_adapters.py:667:        result = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+specs/program_model/production_adapters.py:692:    # real `open ticket` CLI command and projects ticket_state back from the
+specs/program_model/production_adapters.py:713:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:714:        work_dir = Path(work_dir or Path.cwd())
+specs/program_model/production_adapters.py:722:        # Perform the modelled transition: the real `open ticket` CLI command.
+specs/program_model/production_adapters.py:725:        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket)
+specs/program_model/production_adapters.py:727:            raise BeforeStateUnreachable(f"open ticket {ticket} failed: {opened.stderr[-600:]}")
+specs/program_model/production_adapters.py:733:            last_command="tla-spec-dev open ticket",
+specs/program_model/production_adapters.py:781:        target_repo: Path,
+specs/program_model/production_adapters.py:789:        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+specs/program_model/production_adapters.py:792:            plan_path.write_text(plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1), encoding="utf-8")
+specs/program_model/production_adapters.py:826:    Runs the real ``scaffold -> open ticket -> close ticket`` lifecycle against
+specs/program_model/production_adapters.py:827:    a throwaway repository. Between ``open`` and ``close`` it writes two kinds
+specs/program_model/production_adapters.py:835:    * the project workflow test, which ``open ticket`` excludes from the ticket
+specs/program_model/production_adapters.py:846:        target_repo: Path,
+specs/program_model/production_adapters.py:854:        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+specs/program_model/production_adapters.py:858:        unseeded.write_text("MUST_SURVIVE_PROMOTION = True\n", encoding="utf-8")
+specs/program_model/production_adapters.py:860:        probe.parent.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:861:        probe.write_text("current-only directory\n", encoding="utf-8")
+specs/program_model/production_adapters.py:867:            plan_path.write_text(plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1), encoding="utf-8")
+specs/program_model/production_adapters.py:942:        target_repo: Path,
+specs/program_model/production_adapters.py:955:            run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket)
+specs/program_model/production_adapters.py:957:                plan_path.write_text(
+specs/program_model/production_adapters.py:958:                    plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1),
+specs/program_model/production_adapters.py:971:        text = feedback.read_text(encoding="utf-8") if emitted else ""
+specs/program_model/production_adapters.py:978:        first_manifest = json.loads(first_manifest_path.read_text(encoding="utf-8")) if first_manifest_path.is_file() else {}
+specs/program_model/production_adapters.py:984:            plan_path.write_text(
+specs/program_model/production_adapters.py:985:                plan_path.read_text(encoding="utf-8")
+specs/program_model/production_adapters.py:992:            feedback.write_text(
+specs/program_model/production_adapters.py:993:                text.replace("- feedback_status: unreviewed", "- feedback_status: items-recorded", 1) + self.FINDING,
+specs/program_model/production_adapters.py:998:        after = feedback.read_text(encoding="utf-8") if feedback.is_file() else ""
+specs/program_model/production_adapters.py:1004:        second_manifest = json.loads(second_manifest_path.read_text(encoding="utf-8")) if second_manifest_path.is_file() else {}
+specs/program_model/production_adapters.py:1043:        target_repo: Path,
+specs/program_model/production_adapters.py:1051:        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+specs/program_model/production_adapters.py:1054:        test_path.parent.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:1055:        test_path.write_text("def test_spec_unit_cli():\n    assert True\n", encoding="utf-8")
+specs/program_model/production_adapters.py:1089:        build_text = build.read_text(encoding="utf-8") if build.exists() else ""
+specs/program_model/production_adapters.py:1090:        readme_text = readme.read_text(encoding="utf-8") if readme.exists() else ""
+specs/program_model/production_adapters.py:1122:    def apply(self, target_repo: Path, *, spec_root: str = "specs", name: str = "BudgetProg") -> dict[str, object]:
+specs/program_model/production_adapters.py:1144:        manifest = Path(target_repo) / spec_root / "program_model" / "spec_manifest.yaml"
+specs/program_model/production_adapters.py:1145:        manifest_text = manifest.read_text() if manifest.is_file() else ""
+specs/program_model/production_adapters.py:1190:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:1191:        work_dir = Path(work_dir or Path.cwd())
+specs/program_model/production_adapters.py:1337:    directory: Path, module: str, tla: str, cfg: str, manifest: str = BUDGET_MANIFEST
+specs/program_model/production_adapters.py:1338:) -> tuple[Path, Path]:
+specs/program_model/production_adapters.py:1339:    directory.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:1342:    tla_path.write_text(tla, encoding="utf-8")
+specs/program_model/production_adapters.py:1343:    cfg_path.write_text(cfg, encoding="utf-8")
+specs/program_model/production_adapters.py:1344:    (directory / "spec_manifest.yaml").write_text(manifest, encoding="utf-8")
+specs/program_model/production_adapters.py:1367:    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+specs/program_model/production_adapters.py:1369:        target_repo = Path(target_repo)
+specs/program_model/production_adapters.py:1401:                 # spec_tree_delete declare, and the tree the metadir rmtree is
+specs/program_model/production_adapters.py:1558:    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+specs/program_model/production_adapters.py:1560:        target_repo = Path(target_repo)
+specs/program_model/production_adapters.py:1720:def _write_corpus_fixture(target: Path, count: int, cap: int) -> tuple[Path, Path]:
+specs/program_model/production_adapters.py:1723:    package.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:1724:    (package / "__init__.py").write_text(
+specs/program_model/production_adapters.py:1727:    (package / "cases.py").write_text(
+specs/program_model/production_adapters.py:1728:        CORPUS_FIXTURE_CASES.replace("__COUNT__", str(count)), encoding="utf-8"
+specs/program_model/production_adapters.py:1731:    manifest.write_text(
+specs/program_model/production_adapters.py:1749:    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+specs/program_model/production_adapters.py:1751:        target_repo = Path(target_repo)
+specs/program_model/production_adapters.py:1756:        def cli(pkg: Path, manifest: Path) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1767:        def case_count(pkg: Path) -> int:
+specs/program_model/production_adapters.py:1769:            return len(re.findall(r"StateGraphCase\(", (pkg / "cases.py").read_text(encoding="utf-8")))
+specs/program_model/production_adapters.py:1869:    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+specs/program_model/production_adapters.py:1871:        target_repo = Path(target_repo)
+specs/program_model/production_adapters.py:1873:        def fixture(name: str, body: str) -> Path:
+specs/program_model/production_adapters.py:1875:            spec_dir.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:1876:            (spec_dir / "spec_manifest.yaml").write_text(body, encoding="utf-8")
+specs/program_model/production_adapters.py:1886:        def cli(spec_dir: Path, out: Path) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1900:        plain_report = json.loads(plain_out.read_text(encoding="utf-8"))
+specs/program_model/production_adapters.py:1901:        justified_report = json.loads(justified_out.read_text(encoding="utf-8"))
+specs/program_model/production_adapters.py:1985:    def _fixture(self, directory: Path, *, catalog: str, source: str) -> Path:
+specs/program_model/production_adapters.py:1986:        directory.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:1987:        (directory / "spec_manifest.yaml").write_text(self._MANIFEST, encoding="utf-8")
+specs/program_model/production_adapters.py:1988:        (directory / "MC.cfg").write_text(self._CFG, encoding="utf-8")
+specs/program_model/production_adapters.py:1989:        (directory / "kill_mutants.toml").write_text(catalog, encoding="utf-8")
+specs/program_model/production_adapters.py:1990:        (directory / "src.py").write_text(source, encoding="utf-8")
+specs/program_model/production_adapters.py:1994:    def _mutant(ident: str, kind: str, ref: str, find: str, replace: str, **extra: str) -> str:
+specs/program_model/production_adapters.py:2002:            f'replace = "{replace}"',
+specs/program_model/production_adapters.py:2010:    def apply(self, target_repo: Path) -> dict[str, object]:
+specs/program_model/production_adapters.py:2012:        target_repo = Path(target_repo)
+specs/program_model/production_adapters.py:2015:        def run(spec_dir: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/program_model/production_adapters.py:2035:        detector.write_text(
+specs/program_model/production_adapters.py:2037:            "text = pathlib.Path(sys.argv[1]).read_text()\n"
+specs/program_model/production_adapters.py:2055:        pass_payload = json.loads(pass_out.read_text(encoding="utf-8")) if pass_out.is_file() else {}
+specs/program_model/production_adapters.py:2071:        surv_payload = json.loads(surv_out.read_text(encoding="utf-8")) if surv_out.is_file() else {}
+specs/program_model/production_adapters.py:2082:        unc_payload = json.loads(unc_out.read_text(encoding="utf-8")) if unc_out.is_file() else {}
+specs/program_model/production_adapters.py:2105:            json.loads(waived_out.read_text(encoding="utf-8")) if waived_out.is_file() else {}
+specs/program_model/production_adapters.py:2154:    Drives the real CLI (`scaffold -> open ticket -> close ticket`) against a
+specs/program_model/production_adapters.py:2175:        target_repo: Path,
+specs/program_model/production_adapters.py:2187:        def open_ticket(ticket: str) -> Path:
+specs/program_model/production_adapters.py:2189:                plan_path.write_text(
+specs/program_model/production_adapters.py:2190:                    plan_path.read_text(encoding="utf-8")
+specs/program_model/production_adapters.py:2194:            run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket)
+specs/program_model/production_adapters.py:2199:                plan_path.write_text(
+specs/program_model/production_adapters.py:2200:                    plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1),
+specs/program_model/production_adapters.py:2210:        template_scaffolded = ledger_input.is_file() and "TODO" in ledger_input.read_text(encoding="utf-8")
+specs/program_model/production_adapters.py:2217:        manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.is_file() else {}
+specs/program_model/production_adapters.py:2230:        degraded_input.write_text(
+specs/program_model/production_adapters.py:2231:            PASSING_COMPLEXITY_LEDGER.replace('status: "recorded"', 'status: "stale"', 1),
+specs/program_model/production_adapters.py:2245:        validated_input.write_text(NOT_RUN_FUZZING_LEDGER, encoding="utf-8")
+specs/program_model/production_adapters.py:2250:            entries = json.loads(ledger_file.read_text(encoding="utf-8")).get("entries", [])
+specs/program_model/production_adapters.py:2343:    `build_parser` never saw the java/TLC spawn, the metadir `rmtree` or the
+specs/program_model/production_adapters.py:2362:    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+specs/program_model/production_adapters.py:2364:        target_repo = Path(target_repo)
+specs/program_model/production_adapters.py:2467:    while `--accept-new` and `--allow-open` exist specifically to get past that
+specs/program_model/production_adapters.py:2473:    the guard, once around it with `--allow-open` -- and asserts the append-only
+specs/program_model/production_adapters.py:2477:    false assurance this ticket exists to remove.
+specs/program_model/production_adapters.py:2484:        target_repo: Path,
+specs/program_model/production_adapters.py:2491:        target_repo = Path(target_repo)
+specs/program_model/production_adapters.py:2493:        def close(repo: Path, *extra: str) -> tuple[subprocess.CompletedProcess, dict]:
+specs/program_model/production_adapters.py:2494:            repo.mkdir(parents=True, exist_ok=True)
+specs/program_model/production_adapters.py:2499:            run_cli(root, repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+specs/program_model/production_adapters.py:2503:                plan_path.write_text(
+specs/program_model/production_adapters.py:2504:                    plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1),
+specs/program_model/production_adapters.py:2528:                json.loads(manifest_path.read_text(encoding="utf-8"))
+specs/program_model/production_adapters.py:2535:        # `--allow-open` closes a ticket the plan still calls open: the
+specs/program_model/production_adapters.py:2537:        weakened, weakened_manifest = close(target_repo / "weakened", "--allow-open")
+specs/program_model/production_adapters.py:2549:                and weakened_record.get("flags") == ["--allow-open"]
+specs/desired_program_model/spec_manifest.yaml:154:        #   install-tla-spec-dev.sh:20 (mkdir -p) -> $SKILL_MANAGER_BIN_DIR, $SKILL_MANAGER_CACHE_DIR
+specs/desired_program_model/spec_manifest.yaml:156:        #   install-tlc2.sh:18 (mkdir -p "$JAR_DIR") -> $SKILL_MANAGER_BIN_DIR/.spec-double-compiler
+specs/desired_program_model/spec_manifest.yaml:163:        # directories are REQUIRED ENVIRONMENT INPUTS -- the installers open
+specs/desired_program_model/spec_manifest.yaml:243:        # performs destructive deletes, all under the spec tree: rmtree of TLC
+specs/desired_program_model/spec_manifest.yaml:244:        # `states/` dirs (scripts/spec_evolution.py:154 (shutil.rmtree) via
+specs/desired_program_model/spec_manifest.yaml:247:        # at workflow close), rmtree of project `current/` before promotion
+specs/desired_program_model/spec_manifest.yaml:248:        # (scripts/spec_evolution.py:385 (shutil.rmtree) via
+specs/desired_program_model/spec_manifest.yaml:250:        # data-loss mechanism), and unlink of seeded paths the ticket dropped
+specs/desired_program_model/spec_manifest.yaml:251:        # (scripts/spec_evolution.py:477 (target.unlink)). filesystem.write
+specs/desired_program_model/spec_manifest.yaml:263:        # fail-open branch on git error is out-of-model; the spawn itself is
+specs/desired_program_model/spec_manifest.yaml:270:        # (scripts/kill_test.py:548 (patched) write of the mutated copy,
+specs/desired_program_model/spec_manifest.yaml:308:    # substance -- the curl download, the mv unlink and the wrapper self-test
+specs/desired_program_model/spec_manifest.yaml:384:    # TLC metadir `rmtree` in run_tlc_dump's finally branch.
+specs/desired_program_model/spec_manifest.yaml:396:    # (scripts/effect_conformance.py:1765 (work_root.mkdir), default
+specs/desired_program_model/spec_manifest.yaml:398:    # scripts/effect_conformance.py:1686 (case_dir.mkdir) per-case dirs;
+specs/desired_program_model/spec_manifest.yaml:399:    # scripts/effect_conformance.py:714 (self.root.mkdir) and
+specs/desired_program_model/spec_manifest.yaml:400:    # scripts/effect_conformance.py:751 (path.mkdir) sandbox roots) -- writes
+specs/desired_program_model/spec_manifest.yaml:419:    # EMPTY directory (scripts/effect_conformance.py:1685 (shutil.rmtree)),
+specs/desired_program_model/spec_manifest.yaml:422:    # its TLC states/ rmtree rather than leave it undeclared.
+specs/program_model/adapter_case_runtime.py:23:from pathlib import Path
+specs/program_model/adapter_case_runtime.py:26:def repo_root() -> Path:
+specs/program_model/adapter_case_runtime.py:27:    for parent in Path(__file__).resolve().parents:
+specs/program_model/adapter_case_runtime.py:33:def run_cli(root: Path, target_repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/program_model/adapter_case_runtime.py:130:def materialize_before(case: object, work_dir: Path) -> tuple[Path, str, list[dict[str, object]]]:
+specs/program_model/adapter_case_runtime.py:157:    target_repo = Path(work_dir) / "target-repo"
+specs/program_model/adapter_case_runtime.py:158:    target_repo.mkdir(parents=True, exist_ok=True)
+specs/program_model/adapter_case_runtime.py:199:    # lifecycle the same way the setup segment is replayed: `open ticket` is a
+specs/program_model/adapter_case_runtime.py:211:def _negotiate_budgets(target_repo: Path, spec_root: str):
+specs/program_model/adapter_case_runtime.py:216:    text = manifest.read_text(encoding="utf-8")
+specs/program_model/adapter_case_runtime.py:218:        text = text.replace("source: default", "source: negotiated", 1)
+specs/program_model/adapter_case_runtime.py:219:        manifest.write_text(text, encoding="utf-8")
+specs/program_model/adapter_case_runtime.py:224:    target_repo: Path,
+specs/program_model/adapter_case_runtime.py:246:    specs = Path(target_repo) / spec_root
+specs/program_model/adapter_case_runtime.py:253:        if manifest.exists() and "source: negotiated" in manifest.read_text(encoding="utf-8"):
+specs/program_model/adapter_case_runtime.py:350:def _ensure_ticket_in_plan(plan_path: Path, ticket: str) -> None:
+specs/program_model/adapter_case_runtime.py:351:    """Add `ticket` to the scaffolded plan so `open ticket` can find it.
+specs/program_model/adapter_case_runtime.py:359:    text = plan_path.read_text(encoding="utf-8")
+specs/program_model/adapter_case_runtime.py:362:    plan_path.write_text(
+specs/program_model/adapter_case_runtime.py:369:def _mark_ticket_tree(target_repo: Path, spec_root: str, ticket: str, tree: str, marker: str) -> None:
+specs/program_model/adapter_case_runtime.py:383:        text = tla.read_text(encoding="utf-8")
+specs/program_model/adapter_case_runtime.py:385:            tla.write_text(text.rstrip("\n") + "\n" + marker + "\n", encoding="utf-8")
+specs/program_model/adapter_case_runtime.py:392:    root: Path,
+specs/program_model/adapter_case_runtime.py:393:    target_repo: Path,
+specs/program_model/adapter_case_runtime.py:403:      * ``TicketOpened`` -- run ``open ticket``; the ticket workspace exists.
+specs/program_model/adapter_case_runtime.py:404:      * ``TicketDesiredReady`` -- open, then mark the desired tree (the
+specs/program_model/adapter_case_runtime.py:406:      * ``TicketCurrentReady`` -- open, mark desired, then mark current (the
+specs/program_model/adapter_case_runtime.py:437:        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket)
+specs/program_model/adapter_case_runtime.py:438:        records.append({"step": f"open ticket {ticket}", "exit_code": opened.returncode, "stderr": opened.stderr[-400:]})
+specs/program_model/adapter_case_runtime.py:441:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/program_model/adapter_case_runtime.py:453:    target_repo: Path,
+specs/program_model/adapter_case_runtime.py:481:def _tree_has_marker(tree_dir: Path, marker: str) -> bool:
+specs/program_model/adapter_case_runtime.py:484:    return any(marker in tla.read_text(encoding="utf-8") for tla in tree_dir.glob("*.tla") if not tla.name.startswith("MC"))
+specs/desired_program_model/production_adapters.py:10:from pathlib import Path
+specs/desired_program_model/production_adapters.py:23:sys.path.insert(0, str(Path(__file__).resolve().parent))
+specs/desired_program_model/production_adapters.py:62:         the real CLI (`open ticket`) and replaying the agent edits;
+specs/desired_program_model/production_adapters.py:103:    def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:104:        work_dir = Path(work_dir or Path.cwd())
+specs/desired_program_model/production_adapters.py:175:    its `case_adapters.toml` bindings are on open PR #50; this class exists only
+specs/desired_program_model/production_adapters.py:182:    def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:215:    def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:216:        work_dir = Path(work_dir or Path.cwd())
+specs/desired_program_model/production_adapters.py:250:    def apply(self, bin_dir: Path, cache_dir: Path) -> dict[str, object]:
+specs/desired_program_model/production_adapters.py:298:    def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:299:        work_dir = Path(work_dir or Path.cwd())
+specs/desired_program_model/production_adapters.py:305:        bin_dir.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:306:        cache_dir.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:342:    def apply(self, target_repo: Path, *, spec_root: str = "specs", name: str = "CliProject") -> dict[str, object]:
+specs/desired_program_model/production_adapters.py:388:    def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:389:        work_dir = Path(work_dir or Path.cwd())
+specs/desired_program_model/production_adapters.py:448:        target_repo: Path,
+specs/desired_program_model/production_adapters.py:495:    def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:496:        work_dir = Path(work_dir or Path.cwd())
+specs/desired_program_model/production_adapters.py:525:    root: Path,
+specs/desired_program_model/production_adapters.py:526:    target_repo: Path,
+specs/desired_program_model/production_adapters.py:538:# MF-019: closing a ticket requires a filled-in complexity ledger input. `open
+specs/desired_program_model/production_adapters.py:582:    .replace('status: "pass"\n    evidence: "results/kill-test.json"',
+specs/desired_program_model/production_adapters.py:584:    .replace('status: "clean"\n    evidence: "results/effect-conformance.txt"',
+specs/desired_program_model/production_adapters.py:586:    .replace('status: "pass"\n    evidence: "results/external-coverage.txt"',
+specs/desired_program_model/production_adapters.py:591:def fill_complexity_ledger(target_repo: Path, spec_root: str, ticket_id: str) -> Path:
+specs/desired_program_model/production_adapters.py:594:    path.parent.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:595:    path.write_text(PASSING_COMPLEXITY_LEDGER, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:633:def set_ticket_model(target_repo: Path, spec_root: str, ticket_id: str, text: str) -> None:
+specs/desired_program_model/production_adapters.py:644:                tla.write_text(text, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:645:        (model_dir / "MC.cfg").write_text(FIXTURE_CFG, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:648:            current = manifest.read_text(encoding="utf-8")
+specs/desired_program_model/production_adapters.py:650:                manifest.write_text(current + FIXTURE_MODEL_DECLARATION, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:659:        target_repo: Path,
+specs/desired_program_model/production_adapters.py:667:        result = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+specs/desired_program_model/production_adapters.py:692:    # real `open ticket` CLI command and projects ticket_state back from the
+specs/desired_program_model/production_adapters.py:713:    def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:714:        work_dir = Path(work_dir or Path.cwd())
+specs/desired_program_model/production_adapters.py:722:        # Perform the modelled transition: the real `open ticket` CLI command.
+specs/desired_program_model/production_adapters.py:725:        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket)
+specs/desired_program_model/production_adapters.py:727:            raise BeforeStateUnreachable(f"open ticket {ticket} failed: {opened.stderr[-600:]}")
+specs/desired_program_model/production_adapters.py:733:            last_command="tla-spec-dev open ticket",
+specs/desired_program_model/production_adapters.py:781:        target_repo: Path,
+specs/desired_program_model/production_adapters.py:789:        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+specs/desired_program_model/production_adapters.py:792:            plan_path.write_text(plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1), encoding="utf-8")
+specs/desired_program_model/production_adapters.py:826:    Runs the real ``scaffold -> open ticket -> close ticket`` lifecycle against
+specs/desired_program_model/production_adapters.py:827:    a throwaway repository. Between ``open`` and ``close`` it writes two kinds
+specs/desired_program_model/production_adapters.py:835:    * the project workflow test, which ``open ticket`` excludes from the ticket
+specs/desired_program_model/production_adapters.py:846:        target_repo: Path,
+specs/desired_program_model/production_adapters.py:854:        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+specs/desired_program_model/production_adapters.py:858:        unseeded.write_text("MUST_SURVIVE_PROMOTION = True\n", encoding="utf-8")
+specs/desired_program_model/production_adapters.py:860:        probe.parent.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:861:        probe.write_text("current-only directory\n", encoding="utf-8")
+specs/desired_program_model/production_adapters.py:867:            plan_path.write_text(plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1), encoding="utf-8")
+specs/desired_program_model/production_adapters.py:942:        target_repo: Path,
+specs/desired_program_model/production_adapters.py:955:            run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket)
+specs/desired_program_model/production_adapters.py:957:                plan_path.write_text(
+specs/desired_program_model/production_adapters.py:958:                    plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1),
+specs/desired_program_model/production_adapters.py:971:        text = feedback.read_text(encoding="utf-8") if emitted else ""
+specs/desired_program_model/production_adapters.py:978:        first_manifest = json.loads(first_manifest_path.read_text(encoding="utf-8")) if first_manifest_path.is_file() else {}
+specs/desired_program_model/production_adapters.py:984:            plan_path.write_text(
+specs/desired_program_model/production_adapters.py:985:                plan_path.read_text(encoding="utf-8")
+specs/desired_program_model/production_adapters.py:992:            feedback.write_text(
+specs/desired_program_model/production_adapters.py:993:                text.replace("- feedback_status: unreviewed", "- feedback_status: items-recorded", 1) + self.FINDING,
+specs/desired_program_model/production_adapters.py:998:        after = feedback.read_text(encoding="utf-8") if feedback.is_file() else ""
+specs/desired_program_model/production_adapters.py:1004:        second_manifest = json.loads(second_manifest_path.read_text(encoding="utf-8")) if second_manifest_path.is_file() else {}
+specs/desired_program_model/production_adapters.py:1043:        target_repo: Path,
+specs/desired_program_model/production_adapters.py:1051:        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+specs/desired_program_model/production_adapters.py:1054:        test_path.parent.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:1055:        test_path.write_text("def test_spec_unit_cli():\n    assert True\n", encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1089:        build_text = build.read_text(encoding="utf-8") if build.exists() else ""
+specs/desired_program_model/production_adapters.py:1090:        readme_text = readme.read_text(encoding="utf-8") if readme.exists() else ""
+specs/desired_program_model/production_adapters.py:1122:    def apply(self, target_repo: Path, *, spec_root: str = "specs", name: str = "BudgetProg") -> dict[str, object]:
+specs/desired_program_model/production_adapters.py:1144:        manifest = Path(target_repo) / spec_root / "program_model" / "spec_manifest.yaml"
+specs/desired_program_model/production_adapters.py:1145:        manifest_text = manifest.read_text() if manifest.is_file() else ""
+specs/desired_program_model/production_adapters.py:1190:    def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:1191:        work_dir = Path(work_dir or Path.cwd())
+specs/desired_program_model/production_adapters.py:1337:    directory: Path, module: str, tla: str, cfg: str, manifest: str = BUDGET_MANIFEST
+specs/desired_program_model/production_adapters.py:1338:) -> tuple[Path, Path]:
+specs/desired_program_model/production_adapters.py:1339:    directory.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:1342:    tla_path.write_text(tla, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1343:    cfg_path.write_text(cfg, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1344:    (directory / "spec_manifest.yaml").write_text(manifest, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1367:    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+specs/desired_program_model/production_adapters.py:1369:        target_repo = Path(target_repo)
+specs/desired_program_model/production_adapters.py:1401:                 # spec_tree_delete declare, and the tree the metadir rmtree is
+specs/desired_program_model/production_adapters.py:1558:    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+specs/desired_program_model/production_adapters.py:1560:        target_repo = Path(target_repo)
+specs/desired_program_model/production_adapters.py:1720:def _write_corpus_fixture(target: Path, count: int, cap: int) -> tuple[Path, Path]:
+specs/desired_program_model/production_adapters.py:1723:    package.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:1724:    (package / "__init__.py").write_text(
+specs/desired_program_model/production_adapters.py:1727:    (package / "cases.py").write_text(
+specs/desired_program_model/production_adapters.py:1728:        CORPUS_FIXTURE_CASES.replace("__COUNT__", str(count)), encoding="utf-8"
+specs/desired_program_model/production_adapters.py:1731:    manifest.write_text(
+specs/desired_program_model/production_adapters.py:1749:    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+specs/desired_program_model/production_adapters.py:1751:        target_repo = Path(target_repo)
+specs/desired_program_model/production_adapters.py:1756:        def cli(pkg: Path, manifest: Path) -> subprocess.CompletedProcess:
+specs/desired_program_model/production_adapters.py:1767:        def case_count(pkg: Path) -> int:
+specs/desired_program_model/production_adapters.py:1769:            return len(re.findall(r"StateGraphCase\(", (pkg / "cases.py").read_text(encoding="utf-8")))
+specs/desired_program_model/production_adapters.py:1869:    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+specs/desired_program_model/production_adapters.py:1871:        target_repo = Path(target_repo)
+specs/desired_program_model/production_adapters.py:1873:        def fixture(name: str, body: str) -> Path:
+specs/desired_program_model/production_adapters.py:1875:            spec_dir.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:1876:            (spec_dir / "spec_manifest.yaml").write_text(body, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1886:        def cli(spec_dir: Path, out: Path) -> subprocess.CompletedProcess:
+specs/desired_program_model/production_adapters.py:1900:        plain_report = json.loads(plain_out.read_text(encoding="utf-8"))
+specs/desired_program_model/production_adapters.py:1901:        justified_report = json.loads(justified_out.read_text(encoding="utf-8"))
+specs/desired_program_model/production_adapters.py:1985:    def _fixture(self, directory: Path, *, catalog: str, source: str) -> Path:
+specs/desired_program_model/production_adapters.py:1986:        directory.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:1987:        (directory / "spec_manifest.yaml").write_text(self._MANIFEST, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1988:        (directory / "MC.cfg").write_text(self._CFG, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1989:        (directory / "kill_mutants.toml").write_text(catalog, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1990:        (directory / "src.py").write_text(source, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:1994:    def _mutant(ident: str, kind: str, ref: str, find: str, replace: str, **extra: str) -> str:
+specs/desired_program_model/production_adapters.py:2002:            f'replace = "{replace}"',
+specs/desired_program_model/production_adapters.py:2010:    def apply(self, target_repo: Path) -> dict[str, object]:
+specs/desired_program_model/production_adapters.py:2012:        target_repo = Path(target_repo)
+specs/desired_program_model/production_adapters.py:2015:        def run(spec_dir: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/desired_program_model/production_adapters.py:2035:        detector.write_text(
+specs/desired_program_model/production_adapters.py:2037:            "text = pathlib.Path(sys.argv[1]).read_text()\n"
+specs/desired_program_model/production_adapters.py:2055:        pass_payload = json.loads(pass_out.read_text(encoding="utf-8")) if pass_out.is_file() else {}
+specs/desired_program_model/production_adapters.py:2071:        surv_payload = json.loads(surv_out.read_text(encoding="utf-8")) if surv_out.is_file() else {}
+specs/desired_program_model/production_adapters.py:2082:        unc_payload = json.loads(unc_out.read_text(encoding="utf-8")) if unc_out.is_file() else {}
+specs/desired_program_model/production_adapters.py:2105:            json.loads(waived_out.read_text(encoding="utf-8")) if waived_out.is_file() else {}
+specs/desired_program_model/production_adapters.py:2154:    Drives the real CLI (`scaffold -> open ticket -> close ticket`) against a
+specs/desired_program_model/production_adapters.py:2175:        target_repo: Path,
+specs/desired_program_model/production_adapters.py:2187:        def open_ticket(ticket: str) -> Path:
+specs/desired_program_model/production_adapters.py:2189:                plan_path.write_text(
+specs/desired_program_model/production_adapters.py:2190:                    plan_path.read_text(encoding="utf-8")
+specs/desired_program_model/production_adapters.py:2194:            run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket)
+specs/desired_program_model/production_adapters.py:2199:                plan_path.write_text(
+specs/desired_program_model/production_adapters.py:2200:                    plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1),
+specs/desired_program_model/production_adapters.py:2210:        template_scaffolded = ledger_input.is_file() and "TODO" in ledger_input.read_text(encoding="utf-8")
+specs/desired_program_model/production_adapters.py:2217:        manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.is_file() else {}
+specs/desired_program_model/production_adapters.py:2230:        degraded_input.write_text(
+specs/desired_program_model/production_adapters.py:2231:            PASSING_COMPLEXITY_LEDGER.replace('status: "recorded"', 'status: "stale"', 1),
+specs/desired_program_model/production_adapters.py:2245:        validated_input.write_text(NOT_RUN_FUZZING_LEDGER, encoding="utf-8")
+specs/desired_program_model/production_adapters.py:2250:            entries = json.loads(ledger_file.read_text(encoding="utf-8")).get("entries", [])
+specs/desired_program_model/production_adapters.py:2343:    `build_parser` never saw the java/TLC spawn, the metadir `rmtree` or the
+specs/desired_program_model/production_adapters.py:2362:    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+specs/desired_program_model/production_adapters.py:2364:        target_repo = Path(target_repo)
+specs/desired_program_model/production_adapters.py:2467:    while `--accept-new` and `--allow-open` exist specifically to get past that
+specs/desired_program_model/production_adapters.py:2473:    the guard, once around it with `--allow-open` -- and asserts the append-only
+specs/desired_program_model/production_adapters.py:2477:    false assurance this ticket exists to remove.
+specs/desired_program_model/production_adapters.py:2484:        target_repo: Path,
+specs/desired_program_model/production_adapters.py:2491:        target_repo = Path(target_repo)
+specs/desired_program_model/production_adapters.py:2493:        def close(repo: Path, *extra: str) -> tuple[subprocess.CompletedProcess, dict]:
+specs/desired_program_model/production_adapters.py:2494:            repo.mkdir(parents=True, exist_ok=True)
+specs/desired_program_model/production_adapters.py:2499:            run_cli(root, repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+specs/desired_program_model/production_adapters.py:2503:                plan_path.write_text(
+specs/desired_program_model/production_adapters.py:2504:                    plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1),
+specs/desired_program_model/production_adapters.py:2528:                json.loads(manifest_path.read_text(encoding="utf-8"))
+specs/desired_program_model/production_adapters.py:2535:        # `--allow-open` closes a ticket the plan still calls open: the
+specs/desired_program_model/production_adapters.py:2537:        weakened, weakened_manifest = close(target_repo / "weakened", "--allow-open")
+specs/desired_program_model/production_adapters.py:2549:                and weakened_record.get("flags") == ["--allow-open"]
+specs/program_model/TlaSpecDevCli.tla:197:\* six GUARD-WEAKENING FLAGS -- --accept-new, --allow-open,
+specs/program_model/TlaSpecDevCli.tla:204:\* `--accept-new` (tla_spec_dev.py --accept-new) and `--allow-open` exist
+specs/program_model/TlaSpecDevCli.tla:362:  /\ result' = CommandResult(TRUE, NoReason, "tla-spec-dev open ticket <ticket>")
+specs/program_model/TlaSpecDevCli.tla:372:\* CLI: `tla-spec-dev --spec-root <root> open ticket <ticket-name>`
+specs/program_model/TlaSpecDevCli.tla:386:  /\ lastCommand' = "tla-spec-dev open ticket"
+specs/program_model/TlaSpecDevCli.tla:506:\* advances no ticket -- reporting is its whole job. The ENFORCING copy of the
+specs/program_model/TlaSpecDevCli.tla:557:\* copy inside RunSpecUnitTests, and that difference is a considered one rather
+specs/program_model/TlaSpecDevCli.tla:708:\* and `--allow-open` accepts a ticket whose plan status is not closed/done.
+specs/program_model/TlaSpecDevCli.tla:728:\*   --allow-open         (close ticket)        snapshots a ticket whose plan
+specs/program_model/TlaSpecDevCli.tla:734:\*   --force / --dry-run  (scaffold, open)      overwrite, or write nothing at
+specs/program_model/TlaSpecDevCli.tla:832:\* scripts/generate_cases_from_tlc_dump.py spawned java/TLC, rmtree'd its
+specs/program_model/TlaSpecDevCli.tla:1059:\* exactly what `--accept-new` and `--allow-open` exist to make false.
+specs/program_model/TlaSpecDevCli.tla:1080:\* the thing that was missing: `--accept-new` and `--allow-open` bypassed a

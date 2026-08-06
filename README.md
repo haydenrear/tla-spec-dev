@@ -129,6 +129,78 @@ For larger case sets, use batch mode:
 python3 scripts/run_generated_case_adapters.py path/to/generated_cases --mapping path/to/case_adapters.toml --batch --validate-capabilities
 ```
 
+## Evaluation Scorecards
+
+Every eval in this repository is scored on one standardized card, by an agent
+judge, **against artifacts**. The card is the unit of comparison across epics —
+its rubric and anchors are `references/eval_scorecard.md`, and it is versioned so
+that changing it is a deliberate, recorded act rather than silent drift.
+
+**Why judged and not computed.** Every mechanical gate this project shipped was
+defeated cheaply and none of them ever caught a bug: the complexity gate failed
+every normal program and was retired to advisory; the architecture check reported
+a clean on a divergent codebase for six lines of YAML, then for a 41-line
+re-export file, both with every declaration digest unchanged. **Across two full
+eval rounds and seven repair tickets, bug detection did not move by a single
+cell** — 4 of 6, 6 of 6, 0 of 3, 0 of 3, identical before and after. The
+architecture scanners were removed on 2026-08-04 and what they established is
+now `references/architecture_advice.md`. The argument for judgement is not that
+it cannot be gamed. It is that **a number computed from an artifact can be
+optimized by editing the artifact, while a judgement that must cite the artifact
+can only be satisfied by changing what the artifact is.**
+
+Five dimensions, 0–4 each:
+
+| | | |
+|---|---|---|
+| **D1** | bug detection | do the model-derived cases and their adapters *catch* seeded faults |
+| **D2** | complexity | is the design as simple as its behavior requires |
+| **D3** | modularity | ports and adapters *in fact* — domain independent of I/O, adapters swappable |
+| **D4** | behavior preservation | does the simpler design still do everything the baseline did |
+| **D5** | honesty | does it refuse rather than falsely certify |
+
+The rules that make a score hard to game are structural, not exhortation:
+
+- **Score artifacts, never claims.** A report sentence asserting a property is
+  not evidence; the code is.
+- **Any score ≥ 2 without a `file:line` citation is mechanically capped at 1.**
+- **A score of 4 must name something the artifact refuses to claim**, so the top
+  of every scale is unreachable by asserting more.
+- **Prose quality is never an input.**
+- **Two judges score blind**; a spread greater than 1 is `contested` and needs a
+  third pass citing *new* evidence.
+- **The mechanical block sits beside the judgement and is never scored** — when
+  measurement and judgement disagree, that disagreement is itself a finding.
+
+Check and index a set of cards:
+
+```bash
+python3 examples/validation/scorecards/score_tools.py check specs/results/scorecards/<epic>
+python3 examples/validation/scorecards/score_tools.py index specs/results/scorecards/<epic>
+```
+
+Results live in `specs/results/scorecards/<epic>/<example>/<run>/` — deliberately,
+because the workflow close copies `specs/results/` into
+`specs/.history/<workflow>/closed-snapshot/results/`. **Every epic's scorecards
+are sealed with the epic that produced them**, which is what makes comparison
+across epics possible at all.
+
+`specs/results/scorecards/SELF-IMPROVEMENT.md` is the cross-epic index. **The
+metric is the delta, not the total.** It also records, written down *before*
+results arrive rather than after, what would count as evidence we are fooling
+ourselves — every prediction passing, findings arriving only from the suite, a
+score moving without an artifact moving.
+
+Two rules a reader will otherwise get wrong:
+
+- **Never average across examples.** A deliberately incoherent fixture is
+  *supposed* to score low on D3; averaging it with a coherent one produces a
+  number about nothing. Compare the same example across epics, or two arms of one
+  eval.
+- **A judged score is not a kill count.** The mechanical block carries kill
+  tables, and they are reported **per class per arm, never as a single rate** — a
+  number reported without naming its arm is uninterpretable.
+
 ## Spec Evolution History
 
 Use append-only close records to keep active context small without losing
@@ -180,7 +252,18 @@ New onboarding documentation should lead with `tla-spec-dev`.
 - `spec_double_compiler/`: importable runtime used by generated case runners.
 - `templates/`: Jinja templates for generated Python/TLA artifacts.
 - `examples/`: checked-in examples and generated artifacts.
-- `references/`: user-facing skill references.
+- `references/`: user-facing skill references, including
+  `eval_scorecard.md` (the judged evaluation rubric),
+  `hexagonal_prompting.md` (architecture as a prompt, not a check), and
+  `architecture_advice.md` (what the removed static architecture scanners
+  established, as rules to follow and as the specification a replacement must
+  meet).
+- `prompts/`: sub-agent prompts shipped as artifacts — the coverage audit, the
+  implementation brief, aspect decomposition, and the hexagonal ask.
+- `examples/validation/`: eval fixtures, A/B arms, seeded fault catalogues, and
+  `scorecards/score_tools.py` (the scorecard schema checker and indexer).
+- `specs/results/scorecards/`: judged scorecards per epic, plus
+  `SELF-IMPROVEMENT.md`, the cross-epic ledger.
 - `test_graph/`: parent repository Test Graph, including `specWorkflow` for the ticket workflow CLI.
 - `tests/`: unit tests for parsers, generators, runners, and workflow scripts.
 - `tickets/`: small roadmap/history notes for this skill implementation.

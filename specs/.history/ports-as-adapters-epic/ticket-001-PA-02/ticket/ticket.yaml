@@ -1,0 +1,120 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket PA-02",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-02/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-02/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-02/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The instrument reports figures over produced Python and exits 0 on every input, including one it cannot fully parse -- an unparseable construct costs completeness and is REPORTED, never a refusal.",
+        "It reports no verdict, proposes no change, and nothing in the toolchain gates on its output.",
+        "Run over the previous epic's two committed arms it produces figures that differ, or the ticket reports that it cannot tell them apart."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q",
+        "python3 scripts/code_complexity.py examples/validation/ab/arms/<arm>"
+      ]
+    },
+    "blocks": [
+      "PA-06"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/code_complexity.py",
+        "tests/test_code_complexity.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "references/complexity_intuition.md"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/131",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "The instrument runs over produced Python and reports figures that DIFFER between the arms. If the figures are identical across arms, the instrument cannot tell them apart and the goal is missed.",
+        "goal": "GOAL-complexity-measurable",
+        "local_signal": "run it over the previous epic's two committed arms and report whether the figures differ"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none -- must not gate, refuse, or block anything",
+        "goal": "GOAL-port-reach",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-cases-drive-ports",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "PA-02",
+    "implementation_scope": [
+      "scripts/code_complexity.py",
+      "references/complexity_intuition.md",
+      "tests/"
+    ],
+    "model_delta_expectation": "none expected -- a reporting tool, not program behaviour the model represents",
+    "objective": "THE GOAL THIS REPLACES DID NOT FAIL BECAUSE THE PROMPT FAILED TO SIMPLIFY. It failed because nothing in the toolchain could tell. The shipped descriptor reads TLA+; every arm produces Python. Both arms scored D2 = 2 from all four judges for that reason. Build the missing measurement: complexity of PRODUCED CODE. Modules, public surface, pieces of mutable state, branch count, depth -- the same kind of figures the TLA+ descriptor reports, over the thing the agent actually wrote. A THERMOMETER, NOT A THERMOSTAT, and this is the whole design constraint. It reports. It refuses nothing. Nothing is gated on it. Its output lands in the scorecard's MECHANICAL BLOCK, which is recorded and never scored, precisely so that a disagreement between measurement and judgement is visible as a finding rather than resolved by arithmetic. Two rules the instrument must not violate, both bought by measurement: - MF-020: A NUMBER FALLING IS NOT EVIDENCE THE DESIGN IMPROVED. A metric can improve because an edge was deleted. The best complexity result in the record was withheld from a top score by both judges for exactly this. The instrument reports figures; it must not report a verdict. - CD-01: it proposes no cut, no refactor, no move. A tool that picks the boundary makes every edge legal by construction. NO TARGET ON THE NUMBER. The goal is that the instrument exists and can tell two implementations of one spec apart. Setting a threshold before anything can produce a figure would be inventing the answer.",
+    "promotion_order": 20,
+    "promotion_predecessor": "PA-01",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Complexity of produced code: build the instrument that was missing",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-02/specs/tickets/PA-02",
+  "ticket_id": "PA-02",
+  "ticket_index": 1,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-02/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-02/specs/tickets"
+}

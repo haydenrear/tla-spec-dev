@@ -1,0 +1,10 @@
+# HP-05 instrument "map-silent": the port bound to the GENERATED silent
+# provider. A declared choice, visible in this file, announced on every run.
+# NO DURABLE-WRITE ORACLE.
+[[adapter]]
+labels = ["Reserve", "Commit", "Release", "CloseTenant"]
+adapter = "arm_adapter:PositiveAdapter"
+kind = "transition"
+
+[effect_providers.LedgerAppendPort]
+provider = "quota_ledger_effects.effect_providers:silent_ledger_append_port_provider"

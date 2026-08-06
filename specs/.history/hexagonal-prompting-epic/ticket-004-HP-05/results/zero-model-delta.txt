@@ -1,0 +1,39 @@
+HP-05 -- ZERO MODEL SURFACE ADDED, argued rather than asserted
+==============================================================
+
+`surface_cost_rule` is the most important rule in this plan: adding modeled
+surface is a COST, measured by the predecessor at roughly 1.5 new coverage gaps
+and 8x state space per surface-adding ticket. HP-05's declared
+model_delta_expectation is "none expected". It held.
+
+WHAT WAS ADDED, and where each thing lives:
+
+1. `scripts/generate_python.py` grew four functions and one generated file.
+   `scripts/**/*.py` IS in representation_scope's in_model list, so this is
+   modeled surface in the coverage-audit sense -- but it adds NO TLA+ action
+   and NO TLA+ variable. Codegen is not a modeled action: the shipped CLI
+   lifecycle in TlaSpecDevCli.tla has no `generate python` command, and
+   semantic_model_rule places generator plumbing outside the modeled program
+   surface. 1x state space. Zero new TLA+ constructs.
+
+2. A `content:` block and a `kind:` key on manifest effect ports. This is
+   MANIFEST surface, not model surface: `spec_manifest.yaml` is in_model for the
+   coverage audit as a DECLARATION SITE for effect ports, and it already carries
+   `role: effect`, `methods:`, `command:` and `result:`. Two more keys on the
+   same node cost no states, and both are OPTIONAL -- every existing manifest in
+   the repository parses and generates unchanged, proven by the full suite.
+
+3. THE STANDING PROVISO CHECK: does an out-of-model file perform an in-model
+   EFFECT? `generate_python.py` now writes two files it did not write before --
+   `<package>/effect_providers.py` and `<out>/case_adapters.effects.toml` --
+   and APPENDS to `case_adapters.toml`. All three are writes under a `specs/`
+   tree, which is exactly the target the `spec_tree` port already declares
+   (`**/specs/**`). No new port is owed. The `--out` argument can name a path
+   outside specs/, but that was already true of every one of the nine files
+   this command has always written; the surface is unchanged.
+
+4. No second TLC run, no new corpus, no new subcommand, no new CLI flag beyond
+   an optional `--mapping` on a script that has no CLI subcommand at all.
+
+NET: 1x state space, zero new TLA+ actions or variables, zero new declared
+effect ports, zero new coverage gaps.

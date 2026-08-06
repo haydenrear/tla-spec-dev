@@ -1,0 +1,1366 @@
+examples/distributed_history/scripts/regenerate_tlc_cases.py:12:import subprocess
+examples/distributed_history/scripts/regenerate_tlc_cases.py:29:def run(command: list[str]) -> None:
+examples/distributed_history/scripts/regenerate_tlc_cases.py:35:    subprocess.run(command, cwd=EXAMPLE_ROOT, env=env, check=True)
+examples/distributed_history/scripts/regenerate_tlc_cases.py:74:        run(
+examples/distributed_history/scripts/regenerate_tlc_cases.py:91:        run(
+examples/distributed_history/scripts/regenerate_tlc_cases.py:108:    run(
+examples/distributed_history/specs/program_model/adapters.py:26:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+examples/distributed_history/specs/program_model/adapters.py:86:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:6:import subprocess
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:36:    subprocess.run(command, check=True)
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:44:    process = subprocess.Popen(
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:48:        stdout=subprocess.DEVNULL,
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:49:        stderr=subprocess.DEVNULL,
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:68:        subprocess.run(command, check=True, env=env)
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:76:    subprocess.run(
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:41:     * build-directory resume so the executor can seed a run from the exact
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:44:     * subprocess can't stall the graph past this bound.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:63: * Runtime adapter — knows how to spawn one node invocation.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:90: * call `destroyForcibly()` and report a [ExecutionOutcome.TimedOut]. Used
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:93: * spawn the process and call this.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:20:            ?: error("JBangExecutor cannot run a ${invocation.spec.runtime.name} node (${invocation.spec.id})")
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:48:    fun run(
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:90:            // then still run cleanup/finalizer nodes whose dependencies are
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:196:            logger.lifecycle("  run only: ${rerunGuidance.runOnlyCommand}")
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:342:                        "executor force-killed the subprocess (see capturedStdoutLog)",
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:465:            runOnlyCommand = "./gradlew $graphArg --resume-from-build $buildArg --run-only-node $nodeArg",
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:18:            ?: error("UvExecutor cannot run a ${invocation.spec.runtime.name} node (${invocation.spec.id})")
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:22:        argv += "run"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphModel.kt:6: * GraphAssembler builds one of these per-run, handing it a map that
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:36:                    "Did the script call Node.run(args, spec, body)?")
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:73:            is ValidationRuntime.Uv    -> listOf(tools.uv, "run", file.absolutePath)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt:51: * would run (explicit + transitive), with kind, runtime, and entry path.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt:54: * dry run of the assembly logic — same errors, same order, no execution.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:8: * test-graph run dir.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:19: *       out across multiple graphs left some run dirs without a report.</li>
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:20: *   <li>It coupled "render markdown for one run dir" to a Gradle task
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:26: * com.hayden.testgraphsdk.exec.PlanExecutor} can call it inline at the
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:27: * end of a graph run (guaranteeing every graph emits its report) and
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:28: * {@link ValidationReportTask} can still call it for the
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:36:     * Idempotent — re-running overwrites both files. No-op when the run
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:60:        // 2. report.md — human-friendly per-run report.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:140:        // Timing: prefer executor-measured (covers the full spawn) when
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:150:            timingLines += "spawn exit code: $it"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:70:        option = "run-only-node",
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:71:        description = "Node id to run by itself from saved build input context.",
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:78:    fun run() {
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:91:        logger.lifecycle("testGraph '${graphSpec.name}' run=$runId steps=${plan.size}")
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:103:            ).run(plan, resume)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:109:        // right here, while we still own this run dir. Doing it inline avoids
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:110:        // the Gradle finalizer dedup that left some run dirs without a
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:132:                "--resume-from-build is required with --resume-from-node or --run-only-node"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:137:                "--resume-from-build requires exactly one of --resume-from-node or --run-only-node"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:147:                "--resume-from-build must point at an existing run directory: ${buildDir.absolutePath}"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:10: * Manual "regenerate every existing run's summary.json + report.md".
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:15: * deduplication that used to leave some run dirs without a report when
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:22: * run dir that carries an envelope/ subdir and rewrites the artifacts.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:29:        description = "Re-render summary.json + report.md for every existing run dir under validation-reports/."
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:63: * DSL builder for `testGraph("name") { ... }`. Every `node(path)` call
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt:66:            // build invocation, which used to leave some run dirs
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt:68:            // as a manual rebuild over every existing run dir.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:14: * Per-graph run tasks are registered by the extension itself as
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:25: * fresh run starts clean.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:73:        // Aggregate task: run every test graph the build script declared,
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:75:        // wired from `afterEvaluate` so any `testGraph(...)` call lower
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:84:            // single execution against one run dir, leaving the others
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:92:            // doesn't make Gradle run them inside `validationRunAll`'s
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:27:     * Whether failed-run output should suggest a direct rerun command from the
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/JsonMapper.java:19: * means "spawn never happened") that have to round-trip through the
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:29: *   Node.run(args,
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:37:    public static void run(String[] args, com.hayden.testgraphsdk.sdk.NodeSpec spec, com.hayden.testgraphsdk.sdk.NodeBody body) {
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:67:        // operators who run a node script directly to inspect output.
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:98:            // here doesn't lose the run, it just downgrades it to a
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeBody.java:9: * escapes the body is caught by {@link Node#run} and converted to a
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:15: *   --runId=<id>          overall graph run id
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:82:     * Attach a structured record for one subprocess this node spawned.
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:85:     * the node author's call: some nodes want a non-zero exit code as
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:13: * and passes it to {@link Node#run(String[], NodeSpec, java.util.function.Function)}.
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:53:     * for nodes that are safe to re-run; most graph nodes are stateful
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:9: * Structured record of one subprocess a node spawned. Attached to
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:11: * report renderer can show per-subprocess details (exit code, log
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:21: * run's report dir, so it's reproducible across machines and meaningful
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:24: * <p>If the spawn itself fails (binary not found, IOException at
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:13: * exit code, pid, captured-log path (relative to the run's report
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:14: * dir), and any spawn-time error. Attach it to the result with
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:16: * can show per-subprocess sections without scraping stdout.
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:25: * <p>Never throws on spawn failure: if {@code pb.start()} blows up
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:38:     * subprocess within the current node's execution. Callers pass a
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:54:     * subprocess output as soon as the live console scrolled.
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:57:     * run's report dir (so the envelope is reproducible across
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:61:    public static ProcessRecord run(NodeContext ctx, String label, ProcessBuilder pb) {
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:79:                    -1, null, relativeLog, "spawn failed: " + e.getMessage());
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:102:     * <p>Exposed for nodes that need to spawn a subprocess with custom
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:104:     * hand-construct a {@link ProcessRecord}; they can call
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/context.py:17:      --runId=<id>          overall graph run id
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py:56:        nodes that are safe to re-run; most graph nodes are stateful
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py:65:        """Control whether failed-run guidance should offer a direct rerun.
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:7:renderer can show per-subprocess details without scraping stdout.
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:9:Never raises on spawn failure: if :func:`subprocess.Popen` blows up
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:18:import subprocess
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:28:    subprocess within the current node's execution.
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:39:def run(
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:70:            proc = subprocess.Popen(
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:73:                stderr=subprocess.STDOUT,
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:101:            error=f"spawn failed: {e}",
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:32:    """Structured record of one subprocess a node spawned.
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:35:    report renderer can show per-subprocess details (exit code, log
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:44:    If the spawn itself fails (binary missing, OSError on start),
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:145:        """Attach a structured record for one subprocess this node spawned.
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:149:        call: some nodes want a non-zero exit code as the success
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/runner.py:77:        # downgrades the run to a synthesized envelope — never loses it.
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:13:import subprocess
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:31:def run(ctx):
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:51:        result = subprocess.run(
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:54:            stderr=subprocess.STDOUT,
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:80:    result = subprocess.run(
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:91:    run()
+examples/distributed_history/test_graph/sources/collect_evidence.py:59:def run(ctx):
+examples/distributed_history/test_graph/sources/collect_evidence.py:129:    run()
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:14:import subprocess
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:48:def run(ctx):
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:71:    process = subprocess.Popen(
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:104:        result = subprocess.run(["bash", "-lc", command], cwd=root, stdout=log, stderr=subprocess.STDOUT)
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:134:        completed = subprocess.run(
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:183:    run()
+examples/distributed_history/test_graph/sources/run_external_cases.py:12:import subprocess
+examples/distributed_history/test_graph/sources/run_external_cases.py:32:def run(ctx):
+examples/distributed_history/test_graph/sources/run_external_cases.py:72:        regenerate_result = subprocess.run(regenerate_command, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)
+examples/distributed_history/test_graph/sources/run_external_cases.py:75:            result = subprocess.run(command, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)
+examples/distributed_history/test_graph/sources/run_external_cases.py:90:        return NodeResult.fail(SPEC.id, "adapter batch did not run").process(regenerate_record).artifact("log", str(log_path))
+examples/distributed_history/test_graph/sources/run_external_cases.py:161:    run()
+examples/effect_providers/atomic_publisher/adapters.py:15:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+examples/effect_providers/atomic_publisher/external_adapter.py:5:import subprocess
+examples/effect_providers/atomic_publisher/external_adapter.py:18:    """Drive the application through a subprocess and observable files only."""
+examples/effect_providers/atomic_publisher/external_adapter.py:20:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+examples/effect_providers/atomic_publisher/external_adapter.py:28:        completed = subprocess.run(
+examples/effect_providers/atomic_publisher/regenerate.py:11:import subprocess
+examples/effect_providers/atomic_publisher/regenerate.py:46:    run(
+examples/effect_providers/atomic_publisher/regenerate.py:63:            completed = run(
+examples/effect_providers/atomic_publisher/regenerate.py:143:def run(command: list[str], *, timeout: int = 30) -> subprocess.CompletedProcess[str]:
+examples/effect_providers/atomic_publisher/regenerate.py:147:    completed = subprocess.run(
+examples/effect_providers/atomic_publisher/run_experiment.py:11:import subprocess
+examples/effect_providers/atomic_publisher/run_experiment.py:49:    parser.add_argument("--run-label", default="local")
+examples/effect_providers/atomic_publisher/run_experiment.py:245:        completed = subprocess.run(
+examples/effect_providers/atomic_publisher/run_experiment.py:274:    completed = subprocess.run(
+examples/effect_providers/atomic_publisher/run_experiment.py:359:        raise AssertionError("generated provenance missing; run regenerate.py")
+examples/effect_providers/atomic_publisher/run_experiment.py:540:        completed = subprocess.run(
+examples/effect_providers/atomic_publisher/run_experiment.py:591:    diff = subprocess.run(
+examples/effect_providers/atomic_publisher/run_experiment.py:599:    untracked = subprocess.run(
+examples/effect_providers/atomic_publisher/run_experiment.py:686:    completed = subprocess.run(command, cwd=PROJECT_ROOT, check=False, timeout=timeout)
+examples/effect_providers/atomic_publisher/specs/program_model/generated/cases/spec-unit/atomic_internal_cases/doubles.py:20:    def call(self, value: StateGraphInput) -> Any:
+examples/effect_providers/atomic_publisher/specs/program_model/generated/cases/testgraph/atomic_external_cases/doubles.py:20:    def call(self, value: StateGraphInput) -> Any:
+examples/effect_providers/atomic_publisher/test_atomic_publisher.py:8:import subprocess
+examples/effect_providers/atomic_publisher/test_atomic_publisher.py:145:                result = AtomicPublisherCliAdapter().run(case, work_dir=work_dir)
+examples/effect_providers/atomic_publisher/test_atomic_publisher.py:167:            completed = subprocess.run(
+examples/effect_providers/atomic_publisher/test_atomic_publisher.py:174:                    "--run-label",
+examples/effect_providers/atomic_publisher/validate.py:2:"""Create one non-overwriting atomic-publisher validation evidence run."""
+examples/effect_providers/atomic_publisher/validate.py:11:import subprocess
+examples/effect_providers/atomic_publisher/validate.py:37:    return subprocess.run(
+examples/effect_providers/atomic_publisher/validate.py:63:        completed = subprocess.run(
+examples/effect_providers/atomic_publisher/validate.py:72:    except subprocess.TimeoutExpired as error:
+examples/effect_providers/atomic_publisher/validate.py:207:            "external subprocess CLI projects result and filesystem artifacts independently",
+examples/effect_providers/atomic_publisher/validate.py:220:    parser.add_argument("--run-id", required=True)
+examples/effect_providers/atomic_publisher/validate.py:223:        parser.error("--run-id must be one non-empty path component")
+examples/effect_providers/atomic_publisher/validate.py:234:    command = [interpreter, str(Path(__file__).resolve()), "--run-id", args.run_id]
+examples/effect_providers/atomic_publisher/validate.py:272:                    "--run-label",
+examples/effect_providers/legacy_payment_http/generated/spec-unit/payment_http_internal_cases/doubles.py:20:    def call(self, value: StateGraphInput) -> Any:
+examples/effect_providers/legacy_payment_http/generated/testgraph/payment_http_external_cases/doubles.py:20:    def call(self, value: StateGraphInput) -> Any:
+examples/effect_providers/legacy_payment_http/payment_effects/adapters.py:12:    """Run the production call while the provider owns Session.send."""
+examples/effect_providers/legacy_payment_http/payment_effects/adapters.py:18:    def run(self, case: Any, work_dir: Any = None) -> CaseRunResult:
+examples/effect_providers/legacy_payment_http/payment_effects/external.py:9:import subprocess
+examples/effect_providers/legacy_payment_http/payment_effects/external.py:18:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+examples/effect_providers/legacy_payment_http/payment_effects/external.py:44:            completed = subprocess.run(
+examples/effect_providers/legacy_payment_http/scripts/regenerate.py:13:import subprocess
+examples/effect_providers/legacy_payment_http/scripts/regenerate.py:165:) -> subprocess.CompletedProcess[str]:
+examples/effect_providers/legacy_payment_http/scripts/regenerate.py:166:    completed = subprocess.run(
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:14:import subprocess
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:360:    control_log = raw_dir / "control-run.log"
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:474:        replay = subprocess.run(
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:524:    run_log = raw_dir / f"{mutant}-run.log"
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:631:) -> tuple[subprocess.CompletedProcess[str], list[str]]:
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:650:    completed = subprocess.run(
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:872:    completed = subprocess.run(
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:976:        completed = subprocess.run(
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:1019:        completed = subprocess.run(
+examples/effect_providers/legacy_payment_http/scripts/write_cost_evidence.py:106:        f"- Edit/run iterations: {authoring['authoring_edit_run_iterations']}",
+examples/effect_providers/legacy_payment_http/tests/test_project.py:105:            "phase": "run",
+examples/effect_providers/legacy_payment_http/tests/test_project.py:143:            replay_failure_signature={"phase": "run"},
+examples/effect_providers/legacy_payment_http/tests/test_project.py:195:                for run in range(2):
+examples/effect_providers/legacy_payment_http/tests/test_project.py:200:                        work_dir=root / f"work-{run}",
+examples/effect_providers/legacy_payment_http/tests/test_project.py:210:                        result = adapter.run(case)
+examples/effect_providers/legacy_payment_http/tests/test_project.py:229:        result = PaymentHttpExternalAdapter().run(case)
+examples/effect_providers/legacy_payment_http/validate.py:14:import subprocess
+examples/effect_providers/legacy_payment_http/validate.py:33:    return subprocess.run(
+examples/effect_providers/legacy_payment_http/validate.py:52:) -> subprocess.CompletedProcess[str]:
+examples/effect_providers/legacy_payment_http/validate.py:54:    completed = subprocess.run(
+examples/effect_providers/legacy_payment_http/validate.py:95:        "command": [interpreter, str(Path(__file__).resolve()), "--run-id", run_id],
+examples/effect_providers/legacy_payment_http/validate.py:322:    parser.add_argument("--run-id", required=True)
+examples/effect_providers/legacy_payment_http/validate.py:325:        parser.error("--run-id must use only letters, digits, dot, underscore, and hyphen")
+examples/effect_providers/reminder_worker/adapter.py:28:    def run(self, _case: Any, work_dir: Path | None = None) -> CaseRunResult:
+examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/doubles.py:20:    def call(self, value: StateGraphInput) -> Any:
+examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/cases/testgraph/reminder_external_cases/doubles.py:20:    def call(self, value: StateGraphInput) -> Any:
+examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/cases/spec-unit/reminder_internal_cases/doubles.py:20:    def call(self, value: StateGraphInput) -> Any:
+examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/cases/testgraph/reminder_external_cases/doubles.py:20:    def call(self, value: StateGraphInput) -> Any:
+examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/cases/spec-unit/reminder_internal_cases/doubles.py:20:    def call(self, value: StateGraphInput) -> Any:
+examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/cases/testgraph/reminder_external_cases/doubles.py:20:    def call(self, value: StateGraphInput) -> Any:
+examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/doubles.py:20:    def call(self, value: StateGraphInput) -> Any:
+examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/cases/testgraph/reminder_external_cases/doubles.py:20:    def call(self, value: StateGraphInput) -> Any:
+examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/doubles.py:20:    def call(self, value: StateGraphInput) -> Any:
+examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/cases/testgraph/reminder_external_cases/doubles.py:20:    def call(self, value: StateGraphInput) -> Any:
+examples/effect_providers/reminder_worker/external_adapter.py:8:import subprocess
+examples/effect_providers/reminder_worker/external_adapter.py:20:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+examples/effect_providers/reminder_worker/external_adapter.py:33:        completed = subprocess.run(
+examples/effect_providers/reminder_worker/generated/cases/spec-unit/reminder_internal_cases/doubles.py:20:    def call(self, value: StateGraphInput) -> Any:
+examples/effect_providers/reminder_worker/generated/cases/testgraph/reminder_external_cases/doubles.py:20:    def call(self, value: StateGraphInput) -> Any:
+examples/effect_providers/reminder_worker/regenerate.py:10:import subprocess
+examples/effect_providers/reminder_worker/regenerate.py:21:def run(
+examples/effect_providers/reminder_worker/regenerate.py:30:    subprocess.run(command, cwd=PROJECT_ROOT, env=env, check=True, timeout=timeout)
+examples/effect_providers/reminder_worker/regenerate.py:52:    run(
+examples/effect_providers/reminder_worker/regenerate.py:80:        run(
+examples/effect_providers/reminder_worker/regenerate.py:100:        run(
+examples/effect_providers/reminder_worker/run_experiment.py:15:import subprocess
+examples/effect_providers/reminder_worker/run_experiment.py:203:    completed = subprocess.run(
+examples/effect_providers/reminder_worker/run_experiment.py:269:    completed = subprocess.run(
+examples/effect_providers/reminder_worker/run_experiment.py:380:                result = adapter.run(case, work_dir)
+examples/effect_providers/reminder_worker/run_experiment.py:503:        completed = subprocess.run(command, cwd=REPO_ROOT, text=True, capture_output=True, check=True)
+examples/effect_providers/reminder_worker/run_experiment.py:528:            "authoring_wall_minutes": round((time.time() - int(subprocess.run(["git", "show", "-s", "--format=%ct", "141e63b"], cwd=REPO_ROOT, text=True, capture_output=True, check=True).stdout)) / 60, 3),
+examples/effect_providers/reminder_worker/run_experiment.py:546:    parser.add_argument("--run-id", required=True)
+examples/effect_providers/reminder_worker/run_experiment.py:554:        raise SystemExit(f"refusing to overwrite evidence run {run_root}")
+examples/effect_providers/reminder_worker/run_experiment.py:559:        completed = subprocess.run(
+examples/effect_providers/reminder_worker/run_experiment.py:742:    print(json.dumps({"run": args.run_id, "killed": killed, "decision": result["decision"], "digest": result["canonical_verdict_digest"]}, sort_keys=True))
+examples/effect_providers/reminder_worker/test_reminder_worker.py:8:import subprocess
+examples/effect_providers/reminder_worker/test_reminder_worker.py:87:                completed = subprocess.run(
+examples/effect_providers/reminder_worker/test_reminder_worker.py:130:            completed = subprocess.run(
+examples/effect_providers/reminder_worker/test_reminder_worker.py:169:                result = adapter.run(case, point)
+examples/effect_providers/reminder_worker/validate.py:2:"""Create one non-overwriting reminder-worker validation evidence run."""
+examples/effect_providers/reminder_worker/validate.py:13:import subprocess
+examples/effect_providers/reminder_worker/validate.py:48:    return subprocess.run(
+examples/effect_providers/reminder_worker/validate.py:101:        completed = subprocess.run(
+examples/effect_providers/reminder_worker/validate.py:110:    except subprocess.TimeoutExpired as error:
+examples/effect_providers/reminder_worker/validate.py:356:    parser.add_argument("--run-id", required=True)
+examples/effect_providers/reminder_worker/validate.py:363:        parser.error("--run-id must be one non-empty path component")
+examples/effect_providers/reminder_worker/validate.py:374:    command = [interpreter, str(Path(__file__).resolve()), "--run-id", args.run_id]
+examples/effect_providers/run_validations.py:11:import subprocess
+examples/effect_providers/run_validations.py:54:    revision = subprocess.run(
+examples/effect_providers/run_validations.py:172:        raise ValueError(f"{result_path}: run_id does not match requested run")
+examples/effect_providers/run_validations.py:228:            "run",
+examples/effect_providers/run_validations.py:233:            "--run-id",
+examples/effect_providers/run_validations.py:240:            "--run-id",
+examples/effect_providers/run_validations.py:244:    completed = subprocess.run(
+examples/effect_providers/run_validations.py:275:        help="Required acknowledgement that a new, non-overwriting evidence run will be created.",
+examples/effect_providers/run_validations.py:277:    parser.add_argument("--run-id", help="Optional aggregate run id; defaults to UTC time plus git revision.")
+examples/run_distributed_history_validation.py:11:import subprocess
+examples/run_distributed_history_validation.py:29:def run(command: list[str], *, cwd: Path = REPO_ROOT, env: dict[str, str] | None = None) -> None:
+examples/run_distributed_history_validation.py:33:    subprocess.run(command, cwd=cwd, env=env, check=True)
+examples/run_distributed_history_validation.py:51:    parser.add_argument("--keep-k3d", action="store_true", help="Leave the k3d cluster and image after a k3d run.")
+examples/run_distributed_history_validation.py:91:    run(
+examples/run_distributed_history_validation.py:103:    run(
+examples/run_distributed_history_validation.py:130:    This asserts the STRICT outcome: a green control run and a verdict of
+examples/run_distributed_history_validation.py:135:    end-to-end run measured **0.571 (4/7)** against the 0.8 floor, with three
+examples/run_distributed_history_validation.py:179:    completed = subprocess.run(
+examples/run_distributed_history_validation.py:207:    # The control run first: without it, a corpus that is already red would
+examples/run_distributed_history_validation.py:211:            f"kill test control run failed -- the corpus does not pass on the unmutated "
+examples/run_distributed_history_validation.py:243:    process = subprocess.Popen(
+examples/run_distributed_history_validation.py:247:        stdout=subprocess.DEVNULL,
+examples/run_distributed_history_validation.py:248:        stderr=subprocess.DEVNULL,
+examples/run_distributed_history_validation.py:291:            result = subprocess.run(command, cwd=EXAMPLE_ROOT, env=negative_env, text=True, capture_output=True)
+examples/run_distributed_history_validation.py:309:        except subprocess.TimeoutExpired:
+examples/run_distributed_history_validation.py:345:    run(
+examples/run_distributed_history_validation.py:436:    subprocess.run(["k3d", "cluster", "delete", CLUSTER_NAME], check=False)
+examples/run_distributed_history_validation.py:437:    subprocess.run(["docker", "rmi", "ecommerce-history:local"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+examples/validation/check_twins.py:13:a fixture-integrity check EV-02 should run before it starts.
+examples/validation/ex1_scaffold_only/taskq/taskq.py:4:Tasks move pending -> running -> done. At most two tasks run at once.
+examples/validation/ex4_pipeline_coherent/pipeline/ingest/queue.py:39:        the same call. There is no explicit commit point -- that is the modelled
+examples/validation/ex4_pipeline_coherent/pipeline/ledger/journal.py:24:    rather than the same run twice.
+examples/validation/ex4_pipeline_coherent/specs/program_model/adapters.py:30:say what to call the action with must not be silently executed as a no-op.
+examples/validation/ex4_pipeline_coherent/specs/program_model/adapters.py:124:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+examples/validation/runs/ex2-run4/artifacts/providers.py:94:        for call in self.calls:
+examples/validation/runs/ex2-run4/artifacts/providers.py:95:            if call["account"] != params["account"] or call["order"] != params["order"]:
+examples/validation/runs/ex2-run4/artifacts/providers.py:97:                    f"cancel called with {call['account']!r}/{call['order']!r} but the "
+examples/validation/runs/ex4-run1/artifacts/df02_blast.py:18:import subprocess
+examples/validation/runs/ex4-run1/artifacts/df02_blast.py:72:def run(script, extra):
+examples/validation/runs/ex4-run1/artifacts/df02_blast.py:81:    p = subprocess.run(cmd, cwd=FIXTURE, capture_output=True, text=True, timeout=300)
+examples/validation/runs/ex4-run1/artifacts/df02_blast.py:95:    _, desc = run("analyze_architecture.py", ["--components", str(cpath)])
+examples/validation/runs/ex4-run1/artifacts/df02_blast.py:96:    _, refl = run(
+examples/validation/runs/ex4-run1/artifacts/kill_matrix.py:2:"""EV-02 aim-1 harness: seed each fault one at a time, run BOTH arms, restore.
+examples/validation/runs/ex4-run1/artifacts/kill_matrix.py:11:import subprocess
+examples/validation/runs/ex4-run1/artifacts/kill_matrix.py:49:    proc = subprocess.run(
+examples/validation/runs/ex4-run1/artifacts/kill_matrix.py:74:        # kill stale bytecode so the next run cannot import a cached mutant
+examples/validation/runs/ex4-run1/artifacts/kill_matrix.py:140:    subprocess.run(["git", "status", "--porcelain", str(FIXTURE)], cwd=REPO)
+examples/validation/runs/ex4-run1/artifacts/replay.py:5:record from the batch log, run its `replay` command verbatim TWICE, and compare.
+examples/validation/runs/ex4-run1/artifacts/replay.py:13:import subprocess
+examples/validation/runs/ex4-run1/artifacts/replay.py:51:            p = subprocess.run(
+examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.sh:3:# project", references/case_modules.md) run VERBATIM against the repaired tree,
+examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.sh:6:# $PY is the pinned interpreter (see the run record); $REPO the epic checkout.
+examples/validation/runs/ex4-run4/artifacts/kill_matrix_round2.py:15:PYTHONDONTWRITEBYTECODE is set, so no run can import a cached mutant.
+examples/validation/runs/ex4-run4/artifacts/kill_matrix_round2.py:26:import subprocess
+examples/validation/runs/ex4-run4/artifacts/kill_matrix_round2.py:63:    """Strip only the per-run varying parts: corpus path and temp directories."""
+examples/validation/runs/ex4-run4/artifacts/kill_matrix_round2.py:87:    proc = subprocess.run(
+examples/validation/runs/ex4-run4/artifacts/kill_matrix_round2.py:111:    proc = subprocess.run(
+examples/validation/runs/ex4-run4/artifacts/kill_matrix_round2.py:216:    status = subprocess.run(
+examples/validation/runs/ex4-run4/artifacts/kill_matrix_round2.py:225:        if "/runs/" not in ln  # this run's own records
+examples/validation/runs/ex4-run5/artifacts/replay.py:5:record from the batch log, run its `replay` command verbatim TWICE, and compare.
+examples/validation/runs/ex4-run5/artifacts/replay.py:13:import subprocess
+examples/validation/runs/ex4-run5/artifacts/replay.py:51:            p = subprocess.run(
+examples/validation/runs/ex4-run6/artifacts/mutant_run.py:1:"""Apply each mutant in mutant_catalogue.toml, run every instrument, restore.
+examples/validation/runs/ex4-run6/artifacts/mutant_run.py:14:import subprocess
+examples/validation/runs/ex4-run6/artifacts/mutant_run.py:56:    proc = subprocess.run(
+examples/validation/runs/ex4-run6/artifacts/mutant_run.py:83:    proc = subprocess.run(
+examples/validation/runs/ex4-run6/artifacts/sanitize_runB.py:2:"""EV-03 blind-run-B sanitizer.
+examples/validation/runs/ex4-run6/artifacts/sanitize_runB.py:5:Blind run B measures the aspect-authoring path, which has no `file:line` answer
+examples/validation/runs/ex5-run3/artifacts/df02_blast_round2.py:16:import subprocess
+examples/validation/runs/ex5-run3/artifacts/df02_blast_round2.py:69:def run(script, extra):
+examples/validation/runs/ex5-run3/artifacts/df02_blast_round2.py:78:    p = subprocess.run(cmd, cwd=FIXTURE, capture_output=True, text=True, timeout=300)
+examples/validation/runs/ex5-run3/artifacts/df02_blast_round2.py:92:    dexit, desc = run("analyze_architecture.py", ["--components", str(cpath)])
+examples/validation/runs/ex5-run3/artifacts/df02_blast_round2.py:93:    rexit, refl = run(
+examples/validation/runs/ex5-run4/artifacts/sanitize_runA.py:2:"""EV-03 blind-run-A sanitizer.
+examples/validation/runs/ex5-run4/artifacts/sanitize_runA.py:8:sites are unchanged and the run can be scored against the same key. Only
+examples/validation/runs/ex5-run4/artifacts/sanitize_runA.py:49:call.
+scripts/analyze_architecture.py:1010:def run(args: argparse.Namespace) -> int:
+scripts/analyze_architecture.py:1091:            print(f"ERROR: the reflexion check could not be run:\n  {exc}", file=sys.stderr)
+scripts/analyze_architecture.py:1171:    return run(parser.parse_args(argv))
+scripts/analyze_complexity.py:311:    behavior. Callers that also run TLC must pass the SAME path they give SANY,
+scripts/analyze_complexity.py:548:# The matrix used to call every definition that syntactically primes a
+scripts/analyze_complexity.py:703:    data, not a call -- it must not expand that operator into the caller.
+scripts/analyze_complexity.py:741:        call = re.fullmatch(
+scripts/analyze_complexity.py:744:        if call and call.group(1) in defs_by_name:
+scripts/analyze_complexity.py:745:            name = call.group(1)
+scripts/analyze_complexity.py:2258:def run(args: argparse.Namespace) -> int:
+scripts/analyze_complexity.py:2318:    return run(parser.parse_args(argv))
+scripts/architecture_reflexion.py:10:    resolvable call edges), each edge carrying ``file:line``;
+scripts/architecture_reflexion.py:55:Coverage limits, stated once and reported in every run
+scripts/architecture_reflexion.py:60:  relative imports and literal-argument ``importlib.import_module``), plus call
+scripts/architecture_reflexion.py:106:#: the CLI's "not run" and is never produced here.
+scripts/architecture_reflexion.py:327:    ``file``/``line`` is the SITE: the import statement or the call, not the
+scripts/architecture_reflexion.py:442:    """The dotted name of a call target, or None when it is computed."""
+scripts/architecture_reflexion.py:455:    """Collects import edges, call edges, and blind spots for one file."""
+scripts/architecture_reflexion.py:560:                                "be attributed to a source module, so call edges "
+scripts/architecture_reflexion.py:643:        """Resolve call sites once every binding in the file is known."""
+scripts/architecture_reflexion.py:652:                    kind="call",
+scripts/architecture_reflexion.py:818:        Computed on every call from the descriptor and the pair sets ALONE. It
+scripts/architecture_reflexion.py:965:    2. **Then the target**, which must yield a graph or the run is refused: an
+scripts/architecture_reflexion.py:967:    3. **Then the map**, which must be usable or the run is refused (nonzero).
+scripts/architecture_reflexion.py:1154:#: measurements of the code; the other two are refusals to call the number a
+scripts/architecture_reflexion.py:1186:    Emitted into every report payload so that a later run can prove the two
+scripts/architecture_reflexion.py:1226:        # cut somebody chose, and whether the model's own criteria call that
+scripts/architecture_reflexion.py:1372:            "same map measures the MAP, not the refactor. Re-run the baseline scan with a "
+scripts/architecture_reflexion.py:1853:        add("  share a basis, so no number here is a fact about the refactor. Re-run the")
+scripts/architecture_reflexion.py:2120:            "  components of THIS program. A component that reaches an external system "
+scripts/architecture_reflexion.py:2226:            "lost, and refuses to call a drop an improvement when the two scans were not "
+scripts/architecture_reflexion.py:2234:def run(args: argparse.Namespace) -> int:
+scripts/architecture_reflexion.py:2267:        print(f"ERROR: the reflexion check could not be run:\n  {exc}", file=sys.stderr)
+scripts/architecture_reflexion.py:2307:    return run(parser.parse_args(argv))
+scripts/budgets.py:49:    "tlc_seconds": "hard external timeout per TLC run",
+scripts/case_modules.py:50:#: The system property SANY reads as its module search path. TLC has no
+scripts/case_modules.py:135:        """The value for the ``TLA-Library`` system property."""
+scripts/case_modules.py:299:    TLC exposes no ``-lib`` flag; SANY reads the ``TLA-Library`` **system
+scripts/case_modules.py:722:        "interleavings between aspects; only a whole-view run does. Do not report the "
+scripts/close_tickets.py:111:        "into program_model/, mark every ticket closed), then re-run this command.\n"
+scripts/close_tickets.py:112:        "- Option B: re-run with --accept-new to accept desired_program_model/ as the new current/ and "
+scripts/close_tickets.py:241:    parser.add_argument("--dry-run", action="store_true", help="Validate and print removals without deleting files.")
+scripts/complexity_ledger.py:140:    # the gate requires is that it EXISTS from this run -- the delta judgment
+scripts/complexity_ledger.py:156:    # CD-09 validated-refactor members: a red TLC run, red behavior tests, or a
+scripts/complexity_ledger.py:172:# Recorded at EVERY close, including ticket closes where the audit has not run.
+scripts/complexity_ledger.py:181:    "not_run": "audit has not been run for this scope",
+scripts/complexity_ledger.py:205:#: and `unattributable` are refusals to call the number a refactor result; both
+scripts/complexity_ledger.py:304:    has not yet run the audit.
+scripts/complexity_ledger.py:415:    figures come from a real TLC run when one is supplied and are left null
+scripts/complexity_ledger.py:454:        # RP-04, the same class as CM-01-DF-03 found one file over: a TLC run
+scripts/complexity_ledger.py:500:            # TLC run that did not finish reports a count that is a floor.
+scripts/complexity_ledger.py:510:                    "the TLC run that produced this count did not finish, so the "
+scripts/complexity_ledger.py:671:            # them is a policy call for the owner, not a side effect of a
+scripts/complexity_ledger.py:875:        # A whole `analyze architecture --format json` run was recorded. Fine --
+scripts/complexity_ledger.py:958:    """Build the ledger entry and run every gate. Errors mean the close is refused."""
+scripts/complexity_ledger.py:1024:            "the same run (`validated_refactor:` -- tlc_before, tlc_after, behavior_tests, "
+scripts/complexity_ledger.py:1095:    # every ticket to run a whole-epic audit or to fake a verdict. Both are
+scripts/complexity_ledger.py:1119:            f"coverage audit not yet run for this scope ({coverage_audit.normalized}) -- "
+scripts/complexity_ledger.py:1491:# step, run after the mechanism tickets land and before final integration. It is
+scripts/complexity_ledger.py:1522:# Two refusals worth knowing before you run it:
+scripts/complexity_ledger.py:1545:  measured: false      # true only if a real TLC run produced the figure
+scripts/corpus_diagnostics.py:115:# shapes. These readers accept either so the same diagnostics run over a
+scripts/corpus_diagnostics.py:792:    two hard gates read identically at every call site.
+scripts/corpus_diagnostics.py:812:    anything, it only refuses to call the result acceptable.
+scripts/corpus_diagnostics.py:909:def run(args: Any) -> int:
+scripts/corpus_diagnostics.py:941:    return run(parser.parse_args())
+scripts/effect_conformance_report.py:2:"""`tla-spec-dev run effect-conformance` (MF-013).
+scripts/effect_conformance_report.py:10:ENFORCING copy of the same measurement runs inside ``run spec-unit-tests``,
+scripts/effect_conformance_report.py:67:def run(args: argparse.Namespace) -> int:
+scripts/effect_conformance_report.py:190:    return run(parser.parse_args())
+scripts/effect_conformance.py:25:   ``shutil``, ``pathlib.Path``, ``subprocess`` and ``socket`` objects living
+scripts/effect_conformance.py:40:   sandbox saw only the spawn and refused. :class:`WorkingTreeObserver` sees the
+scripts/effect_conformance.py:46:   :func:`diff_effects` narrows a spawn's process-boundary finding to name only
+scripts/effect_conformance.py:48:   ``unobservable`` until *every* axis has an observer. A spawn with no
+scripts/effect_conformance.py:50:   downgrades a verdict; it only lets the run SEE more, and report what it still
+scripts/effect_conformance.py:58:     recorded AND the run fails.
+scripts/effect_conformance.py:93:import subprocess
+scripts/effect_conformance.py:105:        "process.spawn",
+scripts/effect_conformance.py:153:#: something the run has no evidence for.
+scripts/effect_conformance.py:191:    "subprocess",
+scripts/effect_conformance.py:241:#: MF-033: every effect type a child process could emit across a spawn boundary.
+scripts/effect_conformance.py:245:#: exactly ``EFFECT_TYPES``: a child can write, delete, spawn again, and connect.
+scripts/effect_conformance.py:254:    adapter and a subprocess-delegating adapter both return ``clean``: the
+scripts/effect_conformance.py:278:    MF-027/MF-028 a declared ``process.spawn`` produced :data:`VERDICT_UNOBSERVABLE`
+scripts/effect_conformance.py:280:    spawn but nothing the child did, and refused. This record carries what an
+scripts/effect_conformance.py:335:    into this interpreter, that the runner is about to call directly. If the
+scripts/effect_conformance.py:564:    """Collects observed effects. Passive: adapters do not call into this."""
+scripts/effect_conformance.py:571:    #: run actually saw -- and because a diff that ignored them would be a
+scripts/effect_conformance.py:576:    #: bracketed window. Like ``unobservable``, this is a fact the run gathered;
+scripts/effect_conformance.py:635:        Runners call this **before** executing an adapter. The return value is
+scripts/effect_conformance.py:639:        the sandbox, not decided at the call site.
+scripts/effect_conformance.py:704:        self._patch_process("run")
+scripts/effect_conformance.py:705:        self._patch_process("call")
+scripts/effect_conformance.py:706:        self._patch_process("check_call")
+scripts/effect_conformance.py:707:        self._patch_process("check_output")
+scripts/effect_conformance.py:743:        original = getattr(subprocess, name, None)
+scripts/effect_conformance.py:746:        key = f"subprocess.{name}"
+scripts/effect_conformance.py:747:        self._originals[key] = (subprocess, name, original)
+scripts/effect_conformance.py:753:                    ObservedEffect(type="process.spawn", target=_command_target(args[0]), detail=key)
+scripts/effect_conformance.py:757:        setattr(subprocess, name, patched)
+scripts/effect_conformance.py:760:        original = subprocess.Popen
+scripts/effect_conformance.py:761:        self._originals["subprocess.Popen"] = (subprocess, "Popen", original)
+scripts/effect_conformance.py:767:                    ObservedEffect(type="process.spawn", target=_command_target(args), detail="subprocess.Popen")
+scripts/effect_conformance.py:771:        subprocess.Popen = PatchedPopen  # type: ignore[misc]
+scripts/effect_conformance.py:805:    this repository shells out, so the sandbox saw the spawn and nothing else).
+scripts/effect_conformance.py:825:    Used as a context manager around the adapter call whose child you want to
+scripts/effect_conformance.py:992:    #: MF-027: targets the run could not observe. Non-empty => the run FAILS.
+scripts/effect_conformance.py:1002:        # consulted here. Findings exist => the run fails. This property is the
+scripts/effect_conformance.py:1142:                "subprocess spawns and socket.connect patched in THIS interpreter. No "
+scripts/effect_conformance.py:1177:    and every observed ``process.spawn`` additionally produces a
+scripts/effect_conformance.py:1179:    spawn that MATCHES a declared port is still a boundary the sandbox cannot
+scripts/effect_conformance.py:1180:    see through. Declaring ``tlc_process`` says "I spawn java"; it does not
+scripts/effect_conformance.py:1181:    say what java then wrote. Treating a declared spawn as fully accounted for
+scripts/effect_conformance.py:1187:    :class:`WorkingTreeObserver` snapshot diff). For a spawn whose case an
+scripts/effect_conformance.py:1192:    a positive measurement, an unwatched axis (network, nested spawn) stays in
+scripts/effect_conformance.py:1193:    the residual, and a spawn with no out-of-process evidence at all is
+scripts/effect_conformance.py:1194:    unchanged -- still fully unobservable. Only a spawn every one of whose axes
+scripts/effect_conformance.py:1219:        if effect.type != "process.spawn":
+scripts/effect_conformance.py:1225:            # out-of-process observer. There is nothing left the run cannot see,
+scripts/effect_conformance.py:1233:                "observer and remain invisible to this run"
+scripts/effect_conformance.py:1237:                "a child process was spawned; the sandbox records the spawn but "
+scripts/effect_conformance.py:1239:                "connections are invisible to this run"
+scripts/export_testgraph_cases.py:90:    which ports were real and which were doubled, so a graph run can say which
+scripts/export_testgraph_cases.py:164:            "The case-cap gate refuses to run on built-in default caps without a "
+scripts/export_testgraph_cases.py:181:            "Limit how many selected cases are exported in THIS run. This is a "
+scripts/export_testgraph_cases.py:182:            "user-driven selection for a focused run, not a budget mechanism: "
+scripts/fitness_functions.py:275:    reports its absence as an advisory error (the CLI may run under a bare
+scripts/fitness_functions.py:440:    """One-call entry point for the scanner.
+scripts/generate_cases_from_tlc_dump.py:18:import subprocess
+scripts/generate_cases_from_tlc_dump.py:115:        subprocess.run(command, check=True, cwd=spec_dir, env=env)
+scripts/generate_cases_from_tlc_dump.py:116:    except subprocess.CalledProcessError as error:
+scripts/generate_cases_from_tlc_dump.py:832:        "    def call(self, value: StateGraphInput) -> Any:\n"
+scripts/generate_cases_from_tlc_dump.py:945:    first time, and the run that hit it only found the directory afterwards.
+scripts/generate_cases_from_tlc_dump.py:1014:    action is recoverable from its state pair" over a run that had just
+scripts/generate_cases_from_tlc_dump.py:1148:            "points inside the spec directory. `--out generated` run from a repo "
+scripts/infer_action_params.py:501:# Measuring what a run actually recovered
+scripts/infer_action_params.py:506:# every action is recoverable from its state pair" over a run that had just
+scripts/infer_action_params.py:511:# own measurement and reports THAT, per parameter. A class the run failed to
+scripts/infer_action_params.py:543:    """What one generation run recovered, counted case by case."""
+scripts/infer_action_params.py:631:    argument on a case is a property of a run.
+scripts/infer_action_params.py:646:                f"**Measured over the corpus this run generated: {measurement.total_cases} cases.**",
+scripts/infer_action_params.py:748:            "class is UNRECOVERABLE for this run whatever the syntax promised:"
+scripts/infer_action_params.py:800:            "scoped to this run and to the actions it entered; it is not a claim "
+scripts/kill_test.py:6:declared boundaries match observed behavior (`run effect-conformance`). None
+scripts/kill_test.py:12:    Experiment:  seed k faults into C, run the distilled corpus, and require
+scripts/kill_test.py:45:obligation every run from the two declaration sites themselves -- the ports in
+scripts/kill_test.py:57:assert something the run has no evidence for.
+scripts/kill_test.py:70:The control run
+scripts/kill_test.py:72:"Killed" is operationalized as "the corpus run failed", which means a corpus
+scripts/kill_test.py:76:end-to-end run of the worked distributed_history kill test scored 7/7 for
+scripts/kill_test.py:94:import subprocess
+scripts/kill_test.py:111:#: A complete catalog was run and the kill rate fell below ``kill_rate_floor``.
+scripts/kill_test.py:344:    manifest that declares no ports is an exit-2 refusal at the call site: a
+scripts/kill_test.py:446:    recomputed from ``spec_manifest.yaml`` and ``MC.cfg`` on every run, so the
+scripts/kill_test.py:467:    # actually run. Every mutant in the catalog is executed either way, so a
+scripts/kill_test.py:529:    The restore is in a ``finally`` so an exception mid-run cannot leave a
+scripts/kill_test.py:555:#: Passing ``None`` instead of a mutant means "run the corpus unmutated" -- the
+scripts/kill_test.py:556:#: control run. Every runner must support it; see :func:`control_run`.
+scripts/kill_test.py:565:    "the corpus run failed", so a corpus that ALREADY FAILS on correct code
+scripts/kill_test.py:570:    This is not hypothetical. The first end-to-end run of the worked
+scripts/kill_test.py:597:    runner SHELLS OUT. Under the MF-027 effect oracle a ``process.spawn`` is
+scripts/kill_test.py:600:    ``test_process`` -> ``*pytest*``). A kill-test run driven this way must
+scripts/kill_test.py:601:    therefore execute OUTSIDE the effect sandbox; run it inside and the two
+scripts/kill_test.py:604:    it is a real constraint on how the kill test can be run in this
+scripts/kill_test.py:608:    def _invoke() -> subprocess.CompletedProcess[str]:
+scripts/kill_test.py:609:        return subprocess.run(
+scripts/kill_test.py:618:    def run(mutant: Mutant | None) -> tuple[bool, list[str], str]:
+scripts/kill_test.py:620:            # Control run: no fault seeded.
+scripts/kill_test.py:629:    return run
+scripts/kill_test.py:689:        # Control dominates everything: without a green control run, no kill
+scripts/kill_test.py:758:                        f"generated case exercises the difference). Then re-run; the mutant "
+scripts/kill_test.py:891:        lines.append("Control run (unmutated program) FAILED. Corpus output:")
+scripts/kill_test.py:940:    """Seed every mutant, run the corpus against each, and gate the rate."""
+scripts/kill_test.py:959:        # Do not run a partial experiment. See the module docstring.
+scripts/kill_test.py:1050:    every call site.
+scripts/new_ticket_workflow.py:450:  5. Mark {ticket_id} closed/done in the project ticket plan and run:
+scripts/new_ticket_workflow.py:670:# an inapplicable stanza are different claims (CD-11, audit run 4 ESC-R4-2).
+scripts/new_ticket_workflow.py:739:# an inapplicable stanza are different claims (CD-11, audit run 4 ESC-R4-2).
+scripts/new_ticket_workflow.py:887:case pre-state, call the production boundary, observe production state, and
+scripts/new_ticket_workflow.py:1097:    parser.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
+scripts/onboard_program_model.py:445:#   tla-spec-dev run spec-unit-tests
+scripts/onboard_program_model.py:529:#   adapter             -> drives the public action (HTTP call, CLI run, ...)
+scripts/onboard_program_model.py:546:#     one real. All-doubles is a spec-unit run, never a Test Graph node.
+scripts/onboard_program_model.py:648:each one with a call into this repository's real boundary. The class names here
+scripts/onboard_program_model.py:668:# Hook order per batch: setup_all -> (run per case) -> teardown_all.
+scripts/onboard_program_model.py:669:# `run` materializes case.before, applies one internal action, and returns the
+scripts/onboard_program_model.py:681:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+scripts/onboard_program_model.py:704:        raise NotImplementedError("call the real RegisterActor boundary")
+scripts/onboard_program_model.py:709:        raise NotImplementedError("call the real AcceptRecord boundary")
+scripts/onboard_program_model.py:714:        raise NotImplementedError("call the real PublishRecord boundary")
+scripts/onboard_program_model.py:721:#   setup_all -> for each case: setup -> run -> projected-state assertion ->
+scripts/onboard_program_model.py:742:        """Load `context.case.before` into the real system before each case."""
+scripts/onboard_program_model.py:751:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+scripts/onboard_program_model.py:777:# actual   = ProgramStateProjector.observe(context)             (from real system)
+scripts/onboard_program_model.py:790:            "observe the real system's externally visible state and pass it "
+scripts/onboard_program_model.py:845:projection. `project_adapter_output` derives the output a correct adapter run
+scripts/onboard_program_model.py:1145:  Generates spec-unit cases, run by the spec-unit adapters in `adapters.py`.
+scripts/onboard_program_model.py:1147:  from outside. Generates Test Graph cases, run by the Test Graph adapters.
+scripts/onboard_program_model.py:1159:tla-spec-dev --spec-root {spec_root_text} run spec-unit-tests
+scripts/onboard_program_model.py:1232:The external counterpart is NOT a pytest test: External-view cases run as Test
+scripts/onboard_program_model.py:1243:import subprocess
+scripts/onboard_program_model.py:1298:    subprocess.run(command, check=True, cwd=REPO_ROOT)
+scripts/onboard_program_model.py:1398:    parser.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
+scripts/run_generated_case_adapters.py:2:"""Generate and run adapter programs for TLC-derived cases.
+scripts/run_generated_case_adapters.py:21:import subprocess
+scripts/run_generated_case_adapters.py:413:            + ". If the package has never been generated, run the manifest codegen first."
+scripts/run_generated_case_adapters.py:764:    flag. A mixed corpus run without the flag would otherwise execute external
+scripts/run_generated_case_adapters.py:838:        return asyncio.run(value)
+scripts/run_generated_case_adapters.py:924:    field agrees". Every other field is compared on its own, so a run reports
+scripts/run_generated_case_adapters.py:1655:                        # Python object the runner is about to call, which is
+scripts/run_generated_case_adapters.py:1677:                    # setup/run/teardown. Everything the adapter causes to cross
+scripts/run_generated_case_adapters.py:1744:                                        active_phase = "run"
+scripts/run_generated_case_adapters.py:1813:                                    phase=application_phase or "run",
+scripts/run_generated_case_adapters.py:1944:    # is appended to `failures`, so a gap or a dead port fails the run exactly
+scripts/run_generated_case_adapters.py:2057:    return subprocess.run(command, env=env).returncode
+scripts/run_generated_case_adapters.py:2111:        result = subprocess.run([*python, str(program)])
+scripts/run_generated_case_adapters.py:2125:    parser.add_argument("--view", choices=["internal", "external"], help="Only validate/run cases for this generated view")
+scripts/run_generated_case_adapters.py:2126:    parser.add_argument("--label", action="append", default=[], help="Only generate/run cases with this label")
+scripts/run_generated_case_adapters.py:2127:    parser.add_argument("--case", action="append", default=[], help="Only generate/run this case name")
+scripts/run_generated_case_adapters.py:2143:    parser.add_argument("--python", action="append", default=[], help="Python command used to run generated programs")
+scripts/run_generated_case_adapters.py:2145:    parser.add_argument("--validate-capabilities", action="store_true", help="Ask adapters whether they can run every selected case")
+scripts/run_kill_test.py:4:    tla-spec-dev run kill-test --ticket MF-016 --out results/kill-test.json
+scripts/run_kill_test.py:92:        help="Compare two existing reports as an abstraction validation, and run nothing.",
+scripts/run_kill_test.py:120:        prog="tla-spec-dev run kill-test",
+scripts/run_kill_test.py:127:    return run(args)
+scripts/run_kill_test.py:130:def run(args: argparse.Namespace) -> int:
+scripts/run_kill_test.py:218:        "process.spawn is an unobservable boundary even when a port declares it, so the kill "
+scripts/run_kill_test.py:219:        "test must run OUTSIDE the effect sandbox in this repository."
+scripts/scaffold_spec.py:364:#     real -- all-doubles is a spec-unit run, never a Test Graph node.
+scripts/scaffold_spec.py:417:SCAFFOLD: replace each NotImplementedError with a call into the real boundary.
+scripts/scaffold_spec.py:434:# Hook order per batch: setup_all -> (run per case) -> teardown_all.
+scripts/scaffold_spec.py:444:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+scripts/scaffold_spec.py:461:        raise NotImplementedError("call the real Create boundary")
+scripts/scaffold_spec.py:466:#   setup_all -> for each case: setup -> run -> assertion -> teardown
+scripts/scaffold_spec.py:490:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+scripts/scaffold_spec.py:504:# actual   = ProgramStateProjector.observe(context)             (from real system)
+scripts/scaffold_spec.py:516:            "observe the real system's visible state and pass it through "
+scripts/skill_feedback.py:275:- `observed_on:` the real repository/module/ticket it was run against. A finding
+scripts/spec_evolution.py:10:import subprocess
+scripts/spec_evolution.py:99:        result = subprocess.run(["git", *args], check=True, capture_output=True, text=True)
+scripts/spec_evolution.py:100:    except (OSError, subprocess.CalledProcessError):
+scripts/spec_evolution.py:333:        "matches desired/, re-run the spec-unit validations, then re-run the close.\n"
+scripts/spec_evolution.py:334:        "- Option B: re-run the close with --accept-new to accept the ticket desired/ as the new "
+scripts/spec_evolution.py:1079:    # MF-017: the workflow close is the last chance to run the Phase 6 retro,
+scripts/start_ticket.py:22:    parser.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
+scripts/testgraph_channels.py:24:   lets a graph run name its integration-ladder rung. An all-doubles
+scripts/testgraph_channels.py:26:   test, so it is a spec-unit run and never a Test Graph node.
+scripts/testgraph_channels.py:58:#: Each is import-isolated: all four run in the harness, so a production
+scripts/testgraph_channels.py:199:                    "integration-ladder rung the graph run occupies"
+scripts/testgraph_channels.py:226:                        "bind at least one port to real, or run these cases as "
+scripts/tla_spec_dev.py:8:import subprocess
+scripts/tla_spec_dev.py:146:    return analyze_complexity.run(args)
+scripts/tla_spec_dev.py:152:    return corpus_diagnostics.run(args)
+scripts/tla_spec_dev.py:158:    return analyze_architecture.run(args)
+scripts/tla_spec_dev.py:170:    return effect_conformance_report.run(args)
+scripts/tla_spec_dev.py:183:    return run_kill_test_module.run(args)
+scripts/tla_spec_dev.py:306:                        "run",
+scripts/tla_spec_dev.py:378:        result = subprocess.run(command, cwd=repo_root, env=env)
+scripts/tla_spec_dev.py:391:            "analyze complexity -> run spec-unit-tests -> close ticket."
+scripts/tla_spec_dev.py:429:    scaffold_project.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
+scripts/tla_spec_dev.py:444:    scaffold_workflow.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
+scripts/tla_spec_dev.py:472:    open_ticket.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
+scripts/tla_spec_dev.py:480:        "run",
+scripts/tla_spec_dev.py:487:        command_path="tla-spec-dev run",
+scripts/tla_spec_dev.py:488:        next_step="Choose a target: tla-spec-dev run spec-unit-tests.",
+scripts/tla_spec_dev.py:509:    run_spec_units.add_argument("--label", action="append", default=[], help="Only run generated cases with this label.")
+scripts/tla_spec_dev.py:510:    run_spec_units.add_argument("--case", action="append", default=[], help="Only run this generated case name.")
+scripts/tla_spec_dev.py:513:    run_spec_units.add_argument("--validate-capabilities", action="store_true", help="Ask adapters whether they can run selected cases.")
+scripts/tla_spec_dev.py:540:        command_path="tla-spec-dev run spec-unit-tests",
+scripts/tla_spec_dev.py:567:        command_path="tla-spec-dev run effect-conformance",
+scripts/tla_spec_dev.py:568:        next_step="tla-spec-dev run spec-unit-tests --ticket <ticket>",
+scripts/tla_spec_dev.py:582:            "The required boundary set is recomputed every run from the port declarations "
+scripts/tla_spec_dev.py:597:        command_path="tla-spec-dev run kill-test",
+skill-scripts/install-tlc2.sh:8:  echo "java is required to run tlc2. Install a JRE or JDK, then reinstall or sync this skill." >&2
+spec_double_compiler/runtime.py:96:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult | dict[str, Any] | None:
+spec_double_compiler/runtime.py:114:    if callable(obj) and not hasattr(obj, "run"):
+spec_double_compiler/runtime.py:141:    run = getattr(adapter, "run", None)
+spec_double_compiler/runtime.py:142:    if run is None:
+spec_double_compiler/runtime.py:143:        raise TypeError(f"adapter {adapter!r} does not define run(case, ...)")
+spec_double_compiler/runtime.py:145:        result = run(case, work_dir=work_dir)
+spec_double_compiler/runtime.py:149:        result = run(case)
+specs/current/adapter_case_runtime.py:8:``run(case, work_dir)``. ``apply()`` stays the spec-unit surface untouched;
+specs/current/adapter_case_runtime.py:9:``run()`` is additive.
+specs/current/adapter_case_runtime.py:11:The three obligations of a ``run()`` -- MATERIALIZE ``case.before`` as a real
+specs/current/adapter_case_runtime.py:22:import subprocess
+specs/current/adapter_case_runtime.py:33:def run_cli(root: Path, target_repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/current/adapter_case_runtime.py:36:    return subprocess.run(
+specs/current/adapter_case_runtime.py:48:# `run_generated_case_adapters.py` calls `run(case, work_dir=...)`; the adapters
+specs/current/adapter_case_runtime.py:53:# variables. `run()` therefore has three obligations, each with a different cost
+specs/current/adapter_case_runtime.py:213:    return subprocess.CompletedProcess(args=["<record-budgets>"], returncode=0, stdout="", stderr="")
+specs/current/adapter_case_runtime.py:231:    run -- for setup-segment actions they are carried from `prior` because the
+specs/current/adapter_case_runtime.py:319:    """Fail the run when the projected after-state disagrees with the case.
+specs/current/adapter_case_runtime.py:325:    `adapter.run(case)` call -- the way the spec-unit negative controls exercise
+specs/current/adapter_case_runtime.py:396:      * ``TicketOpened`` -- run ``open ticket``; the ticket workspace exists.
+specs/current/production_adapters.py:7:import subprocess
+specs/current/production_adapters.py:16:# and composes them inside its own run(). apply() stays the spec-unit surface.
+specs/current/production_adapters.py:58:    editing the ticket's desired, then current, model. So `run()`:
+specs/current/production_adapters.py:102:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:181:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:202:    # `run()` in the repository and therefore calibrates the bottom of the
+specs/current/production_adapters.py:206:    # ScaffoldProject run() below for the first honest measurement.
+specs/current/production_adapters.py:214:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:258:        install = subprocess.run(
+specs/current/production_adapters.py:267:        version = subprocess.run(
+specs/current/production_adapters.py:297:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:343:        result = subprocess.run(
+specs/current/production_adapters.py:387:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:454:        result = subprocess.run(
+specs/current/production_adapters.py:494:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:530:) -> list[subprocess.CompletedProcess[str]]:
+specs/current/production_adapters.py:576:#: RECORDED as not run (they are experimental and did not run), with the
+specs/current/production_adapters.py:690:    # Unopened. `materialize_before` builds exactly that; `run()` then drives the
+specs/current/production_adapters.py:712:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:765:# most one of the four is ever reachable from the corpus -- no run() they grow
+specs/current/production_adapters.py:1046:        title: str = "CLI run spec-unit tests",
+specs/current/production_adapters.py:1055:        result = run_cli(root, target_repo, "--spec-root", spec_root, "run", "spec-unit-tests")
+specs/current/production_adapters.py:1102:            and "tla-spec-dev --spec-root specs run spec-unit-tests" in readme_text
+specs/current/production_adapters.py:1126:        result = subprocess.run(
+specs/current/production_adapters.py:1176:    # spec-unit surface; `run()` performs only the one modelled transition.
+specs/current/production_adapters.py:1189:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:1377:        def cli(*args: str) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1378:            return subprocess.run(
+specs/current/production_adapters.py:1395:        def generate(*extra: str) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1396:            return subprocess.run(
+specs/current/production_adapters.py:1562:        def cli(*args: str) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1563:            return subprocess.run(
+specs/current/production_adapters.py:1749:        def cli(pkg: Path, manifest: Path) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1750:            return subprocess.run(
+specs/current/production_adapters.py:1764:        # The same 201-case corpus, before and after a FAILING gate run.
+specs/current/production_adapters.py:1834:    """`tla-spec-dev run effect-conformance` diffs observed vs declared effects.
+specs/current/production_adapters.py:1879:        def cli(spec_dir: Path, out: Path) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1880:            return subprocess.run(
+specs/current/production_adapters.py:1882:                 "--spec-root", spec_root, "run", "effect-conformance",
+specs/current/production_adapters.py:1926:    """`tla-spec-dev run kill-test` -- oracle 4, the mutation kill test.
+specs/current/production_adapters.py:1944:    The fixture programs are trivial on purpose: a real corpus run is deferred
+specs/current/production_adapters.py:2008:        def run(spec_dir: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/current/production_adapters.py:2012:            return subprocess.run(
+specs/current/production_adapters.py:2047:        pass_run = run(complete, "--corpus-command", cmd, "--out", str(pass_out))
+specs/current/production_adapters.py:2063:        surv_run = run(surviving, "--corpus-command", surv_cmd, "--out", str(surv_out))
+specs/current/production_adapters.py:2074:        unc_run = run(uncovered, "--corpus-command", unc_cmd, "--out", str(unc_out))
+specs/current/production_adapters.py:2096:        waived_run = run(waived, "--corpus-command", waived_cmd, "--out", str(waived_out))
+specs/current/tests/test_current_ticket_workflow.py:91:    # re-run self-loop (measured at MF-020: 3664 -> 3184 generated states).
+specs/current/tests/test_current_ticket_workflow.py:93:        "RunSpecUnitTests guard must remain a range to preserve the re-run self-loop"
+specs/current/tests/test_tla_spec_dev_binding_reconciliation.py:1:"""CD-09 (coverage-audit run 2, gap G5): bindings equal the model's action set.
+specs/current/tests/test_tla_spec_dev_binding_reconciliation.py:94:        assert callable(getattr(adapter_cls, "run", None)) or callable(
+specs/current/tests/test_tla_spec_dev_binding_reconciliation.py:96:        ), f"{label}: {class_name} has neither run() nor apply()"
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:1:"""MF-032: spec-unit coverage for the adapters given run() by this ticket.
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:5:its real run() against a model-shaped case (the before/after shape the TLC
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:99:    result = adapter.run(case, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:110:        adapter.run(bad, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:121:    result = adapter.run(case, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:132:        adapter.run(bad, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:143:    result = adapter.run(case, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:154:        adapter.run(bad, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:166:    result = adapter.run(case, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:179:        adapter.run(bad, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py:35:        "from the same run -- the number is meaningless alone"
+specs/current/tests/test_tla_spec_dev_kill_test_adapter.py:1:"""MF-016 spec-unit conformance: `tla-spec-dev run kill-test` (oracle 4).
+specs/current/tests/test_tla_spec_dev_kill_test_adapter.py:75:        from a surface nobody covered asserts something the run has no
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:3:Drives each adapter's run() against a synthetic-but-model-shaped case (the same
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:68:    after["result"] = {"accepted": True, "next": "tla-spec-dev run spec-unit-tests", "reason": "NoReason"}
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:84:    result = adapter.run(case, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:97:    result = adapter.run(case, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:109:        adapter.run(bad, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:117:        adapter.run(bad, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:127:        adapter.run(bad, work_dir=tmp_path)
+specs/desired_program_model/adapter_case_runtime.py:8:``run(case, work_dir)``. ``apply()`` stays the spec-unit surface untouched;
+specs/desired_program_model/adapter_case_runtime.py:9:``run()`` is additive.
+specs/desired_program_model/adapter_case_runtime.py:11:The three obligations of a ``run()`` -- MATERIALIZE ``case.before`` as a real
+specs/desired_program_model/adapter_case_runtime.py:22:import subprocess
+specs/desired_program_model/adapter_case_runtime.py:33:def run_cli(root: Path, target_repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/desired_program_model/adapter_case_runtime.py:36:    return subprocess.run(
+specs/desired_program_model/adapter_case_runtime.py:48:# `run_generated_case_adapters.py` calls `run(case, work_dir=...)`; the adapters
+specs/desired_program_model/adapter_case_runtime.py:53:# variables. `run()` therefore has three obligations, each with a different cost
+specs/desired_program_model/adapter_case_runtime.py:213:    return subprocess.CompletedProcess(args=["<record-budgets>"], returncode=0, stdout="", stderr="")
+specs/desired_program_model/adapter_case_runtime.py:231:    run -- for setup-segment actions they are carried from `prior` because the
+specs/desired_program_model/adapter_case_runtime.py:319:    """Fail the run when the projected after-state disagrees with the case.
+specs/desired_program_model/adapter_case_runtime.py:325:    `adapter.run(case)` call -- the way the spec-unit negative controls exercise
+specs/desired_program_model/adapter_case_runtime.py:396:      * ``TicketOpened`` -- run ``open ticket``; the ticket workspace exists.
+specs/desired_program_model/production_adapters.py:7:import subprocess
+specs/desired_program_model/production_adapters.py:16:# and composes them inside its own run(). apply() stays the spec-unit surface.
+specs/desired_program_model/production_adapters.py:58:    editing the ticket's desired, then current, model. So `run()`:
+specs/desired_program_model/production_adapters.py:102:    def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:181:    def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:202:    # `run()` in the repository and therefore calibrates the bottom of the
+specs/desired_program_model/production_adapters.py:206:    # ScaffoldProject run() below for the first honest measurement.
+specs/desired_program_model/production_adapters.py:214:    def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:258:        install = subprocess.run(
+specs/desired_program_model/production_adapters.py:267:        version = subprocess.run(
+specs/desired_program_model/production_adapters.py:297:    def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:343:        result = subprocess.run(
+specs/desired_program_model/production_adapters.py:387:    def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:454:        result = subprocess.run(
+specs/desired_program_model/production_adapters.py:494:    def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:530:) -> list[subprocess.CompletedProcess[str]]:
+specs/desired_program_model/production_adapters.py:576:#: RECORDED as not run (they are experimental and did not run), with the
+specs/desired_program_model/production_adapters.py:690:    # Unopened. `materialize_before` builds exactly that; `run()` then drives the
+specs/desired_program_model/production_adapters.py:712:    def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:765:# most one of the four is ever reachable from the corpus -- no run() they grow
+specs/desired_program_model/production_adapters.py:1046:        title: str = "CLI run spec-unit tests",
+specs/desired_program_model/production_adapters.py:1055:        result = run_cli(root, target_repo, "--spec-root", spec_root, "run", "spec-unit-tests")
+specs/desired_program_model/production_adapters.py:1102:            and "tla-spec-dev --spec-root specs run spec-unit-tests" in readme_text
+specs/desired_program_model/production_adapters.py:1126:        result = subprocess.run(
+specs/desired_program_model/production_adapters.py:1176:    # spec-unit surface; `run()` performs only the one modelled transition.
+specs/desired_program_model/production_adapters.py:1189:    def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:1377:        def cli(*args: str) -> subprocess.CompletedProcess:
+specs/desired_program_model/production_adapters.py:1378:            return subprocess.run(
+specs/desired_program_model/production_adapters.py:1395:        def generate(*extra: str) -> subprocess.CompletedProcess:
+specs/desired_program_model/production_adapters.py:1396:            return subprocess.run(
+specs/desired_program_model/production_adapters.py:1549:        def cli(pkg: Path, manifest: Path) -> subprocess.CompletedProcess:
+specs/desired_program_model/production_adapters.py:1550:            return subprocess.run(
+specs/desired_program_model/production_adapters.py:1564:        # The same 201-case corpus, before and after a FAILING gate run.
+specs/desired_program_model/production_adapters.py:1634:    """`tla-spec-dev run effect-conformance` diffs observed vs declared effects.
+specs/desired_program_model/production_adapters.py:1679:        def cli(spec_dir: Path, out: Path) -> subprocess.CompletedProcess:
+specs/desired_program_model/production_adapters.py:1680:            return subprocess.run(
+specs/desired_program_model/production_adapters.py:1682:                 "--spec-root", spec_root, "run", "effect-conformance",
+specs/desired_program_model/production_adapters.py:1726:    """`tla-spec-dev run kill-test` -- oracle 4, the mutation kill test.
+specs/desired_program_model/production_adapters.py:1744:    The fixture programs are trivial on purpose: a real corpus run is deferred
+specs/desired_program_model/production_adapters.py:1808:        def run(spec_dir: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/desired_program_model/production_adapters.py:1812:            return subprocess.run(
+specs/desired_program_model/production_adapters.py:1847:        pass_run = run(complete, "--corpus-command", cmd, "--out", str(pass_out))
+specs/desired_program_model/production_adapters.py:1863:        surv_run = run(surviving, "--corpus-command", surv_cmd, "--out", str(surv_out))
+specs/desired_program_model/production_adapters.py:1874:        unc_run = run(uncovered, "--corpus-command", unc_cmd, "--out", str(unc_out))
+specs/desired_program_model/production_adapters.py:1896:        waived_run = run(waived, "--corpus-command", waived_cmd, "--out", str(waived_out))
+specs/desired_program_model/tests/test_current_ticket_workflow.py:91:    # re-run self-loop (measured at MF-020: 3664 -> 3184 generated states).
+specs/desired_program_model/tests/test_current_ticket_workflow.py:93:        "RunSpecUnitTests guard must remain a range to preserve the re-run self-loop"
+specs/desired_program_model/tests/test_tla_spec_dev_binding_reconciliation.py:1:"""CD-09 (coverage-audit run 2, gap G5): bindings equal the model's action set.
+specs/desired_program_model/tests/test_tla_spec_dev_binding_reconciliation.py:92:        assert callable(getattr(adapter_cls, "run", None)) or callable(
+specs/desired_program_model/tests/test_tla_spec_dev_binding_reconciliation.py:94:        ), f"{label}: {class_name} has neither run() nor apply()"
+specs/desired_program_model/tests/test_tla_spec_dev_case_execution_run.py:1:"""MF-032: spec-unit coverage for the adapters given run() by this ticket.
+specs/desired_program_model/tests/test_tla_spec_dev_case_execution_run.py:5:its real run() against a model-shaped case (the before/after shape the TLC
+specs/desired_program_model/tests/test_tla_spec_dev_case_execution_run.py:99:    result = adapter.run(case, work_dir=tmp_path)
+specs/desired_program_model/tests/test_tla_spec_dev_case_execution_run.py:110:        adapter.run(bad, work_dir=tmp_path)
+specs/desired_program_model/tests/test_tla_spec_dev_case_execution_run.py:121:    result = adapter.run(case, work_dir=tmp_path)
+specs/desired_program_model/tests/test_tla_spec_dev_case_execution_run.py:132:        adapter.run(bad, work_dir=tmp_path)
+specs/desired_program_model/tests/test_tla_spec_dev_case_execution_run.py:143:    result = adapter.run(case, work_dir=tmp_path)
+specs/desired_program_model/tests/test_tla_spec_dev_case_execution_run.py:154:        adapter.run(bad, work_dir=tmp_path)
+specs/desired_program_model/tests/test_tla_spec_dev_case_execution_run.py:166:    result = adapter.run(case, work_dir=tmp_path)
+specs/desired_program_model/tests/test_tla_spec_dev_case_execution_run.py:179:        adapter.run(bad, work_dir=tmp_path)
+specs/desired_program_model/tests/test_tla_spec_dev_complexity_ledger_adapter.py:35:        "from the same run -- the number is meaningless alone"
+specs/desired_program_model/tests/test_tla_spec_dev_kill_test_adapter.py:1:"""MF-016 spec-unit conformance: `tla-spec-dev run kill-test` (oracle 4).
+specs/desired_program_model/tests/test_tla_spec_dev_kill_test_adapter.py:75:        from a surface nobody covered asserts something the run has no
+specs/desired_program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:3:Drives each adapter's run() against a synthetic-but-model-shaped case (the same
+specs/desired_program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:68:    after["result"] = {"accepted": True, "next": "tla-spec-dev run spec-unit-tests", "reason": "NoReason"}
+specs/desired_program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:84:    result = adapter.run(case, work_dir=tmp_path)
+specs/desired_program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:97:    result = adapter.run(case, work_dir=tmp_path)
+specs/desired_program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:109:        adapter.run(bad, work_dir=tmp_path)
+specs/desired_program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:117:        adapter.run(bad, work_dir=tmp_path)
+specs/desired_program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:127:        adapter.run(bad, work_dir=tmp_path)
+specs/program_model/adapter_case_runtime.py:8:``run(case, work_dir)``. ``apply()`` stays the spec-unit surface untouched;
+specs/program_model/adapter_case_runtime.py:9:``run()`` is additive.
+specs/program_model/adapter_case_runtime.py:11:The three obligations of a ``run()`` -- MATERIALIZE ``case.before`` as a real
+specs/program_model/adapter_case_runtime.py:22:import subprocess
+specs/program_model/adapter_case_runtime.py:33:def run_cli(root: Path, target_repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/program_model/adapter_case_runtime.py:36:    return subprocess.run(
+specs/program_model/adapter_case_runtime.py:48:# `run_generated_case_adapters.py` calls `run(case, work_dir=...)`; the adapters
+specs/program_model/adapter_case_runtime.py:53:# variables. `run()` therefore has three obligations, each with a different cost
+specs/program_model/adapter_case_runtime.py:213:    return subprocess.CompletedProcess(args=["<record-budgets>"], returncode=0, stdout="", stderr="")
+specs/program_model/adapter_case_runtime.py:231:    run -- for setup-segment actions they are carried from `prior` because the
+specs/program_model/adapter_case_runtime.py:319:    """Fail the run when the projected after-state disagrees with the case.
+specs/program_model/adapter_case_runtime.py:325:    `adapter.run(case)` call -- the way the spec-unit negative controls exercise
+specs/program_model/adapter_case_runtime.py:396:      * ``TicketOpened`` -- run ``open ticket``; the ticket workspace exists.
+specs/program_model/production_adapters.py:7:import subprocess
+specs/program_model/production_adapters.py:16:# and composes them inside its own run(). apply() stays the spec-unit surface.
+specs/program_model/production_adapters.py:58:    editing the ticket's desired, then current, model. So `run()`:
+specs/program_model/production_adapters.py:102:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:181:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:202:    # `run()` in the repository and therefore calibrates the bottom of the
+specs/program_model/production_adapters.py:206:    # ScaffoldProject run() below for the first honest measurement.
+specs/program_model/production_adapters.py:214:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:258:        install = subprocess.run(
+specs/program_model/production_adapters.py:267:        version = subprocess.run(
+specs/program_model/production_adapters.py:297:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:343:        result = subprocess.run(
+specs/program_model/production_adapters.py:387:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:454:        result = subprocess.run(
+specs/program_model/production_adapters.py:494:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:530:) -> list[subprocess.CompletedProcess[str]]:
+specs/program_model/production_adapters.py:576:#: RECORDED as not run (they are experimental and did not run), with the
+specs/program_model/production_adapters.py:690:    # Unopened. `materialize_before` builds exactly that; `run()` then drives the
+specs/program_model/production_adapters.py:712:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:765:# most one of the four is ever reachable from the corpus -- no run() they grow
+specs/program_model/production_adapters.py:1046:        title: str = "CLI run spec-unit tests",
+specs/program_model/production_adapters.py:1055:        result = run_cli(root, target_repo, "--spec-root", spec_root, "run", "spec-unit-tests")
+specs/program_model/production_adapters.py:1102:            and "tla-spec-dev --spec-root specs run spec-unit-tests" in readme_text
+specs/program_model/production_adapters.py:1126:        result = subprocess.run(
+specs/program_model/production_adapters.py:1176:    # spec-unit surface; `run()` performs only the one modelled transition.
+specs/program_model/production_adapters.py:1189:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:1377:        def cli(*args: str) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1378:            return subprocess.run(
+specs/program_model/production_adapters.py:1395:        def generate(*extra: str) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1396:            return subprocess.run(
+specs/program_model/production_adapters.py:1549:        def cli(pkg: Path, manifest: Path) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1550:            return subprocess.run(
+specs/program_model/production_adapters.py:1564:        # The same 201-case corpus, before and after a FAILING gate run.
+specs/program_model/production_adapters.py:1634:    """`tla-spec-dev run effect-conformance` diffs observed vs declared effects.
+specs/program_model/production_adapters.py:1679:        def cli(spec_dir: Path, out: Path) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1680:            return subprocess.run(
+specs/program_model/production_adapters.py:1682:                 "--spec-root", spec_root, "run", "effect-conformance",
+specs/program_model/production_adapters.py:1726:    """`tla-spec-dev run kill-test` -- oracle 4, the mutation kill test.
+specs/program_model/production_adapters.py:1744:    The fixture programs are trivial on purpose: a real corpus run is deferred
+specs/program_model/production_adapters.py:1808:        def run(spec_dir: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/program_model/production_adapters.py:1812:            return subprocess.run(
+specs/program_model/production_adapters.py:1847:        pass_run = run(complete, "--corpus-command", cmd, "--out", str(pass_out))
+specs/program_model/production_adapters.py:1863:        surv_run = run(surviving, "--corpus-command", surv_cmd, "--out", str(surv_out))
+specs/program_model/production_adapters.py:1874:        unc_run = run(uncovered, "--corpus-command", unc_cmd, "--out", str(unc_out))
+specs/program_model/production_adapters.py:1896:        waived_run = run(waived, "--corpus-command", waived_cmd, "--out", str(waived_out))
+specs/program_model/tests/test_current_ticket_workflow.py:91:    # re-run self-loop (measured at MF-020: 3664 -> 3184 generated states).
+specs/program_model/tests/test_current_ticket_workflow.py:93:        "RunSpecUnitTests guard must remain a range to preserve the re-run self-loop"
+specs/program_model/tests/test_tla_spec_dev_binding_reconciliation.py:1:"""CD-09 (coverage-audit run 2, gap G5): bindings equal the model's action set.
+specs/program_model/tests/test_tla_spec_dev_binding_reconciliation.py:92:        assert callable(getattr(adapter_cls, "run", None)) or callable(
+specs/program_model/tests/test_tla_spec_dev_binding_reconciliation.py:94:        ), f"{label}: {class_name} has neither run() nor apply()"
+specs/program_model/tests/test_tla_spec_dev_case_execution_run.py:1:"""MF-032: spec-unit coverage for the adapters given run() by this ticket.
+specs/program_model/tests/test_tla_spec_dev_case_execution_run.py:5:its real run() against a model-shaped case (the before/after shape the TLC
+specs/program_model/tests/test_tla_spec_dev_case_execution_run.py:99:    result = adapter.run(case, work_dir=tmp_path)
+specs/program_model/tests/test_tla_spec_dev_case_execution_run.py:110:        adapter.run(bad, work_dir=tmp_path)
+specs/program_model/tests/test_tla_spec_dev_case_execution_run.py:121:    result = adapter.run(case, work_dir=tmp_path)
+specs/program_model/tests/test_tla_spec_dev_case_execution_run.py:132:        adapter.run(bad, work_dir=tmp_path)
+specs/program_model/tests/test_tla_spec_dev_case_execution_run.py:143:    result = adapter.run(case, work_dir=tmp_path)
+specs/program_model/tests/test_tla_spec_dev_case_execution_run.py:154:        adapter.run(bad, work_dir=tmp_path)
+specs/program_model/tests/test_tla_spec_dev_case_execution_run.py:166:    result = adapter.run(case, work_dir=tmp_path)
+specs/program_model/tests/test_tla_spec_dev_case_execution_run.py:179:        adapter.run(bad, work_dir=tmp_path)
+specs/program_model/tests/test_tla_spec_dev_complexity_ledger_adapter.py:35:        "from the same run -- the number is meaningless alone"
+specs/program_model/tests/test_tla_spec_dev_kill_test_adapter.py:1:"""MF-016 spec-unit conformance: `tla-spec-dev run kill-test` (oracle 4).
+specs/program_model/tests/test_tla_spec_dev_kill_test_adapter.py:75:        from a surface nobody covered asserts something the run has no
+specs/program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:3:Drives each adapter's run() against a synthetic-but-model-shaped case (the same
+specs/program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:68:    after["result"] = {"accepted": True, "next": "tla-spec-dev run spec-unit-tests", "reason": "NoReason"}
+specs/program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:84:    result = adapter.run(case, work_dir=tmp_path)
+specs/program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:97:    result = adapter.run(case, work_dir=tmp_path)
+specs/program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:109:        adapter.run(bad, work_dir=tmp_path)
+specs/program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:117:        adapter.run(bad, work_dir=tmp_path)
+specs/program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:127:        adapter.run(bad, work_dir=tmp_path)
+specs/results/coverage-audit-sweep-raw/verify_tables.py:32:    "subprocess": set(),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:2:"""Coverage-audit run 4: mechanical Sweep-1 classifier + Sweep-2/3 area partitioner.
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:19:    # runner spawn :313-339/:358, adapter binding imports; PLUS the shipped experimental
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:22:        "dispatch :62-203 -> TlaSpecDevCli.tla:215-599; port map manifest:209-231. Runner spawn :313-339/:358 now declared runner_process (manifest:187-189/:230, R3-3a FIXED); flag variants out-of-model per :547-551/:599 (recorded granularity limitation) [READ]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:24:        "ScaffoldProject TlaSpecDevCli.tla:248; spec_tree manifest:212 [grep-level + run-3 READ carried]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:32:        "the whole file is the fitness-function evaluation :530-533 declares out-of-model as transcription (run-2 G1 reclassified; unchanged) [READ header run 3]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:38:        "CloseTicket TlaSpecDevCli.tla:584-599. Deletes :154,:385,:477 now declared spec_tree_delete manifest:198-200/:231 (R3-2 FIXED); git spawn :99 declared git_metadata :206-208/:231 (R3-3b FIXED); ledger + validation refusals out-of-model :544-554/:599; timestamps out-of-model :559-560 [READ regions]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:40:        "feedback file under spec-root results matches spec_tree. UNCOVERED: clock provenance :86 -- out-of-model per ESC-7 ruling :559-560 [READ head run 3]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:45:    "scripts/run_generated_case_adapters.py": ("represented", "RunSpecUnitTests, RunEffectConformance", ":524-525 (run; spawned by tla_spec_dev.py:313-339)",
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:46:        "RunSpecUnitTests TlaSpecDevCli.tla:529-577; spawn now declared runner_process manifest:187-189/:230 (R3-3a FIXED); env re-exec :971,:990-998 out-of-model per :531 [grep-level + verified citations]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:48:        "AnalyzeCorpus TlaSpecDevCli.tla:403-437; toml:40-41. UNCOVERED: AnalyzeCorpus declares evidence_report (manifest:227) but the command has no writer and no --out (run():902-935 prints only) -- dead declared port = gap R4-3 [READ]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:54:        "RunKillTest TlaSpecDevCli.tla:493-525; manifest:229. UNCOVERED: mutation seed/restore write_text :548/:551 overwrites production source (scripts/**) matching NO declared port = gap R4-1; corpus spawn :609 matches test_process only for pytest-shaped commands [READ]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:56:        "run() :130 drives kill_test.seeded per mutant; report.write :225 -> evidence_report. UNCOVERED: shares gap R4-1 (spawn :198 of user-supplied corpus command; mutation writes) [READ]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:62:        "harness shim; :36 spawn drives the CLI under test [grep-level]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:66:        "identical role to the specs/current copy; diff-verified identical this run [INFERRED]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:68:        "reconciled binding set; diff-verified identical to specs/current copy this run [grep-level]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:98:                "-", "unrepresented", PLUMBING[path] + "; placed by the run-3 escalation ruling [not read]")
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:169:for cat in ["filesystem", "subprocess", "network", "environment", "clock",
+specs/results/epic-close/sweep-raw-run5/ca5_changed_enum.sh:2:# CA run 5 — verify-by-diff enumeration: all Sweep 2/3 category patterns over
+specs/results/epic-close/sweep-raw-run5/ca5_changed_enum.sh:3:# exactly the surface files whose content changed since run 4 (400c51a..5f84937)
+specs/results/epic-close/sweep-raw-run5/ca5_changed_enum.sh:8:# synchronized) — matching run 4's stated extensions.
+specs/results/epic-close/sweep-raw-run5/ca5_changed_enum.sh:13:names=(filesystem subprocess network environment clock randomness persistent_store behaviors_error behaviors_retry behaviors_timeout behaviors_fallback behaviors_concurrency behaviors_config)
+specs/results/epic-close/sweep-raw-run5/ca5_changed_enum.sh:16:'\b(subprocess|Popen|run|call|check_output|check_call|system|execv|execve|spawn|ProcessBuilder)\b'
+specs/results/epic-close/sweep-raw-run5/ca5_delta_check.sh:2:# Fixed-pattern content-delta check: run-5 patterns applied to BOTH the 400c51a
+specs/results/epic-close/sweep-raw-run5/ca5_delta_check.sh:3:# (run-4) content and the 5f84937 (run-5) content of the five modified surface
+specs/results/epic-close/sweep-raw-run5/ca5_delta_check.sh:9:names=(filesystem subprocess network environment clock randomness persistent_store behaviors_error behaviors_retry behaviors_timeout behaviors_fallback behaviors_concurrency behaviors_config)
+specs/results/epic-close/sweep-raw-run5/ca5_delta_check.sh:12:'\b(subprocess|Popen|run|call|check_output|check_call|system|execv|execve|spawn|ProcessBuilder)\b'
+specs/results/finalization/sweep-raw-close2/cac2_classify.py:27:        "dispatch -> TlaSpecDevCli.tla:222-598 @commands; port map manifest:190-237. CHANGED since 5f84937 [READ diff]: runner spawn gains --fuzz-runs/--seed/--fuzz-iteration flags (default 1/0 = prior behavior; per-flag variants out-of-model PS:547-551; spawn still matches runner_process :140-142); CD-04 corpus help text reworded (wording only); scaffold epilog names providers.py/effect_provider_usage.yaml (text only). Zero new effect primitives in diff (grep)"),
+specs/results/finalization/sweep-raw-close2/cac2_classify.py:39:        "ledger write on close under CloseTicket spec_tree manifest:237. UNCOVERED: verdict/refusal machinery -- out-of-model per ESC-1 ruling PS:551-554 + PS:599. UNCHANGED since 5f84937 (name-status) [carried run-4 READ]"),
+specs/results/finalization/sweep-raw-close2/cac2_classify.py:43:        "CloseTicket TlaSpecDevCli.tla:598; deletes :154/:385/:477 declared spec_tree_delete manifest:151-153/:237; git spawn :99 declared git_metadata :159-161/:237. UNCHANGED since 5f84937 [carried run-4/5 READ]"),
+specs/results/finalization/sweep-raw-close2/cac2_classify.py:50:    "scripts/run_generated_case_adapters.py": ("represented", "RunSpecUnitTests, RunEffectConformance", "PS:524-525 (run; spawned child), CP:80",
+specs/results/finalization/sweep-raw-close2/cac2_classify.py:51:        "RunSpecUnitTests TlaSpecDevCli.tla:541; spawn declared runner_process manifest:140-142/:236. CHANGED [READ diff, +1245 lines]: effect-provider machinery (EP-01..06 + 497ab99/e7fcd09) -- SHIPPED validation harness, out-of-model per CP:80; child-side effects behind the declared spawn (MF-027 standing); diff's only new primitives: provider work-dir mkdir :1381 under the existing work tree, PYTHONPATH env read :1138 for replay commands (grep)"),
+specs/results/finalization/sweep-raw-close2/cac2_classify.py:53:        "AnalyzeCorpus TlaSpecDevCli.tla:415-426 (corpus_gate' in {pass,fail}); manifest:216 deliberately-empty row (R4-3 closed, print-only verified run 5). CHANGED [READ diff]: CD-04 REDESIGN QUESTION output replaces the suggested move; recommendation field removed from classify_cause; still print-only, exit codes unchanged, zero new effect primitives (grep). enforce_case_cap :826 retains 'Fix the diagram' on the generate/export path -- matches the model's own :420/:588 result strings"),
+specs/results/finalization/sweep-raw-close2/cac2_classify.py:55:        "RunEffectConformance TlaSpecDevCli.tla:449-453; evidence_report + spec_tree declared manifest:228 (R4-2 closed, verified run 5). UNCHANGED since 5f84937 [carried]"),
+specs/results/finalization/sweep-raw-close2/cac2_classify.py:59:        "RunKillTest TlaSpecDevCli.tla:503; mutation_write :176-178 + corpus_process :187-189 declared on row :235 (R4-1 closed, verified run 5). UNCHANGED [carried]. Standing inventory: corpus_process declares the spawn, not the child (MF-027)"),
+specs/results/finalization/sweep-raw-close2/cac2_classify.py:63:        "runtime consumed by generated cases/adapters behind the declared runner spawn; internals out-of-model per CP:80. UNCHANGED [carried, INFERRED]"),
+specs/results/finalization/sweep-raw-close2/cac2_classify.py:69:        "harness shim; spawn drives the CLI under test. Diff-verified identical across current/program_model this run [carried]"),
+specs/results/finalization/sweep-raw-close2/cac2_classify.py:73:        "identical role to the specs/current copy; diff-verified identical this run [carried]"),
+specs/results/finalization/sweep-raw-close2/cac2_classify.py:75:        "reconciled binding set; diff-verified identical to specs/current copy this run [READ diff = same CD-04 change]"),
+specs/results/finalization/sweep-raw-close2/cac2_classify.py:89:    "specs/desired_program_model/production_adapters.py": "desired-tree adapter copy (diff-identical to current, verified this run)",
+specs/results/finalization/sweep-raw-close2/cac2_classify.py:90:    "specs/desired_program_model/adapter_case_runtime.py": "desired-tree adapter copy, NEW in the desired tree this workflow (diff-identical to current, verified this run)",
+specs/results/finalization/sweep-raw-close2/cac2_classify.py:137:        return ("out", "CP:49 (validation scripts) + PS:524-525 (audit tooling; run-5 row-359 precedent)", "-",
+specs/results/finalization/sweep-raw-close2/cac2_classify.py:201:for cat in ["filesystem", "subprocess", "network", "environment", "clock",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:41:     * build-directory resume so the executor can seed a run from the exact
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:44:     * subprocess can't stall the graph past this bound.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:63: * Runtime adapter — knows how to spawn one node invocation.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:90: * call `destroyForcibly()` and report a [ExecutionOutcome.TimedOut]. Used
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:93: * spawn the process and call this.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:20:            ?: error("JBangExecutor cannot run a ${invocation.spec.runtime.name} node (${invocation.spec.id})")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:48:    fun run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:90:            // then still run cleanup/finalizer nodes whose dependencies are
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:196:            logger.lifecycle("  run only: ${rerunGuidance.runOnlyCommand}")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:342:                        "executor force-killed the subprocess (see capturedStdoutLog)",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:465:            runOnlyCommand = "./gradlew $graphArg --resume-from-build $buildArg --run-only-node $nodeArg",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:18:            ?: error("UvExecutor cannot run a ${invocation.spec.runtime.name} node (${invocation.spec.id})")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:22:        argv += "run"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphModel.kt:6: * GraphAssembler builds one of these per-run, handing it a map that
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:36:                    "Did the script call Node.run(args, spec, body)?")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:73:            is ValidationRuntime.Uv    -> listOf(tools.uv, "run", file.absolutePath)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt:51: * would run (explicit + transitive), with kind, runtime, and entry path.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt:54: * dry run of the assembly logic — same errors, same order, no execution.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:8: * test-graph run dir.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:19: *       out across multiple graphs left some run dirs without a report.</li>
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:20: *   <li>It coupled "render markdown for one run dir" to a Gradle task
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:26: * com.hayden.testgraphsdk.exec.PlanExecutor} can call it inline at the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:27: * end of a graph run (guaranteeing every graph emits its report) and
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:28: * {@link ValidationReportTask} can still call it for the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:36:     * Idempotent — re-running overwrites both files. No-op when the run
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:60:        // 2. report.md — human-friendly per-run report.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:140:        // Timing: prefer executor-measured (covers the full spawn) when
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:150:            timingLines += "spawn exit code: $it"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:70:        option = "run-only-node",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:71:        description = "Node id to run by itself from saved build input context.",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:78:    fun run() {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:91:        logger.lifecycle("testGraph '${graphSpec.name}' run=$runId steps=${plan.size}")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:103:            ).run(plan, resume)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:109:        // right here, while we still own this run dir. Doing it inline avoids
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:110:        // the Gradle finalizer dedup that left some run dirs without a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:132:                "--resume-from-build is required with --resume-from-node or --run-only-node"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:137:                "--resume-from-build requires exactly one of --resume-from-node or --run-only-node"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:147:                "--resume-from-build must point at an existing run directory: ${buildDir.absolutePath}"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:10: * Manual "regenerate every existing run's summary.json + report.md".
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:15: * deduplication that used to leave some run dirs without a report when
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:22: * run dir that carries an envelope/ subdir and rewrites the artifacts.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:29:        description = "Re-render summary.json + report.md for every existing run dir under validation-reports/."
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:63: * DSL builder for `testGraph("name") { ... }`. Every `node(path)` call
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt:66:            // build invocation, which used to leave some run dirs
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt:68:            // as a manual rebuild over every existing run dir.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:14: * Per-graph run tasks are registered by the extension itself as
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:25: * fresh run starts clean.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:73:        // Aggregate task: run every test graph the build script declared,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:75:        // wired from `afterEvaluate` so any `testGraph(...)` call lower
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:84:            // single execution against one run dir, leaving the others
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:92:            // doesn't make Gradle run them inside `validationRunAll`'s
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:27:     * Whether failed-run output should suggest a direct rerun command from the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/JsonMapper.java:19: * means "spawn never happened") that have to round-trip through the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:29: *   Node.run(args,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:37:    public static void run(String[] args, com.hayden.testgraphsdk.sdk.NodeSpec spec, com.hayden.testgraphsdk.sdk.NodeBody body) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:67:        // operators who run a node script directly to inspect output.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:98:            // here doesn't lose the run, it just downgrades it to a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeBody.java:9: * escapes the body is caught by {@link Node#run} and converted to a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:15: *   --runId=<id>          overall graph run id
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:82:     * Attach a structured record for one subprocess this node spawned.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:85:     * the node author's call: some nodes want a non-zero exit code as
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:13: * and passes it to {@link Node#run(String[], NodeSpec, java.util.function.Function)}.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:53:     * for nodes that are safe to re-run; most graph nodes are stateful
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:9: * Structured record of one subprocess a node spawned. Attached to
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:11: * report renderer can show per-subprocess details (exit code, log
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:21: * run's report dir, so it's reproducible across machines and meaningful
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:24: * <p>If the spawn itself fails (binary not found, IOException at
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:13: * exit code, pid, captured-log path (relative to the run's report
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:14: * dir), and any spawn-time error. Attach it to the result with
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:16: * can show per-subprocess sections without scraping stdout.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:25: * <p>Never throws on spawn failure: if {@code pb.start()} blows up
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:38:     * subprocess within the current node's execution. Callers pass a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:54:     * subprocess output as soon as the live console scrolled.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:57:     * run's report dir (so the envelope is reproducible across
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:61:    public static ProcessRecord run(NodeContext ctx, String label, ProcessBuilder pb) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:79:                    -1, null, relativeLog, "spawn failed: " + e.getMessage());
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:102:     * <p>Exposed for nodes that need to spawn a subprocess with custom
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:104:     * hand-construct a {@link ProcessRecord}; they can call
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:17:      --runId=<id>          overall graph run id
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:56:        nodes that are safe to re-run; most graph nodes are stateful
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:65:        """Control whether failed-run guidance should offer a direct rerun.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:7:renderer can show per-subprocess details without scraping stdout.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:9:Never raises on spawn failure: if :func:`subprocess.Popen` blows up
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:18:import subprocess
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:28:    subprocess within the current node's execution.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:39:def run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:70:            proc = subprocess.Popen(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:73:                stderr=subprocess.STDOUT,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:101:            error=f"spawn failed: {e}",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:32:    """Structured record of one subprocess a node spawned.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:35:    report renderer can show per-subprocess details (exit code, log
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:44:    If the spawn itself fails (binary missing, OSError on start),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:145:        """Attach a structured record for one subprocess this node spawned.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:149:        call: some nodes want a non-zero exit code as the success
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:77:        # downgrades the run to a synthesized envelope — never loses it.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:12:import subprocess
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:38:    close_record = procs.run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:89:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:91:    status = subprocess.run(["git", "status", "--short"], cwd=repo, capture_output=True, text=True, check=False)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:149:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:50:        record = procs.run(ctx, label, argv, cwd=repo_dir)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:87:    record = procs.run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:32:    record = procs.run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:34:        "cli-run-spec-unit-tests",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:39:            "run",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:73:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:25:    record = procs.run(ctx, label, argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:36:    record = procs.run(ctx, label, argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:52:        ("root-help", [str(cli), "--help"], ["--spec-root", "scaffold", "open", "run", "close"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:57:        ("run-spec-units-help", [str(cli), "run", "spec-unit-tests", "--help"], ["generated/adapted", "spec root"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:62:    for command in ["scaffold", "open", "run", "close"]:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_install.py:44:    record = procs.run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:41:     * build-directory resume so the executor can seed a run from the exact
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:44:     * subprocess can't stall the graph past this bound.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:63: * Runtime adapter — knows how to spawn one node invocation.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:90: * call `destroyForcibly()` and report a [ExecutionOutcome.TimedOut]. Used
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:93: * spawn the process and call this.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:20:            ?: error("JBangExecutor cannot run a ${invocation.spec.runtime.name} node (${invocation.spec.id})")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:48:    fun run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:90:            // then still run cleanup/finalizer nodes whose dependencies are
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:196:            logger.lifecycle("  run only: ${rerunGuidance.runOnlyCommand}")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:342:                        "executor force-killed the subprocess (see capturedStdoutLog)",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:465:            runOnlyCommand = "./gradlew $graphArg --resume-from-build $buildArg --run-only-node $nodeArg",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:18:            ?: error("UvExecutor cannot run a ${invocation.spec.runtime.name} node (${invocation.spec.id})")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:22:        argv += "run"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphModel.kt:6: * GraphAssembler builds one of these per-run, handing it a map that
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:36:                    "Did the script call Node.run(args, spec, body)?")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:73:            is ValidationRuntime.Uv    -> listOf(tools.uv, "run", file.absolutePath)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt:51: * would run (explicit + transitive), with kind, runtime, and entry path.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt:54: * dry run of the assembly logic — same errors, same order, no execution.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:8: * test-graph run dir.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:19: *       out across multiple graphs left some run dirs without a report.</li>
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:20: *   <li>It coupled "render markdown for one run dir" to a Gradle task
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:26: * com.hayden.testgraphsdk.exec.PlanExecutor} can call it inline at the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:27: * end of a graph run (guaranteeing every graph emits its report) and
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:28: * {@link ValidationReportTask} can still call it for the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:36:     * Idempotent — re-running overwrites both files. No-op when the run
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:60:        // 2. report.md — human-friendly per-run report.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:140:        // Timing: prefer executor-measured (covers the full spawn) when
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:150:            timingLines += "spawn exit code: $it"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:70:        option = "run-only-node",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:71:        description = "Node id to run by itself from saved build input context.",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:78:    fun run() {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:91:        logger.lifecycle("testGraph '${graphSpec.name}' run=$runId steps=${plan.size}")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:103:            ).run(plan, resume)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:109:        // right here, while we still own this run dir. Doing it inline avoids
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:110:        // the Gradle finalizer dedup that left some run dirs without a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:132:                "--resume-from-build is required with --resume-from-node or --run-only-node"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:137:                "--resume-from-build requires exactly one of --resume-from-node or --run-only-node"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:147:                "--resume-from-build must point at an existing run directory: ${buildDir.absolutePath}"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:10: * Manual "regenerate every existing run's summary.json + report.md".
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:15: * deduplication that used to leave some run dirs without a report when
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:22: * run dir that carries an envelope/ subdir and rewrites the artifacts.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:29:        description = "Re-render summary.json + report.md for every existing run dir under validation-reports/."
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:63: * DSL builder for `testGraph("name") { ... }`. Every `node(path)` call
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt:66:            // build invocation, which used to leave some run dirs
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt:68:            // as a manual rebuild over every existing run dir.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:14: * Per-graph run tasks are registered by the extension itself as
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:25: * fresh run starts clean.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:73:        // Aggregate task: run every test graph the build script declared,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:75:        // wired from `afterEvaluate` so any `testGraph(...)` call lower
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:84:            // single execution against one run dir, leaving the others
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:92:            // doesn't make Gradle run them inside `validationRunAll`'s
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:27:     * Whether failed-run output should suggest a direct rerun command from the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/JsonMapper.java:19: * means "spawn never happened") that have to round-trip through the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:29: *   Node.run(args,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:37:    public static void run(String[] args, com.hayden.testgraphsdk.sdk.NodeSpec spec, com.hayden.testgraphsdk.sdk.NodeBody body) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:67:        // operators who run a node script directly to inspect output.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:98:            // here doesn't lose the run, it just downgrades it to a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeBody.java:9: * escapes the body is caught by {@link Node#run} and converted to a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:15: *   --runId=<id>          overall graph run id
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:82:     * Attach a structured record for one subprocess this node spawned.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:85:     * the node author's call: some nodes want a non-zero exit code as
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:13: * and passes it to {@link Node#run(String[], NodeSpec, java.util.function.Function)}.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:53:     * for nodes that are safe to re-run; most graph nodes are stateful
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:9: * Structured record of one subprocess a node spawned. Attached to
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:11: * report renderer can show per-subprocess details (exit code, log
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:21: * run's report dir, so it's reproducible across machines and meaningful
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:24: * <p>If the spawn itself fails (binary not found, IOException at
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:13: * exit code, pid, captured-log path (relative to the run's report
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:14: * dir), and any spawn-time error. Attach it to the result with
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:16: * can show per-subprocess sections without scraping stdout.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:25: * <p>Never throws on spawn failure: if {@code pb.start()} blows up
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:38:     * subprocess within the current node's execution. Callers pass a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:54:     * subprocess output as soon as the live console scrolled.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:57:     * run's report dir (so the envelope is reproducible across
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:61:    public static ProcessRecord run(NodeContext ctx, String label, ProcessBuilder pb) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:79:                    -1, null, relativeLog, "spawn failed: " + e.getMessage());
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:102:     * <p>Exposed for nodes that need to spawn a subprocess with custom
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:104:     * hand-construct a {@link ProcessRecord}; they can call
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:17:      --runId=<id>          overall graph run id
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:56:        nodes that are safe to re-run; most graph nodes are stateful
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:65:        """Control whether failed-run guidance should offer a direct rerun.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:7:renderer can show per-subprocess details without scraping stdout.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:9:Never raises on spawn failure: if :func:`subprocess.Popen` blows up
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:18:import subprocess
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:28:    subprocess within the current node's execution.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:39:def run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:70:            proc = subprocess.Popen(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:73:                stderr=subprocess.STDOUT,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:101:            error=f"spawn failed: {e}",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:32:    """Structured record of one subprocess a node spawned.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:35:    report renderer can show per-subprocess details (exit code, log
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:44:    If the spawn itself fails (binary missing, OSError on start),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:145:        """Attach a structured record for one subprocess this node spawned.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:149:        call: some nodes want a non-zero exit code as the success
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:77:        # downgrades the run to a synthesized envelope — never loses it.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:12:import subprocess
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:38:    close_record = procs.run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:89:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:91:    status = subprocess.run(["git", "status", "--short"], cwd=repo, capture_output=True, text=True, check=False)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:149:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:50:        record = procs.run(ctx, label, argv, cwd=repo_dir)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:87:    record = procs.run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:32:    record = procs.run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:34:        "cli-run-spec-unit-tests",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:39:            "run",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:73:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:25:    record = procs.run(ctx, label, argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:36:    record = procs.run(ctx, label, argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:52:        ("root-help", [str(cli), "--help"], ["--spec-root", "scaffold", "open", "run", "close"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:57:        ("run-spec-units-help", [str(cli), "run", "spec-unit-tests", "--help"], ["generated/adapted", "spec root"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:62:    for command in ["scaffold", "open", "run", "close"]:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_install.py:44:    record = procs.run(
+test_graph/sources/effect_provider_examples.py:65:        "--run-id",
+test_graph/sources/effect_provider_examples.py:68:    record = procs.run(
+test_graph/sources/spec_workflow_close_ticket.py:12:import subprocess
+test_graph/sources/spec_workflow_close_ticket.py:61:    close_record = procs.run(
+test_graph/sources/spec_workflow_close_ticket.py:130:        record = procs.run(ctx, label, argv, cwd=repo)
+test_graph/sources/spec_workflow_close_ticket.py:132:    status = subprocess.run(["git", "status", "--short"], cwd=repo, capture_output=True, text=True, check=False)
+test_graph/sources/spec_workflow_complete_ticket.py:149:        record = procs.run(ctx, label, argv, cwd=repo)
+test_graph/sources/spec_workflow_create_repo.py:50:        record = procs.run(ctx, label, argv, cwd=repo_dir)
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:13:import subprocess
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:93:        proc = subprocess.Popen(
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:95:            stdout=subprocess.PIPE,
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:96:            stderr=subprocess.DEVNULL,
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:99:    except (OSError, subprocess.SubprocessError):
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:103:    except subprocess.TimeoutExpired:
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:167:    # every run, so the nested build always compiles `build-logic` from
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:187:    record = procs.run(
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:194:            # (`build-logic`), which the GRADLE_OPTS system property alone does
+test_graph/sources/spec_workflow_spec_units.py:32:    record = procs.run(
+test_graph/sources/spec_workflow_spec_units.py:34:        "cli-run-spec-unit-tests",
+test_graph/sources/spec_workflow_spec_units.py:39:            "run",
+test_graph/sources/spec_workflow_start_ticket.py:73:        record = procs.run(ctx, label, argv, cwd=repo)
+test_graph/sources/tla_spec_dev_cli_help.py:25:    record = procs.run(ctx, label, argv)
+test_graph/sources/tla_spec_dev_cli_help.py:36:    record = procs.run(ctx, label, argv)
+test_graph/sources/tla_spec_dev_cli_help.py:52:        ("root-help", [str(cli), "--help"], ["--spec-root", "scaffold", "open", "run", "close"]),
+test_graph/sources/tla_spec_dev_cli_help.py:57:        ("run-spec-units-help", [str(cli), "run", "spec-unit-tests", "--help"], ["generated/adapted", "spec root"]),
+test_graph/sources/tla_spec_dev_cli_help.py:62:    for command in ["scaffold", "open", "run", "close"]:
+test_graph/sources/tla_spec_dev_cli_install.py:44:    record = procs.run(
+tests/corpus_fixtures.py:7:4 and 2 cases. That corpus is regenerated under a validation report at run time
+tests/corpus_fixtures.py:10:external placeholder cases. Regenerating it needs a TLC run over the reachable
+tests/effect_adapter_fixtures.py:7:  the specimen that must FAIL the run.
+tests/effect_adapter_fixtures.py:22:    def run(self, case: Any, work_dir: Path | None = None) -> dict[str, Any]:
+tests/effect_adapter_fixtures.py:32:    """Writes outside every declared port. The run must fail because of this."""
+tests/effect_adapter_fixtures.py:34:    def run(self, case: Any, work_dir: Path | None = None) -> dict[str, Any]:
+tests/test_analyze_architecture.py:29:import subprocess
+tests/test_analyze_architecture.py:183:def cli(*args: str) -> subprocess.CompletedProcess:
+tests/test_analyze_architecture.py:184:    return subprocess.run(
+tests/test_analyze_complexity.py:27:import subprocess
+tests/test_analyze_complexity.py:410:    owner direction: "unknown" is "the scan has not run", "unmappable" is "the
+tests/test_analyze_complexity.py:1014:    being found and the operator body being one resolve_definition_body call
+tests/test_analyze_complexity.py:1139:    product 2. The run's workaround was naming one view's invariant exactly
+tests/test_analyze_complexity.py:1371:def run_generation(tmp_path: Path, *extra: str) -> subprocess.CompletedProcess[str]:
+tests/test_analyze_complexity.py:1373:    return subprocess.run(
+tests/test_analyze_complexity.py:1418:def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
+tests/test_analyze_complexity.py:1419:    return subprocess.run(
+tests/test_analyze_complexity.py:1821:  /\\ Mark("run")
+tests/test_architecture_reflexion.py:31:import subprocess
+tests/test_architecture_reflexion.py:310:def cli(*args: str) -> subprocess.CompletedProcess:
+tests/test_architecture_reflexion.py:311:    return subprocess.run(
+tests/test_architecture_reflexion.py:393:        assert kinds == {"import", "call"}, (
+tests/test_architecture_reflexion.py:394:            "the import declares the dependency and the call exercises it; a check that "
+tests/test_architecture_reflexion.py:395:            "reported only one of them would miss either an unused import or a call "
+tests/test_architecture_reflexion.py:409:        result = subprocess.run(
+tests/test_architecture_reflexion.py:1034:        run. The JSON said `[]` and `0`, which is what a consumer reads.
+tests/test_architecture_reflexion.py:1169:    def _run(self, *args: str) -> subprocess.CompletedProcess:
+tests/test_architecture_reflexion.py:1170:        return subprocess.run(
+tests/test_architecture_reflexion.py:1203:        assert "could not be run" in result.stderr
+tests/test_architecture_reflexion.py:1225:        assert ("transform.py", "ingest.py", "call") in kinds
+tests/test_architecture_reflexion.py:1285:        result = subprocess.run(
+tests/test_architecture_reflexion.py:1321:    """The acceptance run, pinned as a test.
+tests/test_architecture_reflexion.py:1341:    """The second dogfood run, pinned with the numbers it produced.
+tests/test_architecture_reflexion.py:1579:        # into ingest.py, and a refactor that removed only the call would leave
+tests/test_architecture_reflexion.py:1587:            ("deliver.py", "ingest.py", "call"),
+tests/test_architecture_reflexion.py:1646:        refuses to call that an improvement.
+tests/test_architecture_reflexion.py:1847:        result = subprocess.run(
+tests/test_architecture_reflexion.py:1870:        result = subprocess.run(
+tests/test_budgets.py:5:import subprocess
+tests/test_budgets.py:131:    """VAL-04: no scaffold surface may call budgets hard gates."""
+tests/test_budgets.py:146:def _scaffold(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
+tests/test_budgets.py:147:    return subprocess.run(
+tests/test_case_adapter_runtime.py:3:import subprocess
+tests/test_case_adapter_runtime.py:226:    def run(self, case, work_dir=None):
+tests/test_case_adapter_runtime.py:227:        EVENTS.append(("run", case.name, work_dir.name))
+tests/test_case_adapter_runtime.py:252:        ("run", "case_1", _opaque_path_component("case", "case_1")),
+tests/test_case_adapter_runtime.py:255:        ("run", "case_2", _opaque_path_component("case", "case_2")),
+tests/test_case_adapter_runtime.py:274:    def run(self, case, work_dir=None):
+tests/test_case_adapter_runtime.py:275:        EVENTS.append(("run", case.name))
+tests/test_case_adapter_runtime.py:302:        ("run", "case_1"),
+tests/test_case_adapter_runtime.py:315:    def run(self, case, work_dir=None):
+tests/test_case_adapter_runtime.py:316:        EVENTS.append(("run", case.name))
+tests/test_case_adapter_runtime.py:346:        ("run", "case_1"),
+tests/test_case_adapter_runtime.py:394:    def run(self, case, work_dir=None):
+tests/test_case_adapter_runtime.py:444:    def run(self, case, work_dir=None):
+tests/test_case_adapter_runtime.py:479:    result = subprocess.run(
+tests/test_case_adapter_runtime.py:510:    def run(self, case, work_dir=None):
+tests/test_case_adapter_runtime.py:590:    def run(self, case, work_dir=None):
+tests/test_complexity_ledger.py:723:        # policy call for the owner, not a side effect of a reporting fix.
+tests/test_complexity_ledger.py:942:        would force each ticket to run a whole-epic audit or to fake a verdict;
+tests/test_complexity_ledger.py:1027:    """The honest post-pivot record: experimental members recorded, not run."""
+tests/test_corpus_diagnostics.py:14:import subprocess
+tests/test_corpus_diagnostics.py:377:        "    def run(self, case, work_dir=None):\n"
+tests/test_corpus_diagnostics.py:398:    """--limit is a focused-run selection, never a way to satisfy a budget."""
+tests/test_corpus_diagnostics.py:403:    result = subprocess.run(
+tests/test_corpus_diagnostics.py:420:    result = subprocess.run(
+tests/test_corpus_diagnostics.py:436:def _cli(*args: str) -> subprocess.CompletedProcess:
+tests/test_corpus_diagnostics.py:437:    return subprocess.run(
+tests/test_corpus_diagnostics.py:467:    result = subprocess.run(
+tests/test_effect_conformance_cli.py:1:"""MF-013: `tla-spec-dev run effect-conformance` exit-code contract.
+tests/test_effect_conformance_cli.py:54:    assert effect_conformance_report.run(make_args(target=tmp_path / "nope")) == 2
+tests/test_effect_conformance_cli.py:59:    assert effect_conformance_report.run(make_args(target=spec_dir)) == 2
+tests/test_effect_conformance_cli.py:67:    assert effect_conformance_report.run(make_args(target=spec_dir)) == 2
+tests/test_effect_conformance_cli.py:73:    assert effect_conformance_report.run(make_args(target=spec_dir)) == 1
+tests/test_effect_conformance_cli.py:79:    assert effect_conformance_report.run(make_args(target=spec_dir, out=out)) == 1
+tests/test_effect_conformance_cli.py:93:    assert effect_conformance_report.run(make_args(target=plain)) == 1
+tests/test_effect_conformance_cli.py:94:    assert effect_conformance_report.run(make_args(target=justified)) == 1
+tests/test_effect_conformance_cli.py:103:    code = effect_conformance_report.run(make_args(target=target, out=out))
+tests/test_effect_conformance_cli.py:105:    # Exit 1, not 0: no corpus was run, so every declared port reads as dead
+tests/test_effect_conformance_cli.py:107:    # MF-023 must run the corpus and then confirm or remove each port.
+tests/test_effect_conformance_runner.py:87:        """THE rule: the run FAILS. Not warns, not records-and-continues."""
+tests/test_effect_conformance_runner.py:131:    ``allow_undeclared`` flag. The run must fail exactly as if none of them
+tests/test_effect_conformance.py:22:import subprocess
+tests/test_effect_conformance.py:135:            subprocess.run([sys.executable, "-c", "pass"], check=True)
+tests/test_effect_conformance.py:136:        assert any(e.type == "process.spawn" for e in sandbox.recorder.for_case("c1"))
+tests/test_effect_conformance.py:173:    """THE core rule. An undeclared observed effect FAILS the run."""
+tests/test_effect_conformance.py:425:# the in-process CPython runtime, so a JVM adapter and a subprocess-delegating
+tests/test_effect_conformance.py:466:            "/usr/bin/env python3 run.py", resolved=object()
+tests/test_effect_conformance.py:545:    """A spawn is a boundary, not a fully-accounted-for effect."""
+tests/test_effect_conformance.py:550:            ports["proc"] = {"type": "process.spawn", "target": "*java*"}
+tests/test_effect_conformance.py:556:                ObservedEffect(type="process.spawn", target="java -jar tla2tools.jar", action="Act", case="c1"),
+tests/test_effect_conformance.py:563:        assert report.unobservable, "the spawn must not be silent"
+tests/test_effect_conformance.py:569:        """Declaring "I spawn java" does not say what java then wrote.
+tests/test_effect_conformance.py:571:        This is the subtle half. The declared port makes the spawn itself
+tests/test_effect_conformance.py:576:        assert declared.gaps == [], "the spawn matches its declared port"
+tests/test_effect_conformance.py:577:        assert declared.ok is False, "but the run still refuses"
+tests/test_effect_conformance.py:586:        """Drive a real subprocess through the real patches."""
+tests/test_effect_conformance.py:588:            declarations(proc={"type": "process.spawn", "target": "*"})
+tests/test_effect_conformance.py:592:            subprocess.run([sys.executable, "-c", "pass"], check=True)
+tests/test_effect_conformance.py:612:            declarations(proc={"type": "process.spawn", "target": "*"})
+tests/test_effect_conformance.py:616:            subprocess.run(
+tests/test_effect_conformance.py:783:# in-process sandbox saw only the spawn and the verdict was `unobservable`
+tests/test_effect_conformance.py:787:# an unwatched axis, and a spawn with no out-of-process evidence at all, still
+tests/test_effect_conformance.py:807:            subprocess.run(
+tests/test_effect_conformance.py:824:            subprocess.run([sys.executable, "-c", f"import os; os.remove({str(victim)!r})"], check=True)
+tests/test_effect_conformance.py:910:            declarations(proc={"type": "process.spawn", "target": "*"})
+tests/test_effect_conformance.py:914:            [ObservedEffect(type="process.spawn", target="java -jar x.jar", action="Act", case="c1")],
+tests/test_effect_conformance.py:924:        assert "invisible to this run" in report.unobservable[0].reason
+tests/test_effect_conformance.py:947:        """Symmetric control: a spawn is fully accounted for ONLY when every axis is proven.
+tests/test_effect_conformance.py:989:        # Empty evidence is not a downgrade: the spawn is as unobservable as ever.
+tests/test_effect_conformance.py:1018:        the run STILL refuses -- verdict unobservable, residual named. Observed
+tests/test_effect_conformance.py:1027:                proc={"type": "process.spawn", "target": "*"},
+tests/test_effect_conformance.py:1034:                    subprocess.run(
+tests/test_effect_conformance.py:1051:        # ...and yet the run still refuses, because the spawn's network axis is unseen.
+tests/test_effect_provider_example_validation.py:50:    run_id = "run-1"
+tests/test_effect_provider_example_validation.py:58:        "command": ["/usr/bin/python3", "validate.py", "--run-id", run_id],
+tests/test_effect_provider_example_validation.py:89:    result = runner._validate_result("demo", "run-1", result_path)
+tests/test_effect_provider_example_validation.py:100:        runner._validate_result("demo", "run-1", result_path)
+tests/test_effect_provider_fuzzing.py:10:import subprocess
+tests/test_effect_provider_fuzzing.py:143:        result = subprocess.run(
+tests/test_effect_provider_fuzzing.py:224:    def run(self, case, work_dir=None):
+tests/test_effect_provider_fuzzing.py:484:    def run(self, case, work_dir=None):
+tests/test_effect_provider_fuzzing.py:616:    def run(self, case, work_dir=None):
+tests/test_effect_provider_fuzzing.py:720:    def run(self, case, work_dir=None):
+tests/test_effect_provider_fuzzing.py:891:    def run(self, case, work_dir=None):
+tests/test_effect_provider_fuzzing.py:892:        EVENTS.append(("run", case.name))
+tests/test_effect_provider_fuzzing.py:893:        if FAIL_PHASE == "run":
+tests/test_effect_provider_fuzzing.py:894:            raise RuntimeError("run failed")
+tests/test_effect_provider_fuzzing.py:976:        ("run", "run", None),
+tests/test_effect_provider_fuzzing.py:1092:@pytest.mark.parametrize("failure_phase", ["run", "setup_all", "teardown_all"])
+tests/test_effect_provider_fuzzing.py:1101:    site_packages_result = subprocess.run(
+tests/test_effect_provider_fuzzing.py:1265:    def run(self, case, work_dir=None):
+tests/test_effect_provider_fuzzing.py:1266:        record("run", ACTIVE)
+tests/test_effect_provider_fuzzing.py:1268:        if should_fail(ACTIVE, "run"):
+tests/test_effect_provider_fuzzing.py:1269:            raise RuntimeError("deterministic run replay failure")
+tests/test_effect_provider_fuzzing.py:1318:    def run_campaign() -> tuple[subprocess.CompletedProcess[str], list[dict[str, Any]], list[dict[str, Any]]]:
+tests/test_effect_provider_fuzzing.py:1321:        completed = subprocess.run(
+tests/test_effect_provider_fuzzing.py:1370:    replayed = subprocess.run(replay_argv, cwd=tmp_path, env=env, text=True, capture_output=True, check=False)
+tests/test_effect_provider_fuzzing.py:1395:    monkeypatch.setattr(tla_spec_dev.subprocess, "run", fake_run)
+tests/test_effect_provider_fuzzing.py:1427:    result = subprocess.run(
+tests/test_effect_provider_runtime.py:6:import subprocess
+tests/test_effect_provider_runtime.py:198:    def run(self, case, work_dir=None):
+tests/test_effect_provider_runtime.py:199:        EVENTS.append((\"run\", case.name, PATCHED))
+tests/test_effect_provider_runtime.py:201:            raise RuntimeError(\"adapter run failed\")
+tests/test_effect_provider_runtime.py:338:        ("run", "case_1", True),
+tests/test_effect_provider_runtime.py:506:        ("FAIL_SETUP", "adapter setup failed", "run"),
+tests/test_effect_provider_runtime.py:554:    assert "adapter run failed" in message
+tests/test_effect_provider_runtime.py:566:    with pytest.raises(SystemExit, match="adapter run failed"):
+tests/test_effect_provider_runtime.py:668:            'EVENTS.append(("run", case.name, PATCHED))',
+tests/test_effect_provider_runtime.py:669:            'EVENTS.append(("run", case.name, PATCHED))\n        return {"output": "wrong"}',
+tests/test_effect_provider_runtime.py:948:    assert not any(event[0] in {"setup", "run", "teardown"} for event in effect_provider_fixture.EVENTS)
+tests/test_effect_provider_runtime.py:1024:    assert not any(event[0] in {"setup", "run", "teardown"} for event in effect_provider_fixture.EVENTS)
+tests/test_effect_provider_runtime.py:1285:    def run(self, case, work_dir=None):
+tests/test_effect_provider_runtime.py:1286:        event("run:" + case.input.action)
+tests/test_effect_provider_runtime.py:1328:    invalid = subprocess.run(
+tests/test_effect_provider_runtime.py:1353:    result = subprocess.run(
+tests/test_effect_provider_runtime.py:1365:        "run:Publish",
+tests/test_effect_provider_runtime.py:1374:    non_batch = subprocess.run(
+tests/test_effect_provider_runtime.py:1382:    assert not (spec_dir / "events.txt").exists(), "provider and adapter code must not run in unsupported mode"
+tests/test_effect_provider_runtime.py:1390:    def run(self, case, work_dir=None):
+tests/test_export_testgraph_cases.py:96:        "    def run(self, case, work_dir=None):\n"
+tests/test_extract_spec_manifest.py:2:import subprocess
+tests/test_extract_spec_manifest.py:113:        completed = subprocess.run(
+tests/test_fitness_functions.py:248:    may run under a bare python3 with no PyYAML installed."""
+tests/test_generate_cases_from_tlc_dump.py:498:    assert "Measured over the corpus this run generated: 2 cases." in audit
+tests/test_infer_action_params.py:591:# RP-02: set-membership recovery, and an audit that reports what a run measured
+tests/test_infer_action_params.py:598:# is recoverable from its state pair" on a run that had just reported
+tests/test_infer_action_params.py:853:    Statically every parameter here is recoverable. If the run recovered none,
+tests/test_infer_action_params.py:868:    """The ticket's own acceptance: an audit on a run where recovery PARTLY
+tests/test_kill_test.py:9:is an empirical claim and only a real run can make it; see
+tests/test_kill_test.py:16:import subprocess
+tests/test_kill_test.py:59:          type: process.spawn
+tests/test_kill_test.py:120:    ``mutant is None`` is the control run: it reports "failed" only when
+tests/test_kill_test.py:126:    def run(mutant: Mutant | None) -> tuple[bool, list[str], str]:
+tests/test_kill_test.py:132:    return run
+tests/test_kill_test.py:171:        This is the whole point of deriving coverage every run rather than
+tests/test_kill_test.py:218:        Reporting any number here would assert something the run has no
+tests/test_kill_test.py:700:    """These run against the real repository model, so they fail the moment a
+tests/test_kill_test.py:724:        # user-supplied corpus spawn are now declared, each with a seeded fault.
+tests/test_kill_test.py:791:    def run_cli(self, *args: str) -> subprocess.CompletedProcess[str]:
+tests/test_kill_test.py:792:        return subprocess.run(
+tests/test_kill_test.py:834:# The control run
+tests/test_kill_test.py:841:    "Killed" means "the corpus run failed", so a corpus that already fails on
+tests/test_kill_test.py:843:    1.0. This is not hypothetical -- the first real run of the worked
+tests/test_onboard_program_model.py:3:import subprocess
+tests/test_onboard_program_model.py:122:    A new user is told to run TLC on both views immediately after onboarding. If
+tests/test_onboard_program_model.py:129:    result = subprocess.run(
+tests/test_onboard_program_model.py:146:    result = subprocess.run(
+tests/test_spec_yaml_valid.py:11:  ``analyze complexity`` run. No verdict happened to be wrong, because the
+tests/test_spec_yaml_valid.py:33:    reason="PyYAML is not a runtime dependency; run with `uv run --with pyyaml` to enforce",
+tests/test_testgraph_channels.py:71:        "    def run(self, case, work_dir=None):\n"
+tests/test_testgraph_channels.py:103:        "    def run(self, case, work_dir=None):\n"
+tests/test_testgraph_channels.py:137:        "    def run(self, case, work_dir=None):\n"
+tests/test_testgraph_channels.py:157:        "    def run(self, case, work_dir=None):\n"
+tests/test_testgraph_channels.py:170:    """All four adapter roles run in the harness, so all four are isolated."""
+tests/test_testgraph_channels.py:466:        "    def run(self, case, work_dir=None):\n"
+tests/test_testgraph_channels.py:488:    import subprocess
+tests/test_testgraph_channels.py:490:    return subprocess.run(
+tests/test_testgraph_channels.py:539:        "    def run(self, case, work_dir=None):\n"
+tests/test_testgraph_channels.py:546:        "    def run(self, case, work_dir=None):\n"
+tests/test_testgraph_channels.py:559:    import subprocess
+tests/test_testgraph_channels.py:568:    result = subprocess.run(
+tests/test_testgraph_channels.py:593:    import subprocess
+tests/test_testgraph_channels.py:595:    result = subprocess.run(
+tests/test_tla_spec_dev_cli.py:2:import subprocess
+tests/test_tla_spec_dev_cli.py:16:def run_cli(*args: str, cwd: Path = ROOT) -> subprocess.CompletedProcess[str]:
+tests/test_tla_spec_dev_cli.py:17:    return subprocess.run(
+tests/test_tla_spec_dev_cli.py:40:    assert "run" in result.stdout
+tests/test_tla_spec_dev_cli.py:51:        ("run", "spec-unit-tests", "--help", "generated/adapted", "spec root"),
+tests/test_tla_spec_dev_cli.py:64:    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", cwd=tmp_path)
+tests/test_tla_spec_dev_cli.py:71:    for command in ["scaffold", "open", "run", "close"]:
+tests/test_tla_spec_dev_cli.py:124:    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", "--scope", "project", cwd=tmp_path)
+tests/test_tla_spec_dev_cli.py:140:    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", cwd=tmp_path)
+tests/test_tla_spec_dev_cli.py:159:    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", cwd=tmp_path)
+tests/test_tla_spec_dev_cli.py:186:    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", cwd=tmp_path)
+tests/test_tla_spec_dev_cli.py:215:    def run(self, case, work_dir=None):
+tests/test_tla_spec_dev_cli.py:221:    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", "--scope", "project", cwd=tmp_path)
+tests/test_tla_spec_dev_cli.py:339:    install = subprocess.run(
+tests/test_tla_spec_dev_cli.py:348:    installed = subprocess.run(

@@ -1,0 +1,56 @@
+
+===== ARM A =====
+tree:      specs/tickets/HP-02/results/pilot/arm_a
+catalogue: specs/tickets/HP-02/results/pilot/catalogue_arm_a.toml
+control (no mutant): suite=GREEN, arm-own=GREEN
+  M01-guard-zero-amount                      suite=KILLED  arm-own=KILLED
+  M02-guard-over-quota                       suite=KILLED  arm-own=SURVIVED
+  M03-guard-close-with-outstanding           suite=KILLED  arm-own=SURVIVED
+  M04-durable-stale-total                    suite=KILLED  arm-own=KILLED
+  M05-durable-close-line-zero-and-swallowed  suite=KILLED  arm-own=KILLED
+  M06-wrong-status-on-release                suite=KILLED  arm-own=SURVIVED
+  M07-positive-control-wrong-hold            suite=KILLED  arm-own=SURVIVED
+  M08-cross-aspect-commit-refunds-the-hold   suite=KILLED  arm-own=SURVIVED
+  M09-negative-control-ledger-order          suite=KILLED  arm-own=KILLED
+  M10-apply-only-double-refund               suite=KILLED  arm-own=SURVIVED
+
+===== ARM B =====
+tree:      specs/tickets/HP-02/results/pilot/arm_b
+catalogue: specs/tickets/HP-02/results/pilot/catalogue_arm_b.toml
+control (no mutant): suite=GREEN, arm-own=GREEN
+  M01-guard-zero-amount                      suite=KILLED  arm-own=SURVIVED
+  M02-guard-over-quota                       suite=KILLED  arm-own=SURVIVED
+  M03-guard-close-with-outstanding           suite=KILLED  arm-own=SURVIVED
+  M04-durable-stale-total                    suite=KILLED  arm-own=KILLED
+  M05-durable-close-line-zero-and-swallowed  suite=KILLED  arm-own=KILLED
+  M06-wrong-status-on-release                suite=KILLED  arm-own=SURVIVED
+  M07-positive-control-wrong-hold            suite=KILLED  arm-own=SURVIVED
+  M08-cross-aspect-commit-refunds-the-hold   suite=KILLED  arm-own=SURVIVED
+  M09-negative-control-ledger-order          suite=KILLED  arm-own=KILLED
+  M10-apply-only-double-refund               suite=KILLED  arm-own=SURVIVED
+
+
+===== PER-CLASS, PER-ARM, PER-INSTRUMENT =====
+(never an aggregate rate: the classes exist because they behave differently)
+
+mutant                                     class               A:suite   A:own     B:suite   B:own   
+-----------------------------------------------------------------------------------------------------
+M01-guard-zero-amount                      guard_relaxation    KILLED    KILLED     KILLED    SURVIVED 
+M02-guard-over-quota                       guard_relaxation    KILLED    SURVIVED   KILLED    SURVIVED 
+M03-guard-close-with-outstanding           guard_relaxation    KILLED    SURVIVED   KILLED    SURVIVED 
+M04-durable-stale-total                    durable_content     KILLED    KILLED     KILLED    KILLED   
+M05-durable-close-line-zero-and-swallowed  durable_content     KILLED    KILLED     KILLED    KILLED   
+M06-wrong-status-on-release                output_oracle       KILLED    SURVIVED   KILLED    SURVIVED 
+M07-positive-control-wrong-hold            wrong_value         KILLED    SURVIVED   KILLED    SURVIVED 
+M08-cross-aspect-commit-refunds-the-hold   cross_aspect        KILLED    SURVIVED   KILLED    SURVIVED 
+M09-negative-control-ledger-order          ordering            KILLED    KILLED     KILLED    KILLED   
+M10-apply-only-double-refund               wrong_value         KILLED    SURVIVED   KILLED    SURVIVED 
+
+per-class totals (killed / seeded), per arm per instrument:
+class              A:suite   A:own     B:suite   B:own    
+cross_aspect       1/1       0/1       1/1       0/1      
+durable_content    2/2       2/2       2/2       2/2      
+guard_relaxation   3/3       1/3       3/3       0/3      
+ordering           1/1       1/1       1/1       1/1      
+output_oracle      1/1       0/1       1/1       0/1      
+wrong_value        2/2       0/2       2/2       0/2      

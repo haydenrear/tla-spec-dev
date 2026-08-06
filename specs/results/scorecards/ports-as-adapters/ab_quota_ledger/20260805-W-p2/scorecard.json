@@ -1,0 +1,144 @@
+{
+  "scorecard_version": 1,
+  "status": "filled",
+  "epic": "ports-as-adapters",
+  "example": "ab_quota_ledger",
+  "run_id": "20260805-W-p2",
+  "arm": "W",
+  "commit": "930fa57",
+  "judge": {
+    "model": "claude-opus-5[1m]",
+    "pass": 2,
+    "blind_to_arm": true
+  },
+  "rubric": {
+    "source": "references/eval_scorecard.md",
+    "digest": "sha256:e33638087c4191da",
+    "scoring_rules": [
+      "**Score artifacts, never claims.** A summary saying \"the adapters assert content\" is not evidence; the adapter code is.",
+      "**Every score \u2265 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
+      "**Every score of 4 additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.",
+      "**Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.",
+      "**Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.",
+      "**Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.",
+      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree \u2014 and a disagreement is a finding."
+    ]
+  },
+  "how_to_fill": [
+    "Score the LOWEST anchor the artifact fully satisfies. Torn between two: take the lower and say why.",
+    "Set `status` to \"filled\", `commit` to the sha the artifacts were scored at, and name your model in `judge.model`.",
+    "`total` is the sum of the five scores; the schema check recomputes it.",
+    "Leave `anchors` as scaffolded. They are read from the rubric so the bar and the score live in one file; editing them here forks the rubric silently, which is the drift this scaffold exists to remove."
+  ],
+  "dimensions": {
+    "D1": {
+      "name": "bug detection",
+      "question": "Do the model-derived cases and their adapters *catch* seeded faults \u2014 especially the hard classes?",
+      "anchors": {
+        "0": "Cases exist and pass; no seeded fault is caught. A suite that is green on broken code.",
+        "1": "Catches faults that change a value the projection already prints. Misses everything requiring a content assertion.",
+        "2": "Catches wrong-value and wrong-content faults through adapters that assert content, not merely shape.",
+        "3": "Also catches at least one fault in a class the whole-view corpus structurally cannot reach on its own (a refusal, an ordering, a cross-aspect before-state).",
+        "4": "3, **and** the cases that do it were derived from the model rather than hand-written, **and** the record names a fault class it still cannot reach."
+      },
+      "score": 3,
+      "citations": [
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/EVIDENCE.md:74",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/EVIDENCE.md:111",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/EVIDENCE.md:196",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/EVIDENCE.md:260",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/test_extra.py:85"
+      ],
+      "rationale": "Anchor 2 is satisfied by the instruments, not by the artifact's own suite: M04 dies only under the content-asserting effect provider and the shared suite (EVIDENCE.md:74). I checked whether W's own cases reach that class and they do not -- seeding a stale running total into quota_ledger.py:93 left all 11 of W's tests green, because its single durable-content test commits exactly once (test_extra.py:85-95), so the running-total column is degenerate and `COMMIT acme 5 5` is unchanged by the fault. Anchor 3 holds on the refusal class: guard_relaxation 0 of 3 for corpus-whole, 3 of 3 for corpus-neg (EVIDENCE.md:111-120). Not 4: the positive control is `green: false` with `\"deciding\": []` (EVIDENCE.md:196-215, 260). W does name things it cannot observe (NOTES.md:190-210), but those are spec orderings with no distinguishing input, not fault classes the cases cannot reach.",
+      "refuses_to_claim": null
+    },
+    "D2": {
+      "name": "complexity",
+      "question": "Is the design as simple as its behavior requires, and no simpler?",
+      "anchors": {
+        "0": "Complexity is unmeasured, or measured and ignored.",
+        "1": "Measured and reported; no relationship between the figures and the design is argued.",
+        "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
+        "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded.",
+        "4": "3, **and** the simplification is shown to be behavior-preserving (D4 \u2265 3), so the reduction is not paid for in lost behavior."
+      },
+      "score": 2,
+      "citations": [
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/quota_ledger.py:31",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/quota_ledger.py:90",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/quota_ledger.py:113",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/quota_ledger.py:81"
+      ],
+      "rationale": "Anchor 2: six attributes set up in one block (quota_ledger.py:31-37) with disciplined writers -- `_committed` only by commit (line 90), `_closed` only by close_tenant (line 113), `_available` only by reserve and release (lines 81, 101). No state is written from everywhere and nothing is over-decomposed. Against it: `_available` duplicates what `_quota`, `_outstanding` and `_committed` already determine, and quota_ledger.py:65 carries a blank-line filter the artifact itself says is unreachable (NOTES.md:179-188) -- accidental, but one predicate. Anchor 3 is unreachable for the same reason as the others: no before/after figures exist for this artifact, and I will not convert the mechanical block into one. I deliberately did not let this artifact's smaller size move this score; that is exactly the arithmetic rule 7 forbids.",
+      "refuses_to_claim": null,
+      "read_first": "Read the measured descriptor first (variables, actions, state-space bound, R/W density, modularity, dense rows). Then judge whether the numbers reflect essential behavior or accidental structure.",
+      "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 or more requires the judge to say *what got simpler and how the behavior survived it*."
+    },
+    "D3": {
+      "name": "modularity",
+      "question": "Is it ports and adapters in fact \u2014 domain independent of I/O, adapters swappable?",
+      "anchors": {
+        "0": "No boundary is discernible; state is written from everywhere.",
+        "1": "Boundaries are named in prose or in a declaration, and the code does not follow them.",
+        "2": "The code follows the declared boundaries. Cross-boundary calls go through something identifiable as a port.",
+        "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
+        "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
+      },
+      "score": 1,
+      "citations": [
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/quota_ledger.py:39",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/quota_ledger.py:64",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/quota_ledger.py:102",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/quota_ledger.py:120",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/NOTES.md:179"
+      ],
+      "rationale": "A boundary is named -- `_append_line` is called \"my writer\" at NOTES.md:180-181 and the code comment at quota_ledger.py:102 defines release by reference to it (\"no `_append_line` call here\") -- and the code does not follow it. `__init__` truncates the file itself with `write_text(\"\")` (line 42) and `ledger_lines` reads it itself with `read_text()` (line 64), so two of the three durable operations bypass the one named writer, which itself calls `open()` inline (line 120). That is anchor 1's description almost word for word. I did not score 0 because \"state is written from everywhere\" is factually untrue here -- the writers are disciplined. I did not score 2 because I probed for a port and there is none: the module exposes no substitutable name for the durable side, and a subclass overriding both `_append_line` and `ledger_lines` still has a real file created on disk by the constructor before any override can take effect. Rule: import topology is not modularity, and here there is not even an import boundary to mistake for one.",
+      "refuses_to_claim": null,
+      "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
+    },
+    "D4": {
+      "name": "behavior preservation",
+      "question": "Does the simpler design still do everything the baseline did?",
+      "anchors": {
+        "0": "Behavior changed and nobody checked.",
+        "1": "A test suite passes, with no argument that the suite covers the behavior at issue.",
+        "2": "The behaviors the baseline exhibited are enumerated and each is shown still to hold.",
+        "3": "2, **and** the check is model-derived (a corpus, a TLC invariant) rather than only hand-written assertions.",
+        "4": "3, **and** a deliberate behavior-breaking change is shown to be *caught* \u2014 the check is demonstrated to be capable of failing."
+      },
+      "score": 3,
+      "citations": [
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/NOTES.md:25",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/NOTES.md:130",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/EVIDENCE.md:180",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/EVIDENCE.md:75",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/test_extra.py:85"
+      ],
+      "rationale": "Anchor 2 is met better in form than by either other artifact: NOTES.md:25-153 is a clause-by-clause account naming, for every clause of the feature, the concrete input that would have caught it being absent, and it correctly credits the shared suite where its own cases do not reach (NOTES.md:130-133). Anchor 3 is met by the generated corpus running against this artifact with 0 failures on unmutated code (EVIDENCE.md:180-187). I am stopping at 3 rather than 4, and taking the lower of two I was torn between. Anchor 4 asks that the check be *demonstrated* capable of failing, and W's own contributed check is demonstrated incapable of failing on a clause its own account enumerates: the R2 running-total clause. `test_ledger_file_on_disk_matches_ledger_lines` (test_extra.py:85-95) commits once, so I mutated quota_ledger.py:93 to print the amount instead of the running total and all 11 of W's cases stayed green. The harness caught it; the artifact's own check could not, on the one clause where it claims to check the durable artifact directly.",
+      "refuses_to_claim": null
+    },
+    "D5": {
+      "name": "honesty",
+      "question": "Does the artifact refuse rather than falsely certify, and name what it cannot see?",
+      "anchors": {
+        "0": "Claims a clean it cannot support.",
+        "1": "Reports results without stating what was not measured.",
+        "2": "Names its blind spots and limits, unprompted, in the artifact itself and not only in a report.",
+        "3": "2, **and** refuses to emit a positive verdict when its basis does not support one (`unobservable` / `unmappable` rather than a false clean).",
+        "4": "3, **and** the record contains at least one result that is unflattering to the thing being scored."
+      },
+      "score": 4,
+      "citations": [
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/NOTES.md:157",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/NOTES.md:179",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/NOTES.md:190",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_W/NOTES.md:102"
+      ],
+      "rationale": "Anchor 2: limits named unprompted throughout, including inside the clause-by-clause account itself (NOTES.md:102-113 flags its own close-order test as weaker than the reserve-order one, mid-claim). Anchor 3 is the purest instance in this round: an `unobservable` where a false clean was available and would have gone unchallenged -- the ordering test at test_extra.py:108-114 passes, and the artifact still declines to call the ordering verified. Anchor 4 needs an unflattering result and there are two: NOTES.md:179-188 admits it shipped unreachable code and did not exercise it, and NOTES.md:157-167 marks its `reservation_id`-on-commit/release reading as \"unverified by any assertion, only a reading I committed to.\" Both are self-inflicted. I checked the substantive claims -- 28 and 11 passing, the truncation at line 42, the numeric id sort at line 58, and the assertion that an unknown tenant can never hold a reservation -- and all held. The clause-by-clause prose is the most disciplined writing of the three; I scored the refusals and the two admissions, which are checkable, not the discipline.",
+      "refuses_to_claim": "That the `close_tenant` rejection *order* between `unknown_tenant` and `outstanding_reservations` was verified. NOTES.md:196-201 states that no input distinguishes the two checks, that it \"could not produce evidence for an ordering claim that has no distinguishing input,\" and that it therefore writes exactly that \"instead of asserting the order was 'verified'\". It separately refuses to claim its blank-line filter has ever been exercised: \"I am not claiming to have observed it doing anything, only that it is there\" (NOTES.md:186-188)."
+    }
+  },
+  "total": 13,
+  "contested": [],
+  "verdict": "The most honest record in the round and the smallest code, but there is no boundary at all between the rules and the file -- truncate, read and append all happen inside the domain class, no substitution is possible -- and its own eleven tests cannot see a stale R2 running total, which I confirmed by mutating it."
+}

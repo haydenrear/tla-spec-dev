@@ -1,0 +1,169 @@
+# Deliberate-bug catalogue for the `pipeline` service.
+#
+# Every entry is applied to a PRISTINE tree, one at a time, by exact string
+# replacement, and reverted before the next. `find` must occur exactly once in
+# `path`; the harness (mutant_run.py) asserts that and refuses otherwise, so a
+# stale catalogue fails loudly instead of silently mutating nothing.
+#
+# classes:
+#   guard_accepts  -- a guard that admits a call it should reject
+#   guard_rejects  -- a guard that rejects a call it should admit
+#   missing_write  -- a state update that does not happen
+#   wrong_value    -- a state update that happens with the wrong value
+#   ordering       -- the same elements, in a different order
+#   durable_write  -- the in-memory state is right, the persisted bytes are not
+#
+# Reproduce:
+#   PY=<ev03 venv python>; TOOLS=<toolchain>
+#   $PY mutant_run.py            # green control first, then every mutant
+
+[[mutant]]
+id = "M01"
+class = "guard_accepts"
+path = "pipeline/ingest/inbox.py"
+find = """        if item not in self._inbox:
+            return False
+"""
+replace = """        if False:  # MUTANT M01: accepts an item that never arrived
+            return False
+"""
+
+[[mutant]]
+id = "M02"
+class = "missing_write"
+path = "pipeline/ingest/inbox.py"
+find = """        self._inbox.discard(item)
+        self._accepted.add(item)
+"""
+replace = """        self._accepted.add(item)  # MUTANT M02: inbox is never cleared
+"""
+
+[[mutant]]
+id = "M03"
+class = "guard_accepts"
+path = "pipeline/ingest/queue.py"
+find = """        if item in self._queue:
+            return False
+"""
+replace = """        if False:  # MUTANT M03: queue dedupe removed
+            return False
+"""
+
+[[mutant]]
+id = "M04"
+class = "guard_rejects"
+path = "pipeline/ingest/queue.py"
+find = "        if item not in self._inbox.accepted:"
+replace = "        if item not in self._inbox.pending:  # MUTANT M04: wrong precondition set"
+
+[[mutant]]
+id = "M05"
+class = "ordering"
+path = "pipeline/ingest/queue.py"
+find = "        self._queue.append(item)"
+replace = "        self._queue.insert(0, item)  # MUTANT M05: LIFO instead of FIFO"
+
+[[mutant]]
+id = "M06"
+class = "missing_write"
+path = "pipeline/ingest/queue.py"
+find = """        self._queue.remove(item)
+        return True
+"""
+replace = """        return True  # MUTANT M06: queue never releases the item
+"""
+
+[[mutant]]
+id = "M07"
+class = "guard_accepts"
+path = "pipeline/dispatch/delivery.py"
+find = """        if item in failed:
+            return False
+"""
+replace = """        if False:  # MUTANT M07: a failed item can be re-delivered
+            return False
+"""
+
+[[mutant]]
+id = "M08"
+class = "missing_write"
+path = "pipeline/dispatch/failures.py"
+find = """        if not self._dispatcher.release(item):
+            return False
+        self._failed.add(item)
+"""
+replace = """        self._failed.add(item)  # MUTANT M08: failed but still delivered
+"""
+
+[[mutant]]
+id = "M09"
+class = "guard_accepts"
+path = "pipeline/ledger/journal.py"
+find = """        if item in self._entries:
+            return False
+"""
+replace = """        if False:  # MUTANT M09: the ledger is no longer append-only
+            return False
+"""
+
+[[mutant]]
+id = "M10"
+class = "guard_rejects"
+path = "pipeline/ledger/journal.py"
+find = "        if item not in self._dispatcher.delivered:"
+replace = "        if True:  # MUTANT M10: Record never fires"
+
+[[mutant]]
+id = "M11"
+class = "ordering"
+path = "pipeline/ledger/journal.py"
+find = "        self._entries.append(item)"
+replace = "        self._entries.insert(0, item)  # MUTANT M11: ledger is prepend, not append"
+
+[[mutant]]
+id = "M12"
+class = "wrong_value"
+path = "pipeline/ledger/journal.py"
+find = "        self._entries.append(item)"
+replace = "        self._entries.append(item.upper())  # MUTANT M12: wrong value recorded"
+
+[[mutant]]
+id = "M13"
+class = "durable_write"
+path = "pipeline/ledger/journal.py"
+find = """        self._store.persist(PersistLedger(entries=",".join(self._entries)))"""
+replace = """        return  # MUTANT M13: nothing is ever persisted"""
+
+[[mutant]]
+id = "M14"
+class = "durable_write"
+path = "pipeline/ledger/journal.py"
+find = """        self._store.persist(PersistLedger(entries=",".join(self._entries)))"""
+replace = """        self._store.persist(PersistLedger(entries=",".join(self._entries[:-1])))  # MUTANT M14: persists a stale ledger"""
+
+[[mutant]]
+id = "M15"
+class = "durable_write"
+path = "pipeline/ledger/journal.py"
+find = """        self._entries.append(item)
+        self._persist()
+"""
+replace = """        self._persist()  # MUTANT M15: persist happens before the append
+        self._entries.append(item)
+"""
+
+# M16 is deliberately conditioned on a before-state that ONLY the whole-view
+# corpus reaches: `Fail` misbehaves when the work queue is still non-empty.
+# Scenario_DurableOutcome's Given asserts queue = {}, so its 24 cases can never
+# reach it; Scenario_IntakeToDelivery does not enter Fail at all. This is the
+# measurement of what a slice/Given gives up, made concrete.
+[[mutant]]
+id = "M16"
+class = "guard_rejects"
+path = "pipeline/dispatch/failures.py"
+find = """        if item in self._failed:
+            return False
+"""
+replace = """        if item in self._failed or self._dispatcher._queue.items:
+            return False  # MUTANT M16: Fail silently refuses while work is queued
+"""

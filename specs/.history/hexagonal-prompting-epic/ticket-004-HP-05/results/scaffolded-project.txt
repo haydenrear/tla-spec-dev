@@ -1,0 +1,87 @@
+HP-05 -- DOES A SCAFFOLDED PROJECT ASSERT CONTENT WITHOUT ANYONE CONFIGURING IT?
+===============================================================================
+
+STEP 1 -- scaffold a real project from scratch.
+  $ tla-spec-dev --spec-root specs scaffold project --name Ledger
+
+STEP 2 -- WHAT THE SCAFFOLD ALONE GIVES YOU. This is the pre-HP-05 default
+and it is unchanged by this ticket: scaffold_spec.py / onboard_program_model.py
+are outside HP-05's implementation_scope.
+
+  specs/program_model/providers.py:
+    
+    
+    class ProjectEffectProvider:
+        @contextmanager
+        def bind(self, context: EffectProviderContext) -> Iterator[Any | None]:
+            # SCAFFOLD: acquire the repository-owned implementation selected by
+            # context.port_name and context.case. Use context.derived_seed for
+            # deterministic representatives. Yield the generated-port
+            # implementation, or None only when this scope installs and restores
+            # its own bounded integration.
+            raise NotImplementedError(
+                f"SCAFFOLD: bind generated port {context.port_name}"
+            )
+            yield None
+    
+    
+    effect_provider = ProjectEffectProvider()
+
+  specs/program_model/case_adapters.toml, effect section:
+    12:# [effect_providers.ExampleEffectPort]
+    ^ COMMENTED OUT. A fresh manifest declares no role: effect port at all,
+      so there is nothing to bind and nothing asserts anything.
+
+STEP 3 -- declare ONE effect port over the durable side the scaffold already
+  models (`projections`, written when a record is published). This is the
+  only thing a project author writes.
+    ports:
+      RecordStorePort:
+        role: effect
+        kind: durable_write
+        methods:
+          persist:
+            command: PublishRecord
+            result: str
+        content:
+          persist:
+            projection: "projections[record]"
+      LedgerPort:
+
+STEP 4 -- run codegen. NOTHING ELSE. No provider is written by hand.
+  $ python3 scripts/generate_python.py specs/program_model/spec_manifest.yaml --out .../generated
+    generated /tmp/hp05e2e/specs/program_model/generated/ledger_program_cases
+    [effect-mapping] bound RecordStorePort to its generated content-asserting provider in specs/program_model/case_adapters.toml (nobody had to configure it)
+    [effect-mapping] mapping specs/program_model/case_adapters.toml
+    [effect-mapping] DURABLE-WRITE ORACLE ACTIVE: RecordStorePort (kind: durable_write) is bound to ledger_program_cases.effect_providers:record_store_port_provider, asserting 1 content field(s) against the modeled after-state: persist.projection == projections[record]
+
+STEP 5 -- what the project now has, with nobody configuring it:
+
+  a generated content-asserting provider:
+    specs/program_model/generated/ledger_program_cases/effect_providers.py
+
+  bound in the mapping by codegen:
+    # WRITTEN BY CODEGEN (generate_python.py): content assertion is the DEFAULT.
+    
+    [effect_providers.RecordStorePort]
+    provider = "ledger_program_cases.effect_providers:record_store_port_provider"
+
+  and it really asserts -- a durable write that disagrees with the model fails,
+  while the in-memory state stays perfectly correct:
+    [effect-mapping] DURABLE-WRITE ORACLE ACTIVE: RecordStorePort (kind: durable_write) is bound to ledger_program_cases.effect_providers:ContentAssertingRecordStorePortProvider under mapping specs/program_model/case_adapters.toml, asserting 1 content field(s) against the modeled after-state: persist.projection == projections[record]
+    ASSERTION FIRED: DETECTOR[provider_content_assertion] RecordStorePort.persist wrote projection='rec-6' but the model says projections[record] == 'rec-7' (action='PublishRecord', case='case_0001_publish_record')
+    
+    and the agreeing write passes:
+      (no assertion)
+
+VERDICT, stated precisely.
+  YES for a project that declares an effect port: the provider is generated,
+  the binding is written by codegen, and the assertion runs. Nobody wrote a
+  line of provider code and nobody edited a mapping.
+
+  NO for a project that declares no effect port, because there is nothing to
+  assert about. `scaffold project` still emits the NotImplementedError stub
+  and the commented-out binding shown in STEP 2, and codegen leaves both
+  alone. Repairing the scaffold templates is outside HP-05's edit permission
+  (conflict_keys production: scripts/generate_python.py, templates/) and is
+  FILED as HP-05-DF-01, not fixed.

@@ -1,0 +1,47 @@
+RP-03 -- owner-authorized deletion of the CM-01-DF-02 workaround
+================================================================
+
+WHAT WAS DELETED
+----------------
+scripts/spec_evolution.py:
+  * CFG_KEYWORDS (a 19-name frozenset of TLC config keywords), formerly at
+    line 539;
+  * the `if invariant in CFG_KEYWORDS: continue` skip in the model-pair
+    validator, formerly at lines 745-753.
+
+Both existed only because analyze_complexity.parse_cfg_invariants used to hand
+back the bare keyword line that ENDS an INVARIANT block ("INVARIANT Inv" followed
+by a bare "CONSTANTS") as if it were another invariant name, which would have
+manufactured a mismatch on a .tla/.cfg pair that matches. RP-04 fixed the parser.
+
+WHY IT IS SAFE
+--------------
+RP-04's measurement, at
+specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/cm-01-df-02-workaround-is-now-dead.txt
+
+  EXPERIMENT A -- workaround removed, RP-04 parser fix present:
+    1 failed, 897 passed  (the one failure was the then-known-red
+    test_skill_requires_two_minute_case_generation_budget, since fixed by RP-05)
+  EXPERIMENT B -- workaround removed, PRE-FIX parser:
+    4 failed, 857 passed  (three model-pair validator tests fail without it)
+
+RP-04 left it in place because scripts/spec_evolution.py is CM-01's conflict key
+and no open ticket owned it. The epic owner assigned the deletion to RP-03.
+
+CONFIRMATION AFTER THE DELETION
+-------------------------------
+$ grep -rn "CFG_KEYWORDS" scripts tests references prompts examples SKILL.md
+no references remain
+
+$ uv run --with pytest --with pyyaml -m pytest tests -q
+958 passed in 16.23s
+
+(940 was the pre-ticket baseline with 0 failures; the 18 added tests are RP-03's
+own regression block in tests/test_case_modules.py. No test was removed, skipped
+or retargeted to accommodate the deletion.)
+
+The three tests RP-04 measured as load-bearing on the workaround --
+  tests/test_spec_evolution.py::test_three_module_baseline_measures_the_outermost_view_not_core
+  tests/test_spec_evolution.py::test_declared_model_block_wins_over_every_convention
+  tests/test_spec_evolution.py::test_close_records_the_declared_model_it_measured
+-- are green.

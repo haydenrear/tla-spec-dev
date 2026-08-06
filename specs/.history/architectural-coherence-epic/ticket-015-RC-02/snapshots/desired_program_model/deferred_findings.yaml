@@ -1,0 +1,1991 @@
+findings:
+  - id: CM-01-DF-01
+    found_by: "CM-01"
+    found_at_commit: "cb12fd1"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: ["references/generation_modes.md", "tests/test_new_ticket_workflow.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      tests/test_new_ticket_workflow.py::test_skill_requires_two_minute_case_generation_budget
+      asserts three phrases in references/generation_modes.md -- "hard
+      two-minute budget", "Distinguish compressible modeling detail from",
+      "concrete options for lowering" -- that the c72d03a documentation refresh
+      removed from that file. The first assertion fails. The test is a
+      documentation-content guard; nothing in the toolchain's behavior is
+      broken. Either the refresh dropped guidance it should have kept (fix the
+      doc) or the guard outlived the wording it guards (fix the test); that
+      decision belongs to whoever owns the refresh, not to a ticket that
+      happens to run pytest.
+    reproduction: >-
+      `uv run --with pytest --with pyyaml -m pytest
+      tests/test_new_ticket_workflow.py::test_skill_requires_two_minute_case_generation_budget
+      -q`. Observed on main at c72d03a, on epic/architectural-coherence at
+      cb12fd1, and on feature/120-cm01-case-modules before and after every CM-01
+      change: 1 failed. Failure text: AssertionError: assert 'hard two-minute
+      budget' in '# Generation Modes\n\nSpec Double Compiler has two related
+      generation paths...'.
+    evidence: ["specs/.history/architectural-coherence-epic/ticket-000-CM-01/results/pytest-full.txt"]
+    why_out_of_scope: >-
+      Pre-existing and explicitly excluded by the CM-01 work order and the
+      epic plan's dispatch note. Neither references/generation_modes.md nor
+      this test is in CM-01's conflict keys.
+    suggested_fix: >-
+      Decide whether the three phrases are guidance the refresh should have
+      kept. If yes, restore them to references/generation_modes.md; if no,
+      delete the three assertions. Do not "fix" it by weakening the assertion
+      to a substring that happens to still be present.
+    blast_radius: "None. No other ticket in this epic touches either file."
+    disposition: ticketed
+    disposition_ticket: RP-05
+
+  - id: CM-01-DF-02
+    found_by: "CM-01"
+    found_at_commit: "cb12fd1"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: ["scripts/analyze_complexity.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      analyze_complexity.parse_cfg_invariants returns the bare TLC keyword line
+      that TERMINATES an INVARIANT block as if it were another invariant name.
+      A cfg reading "INVARIANT Invariant" followed by a bare "CONSTANTS" line
+      yields ['Invariant', 'CONSTANTS']. The line that is supposed to close the
+      block (scripts/analyze_complexity.py:1629) tests `re.match("^[A-Z]+\\b")
+      and not re.fullmatch(identifier)`, and every all-caps keyword also
+      fullmatches the identifier pattern, so the guard never fires and the
+      keyword falls through to the in-block branch. Harmless where the result is
+      only used to look up a definition (a keyword resolves to nothing and is
+      skipped), which is why it survived. It is not harmless for any caller that
+      treats an unresolvable invariant name as a finding: CM-01's model-pair
+      validator had to skip TLC keywords explicitly
+      (scripts/spec_evolution.py CFG_KEYWORDS) to avoid manufacturing a
+      mismatch on the shipped example, whose External.cfg has exactly this
+      shape.
+    reproduction: >-
+      python3 -c "import sys; sys.path.insert(0,'.'); from
+      scripts.analyze_complexity import parse_cfg_invariants as p;
+      print(p('SPECIFICATION Spec\\nINVARIANT Inv\\nCONSTANT\\n  X = 1\\n'))".
+      Observed: ['Inv', 'CONSTANT']. Expected: ['Inv']. Also reproduces on
+      examples/distributed_history/specs/program_model/External.cfg, which
+      yields ['Invariant', 'CONSTANTS'].
+    evidence: ["specs/.history/architectural-coherence-epic/ticket-000-CM-01/results/cm-01-df-02-parse-cfg-invariants.txt"]
+    why_out_of_scope: >-
+      scripts/analyze_complexity.py is outside CM-01's conflict keys and inside
+      AC-01's, which is in the same wave.
+    suggested_fix: >-
+      Close the block on a recognised TLC config keyword rather than on
+      "all-caps but not an identifier". A keyword list is the honest test; the
+      current shape cannot distinguish CONSTANTS from an invariant named
+      CONSTANTS, and neither can any regex over the same input.
+    blast_radius: >-
+      AC-01 and AC-04 both own scripts/analyze_complexity.py. Fixing it would
+      let scripts/spec_evolution.py drop its CFG_KEYWORDS workaround, which is
+      commented with this finding's id.
+    disposition: fixed
+    disposition_ticket: RP-04
+    fixed_by: "RP-04"
+    fix_note: >-
+      RP-04 took the suggested fix: CFG_SECTION_KEYWORDS in
+      scripts/analyze_complexity.py, compared case-SENSITIVELY so an invariant
+      legitimately named `Alias` or `View` is not swallowed by the terminator.
+      The CFG_KEYWORDS workaround is NOT deleted by RP-04. It lives in
+      scripts/spec_evolution.py:745-753, which is CM-01's conflict key, not
+      RP-04's -- and not RP-03's either, contrary to the RP-04 work order. It
+      is now dead code and is safe to delete: with the parser fixed, removing
+      it leaves the suite at the single known-red test; with the pre-fix
+      parser, removing it fails three model-pair validator tests. Whoever next
+      owns scripts/spec_evolution.py should delete it.
+    fix_evidence:
+      - "specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/cm-01-df-02-workaround-is-now-dead.txt"
+
+  - id: CM-01-DF-03
+    found_by: "CM-01"
+    found_at_commit: "3503e58"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: ["scripts/analyze_complexity.py", "scripts/complexity_ledger.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      A PARTIALLY resolved state-space bound is compared against
+      max_state_space_bound as if it were complete, while a FULLY unresolved one
+      is correctly refused. On the shipped example's External view, 9 of 10
+      variables have no resolvable domain; the descriptor says so plainly under
+      "excluded (no resolvable domain)", but the resulting bound of 4 is then
+      carried into the ledger's budget_utilization as "used 4, percent 0.0,
+      within_cap true" against a 1,000,000 cap -- for a model TLC measures at
+      49,386 distinct states. An "upper bound" four orders of magnitude below a
+      measured reachable count is not an upper bound, and 0.0%-of-cap is a
+      comfort claim derived from one variable. With ZERO resolvable variables
+      the same code path emits "state-space upper bound UNKNOWN ... cannot be
+      compared against max_state_space_bound" and records no utilization. The
+      asymmetry is the defect: partial resolution is treated as full, and only
+      total failure is treated as unknown. Found while verifying that the CM-F1
+      fix made the ledger measure the right model -- it does, and the number it
+      now measures is itself misleading on any model without a TypeInvariant.
+    reproduction: >-
+      python3 -c "import sys; sys.path.insert(0,'.'); from pathlib import Path;
+      from scripts import complexity_ledger as cl; d =
+      Path('examples/distributed_history/specs/program_model');
+      m=cl.collect_metrics(d/'External.tla', d/'External.cfg',
+      d/'spec_manifest.yaml', None); print(m['bound'],
+      m['budget_utilization'])". Observed: 4 {'max_state_space_bound': {'cap':
+      1000000, 'used': 4, 'percent': 0.0, 'within_cap': True}}. Same call with
+      Core.tla yields bound None, no utilization, and an explicit UNKNOWN
+      violation. TLC on External.tla/External.cfg: 49,386 distinct states
+      (reproduced 2026-07-27, examples/case_modules/MEASUREMENTS.md).
+    evidence: ["specs/.history/architectural-coherence-epic/ticket-000-CM-01/results/cm-01-df-03-partial-bound.txt"]
+    why_out_of_scope: >-
+      scripts/analyze_complexity.py is in AC-01's and AC-04's conflict keys and
+      scripts/complexity_ledger.py is in AC-04's; neither is in CM-01's.
+    suggested_fix: >-
+      Carry the resolved/excluded variable counts alongside the bound and refuse
+      the cap comparison whenever any variable is excluded, with the same
+      "cannot be compared" wording the zero case already uses -- a partial
+      product is a lower bound on an upper bound, which is not a thing a cap can
+      be checked against. Reporting the partial product as a fact is fine;
+      comparing it is not.
+    blast_radius: >-
+      CORRECTED BY RP-04, which fixed this finding and re-measured while doing
+      so. This entry claimed "the repository's own model resolves every
+      variable (bound 699,840 at CM-01's close), so no ledger entry in this
+      epic is affected". That is FALSE, and has been since MF-020:
+      specs/current/TlaSpecDevCli.tla resolves 8 of its 10 variables --
+      `lastCommand` and `result` have never had a resolvable domain, and
+      tests/test_analyze_complexity.py has asserted
+      set(result.unbounded) == {"lastCommand", "result"} across the whole
+      calibration chain. Every bound this repository has recorded, 2,799,360
+      included, is a product over that same 8-variable subset. The practical
+      consequence is small, and it is exactly the asymmetry this finding names:
+      this model is OVER its cap, and "over the cap" survives incompleteness
+      (the complete bound can only be larger), so the recorded within_cap
+      verdict does not move -- only the percent, which is now published as the
+      floor it always was. A project whose model has no TypeInvariant/TypeOK is
+      affected more, including the shipped worked example, where the verdict
+      flips from `true` to `unknown`. The correction is recorded here rather
+      than left standing because a checked-in claim the measurement contradicts
+      is the defect class this epic keeps finding.
+    disposition: fixed
+    disposition_ticket: RP-04
+    fixed_by: "RP-04"
+    fix_evidence:
+      - "specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/cm-01-df-03-before-after.txt"
+      - "specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/rp04-remeasurement.txt"
+  - id: AC-DF-01
+    filed_by: AC-01
+    filed_on: "2026-07-27"
+    status: deferred
+    severity: low
+    blocking: false
+    title: >
+      tests/test_new_ticket_workflow.py::test_skill_requires_two_minute_case_generation_budget
+      asserts a doc phrase the c72d03a refresh removed
+    reproduction: >
+      uv run --with pytest --with pyyaml -m pytest
+      tests/test_new_ticket_workflow.py::test_skill_requires_two_minute_case_generation_budget -q
+      -- fails at `assert "hard two-minute budget" in generation_modes`.
+      Reproduced on the epic branch at cb12fd1 with no AC-01 changes applied,
+      so it predates this ticket.
+    detail: >
+      The test asserts the literal phrase "hard two-minute budget" appears in
+      references/generation_modes.md. The c72d03a SKILL.md/reference refresh
+      rewrote that page and the phrase went with it. The SKILL.md half of the
+      same test still passes, so the budget itself is still documented; only the
+      reference-page phrasing assertion is stale. Either the phrase is restored
+      to generation_modes.md or the assertion is retargeted at whatever wording
+      now carries the budget.
+    outside_conflict_keys: true
+    owner_note: >
+      Named as already-red in the AC-01/AC-02/AC-03 work orders and explicitly
+      excluded from this ticket's scope.
+
+    disposition: ticketed
+    disposition_ticket: RP-05
+  - id: AC-02-DF-01
+    filed_by: AC-02
+    filed_on: "2026-07-27"
+    status: deferred
+    severity: medium
+    blocking: false
+    title: >
+      TlaSpecDevCli writes lastCommand and result from every action, so the
+      model admits no architecture the reflexion check can measure
+    reproduction: >
+      python3 scripts/tla_spec_dev.py --spec-root specs analyze architecture
+      specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg
+      --code scripts --map specs/program_model/architecture_map.yaml
+      -- reports architecture_scan = unmappable and does not run the diff:
+      consumable_as_architecture is false (one component, Q = 0.000). Adding
+      --components specs/program_model/architecture_components.yaml makes the
+      check run, but only because the partition separates kill_test; the
+      coarser three-component partition
+      (surface / tickets / scanners) has a port between EVERY pair and reports
+      unfalsifiable_coherence. Both reproduced 2026-07-27 on
+      feature/122-ac02-reflexion-check.
+    detail: >
+      All fifteen commands write lastCommand and result, so the variable
+      interaction graph is effectively complete and the emergent clustering
+      finds one component at Q = 0.000. Every declared partition of the model
+      then has a port from the component holding those two variables to every
+      other component. Divergence is detectable only across pairs that exclude
+      them, which today means only the pairs involving kill_test. The practical
+      consequence: this repository's own architecture is measurable only in a
+      narrow corner, and any future variable that every command writes closes
+      that corner too. This is a fact about the MODEL, not a defect in
+      analyze_architecture or architecture_reflexion, and it is the reason both
+      AC-01 and AC-02 report unmappable on their primary target.
+      Possible directions, none of them this ticket's to take: split lastCommand
+      and result into per-component result variables; model the CLI surface as
+      a component with no state of its own; or accept that the CLI lifecycle
+      model is genuinely one component and record the architecture check as
+      inapplicable to it. The third is a legitimate answer and should not be
+      ruled out to make a scanner produce output.
+    outside_conflict_keys: true
+    owner_note: >
+      AC-02's conflict keys list no TLA+ files (tla: []) and the epic is
+      declared zero-model-delta for this ticket. Changing the model to make the
+      scanner measurable would also be exactly the tail-wagging-the-dog move the
+      advisory doctrine warns against. Raised for EV-01/EV-02 to score against,
+      since "the toolchain cannot measure its own repository" is a fact those
+      evals should carry.
+    disposition: carried
+    disposition_ticket: null
+    disposition_note: >
+      Carried, deliberately not ticketed. This is a statement about the
+      repository's OWN model (lastCommand/result written by every action),
+      not a defect in a shipped program. Fixing it means decomposing this
+      repository -- tickets/023 -- and doing that inside a repair wave would
+      change the very model every other measurement in this epic is baselined
+      against. Recorded in NEXT-EPIC.md for the next epic.
+  - id: AC-03-DF-01
+    found_by: "AC-03"
+    found_at_commit: "e73b7d1"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/analyze_architecture.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The architecture descriptor encodes "not measurable with one component"
+      two different ways in the same JSON payload, and one of them is
+      indistinguishable from a real measurement. For a single-component
+      partition, `measured.ownership.single_writer_violations` is `null` and
+      `measured.ownership.single_writer_basis` carries the reason -- correct,
+      and exactly the MF-027 discipline. But
+      `measured.partition.components[0].owns` is the empty list `[]`, with no
+      accompanying reason anywhere in the JSON. The TEXT renderer prints
+      `owns: NOT MEASURABLE with one component -- every variable would be
+      trivially owned`; the JSON does not. A consumer that branches on `owns`
+      reads `[]` as "this component owns nothing", which is a plausible
+      architectural fact, when the field means "the question is undefined
+      here". That is the false-clean shape the whole command exists to refuse,
+      surviving in the machine-readable half of the contract that AC-02 and
+      AC-03 actually read.
+    reproduction: >-
+      python3 scripts/tla_spec_dev.py --spec-root specs analyze architecture
+      specs/current/TlaSpecDevCli.tla specs/current/MC.cfg --format json |
+      python3 -c "import json,sys; d=json.load(sys.stdin)['measured'];
+      print('owns      =', d['partition']['components'][0]['owns']);
+      print('violations=', d['ownership']['single_writer_violations']);
+      print('basis     =', d['ownership']['single_writer_basis'])".
+      Observed at e73b7d1: `owns = []`, `violations = None`,
+      `basis = 'NOT MEASURABLE: ...'`. Compare the same run with
+      `--format text`, which prints the NOT MEASURABLE sentence for `owns`.
+    evidence:
+      - "specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/architecture_descriptor_emergent.json"
+      - "specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/implementation_brief_REFUSED_emergent.md"
+    why_out_of_scope: >-
+      scripts/analyze_architecture.py is AC-01's production surface and AC-02's
+      live conflict key; AC-03's keys are prompts/, templates/,
+      references/case_modules.md and SKILL.md. AC-03 defends against it in the
+      consumer instead: Gate A of prompts/implementation_brief.md refuses to
+      render before the field can be read, and the prompt names this field
+      explicitly as one that lies.
+    suggested_fix: >-
+      Emit `owns: null` (not `[]`) whenever ownership is undefined for the
+      partition, and add a sibling reason field the way `single_writer_basis`
+      does for violations. Do not fix it by documenting the convention -- a
+      consumer that must read prose to interpret a field is the problem.
+    blast_radius: >-
+      AC-02's reflexion check reads the same payload. Any consumer branching on
+      a truthiness test over `owns` is affected.
+    disposition: ticketed
+    disposition_ticket: RP-01
+
+  - id: AC-03-DF-02
+    found_by: "AC-03"
+    found_at_commit: "e73b7d1"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/analyze_complexity.py", "scripts/analyze_architecture.py", "references/architecture_coherence.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      "This model does not decompose" is a statement about the SEARCH, not
+      about the model, and the descriptor states it as though it were about the
+      model. The emergent partition comes from greedy modularity maximization,
+      which on specs/current/TlaSpecDevCli.tla terminates at the trivial
+      one-component partition (Q = 0.000) and produces the report "this model
+      DOES NOT DECOMPOSE ... There is no cut to name". Exhaustive enumeration
+      of all 115,975 set partitions of that model's 10 variables, scored with
+      the SHIPPED `analyze_complexity.modularity` and the SHIPPED three
+      criteria, finds **2 partitions that meet all three criteria** -- the best
+      at Q = 0.0029 with a crossing-action fraction of 0.188 (versus the 0.5
+      rule). The shipped tool confirms it when the partition is handed back as
+      a declaration: `--components` on
+      `[corpus_gate, effect_conformance] | [the rest]` prints "MEASURED RESULT:
+      the partition is a cut -- every criterion above is met." This matters
+      beyond one number: references/architecture_coherence.md calls the
+      non-decomposition of this repository's two real targets "the epic's most
+      load-bearing measurement", and AC-03's non-vacuity precondition, AC-02's
+      `unmappable` verdict, and the case for declared partitions all rest on
+      it. The finding does not overturn the refusal doctrine -- refusing to
+      invent a cut is still right, and a Q of 0.003 is negligible structure --
+      but the wording claims more than greedy search establishes.
+    reproduction: >-
+      python3 specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/ac03_df02_exhaustive_partition_search.py
+      (checked in, ~40s, no dependencies beyond the repository). Observed at
+      e73b7d1: "partitions examined: 115975 / partitions meeting ALL THREE
+      criteria: 2 / shipped emergent partition: 1 component(s), Q = 0.000000,
+      decomposes = False". Then confirm with the shipped CLI using the
+      `--components` file printed in that script's docstring.
+    evidence:
+      - "specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/ac03_df02_exhaustive_partition_search.py"
+      - "specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/ac03_df02_exhaustive_partition_search.txt"
+    why_out_of_scope: >-
+      Both scanner scripts are outside AC-03's conflict keys, and
+      references/architecture_coherence.md is AC-02's key. AC-03 touches
+      neither; its prompts consume whatever the descriptor reports.
+    suggested_fix: >-
+      Say what was searched. "Greedy modularity maximization found no partition
+      meeting the criteria" is true and checkable; "this model does not
+      decompose" is neither. Exhaustive search is tractable at this variable
+      count and intractable in general, so the honest fix is the wording plus a
+      named search method in `partition.origin`, not a better search. Do NOT
+      fix it by adopting the exhaustive search and proposing the partition it
+      finds -- naming a cut the project did not declare is the CD-01 failure
+      this command exists to avoid.
+    blast_radius: >-
+      Wording only in the tool; but references/architecture_coherence.md,
+      SKILL.md's architecture-descriptor paragraph, and AC-01's and AC-03's
+      close-out summaries all repeat the stronger claim.
+    disposition: fixed-inline
+    disposition_note: >
+      Epic owner amended references/architecture_coherence.md on the epic
+      branch after the AC-03 merge: the greedy-vs-exhaustive distinction, the
+      two passing partitions with Q = 0.0029 / crossing 0.188, the refusal to
+      adopt exhaustive search or propose those partitions, and the
+      Internal.tla-decomposes correction. Reproduction rerun independently by
+      the owner (115,975 partitions examined, 2 meeting all three criteria).
+      Not retrofitted into any dispatched ticket.
+    disposition_ticket: null
+
+  - id: EV-01-DF-01
+    found_by: "EV-01"
+    found_at_commit: "0f5a024"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/infer_action_params.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      MF-029 parameter inference recovers ZERO of five action parameters on a
+      plain set-membership model, and the consequence is not cosmetic: it makes
+      the generated corpus unable to drive the program without help from the
+      oracle. Every action of the EV-01 fixture model has the shape
+      `Accept(i) == i \in inbox /\ inbox' = inbox \ {i} /\ accepted' = accepted
+      \cup {i}`. The inference reports each one "UNRECOVERABLE -> UNCHECKED (no
+      conjunct pins the parameter to a before-state variable, indexes a
+      function with it, or writes it into the after-state)", so all 330
+      generated cases carry `params={'i': UNCHECKED}`. An adapter then has no
+      way to know WHICH item the transition acted on except by diffing
+      `case.before` against `case.after` -- that is, by reading the oracle. The
+      corpus keeps its power over wrong values, wrong fields, wrong counts and
+      wrong statuses, and loses it entirely over the class "acted on the wrong
+      item". The inference is honest about not knowing (it never fabricates),
+      but nothing in the docs says that a set-based model gives up a whole
+      fault class, and a reader who sees "330/330 cases carry arguments" will
+      not conclude that none of them is checkable.
+    reproduction: >-
+      cd examples/validation/ex4_pipeline_coherent && PYTHONPATH=$PWD python3
+      ../../../scripts/generate_cases_from_tlc_dump.py
+      specs/program_model/Pipeline.tla specs/program_model/Pipeline.cfg
+      --out /tmp/ev01gen --package pipeline_cases --view internal
+      --actions-metadata specs/program_model/actions.yml
+      --state-projector specs.program_model.tlc_projection:project_visible_state
+      --output-projector specs.program_model.tlc_projection:project_adapter_output
+      --dedupe projected ; then read
+      /tmp/ev01gen/spec-unit/pipeline_cases/param_recovery_audit.md -- all five
+      actions UNRECOVERABLE. A copy is kept at
+      examples/validation/ex4_pipeline_coherent/evidence/param_recovery_audit.md.
+    evidence:
+      - "examples/validation/ex4_pipeline_coherent/evidence/param_recovery_audit.md"
+      - "examples/validation/ex4_pipeline_coherent/specs/program_model/adapters.py"
+    why_out_of_scope: >-
+      scripts/infer_action_params.py is not in EV-01's conflict keys (which are
+      the four examples/ directories), and EV-01 is a fixtures-and-predictions
+      ticket that must not change the instrument it is building fixtures for.
+    suggested_fix: >-
+      Two separable parts. (1) Extend the inference to the set-membership
+      shape: when a conjunct is `x \in v` and the after-state shows `v' = v \
+      {x}` or `w' = w \cup {x}`, the parameter IS determined by the state pair
+      whenever the difference is a singleton, and singleton-ness is checkable
+      per case. (2) Independently of (1), say the consequence out loud where a
+      reader will meet it -- the audit should state that an UNCHECKED parameter
+      means the adapter must source the argument elsewhere, and that sourcing
+      it from the after-state removes one fault class from the corpus's reach.
+      (2) is worth doing even if (1) is judged out of scope, because the
+      silence is what makes the gap dangerous.
+    blast_radius: >-
+      Any project whose model uses set membership rather than function indexing
+      -- which the constrained TLA+ profile encourages -- and every kill-rate
+      number measured on such a project.
+    disposition: ticketed
+    disposition_ticket: RP-02
+    disposition_note: ""
+
+  - id: EV-01-DF-02
+    found_by: "EV-01"
+    found_at_commit: "0f5a024"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/analyze_architecture.py", "scripts/architecture_reflexion.py", "references/architecture_coherence.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      A DECLARED component partition that the descriptor itself reports as
+      NOT DECOMPOSING is still consumed as an architecture, and the reflexion
+      check will report `coherent` against it. `consumable_as_architecture`
+      returns True for any declared partition regardless of the criteria
+      (analyze_architecture.py:500 -- "a declared partition is consumable
+      because the project named it"), so the three-criteria table stands
+      between a project and a false clean only on the EMERGENT path. Measured
+      on the EV-01 fixture: a four-component declared partition scores
+      `crossing_action_fraction = 0.6` against the `<= 0.5` rule and prints
+      "MEASURED RESULT: this model DOES NOT DECOMPOSE under this partition" --
+      and the same partition with a matching map yields 3 convergences, 0
+      divergences, 0 absences, `architecture_scan = coherent`, exit 0. The
+      `unfalsifiable_coherence` refusal does not fire because three of the six
+      component pairs are unported, so divergence was formally detectable. The
+      design intent is defensible (the project named the cut, and refusing it
+      would be the tool picking a boundary). What is not defensible is that the
+      report gives a reader no signal: the reflexion output does not mention
+      that the partition it just certified fails the model's own decomposition
+      criteria.
+    reproduction: >-
+      cd examples/validation/ex4_pipeline_coherent && python3
+      ../../../scripts/analyze_architecture.py specs/program_model/Pipeline.tla
+      specs/program_model/Pipeline.cfg --components
+      evidence/df02_nondecomposing_partition/components.yaml   # [FAIL]
+      crossing_action_fraction 0.6, DOES NOT DECOMPOSE
+      ; then python3 ../../../scripts/architecture_reflexion.py
+      specs/program_model/Pipeline.tla specs/program_model/Pipeline.cfg
+      --components evidence/df02_nondecomposing_partition/components.yaml
+      --code pipeline --map evidence/df02_nondecomposing_partition/map.yaml
+      # architecture_scan = coherent
+    evidence:
+      - "examples/validation/ex4_pipeline_coherent/evidence/df02_nondecomposing_partition/descriptor.txt"
+      - "examples/validation/ex4_pipeline_coherent/evidence/df02_nondecomposing_partition/reflexion.txt"
+      - "examples/validation/ex6_jenga/evidence/descriptor-declared.txt"
+    why_out_of_scope: >-
+      Both scanner scripts and references/architecture_coherence.md are AC-01's
+      and AC-02's conflict keys, not EV-01's. EV-01 measures the shipped
+      surface; changing it would make the fixtures a measurement of EV-01's own
+      edits.
+    suggested_fix: >-
+      Do NOT refuse the declared partition -- that would be the tool choosing
+      the boundary, which CD-01 removed. Carry the fact instead: when
+      `partition.source == "declared"` and `partition.decomposes` is false,
+      print the failed criteria in the REFLEXION report next to the verdict,
+      and add a `basis.partition_decomposes` field to the JSON so a consumer
+      can branch on it. A `coherent` measured against a partition the model
+      does not support is a different claim from a `coherent` measured against
+      one it does, and the report should say which it is.
+    blast_radius: >-
+      Every declared-partition scan, which AC-01 added precisely because the
+      emergent clustering is vacuous on real models -- i.e. the path every real
+      user takes. It is the reflexion-map degeneracy one level up, and the most
+      likely way this epic produces a green lie.
+    disposition: ticketed
+    disposition_ticket: RP-01
+    disposition_note: ""
+
+  - id: EV-01-DF-03
+    found_by: "EV-01"
+    found_at_commit: "0f5a024"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["specs/program_model/architecture_components.yaml", "references/architecture_coherence.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The AC-02 dogfood record has drifted from the tree it describes, in two
+      ways, one of them a contradiction rather than staleness. (1)
+      specs/program_model/architecture_components.yaml says of the two unported
+      pairs "Those two pairs are the only places a code edge in this repository
+      could diverge -- and the reflexion dogfood found edges across both." The
+      measured result is DIVERGENCES (0), and
+      references/architecture_coherence.md says the opposite in as many words
+      ("That is a genuine falsifiable negative result about this codebase...
+      There is none"). One of the two shipped documents is wrong about the
+      headline result of the epic's own dogfood. (2) The same reference records
+      "34 modules ... 258 edges: 140 internal, 118 convergences, 0 divergences,
+      0 absences"; re-measured on the epic branch the tree now yields 263 edges,
+      143 internal, 120 convergences (34 modules, 0 divergences, 0 absences
+      unchanged). The verdict and the reading survive; the numbers do not.
+    reproduction: >-
+      python3 scripts/architecture_reflexion.py
+      specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg
+      --components specs/program_model/architecture_components.yaml
+      --code scripts --map specs/program_model/architecture_map.yaml
+      # "extracted 263 dependency edge(s)", "143 edge(s) stay inside one
+      # component", "CONVERGENCES (120)", "DIVERGENCES (0)"
+    evidence:
+      - "specs/program_model/architecture_components.yaml"
+      - "references/architecture_coherence.md"
+    why_out_of_scope: >-
+      Both files are AC-02's conflict keys. EV-01's keys are the four examples/
+      directories. Patching a document that records a measurement, from a
+      ticket whose job is to build the instrument that will re-measure it, is
+      the wrong hand.
+    suggested_fix: >-
+      Correct the contradiction first (the components file's sentence), because
+      a reader who trusts it will mis-score the epic's central dogfood. For the
+      numbers, prefer a recorded command plus the run date over a transcribed
+      count, so the next tree change makes the record stale-with-a-date instead
+      of silently wrong.
+    blast_radius: >-
+      Documentation only, but the affected sentence is about whether this
+      repository's own code diverges from its own model -- the epic's headline
+      dogfood result.
+    disposition: ticketed
+    disposition_ticket: RP-05
+    disposition_note: ""
+
+  - id: EV-02-DF-01
+    found_by: "EV-02"
+    found_at_commit: "60d4a51"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/architecture_reflexion.py", "scripts/analyze_architecture.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      EV-01-DF-02 verified independently AND found to be worse than filed, in
+      two ways. (1) THE FULLY DEGENERATE CASE IS NOT CAUGHT. A DECLARED
+      one-component partition on the divergent twin -- a codebase with four
+      real divergences and one real absence -- reports `architecture_scan =
+      coherent`, exit 0, `blind_spots: []`. The `unfalsifiable_coherence`
+      refusal is guarded by `if not report.unported_pairs and len(names) >= 2`
+      (architecture_reflexion.py:921), and `len(names) >= 2` excludes the one
+      blob the guard exists for; `ex6_jenga` (3 components, all pairs ported)
+      IS caught. `divergence_detectable` is computed as False and no consumer
+      reads it. The same report prints "When that list is empty the
+      architecture permits every pair and a clean result is true by
+      construction" and then prints `coherent`. Note the asymmetry: the real
+      Jenga (this repo's own model, one EMERGENT component) correctly refuses;
+      DECLARING the partition it already has converts the epic's headline
+      refusal into a clean. (2) BLAST RADIUS MEASURED. Enumerating all 203 set
+      partitions of the divergent twin's six variables: 71 report `divergent`,
+      120 `unmappable`, and 12 report `coherent` -- and ALL TWELVE fail the
+      decomposition criteria, while ZERO of the 12 partitions that DO decompose
+      report a clean. The criteria are a perfect discriminator on this model
+      and the reflexion check does not consult them; none of the 12 records a
+      blind spot. (3) THE MITIGATION EXISTS IN THE WRONG PLACE. AC-03's
+      `prompts/implementation_brief.md` documents this exact defect by name and
+      adds Gate B -- `V1` REFUSES a 1-component declared partition, `V3`
+      DEGRADES on `crossing_action_fraction > 0.5`. AC-03 is a prompt (a
+      discipline an agent may skip); AC-02 is a program. The check a human must
+      remember is enforced; the check a program could enforce is not. Downstream
+      consumers do NOT inherit the false clean: the AC-04 delta refuses even the
+      maximal gaming move (`direction = unattributable`, stable basis 0 -> 0,
+      every lost edge classified `endpoint_reassigned`), the complexity ledger
+      reads only the delta report and never the verdict, and nothing blocks on
+      `architecture_scan` at all. The radius is therefore narrow in consequence
+      and wide in record: no work is refused on a lie, but `coherent` is what a
+      project reports, keeps as evidence, and puts in a PR body.
+    reproduction: >-
+      cd examples/validation/ex5_pipeline_divergent && printf
+      'architecture:\n  components:\n    - name: theapp\n      variables:
+      [inbox, accepted, queue, delivered, failed, ledger]\n' > /tmp/one.yaml &&
+      printf 'architecture_map:\n  language: python\n  components:\n    -
+      component: theapp\n      modules: [dispatch, ingest, ledger]\n' >
+      /tmp/onemap.yaml && python3 ../../../scripts/architecture_reflexion.py
+      specs/program_model/Pipeline.tla specs/program_model/Pipeline.cfg
+      --components /tmp/one.yaml --code pipeline --map /tmp/onemap.yaml
+      # architecture_scan = coherent, exit 0, blind_spots [], divergence_detectable false
+    evidence:
+      - "examples/validation/runs/ex5-run2/scoring.md"
+      - "examples/validation/runs/ex5-run2/artifacts/blast.json"
+      - "examples/validation/runs/ex5-run2/artifacts/ex5_one_component.json"
+      - "examples/validation/runs/ex5-run2/artifacts/ex5_one_component_delta.txt"
+      - "examples/validation/runs/ex6-run1/scoring.md"
+    why_out_of_scope: >-
+      Both scanner scripts are AC-01's and AC-02's conflict keys, not EV-02's.
+      EV-02's whole premise is that it MEASURES the shipped surface; a fix
+      applied during the measurement destroys the measurement. The owner
+      promoted this into EV-02's scope explicitly as a measurement and
+      explicitly not as a fix.
+    suggested_fix: >-
+      Do NOT refuse a declared partition -- that would be the tool choosing the
+      boundary, which CD-01 removed. Two changes, both additive. (a) Drop the
+      `len(names) >= 2` clause: a one-component declared partition is the
+      strongest case of `unfalsifiable_coherence`, not an exception to it, and
+      `divergence_detectable == false` should force `unmappable` on its own
+      rather than being reported and ignored. (b) Move AC-03's Gate B from the
+      prompt into the program: carry `partition.decomposes`, the failed
+      criteria, and the V1/V3 tests into the reflexion report and into
+      `basis.partition_decomposes` in the JSON, so `coherent` measured against
+      a partition the model does not support is visibly a different claim from
+      `coherent` measured against one it does.
+    blast_radius: >-
+      Every declared-partition reflexion scan -- the path AC-01 added because
+      emergent clustering is vacuous on real models, i.e. the path every real
+      user takes. ~6% of arbitrary partitions of the eval model produce a false
+      clean by accident and 100% do so on purpose, for about six lines of YAML.
+    disposition: ticketed
+    disposition_ticket: RP-01
+    disposition_note: ""
+
+  - id: EV-02-DF-02
+    found_by: "EV-02"
+    found_at_commit: "60d4a51"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/generate_cases_from_tlc_dump.py", "references/case_modules.md", "references/aspect_decomposition.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      A checked-in case module cannot be generated from the location the
+      convention puts it in. `run_tlc_dump` invokes tlc2 with `cwd` set to the
+      `.tla` file's directory and supplies no module search path, so a module
+      in `specs/case_modules/` cannot resolve the `EXTENDS` of a view that
+      lives in `specs/program_model/`. Exit 150, surfaced as a ~30-line TLC
+      AbortException preceded by a fail-closed paragraph that describes a
+      different problem. The shipped workaround is a copy-in/copy-out dance
+      documented only in a fixture README's "Rerun" section. Found first by a
+      blind agent working only from the docs (its sharpest of eight friction
+      items); reproduced independently here. The shipped convention and the
+      shipped tool disagree, and the module a project commits is therefore not
+      reproducible where it is committed.
+    reproduction: >-
+      cd examples/validation/ex4_pipeline_coherent && PYTHONPATH=$PWD python3
+      ../../../scripts/generate_cases_from_tlc_dump.py
+      specs/case_modules/Scenario_DeliveryPath.tla
+      specs/case_modules/Scenario_DeliveryPath.cfg --out /tmp/x --package dp
+      --view internal --actions-metadata specs/program_model/actions.yml
+      # CalledProcessError, tlc2 exit status 150
+    evidence:
+      - "examples/validation/runs/ex4-run1/artifacts/inplace.log"
+      - "examples/validation/runs/ex4-run1/scoring.md"
+      - "examples/validation/runs/ex4-run3/scoring.md"
+    why_out_of_scope: >-
+      The generator and the case-module references are CM-01's conflict keys.
+      EV-02's keys are `examples/validation/runs/` and `NEXT-EPIC.md`, and a
+      fix here would be a change to the instrument during the measurement.
+    suggested_fix: >-
+      Pass a module search path to tlc2 (or resolve `EXTENDS` targets and stage
+      them) so a case module generates from `specs/case_modules/` as the
+      convention says. Failing that, make the error say what is wrong and name
+      the copy-in step, and move the dance out of a fixture README into the
+      case-module reference where a reader will look for it.
+    blast_radius: >-
+      Every project following the documented case-module layout. The aspect is
+      the manual-test starter's entire authoring surface, so this is the first
+      command a new author runs and the first one that fails.
+    disposition: ticketed
+    disposition_ticket: RP-03
+    disposition_note: ""
+
+  - id: EV-02-DF-03
+    found_by: "EV-02"
+    found_at_commit: "60d4a51"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["examples/validation/ex4_pipeline_coherent/evidence/param_recovery_audit.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The audit contradicts the corpus it audits. `param_recovery_audit.md`
+      states that every parameter is recoverable, while the same run reports 0
+      of 38 cases carrying arguments and every generated case carries
+      `params={'i': UNCHECKED}`. This is the audit document FOR EV-01-DF-01
+      (MF-029 recovers 0 of 5 parameters on this model), so the one artifact a
+      reader would consult to size the oracle-leakage caveat asserts the
+      opposite of the caveat. Found by a blind agent that had never been told
+      DF-01 existed.
+    reproduction: >-
+      Read examples/validation/ex4_pipeline_coherent/evidence/param_recovery_audit.md
+      against any generated corpus from that fixture (grep UNCHECKED in
+      cases.py), or against
+      `python3 scripts/infer_action_params.py` on Pipeline.tla.
+    evidence:
+      - "examples/validation/runs/ex4-run3/scoring.md"
+      - "examples/validation/runs/ex4-run1/scoring.md"
+    why_out_of_scope: >-
+      The fixture's evidence/ tree is EV-01's conflict key. EV-02 scores EV-01's
+      fixtures; editing them mid-measurement is exactly what X-P4 forbids.
+    suggested_fix: >-
+      Restate the audit as what it measured: which parameters the inference
+      COULD recover in principle versus what the corpus actually carries. The
+      corpus number (0 of N cases with arguments) is the one a reader needs,
+      because it is the one that bounds every kill rate measured with these
+      adapters.
+    blast_radius: >-
+      Documentation, but load-bearing: it is the sizing document for the caveat
+      that bounds ARM A's 4/6 result and every future number measured on this
+      fixture.
+    disposition: ticketed
+    disposition_ticket: RP-02
+    disposition_note: ""
+
+  - id: EV-02-DF-04
+    found_by: "EV-02"
+    found_at_commit: "60d4a51"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["references/case_modules.md", "references/aspect_decomposition.md", "prompts/aspect_decomposition.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The manual-test-starter path's central claim -- that a non-author can
+      write an aspect from the public surface -- holds for SLICES and fails for
+      GIVENS, and no document says so. A slice is writable from action names
+      alone (README plus actions.yml). A Given must constrain EVERY variable of
+      the view, which forces knowledge of all state variables and each action's
+      guard; a public README names none of them. Measured by a blind agent that
+      authored one of each. This matters because the Given is the form with the
+      best measured ratio -- 60 authored lines produced 38 cases that killed
+      EXACTLY what the 330-case whole-view corpus killed on a 12-mutant
+      catalogue, an 8.7x reduction at zero measured loss -- so the mechanism
+      with the strongest number is precisely the one that cannot be written
+      from outside. Second, related: Step 0's requirement that the aspect list
+      come from the model author and never be derived is UNENFORCEABLE. Nothing
+      stopped the blind agent producing a complete, schema-valid,
+      coverage-clean decomposition with no author in the loop; the `Source`
+      column is free text and is never checked. The agent disclosed its own
+      violation, which is the best available outcome and is not a control.
+    reproduction: >-
+      Read references/case_modules.md and the aspect-decomposition prompt for
+      any statement of what a Given's author must know; there is none. Then
+      compare specs/case_modules/Scenario_DeliveryPath.tla (slice, 14 authored
+      lines, no state knowledge) with Scenario_RecordAfterDelivery.tla (Given,
+      22 lines, constrains all six variables) in the ex4 fixture.
+    evidence:
+      - "examples/validation/runs/ex4-run3/scoring.md"
+      - "examples/validation/runs/ex4-run1/scoring.md"
+    why_out_of_scope: >-
+      The case-module references and the aspect prompt are CM-01's conflict
+      keys. EV-02 measures whether they are sufficient; rewriting them from
+      inside the measurement would answer its own question.
+    suggested_fix: >-
+      State the precondition per FORM in the reference: a slice needs the
+      action set, a Given needs the full variable set and every guard of the
+      actions it admits. Then either give the Given an authoring aid that
+      supplies that surface (a printed pre-state skeleton from the view), or
+      say plainly that Givens are an inside-author form. For Step 0, either
+      make the provenance checkable (record who supplied the aspect list and
+      refuse to invent one) or delete the requirement rather than ship an
+      unenforceable one -- an unenforceable rule teaches agents that rules in
+      these prompts are optional.
+    blast_radius: >-
+      The entire aim-2 value proposition. The claim under test is "a person
+      writes a few lines and gets a corpus"; it is true for the weaker form and
+      unverified for the stronger one.
+    disposition: ticketed
+    disposition_ticket: RP-03
+    disposition_note: ""
+
+  - id: EV-02-DF-05
+    found_by: "EV-02"
+    found_at_commit: "60d4a51"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["references/aspect_decomposition.md", "references/case_modules.md", "scripts/generate_cases_from_tlc_dump.py", "scripts/run_generated_case_adapters.py", "examples/validation/README.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      X-P3 ("agent-facing docs suffice without reading toolchain source") FAILS
+      on the blind aspect-authoring run. Six reproducible friction items, all
+      cases where the docs were insufficient and the agent had to read behavior
+      or source to proceed. (1) aspect_decomposition.md Step 1's command does
+      not run as written -- `--spec-root` is ignored for the positional path --
+      and its jq pipeline assumes JSON-only stdout. (2) `--out` resolves
+      against the `.tla`'s directory, not cwd, undocumented. (3) EVERY
+      documented command path assumes an external view (`--view external`,
+      testgraph/, testgraph_bindings.yml); an internal-only project has no
+      worked example anywhere in the repo. (4) run_generated_case_adapters.py
+      needs two `--import-root` flags and the error names one. (5) INTERPRETER
+      AMBIGUITY: no `python3` on PATH carries both `yaml` (the toolchain) and
+      `pytest` (the READMEs), and no doc states an environment requirement.
+      Hit independently during EV-02's own mechanical arms, where `python3`
+      under timeout(1) resolved to a different interpreter (3.9.6) than
+      `python3` in an interactive shell (3.14.6). This one produced a stronger
+      determinism result by accident (the corpus fingerprint is stable across
+      the gap) and is a real hazard for anyone reproducing the numbers.
+      (6) the copy-in dance of EV-02-DF-02, filed separately.
+    reproduction: >-
+      Follow references/aspect_decomposition.md Step 1 verbatim; then generate
+      a corpus for an internal-only view using only the shipped docs. For the
+      interpreter item: `python3 -VV` versus `timeout 5 python3 -VV`.
+    evidence:
+      - "examples/validation/runs/ex4-run3/scoring.md"
+      - "examples/validation/runs/ex4-run2/scoring.md"
+    why_out_of_scope: >-
+      All five surfaces are CM-01's and the toolchain's conflict keys. EV-02
+      measures documentation sufficiency; a ticket that patches the docs it is
+      grading has graded its own work.
+    suggested_fix: >-
+      Ship ONE worked internal-only example end to end -- scaffold, aspect,
+      corpus, adapters, run -- because item 3 is the root of items 1, 2 and 4:
+      every published command was written against the external path. State the
+      interpreter requirement once, in the validation README, with a resolved
+      absolute path rather than `python3`.
+    blast_radius: >-
+      Every new adopter of the case-module path, and every future eval run's
+      X-P3 score. Six of eight friction items in the first blind aspect run
+      came from documentation, not from the tool.
+    disposition: ticketed
+    disposition_ticket: RP-03
+    disposition_note: ""
+
+  - id: RP-04-DF-01
+    found_by: "RP-04"
+    found_at_commit: "506e0e0"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: ["scripts/complexity_ledger.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      RP-04 made an incomplete state-space bound refuse the cap comparison, but
+      deliberately did NOT change how such a bound feeds the ledger's DELTA
+      DIRECTION, which is a real gate: `compute_delta` puts `bound` in
+      DIRECTION_METRICS, and direction drives three refusals in `evaluate`
+      (an unjustified increase, and a decrease with degraded or unverified
+      validated-refactor evidence). A bound delta between two products taken
+      over different resolved subsets is not a measurement of the model getting
+      bigger or smaller -- the same argument RP-04 used to refuse
+      percent-of-cap -- yet it can still refuse a close or license a decrease.
+      RP-04 records the fact (`comparable: false` plus a `note` on the bound
+      delta entry, printed as "NOT LIKE-FOR-LIKE" under the number) and stops
+      there, because both ways of acting on it are policy calls the owner
+      should make, not side effects of a reporting fix. Dropping a
+      non-comparable bound from the direction WEAKENS a gate and opens a
+      gaming vector (make a variable unresolvable, lose the increase);
+      hard-refusing on it turns an advisory finding into a build failure, which
+      the epic's standing doctrine forbids. Note also that EVERY ledger entry
+      written before RP-04 lacks `bound_complete`, so every delta against
+      history is `comparable: false` with the "unrecorded" note -- honest, and
+      noisy until a few entries accumulate.
+    reproduction: >-
+      python3 -c "import sys; sys.path.insert(0,'.'); from scripts import
+      complexity_ledger as cl; print(cl.compute_delta({'scope_id':'p',
+      'metrics':{'bound':1000,'bound_complete':True}},
+      {'bound':4,'bound_complete':False})['direction'])". Observed: decrease --
+      on a pair whose own recorded note says the two numbers are products over
+      different subsets of the representation.
+    evidence:
+      - "specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/cm-01-df-03-before-after.txt"
+    why_out_of_scope: >-
+      RP-04's brief is explicit that an incomplete bound is a FINDING, not a
+      build failure, and that the ticket must not become a gate. Changing the
+      direction rules in either direction changes what refuses a close, which
+      is the epic owner's call.
+    suggested_fix: >-
+      Decide, with the owner, what a non-comparable bound delta should do to
+      the direction. The narrowest defensible option is a third value --
+      direction `incomparable` for the bound term alone, recorded and printed,
+      leaving `variables` and `distinct_states` to decide the direction on
+      their own -- rather than silently counting it or silently dropping it.
+    blast_radius: >-
+      scripts/complexity_ledger.py only. No current entry is affected: this
+      repository's bound is over its cap and has been incomplete in the same
+      8-of-10 way across every recorded entry, so its deltas are like-for-like
+      in practice even though the flag now says they are not provably so.
+    disposition: carried
+    disposition_ticket: "HX-07"
+    disposition_note: >-
+      Filed by RP-04 as the limit it chose not to cross. Candidate for the
+      next epic alongside NE-01.
+
+  - id: RP-07-DF-01
+    found_by: "RP-07"
+    found_at_commit: "b2d3a35"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: ["test_graph/README.md"]
+    summary: >-
+      The Test Graph executor's process-ownership contract ("node launcher
+      exited with live descendants") and the Kotlin Gradle plugin's default
+      `daemon` compile strategy are mutually incompatible for ANY node that
+      runs a nested Gradle build which compiles Kotlin. The default forks
+      `KotlinCompileDaemon --daemon-autoshutdownIdleSeconds=7200`, a shared
+      user-scoped service designed to outlive its build, as a descendant of
+      the node launcher; the contract then correctly reports it as leaked and
+      reaps it -- reaching a daemon shared with the outer build. RP-07 fixed
+      the one node in THIS repository that hits it
+      (`spec.workflow.failure_cleanup_probe`) by pinning
+      `kotlin.compiler.execution.strategy=in-process`, and documented the
+      requirement in test_graph/README.md. But the requirement is a general
+      consequence of the contract, not a property of this probe, and it is
+      currently written down only in this repository. Any other repo whose
+      test_graph nodes shell out to a Gradle build that compiles Kotlin will
+      hit the same red, with the same opaque bare-PID message and no pointer
+      to the cause. The natural home for the guidance is the test-graph skill
+      itself (references/workflows.md already documents the supervisor's exit
+      codes but says nothing about daemons), or a diagnostic in the executor
+      that names the surviving processes' command lines rather than only their
+      PIDs.
+    reproduction: >-
+      On this repository at b2d3a35, `cd test_graph && ./gradlew specWorkflow
+      --console=plain` fails with "node spec.workflow.failure_cleanup_probe
+      errored: node launcher exited with live descendants: <pids>". Resolving
+      a reported PID with `ps -eo pid,ppid,args` shows
+      `org.jetbrains.kotlin.daemon.KotlinCompileDaemon
+      --daemon-autoshutdownIdleSeconds=7200` descending from the `uv run` node
+      launcher. Full ancestry and a three-arm controlled A/B (warm project /
+      fresh copy / fresh copy + in-process) are in
+      specs/tickets/RP-07/results/descendant-ancestry.txt and diagnosis.md;
+      the A/B harness is results/descendant-contract-harness.py.
+    evidence:
+      - "specs/tickets/RP-07/results/diagnosis.md"
+      - "specs/tickets/RP-07/results/descendant-ancestry.txt"
+      - "specs/tickets/RP-07/results/descendant-contract-harness.py"
+      - "specs/tickets/RP-07/results/test-graphs.txt"
+    why_out_of_scope: >-
+      RP-07's conflict key is `test_graph/` in THIS repository. The fix belongs
+      in the installed test-graph skill under $SKILL_MANAGER_HOME, which this
+      epic's standing rule forbids editing or syncing without explicit
+      say-so -- and `test_graph/build-logic` and `test_graph/sdk` are symlinks
+      into it, so an edit there is an edit for every repository that installs
+      the skill.
+    suggested_fix: >-
+      Two independent, both narrow: (1) have the executor's
+      ProcessContractViolation message carry each surviving process's command
+      line, not just its PID -- the diagnosis in this ticket took a `ps`
+      sampler to obtain what the executor already had in hand; (2) add the
+      nested-build/daemon guidance to the test-graph skill's
+      references/workflows.md next to the existing supervisor exit-code
+      documentation.
+    blast_radius: >-
+      Diagnostics and documentation only. No contract change: the contract is
+      correct as written and RP-07's evidence supports keeping it strict. No
+      currently-shipping graph in this repository is affected -- specWorkflow
+      is green.
+    disposition: carried
+    disposition_ticket: null
+    disposition_note: >-
+      Filed by RP-07 as the part of its own finding that is not this
+      repository's to fix. Requires owner say-so to touch the installed skill.
+  - id: EV-03-DF-01
+    found_by: "EV-03"
+    found_at_commit: "897ea14"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      A retracted conclusion is still on record in the epic's own plan. The
+      AC-02 status note in ticket_plan.yaml states that this repository is
+      "unmappable without a declared partition, falsifiable-and-clean under a
+      four-component one, and vacuous under a three-component one". The middle
+      clause is FALSE on the repaired tree. RP-01 recorded the correction in its
+      own outcome field, and EV-03 re-measured it independently: this
+      repository's own DECLARED four-component partition
+      (specs/program_model/architecture_components.yaml) does NOT decompose its
+      own model -- modularity_q = -0.025485 against a rule of > 0, and
+      crossing_action_fraction = 0.6 against a rule of <= 0.5 -- so the verdict
+      is `unmappable` with `partition_does_not_decompose` as a basis limit, and
+      `coherent` is not a verdict this repository could earn today even with a
+      perfect extractor. Nothing corrected the AC-02 note, so a reader of the
+      plan still finds the pre-RP-01 claim stated as a measurement. This is the
+      same defect class the epic keeps finding -- a checked-in claim the
+      measurement contradicts -- in the epic's own bookkeeping.
+    reproduction: >-
+      python3 scripts/architecture_reflexion.py
+      specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg
+      --components specs/program_model/architecture_components.yaml
+      --code scripts --map specs/program_model/architecture_map.yaml
+      -- observed: architecture_scan = unmappable, exit 0, basis limit
+      partition_does_not_decompose (modularity_q -0.025485,
+      crossing_action_fraction 0.6), plus three dynamic_import blind spots, one
+      first_party_outside_code_root and one non_python_file.
+    evidence:
+      - "examples/validation/runs/ex6-run2/artifacts/realjenga_declared.txt"
+      - "examples/validation/runs/ex6-run2/scoring.md"
+    why_out_of_scope: >-
+      EV-03's conflict keys are examples/validation/ and NEXT-EPIC.md. The AC-02
+      status note lives in ticket_plan.yaml's status block, which belongs to the
+      epic owner, and AC-02 is a closed ticket whose history is sealed.
+    suggested_fix: >-
+      Amend the AC-02 status note in ticket_plan.yaml to record that the
+      four-component claim was superseded by RP-01, with a pointer to RP-01's
+      outcome field and to this run record. Do not edit AC-02's sealed history;
+      correct the standing summary.
+    blast_radius: >-
+      Documentation only. Nothing reads the note; no command, gate, or artifact
+      depends on it. The cost is that the epic's own summary of its dogfood is
+      wrong, and the dogfood is what AC-02 called its deliverable.
+    disposition: carried
+    disposition_ticket: "HX-07"
+    disposition_note: >-
+      Filed by EV-03 during the round-2 re-measurement. NOT fixed inline: a fix
+      during a measurement destroys the measurement, and this ticket's own rule
+      is that findings are filed.
+
+  - id: EV-03-DF-02
+    found_by: "EV-03"
+    found_at_commit: "897ea14"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: ["scripts/run_generated_case_adapters.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      CM-F5 is worse than RP-03 filed it, by one measurement RP-03 did not make.
+      RP-03 published CM-F5 as OPEN -- a slice narrower than its view orphans
+      the view's effect providers, so `run_generated_case_adapters.py` refuses
+      the slice's corpus with "provider configured for semantic effect port(s)
+      not required by any selected case: LedgerStorePort" -- and stated that
+      "the only workaround today is a second mapping file with the provider
+      removed". The ex4 fixture SHIPS a second mapping,
+      case_adapters_corpus_only.toml, and it refuses the same corpus with the
+      identical error, because it also binds a LedgerStorePort provider (the
+      silent one). So on the shipped fixture there is NO mapping under which the
+      slice's corpus can execute; the workaround requires authoring a third
+      mapping that exists nowhere in the repository. The consequence is the one
+      RP-03 already named and is now sharper: the cheapest outside-in artifact
+      -- a slice, the only form writable from action names alone -- is the one
+      that cannot run end to end, while the form that runs (a Given entering the
+      effect-carrying action) is the one that cannot be written from outside.
+      Independently reproduced in the same run by a blind agent authoring
+      aspects from the public surface, which hit the refusal and had to author
+      its own third mapping to proceed.
+    reproduction: >-
+      bash examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.sh
+      (PY=<pinned interpreter> REPO=<repo root>). Step 6 is the documented CM-F5
+      refusal against case_adapters.toml, exit 1. Step 6b is new: the SAME
+      corpus against case_adapters_corpus_only.toml, identical error, exit 1.
+      Output: examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.txt.
+    evidence:
+      - "examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.txt"
+      - "examples/validation/runs/ex4-run4/scoring.md"
+      - "examples/validation/runs/ex4-run6/scoring.md"
+    why_out_of_scope: >-
+      EV-03's conflict keys are examples/validation/ and NEXT-EPIC.md.
+      scripts/run_generated_case_adapters.py is in neither, and a measurement
+      ticket that fixes what it is measuring has destroyed the measurement.
+    suggested_fix: >-
+      RP-03's own suggested shape, unchanged: a lever that says "this corpus is
+      a declared case module, so a provider no selected case requires is a FACT
+      about the slice, not a misconfiguration" -- reported, never silently
+      dropped. That is a decision about the runner and not about case modules.
+      Whatever the shape, the acceptance test is that the ex4
+      Scenario_DeliveryPath corpus executes against one of the mappings the
+      project already ships, with no third file.
+    blast_radius: >-
+      Every project whose view has an effect port and whose slices do not all
+      enter the action that touches it -- which is the normal shape of a slice,
+      since slicing is what makes an aspect narrower than its view. It blocks
+      execution, not generation: the corpus is produced, validated and counted
+      in coverage, and only the run refuses. Nothing is silently wrong; the
+      failure is loud and exits nonzero.
+    disposition: carried
+    disposition_ticket: "HX-04"
+    disposition_note: >-
+      Filed by EV-03 as a sharpening of CM-F5, not as a new defect. CM-F5's
+      status after round 2 is STILL OPEN.
+
+  - id: EV-03-DF-03
+    found_by: "EV-03 blind run A (agent), reproduced independently by the EV-03 scorer"
+    found_at_commit: "897ea14"
+    schedule_revision: 3
+    severity: major
+    surface:
+      production: ["scripts/architecture_reflexion.py", "references/architecture_coherence.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      EVERY divergence on any project is erasable with NO declaration edit, NO
+      map edit, NO blind spot and NO basis limit, by re-exporting the offending
+      symbol through a first-party package nested more than one directory below
+      the code root's parent. architecture_reflexion.py decides whether an
+      unresolved import is third-party or first-party-outside---code by testing
+      exactly ONE path -- `sibling = code_root.parent / name` -- so a project
+      whose shared or generated package lives at `generated/pkg`, `src/pkg`,
+      `gen/pkg` or `vendor/pkg` has that package silently filed under "standard
+      library and third-party packages", and every edge routed through it leaves
+      the graph with nothing recorded. Two consequences, both measured. (1) The
+      verdict turns on DIRECTORY DEPTH ALONE: moving
+      examples/validation/ex4_pipeline_coherent/generated/pipeline_contract up
+      one level, changing zero bytes of Python, flips the verdict from
+      `coherent` to `unmappable` with a first_party_outside_code_root blind
+      spot -- so this epic's only positive architecture result (AC-P1's answer
+      key) is conditional on how deep the fixture nests its generated package.
+      (2) On ex5_pipeline_divergent, a 24-line lazy re-export module dropped
+      into generated/pipeline_contract/, three one-line import rewrites and one
+      decorative function-local import turn `divergent` (4 divergences, 1
+      absence) into `coherent`, 0 divergences, 0 absences, `blind_spots: []`,
+      `basis_limits: []`, `clean_result_supportable: true`, exit 0 -- with BOTH
+      digests byte-identical to the honest answer key, all 8 behavioural tests
+      green, and the runtime coupling fully intact
+      (`pipeline.ingest.inbox.format_entry is pipeline.ledger.journal.
+      format_entry` -> True). This is a false clean of exactly the DP-1 class
+      the epic's scoring rule exists to catch, and the DP-1 rule CANNOT SEE IT
+      because no declared artifact moved. It is strictly worse than the
+      map-placement gaming the documentation already owns: that requires
+      editing a declared artifact a reviewer reads, whereas a re-export shim is
+      ordinary Python in a directory labelled "generated, do not hand-edit" and
+      reads as an indirection improvement. It also survives RP-01 untouched:
+      the partition still decomposes, the pair is still unported,
+      divergence_detectable is still true, and the report is telling the truth
+      about its basis and a falsehood about the code.
+    reproduction: >-
+      (1) cp -R examples/validation/ex4_pipeline_coherent /tmp/ex4copy && cd
+      /tmp/ex4copy && python3 <repo>/scripts/architecture_reflexion.py
+      specs/program_model/Pipeline.tla specs/program_model/Pipeline.cfg
+      --components specs/program_model/architecture_components.yaml --code
+      pipeline --map specs/program_model/architecture_map.yaml -> coherent,
+      blind_spots []. Then `mv generated/pipeline_contract ./pipeline_contract`
+      and rerun -> unmappable, blind_spots [first_party_outside_code_root]. No
+      Python changed. (2) The full attack on the divergent twin, with its
+      41-line diff and the runtime-identity proof, is
+      examples/validation/runs/ex5-run4/artifacts/reexport_attack/ (shared.py,
+      attack.diff, RESULT.txt).
+    evidence:
+      - "examples/validation/runs/ex5-run4/artifacts/reexport_attack/RESULT.txt"
+      - "examples/validation/runs/ex5-run4/artifacts/reexport_attack/shared.py"
+      - "examples/validation/runs/ex5-run4/artifacts/reexport_attack/attack.diff"
+      - "examples/validation/runs/ex5-run4/artifacts/BLIND-RUN-A-REPORT.md"
+      - "examples/validation/runs/ex5-run4/scoring.md"
+    why_out_of_scope: >-
+      EV-03's conflict keys are examples/validation/ and NEXT-EPIC.md;
+      scripts/architecture_reflexion.py is in neither. And the standing rule
+      binds harder here than usual: this finding was produced BY the
+      measurement, by a blind agent under test, and fixing it inside the
+      measurement would have destroyed the only run that found it.
+    suggested_fix: >-
+      Resolve first-party-ness against the PROJECT root and the import paths the
+      project actually uses, not against a single hardcoded sibling of the code
+      root: walk upward from the code root to the project root looking for the
+      package, and consult the sys.path entries the project itself installs (the
+      fixture's own driver puts generated/ on sys.path explicitly). Anything the
+      search finds inside the project and outside --code is a
+      first_party_outside_code_root blind spot, which already forces
+      `unmappable` and is already never downgraded -- so the entire fix is in
+      the DETECTION, and no verdict rule changes. Consider also emitting the
+      tool's own version/digest in the report (blind run A's friction item 5):
+      a stored `coherent` cannot be compared across extractor builds today, and
+      this finding is exactly a case where the verdict moves without the code
+      moving. A regression test in the TestNothingDowngrades... shape should pin
+      the nested case specifically.
+    blast_radius: >-
+      Every Python project whose first-party shared or generated code lives more
+      than one level below the code root's parent -- i.e. every src/, gen/,
+      build/, vendor/ or generated/ layout, which is most of them. Both of this
+      epic's architecture fixtures have that layout, so BOTH published answer
+      keys are affected: ex4's `coherent` is conditional on the nesting, and
+      ex5's 4-divergence key is erasable through it. The 203-partition sweep is
+      NOT affected -- it varies the partition, not the import graph, and the
+      first_party path is identical in all 203 rows -- so RP-01's 12 -> 0 result
+      stands. Advisory only: nothing blocks, and every affected run exits 0. The
+      cost is a false `coherent` recorded in evidence and put in a PR body,
+      which is the same cost RP-01 was built to remove on the other path.
+    disposition: carried
+    disposition_ticket: "HX-03"
+    disposition_note: >-
+      Filed by EV-03. This is the highest-severity finding of round 2 and the
+      strongest single argument that NE-02 ("measure interaction, not imports")
+      is the next epic's real work. Note what it does NOT overturn: RP-01's
+      sweep, the answer key's precision and recall on an unattacked tree, and
+      the refusals, all of which reproduce.
+
+  - id: EV-03-DF-04
+    found_by: "EV-03 blind run B (agent), verified by the EV-03 scorer"
+    found_at_commit: "897ea14"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: ["scripts/run_generated_case_adapters.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `--effect-report PATH` accepts a path and silently writes nothing, with no
+      warning and exit 0, on a project that declares effect ports the way this
+      epic's own fixture declares them. The flag is gated on
+      `declarations is not None and bool(declarations.ports)`
+      (run_generated_case_adapters.py:1461) and
+      `load_effect_declarations_for_spec` reads an `effects:` block from
+      actions.yml or spec_manifest.yaml. examples/validation/ex4_pipeline_coherent
+      has neither: it declares `ports:` in the manifest and `effect_ports:` per
+      action in actions.yml, binds a real provider, and runs 330 cases through
+      it. The code comment two lines above the gate reads "The report is written
+      unconditionally -- it is ticket evidence whether the verdict is clean or
+      not", which is not what the code does. A flag that takes a path and
+      produces no file should say "this spec declares no `effects:` block, so
+      there is nothing to report" rather than exit 0 in silence -- the same
+      refusal shape MF-027 established, applied to a report instead of a
+      verdict. Found by a blind agent asked to measure kills; verified
+      independently by the scorer on the shipped fixture.
+    reproduction: >-
+      cd examples/validation/ex4_pipeline_coherent && PYTHONPATH=<repo>:$PWD/generated
+      python3 <repo>/scripts/run_generated_case_adapters.py <corpus>
+      --mapping specs/program_model/case_adapters.toml --spec-dir
+      specs/program_model --view internal --batch --import-root .
+      --import-root ./generated --effect-report /tmp/eff_probe.json
+      -- observed: exit 0, "executed 330 cases in batch", /tmp/eff_probe.json
+      does not exist, and the string "effect report" appears nowhere in stdout
+      or stderr.
+    evidence:
+      - "examples/validation/runs/ex4-run6/scoring.md"
+      - "examples/validation/runs/ex4-run6/artifacts/BLIND-RUN-B-REPORT.md"
+    why_out_of_scope: >-
+      EV-03's conflict keys are examples/validation/ and NEXT-EPIC.md;
+      scripts/run_generated_case_adapters.py is in neither, and the finding was
+      produced by the measurement.
+    suggested_fix: >-
+      When --effect-report is passed and no `effects:` declaration is found,
+      write the report anyway with an explicit "no effect declarations found"
+      body, or refuse with a message naming the two files searched and the block
+      expected. Either is honest; silence is not. Reconcile the comment at the
+      gate with the behaviour in the same pass -- a comment that describes the
+      opposite of the code is how this defect survived.
+    blast_radius: >-
+      Any project that declares effect ports through `ports:` + `effect_ports:`
+      rather than an `effects:` block, which includes this epic's own coherent
+      fixture. The cost is a missing evidence artifact that a ticket may believe
+      it produced. Nothing is silently wrong in the RUN -- the cases execute and
+      the providers assert normally; only the report is absent.
+    disposition: carried
+    disposition_ticket: "HX-07"
+    disposition_note: >-
+      Filed by EV-03. Not fixed: findings are filed during a measurement.
+
+  - id: EV-03-DF-05
+    found_by: "EV-03 blind run B (agent), verified by the EV-03 scorer"
+    found_at_commit: "897ea14"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: ["scripts/analyze_architecture.py", "prompts/aspect_decomposition.md", "references/architecture_coherence.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `analyze architecture` run WITHOUT --components silently substitutes its
+      own emergent partition for the one the project declares, and the shipped
+      prompt tells a first-day engineer to run it that way. Measured on
+      examples/validation/ex4_pipeline_coherent: without --components the tool
+      reports an EMERGENT 2-component partition (C1, C2) with one port crossed by
+      `Enqueue` and no spanning action; with --components it reports the declared
+      3-component partition with P1 crossed by `Deliver`, P2 by `Record`, and
+      `Deliver` as a spanning action writing on both sides of the boundary. The
+      second answer is the one the model's own comments assert and the one the
+      fixture's answer key records as CORRECT OUTPUT. The default run therefore
+      erases a deliberate, documented architectural violation and attributes a
+      boundary crossing to a different action. The tool is not lying --
+      `partition.source` says `emergent` in the JSON -- but the prompt's Step 1
+      one-liner pipes past it, the TEXT output is what a human reads, and
+      spec_manifest.yaml points at the partition file IN PROSE that the tool
+      cannot read (the --manifest path honours only an inline `architecture:`
+      block). A blind agent following the prompt verbatim got the wrong
+      architecture picture with no indication that a declared partition existed.
+      Compare AC-02's own doctrine: an unresolvable target reports `unmappable`
+      rather than a clean. Here a resolvable-but-DIFFERENT partition reports a
+      confident answer about a boundary the project did not declare.
+    reproduction: >-
+      cd examples/validation/ex4_pipeline_coherent && python3
+      <repo>/scripts/tla_spec_dev.py --spec-root specs analyze architecture
+      specs/program_model/Pipeline.tla specs/program_model/Pipeline.cfg
+      --format json  -> partition.source=emergent, components [C1, C2], ports
+      [P1 C1<->C2 via Enqueue]. Add
+      --components specs/program_model/architecture_components.yaml ->
+      partition.source=declared, components [ingest, dispatch, ledger], ports
+      [P1 via Deliver, P2 via Record], spanning action Deliver.
+    evidence:
+      - "examples/validation/runs/ex4-run6/scoring.md"
+      - "examples/validation/runs/ex4-run6/artifacts/BLIND-RUN-B-REPORT.md"
+    why_out_of_scope: >-
+      scripts/analyze_architecture.py and prompts/ are outside EV-03's conflict
+      keys, and the finding was produced by the measurement.
+    suggested_fix: >-
+      Two independent, both small. (1) When a partition file sits beside the
+      model in the conventional location and --components was not passed, say so
+      in the TEXT output before reporting an emergent partition -- naming a
+      declaration the run did not use is a fact, not a suggestion, so CD-01 is
+      not engaged. (2) Fix prompts/aspect_decomposition.md Step 1 to pass
+      --components, and say in references/architecture_coherence.md that
+      --components and --map come as a set the way --code and --map already do
+      (blind run A hit the same coupling from the other side: without
+      --components a human-written map is refused outright because emergent
+      components are named C1/C2). Optionally let spec_manifest.yaml reference an
+      external partition file rather than only an inline block, since the
+      fixture's own comment already assumes it can.
+    blast_radius: >-
+      Every project that declares a partition in a separate file -- which is the
+      layout this epic's own fixtures use, and which the fixtures chose
+      deliberately so the four architecture inputs could be diffed. Reporting
+      only; nothing blocks, and the reflexion check itself refuses to run against
+      a mismatched partition, so the wrong picture cannot propagate into a
+      verdict. The cost is a confident wrong answer at the first command a new
+      user is told to run.
+    disposition: carried
+    disposition_ticket: "HX-02"
+    disposition_note: >-
+      Filed by EV-03. Not fixed: findings are filed during a measurement.
+
+  - id: EV-03-DF-06
+    found_by: "EV-03"
+    found_at_commit: "897ea14"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [".gitignore", "examples/validation/"]
+    summary: >-
+      EVIDENCE INTEGRITY: `.gitignore` line 40 is `*.log`, so every eval artifact
+      written with a `.log` extension is silently dropped from the repository
+      while its scoring record cites it. Round 1's own records are affected and
+      nobody noticed for three days: examples/validation/runs/ex4-run1/scoring.md
+      lists "14 mutant/control logs (both arms)" and `artifacts/inplace.log` --
+      the reproduction of EV-02-DF-02 -- under "Artifacts", and
+      `git ls-tree -r 3af9e59 --name-only | grep ex4-run1` returns nine files,
+      none of them a log. The DF-02 reproduction the record points at does not
+      exist in the repository. This is the same defect class the epic keeps
+      finding, in the epic's own evidence: a checked-in claim about an artifact
+      that is not there. `git add` reports nothing when a path is ignored, so the
+      failure is silent by design and only a `git ls-files` check catches it.
+      EV-03 avoided it by renaming its own log artifacts to `.txt` before
+      committing, which is a workaround and not a fix -- the next eval will hit
+      it again.
+    reproduction: >-
+      git check-ignore -v examples/validation/runs/<any>/artifacts/x.log
+      -> ".gitignore:40:*.log". And for the round-1 loss:
+      git ls-tree -r 3af9e59 --name-only | grep "ex4-run1" -> nine paths, none
+      ending in .log, against a scoring.md that cites fifteen.
+    evidence:
+      - "examples/validation/runs/ex4-run1/scoring.md (the citing record)"
+      - "examples/validation/runs/ex4-run4/artifacts/logs/ (EV-03's renamed-to-.txt workaround)"
+    why_out_of_scope: >-
+      `.gitignore` is not in EV-03's conflict keys, and round 1's sealed run
+      records must not be edited by a later ticket -- an eval record is a
+      record. The finding is that the record cites artifacts the repository does
+      not carry, which is exactly the sort of thing a later ticket must report
+      rather than quietly repair.
+    suggested_fix: >-
+      Add a negated pattern for the eval tree
+      (`!examples/validation/runs/**/*.log`), or require eval artifacts to use
+      `.txt`, and add a check to the eval protocol that every path named under a
+      scoring record's "Artifacts" section is `git ls-files`-visible. The check
+      is one line and it is the only thing that would have caught this: `git add`
+      is silent on an ignored path, so a run can believe it committed its
+      evidence.
+    blast_radius: >-
+      Every eval run in this repository, retroactively. Round 1 lost 15 named
+      artifacts across ex4-run1 (14 execution logs plus the DF-02 reproduction);
+      the NUMBERS survive because kill_matrix.json was committed and the harness
+      is committed, so the run is re-derivable -- but the primary outputs the
+      record points at are gone. Nothing about a shipped verdict or a production
+      behaviour is affected; the cost is entirely to the auditability of the
+      measurement, which for a fact-finding epic is the product.
+    disposition: carried
+    disposition_ticket: "HX-01"
+    disposition_note: >-
+      Filed by EV-03 while committing its own artifacts. EV-03's records name no
+      artifact the repository does not carry -- verified with git ls-files after
+      the rename.
+
+  - id: RC-01-DF-01
+    found_by: "RC-01"
+    found_at_commit: "d3eb851"
+    schedule_revision: 6
+    severity: major
+    surface:
+      production: ["scripts/analyze_architecture.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      THE ARCHITECTURE SCANNER'S DECOMPOSITION VERDICT FLIPPED ON THIS
+      REPOSITORY BECAUSE ONE VARIABLE WAS ADDED, AND NOTHING WAS TUNED TO MAKE
+      IT FLIP. Through AC-04 this repository's own model was the recorded blob
+      case: one component, Q = 0.0, `consumable_as_architecture` false, asserted
+      as a test so "the finding cannot quietly reverse". RC-01 added
+      `architecture_delta` beside `architecture_scan` -- one variable, written
+      by the one action that already wrote its neighbour -- and the same
+      measurement now reports TWO components meeting ALL THREE shipped criteria
+      at Q = 0.0116. No criterion, threshold or clustering parameter changed in
+      this ticket.
+
+      The flip is not an architecture. The report that calls the partition a cut
+      lists `lastCommand` and `result` as single-writer violations ACROSS THE
+      SAME BOUNDARY on the next page -- the two god-variables whose presence was
+      the entire reason the model was a blob. And Q = 0.0116 is 26x below the
+      Newman threshold of 0.3 that the tool itself prints and deliberately does
+      not apply; the `modularity_q` criterion is `Q > 0`, which 0.0116 clears
+      exactly as 0.0 did not.
+
+      This is a measurement of the SCANNER, not of the repository. AC-03
+      independently measured 2 of 115,975 partitions of this model meeting all
+      three criteria at Q = 0.0029, so a verdict a single variable can invert is
+      consistent with what AC-03 already recorded -- but AC-03 recorded it as a
+      property of the partition search, and this is the shipped default path a
+      user gets with no `--components` file at all.
+    reproduction: >-
+      At d3eb851 (before RC-01):
+      `python3 scripts/tla_spec_dev.py --spec-root specs analyze architecture
+      specs/current/TlaSpecDevCli.tla specs/current/MC.cfg`
+      -> "MEASURED RESULT: does not decompose", one component, Q = 0.
+      After RC-01, the same command -> "MEASURED RESULT: the partition is a cut
+      -- every criterion above is met", C1/C2, Q = 0.011605,
+      crossing_action_fraction 0.0556.
+    evidence:
+      - "specs/results/rc01-architecture-current.txt (the post-change scan)"
+      - "tests/test_analyze_architecture.py::TestAModelThatResistsClusteringSaysSo::test_the_repositorys_own_model_flipped_out_of_the_blob_case"
+      - "specs/program_model/architecture_components.yaml (AC-03's 2-of-115,975 measurement)"
+    why_out_of_scope: >-
+      RC-01's slice is closing nine representation gaps the coverage audit
+      found. Changing what makes a partition a cut is a DOCTRINE decision on
+      AC-01/AC-03's surface -- it decides what `analyze architecture` reports to
+      every user of this skill, not just to this repository -- and a
+      reconciliation ticket that quietly retuned a criterion while its own model
+      delta was in flight would be indistinguishable from tuning the scanner to
+      like the change it just made. Filed instead, with the flip asserted in a
+      test so the next reader meets it.
+    suggested_fix: >-
+      Two candidates, and the choice is the owner's. (a) Add a fourth criterion
+      that the shipped report already computes and prints: a partition whose
+      SINGLE-WRITER VIOLATIONS include variables written from every component is
+      not a cut, whatever Q says. That is the criterion this case actually
+      fails. (b) Replace `Q > 0` with a stated floor and publish the number --
+      the report already prints Newman's 0.3 as "reported, not applied", which
+      is the current arrangement's weakest point: a threshold worth printing is
+      either a criterion or it is decoration. Do NOT simply raise Q until this
+      repository fails again; the fix has to be stated as a rule, not fitted to
+      an instance.
+    blast_radius: >-
+      Every consumer of `analyze architecture` with no declared `--components`
+      file, which is the default path. AC-02's reflexion check branches on
+      `consumable_as_architecture`, so this flip also changes whether the
+      reflexion check reports `unmappable` or attempts a real measurement
+      against a two-component map -- for this repository and for any user model
+      shaped like it. Nothing gates on it (the epic's coherence_doctrine keeps
+      the scanner advisory), so no close, promotion or generation changes
+      behaviour.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Filed by RC-01 rather than fixed. RC-01 verified the flip is caused by the
+      model delta and not by any change to the scanner: `git stash` of the
+      TlaSpecDevCli.tla change alone restores the blob verdict.
+
+      NARROWING WORTH HAVING, measured after filing: the flip is confined to
+      the EMERGENT partition. Under this repository's DECLARED four-component
+      partition (specs/program_model/architecture_components.yaml) the model
+      still does not decompose -- 2 of 3 criteria fail, Q = -0.0228,
+      crossing_action_fraction 0.5556 -- and the reflexion verdict is still
+      `unmappable`, exactly as AC-02 and AC-03 recorded
+      (specs/results/rc01-architecture-reflexion.txt). So the fragile path is
+      the DEFAULT one, taken when no partition is declared, and a project that
+      declares its components is not exposed to it. That makes the finding
+      narrower and, if anything, sharper: the emergent clustering is the mode
+      whose answer nobody declared and nobody can review.
+
+  - id: RC-01-DF-02
+    found_by: "RC-01"
+    found_at_commit: "d3eb851"
+    schedule_revision: 6
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: ["specs/desired_program_model/production_adapters.py", "specs/desired_program_model/case_adapters.toml", "specs/desired_program_model/tests/"]
+      test_graph: []
+    summary: >-
+      `specs/desired_program_model`'s ADAPTER LAYER WAS A FULL TICKET BEHIND ITS
+      OWN MODEL, AND ITS OWN TEST SAID SO WITHOUT ANYONE HEARING IT. At d3eb851
+      the desired tree's TlaSpecDevCli.tla carried 15 @command actions
+      (AC-01 added AnalyzeArchitecture) while its `case_adapters.toml` bound 14,
+      its `production_adapters.py` had no `AnalyzeArchitectureAdapter`, and its
+      `tests/test_tla_spec_dev_binding_reconciliation.py` still asserted
+      "fourteen command actions".
+
+      The reason nobody noticed is the finding: `run spec-unit-tests --scope
+      project` targets `specs/current` ONLY, so the desired tree's spec-unit
+      tests -- a 17-file suite, including the binding reconciliation check
+      CD-09's gap G5 was opened to install -- HAVE NEVER BEEN EXECUTED. Had they
+      run, the desired tree's own test would have failed at AC-01 and this would
+      have been a one-line fix five tickets ago. This is the same shape as the
+      audit's central observation, one layer down: an oracle that is never
+      pointed at a surface reports nothing about it, which is not the same as
+      reporting that it is clean.
+    reproduction: >-
+      At d3eb851: `diff specs/current/case_adapters.toml
+      specs/desired_program_model/case_adapters.toml` -> the AnalyzeArchitecture
+      binding is present in one and absent in the other. And
+      `uv run --with pytest python -m pytest specs/desired_program_model/tests -q`
+      -> the binding reconciliation test asserts 14 against a 15-action module.
+    evidence:
+      - "specs/.history/architectural-coherence-epic/ticket-002-AC-01/ (the ticket that grew the model without the desired adapters)"
+      - "scripts/tla_spec_dev.py spec_unit_target_dirs (project scope resolves to specs/current only)"
+    why_out_of_scope: >-
+      The DESYNC is in scope and RC-01 fixed it -- `specs/*/production_adapters.py`
+      is in this ticket's conflict keys, the plan's representation_scope names
+      those files IN MODEL (round-2 ESC-9), and the ticket's own acceptance
+      requires current and desired to be semantically equal. What is deferred is
+      the MECHANISM: whether `run spec-unit-tests` should validate the desired
+      tree at all, and if so under which scope. That changes the shipped
+      command's target resolution for every user of this skill and is a
+      behaviour decision, not a reconciliation.
+    suggested_fix: >-
+      Either add a scope that includes `specs/desired_program_model` (so the
+      target model's own conformance suite runs), or delete the desired tree's
+      `tests/` and say plainly that the desired tree carries no executable
+      conformance -- but not the present arrangement, where 17 test files exist,
+      are copied forward at every ticket open, and are never run. The second
+      option is cheaper and may be the right one: the desired tree is a
+      specification, and a specification's tests belong to whatever implements
+      it.
+    blast_radius: >-
+      Confined to this repository's own spec workflow. No shipped behaviour
+      depends on it. The cost is that a class of desync -- model grows, adapters
+      do not -- is undetectable in the desired tree, which is precisely the tree
+      a ticket is supposed to author FIRST.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      The desync itself is repaired in RC-01 (desired's adapter layer, bindings
+      and tests are now byte-identical to current's, and the reconciliation test
+      asserts 17). Only the mechanism question is deferred.
+
+  - id: RC-01-DF-03
+    found_by: "RC-01"
+    found_at_commit: "d3eb851"
+    schedule_revision: 6
+    severity: minor
+    surface:
+      production: ["scripts/tla_spec_dev.py"]
+      tla: ["specs/*/TlaSpecDevCli.tla"]
+      adapters: []
+      test_graph: []
+    summary: >-
+      THREE OF THE SIX GUARD-WEAKENING FLAGS CANNOT BE OBSERVED AT THE POINT THE
+      MODEL RECORDS THEM. The owner's decision models the six flags as a
+      weakened-close transition, and RC-01 lands it: `CloseTicketWeakened`, the
+      `TicketClosedWeakened` stage, and a `guard_weakening` block written into
+      the append-only close history. That block can name `--accept-new`,
+      `--allow-open` and `--no-promote-current`, because those three reach
+      `close ticket`. It cannot name the other three.
+
+      `--validate-only` belongs to `run spec-unit-tests` and produces a run that
+      reports success having executed no case body; `--force` and `--dry-run`
+      belong to `scaffold` and `open ticket`. Each weakens a PRECONDITION a
+      later close relies on, so a close that follows one of them is a weakened
+      close in fact -- and the close path has no way to know it happened. The
+      model represents the fact (this close did not pass the guarded
+      precondition) and the record names the flags it can name; the gap between
+      the two is recorded here rather than papered over.
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests
+      --scope project --validate-only` prints "spec-unit validation passed" with
+      no case body executed, and the subsequent `close ticket` history entry
+      records `guard_weakening.weakened: false`.
+    evidence:
+      - "specs/current/TlaSpecDevCli.tla (CloseTicketWeakened, the recorded limit of observation)"
+      - "scripts/spec_evolution.py weakening_flags_record"
+    why_out_of_scope: >-
+      Closing it means either threading a weakening record forward through the
+      ticket workspace (new persisted state on the shipped CLI) or changing what
+      `--validate-only` reports. Both are behaviour changes to commands outside
+      this ticket's decision, and the owner's decision named the weakened CLOSE
+      as the thing to model.
+    suggested_fix: >-
+      The cheap and honest version: have `run spec-unit-tests --validate-only`
+      drop a marker into the ticket workspace, and have the close read it into
+      the same `guard_weakening` block. That makes all four close-relevant flags
+      observable in one record; `--force` / `--dry-run` on scaffold are further
+      out, since the workspace they weaken may not exist yet.
+    blast_radius: >-
+      The strongest claim in this model. `ClosedTicketsPassedSpecUnitTests` is
+      now narrowed to guarded closes and TLC proves it over 10,331,543 states,
+      but a close following a `--validate-only` run is recorded as a GUARDED
+      close, so the invariant's scope is slightly wider in the record than it is
+      in fact. Three flags of six are covered; before RC-01 it was zero of six.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Recorded on TlaSpecDevCli.tla's CloseTicketWeakened as a named limit of
+      OBSERVATION rather than of the model, so a reader of the model meets it.
+
+  - id: RC-01-DF-04
+    found_by: "RC-01"
+    found_at_commit: "c2dab33"
+    schedule_revision: 6
+    severity: minor
+    surface:
+      production: ["scripts/spec_evolution.py", "scripts/new_ticket_workflow.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      THE COMPLEXITY LEDGER HAS NO REACHABLE-STATE FIGURE FOR THE TWO LARGEST
+      MODEL DELTAS IN THIS EPIC'S HISTORY, AND NOTHING TOLD THE AUTHORS SO.
+      `record_complexity_ledger` fills `distinct_states`, `generated_states` and
+      `depth` only when it finds a TLC report at one of three CONVENTIONAL
+      filenames -- `tlc-current.txt`, `tlc.txt`, `tlc-baseline.txt` -- sitting
+      NEXT TO the ledger input, i.e. inside the ticket's own `results/`
+      directory. The scaffolded `complexity_ledger.yaml` documents
+      `validated_refactor`, `retention`, `coverage_audit`, `architecture_delta`,
+      `justification`, `refinement`, `transition_diff` and `narrative` at
+      length, and says NOTHING about this filename convention. There is no
+      field to point at a report and no warning when none is found.
+
+      The consequence, measured across the committed ledger: AC-01 -- the ticket
+      whose 4.6x reachable-state increase is the epic's headline model-delta
+      figure -- recorded `distinct_states: null`. EV-03 recorded null. RC-01
+      recorded null, with a MEASURED 7.99x in hand and written into three other
+      places. AC-04, which added no model delta at all, is the entry that
+      carries `after: 1292951`, because its evidence happened to be named
+      `tlc-current.txt` in its ticket results directory.
+
+      So the machine-readable record of the standing objective carries the
+      number for the ticket that did not move it and null for the three that
+      did. Every one of those numbers exists, was measured, and is committed as
+      evidence under a name the ledger does not look for.
+    reproduction: >-
+      `python3 -c "import json; d=json.load(open('specs/results/complexity_ledger.json'));
+      [print(e['scope_id'], e['delta']['metrics']['distinct_states']) for e in d['entries']
+      if e.get('scope_id') in ('AC-01','AC-04','EV-03','RC-01')]"`
+      -> AC-01, EV-03 and RC-01 all-null; AC-04 after=1292951.
+      The lookup is scripts/spec_evolution.py::record_complexity_ledger, the
+      `for candidate in ("tlc-current.txt", "tlc.txt", "tlc-baseline.txt")` loop.
+    evidence:
+      - "specs/results/complexity_ledger.json (the null entries)"
+      - "specs/results/rc01-tlc-current.txt (RC-01's measured figure, under a name the ledger does not look for)"
+      - "specs/results/tlc-desired-epic-ac.txt (AC-01's, likewise)"
+    why_out_of_scope: >-
+      Two candidate fixes and both change shipped behaviour outside this
+      ticket's decision: adding a field to the scaffolded ledger input changes
+      the template every project gets from `scaffold workflow`, and making the
+      absence a WARNING changes what `close ticket` prints for every close. RC-01
+      also cannot repair its own entry -- the history is append-only and the
+      entry is sealed, which is correct and is why this is filed rather than
+      quietly re-closed.
+    suggested_fix: >-
+      Add `tlc_report:` to the scaffolded `complexity_ledger.yaml` with the
+      convention documented beside it, keep the three-filename probe as the
+      fallback, and PRINT ONE LINE at close when neither resolves: "reachable
+      states not measured for this close -- no TLC report found at <paths>".
+      A silent null in the record of the standing objective is the same shape as
+      the defects this epic's audit was opened to find.
+    blast_radius: >-
+      The ledger's reachable-state series, retroactively. The BOUND series is
+      intact and is what the ledger actually compares on
+      (`DIRECTION_METRICS` includes `distinct_states`, but a null contributes
+      nothing), so no verdict was wrong and no close was let through that should
+      not have been. The cost is to the record: the standing objective's own
+      history cannot show the reachable-state trajectory of the epic that grew
+      the model most.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Found by RC-01 while checking that its own 7.99x had landed in the ledger.
+      It had not. RC-01's figure is recorded in
+      specs/results/rc01-model-delta.md, in the plan's RC-01 model_delta_result,
+      and in the ledger input's narrative -- three prose records and no machine
+      one, which is exactly the arrangement this epic keeps finding.
+
+  - id: RC-02-DF-01
+    found_by: "RC-02"
+    found_at_commit: "a866957"
+    schedule_revision: 7
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters:
+        - "specs/current/spec_manifest.yaml"
+        - "specs/desired_program_model/spec_manifest.yaml"
+        - "specs/program_model/spec_manifest.yaml"
+        - "specs/current/production_adapters.py"
+      test_graph: []
+    summary: >-
+      `BuildSkillCli: [cli_artifact]` may be an over-declaration, by the same
+      rule N-1 was filed under. `BuildSkillCliAdapter.apply()` checks that
+      `scripts/tla_spec_dev.py` and `skill-scripts/install-tla-spec-dev.sh`
+      EXIST and writes nothing; its own `run()` comment says so in as many
+      words ("BuildSkillCli advances the pipeline but writes nothing into the
+      target repo"). Every write the `cli_artifact` comment enumerates belongs
+      to one of the two installer scripts, `InstallLocalCliAdapter.apply()` is
+      the only adapter that executes one, and `kill_mutants.toml` gives
+      `port-cli_artifact` `refine_action = "InstallLocalCli"`. If the shipped
+      artifacts are read as the authority -- which is how RC-02 decided where
+      to attach the three unattached ports -- BuildSkillCli's row should be an
+      EMPTY row, the RecordBudgets/AnalyzeCorpus shape, claiming "performs no
+      distinct effect".
+    reproduction: >-
+      `PYTHONPATH=$PWD/specs/current:$PWD python3 scripts/tla_spec_dev.py
+      --spec-root specs run effect-conformance --target specs/current
+      --cases-dir specs/results/rc02-effect-conformance/corpus-executed`
+      -- `cli_artifact` is exercised, but the observation that matches it is
+      `case_0002_install_local_cli` (action InstallLocalCli). No effect is
+      observed for `case_0001_build_skill_cli` at all.
+    evidence:
+      - "specs/results/rc02-effect-conformance/run-action-covering-corpus.txt"
+      - "specs/current/production_adapters.py (BuildSkillCliAdapter.apply and its run() comment)"
+    why_out_of_scope: >-
+      RC-02's gap is three ports attached to NO action. Emptying a row that has
+      carried a port since before this epic is a different claim about a
+      different action, it changes what the kill test's required-boundary set
+      is checked against, and deciding it inside the ticket that was moving the
+      neighbouring rows would be indistinguishable from tidying the measurement
+      to fit the edit.
+    suggested_fix: >-
+      Decide whether the skill-manager BUILD step (which materializes
+      $SKILL_DIR before either installer runs) is an effect of this program or
+      of skill-manager. If the latter, `BuildSkillCli: []` with the
+      absent-versus-empty comment the manifest already carries twice; if the
+      former, say which write it means, because the six listed under
+      `cli_artifact` are all in the two installers.
+    blast_radius: >-
+      None observable. An over-declared port cannot turn an observed effect
+      into a gap and cannot make a dead port live -- `diff_effects` computes
+      dead surface globally over declared ports and gaps per action -- so the
+      current rows are conservative in the safe direction.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Recorded in the manifest comment beside the row RC-02 did change, so the
+      next reader meets the question where the decision would be made.
+
+  - id: RC-02-DF-02
+    found_by: "RC-02"
+    found_at_commit: "a866957"
+    schedule_revision: 7
+    severity: major
+    surface:
+      production: ["scripts/effect_conformance_report.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `run effect-conformance` cannot load the adapters of the spec directory
+      it is pointed at. It executes them IN-PROCESS and never puts the target
+      spec directory on `sys.path`, while `case_adapters.toml` -- the file the
+      CLI itself scaffolds -- names adapters as bare module paths
+      (`production_adapters:BuildSkillCliAdapter`). The first ever run of this
+      oracle against this repository's own model died with
+      `ModuleNotFoundError: No module named 'production_adapters'` before a
+      single case executed.
+
+      The enforcing copy does not have this defect: `run spec-unit-tests` puts
+      `target_dir` on `PYTHONPATH` when it spawns
+      `scripts/run_generated_case_adapters.py`
+      (scripts/tla_spec_dev.py:310 (python_path)), and
+      `run_generated_case_adapters` additionally inserts the cases directory's
+      parent on `sys.path`. So the standalone command is the only one of the
+      pair that cannot run a scaffolded project, which is the opposite of the
+      documented relationship between them ("this command exists so the diff
+      can be produced and inspected on its own").
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py --spec-root specs run effect-conformance
+      --target specs/current --cases-dir
+      specs/results/rc02-effect-conformance/corpus-executed`
+      -> ModuleNotFoundError. The same command with
+      `PYTHONPATH=$PWD/specs/current:$PWD` runs.
+    evidence:
+      - "specs/results/rc02-effect-conformance/README.md (section: two defects that stopped the very first run)"
+    why_out_of_scope: >-
+      `scripts/effect_conformance_report.py` is not in RC-02's conflict keys,
+      and the fix changes import resolution for every caller of the oracle,
+      including `run spec-unit-tests`'s enforcing path if it is done in the
+      shared helper rather than in the reporter.
+    suggested_fix: >-
+      Insert the resolved spec directory (and the repository root) at the front
+      of `sys.path` in `_execute_corpus` before the first `load_object`, the
+      same set `command_env` builds for the enforcing runner, and add a
+      regression test that points the oracle at `specs/current` with no
+      PYTHONPATH set.
+    blast_radius: >-
+      The whole standalone oracle, for any project that uses the scaffolded
+      `case_adapters.toml` convention -- which is every project this CLI
+      scaffolds. It is the direct reason the "no oracle has ever run" limit
+      survived even after RC-01 made the corpus path reachable: the first
+      operator to try it hits an import error and cannot tell whether the
+      oracle or their project is at fault.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Found by running the command, not by reading it. Three MF-026 audit
+      rounds read this file and none could have seen this.
+
+  - id: RC-02-DF-03
+    found_by: "RC-02"
+    found_at_commit: "a866957"
+    schedule_revision: 7
+    severity: major
+    surface:
+      production: ["scripts/effect_conformance_report.py"]
+      tla: []
+      adapters: ["specs/current/production_adapters.py"]
+      test_graph: []
+    summary: >-
+      `run effect-conformance` executes every case unconditionally and ABORTS
+      THE WHOLE RUN on the first adapter that cannot take it. It calls
+      `call_adapter` directly and never consults `can_run` /
+      `adapter_accepts_case`, which is precisely the capability check
+      `run_generated_case_adapters` applies before executing anything. On this
+      model the second case killed the run with
+      `TypeError: adapter <AnalyzeArchitectureAdapter> does not define
+      run(case, ...)`.
+
+      The underlying fact is the sharper half: **9 of this model's 17 bound
+      adapters implement only `apply()`**, not `run(case, work_dir)` --
+      AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture,
+      RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket,
+      GenerateCases and CloseTicketWeakened. MF-028's case-execution seam was
+      built for the setup and ticket segments only. So no corpus containing an
+      analyze, run or close case can be executed by either runner, and the
+      effect oracle can see at most 8 of 18 modeled actions.
+    reproduction: >-
+      `PYTHONPATH=$PWD/specs/current:$PWD python3 scripts/tla_spec_dev.py
+      --spec-root specs run effect-conformance --target specs/current
+      --cases-dir <a corpus containing any analyze/run/close case>`
+      -> TypeError, no report written. The 9/17 split is enumerated by
+      `hasattr(cls, "run")` over `specs/current/case_adapters.toml`.
+    evidence:
+      - "specs/results/rc02-effect-conformance/README.md"
+      - "specs/results/rc02-effect-conformance/build_action_covering_corpus.py (executable_actions)"
+    why_out_of_scope: >-
+      Two separate fixes on two surfaces outside RC-02's slice: the runner's
+      missing capability check (`scripts/effect_conformance_report.py`) and
+      nine missing `run()` implementations (`production_adapters.py` in all
+      three trees), the second of which is a body of work comparable to MF-028
+      and MF-032 together.
+    suggested_fix: >-
+      In the reporter, call `adapter_accepts_case` and record a SKIP with its
+      reason rather than executing -- and report the skipped set in the
+      report, because a case the oracle silently did not run is exactly the
+      "unobservable read as clean" shape MF-027 removed. The nine `run()`
+      implementations are their own ticket.
+    blast_radius: >-
+      The effect oracle's reach over this model: 8 of 18 actions today, and
+      an abort rather than a partial report for any corpus that is not
+      hand-restricted to those 8. Every dead-port finding this oracle produces
+      for this repository is therefore a statement about a third of the model.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      RC-02's own evidence corpus is restricted to the 8 executable actions for
+      this reason, and says so where it is used.
+
+  - id: RC-02-DF-04
+    found_by: "RC-02"
+    found_at_commit: "a866957"
+    schedule_revision: 7
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters:
+        - "specs/current/spec_manifest.yaml"
+        - "specs/current/MCsmall.cfg"
+      test_graph: []
+    summary: >-
+      This model cannot produce a corpus its own gate accepts, so
+      `case_codegen.generation_status` cannot honestly leave `planned`.
+      `generate cases` over `MCsmall.cfg` -- the config MF-028 added expressly
+      to make a corpus tractable -- yields **3,678,217 cases from 118,573
+      states and a 7.4 GB cases.py**, which is 18,391x
+      `max_internal_cases_per_component: 200`; `enforce_case_cap` refuses it
+      (exit 2) and CPython cannot import the package it wrote anyway.
+
+      The mechanism is that this repository's model has NO `tlc_projection.py`.
+      Every generation recipe in `references/case_modules.md` pairs
+      `--state-projector` and `--output-projector` with `--dedupe projected`,
+      and each shipped example has one; this model has neither, so every one of
+      the 3.7M action-labelled edges becomes a case. Measured, with the
+      projections that would be honest for this model: dropping `lastCommand`
+      and `result` (the pair `adapter_case_runtime.UNPROJECTABLE_FIELDS`
+      already names as unrecoverable) leaves 628,424 cases; additionally
+      dropping `architecture_delta` leaves 96,056. None is executable.
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py --spec-root specs generate cases
+      specs/current/TlaSpecDevCli.tla specs/current/MCsmall.cfg --out
+      specs/current/generated --view internal`
+      -> "REFUSING to accept this corpus", exit 2, after writing a 7.4 GB
+      cases.py. Full log:
+      specs/results/rc02-effect-conformance/generate-cases-mcsmall.txt.
+    evidence:
+      - "specs/results/rc02-effect-conformance/generate-cases-mcsmall.txt"
+      - "specs/results/rc02-effect-conformance/README.md (the projection table)"
+    why_out_of_scope: >-
+      Closing it means either authoring a `tlc_projection.py` for this model
+      (new in-model surface, and a modelling decision about which variables an
+      adapter can observe) or adding a further-reduced config, and RC-02's
+      declared model delta is NONE. Either is a deliberate act on AC/CM
+      surface, not a side effect of a remediation ticket.
+    suggested_fix: >-
+      Write `specs/current/tlc_projection.py` beside the model, projecting away
+      the variables no adapter can observe, and record the resulting case count
+      against the cap. If it still does not fit, that is the answer to the
+      standing complexity objective rather than a generation problem.
+    blast_radius: >-
+      The single largest coverage limit this repository has, and the one MF-026
+      has been reporting since round 2. Until it is closed, `run
+      effect-conformance` and `run spec-unit-tests` have no corpus of this
+      model to execute, the kill test's corpus command has nothing to run, and
+      every `declared` verdict about this model remains a declaration checked
+      only by the always-on manifest tests.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      RC-02 deliberately left `generation_status: planned`. Moving it would
+      have asserted the thing this finding disproves.

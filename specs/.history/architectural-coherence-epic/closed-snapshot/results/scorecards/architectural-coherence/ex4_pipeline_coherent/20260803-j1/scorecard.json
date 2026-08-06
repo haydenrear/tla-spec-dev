@@ -1,0 +1,70 @@
+{
+  "scorecard_version": 1,
+  "epic": "architectural-coherence",
+  "example": "ex4_pipeline_coherent",
+  "run_id": "20260803-j1",
+  "arm": null,
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "judge": {"model": "claude-opus-5[1m]", "pass": 1, "blind_to_arm": true},
+  "dimensions": {
+    "D1": {
+      "score": 2,
+      "citations": [
+        "examples/validation/ex4_pipeline_coherent/specs/program_model/providers.py:88-96",
+        "examples/validation/ex4_pipeline_coherent/specs/program_model/tlc_projection.py:58-63",
+        "examples/validation/runs/ex4-run4/scoring.md:73-74",
+        "examples/validation/runs/ex4-run6/scoring.md:112-125"
+      ],
+      "rationale": "Anchor 2, not 3. The adapters and the arm-B provider assert CONTENT, not shape: providers.py:88-96 compares the persisted bytes against the modeled after-state and raises, and tlc_projection.py:58-63 projects three counts plus a status enum into the output oracle. That is why F1/F2/F4/F6 die on the corpus alone (4 of 6) and F3/F5 die under the provider (6 of 6), measured identically in two rounds. Anchor 3 requires a fault in a class the whole-view corpus structurally cannot reach -- the anchor names refusals, orderings, cross-aspect before-states. Measured: guard relaxation 0 of 3 on both arms and 0 of 4 on all five corpus instruments; ordering 0 of 3 and 0 of 2, killed by nothing at all including pytest (ex4-run4:73-74, ex4-run6:112-125). The one cross-aspect before-state mutant in the blind catalogue (M16) was killed by the whole-view corpus itself, which is the opposite of the anchor's condition. F3/F5 are wrong-content faults on the durable surface caught by a content assertion, which is anchor 2's own wording, so I read them there rather than at anchor 3; torn between 2 and 3 I take the lower per rule 5. Prose note: this fixture's write-up is unusually disciplined (per-arm, per-class, never aggregate) and that earned it nothing here -- the score comes from the kill matrix and the two provider classes, and would be identical if the prose were unreadable.",
+      "refuses_to_claim": null
+    },
+    "D2": {
+      "score": 2,
+      "citations": [
+        "examples/validation/ex4_pipeline_coherent/specs/program_model/Pipeline.tla:24-99",
+        "examples/validation/ex4_pipeline_coherent/README.md:96-107"
+      ],
+      "rationale": "Measured by me at this commit: bound = 4,096 COMPLETE over 6 of 6 variables, Q = 0.194 emergent / 0.132653 declared, one dense row (delivered, 3 of 5 actions), no dense columns. Pipeline.tla:24-99 shows six variables and five actions where every variable is written by at most two actions -- proportional to the behavior, no god-state, no variable written from everywhere. Anchor 2. Anchor 3 is not reachable: no simplification was made to this fixture and no before/after descriptor pair exists for it; the complexity work in this epic lives in ex3. The added variable and action (ledger/Record) are justified by a recorded structural reason at README.md:96-107, which is an argued relationship between the figures and the design, but adding structure for a measured reason is not a measured simplification. One measured disagreement recorded rather than scored: README.md:102 states that greedy modularity returns two components with 'queue clusters with ingest'; the descriptor I ran returns C1 = delivered, failed, ledger, queue and C2 = accepted, inbox, so queue clusters with dispatch. The two-component conclusion holds; the parenthetical is false.",
+      "refuses_to_claim": null
+    },
+    "D3": {
+      "score": 3,
+      "citations": [
+        "examples/validation/ex4_pipeline_coherent/pipeline/ledger/journal.py:27-49",
+        "examples/validation/ex4_pipeline_coherent/specs/program_model/providers.py:57-68",
+        "examples/validation/ex4_pipeline_coherent/specs/program_model/case_adapters.toml:22-23",
+        "examples/validation/ex4_pipeline_coherent/specs/program_model/case_adapters_corpus_only.toml:22-23",
+        "examples/validation/runs/ex4-run4/scoring.md:24-28"
+      ],
+      "rationale": "Anchor 3, and the evidence is runtime, not import topology. The domain does not import its I/O: journal.py:27-49 takes the store as an injected collaborator and calls store.persist(...) without importing any store implementation. The named swap is exercised in fact, not declared: two different providers are bound by two different mapping files (case_adapters.toml:22-23 binds the content-asserting store, case_adapters_corpus_only.toml:22-23 binds the silent one, providers.py:57-68 is the silent adapter), and both were RUN -- ex4-run4:24-28 records 330 cases exit 0 under each, and run 4's kill_matrix.json records the same stdout sha256 (26bd9bc2...) for both control arms, i.e. the same cases pass against both bindings. Not 4: anchor 4 needs a real adapter AND a fake. Both providers wrap the same real FileLedgerStore, and the only generated fake, PipelineSpecDouble.persist, raises NotImplementedError and is referenced by nothing outside its own package (I grepped the two fixtures and all runs). Weakness recorded and not scored up: the port is typed `object | None` in journal.py:27, so the generated LedgerStorePort Protocol is decorative, and the two other component crossings (dispatch->ingest, ledger->dispatch) are direct concrete imports and direct method calls, not ports -- only one of three boundaries is a port in fact.",
+      "refuses_to_claim": null
+    },
+    "D4": {
+      "score": 3,
+      "citations": [
+        "examples/validation/ex4_pipeline_coherent/tests/test_behavior.py:23-113",
+        "examples/validation/ex4_pipeline_coherent/specs/program_model/Pipeline.cfg:2-4",
+        "examples/validation/runs/ex4-run4/scoring.md:30-38",
+        "examples/validation/runs/ex4-run6/scoring.md:176-190"
+      ],
+      "rationale": "Anchor 3 is met and anchor 4 is deliberately withheld. The baseline behaviors are enumerated one test per action plus an interleaving (test_behavior.py:23-113) and each is shown to hold; the check is model-derived, not only hand-written -- three TLC invariants (Pipeline.cfg:2-4) and a 330-case corpus generated from the state graph. Anchor 4's literal condition is also satisfiable -- ex4-run4:30-38 shows deliberate behavior-breaking changes caught with failing-case sets recorded -- but I take the lower anchor for a concrete reason. The artifact's own enumeration of behavior contains a claim that is false of the model and that no check can fail on: two independent blind agents found that Fail(i) removes an item from delivered while Record(i) requires it, so a failed item can never reach the ledger, while the README promises the opposite; the invariant LedgerIsDownstream is written weakly enough (ledger subset delivered union failed) to pass vacuously on the half that matters, and test_two_item_interleaving asserts the negation of the README sentence (ex4-run6:176-190). A behavior-preservation check that cannot fail on the artifact's own headline promise is not a 4.",
+      "refuses_to_claim": null
+    },
+    "D5": {
+      "score": 4,
+      "citations": [
+        "examples/validation/ex4_pipeline_coherent/README.md:126-136",
+        "examples/validation/ex4_pipeline_coherent/README.md:166-167",
+        "examples/validation/ex4_pipeline_coherent/seeded_faults.toml:137-151",
+        "examples/validation/runs/ex4-run4/scoring.md:79-99",
+        "examples/validation/runs/ex4-run6/scoring.md:200-215",
+        "examples/validation/runs/ROUND-2-DELTA.md:310-318"
+      ],
+      "rationale": "Anchor 4. Blind spots are named in the artifact itself and not only in a report: README.md:126-136 states that the composition root has nowhere to live and that this is a question the check cannot answer; README.md:166-167 pre-commits a condition under which the fixture itself is the finding. The tool refuses rather than certifies -- running analyze architecture on this fixture with no code emits architecture_scan = unmappable with its reason, which I reproduced. seeded_faults.toml:137-151 keeps the original answer-key text and appends a correction stating its own earlier paragraph was WRONG, rather than editing the record. And the record carries results unflattering to the thing scored: 'the mutant matrix did not move a single cell' (ex4-run4:79-99), --effect-report silently writes nothing on this very fixture while a code comment two lines above claims it writes unconditionally (ex4-run6:200-215), and this fixture's coherent verdict is documented as conditional on how deep its generated package is nested. Prose note: the writing is excellent and I discounted it -- every clause above is a committed artifact or a reproduced command, not a sentence.",
+      "refuses_to_claim": "That its coherent verdict is a property of the code. ROUND-2-DELTA.md:310-318 records that any statement of the form 'the check has precision 1.000' must now carry 'on a tree that was not attacked through a nested first-party package', and that moving this fixture's generated package up one directory flips coherent to unmappable with zero bytes of Python changed. It also refuses to claim the corpus can reach guard relaxation or ordering, and refuses to report the 56-case union of its two aspects as coverage of the 330-case view."
+    }
+  },
+  "total": 14,
+  "contested": [],
+  "verdict": "The strongest of the five: a real injected port swapped between two providers and executed under both, a per-arm per-class kill matrix that reproduces cell for cell, and a record that publishes its own false-clean route -- but its bug detection stops exactly where a generated corpus structurally stops, and its own README makes a promise about failed items that the model contradicts and no check can fail on."
+}

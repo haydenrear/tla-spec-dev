@@ -1,0 +1,125 @@
+# RP-02: RECONSTRUCTION of the 12-mutant catalog the ex4-run3 blind agent ran.
+#
+# The original catalog was NOT kept as an artifact -- that omission is EV-02's
+# own PROTO-02 finding ("a blind run's mutant catalog must be an artifact").
+# What survives in `examples/validation/runs/ex4-run3/` is the CLASS TABLE and
+# the per-class counts, not the diffs. This file reconstructs one mutant per
+# slot from the published class assignment:
+#
+#   M1-M3   guard relaxation          reported 0 killed by slice, 0 by view, 3 by pytest
+#   M4      equivalent mutant         n/a
+#   M5-M8   wrong write on an enabled transition   } 5 killed by slice and view,
+#   M10     wrong write, durable side              } 4 by pytest (M10 MISSED)
+#   M9, M11, M12  ordering / sequence  0 killed everywhere
+#
+# The reconstruction is scored ONLY against the published per-class counts, and
+# only the guard-relaxation class is the question RP-02 asks. Any per-mutant
+# number here is this reconstruction's, not the blind agent's.
+
+[[mutants]]
+id = "M1"
+fault_class = "guard relaxation"
+model_guard = "Accept(i): i \\in inbox"
+path = "pipeline/ingest/inbox.py"
+find = "        if item not in self._inbox:\n            return False\n"
+replace = ""
+description = "accept() no longer requires the item to be in the inbox; it accepts anything"
+
+[[mutants]]
+id = "M2"
+fault_class = "guard relaxation"
+model_guard = "Enqueue(i): i \\in accepted"
+path = "pipeline/ingest/queue.py"
+find = "        if item not in self._inbox.accepted:\n            return False\n"
+replace = ""
+description = "enqueue() no longer requires the item to have been accepted"
+
+[[mutants]]
+id = "M3"
+fault_class = "guard relaxation"
+model_guard = "Record(i): i \\in delivered"
+path = "pipeline/ledger/journal.py"
+find = "        if item not in self._dispatcher.delivered:\n            return False\n"
+replace = ""
+description = "record() no longer requires the item to have been delivered"
+
+[[mutants]]
+id = "M4"
+fault_class = "equivalent"
+model_guard = "Accept(i): i \\in inbox (already established by the guard)"
+path = "pipeline/ingest/inbox.py"
+find = "        self._inbox.discard(item)"
+replace = "        self._inbox.remove(item)  # MUTANT M4: equivalent under the guard above"
+description = "discard -> remove; the guard already proved membership, so behavior is identical"
+
+[[mutants]]
+id = "M5"
+fault_class = "wrong write"
+model_guard = "Record(i): ledger' = ledger \\cup {i}"
+path = "pipeline/ledger/journal.py"
+find = "        self._entries.append(item)"
+replace = "        self._entries.append(item.upper())  # MUTANT M5: wrong bytes into the ledger"
+description = "the ledger records a transformed value (EV-01 F1)"
+
+[[mutants]]
+id = "M6"
+fault_class = "wrong write"
+model_guard = "Fail(i): failed' = failed \\cup {i}"
+path = "pipeline/dispatch/failures.py"
+find = "        self._failed.add(item)"
+replace = "        self._dispatcher._delivered.add(item)  # MUTANT M6: right value, wrong field"
+description = "Fail writes the item back into delivered instead of failed (EV-01 F2)"
+
+[[mutants]]
+id = "M7"
+fault_class = "wrong write"
+model_guard = "Deliver(i): queue' = queue \\ {i}"
+path = "pipeline/ingest/queue.py"
+find = "        self._queue.remove(item)"
+replace = "        del self._queue[self._queue.index(item) : self._queue.index(item) + 2]  # MUTANT M7: releases one item too many"
+description = "the ingest side of Deliver drops an extra queued item (EV-01 F6)"
+
+[[mutants]]
+id = "M8"
+fault_class = "wrong write"
+model_guard = "Accept(i): status is 'applied'"
+path = "pipeline/ingest/inbox.py"
+find = "        self._accepted.add(item)\n        return True"
+replace = "        self._accepted.add(item)\n        return False  # MUTANT M8: transition happened, status says it did not"
+description = "Accept performs the transition and reports failure (EV-01 F4)"
+
+[[mutants]]
+id = "M9"
+fault_class = "ordering"
+model_guard = "ledger is a SET in the model; the code documents insertion order"
+path = "pipeline/ledger/journal.py"
+find = "        return tuple(self._entries)"
+replace = "        return tuple(reversed(self._entries))  # MUTANT M9: the append-only ledger reads back reversed"
+description = "the ledger silently reverses; every projector sorts, so no oracle can see it"
+
+[[mutants]]
+id = "M10"
+fault_class = "wrong write, durable side"
+model_guard = "LedgerStorePort"
+path = "pipeline/ledger/journal.py"
+find = '        self._store.persist(PersistLedger(entries=",".join(self._entries)))'
+replace = '        self._store.persist(PersistLedger(entries=",".join(self._entries[-1:])))  # MUTANT M10: durable ledger keeps only the newest entry'
+description = "the persisted ledger holds only the last entry; the in-memory one is correct"
+
+[[mutants]]
+id = "M11"
+fault_class = "ordering"
+model_guard = "queue is a SET in the model; the code documents insertion order"
+path = "pipeline/ingest/queue.py"
+find = "        self._queue.append(item)"
+replace = "        self._queue.insert(0, item)  # MUTANT M11: the FIFO becomes a LIFO"
+description = "enqueue prepends; the queue is a set in the model so nothing observes the order"
+
+[[mutants]]
+id = "M12"
+fault_class = "ordering"
+model_guard = "queue is a SET in the model"
+path = "pipeline/ingest/queue.py"
+find = "        return tuple(self._queue)"
+replace = "        return tuple(sorted(self._queue, reverse=True))  # MUTANT M12: the queue reads back in reverse sort order"
+description = "the queue reads back reordered; the projector sorts it away"

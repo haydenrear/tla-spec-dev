@@ -1,0 +1,67 @@
+{
+  "scorecard_version": 1,
+  "epic": "architectural-coherence",
+  "example": "ex5_pipeline_divergent",
+  "run_id": "20260803-j2",
+  "arm": null,
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "judge": {"model": "claude-opus-5[1m]", "pass": 2, "blind_to_arm": true},
+  "dimensions": {
+    "D1": {
+      "score": 1,
+      "citations": [
+        "examples/validation/ex5_pipeline_divergent/README.md:36-62",
+        "examples/validation/runs/ex5-run3/artifacts/ex5_reflexion.txt:28-38",
+        "examples/validation/runs/ex5-run4/artifacts/reexport_attack/RESULT.txt:35-39",
+        "examples/validation/runs/ex5-run4/artifacts/reexport_attack/RESULT.txt:67-71"
+      ],
+      "rationale": "This fixture ships no cases, no adapters and no corpus by design ('There is no corpus arm here', README:146), so the anchors' subject -- model-derived cases and their adapters -- does not exist. What it does catch, and I reproduced it from scratch today, is 4 of 4 seeded structural divergences at the exact file:line of the answer key plus the 1 absence, with 0 false positives on the coherent twin. But that detection is anchor 1's tier by analogy: it reads a surface the extractor already prints -- static import and resolvable-call sites -- and the fixture's own run record contains the demonstration that the identical coupling survives while every finding disappears, verified at runtime by object identity (`inbox.format_entry IS journal.format_entry -> True`) after a 41-line re-export shim. Detection that a 41-line file erases is not detection of content.",
+      "refuses_to_claim": null
+    },
+    "D2": {
+      "score": 2,
+      "citations": [
+        "examples/validation/ex5_pipeline_divergent/specs/program_model/Pipeline.tla:24-99",
+        "examples/validation/runs/ex5-run3/artifacts/ex5_reflexion.txt:11-16",
+        "examples/validation/ex5_pipeline_divergent/specs/program_model/architecture_components.yaml:14-21"
+      ],
+      "rationale": "Same model as the twin, byte-identical (I ran check_twins.py: exit 0, all five digests equal). Measured at scoring time: bound 4,096 = 4^6, one dense row, no dense columns, no variable written from everywhere; the declared partition meets all three decomposition criteria (component_count 3, Q = 0.132653, crossing fraction 0.4). Complexity proportional to behavior, argued in the declaration itself -- anchor 2. No simplification was made or measured on this fixture, so 3 is unavailable.",
+      "refuses_to_claim": null
+    },
+    "D3": {
+      "score": 1,
+      "citations": [
+        "examples/validation/ex5_pipeline_divergent/pipeline/ingest/queue.py:12",
+        "examples/validation/ex5_pipeline_divergent/pipeline/ingest/inbox.py:11",
+        "examples/validation/ex5_pipeline_divergent/pipeline/ledger/journal.py:53-59",
+        "examples/validation/ex5_pipeline_divergent/specs/program_model/architecture_components.yaml:14-21"
+      ],
+      "rationale": "Boundaries are named in a declaration and the code does not follow them -- anchor 1, and by design. I confirmed the four sites in the source: ingest imports the ledger's Journal (queue.py:12) and its format_entry (inbox.py:11, called at :39), and the ledger reaches back into ingest through a function-local import (journal.py:53-59) -- the cycle-breaking move a module-level import check would miss. One declared port (dispatch <-> ledger) is realized by nothing at all. The record also forecloses any argument for 2 or 3 from the repaired variant: blind run A cleared all four in code with both declaration digests unchanged, and the same record shows a 41-line re-export producing `coherent` with the coupling still live at runtime -- so import structure here is not evidence about calls in either direction.",
+      "refuses_to_claim": null
+    },
+    "D4": {
+      "score": 2,
+      "citations": [
+        "examples/validation/ex5_pipeline_divergent/tests/test_behavior.py:23-113",
+        "examples/validation/check_twins.py:26-32",
+        "examples/validation/runs/ex5-run4/artifacts/runA_declaration_digests.txt:4-8"
+      ],
+      "rationale": "The behaviors are enumerated -- init plus each of the five model actions plus a two-item interleaving, eight tests -- and shown to hold: I ran the suite on the shipped divergent tree (8 passed) and check_twins.py confirms the file is byte-identical to the coherent twin's (exit 0, matching sha256). That is a genuine preservation control: the same enumerated behavior holds across two different dependency structures, which is exactly what the fixture claims to isolate. After blind run A's structural repair the suite is recorded UNCHANGED and green. Not 3: every check here is hand-written. The fixture ships no corpus and no TLC-derived instrument, so there is no model-derived check to raise the anchor.",
+      "refuses_to_claim": null
+    },
+    "D5": {
+      "score": 4,
+      "citations": [
+        "examples/validation/ex5_pipeline_divergent/README.md:74-116",
+        "examples/validation/runs/ex5-run4/artifacts/reexport_attack/RESULT.txt:47-71",
+        "examples/validation/runs/ex5-run3/scoring.md:121-131",
+        "examples/validation/runs/ex5-run3/artifacts/blast.json:1-40"
+      ],
+      "rationale": "The fixture ships a worked example of how to cheat it, with numbers (one variable moved, one module re-placed, no code changed: 4 divergences -> 3, the absence gone entirely) and with the tool's own refusal to score that as an improvement. Its run record then contains a reproduced attack that is worse than the one it planned for: `divergent` -> `coherent` from a 41-line re-export, both declaration digests unchanged, no blind spot, no basis limit, behavioral suite green, and the coupling proven still present at runtime by object identity. That is a result maximally unflattering to the epic's central claim, kept in the record and stated as the headline. The 203-partition sweep's caveats are written as their own section ('What this arm did NOT measure, stated so a silence is not a result'). I verified the sweep from raw data rather than the table: 203 rows, 0 coherent, 91 divergent, 112 unmappable, transition matrix 100/71/20/12 against round 1, and the counterfactual 67 of 71 -- every claimed figure reproduces exactly. Anchors 0-3 hold and the unflattering result is central rather than appended.",
+      "refuses_to_claim": "The record refuses to let precision/recall 1.000 stand unqualified -- it states that any such claim must now carry 'on a tree that was not attacked through a nested first-party package', that the sweep varies the partition and not the map, and that everything measured is static import topology (NE-02), untouched by any repair in the epic."
+    }
+  },
+  "total": 10,
+  "contested": [],
+  "verdict": "The answer key is exact and reproduces on demand -- 4 divergences at their stated file:line, 1 absence, 0 false positives on the twin -- but the fixture detects structure through static imports only, and its own record shows a 41-line file erasing every finding while the coupling keeps running; the honesty of keeping that result is the fixture's real contribution."
+}

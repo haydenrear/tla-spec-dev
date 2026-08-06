@@ -67,6 +67,69 @@ Rules that follow:
   presented alongside the behavior-retention evidence from the same run.
   Never report one without the other.
 
+### The Validated-Refactor Basis Had A Structure Half (AC-04) — WITHDRAWN
+
+The CD-09 basis above is entirely about the **representation**: did the model
+still check, did the behavior tests still pass, is the model smaller. All four
+members can be green while the code got worse — a change that lowers the
+state-space bound by scattering a responsibility across three more modules
+satisfies every one of them. **A refactor that lowers complexity while
+scattering the code further is not the refactor anyone wanted.**
+
+AC-04 answered that with a fifth, non-gating ledger member: an architecture
+delta measured by `analyze architecture --baseline`, reporting the divergence
+count before and after with the specific dependencies gained and lost. It was
+**REMOVED 2026-08-04** by owner direction with the static architecture scanners
+that produced its input. Do not rebuild it without reading
+`references/architecture_advice.md` first.
+
+**The problem it named is real and is now yours to answer in prose.** When you
+record a complexity reduction, say what happened to the code's shape, in a
+sentence a reviewer can check. "The bound fell 40% and three modules that talked
+to each other still do, through the same call" is a claim. "The bound fell 40%"
+is not.
+
+**Three of its four rules were never about architecture and are retained here:**
+
+1. **A structural finding may not gate.** One that could refuse a close would be
+   answered by not running the scan, and then nothing is recorded at all. This
+   is "Advisory, Not Blocking" below, and it is why the coverage-audit refusal
+   went the same way on the same day.
+2. **A drop reported without the things that disappeared is `unverified`.**
+   MF-020, which withdrew a projected −13.1% reduction that turned out to
+   require deleting a legitimate idempotent re-fire transition; the
+   distinct-state gate was blind to it because a deleted self-loop returns to an
+   already-known state. Still mechanised for the complexity half by the ledger's
+   transition-diff gate.
+3. **No suggested moves (CD-01).** Name what moved; never name what should move.
+
+The fourth rule — a delta across two different maps is `unattributable`,
+measured on this repository as a one-line re-placement of `scripts/budgets.py`
+moving the divergence count 0 → 6 with the code untouched — went with the map.
+It is recorded as **S2/S7 evidence** in `references/architecture_advice.md`,
+because it is the sharpest single demonstration that the declared map, not the
+code, was what the check actually measured.
+
+**Which oracles are load-bearing for "behavior preserving", and which are not.**
+A structural claim says the shape changed; it says nothing about whether the
+program still does the same thing. State plainly which evidence carries that
+claim:
+
+- **Load-bearing: TLC green before and after, the repository behavior tests, and
+  the generated case corpus replayed against effect providers with CONTENT
+  assertions.** The effect-provider work (`references/effect_providers.md`)
+  measured 45 mutation points killed on exactly the bug class MF-038 missed,
+  with a deterministic replay command per failure (the `ex1-run4` replay
+  property). Content assertions are what makes that oracle able to catch a wrong
+  value, as opposed to a wrong exit code.
+- **NOT load-bearing: the mutation kill rate.** MF-038 measured 0 of 9 content
+  bugs caught at kill rate 0.31 against a floor of 0.8. It is recorded at every
+  close as an experimental member and it **cannot certify a refactor**. Do not
+  let a kill rate back in as the licence for a behavior-preserving claim.
+- **Also not load-bearing: any dependency-structure measurement.** It is a fact
+  about shape, not about behavior. It belongs in the record beside the behavior
+  evidence and never in place of it.
+
 ### The Recursive Refinement Loop
 
 Complexity minimization is part of the working loop, not a one-time design
@@ -87,7 +150,10 @@ which may expose the next refinement:
    (TLC before/after, behavior tests, before/after descriptor comparison —
    CD-09) and the measurement; record the fuzzing-era members honestly
    (`not_run` unless actually run). A refinement that lowers complexity but
-   degrades the basis is reverted.
+   degrades the basis is reverted. **Scan the structure too** (AC-04): take an
+   architecture scan before the change, one after, and record the delta with
+   `--baseline`. It is recorded, never gating — but a complexity win bought by
+   scattering the code is visible only here.
 5. Recurse: a landed refinement re-opens step 1 — decompositions expose
    projectable state, projections expose narrower cuts. Stop when a full
    pass yields no approvable candidate, and record that as the ticket's
@@ -297,16 +363,20 @@ or "when present" into a gate, you are building degeneracy. Write the
 failure instead.
 
 **A boundary is not an escape hatch, and the difference is countable.** The
-coverage audit gate (MF-026, `references/coverage_audit.md`) turns on exactly
-this distinction. Its findings are classified against a scope the *plan*
-declares — one decision, made once by the owner, reviewed once, visible in one
-place. That is a boundary. Had the gate instead let each finding be closed by a
-recorded justification, it would have been the out-of-contract suppression
-purged from MF-013, rebuilt one level up: **one reviewable boundary decision is
-a boundary; N per-finding justifications are an escape hatch.** The test to
-apply when adding any new gate is whether the number of judgment calls scales
-with the number of findings. If it does, you have built degeneracy regardless of
-how principled each individual call looks.
+coverage audit (MF-026, `references/coverage_audit.md`) turns on exactly this
+distinction. Its findings are classified against a scope the *plan* declares —
+one decision, made once by the owner, reviewed once, visible in one place. That
+is a boundary. Had it instead let each finding be closed by a recorded
+justification, it would have been the out-of-contract suppression purged from
+MF-013, rebuilt one level up: **one reviewable boundary decision is a boundary;
+N per-finding justifications are an escape hatch.** The test to apply when adding
+any new gate is whether the number of judgment calls scales with the number of
+findings. If it does, you have built degeneracy regardless of how principled each
+individual call looks.
+
+*(The audit itself stopped refusing anything on 2026-08-04. The classification
+rule above is what survives, and it survives because it is about how findings are
+dispositioned, not about what happens afterward.)*
 
 The corollary is that an auditing agent must never choose its own scope. An
 agent that picks the boundary can define every finding out of existence, and no
@@ -531,6 +601,18 @@ inline a convenient number.
   unjustified-variable flags. **It emits no suggested move**; the earlier
   chooser was removed after validation project 1 showed it confidently wrong
   on standard TLA+.
+- **Architecture: NOT mechanized, deliberately.** `tla-spec-dev analyze
+  architecture` (AC-01/AC-02/AC-04) — the architecture descriptor, the reflexion
+  check against production code, and the before/after divergence delta — was
+  REMOVED 2026-08-04 by owner direction, with its two modules (3,517 lines), its
+  model surface and its ledger member. Every check it shipped was defeated
+  cheaply and bug detection never moved. What it established is written down
+  instead, as instructions to follow now and as the specification a replacement
+  must satisfy: `references/architecture_advice.md`. Architecture guidance is
+  delivered by `prompts/implementation_brief.md`,
+  `prompts/aspect_decomposition.md` and `prompts/hexagonal_implementation.md`,
+  and architecture work is decided by judged scorecards
+  (`references/eval_scorecard.md`), not by a green check.
 - Mutation kill test (tickets/016): intended to double as the abstraction
   validator — kill-rate-preserving abstraction is legitimate abstraction —
   but EXPERIMENTAL and not yet trustworthy for that (MF-038; see Move 1).

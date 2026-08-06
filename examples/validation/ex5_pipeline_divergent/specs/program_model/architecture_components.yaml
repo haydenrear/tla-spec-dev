@@ -1,0 +1,21 @@
+# DECLARED component partition (AC-01). BYTE-IDENTICAL in both twins.
+#
+# Declared rather than emergent for a measured reason, recorded in the fixture
+# README: greedy modularity maximization on this model returns TWO components,
+# a 2-component partition has exactly one component pair, that pair is ported,
+# and `unfalsifiable_coherence` therefore fires -- no code edge could ever
+# diverge. Three components leave the ingest <-> ledger pair UNPORTED, and that
+# pair is where the divergent twin's answer key lives.
+#
+# EV-02: this file is EDITABLE and is half of the centrepiece experiment.
+# Merging `ledger` into `dispatch` makes every seeded divergence vanish with no
+# code change. A run whose partition differs from the three components below is
+# a FAILED run whatever verdict it printed.
+architecture:
+  components:
+    - name: ingest
+      variables: [inbox, accepted, queue]
+    - name: dispatch
+      variables: [delivered, failed]
+    - name: ledger
+      variables: [ledger]

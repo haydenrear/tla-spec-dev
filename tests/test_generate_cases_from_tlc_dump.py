@@ -1,6 +1,9 @@
+import json
 from pathlib import Path
 import sys
 import importlib
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -13,9 +16,13 @@ from scripts.generate_cases_from_tlc_dump import (
     parse_tlc_function,
     parse_state_label,
     parse_tlc_value,
+    prepare_cases,
     py_repr,
     render_python_package,
+    report_action_coverage,
+    report_param_recovery,
 )
+from scripts.infer_action_params import UNCHECKED, build_recipes
 
 
 def test_parse_set_keeps_sequence_members_intact() -> None:
@@ -253,6 +260,131 @@ def test_load_action_metadata_from_actions_yaml(tmp_path: Path) -> None:
     )
 
 
+EXTERNAL_METADATA = {
+    "AcceptRequest": ActionMetadata("AcceptRequest", "internal", "unit_direct", ("spec_unit",)),
+    "Submit": ActionMetadata("Submit", "external", "e2e_direct", ("testgraph",)),
+    "Retry": ActionMetadata("Retry", "external", "e2e_direct", ("testgraph",)),
+    "Cancel": ActionMetadata("Cancel", "external", "e2e_direct", ("testgraph",)),
+    "HiddenWorkerProgress": ActionMetadata("HiddenWorkerProgress", "internal", "hidden", ()),
+}
+
+
+def prepare_external_cases(tmp_path: Path, package: str):
+    states, edges = tiny_state_graph()
+    return render_python_package(
+        module="Aspect_Submit",
+        states=states,
+        edges=edges,
+        package_dir=tmp_path / package,
+        view="external",
+        action_metadata=EXTERNAL_METADATA,
+    )
+
+
+def write_case_module_manifest(tmp_path: Path, scope: str) -> Path:
+    path = tmp_path / "spec_manifest.yaml"
+    path.write_text(
+        "module: Program\n"
+        "case_modules:\n"
+        "  Aspect_Submit:\n"
+        "    extends: External\n"
+        "    form: slice\n"
+        f"    actions: [{scope}]\n",
+        encoding="utf-8",
+    )
+    return path
+
+
+def test_undeclared_module_warns_for_every_zero_case_view_action(tmp_path: Path, capsys) -> None:
+    """R4-DF-04, unchanged: with no declaration the whole view is in scope."""
+    prepared = prepare_external_cases(tmp_path, "undeclared_cases")
+
+    report_action_coverage(
+        prepared,
+        module="Aspect_Submit",
+        view="external",
+        action_metadata=EXTERNAL_METADATA,
+        package_dir=tmp_path / "undeclared_cases",
+        manifest_path=tmp_path / "missing_manifest.yaml",
+    )
+
+    warnings = [line for line in capsys.readouterr().err.splitlines() if "ZERO cases" in line]
+    assert sorted(warnings)[0].startswith("warning: declared external action 'Cancel'")
+    assert len(warnings) == 2  # Cancel and Retry
+
+
+def test_declared_case_module_scopes_the_zero_case_warning(tmp_path: Path, capsys) -> None:
+    """CM-F2: an action outside the aspect is a design decision, not a hole."""
+    prepared = prepare_external_cases(tmp_path, "declared_cases")
+
+    report_action_coverage(
+        prepared,
+        module="Aspect_Submit",
+        view="external",
+        action_metadata=EXTERNAL_METADATA,
+        package_dir=tmp_path / "declared_cases",
+        manifest_path=write_case_module_manifest(tmp_path, "Submit"),
+    )
+
+    captured = capsys.readouterr()
+    assert "ZERO cases" not in captured.err
+    assert "declared slice of External with 1 action(s) in scope" in captured.out
+    assert "are NOT reported as coverage holes" in captured.out
+
+
+def test_an_in_scope_action_with_no_cases_still_warns(tmp_path: Path, capsys) -> None:
+    prepared = prepare_external_cases(tmp_path, "in_scope_cases")
+
+    report_action_coverage(
+        prepared,
+        module="Aspect_Submit",
+        view="external",
+        action_metadata=EXTERNAL_METADATA,
+        package_dir=tmp_path / "in_scope_cases",
+        manifest_path=write_case_module_manifest(tmp_path, "Submit, Retry"),
+    )
+
+    warnings = [line for line in capsys.readouterr().err.splitlines() if "ZERO cases" in line]
+    assert len(warnings) == 1
+    assert "'Retry'" in warnings[0]
+
+
+def test_generating_outside_the_declared_scope_is_reported_as_drift(tmp_path: Path, capsys) -> None:
+    prepared = prepare_external_cases(tmp_path, "drift_cases")
+
+    report_action_coverage(
+        prepared,
+        module="Aspect_Submit",
+        view="external",
+        action_metadata=EXTERNAL_METADATA,
+        package_dir=tmp_path / "drift_cases",
+        manifest_path=write_case_module_manifest(tmp_path, "Retry"),
+    )
+
+    err = capsys.readouterr().err
+    assert "generated 1 case(s) for 'Submit', which is not in its declared `actions:` scope" in err
+
+
+def test_coverage_record_is_written_beside_every_generated_package(tmp_path: Path) -> None:
+    prepared = prepare_external_cases(tmp_path, "recorded_cases")
+
+    record = report_action_coverage(
+        prepared,
+        module="Aspect_Submit",
+        view="external",
+        action_metadata=EXTERNAL_METADATA,
+        package_dir=tmp_path / "recorded_cases",
+        manifest_path=write_case_module_manifest(tmp_path, "Submit"),
+    )
+
+    written = json.loads((tmp_path / "recorded_cases" / "case_coverage.json").read_text())
+    assert written == record
+    assert written["actions"] == {"Submit": 1}
+    assert written["cases"] == 1
+    assert written["declared_view_actions"] == ["Cancel", "Retry", "Submit"]
+    assert written["case_module"]["form"] == "slice"
+
+
 if __name__ == "__main__":
     test_parse_set_keeps_sequence_members_intact()
     test_parse_set_parses_record_members_structurally()
@@ -261,3 +393,418 @@ if __name__ == "__main__":
     test_parse_set_can_contain_function_members()
     test_py_repr_handles_nested_set_members_deterministically()
     test_labels_for_case_adds_labeler_output_after_action()
+
+
+# ---------------------------------------------------------------------------
+# RP-02: set-membership models carry their arguments end to end
+# ---------------------------------------------------------------------------
+#
+# Before this ticket a `\E i \in Items` model recovered nothing: every case
+# went out with `params={'i': UNCHECKED}` and the ex4 adapter re-derived the
+# argument by diffing `case.before` against `case.after` -- from the oracle
+# (EV-01-DF-01). These tests hold the whole path: model source -> recipe ->
+# emitted case -> label -> written audit.
+
+SET_MEMBERSHIP_MODULE = """
+VARIABLES inbox, accepted
+
+Accept(i) ==
+  /\\ i \\in inbox
+  /\\ inbox' = inbox \\ {i}
+  /\\ accepted' = accepted \\cup {i}
+"""
+
+
+def set_membership_graph():
+    states = {
+        "0": {"inbox": frozenset({"i1", "i2"}), "accepted": frozenset()},
+        "1": {"inbox": frozenset({"i2"}), "accepted": frozenset({"i1"})},
+        "2": {"inbox": frozenset({"i1"}), "accepted": frozenset({"i2"})},
+    }
+    edges = [
+        Edge(source="0", target="1", action="Accept"),
+        Edge(source="0", target="2", action="Accept"),
+    ]
+    return states, edges
+
+
+def test_generated_cases_carry_the_recovered_set_member(tmp_path: Path) -> None:
+    states, edges = set_membership_graph()
+    render_python_package(
+        module="Pipeline",
+        states=states,
+        edges=edges,
+        package_dir=tmp_path / "member_cases",
+        view="internal",
+        action_metadata={"Accept": ActionMetadata("Accept", "internal", "unit_direct", ("spec_unit",))},
+        param_recipes=build_recipes(SET_MEMBERSHIP_MODULE),
+    )
+
+    cases_module = import_generated_cases(tmp_path, "member_cases")
+    params = [case.input.params for case in cases_module.CASES]
+
+    assert params == [{"i": "i1"}, {"i": "i2"}]
+    # NEGATIVE CONTROL: the two edges leave the SAME before-state, so a
+    # recovery that ignored the transition would give both cases one argument.
+    assert params[0] != params[1]
+    assert all("params:recovered" in case.labels for case in cases_module.CASES)
+    assert all("params:unchecked" not in case.labels for case in cases_module.CASES)
+
+
+def test_an_ambiguous_edge_is_marked_unchecked_and_still_emitted(tmp_path: Path) -> None:
+    """Evidence integrity: an unrecovered argument is labelled, never dropped."""
+    states = {
+        "0": {"inbox": frozenset({"i1", "i2"}), "accepted": frozenset()},
+        "1": {"inbox": frozenset(), "accepted": frozenset({"i1", "i2"})},
+    }
+    prepared = prepare_cases(
+        states=states,
+        edges=[Edge(source="0", target="1", action="Accept")],
+        view="internal",
+        action_metadata={},
+        labelers=[],
+        state_projector=None,
+        output_projector=None,
+        dedupe="none",
+        param_recipes=build_recipes(SET_MEMBERSHIP_MODULE),
+    )
+
+    assert len(prepared) == 1
+    assert prepared[0].params == {"i": UNCHECKED}
+    assert "params:unchecked:i" in prepared[0].labels
+
+
+def test_the_written_audit_reports_what_the_run_measured(tmp_path: Path) -> None:
+    """EV-02-DF-03: the audit beside a corpus must describe THAT corpus."""
+    states, edges = set_membership_graph()
+    recipes = build_recipes(SET_MEMBERSHIP_MODULE)
+    prepared = prepare_cases(
+        states=states,
+        edges=edges,
+        view="internal",
+        action_metadata={},
+        labelers=[],
+        state_projector=None,
+        output_projector=None,
+        dedupe="none",
+        param_recipes=recipes,
+    )
+    package_dir = tmp_path / "member_cases"
+    package_dir.mkdir()
+
+    measurement = report_param_recovery(prepared, recipes, package_dir)
+    audit = (package_dir / "param_recovery_audit.md").read_text()
+
+    assert measurement.total_cases == 2
+    assert measurement.for_param("Accept", "i").recovered == 2
+    assert "Measured over the corpus this run generated: 2 cases." in audit
+    assert "recovered in 2 of 2 cases" in audit
+    assert "Every parameter of every action is recoverable from its state pair." not in audit
+
+
+def test_a_run_that_recovers_nothing_is_audited_as_unrecoverable(tmp_path: Path) -> None:
+    """The exact shape of the contradiction: a corpus carrying nothing.
+
+    `param_recovery_audit.md` used to claim universal recoverability here,
+    because it read the module and never the cases.
+    """
+    states = {
+        "0": {"inbox": frozenset({"i1", "i2"}), "accepted": frozenset()},
+        "1": {"inbox": frozenset(), "accepted": frozenset({"i1", "i2"})},
+    }
+    recipes = build_recipes(SET_MEMBERSHIP_MODULE)
+    prepared = prepare_cases(
+        states=states,
+        edges=[Edge(source="0", target="1", action="Accept")],
+        view="internal",
+        action_metadata={},
+        labelers=[],
+        state_projector=None,
+        output_projector=None,
+        dedupe="none",
+        param_recipes=recipes,
+    )
+    package_dir = tmp_path / "empty_args"
+    package_dir.mkdir()
+
+    measurement = report_param_recovery(prepared, recipes, package_dir)
+    audit = (package_dir / "param_recovery_audit.md").read_text()
+
+    assert [item.param for item in measurement.unrecovered] == ["i"]
+    assert "UNRECOVERABLE ON THIS CORPUS" in audit
+    assert "`Accept(i)` -- 0 of 1 cases carry an argument" in audit
+    assert "Every parameter of every action is recoverable from its state pair." not in audit
+
+
+# --------------------------------------------------------------------------
+# HP-03: the negative corpus
+# --------------------------------------------------------------------------
+
+from scripts.generate_cases_from_tlc_dump import (  # noqa: E402
+    GuardEvaluator,
+    NEGATIVE_LABEL,
+    Unevaluable,
+    coerce_cfg_constant,
+    extract_action_signatures,
+    negatable_actions,
+    negative_cases_for_corpus,
+    parse_tla_definitions,
+    parse_tla_expression,
+    written_variables,
+)
+from scripts.analyze_complexity import parse_cfg_constants  # noqa: E402
+from scripts.infer_action_params import parse_variables  # noqa: E402
+
+
+TINY_MODULE = """---- MODULE Tiny ----
+EXTENDS Naturals
+
+CONSTANTS Items, Slots
+
+VARIABLES held, closed, outcome
+
+vars == << held, closed, outcome >>
+
+Init ==
+  /\\ held = {}
+  /\\ closed = FALSE
+  /\\ outcome = "init"
+
+Take(i) ==
+  /\\ closed = FALSE
+  /\\ i \\notin held
+  /\\ held' = held \\cup {i}
+  /\\ outcome' = "taken"
+  /\\ UNCHANGED << closed >>
+
+Drop(i) ==
+  /\\ i \\in held
+  /\\ held' = held \\ {i}
+  /\\ outcome' = "dropped"
+  /\\ UNCHANGED << closed >>
+
+RefuseTake(i) ==
+  /\\ closed = TRUE
+  /\\ outcome' = "refused"
+  /\\ UNCHANGED << held, closed >>
+
+Next ==
+  \\/ \\E i \\in Items : Take(i)
+  \\/ \\E i \\in Items : Drop(i)
+  \\/ \\E i \\in Items : RefuseTake(i)
+
+====
+"""
+
+TINY_CFG = """SPECIFICATION Spec
+CONSTANTS
+  Items = {a, b}
+  Slots = {s1}
+"""
+
+
+def tiny_evaluator() -> GuardEvaluator:
+    definitions = parse_tla_definitions(TINY_MODULE)
+    constants = {
+        name: coerce_cfg_constant(value) for name, value in parse_cfg_constants(TINY_CFG).items()
+    }
+    return GuardEvaluator(definitions, constants, parse_variables(TINY_MODULE))
+
+
+def test_guard_evaluator_answers_false_only_when_the_model_says_so() -> None:
+    evaluator = tiny_evaluator()
+    body = evaluator.definitions["Take"].body
+    # `a` is already held, so `i \notin held` is definitely FALSE.
+    truth, witness = evaluator.evaluate(body, {"held": frozenset({"a"}), "closed": False, "i": "a"})
+    assert truth is False
+    assert witness == "i \\notin held"
+
+
+def test_guard_evaluator_is_unknown_rather_than_true_on_a_primed_conjunct() -> None:
+    evaluator = tiny_evaluator()
+    body = evaluator.definitions["Take"].body
+    # Every guard holds, but `held'` cannot be evaluated -- so the answer is
+    # UNKNOWN, never TRUE. Only FALSE is ever acted on.
+    truth, _ = evaluator.evaluate(body, {"held": frozenset(), "closed": False, "i": "a"})
+    assert truth is None
+
+
+def test_a_bulleted_disjunction_is_not_torn_into_top_level_conjuncts() -> None:
+    """The one shape that could produce a false rejection.
+
+    A textual split on ``/\\`` would promote ``x = 1`` to a top-level conjunct
+    of a disjunction and report the whole body FALSE when it is TRUE.
+    """
+    evaluator = tiny_evaluator()
+    body = "  /\\ \\/ /\\ x = 1\n        /\\ y = 9\n     \\/ y = 2\n"
+    truth, _ = evaluator.evaluate(body, {"x": 5, "y": 2})
+    assert truth is True
+    truth, _ = evaluator.evaluate(body, {"x": 5, "y": 3})
+    assert truth is False
+
+
+def test_quantifiers_and_set_operations_evaluate() -> None:
+    evaluator = tiny_evaluator()
+    node = parse_tla_expression("\\A i \\in held : i # \"a\"")
+    assert evaluator.eval_node(node, {"held": frozenset({"b"})}, 0) is True
+    assert evaluator.eval_node(node, {"held": frozenset({"a", "b"})}, 0) is False
+
+
+def test_unsupported_construct_raises_rather_than_defaulting() -> None:
+    with pytest.raises(Unevaluable):
+        parse_tla_expression("LET z == 1 IN z = 1")
+
+
+def test_action_signatures_carry_their_quantifier_domains() -> None:
+    evaluator = tiny_evaluator()
+    signatures, rejected = extract_action_signatures(evaluator.definitions, evaluator)
+    assert set(signatures) == {"Take", "Drop", "RefuseTake"}
+    assert signatures["Take"].params == ("i",)
+    assert signatures["Take"].domains == (("a", "b"),)
+    assert rejected == {}
+
+
+def test_a_modeled_refusal_is_never_negated() -> None:
+    """The complement of a refusal is an acceptance, so negating one would be
+    a false rejection -- the single error this mode may not make."""
+    evaluator = tiny_evaluator()
+    signatures, _ = extract_action_signatures(evaluator.definitions, evaluator)
+    chosen, excluded = negatable_actions(signatures, evaluator)
+    assert chosen == ["Drop", "Take"]
+    assert "RefuseTake" in excluded
+
+
+def test_written_variables_follows_the_operators_an_action_calls() -> None:
+    evaluator = tiny_evaluator()
+    signatures, _ = extract_action_signatures(evaluator.definitions, evaluator)
+    assert written_variables(signatures["Take"], evaluator.variables, evaluator.definitions) == frozenset(
+        {"held", "outcome"}
+    )
+
+
+def tiny_states() -> dict[str, dict]:
+    return {
+        "1": {"held": frozenset(), "closed": False, "outcome": "init"},
+        "2": {"held": frozenset({"a"}), "closed": False, "outcome": "taken"},
+        "3": {"held": frozenset({"a"}), "closed": True, "outcome": "taken"},
+    }
+
+
+def negative_corpus(**overrides):
+    kwargs = dict(
+        states=tiny_states(),
+        edges=[Edge(source="1", target="2", action="Take")],
+        tla_source=TINY_MODULE,
+        cfg_text=TINY_CFG,
+        view="internal",
+        action_metadata={},
+        state_projector=None,
+        dedupe="none",
+        only_actions=(),
+        param_recipes=build_recipes(TINY_MODULE),
+        start_index=1,
+    )
+    kwargs.update(overrides)
+    return negative_cases_for_corpus(**kwargs)
+
+
+def test_negative_cases_are_emitted_for_every_disabled_argument() -> None:
+    cases, report = negative_corpus()
+    emitted = {(case.edge.source, case.edge.action, case.params["i"]) for case in cases}
+    # State 1 holds nothing: every Drop is disabled, no Take is.
+    assert ("1", "Drop", "a") in emitted
+    assert ("1", "Drop", "b") in emitted
+    assert ("1", "Take", "a") not in emitted
+    # State 2 holds `a`: Take(a) is disabled, Drop(b) is.
+    assert ("2", "Take", "a") in emitted
+    assert ("2", "Drop", "b") in emitted
+    # State 3 is closed: every Take is disabled.
+    assert ("3", "Take", "a") in emitted
+    assert ("3", "Take", "b") in emitted
+    assert report.negated == ("Drop", "Take")
+
+
+def test_a_negative_case_asserts_refusal_and_inertness() -> None:
+    cases, report = negative_corpus()
+    case = next(case for case in cases if case.edge.action == "Take" and case.edge.source == "3")
+    assert case.before == case.after
+    assert case.edge.source == case.edge.target
+    assert NEGATIVE_LABEL in case.labels
+    assert "expect:rejected" in case.labels
+    assert "closed = FALSE" in case.output_expression
+    # Derived from the model's own refusal action, not named by hand.
+    assert report.outcome_fields == ("outcome",)
+
+
+def test_no_negative_case_names_an_argument_the_model_enables() -> None:
+    """Zero false rejections, checked against the guard rather than the dump."""
+    cases, _ = negative_corpus()
+    evaluator = tiny_evaluator()
+    signatures, _ = extract_action_signatures(evaluator.definitions, evaluator)
+    states = tiny_states()
+    for case in cases:
+        body = signatures[case.edge.action].body
+        truth, _ = evaluator.evaluate(body, {**states[case.edge.source], **case.params})
+        assert truth is False, case.name
+
+
+def test_negative_generation_is_deterministic() -> None:
+    first, _ = negative_corpus()
+    second, _ = negative_corpus()
+    assert [case.name for case in first] == [case.name for case in second]
+    assert [case.output_expression for case in first] == [case.output_expression for case in second]
+
+
+def test_guard_reads_dedupe_collapses_only_identical_tests() -> None:
+    exact, exact_report = negative_corpus(dedupe="none")
+    collapsed, collapsed_report = negative_corpus(dedupe="guard-reads")
+    assert len(collapsed) < len(exact)
+    assert collapsed_report.deduped_from == len(exact) - len(collapsed)
+    # Every reason present in the exact corpus survives the collapse: a dedupe
+    # may drop a duplicate, never a distinct refusal.
+    assert set(exact_report.per_reason) == set(collapsed_report.per_reason)
+
+
+def test_negative_action_override_selects_exactly_what_was_named() -> None:
+    _, report = negative_corpus(only_actions=("Drop",))
+    assert report.negated == ("Drop",)
+
+
+def test_only_mode_writes_a_package_of_rejections(tmp_path: Path) -> None:
+    reports: list = []
+    cases = render_python_package(
+        module="Tiny",
+        states=tiny_states(),
+        edges=[Edge(source="1", target="2", action="Take")],
+        package_dir=tmp_path / "neg",
+        negative="only",
+        negative_dedupe="none",
+        tla_source=TINY_MODULE,
+        cfg_text=TINY_CFG,
+        negative_report_out=reports,
+    )
+    assert cases and all(NEGATIVE_LABEL in case.labels for case in cases)
+    assert reports and reports[0].emitted == len(cases)
+    text = (tmp_path / "neg" / "cases.py").read_text()
+    assert "StateGraphRejection" in text
+    assert "StateGraphRejection" in (tmp_path / "neg" / "types.py").read_text()
+    docs = (tmp_path / "neg" / "docs.md").read_text()
+    assert "State projection: `none`" in docs
+    assert "Negative corpus: `only`" in docs
+
+
+def test_with_positive_keeps_every_enabled_edge_and_appends_rejections(tmp_path: Path) -> None:
+    reports: list = []
+    cases = render_python_package(
+        module="Tiny",
+        states=tiny_states(),
+        edges=[Edge(source="1", target="2", action="Take")],
+        package_dir=tmp_path / "both",
+        negative="with-positive",
+        tla_source=TINY_MODULE,
+        cfg_text=TINY_CFG,
+        negative_report_out=reports,
+    )
+    positive = [case for case in cases if NEGATIVE_LABEL not in case.labels]
+    assert len(positive) == 1
+    assert len(cases) == 1 + reports[0].emitted

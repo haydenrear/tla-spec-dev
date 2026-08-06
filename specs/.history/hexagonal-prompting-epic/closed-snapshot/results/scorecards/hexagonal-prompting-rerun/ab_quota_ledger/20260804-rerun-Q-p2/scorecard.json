@@ -1,0 +1,72 @@
+{
+  "scorecard_version": 1,
+  "epic": "hexagonal-prompting",
+  "example": "ab_quota_ledger",
+  "run_id": "20260804-rerun-Q-p2",
+  "arm": "Q",
+  "commit": "24ed3fa6c58e65a9735e6e3406fd5b10e8a34b9d",
+  "judge": {"model": "claude-opus-5[1m]", "pass": 2, "blind_to_arm": true},
+  "dimensions": {
+    "D1": {
+      "score": 3,
+      "citations": [
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/tests/test_ledger.py:100-105",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/tests/test_ledger.py:161-199",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/tests/test_ledger.py:117-131",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/tests/test_ledger.py:142-152",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/evidence_Q.md:42-53"
+      ],
+      "rationale": "I re-seeded the packet's catalogue myself against this tree (11 exact find/replace mutants, each pattern proved unique, each mutant parsed, apply-then-revert byte-identical) and ran the artifact's OWN suite against them, because the packet's 'suite' column is the shared contract that is identical for both arms and therefore attributes nothing to this artifact. Result: the artifact's own 53 cases KILLED 11 of 11, including N01 (reversed outstanding-id order), which SURVIVED every generated instrument (evidence_Q.md:42) and SURVIVED the shared suite in my own run. That is anchor 3 twice over: refusals (guard_relaxation, corpus-whole 0 of 3 per evidence_Q.md:50) die on the rejection table at test_ledger.py:161-199, and an ordering fault the whole-view corpus structurally cannot reach dies on test_ledger.py:100-105, a case written deliberately because the author relied on dict insertion order. Anchor 2 is met by content, not shape: the cases assert literal ledger transcripts (test_ledger.py:124-129, :148-152), which is what kills the durable-content mutants. Not 4: the cases are hand-written, there is no model, corpus or generator anywhere in the tree, so 'derived from the model rather than hand-written' fails outright.",
+      "refuses_to_claim": null
+    },
+    "D2": {
+      "score": 2,
+      "citations": [
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/quota_ledger/domain.py:118-120",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/quota_ledger/domain.py:87-104",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/NOTES.md:70-84",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/evidence_Q.md:108-118"
+      ],
+      "rationale": "I REJECT the owner's amendment, and say so plainly. Two reasons. First, the two columns are two independent implementations of one specification; nothing was refactored, so there is no 'effect of a simplification' to read off them, and the card's own MF-020 guard demands the judge say what got simpler and how the behavior survived it -- which is unanswerable between two designs that never shared an ancestor. Second, the rejection costs this artifact nothing to concede: on the mechanical block (evidence_Q.md:108-118) this artifact is HIGHER on every structural figure that differs (4 modules vs 1, 129 vs 122 production lines, 25 vs 20 public names, 2 vs 1 io_imports), so reading the pair as before/after would not lift it to anchor 3 in any case. Anchor 2 is met and I verified it with my own AST measurement rather than the packet's: excluding __init__, _closed has one writer (close_tenant), _committed one (commit), _issued one (reserve), _outstanding three (reserve/commit/release), _quota none. No god-state, no variable written from everywhere. available is genuinely derived, not stored (domain.py:118-120), so R1 cannot drift. The 4-module split is not accidental structure: there is exactly one port and the record explicitly declines further indirection. Anchor 3 fails because the artifact records no before figure for any simplification -- it argues the derivation in prose (NOTES.md:70-84) and measures nothing.",
+      "refuses_to_claim": null
+    },
+    "D3": {
+      "score": 4,
+      "citations": [
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/quota_ledger/domain.py:22-43",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/quota_ledger/__init__.py:37-39",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/tests/test_ledger.py:26-36",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/quota_ledger/file_journal.py:25-35",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/tests/test_ledger.py:260-270"
+      ],
+      "rationale": "The card forbids scoring import topology, so I took runtime evidence. (a) I ran the whole command surface -- every accept and every reject -- with a recording stub in the Journal slot and an audit hook armed: the domain's only outbound calls were append x2 and records x1, and ZERO file opens originated inside any quota_ledger module. With the real adapter, every open originated in quota_ledger.file_journal at __init__/append/records and nowhere else. (b) I performed the declared swap myself: one line at __init__.py:39 changed from FileJournal(ledger_path) to InMemoryJournal(); diff -r shows that single line and no domain edit; the shared suite then printed '28 passed', and a live run confirmed the ledger file was never created on disk (p.exists() False) while ledger_lines() still returned the correct COMMIT/CLOSE transcript. That is anchor 3 with the specific swap named. (c) Anchor 4: I confirmed by pytest --collect-only that 50 of the 53 cases carry both a [file] and a [memory] id -- one case list, real adapter and fake, all green, and the only three singletons are the two file-specific cases and the import check, exactly as the record says. Under mutation, each killing case failed in BOTH wirings, so the fake is load-bearing rather than decorative. Tempered, and a reader should weigh it: I falsified a claim at memory_journal.py:3-8 that the fake obeys 'the same contract' -- for append('A\\nB') the file adapter returns ['A','B'] and the fake ['A\\nB'], and for append('') the file adapter returns [] and the fake ['']. The chosen contract cases (test_ledger.py:42-71) happen to be ones both satisfy. I still award 4 because the anchor asks for the same cases passing against a real adapter and a fake, and that is demonstrated at runtime, not asserted.",
+      "refuses_to_claim": "That anything except the driven durable side is behind a port: NOTES.md:53-55 states there is no port in front of the arithmetic, no repository interface over the reservations dict and no service layer, so no swappable driving side and no storage abstraction is claimed. I verified this is a refusal and not an omission -- domain.py contains exactly one Protocol and no other injected collaborator."
+    },
+    "D4": {
+      "score": 2,
+      "citations": [
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/tests/test_ledger.py:175-199",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/tests/test_ledger.py:202-226",
+        "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-EVAL-RERUN/examples/validation/ab/tests/test_behavior.py:239-281",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/evidence_Q.md:9-11"
+      ],
+      "rationale": "There is no baseline and no refactor here, so I read 'the behaviors the baseline exhibited' as the rules the specification fixes. Anchor 2 is fully met and enumerated by name: R4 at test_ledger.py:175-199 compares a five-tuple snapshot including the durable lines across every one of nine rejections; R1/R2/R3/R5 are read off one concrete expected transcript at test_ledger.py:202-226; the shared contract independently re-enumerates them at test_behavior.py:239-281. I ran both: 53 passed and 28 passed, and I read the assertions to confirm they compare against literal expected values rather than against the implementation's own output. Anchor 3 fails on provenance, not on strength: every check in this tree is hand-written, there is no corpus, no invariant and no model. The model-derived instruments in the packet belong to the harness, are applied TO this artifact rather than shipped BY it, and are in any case weak here (corpus-whole 0 of 3 on refusals, 8.7% executable). Because the ladder is cumulative I must stop at 2 even though I directly demonstrated anchor 4's substance -- 11 deliberate behavior-breaking changes, all 11 caught -- and I take the lower as the card instructs. This is the dimension I would most expect a second judge to argue with.",
+      "refuses_to_claim": null
+    },
+    "D5": {
+      "score": 3,
+      "citations": [
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/NOTES.md:136-141",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/NOTES.md:142-145",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/tests/test_ledger.py:5-9",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/quota_ledger/file_journal.py:13-23",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/blind/artifact_Q/quota_ledger/memory_journal.py:3-8"
+      ],
+      "rationale": "Anchor 2 is met inside the artifact and not only in the report: test_ledger.py:5-9 names the blind spot of its own method ('two wirings of the same domain agree with each other even when the domain is wrong') and the suite therefore asserts literal values, which I confirmed by reading every case; file_journal.py:13-23 names the truncation choice and the framing the adapter adds and strips. Anchor 3 is met in substance and I verified the refusal is warranted rather than decorative: NOTES.md:136-141 declines to claim R2 is enforced by construction and names the exact hole, and I reproduced it -- with a journal whose append raises, commit leaves committed('acme')==3 in memory with an empty durable ledger. I also reproduced NOTES.md:142-145 exactly: reserve('acme', 2.5) is accepted and writes 'COMMIT acme 2.5 2.5'. Four out of four self-reported limits reproduced verbatim; nothing in the record was inflated. I stop at 3 rather than 4 for two reasons and take the lower as instructed. First, the artifact contains a claim about its own reach that I falsified: memory_journal.py:3-8 asserts the fake obeys 'the same contract' as the real adapter, and it does not (newline and empty records diverge), which is exactly the reach-overstatement this dimension exists to punish. Second, I found a reachable, undisclosed defect the record does not name: a tenant whose name contains a newline makes one commit write two ledger lines ('COMMIT ac' / 'me 3 3'), breaking R2 and R5 through the public API, and neither suite nor any instrument in the packet detects it. Anchor 4's 'unflattering result' is otherwise present, but a top score must be impossible to reach by asserting more, and one asserted-but-false claim is enough to hold it at 3.",
+      "refuses_to_claim": null
+    }
+  },
+  "total": 14,
+  "contested": [],
+  "verdict": "Accept this implementation but do not treat its port contract as demonstrated: its own 53 cases kill 11 of 11 seeded faults including the ordering control that survives every generated instrument, yet a tenant name containing a newline silently splits one COMMIT into two ledger lines (R2/R5 broken, undisclosed, caught by nothing), and the two Journal implementations disagree on newline and empty records despite memory_journal.py:3-8 claiming they obey the same contract -- fix those before the fake is trusted as a double. Disclosure: I opened none of the forbidden paths and did not learn or infer which prompt produced this artifact; I did read /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/mut/run.py, a mutation script that a concurrent process wrote into the shared scratchpad while I worked (it contains mutant definitions only, no scores, no conclusions, no arm labels), after which I moved my work to an isolated directory and wrote my own harness; I also ran pytest inside the artifact tree, which created cache directories that I deleted, and I re-verified all five source files' SHA-1s are unchanged."
+}

@@ -1,0 +1,30 @@
+HP-04 -- assertion 1, on a project this CLI FRESHLY SCAFFOLDED.
+
+$ git init && tla-spec-dev --spec-root specs scaffold project --name HP04Probe
+$ run_tlc.sh + generate cases   (148 cases)
+$ (an effects: block added by hand -- a bare scaffold ships none, so the
+   oracle refuses at declaration time before any import; that is a separate
+   gap in the scaffold and is NOT what this run is about)
+
+The scaffolded convention here is 'specs.program_model.adapters:X' -- a
+package path from the repo root, not the bare 'production_adapters:X' this
+repository's own model uses. Both resolve; corpus_import_roots covers both.
+
+$ env -u PYTHONPATH tla-spec-dev ... run effect-conformance --target specs/program_model \
+    --cases-dir specs/program_model/generated/tlc_state_graph_cases
+
+effect declarations: 1 port(s) from specs/program_model/spec_manifest.yaml
+effect conformance adapter_error: 0 observed effect(s) over 148 case(s), 1 declared port(s), 0 gap(s), 1 dead port(s), 0 unobservable target(s), 148 skipped case(s)
+work dir: specs/program_model/.effect-conformance-work (each case started from an EMPTY directory, so two runs over an identical corpus report identical counts -- MF026-R4-F-01)
+ADAPTER REACH: 3 of 3 action(s) in this corpus DRIVEN; 0 SKIPPED. Driven: AcceptRecord, PublishRecord, RegisterActor. Skipped: (none). Of the driven, 3 RAISED on at least one case and are measured by nothing: AcceptRecord, PublishRecord, RegisterActor.
+
+ADAPTER ERRORS -- these adapters accepted their case and then RAISED. This is a FAILURE, not a skip: the run reports every case instead of dying on the first, and reports nothing about what these actions do:
+  - ADAPTER ERROR [error]: case case_0001_register_actor (action RegisterActor) -- adapter specs.program_model.adapters:RegisterActorInternalAdapter: NotImplementedError: load the TLA `before` state into this repository's internal component
+  - ADAPTER ERROR [error]: case case_0002_register_actor (action RegisterActor) -- adapter specs.program_model.adapters:RegisterActorInternalAdapter: NotImplementedError: load the TLA `before` state into this repository's internal component
+  ... (148 adapter errors in total)
+
+READ THIS THE RIGHT WAY. The adapters LOADED with no sys.path help -- that is
+assertion 1. They then raised the scaffold's own NotImplementedError stub, on
+all 148 cases, which is the scaffold telling the author to implement them. The
+run reports every one and FAILS (verdict adapter_error); before HP-04 it died
+on the first with a traceback and wrote no report.

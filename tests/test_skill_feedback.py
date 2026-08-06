@@ -24,6 +24,21 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 import skill_feedback as sf  # noqa: E402
 
 
+# CM-01: the complexity ledger refuses a .tla/.cfg pair whose cfg names a
+# SPECIFICATION the module does not define ("I could not measure this"), which
+# is the CM-F1 defect these fixtures used to walk straight past -- an empty
+# `MODULE M` beside `SPECIFICATION Spec` measured 0 variables and 0 actions and
+# was recorded as a real ledger entry. The module below is what MC.cfg says it
+# is; nothing else about these tests changes.
+MINIMAL_MODULE = """---- MODULE M ----
+VARIABLE x
+Init == x = 0
+Next == x' = x
+Spec == Init /\\ [][Next]_x
+====
+"""
+
+
 @pytest.fixture
 def specs(tmp_path: Path) -> Path:
     return tmp_path / "specs"
@@ -341,7 +356,7 @@ def test_history_manifest_records_feedback_filing_status(tmp_path: Path) -> None
 
     specs_dir = tmp_path / "specs"
     (specs_dir / "current").mkdir(parents=True)
-    (specs_dir / "current" / "M.tla").write_text("---- MODULE M ----\n====\n", encoding="utf-8")
+    (specs_dir / "current" / "M.tla").write_text(MINIMAL_MODULE, encoding="utf-8")
     (specs_dir / "current" / "MC.cfg").write_text("SPECIFICATION Spec\n", encoding="utf-8")
     write_workflow_ledger_input(specs_dir)
     (specs_dir / "desired_program_model").mkdir(parents=True)
@@ -372,7 +387,7 @@ def test_history_manifest_records_where_feedback_was_filed(tmp_path: Path) -> No
 
     specs_dir = tmp_path / "specs"
     (specs_dir / "current").mkdir(parents=True)
-    (specs_dir / "current" / "M.tla").write_text("---- MODULE M ----\n====\n", encoding="utf-8")
+    (specs_dir / "current" / "M.tla").write_text(MINIMAL_MODULE, encoding="utf-8")
     (specs_dir / "current" / "MC.cfg").write_text("SPECIFICATION Spec\n", encoding="utf-8")
     write_workflow_ledger_input(specs_dir)
     (specs_dir / "desired_program_model").mkdir(parents=True)
@@ -405,7 +420,7 @@ def test_no_skill_feedback_opt_out(tmp_path: Path) -> None:
 
     specs_dir = tmp_path / "specs"
     (specs_dir / "current").mkdir(parents=True)
-    (specs_dir / "current" / "M.tla").write_text("---- MODULE M ----\n====\n", encoding="utf-8")
+    (specs_dir / "current" / "M.tla").write_text(MINIMAL_MODULE, encoding="utf-8")
     (specs_dir / "current" / "MC.cfg").write_text("SPECIFICATION Spec\n", encoding="utf-8")
     write_workflow_ledger_input(specs_dir)
     (specs_dir / "desired_program_model").mkdir(parents=True)

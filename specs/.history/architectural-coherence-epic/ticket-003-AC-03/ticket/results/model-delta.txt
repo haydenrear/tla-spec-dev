@@ -1,0 +1,21 @@
+AC-03 zero-model-delta evidence (2026-07-27, base e73b7d1)
+
+The ticket plan declares model_delta_expectation: ZERO. AC-03 ships two
+prompts, one output template, and documentation. It adds no state variable,
+no action, and no invariant, so specs/tickets/AC-03/current/ and
+specs/tickets/AC-03/desired/ are byte-identical as scaffolded and remain so.
+
+$ diff -r specs/tickets/AC-03/current specs/tickets/AC-03/desired
+exit=0  (0 = identical; no output above)
+
+$ diff -q specs/current/TlaSpecDevCli.tla specs/tickets/AC-03/current/TlaSpecDevCli.tla
+exit=0  (0 = ticket current still equals the project baseline)
+
+Actions and variables in the ticket model, unchanged from the baseline:
+  specs/current   variables=10 actions=16 components=1 Q=0.000000
+  ticket current  variables=10 actions=16 components=1 Q=0.000000
+  ticket desired  variables=10 actions=16 components=1 Q=0.000000
+
+TLC on ticket current: see tlc-ticket-current.txt --
+Model checking completed. No error has been found.
+32122220 states generated, 1292951 distinct states found, 0 states left on queue.

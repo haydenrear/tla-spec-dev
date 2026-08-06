@@ -1,0 +1,79 @@
+[MEASURED] Reflexion check -- production code against the model's architecture
+  map:       /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ev02/df02b/one_map.yaml
+  code root: pipeline
+  scanned 8 Python module(s); the map places 8 of them in 1 component(s)
+  extracted 7 dependency edge(s) (imports + resolvable calls)
+  7 edge(s) stay inside one component and were not checked against a port
+
+  Is a divergence even detectable here?
+    component pairs with a port:    (none)
+    component pairs with NO port:   (none)
+    A code edge can only diverge across a pair in the second list. When that list is
+    empty the architecture permits every pair and a clean result is true by construction.
+
+  CONVERGENCES (0) -- a crossing edge the model declares a port for
+
+  DIVERGENCES (0) -- a crossing edge NO port declares
+    none.
+
+  ABSENCES (0) -- a declared port no code edge realizes
+    none.
+
+  Out of scope: 2 import target(s) resolve outside the scanned tree
+  (standard library and third-party packages). They are not edges: the model declares
+  components of THIS program. A component that reaches an external system directly is
+  therefore invisible to this check.
+    __future__, pipeline_contract
+
+[MEASURED] Reflexion verdict
+  architecture_scan = coherent
+    - every code edge that crosses a component boundary has a declared port, every declared port is realized, every module in the scanned tree is mapped, and every declared component is realized by code
+
+  COHERENT: over the edges this extractor can resolve, every boundary
+  crossing in the code has a port in the model and every port is realized.
+
+  Advisory: nothing here blocks a close, a promotion, or a case generation.
+
+[MEASURED] Architecture delta -- this scan against a recorded baseline
+  baseline map:  /Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex5_pipeline_divergent/specs/program_model/architecture_map.yaml
+    digest:      sha256:51fc63424ef4a24eebf4123b7cd59dd673e6035a443807b1bce3917ed58f4cc9
+  current map:   /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ev02/df02b/one_map.yaml
+    digest:      sha256:a37ee07c03789dc7865da5e7b3087ea3e128f5f6eccac55887b3caaee23927c1
+  model side:    architecture digest CHANGED (sha256:96e32621b635a59a5f1da47f51ab29c243572e79ff13e4b3afac7b52343d964f -> sha256:a17c3f1bed24527e2f8816db3c5ef4e042a7b1d40db4b14c88899cf83391dac5)
+  attribution:   unattributable
+    - the MODEL side changed between the two scans (components or ports differ), so the two runs do not share a definition of what a divergence IS. Adding a port converts a divergence into a convergence with no code change.
+    - 8 module(s) present in both scans were RE-PLACED by the map: dispatch/__init__.py (dispatch -> theapp), dispatch/delivery.py (dispatch -> theapp), dispatch/failures.py (dispatch -> theapp), ingest/__init__.py (ingest -> theapp), ingest/inbox.py (ingest -> theapp), ingest/queue.py (ingest -> theapp), ledger/__init__.py (ledger -> theapp), ledger/journal.py (ledger -> theapp). Re-placing a module moves the boundary, not the code -- it is the one edit that makes any divergence disappear for free.
+    - the map's component set changed (dispatch, ingest, ledger -> theapp)
+
+  DIVERGENCES: 4 -> 0 (-4 distinct dependenc(ies); 4 -> 0 sites)
+    LOST (4):
+      - ingest/inbox.py -call-> ledger/journal.py  [format_entry]  was at pipeline/ingest/inbox.py:39
+        endpoint_reassigned: `ingest/inbox.py` was re-placed by the map (ingest -> theapp). The edge did not go away; the boundary it crossed did.
+      - ingest/inbox.py -import-> ledger/journal.py  [pipeline.ledger.journal.format_entry]  was at pipeline/ingest/inbox.py:11
+        endpoint_reassigned: `ingest/inbox.py` was re-placed by the map (ingest -> theapp). The edge did not go away; the boundary it crossed did.
+      - ingest/queue.py -import-> ledger/journal.py  [pipeline.ledger.journal.Journal]  was at pipeline/ingest/queue.py:12
+        endpoint_reassigned: `ingest/queue.py` was re-placed by the map (ingest -> theapp). The edge did not go away; the boundary it crossed did.
+      - ledger/journal.py -import-> ingest/inbox.py  [pipeline.ingest.inbox.Inbox]  was at pipeline/ledger/journal.py:55
+        endpoint_reassigned: `ledger/journal.py` was re-placed by the map (ledger -> theapp). The edge did not go away; the boundary it crossed did.
+    stable-basis only (modules in both scans, same component): 0 -> 0 (+0)
+
+  CONVERGENCES: 1 -> 0 (-1 distinct dependenc(ies); 1 -> 0 sites)
+    LOST (1):
+      - dispatch/delivery.py -import-> ingest/queue.py  [pipeline.ingest.queue.WorkQueue]  was at pipeline/dispatch/delivery.py:10
+    stable-basis only (modules in both scans, same component): 0 -> 0 (+0)
+
+  ABSENCES: 1 -> 0 (-1)
+      - P2  dispatch <-> ledger
+
+[MEASURED] Delta verdict
+  direction = unattributable
+    - the two scans were not measured against the same declared basis, so this is not a refactor result. The numbers below are real; what they are a fact ABOUT is undetermined.
+    - the MODEL side changed between the two scans (components or ports differ), so the two runs do not share a definition of what a divergence IS. Adding a port converts a divergence into a convergence with no code change.
+    - 8 module(s) present in both scans were RE-PLACED by the map: dispatch/__init__.py (dispatch -> theapp), dispatch/delivery.py (dispatch -> theapp), dispatch/failures.py (dispatch -> theapp), ingest/__init__.py (ingest -> theapp), ingest/inbox.py (ingest -> theapp), ingest/queue.py (ingest -> theapp), ledger/__init__.py (ledger -> theapp), ledger/journal.py (ledger -> theapp). Re-placing a module moves the boundary, not the code -- it is the one edit that makes any divergence disappear for free.
+    - the map's component set changed (dispatch, ingest, ledger -> theapp)
+
+  UNATTRIBUTABLE is not a bad result and not a good one. The two scans do not
+  share a basis, so no number here is a fact about the refactor. Re-run the
+  baseline against the current map to get a comparison, and say in the record
+  that the map changed.
+  Advisory: nothing here blocks a close, a promotion, or a case generation.

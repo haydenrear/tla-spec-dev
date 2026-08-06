@@ -1,0 +1,90 @@
+HP-05 -- GOAL SIGNAL
+====================
+
+Precedence, restated because it is not negotiable: the REQUIRED validation
+matrix decides this ticket's pass/fail, the local signal decides nothing, and
+HP-06 decides the goal. Nothing below was tuned, re-run selectively, or scoped
+past this ticket's conflict keys to improve a number. This is the run that
+happened -- both runs, in fact; they were identical.
+
+--------------------------------------------------------------------------
+GOAL-catch-bugs -- contribution: direct
+--------------------------------------------------------------------------
+expected_effect: "The default mapping catches the durable-side class that only
+  the checking mapping has ever caught -- worth 30% of that instrument's yield
+  when it is chosen, and it is currently not the default."
+
+local_signal: "the HP-01 catalogue's durable-write class under the default
+  mapping"
+
+RESULT, per class per instrument (never a single rate):
+
+  class              n   map-none   map-silent   map-checking   suite
+  durable_content    2     1 of 2       1 of 2         2 of 2    2 of 2
+
+  M04-durable-stale-total       SURVIVED  SURVIVED  KILLED  KILLED
+  M05-durable-close-line-zero   KILLED    KILLED    KILLED  KILLED
+
+  map-checking is the mapping scripts/generate_python.py now writes by default.
+  Evidence: results/kill-table-mapping.json, results/kill-table-comparison.txt.
+
+CLASSIFICATION: **moved as expected**, and smaller than the headline implies.
+
+  Moved: M04 goes from surviving every corpus instrument in every previous
+  round to dying under the default mapping. durable_content 1 of 2 -> 2 of 2.
+  The checking/silent split reproduces for the third time and the first time on
+  this fixture. Nothing regressed: map-checking >= map-none in all ten rows, so
+  the GOAL-catch-bugs guard on the other classes holds.
+
+  Smaller than implied, and this is the part worth reading: the mapping choice
+  is worth EXACTLY ONE CELL on this catalogue, not two. The dispatch brief and
+  the ticket objective both say the two durable-side mutants survive both
+  corpora. M05 does not -- HP-03's own committed kill table records it as
+  KILLED by corpus-whole, and this run reproduces that under all three mappings.
+  The model's CLOSE element is << "CLOSE", t, committed[t] >>, so its third slot
+  IS the total and the ordinary projected-state comparison already sees a zeroed
+  one. Only the COMMIT element drops its total. The "2 of 6 that nothing else
+  caught" figure is from the ex4 fixture and does not transfer cell-for-cell to
+  this one.
+
+  The 30% figure is therefore NOT reproduced here as a proportion. On the blind
+  agent's 16-mutant catalogue the mapping was worth 3 kills of 10 (30%). Here it
+  is worth 1 kill of 6 under map-checking (17%), and 1 of 10 mutants overall.
+  The DIRECTION replicated three times out of three. The MAGNITUDE is fixture-
+  dependent and nobody should quote 30% as a property of the mechanism.
+
+--------------------------------------------------------------------------
+GOAL-hexagonal-in-fact -- contribution: guard
+--------------------------------------------------------------------------
+expected_effect: "none -- must not require a particular architecture to work"
+local_signal: "N/A"
+
+CLASSIFICATION: **no measurable movement**, which is the guard holding.
+
+Not left unexamined, though, because the guard is a real risk here: a generated
+provider that only worked against a port-shaped implementation would silently
+require hexagonal architecture to score, and would then contaminate HP-06's D3.
+Two checks, both recorded:
+
+  * The reference implementation used for the whole kill table has NO PORT. It
+    opens the ledger file itself inside `_append_line`. The instrument installs
+    a bounded per-instance seam -- the `binding_style: self_installed` case
+    references/effect_providers.md already names -- and the generated provider
+    works unchanged against it. A non-hexagonal implementation is measurable.
+  * The scaffolded-project walkthrough (results/scaffolded-project.txt) declares
+    a port on the scaffold's OWN model and needed no architectural change to it.
+
+--------------------------------------------------------------------------
+GOAL-simpler-same-behavior -- contribution: guard
+--------------------------------------------------------------------------
+expected_effect: "none expected"
+local_signal: "N/A"
+
+CLASSIFICATION: **no measurable movement**.
+
+The ticket produced no arm artifact and touched neither arm prompt nor either
+arm tree. The mechanical size delta on the toolchain itself is recorded in
+results/zero-model-delta.txt: no TLA+ action, no TLA+ variable, 1x state space.
+The declared instrument for this goal remains unrunnable on this fixture for
+the reasons the owner amendment records (schedule_revision 2); nothing here
+substitutes a proxy for it.
