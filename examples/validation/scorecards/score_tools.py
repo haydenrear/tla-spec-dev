@@ -1,16 +1,23 @@
 #!/usr/bin/env python3
-"""Scorecard scaffold, schema check, index, and history reader (scorecard_version 1).
+"""Scorecard scaffold, schema check, index, and history reader (scorecard_version 2).
 
 Deliberately lives under examples/validation/ rather than scripts/: scripts/**
 is IN MODEL per the plan's representation_scope, and eval harness is not program
 surface. Putting it here keeps the model's surface unchanged.
 
   python3 score_tools.py scaffold <epic-dir> --example E --arms A,B,C --judges 2
+                                  [--card-version {1,2}]
   python3 score_tools.py check <dir-or-file>... [--require-filled]
   python3 score_tools.py index <epic-dir>
   python3 score_tools.py history --example E [--root DIR] [--write FILE]
   python3 score_tools.py audit [--root DIR]
   python3 score_tools.py seal <dir>...
+
+`--card-version 1` exists so a prior version of the card can be reproduced
+exactly. Changing the card requires re-scoring a prior example under BOTH
+versions, and a tool that can only emit the current version makes that
+impossible -- so the ability to scaffold the OLD card is part of the change
+rule, not a debugging convenience.
 
 `check` enforces the rules from references/eval_scorecard.md that can be
 enforced mechanically. The ones that matter -- score artifacts not claims, prose
@@ -44,7 +51,24 @@ import sys
 import tomllib
 from datetime import date as _date
 
-VERSION = 1
+VERSION = 2
+SUPPORTED_VERSIONS = (1, 2)
+
+# The dimension whose TOP ANCHOR cannot be awarded from the evidence packet.
+# D4's anchor 4 asks for "a deliberate behavior-breaking change ... shown to be
+# CAUGHT -- the check is demonstrated to be capable of failing". A judge who
+# executes one can say that; a judge reading a table is repeating a claim. This
+# is not new guidance: it is the anchor's own text, made checkable, after
+# PA-06-DF-06 measured four dimension-points moving on byte-identical trees
+# because two judges privately chose to execute and nothing recorded it.
+#
+# D1 and D5 also moved, and they are deliberately NOT gated here. D1's anchor 4
+# asks that the cases be model-derived and that the record name a class it
+# cannot reach; D5's asks that the record contain an unflattering result.
+# Neither needs the judge to run anything, so gating them would be inventing a
+# requirement rather than executing one.
+PRACTICE_GATED_DIMS = ("D4",)
+
 DIMS = ("D1", "D2", "D3", "D4", "D5")
 NAMES = {
     "D1": "bug detection",
@@ -158,13 +182,71 @@ def load_rubric(path: pathlib.Path) -> dict:
         for m in re.finditer(r"^### (R-H\d+) — (.+?)$", reading_block.group(1), re.M):
             reading.append({"id": m.group(1), "title": m.group(2).strip()})
 
+    m = re.search(r"^\*\*Scorecard version (\d+)\.\*\*", text, re.M)
+    card_version = int(m.group(1)) if m else 1
+
+    versions = []
+    vblock = re.search(r"^#{2,3} Version history\s*\n(.*?)(?=^#{1,3} |\Z)", text, re.M | re.S)
+    if vblock:
+        for row in re.finditer(
+                r"^\|\s*\*{0,2}(\d+)\*{0,2}\s*\|\s*`(sha256:[0-9a-f]+)`\s*\|\s*(.+?)\s*\|\s*$",
+                vblock.group(1), re.M):
+            versions.append({"version": int(row.group(1)),
+                             "anchors_digest": row.group(2),
+                             "summary": row.group(3).strip()})
+
     source = str(path.relative_to(REPO_ROOT)) if _under(path, REPO_ROOT) else str(path)
-    rubric = {"source": source, "dimensions": dims,
-              "scoring_rules": rules, "reading_rules": reading}
+    rubric = {"source": source, "dimensions": dims, "card_version": card_version,
+              "scoring_rules": rules, "reading_rules": reading, "versions": versions}
     rubric["digest"] = "sha256:" + hashlib.sha256(
         json.dumps({"dimensions": dims, "scoring_rules": rules},
                    sort_keys=True).encode()).hexdigest()[:16]
+    rubric["anchors_digest"] = anchors_digest(dims)
     return rubric
+
+
+def anchors_digest(dims: dict) -> str:
+    """A digest over the ANCHORS ALONE, separate from the rubric digest.
+
+    The rubric digest covers the anchors AND the scoring rules together, so it
+    moves whenever either does -- which is right for "was this card scaffolded
+    against a bar that has since changed" and useless for "did the version bump
+    keep the old anchors". `Changing this card` requires keeping them, and a
+    requirement nothing computes is a requirement that drifts.
+    """
+    return "sha256:" + hashlib.sha256(
+        json.dumps({k: v["anchors"] for k, v in dims.items()},
+                   sort_keys=True).encode()).hexdigest()[:16]
+
+
+def version_history_problems(rubric: dict) -> list[str]:
+    """The card's own change rule, executed.
+
+    Bump the version, keep the old anchors, and say what changed. A version
+    history that does not carry the CURRENT version, or whose row for it does
+    not match the anchors actually in the file, is the card changing silently.
+    """
+    bad: list[str] = []
+    versions = rubric.get("versions") or []
+    if not versions:
+        return [f"{rubric['source']}: declares no `## Version history` table, so a change to "
+                f"this card cannot be told from a typo in it"]
+    seen = {v["version"]: v for v in versions}
+    current = rubric.get("card_version")
+    if current not in seen:
+        bad.append(f"{rubric['source']}: is scorecard version {current} and its version "
+                   f"history has no row for {current}")
+        return bad
+    if seen[current]["anchors_digest"] != rubric["anchors_digest"]:
+        bad.append(f"{rubric['source']}: version {current} declares anchors digest "
+                   f"{seen[current]['anchors_digest']} but the anchors in this file digest to "
+                   f"{rubric['anchors_digest']}. Either the anchors moved without a version "
+                   f"bump, or the table is stale -- and both are the card changing silently.")
+    for earlier in range(1, current):
+        if earlier not in seen:
+            bad.append(f"{rubric['source']}: version history drops version {earlier}. The old "
+                       f"rows are kept so a historical comparison is not a guess.")
+    return bad
 
 
 def _under(path: pathlib.Path, root: pathlib.Path) -> bool:
@@ -188,8 +270,10 @@ def check(card: dict, where: str, rubric: dict | None = None,
     def err(msg: str) -> None:
         bad.append(f"{where}: {msg}")
 
-    if card.get("scorecard_version") != VERSION:
-        err(f"scorecard_version must be {VERSION}, got {card.get('scorecard_version')!r}")
+    version = card.get("scorecard_version")
+    if version not in SUPPORTED_VERSIONS:
+        err(f"scorecard_version must be one of {list(SUPPORTED_VERSIONS)}, got {version!r}")
+        version = VERSION
 
     status = card.get("status", "filled")
     if status not in {"filled", "unfilled"}:
@@ -226,6 +310,38 @@ def check(card: dict, where: str, rubric: dict | None = None,
     extra = [d for d in dims if d not in DIMS]
     if extra:
         err(f"unknown dimensions: {', '.join(extra)}")
+
+    # scorecard_version 2: what the judge DID is a field, not a private choice.
+    executed = None
+    if version >= 2 and status != "unfilled":
+        practice = card.get("judging_practice")
+        if not isinstance(practice, dict):
+            err("missing required field 'judging_practice'. From scorecard_version 2 a card "
+                "records WHETHER THE JUDGE EXECUTED ITS OWN FAULTS and WHAT IT RAN, because "
+                "that is the variable that moved four dimension-points on byte-identical "
+                "trees and nothing recorded it.")
+        else:
+            executed = practice.get("executed_own_faults")
+            if not isinstance(executed, bool):
+                err("judging_practice.executed_own_faults must be true or false, got "
+                    f"{executed!r} -- 'did you run anything against this artifact' has an "
+                    "answer either way, and the unflattering answer is the useful one")
+                executed = None
+            ran = practice.get("what_was_run")
+            if not isinstance(ran, list) or any(not str(x).strip() for x in ran):
+                err("judging_practice.what_was_run must be a list of non-empty strings")
+            elif executed is True and not ran:
+                err("judging_practice says the judge executed its own faults and lists "
+                    "nothing in `what_was_run` -- name what was run, or say it executed "
+                    "nothing")
+            elif executed is False and ran:
+                notes.append(f"PRACTICE {where}: executed_own_faults is false but "
+                             f"`what_was_run` lists {len(ran)} item(s); read them as things "
+                             f"run that were not fault seeding")
+            if executed is False:
+                notes.append(f"PACKET-ONLY {where}: this judge scored the evidence packet and "
+                             f"seeded no fault of its own. That is a legal card and it is "
+                             f"recorded, never corrected.")
 
     if rubric is not None and (card.get("rubric") or {}).get("digest"):
         got = card["rubric"]["digest"]
@@ -268,6 +384,13 @@ def check(card: dict, where: str, rubric: dict | None = None,
         # Rule 3: a 4 must name something the artifact refuses to claim.
         if score == 4 and not entry.get("refuses_to_claim"):
             err(f"{dim} scored 4 without refuses_to_claim -- rule 3")
+        # Rule 8 (scorecard_version 2): the one top anchor whose own text asks
+        # the judge to run something.
+        if version >= 2 and score == 4 and dim in PRACTICE_GATED_DIMS and executed is False:
+            err(f"{dim} scored 4 while judging_practice.executed_own_faults is false. That "
+                f"anchor asks for a behavior-breaking change SHOWN TO BE CAUGHT -- a judge "
+                f"who executes one can say so; a judge reading a table is repeating the "
+                f"artifact's claim. Score 3 and say the packet asserts it, or run one.")
         if not str(entry.get("rationale") or "").strip():
             err(f"{dim} has no rationale")
 
@@ -299,6 +422,8 @@ def cmd_check(argv: list[str]) -> int:
         rubric = None
 
     cards, problems, notes = [], [], []
+    if rubric is not None:
+        problems.extend(version_history_problems(rubric))
     for arg in args.paths:
         cards.extend(load(pathlib.Path(arg)))
     if not cards:
@@ -411,6 +536,10 @@ def cmd_scaffold(argv: list[str]) -> int:
     ap.add_argument("--unblinded", action="store_true",
                     help="DELIBERATELY skip blinding: emit real arm names as labels")
     ap.add_argument("--reason", default=None, help="required with --unblinded")
+    ap.add_argument("--card-version", type=int, default=VERSION, choices=SUPPORTED_VERSIONS,
+                    help="emit a card of this scorecard_version. The old version exists so "
+                         "the discontinuity a version bump creates can be MEASURED by "
+                         "re-scoring under both, which is the card's own change rule.")
     args = ap.parse_args(argv)
 
     try:
@@ -526,7 +655,7 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
             entry["caveat"] = d["caveat"]
         dims[key] = entry
     card = {
-        "scorecard_version": VERSION,
+        "scorecard_version": args.card_version,
         "status": "unfilled",
         "epic": pathlib.Path(args.epic_dir).name,
         "example": args.example,
@@ -550,12 +679,27 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
         "contested": [],
         "verdict": "",
     }
+    if args.card_version >= 2:
+        card["judging_practice"] = {
+            "executed_own_faults": None,
+            "what_was_run": [],
+            "note": ("REQUIRED from scorecard_version 2. Did you seed a fault of your own "
+                     "and run it against this artifact, or did you score the evidence "
+                     "packet? Both are legal. Say which, and list what you ran. Four "
+                     "dimension-points moved on byte-identical trees the last time this "
+                     "was a private choice, and D4's anchor 4 is only awardable when this "
+                     "says true."),
+        }
+        card["how_to_fill"].insert(2, (
+            "Fill `judging_practice`: `executed_own_faults` true or false, and "
+            "`what_was_run` listing what you ran. FALSE IS A LEGAL AND USEFUL ANSWER -- "
+            "it is recorded, never corrected. Delete the `note` key once you have."))
     return json.dumps(card, indent=2) + "\n"
 
 
 def _skeleton_md(args, rubric: dict, label: str, judge: int, rid: str) -> str:
     out = [f"# Scorecard — {args.example}, artifact `{label}`, judge pass {judge}", ""]
-    out.append(f"`run_id`: `{rid}` · scorecard_version {VERSION} · rubric "
+    out.append(f"`run_id`: `{rid}` · scorecard_version {args.card_version} · rubric "
                f"`{rubric['source']}` digest `{rubric['digest']}`")
     out.append("")
     if args.unblinded:
@@ -581,6 +725,35 @@ def _skeleton_md(args, rubric: dict, label: str, judge: int, rid: str) -> str:
     out.append("**Score the LOWEST anchor the artifact fully satisfies; when torn "
                "between two, take the lower and say why.**")
     out.append("")
+    if args.card_version >= 2:
+        out.append("## Judging practice — REQUIRED, and it is a field on the card")
+        out.append("")
+        out.append("**Did you seed a fault of your own and run it against this artifact, or "
+                   "did you score the evidence packet?** Both are legal. Neither is the "
+                   "right answer. What is not legal is leaving it unsaid.")
+        out.append("")
+        out.append("Fill `judging_practice` in `scorecard.json`: `executed_own_faults` true "
+                   "or false, and `what_was_run` listing what you actually ran.")
+        out.append("")
+        out.append("> This field exists because two judges re-scored **byte-identical "
+                   "trees** and four dimension-points moved. Both had privately chosen to "
+                   "seed and run their own faults; the round before them had not; and "
+                   "nothing on either card said so. **The card was measuring the judge and "
+                   "reporting it as the artifact.**")
+        out.append("")
+        out.append("**D4's anchor 4 is only awardable when this says `true`.** That anchor "
+                   "asks for a behavior-breaking change *shown to be caught*. If you did "
+                   "not run one, the highest D4 you can support is 3 — say that the packet "
+                   "asserts it and you did not verify it. **D1, D4 and D5 all moved on "
+                   "unchanged input; only D4's anchor is gated, because only D4's anchor "
+                   "asks you to run something.**")
+        out.append("")
+        out.append("**Executed own faults:** _(true / false)_")
+        out.append("")
+        out.append("**What was run:**")
+        out.append("")
+        out.append("-")
+        out.append("")
     out.append("## The mechanical block is recorded, never scored")
     out.append("")
     out.append("`mechanical.json` beside this file holds kill counts, complexity "
@@ -737,10 +910,12 @@ def _touched(commit: str, paths: list[str]) -> list[str]:
 def load_log(root: pathlib.Path) -> dict:
     path = root / LOG_NAME
     if not path.exists():
-        return {"path": path, "changes": [], "notes": [], "claims": [], "sealed": []}
+        return {"path": path, "changes": [], "notes": [], "claims": [], "sealed": [],
+                "movements": []}
     data = tomllib.loads(path.read_text())
     return {"path": path, "changes": data.get("change", []), "notes": data.get("note", []),
-            "claims": data.get("claim", []), "sealed": data.get("sealed", [])}
+            "claims": data.get("claim", []), "sealed": data.get("sealed", []),
+            "movements": data.get("movement", [])}
 
 
 def card_date(card: dict) -> str | None:
@@ -927,6 +1102,39 @@ def cmd_history(argv: list[str]) -> int:
             out.append(f"| `{c['run_id']}` | {r['round']} | {c.get('arm') or '—'} | "
                        f"{(c.get('judge') or {}).get('pass', '—')} |")
         out.append("")
+
+    by_key = {r["key"]: r["card"] for r in rows + pending}
+    movements = [m for m in log["movements"]
+                 if str(m.get("from_card")) in by_key or str(m.get("to_card")) in by_key]
+    if movements:
+        out.append("## The same artifact, scored twice — declared movements")
+        out.append("")
+        out.append("R-H5. Each row names two cards and is **re-derived from them on every "
+                   "`audit`**, so it cannot go stale the way a sentence can. `readable` is "
+                   "false whenever either end does not record what its judge DID — because "
+                   "four dimension-points once moved on byte-identical trees and the "
+                   "mechanism was the judging practice, not the artifact.")
+        out.append("")
+        out.append("| movement | dim | from | to | points | readable |")
+        out.append("|" + "---|" * 6)
+        def _score_of(key: str, dim: str):
+            card = by_key.get(key) or {}
+            return (card.get("dimensions") or {}).get(dim, {}).get("score")
+
+        for m in movements:
+            fk, tk = str(m.get("from_card")), str(m.get("to_card"))
+            fs = _score_of(fk, str(m.get("dimension")))
+            ts = _score_of(tk, str(m.get("dimension")))
+            out.append("| " + " | ".join([
+                f"`{m.get('id')}`", str(m.get("dimension")),
+                f"`{fk.split('/')[-1]}` ({fs})", f"`{tk.split('/')[-1]}` ({ts})",
+                f"**{int(m.get('points', 0)):+d}**",
+                "yes" if m.get("readable") else "**no**"]) + " |")
+        out.append("")
+        for m in movements:
+            if m.get("why"):
+                out.append(f"> **`{m.get('id')}`.** " + " ".join(str(m["why"]).split()))
+                out.append("")
 
     claims = [c for c in log["claims"] if c.get("example") in (args.example, "n/a")]
     if claims:
@@ -1201,11 +1409,86 @@ def audit_rh4(ctx: dict) -> list[tuple[str, str]]:
     return out
 
 
+def audit_rh5(ctx: dict) -> list[tuple[str, str]]:
+    """R-H5 movement: a movement is a measurement only if the judging practice is recorded."""
+    out = []
+    by_key = {r["key"]: r["card"] for r in ctx["all_rows"]}
+    if not ctx["movements"]:
+        out.append((OPEN, "no `[[movement]]` is declared. D1, D4 and D5 are demonstrated to "
+                          "move on unchanged input, so a cross-round movement that is not "
+                          "recorded here is a number nothing re-derives."))
+    for mv in ctx["movements"]:
+        mid = mv.get("id")
+        dim = str(mv.get("dimension", ""))
+        if dim not in DIMS:
+            out.append((VIOLATION, f"movement `{mid}`: dimension {dim!r} is not one of "
+                                   f"{list(DIMS)}"))
+            continue
+        ends, ok = [], True
+        for side in ("from_card", "to_card"):
+            key = str(mv.get(side, ""))
+            card = by_key.get(key)
+            if card is None:
+                out.append((VIOLATION, f"movement `{mid}`: `{side} = {key}` is not a card in "
+                                       f"this tree"))
+                ok = False
+            elif card.get("status") == "unfilled":
+                out.append((VIOLATION, f"movement `{mid}`: `{side} = {key}` is an unfilled "
+                                       f"skeleton and carries no measurement"))
+                ok = False
+            else:
+                ends.append((key, card))
+        if not ok:
+            continue
+        (fkey, fcard), (tkey, tcard) = ends
+        fscore = (fcard.get("dimensions") or {}).get(dim, {}).get("score")
+        tscore = (tcard.get("dimensions") or {}).get(dim, {}).get("score")
+        if not isinstance(fscore, int) or not isinstance(tscore, int):
+            out.append((VIOLATION, f"movement `{mid}`: {dim} is unscored on one end "
+                                   f"({fscore!r} -> {tscore!r})"))
+            continue
+        actual = tscore - fscore
+        if "points" not in mv:
+            out.append((VIOLATION, f"movement `{mid}`: declares no `points`. The number is "
+                                   f"the measurement; a movement that does not state it "
+                                   f"cannot be checked against the cards."))
+            continue
+        if int(mv["points"]) != actual:
+            out.append((VIOLATION, f"movement `{mid}`: declares `points = {mv['points']}` but "
+                                   f"the cards say {dim} went {fscore} -> {tscore} "
+                                   f"({actual:+d}). A movement is re-derived from the cards "
+                                   f"on every audit precisely so it cannot go stale."))
+            continue
+        unrecorded = [k for k, c in ends if not isinstance(c.get("judging_practice"), dict)]
+        if "readable" not in mv:
+            out.append((VIOLATION, f"movement `{mid}`: declares no `readable`. Whether this "
+                                   f"movement can be read as a result at all is the first "
+                                   f"thing about it, and it is not optional."))
+            continue
+        if mv["readable"] and unrecorded:
+            out.append((VIOLATION,
+                        f"movement `{mid}`: `readable = true` while {', '.join(unrecorded)} "
+                        f"records no `judging_practice`. Four dimension-points moved on "
+                        f"byte-identical trees because judges privately chose to execute "
+                        f"their own faults and no card said so. NAME WHAT THE JUDGES DID OR "
+                        f"DO NOT READ THE MOVEMENT."))
+        elif unrecorded:
+            out.append((OK, f"movement `{mid}`: {dim} {fscore} -> {tscore} ({actual:+d}), "
+                            f"declared NOT readable -- {', '.join(unrecorded)} does not say "
+                            f"what its judge did. Within demonstrated noise; not evidence of "
+                            f"improvement either way."))
+        else:
+            out.append((OK, f"movement `{mid}`: {dim} {fscore} -> {tscore} ({actual:+d}), "
+                            f"judging practice recorded at both ends -- readable."))
+    return out
+
+
 AUDIT_CHECKS = {
     "R-H1": audit_rh1,
     "R-H2": audit_rh2,
     "R-H3": audit_rh3,
     "R-H4": audit_rh4,
+    "R-H5": audit_rh5,
 }
 
 
@@ -1218,6 +1501,7 @@ def run_audit(root: pathlib.Path) -> tuple[dict[str, list[tuple[str, str]]], dic
         "notes": log["notes"],
         "claims": log["claims"],
         "sealed": log["sealed"],
+        "movements": log["movements"],
         "rows": all_rows,
         "all_rows": all_rows,
         "keys": {r["key"] for r in all_rows},

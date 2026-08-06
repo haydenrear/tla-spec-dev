@@ -1,0 +1,49 @@
+{
+  "note": "Measured figures. NEVER SCORED. Recorded beside the judgement so a reader can see when measurement and judgement disagree -- and a disagreement is a finding, not a rounding error.",
+  "example": "ab_quota_ledger",
+  "arm": "T",
+  "run_id": "20260806-v2-T-p1",
+  "commit": "51fe73d",
+  "figures": {
+    "kills": {
+      "note": "Judge-seeded faults, measured by this judge in a scratch tree outside the repository. RECORDED, NEVER SCORED. Four faults per artifact, each applied alone, each proved byte-identically revertible. No model-derived corpus was re-run; these columns are the shared behavioral suite and the artifact's own tests.",
+      "judge_seeded": {
+        "FJ1-commit-line-transposes-amount-and-running-total": {
+          "shared_suite": "KILLED",
+          "own_suite": "KILLED"
+        },
+        "FJ2-reserve-checks-amount_not_positive-before-tenant_closed": {
+          "shared_suite": "SURVIVED",
+          "own_suite": "SURVIVED"
+        },
+        "FJ3-quota_exceeded-rejection-burns-a-reservation-id": {
+          "shared_suite": "SURVIVED",
+          "own_suite": "KILLED"
+        },
+        "FJ4-accepted-commit-result-carries-a-rejection-reason": {
+          "shared_suite": "SURVIVED",
+          "own_suite": "SURVIVED"
+        }
+      },
+      "own_suite_kills_of_4": 2,
+      "shared_suite_kills_of_4": 1
+    },
+    "complexity_of_produced_code": {
+      "note": "Not re-measured; the packet's mechanical block covers all three artifacts.",
+      "adapter_swap_executed": "quota_ledger/__init__.py:39 changed to InMemoryJournal(); domain.py and tests/test_ledger.py byte-identical; shared suite 28 passed."
+    },
+    "case_counts": {
+      "shared_suite_baseline": 28,
+      "own_suite_baseline": 53,
+      "note": "Re-run by this judge on unmutated code; all green."
+    },
+    "determinism": {
+      "note": "Every fault run was a single deterministic pytest invocation.",
+      "u_random_sweep_seed_20260804_accepting_commands_in_400": "n/a - measured on artifact U only"
+    },
+    "runtime_seconds": null
+  },
+  "reach": {
+    "note": "Print reach beside every kill: executed of emitted, per instrument, per action, with the skip rule named."
+  }
+}

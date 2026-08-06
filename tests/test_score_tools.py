@@ -43,6 +43,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -225,11 +226,15 @@ def test_scaffold_refuses_to_overwrite_and_writes_nothing(st, tmp_path, capsys):
 # the shipped rules did not get weaker
 # --------------------------------------------------------------------------
 
-def fill(card, **scores):
+def fill(card, practice=True, ran=("seeded a fault in commit() and ran the suite",),
+         **scores):
     card["status"] = "filled"
     card["commit"] = "0123456"
     card["judge"]["model"] = "claude-opus-5[1m]"
     card["verdict"] = "a verdict"
+    if card.get("scorecard_version", 1) >= 2:
+        card["judging_practice"] = {"executed_own_faults": practice,
+                                    "what_was_run": list(ran) if practice else []}
     total = 0
     for dim in st_dims():
         entry = card["dimensions"][dim]
@@ -315,6 +320,160 @@ def test_require_filled_is_what_a_close_runs(st, tmp_path, capsys):
     assert st.main(["check", str(epic)]) == 0
     assert st.main(["check", str(epic), "--require-filled"]) == 1
     assert "unfilled skeleton" in capsys.readouterr().out
+
+
+# --------------------------------------------------------------------------
+# FI-03: scorecard_version 2 -- what the judge DID is a field, not a choice
+#
+# PA-06 re-scored byte-identical trees and four dimension-points moved. Both
+# judges had privately decided to seed and run their own faults; the round
+# before them had not; and no card said so either way. The card was measuring
+# the judge and reporting it as the artifact.
+# --------------------------------------------------------------------------
+
+def test_scaffold_emits_the_current_card_version_with_a_practice_block(st, tmp_path, capsys):
+    path, card = scaffolded(st, tmp_path)
+    capsys.readouterr()
+    assert card["scorecard_version"] == 2
+    assert card["judging_practice"]["executed_own_faults"] is None
+    assert card["judging_practice"]["what_was_run"] == []
+    md = path.with_name("scorecard.md").read_text()
+    assert "Judging practice" in md
+    assert "byte-identical" in md
+
+
+def test_a_filled_version_2_card_must_say_what_the_judge_did(st, tmp_path, capsys):
+    """The whole ticket in one assertion: the practice is a REQUIRED FIELD."""
+    path, card = scaffolded(st, tmp_path)
+    capsys.readouterr()
+    fill(card)
+    card.pop("judging_practice")
+    problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC))
+    assert any("missing required field 'judging_practice'" in p for p in problems), problems
+
+
+def test_executed_own_faults_must_be_a_boolean_not_a_shrug(st, tmp_path, capsys):
+    path, card = scaffolded(st, tmp_path)
+    capsys.readouterr()
+    fill(card)
+    card["judging_practice"]["executed_own_faults"] = "some"
+    problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC))
+    assert any("executed_own_faults must be true or false" in p for p in problems), problems
+
+
+def test_saying_you_ran_faults_requires_naming_them(st, tmp_path, capsys):
+    path, card = scaffolded(st, tmp_path)
+    capsys.readouterr()
+    fill(card)
+    card["judging_practice"]["what_was_run"] = []
+    problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC))
+    assert any("name what was run" in p for p in problems), problems
+
+
+def test_scoring_the_packet_and_nothing_else_is_LEGAL_and_is_recorded(st, tmp_path, capsys):
+    """R2's shape applied to a judge: the unflattering answer must be sayable.
+
+    A field that only one answer passes is a field that collects the answer it
+    wants. `executed_own_faults: false` is a valid card and is reported.
+    """
+    path, card = scaffolded(st, tmp_path)
+    capsys.readouterr()
+    fill(card, practice=False)
+    problems, notes = st.check(card, str(path), st.load_rubric(RUBRIC))
+    assert problems == []
+    assert any("PACKET-ONLY" in n for n in notes), notes
+
+
+def test_d4_anchor_4_is_not_awardable_by_a_judge_that_ran_nothing(st, tmp_path, capsys):
+    """D4 = 4 asks for a behavior-breaking change SHOWN TO BE CAUGHT.
+
+    A judge reading a kill table is repeating the artifact's claim. This is the
+    anchor's own text, executed -- and it is the only one gated, because it is
+    the only one that asks the judge to run something.
+    """
+    path, card = scaffolded(st, tmp_path)
+    capsys.readouterr()
+    fill(card, practice=False,
+         D4={"score": 4, "citations": ["EVIDENCE.md:180-187"],
+             "refuses_to_claim": "that the fake and the real adapter agree"})
+    problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC))
+    assert any("D4 scored 4 while judging_practice.executed_own_faults is false" in p
+               for p in problems), problems
+    # the same card from a judge that DID run one is fine
+    fill(card, practice=True,
+         D4={"score": 4, "citations": ["EVIDENCE.md:180-187"],
+             "refuses_to_claim": "that the fake and the real adapter agree"})
+    assert st.check(card, str(path), st.load_rubric(RUBRIC))[0] == []
+
+
+def test_d1_and_d5_are_deliberately_not_gated(st, tmp_path, capsys):
+    """D1, D4 and D5 all moved on unchanged input. Only D4's ANCHOR asks the
+    judge to run something, so only D4 is gated. Gating the other two would be
+    inventing a requirement rather than executing one."""
+    assert st.PRACTICE_GATED_DIMS == ("D4",)
+    path, card = scaffolded(st, tmp_path)
+    capsys.readouterr()
+    fill(card, practice=False,
+         D1={"score": 4, "citations": ["EVIDENCE.md:111-119"],
+             "refuses_to_claim": "any ordering fault on a set-typed collection"},
+         D5={"score": 4, "citations": ["NOTES.md:136-141"],
+             "refuses_to_claim": "that the fake is contract-equivalent"})
+    assert st.check(card, str(path), st.load_rubric(RUBRIC))[0] == []
+
+
+def test_the_previous_card_version_can_still_be_scaffolded(st, tmp_path, capsys):
+    """`Changing this card` requires a re-score under BOTH versions. A tool that
+    can only emit the current one makes its own change rule unfollowable."""
+    epic = tmp_path / "rescore-v1"
+    assert scaffold(st, epic, labels="K,L,M", card_version=1) == 0
+    capsys.readouterr()
+    card = json.loads(one_card(epic).read_text())
+    assert card["scorecard_version"] == 1
+    assert "judging_practice" not in card
+    assert "Judging practice" not in one_card(epic).with_name("scorecard.md").read_text()
+    # and a v1 card filled in is still valid: old cards do not become invalid
+    fill(card)
+    assert st.check(card, str(one_card(epic)), st.load_rubric(RUBRIC))[0] == []
+
+
+def test_the_version_bump_kept_the_anchors_and_says_so_in_a_digest(st, rubric):
+    """`keep the old anchors in the file` is checkable or it is a promise.
+
+    The anchors digest is over the anchors ALONE, so it is unmoved by a change
+    to the scoring rules -- which is exactly what version 2 was.
+    """
+    declared = {v["version"]: v["anchors_digest"] for v in rubric["versions"]}
+    assert declared, "the rubric declares no version history"
+    assert rubric["card_version"] == 2
+    assert declared[2] == rubric["anchors_digest"]
+    assert declared[1] == declared[2], (
+        "version 2 declares different anchors from version 1; the bump was supposed to "
+        "change what a card RECORDS, not what a score MEANS")
+    assert st.version_history_problems(rubric) == []
+
+
+def test_a_rubric_whose_anchors_moved_without_a_bump_is_reported(st, tmp_path, capsys):
+    """The demonstrated failing input for the change rule itself."""
+    copy = tmp_path / "eval_scorecard.md"
+    copy.write_text(RUBRIC.read_text().replace(
+        "- **0** — No boundary is discernible; state is written from everywhere.",
+        "- **0** — No boundary is discernible, or the judge could not find one."))
+    problems = st.version_history_problems(st.load_rubric(copy))
+    assert any("the anchors in this file digest to" in p for p in problems), problems
+    epic = tmp_path / "e"
+    scaffold(st, epic, labels="K,L,M")
+    capsys.readouterr()
+    assert st.main(["check", str(epic), "--rubric", str(copy)]) == 1
+    assert "changing silently" in capsys.readouterr().out
+
+
+def test_a_version_history_that_drops_an_old_version_is_reported(st, tmp_path):
+    copy = tmp_path / "eval_scorecard.md"
+    text = RUBRIC.read_text()
+    v1_row = next(l for l in text.splitlines() if l.startswith("| **1** |"))
+    copy.write_text(text.replace(v1_row + "\n", ""))
+    problems = st.version_history_problems(st.load_rubric(copy))
+    assert any("drops version 1" in p for p in problems), problems
 
 
 # --------------------------------------------------------------------------
@@ -690,6 +849,135 @@ def test_seal_refuses_to_reseal_a_card_whose_contents_changed(st, tmp_path, caps
 # --------------------------------------------------------------------------
 # the reading rules are executed, not merely written down
 # --------------------------------------------------------------------------
+
+# --------------------------------------------------------------------------
+# R-H5: a movement is a measurement only if the practice is recorded
+# --------------------------------------------------------------------------
+
+def put_card_v2(root: Path, round_dir: str, run_id: str, commit: str, example="ex",
+                arm="P", scores=None, practice=True):
+    d = root / round_dir / example / run_id
+    d.mkdir(parents=True, exist_ok=True)
+    scores = scores or {dim: 1 for dim in st_dims()}
+    card = {
+        "scorecard_version": 2, "epic": round_dir, "example": example, "run_id": run_id,
+        "arm": arm, "commit": commit,
+        "judge": {"model": "m", "pass": 1, "blind_to_arm": True},
+        "dimensions": {k: {"score": v, "citations": [], "rationale": "r"}
+                       for k, v in scores.items()},
+        "total": sum(scores.values()), "contested": [], "verdict": "v",
+    }
+    if practice is not None:
+        card["judging_practice"] = {"executed_own_faults": practice,
+                                    "what_was_run": ["ran a fault"] if practice else []}
+    (d / "scorecard.json").write_text(json.dumps(card))
+    return d
+
+
+MOVEMENT_LOG = """
+schema_version = 1
+
+[[movement]]
+id = "{id}"
+example = "ex"
+dimension = "D4"
+from_card = "{frm}"
+to_card = "{to}"
+points = {points}
+readable = {readable}
+"""
+
+
+def _movement_audit(st, tmp_path, **kw):
+    root = tmp_path / "scorecards"
+    put_card(root, "round1", "20260805-P-p1", "3e721a5")            # v1: no practice
+    put_card_v2(root, "round2", "20260806-P-p1", "3e721a5",
+                scores={"D1": 1, "D2": 1, "D3": 1, "D4": 3, "D5": 1})
+    put_card_v2(root, "round3", "20260806-Q-p1", "3e721a5",
+                scores={"D1": 1, "D2": 1, "D3": 1, "D4": 4, "D5": 1})
+    write_log(root, MOVEMENT_LOG.format(**kw))
+    return st.run_audit(root)[0]["R-H5"]
+
+
+def test_a_declared_movement_is_re_derived_from_the_cards_every_time(st, tmp_path):
+    """A DEMONSTRATED FAILING INPUT for the rule: a row that stopped being true.
+
+    The movement claims three points; the two cards it names say one. Nobody had
+    to notice -- the audit recomputes it from the cards on every run.
+    """
+    found = _movement_audit(st, tmp_path, id="stale", frm="round2/ex/20260806-P-p1",
+                            to="round3/ex/20260806-Q-p1", points=3, readable="true")
+    assert any(level == st.VIOLATION and "declares `points = 3`" in msg and "(+1)" in msg
+               for level, msg in found), found
+
+
+def test_a_movement_read_across_a_card_that_says_nothing_about_its_judge(st, tmp_path):
+    """The instability caveat, executed. The v1 card records no practice, so the
+    movement across it is not readable however real it is."""
+    found = _movement_audit(st, tmp_path, id="across-v1", frm="round1/ex/20260805-P-p1",
+                            to="round3/ex/20260806-Q-p1", points=3, readable="true")
+    assert any(level == st.VIOLATION and "records no `judging_practice`" in msg
+               and "DO NOT READ THE MOVEMENT" in msg for level, msg in found), found
+
+
+def test_the_same_movement_declared_unreadable_is_accepted_and_says_why(st, tmp_path):
+    found = _movement_audit(st, tmp_path, id="across-v1", frm="round1/ex/20260805-P-p1",
+                            to="round3/ex/20260806-Q-p1", points=3, readable="false")
+    assert any(level == st.OK and "within demonstrated noise" in msg.lower()
+               for level, msg in found), found
+
+
+def test_a_movement_between_two_cards_that_both_say_so_is_readable(st, tmp_path):
+    found = _movement_audit(st, tmp_path, id="both-ends", frm="round2/ex/20260806-P-p1",
+                            to="round3/ex/20260806-Q-p1", points=1, readable="true")
+    assert any(level == st.OK and "recorded at both ends -- readable" in msg
+               for level, msg in found), found
+
+
+def test_a_movement_naming_a_card_that_does_not_exist_is_a_violation(st, tmp_path):
+    found = _movement_audit(st, tmp_path, id="ghost", frm="round9/ex/nope",
+                            to="round3/ex/20260806-Q-p1", points=1, readable="false")
+    assert any(level == st.VIOLATION and "is not a card in this tree" in msg
+               for level, msg in found), found
+
+
+def test_a_movement_that_does_not_say_whether_it_is_readable_is_a_violation(st, tmp_path):
+    root = tmp_path / "scorecards"
+    put_card_v2(root, "r1", "a", "3e721a5", scores={d: 1 for d in st_dims()})
+    put_card_v2(root, "r2", "b", "3e721a5", scores={d: 2 for d in st_dims()})
+    write_log(root, """
+schema_version = 1
+
+[[movement]]
+id = "silent"
+example = "ex"
+dimension = "D4"
+from_card = "r1/ex/a"
+to_card = "r2/ex/b"
+points = 1
+""")
+    found = st.run_audit(root)[0]["R-H5"]
+    assert any(level == st.VIOLATION and "declares no `readable`" in msg
+               for level, msg in found), found
+
+
+def test_the_shipped_rh5_demonstration_still_goes_red(st):
+    """R1: an instrument ships a DEMONSTRATED FAILING INPUT, and the
+    demonstration is re-runnable rather than a paragraph.
+
+    `demonstrate_rh5.py` copies the live scorecard tree, confirms `audit` is
+    green on the copy, breaks it in the two ways R-H5 exists to catch, and exits
+    non-zero if either break fails to produce a violation. Running it from the
+    suite is what stops the demonstration from quietly stopping working, which
+    is the class of artifact this epic is about.
+    """
+    script = (SCORECARDS / "falsifiable-instruments/GOAL-scorecard-carries-a-delta"
+              / "measure/demonstrate_rh5.py")
+    assert script.exists(), script
+    proc = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert "goes RED on both of the inputs it exists to catch" in proc.stdout
+
 
 def test_every_reading_rule_in_the_doc_has_a_check(st, rubric):
     """A declaration that nothing executes will drift. The rubric's R-H rules
