@@ -1941,3 +1941,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket SM-01
+
+- close_scope: ticket
+- close_id: SM-01
+- workflow: subtract-to-measure-epic
+- closed_at: 2026-08-06T20:43:01+00:00
+- summary: Seeded 9 gap mutants and 2 positive controls before any removal, captured the before-state descriptor, sealed 12 predictions with 6 negatives. 3 PASS / 4 FAIL of the 7 decidable now.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

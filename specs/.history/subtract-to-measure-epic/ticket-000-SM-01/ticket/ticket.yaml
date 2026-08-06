@@ -1,0 +1,117 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket SM-01",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-01/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-01/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-01/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "A gap mutant exists for every mechanism SM-02 and SM-03 will remove, seeded BEFORE the removal.",
+        "The toolchain's before-state descriptor is captured and committed., Predictions sealed with >= 3 negatives before any other ticket dispatches."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "SM-02",
+      "SM-03",
+      "SM-04",
+      "SM-05"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "examples/validation/"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/165",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "Supplies every gap mutant the goal is measured with. A mechanism with no seedable gap is REPORTED, never skipped.",
+        "goal": "GOAL-removal-is-measured",
+        "local_signal": "gap mutants seeded, with what currently catches each"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none -- supplies the before-state figures D2 anchor 3 requires",
+        "goal": "GOAL-D2-can-move",
+        "local_signal": "before-state descriptor captured"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-cheaper",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "SM-01",
+    "implementation_scope": [
+      "examples/validation/",
+      "specs/results/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "FIRST AND ALONE. MF-020 applied to ourselves: removing an instrument removes the ability to detect that the removal was harmful. Seed a mutant in the gap each mechanism slated for removal claims to cover, and record what currently catches it. Capture the toolchain's before-state descriptor -- the input D2 anchor 3 has never had. Seal predictions with at least three negatives, committed before any other ticket dispatches, predicting specifically what will NOT get better when we cut.",
+    "promotion_order": 10,
+    "promotion_predecessor": null,
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Seed the gap mutants and capture the before-state, before anything is removed",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-01/specs/tickets/SM-01",
+  "ticket_id": "SM-01",
+  "ticket_index": 0,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-01/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-01/specs/tickets"
+}
