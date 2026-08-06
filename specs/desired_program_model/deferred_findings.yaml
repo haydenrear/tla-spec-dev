@@ -2293,3 +2293,189 @@ findings:
       shape. Nothing today: this fixture declares one port and its region is
       measured to be the three names the constant carries.
     disposition: open
+
+  - id: FI-02-DF-01
+    found_by: "FI-02 (the enumeration itself: what does each mode CLAIM to watch, and can it report it?)"
+    found_at_commit: "51fe73d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/check_catalogue.py"]
+    summary: >-
+      `--verify-suite` CANNOT REPORT THE ONE THING IT IS NAMED FOR. A mutant
+      whose recorded `predicted_suite` disagrees with what the suite actually
+      does prints `*** DISAGREES ***` and is then NOT appended to `problems`,
+      so the run exits 0. Only two conditions reach `problems`: a missing
+      anchor tree, and a control run that is already red on the UNMUTATED tree
+      -- neither of which is a prediction.
+
+      Every `predicted_suite`, `predicted_corpus_whole`, `predicted_corpus_neg`
+      and `predicted_corpus_port` annotation in `seeded_faults.toml` is
+      therefore UNCHECKED PROSE. They read like commitments -- and PA-06's
+      `PREDICTIONS-PA.md` protocol treats commitments-before-dispatch as the
+      thing that makes a measurement honest -- but nothing compares them to a
+      measured cell and fails.
+
+      THIS IS THE SAME SHAPE AS `PA-06-DF-07`(b) AND `PA-06-DF-11`, in a third
+      place: an instrument whose verification runs and whose verification
+      cannot come out wrong. It is the fourth mode of the same script; the
+      first three (integrity, `--controls`, `--demonstrate`) all can and do go
+      red, which is why this one was not noticed.
+    reproduction: >-
+      `sed -n '764,865p' examples/validation/ab/check_catalogue.py` -- the
+      `*** DISAGREES ***` branch at ~834-839 prints and does not append, and the
+      closing comment at ~860-864 says so. Contrast the two `problems.append`
+      calls in the same function. Enumerated in
+      `examples/validation/instruments/instruments.toml` as
+      `suite-verification`, classification `demonstrated-cannot-fail`.
+    evidence:
+      - "examples/validation/ab/check_catalogue.py -- verify_suite"
+      - "examples/validation/ab/seeded_faults.toml -- every predicted_* annotation"
+      - "examples/validation/instruments/instruments.toml -- suite-verification"
+    why_out_of_scope: >-
+      FI-02's slice is the ENUMERATION plus the tripwire it was explicitly
+      chartered to fix. Making `--verify-suite` refuse a wrong prediction adds a
+      refusal to an instrument this ticket is measuring with, during the
+      measurement, which is both halves of the forbidden act at once. It is also
+      not obviously the right repair: a prediction that turns out wrong is a
+      FINDING about the predictor, and the project's own doctrine is that
+      findings are reported, not gated on.
+    suggested_fix: >-
+      Do not make it refuse. Make it REPORT a count -- "N of M recorded
+      predictions disagreed with the measured cell", by mutant id, in the
+      artifact -- and let a ticket read it. If a gate is ever wanted, it belongs
+      to the round's protocol (a prediction sealed before dispatch that later
+      disagrees is a scorecard input), not to the fixture harness.
+    blast_radius: >-
+      Every prediction annotation in the shipped catalogue and in the five
+      per-arm catalogues under `specs/results/`. No sealed kill number depends
+      on it -- predictions are read by humans -- but PA-06 scored a protocol
+      whose commitments nothing verified.
+    disposition: open
+
+  - id: FI-02-DF-02
+    found_by: "FI-02 (the enumeration: what is this instrument's verdict SURFACE, and who can see it?)"
+    found_at_commit: "51fe73d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"]
+    summary: >-
+      `run_port_swap.py` PRINTS A RED CONTROL AND EXITS 0. `main()` ends in an
+      unconditional `return 0` with no branch above it, so a run in which every
+      declared control was violated on every instrument and a run in which none
+      was are INDISTINGUISHABLE to anything reading the status.
+
+      NOT HYPOTHETICAL, AND ALREADY IN THE RECORD. FI-01's own artifact
+      `examples/validation/ab/eval/results/fi01/swap-reference_ports.json`
+      carries a non-empty `control_red` -- PA-M14, "this instrument executed 294
+      accepting Reserve case(s) and the cell is SURVIVED, not KILLED" -- and
+      that run exited 0. Its sibling driver `run_controls.py` exits 1 for the
+      same condition, so two drivers over the same catalogue disagree about
+      whether a red control is worth a status. PA-04-DF-02's two-driver hazard,
+      third occurrence.
+
+      Nothing in `tests/` asserts an exit code for this driver: the 14 tests in
+      `tests/test_control_role_is_executed.py` unit-test `control_verdict`,
+      `red_controls` and `render_controls` and never call `main()`.
+    reproduction: >-
+      `python3 -c "import ast; ..."` over `main()` -- every `Return` is the
+      constant 0 and there is no `Raise`; executed as
+      `tests/test_instrument_demonstrations.py::test_port_swap_driver_has_no_nonzero_exit_path`.
+      Cross-check `examples/validation/ab/eval/results/fi01/swap-reference_ports.json`
+      for the non-empty `control_red`.
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py -- main"
+      - "examples/validation/ab/eval/results/fi01/swap-reference_ports.json -- control_red"
+      - "examples/validation/instruments/instruments.toml -- port-swap-driver"
+    why_out_of_scope: >-
+      The driver lives under `specs/results/`, which this epic's plan declares
+      `out_of_model` -- recorded evidence -- and it is the SAFE driver FI-01
+      directed FI-02..FI-06 to use on ported subjects while `run_controls.py` is
+      unusable there. Changing the exit code of the one driver the rest of the
+      epic must measure with, in the ticket that is enumerating it, is a change
+      to a measurement instrument during the measurement.
+    suggested_fix: >-
+      `return 1 if report.control_red or report.unmutated_control_failed else 0`,
+      taken by a ticket that is not measuring with it, together with a test that
+      drives `main()` and asserts the code -- the absence of which is why this
+      lasted a whole epic. Note it is a behaviour change for every recorded
+      invocation in `RESULTS.md`, so the commit that makes it should re-state
+      which sealed runs would have exited non-zero.
+    blast_radius: >-
+      Every port-scoped measurement this epic makes, and every one
+      ports-as-adapters made. No number is wrong; what is wrong is that a caller
+      reading the status cannot tell a floor from a measurement.
+    disposition: open
+
+  - id: FI-02-DF-03
+    found_by: "FI-02 (self-audit: which of the tripwires I enumerated could I NOT construct a failing input for?)"
+    found_at_commit: "51fe73d"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph:
+        - "tests/test_source_citations.py"
+        - "tests/test_spec_yaml_valid.py"
+        - "tests/test_spec_manifest_records.py"
+        - "tests/test_port_declarations.py"
+      workflow: []
+    summary: >-
+      FOUR REPOSITORY-LEVEL TRIPWIRES SHARE ONE SHAPE THAT MAKES THEM
+      UNDEMONSTRABLE, and it is a shape, not four coincidences. Each writes its
+      predicate INLINE inside a pytest parametrised over a file list resolved
+      from the test module's own `__file__`. There is no root a fixture tree can
+      be handed and no factored function a demonstration can call, so the only
+      input that turns any of them red is a real citation, a real manifest, a
+      real YAML document or a real port target broken on purpose in the tree
+      every other measurement in this epic reads.
+
+      They are almost certainly correct. That is the point: NOBODY HAS EVER SEEN
+      ANY OF THEM GO RED FOR THE REASON IT EXISTS, and `PA-06-DF-05` is what
+      that costs -- the thermometer tripwire was the fifth member of this family
+      and it was wrong in both directions for an entire epic before anything
+      made it produce a verdict on a controlled input.
+
+      Contrast `tests/test_scaffold_skill_root.py`, which is in the same family
+      and DOES satisfy S2: it executes the emitted bytes in a subprocess against
+      a home that is deliberately wrong and asserts the refusal. The repair is
+      cheap and it is already demonstrated in this repository.
+    reproduction: >-
+      `grep -n '^def \|Path(__file__)' tests/test_source_citations.py
+      tests/test_spec_yaml_valid.py tests/test_spec_manifest_records.py
+      tests/test_port_declarations.py` -- in each, the file list is derived from
+      the module's own location and the assertion body is inline. Enumerated in
+      `examples/validation/instruments/instruments.toml` with classification
+      `no-demonstration-constructible`.
+    evidence:
+      - "examples/validation/instruments/instruments.toml -- source-citation-tripwire, spec-yaml-tripwire, manifest-self-records-tripwire, port-declaration-tripwire"
+      - "tests/test_scaffold_skill_root.py -- the same family, done demonstrably"
+    why_out_of_scope: >-
+      Refactoring four tripwires that are watching the trees this ticket is
+      measuring, inside the ticket that is measuring them, is the forbidden half
+      of the repair rule -- and FI-02's product is the COUNT, which a repair
+      would quietly reduce. R2 says an instrument that cannot be shown to fail
+      is reported as such, and four of them are.
+    suggested_fix: >-
+      One change each, and no new gate: lift the predicate into a function
+      taking a root (`problems_for(root)`), keep the existing repo-wide test as
+      a one-line caller, and add a demonstration that hands it a fixture tree
+      with the defect seeded. `tests/test_scaffold_skill_root.py` is the shape
+      to copy. Do it in a ticket that is not measuring with them.
+    blast_radius: >-
+      Nothing today; all four are green on the shipped tree. The exposure is
+      that a wrong one is invisible until an unrelated ticket trips it, which is
+      exactly how PA-06-DF-05 surfaced -- from the suite channel, once, in four
+      rounds, and it fired at the measuring ticket.
+    disposition: open
