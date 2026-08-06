@@ -1,0 +1,333 @@
+version: 1
+name: falsifiable-instruments-epic
+updated: null
+purpose: >-
+  FIVE OF THIS PROJECT'S INSTRUMENTS CANNOT PRODUCE THE RESULT THAT WOULD REFUTE THEM, and that is why three epics of mechanism work moved nothing. The port-scoped positive control cannot go red because nothing is seeded in a port's region. The control probe cannot fail -- a no-op reports HOLDS. The A/B cannot diverge because the null is entailed by the fixture. The thermometer tripwire fires wrong in both directions. The scorecard's D1/D4/D5 moved four points on byte-identical trees.
+
+
+  We already wrote the rule. references/architecture_advice.md S2: 'Every criterion must have a demonstrated failing input and a demonstrated passing input.' It was written for a scanner we deleted and never turned on the instruments we kept.
+
+
+  So the question is no longer how to make generation better. It is whether we know that any of this works, and whether we would be able to tell if it did not. Fix that first and every subsequent number means something; skip it and the next epic produces another table nobody can act on.
+planning_rules:
+  no_new_gates_rule: >-
+    Four epics of static checking caught zero bugs and each was defeated cheaply. Making an instrument FALSIFIABLE is not licence to make it REFUSE something. Guidance goes in prompts; verdicts come from judged scorecards.
+  thermometer_rule: >-
+    Complexity reports, refuses nothing, gates nothing, exits 0 on everything. CD-01: it proposes no cut, because a tool that picks the boundary makes every edge legal by construction. MF-020: a metric falling is not evidence the design improved.
+  declaration_executability_rule: >-
+    A declaration that nothing executes will drift. Ship the check with the declaration, using the SHIPPED builders, so a rename fails a test.
+  demonstrated_failure_rule: >-
+    NEW, R1. An instrument ships with a DEMONSTRATED FAILING INPUT: not a test that the instrument runs, but a re-runnable demonstration that it goes RED when the thing it watches is actually broken. This is architecture_advice.md S2 applied to ourselves.
+  control_honesty_rule: >-
+    NEW, R2. A control that cannot fail is worse than no control -- the defect this project has hit four times, most recently in the ticket whose job was to catch it. When a control cannot be made to work it is REPORTED RED, never made green by weakening what it asserts.
+  measurement_rule: >-
+    File findings; fix nothing during a measurement. Never edit a target to match a result. Never re-run selectively until a number passes. Report the run that happened. Report per class, per arm, with executable counts beside every kill number -- never a single rate.
+status:
+  workflow: falsifiable-instruments-epic
+  active_ticket: null
+  active_ticket_title: null
+  desired_module: TlaSpecDevCli
+  phase: planning
+epic:
+  id: falsifiable-instruments
+  branch: epic/falsifiable-instruments
+  default_branch: main
+  base_sha: fcdbe6f
+  base_note: >-
+    Branched from main after ports-as-adapters was MERGED AND PUSHED (owner direction 2026-08-05), which also published the architectural-coherence and hexagonal-prompting epic merges that had been local only. main and origin/main are now in sync.
+  schedule_revision: 1
+  review_mode: epic-owner-post-merge
+  notes: >-
+    Never merge to main and never run skill-manager sync without explicit owner say-so. Never invoke tla-spec-dev from PATH -- run this repository's own scripts/. Run pytest as `uv run --with pytest --with pyyaml python -m pytest tests -q`. THE PLAN MUST LOAD WITH BOTH LOADERS: validate with the git-epic-workflow validator AND with scripts/extract_spec_manifest.parse_simple_yaml, because ports-as-adapters spent its whole length with open/close ticket unrunnable when only the first was checked.
+deferment_policy:
+  mode: batch
+  blocking: escalate
+  budget: 5
+  backlog: specs/desired_program_model/deferred_findings.yaml
+epic_goals:
+  - id: GOAL-scorecard-carries-a-delta
+    kind: eval
+    statement: >-
+      THE SELF-IMPROVEMENT QUESTION, AND THE OWNER'S PRIORITY FOR THIS ROUND. The scorecard can carry a cross-epic delta at all: the same artifact, scored twice under the same card, moves by at most one dimension-point per judge. Until this holds, SELF-IMPROVEMENT.md cannot tell improvement from noise, and no claim that this project is getting better is checkable.
+    metric: >-
+      Dimension-points moved when a SEALED artifact is re-scored under the current card, reported per dimension per judge. Not a total -- the per-dimension split is the result, because D2/D3 and D1/D4/D5 have already been shown to behave differently.
+    harness: >-
+      Re-score a sealed ports-as-adapters / EVAL-RERUN artifact under the current card with two blind judges, and diff against its sealed row. The artifact must be byte-identical to the one sealed.
+    baseline:
+      value: >-
+        FOUR DIMENSION-POINTS MOVED ON BYTE-IDENTICAL TREES. arm A D4 2/2 -> 4/4 and D5 3/2 -> 4/4; arm B D4 3/2 -> 4/4 and D5 4/3 -> 4/4; D1 3/3 -> 4/3 on both. D2 AND D3 MOVED ZERO POINTS ON EITHER ARM. Mechanism identified and it is not the rubric: both judges seeded and ran their own faults rather than scoring the evidence packet, and D4 anchor 4 is awardable only by a judge who executes one.
+      measured_at: da075ce
+      evidence: specs/results/scorecards/ports-as-adapters/ -- PA-06-DF-06
+    target: >-
+      At most ONE dimension-point of movement per judge on an unchanged artifact, on every dimension. If D1, D4 or D5 still move by two or more, the honest report is that SELF-IMPROVEMENT.md CANNOT CARRY A DELTA ON THEM, and the epic says so rather than averaging it away.
+    evaluation_ticket: FI-06
+    evidence_root: specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta
+  - id: GOAL-instruments-can-fail
+    kind: eval
+    statement: >-
+      Every instrument this repository ships has a DEMONSTRATED FAILING INPUT: a re-runnable demonstration that it goes RED when the thing it watches is genuinely broken. architecture_advice.md S2, applied to ourselves for the first time.
+    metric: >-
+      Count of shipped instruments with a demonstrated failing input, over the total ENUMERATED -- plus, reported separately and never folded in, the count for which no demonstration could be constructed and the reason for each.
+    harness: >-
+      FI-02's enumeration over every shipped instrument, re-run at FI-06 on the integrated tip so the count describes the epic rather than a branch.
+    baseline:
+      value: >-
+        ROUGHLY 0 OF ~9. No instrument in this repository has ever shipped a demonstrated failing input. FIVE ARE KNOWN INCAPABLE of producing a refuting result: the port-scoped positive control (nothing is seeded in a port's region), the control probe (a no-op reports HOLDS), the A/B experiment (the null is entailed by the fixture), the thermometer tripwire (a docstring mention fails it, an aliased import passes it), and the scorecard's D1/D4/D5 (four points on byte-identical trees).
+      measured_at: da075ce
+      evidence: >-
+        specs/desired_program_model/deferred_findings.yaml -- PA-03-DF-03, PA-04-DF-01, PA-06-DF-05..08
+    target: >-
+      Every shipped instrument is ENUMERATED and CLASSIFIED as demonstrated-can-fail, demonstrated-cannot-fail, or no-demonstration-constructible-with-a-reason. NO TARGET ON THE RATIO -- setting one before anything has ever been demonstrated would be inventing the answer, and a low count is the informative outcome. What is targeted is that NOTHING IS SILENTLY OMITTED from the enumeration.
+    evaluation_ticket: FI-06
+    evidence_root: specs/results/scorecards/falsifiable-instruments/GOAL-instruments-can-fail
+  - id: GOAL-fixture-can-diverge
+    kind: eval
+    statement: >-
+      The A/B fixture is capable of producing divergence at all -- a seeded fault one arm catches and the other structurally cannot. A goal whose null is entailed by its fixture is not a measurement.
+    metric: >-
+      Existence of at least one seeded fault whose verdicts differ between arms and whose difference is attributable to STRUCTURE rather than to a re-anchoring artefact, plus the entailment check that says whether divergence was reachable in principle.
+    harness: the fixture's own demonstrated failing input, run over both arms on the integrated tip
+    baseline:
+      value: >-
+        NULL ENTAILED. The arms are identical on 10 of 11 mutated rows, so the experiment can only diverge where re-anchoring FAILS. 64 of 64 strictly comparable cells identical; 88 of 88 for A vs C. The measured agreement was arithmetic that could not have come out otherwise. Separately: no generated instrument has a unique kill, and suite-fake strictly dominates every generated column.
+      measured_at: da075ce
+      evidence: specs/results/scorecards/ports-as-adapters/ -- PA-06-DF-08, PA-06-DF-09
+    target: >-
+      EITHER a demonstrated divergence attributable to structure, OR an explicit recorded decision to RETIRE the goal because the fixture cannot support it. Both are acceptable outcomes. Reporting 'missed' a second time without deciding which is not.
+    evaluation_ticket: FI-06
+    evidence_root: specs/results/scorecards/falsifiable-instruments/GOAL-fixture-can-diverge
+tickets:
+  - id: FI-01
+    title: A positive control inside the port's region, and a probe that can fail
+    status: done
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/151
+    schedule_revision: 1
+    depends_on: []
+    blocks: [FI-02, FI-03, FI-04, FI-05, FI-06]
+    wave: 1
+    promotion_order: 10
+    promotion_predecessor: null
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/ab/]
+    objective: >-
+      Goes FIRST AND ALONE, seeded before any measurement runs, because three tickets in a row correctly declined to seed it after seeing their numbers. GOAL-port-reach clause 2 could not be met last epic because no positive control is seeded inside a port's region, so every port-scoped kill number is a FLOOR including the headline. PA-06-DF-07 is blocking and worse: the repaired control is unobservable in one step on three of four trees AND ITS PROBE CANNOT FAIL -- a no-op reports HOLDS. Fixing the control without fixing the probe re-creates the defect. R2 applies: if it cannot be made to work on some tree, REPORT IT RED.
+    desired_actions: []
+    implementation_scope: [examples/validation/]
+    goals:
+      - goal: GOAL-instruments-can-fail
+        contribution: direct
+        expected_effect: >-
+          Two of the five known-unfalsifiable instruments -- the port-scoped positive control and its probe -- become capable of failing. If the probe still cannot fail, the goal's baseline is unchanged and the ticket says so.
+        local_signal: run the probe against a deliberately broken control and confirm it reports broken
+      - goal: GOAL-fixture-can-diverge
+        contribution: enabling
+        expected_effect: >-
+          none on its own -- supplies the in-region control every port-scoped number is currently a floor without
+        local_signal: M07/PA-M14 status per arm, reported by running it
+      - goal: GOAL-scorecard-carries-a-delta
+        contribution: guard
+        expected_effect: none expected; must not change what any card records
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: [A positive control is seeded INSIDE a port's region on every tree that declares a port., "The probe ships a DEMONSTRATED FAILING INPUT: a deliberately broken control that the probe reports broken.", "Any control that cannot be made to work is reported RED, never made green by weakening its assertion."]
+    model_delta_expectation: none expected
+  - id: FI-02
+    title: Every shipped instrument demonstrates a failing input
+    status: done
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/152
+    schedule_revision: 1
+    depends_on: [FI-01]
+    blocks: [FI-06]
+    wave: 2
+    promotion_order: 20
+    promotion_predecessor: FI-01
+    conflict_keys:
+      production: [tests/test_code_complexity.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [references/architecture_advice.md]
+    objective: >-
+      THE EPIC'S THESIS TICKET. architecture_advice.md S2 applied to ourselves. Enumerate every instrument this repo ships -- corpus runner, effect oracle, control probe, complexity descriptor, produced-code instrument, catalogue harness, sanitiser, scorecard check/audit, the tripwire -- and give each a demonstrated failing input and a demonstrated passing input. WHERE NO FAILING DEMONSTRATION CAN BE CONSTRUCTED, SAY SO AND COUNT IT: the count is the ticket's product and a high count is the honest outcome. Fix the tripwire to test its stated invariant rather than a substring -- NOT by renaming the string, which is the six-lines-of-YAML defeat this project documents.
+    desired_actions: []
+    implementation_scope: [tests/, scripts/, references/]
+    goals:
+      - goal: GOAL-instruments-can-fail
+        contribution: direct
+        expected_effect: >-
+          THIS IS THE GOAL'S MAIN CONTRIBUTION. The count of instruments with a demonstrated failing input moves off roughly 0 of ~9, or the ticket reports which ones cannot be demonstrated and why.
+        local_signal: 'the enumeration table: instrument, demonstrated-failing-input yes/no, reason if no'
+      - goal: GOAL-scorecard-carries-a-delta
+        contribution: enabling
+        expected_effect: none -- enabling only; the scorecard check/audit are instruments in the enumeration
+        local_signal: N/A
+      - goal: GOAL-fixture-can-diverge
+        contribution: guard
+        expected_effect: none expected; must not add a gate while making a check honest
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ["Every shipped instrument has a re-runnable demonstrated failing input, or is counted as having none.", The count of instruments that cannot be shown to fail is reported as a result., The thermometer tripwire tests its stated invariant; the suite is green on main again.]
+    model_delta_expectation: none expected
+  - id: FI-03
+    title: 'Make the scorecard carry a delta: record judging practice, measure cross-round stability'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/153
+    schedule_revision: 1
+    depends_on: [FI-01]
+    blocks: [FI-06]
+    wave: 2
+    promotion_order: 30
+    promotion_predecessor: FI-02
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/scorecards/score_tools.py, references/eval_scorecard.md]
+    objective: >-
+      SELF-IMPROVEMENT.md exists so the DELTA is the measurement, and three of five dimensions cannot currently carry one. PA-06 re-scored byte-identical trees and four dimension-points moved; D2 and D3 moved zero. The mechanism is judging practice, not the rubric: both judges seeded and ran their own faults, and D4 anchor 4 is awardable only by a judge who executes one. Make judging practice a recorded required field; measure cross-round stability directly by re-scoring a sealed artifact; and make the instability caveat executable so it can be promoted from prose to an R-H rule. Changing the card requires a scorecard_version bump and a re-score under both versions -- that is the card's own change rule. D2 and D3 held still: do not 'fix' them.
+    desired_actions: []
+    implementation_scope: [examples/validation/scorecards/, references/eval_scorecard.md, tests/]
+    goals:
+      - goal: GOAL-scorecard-carries-a-delta
+        contribution: direct
+        expected_effect: >-
+          Recording judging practice and measuring cross-round movement is what makes the delta checkable. If the re-score still moves two or more points per judge, the goal is MISSED and SELF-IMPROVEMENT.md is declared unable to carry a delta on those dimensions.
+        local_signal: re-score one sealed artifact and report per-dimension movement against its sealed row
+      - goal: GOAL-instruments-can-fail
+        contribution: direct
+        expected_effect: >-
+          The scorecard is itself an instrument; making the instability caveat executable gives it a demonstrated failing input.
+        local_signal: audit reports 0 violations AND the new check fails on a deliberately stale row
+      - goal: GOAL-fixture-can-diverge
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ['Judging practice is a recorded, required field on the card.', "Cross-round stability is measured against the 4-dimension-point baseline and reported as a number.", The instability caveat has a check behind it and audit still reports 0 violations.]
+    model_delta_expectation: none expected
+  - id: FI-04
+    title: A fixture whose arms CAN diverge, and an honest answer on generator vs suite
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/154
+    schedule_revision: 1
+    depends_on: [FI-01]
+    blocks: [FI-06]
+    wave: 3
+    promotion_order: 40
+    promotion_predecessor: FI-03
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/ab/]
+    objective: >-
+      GOAL-cases-drive-ports could not have been met by the experiment that measured it: the arms are identical on 10 of 11 mutated rows, so the A/B can only diverge where re-anchoring fails. The 64 of 64 was arithmetic that could not have come out otherwise. A GOAL WHOSE NULL IS ENTAILED BY ITS FIXTURE IS NOT A MEASUREMENT -- either the fixture changes or the goal does, and this ticket decides which explicitly. If the fixture changes, the bar is a seeded fault one arm catches and the other structurally cannot: the fixture's own demonstrated failing input, per R1. Also settle the harder question: no generated instrument has a unique kill and suite-fake strictly dominates every generated column, three epics running. AN HONEST ANSWER, INCLUDING 'WE SHOULD NOT KEEP FUNDING THE GENERATOR', IS A LEGITIMATE PRODUCT OF THIS TICKET.
+    desired_actions: []
+    implementation_scope: [examples/validation/]
+    goals:
+      - goal: GOAL-fixture-can-diverge
+        contribution: direct
+        expected_effect: >-
+          Either the fixture gains a demonstrated divergence, or the goal is explicitly retired with the reasoning recorded. Silently missing a second time is the one outcome not permitted.
+        local_signal: >-
+          the entailment check plus any demonstrated divergence, per class per arm with executable counts
+      - goal: GOAL-instruments-can-fail
+        contribution: direct
+        expected_effect: >-
+          The A/B experiment is an instrument; a fixture that can diverge IS its demonstrated failing input.
+        local_signal: a seeded fault one arm catches and the other structurally cannot
+      - goal: GOAL-scorecard-carries-a-delta
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: [The fixture/goal decision is made explicitly and the reasoning recorded., "If the fixture changed, it ships a demonstrated divergence: a fault one arm catches and the other cannot.", 'The generator-versus-suite question is answered with evidence, either way.']
+    model_delta_expectation: none expected
+  - id: FI-05
+    title: The produced-code statistics reach a PROMPT, and the dispatched prompt is preserved
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/155
+    schedule_revision: 1
+    depends_on: [FI-01]
+    blocks: [FI-06]
+    wave: 3
+    promotion_order: 50
+    promotion_predecessor: FI-04
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [prompts/hexagonal_implementation.md, references/complexity_intuition.md]
+    objective: >-
+      THE HALF OF THE COMPLEXITY WORK THAT DID NOT LAND. The stated intent was general statistics that block nothing and PROMPT THE MODEL ABOUT WHAT THEY MEAN. ports-as-adapters shipped the statistics and the human-readable intuition and not the prompting: grep -rn code_complexity prompts/ is EMPTY, and hexagonal_implementation.md still points only at the TLA+ descriptor. So the figures reach a human and a judge's mechanical block, and no agent is ever handed them and asked what they mean about its own design. The figures are worth asking about -- branch points in effectful modules 10 vs 1 on trees making the same three outside-world calls, so only LOCATION differs. It must not become a thermostat: no threshold, no verdict, nothing gated. Also preserve the DISPATCHED prompt as an artifact -- PA-06-DF-10 measured the length-match headline on a file that was not the prompt arm C received.
+    desired_actions: []
+    implementation_scope: [prompts/, references/complexity_intuition.md, examples/validation/, tests/]
+    goals:
+      - goal: GOAL-instruments-can-fail
+        contribution: enabling
+        expected_effect: >-
+          none on its own -- the produced-code instrument is in the enumeration, and this ticket must not make it gate anything while giving it a reader
+        local_signal: confirm nothing in the toolchain consumes the instrument after the prompt lands
+      - goal: GOAL-scorecard-carries-a-delta
+        contribution: guard
+        expected_effect: none expected; the figures stay in the mechanical block and are NEVER scored
+        local_signal: N/A
+      - goal: GOAL-fixture-can-diverge
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ["The produced-code figures are put in front of a model with a request to READ them, not score them.", Nothing gates on the figures; the instrument still exits 0 on every input., The prompt as DISPATCHED is preserved as an artifact and is what gets measured.]
+    model_delta_expectation: none expected
+  - id: FI-06
+    title: >-
+      EVALUATION: do the instruments fail when they should, and does anything beat a hand-written suite
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/156
+    schedule_revision: 1
+    depends_on: [FI-01, FI-02, FI-03, FI-04, FI-05]
+    blocks: []
+    wave: 4
+    promotion_order: 60
+    promotion_predecessor: FI-05
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/results/scorecards/falsifiable-instruments/]
+    objective: >-
+      The epic's product and a MEASUREMENT, not a victory lap. A low or unflattering result is the preferred outcome. Report: the count of instruments that cannot be shown to fail; the scorecard's cross-round movement against its 4-point baseline; whether the fixture's arms can diverge at all; and whether anything we generate beats a hand-written suite yet. THREE EPICS SAY NO AND THE LAST ONE SHOWED suite-fake STRICTLY DOMINATING EVERY GENERATED COLUMN. If that is still true, it is the headline and it is reported as the headline rather than buried under the parts that improved. Findings BY CHANNEL with the ratio stated as a result. FILE FINDINGS, FIX NOTHING.
+    desired_actions: []
+    implementation_scope: [specs/results/scorecards/, NEXT-EPIC.md]
+    goals:
+      - goal: GOAL-scorecard-carries-a-delta
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-instruments-can-fail
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-fixture-can-diverge
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: [Every goal reports baseline -> measured -> target -> verdict with a reason., The count of instruments with no demonstrated failure is reported., Findings reported BY CHANNEL with counts and the ratio stated as a result., Findings FILED and NONE fixed.]
+    model_delta_expectation: none expected
+    role: evaluation
+    owns_goals: [GOAL-scorecard-carries-a-delta, GOAL-instruments-can-fail, GOAL-fixture-can-diverge]

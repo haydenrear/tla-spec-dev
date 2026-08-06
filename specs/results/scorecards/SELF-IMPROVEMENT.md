@@ -1118,6 +1118,22 @@ would make.
 
 > **`GOAL-scorecard-carries-a-delta` is MISSED. It is missed on D4, and on D5.**
 
+> **AND THE OTHER HALF OF THE SAME MEASUREMENT: D2 AND D3 MOVED ZERO POINTS.**
+> Not "within target" — **zero**, on every one of the 60 judge-scores, across
+> four independent pairs of judges, two card versions, three artifacts and two
+> sealed baselines. Not one point, in either direction, in any comparison.
+>
+> **This is the strongest stability evidence this project has ever produced
+> about anything**, and it is what makes `ports-as-adapters` resting its
+> headline on D3 a safe decision rather than a lucky one: D3 = `4 / 2 / 1`
+> across the three artifacts has now been produced by four independent pairs on
+> byte-identical bytes, two of whom executed the adapter swap themselves and two
+> of whom did not.
+>
+> **A reader skimming for the missed goal must not skim past this.** The card
+> works. It works on the two dimensions that are about the artifact's shape, and
+> it fails on the two that are about what the judge did.
+
 ## What can and cannot carry a delta, stated so it can be used
 
 Worst movement per judge, on 60 judge-scores from two fresh judge pairs.
@@ -1222,12 +1238,15 @@ Four judges, **zero** findings from re-running any suite, and:
 
 ## Five things that go against all of the above
 
-1. **The v1 arm is not a replication of the card PA-06's judges held.** The
-   rubric gained the "Known instability" section *after* PA-06 scored, and the
-   rubric digest is identical across that change because it covers the anchors
-   and the numbered rules and no prose. **Both v1 judges cited that section as
-   their reason for not executing.** Part of the stability above was bought by a
-   paragraph the digest cannot see. `FI-03-DF-02`.
+1. **The v1 arm is not a replication of the card PA-06's judges held, and the
+   digest says it is.** The rubric gained the "Known instability" section
+   *after* PA-06 scored, and the parsed digest is identical across that change —
+   `sha256:e33638087c4191da` on both sides — because it covers the anchors and
+   the numbered rules and no prose. **Both v1 judges cited that section as their
+   reason for not executing.** Part of the stability above was bought by a
+   paragraph the digest cannot see, and **any comparison treating the v1 arm as
+   a replication is comparing two different rubrics under one hash.**
+   `FI-03-DF-02`.
 2. **No round before this one preserved its judge prompt**, so every movement
    here carries an unmeasurable component: the difference between PA-06's
    dispatch and FI-03's reconstruction of it from `UNBLINDING.md`'s prose. The

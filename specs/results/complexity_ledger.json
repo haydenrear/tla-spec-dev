@@ -15541,6 +15541,177 @@
     {
       "schema_version": 1,
       "scope": "ticket",
+      "scope_id": "FI-02",
+      "workflow": "falsifiable-instruments-epic",
+      "recorded_at_utc": "2026-08-06T13:55:09.880430+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 17,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 1111320,
+        "bound_complete": false,
+        "bound_resolved_variables": 7,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.00334800669601341,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 1,111,320 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 7 of 9 declared variables, so the complete bound is at least this large)",
+          "component C1 has 7 variables (complexity_gate, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 16 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 1111320,
+            "bound_complete": false,
+            "percent_lower_bound": 111.1,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 7 of 9 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "FI-01",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 17,
+            "after": 17,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 1111320,
+            "after": 1111320,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "No complexity increase to justify: no .tla or .cfg was edited. What grew is test and fixture surface -- examples/validation/instruments/ (a registry, a runner and three small fixtures) and tests/test_instrument_demonstrations.py -- carrying one behaviour the repository did not have: EVERY SHIPPED INSTRUMENT NOW HAS A RE-RUNNABLE DEMONSTRATION OF WHAT IT DOES AND DOES NOT REPORT. That is architecture_advice.md S2 turned on ourselves, which is the epic's thesis, and it refuses nothing.",
+      "retention": {
+        "kill_rate": {
+          "status": "below_floor",
+          "classification": "degraded",
+          "evidence": "examples/distributed_history, RUN ON PURPOSE as the kill test's demonstrated FAILING input: 0.571 (4/7) against a floor of 0.800. Its demonstrated PASSING input, the same corpus over examples/validation/instruments/fixtures/kill_test/killable_only.toml, is 1.000 (4/4). Both are re-runnable: python3 examples/validation/instruments/demonstrate.py --only kill-test-floor. NOTHING WAS REPAIRED to produce the second number -- the three survivors are a true finding about that example and are left standing there.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "gaps",
+          "classification": "degraded",
+          "evidence": "run as the effect oracle's demonstrated failing input through the shipped runner path: tests/test_effect_conformance_runner.py::TestRunnerEnforcesEffectConformance::test_undeclared_effect_fails_the_run (gap) and ::test_dead_declared_port_fails_the_run (dead surface), with ::test_declared_only_adapter_passes as the clean half. Enumerated as `effect-oracle`.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "MF-015 channel enforcement is ENUMERATED as an instrument with a demonstrated failing and passing input (tests/test_testgraph_channels.py, tests/test_export_testgraph_cases.py), but no external corpus was generated by this ticket, so no coverage figure was measured.",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=below_floor (DEGRADED)",
+        "effect_conformance=gaps (DEGRADED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "no model change: specs/tickets/FI-02/current and desired are byte-identical to specs/current at 51fe73d. FI-02 touched tests/, examples/validation/instruments/ and the ledgers only.",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "same model, same configs; nothing in specs/*/TlaSpecDevCli.tla, MC.cfg or MCsmall.cfg was edited by this ticket.",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "uv run --with pytest --with pyyaml python -m pytest tests -q -> 1236 passed. The one failure carried in from the predecessor epic (PA-06-DF-05, tests/test_code_complexity.py::test_nothing_executable_reads_this_instrument) is repaired by this ticket and is green.",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "no complexity delta to compare: model_delta_expectation is 'none expected' in the plan and no .tla or .cfg was touched.",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=green (retained)",
+        "tlc_after=green (retained)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched, and the search is the ticket. Every shipped instrument was enumerated and asked the same two questions -- what does it watch, and can it report that the thing is broken. No representation refinement follows: the model was not touched and no boundary changed. What the search DID produce is three findings about instruments that cannot report what they claim (FI-02-DF-01, FI-02-DF-02, FI-02-DF-03) and nine rows counted as having no demonstrated failing input, which is the ticket's product rather than a defect list.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "FI-02, the epic's thesis ticket. references/architecture_advice.md S2 applied to this repository's own instruments for the first time. ENUMERATED 37 rows, of which 5 are classified NOT an instrument after being checked rather than assumed (fitness_functions, budgets, skill_feedback, case_modules coverage, score_tools index -- each refuses nothing, by its own docstring). Of the 32 instruments, 23 now ship a re-runnable demonstrated FAILING input and 27 a demonstrated PASSING input. NINE CANNOT BE SHOWN TO FAIL and each says why, in the registry, in its own row. Nine rows additionally carry a DEMONSTRATED BLIND SPOT: a genuine break the instrument does not report. That column is the more interesting half. The blinding sanitiser goes red on a leak with no substitution rule and stays CLEAN on the exact sentence PA-06-DF-11 measured. run_controls.py cannot measure a ported tree at all. run_port_swap.py prints a red control and exits 0. The TLA+ descriptor sits 432x over its own declared bound and exits 0, by design. And the tripwire this ticket repaired still cannot see a consumer that reads its JSON without naming it -- which is the route the one real reader takes. THE TRIPWIRE. PA-06-DF-05 is fixed and NOT by renaming the searched string. What was a substring grep is now an AST reference scan (an import under any alias, or a string whose WHOLE value is a path or module token) plus a taint analysis onto conditions, and it drops specs/**, which the plan declares out of model. It gained a second test that IS the invariant the docstring always stated -- nothing gates on the output -- which does reach specs/. Its cost is named: two exempt files, both of them files whose subject is the scanner, pinned by a test that asserts they would otherwise be flagged. NO NEW GATE. Nothing here refuses anything about the repository's design. The runner exits non-zero for one reason only: a DECLARED demonstration stopped reproducing, which means the instrument changed or the demonstration went stale, and both are things a reader has to be told. Full table: specs/tickets/FI-02/results/instrument_enumeration.txt Machine-readable: specs/tickets/FI-02/results/instrument_enumeration.json Re-run: python3 examples/validation/instruments/demonstrate.py",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+      ],
+      "errors": [],
+      "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
       "scope_id": "FI-03",
       "workflow": "falsifiable-instruments-epic",
       "recorded_at_utc": "2026-08-06T14:02:10.638104+00:00",
