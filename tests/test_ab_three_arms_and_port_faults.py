@@ -220,7 +220,16 @@ def test_every_adapter_internal_mutant_occurs_exactly_once_and_reverts(rows, tmp
 
 
 def test_the_ports_tree_has_its_own_positive_control(rows):
-    """Otherwise a column of survivors is indistinguishable from a dead column."""
+    """Otherwise a column of survivors is indistinguishable from a dead column.
+
+    FI-01 changed "exactly one per tree" to "at least one per tree", and the
+    strength moved rather than left: what a tree needs is a control that CAN GO
+    RED, which `tests/test_falsifiable_controls.py` asserts by probing. One
+    broken control satisfied "exactly one" and that is the state PA-06-DF-07
+    found. `reference_ports` now carries two -- `PA-M14`, kept in the record
+    with its INERT verdict, and `FI-M15`, which holds -- because deleting a
+    broken control to keep a count at one is how a measured defect disappears.
+    """
     trees: dict[str, int] = {}
     for row in rows:
         tree = str(row.get("path", "")).split("/")[0]
@@ -233,7 +242,7 @@ def test_the_ports_tree_has_its_own_positive_control(rows):
         f"in it and a zero for that class would say nothing."
     )
     for tree, count in trees.items():
-        assert count == 1, f"anchor tree {tree!r} has {count} positive control(s)"
+        assert count >= 1, f"anchor tree {tree!r} has {count} positive control(s)"
 
 
 def test_the_catalogue_declares_what_is_not_seeded():
@@ -406,16 +415,41 @@ def _positive_controls(rows):
     return [r for r in rows if str(r.get("control_role", "")).startswith("positive")]
 
 
-def test_every_positive_control_holds_the_accept_path_property(rows):
-    """A control observable before an accepted reserve stays green through the
-    regression it exists to catch. Run, not asserted."""
+def test_every_positive_control_is_probed_against_the_property_it_declares(rows):
+    """Run, not asserted -- and since FI-01 the verdict is not assumed GREEN.
+
+    This test used to assert `HOLDS` for every positive control. It passed, and
+    it was worth nothing: the probe was one-sided, so it returned `HOLDS` for a
+    no-op (`PA-06-DF-07 b`). With both halves running, `PA-M14` on
+    `reference_ports` is measured **INERT** -- invisible after one accepted
+    reserve as well as before one -- and R2 says that is REPORTED, never made
+    green. So what is asserted here is the thing that is actually true and
+    load-bearing: every declared control is probed against the property it
+    declares, and the measured verdicts are pinned so a change to either has to
+    come here and say so.
+    """
+    measured = {}
     for row in _positive_controls(rows):
         tree_name = str(row["path"]).split("/")[0]
         inner = str(row["path"])[len(tree_name) + 1:]
+        declared, problems = cc.resolve_control_properties(AB / "seeded_faults.toml")
+        assert not problems, problems
+        prop = declared[str(row["id"])]
         verdict, detail = cc.probe_control_property(
-            AB / tree_name, "quota_ledger", inner, row["find"], row["replace"]
+            AB / tree_name, "quota_ledger", inner, row["find"], row["replace"], prop
         )
-        assert verdict == "HOLDS", f"{row['id']} on {tree_name}: {verdict} -- {detail}"
+        measured[str(row["id"])] = (tree_name, verdict)
+        assert verdict != "ERROR", f"{row['id']} on {tree_name}: {detail}"
+
+    assert measured == {
+        "M07-positive-control-wrong-hold": ("reference", "HOLDS"),
+        # RED, and kept. PA-M14 records `amount + 1` on the reservation; no
+        # query exposes a reservation's amount and this tree STORES `available`,
+        # so ONE accepted reserve moves nothing. Every generated corpus case is
+        # single-action.
+        "PA-M14-positive-control-accepted-hold-too-large": ("reference_ports", "INERT"),
+        "FI-M15-positive-control-commit-total-too-large": ("reference_ports", "HOLDS"),
+    }, measured
 
 
 def test_the_control_property_probe_is_not_vacuous():
@@ -462,18 +496,19 @@ def test_positive_controls_do_not_share_a_role_string(rows):
     assert len(set(roles)) == len(roles), "two positive controls share a role string"
 
 
-def test_every_positive_control_declares_the_property(rows):
-    """Declared in a side table, because M07 is sealed and is not amended."""
-    try:
-        import tomllib
-    except ModuleNotFoundError:  # pragma: no cover
-        import tomli as tomllib  # type: ignore[no-redef]
-    declared = tomllib.loads(
-        (AB / "seeded_faults.toml").read_text(encoding="utf-8")
-    ).get("pa_control_properties", {})
+def test_every_positive_control_declares_a_property_the_probe_can_execute(rows):
+    """Declared in a side table, because M07 is sealed and is not amended.
+
+    A property NAME that the probe does not implement is a declaration nothing
+    executes, which is the shape this repository has shipped five times.
+    """
+    declared, problems = cc.resolve_control_properties(AB / "seeded_faults.toml")
+    assert not problems, problems
     for row in _positive_controls(rows):
-        assert declared.get(str(row["id"])) == cc.CONTROL_PROPERTY, (
-            f"{row['id']} is not declared in [pa_control_properties]"
+        name = declared.get(str(row["id"]))
+        assert name in cc.CONTROL_PROPERTIES, (
+            f"{row['id']} declares {name!r}, which the probe cannot execute; "
+            f"known: {sorted(cc.CONTROL_PROPERTIES)}"
         )
 
 
