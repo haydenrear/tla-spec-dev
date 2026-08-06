@@ -4433,3 +4433,196 @@ findings:
       The `26 of 35` headline is unchanged in either direction by this finding;
       what changes is which twelve rows are hollow and in what way, which is
       exactly the input SM-03 decides delete-versus-repair on.
+
+  - id: SM-02-DF-01
+    found_by: "SM-02"
+    found_at_commit: "067c5ea"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/run_generated_case_adapters.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/case_modules.md"]
+    summary: >-
+      THE RESIDUE OF THE CUT, AND THE TWO TOML READERS NOW DISAGREE ABOUT IT.
+      SM-02 removed the `[ports.*]` branch from `load_mappings` and from
+      `parse_simple_mapping_toml`. It added NO refusal, because
+      `no_new_gates_rule` forbids one. The consequence is that the two readers
+      the runner ships now behave differently on the same file:
+
+        tomllib (Python >= 3.11, the normal path)  parses the `[ports.*]` table
+          into a dict that `load_mappings` never looks at. A MIXED mapping --
+          `[actions.*]` plus `[ports.*]` -- loads, runs, and silently drives
+          zero port bindings, with nothing printed. A ports-ONLY mapping reports
+          the pre-existing `no adapter mappings found in <path>`.
+
+        parse_simple_mapping_toml (Python < 3.11, and the fallback)  now has no
+          branch for `[ports.` at all, so the first `key = value` line inside
+          the table raises `unsupported TOML line`.
+
+      So the same file is accepted-and-ignored on one interpreter and rejected on
+      the other. Both are defensible; having both is not. The four shipped
+      mappings that still carry a `[ports.*]` table are all sealed measurement
+      artifacts under `specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/`,
+      so nothing in the working toolchain hits this today -- which is exactly why
+      it is easy to leave and easy to be surprised by later.
+    reproduction: >-
+      `python3 -c "import sys; sys.path.insert(0,'scripts'); from run_generated_case_adapters import load_mappings, parse_simple_mapping_toml; open('/tmp/m.toml','w').write('[actions.Commit]\nadapter = \"m:A\"\n\n[ports.\"ledger.LedgerAppendPort\"]\nadapter = \"m:R\"\nfake = \"m:F\"\n'); print(sorted(load_mappings(__import__(\"pathlib\").Path('/tmp/m.toml'))))"`
+      -> `['Commit']`, no notice. Then feed the same text to
+      `parse_simple_mapping_toml` -> `ValueError: unsupported TOML line`.
+    evidence:
+      - "scripts/run_generated_case_adapters.py -- load_mappings, parse_simple_mapping_toml"
+      - "tests/test_ports_binding_removed.py::test_a_ports_only_mapping_now_declares_no_binding_at_all"
+      - "tests/test_ports_binding_removed.py::test_the_fallback_toml_parser_no_longer_knows_what_a_ports_table_is"
+    why_out_of_scope: >-
+      Both candidate repairs add something. A printed notice re-introduces a
+      reader of `ports` into the file this ticket is measured on removing code
+      from, and a refusal is a new gate, which `no_new_gates_rule` forbids
+      outright. Neither belongs in the ticket whose whole subject is whether a
+      removal can be measured. Filed rather than fixed, per `measurement_rule`.
+    suggested_fix: >-
+      If it is ever worth spending, the cheap shape is to make the two readers
+      agree by DELETION rather than by addition: have `load_mappings` reject any
+      top-level table it does not know, which subtracts the asymmetry instead of
+      adding a special case for `ports`. That is a refusal and therefore not
+      SM-02's to make; it should be weighed against simply leaving a dead table
+      inert, which is what the sealed artifacts want.
+    blast_radius: >-
+      Zero shipped mapping outside `specs/results/` declares a `[ports.*]` table,
+      and the four that do are sealed evidence that is not re-run except by
+      `run_gap_mutants.run_ports_family`, where the failure is already reported
+      as CONTROL_RED rather than as a survival.
+
+  - id: SM-02-DF-02
+    found_by: "SM-02"
+    found_at_commit: "067c5ea"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/subtract-to-measure/before-state/produced-code-before.json"]
+    summary: >-
+      THE SEALED BEFORE-STATE IS NOT THE STATE SM-02 BRANCHED FROM, ON TWO OF ITS
+      FOUR TREES. `produced-code-before.json` is the artifact `D2` anchor 3's
+      "before figures" are supposed to come from, and `SM-05` is instructed to
+      diff the after against exactly it. Re-run at `f0c215d` -- the SM-01 merge
+      commit, which is SM-02's parent -- with the identical command and the
+      identical interpreter (`/opt/homebrew/opt/python@3.14/bin/python3.14`):
+
+        tree                  produced-code-before.json   f0c215d      drift
+        scripts/                            21252         21252          0
+        tests/                              20376         20443        +67
+        examples/validation/                 9366          9404        +38
+        .../GOAL-port-reach/measure/           876           876          0
+
+      SM-01 captured the artifact and then kept editing its own instrument and
+      its own tests -- `run_gap_mutants.py` and `test_gap_mutants.py` -- before
+      merging. Nothing here is wrong about SM-01's work; the artifact simply
+      describes an earlier commit than the one it is filed under.
+
+      IT MATTERS BECAUSE OF `denominator_rule`, INVERTED. A ratio that rises
+      because the denominator shrank is MF-020 wearing this epic's clothes; so is
+      a REMOVAL that looks 105 lines smaller than it was because the baseline was
+      taken 105 lines early. `SM-05` diffing naively against this file will
+      credit `SM-02` and `SM-03` with removing 105 lines of `SM-01`'s own
+      instrument that they never touched. `scripts/` -- the tree `N03` is stated
+      on, and the only tree either removal ticket materially changes -- is exact,
+      so `N03` itself is unaffected.
+    reproduction: >-
+      `git archive f0c215d | tar -x -C <tmp> && cd <tmp> && /opt/homebrew/opt/python@3.14/bin/python3.14 scripts/code_complexity.py scripts tests examples/validation specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure --json`
+      then compare `reports[i].totals.code_lines` against
+      `specs/results/scorecards/subtract-to-measure/before-state/produced-code-before.json`.
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/before-state/produced-code-before.json"
+      - "specs/results/scorecards/subtract-to-measure/SM-02-RESULTS.md -- the three-way table"
+    why_out_of_scope: >-
+      Re-capturing the before-state would be editing a sealed artifact during the
+      measurement it seals, which is the one thing `measurement_rule` names. The
+      before-state is also SM-01's deliverable, not SM-02's.
+    suggested_fix: >-
+      `SM-05` should diff against the `f0c215d` re-measurement recorded in
+      SM-02-RESULTS.md, and report the SM-01 drift as a separate row rather than
+      folding it into the removal. Do NOT overwrite `produced-code-before.json`;
+      an artifact that changes after the fact is worse than one that is 105 lines
+      early and says so.
+    blast_radius: >-
+      `GOAL-D2-can-move`'s before/after figures on two of four trees. The
+      `scripts/` figures, which carry `N03` and the bulk of both removals, are
+      unaffected.
+
+  - id: SM-02-DF-03
+    found_by: "SM-02"
+    found_at_commit: "067c5ea"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/gap_mutants/run_gap_mutants.py"]
+    summary: >-
+      A SINGLE FLAKY NODE UNDER MACHINE CONTENTION PRODUCES A `DIES` THAT IS
+      INDISTINGUISHABLE FROM A REAL KILL AT THE VERDICT LEVEL. `verdict()` returns
+      `DIES` as soon as `new_failures()` is non-empty -- one node is enough -- and
+      the rendered table prints `DIES <detector> <n> executed` with no indication
+      of WHICH node died. A reader who does not open `new_failing_nodes` in the
+      JSON cannot tell a kill from a coincidence.
+
+      OBSERVED, not hypothesised. In SM-02's run of record `SM-GM-I1` reported
+      `SURVIVES -> DIES` on `pytest-full`. Its one new failing node was
+      `tests/test_testgraph_channels.py::test_runner_refuses_a_binding_without_a_channel`
+      -- unrelated to the mutant (which skips `tests/test_complexity_ledger.py`),
+      unrelated to anything SM-02 removed, and PASSING in the acceptance suite at
+      the same commit. Re-run alone on a quiet machine at the same commit:
+      `SURVIVES, 1290 executed, new_failing_nodes: []`. Three heavy pytest runs
+      were in flight on one machine at the time (SM-02's own acceptance run,
+      SM-03's ticket, and the staged-tree run).
+
+      THE RUNNER ALREADY HAS THE MACHINERY TO SAY THIS AND DOES NOT USE IT. It
+      excludes `SELF_DETECTION` nodes from the verdict and reports them separately
+      in `self_detected_nodes` -- exactly the right shape, applied to exactly one
+      known node. A cell whose entire kill set is a node the mutant's own
+      `[[mutant.edit]]` paths cannot reach is the same class of problem and gets
+      no such treatment.
+
+      This is not the FI-01-DF-01 shape (a false SURVIVED). It is its mirror: a
+      false DIES, which in a REMOVAL epic is the more expensive error, because a
+      false DIES makes a cut look free when it is not -- or, as here, makes an
+      untouched mechanism-2 row look like scope leakage from SM-02.
+    reproduction: >-
+      Compare the `SM-GM-I1` `pytest-full` cell in
+      `specs/results/scorecards/subtract-to-measure/gap-mutants-after-SM-02.json`
+      (`DIES`, one new node in `tests/test_testgraph_channels.py`) against
+      `python3.14 examples/validation/gap_mutants/run_gap_mutants.py --family staged
+      --only SM-GM-I1-the-cited-demonstration-node-is-collected-and-skipped --out /tmp/i1.json`
+      run with nothing else on the machine (`SURVIVES`, 1290 executed, zero new
+      nodes).
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/gap-mutants-after-SM-02.json"
+      - "specs/results/scorecards/subtract-to-measure/SM-02-RESULTS.md -- section 1, the mechanism-2 scope check"
+      - "examples/validation/gap_mutants/run_gap_mutants.py -- verdict(), new_failures(), SELF_DETECTION"
+    why_out_of_scope: >-
+      `run_gap_mutants.py` is the instrument SM-05 re-runs the before/after
+      comparison on. Editing its verdict rule during the measurement it is taking
+      would mean the before and the after were produced by two different
+      instruments, which is the one thing the removal_is_a_delta_rule cannot
+      tolerate. Filed, and BOTH runs reported, rather than fixed.
+    suggested_fix: >-
+      Do NOT add a retry loop and do NOT lengthen SELF_DETECTION -- that shape was
+      rejected at EVAL-RERUN-DF-01 and again at ARM_MODULE_PREFIXES. The cheap
+      honest move is to print the new failing nodes in `render()` beside every
+      `DIES`, so a contaminated cell is visible in the run output rather than only
+      in the JSON. A reader cannot reach a verdict without reading what produced
+      it -- the same rule `render_oracle_statement` already applies to kill counts.
+    blast_radius: >-
+      Every `pytest-full` cell in every gap-mutant table, before and after,
+      whenever the machine is loaded. SM-01's before-state was taken on a quiet
+      machine (26m43s, no anomalous nodes) and none of its cells shows this shape;
+      SM-02's run of record shows exactly one, and it is reported rather than
+      quietly re-run away.
