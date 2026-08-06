@@ -257,9 +257,35 @@ def run_detector(
         "executed": executed,
         "counts": counts,
         "red": red,
-        "failing_nodes": sorted(set(_FAILED_NODE.findall(blob))),
+        "failing_nodes": sorted(
+            {node.split("/tree/")[-1] for node in _FAILED_NODE.findall(blob)}
+        ),
         "tail": [line for line in blob.splitlines() if line.strip()][-4:],
     }
+
+
+#: Nodes that go red because THIS RUNNER mutated the tree, not because the
+#: repository detected the fault. `tests/test_gap_mutants.py::
+#: test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree` reads the
+#: catalogue's anchors out of the tree it is running in, and during a
+#: measurement that tree is the mutated one -- so it fires on every mutant, for
+#: every mutant, and would credit the repository with a kill it did not make.
+#:
+#: THE INSTRUMENT WAS DETECTING ITSELF. Found by reading the first run's raw
+#: `new_failing_nodes` rather than its verdicts: five of the nine mutants had
+#: this node and nothing else in their pytest-full kill set. It is excluded from
+#: the verdict and REPORTED in `self_detected_nodes` on every cell, never
+#: silently dropped -- an exclusion nobody can see is indistinguishable from a
+#: number that was tuned.
+SELF_DETECTION = ("tests/test_gap_mutants.py::"
+                  "test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree",)
+
+
+def new_failures(baseline: dict[str, Any], observed: dict[str, Any]) -> tuple[list[str], list[str]]:
+    """(failures the repository found, failures this runner caused itself)."""
+    fresh = set(observed["failing_nodes"]) - set(baseline.get("failing_nodes", []))
+    mine = sorted(node for node in fresh if node in SELF_DETECTION)
+    return sorted(fresh - set(mine)), mine
 
 
 def verdict(baseline: dict[str, Any], observed: dict[str, Any]) -> str:
@@ -267,10 +293,12 @@ def verdict(baseline: dict[str, Any], observed: dict[str, Any]) -> str:
         return REMOVED
     if observed["executed"] == 0:
         return INERT
-    new_failures = set(observed["failing_nodes"]) - set(baseline.get("failing_nodes", []))
-    if new_failures:
+    real, _ = new_failures(baseline, observed)
+    if real:
         return DIES
     if observed["red"] and not baseline.get("red"):
+        # A red exit with no NEW node named is only a kill if the baseline was
+        # green; a suite already red for git-history reasons decides nothing.
         return DIES
     return SURVIVES
 
@@ -306,7 +334,12 @@ def run_ports_family(
     if not driver.exists():
         return {m["id"]: {"driver_present": False} for m in rows}
 
-    catalogue = workdir / "gap_mutants_ports.toml"
+    # The shipped driver reports its catalogues as `path.relative_to(REPO_ROOT)`,
+    # so the derived file has to live inside the repository. It is written into
+    # a throwaway directory beside this runner and removed in `finally`; nothing
+    # reads it afterwards and it is never committed.
+    scratch = Path(tempfile.mkdtemp(prefix=".sm01-ports-", dir=HERE))
+    catalogue = scratch / "gap_mutants_ports.toml"
     blocks = ["# DERIVED at run time from gap_mutants.toml. Do not edit.\n"]
     for mutant in rows:
         edit = mutant["edit"][0]
@@ -336,6 +369,7 @@ def run_ports_family(
         run_port_swap.main()
     finally:
         sys.argv = argv
+        shutil.rmtree(scratch, ignore_errors=True)
     report = json.loads(out.read_text(encoding="utf-8"))
 
     # `control_red` and `unmutated_control_failed` are read out of the JSON.
@@ -351,6 +385,13 @@ def run_ports_family(
         detectors: dict[str, Any] = {}
         for column, cell in record["cells"].items():
             evidence = record["evidence"].get(column, {})
+            # The shipped driver's two suite columns carry NO executable count.
+            # They are kept under distinct names so the counted `suite-real` /
+            # `suite-fake` this runner produces do not silently overwrite them:
+            # two readings of the same subject that disagree is a finding, and a
+            # collision would hide it.
+            column = {"suite-real": "portswap-suite-real",
+                      "suite-fake": "portswap-suite-fake"}.get(column, column)
             ran = evidence.get("total_ran")
             if column in broken:
                 cell_verdict = CONTROL_RED
@@ -404,8 +445,12 @@ def main(argv: list[str] | None = None) -> int:
 
     document = tomllib.loads(args.catalogue.read_text(encoding="utf-8"))
     detectors = {entry["id"]: entry for entry in document.get("detector", [])}
+    # Controls run through EXACTLY the same path as the gap mutants. A control
+    # measured by a second code path is not a control for the first one.
+    declared = [{**entry, "is_control": False} for entry in document.get("mutant", [])]
+    declared += [{**entry, "is_control": True} for entry in document.get("control", [])]
     mutants = [
-        entry for entry in document.get("mutant", [])
+        entry for entry in declared
         if not args.only or entry["id"] in args.only
     ]
 
@@ -424,14 +469,18 @@ def main(argv: list[str] | None = None) -> int:
                 ports = run_ports_family(mutants, args.cases.resolve(), workdir)
 
         baselines: dict[str, dict[str, Any]] = {}
-        if args.family in ("staged", "all"):
+        wanted = {
+            (row["id"], tuple(row.get("args", [])))
+            for mutant in mutants
+            for row in mutant.get("detector", [])
+        }
+        # Staging costs a `git archive` of the whole tree. A run that selects no
+        # staged detector -- `--family ports`, or an `--only` that matches
+        # nothing -- must not need a working `.git` to report its
+        # `[[not_seedable]]` rows.
+        if args.family in ("staged", "all") and wanted:
             print(f"staging {args.ref} ...", file=sys.stderr)
             stage_tree(args.ref, tree)
-            wanted = {
-                (row["id"], tuple(row.get("args", [])))
-                for mutant in mutants
-                for row in mutant.get("detector", [])
-            }
             for detector_id, extra in sorted(wanted):
                 print(f"baseline: {detector_id} {' '.join(extra)}", file=sys.stderr)
                 baselines[f"{detector_id} {' '.join(extra)}".strip()] = run_detector(
@@ -440,6 +489,9 @@ def main(argv: list[str] | None = None) -> int:
 
         for mutant in mutants:
             record: dict[str, Any] = {
+                "is_control": mutant["is_control"],
+                "control_role": mutant.get("control_role"),
+                "must_die_on": mutant.get("must_die_on", []),
                 "mechanism": mutant["mechanism"],
                 "removed_by": mutant["removed_by"],
                 "claims_to_catch": mutant["claims_to_catch"],
@@ -484,10 +536,8 @@ def main(argv: list[str] | None = None) -> int:
                             "executed": observed["executed"],
                             "executable_count_available": True,
                             "exit": observed.get("exit"),
-                            "new_failing_nodes": sorted(
-                                set(observed["failing_nodes"])
-                                - set(baseline.get("failing_nodes", []))
-                            ),
+                            "new_failing_nodes": new_failures(baseline, observed)[0],
+                            "self_detected_nodes": new_failures(baseline, observed)[1],
                             "baseline_failing_nodes": baseline.get("failing_nodes", []),
                             "tail": observed["tail"],
                             "uses_ports_binding": bool(
@@ -498,8 +548,29 @@ def main(argv: list[str] | None = None) -> int:
                     restore(state, tree)
             results[mutant["id"]] = record
 
+        # R2 -- a control that cannot fail is worse than no control, so it is
+        # reported RED rather than quietly passed over. A gap mutant's SURVIVES
+        # on a detector whose positive control did not die there is not a
+        # survival; it is an undecided cell, and the artifact says so.
+        control_red: list[dict[str, Any]] = []
+        for mutant_id, record in results.items():
+            if not record.get("is_control"):
+                continue
+            for detector_id in record.get("must_die_on", []):
+                cell = record["detectors"].get(detector_id)
+                if cell is None:
+                    control_red.append({"control": mutant_id, "detector": detector_id,
+                                        "why": "the control was never run on this detector"})
+                elif cell["verdict"] != DIES:
+                    control_red.append({"control": mutant_id, "detector": detector_id,
+                                        "why": f"control reported {cell['verdict']}, want DIES",
+                                        "executed": cell.get("executed")})
+        undecided = sorted({row["detector"] for row in control_red})
+
         report = {
             "registry": document["registry"],
+            "control_red": control_red,
+            "detectors_with_a_red_control": undecided,
             "ref": args.ref,
             "catalogue": str(args.catalogue.relative_to(REPO_ROOT)),
             "cases": str(args.cases) if args.cases else None,
@@ -539,6 +610,12 @@ def render(report: dict[str, Any]) -> str:
                 "executable_count_available", True
             ) else f"{executed} executed"
             lines.append(f"    {cell['verdict']:<12} {detector_id:<28} {count}")
+    if report.get("control_red"):
+        lines += ["", "RED CONTROLS (R2) -- every SURVIVES on these detectors is UNDECIDED, not a survival:"]
+        for row in report["control_red"]:
+            lines.append(f"  {row['control']} on {row['detector']}: {row['why']}")
+    elif report.get("detectors_with_a_red_control") == []:
+        lines += ["", "Every positive control died on every detector it declares."]
     if report["not_seedable"]:
         lines += ["", "NO SEEDABLE GAP -- reported, not skipped:"]
         for row in report["not_seedable"]:

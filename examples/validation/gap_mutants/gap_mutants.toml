@@ -502,3 +502,62 @@ even in a copy. The cost of removing this row is therefore already paid in full
 and no mutant is needed to price it -- but it is named, because a row that
 vanishes silently from a removal table is how a denominator shrinks.
 """
+
+
+# ===========================================================================
+# POSITIVE CONTROLS
+# ===========================================================================
+#
+# R2: a control that cannot fail is worse than no control. Without these, a
+# `SURVIVES` in the table above cannot be told apart from a detector that was
+# never reaching the subject at all -- which is exactly PA-04's first run, where
+# `control_red: []` was printed while a declared control had survived four
+# columns that each executed 294 accepting cases.
+#
+# They run through the SAME code path as the gap mutants. A control measured by
+# a second path is not a control for the first one.
+
+[[control]]
+id = "SM-GM-CTRL-A-commit-credits-one-too-many"
+mechanism = "positive control for the corpus and suite columns"
+removed_by = "nothing"
+control_role = "positive -- must die on every column that executes an accepted Commit against the reference_ports tree, under BOTH wirings. The fault is in the DOMAIN, so no adapter and no wiring is involved and every column that runs the program at all must see it."
+port_swap_path = "reference_ports/domain.py"
+claims_to_catch = "n/a -- this row is the control, not a gap"
+gap = "NONE, on purpose. It moves `committed` and the COMMIT line's running total, both inside the port's derived region, so a column that cannot decide it is a column that is not reaching the subject."
+must_die_on = ["pytest-full", "suite-real", "suite-fake",
+               "corpus-port-swap:real", "corpus-port-swap:fake",
+               "corpus-action-bound:real", "corpus-action-bound:fake",
+               "portswap-suite-real", "portswap-suite-fake"]
+[[control.edit]]
+path = "examples/validation/ab/reference_ports/domain.py"
+find = "        self._committed[reservation.tenant] += reservation.amount"
+replace = "        self._committed[reservation.tenant] += reservation.amount + 1  # SM-GM-CTRL-A: a commit credits one unit more than the reservation held"
+[[control.detector]]
+id = "pytest-full"
+[[control.detector]]
+id = "suite-real"
+[[control.detector]]
+id = "suite-fake"
+
+[[control]]
+id = "SM-GM-CTRL-B-the-registry-demonstration-stops-reproducing"
+mechanism = "positive control for the instrument-registry detector"
+removed_by = "nothing"
+control_role = "positive -- must die on `instrument-registry --only complexity-ledger`. It breaks the DEMONSTRATION rather than the instrument: the cited node is renamed away, so the slot's own command cannot run. If this does not go red, that detector decides nothing and every SURVIVES it reported is undecided."
+claims_to_catch = "n/a -- this row is the control, not a gap"
+gap = "NONE, on purpose."
+must_die_on = ["instrument-registry"]
+[[control.edit]]
+path = "examples/validation/instruments/instruments.toml"
+find = '''  nodes = ["tests/test_complexity_ledger.py"]
+  expect_exit = 0
+
+  [instrument.passing]'''
+replace = '''  nodes = ["tests/test_complexity_ledger.py::test_no_such_node_SM_GM_CTRL_B"]
+  expect_exit = 0
+
+  [instrument.passing]'''
+[[control.detector]]
+id = "instrument-registry"
+args = ["--only", "complexity-ledger"]

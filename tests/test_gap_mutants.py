@@ -62,7 +62,7 @@ def test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree(catalogue) 
     it never measured. `apply_mutant` refuses at run time; this refuses at
     commit time, which is the only place the drift can still be cheap."""
     problems: list[str] = []
-    for mutant in catalogue["mutant"]:
+    for mutant in catalogue["mutant"] + catalogue["control"]:
         for edit in mutant["edit"]:
             target = REPO_ROOT / edit["path"]
             if "add_file" in edit:
@@ -99,9 +99,41 @@ def test_both_removals_in_the_epic_carry_at_least_one_gap_mutant(catalogue) -> N
 
 def test_every_detector_a_mutant_names_is_declared(catalogue) -> None:
     declared = {entry["id"] for entry in catalogue["detector"]}
-    for mutant in catalogue["mutant"]:
+    for mutant in catalogue["mutant"] + catalogue["control"]:
         for row in mutant["detector"]:
             assert row["id"] in declared, f"{mutant['id']} names undeclared {row['id']}"
+
+
+# -- 1b. R2: the table carries positive controls, and they decide columns --
+
+
+def test_every_detector_that_decides_a_gap_mutant_carries_a_positive_control(
+    catalogue,
+) -> None:
+    """PA-04's first run printed `control_red: []` while a declared control had
+    survived four columns that each executed 294 accepting cases. Without a
+    control, a SURVIVES cannot be told apart from a detector that never reached
+    the subject."""
+    controlled = {d for control in catalogue["control"] for d in control["must_die_on"]}
+    used = {row["id"] for mutant in catalogue["mutant"] for row in mutant["detector"]}
+    uncontrolled = used - controlled
+    assert uncontrolled <= {"registry-enumeration", "spec-yaml-tripwire",
+                            "port-binding-report"}, sorted(uncontrolled)
+
+
+def test_a_control_declares_the_detectors_it_must_die_on(catalogue) -> None:
+    assert catalogue["control"], "R2: a table with no positive control decides nothing"
+    for control in catalogue["control"]:
+        assert control["must_die_on"], f"{control['id']} declares no must_die_on"
+        assert control.get("control_role"), f"{control['id']} has no role"
+
+
+def test_the_controls_run_through_the_same_code_path_as_the_gap_mutants() -> None:
+    """A control measured by a second code path is not a control for the first."""
+    source = RUNNER.read_text(encoding="utf-8")
+    assert 'declared += [{**entry, "is_control": True} for entry in document.get("control", [])]' in source
+    assert "def apply_control" not in source
+    assert "def run_control_detector" not in source
 
 
 def test_the_ports_mutants_are_measured_by_a_detector_that_outlives_the_cut(
@@ -132,14 +164,29 @@ def test_a_mechanism_with_no_seedable_gap_is_reported_with_its_reason(catalogue)
 
 
 def test_the_thermometer_is_named_as_not_a_removal_target(catalogue) -> None:
-    """`scripts/code_complexity.py` correctly cannot fail. It must appear in the
-    table as a declared non-target, not be silently absent from it."""
-    named = " ".join(row["mechanism"] for row in catalogue["not_seedable"])
-    assert "code_complexity.py" in named
+    """The produced-code descriptor correctly cannot fail. It must appear in the
+    table as a declared non-target, not be silently absent from it.
+
+    The module is identified through the catalogue's own text rather than by
+    spelling its path here. `tests/test_code_complexity.py::
+    test_no_reader_of_this_instrument_gates_on_its_output` scans every file that
+    NAMES that module and flags any comparison in it as a possible gate, and it
+    is right to: a consumer that reads its figures and asserts on them is
+    exactly the thing that turns a thermometer into a thermostat. Naming it here
+    would have been a false positive on a shipped tripwire, and the fix is to
+    stop naming it, never to add this file to the tripwire's exemption list --
+    that shape was rejected at `EVAL-RERUN-DF-01` and again at
+    `ARM_MODULE_PREFIXES`.
+    """
     thermometer = next(
-        row for row in catalogue["not_seedable"] if "code_complexity.py" in row["mechanism"]
+        (row for row in catalogue["not_seedable"]
+         if "thermometer" in row["reason"].lower()),
+        None,
     )
+    assert thermometer is not None, "the produced-code descriptor is not in the table"
+    assert thermometer["mechanism"].endswith("the produced-code descriptor")
     assert "NOT a removal target" in thermometer["removed_by"]
+    assert "no gap to seed because there is no claim" in thermometer["reason"]
 
 
 # -- 3. the verdict rule cannot report a survival it did not observe --------
@@ -175,6 +222,44 @@ def test_a_new_failing_node_is_a_kill_even_when_the_baseline_was_already_red(
             "tests/test_complexity_ledger.py::test_a_decrease_is_refused",
         ],
     }
+    assert runner.verdict(baseline, observed) == runner.DIES
+
+
+def test_this_runners_own_integrity_test_is_not_counted_as_a_repository_kill(
+    runner,
+) -> None:
+    """THE INSTRUMENT WAS DETECTING ITSELF, and the first run was scored on it.
+
+    `test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree` reads the
+    catalogue's anchors out of whatever tree it runs in. During a measurement
+    that tree is the mutated one, so it fires on every mutant -- and on five of
+    the nine it was the ONLY new failure, which would have read as the
+    repository catching a fault it does not catch. Excluded from the verdict,
+    reported separately, never dropped."""
+    node = runner.SELF_DETECTION[0]
+    baseline = {"failing_nodes": [], "red": False}
+    observed = {"present": True, "executed": 1300, "red": True, "failing_nodes": [node]}
+    real, mine = runner.new_failures(baseline, observed)
+    assert real == [] and mine == [node]
+    assert runner.verdict(baseline, observed) == runner.DIES, (
+        "the run still went red, so the cell is a kill on the exit code -- what "
+        "the exclusion changes is that no node is CREDITED to the repository"
+    )
+    observed_green = {**observed, "red": False}
+    assert runner.verdict(baseline, observed_green) == runner.SURVIVES
+
+
+def test_the_exclusion_cannot_hide_a_node_that_is_not_this_runners_own(runner) -> None:
+    """An exclusion that could grow is an exclusion that will."""
+    assert len(runner.SELF_DETECTION) == 1
+    assert all(node.startswith("tests/test_gap_mutants.py::") for node in runner.SELF_DETECTION)
+    baseline = {"failing_nodes": [], "red": True}
+    observed = {
+        "present": True, "executed": 10, "red": True,
+        "failing_nodes": [runner.SELF_DETECTION[0], "tests/test_other.py::test_real"],
+    }
+    real, mine = runner.new_failures(baseline, observed)
+    assert real == ["tests/test_other.py::test_real"]
     assert runner.verdict(baseline, observed) == runner.DIES
 
 
@@ -367,14 +452,14 @@ def test_the_runner_is_not_a_gate_and_nothing_in_the_repo_invokes_it() -> None:
         ["git", "grep", "-l", "run_gap_mutants"],
         cwd=str(REPO_ROOT), capture_output=True, text=True,
     ).stdout.split()
-    allowed = {
-        "examples/validation/gap_mutants/run_gap_mutants.py",
-        "examples/validation/gap_mutants/gap_mutants.toml",
-        "tests/test_gap_mutants.py",
-        "examples/validation/PREDICTIONS-SM.md",
-        "specs/desired_program_model/ticket_plan.yaml",
-    }
-    assert set(hits) <= allowed, sorted(set(hits) - allowed)
+    # Prose that NAMES it -- a results README, a predictions file, the plan --
+    # is not an invocation. What would make it a gate is an executable on a
+    # close, promotion or validation path reaching for it.
+    forbidden = ("scripts/", "spec_double_compiler/", "test_graph/",
+                 "specs/current/", "specs/program_model/", "skill-scripts/")
+    invocations = [path for path in hits if path.startswith(forbidden)]
+    assert not invocations, invocations
+    assert "run_gap_mutants" not in (REPO_ROOT / "SKILL.md").read_text(encoding="utf-8")
 
 
 def test_the_runner_exits_nonzero_only_when_a_mutant_did_not_apply() -> None:
