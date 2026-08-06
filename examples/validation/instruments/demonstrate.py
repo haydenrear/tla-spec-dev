@@ -378,9 +378,15 @@ def demonstrate(spec: dict[str, Any]) -> dict[str, Any]:
 #
 # WHAT IT CANNOT SEE, stated rather than left for the next sweep to find:
 # the predicate is a `__main__` guard plus a nonzero exit path, so a repo
-# tripwire that is a pytest FILE (`tests/test_code_complexity.py`,
-# `tests/test_source_citations.py`) has neither and is invisible to it. Those
-# rows are added by hand and this check does not pretend otherwise.
+# tripwire that is a pytest FILE (the thermometer scan, the citation scan and
+# their three siblings under `tests/`) has neither and is invisible to it.
+# Those rows are added by hand and this check does not pretend otherwise. They
+# are named in the registry's `[registry.enumeration]` comment and in
+# `tests/test_instrument_demonstrations.py`; they are NOT named here, because
+# `test_produced_code_prompt.py` refuses a Python file under `examples/` that
+# names the produced-code instrument -- a mention is how a consumer arrives,
+# and that tripwire went red on this very comment. Fixed by not naming it,
+# never by widening the exemption; the same call SM-01 made one ticket ago.
 
 
 def _has_nonzero_exit(tree: ast.AST) -> bool:
