@@ -38,6 +38,38 @@ every time and it is now three epics old:
 > **On this fixture the generated corpus is still worse than a suite a competent
 > engineer writes in an afternoon.**
 
+**CORRECTED 2026-08-06 by the epic owner, on FI-04's finding `FI-04-DF-01`. The
+sentence above is not settled, and the evidence against it has been sealed in
+this repository since `b3a0199` and was never computed.**
+
+Both facts this epic cited to support it are true, and **both are about
+catalogues written by the author of the suite.** On the only catalogues here
+authored **blind**, the comparison reverses into a tie with a kill each way. The
+owner re-derived this from the sealed tables rather than from FI-04's report:
+
+| catalogue | generated union | suite | generated-only | suite-only |
+|---|---|---|---|---|
+| blind, arm A | 11 of 15 | 11 of 15 | **`BA-P11`** | **`BA-P05`** |
+| blind, arm B | 10 of 15 | 10 of 15 | **`BA-Q11`** | **`BA-Q05`** |
+
+The rounds reported the union **count** and never the **sets**. 11 against 11
+reads as a tie or a loss; the sets show the instruments are **complementary** —
+each catches something the other cannot. `BA-P11` is `identity_reuse`: ids
+reissued once a predecessor resolves, so a later commit silently overwrites a
+live hold. **Four generated instruments kill it and the suite misses it on both
+arms.**
+
+So the honest statement is narrower and sharper: **on author-written catalogues
+the suite dominates; on blind ones the two are complementary.** The dominance
+result was a property of who wrote the catalogue, and this epic's own §1 restated
+it as settled — which is exactly the "read a row forward without checking it"
+failure this project keeps finding, committed here in the document that exists to
+warn against it.
+
+One thing the correction does **not** rescue: the kill that saves the generator
+dies to `corpus-whole`, `corpus-slice-res` and the mappings — to **neither** the
+negative corpus nor the port corpus, the two mechanisms the last two epics bought.
+
 `ports-as-adapters` sharpened it into something harder to ignore: across every
 instrument on every arm, **no generated instrument has a unique kill.** Only the
 hand-written `suite-fake` does. `suite-fake` *strictly dominates*

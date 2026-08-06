@@ -88,36 +88,104 @@ is sealed and was not amended.
 
 ## 5. Acceptance
 
+Reconciled onto the epic tip `31123dc` (after FI-04 merged) and re-run there:
+
 ```
 uv run --with pytest --with pyyaml python -m pytest tests -q
-1 failed, 1288 passed in 132.75s     # before `close ticket FI-05`
-1 failed, 1284 passed in 128.52s     # after; the 4 are the ticket-local
-                                     # workflow tests the close removes
+1335 passed in 351.46s          # 0 failed
 ```
 
-The one failure is `tests/test_code_complexity.py::test_nothing_executable_reads_this_instrument`
-— **PA-06-DF-05**, carried out of the predecessor epic as issue #147, and **red
-on the parent commit `51fe73d` too** (verified by `git archive`). It is the
-substring-grep tripwire failing on a prose mention inside a closed round's
-evidence generator. It was NOT fixed here: a carried finding is not repaired
-inline by a ticket measuring something else. The sharper AST-based discrimination
-this ticket needed for its own scan ships beside it, with its own red and green
-inputs, as evidence of what the filed fix would look like.
+**The pre-existing red is gone.** On the branch as first written, acceptance was
+`1 failed, 1288 passed`, the failure being
+`test_nothing_executable_reads_this_instrument` — PA-06-DF-05, the substring
+tripwire that could not tell a prose mention from a gate. **FI-02 replaced it**
+with an AST scanner (`executable_references` / `gating_uses`), and the suite is
+green.
+
+### What the reconcile changed in this ticket, and why
+
+FI-02's new scanner is repository-wide for gating, and it **flagged this
+ticket's own test file** — `test_produced_code_prompt.py` compared figures it
+had read from `analyze_tree`. That is a real signal, not noise, and it was
+answered twice over:
+
+1. **The hand-rolled AST scanner written here was deleted.** FI-02 shipped the
+   same analysis, better: docstrings excluded, whole-token match. Two scanners
+   drifting apart is the `declaration_executability_rule`'s own shape, so this
+   file now imports FI-02's `executable_references` and keeps only what FI-02
+   does not cover — `examples/` and `prompts/`, the two trees FI-05 added files
+   to, asserted at **zero executable references**, which is stronger than "does
+   not gate". Seven self-tests of the private copy went with it (43 tests → 36).
+2. **The figure reads were removed rather than exempted.** The prompt's figure
+   names and quoted cells are now bound to `references/complexity_intuition.md`
+   — itself pinned to a live run by `test_documented_figures_match_shipped_output`
+   and `test_recorded_figures_match_a_live_run` — so the chain instrument →
+   reference page → prompt stays executable end to end while **the file
+   arranging for nothing to consume the thermometer stopped being a consumer of
+   it.**
+
+What remains are 23 comparisons of the instrument's **name**, which every test
+about an instrument makes by definition. `tests/test_produced_code_prompt.py` is
+therefore added to `GATING_SCAN_EXEMPT` as its third entry — and on a **narrower
+ground than the other two, bounded by a test**:
+`test_the_third_exemption_never_reads_a_figure` requires every executable
+reference in it to be a name token, never an import and never an invocation, and
+requires its output never to be read. A figure cannot be reached without one of
+those, so a file with neither cannot gate on a figure. Add a figure read and
+that test goes red instead of the exemption quietly widening.
 
 ### Parent-commit evidence
 
-`git archive 51fe73d` into a clean tree, with the three new test files copied in:
+`git archive 51fe73d` into a clean tree, with the three new test files copied in
+(measured before the reconcile, on the branch point):
 
 | module | on parent | here |
 |---|---|---|
-| `test_produced_code_prompt.py` | **32 failed**, 11 passed | 43 passed |
+| `test_produced_code_prompt.py` | **32 failed**, 11 passed | 36 passed |
 | `test_dispatch_record.py` | **collection error** — `dispatch_record` does not exist | 16 passed |
 | `test_prediction_seal.py` | **collection error** — `check_prediction_seal` does not exist | 14 passed |
 
-The 11 that pass on the parent are the guards on properties that must NOT have
-changed: the consumer scan's own red/green inputs, the sealed 105-line length
-match, and the instrument's exit-0 behaviour. They are green on both sides
-because that is what they assert.
+The 11 that passed on the parent were guards on properties that must NOT have
+changed. Seven of them were the private scanner's self-tests and are now gone;
+what is left is the sealed 105-line length match and the instrument's exit-0
+behaviour, green on both sides because that is what they assert.
+
+## 5b. Registered in FI-02's instrument registry
+
+`FI-04-DF-04`, confirmed again: `test_the_named_instruments_are_all_enumerated`
+asserts `required <= enumerated` against a hardcoded list, so it catches a
+rename and **cannot** catch an instrument never added. Both of this ticket's
+instruments meet the registry's definition — watches a subject, produces a
+verdict, returns nonzero — and both are registered by hand.
+
+| row | failing | passing | blind spot |
+|---|---|---|---|
+| `dispatch-record` | the shipped ports-as-adapters record, staged and tampered → exit 1, `HAS BEEN EDITED` | the same record untouched → exit 0 | **cannot see a dispatch that was never recorded**: an empty evidence dir verifies GREEN |
+| `prediction-seal` | the sealed `PREDICTIONS-PA.md` → exit 1, N05 `ALREADY MEASURED` | a fixture whose mutant is in no kill table → exit 0 | **cannot check a prediction naming no mutant and no column**: reported `UNPARSED`, **exit 0** |
+
+Both blind spots are declared with their failure direction named, and **neither
+is the safe direction**:
+
+- `dispatch-record`'s is the live state of arms A and B — no row at all, so the
+  checker is green about the very thing it exists for (**FI-05-DF-02**, major).
+- `prediction-seal`'s is green-looking silence on 2 of the 3 no-kill rows in the
+  only real file it has run against (**FI-05-DF-03**).
+
+Registry totals after these rows: **40 enumerated, 5 not-instruments, 35
+instruments, 26 with a demonstrated failing input, 9 without, 12 with a
+demonstrated blind spot.** `demonstrate.py --only dispatch-record --only
+prediction-seal` reports `ok ok ok` for both.
+
+Three paths were added to the rename guard's `required` set — this ticket's two
+and FI-04's `divergence.py`, which was registered but never pinned — with the
+guard's limit written into its own docstring rather than left implicit.
+
+**No demonstration here is pinned to an unimplemented identifier.** The failing
+one for `prediction-seal` is a **sealed** file, byte-frozen by the rule that
+produced the finding; the passing and blind-spot ones are synthetic fixtures
+under `examples/validation/instruments/fixtures/prediction_seal/`, written
+synthetic precisely so they cannot stop demonstrating when somebody measures a
+real subject. `dispatch-record`'s are the shipped record and a temporary copy.
 
 ## 6. Findings filed, not fixed
 

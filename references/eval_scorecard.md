@@ -1,9 +1,16 @@
 # The Eval Scorecard
 
-**Scorecard version 1.** Every eval in this repository is scored on this card,
+**Scorecard version 2.** Every eval in this repository is scored on this card,
 by an agent judge, against artifacts. The card is the unit of comparison across
 epics: one epic's numbers mean something only next to another's, so the card is
 versioned and changing it is a deliberate, recorded act.
+
+**Version 2 changed one thing: what the judge DID is now a field on the card.**
+The anchors are byte-unchanged from version 1 — see
+[Version history](#version-history), whose digest is checked by
+`score_tools.py check`. Cards written under version 1 stay valid, stay
+comparable to each other, and are **not** comparable to a version 2 card without
+saying so.
 
 ## Why a judged scorecard and not a metric
 
@@ -142,6 +149,16 @@ evidence about what *calls* what at runtime, not what imports what.
 7. **The mechanical block is recorded, never scored.** Kill counts, complexity
    figures, case counts, determinism, runtime. It sits beside the judgement so a
    reader can see when the two disagree — and a disagreement is a finding.
+8. **Say what you ran.** *(New in version 2.)* Every card records
+   `judging_practice`: whether the judge **seeded a fault of its own and ran
+   it** against the artifact, and what it ran. Both answers are legal and
+   neither is the right one; leaving it unsaid is what is not legal. **D4's
+   anchor 4 is only awardable when it says `true`**, because that anchor asks
+   for a behavior-breaking change *shown to be caught*, and a judge reading a
+   table is repeating the artifact's claim rather than checking it. This is the
+   anchor's own text made checkable, not a new bar. See
+   [R-H5](#r-h5--a-movement-is-a-measurement-only-if-the-judging-practice-is-recorded-at-both-ends)
+   for what it is for.
 
 ## Storage
 
@@ -172,13 +189,19 @@ Fixtures and harness stay under `examples/validation/`; only *results* live in
 
 ```json
 {
-  "scorecard_version": 1,
+  "scorecard_version": 2,
   "epic": "architectural-coherence",
   "example": "ex4_pipeline_coherent",
   "run_id": "20260803-sc1",
   "arm": null,
   "commit": "<sha the artifacts were scored at>",
   "judge": {"model": "<model id>", "pass": 1, "blind_to_arm": true},
+  "judging_practice": {
+    "executed_own_faults": true,
+    "what_was_run": ["copied the artifact to a scratch tree, inverted the guard in",
+                     "`commit()`, ran the artifact's own suite: 3 failures naming the",
+                     "invariant"]
+  },
   "dimensions": {
     "D1": {"score": 2, "citations": ["path:line"], "rationale": "...",
            "refuses_to_claim": null},
@@ -193,6 +216,13 @@ Fixtures and harness stay under `examples/validation/`; only *results* live in
 
 `arm` is `null` for a single-artifact eval and the arm label where arms exist.
 `refuses_to_claim` is required and non-null for any score of 4.
+
+`judging_practice` is **required on every filled card from version 2**.
+`executed_own_faults` is a boolean and `what_was_run` is a list. `false` is a
+legal answer, it is recorded as `PACKET-ONLY` by `check`, and it is never
+corrected — a card that is pushed toward one answer records the pressure and not
+the practice. The one consequence a `false` carries is that **D4 cannot be
+scored 4**, and `check` rejects the combination.
 
 ## Reading a card
 
@@ -331,21 +361,27 @@ prints it beside the row.
 *Executed as:* `seal` records a digest per sealed card and refuses to re-seal one
 whose contents changed; `audit` re-verifies every digest.
 
-## Known instability of this card — D1, D4 and D5 move on unchanged input
+### R-H5 — A movement is a measurement only if the judging practice is recorded at both ends
 
-**Added at the close of `ports-as-adapters`, 2026-08-05, from `PA-06-DF-06`.
-A warning about the card, recorded on the card.**
-
-**This is deliberately NOT an `R-H` rule.** The first draft numbered it `R-H5`
-and `audit` rejected it within the minute, because `R-H` ids are exactly the
-declarations `score_tools.py` executes and this one has no check behind it. The
+**Was "Known instability of this card", added at the close of `ports-as-adapters`
+from `PA-06-DF-06`, and deliberately NOT numbered.** That first draft numbered it
+`R-H5` and `audit` rejected it within the minute, because `R-H` ids are exactly
+the declarations `score_tools.py` executes and it had no check behind it. The
 mechanism PA-05 built to stop unexecuted declarations caught the epic owner
-adding an unexecuted declaration, in the same file, at close. Renaming it to slip
-past the check would have been the defeat this project keeps documenting; leaving
-it mis-numbered would have made `audit` permanently red, which is how the last
-three gates died. So it is filed as what it actually is — **a limitation, not a
-rule** — and making it executable is part of
-[issue #145](https://github.com/haydenrear/tla-spec-dev/issues/145).
+adding an unexecuted declaration, in the same file, at close. **FI-03 gave it a
+check, so it is a rule now.**
+
+*Executed as:* a movement between two cards is declared as a `[[movement]]` in
+`INSTRUMENT-LOG.toml` naming `from_card`, `to_card`, `dimension`, `points` and
+`readable`. **`audit` re-derives `points` from the two cards on every run**, so a
+declared movement cannot drift from the scores it is about; a stale one is a
+violation. `readable = true` is a violation whenever either end carries no
+`judging_practice` — the movement may be real and it is not readable, because the
+variable that produced the last one is unrecorded at that end. Movements across a
+version 1 card are therefore `readable = false` permanently, and that is the
+correct answer rather than a defect to be cleared.
+
+The instability this rule is about, which is the reason version 2 exists:
 
 Arms A and B were re-scored at PA-06 as **byte-identical trees** to the ones
 EVAL-RERUN judged. Four dimension-points moved anyway:
@@ -378,15 +414,17 @@ Two consequences, and the second is the load-bearing one:
   did. A cross-epic claim is safest on those. This is why `ports-as-adapters`
   rests its headline on D3.
 
-**Not fixed here.** Mandating a judging practice changes what the card measures
-and therefore requires a `scorecard_version` bump and a re-score under both
-versions — see "Changing this card" below. Owner-directed as next-epic work.
+**Fixed in version 2, and the fix is recording rather than mandating.** Rule 8
+makes `judging_practice` a required field; only D4's anchor 4 is gated on it,
+because only D4's anchor asks the judge to run something. A card that says
+`executed_own_faults: false` is legal and is recorded as `PACKET-ONLY`. **What
+version 2 removes is not the choice — it is the choice being invisible.**
 
-*Executed as:* **nothing.** This paragraph is prose that nothing checks, which by
-this project's own `declaration_executability_rule` means it will drift. Said
-plainly rather than hidden — and note that the rule immediately above it, the one
-that would have made this claim executable, is the reason you are reading this
-sentence instead of a green `R-H5`.
+> **AND RECORDING IT DID NOT MAKE THE CARD STABLE.** FI-03 re-scored the same
+> three sealed, byte-identical artifacts with two fresh blind judges and
+> measured the movement per dimension per judge. The result is in
+> `specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/RESULT.md`
+> and it is not a pass. Read it before quoting any D1, D4 or D5 delta.
 
 ## Changing this card
 
@@ -394,3 +432,25 @@ Bump `scorecard_version`, keep the old anchors in the file, and re-score at
 least one prior example under both versions so the discontinuity is measured
 rather than assumed. A card that changes silently makes every historical
 comparison a guess.
+
+`score_tools.py scaffold --card-version 1` emits the previous card so that
+re-score is possible at all; a tool that can only write the current version
+makes the rule above unfollowable.
+
+### Version history
+
+The `anchors digest` column is over the **anchors alone**, not the whole rubric,
+and `score_tools.py check` recomputes it from this file. Two versions carrying
+the same digest is the machine-checked statement that **the bar for each score
+did not move** — only what a card must record about itself did.
+
+| version | anchors digest | what changed |
+|---|---|---|
+| **1** | `sha256:eeccf4576bc6fd85` | the original card: five dimensions, seven scoring rules, R-H1..R-H4. |
+| **2** | `sha256:eeccf4576bc6fd85` | `judging_practice` required on every filled card (rule 8); D4 = 4 gated on it; the instability caveat promoted to R-H5 with a check. **Anchors unchanged.** |
+
+**The discontinuity between them was measured, not assumed.** FI-03 re-scored
+the same three sealed artifacts twice on the same day — once under version 1 and
+once under version 2 — with four fresh blind judges, and reports both the v1
+movement against the sealed rows and the v1-to-v2 difference. See
+`specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/RESULT.md`.

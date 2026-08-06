@@ -20,7 +20,9 @@ already caused:
    (`declaration_executability_rule`): rename a figure and this fails.
 5. **Nothing executable consumes the instrument**, still, after the prompt
    landed -- including the prompt's own machinery, because there deliberately
-   is none.
+   is none. Asserted over `examples/` and `prompts/`, the two trees FI-05 added
+   files to and the two FI-02's reference scan does not reach, using FI-02's
+   OWN `executable_references` rather than a second copy of it.
 6. **The sealed ask block did not move.** PA-01 sealed arm B at 105 unique
    content lines as the control that separates "hexagonal helped" from "a
    longer ask helped". The produced-code ask is a SEPARATE dispatch precisely
@@ -29,7 +31,6 @@ already caused:
 
 from __future__ import annotations
 
-import ast
 import re
 import subprocess
 import sys
@@ -41,7 +42,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.code_complexity import analyze_tree  # noqa: E402
+from tests.test_code_complexity import executable_references  # noqa: E402
 
 PROMPTS = REPO_ROOT / "prompts"
 READING_PROMPT = PROMPTS / "produced_code_reading.md"
@@ -217,46 +218,100 @@ def test_the_ask_does_not_choose_the_boundary() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_every_figure_the_prompt_names_is_emitted_by_the_instrument() -> None:
-    """Rename a figure in `code_complexity.py` and forget this prompt, and this
-    fails instead of the prompt quietly asking about a key nobody emits."""
+#: The row shape of the figure table in `references/complexity_intuition.md`
+#: -- "| `key` | scope | what it counts |". That table is bound to the shipped
+#: instrument by `test_code_complexity.py::test_documented_figures_match_shipped_output`,
+#: which asserts it and the real output name the SAME SET.
+_INTUITION_FIGURE = re.compile(r"^\|\s*`([a-z][a-z_]+)`\s*\|", re.MULTILINE)
 
-    record = analyze_tree(REPO_ROOT / "examples" / "validation" / "ab" / "reference_ports")
-    emitted = set(record["totals"]) | set(record["modules"][0]) | {
-        "totals", "totals_code_only", "completeness",
-    }
+#: A recorded cell row in the same page's like-for-like table:
+#: "| `branch_points_in_effectful_modules` | 10 | 1 | 10 | 1 |". That table is
+#: bound to a LIVE RUN by `test_recorded_figures_match_a_live_run`.
+_INTUITION_CELLS = re.compile(
+    r"^\|\s*`([a-z][a-z_]+)`\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|",
+    re.MULTILINE,
+)
+
+
+def _intuition_figures() -> set[str]:
+    return set(_INTUITION_FIGURE.findall(INTUITION.read_text(encoding="utf-8")))
+
+
+def _intuition_cells() -> dict[str, tuple[int, int, int, int]]:
+    """`figure -> (reference, reference_ports, arm_a, arm_b)`, like for like.
+
+    The FIRST table wins: the page prints `totals_code_only` before `totals`,
+    under the heading "Like for like", and the two must never be mixed.
+    """
+    out: dict[str, tuple[int, int, int, int]] = {}
+    for key, *cells in _INTUITION_CELLS.findall(INTUITION.read_text(encoding="utf-8")):
+        out.setdefault(key, tuple(int(c) for c in cells))
+    return out
+
+
+def test_every_figure_the_prompt_names_is_a_documented_figure() -> None:
+    """Rename a figure and forget this prompt, and this fails instead of the
+    prompt quietly asking about a key nobody emits.
+
+    IT DOES NOT RUN THE INSTRUMENT, and that is deliberate rather than lazy.
+    The chain is instrument -> `complexity_intuition.md` -> this prompt, and its
+    first link is already executable:
+    `test_code_complexity.py::test_documented_figures_match_shipped_output`
+    asserts the page's table and the shipped output name the same set. Reading
+    the figures again HERE would make this file a reader of the instrument's
+    output, which is the one thing the whole ticket is arranging for nothing to
+    be.
+    """
+
+    documented = _intuition_figures()
+    assert "branch_points_in_effectful_modules" in documented, (
+        "the reference page's figure table did not parse; this test would then assert "
+        "nothing"
+    )
     text = READING_PROMPT.read_text(encoding="utf-8")
     named = {m.group(1) for m in re.finditer(r"`([a-z][a-z_]{4,})`", text)}
     # Words in backticks that are prose or paths, not figures.
     named -= {"getattr", "sorted", "python", "scripts", "prompts", "references"}
-    unknown = {n for n in named if n not in emitted}
+    structural = {"totals", "totals_code_only", "completeness"}
+    unknown = named - documented - structural
     assert not unknown, (
-        f"the prompt names figures the shipped instrument does not emit: {sorted(unknown)}. "
+        f"the prompt names figures the reference page does not document: {sorted(unknown)}. "
         f"Either the instrument renamed them or the prompt invented them."
     )
     # And the partition that is the whole reason the ask exists.
     for key in ("branch_points_in_effectful_modules", "instance_state_in_effectful_modules"):
-        assert key in named and key in emitted
+        assert key in named and key in documented
 
 
-def test_the_recorded_partition_in_the_prompt_matches_a_live_run() -> None:
-    """The prompt copies four cells out of the record to say WHY the figures are
-    worth asking about. A copy that drifts is a claim nothing executes."""
+def test_the_partition_quoted_in_the_prompt_matches_the_recorded_table() -> None:
+    """The prompt copies cells out of the record to say WHY the figures are
+    worth asking about. A copy that drifts is a claim nothing executes.
 
-    ab = REPO_ROOT / "examples" / "validation" / "ab"
-    flat = analyze_tree(ab / "reference")["totals_code_only"]
-    ported = analyze_tree(ab / "reference_ports")["totals_code_only"]
-    assert (flat["branch_points_in_effectful_modules"],
-            ported["branch_points_in_effectful_modules"]) == (10, 1)
-    assert (flat["instance_state_in_effectful_modules"],
-            ported["instance_state_in_effectful_modules"]) == (7, 1)
-    assert flat["effectful_calls"] == ported["effectful_calls"] == 3
+    Compared against `complexity_intuition.md`'s like-for-like table, which
+    `test_recorded_figures_match_a_live_run` pins cell by cell to a live run --
+    so a stale number still fails a test, and this file still never reads a
+    figure.
+    """
 
+    cells = _intuition_cells()
     text = READING_PROMPT.read_text(encoding="utf-8")
-    assert "| **10** | **1** |" in text and "| **7** | **1** |" in text
-    # And the caution's "a ported tree measures LARGER" cells.
-    assert (ported["modules"], ported["public_surface"], ported["code_lines"]) == (5, 26, 255)
-    assert (flat["modules"], flat["public_surface"], flat["code_lines"]) == (1, 15, 122)
+
+    flat, ported, arm_a, arm_b = cells["branch_points_in_effectful_modules"]
+    assert (flat, ported, arm_a, arm_b) == (10, 1, 10, 1)
+    assert "| `branch_points_in_effectful_modules` | **10** | **1** | **10** | **1** |" in text
+
+    flat, ported, arm_a, arm_b = cells["instance_state_in_effectful_modules"]
+    assert (flat, ported, arm_a, arm_b) == (7, 1, 8, 1)
+    assert "| `instance_state_in_effectful_modules` | **7** | **1** | **8** | **1** |" in text
+
+    flat, ported, arm_a, arm_b = cells["effectful_calls"]
+    assert flat == ported == 3, "the two anchor trees must still make the SAME three calls"
+    assert "| `effectful_calls` | 3 | 3 | 5 | 3 |" in text
+
+    # The caution's "a ported tree measures LARGER" cells, same source.
+    assert tuple(cells["modules"][:2]) == (1, 5)
+    assert tuple(cells["public_surface"][:2]) == (15, 26)
+    assert tuple(cells["code_lines"][:2]) == (122, 255)
     assert "5 modules, 26 public surface and 255 code lines" in text
     assert "1, 15 and 122" in text
 
@@ -265,73 +320,34 @@ def test_the_recorded_partition_in_the_prompt_matches_a_live_run() -> None:
 # 5. still nothing consumes it
 # ---------------------------------------------------------------------------
 
-#: Every place a consumer could hide. Wider than
-#: `test_code_complexity.py::EXECUTABLE_SURFACES`, because FI-05 added files
-#: under `examples/` and the obvious way to make this prompt convenient is a
-#: script there that runs the instrument and renders the ask.
-SEARCHED_TREES = (
-    "scripts", "skill-scripts", "spec_double_compiler", "templates", "test_graph",
-    "examples", "specs",
-)
+#: The trees FI-02's REFERENCE scan does not reach. Its
+#: `test_nothing_executable_reads_this_instrument` covers `EXECUTABLE_SURFACES`
+#: (scripts, skill-scripts, spec_double_compiler, templates, test_graph) and
+#: deliberately not `specs/**`; its `test_no_reader_of_this_instrument_gates_on_its_output`
+#: is repository-wide but only forbids GATING. Neither reaches `examples/` or
+#: `prompts/` with the stronger question, and those are exactly the two trees
+#: FI-05 added files to.
+FI05_TREES = ("examples", "prompts")
 
 
-#: Dotted callables that would actually RUN the instrument rather than mention
-#: it. Matched against the CALL'S FUNCTION, never against the source text of
-#: the call: a call whose argument happens to be a page of markdown containing
-#: the word "executable" is not an invocation, and matching text was how the
-#: first draft of this test reproduced the very false positive it exists to
-#: distinguish from a real read.
-_INVOKERS = (
-    "subprocess.run", "subprocess.call", "subprocess.check_call",
-    "subprocess.check_output", "subprocess.Popen", "os.system", "os.popen",
-    "os.execv", "runpy.run_path", "runpy.run_module", "importlib.import_module",
-    "__import__", "exec", "eval",
-)
+def _references_under(trees) -> list[str]:
+    """Executable references to the instrument under `trees`, via the SHIPPED
+    builder.
 
-
-def _dotted(node: ast.AST) -> str:
-    if isinstance(node, ast.Name):
-        return node.id
-    if isinstance(node, ast.Attribute):
-        base = _dotted(node.value)
-        return f"{base}.{node.attr}" if base else node.attr
-    return ""
-
-
-def _string_args_mention(call: ast.Call, needle: str) -> bool:
-    for node in ast.walk(call):
-        if isinstance(node, ast.Constant) and isinstance(node.value, str):
-            if needle in node.value:
-                return True
-    return False
-
-
-def _executable_readers() -> tuple[list[str], list[str]]:
-    """`(executable readers, prose mentions)` of the produced-code instrument.
-
-    The distinction is the point. The shipped
-    `test_code_complexity.py::test_nothing_executable_reads_this_instrument`
-    scans for the substring, and on the parent commit it is RED because one
-    evidence-packet generator embeds the sentence "run
-    `python3 scripts/code_complexity.py <target>`" in the markdown it writes
-    for a judge. That is a mention, not a read -- and it IS PA-06-DF-05, carried
-    out of the predecessor epic as issue #147: "the tripwire is a substring
-    grep, so it cannot tell a mention from a gate". The shipped test is left
-    exactly as it is, red, because a carried finding is not fixed inline by a
-    ticket measuring something else.
-
-    So this asks the harder question with the AST: does anything IMPORT the
-    module, or hand its path to something that would run it?
+    `executable_references` is FI-02's, not a second copy. FI-02 replaced the
+    substring tripwire that PA-06-DF-05 filed -- it excluded docstrings, bare
+    string statements and comments, and required a whole-token match -- and a
+    private re-implementation here would be two scanners drifting apart, which
+    is the `declaration_executability_rule`'s own shape.
     """
-    instrument = (REPO_ROOT / "scripts" / "code_complexity.py").resolve()
-    executable: list[str] = []
-    prose: list[str] = []
-    for tree in SEARCHED_TREES:
+
+    hits: list[str] = []
+    for tree in trees:
         root = REPO_ROOT / tree
         if not root.exists():
             continue
-        for path in root.rglob("*.py"):
-            if path.resolve() == instrument or ".history" in path.parts:
+        for path in sorted(root.rglob("*")):
+            if not path.is_file() or path.suffix != ".py":
                 continue
             if any(part in {"__pycache__", "build", "node_modules"} for part in path.parts):
                 continue
@@ -342,63 +358,9 @@ def _executable_readers() -> tuple[list[str], list[str]]:
             if "code_complexity" not in text:
                 continue
             rel = str(path.relative_to(REPO_ROOT))
-            try:
-                reads = _reads_instrument(text)
-            except SyntaxError:
-                executable.append(f"{rel} (unparseable -- cannot rule it out)")
-                continue
-            (executable if reads else prose).append(rel)
-    return executable, prose
-
-
-def _reads_instrument(text: str) -> bool:
-    """Does this source IMPORT or RUN the instrument, as opposed to mention it?"""
-
-    reads = False
-    for node in ast.walk(ast.parse(text)):
-        if isinstance(node, ast.Import):
-            reads |= any("code_complexity" in a.name for a in node.names)
-        elif isinstance(node, ast.ImportFrom):
-            reads |= "code_complexity" in (node.module or "")
-        elif isinstance(node, ast.Call):
-            if _dotted(node.func) in _INVOKERS and _string_args_mention(
-                node, "code_complexity"
-            ):
-                reads = True
-    return reads
-
-
-#: R1 for the scan above: inputs it must call READ, and inputs it must not.
-#: A scan that cannot go red is not evidence that nothing consumes the
-#: instrument -- it is silence shaped like evidence.
-_READS = (
-    "import scripts.code_complexity\n",
-    "from scripts.code_complexity import analyze_tree\n",
-    "import subprocess\nsubprocess.run(['python3', 'scripts/code_complexity.py', 'x'])\n",
-    "import importlib\nimportlib.import_module('scripts.code_complexity')\n",
-)
-_MENTIONS = (
-    '"""run `python3 scripts/code_complexity.py <target>` and paste it."""\n',
-    "PAGE = 'read scripts/code_complexity.py output per the intuition page'\n"
-    "open('x.md', 'w').write(PAGE)\n",
-    "# code_complexity is a thermometer; nothing here reads it\n",
-)
-
-
-@pytest.mark.parametrize("source", _READS)
-def test_the_consumer_scan_goes_red_on_a_real_read(source: str) -> None:
-    assert _reads_instrument(source), (
-        f"the scan misses a real consumer:\n{source}\nA scan that cannot go red proves "
-        f"nothing about the absence of consumers."
-    )
-
-
-@pytest.mark.parametrize("source", _MENTIONS)
-def test_the_consumer_scan_stays_green_on_a_mention(source: str) -> None:
-    assert not _reads_instrument(source), (
-        f"the scan calls a prose mention a consumer:\n{source}\nThat is PA-06-DF-05's "
-        f"shape, where a tripwire failed a docstring mention and passed an aliased import."
-    )
+            for lineno, why in executable_references(text):
+                hits.append(f"{rel}:{lineno}: {why}")
+    return sorted(hits)
 
 
 def test_nothing_executable_consumes_the_instrument_after_the_prompt_landed() -> None:
@@ -406,25 +368,35 @@ def test_nothing_executable_consumes_the_instrument_after_the_prompt_landed() ->
 
     The prompt tells the reader to run the shipped command and paste the
     output. A script that ran it for them would be the first thing in this
-    toolchain to read a thermometer, and this names it if one appears.
+    toolchain to read a thermometer, and this names the file and line if one
+    appears. STRONGER than "does not gate": zero executable references at all,
+    so there is nothing for a later ticket to start branching on.
     """
 
-    executable, _ = _executable_readers()
-    assert executable == [], (
-        f"these RUN or IMPORT the produced-code instrument: {executable}. It reports; "
-        f"nothing in the toolchain may consume it as a condition."
+    hits = _references_under(FI05_TREES)
+    assert hits == [], (
+        f"FI-05's own trees now refer to the produced-code instrument executably: {hits}. "
+        f"It reports; nothing may consume it as a condition."
     )
 
 
-def test_the_only_mentions_are_prose_and_they_are_named() -> None:
-    """Silence and a pass are different claims: print what the scan found."""
+def test_the_prompt_mentions_it_only_as_prose() -> None:
+    """Silence and a pass are different claims: the mention must exist, and it
+    must be markdown rather than anything that runs."""
 
-    executable, prose = _executable_readers()
-    assert not executable
-    assert prose == ["specs/results/scorecards/ports-as-adapters/measure/"
-                     "build_evidence_packets.py"], (
-        f"the set of files MENTIONING the instrument changed: {prose}. Each must be "
-        f"re-checked by hand -- a mention today is how a consumer arrives tomorrow."
+    text = READING_PROMPT.read_text(encoding="utf-8")
+    assert "code_complexity" in text
+    assert READING_PROMPT.suffix == ".md"
+    named = sorted(
+        str(path.relative_to(REPO_ROOT))
+        for tree in FI05_TREES
+        for path in (REPO_ROOT / tree).rglob("*")
+        if path.is_file() and path.suffix == ".py"
+        and "code_complexity" in path.read_text(encoding="utf-8", errors="ignore")
+    )
+    assert named == [], (
+        f"a PYTHON file under {FI05_TREES} now names the instrument: {named}. Each must be "
+        f"re-checked by hand -- a mention is how a consumer arrives."
     )
 
 

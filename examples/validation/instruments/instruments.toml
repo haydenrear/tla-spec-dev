@@ -1,0 +1,1490 @@
+# FI-02. EVERY INSTRUMENT THIS REPOSITORY SHIPS, AND WHETHER IT CAN BE SHOWN
+# TO FAIL.
+#
+#     python3 examples/validation/instruments/demonstrate.py
+#
+# `references/architecture_advice.md` S2: "Every criterion must have a
+# demonstrated failing input and a demonstrated passing input." Written for a
+# scanner that has since been deleted, never once turned on the instruments
+# this repository kept. FI-01 turned it on ONE of them and the result justified
+# the epic: against the parent probe exactly as it shipped, three of four
+# deliberately broken controls reported HOLDS.
+#
+# WHAT COUNTS AS AN INSTRUMENT HERE. Something this repository ships that
+# WATCHES a subject and produces a VERDICT about it -- an exit code, a printed
+# refusal, or a pytest assertion about the repository rather than about a unit.
+# Generators, scaffolders and libraries are enumerated only when they refuse
+# something; where they do not, they are listed with `family =
+# "not-an-instrument"` so the omission is recorded rather than silent, because
+# a quietly dropped row is exactly the failure mode this ticket has.
+#
+# WHAT IS DELIBERATELY OUT. Frozen measurement scripts under
+# `specs/results/**/measure/` and `examples/validation/runs/**/artifacts/` other
+# than the two the ticket names: they are kept byte-identical to the run that
+# produced them and re-running them is not a property of the toolchain. Pure
+# argparse usage errors ("you typed the command wrong") are not verdicts about
+# a subject and are not counted as failing inputs anywhere below.
+#
+# HOW TO READ A ROW.
+#   classification  demonstrated-can-fail   | demonstrated-cannot-fail
+#                   no-demonstration-constructible | no-instrument-exists
+#                   not-an-instrument
+#   [instrument.failing]     the subject is GENUINELY BROKEN and it must report
+#   [instrument.passing]     the subject is sound and it must stay green
+#   [instrument.blind_spot]  the subject is GENUINELY BROKEN and it must NOT
+#                            report -- a demonstrated inability, per R2
+#
+# `tier = "slow"` marks a demonstration the fast pass skips: one that shells out
+# to pytest, or needs `uv`, or needs a corpus that has to be generated first.
+
+[registry]
+id = "FI-02-instrument-enumeration"
+ticket = "FI-02"
+epic = "falsifiable-instruments"
+rule = "references/architecture_advice.md S2; epic R1 and R2"
+note = """
+THE COUNT OF INSTRUMENTS THAT CANNOT BE SHOWN TO FAIL IS THIS FILE'S PRODUCT.
+There is no target on the ratio. A high count is the honest outcome and the
+epic prefers it to a flattering one; what is targeted is only that nothing is
+silently omitted.
+"""
+
+
+# ===========================================================================
+# THE FOUR ORACLES
+# ===========================================================================
+
+[[instrument]]
+id = "corpus-runner"
+name = "generated-case corpus runner"
+paths = ["scripts/run_generated_case_adapters.py"]
+family = "measurement"
+watches = "every generated case's output and projected after-state against the model"
+verdict_surface = "exit code 1 with the per-case diff"
+classification = "demonstrated-can-fail"
+note = """
+The one instrument in this set whose failing input was always one line away and
+had never been written down. Its catalogue of mutants is `kill_mutants.toml`;
+any row of it is a re-runnable perturbation of the SUBJECT, not of the runner.
+"""
+
+  [instrument.failing]
+  summary = "a checked-out order is persisted with status 'pending' instead of 'accepted' (kill_mutants.toml store-order_store, verbatim)"
+  argv = ["{python}", "{repo}/scripts/run_generated_case_adapters.py",
+          "{tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases",
+          "--mapping", "{tree}/dh/specs/program_model/case_adapters.toml",
+          "--view", "internal", "--batch", "--import-root", "{tree}/dh"]
+  cwd = "{tree}/dh"
+  expect_exit = 1
+  expect_output = ["batched case executions failed", "adapter after-state mismatch"]
+
+    [[instrument.failing.stage]]
+    from = "examples/distributed_history"
+    to = "dh"
+
+    [[instrument.failing.mutate]]
+    file = "dh/ecommerce_backend/domain.py"
+    find = '                (order_id, account_id, json.dumps(items, sort_keys=True), "accepted"),'
+    replace = '                (order_id, account_id, json.dumps(items, sort_keys=True), "pending"),'
+
+  [instrument.passing]
+  summary = "the same corpus against the same tree, unmutated"
+  argv = ["{python}", "{repo}/scripts/run_generated_case_adapters.py",
+          "{tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases",
+          "--mapping", "{tree}/dh/specs/program_model/case_adapters.toml",
+          "--view", "internal", "--batch", "--import-root", "{tree}/dh"]
+  cwd = "{tree}/dh"
+  expect_exit = 0
+  expect_output = ["executed 4 cases in batch"]
+
+    [[instrument.passing.stage]]
+    from = "examples/distributed_history"
+    to = "dh"
+
+[[instrument]]
+id = "effect-oracle"
+name = "MF-013 effect conformance oracle"
+paths = ["scripts/effect_conformance.py", "scripts/effect_conformance_report.py"]
+family = "measurement"
+watches = "observed filesystem/network/process effects against the ports the model declares"
+verdict_surface = "exit 1 (gap, dead surface, unobservable), exit 2 (malformed declarations)"
+classification = "demonstrated-can-fail"
+note = """
+Its failing input is driven through the SHIPPED runner path
+(`execute_cases_in_batch`), not through the diff in isolation, because the
+enforcing copy and the reporting copy are two call sites and only one of them
+decides a run.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "an adapter that writes into a directory no port covers, and one that declares a port no case exercises"
+  nodes = [
+    "tests/test_effect_conformance_runner.py::TestRunnerEnforcesEffectConformance::test_undeclared_effect_fails_the_run",
+    "tests/test_effect_conformance_runner.py::TestRunnerEnforcesEffectConformance::test_dead_declared_port_fails_the_run",
+  ]
+  expect_exit = 0
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "an adapter that writes only where its port says it writes"
+  nodes = ["tests/test_effect_conformance_runner.py::TestRunnerEnforcesEffectConformance::test_declared_only_adapter_passes"]
+  expect_exit = 0
+
+  [instrument.blind_spot]
+  kind = "declared"
+  summary = "a process.spawn is UNOBSERVABLE whatever a port declares, so any effect a child process performs is outside this oracle by construction -- the kill test must run outside the sandbox for exactly this reason, and says so on every run"
+  reason = "MF-027. Not a defect and not repairable here; recorded so the oracle's reach is not read as total."
+
+[[instrument]]
+id = "kill-test-floor"
+name = "MF-016 mutation kill test"
+paths = ["scripts/kill_test.py", "scripts/run_kill_test.py"]
+family = "measurement"
+watches = "whether the distilled corpus can tell a seeded fault from the correct program"
+verdict_surface = "exit 1 below floor / regressed, exit 2 incomplete catalogue / no control"
+classification = "demonstrated-can-fail"
+
+  [instrument.failing]
+  summary = "the shipped distributed-history example: 3 of 7 seeded faults survive the corpus, 0.571 against a floor of 0.800 -- a genuinely under-refined representation, not a contrived one"
+  argv = ["{python}", "{repo}/scripts/run_kill_test.py",
+          "--target", "{tree}/dh/specs/program_model", "--root", "{tree}/dh",
+          "--cfg", "Internal.cfg",
+          "--corpus-command", "{python} {repo}/scripts/run_generated_case_adapters.py {tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases --mapping {tree}/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root {tree}/dh"]
+  expect_exit = 1
+  expect_output = ["BELOW FLOOR", "There is no waiver"]
+
+    [[instrument.failing.stage]]
+    from = "examples/distributed_history"
+    to = "dh"
+
+  [instrument.passing]
+  summary = "the same corpus over a catalogue containing only faults it does kill"
+  argv = ["{python}", "{repo}/scripts/run_kill_test.py",
+          "--target", "{tree}/dh/specs/program_model", "--root", "{tree}/dh",
+          "--cfg", "Internal.cfg",
+          "--corpus-command", "{python} {repo}/scripts/run_generated_case_adapters.py {tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases --mapping {tree}/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root {tree}/dh"]
+  expect_exit = 0
+  expect_output = ["PASS: kill rate 1.000"]
+
+    [[instrument.passing.stage]]
+    from = "examples/distributed_history"
+    to = "dh"
+
+    [[instrument.passing.stage]]
+    from = "examples/validation/instruments/fixtures/kill_test/killable_only.toml"
+    to = "dh/specs/program_model/kill_mutants.toml"
+
+[[instrument]]
+id = "kill-test-boundary-coverage"
+name = "kill test boundary coverage (--list-boundaries)"
+paths = ["scripts/run_kill_test.py"]
+family = "measurement"
+watches = "that every boundary the model declares carries a seeded fault"
+verdict_surface = "exit 2 on an incomplete catalogue"
+classification = "demonstrated-can-fail"
+
+  [instrument.failing]
+  summary = "the model grows a declared port and the catalogue does not follow it -- the drift a sealed catalogue certificate hides"
+  argv = ["{python}", "{repo}/scripts/run_kill_test.py",
+          "--target", "{tree}/dh/specs/program_model", "--root", "{tree}/dh",
+          "--list-boundaries"]
+  expect_exit = 2
+  expect_output = ["NO MUTANT"]
+
+    [[instrument.failing.stage]]
+    from = "examples/distributed_history"
+    to = "dh"
+
+    [[instrument.failing.mutate]]
+    file = "dh/specs/program_model/spec_manifest.yaml"
+    find = "budgets:"
+    replace = """effects:
+  components:
+    ledger:
+      ports:
+        unseeded_port:
+          type: filesystem.write
+          target: "**/never-seeded/**"
+  actions:
+    Checkout: [unseeded_port]
+
+budgets:"""
+
+  [instrument.passing]
+  summary = "the catalogue as shipped: every declared boundary carries a seeded fault"
+  argv = ["{python}", "{repo}/scripts/run_kill_test.py",
+          "--target", "{tree}/dh/specs/program_model", "--root", "{tree}/dh",
+          "--list-boundaries"]
+  expect_exit = 0
+  expect_output = ["declared boundaries carry a seeded fault"]
+
+    [[instrument.passing.stage]]
+    from = "examples/distributed_history"
+    to = "dh"
+
+[[instrument]]
+id = "corpus-diagnostics"
+name = "corpus case-cap diagnostics"
+paths = ["scripts/corpus_diagnostics.py"]
+family = "measurement"
+watches = "the per-component and per-action case distribution against declared caps"
+verdict_surface = "exit 1 over cap; exit 2 via enforce_case_cap inside generation"
+classification = "demonstrated-can-fail"
+
+  [instrument.failing]
+  summary = "a component carrying more cases than its declared cap allows"
+  argv = ["{python}", "{repo}/scripts/corpus_diagnostics.py",
+          "{tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases",
+          "--manifest", "{tree}/dh/specs/program_model/spec_manifest.yaml"]
+  expect_exit = 1
+
+    [[instrument.failing.stage]]
+    from = "examples/distributed_history"
+    to = "dh"
+
+    [[instrument.failing.mutate]]
+    file = "dh/specs/program_model/spec_manifest.yaml"
+    find = "max_internal_cases_per_component: 200"
+    replace = "max_internal_cases_per_component: 2"
+
+  [instrument.passing]
+  summary = "the same corpus under the caps it was generated against"
+  argv = ["{python}", "{repo}/scripts/corpus_diagnostics.py",
+          "{tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases",
+          "--manifest", "{tree}/dh/specs/program_model/spec_manifest.yaml"]
+  expect_exit = 0
+  expect_output = ["Every component is within cap"]
+
+    [[instrument.passing.stage]]
+    from = "examples/distributed_history"
+    to = "dh"
+
+[[instrument]]
+id = "tla-complexity-descriptor"
+name = "TLA+ complexity descriptor (analyze complexity)"
+paths = ["scripts/analyze_complexity.py"]
+family = "measurement"
+watches = "model dimension, state-space bound, per-component variables and actions, the R/W matrix"
+verdict_surface = "exit 1 ONLY when the model cannot be analyzed; complexity itself is advisory"
+classification = "demonstrated-can-fail"
+note = """
+CAN FAIL, BUT NOT ON THE THING ITS NAME DESCRIBES. Its failing input is 'I
+could not analyze this', never 'this is too complex'. That is MF-036 working as
+designed and it is the reason the blind-spot row below exists rather than a
+finding.
+"""
+
+  [instrument.failing]
+  summary = "a module hierarchy the analyzer cannot resolve -- an INSTANCE it does not model, so it fails closed rather than under-report the bound"
+  argv = ["{python}", "{repo}/scripts/analyze_complexity.py",
+          "{tree}/model/QuotaLedger.tla", "{tree}/model/QuotaLedger.cfg"]
+  expect_exit = 1
+  expect_output = ["could not analyze this model"]
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/ab/model"
+    to = "model"
+
+    [[instrument.failing.mutate]]
+    file = "model/QuotaLedger.tla"
+    find = "Spec == Init /\\ [][Next]_vars"
+    replace = "Spec == Init /\\ [][Next]_vars\n\nBase == INSTANCE QuotaLedgerBase"
+
+  [instrument.passing]
+  summary = "the same model, resolvable"
+  argv = ["{python}", "{repo}/scripts/analyze_complexity.py",
+          "{tree}/model/QuotaLedger.tla", "{tree}/model/QuotaLedger.cfg"]
+  expect_exit = 0
+
+    [[instrument.passing.stage]]
+    from = "examples/validation/ab/model"
+    to = "model"
+
+  [instrument.blind_spot]
+  summary = "a model 432x over its own declared state-space bound and 5x over its per-component variable bound: WARNINGS, and exit 0. There is no input that makes this instrument refuse on complexity, deliberately (MF-036, and CD-01: a tool that picks the boundary makes every edge legal by construction)."
+  argv = ["{python}", "{repo}/scripts/analyze_complexity.py",
+          "{tree}/model/QuotaLedger.tla", "{tree}/model/QuotaLedger.cfg"]
+  expect_exit = 0
+  expect_output = ["exceeds max_state_space_bound", "COMPLEXITY WARNINGS"]
+
+    [[instrument.blind_spot.stage]]
+    from = "examples/validation/ab/model"
+    to = "model"
+
+    [[instrument.blind_spot.mutate]]
+    file = "model/spec_manifest.yaml"
+    append = """
+
+budgets:
+  max_distinct_states: 1
+  max_state_space_bound: 1
+  max_component_variables: 1
+  max_component_actions: 1
+"""
+
+[[instrument]]
+id = "produced-code-instrument"
+name = "produced-code complexity thermometer"
+paths = ["scripts/code_complexity.py"]
+family = "measurement"
+watches = "the shape of produced Python: branch points, depth, state, effectful calls, declared interfaces"
+verdict_surface = "none -- it prints figures and exits 0 on every input"
+classification = "demonstrated-cannot-fail"
+no_failing_demonstration = """
+BY CONSTRUCTION AND ON PURPOSE, and this is the one row where that is the
+correct answer rather than a defect. It is a THERMOMETER: it reports, refuses
+nothing, gates nothing, and exits 0 on a tree that does not exist, a file that
+does not parse and a file that is not UTF-8. `EXIT_OK = 0` is the only exit
+constant in the file and `tests/test_code_complexity.py` asserts that against
+the AST, not against prose. 'I could not measure this' is a completeness fact
+printed with the path and the reason. The blind-spot row demonstrates the
+inability rather than asserting it.
+"""
+
+  [instrument.passing]
+  summary = "two implementations of one spec, told apart"
+  argv = ["{python}", "{repo}/scripts/code_complexity.py",
+          "{repo}/examples/validation/ab/reference",
+          "{repo}/examples/validation/ab/reference_ports"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["branch_points"]
+
+  [instrument.blind_spot]
+  summary = "a tree with a file that does not parse, a path that is not there, and a module 12 branches deep in every method: exit 0, every time. Nothing you can put in front of this instrument makes it refuse."
+  argv = ["{python}", "{repo}/scripts/code_complexity.py",
+          "{tree}/subject", "{tree}/no-such-tree"]
+  expect_exit = 0
+
+    [[instrument.blind_spot.stage]]
+    from = "examples/validation/ab/reference"
+    to = "subject"
+
+    [[instrument.blind_spot.mutate]]
+    file = "subject/quota_ledger.py"
+    append = "\n\ndef truncated(:\n"
+
+[[instrument]]
+id = "catalogue-integrity"
+name = "seeded-fault catalogue integrity harness"
+paths = ["examples/validation/ab/check_catalogue.py"]
+family = "measurement"
+watches = "that every catalogued fault applies exactly once, reverts byte-identically, still parses, and covers every required class and gap"
+verdict_surface = "exit 1, CATALOGUE INTEGRITY FAILED, with one line per problem"
+classification = "demonstrated-can-fail"
+
+  [instrument.failing]
+  summary = "the tree moves under the catalogue -- a guard is rewritten and a seeded fault silently stops applying, which is the drift that turns a survivor into a lie"
+  argv = ["{python}", "{repo}/examples/validation/ab/check_catalogue.py",
+          "--root", "{tree}/ab", "--catalogue", "{tree}/ab/seeded_faults.toml"]
+  expect_exit = 1
+  expect_output = ["CATALOGUE INTEGRITY FAILED", "must be exactly 1"]
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/ab"
+    to = "ab"
+
+    [[instrument.failing.mutate]]
+    file = "ab/reference/quota_ledger.py"
+    find = "        if amount < 1:"
+    replace = "        if amount <= 0:"
+
+  [instrument.passing]
+  summary = "the sealed catalogue on its own anchor trees"
+  argv = ["{python}", "{repo}/examples/validation/ab/check_catalogue.py",
+          "--root", "{tree}/ab", "--catalogue", "{tree}/ab/seeded_faults.toml"]
+  expect_exit = 0
+
+    [[instrument.passing.stage]]
+    from = "examples/validation/ab"
+    to = "ab"
+
+  [instrument.blind_spot]
+  kind = "declared"
+  summary = "it makes a MEASUREMENT catalogue's obligations of a SUPPLEMENT catalogue, so probing one control on one arm prints sixteen complaints that are all true of the wrong file, and it refuses every per-arm catalogue including two sealed ones"
+  reason = "PA-06-DF-01 and FI-01-DF-02, both open. Not repaired here: FI-02 measures WITH this harness, and widening or narrowing a check during the measurement that uses it is the forbidden half of the repair rule."
+
+[[instrument]]
+id = "control-property-probe"
+name = "control-property probe (--demonstrate)"
+paths = ["examples/validation/ab/check_catalogue.py", "examples/validation/ab/probe_demonstrations.toml"]
+family = "measurement"
+watches = "that a declared positive control is invisible before its path runs and observable after ONE step, inside the region it claims"
+verdict_surface = "exit 1, THE PROBE FAILED ITS OWN DEMONSTRATION"
+classification = "demonstrated-can-fail"
+note = """
+FI-01's row, and the epic's proof of concept. Against the PARENT probe exactly
+as it shipped, three of four broken controls reported HOLDS -- a no-op, one
+observable outside the port's region, and one not observable in a single step.
+Every HOLDS that probe printed was uninformative, including the one PA-01 cited
+as evidence its repair worked.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the probe made to go soft: forced to answer HOLDS, the demonstration must fail"
+  nodes = ["tests/test_falsifiable_controls.py::test_the_demonstration_FAILS_if_the_probe_goes_soft"]
+  expect_exit = 0
+
+  [instrument.passing]
+  summary = "five controls broken on purpose, each declaring the verdict the probe must return, plus one that works"
+  argv = ["{python}", "{repo}/examples/validation/ab/check_catalogue.py", "--demonstrate",
+          "--catalogue", "{repo}/examples/validation/ab/probe_demonstrations.toml"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["R1 holds"]
+
+[[instrument]]
+id = "port-scoped-control-check"
+name = "declared-control check (--controls)"
+paths = ["examples/validation/ab/check_catalogue.py"]
+family = "measurement"
+watches = "that every mutant declared a positive control actually holds its declared property on its tree"
+verdict_surface = "exit 1 naming the control and the tree"
+classification = "demonstrated-can-fail"
+no_passing_demonstration = """
+There is no green run of this command in the repository today, and that is the
+correct state rather than a gap: PA-M14 is INERT on `reference_ports` and R2
+says it is REPORTED RED, not re-anchored into looking fine. Its only other
+subject is a per-arm supplement catalogue, and those trip PA-06-DF-01's false
+integrity complaints, so a green would have to be manufactured.
+"""
+
+  [instrument.failing]
+  summary = "the repository as it stands: PA-M14 is declared a positive control and cannot be observed in one step on the tree it is declared on"
+  argv = ["{python}", "{repo}/examples/validation/ab/check_catalogue.py", "--controls"]
+  cwd = "{repo}"
+  expect_exit = 1
+  expect_output = ["PA-M14", "reported RED"]
+
+[[instrument]]
+id = "arms-length-match"
+name = "A/B arm length-match and vocabulary check (--arms)"
+paths = ["examples/validation/ab/check_catalogue.py"]
+family = "measurement"
+watches = "that arm C is length-matched to arm B and uses no architectural vocabulary"
+verdict_surface = "exit 1"
+classification = "demonstrated-can-fail"
+note = "`check_arms()` takes no root and resolves the three PROMPT.md files from the script's own location, so its subject cannot be staged; the failing input is therefore the vocabulary probe's own non-vacuity test rather than a staged tree."
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the vocabulary probe run against text that DOES carry architectural vocabulary, so a probe that found nothing anywhere would fail"
+  nodes = ["tests/test_ab_three_arms_and_port_faults.py::test_the_vocabulary_probe_is_not_vacuous"]
+  expect_exit = 0
+
+  [instrument.passing]
+  summary = "the three shipped prompts"
+  argv = ["{python}", "{repo}/examples/validation/ab/check_catalogue.py", "--arms",
+          "--catalogue", "{repo}/examples/validation/ab/seeded_faults.toml"]
+  cwd = "{repo}"
+  expect_exit = 0
+
+[[instrument]]
+id = "suite-verification"
+name = "suite prediction verification (--verify-suite)"
+paths = ["examples/validation/ab/check_catalogue.py"]
+family = "measurement"
+watches = "nominally, whether a mutant's recorded `predicted_suite` matches what the suite actually does"
+verdict_surface = "prints `*** DISAGREES ***`; NEVER adds the disagreement to `problems`"
+classification = "demonstrated-cannot-fail"
+no_failing_demonstration = """
+A PREDICTION DISAGREEMENT CANNOT MAKE IT RED. `verify_suite` prints
+`*** DISAGREES ***` for a wrong prediction and then does not append it to
+`problems`, and the function says so in its own closing disclaimer. Only two
+conditions reach `problems`: a missing anchor tree, and a control run that is
+already red on the UNMUTATED tree. So the one thing the mode is named for is
+the one thing it cannot report, and every `predicted_suite` annotation in the
+catalogue is unchecked prose. Filed as FI-02-DF-01.
+"""
+
+
+[[instrument]]
+id = "control-decision-driver"
+name = "control-decision driver (run_controls.py)"
+paths = ["examples/validation/ab/eval/run_controls.py"]
+family = "measurement"
+watches = "per-instrument control verdicts: a positive control must die, a negative one must survive, and a declared limitation may not erase a demonstrated kill"
+verdict_surface = "exit 1 with controls_red / polarities_with_no_deciding_control"
+classification = "demonstrated-can-fail"
+
+  [instrument.failing]
+  tier = "slow"
+  summary = "the negative control is rewritten into a fault the suite catches, so a control declared to SURVIVE is killed -- the retraction the catalogue itself calls a finding"
+  argv = ["{python}", "{repo}/examples/validation/ab/eval/run_controls.py",
+          "--label", "FI-02-failing", "--tree", "{tree}/ab",
+          "--module-dir", "reference", "--binding", "reference_binding",
+          "--catalogue", "{tree}/ab/eval/controls.toml",
+          "--suite", "{tree}/ab/tests/test_behavior.py",
+          "--out", "{tree}/failing.json"]
+  expect_exit = 1
+  expect_output = ["N01-negative-control-outstanding-id-order"]
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/ab"
+    to = "ab"
+
+    [[instrument.failing.mutate]]
+    file = "ab/eval/controls.toml"
+    find = 'replace = "        return sorted(self._outstanding, reverse=True)  # MUTANT N01: live ids are reported newest-first"'
+    replace = 'replace = "        return []  # BROKEN N01: the negative control now hides every live reservation"'
+
+  [instrument.passing]
+  tier = "slow"
+  summary = "the same controls, unbroken"
+  argv = ["{python}", "{repo}/examples/validation/ab/eval/run_controls.py",
+          "--label", "FI-02-passing", "--tree", "{tree}/ab",
+          "--module-dir", "reference", "--binding", "reference_binding",
+          "--catalogue", "{tree}/ab/eval/controls.toml",
+          "--suite", "{tree}/ab/tests/test_behavior.py",
+          "--out", "{tree}/passing.json"]
+  expect_exit = 0
+
+    [[instrument.passing.stage]]
+    from = "examples/validation/ab"
+    to = "ab"
+
+  [instrument.blind_spot]
+  kind = "pytest"
+  tier = "slow"
+  summary = "IT CANNOT MEASURE A PORTED TREE AT ALL. Its purge is keyed on ARM_MODULE_PREFIXES = ('quota_ledger',), so on a ported tree `domain` and `journal_file` stay cached and every mutant seeded in them runs against unmutated code: 15 of 15 false SURVIVED, no error, looking exactly like a clean measurement."
+  nodes = ["tests/test_instrument_demonstrations.py::TestRunControlsCannotMeasureAPortedTree"]
+  expect_exit = 0
+
+[[instrument]]
+id = "port-swap-driver"
+name = "port fake/real swap driver (run_port_swap.py)"
+paths = ["specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"]
+family = "measurement"
+watches = "per-<control, instrument> role violations across four corpus columns and two suite columns"
+verdict_surface = "PRINTED `control_red` only -- `main()` ends in an unconditional `return 0`"
+classification = "demonstrated-cannot-fail"
+no_failing_demonstration = """
+NOT ON ITS EXIT CODE. `main()` ends `return 0` with no branch above it, so a
+run that finds every control violated on every instrument, and a run that finds
+none, are indistinguishable to any caller that reads the status. It has
+ALREADY happened: `examples/validation/ab/eval/results/fi01/swap-reference_ports.json`
+records PA-M14 as `control_red` and that run exited 0. Its printed verdict CAN
+go red and does; nothing that consumes an exit code can see it. Filed as
+FI-02-DF-02.
+"""
+
+  [instrument.blind_spot]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a red control changes nothing about the exit code, shown against the shipped source"
+  nodes = ["tests/test_instrument_demonstrations.py::test_port_swap_driver_has_no_nonzero_exit_path"]
+  expect_exit = 0
+
+[[instrument]]
+id = "divergence-reachability"
+name = "A/B divergence reachability analysis (divergence.py)"
+paths = ["examples/validation/ab/eval/divergence.py"]
+family = "measurement"
+watches = """
+whether the A/B fixture's two arms CAN give different answers at all, per
+instrument column, and whether any claim that they can is backed by a
+divergence its own run measured
+"""
+verdict_surface = "exit 1, plus a RED line naming every column whose reachability was claimed and not demonstrated"
+classification = "demonstrated-can-fail"
+note = """
+ADDED BY FI-04, WHICH SHIPPED THIS INSTRUMENT AFTER FI-02 COUNTED. Enumerated
+here rather than left out, because the registry's own stated product is that
+NOTHING IS SILENTLY OMITTED, and `test_the_named_instruments_are_all_enumerated`
+compares against a hardcoded list that a later ticket's instrument cannot appear
+in by itself. Filed as FI-04-DF-04: the completeness check is a fixed list, so
+the enumeration decays by one row every time a ticket ships an instrument.
+
+WHY IT IS AN INSTRUMENT AND NOT A REPORT. It produces a verdict about a subject
+-- the fixture -- and returns nonzero on it. `PA-06-DF-08` established that the
+A/B experiment was itself an instrument that could not produce the result which
+would refute it; this is the thing that decides that question, so it is exactly
+the kind of tool R1 is about, and an unfalsifiable version of it would have been
+the sixth entry in this epic's opening table.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  summary = """
+two arms whose swapped columns ran DIFFERENT numbers of compositions -- so
+divergence is reachable in principle -- and whose cells agree anyway. The
+analysis must report CLAIMED_REACHABLE_BUT_UNDEMONSTRATED rather than green.
+The input is synthetic and built in the test, so it cannot stop demonstrating
+when someone changes the fixture.
+"""
+  nodes = ["tests/test_fixture_can_diverge.py::test_divergence_goes_RED_when_it_claims_reachability_its_own_run_cannot_show"]
+  expect_exit = 0
+
+  [instrument.passing]
+  kind = "pytest"
+  summary = "two arms with one composition each and agreeing cells: NULL STILL ENTAILED, no red"
+  nodes = ["tests/test_fixture_can_diverge.py::test_divergence_reports_the_null_still_entailed_when_nothing_diverges"]
+  expect_exit = 0
+
+  [instrument.blind_spot]
+  kind = "pytest"
+  summary = """
+IT CANNOT SEE A DIVERGENCE IT WAS NOT GIVEN A COMPARABLE ROW FOR. The comparable
+row is DECLARED per catalogue row (`wired_by_default`), not derived, so a
+catalogue that declares the wrong one moves the divergence count and nothing
+here objects. That is the same declaration-executability shape FI-01-DF-04
+recorded against PORT_REGION, in the instrument FI-04 shipped, and the failure
+direction is NOT the safe one: a mis-declared comparable row produces a WRONG
+COUNT rather than a refusal.
+"""
+  nodes = ["tests/test_fixture_can_diverge.py::test_the_divergence_count_is_not_inflated_by_arm_b_having_an_extra_row"]
+  expect_exit = 0
+
+[[instrument]]
+id = "scorecard-check"
+name = "scorecard schema and scoring-rule check"
+paths = ["examples/validation/scorecards/score_tools.py"]
+family = "measurement"
+watches = "that every judged card is internally consistent: totals, citations on any score >= 2, a refusal on any 4, no drifted dimension names"
+verdict_surface = "exit 1 with one INVALID line per problem"
+classification = "demonstrated-can-fail"
+
+  [instrument.failing]
+  summary = "a sealed card whose recorded total no longer equals the sum of its dimensions"
+  argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "check", "{tree}/card"]
+  cwd = "{repo}"
+  expect_exit = 1
+  expect_output = ["does not equal the sum of dimensions"]
+
+    [[instrument.failing.stage]]
+    from = "specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-T-p1"
+    to = "card"
+
+    [[instrument.failing.mutate]]
+    file = "card/scorecard.json"
+    find = '"total": 18,'
+    replace = '"total": 19,'
+
+  [instrument.passing]
+  summary = "the same card as sealed"
+  argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "check", "{tree}/card"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["0 problem(s)"]
+
+    [[instrument.passing.stage]]
+    from = "specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-T-p1"
+    to = "card"
+
+[[instrument]]
+id = "scorecard-audit"
+name = "scorecard reading-history audit (R-H1..R-H5)"
+paths = ["examples/validation/scorecards/score_tools.py", "specs/results/scorecards/INSTRUMENT-LOG.toml"]
+family = "measurement"
+watches = "claims whose instrument changed underneath them, sealed cards that were edited, changes whose commit touches none of their declared paths, and reading rules the rubric declares with nothing executing them"
+verdict_surface = "exit 1 with a VIOLATION line per finding"
+classification = "demonstrated-can-fail"
+note = """
+The meta-check is the interesting half: a rubric that declares a reading rule
+with no implementation behind it is itself a violation. That is the
+`declaration_executability_rule` turned on the audit's own documentation, and
+it is what the failing input below exercises.
+"""
+
+  [instrument.failing]
+  summary = "the rubric grows a fifth reading rule and nothing executes it"
+  argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "audit",
+          "--root", "{repo}/specs/results/scorecards", "--rubric", "{tree}/eval_scorecard.md"]
+  cwd = "{repo}"
+  expect_exit = 1
+  expect_output = ["with no check here", "1 violation(s)"]
+
+    [[instrument.failing.stage]]
+    from = "references/eval_scorecard.md"
+    to = "eval_scorecard.md"
+
+    # The id here MUST be one `score_tools.AUDIT_CHECKS` does not implement, or
+    # this demonstration silently stops demonstrating anything. It was written
+    # as `R-H5` at FI-02, and FI-03 then PROMOTED the instability caveat to
+    # exactly that id -- so on the merged branch the input went green and the
+    # audit reported no violation. Caught by
+    # `test_every_fast_demonstration_reproduces` on the merge, which is the
+    # check doing its job. Moved up to a free id; keep it ahead of the
+    # implemented ones.
+    [[instrument.failing.mutate]]
+    file = "eval_scorecard.md"
+    find = "## Reading history\n"
+    replace = "## Reading history\n\n### R-H9 — a reading rule with nothing behind it\n\nFI-02's demonstrated failing input for the audit's own meta-check.\n"
+
+  [instrument.passing]
+  summary = "the rubric as shipped, over the committed ledger"
+  argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "audit",
+          "--root", "{repo}/specs/results/scorecards",
+          "--rubric", "{repo}/references/eval_scorecard.md", "--quiet-ok"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["0 violation(s)"]
+
+  [instrument.blind_spot]
+  kind = "declared"
+  summary = "OPEN and UNVERIFIED findings are printed and then not counted -- only VIOLATION increments the exit code, so a claim whose commit does not resolve, and a repair that declares neither verdicts_moved nor verdicts_unmeasurable, both leave a green audit"
+  reason = "Deliberate in the shipped design (an unverifiable fact is not a violation) and recorded here so a green audit is not read as a clean one."
+
+[[instrument]]
+id = "scorecard-seal"
+name = "scorecard seal (drift refusal)"
+paths = ["examples/validation/scorecards/score_tools.py"]
+family = "measurement"
+watches = "that an already-sealed card's bytes have not changed"
+verdict_surface = "exit 3, REFUSED"
+classification = "demonstrated-can-fail"
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a sealed card edited after sealing"
+  nodes = ["tests/test_score_tools.py::test_editing_a_sealed_card_is_detected"]
+  expect_exit = 0
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the committed ledger against its own seals"
+  nodes = ["tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit"]
+  expect_exit = 0
+
+[[instrument]]
+id = "blinding-sanitiser"
+name = "judge-blinding sanitiser"
+paths = ["specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"]
+family = "measurement"
+watches = "nominally, that no blinded artifact copy leaks which arm it came from"
+verdict_surface = "exit 1, LEAK <file>:<line>"
+classification = "demonstrated-can-fail"
+note = """
+IT CAN FAIL, AND IT CANNOT FAIL ON THE LEAK IT EXISTS FOR. Both are
+demonstrated below, on a three-file fixture this repository owns, so the
+demonstration does not depend on sealed evidence staying where it is.
+"""
+
+  [instrument.failing]
+  summary = "a leak phrased in the one forbidden token that has NO substitution rule"
+  argv = ["{python}", "{tree}/specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"]
+  expect_exit = 1
+  expect_output = ["LEAK", "VERIFY: 1 problem(s)"]
+
+    [[instrument.failing.stage]]
+    from = "specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
+    to = "specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/instruments/fixtures/blinding/arm_t"
+    to = "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b"
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/instruments/fixtures/blinding/arm_u"
+    to = "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_a"
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/instruments/fixtures/blinding/arm_w"
+    to = "specs/results/scorecards/ports-as-adapters/arms/arm_c"
+
+    [[instrument.failing.mutate]]
+    file = "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b/NOTES.md"
+    append = "\nWritten for the ports-as-adapters comparison.\n"
+
+  [instrument.passing]
+  summary = "three artifacts with nothing to leak"
+  argv = ["{python}", "{tree}/specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"]
+  expect_exit = 0
+  expect_output = ["VERIFY: clean"]
+
+    [[instrument.passing.stage]]
+    from = "specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
+    to = "specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
+
+    [[instrument.passing.stage]]
+    from = "examples/validation/instruments/fixtures/blinding/arm_t"
+    to = "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b"
+
+    [[instrument.passing.stage]]
+    from = "examples/validation/instruments/fixtures/blinding/arm_u"
+    to = "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_a"
+
+    [[instrument.passing.stage]]
+    from = "examples/validation/instruments/fixtures/blinding/arm_w"
+    to = "specs/results/scorecards/ports-as-adapters/arms/arm_c"
+
+  [instrument.blind_spot]
+  summary = "THE VERIFICATION IS VACUOUS AGAINST ITS OWN VOCABULARY. `This is ARM B, the hexagonal treatment arm. I was given the HEXAGONAL prompt by HP-02.` -- the exact sentence PA-06-DF-11 measured -- passes CLEAN, because the grep runs AFTER the substitutions and looks for very nearly the set they just removed. The instrument reports zero problems on the leak it was written to catch."
+  argv = ["{python}", "{tree}/specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"]
+  expect_exit = 0
+  expect_output = ["VERIFY: clean"]
+
+    [[instrument.blind_spot.stage]]
+    from = "specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
+    to = "specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
+
+    [[instrument.blind_spot.stage]]
+    from = "examples/validation/instruments/fixtures/blinding/arm_t"
+    to = "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b"
+
+    [[instrument.blind_spot.stage]]
+    from = "examples/validation/instruments/fixtures/blinding/arm_u"
+    to = "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_a"
+
+    [[instrument.blind_spot.stage]]
+    from = "examples/validation/instruments/fixtures/blinding/arm_w"
+    to = "specs/results/scorecards/ports-as-adapters/arms/arm_c"
+
+    [[instrument.blind_spot.mutate]]
+    file = "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b/NOTES.md"
+    append = "\nThis is ARM B, the hexagonal treatment arm. I was given the HEXAGONAL prompt by HP-02 and PA-01; the other arm got the plain one.\n"
+
+[[instrument]]
+id = "thermometer-tripwire"
+name = "thermometer tripwire (nothing gates on the complexity figures)"
+paths = ["tests/test_code_complexity.py"]
+family = "repo-tripwire"
+watches = "that nothing in the repository branches, compares, asserts or exits on a produced-code figure"
+verdict_surface = "pytest assertion naming the file and line"
+classification = "demonstrated-can-fail"
+note = """
+THE ROW THIS TICKET WAS CHARTERED TO FIX. What stood here was a substring grep
+for the literal `code_complexity`: a docstring mention failed it and a reader
+that never wrote the string passed it, and it scanned `specs/**`, which the
+plan declares out of model. It was RED on the epic branch for a prose sentence
+in an unscored markdown block. It is now an AST reference scan plus a taint
+analysis onto conditions, and BOTH DIRECTIONS ARE DEMONSTRATED -- including the
+blind spot, which is real and is not closed.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "an aliased import, a subprocess invocation, and a figure that reaches an if-test, a comparison and a sys.exit"
+  nodes = ["tests/test_instrument_demonstrations.py::TestThermometerTripwire::test_it_reports_a_gate"]
+  expect_exit = 0
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a docstring mention, a comment, and a prose sentence written into markdown -- exactly the shape that was failing it -- report nothing"
+  nodes = ["tests/test_instrument_demonstrations.py::TestThermometerTripwire::test_it_reports_no_gate_for_prose"]
+  expect_exit = 0
+
+  [instrument.blind_spot]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a consumer that reads a previously written complexity JSON and gates on it WITHOUT EVER NAMING THE INSTRUMENT is invisible -- and that is the route the one real reader in this repository takes, so the scan can never be relied on alone"
+  nodes = ["tests/test_instrument_demonstrations.py::TestThermometerTripwire::test_the_blind_spot_is_real"]
+  expect_exit = 0
+
+[[instrument]]
+id = "twin-fixture-integrity"
+name = "EV-01 twin fixture integrity"
+paths = ["examples/validation/check_twins.py"]
+family = "repo-tripwire"
+watches = "that the two twin fixtures differ ONLY in production code"
+verdict_surface = "exit 1 with the diverged digests"
+classification = "demonstrated-can-fail"
+
+  [instrument.failing]
+  summary = "one of the four shared model files drifts, so the twins become two different experiments and every number measured across them is void"
+  argv = ["{python}", "{tree}/check_twins.py"]
+  expect_exit = 1
+  expect_output = ["TWIN INTEGRITY FAILED"]
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/check_twins.py"
+    to = "check_twins.py"
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/ex4_pipeline_coherent/specs"
+    to = "ex4_pipeline_coherent/specs"
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/ex4_pipeline_coherent/tests"
+    to = "ex4_pipeline_coherent/tests"
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/ex5_pipeline_divergent/specs"
+    to = "ex5_pipeline_divergent/specs"
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/ex5_pipeline_divergent/tests"
+    to = "ex5_pipeline_divergent/tests"
+
+    [[instrument.failing.mutate]]
+    file = "ex5_pipeline_divergent/specs/program_model/Pipeline.cfg"
+    append = "\n\\* FI-02: one line of drift\n"
+
+  [instrument.passing]
+  summary = "the twins as committed"
+  argv = ["{python}", "{tree}/check_twins.py"]
+  expect_exit = 0
+  expect_output = ["Twin integrity holds"]
+
+    [[instrument.passing.stage]]
+    from = "examples/validation/check_twins.py"
+    to = "check_twins.py"
+
+    [[instrument.passing.stage]]
+    from = "examples/validation/ex4_pipeline_coherent/specs"
+    to = "ex4_pipeline_coherent/specs"
+
+    [[instrument.passing.stage]]
+    from = "examples/validation/ex4_pipeline_coherent/tests"
+    to = "ex4_pipeline_coherent/tests"
+
+    [[instrument.passing.stage]]
+    from = "examples/validation/ex5_pipeline_divergent/specs"
+    to = "ex5_pipeline_divergent/specs"
+
+    [[instrument.passing.stage]]
+    from = "examples/validation/ex5_pipeline_divergent/tests"
+    to = "ex5_pipeline_divergent/tests"
+
+[[instrument]]
+id = "source-citation-tripwire"
+name = "source-citation tripwire"
+paths = ["tests/test_source_citations.py"]
+family = "repo-tripwire"
+watches = "that every `path:line (anchor)` citation in the scripts and manifests still lands on the line it names"
+verdict_surface = "pytest assertion"
+classification = "no-demonstration-constructible"
+no_failing_demonstration = """
+NOT WITHOUT BREAKING A SHIPPED FILE. Its predicate is written inline in a
+pytest parametrised over a FIXED list resolved from the test file's own
+location, so there is no root a fixture tree could be handed and no factored
+function a demonstration could call. The only red input is a real citation, a
+real manifest or a real YAML document broken on purpose in the tree every other
+measurement in this epic reads. NOT REPAIRED HERE: refactoring a tripwire to be
+demonstrable while it is watching the trees this ticket measures is the
+forbidden half of the repair rule, and the honest move is to count it. Three
+tripwires share this shape -- `test_source_citations.py`,
+`test_spec_yaml_valid.py` and `test_port_declarations.py` -- and each is
+counted separately rather than folded into one row.
+"""
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the repository's own citations"
+  nodes = ["tests/test_source_citations.py"]
+  expect_exit = 0
+
+[[instrument]]
+id = "spec-yaml-tripwire"
+name = "spec YAML parses under both readers"
+paths = ["tests/test_spec_yaml_valid.py"]
+family = "repo-tripwire"
+watches = "that every YAML under specs/ loads under PyYAML AND under the repository's own simple parser"
+verdict_surface = "pytest assertion"
+classification = "no-demonstration-constructible"
+note = "The epic's plan notes name this one directly: ports-as-adapters spent its whole length with open/close ticket unrunnable because only the first reader was checked."
+no_failing_demonstration = """
+NOT WITHOUT BREAKING A SHIPPED FILE. Its predicate is written inline in a
+pytest parametrised over a FIXED list resolved from the test file's own
+location, so there is no root a fixture tree could be handed and no factored
+function a demonstration could call. The only red input is a real citation, a
+real manifest or a real YAML document broken on purpose in the tree every other
+measurement in this epic reads. NOT REPAIRED HERE: refactoring a tripwire to be
+demonstrable while it is watching the trees this ticket measures is the
+forbidden half of the repair rule, and the honest move is to count it. Three
+tripwires share this shape -- `test_source_citations.py`,
+`test_spec_yaml_valid.py` and `test_port_declarations.py` -- and each is
+counted separately rather than folded into one row.
+"""
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the repository's own specs/ tree"
+  nodes = ["tests/test_spec_yaml_valid.py"]
+  expect_exit = 0
+
+[[instrument]]
+id = "manifest-self-records-tripwire"
+name = "manifest self-records tripwire"
+paths = ["tests/test_spec_manifest_records.py"]
+family = "repo-tripwire"
+watches = "the manifest's own prose counts against the module beside it, and that every declared port is attached to an action"
+verdict_surface = "pytest assertion"
+classification = "no-demonstration-constructible"
+no_failing_demonstration = """
+Its assertions are written against the three committed trees directly, with no
+predicate factored out that a fixture could be handed, so the only way to show
+it red is to break a real manifest -- and the shipped trees are the subject of
+every other measurement in this epic. NOT REPAIRED HERE: refactoring a tripwire
+to be demonstrable while it is watching the trees this ticket measures is the
+forbidden half of the repair rule. The same reasoning applies to
+`tests/test_scaffold_skill_root.py` and `tests/test_port_declarations.py`,
+which are enumerated separately below.
+"""
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the three committed trees"
+  nodes = ["tests/test_spec_manifest_records.py"]
+  expect_exit = 0
+
+[[instrument]]
+id = "skill-root-tripwire"
+name = "scaffolded skill-root resolution tripwire"
+paths = ["tests/test_scaffold_skill_root.py"]
+family = "repo-tripwire"
+watches = "that emitted adapters find THIS checkout's .skill-manager home rather than the operator's"
+verdict_surface = "pytest assertion"
+classification = "demonstrated-can-fail"
+note = "Already falsifiable as shipped: it executes the emitted bytes in subprocesses and asserts WHICH home answered, so a wrong home is a real failing input it constructs itself."
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the seven shipped cases, several of which are negative"
+  nodes = ["tests/test_scaffold_skill_root.py"]
+  expect_exit = 0
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "an explicit override naming a home that is NOT this checkout's: the emitted adapter refuses instead of falling through to whichever home happens to answer"
+  nodes = [
+    "tests/test_scaffold_skill_root.py::test_a_wrong_explicit_override_refuses_even_when_the_module_is_importable",
+    "tests/test_scaffold_skill_root.py::test_an_explicit_override_that_is_wrong_refuses_instead_of_falling_through",
+  ]
+  expect_exit = 0
+
+[[instrument]]
+id = "port-declaration-tripwire"
+name = "port declaration falsifiability (MF-026 F-9)"
+paths = ["tests/test_port_declarations.py"]
+family = "repo-tripwire"
+watches = "that no declared port target is degenerate -- a `**` that matches everything is not a declaration"
+verdict_surface = "pytest assertion"
+classification = "no-demonstration-constructible"
+note = "This tripwire is itself an S2 instrument -- it exists precisely to reject a criterion nothing can fail -- and it does not satisfy S2 itself."
+no_failing_demonstration = """
+NOT WITHOUT BREAKING A SHIPPED FILE. Its predicate is written inline in a
+pytest parametrised over a FIXED list resolved from the test file's own
+location, so there is no root a fixture tree could be handed and no factored
+function a demonstration could call. The only red input is a real citation, a
+real manifest or a real YAML document broken on purpose in the tree every other
+measurement in this epic reads. NOT REPAIRED HERE: refactoring a tripwire to be
+demonstrable while it is watching the trees this ticket measures is the
+forbidden half of the repair rule, and the honest move is to count it. Three
+tripwires share this shape -- `test_source_citations.py`,
+`test_spec_yaml_valid.py` and `test_port_declarations.py` -- and each is
+counted separately rather than folded into one row.
+"""
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the repository's declared ports"
+  nodes = ["tests/test_port_declarations.py"]
+  expect_exit = 0
+
+[[instrument]]
+id = "complexity-ledger"
+name = "MF-019 complexity ledger (close-path gate)"
+paths = ["scripts/complexity_ledger.py"]
+family = "workflow"
+watches = "that a complexity increase carries a justification, a decrease carries a verified refactor, and MF-020's transition-diff red flag carries a diff"
+verdict_surface = "SystemExit on the close path: 'close refused by the complexity ledger'"
+classification = "demonstrated-can-fail"
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a ledger entry left with its scaffolded TEMPLATE sentinel, and a decrease whose refactor is UNVERIFIED"
+  nodes = ["tests/test_complexity_ledger.py"]
+  expect_exit = 0
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a complete entry"
+  nodes = ["tests/test_complexity_ledger.py"]
+  expect_exit = 0
+
+[[instrument]]
+id = "close-promotion-preconditions"
+name = "close / promotion preconditions"
+paths = ["scripts/spec_evolution.py"]
+family = "workflow"
+watches = "current == desired, ticket status, append-only history, and that promotion never deletes a specs/current path the ticket was not given"
+verdict_surface = "SystemExit with the refusal"
+classification = "demonstrated-can-fail"
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "MF-021: a promotion that would delete a current/ path the ticket never received"
+  nodes = ["tests/test_promotion_preserves_current.py"]
+  expect_exit = 0
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "an ordinary close"
+  nodes = ["tests/test_spec_evolution.py"]
+  expect_exit = 0
+
+[[instrument]]
+id = "external-channel-enforcement"
+name = "MF-015 external channel enforcement"
+paths = ["scripts/testgraph_channels.py", "scripts/export_testgraph_cases.py"]
+family = "workflow"
+watches = "that an external binding declares a channel, does not transitively import the production package, and is not wired all-doubles"
+verdict_surface = "ChannelEnforcementError -> SystemExit from the runner and the exporter"
+classification = "demonstrated-can-fail"
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a binding with no channel, and one whose adapter reaches the production package"
+  nodes = ["tests/test_testgraph_channels.py"]
+  expect_exit = 0
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a correctly channelled external binding"
+  nodes = ["tests/test_export_testgraph_cases.py"]
+  expect_exit = 0
+
+[[instrument]]
+id = "spec-unit-adapter-conformance"
+name = "spec-unit adapter conformance (enforce_projection)"
+paths = ["specs/current/production_adapters.py", "specs/current/adapter_case_runtime.py"]
+family = "workflow"
+watches = "each modelled action's real CLI behaviour against the TLA+ after-state"
+verdict_surface = "AssertionError: 'projected after-state disagrees with the model'"
+classification = "demonstrated-can-fail"
+note = "The single largest refusal surface in the repository and the easiest to omit from an enumeration: 24 adapter classes behind one comparator."
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a projected after-state that disagrees with the model, and a stutter step that changed state"
+  nodes = ["tests/test_case_adapter_runtime.py::test_assert_case_result_per_field_fails_on_checked_field"]
+  expect_exit = 0
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the committed adapters against the committed model"
+  nodes = ["tests/test_case_adapter_runtime.py"]
+  expect_exit = 0
+
+[[instrument]]
+id = "case-modules-validate"
+name = "case-module manifest validator"
+paths = ["scripts/case_modules.py"]
+family = "workflow"
+watches = "the `case_modules:` block: that an `extends:` resolves and a declared module is well formed"
+verdict_surface = "exit 1 on an error, exit 2 on a missing manifest"
+classification = "demonstrated-can-fail"
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a case module whose `extends:` names a module that does not exist"
+  nodes = ["tests/test_case_modules.py"]
+  expect_exit = 0
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a well-formed block, and an absent block (which is deliberately not a problem)"
+  nodes = ["tests/test_case_modules.py"]
+  expect_exit = 0
+
+[[instrument]]
+id = "test-graph-nodes"
+name = "Test Graph validation nodes"
+paths = ["test_graph/sources/"]
+family = "workflow"
+watches = "the real CLI end to end: install, scaffold, start ticket, spec units, close, cleanup, and a forced failure"
+verdict_surface = "a failing verdict reported to the graph"
+classification = "no-demonstration-constructible"
+no_failing_demonstration = """
+NOT IN THIS ENVIRONMENT. Running them needs the Test Graph toolchain -- gradle,
+a JVM and JBang -- which this checkout does not provision, so no demonstration
+constructed here would be re-runnable by the next reader. Worth recording
+anyway: `test_graph/sources/spec_workflow_force_failure.py` IS a demonstrated
+failing input, shipped, deliberately, as a negative-control node whose whole
+purpose is to prove the graph can go red at all. It is the only instrument in
+this repository that shipped one before FI-01.
+"""
+
+
+[[instrument]]
+id = "ticket-state-agreement"
+name = "ticket-state agreement between the plan and ticket.yaml"
+paths = ["scripts/start_ticket.py", "scripts/new_ticket_workflow.py"]
+family = "workflow"
+watches = "nothing -- THIS INSTRUMENT DOES NOT EXIST"
+verdict_surface = "none"
+classification = "no-instrument-exists"
+no_failing_demonstration = """
+THE PROPERTY IS UNWATCHED, WHICH IS WHY IT IS IN THIS TABLE. After a clean
+`start_ticket.py FI-02`, `specs/tickets/FI-02/ticket.yaml` carries
+`"status": "active"` while `specs/desired_program_model/ticket_plan.yaml` still
+says `status.active_ticket: null` -- and the file an agent reads first is the
+one that is wrong. `ticket.yaml`'s `status` is written once by the scaffolder
+and read by NOTHING: `spec_evolution.py` reads only `seed_manifest`, and
+`tla_spec_dev.py:active_ticket_id()` reads only the plan. No test compares
+them. An enumeration of instruments that omitted the ones that should exist and
+do not would be flattering itself. PA-02-DF-02, open.
+"""
+
+
+# ===========================================================================
+# ADDED BY FI-05, AFTER FI-02 COUNTED
+#
+# Same reason FI-04 added `divergence-reachability` and the same defect behind
+# it: `test_the_named_instruments_are_all_enumerated` asserts `required <=
+# enumerated` against a HARDCODED list, so it catches a rename dropping a row
+# and CANNOT catch an instrument that was never added -- a new one is not in
+# `required` and the subset relation stays true. FI-04-DF-04, confirmed. These
+# two are registered by hand for exactly that reason.
+# ===========================================================================
+
+[[instrument]]
+id = "dispatch-record"
+name = "dispatched-prompt record (dispatch_record.py verify)"
+paths = ["examples/validation/ab/dispatch_record.py"]
+family = "measurement"
+watches = """
+whether the bytes a round says it dispatched to an arm are still the bytes in
+the evidence tree, and whether the on-disk prompt they were built from is still
+the file the arm was dispatched from
+"""
+verdict_surface = "exit 1, plus a RED line naming which of the three recorded claims stopped being true"
+classification = "demonstrated-can-fail"
+note = """
+PA-06-DF-10: the previous round's length-match headline -- "+3.8%, inside the
+declared +/-10% tolerance", 0 of 109 lines carrying architectural vocabulary --
+was measured on a file that was NOT the prompt the arm received. Dispatched with
+four unrecorded additions it is +18.1%, outside the tolerance, with 4 of 124
+hits, two of them paths that told the arm whose whole job was architectural
+silence what the epic was called.
+
+WHY IT IS AN INSTRUMENT. It watches a subject (the evidence tree and the prompt
+it cites), produces a verdict, and returns nonzero. An unfalsifiable version of
+it would have been the natural response to PA-06-DF-10 -- write the bytes down
+and trust them -- and that is precisely the shape this epic exists to refuse.
+
+R1 IS ALSO SATISFIED FROM THE COMMAND LINE, not only from pytest:
+`dispatch_record.py demonstrate` drives four mutations of a self-consistent
+record (artifact edited, source changed after dispatch, declared delta drifted,
+artifact missing), requires a DISTINCT red reason for each, and requires the
+unmutated record green in every run. The row below uses the SHIPPED
+ports-as-adapters record so the demonstration is over real evidence too.
+"""
+
+  [instrument.failing]
+  summary = """
+the shipped ports-as-adapters record, staged and then tampered with: one line
+appended to the preserved artifact after the fact. The record still claims those
+bytes are what was sent.
+"""
+  argv = ["{python}", "{repo}/examples/validation/ab/dispatch_record.py",
+          "verify", "--dir", "{tree}/d"]
+  cwd = "{repo}"
+  expect_exit = 1
+  expect_output = ["HAS BEEN EDITED", "no longer recoverable"]
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/ab/dispatch/ports-as-adapters"
+    to = "d"
+
+    [[instrument.failing.mutate]]
+    file = "d/arm_c.dispatched.md"
+    append = "\nTAMPERED AFTER DISPATCH\n"
+
+  [instrument.passing]
+  summary = "the same record, untouched: digests match, the delta matches, the source is unchanged"
+  argv = ["{python}", "{repo}/examples/validation/ab/dispatch_record.py",
+          "verify", "--dir", "{repo}/examples/validation/ab/dispatch/ports-as-adapters"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["evidence is self-consistent", "DISPATCH DELTA", "RECONSTRUCTION"]
+
+  [instrument.blind_spot]
+  summary = """
+IT CANNOT SEE A DISPATCH THAT WAS NEVER RECORDED. An empty evidence directory
+verifies GREEN. The checker's whole subject is the rows it was given, so an arm
+dispatched with no row at all is invisible to it, and the exit code a reader
+watches says nothing is wrong.
+
+THE FAILURE DIRECTION IS NOT THE SAFE ONE, and this is not hypothetical: it is
+the state ARMS A AND B ARE IN RIGHT NOW. Only arm C has a row, and that row is a
+reconstruction. Arm B's sealed 105 unique content lines -- the denominator of the
+entire length match -- is a number about the file on disk with no artifact
+saying that is what arm B received. FI-05-DF-02, MAJOR, mine and open.
+
+The verdict is not silent about it -- `verify` prints "NO DISPATCH RECORD" and
+`check_catalogue.py --arms` without `--dispatch-dir` prints that every number
+below it came from the bytes on disk -- but a PRINTED WARNING IS NOT A RED, and
+counting it as one is how a control goes soft. Declared as an inability, per R2.
+"""
+  argv = ["{python}", "{repo}/examples/validation/ab/dispatch_record.py",
+          "verify", "--dir", "{tree}/empty"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["NO DISPATCH RECORD"]
+
+    [[instrument.blind_spot.stage]]
+    from = "examples/validation/instruments/fixtures/prediction_seal"
+    to = "empty/placeholder"
+
+[[instrument]]
+id = "prediction-seal"
+name = "seal-time prediction check (check_prediction_seal.py)"
+paths = ["examples/validation/check_prediction_seal.py"]
+family = "measurement"
+watches = """
+whether a predictions file about to be SEALED contains a no-kill prediction that
+a measurement already contradicted -- a record whose introducing commit is an
+ancestor of the commit that seals the file
+"""
+verdict_surface = "exit 1, plus an ALREADY MEASURED block naming the cell, the record and how many records carry it"
+classification = "demonstrated-can-fail"
+note = """
+PA-06-DF-03: `PREDICTIONS-PA.md`'s N05 predicted ordering stays at zero on every
+generated corpus. A kill table committed before the file existed records
+`M09-negative-control-ledger-order / corpus-whole = KILLED`, and
+`examples/validation/ab/eval/controls.toml` had already RETIRED M09 as a negative
+control saying it dies under exactly those corpora. N05 was scored FAIL. NOBODY
+HAD TO RUN ANYTHING TO KNOW IT WOULD BE.
+
+WHY IT IS AN INSTRUMENT. It watches a subject (a predictions file plus the
+record as it stood at the seal) and returns nonzero on it. It is used ONCE, at
+authoring time, on a file that is not yet sealed -- which is the only moment
+anything about a predictions file can be fixed.
+
+ITS FAILING DEMONSTRATION IS THE REAL RECORD, not a fixture, and cannot decay:
+`PREDICTIONS-PA.md` is SEALED, so the subject of the demonstration is
+byte-frozen by the same rule that made the finding. `--demonstrate` additionally
+re-runs it with N05's section removed and requires the report to go clean, so
+the red is attributable to that row rather than to the checker disliking the
+file.
+"""
+
+  [instrument.failing]
+  summary = """
+the sealed PREDICTIONS-PA.md, as written. N05 must be reported ALREADY MEASURED
+against the pre-dated kill tables and M09's retirement.
+"""
+  argv = ["{python}", "{repo}/examples/validation/check_prediction_seal.py",
+          "{repo}/examples/validation/PREDICTIONS-PA.md"]
+  cwd = "{repo}"
+  expect_exit = 1
+  expect_output = [
+    "ALREADY MEASURED",
+    "M09-negative-control-ledger-order / corpus-whole = KILLED",
+    "RETIRED as a negative control",
+    "NOT SEALABLE AS WRITTEN",
+  ]
+
+  [instrument.passing]
+  summary = """
+a no-kill prediction whose mutant appears in no kill table anywhere. The fixture
+is synthetic on purpose: a passing demonstration pinned to a real prediction
+stops demonstrating the moment somebody measures its subject.
+"""
+  argv = ["{python}", "{repo}/examples/validation/check_prediction_seal.py",
+          "{repo}/examples/validation/instruments/fixtures/prediction_seal/unmeasured.md"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["No prediction is contradicted"]
+  expect_absent = ["ALREADY MEASURED", "UNPARSED"]
+
+  [instrument.blind_spot]
+  summary = """
+IT CANNOT CHECK A PREDICTION THAT NAMES NO MUTANT AND NO COLUMN. A row
+predicting "zero cells, on every row of the table" has no cell to look up, so it
+is reported UNPARSED and THE EXIT CODE IS 0.
+
+The failure direction is green-looking silence. In the only real file this has
+ever been run against it reaches 1 of the 3 no-kill rows: N05 is checked, N03
+and N07 are not, and a reader watching only the exit code would take a
+one-problem report as covering all three. FI-05-DF-03, mine and open.
+
+NOT REPAIRED BY WIDENING THE PARSER, deliberately. Expanding "every row of the
+table" into a cell list would have the checker inventing the subject the sealer
+declined to state, which is a worse failure than saying it cannot check. The
+UNPARSED block exists so the gap is printed rather than assumed, and the row is
+declared here as an inability per R2 rather than counted as coverage.
+"""
+  argv = ["{python}", "{repo}/examples/validation/check_prediction_seal.py",
+          "{repo}/examples/validation/instruments/fixtures/prediction_seal/unlookupable.md"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["UNPARSED", "silence here is not a pass"]
+  expect_absent = ["ALREADY MEASURED"]
+
+
+# ===========================================================================
+# ENUMERATED AND CLASSIFIED AS NOT INSTRUMENTS
+#
+# Each of these was checked rather than assumed. They are here so that the
+# count above has a denominator a reader can audit, and because "we looked and
+# it refuses nothing" is a different statement from "we did not look".
+# ===========================================================================
+
+[[instrument]]
+id = "fitness-functions"
+name = "self-configured fitness functions"
+paths = ["scripts/fitness_functions.py"]
+family = "not-an-instrument"
+watches = "user-declared rules over the complexity descriptor"
+verdict_surface = "none -- advisory text inside the descriptor report"
+classification = "not-an-instrument"
+no_failing_demonstration = "Its own docstring: 'Never raises; never influences any exit code.' A fired rule, an invalid rule and an unparseable rules file all render as advisory prose and `analyze complexity` still exits 0. There are no built-in rules."
+
+[[instrument]]
+id = "budgets"
+name = "budget loader"
+paths = ["scripts/budgets.py"]
+family = "not-an-instrument"
+watches = "the manifest's budgets block"
+verdict_surface = "none -- warns on stderr and falls back to defaults"
+classification = "not-an-instrument"
+no_failing_demonstration = "A missing manifest, a missing block, a missing key and a non-numeric value each print `warning:` and fall back to DEFAULT_BUDGETS. It is the SUPPLIER of thresholds to three real gates, so a silent fallback here is load-bearing -- which is why `tests/test_spec_yaml_valid.py` exists as a separate tripwire and is enumerated above."
+
+[[instrument]]
+id = "skill-feedback"
+name = "skill feedback retro"
+paths = ["scripts/skill_feedback.py"]
+family = "not-an-instrument"
+watches = "whether declared findings were filed"
+verdict_surface = "none -- prints 'feedback NOT yet filed' and proceeds"
+classification = "not-an-instrument"
+no_failing_demonstration = "An unfilled retro with unfiled findings does not fail the close; it prints a nag. `--no-skill-feedback` disables even that."
+
+[[instrument]]
+id = "case-modules-coverage"
+name = "case-module coverage report"
+paths = ["scripts/case_modules.py"]
+family = "not-an-instrument"
+watches = "which actions a corpus covers"
+verdict_surface = "none -- exit 0 whenever the report could be produced"
+classification = "not-an-instrument"
+no_failing_demonstration = "Its own comment: 'Uncovered actions are a finding to read, not a build failure.' Exit 2 only means it could not measure."
+
+[[instrument]]
+id = "scorecard-index"
+name = "scorecard index renderer"
+paths = ["examples/validation/scorecards/score_tools.py"]
+family = "not-an-instrument"
+watches = "nothing"
+verdict_surface = "none -- always returns 0"
+classification = "not-an-instrument"
+no_failing_demonstration = "Pure renderer. It writes INDEX.md and prints it."

@@ -178,7 +178,65 @@ TWO ROWS ADDED TO ONE TABLE, no line of logic. `SUBJECTS` gains `arm_c` (the thi
 
 ## Era 8 — after `PA-06-third-arm-subject`
 
-_(no rows measured in this era)_
+| run | round | arm | pass | D1 | D2 | D3 | D4 | D5 | total | commit | note |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `20260806-v1-T-p1` | falsifiable-instruments-rescore-v1 | T | 1 | 3 | 2 | 4 | 3 | 3 | **15**/20 | `51fe73d` | — |
+| `20260806-v1-T-p2` | falsifiable-instruments-rescore-v1 | T | 2 | 3 | 2 | 4 | 4 | 3 | **16**/20 | `51fe73d` | — |
+| `20260806-v2-T-p1` | falsifiable-instruments-rescore-v2 | T | 1 | 3 | 2 | 4 | 3 | 3 | **15**/20 | `51fe73d` | — |
+| `20260806-v2-T-p2` | falsifiable-instruments-rescore-v2 | T | 2 | 3 | 2 | 4 | 4 | 4 | **17**/20 | `51fe73d` | — |
+| `20260806-v1-U-p1` | falsifiable-instruments-rescore-v1 | U | 1 | 3 | 2 | 2 | 3 | 3 | **13**/20 | `51fe73d` | — |
+| `20260806-v1-U-p2` | falsifiable-instruments-rescore-v1 | U | 2 | 3 | 2 | 2 | 4 | 3 | **14**/20 | `51fe73d` | — |
+| `20260806-v2-U-p1` | falsifiable-instruments-rescore-v2 | U | 1 | 3 | 2 | 2 | 4 | 3 | **14**/20 | `51fe73d` | — |
+| `20260806-v2-U-p2` | falsifiable-instruments-rescore-v2 | U | 2 | 3 | 2 | 2 | 4 | 4 | **15**/20 | `51fe73d` | — |
+| `20260806-v1-W-p1` | falsifiable-instruments-rescore-v1 | W | 1 | 3 | 2 | 1 | 3 | 4 | **13**/20 | `51fe73d` | — |
+| `20260806-v1-W-p2` | falsifiable-instruments-rescore-v1 | W | 2 | 3 | 2 | 1 | 4 | 4 | **14**/20 | `51fe73d` | — |
+| `20260806-v2-W-p1` | falsifiable-instruments-rescore-v2 | W | 1 | 3 | 2 | 1 | 3 | 4 | **13**/20 | `51fe73d` | — |
+| `20260806-v2-W-p2` | falsifiable-instruments-rescore-v2 | W | 2 | 3 | 2 | 1 | 3 | 4 | **13**/20 | `51fe73d` | — |
+
+## The same artifact, scored twice — declared movements
+
+R-H5. Each row names two cards and is **re-derived from them on every `audit`**, so it cannot go stale the way a sentence can. `readable` is false whenever either end does not record what its judge DID — because four dimension-points once moved on byte-identical trees and the mechanism was the judging practice, not the artifact.
+
+| movement | dim | from | to | points | readable |
+|---|---|---|---|---|---|
+| `fi03-pa06-to-v1-T-p1-D1` | D1 | `20260805-T-p1` (4) | `20260806-v1-T-p1` (3) | **-1** | **no** |
+| `fi03-pa06-to-v1-T-p1-D4` | D4 | `20260805-T-p1` (4) | `20260806-v1-T-p1` (3) | **-1** | **no** |
+| `fi03-pa06-to-v1-T-p1-D5` | D5 | `20260805-T-p1` (4) | `20260806-v1-T-p1` (3) | **-1** | **no** |
+| `fi03-pa06-to-v1-T-p2-D5` | D5 | `20260805-T-p2` (4) | `20260806-v1-T-p2` (3) | **-1** | **no** |
+| `fi03-pa06-to-v1-U-p1-D1` | D1 | `20260805-U-p1` (4) | `20260806-v1-U-p1` (3) | **-1** | **no** |
+| `fi03-pa06-to-v1-U-p1-D4` | D4 | `20260805-U-p1` (4) | `20260806-v1-U-p1` (3) | **-1** | **no** |
+| `fi03-pa06-to-v1-U-p1-D5` | D5 | `20260805-U-p1` (4) | `20260806-v1-U-p1` (3) | **-1** | **no** |
+| `fi03-pa06-to-v1-U-p2-D5` | D5 | `20260805-U-p2` (4) | `20260806-v1-U-p2` (3) | **-1** | **no** |
+| `fi03-pa06-to-v1-W-p2-D4` | D4 | `20260805-W-p2` (3) | `20260806-v1-W-p2` (4) | **+1** | **no** |
+| `fi03-rerun-to-v1-T-p2-D4` | D4 | `20260804-rerun-Q-p2` (2) | `20260806-v1-T-p2` (4) | **+2** | **no** |
+| `fi03-rerun-to-v1-T-p1-D5` | D5 | `20260804-rerun-Q-p1` (4) | `20260806-v1-T-p1` (3) | **-1** | **no** |
+| `fi03-rerun-to-v1-U-p1-D4` | D4 | `20260804-rerun-P-p1` (2) | `20260806-v1-U-p1` (3) | **+1** | **no** |
+| `fi03-rerun-to-v1-U-p2-D4` | D4 | `20260804-rerun-P-p2` (2) | `20260806-v1-U-p2` (4) | **+2** | **no** |
+| `fi03-rerun-to-v1-U-p2-D5` | D5 | `20260804-rerun-P-p2` (2) | `20260806-v1-U-p2` (3) | **+1** | **no** |
+| `fi03-rerun-to-pa06-T-p1-D1` | D1 | `20260804-rerun-Q-p1` (3) | `20260805-T-p1` (4) | **+1** | **no** |
+| `fi03-rerun-to-pa06-T-p1-D4` | D4 | `20260804-rerun-Q-p1` (3) | `20260805-T-p1` (4) | **+1** | **no** |
+| `fi03-rerun-to-pa06-T-p2-D4` | D4 | `20260804-rerun-Q-p2` (2) | `20260805-T-p2` (4) | **+2** | **no** |
+| `fi03-rerun-to-pa06-T-p2-D5` | D5 | `20260804-rerun-Q-p2` (3) | `20260805-T-p2` (4) | **+1** | **no** |
+| `fi03-rerun-to-pa06-U-p1-D1` | D1 | `20260804-rerun-P-p1` (3) | `20260805-U-p1` (4) | **+1** | **no** |
+| `fi03-rerun-to-pa06-U-p1-D4` | D4 | `20260804-rerun-P-p1` (2) | `20260805-U-p1` (4) | **+2** | **no** |
+| `fi03-rerun-to-pa06-U-p2-D4` | D4 | `20260804-rerun-P-p2` (2) | `20260805-U-p2` (4) | **+2** | **no** |
+| `fi03-rerun-to-pa06-U-p1-D5` | D5 | `20260804-rerun-P-p1` (3) | `20260805-U-p1` (4) | **+1** | **no** |
+| `fi03-rerun-to-pa06-U-p2-D5` | D5 | `20260804-rerun-P-p2` (2) | `20260805-U-p2` (4) | **+2** | **no** |
+| `fi03-pa06-to-v2-T-p1-D1` | D1 | `20260805-T-p1` (4) | `20260806-v2-T-p1` (3) | **-1** | **no** |
+| `fi03-pa06-to-v2-T-p1-D4` | D4 | `20260805-T-p1` (4) | `20260806-v2-T-p1` (3) | **-1** | **no** |
+| `fi03-pa06-to-v2-T-p1-D5` | D5 | `20260805-T-p1` (4) | `20260806-v2-T-p1` (3) | **-1** | **no** |
+| `fi03-pa06-to-v2-U-p1-D1` | D1 | `20260805-U-p1` (4) | `20260806-v2-U-p1` (3) | **-1** | **no** |
+| `fi03-pa06-to-v2-U-p1-D5` | D5 | `20260805-U-p1` (4) | `20260806-v2-U-p1` (3) | **-1** | **no** |
+| `fi03-rerun-to-v2-T-p2-D4` | D4 | `20260804-rerun-Q-p2` (2) | `20260806-v2-T-p2` (4) | **+2** | **no** |
+| `fi03-rerun-to-v2-T-p1-D5` | D5 | `20260804-rerun-Q-p1` (4) | `20260806-v2-T-p1` (3) | **-1** | **no** |
+| `fi03-rerun-to-v2-T-p2-D5` | D5 | `20260804-rerun-Q-p2` (3) | `20260806-v2-T-p2` (4) | **+1** | **no** |
+| `fi03-rerun-to-v2-U-p1-D4` | D4 | `20260804-rerun-P-p1` (2) | `20260806-v2-U-p1` (4) | **+2** | **no** |
+| `fi03-rerun-to-v2-U-p2-D4` | D4 | `20260804-rerun-P-p2` (2) | `20260806-v2-U-p2` (4) | **+2** | **no** |
+| `fi03-rerun-to-v2-U-p2-D5` | D5 | `20260804-rerun-P-p2` (2) | `20260806-v2-U-p2` (4) | **+2** | **no** |
+| `fi03-v1-to-v2-T-p2-D5` | D5 | `20260806-v1-T-p2` (3) | `20260806-v2-T-p2` (4) | **+1** | **no** |
+| `fi03-v1-to-v2-U-p1-D4` | D4 | `20260806-v1-U-p1` (3) | `20260806-v2-U-p1` (4) | **+1** | **no** |
+| `fi03-v1-to-v2-U-p2-D5` | D5 | `20260806-v1-U-p2` (3) | `20260806-v2-U-p2` (4) | **+1** | **no** |
+| `fi03-v1-to-v2-W-p2-D4` | D4 | `20260806-v1-W-p2` (4) | `20260806-v2-W-p2` (3) | **-1** | **no** |
 
 ## Claims about this example that are not scorecard rows
 
@@ -205,6 +263,10 @@ A ledger sentence is a measurement too and goes stale the same way. Status is `c
 | `goal-cases-drive-ports-missed-at-pa06` | **current** | `8878cd5` 2026-08-05 | across_time | GOAL-cases-drive-ports: MISSED on the metric it names. The count of agreeing comparable cells did not move -- 64 of 64 on every pairing. The attribution half is MET and arm C is what earns it. |
 | `goal-complexity-measurable-met` | **current** | `8878cd5` 2026-08-05 | across_time | GOAL-complexity-measurable: MET. scripts/code_complexity.py runs over produced Python and separates all three arms on 11 figures. It is NOT a claim that any arm got simpler. |
 | `pa06-scores-moved-on-unchanged-artifacts` | **current** | `8878cd5` 2026-08-05 | across_time | Four dimension-points moved on artifacts that did not change by a byte: arm A D4 2/2 -> 4/4 and D5 3/2 -> 4/4, arm B D4 3/2 -> 4/4, between EVAL-RERUN and PA-06. |
+| `fi03-stable-against-the-adjacent-row` | **current** | `51fe73d` 2026-08-06 | across_time | FI-03: re-scoring the three sealed PA-06 artifacts moves at most ONE dimension-point per judge on every dimension, in both the version 1 and the version 2 arm. |
+| `fi03-d4-and-d5-cannot-carry-a-delta` | **current** | `51fe73d` 2026-08-06 | across_time | FI-03: against EVAL-RERUN -- the same bytes, the same card version, one round further back than PA-06 -- D4 moves 2 dimension-points per judge in BOTH arms and D5 moves 2 in the version 2 arm. GOAL-scorecard-carries-a-delta is MISSED on D4 and D5. |
+| `fi03-d2-d3-zero-on-sixty-judge-scores` | **current** | `51fe73d` 2026-08-06 | across_time | FI-03: D2 and D3 moved ZERO dimension-points on all 60 judge-scores measured -- two fresh judge pairs, two card versions, three artifacts, two sealed baselines. D1 moved zero against EVAL-RERUN in both arms. |
+| `fi03-practice-explains-the-d4-movement` | **current** | `51fe73d` 2026-08-06 | within_run | FI-03: the arm whose recorded judging practice matches PA-06's disclosed practice is the arm whose scores match PA-06's -- 5 dimension-points of total movement against the packet-only arm's 9, and one v2 judge reproduced PA-06's sealed pass-2 row exactly on 15 of 15 dimension-scores. |
 
 > **`guard-relaxation-3-of-3`.** A REAL MECHANISM GAIN, and the reason it survives R-H3 is structural rather than lucky: the 0 and the 3 were measured IN THE SAME RUN, on two instruments, not at two points in time. `delta_basis = "within_run"` is what says so. The historical 0 of 3 / 0 of 3 / 0 of 4 figures are era-crossing and are NOT what carries this claim; the within-run contrast is. The ledger re-affirmed it at 21da25b after EVAL-SUPPRESS, explicitly: "GOAL-catch-bugs is untouched by this -- its met verdict is carried by corpus-neg's guard-relaxation result, whose controls are green and independently reproduced."
 
@@ -251,3 +313,13 @@ A ledger sentence is a measurement too and goes stale the same way. Status is `c
 > **`goal-complexity-measurable-met`.** The baseline was "NO SUCH INSTRUMENT EXISTS", which is why D2 measured 2 for both arms from all four judges last epic. The instrument now exists, exits 0 on every input, refuses nothing, gates nothing, and tells three implementations of one spec apart. AND THE FIGURES SUPPORT NO SIMPLIFICATION CLAIM FOR ANY ARM (PA-02-DF-01, confirmed on a third arm). Like for like on role=code the ported arm is LARGER on code_lines 202/151/78, public_surface 25/20/11, modules 4/1/1 and classes 6/4/2, and FLAT on branch_points 11/10/10, worst callable 4/4/4 and depth 1/1/1. The smallest artifact on every size figure is arm C, the control that got no architectural guidance at all. The one figure separating the DESIGNS rather than their size is where the effects sit: branch_points_in_effectful_modules 1 against 10 and 10. ALL SIX CARDS SCORED D2 = 2 and both judges gave the same reason: anchor 3 needs a simplification with before AND after figures, and a from-scratch implementation of one spec has no before. One judge filed it as a finding about the card -- "D2 contributed nothing to this comparison and will contribute nothing to the next one under the same task design."
 
 > **`pa06-scores-moved-on-unchanged-artifacts`.** ITEM THREE ON THE LEDGER'S OWN "EVIDENCE WE ARE FOOLING OURSELVES" LIST -- a score moving without an artifact moving -- and it happened. Arms A and B are the sealed EVAL-RERUN trees, unedited; the blind copies PA-06 judged are proved AST-identical to them with docstrings blanked. DO NOT READ IT AS IMPROVEMENT, and R-H1 is why: the two rows sit in different eras (`PA-03-corpus-port`, `PA-04-port-swap-columns`), the rubric gained R-H1..R-H4 at PA-05, and the judges are different agents scoring from a different packet -- EVAL-RERUN gave each judge ONE artifact's source and PA-06 gave each all three. THE MECHANISM IS IDENTIFIABLE AND IT IS NOT THE RUBRIC. Both PA-06 judges wrote, unprompted and independently, that they SEEDED THEIR OWN FAULTS and ran them against each author's own suite instead of scoring the packet, and both said that is what moved a score. D4 anchor 4 requires a demonstrated catch; a judge who executes one can award it and a judge reading a table cannot. So the card's top anchors are sensitive to JUDGING PRACTICE, which nothing in the rubric mandates and nothing records. NOTE WHICH DIMENSIONS DID NOT MOVE: D2 and D3, the two about the artifact's shape, moved zero points on either arm. That is what makes this a finding about the judging rather than about the artifacts.
+
+> **[FI-03-N-01] RE-DERIVED BY A LATER ROUND, INDEPENDENTLY, AND IT REPRODUCES — D1, D4, D5, beside `pa06-scores-moved-on-unchanged-artifacts`.** FI-03 re-derived this claim from the sealed cards with a committed script rather than from PA-06's prose, and it reproduces exactly: FOUR judge-scores moved by 2 between EVAL-RERUN and PA-06 -- arm A D4 on both judges, arm A D5 on pass 2, arm B D4 on pass 2 -- with a summed |movement| of 13 over 20 judge-scores, and D2 and D3 at zero. The "four dimension-points" in the epic's baseline is that set. The claim stands. What FI-03 adds is that the range is not closed: arm A's D4 has since taken a third and a fourth value on the same bytes.
+
+> **`fi03-stable-against-the-adjacent-row`.** TRUE AND NOT THE ANSWER TO THE GOAL, and the two must not be separated. The target is met against the ADJACENT sealed row and missed against the row before it -- see `fi03-d4-and-d5-cannot-carry-a-delta`. Quoting this claim without that one is quoting the flattering half of one measurement. Summed |movement|: 9 over 30 judge-scores for the v1 arm, 5 over 30 for the v2 arm, against the baseline's 13 over 20.
+
+> **`fi03-d4-and-d5-cannot-carry-a-delta`.** Arm A's D4 across four independent pairs of same-family blind judges on byte-identical code: 2/2 (EVAL-RERUN), 4/4 (PA-06), 3/4 (FI-03 v1), 4/4 (FI-03 v2). A two-point range with no artifact underneath it. The two dimensions fail for DIFFERENT reasons and the difference is the useful part. D4 is an UNRECORDED PRACTICE: its anchor 4 asks for a behavior-breaking change shown to be caught, and a judge who runs one awards it while a judge reading a kill table does not. That now has a mechanism -- version 2 records the practice and gates the anchor on it. D5 is an AMBIGUOUS ANCHOR: both version 2 judges executed their own faults and still split 3 against 4 on the same artifact, over whether an artifact's own disclosure of a limitation is "a result unflattering to the thing being scored". No mechanism was shipped for that one.
+
+> **`fi03-d2-d3-zero-on-sixty-judge-scores`.** THE LOAD-BEARING HALF. D3 = 4 / 2 / 1 across the three artifacts has now been produced by FOUR independent pairs of judges on the same bytes, two of whom executed the swap themselves and two of whom did not. `ports-as-adapters` rested its headline on D3 and that decision is vindicated by measurement rather than by argument. D1's only movement is against PA-06, and both instances are PA-06's pass-1 judge giving a 4 where every other judge in three rounds gave a 3. SELF-IMPROVEMENT.md lists "D1 crossing 3 on any example" as a thing that has never happened; PA-06 recorded it happening; IT HAS NOT REPLICATED.
+
+> **`fi03-practice-explains-the-d4-movement`.** `delta_basis = "within_run"` because the two arms were measured in ONE session, on the same artifacts, on the same day, from the same model, differing in the card and in nothing else -- so no era boundary applies to the contrast between them. The comparison to PA-06 that each arm carries is across_time and is recorded separately above. PA-06-DF-06 diagnosed the mechanism as judging practice and could NOT test it, because nothing recorded the practice. This is the test, and the diagnosis holds. What it does not buy: recording the practice explains the instability and does not remove it, and cannot remove it retroactively -- every movement from a version 1 row has one end that never said what its judge did.

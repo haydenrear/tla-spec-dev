@@ -2294,6 +2294,719 @@ findings:
       measured to be the three names the constant carries.
     disposition: open
 
+  - id: FI-02-DF-01
+    found_by: "FI-02 (the enumeration itself: what does each mode CLAIM to watch, and can it report it?)"
+    found_at_commit: "51fe73d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/check_catalogue.py"]
+    summary: >-
+      `--verify-suite` CANNOT REPORT THE ONE THING IT IS NAMED FOR. A mutant
+      whose recorded `predicted_suite` disagrees with what the suite actually
+      does prints `*** DISAGREES ***` and is then NOT appended to `problems`,
+      so the run exits 0. Only two conditions reach `problems`: a missing
+      anchor tree, and a control run that is already red on the UNMUTATED tree
+      -- neither of which is a prediction.
+
+      Every `predicted_suite`, `predicted_corpus_whole`, `predicted_corpus_neg`
+      and `predicted_corpus_port` annotation in `seeded_faults.toml` is
+      therefore UNCHECKED PROSE. They read like commitments -- and PA-06's
+      `PREDICTIONS-PA.md` protocol treats commitments-before-dispatch as the
+      thing that makes a measurement honest -- but nothing compares them to a
+      measured cell and fails.
+
+      THIS IS THE SAME SHAPE AS `PA-06-DF-07`(b) AND `PA-06-DF-11`, in a third
+      place: an instrument whose verification runs and whose verification
+      cannot come out wrong. It is the fourth mode of the same script; the
+      first three (integrity, `--controls`, `--demonstrate`) all can and do go
+      red, which is why this one was not noticed.
+    reproduction: >-
+      `sed -n '764,865p' examples/validation/ab/check_catalogue.py` -- the
+      `*** DISAGREES ***` branch at ~834-839 prints and does not append, and the
+      closing comment at ~860-864 says so. Contrast the two `problems.append`
+      calls in the same function. Enumerated in
+      `examples/validation/instruments/instruments.toml` as
+      `suite-verification`, classification `demonstrated-cannot-fail`.
+    evidence:
+      - "examples/validation/ab/check_catalogue.py -- verify_suite"
+      - "examples/validation/ab/seeded_faults.toml -- every predicted_* annotation"
+      - "examples/validation/instruments/instruments.toml -- suite-verification"
+    why_out_of_scope: >-
+      FI-02's slice is the ENUMERATION plus the tripwire it was explicitly
+      chartered to fix. Making `--verify-suite` refuse a wrong prediction adds a
+      refusal to an instrument this ticket is measuring with, during the
+      measurement, which is both halves of the forbidden act at once. It is also
+      not obviously the right repair: a prediction that turns out wrong is a
+      FINDING about the predictor, and the project's own doctrine is that
+      findings are reported, not gated on.
+    suggested_fix: >-
+      Do not make it refuse. Make it REPORT a count -- "N of M recorded
+      predictions disagreed with the measured cell", by mutant id, in the
+      artifact -- and let a ticket read it. If a gate is ever wanted, it belongs
+      to the round's protocol (a prediction sealed before dispatch that later
+      disagrees is a scorecard input), not to the fixture harness.
+    blast_radius: >-
+      Every prediction annotation in the shipped catalogue and in the five
+      per-arm catalogues under `specs/results/`. No sealed kill number depends
+      on it -- predictions are read by humans -- but PA-06 scored a protocol
+      whose commitments nothing verified.
+    disposition: open
+
+  - id: FI-02-DF-02
+    found_by: "FI-02 (the enumeration: what is this instrument's verdict SURFACE, and who can see it?)"
+    found_at_commit: "51fe73d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"]
+    summary: >-
+      `run_port_swap.py` PRINTS A RED CONTROL AND EXITS 0. `main()` ends in an
+      unconditional `return 0` with no branch above it, so a run in which every
+      declared control was violated on every instrument and a run in which none
+      was are INDISTINGUISHABLE to anything reading the status.
+
+      NOT HYPOTHETICAL, AND ALREADY IN THE RECORD. FI-01's own artifact
+      `examples/validation/ab/eval/results/fi01/swap-reference_ports.json`
+      carries a non-empty `control_red` -- PA-M14, "this instrument executed 294
+      accepting Reserve case(s) and the cell is SURVIVED, not KILLED" -- and
+      that run exited 0. Its sibling driver `run_controls.py` exits 1 for the
+      same condition, so two drivers over the same catalogue disagree about
+      whether a red control is worth a status. PA-04-DF-02's two-driver hazard,
+      third occurrence.
+
+      Nothing in `tests/` asserts an exit code for this driver: the 14 tests in
+      `tests/test_control_role_is_executed.py` unit-test `control_verdict`,
+      `red_controls` and `render_controls` and never call `main()`.
+    reproduction: >-
+      `python3 -c "import ast; ..."` over `main()` -- every `Return` is the
+      constant 0 and there is no `Raise`; executed as
+      `tests/test_instrument_demonstrations.py::test_port_swap_driver_has_no_nonzero_exit_path`.
+      Cross-check `examples/validation/ab/eval/results/fi01/swap-reference_ports.json`
+      for the non-empty `control_red`.
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py -- main"
+      - "examples/validation/ab/eval/results/fi01/swap-reference_ports.json -- control_red"
+      - "examples/validation/instruments/instruments.toml -- port-swap-driver"
+    why_out_of_scope: >-
+      The driver lives under `specs/results/`, which this epic's plan declares
+      `out_of_model` -- recorded evidence -- and it is the SAFE driver FI-01
+      directed FI-02..FI-06 to use on ported subjects while `run_controls.py` is
+      unusable there. Changing the exit code of the one driver the rest of the
+      epic must measure with, in the ticket that is enumerating it, is a change
+      to a measurement instrument during the measurement.
+    suggested_fix: >-
+      `return 1 if report.control_red or report.unmutated_control_failed else 0`,
+      taken by a ticket that is not measuring with it, together with a test that
+      drives `main()` and asserts the code -- the absence of which is why this
+      lasted a whole epic. Note it is a behaviour change for every recorded
+      invocation in `RESULTS.md`, so the commit that makes it should re-state
+      which sealed runs would have exited non-zero.
+    blast_radius: >-
+      Every port-scoped measurement this epic makes, and every one
+      ports-as-adapters made. No number is wrong; what is wrong is that a caller
+      reading the status cannot tell a floor from a measurement.
+    disposition: open
+
+  - id: FI-02-DF-03
+    found_by: "FI-02 (self-audit: which of the tripwires I enumerated could I NOT construct a failing input for?)"
+    found_at_commit: "51fe73d"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph:
+        - "tests/test_source_citations.py"
+        - "tests/test_spec_yaml_valid.py"
+        - "tests/test_spec_manifest_records.py"
+        - "tests/test_port_declarations.py"
+      workflow: []
+    summary: >-
+      FOUR REPOSITORY-LEVEL TRIPWIRES SHARE ONE SHAPE THAT MAKES THEM
+      UNDEMONSTRABLE, and it is a shape, not four coincidences. Each writes its
+      predicate INLINE inside a pytest parametrised over a file list resolved
+      from the test module's own `__file__`. There is no root a fixture tree can
+      be handed and no factored function a demonstration can call, so the only
+      input that turns any of them red is a real citation, a real manifest, a
+      real YAML document or a real port target broken on purpose in the tree
+      every other measurement in this epic reads.
+
+      They are almost certainly correct. That is the point: NOBODY HAS EVER SEEN
+      ANY OF THEM GO RED FOR THE REASON IT EXISTS, and `PA-06-DF-05` is what
+      that costs -- the thermometer tripwire was the fifth member of this family
+      and it was wrong in both directions for an entire epic before anything
+      made it produce a verdict on a controlled input.
+
+      Contrast `tests/test_scaffold_skill_root.py`, which is in the same family
+      and DOES satisfy S2: it executes the emitted bytes in a subprocess against
+      a home that is deliberately wrong and asserts the refusal. The repair is
+      cheap and it is already demonstrated in this repository.
+    reproduction: >-
+      `grep -n '^def \|Path(__file__)' tests/test_source_citations.py
+      tests/test_spec_yaml_valid.py tests/test_spec_manifest_records.py
+      tests/test_port_declarations.py` -- in each, the file list is derived from
+      the module's own location and the assertion body is inline. Enumerated in
+      `examples/validation/instruments/instruments.toml` with classification
+      `no-demonstration-constructible`.
+    evidence:
+      - "examples/validation/instruments/instruments.toml -- source-citation-tripwire, spec-yaml-tripwire, manifest-self-records-tripwire, port-declaration-tripwire"
+      - "tests/test_scaffold_skill_root.py -- the same family, done demonstrably"
+    why_out_of_scope: >-
+      Refactoring four tripwires that are watching the trees this ticket is
+      measuring, inside the ticket that is measuring them, is the forbidden half
+      of the repair rule -- and FI-02's product is the COUNT, which a repair
+      would quietly reduce. R2 says an instrument that cannot be shown to fail
+      is reported as such, and four of them are.
+    suggested_fix: >-
+      One change each, and no new gate: lift the predicate into a function
+      taking a root (`problems_for(root)`), keep the existing repo-wide test as
+      a one-line caller, and add a demonstration that hands it a fixture tree
+      with the defect seeded. `tests/test_scaffold_skill_root.py` is the shape
+      to copy. Do it in a ticket that is not measuring with them.
+    blast_radius: >-
+      Nothing today; all four are green on the shipped tree. The exposure is
+      that a wrong one is invisible until an unrelated ticket trips it, which is
+      exactly how PA-06-DF-05 surfaced -- from the suite channel, once, in four
+      rounds, and it fired at the measuring ticket.
+    disposition: open
+  - id: FI-03-DF-01
+    found_by: "FI-03 (reproducing PA-06's judging conditions)"
+    found_at_commit: "51fe73d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/ports-as-adapters/measure/"]
+    summary: >-
+      NO ROUND OF THIS PROJECT HAS EVER PRESERVED THE PROMPT IT DISPATCHED ITS
+      JUDGES WITH, SO NO RE-SCORE CAN SEPARATE A CHANGE OF JUDGEMENT FROM A
+      CHANGE OF DISPATCH.
+
+      `UNBLINDING.md` records what each judge was GIVEN and what each was
+      FORBIDDEN, in prose, and that is genuinely more than the two rounds before
+      it recorded. What no round has is the text. `measure/` holds
+      `make_blind_copies.py` and `build_evidence_packets.py` -- the packet
+      builders -- and no dispatch prompt at all, for HP-06, EVAL-RERUN or PA-06.
+
+      This is load-bearing for the epic's first goal. FI-03 measures cross-round
+      movement on byte-identical trees, and it reconstructed its dispatch from
+      `UNBLINDING.md`'s prose. Every point of movement it reports therefore
+      carries an unmeasurable component: the difference between PA-06's prompt
+      and FI-03's reconstruction of it. The artifact is verified byte-identical;
+      THE INSTRUCTION IS NOT, AND CANNOT BE.
+    reproduction: >-
+      `ls specs/results/scorecards/*/measure/` -- packet builders, no prompt.
+      `grep -rl "You are a blind judge" specs/` before FI-03 -> nothing.
+      FI-03's own dispatch is committed at
+      `specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/JUDGE-DISPATCH-v{1,2}.md`,
+      which is the first one in the repository.
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/UNBLINDING.md -- 'What each judge could and could not see'"
+      - "specs/results/scorecards/ports-as-adapters/measure/"
+      - "specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/JUDGE-DISPATCH-v1.md"
+    why_out_of_scope: >-
+      The missing prompts are PA-06's and EVAL-RERUN's and they no longer exist
+      to commit; nothing FI-03 can write recovers them. Making prompt
+      preservation a REQUIREMENT of the scaffold -- for example, `scaffold`
+      writing a `DISPATCH.md` skeleton beside `UNBLINDING.md` and `check
+      --require-filled` refusing an unfilled one -- is a change to the scaffold's
+      contract and to what a workflow close demands, which is a design decision
+      for the owner and larger than this ticket. FI-03 preserved its own instead.
+    suggested_fix: >-
+      `score_tools.py scaffold` emits `DISPATCH.md` beside `UNBLINDING.md`, and
+      the round fills it with the text it actually sent before dispatching. A
+      round that reconstructs its dispatch afterwards is writing a description,
+      not a record -- which is exactly what `UNBLINDING.md` already is.
+    blast_radius: >-
+      Every cross-round comparison in `SELF-IMPROVEMENT.md`, permanently, for
+      the rounds already sealed. Forward, only until a dispatch is preserved.
+    disposition: open
+  - id: FI-03-DF-02
+    found_by: "FI-03 (both v1 judges cited the section, unprompted)"
+    found_at_commit: "51fe73d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py", "references/eval_scorecard.md"]
+    summary: >-
+      THE RUBRIC DIGEST IS BLIND TO THE PART OF THE RUBRIC THAT MOVED THE JUDGES
+      MOST. IT IS IDENTICAL ACROSS A CHANGE THAT DEMONSTRABLY CHANGED JUDGING
+      BEHAVIOUR.
+
+      `load_rubric` digests `{dimensions, scoring_rules}` and nothing else. The
+      "Known instability of this card" section was added to
+      `references/eval_scorecard.md` at `d3f483d`, AFTER PA-06's judges scored at
+      `8878cd5`. The parsed digest is `sha256:e33638087c4191da` on both sides, so
+      `check`'s drift note -- which exists to stop a card being judged against a
+      bar that has since changed -- reports nothing.
+
+      It is not a hypothetical exposure. **Both** of FI-03's v1 judges named that
+      section, independently and unprompted, as their reason for declining to
+      seed their own faults: "the rubric records that PA-06's inflation came from
+      judges executing breaks themselves. I did not execute one." A paragraph
+      invisible to the digest changed the practice of every judge who read it,
+      which is the single variable this whole ticket is about.
+
+      Note what this does NOT say. The digest is right to exclude prose from the
+      SCAFFOLD-TIME check, because a rubric whose every typo re-scaffolds the
+      round is unusable. What is missing is any record that the file changed at
+      all between two rounds that are being compared.
+    reproduction: >-
+      `git show 8878cd5:references/eval_scorecard.md | grep -c "Known instability"`
+      -> 0. `git show d3f483d:references/eval_scorecard.md | grep -c` -> 1.
+      Load both with `score_tools.load_rubric` and print `digest` -> identical.
+      Then read the two v1 judges' REJECTED sections in
+      `specs/results/scorecards/falsifiable-instruments-rescore-v1/`.
+    evidence:
+      - "references/eval_scorecard.md -- R-H5, formerly 'Known instability of this card'"
+      - "examples/validation/scorecards/score_tools.py -- load_rubric, the digest over {dimensions, scoring_rules}"
+      - "specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/BYTE-IDENTITY.md section 4"
+    why_out_of_scope: >-
+      FI-03 is a measurement and the digest is one of the instruments it is
+      measuring with. Changing what the digest covers mid-ticket would alter the
+      instrument between the v1 and v2 arms of the very comparison being run, and
+      would re-scaffold six cards that judges were already filling. The
+      `measurement_rule` forbids exactly this: file findings, fix nothing during
+      a measurement.
+
+      FI-03 did add an `anchors_digest`, which is a DIFFERENT thing -- it proves
+      the version bump kept the anchors. It does not close this.
+    suggested_fix: >-
+      Record the rubric's whole-file sha256 on every card beside the parsed
+      digest, and have `audit` report two cards being compared whose file digests
+      differ but whose parsed digests agree -- as `PROSE-DRIFT`, an OPEN rather
+      than a violation, since it is a prompt to go and look. The alternative,
+      folding prose into the parsed digest, makes every editorial pass invalidate
+      every skeleton, and would have made `audit` red for a typo.
+    blast_radius: >-
+      Every comparison across `d3f483d`, which is every comparison between
+      `ports-as-adapters` and anything after it -- including FI-03's own v1 arm,
+      whose result must be read with this attached. Also HP-06 vs EVAL-RERUN if
+      the rubric moved between them.
+    disposition: open
+  - id: FI-03-DF-03
+    found_by: "FI-03 blind judge, v1 pass 1 (asked what it REJECTED)"
+    found_at_commit: "51fe73d"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/ports-as-adapters/measure/build_evidence_packets.py"]
+    summary: >-
+      THE EVIDENCE PACKET CONTRADICTS ITSELF ABOUT ITS OWN CONTROLS, ON TWO
+      ADJACENT LINES, IDENTICALLY IN ALL THREE PACKETS.
+
+      `EVIDENCE.md` prints:
+
+        control coverage: {... "positive": {"deciding": [], "declared":
+        ["M07-positive-control-wrong-hold"], "green": false}}
+        polarities with no deciding control: []
+
+      The first line says the positive polarity has NO deciding control. The
+      second says no polarity lacks one. A judge reading the second line and not
+      the first would treat every `SURVIVED` cell in the port-scoped columns as a
+      measurement rather than as the floor PA-06 itself declares it to be.
+
+      A judge caught it and took the conservative reading, and said so in its
+      card. That is the channel working, not the packet working.
+    reproduction: >-
+      `grep -n -A1 '"green": false' specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md`
+      -> lines 263-264. Same at 260-261 in `artifact_U` and `artifact_W`.
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:263-264"
+      - "specs/results/scorecards/ports-as-adapters/blind/artifact_U/EVIDENCE.md:260-261"
+      - "specs/results/scorecards/ports-as-adapters/blind/artifact_W/EVIDENCE.md:260-261"
+    why_out_of_scope: >-
+      The three packets are inside `specs/results/scorecards/ports-as-adapters/`,
+      which is SEALED EVIDENCE that FI-03's own judges scored. Editing them would
+      change the subject of the measurement mid-measurement and break the
+      byte-identity this ticket spent its effort establishing. The producer,
+      `build_evidence_packets.py`, is also outside FI-03's implementation scope.
+    suggested_fix: >-
+      In `build_evidence_packets.py`, derive "polarities with no deciding
+      control" from the same `deciding` lists the line above prints, rather than
+      from a separate computation, and add a test that seeds a polarity with an
+      empty `deciding` and asserts the summary line names it. Correct the sealed
+      packets with a `[[note]]` in `INSTRUMENT-LOG.toml` rather than an edit.
+    blast_radius: >-
+      Any judge of PA-06's or FI-03's rounds who read the summary line instead of
+      the block. Both FI-03 v1 judges independently took the conservative
+      reading; PA-06's judges are not on record either way.
+    disposition: open
+  - id: FI-03-DF-04
+    found_by: "FI-03 (trying to declare its own instrument change and finding it could not)"
+    found_at_commit: "51fe73d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/INSTRUMENT-LOG.toml", "examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      `INSTRUMENT-LOG.toml` CONFLATES TWO DIFFERENT INSTRUMENTS, AND ONE OF THEM
+      HAS NEVER BEEN RECORDED IN IT AT ALL.
+
+      Every one of the eight `[[change]]` entries is a change to the KILL-TABLE
+      instrument -- `run_controls.py`, the corpus columns, the port-swap columns.
+      None is a change to THE SCORECARD, though the card is the instrument every
+      scorecard row is measured on. The rubric gained R-H1..R-H4 at PA-05 and the
+      "Known instability" section at the close of `ports-as-adapters`, and
+      neither is in the log.
+
+      FI-03 bumped `scorecard_version` to 2 and tried to declare it. It cannot,
+      because `affects` scopes a change by EXAMPLE and every row here is
+      `ab_quota_ledger`. Declaring it turns six unrelated `current` claims --
+      `ab-cells-identical-64-pa06`, both `goal-port-reach` clauses,
+      `goal-cases-drive-ports-missed-at-pa06`, `goal-complexity-measurable-met`
+      -- into SUPERSEDED-UNMARKED violations, even though not one of them was
+      measured on the scorecard and not one is capable of being affected by it.
+
+      **So the log's own rule forces a choice between recording a real
+      instrument change and keeping `audit` green** -- and "keeping audit green"
+      is how the last three gates in this project died.
+    reproduction: >-
+      Add a `[[change]]` with `affects = ["ab_quota_ledger"]`, a date after
+      `8878cd5` and `paths = ["references/eval_scorecard.md"]`, then run
+      `python3 examples/validation/scorecards/score_tools.py audit`. Six
+      SUPERSEDED-UNMARKED violations, none of them about the scorecard.
+    evidence:
+      - "specs/results/scorecards/INSTRUMENT-LOG.toml -- all eight [[change]] entries"
+      - "examples/validation/scorecards/score_tools.py -- audit_rh3, the `rel` filter is `affects` only"
+      - "references/eval_scorecard.md -- Version history, the card change FI-03 could not declare"
+    why_out_of_scope: >-
+      The fix is a schema change to the log plus a change to `audit_rh3`'s
+      scoping, in the ticket whose whole job was to MEASURE stability. Changing
+      what `audit` scopes over, mid-measurement, is the `measurement_rule`'s
+      forbidden act. The alternative available to FI-03 -- re-affirming six
+      claims about kill tables it never looked at, in order to make its own
+      paperwork green -- is worse: `reaffirmed_at` is supposed to mean somebody
+      went and looked.
+    suggested_fix: >-
+      Give `[[change]]` an `instrument` field (`kill-table` / `scorecard` /
+      ...), default `kill-table` so nothing already recorded moves, and have
+      `audit_rh3` straddle a claim only against changes to the instrument the
+      claim declares it was measured on. A scorecard-row claim then straddles a
+      card change and a kill-table claim does not, which is what R-H1 means by
+      "an unchanged instrument" in the first place.
+    blast_radius: >-
+      Every scorecard row in this repository is on the far side of at least one
+      unrecorded card change, and nothing says so. FI-03 measured one such
+      crossing directly and it is worth 1 to 2 dimension-points per judge.
+    disposition: open
+
+  - id: FI-04-DF-01
+    found_by: "FI-04"
+    found_at_commit: "4697687"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "FALSIFIABLE-INSTRUMENTS-EPIC.md"
+        - "examples/validation/ab/README.md"
+        - "specs/results/scorecards/ports-as-adapters/RESULTS.md"
+    summary: >-
+      THE SENTENCE THREE EPICS HAVE CARRIED FORWARD IS CONTRADICTED BY EVIDENCE
+      THAT HAS BEEN SEALED IN THIS REPOSITORY SINCE `b3a0199` AND WAS NEVER
+      COMPUTED.
+
+      `FALSIFIABLE-INSTRUMENTS-EPIC.md` section 2 restates as settled: "On this
+      fixture the generated corpus is still worse than a suite a competent
+      engineer writes in an afternoon", and supports it with "no generated
+      instrument has a unique kill" plus "`suite-fake` strictly dominates
+      `corpus-port-swap:fake`".
+
+      BOTH SUPPORTING FACTS ARE TRUE AND BOTH ARE ABOUT CATALOGUES WRITTEN BY
+      THE AUTHOR OF THE SUITE. On the only catalogues in this repository
+      authored BLIND -- `blind_author_catalogue_arm_{a,b}.toml`, written by an
+      agent that had never seen the fixture's catalogue, harness or reference --
+      the comparison REVERSES INTO A TIE WITH A KILL EACH WAY:
+
+        seeded/arm A   generated union 10 of 11, suite 10 of 11, IDENTICAL SETS
+        seeded/arm B   generated union 10 of 11, suite 10 of 11, IDENTICAL SETS
+        blind/arm A    generated union 11 of 15, suite 11 of 15, and the sets
+                       DIFFER: BA-P11 killed by corpus-whole, corpus-slice-res,
+                       map-silent and map-checking, and MISSED BY THE SUITE;
+                       BA-P05 killed by the suite and missed by all six
+                       generated instruments
+        blind/arm B    the same shape: BA-Q11 generated-only, BA-Q05 suite-only
+
+      `BA-P11`/`BA-Q11` is `identity_reuse` -- reservation ids numbered from the
+      count of live reservations, so an id is handed out again once its
+      predecessor is resolved and a later commit can silently overwrite a live
+      hold. That is not a toy fault.
+
+      THE ROUND THAT PRODUCED THE NUMBERS REPORTED THE COUNTS AND NOT THE SETS.
+      `hexagonal-prompting-rerun/GOAL-catch-bugs/README.md` says "the generated
+      corpora TIE the hand-written suite on a catalogue nobody tuned", which is
+      true and is the union count. A union count cannot tell "the same eleven"
+      from "eleven each, differing by one in each direction", and the difference
+      is the whole funding question.
+
+      SO THE DOMINANCE RESULT IS A PROPERTY OF WHO WROTE THE CATALOGUE. It holds
+      where the catalogue author wrote the suite and it reverses on the one
+      catalogue that controls for that. It has been re-derivable at `b3a0199`,
+      `f052d3c`, `da075ce`, `fcdbe6f`, `ccba215` and `51fe73d`, and
+      `examples/validation/ab/eval/generator_vs_suite.py` PASSES ITS TEST ON THE
+      PARENT COMMIT with nothing but the script copied in. Nobody ran the
+      arithmetic.
+    reproduction: >-
+      `python3 examples/validation/ab/eval/generator_vs_suite.py --out /tmp/x.json`
+      at this tip, and the same script copied into `git archive fcdbe6f` or
+      `git archive 51fe73d`, which prints the same blind rows. Also
+      `tests/test_fixture_can_diverge.py::test_the_dominance_result_is_a_property_of_who_wrote_the_catalogue`,
+      which is one of exactly three tests in that file that PASS on the parent.
+    evidence:
+      - "examples/validation/ab/eval/results/fi04/generator-vs-suite.json"
+      - "specs/results/scorecards/hexagonal-prompting-rerun/GOAL-catch-bugs/kill-table-blind-author-arm-a.json"
+      - "specs/results/scorecards/hexagonal-prompting-rerun/GOAL-catch-bugs/kill-table-blind-author-arm-b.json"
+      - "specs/results/scorecards/hexagonal-prompting-rerun/measure/blind_author_catalogue_arm_a.toml -- BA-P11"
+    why_out_of_scope: >-
+      FI-04 is not authorised to rewrite the epic document or the predecessor's
+      sealed RESULTS.md, and both carry the sentence. The correction belongs
+      where the epic's own claims are settled. FI-04 reports the arithmetic,
+      ships the script that re-derives it, and pins it with a test.
+    suggested_fix: >-
+      Stop quoting the sentence without its qualifier. Where it appears, say
+      which catalogue it is measured on. And re-run the `blind_author` channel
+      against the PORT columns, which is the one comparison that has never been
+      made blind: `suite-fake` strictly dominating `corpus-port-swap:fake` on
+      `reference_ports` is the strongest anti-generator number in the project
+      and it is measured on a tree the epic authored, with mutants by the same
+      author, exactly the configuration that produced IDENTICAL SETS on the
+      seeded catalogue and reversed on the blind one.
+    blast_radius: >-
+      Any decision to defund generation taken on the strength of the sentence.
+      It does NOT rescue the `[ports.*]` binding machinery, which still has zero
+      unique kills anywhere and is still strictly dominated on `reference_ports`
+      -- those are separate claims and this finding does not soften them.
+    disposition: settled
+    disposition_note: >-
+      SETTLED BY THE EPIC OWNER AT `501eacd`, before FI-04 merged. The owner
+      re-derived the blind comparison from the sealed tables INDEPENDENTLY of
+      this ticket's script, got the identical result, and corrected
+      `FALSIFIABLE-INSTRUMENTS-EPIC.md` section 2 in place -- recording there
+      that the owner had written the sentence into this epic's own charter as
+      settled fact, which is the read-a-row-forward-without-checking-it failure
+      the document exists to warn about, committed inside the document.
+
+      THE SUMMARY ABOVE IS LEFT AS WRITTEN and describes the tree at
+      `found_at_commit`, not the tree today: section 2 no longer restates the
+      sentence as settled. Editing a finding's summary to match a repair it
+      caused is how a caught defect stops being visible.
+
+      WHAT IS NOT SETTLED, and the owner is carrying it as a SEPARATE claim
+      rather than folding it in: the one kill that saves the generator, `BA-P11`,
+      dies to `corpus-whole`, `corpus-slice-res`, `map-silent` and
+      `map-checking` -- and to NEITHER the negative corpus NOR the port corpus,
+      the two mechanisms the last two epics actually bought. "Keep funding the
+      corpus" and "stop funding the [ports.*] binding machinery" are two claims
+      and the evidence for the first is not evidence for the second.
+
+  - id: FI-04-DF-02
+    found_by: "FI-04"
+    found_at_commit: "4697687"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"
+    summary: >-
+      `run_port_swap.py` REPORTS "no control's declared role was violated on any
+      instrument that reached it" WHEN THE RUN CONTAINS NO CONTROL AT ALL.
+
+      FI-04's first three runs used catalogues that declared no `control_role`
+      on any row. `control_red` was `[]`, `render_controls` printed the
+      reassuring sentence, and the exit code was 0. Nothing distinguishes "every
+      control passed" from "there were no controls", which is R2's own failure
+      mode inside the driver whose job is to report R2 failures.
+
+      This is adjacent to `FI-02-DF-02` (the same driver prints a red control
+      and exits 0) and is a DIFFERENT defect: that one is about the exit code,
+      this one is about the sentence being vacuously true.
+    reproduction: >-
+      Run `examples/validation/ab/eval/run_arm_swap.py` with any subject whose
+      `catalogues` list contains only `adapter_faults_arm_*.toml`, i.e. without
+      the per-arm control files the shipped table now includes. The driver
+      prints the no-violation sentence over a run with zero controls.
+    evidence:
+      - "examples/validation/ab/eval/run_arm_swap.py -- report_control_state, and the docstring paragraph recording the first run"
+    why_out_of_scope: >-
+      `run_port_swap.py` is sealed evidence under `specs/results/` and is the
+      driver whose cells FI-04 is quoting. Changing it during the measurement is
+      the fix-during-a-measurement this project forbids, and FI-04's own numbers
+      would be the first casualty.
+    suggested_fix: >-
+      One line where `render_controls` already branches: if no row in the run
+      declares a `control_role`, print RED and say the run has no control rather
+      than that no control was violated. The same predicate belongs in the JSON
+      as an explicit `controls_declared: []` so a reader of the artifact is not
+      left inferring it from the absence of a key.
+    blast_radius: >-
+      Any run of this driver against a catalogue without controls. No sealed
+      number: PA-04, PA-06 and FI-01 all ran catalogues carrying N01 or PA-M14.
+      FI-04's shipped table carries controls on all three arms for this reason.
+    disposition: open
+
+  - id: FI-04-DF-03
+    found_by: "FI-04"
+    found_at_commit: "4697687"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"
+    summary: >-
+      SELF-AUDIT, AND THE MUTANTS AND THE FIXTURE STILL SHARE AN AUTHOR.
+
+      Two things about FI-04's own measurement that a reader should not have to
+      find.
+
+      (a) `FI-M16`, `FI-M17`, `FI-M18` and `FI-M19` were written by FI-04 and
+      measured by FI-04. That is the same declared bias `[measured_suite_baseline]`
+      carries and it is not reduced by the rows sitting on arms rather than on a
+      reference tree. The `blind_author` channel is the only instrument in this
+      repository that controls for it and it was not re-run. The demonstrated
+      divergence should be read as "this fixture CAN diverge", which is what the
+      goal asked, and NOT as "ported code is validated differently in general".
+
+      (b) `run_port_swap.py`'s arm subjects need `pa06_arm_c_binding` on
+      PYTHONPATH and its own SUBJECTS comment says the caller must supply it.
+      FI-04's first arm-C run did not, and the driver reported `CONTROL_RED` on
+      all three corpus columns rather than a false `SURVIVED` -- the instrument
+      behaving correctly, recorded here because it is the exact failure shape
+      `FI-01-DF-01` describes for the OTHER driver, which produces a false green
+      instead. Two drivers, the same missing-module condition, opposite failure
+      directions. `run_arm_swap.py` now sets PYTHONPATH for the subprocess so a
+      run is reproducible from one command line.
+    reproduction: >-
+      (a) `grep -n 'found_by' examples/validation/ab/eval/adapter_faults_arm_*.toml`
+      against this ticket. (b) Run `run_arm_swap.py --subject arm_c` with the
+      PYTHONPATH assignment removed from the module body.
+    evidence:
+      - "examples/validation/ab/eval/DECISION-fixture-or-goal.md -- 'Does not close the shared-author bias'"
+      - "examples/validation/ab/eval/run_arm_swap.py"
+    why_out_of_scope: >-
+      Re-running the blind-author channel is a channel dispatch, not a fixture
+      change, and it is the single most valuable follow-up this ticket can name.
+      It is larger than FI-04 and it should be its own ticket so that its prompt
+      and its blindness constraints are reviewable before it runs.
+    suggested_fix: >-
+      Dispatch the blind-author channel against the PORT columns and the three
+      arm trees, with the same never-open list, and score `FI-M16`/`FI-M17`'s
+      shape against whatever it produces independently.
+    blast_radius: >-
+      The generality of FI-04's divergence, not its existence. The cells are
+      reproducible and the control state is green on arms A, B and C.
+    disposition: open
+
+  - id: FI-04-DF-04
+    found_by: "FI-04 (during reconcile onto e63969d)"
+    found_at_commit: "e63969d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "tests/test_instrument_demonstrations.py"
+        - "examples/validation/instruments/instruments.toml"
+    summary: >-
+      THE INSTRUMENT ENUMERATION'S COMPLETENESS CHECK IS A HARDCODED LIST, SO
+      THE ENUMERATION DECAYS BY ONE ROW EVERY TIME A TICKET SHIPS AN INSTRUMENT
+      AND NOTHING SAYS SO.
+
+      `test_the_named_instruments_are_all_enumerated` asserts
+      `required <= enumerated` against ten literal paths written by FI-02. It
+      catches a RENAME that drops an existing row. It cannot catch an ADDITION
+      that was never added, because a new instrument is not in `required` and
+      the subset relation stays true.
+
+      MEASURED ON THIS TICKET, not reasoned. FI-04 shipped
+      `examples/validation/ab/eval/divergence.py` -- something that watches a
+      subject (the A/B fixture), produces a verdict about it
+      (`CLAIMED_REACHABLE_BUT_UNDEMONSTRATED`) and returns nonzero on it, which
+      is the registry's own definition of an instrument. FI-02's suite was FULLY
+      GREEN with it absent. FI-04 registered it by hand during the reconcile;
+      had FI-04 not thought to look, the enumeration whose stated product is
+      "NOTHING IS SILENTLY OMITTED" would have shipped one short and every
+      count derived from it would have been wrong by one.
+
+      THIS IS THE SAME SHAPE THE OWNER FLAGGED FROM FI-03'S RECONCILE -- FI-02's
+      audit meta-check pinned to the unimplemented id `R-H5`, which went green
+      when FI-03 implemented `R-H5`. Both are declarations that stop asserting
+      when the world moves under them, and both are the
+      `declaration_executability_rule`'s own failure shape inside the ticket
+      that quotes it. `FI-01-DF-04` is the third instance (`PORT_REGION` as a
+      transcribed constant).
+    reproduction: >-
+      At `e63969d`, before FI-04's row was added: `python3 -c "import tomllib;
+      d=tomllib.load(open('examples/validation/instruments/instruments.toml','rb'));
+      print(any('divergence.py' in p for e in d['instrument'] for p in
+      e.get('paths',[])))"` -> False, while
+      `uv run --with pytest python -m pytest tests/test_instrument_demonstrations.py -q`
+      -> all green.
+    evidence:
+      - "tests/test_instrument_demonstrations.py -- test_the_named_instruments_are_all_enumerated, the `required` literal"
+      - "examples/validation/instruments/instruments.toml -- the divergence-reachability row and its `note`"
+    why_out_of_scope: >-
+      A completeness check that DERIVES the instrument set rather than listing
+      it is a design question -- what counts as an instrument is exactly the
+      judgement FI-02's registry preamble spends three paragraphs on, and a
+      heuristic that scans for `sys.exit(1)` would sweep in every argparse usage
+      error the preamble explicitly excludes. Choosing that predicate inside a
+      reconcile, in the ticket whose instrument is the one currently missing, is
+      both out of scope and the wrong hands.
+    suggested_fix: >-
+      Do not lengthen the literal; that is the fix this repository has already
+      rejected twice (EVAL-RERUN-DF-01's module-name list, FI-01-DF-01's
+      `ARM_MODULE_PREFIXES`). Make the obligation land on the TICKET instead:
+      have `close ticket` refuse when a ticket's diff adds an executable under
+      a declared instrument root and the registry gained no row in the same
+      commit. That is one predicate over the diff, it needs no taxonomy, and it
+      puts the question to the author who knows the answer.
+    blast_radius: >-
+      Every count derived from the registry, in this epic and after it. FI-02's
+      own 23-of-32 is correct AS OF FI-02 and is not retroactively wrong; what
+      is wrong is any reading of it as a standing figure. FI-04's row restores
+      it for this ticket only.
+    disposition: open
+
   - id: FI-05-DF-01
     found_by: FI-05
     found_at_commit: 51fe73d
@@ -2433,7 +3146,9 @@ findings:
     reproduction: >-
       `python3 examples/validation/check_prediction_seal.py
       examples/validation/PREDICTIONS-PA.md` -> ALREADY MEASURED: N05; UNPARSED:
-      N03, N07.
+      N03, N07. `python3 examples/validation/instruments/demonstrate.py --only
+      prediction-seal` -> the `blind_spot` slot exits 0 on a row nothing can
+      check, which is how this reads green.
     evidence:
     - examples/validation/PREDICTIONS-PA.md -- N03, N07 instrument fields
     - examples/validation/check_prediction_seal.py -- the UNPARSED branch
