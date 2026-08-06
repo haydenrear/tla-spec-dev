@@ -1,0 +1,100 @@
+# FI-04: THE SAME SEMANTIC, ON AN ARM THAT HAS TWO HOMES FOR IT.
+#
+# READ THIS FILE BESIDE `adapter_faults_arm_a.toml` AND `adapter_faults_arm_c.toml`.
+#
+# THE SEMANTIC, identical to `FI-M18`'s and to `FI-M19`'s:
+#
+#     THE LEDGER'S READ-BACK SILENTLY DROPS EVERY LINE BEGINNING `CLOSE`.
+#
+# Arm B put the durable side behind a `Journal` Protocol and shipped TWO
+# implementations of it -- `FileJournal` (real) and `InMemoryJournal` (fake) --
+# and exports all three from `quota_ledger/__init__.py`. So on arm B the
+# sentence above has TWO homes, and EXACTLY ONE OF THEM IS COMPOSED AT A TIME.
+# That is the whole difference between this file and the arm-A one, and it is a
+# difference the prompt produced rather than one the fixture author installed.
+#
+# WHY THIS FILE EXISTS AT ALL. `PA-06-DF-04`: "NO ARM CARRIES AN
+# ADAPTER-INTERNAL FAULT. THE CLASS THIS EPIC EXISTS FOR IS MEASURED ONLY ON A
+# FIXTURE THAT IS DECLARED NOT TO BE AN ARM." That finding names this exact row
+# as the fix: "What has never been seeded is the OTHER half: the same semantic
+# in arm B's own fake. That row would be PA-M11/PA-M12 on an arm rather than on
+# a fixture, and it is the only thing that would let clause 1 be stated about an
+# artifact a prompt produced."
+#
+# THE PAIR IS THE MEASUREMENT, NEVER EITHER ROW ALONE. A per-instrument table
+# that reports FI-M16 killed and FI-M17 surviving under `--wiring real`, and the
+# two swapped under `--wiring fake`, has measured the size of the region the
+# port creates. A kill-count total hides it entirely.
+#
+# NOTHING HERE IS WRITTEN INTO ARM B. Arm B's tree lives under `specs/results/`,
+# which this epic's plan declares out_of_model -- sealed, judged evidence. Every
+# driver copies the tree to a scratch directory and applies the mutant there.
+# The same reason `controls_port_region_arm_b.toml` is a file here rather than a
+# row in arm B's own catalogue (FI-01).
+
+[catalogue]
+id = "FI-04-adapter-faults-arm-b"
+anchored_on = "quota_ledger/file_journal.py"
+root = "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b/"
+extends = "examples/validation/ab/seeded_faults.toml"
+semantic_key = "ledger-readback-drops-close-lines"
+
+# ---------------------------------------------------------------------------
+# HOME 1 OF 2 -- the implementation the default composition wires.
+# FEATURE.md's constructor takes a path, so `FileJournal` is what an ordinary
+# run gets. This is the CONTRAST row: it is here so FI-M17's survival cannot be
+# explained by the fault being subtle.
+# ---------------------------------------------------------------------------
+[[mutants]]
+id = "FI-M16-arm-b-real-adapter-drops-close-lines"
+fault_class = "adapter_internal"
+semantic_key = "ledger-readback-drops-close-lines"
+seeded_by = "perturbation"
+gap_targeted = "none, on purpose. A fault behind a port on the side a composition point actually wires is reachable by every instrument that runs the program at all -- until something swaps the composition, at which point it becomes unreachable WITHOUT ANY INSTRUMENT SAYING SO. That second half is what this row measures and it is a COST of the port, not a benefit."
+boundary_kind = "port"
+boundary_ref = "Journal -- arm B's own Protocol, quota_ledger/domain.py"
+homes_for_this_semantic_on_this_arm = 2
+compositions_on_this_arm = 2
+path = "quota_ledger/file_journal.py"
+find = "        return [line for line in text.splitlines() if line]"
+replace = '        return [line for line in text.splitlines() if line and not line.startswith("CLOSE")]  # MUTANT FI-M16: the REAL adapter never reads back a CLOSE line'
+description = "arm B's real driven adapter hides every CLOSE line on read-back; the file on disk is correct"
+semantic = "The ledger read-back filters out every line beginning CLOSE. Bytes on disk are correct; every reader sees one line missing per closed tenant. available(t), committed(t), is_closed(t) and outstanding_ids() are byte-correct."
+observable = "ledger_lines() through the REAL composition, after any accepted close_tenant. Nothing at all differs through the FAKE composition, because the fake is a different class."
+re_anchoring_rule = "RE-ANCHOR BY THE PROPERTY, NOT BY THE BYTES. Seed at whatever expression returns the durable ledger's records to a reader in the implementation the default composition wires."
+refine_variable = "ledger"
+refine_action = "CloseTenant"
+predicted_corpus_action_bound = "KILLED"
+predicted_corpus_port_swap_real = "KILLED"
+predicted_corpus_port_swap_fake = "SURVIVED -- the fake composition never constructs FileJournal, so the fault is not on the executed path. THE CELL POINTS AGAINST THE PORT: swapping in the arm's own fake made a real durable fault invisible, and no instrument reported that it had."
+predicted_suite_real = "KILLED"
+predicted_suite_fake = "SURVIVED, for the same reason"
+
+# ---------------------------------------------------------------------------
+# HOME 2 OF 2 -- the implementation NOTHING OUTSIDE ARM B'S OWN TESTS COMPOSES.
+# This is the row `PA-06-DF-04` says has never existed on an arm.
+# ---------------------------------------------------------------------------
+[[mutants]]
+id = "FI-M17-arm-b-fake-adapter-drops-close-lines"
+fault_class = "adapter_internal"
+semantic_key = "ledger-readback-drops-close-lines"
+seeded_by = "perturbation"
+gap_targeted = "THE REGION BEHIND A PORT THAT NO COMPOSITION POINT WIRES. Identical semantic to FI-M16, seeded on the other side of arm B's own port. Until `arm_b_fake.py` was written at PA-04, nothing outside arm B's own tests constructed this class, so no case, no corpus and no shared suite ran a single line of it. That is BA-B14, on an arm."
+boundary_kind = "port"
+boundary_ref = "Journal -- arm B's own Protocol, quota_ledger/domain.py"
+homes_for_this_semantic_on_this_arm = 2
+compositions_on_this_arm = 2
+path = "quota_ledger/memory_journal.py"
+find = "        return list(self._records)"
+replace = '        return [record for record in self._records if not record.startswith("CLOSE")]  # MUTANT FI-M17: the FAKE adapter never reads back a CLOSE line'
+description = "arm B's fake driven adapter hides every CLOSE line on read-back; the records it holds are correct"
+semantic = "The ledger read-back filters out every line beginning CLOSE. The records held are correct; every reader sees one line missing per closed tenant. available(t), committed(t), is_closed(t) and outstanding_ids() are byte-correct."
+observable = "ledger_lines() through the FAKE composition, after any accepted close_tenant. NOTHING AT ALL differs through the real composition."
+re_anchoring_rule = "THIS ROW HAS NO COUNTERPART ON ARMS A AND C AND MUST NOT BE GIVEN ONE. Arms A and C have one implementation of the durable side. A 'second implementation that disagrees with the first' is not a fault those trees can host, and inventing a nearest-bytes stand-in there would be exactly the re-anchoring artefact PA-06-DF-08 is about. Its arm-A and arm-C cells are NOT_APPLICABLE, which is a fact about the arms."
+refine_variable = "ledger"
+refine_action = "CloseTenant"
+predicted_corpus_action_bound = "SURVIVED -- the action-bound mapping has no wiring to swap, so it runs the real composition"
+predicted_corpus_port_swap_real = "SURVIVED"
+predicted_corpus_port_swap_fake = "KILLED -- and this is the only cell in either file that is a WIN for the port: a region exists on arm B that a swap reaches and that arms A and C cannot host at all."
+predicted_suite_real = "SURVIVED"
+predicted_suite_fake = "KILLED"

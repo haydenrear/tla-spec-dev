@@ -1,0 +1,67 @@
+# FI-04: ONE SEMANTIC, RE-ANCHORED ONTO ARM A, WHICH HAS ONE HOME FOR IT.
+#
+# READ THIS FILE BESIDE `adapter_faults_arm_b.toml` AND `adapter_faults_arm_c.toml`.
+# No row here is interesting alone. The measurement is the DIFFERENCE between
+# what one semantic does on a tree with one implementation of the durable side
+# and on a tree with two, and it is `PA-M11`/`PA-M12` moved off a fixture the
+# epic authored and onto ARTIFACTS THREE PROMPTS PRODUCED (`PA-06-DF-04`).
+#
+# THE SEMANTIC, stated once and re-anchored by the property on every arm:
+#
+#     THE LEDGER'S READ-BACK SILENTLY DROPS EVERY LINE BEGINNING `CLOSE`.
+#     The bytes written are correct. What any reader observes is missing one
+#     line per closed tenant. `available`, `committed`, `is_closed` and
+#     `outstanding_ids` are all byte-correct.
+#
+# WHY ARM A GETS EXACTLY ONE ROW, AND WHY THAT IS THE POINT. Arm A is one flat
+# module. Its durable side is `_LedgerFile`, a private class constructed on the
+# one line of `QuotaLedger.__init__` that names it. There is no second
+# implementation, no Protocol, and nothing a `--wiring` flag can substitute. So
+# this semantic has exactly ONE home on arm A and that home is composed on
+# every run. `arm_c/REJECTED.md` records arm C's author considering the seam and
+# declining it on merit; arm A was never asked.
+#
+# THIS IS NOT A NEW SEMANTIC. It is `PA-M11`'s, verbatim, re-anchored by the
+# property rather than by the bytes -- arm A's read-back filters on
+# `line.strip()` and `reference_ports/journal_file.py` filters on `entry`. The
+# `find` strings have nothing in common; the sentence above does the anchoring.
+
+[catalogue]
+id = "FI-04-adapter-faults-arm-a"
+anchored_on = "quota_ledger.py"
+root = "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_a/"
+extends = "examples/validation/ab/seeded_faults.toml"
+semantic_key = "ledger-readback-drops-close-lines"
+
+[[mutants]]
+id = "FI-M18-arm-a-only-home-drops-close-lines"
+fault_class = "adapter_internal"
+semantic_key = "ledger-readback-drops-close-lines"
+seeded_by = "perturbation"
+gap_targeted = "none on this arm, and that is the measurement. On a tree with one implementation of the durable side there is no region behind a port for the fault to hide in, because there is no port. Every instrument that runs the program at all runs this line."
+boundary_kind = "invariant"
+boundary_ref = "R2/R5 -- 'reads come back from the file rather than from a mirror kept in memory'"
+homes_for_this_semantic_on_this_arm = 1
+compositions_on_this_arm = 1
+path = "quota_ledger.py"
+find = "        return [line for line in text.splitlines() if line.strip()]"
+replace = '        return [line for line in text.splitlines() if line.strip() and not line.startswith("CLOSE")]  # MUTANT FI-M18: the only read-back never returns a CLOSE line'
+description = "arm A's one durable read-back hides every CLOSE line; the file on disk is correct"
+semantic = "The ledger read-back filters out every line beginning CLOSE. Bytes on disk are correct; every reader sees one line missing per closed tenant. available(t), committed(t), is_closed(t) and outstanding_ids() are byte-correct."
+observable = "ledger_lines() after any accepted close_tenant. `ledger` is inside the port corpus's derived region {closed, committed, ledger}, so a port-scoped instrument compares it."
+re_anchoring_rule = "RE-ANCHOR BY THE PROPERTY, NOT BY THE BYTES. On any tree, seed this at whatever expression returns the durable ledger's records to a reader, then confirm the clean tree is green and the mutated tree loses exactly the CLOSE lines."
+refine_variable = "ledger"
+refine_action = "CloseTenant"
+
+# --------------------------------------------------------------------------
+# PREDICTIONS, SEALED BEFORE THE FIRST RUN OF THIS ROW.
+#
+# Committed in the commit that adds this file, before `run_arm_swap.py` was
+# pointed at it even once. `git log --follow` on this file is the ordering.
+# They are scored AS WRITTEN by FI-04's own results and may not be amended.
+# --------------------------------------------------------------------------
+predicted_corpus_action_bound = "KILLED"
+predicted_corpus_port_swap_real = "KILLED"
+predicted_corpus_port_swap_fake = "KILLED -- AND THIS IS THE PREDICTION THE ROW EXISTS FOR. Arm A declares no fake, so `--wiring fake` runs arm A's REAL code (AD-F6, and the runner prints it on every such run). The `:fake` column on this arm is a byte-identical rerun of `:real`, so it CANNOT take this fault off the executed path. If these two cells ever differ, AD-F6 is wrong and that is the finding."
+predicted_suite_real = "KILLED -- test_close_writes_the_final_total reads ledger_lines() after a close"
+predicted_suite_fake = "NOT_APPLICABLE. There is no second composition point on arm A to point the suite at. This is not a missing measurement; it is the arm's architecture, and reporting it as SURVIVED would be the `AD-F6` error with the sign flipped."

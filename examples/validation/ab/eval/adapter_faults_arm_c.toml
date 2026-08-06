@@ -1,0 +1,54 @@
+# FI-04: THE SAME SEMANTIC ON ARM C, THE LENGTH-MATCHED CONTROL.
+#
+# READ THIS FILE BESIDE `adapter_faults_arm_a.toml` AND `adapter_faults_arm_b.toml`.
+#
+# WHY ARM C IS HERE AND WHY IT IS NOT DECORATION. PA-04 measured the `M09`
+# divergence and recorded, against its own interest, that a skeptic can call it
+# a property of the catalogue's RE-ANCHORING rather than of the port. PA-06
+# answered that with arm C: a THIRD independent re-anchoring, onto a tree
+# matched to arm B in unique prompt content and carrying zero architectural
+# vocabulary, landed on arm A's verdict rather than arm B's.
+#
+# The same objection applies to FI-M16/FI-M18 and the same answer is available,
+# so it is taken rather than argued. If `FI-M19` lands on arm A's cells, the
+# variable that tracks the verdict is "does the arm have a second implementation
+# of the durable side", not "did somebody re-anchor". If it lands on arm B's, the
+# divergence is a re-anchoring artefact and FI-04 says so and reports the goal
+# still unmeasurable.
+#
+# Arm C's author considered arm B's seam and declined it on merit -- see
+# `specs/results/scorecards/ports-as-adapters/arms/arm_c/REJECTED.md`. So arm C
+# has one home for this semantic BY A RECORDED DECISION rather than by omission,
+# which is a stronger control than arm A.
+
+[catalogue]
+id = "FI-04-adapter-faults-arm-c"
+anchored_on = "quota_ledger.py"
+root = "specs/results/scorecards/ports-as-adapters/arms/arm_c/"
+extends = "examples/validation/ab/seeded_faults.toml"
+semantic_key = "ledger-readback-drops-close-lines"
+
+[[mutants]]
+id = "FI-M19-arm-c-only-home-drops-close-lines"
+fault_class = "adapter_internal"
+semantic_key = "ledger-readback-drops-close-lines"
+seeded_by = "perturbation"
+gap_targeted = "none on this arm. One implementation of the durable side, composed on every run, with no Protocol and nothing a wiring flag can substitute."
+boundary_kind = "invariant"
+boundary_ref = "R2/R5 -- the durable ledger is read back from the file"
+homes_for_this_semantic_on_this_arm = 1
+compositions_on_this_arm = 1
+path = "quota_ledger.py"
+find = '        return [line for line in text.splitlines() if line != ""]'
+replace = '        return [line for line in text.splitlines() if line != "" and not line.startswith("CLOSE")]  # MUTANT FI-M19: the only read-back never returns a CLOSE line'
+description = "arm C's one durable read-back hides every CLOSE line; the file on disk is correct"
+semantic = "The ledger read-back filters out every line beginning CLOSE. Bytes on disk are correct; every reader sees one line missing per closed tenant. available(t), committed(t), is_closed(t) and outstanding_ids() are byte-correct."
+observable = "ledger_lines() after any accepted close_tenant."
+re_anchoring_rule = "RE-ANCHOR BY THE PROPERTY, NOT BY THE BYTES. Arm C filters on `line != \"\"`, arm A on `line.strip()`, arm B's real adapter on `line`. Three different expressions, one sentence."
+refine_variable = "ledger"
+refine_action = "CloseTenant"
+predicted_corpus_action_bound = "KILLED"
+predicted_corpus_port_swap_real = "KILLED"
+predicted_corpus_port_swap_fake = "KILLED -- arm C declares no fake, so `:fake` is a byte-identical rerun of `:real` (AD-F6)"
+predicted_suite_real = "KILLED"
+predicted_suite_fake = "NOT_APPLICABLE -- no second composition point exists on arm C"
