@@ -203,7 +203,42 @@ harness" was peeled off and another was found underneath.**
 
 ---
 
-## 6. What was REJECTED
+## 6. Two shipped tripwires caught this ticket
+
+Neither was fixed by exemption. SM-01 reported the same thing one ticket ago and
+this is the second consecutive round in which the repository's own instruments
+found the ticket before the ticket found anything.
+
+**1. `test_produced_code_prompt.py::test_the_prompt_mentions_it_only_as_prose`**
+went red on a **comment** in `demonstrate.py` — the one listing what the new
+enumeration check cannot see, which named the produced-code instrument in
+passing. The tripwire's rule is that no Python file under `examples/` or
+`prompts/` may name it, because *a mention is how a consumer arrives*. **Fixed
+by not naming it**, which is exactly the call SM-01 made against the thermometer
+tripwire, for the same reason: lengthening an exemption list was rejected at
+`EVAL-RERUN-DF-01` and again at `ARM_MODULE_PREFIXES`, and is worse here because
+that scan is one of the instruments this epic is judging.
+
+**2. `test_gap_mutants.py::test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree`**
+reported `SM-GM-CTRL-B`'s anchor at **0x**. The anchor was the verbatim text of
+`complexity-ledger`'s failing slot — one of the two degenerate rows — which this
+ticket repaired, so the string no longer exists.
+
+**The control was RE-ANCHORED and the move is recorded in the catalogue under
+`re_anchor_note`, not done quietly**, because re-anchoring a positive control is
+one step away from editing a target to match a result. Same mechanism, same
+detector, same `must_die_on`, same `control_role` sentence; only the string it
+attaches to moved, and it moved because the row underneath it was repaired. **R2
+is why it was not simply reported unapplied**: a run whose positive control
+cannot fire decides nothing, and every verdict in the after-table would be
+undecided. SM-01's before-table is readable precisely because both its controls
+died on every detector they declare.
+
+SM-01 wrote that tripwire, and it caught SM-01 too.
+
+---
+
+## 7. What was REJECTED
 
 - **Deleting the twelve `expect_exit = 0` slots.** The ticket's stated default,
   and it would have improved the headline ratio by shrinking the denominator.
@@ -239,10 +274,20 @@ harness" was peeled off and another was found underneath.**
   a second structural change to the program that produces the count this ticket
   reports, inside the ticket that reports it — the objection SM-01 raised
   against editing `run_port_swap.py` mid-epic, unchanged.
+- **Adding `SM-GM-CTRL-B` to an exemption instead of re-anchoring it**, and
+  equally **reporting it unapplied and running without a positive control**. The
+  first hides a broken control; the second produces an after-table in which no
+  verdict is decidable. The anchor was moved, the move is written into the
+  catalogue beside the control, and nothing else about it changed.
+- **Repairing `scripts/extract_spec_manifest.py`'s three missing manifest keys**
+  by editing `specs/program_model/spec_manifest.yaml`, which would have made the
+  red disappear without anyone deciding whether the requirement or the manifest
+  is the defect — and would have edited an input to the close path this ticket
+  has to run.
 
 ---
 
-## 7. Findings
+## 8. Findings
 
 `SM-03-DF-01` … `SM-03-DF-03` in
 `specs/desired_program_model/deferred_findings.yaml`. **Budget 5, spent 3, none
