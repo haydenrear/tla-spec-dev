@@ -43,6 +43,7 @@ boundary_kind = "invariant"
 boundary_ref = "R2/R5 -- 'reads come back from the file rather than from a mirror kept in memory'"
 homes_for_this_semantic_on_this_arm = 1
 compositions_on_this_arm = 1
+wired_by_default = true
 path = "quota_ledger.py"
 find = "        return [line for line in text.splitlines() if line.strip()]"
 replace = '        return [line for line in text.splitlines() if line.strip() and not line.startswith("CLOSE")]  # MUTANT FI-M18: the only read-back never returns a CLOSE line'

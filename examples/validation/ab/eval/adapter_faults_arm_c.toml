@@ -38,6 +38,7 @@ boundary_kind = "invariant"
 boundary_ref = "R2/R5 -- the durable ledger is read back from the file"
 homes_for_this_semantic_on_this_arm = 1
 compositions_on_this_arm = 1
+wired_by_default = true
 path = "quota_ledger.py"
 find = '        return [line for line in text.splitlines() if line != ""]'
 replace = '        return [line for line in text.splitlines() if line != "" and not line.startswith("CLOSE")]  # MUTANT FI-M19: the only read-back never returns a CLOSE line'

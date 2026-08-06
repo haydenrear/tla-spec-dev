@@ -76,60 +76,101 @@ def load_catalogue(path: Path) -> dict[str, dict[str, Any]]:
     return {entry["id"]: entry for entry in document.get("mutants", [])}
 
 
-def measured_compositions(report: dict[str, Any]) -> dict[str, Any]:
-    """How many DISTINCT compositions this arm's swap columns actually ran.
+def _partner(column: str) -> str | None:
+    """The unswapped column a swapped column is a SUBSTITUTION OF."""
+    for swapped, plain in ((":fake", ":real"), ("-fake", "-real")):
+        if column.endswith(swapped):
+            return column[: -len(swapped)] + plain
+    return None
 
-    Not read from the mapping file. Two columns whose evidence block is
-    byte-identical on the unmutated tree AND on every mutated row ran the same
-    program twice, whatever their names say. `AD-F6` measured this by hand for
-    arms A and C; here it is the run deciding it.
+
+def measured_compositions(report: dict[str, Any]) -> dict[str, Any]:
+    """How many DISTINCT compositions each COLUMN ran on this arm.
+
+    PER COLUMN, NOT PER PAIR, and the difference is load-bearing. A `:real`
+    column runs the tree as the program itself composes it -- on every arm,
+    whatever else that arm ships -- so it is ONE composition everywhere by
+    construction, and an arm that happens to own a fake does not thereby make
+    its `:real` column arm-specific. Only the SWAPPED column is a function of
+    the arm's architecture: it names the arm's own second implementation where
+    one exists and silently falls back to the real one where none does.
+
+    THE FIRST VERSION ATTRIBUTED THE PAIR'S COUNT TO BOTH HALVES, which made
+    `corpus-port-swap:real` and `suite-real` look reachable for divergence on
+    three arms whose `:real` columns had all run the same thing, and the tool
+    duly reported two CLAIMED_REACHABLE_BUT_UNDEMONSTRATED reds. The assertion
+    is unchanged -- a reachability claim still goes red unless its own run
+    demonstrates it, and `tests/test_fixture_can_diverge.py` feeds it an input
+    where it must. What was wrong was WHICH COLUMNS CARRIED THE CLAIM.
+
+    Not read from a mapping file either way. Two columns whose evidence block is
+    byte-identical on every row ran the same program, whatever their names say.
+    `AD-F6` measured that by hand for arms A and C; here the run decides it.
     """
-    pairs: dict[str, Any] = {}
     columns = report["instruments"]
-    real = [name for name in columns if name.endswith(":real")]
-    for real_name in real:
-        fake_name = real_name[: -len(":real")] + ":fake"
-        if fake_name not in columns:
+    rows = report["per_mutant"]
+    per_column: dict[str, Any] = {}
+    for column in columns:
+        partner = _partner(column)
+        if partner is None:
+            per_column[column] = {
+                "distinct_compositions": 1,
+                "substitutes_for": None,
+                "why": (
+                    "this column runs the tree as the program composes it, on every "
+                    "arm. Nothing is substituted, so it is one composition by "
+                    "construction and it cannot be arm-specific."
+                ),
+            }
             continue
-        rows = report["per_mutant"]
-        identical = all(
-            {key: rows[row]["evidence"][real_name].get(key) for key in EVIDENCE_KEYS}
-            == {key: rows[row]["evidence"][fake_name].get(key) for key in EVIDENCE_KEYS}
-            for row in rows
-        )
-        pairs[real_name[: -len(":real")]] = {
-            "columns": [real_name, fake_name],
-            "rows_compared": len(rows),
-            "evidence_identical_on_every_row": identical,
+        if partner not in columns:
+            per_column[column] = {
+                "distinct_compositions": None,
+                "substitutes_for": partner,
+                "why": f"declared without its {partner} partner; nothing to compare against",
+            }
+            continue
+        if all("evidence" in rows[row] for row in rows):
+            identical = all(
+                {key: rows[row]["evidence"][partner].get(key) for key in EVIDENCE_KEYS}
+                == {key: rows[row]["evidence"][column].get(key) for key in EVIDENCE_KEYS}
+                for row in rows
+            )
+            basis = "evidence blocks"
+        else:
+            identical = all(
+                rows[row]["cells"][partner] == rows[row]["cells"][column] for row in rows
+            )
+            basis = "verdict cells (this artifact keeps no evidence block)"
+        per_column[column] = {
             "distinct_compositions": 1 if identical else 2,
+            "substitutes_for": partner,
+            "rows_compared": len(rows),
+            "compared_on": basis,
+            "identical_on_every_row": identical,
             "why": (
-                "byte-identical evidence on every row: the two wirings ran the same "
-                "program, so this arm has ONE composition of the port"
+                f"identical to {partner} on every row: this arm declares no second "
+                "implementation, so the swap ran the real one and this column is a "
+                "duplicate (AD-F6)"
                 if identical
-                else "the two wirings differ on at least one row: this arm has TWO "
-                "distinct compositions of the port"
+                else f"differs from {partner} on at least one row: this arm really does "
+                "have a second implementation and the swap composed it"
             ),
         }
-    # The suite pair is decided the same way, but its absence is also a fact.
-    suite_real = "suite-real" in columns
-    suite_fake = "suite-fake" in columns
-    pairs["suite"] = {
-        "columns": [name for name in ("suite-real", "suite-fake") if name in columns],
-        "rows_compared": len(report["per_mutant"]),
-        "evidence_identical_on_every_row": None if not (suite_real and suite_fake) else all(
-            report["per_mutant"][row]["cells"]["suite-real"]
-            == report["per_mutant"][row]["cells"]["suite-fake"]
-            for row in report["per_mutant"]
-        ),
-        "distinct_compositions": 2 if (suite_real and suite_fake) else 1,
-        "why": (
-            "two composition points declared for the hand-written suite"
-            if (suite_real and suite_fake)
-            else "no second composition point exists on this arm, so no `suite-fake` "
-            "column was declared. Declaring one would silently re-run `suite-real`."
-        ),
-    }
-    return pairs
+    # A column that does not exist on an arm is not a zero; it is a name nobody
+    # could ask. Recorded so `reachability` reports the absence rather than
+    # inferring something from a missing key.
+    for column in ("suite-fake", "corpus-port-swap:fake"):
+        if column not in columns:
+            per_column[column] = {
+                "distinct_compositions": None,
+                "substitutes_for": _partner(column),
+                "why": (
+                    "no second composition point exists on this arm, so this column "
+                    "was not declared. Declaring it would silently re-run the real one."
+                ),
+            }
+    return per_column
 
 
 def executable_counts(report: dict[str, Any]) -> dict[str, Any]:
@@ -199,26 +240,54 @@ def build(runs: dict[str, tuple[Path, Path]]) -> dict[str, Any]:
             "cells": cells,
         }
 
-        # A DIVERGENCE is two arms giving different answers to the same column
-        # about the same semantic. Where an arm has more than one home, the row
-        # that the DEFAULT COMPOSITION wires is the comparable one -- the others
-        # have no counterpart and are reported separately below.
+        # A DIVERGENCE is two arms giving DIFFERENT ANSWERS TO THE SAME QUESTION.
+        #
+        # THE COMPARABLE ROW IS THE ONE THE DEFAULT COMPOSITION WIRES, and the
+        # catalogue says which by `wired_by_default`, declared per row before any
+        # of them ran. Arm B has two homes for this semantic; only one of them is
+        # what an ordinary run of arm B executes, and that is the row arm A's and
+        # arm C's single home is the counterpart of.
+        #
+        # THE FIRST VERSION OF THIS FUNCTION COMPARED SETS OF VERDICTS ACROSS ALL
+        # ROWS AND WAS WRONG. It reported `corpus-action-bound` and `suite-real`
+        # as divergent, because arm B contributed `{KILLED, SURVIVED}` from two
+        # rows against arm A's `{KILLED}` from one -- conflating "arm B has an
+        # extra row" with "the arms disagree". On the comparable row the arms
+        # AGREE on those two columns, which is the whole point: the divergence is
+        # confined to the columns that swap the composition. Recorded here rather
+        # than quietly corrected, because a divergence count that is too large is
+        # the failure mode this ticket exists to stop.
+        comparable: dict[str, tuple[str, dict[str, str]]] = {}
+        for arm, rows in cells.items():
+            for row_id, verdicts in rows.items():
+                row = arms[arm]["catalogue"].get(row_id, {})
+                if row.get("wired_by_default"):
+                    comparable[arm] = (row_id, verdicts)
+        per_semantic[key]["comparable_row_per_arm"] = {
+            arm: row_id for arm, (row_id, _) in sorted(comparable.items())
+        }
+        per_semantic[key]["rows_with_no_counterpart"] = sorted(
+            row_id
+            for arm, rows in cells.items()
+            for row_id in rows
+            if row_id in arms[arm]["catalogue"]
+            and not arms[arm]["catalogue"][row_id].get("wired_by_default")
+        )
+
         for column in all_columns:
-            answers: dict[str, set[str]] = {}
-            for arm, rows in cells.items():
-                verdicts = {
-                    verdict[column]
-                    for verdict in rows.values()
-                    if verdict[column] != NOT_APPLICABLE
-                }
-                if verdicts:
-                    answers[arm] = verdicts
-            distinct = {frozenset(v) for v in answers.values()}
-            if len(distinct) > 1:
+            answers = {
+                arm: verdicts[column]
+                for arm, (_, verdicts) in comparable.items()
+                if verdicts.get(column, NOT_APPLICABLE) != NOT_APPLICABLE
+            }
+            if len(set(answers.values())) > 1:
                 divergences.append({
                     "semantic": key,
                     "column": column,
-                    "per_arm": {arm: sorted(v) for arm, v in sorted(answers.items())},
+                    "compared_rows": {
+                        arm: comparable[arm][0] for arm in sorted(answers)
+                    },
+                    "per_arm": dict(sorted(answers.items())),
                     "compositions_per_arm": {
                         arm: _composition_for(arms[arm]["compositions"], column)
                         for arm in sorted(answers)
@@ -232,13 +301,30 @@ def build(runs: dict[str, tuple[Path, Path]]) -> dict[str, Any]:
         homes = record["homes_per_arm"]
         if len(set(homes.values())) > 1:
             structural.append({
+                "kind": "unequal homes for one semantic",
                 "semantic": key,
                 "homes_per_arm": homes,
+                "rows_with_no_counterpart": record["rows_with_no_counterpart"],
                 "why": (
                     "the arms do not agree on how many places this semantic can live. "
                     "An arm with fewer homes cannot host the extra rows at all, and "
                     "inventing a nearest-bytes stand-in there is the re-anchoring "
                     "artefact PA-06-DF-08 is about."
+                ),
+            })
+    for column in all_columns:
+        present = {arm for arm, data in arms.items() if column in data["report"]["instruments"]}
+        if present != set(arms):
+            structural.append({
+                "kind": "column absent on some arms",
+                "column": column,
+                "present_on_arms": sorted(present),
+                "absent_on_arms": sorted(set(arms) - present),
+                "why": (
+                    "this column needs a second composition point and those arms have "
+                    "none. Declaring it anyway would silently re-run the real column "
+                    "and report a duplicated cell as an independent measurement, which "
+                    "is AD-F6."
                 ),
             })
 
@@ -248,14 +334,23 @@ def build(runs: dict[str, tuple[Path, Path]]) -> dict[str, Any]:
             arm: _composition_for(arms[arm]["compositions"], column) for arm in arms
         }
         present = {arm for arm, data in arms.items() if column in data["report"]["instruments"]}
-        differing = len(set(counts.values())) > 1 or present != set(arms)
         demonstrated = [d for d in divergences if d["column"] == column]
-        if differing:
+        if present != set(arms):
+            # THE COLUMN CANNOT EXIST ON EVERY ARM. That is not an undemonstrated
+            # claim; the absence IS the demonstration, and it is the strongest
+            # form of "one arm structurally cannot".
+            verdict = "REACHABLE_BY_ABSENCE"
+            why = (
+                f"the column does not exist on {sorted(set(arms) - present)}: those arms "
+                "have no second composition point for it to name. The arms cannot give "
+                "the same answer because one of them cannot be asked."
+            )
+        elif len(set(counts.values())) > 1:
             verdict = "REACHABLE" if demonstrated else "CLAIMED_REACHABLE_BUT_UNDEMONSTRATED"
             why = (
-                "the arms differ in how many distinct compositions this column runs, "
-                "or the column does not exist on every arm. E1 fails: the instrument "
-                "is a function of the arm's architecture."
+                "the arms differ in how many distinct compositions this column runs. "
+                "E1 fails: the instrument is a function of the arm's architecture "
+                "rather than of the shared model."
             )
         else:
             verdict = "NOT_REACHABLE"
@@ -294,21 +389,30 @@ def build(runs: dict[str, tuple[Path, Path]]) -> dict[str, Any]:
 
 
 def _composition_for(compositions: dict[str, Any], column: str) -> int | None:
-    for prefix, record in compositions.items():
-        if column == prefix or column.startswith(prefix + ":"):
-            return record["distinct_compositions"]
-    return None
+    """How many distinct compositions this arm ran behind `column`.
+
+    `measured_compositions` is now keyed BY COLUMN, so this is a lookup rather
+    than a prefix match. `None` means the column does not exist on this arm --
+    a name nobody could ask, never a zero and never a one.
+    """
+    record = compositions.get(column)
+    return None if record is None else record["distinct_compositions"]
 
 
 def render(result: dict[str, Any]) -> str:
     lines = [f"VERDICT: {result['verdict']}", ""]
-    lines.append("COMPOSITIONS PER ARM (measured from the runs, not read from a mapping):")
+    lines.append(
+        "COMPOSITIONS PER ARM PER COLUMN (measured from the runs, not read from a mapping).\n"
+        "Only a SWAPPED column can be arm-specific; an unswapped one runs the tree as the\n"
+        "program composes it and is one composition everywhere by construction:"
+    )
     for arm, record in sorted(result["compositions_per_arm"].items()):
-        for prefix, figures in sorted(record.items()):
-            lines.append(
-                f"  {arm:7s} {prefix:22s} {figures['distinct_compositions']} composition(s) "
-                f"-- {figures['why']}"
-            )
+        for column, figures in sorted(record.items()):
+            if figures.get("substitutes_for") is None:
+                continue
+            count = figures["distinct_compositions"]
+            shown = "ABSENT" if count is None else f"{count} composition(s)"
+            lines.append(f"  {arm:7s} {column:24s} {shown:17s} -- {figures['why']}")
     lines.append("")
     lines.append("REACHABILITY, per column:")
     for column, record in sorted(result["reachability"].items()):
@@ -319,21 +423,31 @@ def render(result: dict[str, Any]) -> str:
         )
     lines.append("")
     if result["divergences"]:
-        lines.append("DEMONSTRATED DIVERGENCES:")
+        lines.append("DEMONSTRATED DIVERGENCES (comparable row only -- the one the default")
+        lines.append("composition wires on each arm):")
         for record in result["divergences"]:
             lines.append(f"  {record['semantic']} / {record['column']}")
-            for arm, verdicts in record["per_arm"].items():
+            for arm, verdict in record["per_arm"].items():
                 lines.append(
-                    f"      {arm}: {', '.join(verdicts)}   "
+                    f"      {arm}: {verdict:9s} via {record['compared_rows'][arm]}   "
                     f"(compositions={record['compositions_per_arm'][arm]})"
                 )
     else:
         lines.append("NO DIVERGENCE MEASURED. The null is still entailed and that is the report.")
     if result["structural_asymmetries"]:
         lines.append("")
-        lines.append("STRUCTURAL ASYMMETRIES (a semantic with different numbers of homes):")
+        lines.append("STRUCTURAL ASYMMETRIES:")
         for record in result["structural_asymmetries"]:
-            lines.append(f"  {record['semantic']}: homes {record['homes_per_arm']}")
+            if record["kind"] == "unequal homes for one semantic":
+                lines.append(
+                    f"  {record['semantic']}: homes {record['homes_per_arm']}; "
+                    f"no counterpart anywhere for {record['rows_with_no_counterpart']}"
+                )
+            else:
+                lines.append(
+                    f"  column {record['column']} exists on {record['present_on_arms']} "
+                    f"and CANNOT exist on {record['absent_on_arms']}"
+                )
     if result["undemonstrated_reachability_claims"]:
         lines.append("")
         lines.append(

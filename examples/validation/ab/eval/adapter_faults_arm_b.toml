@@ -55,6 +55,12 @@ boundary_kind = "port"
 boundary_ref = "Journal -- arm B's own Protocol, quota_ledger/domain.py"
 homes_for_this_semantic_on_this_arm = 2
 compositions_on_this_arm = 2
+# THE COMPARABLE ROW. `FEATURE.md`'s constructor takes a path, so `FileJournal`
+# is what an ordinary run of arm B gets, exactly as `_LedgerFile` is what an
+# ordinary run of arm A gets. This flag is what makes FI-M16, FI-M18 and FI-M19
+# the SAME EXPERIMENT across the three arms, and it is a fact about the arms
+# stated in this row's own `gap_targeted` before any of them ran.
+wired_by_default = true
 path = "quota_ledger/file_journal.py"
 find = "        return [line for line in text.splitlines() if line]"
 replace = '        return [line for line in text.splitlines() if line and not line.startswith("CLOSE")]  # MUTANT FI-M16: the REAL adapter never reads back a CLOSE line'
@@ -84,6 +90,10 @@ boundary_kind = "port"
 boundary_ref = "Journal -- arm B's own Protocol, quota_ledger/domain.py"
 homes_for_this_semantic_on_this_arm = 2
 compositions_on_this_arm = 2
+# NOT the comparable row, and there is nothing on arm A or arm C for it to be
+# comparable TO. An arm with one implementation of the durable side has no
+# "second implementation that disagrees with the first" to host.
+wired_by_default = false
 path = "quota_ledger/memory_journal.py"
 find = "        return list(self._records)"
 replace = '        return [record for record in self._records if not record.startswith("CLOSE")]  # MUTANT FI-M17: the FAKE adapter never reads back a CLOSE line'

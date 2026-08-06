@@ -235,6 +235,52 @@ green through exactly the regression it exists to catch. **M07 is not deleted,
 not re-seeded and not excused** — it still runs and its kills still stand. What
 it stops doing on arm B is deciding whether the instrument works.
 
+## FI-04: the arms can diverge, and the arm that has two homes for a fault
+
+The A/B was itself an instrument that could not produce the result which would
+refute it. `PA-06-DF-08`: the arms are identical on 10 of 11 mutated rows, so
+the experiment could only diverge where **re-anchoring failed**, and the
+measured 64 of 64 was arithmetic. FI-04 decided that explicitly — see
+`eval/DECISION-fixture-or-goal.md` — and changed the fixture.
+
+One semantic, *"the ledger's read-back silently drops every line beginning
+`CLOSE`"*, re-anchored **by the property** onto four sites with nothing in
+common. The arms do not agree on how many places it can live:
+
+| arm | homes | why |
+|---|---|---|
+| A | 1 | one flat module, `_LedgerFile` private and always wired |
+| C | 1 | one flat module, and `arm_c/REJECTED.md` records its author declining arm B's seam **on merit** |
+| B | **2** | `FileJournal` and `InMemoryJournal` behind arm B's own `Journal` Protocol; exactly one composed at a time |
+
+| row | arm | action-bound | `:real` | `:fake` | suite-real | suite-fake |
+|---|---|---|---|---|---|---|
+| `FI-M18` | A | KILLED | KILLED | **KILLED** | KILLED | *no such column* |
+| `FI-M19` | C | KILLED | KILLED | **KILLED** | KILLED | *no such column* |
+| `FI-M16` | B, wired | KILLED | KILLED | **SURVIVED** | KILLED | SURVIVED |
+| `FI-M17` | B, unwired | SURVIVED | SURVIVED | **KILLED** | SURVIVED | KILLED |
+
+**The divergence is the `:fake` column on the comparable row — A `KILLED`, C
+`KILLED`, B `SURVIVED`** — and swapping in arm B's own fake took a *real durable
+fault off the executed path with no instrument reporting that it had.* Arm C is
+a third independent re-anchoring and lands on arm A's side, which is the check
+PA-04 asked for. **`FI-M17` is the row `PA-06-DF-04` says had never existed on an
+arm**, and it has no counterpart on A or C: a second implementation that
+disagrees with the first is not a fault a one-implementation tree can host.
+
+Every cell from `run_port_swap.py`, fresh interpreter per cell, controls green
+and **read out of the artifact** rather than from an exit code (`FI-02-DF-02`).
+`run_controls.py` is never pointed at a ported tree: `FI-01-DF-01`.
+
+```bash
+python3 examples/validation/ab/eval/run_arm_swap.py --subject arm_b \
+    --cases <port corpus package> --out results/swap-arm_b.json
+python3 examples/validation/ab/eval/divergence.py \
+    --run arm_a=... --run arm_b=... --run arm_c=... \
+    --catalogue arm_a=... --catalogue arm_b=... --catalogue arm_c=... --out d.json
+python3 examples/validation/ab/eval/generator_vs_suite.py --out gvs.json
+```
+
 PA-01's positive control for the ports tree is therefore seeded on the **accept
 path**, which is the one semantic measured to hold the property on every tree
 that exists — and `--controls --tree-root` is what PA-06 runs on arm C's tree

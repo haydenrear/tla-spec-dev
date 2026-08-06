@@ -122,6 +122,13 @@ def render(result: dict[str, Any]) -> str:
         lines.append(f"== {label}   catalogue authored by {record['catalogue_author']}")
         lines.append(f"   {record['what']}")
         figures = record["comparison"]
+        if figures is None:
+            # A table this tree does not carry is NOT a zero. Reporting it as one
+            # would be EVAL-RERUN-DF-04's mistake -- an absent count read as a
+            # measured count -- in the file whose whole job is set arithmetic.
+            lines.append(f"   NOT PRESENT ON THIS TREE: {record.get('error')}")
+            lines.append("")
+            continue
         lines.append(
             f"   generated union {figures['generated_union_kills']} of {figures['rows']}"
             f"   |   hand-written suite {figures['suite_kills']} of {figures['rows']}"
