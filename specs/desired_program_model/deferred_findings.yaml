@@ -4146,3 +4146,290 @@ findings:
     disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
     disposition_note: >-
       Carried to epic/subtract-to-measure SM-05 (#169), the evaluation: score the removal on the card and find out whether D2 was ever able to move.
+  - id: SM-01-DF-01
+    found_by: "SM-01"
+    found_at_commit: "b2b8e9c"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"]
+    summary: >-
+      THE TWO COLUMNS SM-02'S ENTIRE CASE RESTS ON CARRY NO EXECUTABLE COUNT AND
+      ARE STRUCTURALLY EXEMPT FROM CONTROL CHECKING. `run_port_swap.run_suite`
+      returns `{"total_failed": int(returncode != 0), "failures": tail}` and
+      nothing else -- no `total_ran`, no `total_skipped`, no `per_action`. Every
+      `corpus-*` column carries all four.
+
+      Two consequences, and the second is worse than the first.
+
+      (1) A `SURVIVED` in `suite-real` or `suite-fake` cannot be told apart from
+      a suite that did not run. `total_failed` is derived from an exit code, and
+      pytest exits 0 for a passing run and for a run whose items were collected
+      and skipped -- which is the FI-06 finding, in the driver rather than in the
+      registry.
+
+      (2) `control_verdict` decides a control's role against `witness_count`,
+      which reads `per_action`. The suite columns have no `per_action`, so
+      `witness_count` returns `None`, which the function's own docstring defines
+      as "not evaluable ... nothing is decided against it". THE TWO SUITE COLUMNS
+      ARE THEREFORE NEVER DECIDED BY THE CONTROL MACHINERY AT ALL. That machinery
+      exists because PA-04's first run reported `control_red: []` while a
+      declared control survived four columns; the repair covered the corpus
+      columns and left the suite columns in exactly the state it was written to
+      end.
+
+      This matters here and not in the abstract. `suite-fake` strictly dominating
+      `corpus-port-swap:fake` -- it kills PA-M13 and the port column does not --
+      is the load-bearing evidence for defunding the `[ports.*]` machinery. That
+      domination is measured on a column with no executable count and no control.
+    reproduction: >-
+      `python3 -c "import json; d=json.load(open('specs/results/scorecards/subtract-to-measure/before-state/port-swap-existing-catalogue-before.json')); print({k: sorted(v) for k,v in d['controls_on_unmutated_code'].items()})"`
+      -> the four `corpus-*` entries carry `per_action`, `total_ran`,
+      `total_skipped`; `suite-real` and `suite-fake` carry `failures` and
+      `total_failed` only. Then read `run_port_swap.py:176-190` (`run_suite`) and
+      `:192-208` (`witness_count`).
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/before-state/port-swap-existing-catalogue-before.json"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"
+      - "specs/results/scorecards/subtract-to-measure/before-state/gap-mutants-before.json"
+    why_out_of_scope: >-
+      `run_port_swap.py` is a sealed measurement artifact under
+      `specs/results/`, and SM-01's whole discipline is that nothing is repaired
+      during a measurement. Editing the driver mid-epic would also change the
+      instrument SM-05 re-runs the gap mutants on, so the before and the after
+      would no longer be the same instrument.
+    suggested_fix: >-
+      Have `run_suite` parse pytest's summary line for passed/failed/skipped and
+      return `total_ran`, exactly as `port_corpus_run.py` already does for the
+      corpus columns; then the existing `witness_count`/`control_verdict` path
+      covers the suite columns with no new logic. SM-01's own runner does this
+      and reports the counted readings under `suite-real` / `suite-fake` beside
+      the driver's uncounted ones, which are kept as `portswap-suite-real` /
+      `portswap-suite-fake` precisely so the two readings can be compared rather
+      than one silently overwriting the other.
+    blast_radius: >-
+      Every `suite-*` cell in every sealed port-swap table, including the PA-04
+      and PA-06 records and the before-state table this ticket captured. None of
+      those numbers is shown to be wrong -- SM-01's counted re-measurement of the
+      same subject agrees with them -- but none of them is decidable from the
+      artifact alone.
+
+  - id: SM-01-DF-02
+    found_by: "SM-01"
+    found_at_commit: "b2b8e9c"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"]
+    summary: >-
+      THE PORT-SWAP DRIVER CANNOT BE DRIVEN WITH A CATALOGUE THAT LIVES OUTSIDE
+      THE REPOSITORY. `main()` builds its report with
+      `[str(path.relative_to(REPO_ROOT)) for path in subject["catalogues"]]`, so
+      a caller that follows `run_arm_swap.py`'s documented data-swap pattern and
+      points `catalogues` at a generated file in a temp directory gets
+      `ValueError: '/var/folders/.../gap_mutants_ports.toml' is not in the
+      subpath of '<repo>'` -- after the entire measurement has run, at the point
+      the artifact is written.
+
+      The failure is late, total, and about provenance formatting rather than
+      about anything measured. `run_arm_swap.py` gets away with it only because
+      its catalogues happen to be committed files.
+    reproduction: >-
+      Set `run_port_swap.SUBJECTS["reference_ports"]["catalogues"] = [Path(tempfile.mkdtemp()) / "c.toml"]`
+      and call `run_port_swap.main()`. Traceback at `run_port_swap.py:523`.
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"
+      - "examples/validation/gap_mutants/run_gap_mutants.py -- `run_ports_family`, and the comment on the scratch directory it is forced to create inside the repo"
+    why_out_of_scope: >-
+      Sealed measurement artifact; nothing is repaired during a measurement.
+    suggested_fix: >-
+      `str(path.relative_to(REPO_ROOT)) if path.is_relative_to(REPO_ROOT) else str(path)`.
+      One line, no behaviour change to any verdict.
+    blast_radius: >-
+      Worked around here by writing the derived catalogue into a throwaway
+      directory beside the gap-mutant runner and deleting it in `finally`. Any
+      future caller that wants to measure a catalogue it generated hits the same
+      wall.
+
+  - id: SM-01-DF-03
+    found_by: "SM-01"
+    found_at_commit: "b2b8e9c"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/"]
+    summary: >-
+      THE ACCEPTANCE SUITE IS NOT RUNNABLE AGAINST THE REPOSITORY'S OWN SOURCE
+      TREE. `git archive HEAD | tar -x` and then
+      `uv run --with pytest --with pyyaml python -m pytest tests -q` gives
+      **9 failed, 1326 passed** where a real checkout gives **1335 passed**. All
+      nine read git history:
+      `test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces`,
+      `test_prediction_seal.py::test_n05_is_reported_against_the_real_record`,
+      and seven in `test_score_tools.py`.
+
+      Nothing declares this. There is no marker, no skip reason and no note; a
+      tree with no `.git` simply reports nine failures that look like defects.
+      Every instrument in this project that stages a copy of the repository --
+      `demonstrate.py`, `run_port_swap.py`, and now the gap-mutant runner -- has
+      to decide what to do about it privately, which is how two of them end up
+      deciding differently.
+    reproduction: >-
+      `rm -rf /tmp/arch && mkdir /tmp/arch && git archive HEAD | tar -x -C /tmp/arch && cd /tmp/arch && uv run --with pytest --with pyyaml python -m pytest tests -q`
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/before-state/README.md"
+      - "specs/results/scorecards/subtract-to-measure/before-state/gap-mutants-before.json -- the `baselines` block names all nine"
+    why_out_of_scope: >-
+      Repairing nine tests during a measurement changes the detector the gap
+      mutants are measured against, in the same commit that measures them.
+    suggested_fix: >-
+      Mark the nine with a shared `pytest.mark.needs_git_history` and a
+      `skipif` on `(Path(__file__).parents[1] / ".git").exists()`, so a
+      source-only tree reports them SKIPPED with a reason rather than FAILED.
+      Do NOT delete them: they are the only checks on the committed record.
+    blast_radius: >-
+      Handled here by comparing FAILURE SETS rather than exit codes -- a mutant
+      DIES only when it produces failures the pristine staged tree did not have,
+      and the nine are written into the artifact by name. Any consumer that
+      keys on the exit code instead reports the whole suite as red and decides
+      nothing.
+
+  - id: SM-01-DF-04
+    found_by: "SM-01"
+    found_at_commit: "4b29bcc"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/run_generated_case_adapters.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/"]
+    summary: >-
+      THE PORT SWAP CANNOT DETECT THAT ITS OWN FAKE IS NOT A FAKE. `SM-GM-P3`
+      rewrites `quota_ledger_fake.py`'s one composition line so the FAKE
+      composition point wires `journal_file.FileJournal` -- the real adapter --
+      instead of `journal_memory.InMemoryJournal`. `--wiring fake` and
+      `--wiring real` then run the same program under two names.
+
+      MEASURED, at `4b29bcc`, over a 1855-case `--port-cases only` corpus:
+      SURVIVED on `corpus-port-swap:fake`, `corpus-port-swap:real`,
+      `corpus-action-bound:fake` and `corpus-action-bound:real` at 1543 executed
+      cases EACH, and SURVIVED on both of the driver's suite columns. The run
+      goes on printing `port-fake-real-swap on ledger.LedgerAppendPort: THIS RUN
+      USED THE FAKE SIDE` while the fake side is the real side.
+
+      It dies to four HAND-WRITTEN pytest nodes and nothing else:
+      `tests/test_ab_three_arms_and_port_faults.py::test_a_composition_point_wires_the_fake`,
+      `::test_a_fault_seeded_in_the_fake_is_reachable_only_through_the_fake`,
+      `::test_both_wirings_of_one_domain_agree_on_the_feature`,
+      `::test_each_adapter_is_wired_by_exactly_one_composition_point`.
+
+      This is the one failure a swap mechanism exists to make impossible: a
+      column that looks independent and is not. Every PA-M11/PA-M12 style
+      conclusion drawn from the two columns assumes they are two, and the
+      machinery carries no check that they are.
+
+      THE POSITIVE CONTROL RULES OUT THE OTHER EXPLANATION. `SM-GM-CTRL-A`, a
+      one-unit error in `domain.py`, DIED on all six of those columns in the same
+      run at the same case counts. The columns were reaching the subject; they
+      were not reaching THIS.
+    reproduction: >-
+      `python3 examples/validation/gap_mutants/run_gap_mutants.py --only SM-GM-P3-the-fake-is-silently-a-second-real-adapter --only SM-GM-CTRL-A-commit-credits-one-too-many --cases <port corpus> --out /tmp/p3.json`
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/before-state/gap-mutants-before.json"
+      - "specs/results/scorecards/subtract-to-measure/SM-01-RESULTS.md"
+      - "examples/validation/gap_mutants/gap_mutants.toml -- SM-GM-P3"
+    why_out_of_scope: >-
+      SM-01 seeds and measures; it removes and repairs nothing. And the repair
+      is not obvious: an assertion that two wirings DISAGREE is wrong, because
+      `journal_memory.py`'s own docstring says a fake must be a working
+      implementation of the same interface, so agreement is the correct
+      behaviour on a healthy tree.
+    suggested_fix: >-
+      NOT by asserting the two columns differ. The property that actually failed
+      is that the two `[ports.*]` entries resolve to DISTINCT implementation
+      modules; `apply_wiring` could report when `mapping.fake` and
+      `mapping.adapter` resolve to the same underlying module and say so in the
+      oracle statement, which already has a slot for exactly this class of
+      disclosure. If SM-02 removes the machinery, the finding is closed by
+      deletion -- and the four pytest nodes that DO catch it are the thing that
+      must not be cut with it.
+    blast_radius: >-
+      No sealed number is shown to be wrong; the shipped fake is a real fake and
+      the columns were genuinely two on every run recorded. What is unsupported
+      is the inference that a port-swap table GUARANTEES they are two.
+
+  - id: SM-01-DF-05
+    found_by: "SM-01"
+    found_at_commit: "4b29bcc"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/instruments/instruments.toml", "examples/validation/instruments/demonstrate.py"]
+    summary: >-
+      FI-06 IS RIGHT ABOUT THE MECHANISM AND WRONG ABOUT ITS REACH, AND SM-03
+      NEEDS THE DIFFERENCE. The finding reads: all twelve pytest failing slots
+      assert only `expect_exit = 0`, "which pytest returns for a passing run AND
+      a fully skipped one". Two skip shapes exist and they do not exit alike.
+
+      MEASURED on the `complexity-ledger` row, which is one of the twelve AND one
+      of the two whose `failing.nodes == passing.nodes`:
+
+        SM-GM-I1  `pytestmark = pytest.mark.skip(...)`      items collected then
+                  skipped, pytest exits 0  -> demonstration reports `ok`
+                  -> SURVIVES on `instrument-registry` AND on the full suite
+                  (1297 executed, 73 fewer than baseline, zero failures)
+
+        SM-GM-I6  `pytest.skip(..., allow_module_level=True)`  nothing collected,
+                  pytest exits 5  -> demonstration goes red -> DIES on
+                  `instrument-registry`
+
+      So the twelve slots are NOT blind to a demonstration that disappears. They
+      are blind to one that goes VACUOUS -- which is the more dangerous of the
+      two, because a vacuous demonstration keeps reporting and keeps counting.
+
+      This matters for the verdict SM-03 reaches. "The count is false precision"
+      is still true; "a fully skipped run satisfies it" is true of one shape and
+      false of the other, and a ticket that deletes twelve rows citing the
+      sentence as written is deleting on a claim that has now been measured and
+      partly refuted.
+    reproduction: >-
+      `python3 examples/validation/gap_mutants/run_gap_mutants.py --only SM-GM-I1-the-cited-demonstration-node-is-collected-and-skipped --only SM-GM-I6-the-cited-demonstration-node-is-not-collected-at-all --out /tmp/skips.json`
+      then read the two `instrument-registry` cells. Read them as a DIFFERENCE,
+      never as "1 of 2 caught".
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/before-state/gap-mutants-before.json"
+      - "specs/results/scorecards/falsifiable-instruments/RESULTS.md -- the FI-06 sentence"
+      - "examples/validation/instruments/demonstrate.py -- judge(), which compares only observed['exit']"
+    why_out_of_scope: >-
+      Repairing a demonstration slot is SM-03's ticket by name, and doing it
+      during the measurement that prices SM-03's removals would destroy the
+      before half of the before/after.
+    suggested_fix: >-
+      Give every pytest slot an `expect_output` naming the count it must see
+      (`"1 passed"`, `"2 passed"`), which `judge()` already supports and which no
+      slot uses. That closes the vacuous-demonstration hole without a new field,
+      a new gate or a longer list. It does NOT close the deeper one -- a slot
+      whose cited node still runs but no longer asserts anything -- and SM-03
+      should say so rather than claim it does.
+    blast_radius: >-
+      The `26 of 35` headline is unchanged in either direction by this finding;
+      what changes is which twelve rows are hollow and in what way, which is
+      exactly the input SM-03 decides delete-versus-repair on.
