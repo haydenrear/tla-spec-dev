@@ -1,10 +1,108 @@
 # next epic — starter for the next epic owner
 
+> **AMENDED AFTER `FI-06`, the `falsifiable-instruments` evaluation
+> (2026-08-06).** Everything below still describes how each earlier result was
+> measured and none of it is edited. What FI-06 adds is at the very top, in
+> section 0-AAAA, because it **retracts part of what section 0-AAA calls "the one
+> clean win"** and because it names the single experiment worth funding next.
+> Full record: `specs/results/scorecards/falsifiable-instruments/RESULTS.md`.
+
 > **AMENDED AGAIN AFTER `PA-06`, the `ports-as-adapters` evaluation (2026-08-05).**
 > Everything below still describes how each earlier result was measured and none
 > of it is edited. What PA-06 adds is at the top, in section 0-AAA, because two
 > of its findings change what the NEXT epic can even attempt. Full record:
 > `specs/results/scorecards/ports-as-adapters/RESULTS.md`.
+
+---
+
+## 0-AAAA. READ BEFORE 0-AAA — what FI-06 measured
+
+### THE ONE THING TO DO NEXT, AND IT IS ONE THING
+
+**Do not open a fifth mechanism epic.** Four epics of mechanism work have made
+the mechanisms better and the *reading discipline* no better, and the reading
+discipline is what every one of these failures has been. Two actions, in order:
+
+1. **Close `FI-04-DF-04`, with its own suggested fix and not by lengthening a
+   literal.** `GOAL-instruments-can-fail`'s only target is *"nothing is silently
+   omitted"*, and the check behind it is a hardcoded subset test that catches a
+   rename and cannot catch an addition. It failed **three times inside the epic
+   that filed it, with the suite fully green**, and FI-06 found **at least eight
+   more omissions** — including `run_arm_swap.py` (shipped by FI-04 in the same
+   reconcile as the instrument it registered by hand *while writing that
+   finding*) and `demonstrate.py`, the enumerator itself. The fix is one
+   predicate over a diff: *`close ticket` refuses when a ticket adds an
+   executable under a declared instrument root and the registry gained no row in
+   the same commit.* **Until it lands, no count from that registry may be quoted
+   without "the denominator is a floor."**
+2. **Run the blind-author experiment, with the model's constants enlarged and the
+   port columns included.** It is the only outstanding question in this
+   repository whose answer would change a decision. Specification in
+   `specs/results/scorecards/falsifiable-instruments/RESULTS.md` §4.
+
+### THE "ONE CLEAN WIN" BELOW IS PARTLY RETRACTED — read this before quoting it
+
+Section 0-AAA says a third arm *"longer than the hexagonal one and asking for
+nothing architectural"* settles the 6.6× confound. **Measured against the bytes
+this repository now preserves as dispatched, arm C was neither.**
+
+```
+$ python3 examples/validation/ab/check_catalogue.py --arms \
+      --dispatch-dir examples/validation/ab/dispatch/ports-as-adapters
+
+  arm C / arm B:  1.181  (+18.1%),  tolerance +/-10%
+  ARCHITECTURAL VOCABULARY: arm C: 4 of 124 unique lines  [PORTS] [ports] [Designs] [module]
+
+CATALOGUE INTEGRITY FAILED
+  ... outside the declared +/-10% tolerance.
+  ... if it asks for structure it is a second treatment and the confound is not settled.
+```
+
+Two of the four vocabulary hits are paths PA-06 itself introduced — the working
+directory `.../ports-as-adapters/arms/arm_c/` and the forbidden file
+`PORTS-AS-ADAPTERS-EPIC.md`. **PA-06 measured this honestly and filed it as
+`PA-06-DF-10`**; the retraction is at
+`specs/results/scorecards/ports-as-adapters/RESULTS.md:121-125`. **It never
+reached this document, and `FALSIFIABLE-INSTRUMENTS-EPIC.md:94-98` restates it as
+established fact.** `FI-06-DF-06`.
+
+**The D3 result survives** — 1/1 against 4/4 is far outside anything either
+defect accounts for, and arm C's author declined the seam on merit. **The stated
+tolerance and the "no architectural vocabulary" do not.** Quote the conclusion;
+never quote the tolerance.
+
+### THREE THINGS THAT ARE NOW FALSE OR UNQUOTABLE
+
+- **`D2`, `D4`, `D5` and the `total` column of `SELF-IMPROVEMENT.md`.** D4 and D5
+  cannot carry a delta because they are noisy; **D2 cannot because it is a
+  CONSTANT — 2 on 27 of 27 cards ever written about `ab_quota_ledger`** — because
+  its anchor 3 requires a before/after pair a greenfield artifact cannot have,
+  which the judges say in their own rationales. **D3 is the only trustworthy
+  column.** `FI-06-DF-05`.
+- **"The generated corpus ties the hand-written suite on a blind catalogue."**
+  There are **two** blind-authored catalogues here, not one, and on the earlier
+  pair **the suite strictly dominates with the generated family holding zero
+  unique kills** — on the *same fault class*. The difference is
+  `QuotaLedger.cfg:8`, `ResIds = {r1, r2}`: the favourable draw reuses an id at
+  allocation #2 and the unfavourable one at #4, and no behaviour of this model
+  contains more than two `Reserve` actions. `oracle.py` has been counting **266
+  of 294** skips against that wall on every run for three epics. **Enlarging
+  `ResIds` is the single cheapest change in this repository with a chance of
+  moving a cell.** `FI-06-DF-07`, `FI-06-DF-08`.
+- **Any judged number produced against a rubric the judge was told to read.** At
+  `51fe73d` that file states the result FI-03 was measuring, by name, with the
+  prior scores. **Split the rubric before the next round**: dimensions, anchors
+  and scoring rules go to the judge; the `R-H` reading rules, prior results and
+  known-instability tables do not. `FI-06-DF-04`.
+
+### AND THE STANDING CHANNEL RESULT, WHICH KEEPS REPLICATING
+
+**FI-06 ratio: 0 : 16 : 1 : 1 : 12 — thirty findings, ZERO from the suite**, for
+the fifth round in six. The new and now-dominant channel is *build the
+instrument, then ask what it cannot report* (16 of 30) — cheaper than an
+adversarial agent, and it found the structural defects; the adversarial channel
+found the ones the builder could not see because they were about the builder's
+own frame. **Keep both. Never expect the suite to produce one.**
 
 ---
 

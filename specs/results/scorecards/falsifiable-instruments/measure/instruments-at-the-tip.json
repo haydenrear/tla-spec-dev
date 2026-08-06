@@ -1,0 +1,1899 @@
+{
+  "counts": {
+    "enumerated": 40,
+    "instruments": 35,
+    "not_an_instrument": 5,
+    "with_a_demonstrated_blind_spot": 12,
+    "with_failing_demonstration": 26,
+    "with_passing_demonstration": 30,
+    "without_failing_demonstration": 9
+  },
+  "registry": {
+    "epic": "falsifiable-instruments",
+    "id": "FI-02-instrument-enumeration",
+    "note": "THE COUNT OF INSTRUMENTS THAT CANNOT BE SHOWN TO FAIL IS THIS FILE'S PRODUCT.\nThere is no target on the ratio. A high count is the honest outcome and the\nepic prefers it to a flattering one; what is targeted is only that nothing is\nsilently omitted.\n",
+    "rule": "references/architecture_advice.md S2; epic R1 and R2",
+    "ticket": "FI-02"
+  },
+  "reproduction_failures": [],
+  "rows": [
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "corpus-runner",
+      "name": "generated-case corpus runner",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "scripts/run_generated_case_adapters.py"
+      ],
+      "slots": {
+        "failing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/scripts/run_generated_case_adapters.py",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-g1lk04dw/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases",
+            "--mapping",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-g1lk04dw/tree/dh/specs/program_model/case_adapters.toml",
+            "--view",
+            "internal",
+            "--batch",
+            "--import-root",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-g1lk04dw/tree/dh"
+          ],
+          "exit": 1,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "a checked-out order is persisted with status 'pending' instead of 'accepted' (kill_mutants.toml store-order_store, verbatim)",
+          "tail": "  - projected-state-conformance: no binding declares a projector, an expected_projection or an assertion, so nothing here observes the real system's state except through the adapter's own returned after-state\n  - effect-conformance: this mapping binds no [effect_providers.<Port>] provider, so NO DURABLE-WRITE ORACLE is in this run and a kill count from it is a FLOOR\n  - mutation-kill-test: never carried by this runner. It is a separate instrument (scripts/kill_test.py) and a green run here is not evidence any fault would die\n  - port-fake-real-swap: no [ports.\"Component.Name\"] binding in this mapping. Every binding here drives a whole ACTION, so a fault living inside one implementation of a port is only reachable if the composition point this corpus happens to run wires that implementation\nERROR: 1 batched case executions failed\ninternal_checkout_creates_outbox via Checkout: AssertionError: adapter after-state mismatch for internal_checkout_creates_outbox: orders: expected {'order-1': {'account': 'acct-1', 'items': ['sku-1'], 'status': 'accepted'}}, actual {'order-1': {'account': 'acct-1', 'items': ['sku-1'], 'status': 'pending'}}"
+        },
+        "passing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/scripts/run_generated_case_adapters.py",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-eunphvnt/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases",
+            "--mapping",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-eunphvnt/tree/dh/specs/program_model/case_adapters.toml",
+            "--view",
+            "internal",
+            "--batch",
+            "--import-root",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-eunphvnt/tree/dh"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the same corpus against the same tree, unmutated",
+          "tail": "ORACLES **NOT** CARRIED:\n  - projected-state-conformance: no binding declares a projector, an expected_projection or an assertion, so nothing here observes the real system's state except through the adapter's own returned after-state\n  - effect-conformance: this mapping binds no [effect_providers.<Port>] provider, so NO DURABLE-WRITE ORACLE is in this run and a kill count from it is a FLOOR\n  - mutation-kill-test: never carried by this runner. It is a separate instrument (scripts/kill_test.py) and a green run here is not evidence any fault would die\n  - port-fake-real-swap: no [ports.\"Component.Name\"] binding in this mapping. Every binding here drives a whole ACTION, so a fault living inside one implementation of a port is only reachable if the composition point this corpus happens to run wires that implementation\nexecuted 4 cases in batch"
+        }
+      },
+      "verdict_surface": "exit code 1 with the per-case diff",
+      "watches": "every generated case's output and projected after-state against the model"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "effect-oracle",
+      "name": "MF-013 effect conformance oracle",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "scripts/effect_conformance.py",
+        "scripts/effect_conformance_report.py"
+      ],
+      "slots": {
+        "blind_spot": {
+          "ran": false,
+          "reason": "MF-027. Not a defect and not repairable here; recorded so the oracle's reach is not read as total.",
+          "skipped": true,
+          "summary": "a process.spawn is UNOBSERVABLE whatever a port declares, so any effect a child process performs is outside this oracle by construction -- the kill test must run outside the sandbox for exactly this reason, and says so on every run"
+        },
+        "failing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_effect_conformance_runner.py::TestRunnerEnforcesEffectConformance::test_undeclared_effect_fails_the_run",
+            "tests/test_effect_conformance_runner.py::TestRunnerEnforcesEffectConformance::test_dead_declared_port_fails_the_run"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "an adapter that writes into a directory no port covers, and one that declares a port no case exercises",
+          "tail": "..                                                                       [100%]\n2 passed in 0.82s"
+        },
+        "passing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_effect_conformance_runner.py::TestRunnerEnforcesEffectConformance::test_declared_only_adapter_passes"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "an adapter that writes only where its port says it writes",
+          "tail": ".                                                                        [100%]\n1 passed in 0.04s"
+        }
+      },
+      "verdict_surface": "exit 1 (gap, dead surface, unobservable), exit 2 (malformed declarations)",
+      "watches": "observed filesystem/network/process effects against the ports the model declares"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "kill-test-floor",
+      "name": "MF-016 mutation kill test",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "scripts/kill_test.py",
+        "scripts/run_kill_test.py"
+      ],
+      "slots": {
+        "failing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/scripts/run_kill_test.py",
+            "--target",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-p31z24it/tree/dh/specs/program_model",
+            "--root",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-p31z24it/tree/dh",
+            "--cfg",
+            "Internal.cfg",
+            "--corpus-command",
+            "/opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/scripts/run_generated_case_adapters.py /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-p31z24it/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases --mapping /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-p31z24it/tree/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-p31z24it/tree/dh"
+          ],
+          "exit": 1,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the shipped distributed-history example: 3 of 7 seeded faults survive the corpus, 0.571 against a floor of 0.800 -- a genuinely under-refined representation, not a contrived one",
+          "tail": "note: This runner spawns a child process per mutant. Under the MF-027 effect oracle a process.spawn is an unobservable boundary even when a port declares it, so the kill test must run OUTSIDE the effect sandbox in this repository.\n\nBELOW FLOOR: kill rate 0.571 (4/7 mutants killed) against floor 0.800. 3 mutant(s) survived; each names the variable and action to refine. There is no waiver.\n\nREFUSING. Raise the kill rate by refining the representation at the boundaries named above. The floor is not waivable: it is the value floor that makes every cost cap in this toolchain safe, because a trivial model passes every cap and kills no mutants.\n"
+        },
+        "passing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/scripts/run_kill_test.py",
+            "--target",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-k0zlvxhd/tree/dh/specs/program_model",
+            "--root",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-k0zlvxhd/tree/dh",
+            "--cfg",
+            "Internal.cfg",
+            "--corpus-command",
+            "/opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/scripts/run_generated_case_adapters.py /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-k0zlvxhd/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases --mapping /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-k0zlvxhd/tree/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-k0zlvxhd/tree/dh"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the same corpus over a catalogue containing only faults it does kill",
+          "tail": "  store-outbox         KILLED    invariant:InternalInvariant\n\nnote: This runner spawns a child process per mutant. Under the MF-027 effect oracle a process.spawn is an unobservable boundary even when a port declares it, so the kill test must run OUTSIDE the effect sandbox in this repository.\n\nPASS: kill rate 1.000 (4/4 mutants killed) against floor 0.800.\n"
+        }
+      },
+      "verdict_surface": "exit 1 below floor / regressed, exit 2 incomplete catalogue / no control",
+      "watches": "whether the distilled corpus can tell a seeded fault from the correct program"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "kill-test-boundary-coverage",
+      "name": "kill test boundary coverage (--list-boundaries)",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "scripts/run_kill_test.py"
+      ],
+      "slots": {
+        "failing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/scripts/run_kill_test.py",
+            "--target",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-wdmjsm5i/tree/dh/specs/program_model",
+            "--root",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-wdmjsm5i/tree/dh",
+            "--list-boundaries"
+          ],
+          "exit": 2,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the model grows a declared port and the catalogue does not follow it -- the drift a sealed catalogue certificate hides",
+          "tail": "[NO MUTANT] port      unseeded_port\n[   seeded] invariant Invariant\n[   seeded] invariant InternalInvariant\n\n2/3 declared boundaries carry a seeded fault."
+        },
+        "passing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/scripts/run_kill_test.py",
+            "--target",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-x4199nes/tree/dh/specs/program_model",
+            "--root",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-x4199nes/tree/dh",
+            "--list-boundaries"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the catalogue as shipped: every declared boundary carries a seeded fault",
+          "tail": "[   seeded] invariant Invariant\n[   seeded] invariant InternalInvariant\n\n2/2 declared boundaries carry a seeded fault."
+        }
+      },
+      "verdict_surface": "exit 2 on an incomplete catalogue",
+      "watches": "that every boundary the model declares carries a seeded fault"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "corpus-diagnostics",
+      "name": "corpus case-cap diagnostics",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "scripts/corpus_diagnostics.py"
+      ],
+      "slots": {
+        "failing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/scripts/corpus_diagnostics.py",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-udwlhgn_/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases",
+            "--manifest",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-udwlhgn_/tree/dh/specs/program_model/spec_manifest.yaml"
+          ],
+          "exit": 1,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "a component carrying more cases than its declared cap allows",
+          "tail": "         rationale:\n           max_internal_cases_per_component: \"<one line: why this program genuinely needs 4 cases per component>\"\n     \n     That is an explicit, reviewable decision recorded in program state.\n     There is no trimming option, opt-in or otherwise: cases are never\n     dropped, filtered, sampled, or truncated to fit a budget."
+        },
+        "passing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/scripts/corpus_diagnostics.py",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-ycm2ynwg/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases",
+            "--manifest",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-ycm2ynwg/tree/dh/specs/program_model/spec_manifest.yaml"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the same corpus under the caps it was generated against",
+          "tail": "  CreateAccount / ecommerce_internal       1   25.0%\n  ProjectOrder / ecommerce_internal        1   25.0%\n\nEvery component is within cap. Largest: component=4\n\nNo case was dropped, filtered, sampled, or truncated."
+        }
+      },
+      "verdict_surface": "exit 1 over cap; exit 2 via enforce_case_cap inside generation",
+      "watches": "the per-component and per-action case distribution against declared caps"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "tla-complexity-descriptor",
+      "name": "TLA+ complexity descriptor (analyze complexity)",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "scripts/analyze_complexity.py"
+      ],
+      "slots": {
+        "blind_spot": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/scripts/analyze_complexity.py",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-jinzfkjc/tree/model/QuotaLedger.tla",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-jinzfkjc/tree/model/QuotaLedger.cfg"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "a model 432x over its own declared state-space bound and 5x over its per-component variable bound: WARNINGS, and exit 0. There is no input that makes this instrument refuse on complexity, deliberately (MF-036, and CD-01: a tool that picks the boundary makes every edge legal by construction).",
+          "tail": "\n  `analyze complexity` exits 0 whenever it can analyze the model -- a complex model\n  is a finding, not a failure. It exits nonzero ONLY when the model cannot be\n  analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not\n  measure this', which is distinct from 'this is complex'.\nwarning: budgets block in /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-jinzfkjc/tree/model/spec_manifest.yaml is missing tlc_seconds, max_internal_cases_per_component, max_external_cases_per_action; using documented defaults for those keys"
+        },
+        "failing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/scripts/analyze_complexity.py",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-minbbtaw/tree/model/QuotaLedger.tla",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-minbbtaw/tree/model/QuotaLedger.cfg"
+          ],
+          "exit": 1,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "a module hierarchy the analyzer cannot resolve -- an INSTANCE it does not model, so it fails closed rather than under-report the bound",
+          "tail": "ERROR: complexity analysis could not analyze this model -- the module hierarchy could not be resolved:\n  module QuotaLedger (QuotaLedger.tla) uses INSTANCE (module instantiation / substitution WITH / parameterized instantiation). The complexity analyzer does not model which declarations this brings into scope and FAILS CLOSED rather than under-report the bound."
+        },
+        "passing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/scripts/analyze_complexity.py",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-njzyybw2/tree/model/QuotaLedger.tla",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-njzyybw2/tree/model/QuotaLedger.cfg"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the same model, resolvable",
+          "tail": "\n  `analyze complexity` exits 0 whenever it can analyze the model -- a complex model\n  is a finding, not a failure. It exits nonzero ONLY when the model cannot be\n  analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not\n  measure this', which is distinct from 'this is complex'.\nwarning: no budgets block in /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-njzyybw2/tree/model/spec_manifest.yaml; using documented default budgets (references/modular_fuzzing.md). Run tla-spec-dev scaffold project to emit one, or add it by hand."
+        }
+      },
+      "verdict_surface": "exit 1 ONLY when the model cannot be analyzed; complexity itself is advisory",
+      "watches": "model dimension, state-space bound, per-component variables and actions, the R/W matrix"
+    },
+    {
+      "classification": "demonstrated-cannot-fail",
+      "family": "measurement",
+      "has_failing_demonstration": false,
+      "has_passing_demonstration": true,
+      "id": "produced-code-instrument",
+      "name": "produced-code complexity thermometer",
+      "no_failing_demonstration": "BY CONSTRUCTION AND ON PURPOSE, and this is the one row where that is the\ncorrect answer rather than a defect. It is a THERMOMETER: it reports, refuses\nnothing, gates nothing, and exits 0 on a tree that does not exist, a file that\ndoes not parse and a file that is not UTF-8. `EXIT_OK = 0` is the only exit\nconstant in the file and `tests/test_code_complexity.py` asserts that against\nthe AST, not against prose. 'I could not measure this' is a completeness fact\nprinted with the path and the reason. The blind-spot row demonstrates the\ninability rather than asserting it.\n",
+      "no_passing_demonstration": null,
+      "paths": [
+        "scripts/code_complexity.py"
+      ],
+      "slots": {
+        "blind_spot": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/scripts/code_complexity.py",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-u45w5eny/tree/subject",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-u45w5eny/tree/no-such-tree"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "a tree with a file that does not parse, a path that is not there, and a module 12 branches deep in every method: exit 0, every time. Nothing you can put in front of this instrument makes it refuse.",
+          "tail": "\npath: not found -- reported, not refused\nfigures: none measured\n\ncompleteness: 0/0 files parsed (fraction n/a)\n  nothing was left unmeasured by this instrument's own limits"
+        },
+        "passing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/scripts/code_complexity.py",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/ab/reference",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/ab/reference_ports"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "two implementations of one spec, told apart",
+          "tail": "completeness: 5/5 files parsed (fraction 1.000)\n  nothing was left unmeasured by this instrument's own limits\n  effectful_calls undercounts by construction: 18 sink names are left out of the vocabulary for colliding with in-memory operations (call ~ any callable-invoking method, copy ~ dict.copy / list.copy, delete ~ too generic to attribute, exit ~ any exit method, get ~ dict.get, head ~ too generic to attribute, move ~ too generic to attribute, post ~ too generic to attribute, put ~ queue.put, remove ~ list.remove / set.remove, replace ~ str.replace / dataclasses.replace, request ~ too generic to attribute, run ~ any runner method, sample ~ random.sample / statistical sampling, send ~ generator.send, spawn ~ too generic to attribute, time ~ any attribute named time, walk ~ ast.walk)\n\ncolumn key: role=role; code=code_lines; defs=callables; public=public_surface; inst=instance_state; mod=module_state; branch=branch_points; worst=max_branch_points_in_callable; depth=max_depth; iface=declared_interfaces; effect=effectful_calls\nrole rule: role is assigned by NAME alone: a path component in ['test', 'testing', 'tests'], or a filename matching test_*.py, *_test.py or conftest.py, is role=test. Contents are never read."
+        }
+      },
+      "verdict_surface": "none -- it prints figures and exits 0 on every input",
+      "watches": "the shape of produced Python: branch points, depth, state, effectful calls, declared interfaces"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "catalogue-integrity",
+      "name": "seeded-fault catalogue integrity harness",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "examples/validation/ab/check_catalogue.py"
+      ],
+      "slots": {
+        "blind_spot": {
+          "ran": false,
+          "reason": "PA-06-DF-01 and FI-01-DF-02, both open. Not repaired here: FI-02 measures WITH this harness, and widening or narrowing a check during the measurement that uses it is the forbidden half of the repair rule.",
+          "skipped": true,
+          "summary": "it makes a MEASUREMENT catalogue's obligations of a SUPPLEMENT catalogue, so probing one control on one arm prints sixteen complaints that are all true of the wrong file, and it refuses every per-arm catalogue including two sealed ones"
+        },
+        "failing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/ab/check_catalogue.py",
+            "--root",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-8m9z6kle/tree/ab",
+            "--catalogue",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-8m9z6kle/tree/ab/seeded_faults.toml"
+          ],
+          "exit": 1,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the tree moves under the catalogue -- a guard is rewritten and a seeded fault silently stops applying, which is the drift that turns a survivor into a lie",
+          "tail": "  PA-M12-fake-adapter-drops-close-lines      reference_ports/journal_memory.py\n  PA-M13-fake-drifts-from-real-on-write      reference_ports/journal_memory.py\n\nCATALOGUE INTEGRITY FAILED -- numbers derived from it are not re-derivable:\n  M01-guard-zero-amount: `find` occurs 0 time(s) in reference/quota_ledger.py, must be exactly 1. Zero seeds nothing and reports a survivor.\n  M01-guard-zero-amount: applying the mutant changed nothing"
+        },
+        "passing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/ab/check_catalogue.py",
+            "--root",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-wyo4yp2o/tree/ab",
+            "--catalogue",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-wyo4yp2o/tree/ab/seeded_faults.toml"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the sealed catalogue on its own anchor trees",
+          "tail": "  PA-M11-real-adapter-drops-close-lines      reference_ports/journal_file.py\n  PA-M12-fake-adapter-drops-close-lines      reference_ports/journal_memory.py\n  PA-M13-fake-drifts-from-real-on-write      reference_ports/journal_memory.py\n\nCatalogue integrity holds: every pattern occurs exactly once, every\nmutant applies and reverts cleanly, and every declared gap is seeded."
+        }
+      },
+      "verdict_surface": "exit 1, CATALOGUE INTEGRITY FAILED, with one line per problem",
+      "watches": "that every catalogued fault applies exactly once, reverts byte-identically, still parses, and covers every required class and gap"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "control-property-probe",
+      "name": "control-property probe (--demonstrate)",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "examples/validation/ab/check_catalogue.py",
+        "examples/validation/ab/probe_demonstrations.toml"
+      ],
+      "slots": {
+        "failing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_falsifiable_controls.py::test_the_demonstration_FAILS_if_the_probe_goes_soft"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "the probe made to go soft: forced to answer HOLDS, the demonstration must fail",
+          "tail": ".                                                                        [100%]\n1 passed in 0.03s"
+        },
+        "passing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/ab/check_catalogue.py",
+            "--demonstrate",
+            "--catalogue",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/ab/probe_demonstrations.toml"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "five controls broken on purpose, each declaring the verdict the probe must return, plus one that works",
+          "tail": "                                           NOTHING MOVES under 'one-accepted-reserve' either. A control nothing can observe can never go red; this is the verdict a no-op earns, and the verdict a control earns when it needs more steps than the instruments execute\n  DEMO-05-the-control-that-actually-works  port-region-commit-path      HOLDS           HOLDS\n                                           invisible under 'everything-but-an-accepted-commit'; observable under 'one-accepted-commit'; moved: committed, ledger_lines; inside the region: committed, ledger_lines\n\nThe probe reported every deliberately broken control broken. R1 holds:\nthis instrument ships with a demonstrated failing input."
+        }
+      },
+      "verdict_surface": "exit 1, THE PROBE FAILED ITS OWN DEMONSTRATION",
+      "watches": "that a declared positive control is invisible before its path runs and observable after ONE step, inside the region it claims"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": false,
+      "id": "port-scoped-control-check",
+      "name": "declared-control check (--controls)",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": "There is no green run of this command in the repository today, and that is the\ncorrect state rather than a gap: PA-M14 is INERT on `reference_ports` and R2\nsays it is REPORTED RED, not re-anchored into looking fine. Its only other\nsubject is a per-arm supplement catalogue, and those trip PA-06-DF-01's false\nintegrity complaints, so a green would have to be manufactured.\n",
+      "paths": [
+        "examples/validation/ab/check_catalogue.py"
+      ],
+      "slots": {
+        "failing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/ab/check_catalogue.py",
+            "--controls"
+          ],
+          "exit": 1,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the repository as it stands: PA-M14 is declared a positive control and cannot be observed in one step on the tree it is declared on",
+          "tail": "  reference: 1 of 1 positive control(s) HOLD (M07-positive-control-wrong-hold)\n\n  reference_ports: 1 of 2 positive control(s) HOLD (FI-M15-positive-control-commit-total-too-large)\n\nCATALOGUE INTEGRITY FAILED -- numbers derived from it are not re-derivable:\n  PA-M14-positive-control-accepted-hold-too-large: declared a positive control but is INERT on reference_ports under the 'accept-path-only' property -- NOTHING MOVES under 'one-accepted-reserve' either. A control nothing can observe can never go red; this is the verdict a no-op earns, and the verdict a control earns when it needs more steps than the instruments execute. R2: it is reported RED, not made green by weakening what it asserts."
+        }
+      },
+      "verdict_surface": "exit 1 naming the control and the tree",
+      "watches": "that every mutant declared a positive control actually holds its declared property on its tree"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "arms-length-match",
+      "name": "A/B arm length-match and vocabulary check (--arms)",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "examples/validation/ab/check_catalogue.py"
+      ],
+      "slots": {
+        "failing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_ab_three_arms_and_port_faults.py::test_the_vocabulary_probe_is_not_vacuous"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "the vocabulary probe run against text that DOES carry architectural vocabulary, so a probe that found nothing anywhere would fail",
+          "tail": ".                                                                        [100%]\n1 passed in 0.01s"
+        },
+        "passing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/ab/check_catalogue.py",
+            "--arms",
+            "--catalogue",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/ab/seeded_faults.toml"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the three shipped prompts",
+          "tail": "\n  ARM B SLOT: filled.\n  ARM C SLOT: filled.\n\nCatalogue integrity holds: every pattern occurs exactly once, every\nmutant applies and reverts cleanly, and every declared gap is seeded."
+        }
+      },
+      "verdict_surface": "exit 1",
+      "watches": "that arm C is length-matched to arm B and uses no architectural vocabulary"
+    },
+    {
+      "classification": "demonstrated-cannot-fail",
+      "family": "measurement",
+      "has_failing_demonstration": false,
+      "has_passing_demonstration": false,
+      "id": "suite-verification",
+      "name": "suite prediction verification (--verify-suite)",
+      "no_failing_demonstration": "A PREDICTION DISAGREEMENT CANNOT MAKE IT RED. `verify_suite` prints\n`*** DISAGREES ***` for a wrong prediction and then does not append it to\n`problems`, and the function says so in its own closing disclaimer. Only two\nconditions reach `problems`: a missing anchor tree, and a control run that is\nalready red on the UNMUTATED tree. So the one thing the mode is named for is\nthe one thing it cannot report, and every `predicted_suite` annotation in the\ncatalogue is unchecked prose. Filed as FI-02-DF-01.\n",
+      "no_passing_demonstration": null,
+      "paths": [
+        "examples/validation/ab/check_catalogue.py"
+      ],
+      "slots": {},
+      "verdict_surface": "prints `*** DISAGREES ***`; NEVER adds the disagreement to `problems`",
+      "watches": "nominally, whether a mutant's recorded `predicted_suite` matches what the suite actually does"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "control-decision-driver",
+      "name": "control-decision driver (run_controls.py)",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "examples/validation/ab/eval/run_controls.py"
+      ],
+      "slots": {
+        "blind_spot": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_instrument_demonstrations.py::TestRunControlsCannotMeasureAPortedTree"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "IT CANNOT MEASURE A PORTED TREE AT ALL. Its purge is keyed on ARM_MODULE_PREFIXES = ('quota_ledger',), so on a ported tree `domain` and `journal_file` stay cached and every mutant seeded in them runs against unmutated code: 15 of 15 false SURVIVED, no error, looking exactly like a clean measurement.",
+          "tail": "...                                                                      [100%]\n3 passed in 0.04s"
+        },
+        "failing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/ab/eval/run_controls.py",
+            "--label",
+            "FI-02-failing",
+            "--tree",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-a7ep4a7s/tree/ab",
+            "--module-dir",
+            "reference",
+            "--binding",
+            "reference_binding",
+            "--catalogue",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-a7ep4a7s/tree/ab/eval/controls.toml",
+            "--suite",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-a7ep4a7s/tree/ab/tests/test_behavior.py",
+            "--out",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-a7ep4a7s/tree/failing.json"
+          ],
+          "exit": 1,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the negative control is rewritten into a fault the suite catches, so a control declared to SURVIVE is killed -- the retraction the catalogue itself calls a finding",
+          "tail": "  \"limitations_rejected\": [],\n  \"out\": \"/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-a7ep4a7s/tree/failing.json\",\n  \"polarities_with_no_deciding_control\": [\n    \"negative\"\n  ]\n}"
+        },
+        "passing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/ab/eval/run_controls.py",
+            "--label",
+            "FI-02-passing",
+            "--tree",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-dldqdo2q/tree/ab",
+            "--module-dir",
+            "reference",
+            "--binding",
+            "reference_binding",
+            "--catalogue",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-dldqdo2q/tree/ab/eval/controls.toml",
+            "--suite",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-dldqdo2q/tree/ab/tests/test_behavior.py",
+            "--out",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-dldqdo2q/tree/passing.json"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the same controls, unbroken",
+          "tail": "  \"label\": \"FI-02-passing\",\n  \"limitations_contradicted_by_evidence\": [],\n  \"limitations_rejected\": [],\n  \"out\": \"/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-dldqdo2q/tree/passing.json\",\n  \"polarities_with_no_deciding_control\": []\n}"
+        }
+      },
+      "verdict_surface": "exit 1 with controls_red / polarities_with_no_deciding_control",
+      "watches": "per-instrument control verdicts: a positive control must die, a negative one must survive, and a declared limitation may not erase a demonstrated kill"
+    },
+    {
+      "classification": "demonstrated-cannot-fail",
+      "family": "measurement",
+      "has_failing_demonstration": false,
+      "has_passing_demonstration": false,
+      "id": "port-swap-driver",
+      "name": "port fake/real swap driver (run_port_swap.py)",
+      "no_failing_demonstration": "NOT ON ITS EXIT CODE. `main()` ends `return 0` with no branch above it, so a\nrun that finds every control violated on every instrument, and a run that finds\nnone, are indistinguishable to any caller that reads the status. It has\nALREADY happened: `examples/validation/ab/eval/results/fi01/swap-reference_ports.json`\nrecords PA-M14 as `control_red` and that run exited 0. Its printed verdict CAN\ngo red and does; nothing that consumes an exit code can see it. Filed as\nFI-02-DF-02.\n",
+      "no_passing_demonstration": null,
+      "paths": [
+        "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"
+      ],
+      "slots": {
+        "blind_spot": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_instrument_demonstrations.py::test_port_swap_driver_has_no_nonzero_exit_path"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "a red control changes nothing about the exit code, shown against the shipped source",
+          "tail": ".                                                                        [100%]\n1 passed in 0.02s"
+        }
+      },
+      "verdict_surface": "PRINTED `control_red` only -- `main()` ends in an unconditional `return 0`",
+      "watches": "per-<control, instrument> role violations across four corpus columns and two suite columns"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "divergence-reachability",
+      "name": "A/B divergence reachability analysis (divergence.py)",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "examples/validation/ab/eval/divergence.py"
+      ],
+      "slots": {
+        "blind_spot": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_fixture_can_diverge.py::test_the_divergence_count_is_not_inflated_by_arm_b_having_an_extra_row"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "IT CANNOT SEE A DIVERGENCE IT WAS NOT GIVEN A COMPARABLE ROW FOR. The comparable\nrow is DECLARED per catalogue row (`wired_by_default`), not derived, so a\ncatalogue that declares the wrong one moves the divergence count and nothing\nhere objects. That is the same declaration-executability shape FI-01-DF-04\nrecorded against PORT_REGION, in the instrument FI-04 shipped, and the failure\ndirection is NOT the safe one: a mis-declared comparable row produces a WRONG\nCOUNT rather than a refusal.\n",
+          "tail": ".                                                                        [100%]\n1 passed in 0.01s"
+        },
+        "failing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_fixture_can_diverge.py::test_divergence_goes_RED_when_it_claims_reachability_its_own_run_cannot_show"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "two arms whose swapped columns ran DIFFERENT numbers of compositions -- so\ndivergence is reachable in principle -- and whose cells agree anyway. The\nanalysis must report CLAIMED_REACHABLE_BUT_UNDEMONSTRATED rather than green.\nThe input is synthetic and built in the test, so it cannot stop demonstrating\nwhen someone changes the fixture.\n",
+          "tail": ".                                                                        [100%]\n1 passed in 0.02s"
+        },
+        "passing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_fixture_can_diverge.py::test_divergence_reports_the_null_still_entailed_when_nothing_diverges"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "two arms with one composition each and agreeing cells: NULL STILL ENTAILED, no red",
+          "tail": ".                                                                        [100%]\n1 passed in 0.02s"
+        }
+      },
+      "verdict_surface": "exit 1, plus a RED line naming every column whose reachability was claimed and not demonstrated",
+      "watches": "whether the A/B fixture's two arms CAN give different answers at all, per\ninstrument column, and whether any claim that they can is backed by a\ndivergence its own run measured\n"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "scorecard-check",
+      "name": "scorecard schema and scoring-rule check",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "examples/validation/scorecards/score_tools.py"
+      ],
+      "slots": {
+        "failing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/scorecards/score_tools.py",
+            "check",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-maedi2i2/tree/card"
+          ],
+          "exit": 1,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "a sealed card whose recorded total no longer equals the sum of its dimensions",
+          "tail": "RUBRIC-DRIFT /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-maedi2i2/tree/card/scorecard.json: scaffolded against rubric digest sha256:e33638087c4191da, current rubric is sha256:19c6712ed509a228. A filled card is evidence and is not edited; see `history`/`audit` for how to read it.\nINVALID /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-maedi2i2/tree/card/scorecard.json: total 19 does not equal the sum of dimensions (18)\n1 scorecard(s) checked, 1 filled, 0 unfilled skeleton(s), 1 problem(s)"
+        },
+        "passing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/scorecards/score_tools.py",
+            "check",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-jb6is5o8/tree/card"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the same card as sealed",
+          "tail": "RUBRIC-DRIFT /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-jb6is5o8/tree/card/scorecard.json: scaffolded against rubric digest sha256:e33638087c4191da, current rubric is sha256:19c6712ed509a228. A filled card is evidence and is not edited; see `history`/`audit` for how to read it.\n1 scorecard(s) checked, 1 filled, 0 unfilled skeleton(s), 0 problem(s)"
+        }
+      },
+      "verdict_surface": "exit 1 with one INVALID line per problem",
+      "watches": "that every judged card is internally consistent: totals, citations on any score >= 2, a refusal on any 4, no drifted dimension names"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "scorecard-audit",
+      "name": "scorecard reading-history audit (R-H1..R-H5)",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "examples/validation/scorecards/score_tools.py",
+        "specs/results/scorecards/INSTRUMENT-LOG.toml"
+      ],
+      "slots": {
+        "blind_spot": {
+          "ran": false,
+          "reason": "Deliberate in the shipped design (an unverifiable fact is not a violation) and recorded here so a green audit is not read as a clean one.",
+          "skipped": true,
+          "summary": "OPEN and UNVERIFIED findings are printed and then not counted -- only VIOLATION increments the exit code, so a claim whose commit does not resolve, and a repair that declares neither verdicts_moved nor verdicts_unmeasurable, both leave a green audit"
+        },
+        "failing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/scorecards/score_tools.py",
+            "audit",
+            "--root",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/specs/results/scorecards",
+            "--rubric",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-iroch_iw/tree/eval_scorecard.md"
+          ],
+          "exit": 1,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the rubric grows a fifth reading rule and nothing executes it",
+          "tail": "  OK         movement `fi03-v1-to-v2-U-p2-D5`: D5 3 -> 4 (+1), declared NOT readable -- falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-U-p2 does not say what its judge did. Within demonstrated noise; not evidence of improvement either way.\n  OK         movement `fi03-v1-to-v2-W-p2-D4`: D4 4 -> 3 (-1), declared NOT readable -- falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-W-p2 does not say what its judge did. Within demonstrated noise; not evidence of improvement either way.\n\n  VIOLATION  the rubric declares ['R-H9'] with no check here -- a reading rule nothing executes will drift\n\n1 violation(s)"
+        },
+        "passing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/scorecards/score_tools.py",
+            "audit",
+            "--root",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/specs/results/scorecards",
+            "--rubric",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/references/eval_scorecard.md",
+            "--quiet-ok"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the rubric as shipped, over the committed ledger",
+          "tail": "\n## R-H4 seals: a sealed card is never edited.\n\n## R-H5 movement: a movement is a measurement only if the judging practice is recorded.\n\n0 violation(s)"
+        }
+      },
+      "verdict_surface": "exit 1 with a VIOLATION line per finding",
+      "watches": "claims whose instrument changed underneath them, sealed cards that were edited, changes whose commit touches none of their declared paths, and reading rules the rubric declares with nothing executing them"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "scorecard-seal",
+      "name": "scorecard seal (drift refusal)",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "examples/validation/scorecards/score_tools.py"
+      ],
+      "slots": {
+        "failing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_score_tools.py::test_editing_a_sealed_card_is_detected"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "a sealed card edited after sealing",
+          "tail": ".                                                                        [100%]\n1 passed in 0.03s"
+        },
+        "passing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "the committed ledger against its own seals",
+          "tail": ".                                                                        [100%]\n1 passed in 22.38s"
+        }
+      },
+      "verdict_surface": "exit 3, REFUSED",
+      "watches": "that an already-sealed card's bytes have not changed"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "blinding-sanitiser",
+      "name": "judge-blinding sanitiser",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
+      ],
+      "slots": {
+        "blind_spot": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-f33t4tm7/tree/specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "THE VERIFICATION IS VACUOUS AGAINST ITS OWN VOCABULARY. `This is ARM B, the hexagonal treatment arm. I was given the HEXAGONAL prompt by HP-02.` -- the exact sentence PA-06-DF-11 measured -- passes CLEAN, because the grep runs AFTER the substitutions and looks for very nearly the set they just removed. The instrument reports zero problems on the leak it was written to catch.",
+          "tail": "artifact_T: 2 file(s)\nartifact_U: 2 file(s)\nartifact_W: 2 file(s)\nVERIFY: clean"
+        },
+        "failing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-j141vgxj/tree/specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
+          ],
+          "exit": 1,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "a leak phrased in the one forbidden token that has NO substitution rule",
+          "tail": "artifact_T: 2 file(s)\nartifact_U: 2 file(s)\nartifact_W: 2 file(s)\nLEAK artifact_T/NOTES.md:10: Written for the ports-as-adapters comparison.\nVERIFY: 1 problem(s)"
+        },
+        "passing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-2i_llg0f/tree/specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "three artifacts with nothing to leak",
+          "tail": "artifact_T: 2 file(s)\nartifact_U: 2 file(s)\nartifact_W: 2 file(s)\nVERIFY: clean"
+        }
+      },
+      "verdict_surface": "exit 1, LEAK <file>:<line>",
+      "watches": "nominally, that no blinded artifact copy leaks which arm it came from"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "repo-tripwire",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "thermometer-tripwire",
+      "name": "thermometer tripwire (nothing gates on the complexity figures)",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "tests/test_code_complexity.py"
+      ],
+      "slots": {
+        "blind_spot": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_instrument_demonstrations.py::TestThermometerTripwire::test_the_blind_spot_is_real"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "a consumer that reads a previously written complexity JSON and gates on it WITHOUT EVER NAMING THE INSTRUMENT is invisible -- and that is the route the one real reader in this repository takes, so the scan can never be relied on alone",
+          "tail": ".                                                                        [100%]\n1 passed in 0.02s"
+        },
+        "failing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_instrument_demonstrations.py::TestThermometerTripwire::test_it_reports_a_gate"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "an aliased import, a subprocess invocation, and a figure that reaches an if-test, a comparison and a sys.exit",
+          "tail": ".                                                                        [100%]\n1 passed in 0.02s"
+        },
+        "passing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_instrument_demonstrations.py::TestThermometerTripwire::test_it_reports_no_gate_for_prose"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "a docstring mention, a comment, and a prose sentence written into markdown -- exactly the shape that was failing it -- report nothing",
+          "tail": ".                                                                        [100%]\n1 passed in 0.01s"
+        }
+      },
+      "verdict_surface": "pytest assertion naming the file and line",
+      "watches": "that nothing in the repository branches, compares, asserts or exits on a produced-code figure"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "repo-tripwire",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "twin-fixture-integrity",
+      "name": "EV-01 twin fixture integrity",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "examples/validation/check_twins.py"
+      ],
+      "slots": {
+        "failing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-tp6abamn/tree/check_twins.py"
+          ],
+          "exit": 1,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "one of the four shared model files drifts, so the twins become two different experiments and every number measured across them is void",
+          "tail": "ok  specs/program_model/architecture_components.yaml  43b70fe01ffd80df  43b70fe01ffd80df\nok  specs/program_model/architecture_map.yaml  9384bae2127c5a64  9384bae2127c5a64\nok  tests/test_behavior.py  9f314fc6aa9bfc24  9f314fc6aa9bfc24\n\nTWIN INTEGRITY FAILED -- the twins are not the same experiment:\n  DIVERGED specs/program_model/Pipeline.cfg: aa36634e78d1c349c7e8ec96dd4c170a3bd91f970b263bdd400b5b3d7c06c8b4 != 7249f893e46d21580d0eead1afdd38e1164570720776afdd54d2c195c2155771"
+        },
+        "passing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-iob5zr6f/tree/check_twins.py"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the twins as committed",
+          "tail": "ok  specs/program_model/Pipeline.cfg  aa36634e78d1c349  aa36634e78d1c349\nok  specs/program_model/architecture_components.yaml  43b70fe01ffd80df  43b70fe01ffd80df\nok  specs/program_model/architecture_map.yaml  9384bae2127c5a64  9384bae2127c5a64\nok  tests/test_behavior.py  9f314fc6aa9bfc24  9f314fc6aa9bfc24\n\nTwin integrity holds: the twins differ only in production code."
+        }
+      },
+      "verdict_surface": "exit 1 with the diverged digests",
+      "watches": "that the two twin fixtures differ ONLY in production code"
+    },
+    {
+      "classification": "no-demonstration-constructible",
+      "family": "repo-tripwire",
+      "has_failing_demonstration": false,
+      "has_passing_demonstration": true,
+      "id": "source-citation-tripwire",
+      "name": "source-citation tripwire",
+      "no_failing_demonstration": "NOT WITHOUT BREAKING A SHIPPED FILE. Its predicate is written inline in a\npytest parametrised over a FIXED list resolved from the test file's own\nlocation, so there is no root a fixture tree could be handed and no factored\nfunction a demonstration could call. The only red input is a real citation, a\nreal manifest or a real YAML document broken on purpose in the tree every other\nmeasurement in this epic reads. NOT REPAIRED HERE: refactoring a tripwire to be\ndemonstrable while it is watching the trees this ticket measures is the\nforbidden half of the repair rule, and the honest move is to count it. Three\ntripwires share this shape -- `test_source_citations.py`,\n`test_spec_yaml_valid.py` and `test_port_declarations.py` -- and each is\ncounted separately rather than folded into one row.\n",
+      "no_passing_demonstration": null,
+      "paths": [
+        "tests/test_source_citations.py"
+      ],
+      "slots": {
+        "passing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_source_citations.py"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "the repository's own citations",
+          "tail": "........................................................................ [ 92%]\n......                                                                   [100%]\n78 passed in 9.48s"
+        }
+      },
+      "verdict_surface": "pytest assertion",
+      "watches": "that every `path:line (anchor)` citation in the scripts and manifests still lands on the line it names"
+    },
+    {
+      "classification": "no-demonstration-constructible",
+      "family": "repo-tripwire",
+      "has_failing_demonstration": false,
+      "has_passing_demonstration": true,
+      "id": "spec-yaml-tripwire",
+      "name": "spec YAML parses under both readers",
+      "no_failing_demonstration": "NOT WITHOUT BREAKING A SHIPPED FILE. Its predicate is written inline in a\npytest parametrised over a FIXED list resolved from the test file's own\nlocation, so there is no root a fixture tree could be handed and no factored\nfunction a demonstration could call. The only red input is a real citation, a\nreal manifest or a real YAML document broken on purpose in the tree every other\nmeasurement in this epic reads. NOT REPAIRED HERE: refactoring a tripwire to be\ndemonstrable while it is watching the trees this ticket measures is the\nforbidden half of the repair rule, and the honest move is to count it. Three\ntripwires share this shape -- `test_source_citations.py`,\n`test_spec_yaml_valid.py` and `test_port_declarations.py` -- and each is\ncounted separately rather than folded into one row.\n",
+      "no_passing_demonstration": null,
+      "paths": [
+        "tests/test_spec_yaml_valid.py"
+      ],
+      "slots": {
+        "passing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_spec_yaml_valid.py"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "the repository's own specs/ tree",
+          "tail": "...................                                                      [100%]\n19 passed in 0.60s"
+        }
+      },
+      "verdict_surface": "pytest assertion",
+      "watches": "that every YAML under specs/ loads under PyYAML AND under the repository's own simple parser"
+    },
+    {
+      "classification": "no-demonstration-constructible",
+      "family": "repo-tripwire",
+      "has_failing_demonstration": false,
+      "has_passing_demonstration": true,
+      "id": "manifest-self-records-tripwire",
+      "name": "manifest self-records tripwire",
+      "no_failing_demonstration": "Its assertions are written against the three committed trees directly, with no\npredicate factored out that a fixture could be handed, so the only way to show\nit red is to break a real manifest -- and the shipped trees are the subject of\nevery other measurement in this epic. NOT REPAIRED HERE: refactoring a tripwire\nto be demonstrable while it is watching the trees this ticket measures is the\nforbidden half of the repair rule. The same reasoning applies to\n`tests/test_scaffold_skill_root.py` and `tests/test_port_declarations.py`,\nwhich are enumerated separately below.\n",
+      "no_passing_demonstration": null,
+      "paths": [
+        "tests/test_spec_manifest_records.py"
+      ],
+      "slots": {
+        "passing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_spec_manifest_records.py"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "the three committed trees",
+          "tail": "..................                                                       [100%]\n18 passed in 0.03s"
+        }
+      },
+      "verdict_surface": "pytest assertion",
+      "watches": "the manifest's own prose counts against the module beside it, and that every declared port is attached to an action"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "repo-tripwire",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "skill-root-tripwire",
+      "name": "scaffolded skill-root resolution tripwire",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "tests/test_scaffold_skill_root.py"
+      ],
+      "slots": {
+        "failing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_scaffold_skill_root.py::test_a_wrong_explicit_override_refuses_even_when_the_module_is_importable",
+            "tests/test_scaffold_skill_root.py::test_an_explicit_override_that_is_wrong_refuses_instead_of_falling_through"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "an explicit override naming a home that is NOT this checkout's: the emitted adapter refuses instead of falling through to whichever home happens to answer",
+          "tail": "....                                                                     [100%]\n4 passed in 0.18s"
+        },
+        "passing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_scaffold_skill_root.py"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "the seven shipped cases, several of which are negative",
+          "tail": "..............                                                           [100%]\n14 passed in 0.63s"
+        }
+      },
+      "verdict_surface": "pytest assertion",
+      "watches": "that emitted adapters find THIS checkout's .skill-manager home rather than the operator's"
+    },
+    {
+      "classification": "no-demonstration-constructible",
+      "family": "repo-tripwire",
+      "has_failing_demonstration": false,
+      "has_passing_demonstration": true,
+      "id": "port-declaration-tripwire",
+      "name": "port declaration falsifiability (MF-026 F-9)",
+      "no_failing_demonstration": "NOT WITHOUT BREAKING A SHIPPED FILE. Its predicate is written inline in a\npytest parametrised over a FIXED list resolved from the test file's own\nlocation, so there is no root a fixture tree could be handed and no factored\nfunction a demonstration could call. The only red input is a real citation, a\nreal manifest or a real YAML document broken on purpose in the tree every other\nmeasurement in this epic reads. NOT REPAIRED HERE: refactoring a tripwire to be\ndemonstrable while it is watching the trees this ticket measures is the\nforbidden half of the repair rule, and the honest move is to count it. Three\ntripwires share this shape -- `test_source_citations.py`,\n`test_spec_yaml_valid.py` and `test_port_declarations.py` -- and each is\ncounted separately rather than folded into one row.\n",
+      "no_passing_demonstration": null,
+      "paths": [
+        "tests/test_port_declarations.py"
+      ],
+      "slots": {
+        "passing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_port_declarations.py"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "the repository's declared ports",
+          "tail": "......                                                                   [100%]\n6 passed in 0.12s"
+        }
+      },
+      "verdict_surface": "pytest assertion",
+      "watches": "that no declared port target is degenerate -- a `**` that matches everything is not a declaration"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "workflow",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "complexity-ledger",
+      "name": "MF-019 complexity ledger (close-path gate)",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "scripts/complexity_ledger.py"
+      ],
+      "slots": {
+        "failing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_complexity_ledger.py"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "a ledger entry left with its scaffolded TEMPLATE sentinel, and a decrease whose refactor is UNVERIFIED",
+          "tail": "........................................................................ [ 98%]\n.                                                                        [100%]\n73 passed in 0.07s"
+        },
+        "passing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_complexity_ledger.py"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "a complete entry",
+          "tail": "........................................................................ [ 98%]\n.                                                                        [100%]\n73 passed in 0.08s"
+        }
+      },
+      "verdict_surface": "SystemExit on the close path: 'close refused by the complexity ledger'",
+      "watches": "that a complexity increase carries a justification, a decrease carries a verified refactor, and MF-020's transition-diff red flag carries a diff"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "workflow",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "close-promotion-preconditions",
+      "name": "close / promotion preconditions",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "scripts/spec_evolution.py"
+      ],
+      "slots": {
+        "failing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_promotion_preserves_current.py"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "MF-021: a promotion that would delete a current/ path the ticket never received",
+          "tail": "......                                                                   [100%]\n6 passed in 0.11s"
+        },
+        "passing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_spec_evolution.py"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "an ordinary close",
+          "tail": "............                                                             [100%]\n12 passed in 0.06s"
+        }
+      },
+      "verdict_surface": "SystemExit with the refusal",
+      "watches": "current == desired, ticket status, append-only history, and that promotion never deletes a specs/current path the ticket was not given"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "workflow",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "external-channel-enforcement",
+      "name": "MF-015 external channel enforcement",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "scripts/testgraph_channels.py",
+        "scripts/export_testgraph_cases.py"
+      ],
+      "slots": {
+        "failing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_testgraph_channels.py"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "a binding with no channel, and one whose adapter reaches the production package",
+          "tail": "..............................                                           [100%]\n30 passed in 0.47s"
+        },
+        "passing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_export_testgraph_cases.py"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "a correctly channelled external binding",
+          "tail": ".......                                                                  [100%]\n7 passed in 0.09s"
+        }
+      },
+      "verdict_surface": "ChannelEnforcementError -> SystemExit from the runner and the exporter",
+      "watches": "that an external binding declares a channel, does not transitively import the production package, and is not wired all-doubles"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "workflow",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "spec-unit-adapter-conformance",
+      "name": "spec-unit adapter conformance (enforce_projection)",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "specs/current/production_adapters.py",
+        "specs/current/adapter_case_runtime.py"
+      ],
+      "slots": {
+        "failing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_case_adapter_runtime.py::test_assert_case_result_per_field_fails_on_checked_field"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "a projected after-state that disagrees with the model, and a stutter step that changed state",
+          "tail": ".                                                                        [100%]\n1 passed in 0.03s"
+        },
+        "passing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_case_adapter_runtime.py"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "the committed adapters against the committed model",
+          "tail": "...................                                                      [100%]\n19 passed in 0.22s"
+        }
+      },
+      "verdict_surface": "AssertionError: 'projected after-state disagrees with the model'",
+      "watches": "each modelled action's real CLI behaviour against the TLA+ after-state"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "workflow",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "case-modules-validate",
+      "name": "case-module manifest validator",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "scripts/case_modules.py"
+      ],
+      "slots": {
+        "failing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_case_modules.py"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "a case module whose `extends:` names a module that does not exist",
+          "tail": "...........................                                              [100%]\n27 passed in 0.08s"
+        },
+        "passing": {
+          "argv": [
+            "uv",
+            "run",
+            "--with",
+            "pytest",
+            "--with",
+            "pyyaml",
+            "python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_case_modules.py"
+          ],
+          "exit": 0,
+          "kind": "pytest",
+          "problems": [],
+          "ran": true,
+          "summary": "a well-formed block, and an absent block (which is deliberately not a problem)",
+          "tail": "...........................                                              [100%]\n27 passed in 0.08s"
+        }
+      },
+      "verdict_surface": "exit 1 on an error, exit 2 on a missing manifest",
+      "watches": "the `case_modules:` block: that an `extends:` resolves and a declared module is well formed"
+    },
+    {
+      "classification": "no-demonstration-constructible",
+      "family": "workflow",
+      "has_failing_demonstration": false,
+      "has_passing_demonstration": false,
+      "id": "test-graph-nodes",
+      "name": "Test Graph validation nodes",
+      "no_failing_demonstration": "NOT IN THIS ENVIRONMENT. Running them needs the Test Graph toolchain -- gradle,\na JVM and JBang -- which this checkout does not provision, so no demonstration\nconstructed here would be re-runnable by the next reader. Worth recording\nanyway: `test_graph/sources/spec_workflow_force_failure.py` IS a demonstrated\nfailing input, shipped, deliberately, as a negative-control node whose whole\npurpose is to prove the graph can go red at all. It is the only instrument in\nthis repository that shipped one before FI-01.\n",
+      "no_passing_demonstration": null,
+      "paths": [
+        "test_graph/sources/"
+      ],
+      "slots": {},
+      "verdict_surface": "a failing verdict reported to the graph",
+      "watches": "the real CLI end to end: install, scaffold, start ticket, spec units, close, cleanup, and a forced failure"
+    },
+    {
+      "classification": "no-instrument-exists",
+      "family": "workflow",
+      "has_failing_demonstration": false,
+      "has_passing_demonstration": false,
+      "id": "ticket-state-agreement",
+      "name": "ticket-state agreement between the plan and ticket.yaml",
+      "no_failing_demonstration": "THE PROPERTY IS UNWATCHED, WHICH IS WHY IT IS IN THIS TABLE. After a clean\n`start_ticket.py FI-02`, `specs/tickets/FI-02/ticket.yaml` carries\n`\"status\": \"active\"` while `specs/desired_program_model/ticket_plan.yaml` still\nsays `status.active_ticket: null` -- and the file an agent reads first is the\none that is wrong. `ticket.yaml`'s `status` is written once by the scaffolder\nand read by NOTHING: `spec_evolution.py` reads only `seed_manifest`, and\n`tla_spec_dev.py:active_ticket_id()` reads only the plan. No test compares\nthem. An enumeration of instruments that omitted the ones that should exist and\ndo not would be flattering itself. PA-02-DF-02, open.\n",
+      "no_passing_demonstration": null,
+      "paths": [
+        "scripts/start_ticket.py",
+        "scripts/new_ticket_workflow.py"
+      ],
+      "slots": {},
+      "verdict_surface": "none",
+      "watches": "nothing -- THIS INSTRUMENT DOES NOT EXIST"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "dispatch-record",
+      "name": "dispatched-prompt record (dispatch_record.py verify)",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "examples/validation/ab/dispatch_record.py"
+      ],
+      "slots": {
+        "blind_spot": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/ab/dispatch_record.py",
+            "verify",
+            "--dir",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-9nym0yaw/tree/empty"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "IT CANNOT SEE A DISPATCH THAT WAS NEVER RECORDED. An empty evidence directory\nverifies GREEN. The checker's whole subject is the rows it was given, so an arm\ndispatched with no row at all is invisible to it, and the exit code a reader\nwatches says nothing is wrong.\n\nTHE FAILURE DIRECTION IS NOT THE SAFE ONE, and this is not hypothetical: it is\nthe state ARMS A AND B ARE IN RIGHT NOW. Only arm C has a row, and that row is a\nreconstruction. Arm B's sealed 105 unique content lines -- the denominator of the\nentire length match -- is a number about the file on disk with no artifact\nsaying that is what arm B received. FI-05-DF-02, MAJOR, mine and open.\n\nThe verdict is not silent about it -- `verify` prints \"NO DISPATCH RECORD\" and\n`check_catalogue.py --arms` without `--dispatch-dir` prints that every number\nbelow it came from the bytes on disk -- but a PRINTED WARNING IS NOT A RED, and\ncounting it as one is how a control goes soft. Declared as an inability, per R2.\n",
+          "tail": "dispatch records in /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-9nym0yaw/tree/empty: 0\n  NO DISPATCH RECORD. Any prompt measurement for this round is a\n  measurement of the bytes ON DISK, which PA-06-DF-10 established are\n  not necessarily the bytes that were sent.\n\nevidence is self-consistent"
+        },
+        "failing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/ab/dispatch_record.py",
+            "verify",
+            "--dir",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-1v59vtet/tree/d"
+          ],
+          "exit": 1,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the shipped ports-as-adapters record, staged and then tampered with: one line\nappended to the preserved artifact after the fact. The record still claims those\nbytes are what was sent.\n",
+          "tail": "    RECONSTRUCTION, not a preserved dispatch: these bytes were rebuilt\n    afterwards from whatever record survived. Weaker evidence, on purpose.\n    note: PA-06-DF-10. NOT preserved at dispatch: rebuilt afterwards by PA-06's adversarial channel from the dispatch transcript. Filed as evidence beside the sealed result, never substituted for arm_c/PROMPT.md, which PA-01 owns and which the sealed length match was measured on.\n\nRED -- the dispatch record does not describe the files:\n  - arm_c [reconstruction]: the preserved artifact HAS BEEN EDITED since dispatch (sha256:e9763ebc2f908708 -> sha256:a59bb8ca7090c981). What was sent is no longer recoverable from this directory."
+        },
+        "passing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/ab/dispatch_record.py",
+            "verify",
+            "--dir",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/ab/dispatch/ports-as-adapters"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the same record, untouched: digests match, the delta matches, the source is unchanged",
+          "tail": "    artifact arm_c.dispatched.md: unchanged (sha256:e9763ebc2f908708)\n    DISPATCH DELTA vs examples/validation/ab/arm_c/PROMPT.md: +17 / -3 distinct lines.\n    Recorded, not an error -- but the ARTIFACT is what any prompt\n    measurement for this round must read.\n\nevidence is self-consistent"
+        }
+      },
+      "verdict_surface": "exit 1, plus a RED line naming which of the three recorded claims stopped being true",
+      "watches": "whether the bytes a round says it dispatched to an arm are still the bytes in\nthe evidence tree, and whether the on-disk prompt they were built from is still\nthe file the arm was dispatched from\n"
+    },
+    {
+      "classification": "demonstrated-can-fail",
+      "family": "measurement",
+      "has_failing_demonstration": true,
+      "has_passing_demonstration": true,
+      "id": "prediction-seal",
+      "name": "seal-time prediction check (check_prediction_seal.py)",
+      "no_failing_demonstration": null,
+      "no_passing_demonstration": null,
+      "paths": [
+        "examples/validation/check_prediction_seal.py"
+      ],
+      "slots": {
+        "blind_spot": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/check_prediction_seal.py",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/instruments/fixtures/prediction_seal/unlookupable.md"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "IT CANNOT CHECK A PREDICTION THAT NAMES NO MUTANT AND NO COLUMN. A row\npredicting \"zero cells, on every row of the table\" has no cell to look up, so it\nis reported UNPARSED and THE EXIT CODE IS 0.\n\nThe failure direction is green-looking silence. In the only real file this has\never been run against it reaches 1 of the 3 no-kill rows: N05 is checked, N03\nand N07 are not, and a reader watching only the exit code would take a\none-problem report as covering all three. FI-05-DF-03, mine and open.\n\nNOT REPAIRED BY WIDENING THE PARSER, deliberately. Expanding \"every row of the\ntable\" into a cell list would have the checker inventing the subject the sealer\ndeclined to state, which is a worse failure than saying it cannot check. The\nUNPARSED block exists so the gap is printed rather than assumed, and the row is\ndeclared here as an inability per R2 rather than counted as coverage.\n",
+          "tail": "UNPARSED:\n  N91 (no mutant named): predicts no kill, but its **Instrument:** field names neither a mutant nor an instrument column that appears in any record. NOT CHECKED -- and silence here is not a pass. A prediction whose subject cannot be looked up is one nothing can contradict at seal time.\n\nNo prediction is contradicted by a measurement that pre-dates the seal.\n(That is not a claim that any of them is right -- only that none of them\nwas already known wrong.)"
+        },
+        "failing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/check_prediction_seal.py",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/PREDICTIONS-PA.md"
+          ],
+          "exit": 1,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "the sealed PREDICTIONS-PA.md, as written. N05 must be reported ALREADY MEASURED\nagainst the pre-dated kill tables and M09's retirement.\n",
+          "tail": "  N07 (no mutant named): predicts no kill, but its **Instrument:** field names neither a mutant nor an instrument column that appears in any record. NOT CHECKED -- and silence here is not a pass. A prediction whose subject cannot be looked up is one nothing can contradict at seal time.\n\nNOT SEALABLE AS WRITTEN. The prediction(s) above are contradicted by\nmeasurements that existed BEFORE the seal. A prediction is only a\nprediction if the sealer has not already measured its subject: correct\nthe row, or declare it a deliberate re-test with `**Already measured:**`."
+        },
+        "passing": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/check_prediction_seal.py",
+            "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-06/examples/validation/instruments/fixtures/prediction_seal/unmeasured.md"
+          ],
+          "exit": 0,
+          "kind": "cli",
+          "problems": [],
+          "ran": true,
+          "summary": "a no-kill prediction whose mutant appears in no kill table anywhere. The fixture\nis synthetic on purpose: a passing demonstration pinned to a real prediction\nstops demonstrating the moment somebody measures its subject.\n",
+          "tail": "  records read: 51 of 51 (51 pre-date the seal)\n  sections parsed: 1\n\nNo prediction is contradicted by a measurement that pre-dates the seal.\n(That is not a claim that any of them is right -- only that none of them\nwas already known wrong.)"
+        }
+      },
+      "verdict_surface": "exit 1, plus an ALREADY MEASURED block naming the cell, the record and how many records carry it",
+      "watches": "whether a predictions file about to be SEALED contains a no-kill prediction that\na measurement already contradicted -- a record whose introducing commit is an\nancestor of the commit that seals the file\n"
+    },
+    {
+      "classification": "not-an-instrument",
+      "family": "not-an-instrument",
+      "has_failing_demonstration": false,
+      "has_passing_demonstration": false,
+      "id": "fitness-functions",
+      "name": "self-configured fitness functions",
+      "no_failing_demonstration": "Its own docstring: 'Never raises; never influences any exit code.' A fired rule, an invalid rule and an unparseable rules file all render as advisory prose and `analyze complexity` still exits 0. There are no built-in rules.",
+      "no_passing_demonstration": null,
+      "paths": [
+        "scripts/fitness_functions.py"
+      ],
+      "slots": {},
+      "verdict_surface": "none -- advisory text inside the descriptor report",
+      "watches": "user-declared rules over the complexity descriptor"
+    },
+    {
+      "classification": "not-an-instrument",
+      "family": "not-an-instrument",
+      "has_failing_demonstration": false,
+      "has_passing_demonstration": false,
+      "id": "budgets",
+      "name": "budget loader",
+      "no_failing_demonstration": "A missing manifest, a missing block, a missing key and a non-numeric value each print `warning:` and fall back to DEFAULT_BUDGETS. It is the SUPPLIER of thresholds to three real gates, so a silent fallback here is load-bearing -- which is why `tests/test_spec_yaml_valid.py` exists as a separate tripwire and is enumerated above.",
+      "no_passing_demonstration": null,
+      "paths": [
+        "scripts/budgets.py"
+      ],
+      "slots": {},
+      "verdict_surface": "none -- warns on stderr and falls back to defaults",
+      "watches": "the manifest's budgets block"
+    },
+    {
+      "classification": "not-an-instrument",
+      "family": "not-an-instrument",
+      "has_failing_demonstration": false,
+      "has_passing_demonstration": false,
+      "id": "skill-feedback",
+      "name": "skill feedback retro",
+      "no_failing_demonstration": "An unfilled retro with unfiled findings does not fail the close; it prints a nag. `--no-skill-feedback` disables even that.",
+      "no_passing_demonstration": null,
+      "paths": [
+        "scripts/skill_feedback.py"
+      ],
+      "slots": {},
+      "verdict_surface": "none -- prints 'feedback NOT yet filed' and proceeds",
+      "watches": "whether declared findings were filed"
+    },
+    {
+      "classification": "not-an-instrument",
+      "family": "not-an-instrument",
+      "has_failing_demonstration": false,
+      "has_passing_demonstration": false,
+      "id": "case-modules-coverage",
+      "name": "case-module coverage report",
+      "no_failing_demonstration": "Its own comment: 'Uncovered actions are a finding to read, not a build failure.' Exit 2 only means it could not measure.",
+      "no_passing_demonstration": null,
+      "paths": [
+        "scripts/case_modules.py"
+      ],
+      "slots": {},
+      "verdict_surface": "none -- exit 0 whenever the report could be produced",
+      "watches": "which actions a corpus covers"
+    },
+    {
+      "classification": "not-an-instrument",
+      "family": "not-an-instrument",
+      "has_failing_demonstration": false,
+      "has_passing_demonstration": false,
+      "id": "scorecard-index",
+      "name": "scorecard index renderer",
+      "no_failing_demonstration": "Pure renderer. It writes INDEX.md and prints it.",
+      "no_passing_demonstration": null,
+      "paths": [
+        "examples/validation/scorecards/score_tools.py"
+      ],
+      "slots": {},
+      "verdict_surface": "none -- always returns 0",
+      "watches": "nothing"
+    }
+  ],
+  "tier": "all"
+}
