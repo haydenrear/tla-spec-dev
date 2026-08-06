@@ -688,6 +688,27 @@ as a network call is a figure that says something false; a missed
 `requests.get` is a figure that says less than the truth and says so in the
 completeness block. One-sided, the same way the negative corpus is one-sided.
 
+### Where the figures get READ (FI-05)
+
+Until FI-05 this section was the *only* place the produced-code figures were
+read: `grep -rn code_complexity prompts/` was empty, so the figures reached a
+human reading this page and a scorecard's mechanical block, and no agent was
+ever handed them and asked what they meant about its own design. The stated
+intent for this work was statistics that block nothing **and prompt the model
+about what they mean**, and only the first half had shipped.
+
+`prompts/produced_code_reading.md` is the second half. It is dispatched **after
+a tree exists**, separately from the implementation ask, and it asks for a
+reading in exactly the terms of the three cautions below — where the outside
+world ended up, what sits beside it, what the instrument undercounted, and which
+figure was a surprise. It asks for no score, no delta and no direction, and it
+does not ask where the boundary should go (`CD-01`).
+
+Nothing changed about the instrument. There is still no consumer: the prompt
+tells the reader to run the shipped command and paste the output, because a
+script that ran it and rendered the prompt would be the first thing in the
+toolchain to read a thermometer.
+
 ### Reading it
 
 The same intuition as the rest of this document applies: complexity should be
