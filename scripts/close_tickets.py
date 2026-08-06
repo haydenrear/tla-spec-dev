@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import filecmp
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -25,6 +26,15 @@ SEMANTIC_SUFFIXES = {".tla", ".cfg", ".yaml", ".yml"}
 PLANNING_FILES = {"README.md", "ticket_plan.yaml", "desired_state.yaml"}
 TICKET_CLOSED_STATUSES = {"accepted", "closed", "complete", "completed", "done"}
 SKILL_ROOT = Path(__file__).resolve().parents[1]
+
+#: The three spec trees a module reference can name. A binding map names the
+#: tree it lives in, so promoting one between trees requires RE-ROOTING, not a
+#: byte copy.
+MODEL_DIR_NAMES = ("current", "desired_program_model", "program_model")
+_MODULE_PREFIX = re.compile(r"\bspecs\.(?:%s)\." % "|".join(MODEL_DIR_NAMES))
+
+#: Only mapping files carry module references; .tla and .cfg files do not.
+REROOTED_NAMES = {"testgraph_bindings.yml", "case_adapters.toml"}
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -67,6 +77,16 @@ def _semantic_yaml(value: Any) -> Any:
 def _semantic_file_matches(left: Path, right: Path) -> bool:
     if left.name == "spec_manifest.yaml" and right.name == "spec_manifest.yaml":
         return _semantic_yaml(_load_yaml(left)) == _semantic_yaml(_load_yaml(right))
+    if left.name in REROOTED_NAMES and right.name == left.name:
+        # These files are RE-ROOTED on promotion, not copied, so the two trees
+        # are equivalent when they differ ONLY by which spec tree their module
+        # references name. Comparing the bytes would make a correct promotion
+        # look like a divergence and block closeout. Normalizing to a common
+        # placeholder compares everything else strictly, so a real edit to a
+        # binding still shows up as a difference.
+        return _MODULE_PREFIX.sub("specs.<tree>.", left.read_text(encoding="utf-8")) == (
+            _MODULE_PREFIX.sub("specs.<tree>.", right.read_text(encoding="utf-8"))
+        )
     return filecmp.cmp(left, right, shallow=False)
 
 
@@ -115,8 +135,38 @@ def workflow_promotion_guidance() -> str:
     )
 
 
+def reroot_module_prefixes(text: str, dst_name: str) -> tuple[str, int]:
+    """Rewrite ``specs.<any-model-dir>.`` to ``specs.<dst_name>.``.
+
+    Returns the new text and how many references actually MOVED -- a reference
+    already naming the destination is not a change and is not counted.
+
+    Bare module names carry no prefix and are left exactly as they are. That is
+    the form that cannot rot on promotion, and the one to prefer when authoring.
+    """
+    replacement = f"specs.{dst_name}."
+    moved = sum(1 for m in _MODULE_PREFIX.finditer(text) if m.group(0) != replacement)
+    return _MODULE_PREFIX.sub(replacement, text), moved
+
+
 def promote_semantic_files(src: Path, dst: Path) -> list[str]:
-    """Make dst's semantic files identical to src's, preserving dst planning/metadata files."""
+    """Make dst's semantic files identical to src's, preserving dst planning/metadata files.
+
+    Binding maps are RE-ROOTED rather than copied byte-for-byte. Promotion moves
+    a file between spec trees, and a module reference inside it names the tree it
+    came from: ``desired_program_model/`` is promoted onto BOTH ``current/`` and
+    ``program_model/``, so a reference to ``specs.current.adapters`` is correct in
+    one destination and dangling in the other. The whole-workflow close then
+    DELETES ``current/``, which turns the dangling half into a reference to a
+    package that no longer exists.
+
+    Measured before this was fixed: 88 such references across two constituents of
+    the meta-orchestrator integration repo, every one naming
+    ``specs.current.adapters`` from inside a promoted ``program_model/`` tree
+    whose sibling ``current/`` the same close had removed. Nothing failed,
+    because the node that would have imported them was blocked for an unrelated
+    reason -- a binding that is never resolved cannot fail to resolve.
+    """
     if not src.exists():
         return []
     dst.mkdir(parents=True, exist_ok=True)
@@ -129,8 +179,21 @@ def promote_semantic_files(src: Path, dst: Path) -> list[str]:
     for relative in sorted(src_files):
         destination = dst / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src_files[relative], destination)
-        promoted.append(f"wrote {relative}")
+        source = src_files[relative]
+        if Path(relative).name in REROOTED_NAMES:
+            rerooted, moved = reroot_module_prefixes(
+                source.read_text(encoding="utf-8"), dst.name
+            )
+            destination.write_text(rerooted, encoding="utf-8")
+            promoted.append(
+                f"wrote {relative} (re-rooted {moved} module reference(s) "
+                f"to specs.{dst.name}.)"
+                if moved
+                else f"wrote {relative}"
+            )
+        else:
+            shutil.copy2(source, destination)
+            promoted.append(f"wrote {relative}")
     return promoted
 
 
