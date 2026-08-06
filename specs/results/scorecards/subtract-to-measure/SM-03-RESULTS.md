@@ -92,25 +92,55 @@ only one of the two trees.
 
 ## 3. The gap-mutant table — my six, re-run
 
-Re-run with `run_gap_mutants.py --family staged`, staged from the SM-03 tip.
+Run of record: `run_gap_mutants.py --family staged`, staged from the SM-03 tip.
 Verdicts compare **failure sets** against the pristine staged tree, never exit
-codes.
+codes. **`mutants_not_applied: []`, `control_red: []`,
+`detectors_with_a_red_control: []`** — every declared mutant applied exactly
+once and the positive control died on the detector it declares.
 
-| mutant | before (SM-01) | after (SM-03) | reading |
-|---|---|---|---|
-| **`SM-GM-I1`** cited node collected and **skipped** | `instrument-registry` **SURVIVES** | **DIES** | **the repair's target, flipped.** `0 test(s) passed, declared exactly 4` and `4 test(s) SKIPPED, declared 0` |
-| **`SM-GM-I6`** cited node **not collected** | **DIES** | **DIES** | unchanged, and it is the contrast row that makes I1 readable |
-| **`SM-GM-I2`** the instrument stops refusing | **SURVIVES** | **SURVIVES** | **UNDER-POWERED, per SM-01's own account.** It perturbs a *reported field*, not the refusal path, and SM-01 recorded that as a defect in the mutant rather than reinterpreting it into a finding. It is not evidence the row is hollow and it is not evidence the repair failed |
-| **`SM-GM-I3`** an instrument never added to the registry | **SURVIVES everything** | **DIES** | **the enumeration repair's demonstrated failing input, flipped** |
-| **`SM-GM-I4`** a shipped spec YAML committed unparseable | **DIES** on all three | **DIES** | unchanged. Its real product was the diagnosis, not the verdict |
-| **`SM-GM-I5`** the enumerator stops reporting a failure | `pytest-full` **DIES**, registry **SURVIVES** | **DIES** | unchanged |
-| **`SM-GM-CTRL-B`** (positive control) | **DIES** | **DIES** | green |
+Baselines on the pristine staged tree: `pytest-full` exit 1, **1377 executed, 9
+failing** — the same nine git-history readers SM-01 recorded, which fail in a
+`git archive` tree for that reason alone.
 
-**No mutant went from DIES to SURVIVES.** Nothing was removed, so there is no
-removal to price — `removal_is_a_delta_rule`'s "load-bearing" column is empty
-because its "removed" column is. Two mutants flipped **SURVIVES → DIES**, which
-is the other thing a gap mutant can report and is the whole evidence that the
-two repairs are repairs.
+| mutant | `instrument-registry` | `registry-enumeration` | `spec-yaml-tripwire` | `pytest-full` | before → after |
+|---|---|---|---|---|---|
+| **`SM-GM-I1`** cited node collected and **skipped** | **DIES** 1 | — | — | SURVIVES 1304 | **SURVIVES → DIES** |
+| **`SM-GM-I6`** cited node **not collected** | **DIES** 1 | — | — | SURVIVES 1304 | DIES → DIES |
+| **`SM-GM-I2`** the instrument stops refusing | SURVIVES 1 | — | — | SURVIVES 1377 | SURVIVES → SURVIVES |
+| **`SM-GM-I3`** an instrument never added to the registry | — | **DIES** 1 | — | **DIES** 1379 | **SURVIVES → DIES**, on both |
+| **`SM-GM-I4`** a shipped spec YAML committed unparseable | **DIES** 1 | — | **DIES** 23 | **DIES** 1377 | DIES → DIES |
+| **`SM-GM-I5`** the enumerator stops reporting a failure | SURVIVES 1 | — | — | **DIES** 1377 | unchanged |
+| **`SM-GM-CTRL-B`** (positive control) | **DIES** 1 | — | — | — | DIES → DIES |
+
+Row by row:
+
+- **`SM-GM-I1` is the repair's target and it flipped.** It survived
+  `instrument-registry` at SM-01 and dies now, reporting
+  `0 test(s) passed, declared exactly 4` and `4 test(s) SKIPPED, declared 0`.
+  **`pytest-full` still survives it and always will** — a skip is not a failure,
+  so the suite is green either way, which is exactly why the registry had to be
+  the thing repaired.
+- **`SM-GM-I6` still dies**, and the pair is still read as a **difference, never
+  a total**. One shape was always caught; the other never was. That contrast is
+  the whole reason the repair is a repair rather than a rewrite.
+- **`SM-GM-I2` still survives, and it is UNDER-POWERED by SM-01's own account.**
+  It perturbs a *reported field* rather than the refusal path, which SM-01
+  recorded as a defect in the mutant instead of reinterpreting it into a finding
+  about the row. It is not evidence the row is hollow and it is not evidence the
+  repair failed; it is a mutant that does not reach its subject.
+- **`SM-GM-I3` flipped on BOTH detectors**, and the second one matters more than
+  the first. `registry-enumeration` dying is the repair working. `pytest-full`
+  dying too means the obligation now reaches the acceptance command every ticket
+  already runs — an unregistered instrument cannot land green any more.
+- **`SM-GM-I4` and `SM-GM-I5` are unchanged**, as they should be. Neither was a
+  target; `SM-GM-I4`'s product was the diagnosis that made two other repairs
+  possible.
+
+**No mutant went from DIES to SURVIVES**, and no mutant could have: nothing was
+removed. `removal_is_a_delta_rule`'s "load-bearing" column is empty because its
+"removed" column is. What the table reports instead is **two flips from SURVIVES
+to DIES**, which is the only evidence available that a repair repaired anything
+— and it is the evidence the count in §1 structurally cannot give.
 
 ---
 
