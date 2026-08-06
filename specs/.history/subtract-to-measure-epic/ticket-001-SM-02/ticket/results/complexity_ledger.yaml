@@ -1,0 +1,147 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "not_run"
+    evidence: "SM-02 has ZERO TLA+ model delta -- specs/tickets/SM-02/desired is byte-identical to current apart from four source-line CITATIONS whose anchors are unchanged. The removal is entirely in scripts/, tests/ and references/. TLC was not run because there is no model change for it to witness, and recording `green` from a run that did not happen would be the exact false precision FI-06 found in twelve instrument slots."
+  tlc_after:
+    status: "not_run"
+    evidence: "As above. `not_run` is the honest value; an unmeasured constraint cannot witness retention and is not recorded as if it had."
+  behavior_tests:
+    status: "pass"
+    evidence: "specs/results/scorecards/subtract-to-measure/SM-02-RESULTS.md section 6 -- `uv run --with pytest --with pyyaml python -m pytest tests -q` -> 1363 passed in 346.63s. 1370 at the parent f0c215d, minus the 21 collected nodes of the deleted tests/test_port_adapter_binding.py, plus the 14 of tests/test_ports_binding_removed.py. Nothing was skipped or xfailed to reach it. PLUS the behaviour evidence a pytest run cannot give: SM-01's three gap mutants, re-run after the cut, ALL STILL DIE -- specs/results/scorecards/subtract-to-measure/after-state-SM-02/gap-mutants-after-SM-02.json."
+  descriptor_comparison:
+    status: "recorded"
+    evidence: "specs/results/scorecards/subtract-to-measure/after-state-SM-02/produced-code-parent-f0c215d.json and produced-code-after-SM-02.json, same command and same interpreter, rendered as a three-way table in SM-02-RESULTS.md section 2.2. scripts/ 21252 -> 21027 (-225 code_lines, -6 callables, -5 public_surface); tests/ 20443 -> 20256 (-187); examples/validation/ and the measure/ tree unchanged. Both files are recorded; there is deliberately no subtraction mode, per MF-020 printed inside the instrument itself."
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness REVIEW, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them, and this
+# is the only sweep that looks at it.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# RECORDED, NEVER REFUSING (2026-08-04, owner direction). It was a hard gate at
+# workflow close with no override; it is now an optional agent-run review whose
+# verdict is written down and read by a person. `incomplete` IS STILL NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it --
+# what was withdrawn is the refusal, not the distinction.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    SEARCHED, FOUND NONE, and the reason is structural rather than a shrug: this
+    ticket's model delta is ZERO by construction. There is no new representation
+    to refine, because nothing was added -- 225 code_lines, 6 callables and 5
+    public-surface entries were REMOVED from scripts/run_generated_case_adapters.py
+    and a 462-line test file was deleted.
+
+    What WAS considered and rejected, all recorded in SM-02-RESULTS.md section 5
+    rather than only here:
+
+      * The 1234 lines of sealed measurement artifacts under
+        specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/ --
+        the single largest reduction available to this ticket, named by
+        before-state/README.md section 4 as something SM-02 is "about to remove".
+        DECLINED. run_gap_mutants.run_ports_family imports run_port_swap.py as
+        the sealed verdict-table driver, so deleting it would make the BEFORE
+        instrument unre-runnable and SM-05 could not compare like with like. And
+        the honest fourth ground: taking it would have made the removal look five
+        times larger than the toolchain change actually is, which is MF-020 --
+        a number falling because an edge was deleted -- in this epic's own
+        clothes.
+
+      * tests/test_ab_three_arms_and_port_faults.py, 579 lines with "port_faults"
+        in its name. DECLINED, and it is the most important refusal: it is what
+        KILLS SM-GM-P1 and SM-GM-P3 on pytest-full, 7 of their 8 kill nodes.
+        Deleting it would have removed the detector that proves this cut was free.
+
+      * The corpus -- --port-cases, PortDeclaration, load_port_catalog,
+        --negative-cases, tests/test_port_case_generation.py. DECLINED under the
+        plan's do_not_retire_untested_rule: "defund [ports.*]" is supported and
+        "defund the corpus" is not. Guard relaxation measured 3 of 3 under
+        corpus-neg AFTER the cut, controls_red empty.
+
+      * A refusal, or even a printed notice, on a leftover [ports.*] table.
+        DECLINED under no_new_gates_rule; filed as SM-02-DF-01 instead.
+
+    A DECREASE IS CLAIMED AND IT IS LICENSED BY MEASURED RETENTION, not by the
+    figure falling. The licence is the gap-mutant table: three mutants seeded in
+    the removed mechanism's gap BEFORE the cut, re-run after it, all three still
+    dying on detectors that outlive the machinery, with the positive control green
+    on every one of those detectors in the same run.
+  measured: false      # true only if a real TLC run produced the figure
+  applied: false       # if true, approved_by is required
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: >-
+  Not applicable -- generated states did not change, because the model did not
+  change. Recorded rather than left blank because the MF-020 red flag is the
+  reason this whole epic exists: a metric improving is not evidence the design
+  improved. The evidence that this decrease is not that shape is the gap-mutant
+  table, not this field.
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: "specs/results/scorecards/subtract-to-measure/SM-02-RESULTS.md"
