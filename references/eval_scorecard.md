@@ -331,6 +331,63 @@ prints it beside the row.
 *Executed as:* `seal` records a digest per sealed card and refuses to re-seal one
 whose contents changed; `audit` re-verifies every digest.
 
+## Known instability of this card — D1, D4 and D5 move on unchanged input
+
+**Added at the close of `ports-as-adapters`, 2026-08-05, from `PA-06-DF-06`.
+A warning about the card, recorded on the card.**
+
+**This is deliberately NOT an `R-H` rule.** The first draft numbered it `R-H5`
+and `audit` rejected it within the minute, because `R-H` ids are exactly the
+declarations `score_tools.py` executes and this one has no check behind it. The
+mechanism PA-05 built to stop unexecuted declarations caught the epic owner
+adding an unexecuted declaration, in the same file, at close. Renaming it to slip
+past the check would have been the defeat this project keeps documenting; leaving
+it mis-numbered would have made `audit` permanently red, which is how the last
+three gates died. So it is filed as what it actually is — **a limitation, not a
+rule** — and making it executable is part of
+[issue #145](https://github.com/haydenrear/tla-spec-dev/issues/145).
+
+Arms A and B were re-scored at PA-06 as **byte-identical trees** to the ones
+EVAL-RERUN judged. Four dimension-points moved anyway:
+
+| | EVAL-RERUN | PA-06 |
+|---|---|---|
+| arm A **D4** | 2 / 2 | **4 / 4** |
+| arm A **D5** | 3 / 2 | **4 / 4** |
+| arm A **D1** | 3 / 3 | **4 / 3** |
+| arm B **D4** | 3 / 2 | **4 / 4** |
+| arm B **D5** | 4 / 3 | **4 / 4** |
+| arm B **D1** | 3 / 3 | **4 / 3** |
+| **D2 and D3, both arms** | | **unchanged, zero points** |
+
+**The mechanism is identified and it is not the rubric.** Both PA-06 judges
+recorded, independently and unprompted, that they **seeded their own faults and
+ran them** rather than scoring the evidence packet. D4 anchor 4 requires that a
+deliberate behavior-breaking change is *shown to be caught*: a judge who executes
+one can award it; a judge reading a table cannot. So the top anchors are
+sensitive to **judging practice**, which nothing here mandates and nothing
+records.
+
+Two consequences, and the second is the load-bearing one:
+
+- **A D1, D4 or D5 delta of ≤ 2 points per judge across rounds is within
+  demonstrated noise and is not evidence of improvement.** Say what the judges
+  did, or do not read the movement.
+- **D2 and D3 are the dimensions that have held still on unchanged input**, and
+  they are the two about the artifact's shape rather than about what the judge
+  did. A cross-epic claim is safest on those. This is why `ports-as-adapters`
+  rests its headline on D3.
+
+**Not fixed here.** Mandating a judging practice changes what the card measures
+and therefore requires a `scorecard_version` bump and a re-score under both
+versions — see "Changing this card" below. Owner-directed as next-epic work.
+
+*Executed as:* **nothing.** This paragraph is prose that nothing checks, which by
+this project's own `declaration_executability_rule` means it will drift. Said
+plainly rather than hidden — and note that the rule immediately above it, the one
+that would have made this claim executable, is the reason you are reading this
+sentence instead of a green `R-H5`.
+
 ## Changing this card
 
 Bump `scorecard_version`, keep the old anchors in the file, and re-score at

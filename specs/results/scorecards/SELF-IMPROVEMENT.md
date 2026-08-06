@@ -712,6 +712,40 @@ own defects.** The strongest new check is a *consistency* check — it catches a
 limitation the run's own other instruments contradict — and it would not have
 caught the erasure on data where nothing else disagreed.
 
+## READ THIS BEFORE COMPARING ANY D1, D4 OR D5 ROW ACROSS EPICS
+
+**Added at the close of `ports-as-adapters`, 2026-08-05. Owner-verified against
+both sealed card sets. Source: `PA-06-DF-06`, carried as
+[issue #145](https://github.com/haydenrear/tla-spec-dev/issues/145).**
+
+This file exists so that the **delta** is the measurement. A dimension that moves
+on unchanged input cannot carry a delta, and three of the five now demonstrably do.
+
+PA-06 re-scored arms A and B as **byte-identical trees** to the ones EVAL-RERUN
+judged. **Four dimension-points moved anyway**: arm A D4 2/2 → 4/4 and D5 3/2 →
+4/4; arm B D4 3/2 → 4/4 and D5 4/3 → 4/4; D1 3/3 → 4/3 on both.
+**D2 and D3 moved zero points on either arm.**
+
+The mechanism is identified and **it is not the rubric**: both PA-06 judges
+recorded independently that they seeded and ran their own faults rather than
+scoring the evidence packet, and D4 anchor 4 can only be awarded by a judge who
+executes one. The card's top anchors track **judging practice**, which nothing
+mandates and nothing records.
+
+So, when reading every table in this file:
+
+- **A D1, D4 or D5 movement of ≤ 2 points per judge across rounds is within
+  demonstrated noise.** Name what the judges did, or do not call it improvement.
+- **D2 and D3 have held still on unchanged input.** They are the dimensions about
+  the artifact's shape rather than about what the judge did, and they are where a
+  cross-epic claim is safest. It is why `ports-as-adapters` rests its headline on D3.
+- **"Zero contested" does not mean stable.** It measures two same-family judges
+  agreeing *within* a round. Across-round stability was never measured until now,
+  and the first time it was measured, it failed.
+
+This is item three on the "evidence we are fooling ourselves" list below, and it
+happened. See `references/eval_scorecard.md` § R-H5.
+
 ## What would count as self-improvement
 
 Not a rising total. Specifically:
