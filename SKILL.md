@@ -111,7 +111,42 @@ This skill has three roles:
     `"$SKILLS/wt" close <ticket>`. A repository that has never been given a home
     makes `bootstrap-home.sh` the *first* thing run in it, which is the same
     one-time per-repository step `wt new` prints as its `fix:` line elsewhere.
-11. **Every epic states measurable goals; every ticket relates to one.** Ask the
+11. **The epic owns whether the homes are CURRENT, and checks before scheduling
+    anything.** Every ticket worktree is a *copy* of the project home, and the
+    project home is a copy of the root `~/.skill-manager`. Copies do not update
+    themselves. So a skill fixed and merged yesterday is still absent from a
+    home cloned the day before, and every ticket agent the epic deploys inherits
+    that staleness — silently, because nothing reports it.
+
+    Nothing in the tool answers this today, which is why it is the epic's job.
+    `home drift` answers "did anything change *in* this home" and exits 0 on a
+    stale one. `home verify` answers "does everything in it *resolve*" and is
+    equally happy. Neither answers "is this home *current*", and that is the
+    question a fan-out depends on: the epic is the last point where one check
+    covers every ticket that follows.
+
+    Before scheduling, compare what the root home has installed against the
+    sources it was installed from, and against the project home:
+
+    ```bash
+    for f in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/installed/*.json; do
+      n=$(basename "$f" .json); case "$n" in *.projections) continue;; esac
+      python3 -c "import json;d=json.load(open('$f'));print('$n', (d.get('gitHash') or 'none')[:8])"
+    done
+    ```
+
+    Any unit behind its merged source gets `skill-manager sync <unit>` in the
+    root home **and** in the project home before the first ticket is scheduled —
+    not after, because a worktree cloned from a stale project home carries the
+    staleness into work you will then have to redo. Sync in dependency order:
+    a unit whose `skill-imports` name a file added by another unit fails
+    validation with exit 11 if that other unit has not been synced yet, and the
+    violation is an artifact of the order, not a real one.
+
+    If the repository has other checkouts with their own homes, they are stale
+    too and no command fans out to them. Say so in the epic's kickoff notes
+    rather than letting a ticket agent discover it.
+12. **Every epic states measurable goals; every ticket relates to one.** Ask the
     user what should be measurably better before scaffolding the workflow.
     Record each goal with its metric, harness command, baseline, and target;
     schedule terminal evaluation/perf/integration tickets that decide them; and
