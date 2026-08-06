@@ -34,6 +34,7 @@ from __future__ import annotations
 import ast
 import dataclasses
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -286,6 +287,43 @@ def test_shipped_source_has_exactly_one_exit_code_and_it_is_zero() -> None:
 # ---------------------------------------------------------------------------
 # 3. nothing in the toolchain gates on it
 # ---------------------------------------------------------------------------
+#
+# FI-02 / PA-06-DF-05. What stood here until this ticket was a substring grep
+# for the literal `code_complexity`, and it was wrong in BOTH directions:
+#
+#   * a file that named the script in a docstring and gated nothing FAILED it
+#     -- which is how it came to be red on `main`, on
+#     `specs/results/.../measure/build_evidence_packets.py`, whose only mention
+#     is the sentence "printed by `python3 scripts/code_complexity.py <target>`"
+#     written into an unscored markdown block;
+#   * a file that consumed the output without ever writing the string PASSED
+#     it.
+#
+# It also scanned `specs/**`, which the plan declares `out_of_model` -- recorded
+# evidence is not executable surface.
+#
+# THE FIX IS NOT A RENAME. Renaming the searched string is the six-lines-of-YAML
+# defeat this project documents; it would leave the same grep watching the same
+# nothing. What is here instead tests the invariant the docstring always stated
+# -- *nothing gates on the output* -- in two layers:
+#
+#   `executable_references()`  a reference is an IMPORT of the module (alias or
+#                              not -- the alias is in `asname`, the module name
+#                              is still in `name`), or a string literal whose
+#                              WHOLE value is a path or module token for it.
+#                              A sentence that merely contains the token is
+#                              prose and is not a reference.
+#   `gating_uses()`            of the values reached from such a reference,
+#                              which ones flow into a condition: an `if`/`while`
+#                              test, an `assert`, a comparison, or a `sys.exit`
+#                              / `raise SystemExit` argument.
+#
+# Both are demonstrated -- red and green -- in
+# `tests/test_instrument_demonstrations.py`, and their one KNOWN BLIND SPOT is
+# demonstrated there too rather than left implicit: a consumer that reads a
+# previously written `*.json` and never names the instrument is invisible to
+# any scan of this shape, and that is exactly the route the one real reader in
+# this repository takes.
 
 EXECUTABLE_SURFACES = (
     "scripts",
@@ -295,12 +333,186 @@ EXECUTABLE_SURFACES = (
     "test_graph",
 )
 
+#: The two files whose SUBJECT is this instrument. A test that asserts a
+#: property OF the instrument compares the instrument's own name and output by
+#: definition, so scanning them would flag every assertion in them and nothing
+#: else. Both are named rather than silently skipped, both are pinned by
+#: `tests/test_instrument_demonstrations.py`, and the exemption is counted as a
+#: blind spot in the FI-02 enumeration rather than presented as free.
+#:
+#: Nothing else may be added here without a demonstration beside it. An
+#: exemption list that grows quietly is how a scan goes vacuous, which is the
+#: defect this whole ticket is about.
+GATING_SCAN_EXEMPT = (
+    "tests/test_code_complexity.py",
+    "tests/test_instrument_demonstrations.py",
+)
+
+#: The module as it is imported (`scripts.code_complexity`, `code_complexity`)
+#: and as it is spelled on a command line (`scripts/code_complexity.py`). A
+#: string is a reference only if this matches the WHOLE stripped value.
+_REFERENCE_TOKEN = re.compile(r"^(?:[\w.\-/]*[/.])?code_complexity(?:\.py)?$")
+
+_MODULE_NAMES = ("code_complexity", "scripts.code_complexity")
+
+
+def _docstring_nodes(tree: ast.AST) -> set[int]:
+    """Every string constant whose value is discarded: docstrings and bare
+    string statements. Their content is prose by construction."""
+
+    discarded: set[int] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant):
+            if isinstance(node.value.value, str):
+                discarded.add(id(node.value))
+    return discarded
+
+
+def executable_references(source: str) -> list[tuple[int, str]]:
+    """Lines at which `source` refers to this instrument EXECUTABLY.
+
+    Comments never reach the AST at all; docstrings are excluded explicitly;
+    and a prose sentence that happens to contain the token is not a token.
+    """
+
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return []
+
+    discarded = _docstring_nodes(tree)
+    found: list[tuple[int, str]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name in _MODULE_NAMES or alias.name.endswith(".code_complexity"):
+                    found.append((node.lineno, f"import {alias.name}"))
+        elif isinstance(node, ast.ImportFrom):
+            module = node.module or ""
+            if module in _MODULE_NAMES or module.endswith(".code_complexity"):
+                found.append((node.lineno, f"from {module} import ..."))
+            elif any(alias.name == "code_complexity" for alias in node.names):
+                found.append((node.lineno, f"from {module} import code_complexity"))
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            if id(node) in discarded:
+                continue
+            if _REFERENCE_TOKEN.match(node.value.strip()):
+                found.append((node.lineno, f"path/module token {node.value.strip()!r}"))
+    return sorted(set(found))
+
+
+def _bound_names(source_tree: ast.AST) -> set[str]:
+    """Names bound BY a reference: `import ... as cc` binds `cc`."""
+
+    names: set[str] = set()
+    for node in ast.walk(source_tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name in _MODULE_NAMES or alias.name.endswith(".code_complexity"):
+                    names.add(alias.asname or alias.name.split(".")[0])
+        elif isinstance(node, ast.ImportFrom):
+            module = node.module or ""
+            hit = module in _MODULE_NAMES or module.endswith(".code_complexity")
+            for alias in node.names:
+                if hit or alias.name == "code_complexity":
+                    names.add(alias.asname or alias.name)
+    return names
+
+
+def _tainted(node: ast.AST | None, names: set[str]) -> bool:
+    if node is None:
+        return False
+    if isinstance(node, ast.Name):
+        return node.id in names
+    if isinstance(node, ast.Constant):
+        return isinstance(node.value, str) and bool(_REFERENCE_TOKEN.match(node.value.strip()))
+    return any(_tainted(child, names) for child in ast.iter_child_nodes(node))
+
+
+def _target_names(target: ast.AST) -> list[str]:
+    if isinstance(target, ast.Name):
+        return [target.id]
+    if isinstance(target, (ast.Tuple, ast.List)):
+        return [n for elt in target.elts for n in _target_names(elt)]
+    return []
+
+
+def gating_uses(source: str) -> list[tuple[int, str]]:
+    """Lines at which a value reached from this instrument enters a CONDITION.
+
+    Deliberately conservative on propagation -- a call with a tainted argument
+    yields a tainted result -- because the cost of a false name in this list is
+    a sentence of explanation, and the cost of a miss is a thermostat.
+    """
+
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return []
+
+    names = _bound_names(tree)
+    gates: list[tuple[int, str]] = []
+
+    # One forward pass binding names, then the condition scan. Order matters
+    # little here because a gate is reported on the line it appears on.
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and _tainted(node.value, names):
+            for target in node.targets:
+                names.update(_target_names(target))
+        elif isinstance(node, (ast.AnnAssign, ast.AugAssign)) and _tainted(node.value, names):
+            names.update(_target_names(node.target))
+        elif isinstance(node, (ast.For, ast.AsyncFor)) and _tainted(node.iter, names):
+            names.update(_target_names(node.target))
+        elif isinstance(node, ast.withitem) and _tainted(node.context_expr, names):
+            if node.optional_vars is not None:
+                names.update(_target_names(node.optional_vars))
+        elif isinstance(node, (ast.NamedExpr,)) and _tainted(node.value, names):
+            names.update(_target_names(node.target))
+
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.If, ast.While, ast.IfExp)) and _tainted(node.test, names):
+            gates.append((node.lineno, "reaches an if/while test"))
+        elif isinstance(node, ast.Assert) and _tainted(node.test, names):
+            gates.append((node.lineno, "reaches an assert"))
+        elif isinstance(node, ast.Compare) and _tainted(node, names):
+            gates.append((node.lineno, "is compared"))
+        elif isinstance(node, ast.Call):
+            callee = node.func
+            name = callee.attr if isinstance(callee, ast.Attribute) else getattr(callee, "id", None)
+            if name in {"exit", "_exit", "SystemExit"} and any(
+                _tainted(arg, names) for arg in node.args
+            ):
+                gates.append((node.lineno, f"reaches {name}()"))
+        elif isinstance(node, ast.Raise) and _tainted(node.exc, names):
+            gates.append((node.lineno, "reaches a raise"))
+    return sorted(set(gates))
+
+
+def _scannable_files(root: Path) -> list[Path]:
+    skip = {"__pycache__", ".git", "build", "node_modules", ".history"}
+    out = []
+    for path in root.rglob("*"):
+        if not path.is_file() or path.resolve() == SCRIPT.resolve():
+            continue
+        if any(part in skip for part in path.parts):
+            continue
+        out.append(path)
+    return out
+
 
 def test_nothing_executable_reads_this_instrument() -> None:
     """A thermometer nothing consumes cannot have become a thermostat.
 
-    If a future ticket wires this into a close path, a workflow, a Test Graph
-    node or another script, this test names the file that did it.
+    The strong, sufficient half: no executable surface in the model refers to
+    the instrument at all, so no executable surface can gate on it. If a future
+    ticket wires this into a close path, a workflow, a Test Graph node or
+    another script, this test names the file and the line that did it.
+
+    `specs/**` is NOT scanned. The plan declares `specs/results/**`
+    `out_of_model` -- sealed history and recorded evidence -- and an eval that
+    transcribes an unscored figure into an unscored block is the thermometer
+    working as designed, not a consumer. What that tree may not do is GATE, and
+    that is the next test, which does reach it.
     """
 
     consumers: list[str] = []
@@ -308,29 +520,67 @@ def test_nothing_executable_reads_this_instrument() -> None:
         root = REPO_ROOT / surface
         if not root.exists():
             continue
-        for path in root.rglob("*"):
-            if not path.is_file() or path.resolve() == SCRIPT.resolve():
-                continue
-            if any(part in {"__pycache__", ".git", "build", "node_modules"} for part in path.parts):
-                continue
+        for path in _scannable_files(root):
             try:
                 text = path.read_text(encoding="utf-8")
             except (OSError, UnicodeDecodeError):
                 continue
-            if "code_complexity" in text:
-                consumers.append(str(path.relative_to(REPO_ROOT)))
-
-    for spec_python in (REPO_ROOT / "specs").rglob("*.py"):
-        if ".history" in spec_python.parts:
-            continue
-        try:
-            text = spec_python.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
-            continue
-        if "code_complexity" in text:
-            consumers.append(str(spec_python.relative_to(REPO_ROOT)))
+            rel = str(path.relative_to(REPO_ROOT))
+            # A cheap pre-filter, and a SOUND one: every rule in
+            # `executable_references` requires the token to be present, so a
+            # file without it cannot produce a reference. It removes the
+            # false-POSITIVE grep, not the analysis. The false-NEGATIVE
+            # direction -- a consumer that never spells the name -- is a
+            # blind spot of this shape of scan and is demonstrated, not
+            # papered over, in `tests/test_instrument_demonstrations.py`.
+            if "code_complexity" not in text:
+                continue
+            if path.suffix == ".py":
+                for lineno, why in executable_references(text):
+                    consumers.append(f"{rel}:{lineno}: {why}")
+            elif "code_complexity" in text:
+                # Not Python: no AST to read. A shell script or a build file
+                # that names the instrument is invoking it. Comment lines are
+                # dropped so that the false-positive direction stays fixed here
+                # too.
+                for lineno, line in enumerate(text.splitlines(), start=1):
+                    stripped = line.strip()
+                    if stripped.startswith(("#", "//", "--", "<!--")):
+                        continue
+                    if "code_complexity" in stripped:
+                        consumers.append(f"{rel}:{lineno}: named in a non-Python surface")
 
     assert sorted(consumers) == []
+
+
+def test_no_reader_of_this_instrument_gates_on_its_output() -> None:
+    """THE INVARIANT THE DOCSTRING ALWAYS STATED, now the one being tested.
+
+    Repository-wide, `specs/**` included, minus the instrument's own test file.
+    A file is allowed to refer to the instrument and to transcribe its figures.
+    It is not allowed to branch on them, compare them, assert on them or exit
+    on them -- that is a thermostat, whatever it is called.
+    """
+
+    gates: list[str] = []
+    for path in _scannable_files(REPO_ROOT):
+        if path.suffix != ".py":
+            continue
+        rel = str(path.relative_to(REPO_ROOT))
+        if rel in GATING_SCAN_EXEMPT:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        if "code_complexity" not in text:  # sound pre-filter; see above
+            continue
+        if not executable_references(text):
+            continue
+        for lineno, why in gating_uses(text):
+            gates.append(f"{rel}:{lineno}: a figure {why}")
+
+    assert sorted(gates) == []
 
 
 # ---------------------------------------------------------------------------

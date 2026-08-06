@@ -1,0 +1,18 @@
+==========================================================================
+R-H5 DEMONSTRATED FAILING INPUT -- run against a copy of the live ledger
+source: /Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-03/specs/results/scorecards
+==========================================================================
+
+[0] UNMODIFIED COPY -> exit 0, R-H5 violations: 0
+
+[1] STALE ROW -- `fi03-pa06-to-v1-T-p1-D1` says points = 6, the cards say -1
+    exit 1, R-H5 violations: 1
+    VIOLATION  movement `fi03-pa06-to-v1-T-p1-D1`: declares `points = 6` but the cards say D1 went 4 -> 3 (-1). A movement is re-derived from the cards on every audit precisely so it cannot go stale.
+
+[2] READ ACROSS AN UNRECORDED PRACTICE -- `fi03-pa06-to-v1-T-p1-D1` declared readable = true
+    exit 1, R-H5 violations: 1
+    VIOLATION  movement `fi03-pa06-to-v1-T-p1-D1`: `readable = true` while ports-as-adapters/ab_quota_ledger/20260805-T-p1, falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p1 records no `judging_practice`. Four dimension-points moved on byte-identical trees because judges privately chose to execute their own faults and no card said so. NAME WHAT THE JUDGES DID OR DO NOT READ THE MOVEMENT.
+
+[3] RESTORED -> exit 0, R-H5 violations: 0
+
+R-H5 goes RED on both of the inputs it exists to catch, and GREEN otherwise.
