@@ -1,0 +1,48 @@
+catalogue: /Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-01/examples/validation/ab/eval/controls_port_region_arm_b.toml
+root:      /Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-01/specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b
+1 mutant(s)
+
+id                                         class              occurs  revert  parses
+--------------------------------------------------------------------------------------
+FI-M15-positive-control-commit-total-too-large wrong_value          1      ok      ok  
+
+class coverage:
+  wrong_value          1  FI-M15-positive-control-commit-total-too-large
+
+controls: 1 positive (1 anchor tree(s)), 0 negative
+adapter-internal mutants: 0 across 0 adapter file(s)
+  extends: examples/validation/ab/seeded_faults.toml -- 3 inherited property/ies
+
+control-property probe -- BOTH halves, since FI-01
+  A positive control must be INVISIBLE until the path it is the
+  control for executes, AND OBSERVABLE once one does, in the number
+  of steps the instruments actually run. Before FI-01 only the first
+  half was tested and a NO-OP reported HOLDS (PA-06-DF-07).
+
+    accept-path-only           invisible until an accepted `reserve` executes, and observable immediately after ONE. No region requirement: this property is about the ACCEPT PATH, and `available` is outside every declared port region on this fixture -- which is why a control holding it can still be undecidable by a port-scoped instrument.
+    port-region-commit-path    invisible until an accepted `commit` executes, observable immediately after ONE, and moving at least one observable INSIDE the declared port region {closed, committed, ledger}. This is the property `PA-03-DF-03` and `PA-04-DF-01` asked for and no control had: a fault a PORT-SCOPED instrument can decide.
+
+  control                                        tree               verdict
+  ------------------------------------------------------------------------------------
+  FI-M15-positive-control-commit-total-too-large arm_b              HOLDS   [port-region-commit-path]
+                                                                    invisible under 'everything-but-an-accepted-commit'; observable under 'one-accepted-commit'; moved: available, committed, ledger_lines; inside the region: committed, ledger_lines
+
+  arm_b: 1 of 1 positive control(s) HOLD (FI-M15-positive-control-commit-total-too-large)
+
+CATALOGUE INTEGRITY FAILED -- numbers derived from it are not re-derivable:
+  no mutant in required class 'adapter_internal' (PA-01 -- a fault INSIDE an adapter implementation. BA-B14 measured this class surviving every instrument including the hand-written suite, and no catalogue before PA-01 could express it, because the only anchor tree had no adapter in it.)
+  no mutant in required class 'cross_aspect' (the gap the aspect slice loses; round 1's false conclusion)
+  no mutant in required class 'durable_content' (the one mechanism with a measured, replicated edge (HP-05))
+  no mutant in required class 'guard_relaxation' (0 on every instrument in every round; HP-03's whole target)
+  no mutant in required class 'ordering' (the negative control; a documented limit, measured instead of assumed)
+  no mutant in required class 'output_oracle' (the class a state-only oracle cannot see at all)
+  no mutant declares a fault in the 'enabled' gap (HP-03 -- a corpus replays only ENABLED edges, so it holds no refusal). A reduction result with no mutant in the gap is not a measurement.
+  no mutant declares a fault in the 'slice' gap (case modules -- a slice narrower than its view orphans the other aspect). A reduction result with no mutant in the gap is not a measurement.
+  no mutant declares a fault in the 'silent' gap (HP-05 -- a silent mapping has no durable-write oracle). A reduction result with no mutant in the gap is not a measurement.
+  no mutant declares a fault in the 'apply()-only' gap (HP-04 -- the oracle aborts on the first apply()-only adapter). A reduction result with no mutant in the gap is not a measurement.
+  no mutant declares a fault in the 'behind a port' gap (PA-01 -- the region a port creates that no shared oracle reaches. BA-B14: 'the port removes places for some faults to live and creates a region no shared oracle reaches.'). A reduction result with no mutant in the gap is not a measurement.
+  expected at least 1 negative control
+  declared adapter implementation 'reference_ports/journal_file.py' does not exist under /Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-01/specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b. The declaration has been orphaned by a rename.
+  declared adapter implementation 'reference_ports/journal_memory.py' does not exist under /Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-01/specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b. The declaration has been orphaned by a rename.
+  0 adapter-internal mutant(s); the plan's PA-01 acceptance requires at least 2.
+  every adapter-internal mutant is in the same file. The pair exists to seed ONE semantic on BOTH sides of one port; rows all on one side measure the difficulty of a fault rather than the size of the region.

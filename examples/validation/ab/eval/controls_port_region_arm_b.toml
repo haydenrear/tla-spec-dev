@@ -1,0 +1,64 @@
+# FI-01: `FI-M15`, THE IN-REGION POSITIVE CONTROL, RE-ANCHORED ONTO ARM B.
+#
+#     python3 examples/validation/ab/check_catalogue.py --controls --tree-root \
+#       --root specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b \
+#       --catalogue examples/validation/ab/eval/controls_port_region_arm_b.toml \
+#       --impl quota_ledger
+#
+# WHY ARM B AND WHY ONLY ARM B. The ticket's requirement is "a positive control
+# inside a port's region on EVERY TREE THAT DECLARES A PORT". Enumerated rather
+# than assumed, by reading the trees:
+#
+#   examples/validation/ab/reference/quota_ledger.py   flat, no port
+#   examples/validation/ab/reference_ports/            declares LedgerJournal
+#   .../hexagonal-prompting-rerun/arms/arm_a           flat, no port
+#   .../hexagonal-prompting-rerun/arms/arm_b           declares Journal
+#   .../ports-as-adapters/arms/arm_c                   flat, no port
+#
+# Two trees declare a port. `reference_ports` carries `FI-M15` in
+# `../seeded_faults.toml`; this file is arm B's. Arms A and C declare no port,
+# so there is no port region on them to seed inside; that is a fact about those
+# arms, not an omission, and `arm_c/REJECTED.md` records its author declining
+# the seam on merit.
+#
+# WHY A FILE HERE RATHER THAN A ROW IN ARM B'S CATALOGUE. Arm B's tree and its
+# catalogues live under `specs/results/`, which this epic's plan declares
+# `out_of_model` -- sealed history and recorded evidence. FI-01 reads that tree
+# and writes nothing into it. The tree itself is never modified: the probe and
+# every driver copy it to a scratch directory and apply the mutant there.
+#
+# THE PROPERTY IS NOT RESTATED HERE. It is inherited through `extends`, which is
+# `PA-06-DF-02`: `extends` used to be documentation, so a re-anchored control
+# was reported undeclared no matter what its parent said, and PA-06 worked
+# around it by copying `[pa_control_properties]` into each of its three
+# re-anchoring files -- five copies of one property with nothing checking them
+# against each other, which is the `declaration_executability_rule`'s own
+# failure shape. `check_catalogue.py` now follows `extends` one level. This file
+# is the test of that: it declares NO property table, and if `extends` stops
+# being followed the probe reports this control undeclared and says so.
+
+[catalogue]
+id = "FI-01-port-region-control-arm-b"
+anchored_on = "quota_ledger/domain.py"
+root = "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b/"
+extends = "examples/validation/ab/seeded_faults.toml"
+
+[[mutants]]
+id = "FI-M15-positive-control-commit-total-too-large"
+fault_class = "wrong_value"
+control_role = "positive -- must die on every instrument that executes an accepted Commit against arm B, AND must be invisible until one does. Written for THIS tree: arm B computes the new committed total into a local `total` and hands the same value to both `_committed` and the journal, so one line carries the whole semantic. EVAL-RERUN-DF-03 -- arm B's sealed catalogue carrying arm A's role string verbatim over a mutant arm B's own data contradicted -- is the defect this sentence is written against, and the sentence differs from the reference_ports one because the trees differ."
+gap_targeted = "none. Deliberately in nobody's gap on this tree either: it moves `committed`, which every state oracle projects, and the COMMIT line, which every content-asserting oracle reads."
+seeded_by = "perturbation"
+boundary_kind = "port"
+boundary_ref = "LedgerAppendPort"
+path = "quota_ledger/domain.py"
+find = "        total = self._committed[reservation.tenant] + reservation.amount"
+replace = "        total = self._committed[reservation.tenant] + reservation.amount + 1  # MUTANT FI-M15: a commit credits one unit more than the reservation held"
+description = "commit credits arm B's tenant with one more than it reserved, so committed(t) and the COMMIT line's running total are both one too large"
+semantic = "commit(r) adds amount+1 to committed(t) instead of amount, and the COMMIT line carries that inflated total. Nothing differs until an accepted `commit` executes."
+observable = "committed(t) and the COMMIT line's running total immediately after ONE accepted commit -- both inside the declared port region {closed, committed, ledger}. AND, on this tree only, available(t): arm B computes `available` as quota minus held minus committed, so a fault on committed surfaces there too. That extra observable is REPORTED by the probe and is not part of the property; a property demanding confinement would call the same control broken on arm B and fine on reference_ports for a reason about data structures rather than about the control."
+re_anchoring_note = "Re-anchored BY THE PROPERTY, not by the bytes: `reference_ports` writes `self._committed[t] += amount` and appends a line reading the updated dict, while arm B computes `total` once and uses it twice. The find strings have nothing in common; the semantic and the property do."
+predicted_corpus_port = "KILLED -- Commit is in the port's action set and both observables are in its region"
+predicted_corpus_whole = "KILLED"
+refine_variable = "committed"
+refine_action = "Commit"

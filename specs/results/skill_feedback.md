@@ -1869,3 +1869,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket FI-01
+
+- close_scope: ticket
+- close_id: FI-01
+- workflow: falsifiable-instruments-epic
+- closed_at: 2026-08-06T12:44:46+00:00
+- summary: FI-01: a positive control seeded inside the port's derived region on every tree that declares a port (FI-M15 on reference_ports and arm B), and a control-property probe made two-sided so it can fail -- shipped with five deliberately broken controls it must report broken (R1). PA-M14 is measured INERT on reference_ports and REPORTED RED rather than repaired (R2). extends is followed when reading [pa_control_properties] (PA-06-DF-02). No model delta.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

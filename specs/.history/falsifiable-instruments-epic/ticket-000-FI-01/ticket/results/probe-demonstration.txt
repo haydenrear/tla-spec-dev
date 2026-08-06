@@ -1,0 +1,21 @@
+  extends: examples/validation/ab/seeded_faults.toml -- 3 inherited property/ies
+
+DEMONSTRATED FAILING INPUTS for the control-property probe (R1).
+  Every row below is a control that is BROKEN ON PURPOSE. The probe
+  passes this demonstration only by REPORTING each one broken.
+
+  demonstration                            declared                     must report     observed
+  --------------------------------------------------------------------------------------------------------
+  DEMO-01-noop-is-not-a-control            accept-path-only             INERT           INERT
+                                           NOTHING MOVES under 'one-accepted-reserve' either. A control nothing can observe can never go red; this is the verdict a no-op earns, and the verdict a control earns when it needs more steps than the instruments execute
+  DEMO-02-observable-from-construction     accept-path-only             BROKEN          BROKEN
+                                           observable under 'refusals-and-accepted-close', which executes none of the path this control is the control FOR; it stays green through exactly the regression it exists to catch. moved: committed, ledger_lines
+  DEMO-03-observable-outside-the-ports-region port-region-commit-path      OUT_OF_REGION   OUT_OF_REGION
+                                           observable under 'one-accepted-commit' but only outside the declared region {closed, committed, ledger_lines}. moved: available. A port-scoped instrument projects only its region, so it cannot decide this control
+  DEMO-04-observable-but-not-in-one-step   accept-path-only             INERT           INERT
+                                           NOTHING MOVES under 'one-accepted-reserve' either. A control nothing can observe can never go red; this is the verdict a no-op earns, and the verdict a control earns when it needs more steps than the instruments execute
+  DEMO-05-the-control-that-actually-works  port-region-commit-path      HOLDS           HOLDS
+                                           invisible under 'everything-but-an-accepted-commit'; observable under 'one-accepted-commit'; moved: committed, ledger_lines; inside the region: committed, ledger_lines
+
+The probe reported every deliberately broken control broken. R1 holds:
+this instrument ships with a demonstrated failing input.

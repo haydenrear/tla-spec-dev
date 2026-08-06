@@ -600,10 +600,15 @@ def test_the_sealed_catalogue_is_still_the_sealed_catalogue(driver):
     )
     # Anything past the seal is an extension and must say which ticket added it.
     # PA-01 appended the adapter-internal class, anchored on a second reference
-    # tree, because the flat reference contains no adapter to seed inside.
+    # tree, because the flat reference contains no adapter to seed inside. FI-01
+    # appended `FI-M15`, the positive control inside the port's DERIVED REGION --
+    # the thing GOAL-port-reach clause 2 needed and no catalogue had, so that a
+    # port-scoped column of survivors can be told apart from a dead instrument.
+    # The prefix is the epic that added the row; a prefix naming no epic is a row
+    # nobody can attribute.
     for extra in ids[len(HP_SEALED_MUTANTS):]:
-        assert extra.startswith("PA-"), (
-            f"{extra!r} is neither a sealed HP-01 row nor a declared PA extension"
+        assert extra.startswith(("PA-", "FI-")), (
+            f"{extra!r} is neither a sealed HP-01 row nor a declared extension"
         )
     # The sealed file carries no limitation and no retirement of its own.
     assert record["limitations"] == {}
