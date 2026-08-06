@@ -59,12 +59,40 @@ reissued once a predecessor resolves, so a later commit silently overwrites a
 live hold. **Four generated instruments kill it and the suite misses it on both
 arms.**
 
-So the honest statement is narrower and sharper: **on author-written catalogues
-the suite dominates; on blind ones the two are complementary.** The dominance
-result was a property of who wrote the catalogue, and this epic's own §1 restated
-it as settled — which is exactly the "read a row forward without checking it"
-failure this project keeps finding, committed here in the document that exists to
-warn against it.
+~~So the honest statement is narrower and sharper: on author-written catalogues
+the suite dominates; on blind ones the two are complementary.~~
+
+**CORRECTED AGAIN, 2026-08-06, on FI-06's evaluation. The sentence struck through
+above was the epic owner's own correction, and it was also wrong.** It said "the
+only catalogues here authored blind". **There are two**, and they disagree:
+
+| blind catalogue | generated union | suite | generated-only | suite-only |
+|---|---|---|---|---|
+| EVAL-RERUN, arm A | 11 of 15 | 11 of 15 | `BA-P11` | `BA-P05` |
+| EVAL-RERUN, arm B | 10 of 15 | 10 of 15 | `BA-Q11` | `BA-Q05` |
+| **HP-06, arm A** | **8** | **9** | **∅** | `BA-A02` |
+| **HP-06, arm B** | **8** | **9** | **∅** | `BA-B02` |
+
+On HP-06's blind catalogue the **suite strictly dominates and generated-only is
+empty** — the opposite of the reading the correction above asserted. Owner
+re-derived both from the sealed tables.
+
+FI-06 gives the mechanism, and it is about the *model* rather than the
+instruments: `ResIds = {r1,r2}` caps behaviours at two `Reserve`, so the
+favourable draw reuses at allocation #2 and the unfavourable one at #4. **Whether
+the generator "wins" depends on where in the sequence the reuse lands.**
+
+**So the settled statement is that there is no settled statement.** Neither "the
+suite dominates" nor "the two are complementary" is established; the result is
+unstable across blind catalogues and turns on a model constant. Anyone who wants
+an answer here has to enlarge `ResIds` and re-run, which is FI-06's
+recommendation.
+
+**Three corrections now sit on this one passage, two of them the epic owner's.**
+The charter asserted the original sentence as settled; the owner's first
+correction over-asserted its reversal; FI-06 caught both. The mechanisms this
+epic built are what caught them. **The reading discipline is what keeps producing
+them**, and that is the finding to carry, not the table above.
 
 One thing the correction does **not** rescue: the kill that saves the generator
 dies to `corpus-whole`, `corpus-slice-res` and the mappings — to **neither** the
