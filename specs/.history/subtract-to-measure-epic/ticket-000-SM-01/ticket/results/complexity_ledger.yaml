@@ -85,9 +85,20 @@ justification: ""
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
+  searched: true
+  outcome: "none"
+  detail: >-
+    SEARCHED, FOUND NONE, AND THE ABSENCE IS THE POINT. SM-01's
+    model_delta_expectation is `none expected` and the measured delta is
+    `direction=zero` against FI-06: this ticket adds no action, no variable and
+    no state to TlaSpecDevCli.tla, because everything it ships lives under
+    `examples/validation/gap_mutants/` and `specs/results/`, neither of which is
+    modeled surface. The one candidate considered and REJECTED was modelling the
+    gap-mutant runner as a new command on the CLI: that would have made a
+    measurement instrument part of the product, and the epic's
+    `no_new_gates_rule` plus CD-01 (the thermometer may not choose the boundary)
+    both point the other way. The runner is deliberately reachable only by hand.
+    Nothing in the recursive-refinement sense was found to collapse.
   measured: false      # true only if a real TLC run produced the figure
   applied: false       # if true, approved_by is required
   approved_by: ""
@@ -99,4 +110,54 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: >-
+    Path: specs/results/scorecards/subtract-to-measure/SM-01-RESULTS.md, and the
+    before-state it is read against at
+    specs/results/scorecards/subtract-to-measure/before-state/README.md.
+
+    WHAT THIS CLOSE IS. SM-01 removed nothing and repaired nothing. It seeded 9
+    gap mutants and 2 positive controls in the gaps SM-02 and SM-03 are about to
+    open, measured them against 7 detectors, captured the toolchain's
+    produced-code descriptor over four trees, and sealed 12 predictions with 6
+    negatives BEFORE the runner was ever pointed at a real mutant. The git
+    history carries that ordering: seeds at 68a826f, predictions at b2b8e9c,
+    numbers at cecf3b6.
+
+    THE MEASURED ALTERNATIVE THAT WAS REJECTED, and it is the one worth
+    recording. The obvious way to price the [ports.*] machinery was to mutate
+    the machinery itself -- apply_wiring's swap line, adapter_for_case's
+    port-first sort key, the label resolution in load_mappings. Each of those
+    has a pytest node that goes red today, so each would have produced a
+    flattering table. All three were rejected as NOT GAP MUTANTS: after SM-02
+    the mutated code does not exist, so the after half cannot be run and the
+    row decides nothing. What is seeded instead is a fault in the SUBJECT --
+    the far side of the declared port, and the manifest that outlives the
+    binding -- which is re-runnable on a tree the machinery has been cut out of.
+    Same reasoning retired the `fake =` key mutant to [[not_seedable]].
+
+    THE FINDING THE CORE CANNOT EXPRESS. SM-GM-P3 survives all six columns the
+    port-swap machinery owns, at 1543 executed cases each, while the positive
+    control dies on those same six in the same run. The swap cannot detect that
+    its own fake is not a fake -- the one failure a swap exists to make
+    impossible. Filed as SM-01-DF-04, not fixed, because SM-01 is a measurement
+    and because the repair is not obvious: asserting that two wirings DISAGREE
+    would be wrong, since a fake is supposed to be a working implementation of
+    the same interface.
+
+    AND THE ONE ABOUT THIS TICKET'S OWN INSTRUMENT. The first run scored
+    SM-GM-I2 and SM-GM-I3 as kills on the strength of a single failing node that
+    was this runner's OWN catalogue-integrity test reacting to this runner's own
+    mutation. Found by reading raw new_failing_nodes rather than verdicts;
+    excluded from the verdict, reported per cell as self_detected_nodes, and
+    covered by two tests including one that the exclusion cannot grow. A shipped
+    tripwire also caught the ticket -- test_no_reader_of_this_instrument_gates_
+    on_its_output went red on the new test file -- and it was fixed by not
+    naming the module rather than by lengthening the tripwire's exemption list.
+
+    PREDICTIONS: 3 PASS, 4 FAIL of the 7 decidable at this ticket. P03 failed
+    because my own mutant was under-powered, which is recorded as a defect in
+    the mutant rather than reinterpreted into a finding about the registry.
+    N01-N05 are SM-05's.
+
+    Acceptance: 1370 passed in 361.85s. Findings SM-01-DF-01..05 filed, none
+    fixed, budget 5 spent exactly.
