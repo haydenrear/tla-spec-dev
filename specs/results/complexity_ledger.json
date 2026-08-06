@@ -17433,6 +17433,177 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "SM-03",
+      "workflow": "subtract-to-measure-epic",
+      "recorded_at_utc": "2026-08-06T22:14:10.910454+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 17,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 1111320,
+        "bound_complete": false,
+        "bound_resolved_variables": 7,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.00334800669601341,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 1,111,320 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 7 of 9 declared variables, so the complete bound is at least this large)",
+          "component C1 has 7 variables (complexity_gate, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 16 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 1111320,
+            "bound_complete": false,
+            "percent_lower_bound": 111.1,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 7 of 9 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "SM-01",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 17,
+            "after": 17,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 1111320,
+            "after": 1111320,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the pre-change TLC output",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the post-change TLC output",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the behavior-test output",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the before/after descriptor comparison",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=(absent) (UNVERIFIED)",
+        "tlc_after=(absent) (UNVERIFIED)",
+        "behavior_tests=(absent) (UNVERIFIED)",
+        "descriptor_comparison=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "SEARCHED, FOUND NONE. SM-03's model_delta_expectation is `none expected` and the measured delta is zero: this ticket adds no action, no variable and no state to TlaSpecDevCli.tla, because everything it touches lives under `examples/validation/instruments/`, `tests/` and `specs/results/`, none of which is modeled surface. ONE CANDIDATE WAS CONSIDERED AND REJECTED, and it is the one the issue itself proposes. FI-04's suggested fix for the registry blind spot was to put the obligation on `close ticket`: refuse when a diff adds an executable under a declared instrument root and the registry gained no row. That WOULD have been a model delta -- a new precondition on an existing CLI action, which is exactly the shape TlaSpecDevCli.tla represents. It was rejected on `no_new_gates_rule`: four epics of static checking caught zero bugs, and subtraction is not licence to add a refusal on the product's close path. What shipped instead is a repair of a check that already existed, in the repository's own suite, refusing nothing about the product and consulted by no close path. Nothing in the recursive-refinement sense was found to collapse.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "Path: specs/results/scorecards/subtract-to-measure/SM-03-RESULTS.md, read against specs/results/scorecards/subtract-to-measure/after-state/instrument-sweep-after.md and its before-state counterpart. NOTHING WAS DELETED, AND THE TICKET'S STATED DEFAULT WAS DELETION. FI-06 said twelve pytest failing slots assert only `expect_exit = 0`, \"which pytest returns for a passing run and a fully skipped one\". SM-01 seeded both skip shapes and measured the sentence: a module-level skip collects nothing, pytest exits 5, and those slots ALREADY went red. Only a pytestmark skip -- collected then skipped, exit 0 -- reported `ok`. So the hole is a demonstration that goes VACUOUS, not one that DISAPPEARS, and the twelve are UNCOUNTED rather than hollow. A hollow instrument should be deleted; an uncounted one should be counted. All twelve repaired, zero deleted. THE MEASURED ALTERNATIVE THAT WAS REJECTED, and it is the one that would have flattered the number. `ticket-state-agreement` is classified `no-instrument-exists`, watches nothing, and SM-01 recorded that \"the removal's cost is already paid in full\". Deleting that one row would have moved the ratio from 33/47 to 33/46 by arithmetic alone, with no instrument gained and none lost. That is `denominator_rule`'s exact prohibition -- a ratio that rises because the denominator shrank -- and taking it while reporting a falling ratio elsewhere would have been laundering one number through another. The row stays and stays counted. THE COUNT MOVED THE OTHER WAY. 26 of 35 -> 33 of 47; the ratio FELL from 74.3% to 70.2%. Numerator +7 = 5 new rows carrying a demonstration + 2 repairs of rows whose \"no-demonstration-constructible\" SM-GM-I4 showed was a fact about demonstrate.py shelling pytest at REPO_ROOT rather than about the instrument. Denominator +12, from the eighteen executables the enumeration could not see. FI-06 said \"at least eight\"; a derived check found eighteen on its first run, including demonstrate.py itself and run_gap_mutants.py, which SM-01 shipped unregistered in this same epic. THE LARGEST PART OF THE WORK MOVES NO FIGURE. Repairing a slot that reported `ok` for the wrong reason so that it reports `ok` for the right one reads identically in the count. The only evidence it changed is SM-GM-I1, which survived the registry at SM-01 and dies against it now: \"0 test(s) passed, declared exactly 4\" and \"4 test(s) SKIPPED, declared 0\". THE REGISTRY BLIND SPOT, fixed without lengthening a list. `required <= enumerated` over thirteen literal paths is DELETED, not extended -- that shape was rejected at EVAL-RERUN-DF-01 and again at ARM_MODULE_PREFIXES, and is worse here because the literal must be edited by whoever just forgot to register the instrument. [registry.enumeration] declares a scope and the members are derived by walking the tree. SM-GM-I3 flips SURVIVES -> DIES. The check measures a tree it is HANDED, never the one it lives in, because SM-01 found the gap-mutant runner detecting itself. Findings SM-03-DF-01..03 filed, none fixed, budget 5 spent 3. The load-bearing one: demonstrate.py judges an EXIT CODE where run_gap_mutants.py one directory over compares FAILURE SETS against a pristine baseline, which is why the last two tripwires still cannot be demonstrated -- one layer of \"the reason was about the harness\" was peeled off and another was found underneath.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }
