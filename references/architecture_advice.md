@@ -327,6 +327,38 @@ satisfiable), and a sweep of 115,975 partitions of this repository's model found
 this model's emergent partition measures **Q = 0.003** — and would still have
 been reported as "every criterion met", at 100× below the printed threshold.
 
+### S2 applied to ourselves — FI-02, 2026-08-06
+
+This rule was written for a scanner that was then deleted, and for two epics it
+was never turned on the instruments this repository *kept*. It is now.
+
+    python3 examples/validation/instruments/demonstrate.py
+
+`examples/validation/instruments/instruments.toml` enumerates every instrument
+this repository ships and, for each, a re-runnable demonstration that it goes
+red on a genuinely broken subject and green on a sound one. **Where no failing
+demonstration can be constructed, the row says so and is counted** — the count
+is the point, and there is deliberately no target on the ratio.
+
+Measured at `51fe73d` + FI-02: **37 rows enumerated**, 5 of them checked and
+classified as not instruments; of the 32 instruments, **23 have a demonstrated
+failing input and 9 do not.** Nine rows additionally carry a *demonstrated
+blind spot* — a genuine break the instrument does not report — which is the
+half of S2 the original rule did not ask for and which turned out to be worth
+more than the other two:
+
+- the blinding sanitiser goes red on a leak with no substitution rule and stays
+  **clean** on a leak phrased in its own substitution vocabulary;
+- `run_controls.py` cannot measure a ported tree at all, and reports 15 of 15
+  false `SURVIVED` while looking like a clean run;
+- `run_port_swap.py` prints a red control and exits **0**;
+- the TLA+ complexity descriptor sits 432× over its own declared state-space
+  bound and exits **0** — by design, and worth stating rather than assuming.
+
+The lesson to carry: **the useful question is not only "can this criterion
+fail" but "what true thing can it not say".** Three of the findings this
+enumeration produced came from the second question and none from the first.
+
 ## S3. A number that fell must carry the reason it fell
 
 **Requirement.** Any reported improvement must enumerate the specific things
