@@ -3006,3 +3006,165 @@ findings:
       is wrong is any reading of it as a standing figure. FI-04's row restores
       it for this ticket only.
     disposition: open
+
+  - id: FI-05-DF-01
+    found_by: FI-05
+    found_at_commit: 51fe73d
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+      - examples/validation/PREDICTIONS-PA.md
+      - examples/validation/check_prediction_seal.py
+    summary: >-
+      PREDICTION IDS AND MUTANT IDS SHARE A NAMESPACE, SO THE SEAL CHECK CANNOT
+      CHECK A PREDICTION ABOUT THE MUTANT `N01`.
+
+      `PREDICTIONS-PA.md` numbers its negative predictions `N01`-`N08`. The eval's
+      replacement negative CONTROL is the mutant
+      `N01-negative-control-outstanding-id-order`. Both are matched by the same
+      `[MN]\d\d` shape, so a checker reading a section that says "N01" cannot tell
+      "the prediction I am numbering" from "the mutant I am predicting about".
+
+      `check_prediction_seal.py` resolves the collision by DROPPING any token that
+      is also a section id in the same file. That is the safe direction -- it can
+      only produce a missed check, never a false ALREADY MEASURED -- but it means
+      the one mutant this project chose as its working negative control is exactly
+      the one a prediction cannot be checked against by id.
+    reproduction: >-
+      `grep -n '^### N01' examples/validation/PREDICTIONS-PA.md` -> a prediction.
+      `grep -n 'N01-negative-control' examples/validation/ab/eval/controls.toml` ->
+      a mutant. `tests/test_prediction_seal.py::test_a_prediction_id_that_collides_with_a_mutant_id_is_not_a_subject`
+      asserts the drop.
+    evidence:
+    - examples/validation/check_prediction_seal.py -- attach_subjects, section_ids
+    - tests/test_prediction_seal.py
+    why_out_of_scope: >-
+      `PREDICTIONS-PA.md` is SEALED and FI-05 may not amend it, and renaming the
+      mutants would invalidate every sealed kill table that keys on them. The fix
+      belongs to whoever writes the NEXT predictions file, before it is sealed.
+    suggested_fix: >-
+      Number predictions in a namespace that cannot collide with a mutant id --
+      `PRED-01` / `NEG-01`, or the epic prefix the tickets already use -- and have
+      the seal check refuse a file whose section ids intersect the mutant ids in
+      the records it was given. That refusal is at authoring time, on an unsealed
+      file, which is the only moment anything about a predictions file can be fixed.
+    blast_radius: >-
+      One mutant, in one direction: a prediction about `N01` is reported UNPARSED
+      rather than checked. No sealed number moves.
+    disposition: open
+
+  - id: FI-05-DF-02
+    found_by: FI-05
+    found_at_commit: 51fe73d
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+      - examples/validation/ab/dispatch/ports-as-adapters/
+      - examples/validation/ab/arm_a/PROMPT.md
+      - examples/validation/ab/arm_b/PROMPT.md
+    summary: >-
+      ONLY ONE OF THREE ARMS HAS ANY RECOVERABLE DISPATCH, AND IT IS A
+      RECONSTRUCTION. THE OTHER TWO ARE UNVERIFIABLE IN BOTH DIRECTIONS.
+
+      FI-05 ships the mechanism that preserves what was sent, and a record for the
+      `ports-as-adapters` round. That record has ONE row, `arm_c`, with
+      `provenance = "reconstruction"`: bytes PA-06's adversarial channel rebuilt
+      afterwards, not bytes captured at dispatch. For `arm_a` and `arm_b` there is
+      NOTHING -- no capture, no reconstruction, no transcript in the tree.
+
+      So the retraction PA-06-DF-10 recorded is measurable for exactly one arm.
+      Arm B's sealed 105 unique content lines, which is the denominator of the
+      whole length match and which PA-01 forbade anyone to move, is a number about
+      the file on disk, and NO EVIDENCE IN THIS REPOSITORY SAYS THAT IS WHAT ARM B
+      RECEIVED. It may well be. It cannot be shown either way, and "the arms were
+      dispatched verbatim" is now a claim with no artifact behind it rather than a
+      fact.
+    reproduction: >-
+      `python3 examples/validation/ab/dispatch_record.py verify --dir
+      examples/validation/ab/dispatch/ports-as-adapters` -> one row, arm_c,
+      reconstruction. `python3 examples/validation/ab/check_catalogue.py --arms`
+      with no `--dispatch-dir` -> "NO DISPATCH RECORD REQUESTED", and every number
+      labelled `<- on disk`.
+    evidence:
+    - examples/validation/ab/dispatch/ports-as-adapters/dispatch.toml
+    - specs/desired_program_model/deferred_findings.yaml -- PA-06-DF-10
+    why_out_of_scope: >-
+      The bytes are gone. FI-05 can build the mechanism and can reconstruct the one
+      arm somebody already reconstructed; it cannot manufacture evidence for two
+      dispatches nobody recorded, and writing a `preserved` row for arm A or arm B
+      from the file on disk would be asserting exactly the thing PA-06-DF-10 shows
+      nobody may assume.
+    suggested_fix: >-
+      The next round dispatches through `dispatch_record.py record` for EVERY arm
+      before any agent is started, and reports with `--dispatch-dir`. Until then
+      every cross-epic comparison against arm A's or arm B's prompt length carries
+      "measured on the file on disk; the dispatch was not preserved" beside it, in
+      the words of the record rather than in a reader's assumption.
+    blast_radius: >-
+      The length match, which is arm C's entire reason for existing, and any
+      cross-epic prompt-length comparison on arms A and B. No kill number.
+    disposition: open
+
+  - id: FI-05-DF-03
+    found_by: FI-05
+    found_at_commit: 51fe73d
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+      - examples/validation/check_prediction_seal.py
+      - examples/validation/PREDICTIONS-PA.md
+    summary: >-
+      THE SEAL CHECK REACHES ONE OF THE THREE NO-KILL PREDICTIONS IN THE FILE IT
+      WAS BUILT FOR. THE OTHER TWO NAME NO LOOKUPABLE SUBJECT AT ALL.
+
+      Run over `PREDICTIONS-PA.md`, `check_prediction_seal.py` reports N05
+      ALREADY MEASURED -- the PA-06-DF-03 row -- and reports `N03` and `N07`
+      UNPARSED: both predict "zero cells" but their `**Instrument:**` fields name
+      a TABLE ("the per-mutant per-arm per-instrument table, every row") rather
+      than a mutant and a column, so there is no cell to look up.
+
+      This is reported as UNPARSED rather than as clean, deliberately, because
+      silence and a pass are different claims. But it means the seal-time check
+      covers 1 of 3 candidate rows in the only file it has ever been run against,
+      and a reader who saw "one problem found" without reading the UNPARSED block
+      would overestimate the coverage.
+    reproduction: >-
+      `python3 examples/validation/check_prediction_seal.py
+      examples/validation/PREDICTIONS-PA.md` -> ALREADY MEASURED: N05; UNPARSED:
+      N03, N07. `python3 examples/validation/instruments/demonstrate.py --only
+      prediction-seal` -> the `blind_spot` slot exits 0 on a row nothing can
+      check, which is how this reads green.
+    evidence:
+    - examples/validation/PREDICTIONS-PA.md -- N03, N07 instrument fields
+    - examples/validation/check_prediction_seal.py -- the UNPARSED branch
+    why_out_of_scope: >-
+      Making N03 and N07 checkable means changing how predictions are WRITTEN --
+      every no-kill row naming the mutants and columns it covers -- and
+      `PREDICTIONS-PA.md` is sealed. Teaching the checker to expand "every row of
+      the table" into a cell list would have it inventing the subject the sealer
+      declined to state, which is a worse failure than saying it cannot check.
+    suggested_fix: >-
+      Require every no-kill prediction in the NEXT file to name at least one
+      mutant and one instrument column in its `**Instrument:**` field, and have
+      the seal check report the UNPARSED count as a coverage figure beside its
+      verdict -- "checked 1 of 3" -- so the number is read as coverage rather than
+      as an all-clear.
+    blast_radius: >-
+      The seal check's coverage, reported. It cannot produce a wrong verdict here;
+      it can produce a verdict narrower than a reader assumes.
+    disposition: open

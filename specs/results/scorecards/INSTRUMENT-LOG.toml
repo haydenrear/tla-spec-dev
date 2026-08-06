@@ -1892,3 +1892,32 @@ sha256 = "sha256:845811e8549ffffd"
 [[sealed]]
 path = "specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-W-p2/scorecard.md"
 sha256 = "sha256:ce52a17c01222f31"
+
+# --- FI-05 ---------------------------------------------------------------
+
+[[note]]
+id = "FI-05-N-01"
+about = "claim:arm-c-does-not-match-arm-b-on-d3"
+kind = "the correction is now an artifact, not a paragraph"
+field = "the length figures"
+recorded_at = "2026-08-06"
+by = "FI-05"
+why = """
+The correction this claim already carries -- +3.8% on disk, +18.1% as dispatched,
+0 of 109 architectural hits on disk, 4 of 124 as dispatched -- was reachable only
+by reading the prose beside it. FI-05 records the reconstructed dispatch as a
+verified artifact under `examples/validation/ab/dispatch/ports-as-adapters/`, and
+`check_catalogue.py --arms --dispatch-dir <that>` now re-derives both corrected
+figures and REPORTS THEM AS PROBLEMS, while the same command with no
+`--dispatch-dir` still reproduces the sealed on-disk numbers exactly.
+
+Nothing sealed moved and nothing is retracted here that was not already
+retracted. What changed is that the retraction is executable:
+`tests/test_dispatch_record.py::test_check_arms_is_green_on_disk_and_red_as_dispatched`
+runs one harness over both inputs and requires green from one and red from the
+other.
+
+The row is a RECONSTRUCTION, marked as such in the record and printed as such by
+`verify`, because that is what PA-06's adversarial channel produced. Arms A and B
+have no dispatch evidence of any kind. FI-05-DF-02.
+"""

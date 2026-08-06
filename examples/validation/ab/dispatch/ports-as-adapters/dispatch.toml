@@ -1,0 +1,25 @@
+# Dispatched prompts -- the exact bytes each arm received.
+#
+# APPEND-ONLY, and written by `dispatch_record.py record`. Verify with
+# `dispatch_record.py verify --dir <this directory>`.
+#
+# PA-06-DF-10: the previous round's length-match headline was measured on a file
+# that was NOT the prompt the arm received. The arm's prompt was dispatched with
+# four unrecorded additions, making the measured ratio 1.181 rather than 1.038
+# and leaking the epic's own name into the arm whose whole job was architectural
+# silence. What is measured is what is recorded here, not what is on disk.
+
+schema_version = 1
+
+[[dispatch]]
+arm = "arm_c"
+round = "ports-as-adapters"
+source = "examples/validation/ab/arm_c/PROMPT.md"
+source_sha256 = "sha256:5092fd3132b9c202"
+artifact = "arm_c.dispatched.md"
+artifact_sha256 = "sha256:e9763ebc2f908708"
+provenance = "reconstruction"
+added_lines = 17
+removed_lines = 3
+recorded_at = "2026-08-06"
+note = "PA-06-DF-10. NOT preserved at dispatch: rebuilt afterwards by PA-06's adversarial channel from the dispatch transcript. Filed as evidence beside the sealed result, never substituted for arm_c/PROMPT.md, which PA-01 owns and which the sealed length match was measured on."

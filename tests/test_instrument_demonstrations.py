@@ -224,10 +224,51 @@ def refuse(scratch):
         assert GATING_SCAN_EXEMPT == (
             "tests/test_code_complexity.py",
             "tests/test_instrument_demonstrations.py",
+            "tests/test_produced_code_prompt.py",
         )
         for exempt in GATING_SCAN_EXEMPT:
             assert (REPO_ROOT / exempt).is_file()
             assert exempt.startswith("tests/")
+
+    def test_the_third_exemption_never_reads_a_figure(self) -> None:
+        """FI-05'S ENTRY, BOUNDED BY SOMETHING CHECKABLE RATHER THAN BY TRUST.
+
+        The first two exemptions read the instrument's OUTPUT, because asserting
+        a property of an instrument means running it. The third does not and may
+        not: `test_produced_code_prompt.py` asserts things about the PROMPT, and
+        it binds the prompt's figure names and quoted cells to
+        `references/complexity_intuition.md` -- itself pinned to a live run by
+        `test_documented_figures_match_shipped_output` and
+        `test_recorded_figures_match_a_live_run` -- rather than measuring again.
+
+        A figure cannot be reached without importing the module or invoking the
+        script. So: every executable reference in that file must be a NAME
+        token, never an import and never an invocation. That is the whole ground
+        of its exemption, and adding a figure read to the file breaks this test
+        instead of quietly widening the hole.
+        """
+
+        text = (REPO_ROOT / "tests/test_produced_code_prompt.py").read_text(encoding="utf-8")
+        refs = executable_references(text)
+        assert refs, "the file no longer names the instrument; drop its exemption"
+        reads = [f"{lineno}: {why}" for lineno, why in refs if not why.startswith("path/module")]
+        assert reads == [], (
+            f"the third exemption now READS the instrument, not just its name: {reads}. "
+            f"Bind the prompt to references/complexity_intuition.md instead, or move the "
+            f"assertion into the instrument's own tests."
+        )
+        # The file DOES shell out once, to assert the instrument still exits 0
+        # on the artifacts this ticket added. That is a read of an EXIT CODE,
+        # not of a figure -- so the bound is that its output is never read.
+        read_output = [s for s in (".stdout", ".stderr", "capture_output=False") if s in text]
+        assert read_output == [], (
+            f"the file reads the instrument's OUTPUT ({read_output}); only its exit code "
+            f"is permitted here"
+        )
+        assert "--json" not in text, (
+            "the file asks the instrument for machine-readable figures"
+        )
+        assert gating_uses(text), "the file no longer compares a token; drop its exemption"
 
     def test_the_exempt_files_are_exempt_because_they_WOULD_be_flagged(self) -> None:
         """And the exemption is load-bearing rather than defensive: run the
@@ -397,7 +438,15 @@ def test_every_row_is_classified_and_every_gap_carries_a_reason(registry) -> Non
 
 def test_the_named_instruments_are_all_enumerated(registry) -> None:
     """The ticket names eleven by hand. If a rename drops one out of the
-    registry, this says which."""
+    registry, this says which.
+
+    IT IS A RENAME GUARD AND NOTHING MORE. `required <= enumerated` cannot catch
+    an instrument that was NEVER ADDED, because a new one is not in `required`
+    and the subset relation stays true either way -- FI-04 shipped
+    `divergence.py` and this suite was fully green with it absent. FI-04-DF-04,
+    confirmed and open; the rows below are added BY HAND by each ticket that
+    ships an instrument, which is the workaround, not the fix.
+    """
 
     required = {
         "scripts/run_generated_case_adapters.py",
@@ -410,6 +459,11 @@ def test_the_named_instruments_are_all_enumerated(registry) -> None:
         "examples/validation/scorecards/score_tools.py",
         "specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py",
         "tests/test_code_complexity.py",
+        # FI-04
+        "examples/validation/ab/eval/divergence.py",
+        # FI-05
+        "examples/validation/ab/dispatch_record.py",
+        "examples/validation/check_prediction_seal.py",
     }
     enumerated = {path for entry in registry["instrument"] for path in entry.get("paths", [])}
     assert required <= enumerated, sorted(required - enumerated)

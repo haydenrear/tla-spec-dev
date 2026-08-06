@@ -1245,6 +1245,193 @@ do not would be flattering itself. PA-02-DF-02, open.
 
 
 # ===========================================================================
+# ADDED BY FI-05, AFTER FI-02 COUNTED
+#
+# Same reason FI-04 added `divergence-reachability` and the same defect behind
+# it: `test_the_named_instruments_are_all_enumerated` asserts `required <=
+# enumerated` against a HARDCODED list, so it catches a rename dropping a row
+# and CANNOT catch an instrument that was never added -- a new one is not in
+# `required` and the subset relation stays true. FI-04-DF-04, confirmed. These
+# two are registered by hand for exactly that reason.
+# ===========================================================================
+
+[[instrument]]
+id = "dispatch-record"
+name = "dispatched-prompt record (dispatch_record.py verify)"
+paths = ["examples/validation/ab/dispatch_record.py"]
+family = "measurement"
+watches = """
+whether the bytes a round says it dispatched to an arm are still the bytes in
+the evidence tree, and whether the on-disk prompt they were built from is still
+the file the arm was dispatched from
+"""
+verdict_surface = "exit 1, plus a RED line naming which of the three recorded claims stopped being true"
+classification = "demonstrated-can-fail"
+note = """
+PA-06-DF-10: the previous round's length-match headline -- "+3.8%, inside the
+declared +/-10% tolerance", 0 of 109 lines carrying architectural vocabulary --
+was measured on a file that was NOT the prompt the arm received. Dispatched with
+four unrecorded additions it is +18.1%, outside the tolerance, with 4 of 124
+hits, two of them paths that told the arm whose whole job was architectural
+silence what the epic was called.
+
+WHY IT IS AN INSTRUMENT. It watches a subject (the evidence tree and the prompt
+it cites), produces a verdict, and returns nonzero. An unfalsifiable version of
+it would have been the natural response to PA-06-DF-10 -- write the bytes down
+and trust them -- and that is precisely the shape this epic exists to refuse.
+
+R1 IS ALSO SATISFIED FROM THE COMMAND LINE, not only from pytest:
+`dispatch_record.py demonstrate` drives four mutations of a self-consistent
+record (artifact edited, source changed after dispatch, declared delta drifted,
+artifact missing), requires a DISTINCT red reason for each, and requires the
+unmutated record green in every run. The row below uses the SHIPPED
+ports-as-adapters record so the demonstration is over real evidence too.
+"""
+
+  [instrument.failing]
+  summary = """
+the shipped ports-as-adapters record, staged and then tampered with: one line
+appended to the preserved artifact after the fact. The record still claims those
+bytes are what was sent.
+"""
+  argv = ["{python}", "{repo}/examples/validation/ab/dispatch_record.py",
+          "verify", "--dir", "{tree}/d"]
+  cwd = "{repo}"
+  expect_exit = 1
+  expect_output = ["HAS BEEN EDITED", "no longer recoverable"]
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/ab/dispatch/ports-as-adapters"
+    to = "d"
+
+    [[instrument.failing.mutate]]
+    file = "d/arm_c.dispatched.md"
+    append = "\nTAMPERED AFTER DISPATCH\n"
+
+  [instrument.passing]
+  summary = "the same record, untouched: digests match, the delta matches, the source is unchanged"
+  argv = ["{python}", "{repo}/examples/validation/ab/dispatch_record.py",
+          "verify", "--dir", "{repo}/examples/validation/ab/dispatch/ports-as-adapters"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["evidence is self-consistent", "DISPATCH DELTA", "RECONSTRUCTION"]
+
+  [instrument.blind_spot]
+  summary = """
+IT CANNOT SEE A DISPATCH THAT WAS NEVER RECORDED. An empty evidence directory
+verifies GREEN. The checker's whole subject is the rows it was given, so an arm
+dispatched with no row at all is invisible to it, and the exit code a reader
+watches says nothing is wrong.
+
+THE FAILURE DIRECTION IS NOT THE SAFE ONE, and this is not hypothetical: it is
+the state ARMS A AND B ARE IN RIGHT NOW. Only arm C has a row, and that row is a
+reconstruction. Arm B's sealed 105 unique content lines -- the denominator of the
+entire length match -- is a number about the file on disk with no artifact
+saying that is what arm B received. FI-05-DF-02, MAJOR, mine and open.
+
+The verdict is not silent about it -- `verify` prints "NO DISPATCH RECORD" and
+`check_catalogue.py --arms` without `--dispatch-dir` prints that every number
+below it came from the bytes on disk -- but a PRINTED WARNING IS NOT A RED, and
+counting it as one is how a control goes soft. Declared as an inability, per R2.
+"""
+  argv = ["{python}", "{repo}/examples/validation/ab/dispatch_record.py",
+          "verify", "--dir", "{tree}/empty"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["NO DISPATCH RECORD"]
+
+    [[instrument.blind_spot.stage]]
+    from = "examples/validation/instruments/fixtures/prediction_seal"
+    to = "empty/placeholder"
+
+[[instrument]]
+id = "prediction-seal"
+name = "seal-time prediction check (check_prediction_seal.py)"
+paths = ["examples/validation/check_prediction_seal.py"]
+family = "measurement"
+watches = """
+whether a predictions file about to be SEALED contains a no-kill prediction that
+a measurement already contradicted -- a record whose introducing commit is an
+ancestor of the commit that seals the file
+"""
+verdict_surface = "exit 1, plus an ALREADY MEASURED block naming the cell, the record and how many records carry it"
+classification = "demonstrated-can-fail"
+note = """
+PA-06-DF-03: `PREDICTIONS-PA.md`'s N05 predicted ordering stays at zero on every
+generated corpus. A kill table committed before the file existed records
+`M09-negative-control-ledger-order / corpus-whole = KILLED`, and
+`examples/validation/ab/eval/controls.toml` had already RETIRED M09 as a negative
+control saying it dies under exactly those corpora. N05 was scored FAIL. NOBODY
+HAD TO RUN ANYTHING TO KNOW IT WOULD BE.
+
+WHY IT IS AN INSTRUMENT. It watches a subject (a predictions file plus the
+record as it stood at the seal) and returns nonzero on it. It is used ONCE, at
+authoring time, on a file that is not yet sealed -- which is the only moment
+anything about a predictions file can be fixed.
+
+ITS FAILING DEMONSTRATION IS THE REAL RECORD, not a fixture, and cannot decay:
+`PREDICTIONS-PA.md` is SEALED, so the subject of the demonstration is
+byte-frozen by the same rule that made the finding. `--demonstrate` additionally
+re-runs it with N05's section removed and requires the report to go clean, so
+the red is attributable to that row rather than to the checker disliking the
+file.
+"""
+
+  [instrument.failing]
+  summary = """
+the sealed PREDICTIONS-PA.md, as written. N05 must be reported ALREADY MEASURED
+against the pre-dated kill tables and M09's retirement.
+"""
+  argv = ["{python}", "{repo}/examples/validation/check_prediction_seal.py",
+          "{repo}/examples/validation/PREDICTIONS-PA.md"]
+  cwd = "{repo}"
+  expect_exit = 1
+  expect_output = [
+    "ALREADY MEASURED",
+    "M09-negative-control-ledger-order / corpus-whole = KILLED",
+    "RETIRED as a negative control",
+    "NOT SEALABLE AS WRITTEN",
+  ]
+
+  [instrument.passing]
+  summary = """
+a no-kill prediction whose mutant appears in no kill table anywhere. The fixture
+is synthetic on purpose: a passing demonstration pinned to a real prediction
+stops demonstrating the moment somebody measures its subject.
+"""
+  argv = ["{python}", "{repo}/examples/validation/check_prediction_seal.py",
+          "{repo}/examples/validation/instruments/fixtures/prediction_seal/unmeasured.md"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["No prediction is contradicted"]
+  expect_absent = ["ALREADY MEASURED", "UNPARSED"]
+
+  [instrument.blind_spot]
+  summary = """
+IT CANNOT CHECK A PREDICTION THAT NAMES NO MUTANT AND NO COLUMN. A row
+predicting "zero cells, on every row of the table" has no cell to look up, so it
+is reported UNPARSED and THE EXIT CODE IS 0.
+
+The failure direction is green-looking silence. In the only real file this has
+ever been run against it reaches 1 of the 3 no-kill rows: N05 is checked, N03
+and N07 are not, and a reader watching only the exit code would take a
+one-problem report as covering all three. FI-05-DF-03, mine and open.
+
+NOT REPAIRED BY WIDENING THE PARSER, deliberately. Expanding "every row of the
+table" into a cell list would have the checker inventing the subject the sealer
+declined to state, which is a worse failure than saying it cannot check. The
+UNPARSED block exists so the gap is printed rather than assumed, and the row is
+declared here as an inability per R2 rather than counted as coverage.
+"""
+  argv = ["{python}", "{repo}/examples/validation/check_prediction_seal.py",
+          "{repo}/examples/validation/instruments/fixtures/prediction_seal/unlookupable.md"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["UNPARSED", "silence here is not a pass"]
+  expect_absent = ["ALREADY MEASURED"]
+
+
+# ===========================================================================
 # ENUMERATED AND CLASSIFIED AS NOT INSTRUMENTS
 #
 # Each of these was checked rather than assumed. They are here so that the

@@ -11,6 +11,8 @@
         --root <arm-tree> --catalogue <arm-catalogue.toml> --impl <module>
     python3 examples/validation/ab/check_catalogue.py --demonstrate \\
         --catalogue examples/validation/ab/probe_demonstrations.toml
+    python3 examples/validation/ab/check_catalogue.py --arms \\
+        --dispatch-dir examples/validation/ab/dispatch/<round>
 
 **It gates nothing in the toolchain.** Per the epic plan's `no_new_gates_rule`
 this epic ships no new blocking check and no new static analyzer. This is a
@@ -50,7 +52,10 @@ What it asserts:
      class is seeded inside a declared adapter -- checked in BOTH directions, so
      a rename fails here instead of orphaning the declaration.
 
-`--arms` reports the THREE arms and the length match. Arm C is the
+`--arms` measures the bytes ON DISK unless `--dispatch-dir` names a recorded
+dispatch, in which case it measures THE BYTES THAT WERE SENT and labels every
+row with which it used (`dispatch_record.py`, PA-06-DF-10). Reports the THREE
+arms and the length match. Arm C is the
 length-matched control PA-01 added: as long as arm B in unique content, asking
 for nothing architectural, so a difference between B and C is attributable to
 what the prompt SAYS rather than to how much of it there is. It reports the
@@ -649,7 +654,7 @@ def check_integrity(catalogue: Path, root: Path) -> list[str]:
     return problems
 
 
-def check_arms() -> list[str]:
+def check_arms(dispatch_dir: Path | None = None) -> list[str]:
     """Report the THREE arms and the length match. Reports; does not refuse.
 
     PA-01 added arm C, and with it the measurement the predecessor could not
@@ -660,9 +665,41 @@ def check_arms() -> list[str]:
     prompt SAYS. If arm C matches arm B, the finding is that longer prompts
     produce better structure -- a legitimate outcome this arm exists to be able
     to produce.
+
+    WHICH BYTES IT MEASURES -- PA-06-DF-10, FI-05. With `--dispatch-dir`, an arm
+    that has a recorded dispatch is measured on THE BYTES THAT WERE SENT, and
+    every row is labelled with where its numbers came from. Without one it
+    measures the file on disk and SAYS SO: at PA-06 the file on disk was not the
+    prompt the arm received, the difference was four unrecorded additions, and
+    the sealed "+3.8%, inside tolerance" was in fact +18.1% and outside it. The
+    on-disk number is not suppressed -- it is the number the sealed record
+    contains -- but it stops being printed as though nobody had ever been bitten
+    by the difference.
     """
     problems: list[str] = []
     paths = {arm: arm_prompt(arm) for arm in ARMS}
+    sources = {arm: "on disk" for arm in ARMS}
+
+    if dispatch_dir is not None:
+        sys.path.insert(0, str(HERE))
+        import dispatch_record  # noqa: PLC0415
+
+        problems += dispatch_record.verify(dispatch_dir)
+        for arm in ARMS:
+            rec = dispatch_record.record_for(dispatch_dir, arm)
+            if rec is None:
+                continue
+            artifact = dispatch_record.dispatched_path(dispatch_dir, rec)
+            if artifact.is_file():
+                paths[arm] = artifact
+                sources[arm] = f"AS DISPATCHED [{rec.provenance}]"
+    else:
+        print(
+            "\n  NO DISPATCH RECORD REQUESTED. Every number below is measured on the\n"
+            "  bytes ON DISK. PA-06-DF-10: the bytes on disk were not the bytes sent,\n"
+            "  and the difference moved the headline from +3.8% to +18.1%. Pass\n"
+            "  --dispatch-dir <dir> to measure what a round actually dispatched."
+        )
 
     print("\narms:")
     for arm, path in paths.items():
@@ -673,6 +710,7 @@ def check_arms() -> list[str]:
         print(
             f"  {path.relative_to(REPO_ROOT)}  "
             f"({len(raw.splitlines())} lines, {len(distinct_lines(path))} distinct)"
+            f"  <- {sources[arm]}"
         )
 
     lines = {arm: distinct_lines(path) for arm, path in paths.items()}
@@ -742,7 +780,10 @@ def check_arms() -> list[str]:
         "     structural guidance phrased without any of these words.)"
     )
 
-    body = paths["arm_b"].read_text(encoding="utf-8")
+    # The slot markers are a property of the TEMPLATE on disk, not of any
+    # dispatched copy: a slot can legitimately be resolved away in the bytes
+    # that were sent. So these two always read `arm_prompt`, never `paths`.
+    body = arm_prompt("arm_b").read_text(encoding="utf-8")
     if "HP-02-SLOT:BEGIN" not in body or "HP-02-SLOT:END" not in body:
         problems.append("arm B has no HP-02 slot markers")
     elif "UNFILLED" in body:
@@ -753,7 +794,7 @@ def check_arms() -> list[str]:
     else:
         print("\n  ARM B SLOT: filled.")
 
-    body_c = paths["arm_c"].read_text(encoding="utf-8")
+    body_c = arm_prompt("arm_c").read_text(encoding="utf-8")
     if "PA-01-SLOT:BEGIN" not in body_c or "PA-01-SLOT:END" not in body_c:
         problems.append("arm C has no PA-01 slot markers")
     else:
@@ -1253,6 +1294,9 @@ def main() -> int:
                         help="--root IS the tree; catalogue paths are relative to it (per-arm)")
     parser.add_argument("--demonstrate", action="store_true",
                         help="R1: run the probe's own demonstrated FAILING inputs")
+    parser.add_argument("--dispatch-dir", type=Path, default=None,
+                        help="measure the arms AS DISPATCHED from this record "
+                             "(examples/validation/ab/dispatch/<round>) instead of on disk")
     args = parser.parse_args()
 
     if args.demonstrate:
@@ -1275,7 +1319,9 @@ def main() -> int:
 
     problems = check_integrity(args.catalogue.resolve(), args.root.resolve())
     if args.arms:
-        problems += check_arms()
+        problems += check_arms(
+            args.dispatch_dir.resolve() if args.dispatch_dir else None
+        )
     if args.controls:
         problems += check_controls(
             args.catalogue.resolve(), args.root.resolve(), args.impl, args.tree_root

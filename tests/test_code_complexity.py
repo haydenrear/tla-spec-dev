@@ -346,7 +346,27 @@ EXECUTABLE_SURFACES = (
 GATING_SCAN_EXEMPT = (
     "tests/test_code_complexity.py",
     "tests/test_instrument_demonstrations.py",
+    "tests/test_produced_code_prompt.py",
 )
+
+#: FI-05 added the third entry, and it is exempt on a NARROWER ground than the
+#: first two, which is why the ground is written down here rather than assumed.
+#:
+#: The first two read the instrument's OUTPUT -- they must, to assert properties
+#: of it. `test_produced_code_prompt.py` does not and MAY NOT: it asserts things
+#: about `prompts/produced_code_reading.md`, and it binds the prompt's figure
+#: names and quoted cells to `references/complexity_intuition.md` rather than to
+#: a live run, precisely so that the file arranging for nothing to consume the
+#: thermometer is not itself a consumer. Its 23 gating hits are all comparisons
+#: of the instrument's NAME as a string token.
+#:
+#: So the exemption is bounded by a property a test can check, and
+#: `test_instrument_demonstrations.py::test_the_third_exemption_never_reads_a_figure`
+#: checks it: the file must contain NO import of the module and no invocation of
+#: the script, only name tokens. A figure cannot be reached without one of those,
+#: so a file with neither cannot gate on a figure whatever else it compares. Add
+#: a figure read to it and that test goes red rather than this exemption
+#: silently widening.
 
 #: The module as it is imported (`scripts.code_complexity`, `code_complexity`)
 #: and as it is spelled on a command line (`scripts/code_complexity.py`). A
