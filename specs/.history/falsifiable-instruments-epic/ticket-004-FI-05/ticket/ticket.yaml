@@ -1,0 +1,120 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket FI-05",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-05/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-05/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-05/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The produced-code figures are put in front of a model with a request to READ them, not score them.",
+        "Nothing gates on the figures; the instrument still exits 0 on every input.",
+        "The prompt as DISPATCHED is preserved as an artifact and is what gets measured."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "FI-06"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "prompts/hexagonal_implementation.md",
+        "references/complexity_intuition.md"
+      ]
+    },
+    "depends_on": [
+      "FI-01"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/155",
+    "goals": [
+      {
+        "contribution": "enabling",
+        "expected_effect": "none on its own -- the produced-code instrument is in the enumeration, and this ticket must not make it gate anything while giving it a reader",
+        "goal": "GOAL-instruments-can-fail",
+        "local_signal": "confirm nothing in the toolchain consumes the instrument after the prompt lands"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected; the figures stay in the mechanical block and are NEVER scored",
+        "goal": "GOAL-scorecard-carries-a-delta",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-fixture-can-diverge",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "FI-05",
+    "implementation_scope": [
+      "prompts/",
+      "references/complexity_intuition.md",
+      "examples/validation/",
+      "tests/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "THE HALF OF THE COMPLEXITY WORK THAT DID NOT LAND. The stated intent was general statistics that block nothing and PROMPT THE MODEL ABOUT WHAT THEY MEAN. ports-as-adapters shipped the statistics and the human-readable intuition and not the prompting: grep -rn code_complexity prompts/ is EMPTY, and hexagonal_implementation.md still points only at the TLA+ descriptor. So the figures reach a human and a judge's mechanical block, and no agent is ever handed them and asked what they mean about its own design. The figures are worth asking about -- branch points in effectful modules 10 vs 1 on trees making the same three outside-world calls, so only LOCATION differs. It must not become a thermostat: no threshold, no verdict, nothing gated. Also preserve the DISPATCHED prompt as an artifact -- PA-06-DF-10 measured the length-match headline on a file that was not the prompt arm C received.",
+    "promotion_order": 50,
+    "promotion_predecessor": "FI-04",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "The produced-code statistics reach a PROMPT, and the dispatched prompt is preserved",
+    "wave": 3
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-05/specs/tickets/FI-05",
+  "ticket_id": "FI-05",
+  "ticket_index": 4,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-05/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-05/specs/tickets"
+}

@@ -1,0 +1,173 @@
+# FI-01: THE CONTROL-PROPERTY PROBE'S OWN DEMONSTRATED FAILING INPUTS.
+#
+#     python3 examples/validation/ab/check_catalogue.py --demonstrate \
+#       --catalogue examples/validation/ab/probe_demonstrations.toml
+#
+# `references/architecture_advice.md` **S2**: *"Every criterion must have a
+# demonstrated failing input and a demonstrated passing input."* It was written
+# for a scanner that has since been deleted and it was never once turned on the
+# instruments this repository kept. This file turns it on the probe.
+#
+# WHY THIS FILE EXISTS RATHER THAN A TEST THAT THE PROBE PASSES. `PA-06-DF-07`
+# measured the previous probe returning `HOLDS` for a mutant whose `replace` was
+# THE IDENTICAL LINE PLUS A COMMENT, declared `control_role = "positive"`. Every
+# `HOLDS` it had ever printed -- including the one PA-01 cited as evidence that
+# its repair worked, and the one `PREDICTIONS-PA.md` P07 was scored against --
+# was therefore worth nothing. A test asserting that the probe passes a good
+# control could not have caught that, because the broken probe passes good
+# controls too. Only a demonstration that it goes RED on a broken one can.
+#
+# EVERY ROW HERE IS BROKEN ON PURPOSE, IN A WAY THAT HAS ACTUALLY HAPPENED.
+# Nothing is invented for the demonstration:
+#
+#   DEMO-01  a no-op. `PA-06-DF-07 (b)`, reproduced exactly: the mutation is a
+#            line replaced by itself plus a comment.
+#   DEMO-02  observable from construction. Arm B's `M07` shape -- the defect
+#            EVAL-RERUN's adversarial channel found by deleting every `Reserve`
+#            case from a corpus, and the reason the probe was built at all.
+#   DEMO-03  observable, but only OUTSIDE the port's declared region.
+#            `PA-03-DF-03` and `PA-04-DF-01`, which is what `M07` and `PA-M14`
+#            both are with respect to `corpus-port`.
+#   DEMO-04  observable, but not in ONE STEP. `PA-06-DF-07 (a)`: `PA-M14`'s own
+#            mutation, verbatim, on the tree it is declared on. Every generated
+#            corpus case is single-action, so a control needing two steps cannot
+#            be killed by any corpus regardless of reach.
+#
+# AND ONE DEMONSTRATED PASSING INPUT, because S2 asks for both and because a
+# probe that reported everything broken would be as useless as one that reported
+# everything fine:
+#
+#   DEMO-05  `FI-M15`'s mutation, verbatim. Must report `HOLDS`.
+#
+# `probe_must_report` is the declared verdict, and the run compares against it.
+# It is NOT a suppression key: it cannot make a survivor disappear, it decides
+# no kill, and it appears in no measurement. It is an expectation about an
+# INSTRUMENT, checked by running the instrument, and a mismatch fails loudly.
+#
+# THIS FILE IS NOT A MEASUREMENT CATALOGUE. It is never passed to
+# `run_controls.py` or to `run_port_swap.py`, none of its rows is scored in any
+# class row, and `--demonstrate` deliberately skips the class/gap/adapter
+# assertions that `check_integrity` makes of a real catalogue: a demonstration
+# catalogue containing every fault class would be a measurement catalogue.
+
+[catalogue]
+id = "FI-01-probe-demonstrations"
+anchored_on = "reference_ports/"
+root = "examples/validation/ab/"
+extends = "examples/validation/ab/seeded_faults.toml"
+
+# The DEMO rows are declared here. `PA-M14`'s and `FI-M15`'s properties are
+# inherited through `extends` rather than restated -- which is PA-06-DF-02's
+# repair, exercised by the file that most needs it not to drift.
+[pa_control_properties]
+"DEMO-01-noop-is-not-a-control" = "accept-path-only"
+"DEMO-02-observable-from-construction" = "accept-path-only"
+"DEMO-03-observable-outside-the-ports-region" = "port-region-commit-path"
+"DEMO-04-observable-but-not-in-one-step" = "accept-path-only"
+"DEMO-05-the-control-that-actually-works" = "port-region-commit-path"
+
+
+# ---------------------------------------------------------------------------
+# DEMO-01. The no-op. This is `PA-06-DF-07 (b)` verbatim.
+# ---------------------------------------------------------------------------
+
+[[mutants]]
+id = "DEMO-01-noop-is-not-a-control"
+probe_must_report = "INERT"
+fault_class = "wrong_value"
+control_role = "positive -- declared, and a lie. This mutation changes nothing that any program can observe, so it can never go red, so it is not a control. The old probe reported it HOLDS."
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+path = "reference_ports/domain.py"
+find = "        self._next_id = 1"
+replace = "        self._next_id = 1  # DEMO-01: the identical line plus a comment"
+description = "a mutation that is the original line plus a comment; no observable can differ under any sequence of commands"
+semantic = "Nothing. That is the point."
+refine_variable = "amt"
+refine_action = "Reserve"
+
+# ---------------------------------------------------------------------------
+# DEMO-02. Observable from construction. Arm B's M07 shape, on a tree that is
+# not arm B, so the demonstration does not depend on a sealed evidence tree
+# staying where it is.
+# ---------------------------------------------------------------------------
+
+[[mutants]]
+id = "DEMO-02-observable-from-construction"
+probe_must_report = "BROKEN"
+fault_class = "wrong_value"
+control_role = "positive -- declared, and green through its own failure mode. Observable before a single command runs, so it stays KILLED even by a corpus with every accepted Reserve deleted, which is the exact regression an accept-path control exists to catch."
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+path = "reference_ports/domain.py"
+find = "        self._committed = {tenant: 0 for tenant in quotas}"
+replace = "        self._committed = {tenant: 1 for tenant in quotas}  # DEMO-02: wrong before anything happens"
+description = "every tenant starts with a committed total of 1; the fault is present at construction, before any command"
+semantic = "committed(t) is one too large from construction onward, on every tenant, forever."
+refine_variable = "committed"
+refine_action = "Commit"
+
+# ---------------------------------------------------------------------------
+# DEMO-03. Observable, in one step, on the right action -- and OUTSIDE the port
+# region, so no port-scoped instrument can decide it. This is what `M07` and
+# `PA-M14` are with respect to `corpus-port`, which is why that column reported
+# both SURVIVED while executing 1855 cases.
+# ---------------------------------------------------------------------------
+
+[[mutants]]
+id = "DEMO-03-observable-outside-the-ports-region"
+probe_must_report = "OUT_OF_REGION"
+fault_class = "cross_aspect"
+control_role = "positive -- declared for the port's region and landing outside it. It moves `available`, which a port case does not project, so a port-scoped column of survivors containing this control cannot be told apart from a broken instrument."
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+path = "reference_ports/domain.py"
+find = "        self._committed[reservation.tenant] += reservation.amount"
+replace = """        self._committed[reservation.tenant] += reservation.amount
+        self._available[reservation.tenant] += reservation.amount  # DEMO-03: commit also refunds the hold"""
+description = "commit performs its correct LEDGER-aspect effect and additionally refunds the hold, so only `available` -- outside the port's region -- moves"
+semantic = "committed(t) and every ledger line are correct. available(t) is inflated after a commit and nothing else changes."
+refine_variable = "available"
+refine_action = "Commit"
+
+# ---------------------------------------------------------------------------
+# DEMO-04. `PA-M14`'s own mutation, verbatim, on the tree it is declared on.
+# It is invisible before an accepted reserve -- it passes the half the old probe
+# tested -- and it is still invisible immediately after one, because no query
+# exposes a reservation's amount and this tree STORES `available`. Every
+# generated corpus case is single-action.
+# ---------------------------------------------------------------------------
+
+[[mutants]]
+id = "DEMO-04-observable-but-not-in-one-step"
+probe_must_report = "INERT"
+fault_class = "wrong_value"
+control_role = "positive -- declared, and undecidable by every single-action corpus. This is not a strawman: it is the shipped PA-M14 row, and its verdict here is the same verdict `--controls` prints for PA-M14 on this tree."
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+path = "reference_ports/domain.py"
+find = "        self._outstanding[reservation_id] = Reservation(reservation_id, tenant, amount)"
+replace = "        self._outstanding[reservation_id] = Reservation(reservation_id, tenant, amount + 1)  # DEMO-04: PA-M14 verbatim"
+description = "an accepted reservation records one unit more than it was granted; observable only once a later commit or release consumes it"
+semantic = "PA-M14's semantic exactly. Two actions are needed to surface it and every generated case runs one."
+refine_variable = "amt"
+refine_action = "Reserve"
+
+# ---------------------------------------------------------------------------
+# DEMO-05. THE DEMONSTRATED PASSING INPUT. `FI-M15`, verbatim.
+# ---------------------------------------------------------------------------
+
+[[mutants]]
+id = "DEMO-05-the-control-that-actually-works"
+probe_must_report = "HOLDS"
+fault_class = "wrong_value"
+control_role = "positive -- the passing half of S2. Invisible until an accepted commit, observable immediately after one, and moving two observables inside the port's derived region."
+boundary_kind = "port"
+boundary_ref = "LedgerAppendPort"
+path = "reference_ports/domain.py"
+find = "        self._committed[reservation.tenant] += reservation.amount"
+replace = "        self._committed[reservation.tenant] += reservation.amount + 1  # DEMO-05: FI-M15 verbatim"
+description = "FI-M15's mutation, so that the demonstration proves the probe can also say yes"
+semantic = "commit(r) credits amount+1. See FI-M15 in seeded_faults.toml."
+refine_variable = "committed"
+refine_action = "Commit"

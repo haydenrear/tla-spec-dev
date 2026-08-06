@@ -1,0 +1,61 @@
+catalogue: /Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-01/examples/validation/ab/seeded_faults.toml
+root:      /Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-01/examples/validation/ab
+15 mutant(s)
+
+id                                         class              occurs  revert  parses
+--------------------------------------------------------------------------------------
+M01-guard-zero-amount                      guard_relaxation     1      ok      ok  
+M02-guard-over-quota                       guard_relaxation     1      ok      ok  
+M03-guard-close-with-outstanding           guard_relaxation     1      ok      ok  
+M04-durable-stale-total                    durable_content      1      ok      ok  
+M05-durable-close-line-zero-and-swallowed  durable_content      1      ok      ok  
+M08-cross-aspect-commit-refunds-the-hold   cross_aspect         1      ok      ok  
+M06-wrong-status-on-release                output_oracle        1      ok      ok  
+M10-apply-only-double-refund               wrong_value          1      ok      ok  
+M07-positive-control-wrong-hold            wrong_value          1      ok      ok  
+M09-negative-control-ledger-order          ordering             1      ok      ok  
+PA-M11-real-adapter-drops-close-lines      adapter_internal     1      ok      ok  
+PA-M12-fake-adapter-drops-close-lines      adapter_internal     1      ok      ok  
+PA-M13-fake-drifts-from-real-on-write      adapter_internal     1      ok      ok  
+PA-M14-positive-control-accepted-hold-too-large wrong_value          1      ok      ok  
+FI-M15-positive-control-commit-total-too-large wrong_value          1      ok      ok  
+
+class coverage:
+  adapter_internal     3  PA-M11-real-adapter-drops-close-lines, PA-M12-fake-adapter-drops-close-lines, PA-M13-fake-drifts-from-real-on-write
+  cross_aspect         1  M08-cross-aspect-commit-refunds-the-hold
+  durable_content      2  M04-durable-stale-total, M05-durable-close-line-zero-and-swallowed
+  guard_relaxation     3  M01-guard-zero-amount, M02-guard-over-quota, M03-guard-close-with-outstanding
+  ordering             1  M09-negative-control-ledger-order
+  output_oracle        1  M06-wrong-status-on-release
+  wrong_value          4  M10-apply-only-double-refund, M07-positive-control-wrong-hold, PA-M14-positive-control-accepted-hold-too-large, FI-M15-positive-control-commit-total-too-large
+
+controls: 3 positive (2 anchor tree(s)), 1 negative
+adapter-internal mutants: 3 across 2 adapter file(s)
+  PA-M11-real-adapter-drops-close-lines      reference_ports/journal_file.py
+  PA-M12-fake-adapter-drops-close-lines      reference_ports/journal_memory.py
+  PA-M13-fake-drifts-from-real-on-write      reference_ports/journal_memory.py
+
+control-property probe -- BOTH halves, since FI-01
+  A positive control must be INVISIBLE until the path it is the
+  control for executes, AND OBSERVABLE once one does, in the number
+  of steps the instruments actually run. Before FI-01 only the first
+  half was tested and a NO-OP reported HOLDS (PA-06-DF-07).
+
+    accept-path-only           invisible until an accepted `reserve` executes, and observable immediately after ONE. No region requirement: this property is about the ACCEPT PATH, and `available` is outside every declared port region on this fixture -- which is why a control holding it can still be undecidable by a port-scoped instrument.
+    port-region-commit-path    invisible until an accepted `commit` executes, observable immediately after ONE, and moving at least one observable INSIDE the declared port region {closed, committed, ledger}. This is the property `PA-03-DF-03` and `PA-04-DF-01` asked for and no control had: a fault a PORT-SCOPED instrument can decide.
+
+  control                                        tree               verdict
+  ------------------------------------------------------------------------------------
+  M07-positive-control-wrong-hold                reference          HOLDS   [accept-path-only]
+                                                                    invisible under 'refusals-and-accepted-close'; observable under 'one-accepted-reserve'; moved: available
+  PA-M14-positive-control-accepted-hold-too-large reference_ports    INERT   [accept-path-only]
+                                                                    NOTHING MOVES under 'one-accepted-reserve' either. A control nothing can observe can never go red; this is the verdict a no-op earns, and the verdict a control earns when it needs more steps than the instruments execute
+  FI-M15-positive-control-commit-total-too-large reference_ports    HOLDS   [port-region-commit-path]
+                                                                    invisible under 'everything-but-an-accepted-commit'; observable under 'one-accepted-commit'; moved: committed, ledger_lines; inside the region: committed, ledger_lines
+
+  reference: 1 of 1 positive control(s) HOLD (M07-positive-control-wrong-hold)
+
+  reference_ports: 1 of 2 positive control(s) HOLD (FI-M15-positive-control-commit-total-too-large)
+
+CATALOGUE INTEGRITY FAILED -- numbers derived from it are not re-derivable:
+  PA-M14-positive-control-accepted-hold-too-large: declared a positive control but is INERT on reference_ports under the 'accept-path-only' property -- NOTHING MOVES under 'one-accepted-reserve' either. A control nothing can observe can never go red; this is the verdict a no-op earns, and the verdict a control earns when it needs more steps than the instruments execute. R2: it is reported RED, not made green by weakening what it asserts.

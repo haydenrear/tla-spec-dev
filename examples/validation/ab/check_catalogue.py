@@ -9,6 +9,10 @@
         --catalogue <arm-catalogue.toml>
     python3 examples/validation/ab/check_catalogue.py --controls --tree-root \\
         --root <arm-tree> --catalogue <arm-catalogue.toml> --impl <module>
+    python3 examples/validation/ab/check_catalogue.py --demonstrate \\
+        --catalogue examples/validation/ab/probe_demonstrations.toml
+    python3 examples/validation/ab/check_catalogue.py --arms \\
+        --dispatch-dir examples/validation/ab/dispatch/<round>
 
 **It gates nothing in the toolchain.** Per the epic plan's `no_new_gates_rule`
 this epic ships no new blocking check and no new static analyzer. This is a
@@ -48,7 +52,10 @@ What it asserts:
      class is seeded inside a declared adapter -- checked in BOTH directions, so
      a rename fails here instead of orphaning the declaration.
 
-`--arms` reports the THREE arms and the length match. Arm C is the
+`--arms` measures the bytes ON DISK unless `--dispatch-dir` names a recorded
+dispatch, in which case it measures THE BYTES THAT WERE SENT and labels every
+row with which it used (`dispatch_record.py`, PA-06-DF-10). Reports the THREE
+arms and the length match. Arm C is the
 length-matched control PA-01 added: as long as arm B in unique content, asking
 for nothing architectural, so a difference between B and C is attributable to
 what the prompt SAYS rather than to how much of it there is. It reports the
@@ -56,11 +63,29 @@ match as a measured number and probes arm C's unique content for architectural
 vocabulary.
 
 `--controls` runs the CONTROL-PROPERTY PROBE over every declared positive
-control: is the mutant invisible until an accepted `reserve` executes? A
-control that is observable after a refusal, or from construction, stays green
-through exactly the regression it exists to catch. Measured at PA-01: arm A
-HOLDS, **arm B BROKEN**, both references HOLD. It reports; a BROKEN verdict is
-recorded and never converted into anything.
+control, and **since FI-01 it runs BOTH HALVES of the property**: the mutant
+must be invisible until the path it is the control for executes, AND observable
+once one does, in the number of steps the instruments actually run, moving at
+least one observable inside the region its property declares.
+
+Before FI-01 only the first half existed. `PA-06-DF-07` demonstrated what that
+was worth: a mutant whose `replace` was **the identical line plus a comment**,
+declared `control_role = "positive"`, was reported `HOLDS`. A probe that returns
+HOLDS for a no-op is not a probe. The same one-sidedness hid that `PA-M14` is
+unobservable in ONE STEP on three of the four trees it is declared on, while
+every generated corpus case is single-action -- so its RED on those trees was a
+property of the control and not of the instrument.
+
+`--demonstrate` is the other half of `architecture_advice.md` **S2**, and it is
+the reason to believe anything `--controls` prints: it runs the probe against
+`probe_demonstrations.toml`, a catalogue of controls that are BROKEN ON PURPOSE,
+each declaring the verdict the probe must return for it. The command passes only
+if the probe reports every one of them broken. It is re-runnable, it takes
+seconds, and if a future change makes the probe soft it fails there.
+
+It reports; a BROKEN / INERT / OUT_OF_REGION verdict is recorded and never
+converted into anything. **R2: a control that cannot be made to work is reported
+RED, never made green by weakening what it asserts.**
 
 `--verify-suite` additionally runs the shared behavioral suite under every
 mutant, **against the references only**, and compares the result with each
@@ -203,49 +228,186 @@ LENGTH_MATCH_TOLERANCE = 0.10
 #: channel to produce and a rerun to confirm, and the next arm gets one for free.
 CONTROL_PROPERTY = "accept-path-only"
 
-#: A driver that exercises everything a case can do EXCEPT accept a reserve:
-#: construction, every refusal, and one ACCEPTED `close_tenant`. If a mutated
-#: tree's output differs from the clean tree's here, the mutant is observable
-#: without the accept path.
-NO_ACCEPTED_RESERVE_DRIVER = r'''
-import importlib, sys
+#: THE PORT'S DERIVED REGION, taken from the generator rather than restated.
+#:
+#: `tla_spec_dev.py generate cases ... --port-cases only` prints, for this
+#: fixture's one declared port::
+#:
+#:     ledger.LedgerAppendPort: 1855 case(s); region {closed, committed, ledger}
+#:
+#: A port case narrows its expected `after` to that region. So a fault whose
+#: symptom lands ANYWHERE ELSE cannot be decided by a port-scoped instrument, no
+#: matter how blatant it is -- which is `PA-03-DF-03` and `PA-04-DF-01` in one
+#: sentence, and why `M07` and `PA-M14` both SURVIVE `corpus-port` while it is
+#: executing hundreds of cases.
+#:
+#: `ledger` is spelled `ledger_lines` here because that is what the driver below
+#: calls; the other two names are the generator's own.
+PORT_REGION = ("closed", "committed", "ledger_lines")
+
+#: The observables the probe compares. Everything the feature exposes; nothing
+#: derived, nothing sampled.
+OBSERVABLES = ("available", "committed", "closed", "outstanding", "ledger_lines")
+
+#: ONE driver, four scripted plans, so that "invisible before" and "observable
+#: after" are measured by the same instrument on the same projection.
+#:
+#: The plans are named for what they DO, not for what they prove:
+#:
+#:   refusals-and-accepted-close       construction, every refusal, and one
+#:                                     ACCEPTED `close_tenant`. No accepted
+#:                                     `reserve`. (This is PA-01's original
+#:                                     driver, unchanged in what it executes.)
+#:   one-accepted-reserve              construction and exactly one accepted
+#:                                     `reserve`. The step count matters: EVERY
+#:                                     GENERATED CORPUS CASE IS SINGLE-ACTION,
+#:                                     so a control that needs two steps cannot
+#:                                     be killed by any corpus (PA-06-DF-07 a).
+#:   everything-but-an-accepted-commit construction, every refusal, an accepted
+#:                                     reserve, an accepted release, a second
+#:                                     accepted reserve and an accepted
+#:                                     `close_tenant`. No accepted `commit`.
+#:   one-accepted-commit               construction, one accepted reserve and
+#:                                     the `commit` that follows it.
+PROBE_DRIVER = r'''
+import importlib, json, sys
 from pathlib import Path
+
 sys.path.insert(0, sys.argv[1])
-ledger = importlib.import_module(sys.argv[2]).QuotaLedger(
-    {"acme": 10, "globex": 4}, Path(sys.argv[3])
-)
-tenants = ("acme", "globex")
-seen = []
+QuotaLedger = importlib.import_module(sys.argv[2]).QuotaLedger
+plan = sys.argv[4]
+ledger = QuotaLedger({"acme": 10, "globex": 4}, Path(sys.argv[3]))
+TENANTS = ("acme", "globex")
+trace = []
 
 
 def snapshot(tag):
-    seen.append((
-        tag,
-        tuple(ledger.available(t) for t in tenants),
-        tuple(ledger.committed(t) for t in tenants),
-        tuple(ledger.is_closed(t) for t in tenants),
-        tuple(ledger.outstanding_ids()),
-        tuple(ledger.ledger_lines()),
-    ))
+    trace.append({
+        "tag": tag,
+        "available": [ledger.available(t) for t in TENANTS],
+        "committed": [ledger.committed(t) for t in TENANTS],
+        "closed": [ledger.is_closed(t) for t in TENANTS],
+        "outstanding": [str(entry) for entry in ledger.outstanding_ids()],
+        "ledger_lines": [str(entry) for entry in ledger.ledger_lines()],
+    })
 
 
-snapshot("construction")
-for call, args in (
+def call(name, *args):
+    outcome = getattr(ledger, name)(*args)
+    trace.append({
+        "tag": "call " + name + repr(args),
+        "status": [outcome.status, outcome.reason],
+    })
+    snapshot("after " + name + repr(args))
+    return outcome
+
+
+REFUSALS = (
     ("reserve", ("nobody", 1)), ("reserve", ("acme", 0)), ("reserve", ("acme", -2)),
     ("reserve", ("acme", 999)), ("commit", ("r99",)), ("release", ("r99",)),
     ("close_tenant", ("nobody",)),
-):
-    outcome = getattr(ledger, call)(*args)
-    seen.append((f"{call}{args}", outcome.status, outcome.reason))
-    snapshot(f"after {call}{args}")
-# An ACCEPTED command that is not an accepted reserve. This is the one that
-# caught arm B: its M07 was killed by CloseTenant cases on states with no live
-# reservation at all.
-outcome = ledger.close_tenant("globex")
-seen.append(("close_tenant('globex')", outcome.status, outcome.reason))
-snapshot("after accepted close_tenant")
-print(repr(seen))
+)
+
+snapshot("construction")
+if plan == "refusals-and-accepted-close":
+    for name, args in REFUSALS:
+        call(name, *args)
+    # An ACCEPTED command that is not an accepted reserve. This is the one that
+    # caught arm B: its M07 was killed by CloseTenant cases on states with no
+    # live reservation at all.
+    call("close_tenant", "globex")
+elif plan == "one-accepted-reserve":
+    call("reserve", "acme", 3)
+elif plan == "everything-but-an-accepted-commit":
+    for name, args in REFUSALS:
+        call(name, *args)
+    first = call("reserve", "acme", 3)
+    call("release", first.reservation_id)
+    call("reserve", "acme", 2)
+    call("close_tenant", "globex")
+elif plan == "one-accepted-commit":
+    first = call("reserve", "acme", 3)
+    call("commit", first.reservation_id)
+else:
+    raise SystemExit("unknown plan " + plan)
+print(json.dumps(trace, sort_keys=True))
 '''
+
+
+class ControlProperty:
+    """A control property with BOTH halves, because one half passes a no-op.
+
+    `PA-06-DF-07 (b)`: `--controls` tested only "invisible BEFORE an accepted
+    reserve" and nothing tested "visible WITH one", so a mutant whose `replace`
+    was THE IDENTICAL LINE PLUS A COMMENT was reported `HOLDS`. A probe that
+    returns `HOLDS` for a no-op is not a probe, and every `HOLDS` it ever
+    printed was worth nothing as evidence that a control works.
+
+    So a property carries three things and all three are executed:
+
+      `absent`   the plan that must show NO difference. Failing it means the
+                 control is observable without the path it is the control for,
+                 and therefore stays green through exactly the regression it
+                 exists to catch.
+      `present`  the plan that MUST show a difference, in the number of steps
+                 the instruments actually execute. Failing it means the control
+                 is INERT here -- the no-op case, and also `PA-M14` on every
+                 tree that stores `available` rather than deriving it.
+      `region`   observables at least one of which must move, or `()` for no
+                 region requirement. This is what "seeded inside a port's
+                 region" means executably.
+
+    REGION IS AN INCLUSION TEST, NEVER A CONFINEMENT TEST, and that is a
+    deliberate reading of `PA-06-DF-07`. Confinement is representation-
+    dependent: arm B derives `available()` from `committed`, so a fault on
+    `committed` moves `available` there and moves nothing else on a tree that
+    stores it. A property that demanded confinement would report the same
+    control HOLDS on one arm and BROKEN on another for a reason that is about
+    the arm's data structures rather than about the control. What the probe DOES
+    do with the extra observables is report them: the full moved set is printed
+    beside every verdict, so a reader sees confinement or its absence as a
+    measurement.
+    """
+
+    def __init__(self, name: str, absent: str, present: str,
+                 region: tuple[str, ...], prose: str) -> None:
+        self.name = name
+        self.absent = absent
+        self.present = present
+        self.region = region
+        self.prose = prose
+
+
+#: Every property a catalogue may declare in `[pa_control_properties]`. A
+#: property named there and absent here is reported, not guessed at.
+CONTROL_PROPERTIES: dict[str, ControlProperty] = {
+    "accept-path-only": ControlProperty(
+        name="accept-path-only",
+        absent="refusals-and-accepted-close",
+        present="one-accepted-reserve",
+        region=(),
+        prose=(
+            "invisible until an accepted `reserve` executes, and observable "
+            "immediately after ONE. No region requirement: this property is "
+            "about the ACCEPT PATH, and `available` is outside every declared "
+            "port region on this fixture -- which is why a control holding it "
+            "can still be undecidable by a port-scoped instrument."
+        ),
+    ),
+    "port-region-commit-path": ControlProperty(
+        name="port-region-commit-path",
+        absent="everything-but-an-accepted-commit",
+        present="one-accepted-commit",
+        region=PORT_REGION,
+        prose=(
+            "invisible until an accepted `commit` executes, observable "
+            "immediately after ONE, and moving at least one observable INSIDE "
+            "the declared port region {closed, committed, ledger}. This is the "
+            "property `PA-03-DF-03` and `PA-04-DF-01` asked for and no control "
+            "had: a fault a PORT-SCOPED instrument can decide."
+        ),
+    ),
+}
 
 
 _ARCHITECTURAL_RE = re.compile(
@@ -404,6 +566,18 @@ def check_integrity(catalogue: Path, root: Path) -> list[str]:
     # second tree with no such witness. Negative controls stay global -- there
     # is one, it is about the model's use of sets, and it is not a per-tree
     # property.
+    #
+    # FI-01 CHANGED "exactly 1" TO "at least 1", AND THE CHANGE IS A
+    # STRENGTHENING RATHER THAN A RELAXATION -- read it with the rule
+    # `--controls` now enforces, which is that at least one positive control per
+    # tree must HOLD ITS PROPERTY when probed. "Exactly one" served nothing on
+    # its own: one BROKEN control satisfied it, which is precisely the state
+    # `PA-06-DF-07` found and R2 calls worse than having none. What a tree needs
+    # is a control that can go red, and it needs the broken one kept beside it,
+    # still declared, still probed, still reported -- not deleted to keep a
+    # count at one. `reference_ports` now carries two: `PA-M14`, which is
+    # measured INERT here and stays in the record saying so, and `FI-M15`, which
+    # holds.
     negatives = [row for row in rows if str(row.get("control_role", "")).startswith("negative")]
     if not negatives:
         problems.append("expected at least 1 negative control")
@@ -418,10 +592,10 @@ def check_integrity(catalogue: Path, root: Path) -> list[str]:
             if str(row.get("control_role", "")).startswith("positive")
         ]
         positives_total += len(positives)
-        if len(positives) != 1:
+        if len(positives) < 1:
             problems.append(
                 f"anchor tree {tree!r} has {len(positives)} positive control(s), expected "
-                f"exactly 1. Without one, a column of survivors on that tree cannot be "
+                f"at least 1. Without one, a column of survivors on that tree cannot be "
                 f"told apart from an instrument that never ran it."
             )
 
@@ -480,7 +654,7 @@ def check_integrity(catalogue: Path, root: Path) -> list[str]:
     return problems
 
 
-def check_arms() -> list[str]:
+def check_arms(dispatch_dir: Path | None = None) -> list[str]:
     """Report the THREE arms and the length match. Reports; does not refuse.
 
     PA-01 added arm C, and with it the measurement the predecessor could not
@@ -491,9 +665,41 @@ def check_arms() -> list[str]:
     prompt SAYS. If arm C matches arm B, the finding is that longer prompts
     produce better structure -- a legitimate outcome this arm exists to be able
     to produce.
+
+    WHICH BYTES IT MEASURES -- PA-06-DF-10, FI-05. With `--dispatch-dir`, an arm
+    that has a recorded dispatch is measured on THE BYTES THAT WERE SENT, and
+    every row is labelled with where its numbers came from. Without one it
+    measures the file on disk and SAYS SO: at PA-06 the file on disk was not the
+    prompt the arm received, the difference was four unrecorded additions, and
+    the sealed "+3.8%, inside tolerance" was in fact +18.1% and outside it. The
+    on-disk number is not suppressed -- it is the number the sealed record
+    contains -- but it stops being printed as though nobody had ever been bitten
+    by the difference.
     """
     problems: list[str] = []
     paths = {arm: arm_prompt(arm) for arm in ARMS}
+    sources = {arm: "on disk" for arm in ARMS}
+
+    if dispatch_dir is not None:
+        sys.path.insert(0, str(HERE))
+        import dispatch_record  # noqa: PLC0415
+
+        problems += dispatch_record.verify(dispatch_dir)
+        for arm in ARMS:
+            rec = dispatch_record.record_for(dispatch_dir, arm)
+            if rec is None:
+                continue
+            artifact = dispatch_record.dispatched_path(dispatch_dir, rec)
+            if artifact.is_file():
+                paths[arm] = artifact
+                sources[arm] = f"AS DISPATCHED [{rec.provenance}]"
+    else:
+        print(
+            "\n  NO DISPATCH RECORD REQUESTED. Every number below is measured on the\n"
+            "  bytes ON DISK. PA-06-DF-10: the bytes on disk were not the bytes sent,\n"
+            "  and the difference moved the headline from +3.8% to +18.1%. Pass\n"
+            "  --dispatch-dir <dir> to measure what a round actually dispatched."
+        )
 
     print("\narms:")
     for arm, path in paths.items():
@@ -504,6 +710,7 @@ def check_arms() -> list[str]:
         print(
             f"  {path.relative_to(REPO_ROOT)}  "
             f"({len(raw.splitlines())} lines, {len(distinct_lines(path))} distinct)"
+            f"  <- {sources[arm]}"
         )
 
     lines = {arm: distinct_lines(path) for arm, path in paths.items()}
@@ -573,7 +780,10 @@ def check_arms() -> list[str]:
         "     structural guidance phrased without any of these words.)"
     )
 
-    body = paths["arm_b"].read_text(encoding="utf-8")
+    # The slot markers are a property of the TEMPLATE on disk, not of any
+    # dispatched copy: a slot can legitimately be resolved away in the bytes
+    # that were sent. So these two always read `arm_prompt`, never `paths`.
+    body = arm_prompt("arm_b").read_text(encoding="utf-8")
     if "HP-02-SLOT:BEGIN" not in body or "HP-02-SLOT:END" not in body:
         problems.append("arm B has no HP-02 slot markers")
     elif "UNFILLED" in body:
@@ -584,7 +794,7 @@ def check_arms() -> list[str]:
     else:
         print("\n  ARM B SLOT: filled.")
 
-    body_c = paths["arm_c"].read_text(encoding="utf-8")
+    body_c = arm_prompt("arm_c").read_text(encoding="utf-8")
     if "PA-01-SLOT:BEGIN" not in body_c or "PA-01-SLOT:END" not in body_c:
         problems.append("arm C has no PA-01 slot markers")
     else:
@@ -696,22 +906,62 @@ def verify_suite(catalogue: Path, root: Path) -> list[str]:
     return problems
 
 
+def moved_observables(clean: str, dirty: str) -> list[str]:
+    """Which observables differ between two traces. Reported, never inferred."""
+    import json  # noqa: PLC0415 -- local, so the module stays import-light
+
+    left, right = json.loads(clean), json.loads(dirty)
+    if len(left) != len(right):
+        return ["<trace length>"] + sorted(OBSERVABLES)
+    moved: set[str] = set()
+    for one, other in zip(left, right):
+        if one.get("tag") != other.get("tag"):
+            moved.add("<trace shape>")
+        if one.get("status") != other.get("status"):
+            moved.add("status")
+        for name in OBSERVABLES:
+            if one.get(name) != other.get(name):
+                moved.add(name)
+    return sorted(moved)
+
+
 def probe_control_property(
-    tree: Path, module: str, relative: str, find: str, replace: str
+    tree: Path, module: str, relative: str, find: str, replace: str,
+    property_name: str = CONTROL_PROPERTY,
 ) -> tuple[str, str]:
-    """Is this mutant invisible until an accepted `reserve` runs?
+    """Does this mutant hold BOTH halves of its declared control property?
 
-    Returns ``("HOLDS" | "BROKEN" | "ERROR", detail)``. HOLDS means the tree
-    behaves identically with and without the mutant across construction, every
-    refusal, and one accepted `close_tenant` -- so the only way to observe it is
-    to execute an accepted `reserve`, which is exactly what a positive control
-    for this instrument has to require.
+    Returns ``(verdict, detail)`` where verdict is one of:
+
+      ``HOLDS``          invisible under the property's `absent` plan AND
+                         observable under its `present` plan, moving at least
+                         one observable inside the declared region.
+      ``BROKEN``         observable under the `absent` plan. The control stays
+                         green through the regression it exists to catch.
+      ``INERT``          invisible under the `present` plan too. NOTHING CAN
+                         EVER SEE IT, so it can never go red and it is not a
+                         control at all. A no-op lands here, and so does a
+                         control that needs two steps on a tree where every
+                         generated case is single-action.
+      ``OUT_OF_REGION``  observable, but nothing it moves is inside the region
+                         the property declares. A port-scoped instrument
+                         projects only its region, so it cannot decide this.
+      ``ERROR``          the probe could not run.
+
+    Before FI-01 only the first half existed, and a mutant whose `replace` was
+    the identical line plus a comment was reported ``HOLDS`` (`PA-06-DF-07 b`).
     """
+    prop = CONTROL_PROPERTIES.get(property_name)
+    if prop is None:
+        return "ERROR", (
+            f"undeclared control property {property_name!r}; known: "
+            f"{', '.join(sorted(CONTROL_PROPERTIES))}"
+        )
 
-    def drive(work: Path, ledger_path: Path) -> str:
+    def drive(work: Path, ledger_path: Path, plan: str) -> str:
         done = subprocess.run(
-            [sys.executable, "-c", NO_ACCEPTED_RESERVE_DRIVER,
-             str(work), module, str(ledger_path)],
+            [sys.executable, "-c", PROBE_DRIVER,
+             str(work), module, str(ledger_path), plan],
             capture_output=True, text=True,
         )
         if done.returncode:
@@ -722,8 +972,6 @@ def probe_control_property(
     with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp) / "tree"
         shutil.copytree(tree, work)
-        ledger_path = Path(tmp) / "ledger.txt"
-        clean = drive(work, ledger_path)
         target = work / relative
         if not target.is_file():
             return "ERROR", f"no {relative} under {tree}"
@@ -731,17 +979,125 @@ def probe_control_property(
         occurrences = source.count(find)
         if occurrences != 1:
             return "ERROR", f"`find` occurs {occurrences} time(s) in {relative}"
-        target.write_text(source.replace(find, replace, 1), encoding="utf-8")
-        dirty = drive(work, ledger_path)
 
-    if clean.startswith("ERROR") or dirty.startswith("ERROR"):
-        return "ERROR", f"clean={clean[:90]} dirty={dirty[:90]}"
-    if clean != dirty:
-        return "BROKEN", (
-            "an observable differs with ZERO accepted reserves, so this control "
-            "stays green through the very regression it exists to catch"
+        traces: dict[str, str] = {}
+        for state in ("clean", "dirty"):
+            if state == "dirty":
+                target.write_text(source.replace(find, replace, 1), encoding="utf-8")
+            for plan in (prop.absent, prop.present):
+                # A fresh ledger file per run: the file adapter TRUNCATES at
+                # construction, so sharing one would make the second plan read
+                # the first plan's leftovers on some trees and not on others.
+                traces[f"{state}/{plan}"] = drive(
+                    work, Path(tmp) / f"ledger-{state}-{plan}.txt", plan
+                )
+
+    broken = {key: value for key, value in traces.items() if value.startswith("ERROR")}
+    if broken:
+        first = sorted(broken)[0]
+        return "ERROR", f"{first}: {broken[first][:120]}"
+
+    if traces[f"clean/{prop.absent}"] != traces[f"dirty/{prop.absent}"]:
+        moved = moved_observables(
+            traces[f"clean/{prop.absent}"], traces[f"dirty/{prop.absent}"]
         )
-    return "HOLDS", "invisible until an accepted reserve executes"
+        return "BROKEN", (
+            f"observable under {prop.absent!r}, which executes none of the path "
+            f"this control is the control FOR; it stays green through exactly "
+            f"the regression it exists to catch. moved: {', '.join(moved)}"
+        )
+
+    if traces[f"clean/{prop.present}"] == traces[f"dirty/{prop.present}"]:
+        return "INERT", (
+            f"NOTHING MOVES under {prop.present!r} either. A control nothing can "
+            f"observe can never go red; this is the verdict a no-op earns, and "
+            f"the verdict a control earns when it needs more steps than the "
+            f"instruments execute"
+        )
+
+    moved = moved_observables(
+        traces[f"clean/{prop.present}"], traces[f"dirty/{prop.present}"]
+    )
+    inside = [name for name in moved if name in prop.region]
+    if prop.region and not inside:
+        return "OUT_OF_REGION", (
+            f"observable under {prop.present!r} but only outside the declared "
+            f"region {{{', '.join(prop.region)}}}. moved: {', '.join(moved)}. A "
+            f"port-scoped instrument projects only its region, so it cannot "
+            f"decide this control"
+        )
+
+    return "HOLDS", (
+        f"invisible under {prop.absent!r}; observable under {prop.present!r}; "
+        f"moved: {', '.join(moved)}"
+        + (f"; inside the region: {', '.join(inside)}" if prop.region else "")
+    )
+
+
+def _toml():
+    try:
+        import tomllib  # noqa: PLC0415
+    except ModuleNotFoundError:  # pragma: no cover - Python < 3.11
+        import tomli as tomllib  # type: ignore[no-redef]  # noqa: PLC0415
+    return tomllib
+
+
+def resolve_control_properties(catalogue: Path) -> tuple[dict[str, str], list[str]]:
+    """`[pa_control_properties]`, THROUGH `extends`. Returns `(table, problems)`.
+
+    `PA-06-DF-02`: `extends` was documentation. Every per-arm catalogue carries
+    `extends = "examples/validation/ab/seeded_faults.toml"`, and this function's
+    predecessor read the property table only out of the file it was handed -- so
+    a re-anchored control whose parent DOES declare it was reported undeclared,
+    and PA-06 worked around it by copying the table into each of its three
+    re-anchoring files. Five copies of one property and nothing checking them
+    against each other is the `declaration_executability_rule`'s own failure
+    shape, produced by the fix for a declaration nothing executed.
+
+    One level is followed, which covers every catalogue that exists. A child's
+    entry wins over its parent's, so a re-anchoring may state a DIFFERENT
+    property for a tree it has measured -- what it may no longer do is have to
+    restate the same one.
+
+    `extends` may carry a `<path> @ <rev>` form (`pa_m14_prerepair.toml` does),
+    which names a parent AS OF a commit. The path half is resolved; the revision
+    is not checked out and is reported as unfollowed rather than as a defect.
+    """
+    tomllib = _toml()
+    problems: list[str] = []
+    document = tomllib.loads(catalogue.read_text(encoding="utf-8"))
+    child = {
+        str(key): str(value)
+        for key, value in document.get("pa_control_properties", {}).items()
+    }
+
+    declared = str(document.get("catalogue", {}).get("extends", "")).strip()
+    if not declared:
+        return child, problems
+
+    path_part, _, revision = declared.partition("@")
+    parent_path = REPO_ROOT / path_part.strip()
+    if not parent_path.is_file():
+        problems.append(
+            f"`extends` names {path_part.strip()!r}, which does not exist. An "
+            f"inherited declaration that resolves to nothing is the drift the "
+            f"`declaration_executability_rule` is about."
+        )
+        return child, problems
+
+    inherited = {
+        str(key): str(value)
+        for key, value in tomllib.loads(
+            parent_path.read_text(encoding="utf-8")
+        ).get("pa_control_properties", {}).items()
+    }
+    merged = dict(inherited)
+    merged.update(child)
+    note = f"  extends: {path_part.strip()} -- {len(inherited)} inherited property/ies"
+    if revision.strip():
+        note += f" (revision {revision.strip()!r} is NOT checked out; the path is)"
+    print(note)
+    return merged, problems
 
 
 def check_controls(
@@ -750,8 +1106,10 @@ def check_controls(
     """Run the control-property probe over every declared positive control.
 
     Reports. It does not refuse a promotion, it does not gate the product, and
-    a BROKEN verdict is recorded rather than converted into anything. A control
-    that could excuse itself would be the defect EVAL-SUPPRESS found.
+    a BROKEN / INERT / OUT_OF_REGION verdict is recorded rather than converted
+    into anything. A control that could excuse itself would be the defect
+    EVAL-SUPPRESS found; a control that CANNOT go red is the defect R2 names,
+    and this is where it is caught.
     """
     problems: list[str] = []
     _, rows, _ = load_catalogue(catalogue)
@@ -763,22 +1121,22 @@ def check_controls(
     # The property is declared in a SIDE TABLE, not on the mutant rows. M07 is
     # a sealed HP-01 row and PA-01 does not amend sealed rows -- not even to add
     # a field. The declaration is PA-01's, so it lives in PA-01's table and says
-    # which mutant it is about.
-    try:
-        import tomllib
-    except ModuleNotFoundError:  # pragma: no cover - Python < 3.11
-        import tomli as tomllib  # type: ignore[no-redef]
-    declared_properties = tomllib.loads(
-        catalogue.read_text(encoding="utf-8")
-    ).get("pa_control_properties", {})
+    # which mutant it is about. Since FI-01 the table is read THROUGH `extends`.
+    declared_properties, inherit_problems = resolve_control_properties(catalogue)
+    problems += inherit_problems
 
-    print(f"\ncontrol-property probe -- property: {CONTROL_PROPERTY!r}")
-    print("  A positive control must be INVISIBLE until an accepted `reserve`")
-    print("  runs. Otherwise it stays green through 'Reserve stopped executing',")
-    print("  which is the regression it is the control for.\n")
-    print(f"  {'control':<46} {'tree':<18} verdict")
+    print("\ncontrol-property probe -- BOTH halves, since FI-01")
+    print("  A positive control must be INVISIBLE until the path it is the")
+    print("  control for executes, AND OBSERVABLE once one does, in the number")
+    print("  of steps the instruments actually run. Before FI-01 only the first")
+    print("  half was tested and a NO-OP reported HOLDS (PA-06-DF-07).\n")
+    for name, prop in sorted(CONTROL_PROPERTIES.items()):
+        print(f"    {name:<26} {prop.prose}")
+    print(f"\n  {'control':<46} {'tree':<18} verdict")
     print("  " + "-" * 84)
 
+    verdicts: dict[str, tuple[str, str]] = {}
+    trees_seen: dict[str, list[str]] = {}
     for row in positives:
         relative = str(row.get("path", ""))
         # Two shapes of catalogue reach here, and they are NOT distinguishable
@@ -792,27 +1150,52 @@ def check_controls(
         else:
             head = relative.split("/")[0]
             tree_name, tree, inner = head, root / head, relative[len(head) + 1:]
-        verdict, detail = probe_control_property(
-            tree, module, inner, str(row["find"]), str(row["replace"])
-        )
-        print(f"  {str(row['id']):<46} {tree_name:<18} {verdict}")
-        print(f"  {'':<46} {'':<18} {detail}")
-        if verdict == "BROKEN":
-            problems.append(
-                f"{row['id']}: declared a positive control but does NOT hold the "
-                f"{CONTROL_PROPERTY!r} property on {tree_name} -- {detail}"
-            )
-        elif verdict == "ERROR":
-            problems.append(f"{row['id']}: probe could not run on {tree_name} -- {detail}")
 
         declared = str(declared_properties.get(str(row["id"]), ""))
-        if declared != CONTROL_PROPERTY:
+        if declared not in CONTROL_PROPERTIES:
             problems.append(
-                f"{row['id']}: `[pa_control_properties]` does not declare it as "
-                f"{CONTROL_PROPERTY!r}. The property is the whole job; a control "
-                f"that does not state it cannot be checked against it, and an "
-                f"undeclared control is how a role string gets copied."
+                f"{row['id']}: `[pa_control_properties]` declares {declared!r}, "
+                f"which is not one of {sorted(CONTROL_PROPERTIES)}. The property "
+                f"is the whole job; a control that does not state one cannot be "
+                f"checked against it, and an undeclared control is how a role "
+                f"string gets copied."
             )
+            verdicts[str(row["id"])] = ("ERROR", "no declared property")
+            trees_seen.setdefault(tree_name, []).append(str(row["id"]))
+            print(f"  {str(row['id']):<46} {tree_name:<18} NO DECLARED PROPERTY")
+            continue
+
+        verdict, detail = probe_control_property(
+            tree, module, inner, str(row["find"]), str(row["replace"]), declared
+        )
+        verdicts[str(row["id"])] = (verdict, detail)
+        trees_seen.setdefault(tree_name, []).append(str(row["id"]))
+        print(f"  {str(row['id']):<46} {tree_name:<18} {verdict}   [{declared}]")
+        print(f"  {'':<46} {'':<18} {detail}")
+        if verdict == "ERROR":
+            problems.append(f"{row['id']}: probe could not run on {tree_name} -- {detail}")
+        elif verdict != "HOLDS":
+            problems.append(
+                f"{row['id']}: declared a positive control but is {verdict} on "
+                f"{tree_name} under the {declared!r} property -- {detail}. R2: it is "
+                f"reported RED, not made green by weakening what it asserts."
+            )
+
+    # R2, per tree. A tree whose every positive control is broken has NO working
+    # control, and a column of survivors on it cannot be told apart from an
+    # instrument that never ran it. That is worse than having none, because the
+    # broken one reads like one.
+    for tree_name, ids in sorted(trees_seen.items()):
+        holding = [name for name in ids if verdicts.get(name, ("", ""))[0] == "HOLDS"]
+        if not holding:
+            problems.append(
+                f"tree {tree_name!r} has {len(ids)} declared positive control(s) and "
+                f"NOT ONE holds its property: {', '.join(ids)}. Every kill number "
+                f"measured on this tree is a FLOOR under a red control."
+            )
+        else:
+            print(f"\n  {tree_name}: {len(holding)} of {len(ids)} positive control(s) HOLD "
+                  f"({', '.join(holding)})")
 
     # Copied role strings are how a control stops being about the thing it
     # guards. EVAL-RERUN-DF-03: arm B's catalogue carried arm A's role string
@@ -831,6 +1214,70 @@ def check_controls(
     return problems
 
 
+def demonstrate_probe_failure(
+    catalogue: Path, root: Path, module: str, tree_root: bool = False
+) -> list[str]:
+    """R1: THE PROBE'S OWN DEMONSTRATED FAILING INPUT, re-runnable.
+
+    `architecture_advice.md` S2 -- "every criterion must have a demonstrated
+    failing input and a demonstrated passing input" -- applied to the criterion
+    itself. Each row of the demonstration catalogue is a DELIBERATELY BROKEN
+    control that declares, in `probe_must_report`, the verdict the probe has to
+    return for it. If the probe returns anything else -- above all if it returns
+    `HOLDS` -- this exits nonzero and says which row it went soft on.
+
+    The rows are broken in the ways that have actually happened, not in invented
+    ways: a no-op (`PA-06-DF-07 b`, measured), a control observable from
+    construction (arm B's `M07`, measured), and a control whose symptom lands
+    outside the port's region (`PA-03-DF-03`, measured on `M07` and `PA-M14`).
+    """
+    problems: list[str] = []
+    _, rows, _ = load_catalogue(catalogue)
+    declared_properties, inherit_problems = resolve_control_properties(catalogue)
+    problems += inherit_problems
+
+    print("\nDEMONSTRATED FAILING INPUTS for the control-property probe (R1).")
+    print("  Every row below is a control that is BROKEN ON PURPOSE. The probe")
+    print("  passes this demonstration only by REPORTING each one broken.\n")
+    print(f"  {'demonstration':<40} {'declared':<28} {'must report':<15} observed")
+    print("  " + "-" * 104)
+
+    for row in rows:
+        expected = str(row.get("probe_must_report", "")).strip()
+        if not expected:
+            problems.append(
+                f"{row.get('id')}: a demonstration row with no `probe_must_report`. "
+                f"A demonstration that does not say what it demonstrates cannot fail."
+            )
+            continue
+        relative = str(row.get("path", ""))
+        if tree_root:
+            tree, inner = root, relative
+        else:
+            head = relative.split("/")[0]
+            tree, inner = root / head, relative[len(head) + 1:]
+        declared = str(declared_properties.get(str(row["id"]), ""))
+        verdict, detail = probe_control_property(
+            tree, module, inner, str(row["find"]), str(row["replace"]), declared
+        )
+        agrees = verdict == expected
+        print(f"  {str(row['id']):<40} {declared:<28} {expected:<15} "
+              f"{verdict}{'' if agrees else '   *** THE PROBE WENT SOFT ***'}")
+        print(f"  {'':<40} {detail}")
+        if not agrees:
+            problems.append(
+                f"{row['id']}: the probe reported {verdict!r} where the "
+                f"demonstration requires {expected!r}. "
+                + (
+                    "A probe that returns HOLDS for a control that cannot fail is "
+                    "not a probe, and every HOLDS it has ever printed is void."
+                    if verdict == "HOLDS"
+                    else f"detail: {detail}"
+                )
+            )
+    return problems
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--catalogue", type=Path, default=HERE / "seeded_faults.toml")
@@ -845,11 +1292,36 @@ def main() -> int:
                         help="module the probe imports QuotaLedger from (an arm may differ)")
     parser.add_argument("--tree-root", action="store_true",
                         help="--root IS the tree; catalogue paths are relative to it (per-arm)")
+    parser.add_argument("--demonstrate", action="store_true",
+                        help="R1: run the probe's own demonstrated FAILING inputs")
+    parser.add_argument("--dispatch-dir", type=Path, default=None,
+                        help="measure the arms AS DISPATCHED from this record "
+                             "(examples/validation/ab/dispatch/<round>) instead of on disk")
     args = parser.parse_args()
+
+    if args.demonstrate:
+        # The demonstration catalogue is not a measurement catalogue: it holds
+        # broken controls only, so the class/gap/adapter assertions would report
+        # a dozen absences that are the point rather than defects.
+        problems = demonstrate_probe_failure(
+            args.catalogue.resolve(), args.root.resolve(), args.impl, args.tree_root
+        )
+        print()
+        if problems:
+            print("THE PROBE FAILED ITS OWN DEMONSTRATION -- it does not go red on a")
+            print("control that is broken, so no HOLDS it prints is evidence:")
+            for line in problems:
+                print(f"  {line}")
+            return 1
+        print("The probe reported every deliberately broken control broken. R1 holds:")
+        print("this instrument ships with a demonstrated failing input.")
+        return 0
 
     problems = check_integrity(args.catalogue.resolve(), args.root.resolve())
     if args.arms:
-        problems += check_arms()
+        problems += check_arms(
+            args.dispatch_dir.resolve() if args.dispatch_dir else None
+        )
     if args.controls:
         problems += check_controls(
             args.catalogue.resolve(), args.root.resolve(), args.impl, args.tree_root

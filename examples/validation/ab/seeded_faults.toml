@@ -113,9 +113,21 @@ pa_predictions = "examples/validation/PREDICTIONS-PA.md"
 # on any tree, in seconds. It reports; it refuses nothing; a BROKEN verdict is
 # recorded and never converted into anything.
 # ---------------------------------------------------------------------------
+# FI-01 ADDS A SECOND PROPERTY AND A CONTROL THAT HOLDS IT. `accept-path-only`
+# is unchanged and its two subjects are unchanged. What FI-01 adds is
+# `port-region-commit-path`, because `accept-path-only` is a property about the
+# ACCEPT PATH and `available` -- the only observable either accept-path control
+# moves -- IS OUTSIDE EVERY DECLARED PORT REGION ON THIS FIXTURE. A control can
+# hold `accept-path-only` perfectly and still be undecidable by every
+# port-scoped instrument, which is exactly the state PA-03-DF-03 measured and
+# PA-04-DF-01 re-measured across seven columns.
+#
+# Both properties are executed by `check_catalogue.py --controls`, and since
+# FI-01 BOTH HALVES of each are executed. See the FI-01 block below.
 [pa_control_properties]
 "M07-positive-control-wrong-hold" = "accept-path-only"
 "PA-M14-positive-control-accepted-hold-too-large" = "accept-path-only"
+"FI-M15-positive-control-commit-total-too-large" = "port-region-commit-path"
 
 # ---------------------------------------------------------------------------
 # MEASURED AT PA-01, BEFORE ANY REPAIR. The third thing in this file that is a
@@ -672,6 +684,83 @@ predicted_suite_fake = "KILLED"
 predicted_corpus_whole = "KILLED"
 refine_variable = "amt"
 refine_action = "Reserve"
+
+# ===========================================================================
+# FI-01, 2026-08-06. A POSITIVE CONTROL INSIDE THE PORT'S REGION.
+#
+# WHAT WAS WRONG, MEASURED RATHER THAN ARGUED. `corpus-port` executes 1855 port
+# cases against `reference_ports` -- 388 of them `Commit`, 669 `Reserve` -- and
+# reports BOTH declared positive controls SURVIVED and
+# `polarities_with_no_deciding_control: ["positive"]`. It is not failing to
+# reach the tree. A PORT CASE NARROWS ITS EXPECTED `after` TO THE PORT'S DERIVED
+# REGION, which the generator prints for this fixture as
+#
+#     ledger.LedgerAppendPort: region {closed, committed, ledger}
+#
+# and `M07` and `PA-M14` both land on `available` and on the amount recorded on
+# a reservation. Neither is in that set. So no port-scoped instrument could have
+# decided either one, EVERY PORT-SCOPED KILL NUMBER IN THE PREDECESSOR EPIC IS A
+# FLOOR UNDER A RED CONTROL, INCLUDING ITS HEADLINE, and three tickets in a row
+# -- PA-03, PA-04, PA-06 -- correctly declined to repair it after seeing their
+# own numbers. It is seeded here, first, before anything in this epic is
+# measured.
+#
+# AND THE PROBE THAT CERTIFIED THE OLD CONTROL COULD NOT FAIL. `PA-06-DF-07`:
+# `--controls` tested only "invisible BEFORE an accepted reserve", so a mutant
+# whose `replace` was the identical line plus a comment reported HOLDS. FI-01
+# makes the probe two-sided and ships `probe_demonstrations.toml`, a catalogue
+# of controls broken on purpose that the probe must report broken. Fixing the
+# control without fixing the probe would have re-created the defect with the
+# sign flipped, which is what PA-01 did and what P07 named in advance.
+#
+# WHAT THE TWO-SIDED PROBE THEN SAYS ABOUT `PA-M14`, REPORTED RED PER R2:
+#
+#     PA-M14   reference_ports   INERT   nothing moves after ONE accepted
+#                                        reserve either
+#
+# `PA-M14` records `amount + 1` on the reservation, and NO QUERY EXPOSES A
+# RESERVATION'S AMOUNT -- `outstanding_ids()` returns ids. On a tree that STORES
+# `available` the deduction uses the parameter, so one accepted `reserve` moves
+# nothing at all; it takes a second action, a commit or a release, to surface
+# it. EVERY GENERATED CORPUS CASE IS SINGLE-ACTION. So `PA-M14` cannot be killed
+# by any corpus on `reference_ports`, arm A or arm C regardless of reach, and
+# its RED on those trees is a property of the control.
+#
+# `PA-M14` IS NOT DELETED, NOT RE-SEEDED, NOT RE-ANCHORED AND NOT EXCUSED. It
+# still runs, it is still declared a positive control, it is still probed on
+# every `--controls` run, and its INERT verdict is printed every time. What it
+# stops being is the ONLY control on this tree. Making it green by weakening
+# what it asserts is the act R2 forbids and the act this project has committed
+# four times.
+#
+# PREDICTIONS FOR THE ROW BELOW ARE WRITTEN HERE, BEFORE IT WAS RUN AGAINST ANY
+# INSTRUMENT. The commit that adds this row precedes the commit that records any
+# measurement of it, and the git history carries that ordering.
+# ===========================================================================
+
+[[mutants]]
+id = "FI-M15-positive-control-commit-total-too-large"
+fault_class = "wrong_value"
+control_role = "positive -- must die on every instrument that executes an accepted Commit against the reference_ports tree, under BOTH wirings, AND must be invisible until one does. Written for THE PORT'S REGION rather than for the accept path: its symptom lands on `committed` and on the COMMIT line's running total, both of which are inside the derived region {closed, committed, ledger} that a port case projects. That is the half PA-M14 lacks -- not invisibility, which PA-M14 has, but OBSERVABILITY WHERE A PORT-SCOPED INSTRUMENT LOOKS, in one step."
+control_property = "port-region-commit-path -- see [pa_control_properties] and the FI-01 block above"
+gap_targeted = "none. Deliberately in nobody's gap, and checked against every gap this catalogue declares rather than asserted: it moves a PROJECTED STATE VARIABLE (`committed`), so a silent mapping with no durable-write oracle still sees it; it moves the DURABLE LINE, so a content-asserting mapping sees it twice; it is a single accepted `Commit`, so it needs no sequence; and `Commit` is in the LEDGER slice's action set. The one instrument that structurally cannot decide it is a corpus containing no accepted `Commit` at all -- the RESERVATIONS slice and the negative corpus -- and that is the mirror of M07's declared limitation on `corpus-neg`, decided by the run's own executability counts rather than by this sentence."
+boundary_kind = "port"
+boundary_ref = "LedgerAppendPort"
+path = "reference_ports/domain.py"
+find = "        self._committed[reservation.tenant] += reservation.amount"
+replace = "        self._committed[reservation.tenant] += reservation.amount + 1  # MUTANT FI-M15: a commit credits one unit more than the reservation held"
+description = "commit credits the tenant with one more than it reserved, so the committed total and the COMMIT line's running total are both one too large from the first accepted commit"
+semantic = "commit(r) adds amount+1 to committed(t) instead of amount. The COMMIT line the port receives therefore carries a running total one too large. available(t), is_closed(t), outstanding_ids() and every CLOSE line written before any commit are byte-correct, and NOTHING differs until an accepted `commit` executes."
+observable = "committed(t) and the running-total field of the COMMIT line, immediately after ONE accepted commit, under BOTH wirings, because the fault is in the domain and neither adapter is involved. BOTH observables are inside the port's derived region {closed, committed, ledger}, which is the whole reason this row exists: M07 and PA-M14 land on `available` and on a reservation's amount, and neither is in that set."
+re_anchoring_rule = "RE-ANCHOR BY THE PROPERTY, NOT BY THE BYTES. On any tree, seed this at whatever line records the amount a commit adds to the tenant's committed total, then run `check_catalogue.py --controls --tree-root --root <tree> --impl <module>`. If it does not report HOLDS, that tree has no valid in-region positive control and the ticket says so and leaves the cell RED. It does not make the cell green by weakening what the control asserts. NOTE WHAT THE PROPERTY DOES NOT REQUIRE: confinement. Arm B derives available() from committed, so this fault moves `available` there and moves nothing outside the region on a tree that stores it. The probe therefore tests INCLUSION -- at least one moved observable inside the region -- and REPORTS the full moved set. A confinement test would report the same control HOLDS on one arm and BROKEN on another for a reason about data structures, which is PA-06-DF-07's lesson applied rather than repeated."
+predicted_corpus_port = "KILLED. This is the prediction the row exists to be wrong about: if a port corpus executing 388 Commit cases still cannot decide a fault it projects, the region diagnosis in PA-03-DF-03 is wrong and THAT is the finding."
+predicted_suite_real = "KILLED -- test_commit_running_total_accumulates and test_r2_the_durable_ledger_agrees_with_memory both read the total"
+predicted_suite_fake = "KILLED -- the same assertions through the other composition point; the fault is in the domain, so the wiring is irrelevant to it"
+predicted_corpus_whole = "KILLED"
+predicted_map_silent = "KILLED -- unlike a pure durable-content fault, this one moves a projected state variable, so a silent mapping still sees it. That is deliberate: a control in the silent mapping's gap would be red for a legitimate reason and could not be told from a broken instrument."
+predicted_map_checking = "KILLED"
+refine_variable = "committed"
+refine_action = "Commit"
 
 # ---------------------------------------------------------------------------
 # CLASSES DELIBERATELY NOT SEEDED, stated so no silence is read as a result.

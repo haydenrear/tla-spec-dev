@@ -1,0 +1,431 @@
+{
+  "arms": [
+    "arm_a",
+    "arm_b",
+    "arm_c"
+  ],
+  "columns": [
+    "corpus-action-bound",
+    "corpus-port-swap:fake",
+    "corpus-port-swap:real",
+    "suite-fake",
+    "suite-real"
+  ],
+  "compositions_per_arm": {
+    "arm_a": {
+      "corpus-action-bound": {
+        "distinct_compositions": 1,
+        "substitutes_for": null,
+        "why": "this column runs the tree as the program composes it, on every arm. Nothing is substituted, so it is one composition by construction and it cannot be arm-specific."
+      },
+      "corpus-port-swap:fake": {
+        "compared_on": "evidence blocks",
+        "distinct_compositions": 1,
+        "identical_on_every_row": true,
+        "rows_compared": 2,
+        "substitutes_for": "corpus-port-swap:real",
+        "why": "identical to corpus-port-swap:real on every row: this arm declares no second implementation, so the swap ran the real one and this column is a duplicate (AD-F6)"
+      },
+      "corpus-port-swap:real": {
+        "distinct_compositions": 1,
+        "substitutes_for": null,
+        "why": "this column runs the tree as the program composes it, on every arm. Nothing is substituted, so it is one composition by construction and it cannot be arm-specific."
+      },
+      "suite-fake": {
+        "distinct_compositions": null,
+        "substitutes_for": "suite-real",
+        "why": "no second composition point exists on this arm, so this column was not declared. Declaring it would silently re-run the real one."
+      },
+      "suite-real": {
+        "distinct_compositions": 1,
+        "substitutes_for": null,
+        "why": "this column runs the tree as the program composes it, on every arm. Nothing is substituted, so it is one composition by construction and it cannot be arm-specific."
+      }
+    },
+    "arm_b": {
+      "corpus-action-bound": {
+        "distinct_compositions": 1,
+        "substitutes_for": null,
+        "why": "this column runs the tree as the program composes it, on every arm. Nothing is substituted, so it is one composition by construction and it cannot be arm-specific."
+      },
+      "corpus-port-swap:fake": {
+        "compared_on": "evidence blocks",
+        "distinct_compositions": 2,
+        "identical_on_every_row": false,
+        "rows_compared": 4,
+        "substitutes_for": "corpus-port-swap:real",
+        "why": "differs from corpus-port-swap:real on at least one row: this arm really does have a second implementation and the swap composed it"
+      },
+      "corpus-port-swap:real": {
+        "distinct_compositions": 1,
+        "substitutes_for": null,
+        "why": "this column runs the tree as the program composes it, on every arm. Nothing is substituted, so it is one composition by construction and it cannot be arm-specific."
+      },
+      "suite-fake": {
+        "compared_on": "evidence blocks",
+        "distinct_compositions": 2,
+        "identical_on_every_row": false,
+        "rows_compared": 4,
+        "substitutes_for": "suite-real",
+        "why": "differs from suite-real on at least one row: this arm really does have a second implementation and the swap composed it"
+      },
+      "suite-real": {
+        "distinct_compositions": 1,
+        "substitutes_for": null,
+        "why": "this column runs the tree as the program composes it, on every arm. Nothing is substituted, so it is one composition by construction and it cannot be arm-specific."
+      }
+    },
+    "arm_c": {
+      "corpus-action-bound": {
+        "distinct_compositions": 1,
+        "substitutes_for": null,
+        "why": "this column runs the tree as the program composes it, on every arm. Nothing is substituted, so it is one composition by construction and it cannot be arm-specific."
+      },
+      "corpus-port-swap:fake": {
+        "compared_on": "evidence blocks",
+        "distinct_compositions": 1,
+        "identical_on_every_row": true,
+        "rows_compared": 2,
+        "substitutes_for": "corpus-port-swap:real",
+        "why": "identical to corpus-port-swap:real on every row: this arm declares no second implementation, so the swap ran the real one and this column is a duplicate (AD-F6)"
+      },
+      "corpus-port-swap:real": {
+        "distinct_compositions": 1,
+        "substitutes_for": null,
+        "why": "this column runs the tree as the program composes it, on every arm. Nothing is substituted, so it is one composition by construction and it cannot be arm-specific."
+      },
+      "suite-fake": {
+        "distinct_compositions": null,
+        "substitutes_for": "suite-real",
+        "why": "no second composition point exists on this arm, so this column was not declared. Declaring it would silently re-run the real one."
+      },
+      "suite-real": {
+        "distinct_compositions": 1,
+        "substitutes_for": null,
+        "why": "this column runs the tree as the program composes it, on every arm. Nothing is substituted, so it is one composition by construction and it cannot be arm-specific."
+      }
+    }
+  },
+  "divergences": [
+    {
+      "column": "corpus-port-swap:fake",
+      "compared_rows": {
+        "arm_a": "FI-M18-arm-a-only-home-drops-close-lines",
+        "arm_b": "FI-M16-arm-b-real-adapter-drops-close-lines",
+        "arm_c": "FI-M19-arm-c-only-home-drops-close-lines"
+      },
+      "compositions_per_arm": {
+        "arm_a": 1,
+        "arm_b": 2,
+        "arm_c": 1
+      },
+      "per_arm": {
+        "arm_a": "KILLED",
+        "arm_b": "SURVIVED",
+        "arm_c": "KILLED"
+      },
+      "semantic": "ledger-readback-drops-close-lines"
+    }
+  ],
+  "executable_counts_per_arm": {
+    "arm_a": {
+      "corpus-action-bound": {
+        "accounting": "measured",
+        "cases": 1855,
+        "per_action": {
+          "CloseTenant": 352,
+          "Commit": 384,
+          "Release": 432,
+          "Reserve": 294
+        },
+        "ran": 1543,
+        "skipped": 312
+      },
+      "corpus-port-swap:fake": {
+        "accounting": "measured",
+        "cases": 1855,
+        "per_action": {
+          "CloseTenant": 352,
+          "Commit": 384,
+          "Release": 432,
+          "Reserve": 294
+        },
+        "ran": 1543,
+        "skipped": 312
+      },
+      "corpus-port-swap:real": {
+        "accounting": "measured",
+        "cases": 1855,
+        "per_action": {
+          "CloseTenant": 352,
+          "Commit": 384,
+          "Release": 432,
+          "Reserve": 294
+        },
+        "ran": 1543,
+        "skipped": 312
+      },
+      "suite-real": {
+        "accounting": "instrument keeps none",
+        "cases": null,
+        "per_action": null,
+        "ran": null,
+        "skipped": null
+      }
+    },
+    "arm_b": {
+      "corpus-action-bound": {
+        "accounting": "measured",
+        "cases": 1855,
+        "per_action": {
+          "CloseTenant": 352,
+          "Commit": 384,
+          "Release": 432,
+          "Reserve": 294
+        },
+        "ran": 1543,
+        "skipped": 312
+      },
+      "corpus-port-swap:fake": {
+        "accounting": "measured",
+        "cases": 1855,
+        "per_action": {
+          "CloseTenant": 352,
+          "Commit": 384,
+          "Release": 432,
+          "Reserve": 294
+        },
+        "ran": 1543,
+        "skipped": 312
+      },
+      "corpus-port-swap:real": {
+        "accounting": "measured",
+        "cases": 1855,
+        "per_action": {
+          "CloseTenant": 352,
+          "Commit": 384,
+          "Release": 432,
+          "Reserve": 294
+        },
+        "ran": 1543,
+        "skipped": 312
+      },
+      "suite-fake": {
+        "accounting": "instrument keeps none",
+        "cases": null,
+        "per_action": null,
+        "ran": null,
+        "skipped": null
+      },
+      "suite-real": {
+        "accounting": "instrument keeps none",
+        "cases": null,
+        "per_action": null,
+        "ran": null,
+        "skipped": null
+      }
+    },
+    "arm_c": {
+      "corpus-action-bound": {
+        "accounting": "measured",
+        "cases": 1855,
+        "per_action": {
+          "CloseTenant": 352,
+          "Commit": 384,
+          "Release": 432,
+          "Reserve": 294
+        },
+        "ran": 1543,
+        "skipped": 312
+      },
+      "corpus-port-swap:fake": {
+        "accounting": "measured",
+        "cases": 1855,
+        "per_action": {
+          "CloseTenant": 352,
+          "Commit": 384,
+          "Release": 432,
+          "Reserve": 294
+        },
+        "ran": 1543,
+        "skipped": 312
+      },
+      "corpus-port-swap:real": {
+        "accounting": "measured",
+        "cases": 1855,
+        "per_action": {
+          "CloseTenant": 352,
+          "Commit": 384,
+          "Release": 432,
+          "Reserve": 294
+        },
+        "ran": 1543,
+        "skipped": 312
+      },
+      "suite-real": {
+        "accounting": "instrument keeps none",
+        "cases": null,
+        "per_action": null,
+        "ran": null,
+        "skipped": null
+      }
+    }
+  },
+  "per_semantic": {
+    "ledger-readback-drops-close-lines": {
+      "cells": {
+        "arm_a": {
+          "FI-M18-arm-a-only-home-drops-close-lines": {
+            "corpus-action-bound": "KILLED",
+            "corpus-port-swap:fake": "KILLED",
+            "corpus-port-swap:real": "KILLED",
+            "suite-fake": "NOT_APPLICABLE",
+            "suite-real": "KILLED"
+          }
+        },
+        "arm_b": {
+          "FI-M16-arm-b-real-adapter-drops-close-lines": {
+            "corpus-action-bound": "KILLED",
+            "corpus-port-swap:fake": "SURVIVED",
+            "corpus-port-swap:real": "KILLED",
+            "suite-fake": "SURVIVED",
+            "suite-real": "KILLED"
+          },
+          "FI-M17-arm-b-fake-adapter-drops-close-lines": {
+            "corpus-action-bound": "SURVIVED",
+            "corpus-port-swap:fake": "KILLED",
+            "corpus-port-swap:real": "SURVIVED",
+            "suite-fake": "KILLED",
+            "suite-real": "SURVIVED"
+          }
+        },
+        "arm_c": {
+          "FI-M19-arm-c-only-home-drops-close-lines": {
+            "corpus-action-bound": "KILLED",
+            "corpus-port-swap:fake": "KILLED",
+            "corpus-port-swap:real": "KILLED",
+            "suite-fake": "NOT_APPLICABLE",
+            "suite-real": "KILLED"
+          }
+        }
+      },
+      "comparable_row_per_arm": {
+        "arm_a": "FI-M18-arm-a-only-home-drops-close-lines",
+        "arm_b": "FI-M16-arm-b-real-adapter-drops-close-lines",
+        "arm_c": "FI-M19-arm-c-only-home-drops-close-lines"
+      },
+      "homes_per_arm": {
+        "arm_a": 1,
+        "arm_b": 2,
+        "arm_c": 1
+      },
+      "rows_with_no_counterpart": [
+        "FI-M17-arm-b-fake-adapter-drops-close-lines"
+      ]
+    }
+  },
+  "reachability": {
+    "corpus-action-bound": {
+      "compositions_per_arm": {
+        "arm_a": 1,
+        "arm_b": 1,
+        "arm_c": 1
+      },
+      "demonstrated_divergences": 0,
+      "present_on_arms": [
+        "arm_a",
+        "arm_b",
+        "arm_c"
+      ],
+      "verdict": "NOT_REACHABLE",
+      "why": "E1 holds (one corpus, one model, one manifest across arms) and E2 holds (AD-F1 measured the mutated trees observationally identical). Identical instrument on identical subjects returns identical verdicts."
+    },
+    "corpus-port-swap:fake": {
+      "compositions_per_arm": {
+        "arm_a": 1,
+        "arm_b": 2,
+        "arm_c": 1
+      },
+      "demonstrated_divergences": 1,
+      "present_on_arms": [
+        "arm_a",
+        "arm_b",
+        "arm_c"
+      ],
+      "verdict": "REACHABLE",
+      "why": "the arms differ in how many distinct compositions this column runs. E1 fails: the instrument is a function of the arm's architecture rather than of the shared model."
+    },
+    "corpus-port-swap:real": {
+      "compositions_per_arm": {
+        "arm_a": 1,
+        "arm_b": 1,
+        "arm_c": 1
+      },
+      "demonstrated_divergences": 0,
+      "present_on_arms": [
+        "arm_a",
+        "arm_b",
+        "arm_c"
+      ],
+      "verdict": "NOT_REACHABLE",
+      "why": "E1 holds (one corpus, one model, one manifest across arms) and E2 holds (AD-F1 measured the mutated trees observationally identical). Identical instrument on identical subjects returns identical verdicts."
+    },
+    "suite-fake": {
+      "compositions_per_arm": {
+        "arm_a": null,
+        "arm_b": 2,
+        "arm_c": null
+      },
+      "demonstrated_divergences": 0,
+      "present_on_arms": [
+        "arm_b"
+      ],
+      "verdict": "REACHABLE_BY_ABSENCE",
+      "why": "the column does not exist on ['arm_a', 'arm_c']: those arms have no second composition point for it to name. The arms cannot give the same answer because one of them cannot be asked."
+    },
+    "suite-real": {
+      "compositions_per_arm": {
+        "arm_a": 1,
+        "arm_b": 1,
+        "arm_c": 1
+      },
+      "demonstrated_divergences": 0,
+      "present_on_arms": [
+        "arm_a",
+        "arm_b",
+        "arm_c"
+      ],
+      "verdict": "NOT_REACHABLE",
+      "why": "E1 holds (one corpus, one model, one manifest across arms) and E2 holds (AD-F1 measured the mutated trees observationally identical). Identical instrument on identical subjects returns identical verdicts."
+    }
+  },
+  "structural_asymmetries": [
+    {
+      "homes_per_arm": {
+        "arm_a": 1,
+        "arm_b": 2,
+        "arm_c": 1
+      },
+      "kind": "unequal homes for one semantic",
+      "rows_with_no_counterpart": [
+        "FI-M17-arm-b-fake-adapter-drops-close-lines"
+      ],
+      "semantic": "ledger-readback-drops-close-lines",
+      "why": "the arms do not agree on how many places this semantic can live. An arm with fewer homes cannot host the extra rows at all, and inventing a nearest-bytes stand-in there is the re-anchoring artefact PA-06-DF-08 is about."
+    },
+    {
+      "absent_on_arms": [
+        "arm_a",
+        "arm_c"
+      ],
+      "column": "suite-fake",
+      "kind": "column absent on some arms",
+      "present_on_arms": [
+        "arm_b"
+      ],
+      "why": "this column needs a second composition point and those arms have none. Declaring it anyway would silently re-run the real column and report a duplicated cell as an independent measurement, which is AD-F6."
+    }
+  ],
+  "undemonstrated_reachability_claims": [],
+  "verdict": "FIXTURE CAN DIVERGE"
+}

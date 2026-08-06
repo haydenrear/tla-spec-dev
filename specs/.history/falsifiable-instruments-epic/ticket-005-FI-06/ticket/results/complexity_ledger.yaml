@@ -1,0 +1,142 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "not_applicable"
+    evidence: "FI-06 is an evaluation ticket and changed no model. `close ticket` measured delta direction=zero vs FI-05, so nothing here licenses a decrease because there is no decrease."
+  tlc_after:
+    status: "not_applicable"
+    evidence: "As above. The desired model is byte-equal to current; `git diff` over specs/tickets/FI-06/{current,desired} is empty."
+  behavior_tests:
+    status: "pass"
+    evidence: "uv run --with pytest --with pyyaml python -m pytest tests -q -> 1335 passed, 0 failed, at the integrated tip 30d033e. Recorded because it is true, not because a decrease needs it."
+  descriptor_comparison:
+    status: "not_applicable"
+    evidence: "No before/after: no representation changed. The produced-code descriptor figures FI-06 DID record are in specs/results/scorecards/falsifiable-instruments/RESULTS.md section 2, in the mechanical block, NEVER scored."
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness REVIEW, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them, and this
+# is the only sweep that looks at it.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# RECORDED, NEVER REFUSING (2026-08-04, owner direction). It was a hard gate at
+# workflow close with no override; it is now an optional agent-run review whose
+# verdict is written down and read by a person. `incomplete` IS STILL NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it --
+# what was withdrawn is the refusal, not the distinction.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    SEARCHED, FOUND NONE, AND THE REASON IS THE MEASUREMENT RULE. FI-06 is the
+    epic's evaluation ticket: its whole product is a report, and its standing
+    instruction is FILE FINDINGS, FIX NOTHING. Every refinement this ticket could
+    have proposed is a change to an instrument it is measuring with, so applying
+    one would move a number during the report that number is in. Twelve
+    candidates were found and every one was FILED rather than refined:
+    FI-06-DF-01 (eight instruments absent from the registry -- registering
+    run_arm_swap.py is four lines and would have turned 26-of-35 into 27-of-36,
+    which is the number-fitting the rule exists to forbid), FI-06-DF-02 (the
+    twelve pytest slots with no expect_output), FI-06-DF-03 (two slots with no
+    seeded break), and nine more. Each carries a suggested_fix for whoever owns
+    the next round.
+  measured: false      # no TLC run: no model changed, so there is no figure to measure
+  applied: false
+  approved_by: ""
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+  specs/results/scorecards/falsifiable-instruments/RESULTS.md is the narrative
+  ledger, with channels/ADVERSARIAL.md and three per-goal RESULT files beside it.
+
+  WHAT THE MACHINE-CHECKED CORE ABOVE CANNOT EXPRESS. The close reports
+  `direction=zero (vs FI-05)` and `max_state_space_bound OVER CAP at 111.1%`.
+  Both are inherited: FI-06 changed no model, no adapter and no production file,
+  and the bound was already over the cap at FI-05. The bound is also a LOWER
+  bound -- the product over 7 of 9 declared variables, with `lastCommand` and
+  `result` unresolved -- and this ticket did not resolve them, because doing so
+  would be a change made during a measurement.
+
+  THE FIGURE THIS TICKET DID RECORD, AND IT IS NOT THIS ONE. FI-06's produced-code
+  descriptor figures over the three judged arms sit in the mechanical block of
+  RESULTS.md section 2 and are NEVER SCORED (thermometer_rule; MF-020: a metric
+  falling is not evidence a design improved). They disagree with D2, which by the
+  card's own scoring rule 7 is a finding and is filed as FI-06-DF-05: the arms
+  separate by an order of magnitude on branch_points_in_effectful_modules
+  (10 / 1 / 10) and on declared_interfaces (0 / 1 / 0), while D2 scores all three
+  identically at 2 -- as it has on 27 of 27 cards ever written about this example.
+
+  THE THREE GOALS. GOAL-instruments-can-fail MISSED on its only target ("nothing
+  is silently omitted"); GOAL-scorecard-carries-a-delta MISSED on D4 and D5;
+  GOAL-fixture-can-diverge MET, narrowly. Baseline, measured, target and verdict
+  with a reason for each are in RESULTS.md and in the per-goal files.
+
+  FINDINGS BY CHANNEL, 0 : 16 : 1 : 1 : 12 over the whole epic -- thirty findings,
+  ZERO from the suite, which was green throughout while three instruments were
+  missing from the enumeration and one shipped validator was red on the
+  repository's own model. NOTHING WAS FIXED.

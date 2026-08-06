@@ -1089,3 +1089,395 @@ was repaired this round, so nothing was measured on the instrument that found it
   highest honesty column this project has recorded. `N04` predicted no separation
   and PASSES. Nothing was bought at D5's expense. The uncomfortable half is that
   D5 no longer separates anything at all.
+
+---
+
+# FI-03 — THE FIRST TIME THIS FILE'S OWN QUESTION WAS MEASURED (2026-08-06)
+
+Full record, with every number re-derived from the cards by a committed script:
+`specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/RESULT.md`.
+Byte-identity of the scored trees is verified in `BYTE-IDENTITY.md` beside it,
+at the git-tree-object level and per file, rather than asserted.
+
+**The section above headed "READ THIS BEFORE COMPARING ANY D1, D4 OR D5 ROW
+ACROSS EPICS" ends by pointing at `references/eval_scorecard.md` § R-H5. That
+section did not exist when the pointer was written** — the caveat was
+deliberately left unnumbered because `R-H` ids are what `audit` executes and it
+had no check. **It exists now**, with a check, and the pointer resolves.
+
+## The answer, in one paragraph
+
+Three sealed, byte-identical artifacts were re-scored by two fresh blind judges
+under the current card. **Against the sealed PA-06 row the worst movement is
+1 dimension-point per judge on every dimension, in BOTH arms — the target is met
+on that comparison. Against EVAL-RERUN, the same bytes and the same card version
+one round further back, D4 moves 2 in both arms and D5 moves 2 in the version 2
+arm, and the target is missed.** Both comparisons sit in the same table in this
+file, so the second is not a stretch: it is the comparison a reader of this file
+would make.
+
+> **`GOAL-scorecard-carries-a-delta` is MISSED. It is missed on D4, and on D5.**
+
+> **AND THE OTHER HALF OF THE SAME MEASUREMENT: D2 AND D3 MOVED ZERO POINTS.**
+> Not "within target" — **zero**, on every one of the 60 judge-scores, across
+> four independent pairs of judges, two card versions, three artifacts and two
+> sealed baselines. Not one point, in either direction, in any comparison.
+>
+> **This is the strongest stability evidence this project has ever produced
+> about anything**, and it is what makes `ports-as-adapters` resting its
+> headline on D3 a safe decision rather than a lucky one: D3 = `4 / 2 / 1`
+> across the three artifacts has now been produced by four independent pairs on
+> byte-identical bytes, two of whom executed the adapter swap themselves and two
+> of whom did not.
+>
+> **A reader skimming for the missed goal must not skim past this.** The card
+> works. It works on the two dimensions that are about the artifact's shape, and
+> it fails on the two that are about what the judge did.
+
+## What can and cannot carry a delta, stated so it can be used
+
+Worst movement per judge, on 60 judge-scores from two fresh judge pairs.
+
+| dimension | vs PA-06 (30 + 30) | vs EVAL-RERUN (20 + 20) | can it carry a delta? |
+|---|---|---|---|
+| **D1** bug detection | worst 1, 2 of 6 moved in each arm | **worst 0, 0 of 4 in each arm** | **yes** |
+| **D2** complexity | **worst 0, 0 of 6 in each arm** | **worst 0, 0 of 4 in each arm** | **yes** |
+| **D3** modularity | **worst 0, 0 of 6 in each arm** | **worst 0, 0 of 4 in each arm** | **yes** |
+| **D4** behavior preservation | worst 1 | **worst 2 in BOTH arms** | **NO** |
+| **D5** honesty | worst 1 | **worst 2 in the v2 arm** | **NO** |
+
+**D4 on arm A, four independent pairs of same-family blind judges,
+byte-identical code: `2 / 2` → `4 / 4` → `3 / 4` → `4 / 4`.** A two-point range
+with no artifact underneath it. Do not read a D4 movement in this file as a
+result.
+
+**D2 and D3 moved zero points on all 60 judge-scores** — two judge pairs, two
+card versions, three artifacts, two sealed baselines, not one point in either
+direction. `ports-as-adapters` rested its headline on D3 and that decision is
+now vindicated by measurement rather than by argument: `4 / 2 / 1` across the
+three artifacts has been produced by four independent pairs of judges, two of
+whom executed the swap themselves and two of whom did not.
+
+**D1 has joined them.** It moved zero against EVAL-RERUN in both arms, and the
+two 1-point movements against PA-06 are both PA-06's pass-1 judge giving a 4
+where every other judge in three rounds gave a 3. **This file's own list says
+"D1 crossing 3 on any example — this has never happened"; PA-06 recorded it
+happening, and it has not replicated.**
+
+## The card changed, and the change is recorded rather than assumed
+
+`scorecard_version 2`. The anchors are byte-unchanged and the rubric declares an
+anchors-only digest for both versions that `score_tools.py check` recomputes, so
+"keep the old anchors" is a machine statement. What is new is that **what the
+judge DID is a required field**: `judging_practice.executed_own_faults` and
+`what_was_run`. `false` is legal and is recorded as `PACKET-ONLY`; the one
+consequence is that **D4 = 4 is not awardable when it says `false`**, which is
+D4's own anchor text made checkable.
+
+**One of FI-03's v1 judges wrote, in its own REJECTED section, that it had
+declined to seed any fault — and awarded `D4 = 4` on all three artifacts
+anyway.** Under version 2 that card is rejected by `check`. The gate is not
+hypothetical and it was not invented for the ticket.
+
+### And the practice diagnosis is confirmed rather than repeated
+
+`PA-06-DF-06` said the movement tracks judging practice. It could not test that,
+because nothing recorded the practice. FI-03 recorded it:
+
+| round | arm A D4 | practice |
+|---|---|---|
+| EVAL-RERUN | `2 / 2` | unrecorded |
+| PA-06 | `4 / 4` | both judges executed — disclosed in prose |
+| FI-03 **v1** | `3 / 4` | both judges packet-only — disclosed in prose |
+| FI-03 **v2** | `4 / 4` | both judges executed — **recorded on the card** |
+
+**The arm whose recorded practice matches PA-06's is the arm whose numbers match
+PA-06's**: 5 dimension-points of total movement against the packet-only arm's 9,
+on the same artifacts, on the same day, from the same model. And **FI-03's v2
+pass-2 judge reproduced PA-06's sealed pass-2 row exactly — 15 of 15
+dimension-scores across all three artifacts.**
+
+**D5 does not fit that story, and it is a separate problem.** Both v2 judges
+executed their own faults and still split 3 against 4 on the same artifact, over
+whether an artifact's own disclosure of a limitation counts as *a result
+unflattering to the thing being scored*. **D4's instability was an unrecorded
+practice and now has a mechanism; D5's is an ambiguous anchor and has none.**
+Rewriting D5's anchor 4 would put a second discontinuity into the same version
+bump, on a dimension that was not this ticket's subject. Not done, and named.
+
+**The discontinuity of the version bump itself: 4 dimension-points over 30
+judge-scores, worst 1 per judge**, measured by re-scoring the same three
+artifacts under both versions on the same day. That is what the card's change
+rule asks for, and it is the first time it has been done.
+
+**What none of this buys.** Recording the practice explains the instability; it
+does not remove it, and it cannot remove it backwards. Every movement from a
+version 1 row has one end that never said what its judge did, which is why R-H5
+marks all of them `readable = false` permanently. **The card becomes able to
+carry a D4 delta only between two version 2 rounds, and exactly one version 2
+round exists.**
+
+### What the judges produced that nobody asked for — the ratio, again
+
+For the fifth round running the REJECTED question outperformed everything else.
+Four judges, **zero** findings from re-running any suite, and:
+
+- a judge that would have scored `W` D4 = 4 off the packet and **ran a
+  cross-aspect fault that `W`'s own eleven cases reported `11 passed` under**,
+  and lowered the score — D4's anchor 4 doing exactly what it says;
+- an independent replication of EVAL-RERUN's degeneracy finding: `U`'s flagship
+  400-command sweep, replayed on its own seed, accepts **1 reserve, 1 commit, 0
+  releases and 3 closes**, so the single COMMIT line it writes is
+  `COMMIT acme 7 7` and a transposition is structurally invisible to it;
+- three of four judges independently reporting that `artifact_U/EVIDENCE.md` and
+  `artifact_W/EVIDENCE.md` differ in exactly two lines, both header;
+- all four reporting the same `NOTES.md` blinding leak — **four rounds, the same
+  disclosure, no fix**;
+- a self-contradicting control block in all three sealed packets
+  (`FI-03-DF-03`).
+
+## Five things that go against all of the above
+
+1. **The v1 arm is not a replication of the card PA-06's judges held, and the
+   digest says it is.** The rubric gained the "Known instability" section
+   *after* PA-06 scored, and the parsed digest is identical across that change —
+   `sha256:e33638087c4191da` on both sides — because it covers the anchors and
+   the numbered rules and no prose. **Both v1 judges cited that section as their
+   reason for not executing.** Part of the stability above was bought by a
+   paragraph the digest cannot see, and **any comparison treating the v1 arm as
+   a replication is comparing two different rubrics under one hash.**
+   `FI-03-DF-02`.
+2. **No round before this one preserved its judge prompt**, so every movement
+   here carries an unmeasurable component: the difference between PA-06's
+   dispatch and FI-03's reconstruction of it from `UNBLINDING.md`'s prose. The
+   artifact is verified byte-identical; the instruction is not, and cannot be.
+   `FI-03-DF-01`. FI-03's own prompts are committed, which is the first time.
+3. **Twelve cards, one model family.** Agreement between two `claude-opus-5[1m]`
+   judges reading the same anchors is weaker evidence than it looks, for the
+   fourth round running. The exact reproduction of PA-06's pass-2 row is the
+   strongest result above **and** the strongest illustration of this objection.
+4. **The repository was modified while blind judges were reading it.** FI-03
+   edited this file and `INSTRUMENT-LOG.toml` during the v2 pass, and the v2
+   pass-2 judge noticed and reported it unprompted. Neither file is a scored
+   artifact and both were on its forbidden list, so nothing it scored moved —
+   but a measurement should not have a moving floor and this one did.
+5. **One accidental read, self-disclosed.** The v2 pass-1 judge chose a scratch
+   filename already occupied by a leftover script from the v1 round and read
+   fifteen lines of it before stopping and renaming. It saw no score and no
+   label, but it learned that a v1 round existed. Recorded, not re-run.
+
+---
+
+# FI-06 — falsifiable-instruments, the evaluation (2026-08-06)
+
+Full record: `specs/results/scorecards/falsifiable-instruments/RESULTS.md`, with
+`channels/ADVERSARIAL.md`, three per-goal RESULT files and the measure artifacts
+beside it. Measured on the integrated epic tip `30d033e` from a worktree at
+`6c05d22`. **Suite: 1335 passed, 0 failed.** **FI-06 fixed nothing; it filed
+twelve findings.**
+
+**READ `FI-06-DF-04` BEFORE QUOTING ANY D2 OR D3 NUMBER FROM THE FI-03 SECTION
+ABOVE.** The rubric FI-03's four judges were instructed to read contained, at
+`51fe73d:361` and `:376`, the statement *"D2 and D3 are the dimensions that have
+held still on unchanged input"* and a table of the prior sealed scores. PA-06's
+judges did not have it (`git show 930fa57:references/eval_scorecard.md | grep -c
+"held still on unchanged input"` → **0**). *"Four independent pairs"* is **two
+uncontaminated pairs and two that were shown the conclusion.**
+
+## The goals
+
+| goal | baseline | measured | target | verdict |
+|---|---|---|---|---|
+| `GOAL-instruments-can-fail` | roughly 0 of ~9 | **26 of 35** as the harness reports it; **at most ~11 of ~43** once the enumeration is swept and the demonstrations attacked. 12 demonstrated blind spots, 0 reproduction failures | no target on the ratio; **"nothing is silently omitted"** | **`missed`** — on the only clause it targets |
+| `GOAL-scorecard-carries-a-delta` | 4 dimension-points on byte-identical trees | max **1** vs the adjacent sealed row; max **2** vs the row before it, on D4 and D5 | at most 1 per judge, every dimension | **`missed`** |
+| `GOAL-fixture-can-diverge` | NULL ENTAILED (64/64, 88/88) | metric retired with reasoning **and** one divergence demonstrated, re-derived byte-identically and re-run from a regenerated corpus with zero cells moved | a demonstrated divergence **or** an explicit retirement | **`met`**, narrowly |
+
+**No target was edited. No number was re-run until it passed.**
+
+## THREE ROWS THAT MUST STOP BEING CITED, AND ONE THAT SURVIVES
+
+- **D2 — STOP CITING IT AS ANYTHING.** `D2 = 2` on **27 of 27** cards ever
+  written about `ab_quota_ledger`, counting every sealed `.history` snapshot:
+  five rounds, two card versions, three arms, every judge. **It has never taken a
+  second value.** Anchor 3 requires a before/after pair these greenfield
+  artifacts cannot have, and the judges say so in their own rationales. **A
+  dimension that has never moved cannot be shown stable by not moving.** D4 and
+  D5 cannot carry a delta because they are noisy; **D2 cannot because it has no
+  signal**, and this file reports the two as one good-news line. `:1069` already
+  contains the refutation of `:1122` and `:1144`. `FI-06-DF-05`.
+- **`total` — the worst column in this file.** It sums a constant with two
+  dimensions that cannot carry a delta, and it moved **+4 of 20 — 20% of the
+  scale — on byte-identical code**. It is bolded in every table, in a file whose
+  first line is *"The metric is the delta, not the total."*
+- **The `architectural-coherence` baseline table.** Those ten cards were scored
+  at `ab0dfee`, where `references/eval_scorecard.md` **is not in the tree**; they
+  carry no `anchors` block and no `rubric` key. They are not on this card. They
+  are also the only evidence anywhere that D2 is capable of moving.
+- **D3 SURVIVES, and it is the only one.** `4 / 2 / 1`, perfectly discriminating,
+  reproduced across rounds, card versions and judging practices. Attacked on
+  floor/ceiling pinning, coarse anchors, judge-family collapse and artifact size;
+  none held. Two corrections: it was produced by **three** blind pairs, not four
+  (`W` was built at PA-06 and did not exist at EVAL-RERUN), and two of those
+  pairs read a rubric that told them D3 holds still.
+
+**The target is a `max` statistic and cannot detect drift.** The measured
+movement is directional — `8 of 9` negative on one leg, `9 of 9` positive on
+another. Four more rounds of "MET at −1" walks D5 from 4 to 0 with every step
+certified within target. **And MET against one sealed baseline while MISSED
+against another, over the same bytes, means the delta is a property of the pair
+of reading sessions rather than of the pair of artifacts.**
+
+## The instrument count, and why it is not a ratio
+
+**40 enumerated · 5 not-an-instrument · 35 instruments · 26 with a demonstrated
+failing input · 9 without · 12 with a demonstrated blind spot · 0 reproduction
+failures.** The charter's baseline said *"roughly 0 of ~9"*; **the enumeration
+found 35, so this project did not know its own toolchain size to within a factor
+of four.** That is the epic's clearest win.
+
+**The goal's only target is "nothing is silently omitted", and nothing enforces
+it.** `FI-04-DF-04` was filed inside the epic and not closed; it failed three
+more times with the suite fully green. FI-06's adversarial channel found **at
+least eight more omissions**, including `run_arm_swap.py` — shipped by FI-04 in
+the same reconcile as the instrument it registered by hand while writing that
+finding — and `demonstrate.py`, the enumerator itself. One of the eight,
+`scripts/extract_spec_manifest.py`, is **red on the shipped tree right now**.
+
+**And the numerator is a ceiling.** All **twelve** `kind = "pytest"` failing
+slots declare `expect_exit = 0` and nothing else, so a wholly **skipped** test
+reports `ok` — the `R-H5` staleness failure generalised (`FI-06-DF-02`). Two rows
+have `failing.nodes == passing.nodes` and no seeded break at all
+(`FI-06-DF-03`).
+
+## Findings by channel — **0 : 16 : 1 : 1 : 12**
+
+| channel | findings |
+|---|---|
+| suite re-run | **0** |
+| the building ticket auditing its own instrument | **16** |
+| blind judge asked what it REJECTED | 1 |
+| blind judges' unprompted disclosure | 1 |
+| fresh adversarial attack (FI-06, four parallel agents) | **12** |
+| **total** | **30** |
+
+**Stated as a result: all thirty came from asking an agent what its own
+instrument cannot report, or from telling one to attack. The suite produced
+ZERO** — for the fifth round in six — **and it was green throughout, while three
+instruments were missing from the enumeration, twelve demonstrations could report
+`ok` for a test that never ran, and one shipped validator was red on the
+repository's own model.**
+
+The predecessor ran **1 : 12 : 4 : 2**. **The new channel is this epic's real
+methodological product**: *build the instrument, then ask what it cannot report*
+produced 16 of 30, is cheaper than an adversarial agent, and found the structural
+defects. The adversarial channel found the ones the builder could not see because
+they were about the builder's own frame.
+
+## AGAINST THE "EVIDENCE WE ARE FOOLING OURSELVES" LIST
+
+**"Every prediction passing."** — **TRUE ON ONE CHANNEL AND REPORTED AS TRUE.**
+FI-04's eight sealed predictions are **8 of 8**, and four of the four negatives
+are structurally unfalsifiable: one is a determinism check wearing an
+architecture check's label, one is entailed by four lines of arm B's source, and
+two are decided by literals FI-04 typed. Not true of the epic as a whole — two
+goals missed and the generator answer moved twice in opposite directions.
+
+**"Findings arriving only from the suite."** — **FALSE, and the inverse is now
+the standing alarm.** Zero of thirty.
+
+**"A score moving without an artifact moving."** — **TRUE, and worse than this
+file records.** Five separate demonstrations on trees verified byte-identical at
+the tree-object level: EVAL-RERUN→PA-06 (+13/20), PA-06→v1 (−7/30), PA-06→v2
+(−5/30), EVAL-RERUN→v2 (+8/20), and the version bump (4/30). This file marks it
+as having happened once.
+
+**"A withheld case passing that its siblings failed."** — **DID NOT ARISE.**
+FI-06 fixed nothing, by rule.
+
+**A FIFTH ITEM BELONGS ON THIS LIST AND IS CURRENTLY TRUE: a judge being handed
+the result before scoring.** `FI-06-DF-04`. Proposed rather than added, because
+the list is the ledger's.
+
+## Does anything we generate beat a hand-written suite yet? — the answer moved twice
+
+The epic opened citing *"the generated corpus is still worse than a suite a
+competent engineer writes in an afternoon"*; the owner **overturned** it mid-epic
+on blind-authored catalogues; **and FI-06 found a second blind-authored catalogue
+on which the suite strictly dominates.**
+
+`specs/results/scorecards/hexagonal-prompting/GOAL-catch-bugs/kill-table-blind-author-arm-{a,b}.json`
+— same channel, same protocol, sealed since `1a2b65f`:
+
+```
+blind-HP06 / arm A   13 rows   generated union 8   suite 9   generated-only []   SUITE STRICTLY DOMINATES
+blind-HP06 / arm B   14 rows   generated union 8   suite 9   generated-only []   SUITE STRICTLY DOMINATES
+```
+
+**And it is the same fault class.** `BA-A10` (`id_allocation`) is SURVIVED by
+every column including the suite. `BA-P11`, the one kill that saves the
+generator, is the same semantic drawn by a different blind author.
+**`QuotaLedger.cfg:8` declares `ResIds = {r1, r2}` and `holder'` is assigned at
+exactly one place, so no behaviour of this model contains more than two
+`Reserve` actions.** `BA-P11` reuses an id at allocation **#2** — inside the
+ceiling. `BA-A10` at **#4** — outside it. `oracle.py:86-101` already defines
+`STATE_NOT_EXPRESSIBLE` for this and counts **266 of 294** skips against it, on
+every run, for three epics. `FI-06-DF-07`, `FI-06-DF-08`.
+
+> **The repository holds two blind draws of one fault class and they disagree
+> completely. n is 2, not 1, and the error bar is bigger than the effect.**
+
+**Also true and unchanged: no generated instrument has a unique kill on ANY
+catalogue, blind ones included.** The suite is the only column anywhere with one.
+No single generated column has ever matched the suite; the tie is six-against-one.
+`map-checking ∪ corpus-neg` exactly equals the entire generated union on every
+table — **four of six columns have never earned a cell.**
+
+**Funding, committed to.** `corpus-neg` (the `modular-fuzzing` purchase): zero
+unique kills anywhere, and every kill it has is inside the suite's set.
+`corpus-port*` (the `ports-as-adapters` purchase): zero unique kills anywhere,
+strictly dominated on its own home fixture, **absent from every blind table**,
+and the only family that returns a wrong verdict on a declared positive control.
+**The two mechanisms the last two epics bought contribute zero to the one
+comparison that controls for authorship.** Defund the `[ports.*]` binding
+machinery. Fund exactly one thing next: the blind-author experiment with the
+constants enlarged and the port columns included.
+
+## The claim this epic carried forward and did not check
+
+`FALSIFIABLE-INSTRUMENTS-EPIC.md:94-98` restates, under *"Established, and worth
+building on"*, that arm C was *"a length-matched control … with no architectural
+vocabulary"* and that *"the predecessor's 6.6× confound is retired"*. Measured at
+the tip against the bytes the epic itself now preserves as dispatched:
+**1.181 (+18.1%), outside the declared ±10% tolerance, with 4 of 124 unique lines
+carrying architectural vocabulary including the epic's own name** — and
+`check_catalogue.py` goes `CATALOGUE INTEGRITY FAILED` saying *"if it asks for
+structure it is a second treatment and the confound is not settled."*
+
+`PA-06` measured this honestly and filed `PA-06-DF-10`; the retraction is at
+`ports-as-adapters/RESULTS.md:121-125`. **It is in the sealed record and in
+neither document that hands the result forward.** The D3 result survives — 1/1
+against 4/4 is far outside what either defect accounts for. The tolerance claim
+and the "0 of 109" do not. `FI-06-DF-06`.
+
+## Did this epic make the numbers mean more? — yes, and less than it reports
+
+**More:** thirty-five instruments are named and twelve carry a written,
+re-runnable statement of what they cannot see, six of them failing toward green.
+The scorecard's delta question is answered rather than assumed, and the answer
+subtracts three dimensions and the total from what this file claimed. The
+generator question has an error bar for the first time.
+
+**Less:** **every count this epic produced is a count over a set nothing
+enforces.** The goal's only target is *"nothing is silently omitted"* and the
+mechanism that would meet it was never built. A number whose denominator has no
+lower bound and whose numerator has no upper bound is not more meaningful than no
+number — **it is a number with a false precision the previous rounds did not
+have.**
+
+**And the epic did to itself, twice, what it was written to stop.** Its charter
+restated as settled fact two claims the sealed record had already retracted — the
+generator sentence (§2, corrected by the owner mid-epic) and the arm C
+length-match (§3, still uncorrected). **The document that exists to warn against
+reading a row forward without checking it contains two rows read forward without
+checking.** The mechanisms are better and the reading discipline is not, and the
+reading discipline is what every one of these failures has been.

@@ -43,6 +43,38 @@ The descriptor measures a **model**, not a Python tree. If the artifact under
 construction has no model, there is no before-and-after to take, and saying so
 is better than substituting a proxy metric.
 
+## The other descriptor, and the prompt that reads it (FI-05)
+
+The command above reads TLA+. Every A/B this project has run produces
+**Python**, and `scripts/code_complexity.py` is the instrument for that:
+
+```bash
+python3 scripts/code_complexity.py <tree>            # the table
+python3 scripts/code_complexity.py <tree> --json     # goes in mechanical.json
+```
+
+**It is dispatched AFTER the tree exists, as a separate ask, and never as part
+of the block below.** `prompts/produced_code_reading.md` is that ask: it hands
+the figures to the agent that wrote the tree and asks it to **read** them —
+where the outside world ended up, what sits beside it, what the instrument
+undercounted, and which figure was a surprise. It asks for no score and no
+delta, and `references/complexity_intuition.md` §"Reading it" is the longer
+form of why.
+
+Two reasons it is a second dispatch rather than a paragraph inside the ask:
+
+- The section below says *"not one number appears in the ask"*, and that is
+  still true. Putting figures in front of an author **before** they write is how
+  a thermometer becomes a target; there is nothing to read before there is code.
+- Editing the ask block moves a sealed number in a live experiment. See the
+  PA-03 note under "The additional ask".
+
+Same standing rules as the model descriptor, and two more that are asserted by
+tests rather than promised here: the produced-code instrument **exits 0 on every
+input** including one it cannot parse, and **nothing in this toolchain reads its
+output as a condition** — there is deliberately no script that runs it and
+renders the prompt, because that script would be the first consumer.
+
 ---
 
 ## The ask

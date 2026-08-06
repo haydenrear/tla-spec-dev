@@ -1,0 +1,146 @@
+{
+  "scorecard_version": 1,
+  "status": "filled",
+  "epic": "falsifiable-instruments-rescore-v1",
+  "example": "ab_quota_ledger",
+  "run_id": "20260806-v1-T-p1",
+  "arm": "T",
+  "commit": "51fe73d",
+  "judge": {
+    "model": "claude-opus-5[1m]",
+    "pass": 1,
+    "blind_to_arm": true
+  },
+  "rubric": {
+    "source": "references/eval_scorecard.md",
+    "digest": "sha256:e33638087c4191da",
+    "scoring_rules": [
+      "**Score artifacts, never claims.** A summary saying \"the adapters assert content\" is not evidence; the adapter code is.",
+      "**Every score \u2265 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
+      "**Every score of 4 additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.",
+      "**Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.",
+      "**Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.",
+      "**Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.",
+      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree \u2014 and a disagreement is a finding."
+    ]
+  },
+  "how_to_fill": [
+    "Score the LOWEST anchor the artifact fully satisfies. Torn between two: take the lower and say why.",
+    "Set `status` to \"filled\", `commit` to the sha the artifacts were scored at, and name your model in `judge.model`.",
+    "`total` is the sum of the five scores; the schema check recomputes it.",
+    "Leave `anchors` as scaffolded. They are read from the rubric so the bar and the score live in one file; editing them here forks the rubric silently, which is the drift this scaffold exists to remove."
+  ],
+  "dimensions": {
+    "D1": {
+      "name": "bug detection",
+      "question": "Do the model-derived cases and their adapters *catch* seeded faults \u2014 especially the hard classes?",
+      "anchors": {
+        "0": "Cases exist and pass; no seeded fault is caught. A suite that is green on broken code.",
+        "1": "Catches faults that change a value the projection already prints. Misses everything requiring a content assertion.",
+        "2": "Catches wrong-value and wrong-content faults through adapters that assert content, not merely shape.",
+        "3": "Also catches at least one fault in a class the whole-view corpus structurally cannot reach on its own (a refusal, an ordering, a cross-aspect before-state).",
+        "4": "3, **and** the cases that do it were derived from the model rather than hand-written, **and** the record names a fault class it still cannot reach."
+      },
+      "score": 3,
+      "citations": [
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:74",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:111-119",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:196-217",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:283-293",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:180-187"
+      ],
+      "rationale": "Anchor 2 is met on a measured cell rather than an assertion: M04-durable-stale-total SURVIVED `map-silent` and was KILLED by `map-checking` (EVIDENCE.md:74) -- same corpus, same artifact, the only difference being an effect provider that asserts durable content rather than shape. Anchor 3 is met by the refusal class: `guard_relaxation` is 0 of 3 for `corpus-whole` and 3 of 3 for `corpus-neg` (EVIDENCE.md:111-119), which is exactly the anchor's 'class the whole-view corpus structurally cannot reach on its own'. Anchor 4 withheld on two grounds and rule 5 applied. First, the instrument that carries anchor 3 has no green positive control here: M07 must be KILLED, and `corpus-neg` is recorded as insensitive -- it killed the control 'while executing none of the cases its own declared limitation says it needs' (EVIDENCE.md:196-217) -- while all three port-binding columns SURVIVED that same deliberate break after each executed 294 accepting `Reserve` cases (EVIDENCE.md:283-293). Second, this artifact's own 53-case suite never appears in the kill table; the `suite` column is the shared behavioral file, identical for every artifact, so no cell in the table is about this artifact's own detection. Disagreement with the mechanical evidence, recorded rather than split: the table read literally would support a 4, and I decline it because the control that would let a zero be told from a broken instrument is red. Executability is cited (EVIDENCE.md:180-187) so the kills above are read beside 3734 executed cases and 0 failures on unmutated code, not beside a blank.",
+      "refuses_to_claim": null
+    },
+    "D2": {
+      "name": "complexity",
+      "question": "Is the design as simple as its behavior requires, and no simpler?",
+      "anchors": {
+        "0": "Complexity is unmeasured, or measured and ignored.",
+        "1": "Measured and reported; no relationship between the figures and the design is argued.",
+        "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
+        "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded.",
+        "4": "3, **and** the simplification is shown to be behavior-preserving (D4 \u2265 3), so the reduction is not paid for in lost behavior."
+      },
+      "score": 2,
+      "citations": [
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/quota_ledger/domain.py:118-120",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/quota_ledger/domain.py:88-104",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:324-342",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:78",
+        "examples/validation/ab/FEATURE.md:113-122"
+      ],
+      "rationale": "Anchor 2 is met on the design. `available` has no writers at all -- it is `quota - held - committed`, computed on each call (domain.py:118-120) -- so R1 has no maintenance sites that can drift, and the three fields that are written have one writing command apiece (domain.py:88-104): `_outstanding` by reserve/commit/release, `_committed` by commit alone, `_closed` by close_tenant alone. There is no god-state and no variable written from everywhere. The block corroborates the shape rather than the size: `module_state` 0, `max_depth` 1, and 1 branch point and 1 instance-state item in the effectful module against 10 and 8 for the next artifact (EVIDENCE.md:324-342). One measured corroboration that the structure is essential rather than decorative: two of the eleven seeded faults had to be seeded by `addition` on this artifact rather than `perturbation` because 'the fault has no one-token form in this design' (EVIDENCE.md:78) -- a design that does not store `available` has no statement in which 'commit refunds the hold' can be written. Anchor 3 refused: a simplification was made but no before figure for it exists anywhere in the record, and the mechanical block is a three-way comparison of different artifacts, not this artifact's before and after. Recorded disagreement with the block: on raw size this is the LARGEST of the three (202 code lines, 4 modules, public_surface 25, against 78/1/11) and I score it at the same anchor as the smallest, because FEATURE.md:113-122 declares the interface-vs-direct choice unspecified and instructs a judge not to read a difference there as a defect. Prose: this NOTES is the most persuasive of the three and it tempted me toward a 3; the anchor asks for recorded before and after figures and there are none, so the argument did not buy the point.",
+      "refuses_to_claim": null,
+      "read_first": "Read the measured descriptor first (variables, actions, state-space bound, R/W density, modularity, dense rows). Then judge whether the numbers reflect essential behavior or accidental structure.",
+      "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 or more requires the judge to say *what got simpler and how the behavior survived it*."
+    },
+    "D3": {
+      "name": "modularity",
+      "question": "Is it ports and adapters in fact \u2014 domain independent of I/O, adapters swappable?",
+      "anchors": {
+        "0": "No boundary is discernible; state is written from everywhere.",
+        "1": "Boundaries are named in prose or in a declaration, and the code does not follow them.",
+        "2": "The code follows the declared boundaries. Cross-boundary calls go through something identifiable as a port.",
+        "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
+        "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
+      },
+      "score": 4,
+      "citations": [
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/quota_ledger/domain.py:22-43",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/quota_ledger/__init__.py:37-39",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/tests/test_ledger.py:26-36",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/tests/test_ledger.py:260-270",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:168"
+      ],
+      "rationale": "Anchor 3 is met in code, not by declaration. The domain names its one outside need as a Protocol in its own vocabulary and never constructs one (domain.py:22-43); the swap is a single expression in the only module allowed to know both sides -- replace `FileJournal(ledger_path)` with `InMemoryJournal()` at __init__.py:39 -- and no domain file changes. The rubric's caveat that import topology is not modularity is answered by RUNTIME evidence, not by the AST check at test_ledger.py:260-270: in the port-binding table `corpus-port-swap:fake` and `corpus-port-swap:real` return DIFFERENT verdicts on M09 (EVIDENCE.md:168), which is only possible if the fake binding actually called a different implementation at run time. That single cell is also the only place in any of the three packets where a fake column differs from its real column, and the packet states that an artifact shipping no second implementation has its fake column run the real one. Anchor 4 is met at test_ledger.py:26-36: one parametrized fixture wires the same case list to FileJournal and to InMemoryJournal, and every case asserts a literal expected transcript rather than that the two wirings agree with each other -- the trap the file's own docstring names. I nearly held at 3 on the ground that the fake was written by the same author as the port and could have been shaped to fit it; I rejected that because what must survive the swap is the CASE list, and it does, unchanged and asserting values.",
+      "refuses_to_claim": "That every one of its cases runs against both implementations: specs/results/scorecards/ports-as-adapters/blind/artifact_T/NOTES.md:96-100 records two file-specific tests that sit OUTSIDE the two-wiring case list because they are about the file rather than the rules. It separately refuses to claim R2 survives a failed durable write -- specs/results/scorecards/ports-as-adapters/blind/artifact_T/NOTES.md:136-141 states that commit updates memory before appending, that there is no rollback and no write-ahead ordering, and names this as the one place where R2 is not enforced by construction.",
+      "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
+    },
+    "D4": {
+      "name": "behavior preservation",
+      "question": "Does the simpler design still do everything the baseline did?",
+      "anchors": {
+        "0": "Behavior changed and nobody checked.",
+        "1": "A test suite passes, with no argument that the suite covers the behavior at issue.",
+        "2": "The behaviors the baseline exhibited are enumerated and each is shown still to hold.",
+        "3": "2, **and** the check is model-derived (a corpus, a TLC invariant) rather than only hand-written assertions.",
+        "4": "3, **and** a deliberate behavior-breaking change is shown to be *caught* \u2014 the check is demonstrated to be capable of failing."
+      },
+      "score": 3,
+      "citations": [
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:180-187",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:62",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/NOTES.md:74-79",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/tests/test_ledger.py:108-114",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:283-293"
+      ],
+      "rationale": "Anchor 2: the behavior most at risk from this artifact's one simplification -- 'committing does not give the hold back' -- is enumerated and asserted BY VALUE on both wirings (tests/test_ledger.py:108-114), and NOTES.md:74-79 makes the MF-020 argument explicitly, calling the change a derivation rather than a deletion and naming the two cases that hold the behavior. The enumeration lives in the case list rather than in prose, which I accept as an enumeration. Anchor 3: the check is model-derived and not only hand-written -- the shared corpus executed 3734 of 43128 emitted cases with 0 failures on unmutated code (EVIDENCE.md:180-187) and the shared suite passed 28 (EVIDENCE.md:62). Anchor 4 withheld, torn 3/4 and taking the lower: the demonstration that a check can fail is carried entirely by the shared instrument -- this artifact's own 53 cases were never mutated -- and the demonstration is provably partial, since the deliberate break M07 SURVIVED all three port-binding columns after each executed 294 accepting `Reserve` cases (EVIDENCE.md:283-293). A break that a column fails to catch is not a demonstration that the column can fail.",
+      "refuses_to_claim": null
+    },
+    "D5": {
+      "name": "honesty",
+      "question": "Does the artifact refuse rather than falsely certify, and name what it cannot see?",
+      "anchors": {
+        "0": "Claims a clean it cannot support.",
+        "1": "Reports results without stating what was not measured.",
+        "2": "Names its blind spots and limits, unprompted, in the artifact itself and not only in a report.",
+        "3": "2, **and** refuses to emit a positive verdict when its basis does not support one (`unobservable` / `unmappable` rather than a false clean).",
+        "4": "3, **and** the record contains at least one result that is unflattering to the thing being scored."
+      },
+      "score": 3,
+      "citations": [
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/quota_ledger/memory_journal.py:3-8",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/quota_ledger/file_journal.py:19-23",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/tests/test_ledger.py:5-9",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/NOTES.md:136-141",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/NOTES.md:149-157"
+      ],
+      "rationale": "Anchor 2 is met in the artifact itself and not only in the report. memory_journal.py:3-8 states, in a shipped module, that the fake exists so that 'the port is a port' is demonstrated by a second implementation 'rather than an assertion in a comment'; file_journal.py:19-23 names the framing the port contract does not carry and says whose job stripping it is; tests/test_ledger.py:5-9 names the vacuity trap -- two wirings of the same domain agree even when the domain is wrong -- and states the file is built to avoid it. Anchor 3: NOTES.md:136-141 declines to claim R2 holds under a failed durable write and names it as the one place R2 is not enforced by construction, rather than reporting R2 clean. Anchor 4 withheld: the record contains no RESULT unflattering to this artifact. Every limit it names arrives with a rationale that neutralises it, the only two figures reported are 28 passed and 53 passed, and NOTES.md:149-157 reports over-compliance with the reading restrictions (it declined a file that was not even on the list). Naming a limit and recording an unflattering result are different acts; this record performs the first thoroughly and the second not at all. Torn 3/4, took the lower.",
+      "refuses_to_claim": null
+    }
+  },
+  "total": 15,
+  "contested": [],
+  "verdict": "The only artifact of the three where a driven port exists in fact -- the domain imports nothing that does I/O, the swap is one expression at quota_ledger/__init__.py:39, and one case list passes against a real and a fake adapter with a run-time cell to prove the fake was really bound -- but every bug-detection number it carries belongs to the shared harness under a red positive control, so read its D3 and ignore its D1 as a ranking."
+}

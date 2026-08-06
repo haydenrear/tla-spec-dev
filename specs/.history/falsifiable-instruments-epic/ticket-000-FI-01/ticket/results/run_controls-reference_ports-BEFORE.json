@@ -1,0 +1,692 @@
+{
+  "actions_with_zero_executed_cases": {
+    "corpus-port": []
+  },
+  "catalogues": [
+    "examples/validation/ab/seeded_faults.toml"
+  ],
+  "control_coverage": {
+    "negative": {
+      "deciding": [
+        "M09-negative-control-ledger-order"
+      ],
+      "declared": [
+        "M09-negative-control-ledger-order"
+      ],
+      "green": true
+    },
+    "positive": {
+      "deciding": [],
+      "declared": [
+        "M07-positive-control-wrong-hold",
+        "PA-M14-positive-control-accepted-hold-too-large"
+      ],
+      "green": false
+    }
+  },
+  "control_verdicts": {
+    "M07-positive-control-wrong-hold": {
+      "green": false,
+      "instruments_decided": [
+        "corpus-port"
+      ],
+      "instruments_not_decidable": [],
+      "instruments_wrong": [
+        "corpus-port"
+      ],
+      "must_be": "KILLED",
+      "role": "positive"
+    },
+    "M09-negative-control-ledger-order": {
+      "green": true,
+      "instruments_decided": [
+        "corpus-port"
+      ],
+      "instruments_not_decidable": [],
+      "instruments_wrong": [],
+      "must_be": "SURVIVED",
+      "role": "negative"
+    },
+    "PA-M14-positive-control-accepted-hold-too-large": {
+      "green": false,
+      "instruments_decided": [
+        "corpus-port"
+      ],
+      "instruments_not_decidable": [],
+      "instruments_wrong": [
+        "corpus-port"
+      ],
+      "must_be": "KILLED",
+      "role": "positive"
+    }
+  },
+  "controls_on_unmutated_code": {
+    "corpus-port": {
+      "cases": 1855,
+      "failures": [],
+      "mapping": "case_adapters.map-none.toml",
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 362,
+          "ran_accepting": 352,
+          "ran_refusing": 10,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 388,
+          "ran_accepting": 384,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 436,
+          "ran_accepting": 432,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 357,
+          "ran_accepting": 294,
+          "ran_refusing": 63,
+          "skipped": 312
+        }
+      },
+      "skipped_by_rule": {
+        "model named a different free id; this API allocates the next one": 28,
+        "refused only by a constraint on `r`, which this API allocates": 18,
+        "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+      },
+      "total_failed": 0,
+      "total_ran": 1543,
+      "total_skipped": 312
+    }
+  },
+  "declared_suppression_keys": {},
+  "evidence": {
+    "M01-guard-zero-amount": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "M02-guard-over-quota": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "M03-guard-close-with-outstanding": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "M04-durable-stale-total": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "M05-durable-close-line-zero-and-swallowed": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "M06-wrong-status-on-release": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "M07-positive-control-wrong-hold": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "M08-cross-aspect-commit-refunds-the-hold": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "M09-negative-control-ledger-order": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "M10-apply-only-double-refund": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "PA-M11-real-adapter-drops-close-lines": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "PA-M12-fake-adapter-drops-close-lines": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "PA-M13-fake-drifts-from-real-on-write": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "PA-M14-positive-control-accepted-hold-too-large": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    }
+  },
+  "instruments": [
+    "corpus-port"
+  ],
+  "label": "FI-01-BASELINE",
+  "limitations_contradicted_by_evidence": [],
+  "limitations_rejected": [],
+  "mutants": 14,
+  "per_class": {
+    "adapter_internal": {
+      "corpus-port": "0 of 3"
+    },
+    "cross_aspect": {
+      "corpus-port": "0 of 1"
+    },
+    "durable_content": {
+      "corpus-port": "0 of 2"
+    },
+    "guard_relaxation": {
+      "corpus-port": "0 of 3"
+    },
+    "ordering": {
+      "corpus-port": "0 of 1"
+    },
+    "output_oracle": {
+      "corpus-port": "0 of 1"
+    },
+    "wrong_value": {
+      "corpus-port": "0 of 3"
+    }
+  },
+  "per_mutant": {
+    "M01-guard-zero-amount": {
+      "corpus-port": "SURVIVED"
+    },
+    "M02-guard-over-quota": {
+      "corpus-port": "SURVIVED"
+    },
+    "M03-guard-close-with-outstanding": {
+      "corpus-port": "SURVIVED"
+    },
+    "M04-durable-stale-total": {
+      "corpus-port": "SURVIVED"
+    },
+    "M05-durable-close-line-zero-and-swallowed": {
+      "corpus-port": "SURVIVED"
+    },
+    "M06-wrong-status-on-release": {
+      "corpus-port": "SURVIVED"
+    },
+    "M07-positive-control-wrong-hold": {
+      "corpus-port": "SURVIVED"
+    },
+    "M08-cross-aspect-commit-refunds-the-hold": {
+      "corpus-port": "SURVIVED"
+    },
+    "M09-negative-control-ledger-order": {
+      "corpus-port": "SURVIVED"
+    },
+    "M10-apply-only-double-refund": {
+      "corpus-port": "SURVIVED"
+    },
+    "PA-M11-real-adapter-drops-close-lines": {
+      "corpus-port": "SURVIVED"
+    },
+    "PA-M12-fake-adapter-drops-close-lines": {
+      "corpus-port": "SURVIVED"
+    },
+    "PA-M13-fake-drifts-from-real-on-write": {
+      "corpus-port": "SURVIVED"
+    },
+    "PA-M14-positive-control-accepted-hold-too-large": {
+      "corpus-port": "SURVIVED"
+    }
+  },
+  "reality_witnesses": {},
+  "retired_controls": {},
+  "tree": "examples/validation/ab"
+}

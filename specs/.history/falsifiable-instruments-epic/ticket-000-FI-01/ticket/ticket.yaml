@@ -1,0 +1,116 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket FI-01",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-01/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-01/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-01/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "A positive control is seeded INSIDE a port's region on every tree that declares a port., \"The probe ships a DEMONSTRATED FAILING INPUT: a deliberately broken control that the probe reports broken.\", \"Any control that cannot be made to work is reported RED, never made green by weakening its assertion.\""
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "FI-02",
+      "FI-03",
+      "FI-04",
+      "FI-05",
+      "FI-06"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "examples/validation/ab/"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/151",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "Two of the five known-unfalsifiable instruments -- the port-scoped positive control and its probe -- become capable of failing. If the probe still cannot fail, the goal's baseline is unchanged and the ticket says so.",
+        "goal": "GOAL-instruments-can-fail",
+        "local_signal": "run the probe against a deliberately broken control and confirm it reports broken"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none on its own -- supplies the in-region control every port-scoped number is currently a floor without",
+        "goal": "GOAL-fixture-can-diverge",
+        "local_signal": "M07/PA-M14 status per arm, reported by running it"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected; must not change what any card records",
+        "goal": "GOAL-scorecard-carries-a-delta",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "FI-01",
+    "implementation_scope": [
+      "examples/validation/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "Goes FIRST AND ALONE, seeded before any measurement runs, because three tickets in a row correctly declined to seed it after seeing their numbers. GOAL-port-reach clause 2 could not be met last epic because no positive control is seeded inside a port's region, so every port-scoped kill number is a FLOOR including the headline. PA-06-DF-07 is blocking and worse: the repaired control is unobservable in one step on three of four trees AND ITS PROBE CANNOT FAIL -- a no-op reports HOLDS. Fixing the control without fixing the probe re-creates the defect. R2 applies: if it cannot be made to work on some tree, REPORT IT RED.",
+    "promotion_order": 10,
+    "promotion_predecessor": null,
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "A positive control inside the port's region, and a probe that can fail",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-01/specs/tickets/FI-01",
+  "ticket_id": "FI-01",
+  "ticket_index": 0,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-01/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-falsifiable-instruments-FI-01/specs/tickets"
+}

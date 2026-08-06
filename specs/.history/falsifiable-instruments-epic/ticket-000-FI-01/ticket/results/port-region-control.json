@@ -1,0 +1,86 @@
+{
+  "label": "FI-01 -- a positive control inside the port's region, measured",
+  "what_this_is": "The RUN, not a description of it. Every number here came out of a command in `commands` below, executed at the commit that added FI-M15 and never re-run selectively. The prediction it scores (`predicted_corpus_port = KILLED`) was committed BEFORE any of it, in `examples/validation/ab/seeded_faults.toml`; the git history carries that ordering.",
+  "corpus": {
+    "package": "<scratch>/specs/corpus-port/spec-unit/quota_port",
+    "emitted": 1855,
+    "port": "ledger.LedgerAppendPort",
+    "region": ["closed", "committed", "ledger"],
+    "note": "The region is the GENERATOR'S OWN, printed by `generate cases --port-cases only`, not restated by hand. It is the reason M07 and PA-M14 cannot be decided by any port-scoped instrument: both land on `available` and on a reservation's amount, and neither is in it."
+  },
+  "commands": {
+    "corpus": "python3 scripts/tla_spec_dev.py --spec-root specs generate cases examples/validation/ab/model/QuotaLedger.tla examples/validation/ab/model/QuotaLedger.cfg --out <scratch>/specs/corpus-port --package quota_port --view internal --negative-cases with-positive --port-cases only",
+    "reference_ports": "python3 specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py --subject reference_ports --cases <scratch>/specs/corpus-port/spec-unit/quota_port --out <out>.json",
+    "arm_b": "QUOTA_LEDGER_BINDING=rerun_arm_b_binding PYTHONPATH=<measure>:<rerun-measure> python3 <measure>/port_corpus_run.py --cases <scratch>/specs/corpus-port/spec-unit/quota_port --tree <copy of arms/arm_b, clean or with FI-M15 applied> --mapping <measure>/case_adapters.arm-b-port.toml --wiring real",
+    "probe": "python3 examples/validation/ab/check_catalogue.py --controls",
+    "probe_arm_b": "python3 examples/validation/ab/check_catalogue.py --controls --tree-root --root specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b --catalogue examples/validation/ab/eval/controls_port_region_arm_b.toml --impl quota_ledger",
+    "demonstration": "python3 examples/validation/ab/check_catalogue.py --demonstrate --catalogue examples/validation/ab/probe_demonstrations.toml"
+  },
+
+  "reference_ports": {
+    "driver": "run_port_swap.py (PA-04's, unmodified; one FRESH INTERPRETER per cell)",
+    "unmutated_control_failed": 0,
+    "FI-M15": {
+      "corpus-port-swap:real": "KILLED",
+      "corpus-port-swap:fake": "KILLED",
+      "corpus-action-bound:real": "KILLED",
+      "corpus-action-bound:fake": "KILLED",
+      "suite-real": "KILLED",
+      "suite-fake": "KILLED",
+      "control_verdict": "GREEN",
+      "witness": "384 accepting Commit case(s) executed per corpus column, 388 ran, 0 failed on unmutated code",
+      "prediction": "predicted_corpus_port = KILLED -- CORRECT"
+    },
+    "PA-M14": {
+      "corpus-port-swap:real": "SURVIVED",
+      "corpus-port-swap:fake": "SURVIVED",
+      "corpus-action-bound:real": "SURVIVED",
+      "corpus-action-bound:fake": "SURVIVED",
+      "suite-real": "KILLED",
+      "suite-fake": "KILLED",
+      "control_verdict": "RED on all four corpus columns, 294 accepting Reserve case(s) executed on each",
+      "probe": "INERT -- nothing moves after ONE accepted reserve either",
+      "note": "REPORTED RED, NOT REPAIRED. The probe's INERT verdict and the corpus's four SURVIVED cells are the same fact measured two ways: PA-M14 needs a second action and every generated case runs one."
+    },
+    "unchanged_by_this_ticket": {
+      "PA-M11": {"corpus-port-swap:real": "KILLED", "corpus-port-swap:fake": "SURVIVED", "suite-real": "KILLED", "suite-fake": "SURVIVED"},
+      "PA-M12": {"corpus-port-swap:real": "SURVIVED", "corpus-port-swap:fake": "KILLED", "suite-real": "SURVIVED", "suite-fake": "KILLED"},
+      "PA-M13": {"corpus-port-swap:real": "SURVIVED", "corpus-port-swap:fake": "SURVIVED", "suite-real": "SURVIVED", "suite-fake": "KILLED"},
+      "note": "Reproduced cell for cell against PA-04's and PA-06's sealed tables. FI-01 added a ROW; it moved no cell. Never quote a count from this run against an earlier one without saying so."
+    }
+  },
+
+  "arm_b": {
+    "driver": "port_corpus_run.py (the shipped subprocess worker run_port_swap uses), one fresh interpreter per state",
+    "why_not_run_port_swap": "run_port_swap reads arm B's catalogues out of specs/results/, which this epic declares out_of_model and FI-01 does not write. The control is declared in examples/validation/ab/eval/controls_port_region_arm_b.toml and applied to a COPY of the sealed tree; the tree itself is byte-identical afterwards and a test asserts it.",
+    "clean": {
+      "corpus-port:real": {"ran": 1543, "failed": 0, "Commit_ran": 388, "Commit_ran_accepting": 384, "failed_Commit": 0}
+    },
+    "FI-M15": {
+      "corpus-port:real": {"ran": 1543, "failed": 384, "Commit_ran": 388, "Commit_ran_accepting": 384, "failed": 384},
+      "verdict": "KILLED",
+      "first_failure": "case_0014_commit__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch: committed: expected {'t1': 1, 't2': 0}, actual {'t1': 2, 't2': 0}",
+      "note": "The failure names `committed`, which is INSIDE the port's declared region. That is the whole claim of this ticket, executed: 384 of 384 accepting Commit cases decide the control."
+    }
+  },
+
+  "probe": {
+    "reference": {"M07": "HOLDS [accept-path-only]"},
+    "reference_ports": {
+      "PA-M14": "INERT [accept-path-only]",
+      "FI-M15": "HOLDS [port-region-commit-path] -- moved: committed, ledger_lines; inside the region: committed, ledger_lines"
+    },
+    "arm_b": {
+      "FI-M15": "HOLDS [port-region-commit-path] -- moved: available, committed, ledger_lines; inside the region: committed, ledger_lines"
+    },
+    "demonstration": {
+      "DEMO-01-noop-is-not-a-control": {"must_report": "INERT", "observed": "INERT"},
+      "DEMO-02-observable-from-construction": {"must_report": "BROKEN", "observed": "BROKEN"},
+      "DEMO-03-observable-outside-the-ports-region": {"must_report": "OUT_OF_REGION", "observed": "OUT_OF_REGION"},
+      "DEMO-04-observable-but-not-in-one-step": {"must_report": "INERT", "observed": "INERT"},
+      "DEMO-05-the-control-that-actually-works": {"must_report": "HOLDS", "observed": "HOLDS"}
+    }
+  },
+
+  "what_this_does_NOT_show": "It does not show that the port machinery catches anything the hand-written suite does not; FI-M15 is killed by every column including both suites, which is what a control in nobody's gap is supposed to do. It does not retract PA-06-DF-09 -- no generated instrument has a unique kill here either. And it does not make any earlier port-scoped number a count rather than a floor: those runs had no deciding positive control and that is a fact about them, not something this ticket can retroactively repair."
+}
