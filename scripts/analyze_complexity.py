@@ -125,9 +125,35 @@ def parse_declaration_block(text: str, keyword: str) -> list[str]:
     collected: list[str] = []
     first = re.sub(rf"^[ \t]*{keyword}S?\b", "", lines[0])
     buffer = [first]
+    def _still_open() -> bool:
+        """Is the declaration syntactically unfinished?
+
+        TLA+ separates declared names with commas, so content ending in a comma
+        PROMISES another name. A blank line cannot be the end of the block while
+        that promise is outstanding.
+
+        This is what a wrapped comment looks like after `strip_comments`:
+
+            CONSTANTS
+              Orchestrator,    \\* the control-plane principal that
+                               \\* OWNS the kickoff streams
+              TracerConfigured,\\* ...
+              Branched         \\* ...
+
+        The continuation line is pure comment, so stripping it leaves a blank
+        line in the MIDDLE of the declaration. Breaking there silently dropped
+        every name below it -- and the caller then reported the loss as
+        "<config>.cfg assigns CONSTANT X, which <module>.tla does not declare",
+        blaming a correct config for a declaration the parser had given up on.
+        """
+        tail = " ".join(buffer).rstrip()
+        return tail.endswith(",")
+
     for line in lines[1:]:
         stripped = line.strip()
         if not stripped:
+            if _still_open():
+                continue
             if collected or any(part.strip() for part in buffer):
                 break
             continue
