@@ -619,7 +619,7 @@ classification = "demonstrated-can-fail"
 
 [[instrument]]
 id = "scorecard-audit"
-name = "scorecard reading-history audit (R-H1..R-H4)"
+name = "scorecard reading-history audit (R-H1..R-H5)"
 paths = ["examples/validation/scorecards/score_tools.py", "specs/results/scorecards/INSTRUMENT-LOG.toml"]
 family = "measurement"
 watches = "claims whose instrument changed underneath them, sealed cards that were edited, changes whose commit touches none of their declared paths, and reading rules the rubric declares with nothing executing them"
@@ -644,10 +644,18 @@ it is what the failing input below exercises.
     from = "references/eval_scorecard.md"
     to = "eval_scorecard.md"
 
+    # The id here MUST be one `score_tools.AUDIT_CHECKS` does not implement, or
+    # this demonstration silently stops demonstrating anything. It was written
+    # as `R-H5` at FI-02, and FI-03 then PROMOTED the instability caveat to
+    # exactly that id -- so on the merged branch the input went green and the
+    # audit reported no violation. Caught by
+    # `test_every_fast_demonstration_reproduces` on the merge, which is the
+    # check doing its job. Moved up to a free id; keep it ahead of the
+    # implemented ones.
     [[instrument.failing.mutate]]
     file = "eval_scorecard.md"
     find = "## Reading history\n"
-    replace = "## Reading history\n\n### R-H5 — a reading rule with nothing behind it\n\nFI-02's demonstrated failing input for the audit's own meta-check.\n"
+    replace = "## Reading history\n\n### R-H9 — a reading rule with nothing behind it\n\nFI-02's demonstrated failing input for the audit's own meta-check.\n"
 
   [instrument.passing]
   summary = "the rubric as shipped, over the committed ledger"

@@ -2479,3 +2479,239 @@ findings:
       exactly how PA-06-DF-05 surfaced -- from the suite channel, once, in four
       rounds, and it fired at the measuring ticket.
     disposition: open
+  - id: FI-03-DF-01
+    found_by: "FI-03 (reproducing PA-06's judging conditions)"
+    found_at_commit: "51fe73d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/ports-as-adapters/measure/"]
+    summary: >-
+      NO ROUND OF THIS PROJECT HAS EVER PRESERVED THE PROMPT IT DISPATCHED ITS
+      JUDGES WITH, SO NO RE-SCORE CAN SEPARATE A CHANGE OF JUDGEMENT FROM A
+      CHANGE OF DISPATCH.
+
+      `UNBLINDING.md` records what each judge was GIVEN and what each was
+      FORBIDDEN, in prose, and that is genuinely more than the two rounds before
+      it recorded. What no round has is the text. `measure/` holds
+      `make_blind_copies.py` and `build_evidence_packets.py` -- the packet
+      builders -- and no dispatch prompt at all, for HP-06, EVAL-RERUN or PA-06.
+
+      This is load-bearing for the epic's first goal. FI-03 measures cross-round
+      movement on byte-identical trees, and it reconstructed its dispatch from
+      `UNBLINDING.md`'s prose. Every point of movement it reports therefore
+      carries an unmeasurable component: the difference between PA-06's prompt
+      and FI-03's reconstruction of it. The artifact is verified byte-identical;
+      THE INSTRUCTION IS NOT, AND CANNOT BE.
+    reproduction: >-
+      `ls specs/results/scorecards/*/measure/` -- packet builders, no prompt.
+      `grep -rl "You are a blind judge" specs/` before FI-03 -> nothing.
+      FI-03's own dispatch is committed at
+      `specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/JUDGE-DISPATCH-v{1,2}.md`,
+      which is the first one in the repository.
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/UNBLINDING.md -- 'What each judge could and could not see'"
+      - "specs/results/scorecards/ports-as-adapters/measure/"
+      - "specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/JUDGE-DISPATCH-v1.md"
+    why_out_of_scope: >-
+      The missing prompts are PA-06's and EVAL-RERUN's and they no longer exist
+      to commit; nothing FI-03 can write recovers them. Making prompt
+      preservation a REQUIREMENT of the scaffold -- for example, `scaffold`
+      writing a `DISPATCH.md` skeleton beside `UNBLINDING.md` and `check
+      --require-filled` refusing an unfilled one -- is a change to the scaffold's
+      contract and to what a workflow close demands, which is a design decision
+      for the owner and larger than this ticket. FI-03 preserved its own instead.
+    suggested_fix: >-
+      `score_tools.py scaffold` emits `DISPATCH.md` beside `UNBLINDING.md`, and
+      the round fills it with the text it actually sent before dispatching. A
+      round that reconstructs its dispatch afterwards is writing a description,
+      not a record -- which is exactly what `UNBLINDING.md` already is.
+    blast_radius: >-
+      Every cross-round comparison in `SELF-IMPROVEMENT.md`, permanently, for
+      the rounds already sealed. Forward, only until a dispatch is preserved.
+    disposition: open
+  - id: FI-03-DF-02
+    found_by: "FI-03 (both v1 judges cited the section, unprompted)"
+    found_at_commit: "51fe73d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py", "references/eval_scorecard.md"]
+    summary: >-
+      THE RUBRIC DIGEST IS BLIND TO THE PART OF THE RUBRIC THAT MOVED THE JUDGES
+      MOST. IT IS IDENTICAL ACROSS A CHANGE THAT DEMONSTRABLY CHANGED JUDGING
+      BEHAVIOUR.
+
+      `load_rubric` digests `{dimensions, scoring_rules}` and nothing else. The
+      "Known instability of this card" section was added to
+      `references/eval_scorecard.md` at `d3f483d`, AFTER PA-06's judges scored at
+      `8878cd5`. The parsed digest is `sha256:e33638087c4191da` on both sides, so
+      `check`'s drift note -- which exists to stop a card being judged against a
+      bar that has since changed -- reports nothing.
+
+      It is not a hypothetical exposure. **Both** of FI-03's v1 judges named that
+      section, independently and unprompted, as their reason for declining to
+      seed their own faults: "the rubric records that PA-06's inflation came from
+      judges executing breaks themselves. I did not execute one." A paragraph
+      invisible to the digest changed the practice of every judge who read it,
+      which is the single variable this whole ticket is about.
+
+      Note what this does NOT say. The digest is right to exclude prose from the
+      SCAFFOLD-TIME check, because a rubric whose every typo re-scaffolds the
+      round is unusable. What is missing is any record that the file changed at
+      all between two rounds that are being compared.
+    reproduction: >-
+      `git show 8878cd5:references/eval_scorecard.md | grep -c "Known instability"`
+      -> 0. `git show d3f483d:references/eval_scorecard.md | grep -c` -> 1.
+      Load both with `score_tools.load_rubric` and print `digest` -> identical.
+      Then read the two v1 judges' REJECTED sections in
+      `specs/results/scorecards/falsifiable-instruments-rescore-v1/`.
+    evidence:
+      - "references/eval_scorecard.md -- R-H5, formerly 'Known instability of this card'"
+      - "examples/validation/scorecards/score_tools.py -- load_rubric, the digest over {dimensions, scoring_rules}"
+      - "specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/BYTE-IDENTITY.md section 4"
+    why_out_of_scope: >-
+      FI-03 is a measurement and the digest is one of the instruments it is
+      measuring with. Changing what the digest covers mid-ticket would alter the
+      instrument between the v1 and v2 arms of the very comparison being run, and
+      would re-scaffold six cards that judges were already filling. The
+      `measurement_rule` forbids exactly this: file findings, fix nothing during
+      a measurement.
+
+      FI-03 did add an `anchors_digest`, which is a DIFFERENT thing -- it proves
+      the version bump kept the anchors. It does not close this.
+    suggested_fix: >-
+      Record the rubric's whole-file sha256 on every card beside the parsed
+      digest, and have `audit` report two cards being compared whose file digests
+      differ but whose parsed digests agree -- as `PROSE-DRIFT`, an OPEN rather
+      than a violation, since it is a prompt to go and look. The alternative,
+      folding prose into the parsed digest, makes every editorial pass invalidate
+      every skeleton, and would have made `audit` red for a typo.
+    blast_radius: >-
+      Every comparison across `d3f483d`, which is every comparison between
+      `ports-as-adapters` and anything after it -- including FI-03's own v1 arm,
+      whose result must be read with this attached. Also HP-06 vs EVAL-RERUN if
+      the rubric moved between them.
+    disposition: open
+  - id: FI-03-DF-03
+    found_by: "FI-03 blind judge, v1 pass 1 (asked what it REJECTED)"
+    found_at_commit: "51fe73d"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/ports-as-adapters/measure/build_evidence_packets.py"]
+    summary: >-
+      THE EVIDENCE PACKET CONTRADICTS ITSELF ABOUT ITS OWN CONTROLS, ON TWO
+      ADJACENT LINES, IDENTICALLY IN ALL THREE PACKETS.
+
+      `EVIDENCE.md` prints:
+
+        control coverage: {... "positive": {"deciding": [], "declared":
+        ["M07-positive-control-wrong-hold"], "green": false}}
+        polarities with no deciding control: []
+
+      The first line says the positive polarity has NO deciding control. The
+      second says no polarity lacks one. A judge reading the second line and not
+      the first would treat every `SURVIVED` cell in the port-scoped columns as a
+      measurement rather than as the floor PA-06 itself declares it to be.
+
+      A judge caught it and took the conservative reading, and said so in its
+      card. That is the channel working, not the packet working.
+    reproduction: >-
+      `grep -n -A1 '"green": false' specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md`
+      -> lines 263-264. Same at 260-261 in `artifact_U` and `artifact_W`.
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:263-264"
+      - "specs/results/scorecards/ports-as-adapters/blind/artifact_U/EVIDENCE.md:260-261"
+      - "specs/results/scorecards/ports-as-adapters/blind/artifact_W/EVIDENCE.md:260-261"
+    why_out_of_scope: >-
+      The three packets are inside `specs/results/scorecards/ports-as-adapters/`,
+      which is SEALED EVIDENCE that FI-03's own judges scored. Editing them would
+      change the subject of the measurement mid-measurement and break the
+      byte-identity this ticket spent its effort establishing. The producer,
+      `build_evidence_packets.py`, is also outside FI-03's implementation scope.
+    suggested_fix: >-
+      In `build_evidence_packets.py`, derive "polarities with no deciding
+      control" from the same `deciding` lists the line above prints, rather than
+      from a separate computation, and add a test that seeds a polarity with an
+      empty `deciding` and asserts the summary line names it. Correct the sealed
+      packets with a `[[note]]` in `INSTRUMENT-LOG.toml` rather than an edit.
+    blast_radius: >-
+      Any judge of PA-06's or FI-03's rounds who read the summary line instead of
+      the block. Both FI-03 v1 judges independently took the conservative
+      reading; PA-06's judges are not on record either way.
+    disposition: open
+  - id: FI-03-DF-04
+    found_by: "FI-03 (trying to declare its own instrument change and finding it could not)"
+    found_at_commit: "51fe73d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/INSTRUMENT-LOG.toml", "examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      `INSTRUMENT-LOG.toml` CONFLATES TWO DIFFERENT INSTRUMENTS, AND ONE OF THEM
+      HAS NEVER BEEN RECORDED IN IT AT ALL.
+
+      Every one of the eight `[[change]]` entries is a change to the KILL-TABLE
+      instrument -- `run_controls.py`, the corpus columns, the port-swap columns.
+      None is a change to THE SCORECARD, though the card is the instrument every
+      scorecard row is measured on. The rubric gained R-H1..R-H4 at PA-05 and the
+      "Known instability" section at the close of `ports-as-adapters`, and
+      neither is in the log.
+
+      FI-03 bumped `scorecard_version` to 2 and tried to declare it. It cannot,
+      because `affects` scopes a change by EXAMPLE and every row here is
+      `ab_quota_ledger`. Declaring it turns six unrelated `current` claims --
+      `ab-cells-identical-64-pa06`, both `goal-port-reach` clauses,
+      `goal-cases-drive-ports-missed-at-pa06`, `goal-complexity-measurable-met`
+      -- into SUPERSEDED-UNMARKED violations, even though not one of them was
+      measured on the scorecard and not one is capable of being affected by it.
+
+      **So the log's own rule forces a choice between recording a real
+      instrument change and keeping `audit` green** -- and "keeping audit green"
+      is how the last three gates in this project died.
+    reproduction: >-
+      Add a `[[change]]` with `affects = ["ab_quota_ledger"]`, a date after
+      `8878cd5` and `paths = ["references/eval_scorecard.md"]`, then run
+      `python3 examples/validation/scorecards/score_tools.py audit`. Six
+      SUPERSEDED-UNMARKED violations, none of them about the scorecard.
+    evidence:
+      - "specs/results/scorecards/INSTRUMENT-LOG.toml -- all eight [[change]] entries"
+      - "examples/validation/scorecards/score_tools.py -- audit_rh3, the `rel` filter is `affects` only"
+      - "references/eval_scorecard.md -- Version history, the card change FI-03 could not declare"
+    why_out_of_scope: >-
+      The fix is a schema change to the log plus a change to `audit_rh3`'s
+      scoping, in the ticket whose whole job was to MEASURE stability. Changing
+      what `audit` scopes over, mid-measurement, is the `measurement_rule`'s
+      forbidden act. The alternative available to FI-03 -- re-affirming six
+      claims about kill tables it never looked at, in order to make its own
+      paperwork green -- is worse: `reaffirmed_at` is supposed to mean somebody
+      went and looked.
+    suggested_fix: >-
+      Give `[[change]]` an `instrument` field (`kill-table` / `scorecard` /
+      ...), default `kill-table` so nothing already recorded moves, and have
+      `audit_rh3` straddle a claim only against changes to the instrument the
+      claim declares it was measured on. A scorecard-row claim then straddles a
+      card change and a kill-table claim does not, which is what R-H1 means by
+      "an unchanged instrument" in the first place.
+    blast_radius: >-
+      Every scorecard row in this repository is on the far side of at least one
+      unrecorded card change, and nothing says so. FI-03 measured one such
+      crossing directly and it is worth 1 to 2 dimension-points per judge.
+    disposition: open
