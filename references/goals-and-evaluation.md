@@ -53,13 +53,13 @@ own flagship consumer already runs outside it: `tla-spec-dev`'s
 > against real and fake wirings, **scored by two blind judges**
 
 which is a procedure, not a command line. That repository moved to judged
-scoring deliberately and on evidence: *"Every mechanical gate this project
-shipped was defeated cheaply and none of them ever caught a bug... A number
+scoring deliberately and on evidence, and states the reason itself: *"A number
 computed from the artifact can be optimized by editing the artifact. A
 judgement that must cite the artifact can only be satisfied by changing what
-the artifact is."* See `tla-spec-dev/references/eval_scorecard.md`, which is
-the worked example of a judged instrument and the authority on its own rubric,
-storage, sealing, and history rules — this file does not restate them.
+the artifact is"* (`tla-spec-dev/references/eval_scorecard.md`). That file is
+the worked example of a judged instrument and **the sole authority on its own
+dimensions, anchors, scoring rules, judging protocol, storage, sealing and
+history rules**. This file cites it and restates none of them.
 
 So a `harness` is whatever **decides the goal reproducibly and independently of
 the person hoping it passed**. Three shapes all qualify:
@@ -70,13 +70,23 @@ the person hoping it passed**. Three shapes all qualify:
   judges who cite the artifact, blind to arm where arms exist. Write what is
   scored, by how many judges, under which rubric version, and where the
   evidence lands;
-- **a mixed instrument** — a mechanical block recorded beside a judged one, the
-  two read together so a disagreement between them is itself a finding.
+- **a mixed instrument** — measured figures recorded beside a judged score, read
+  together rather than combined. How the two are reconciled is the instrument's
+  rule to state, not this file's.
 
 What is still forbidden is an instrument nobody can execute at all. "The design
-feels cleaner" names no instrument; "scored on the eval scorecard's D3, two
-blind judges" names one, and the fact that a human runs it does not make it
-unfalsifiable.
+feels cleaner" names no instrument; "scored against `<rubric>` version N by two
+blind judges, results under `<evidence_root>`" names one, and the fact that a
+human runs it does not make it unfalsifiable.
+
+**Name the instrument; do not copy it.** Write which rubric, which version, how
+many judges, and where the evidence lands — and then link the rubric. Never
+restate its dimensions, its anchors, its scoring rules or its comparability
+rules here. A rubric's own repository versions those and executes checks over
+them; a copy in this file is covered by nothing and will drift. `tla-spec-dev`
+learned this by measurement: a charter there restated a table of judged results
+and two of its rows were wrong, read forward across a change to the instrument
+before anyone noticed.
 
 ### Not every target is a number
 
