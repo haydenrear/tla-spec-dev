@@ -4626,3 +4626,443 @@ findings:
       machine (26m43s, no anomalous nodes) and none of its cells shows this shape;
       SM-02's run of record shows exactly one, and it is reported rather than
       quietly re-run away.
+
+  - id: SM-04-DF-01
+    found_by: "SM-04 (building the leak detector and pointing it at the shipped cards)"
+    found_at_commit: "0342a3a"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      THE CONTAMINATION WAS IN THE SCAFFOLD, NOT ONLY IN THE RUBRIC FILE, AND
+      EVERY CARD SCAFFOLDED UNDER VERSION 2 CARRIED IT.
+
+      `FI-03-DF-02` and `FI-06-DF-04` both located the leak in
+      `references/eval_scorecard.md` and both suggested the same fix: split the
+      rubric and dispatch only the judge-facing half. NEITHER LOOKED AT
+      `_skeleton_md`. The scaffolded `scorecard.md` -- the file the judge writes
+      into, which they read whether or not they ever open the rubric -- emitted
+      three result-stating lines of its own:
+
+        rule 8's cross-reference, rendered as the link text
+        "r-h5--A-MOVEMENT-IS-A-MEASUREMENT-only-if-the-judging-practice..."
+
+        "> This field exists because two judges re-scored **byte-identical
+         trees** and FOUR DIMENSION-POINTS MOVED."
+
+        "**D1, D4 AND D5 ALL MOVED ON UNCHANGED INPUT; only D4's anchor is
+         gated, because only D4's anchor asks you to run something.**"
+
+      6 of 6 cards scaffolded under version 2 carry all three. So the
+      contamination FI-06-DF-04 scoped to "the rubric the judges were instructed
+      to read" was also present in the one file they could not avoid reading, and
+      a round that had correctly refused to hand out the rubric file would still
+      have handed out the finding.
+
+      The last of the three is the sharpest: it names D5 explicitly as a
+      dimension that moves, and D5 is where FI-03's version 2 judges then split
+      3 against 4.
+    reproduction: >-
+      `grep -c "D1, D4 and D5 all moved on unchanged input"
+      specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/*/scorecard.md`
+      -> 1 on each of six. Then, at any commit from SM-04 forward,
+      `python3 -c "import importlib.util,sys; ..."` loading `score_tools` and
+      calling `result_leaks(open(<that card>).read())`.
+    evidence:
+      - "specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-U-p1/scorecard.md:18,28,30"
+      - "examples/validation/scorecards/score_tools.py -- _skeleton_md at 0342a3a"
+      - "specs/desired_program_model/deferred_findings.yaml -- FI-03-DF-02, FI-06-DF-04"
+    why_out_of_scope: >-
+      NOT out of scope: this is SM-04's own defect 2 and it is repaired here.
+      Filed anyway, because the fix is not the finding -- the finding is that two
+      independent adversarial channels named the right paragraph and the wrong
+      file, and a third would have too. Recorded so the next round does not read
+      "the leak was in the rubric" and stop looking.
+    suggested_fix: >-
+      Done at SM-04. `served_rubric` renders the judge-facing rubric from parsed
+      structure only and `_skeleton_md` embeds those exact bytes, so there is one
+      served surface and `result_leaks` reads all of it. The three lines are gone
+      and `tests/test_score_tools.py::test_the_cards_this_project_actually_dispatched_carried_the_result_they_measured`
+      pins the sealed card as a permanent demonstrated failing input.
+    blast_radius: >-
+      Every version 2 judge-score in the repository: six cards, thirty
+      judge-scores, which is FI-03's entire version 2 arm and therefore half of
+      the v1-to-v2 discontinuity measurement. It does not change FI-06-DF-04's
+      conclusion; it widens it.
+    disposition: repaired
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/168"
+    disposition_note: >-
+      Repaired in SM-04 as part of defect 2. The sealed cards are NOT edited; the
+      correction is that no future card can carry it.
+
+  - id: SM-04-DF-02
+    found_by: "SM-04"
+    found_at_commit: "2098d55"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md", "specs/results/scorecards/SELF-IMPROVEMENT.md"]
+    summary: >-
+      NO CARD WRITTEN BEFORE VERSION 3 CAN EVER SAY WHAT ITS JUDGE WAS SERVED,
+      AND THE LEDGER'S CROSS-ROUND COMPARISONS DO NOT SAY SO.
+
+      `rubric.served_digest` starts at scorecard_version 3. For the 36 cards
+      written under versions 1 and 2, the question "were these two judges served
+      the same bytes" is permanently unanswerable -- the parsed digest they DO
+      carry was `sha256:e33638087c4191da` across six commits and a 2x growth of
+      the rubric file, so it answers a different question.
+
+      This is the same shape as `R-H5`'s `readable = false` for version 1 cards,
+      and like that one it is the CORRECT answer rather than a defect to be
+      cleared. What is missing is that nothing says it. `SELF-IMPROVEMENT.md`
+      and `FI-03`'s `RESULT.md` compare version 1 and version 2 arms and treat
+      "same rubric digest" as "same bar", which for those rounds it is not known
+      to be.
+    reproduction: >-
+      `python3 -c "import json,glob; print(sorted({('served_digest' in
+      (json.load(open(p)).get('rubric') or {})) for p in
+      glob.glob('specs/results/scorecards/**/scorecard.json', recursive=True)}))"`
+      -> every pre-SM-04 card False.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py -- _rubric_block, gated on card_version >= 3"
+      - "references/eval_scorecard.md -- Version history, the FI-06-DF-11(b) note"
+      - "specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/RESULT.md"
+    why_out_of_scope: >-
+      SM-04 fixes what is demonstrably broken and nothing else. Back-filling a
+      served digest onto a sealed card would require deciding what its judge was
+      served, which nobody recorded -- and R-H4 forbids editing a sealed card in
+      any case. The honest move is to state the limit, not to manufacture the
+      number.
+    suggested_fix: >-
+      Say it where the comparisons are made: a cross-round claim whose ends are
+      not both version 3 cannot assert that the two judges read the same bar, and
+      `audit` could report that as an OPEN the way `R-H5` reports an unreadable
+      movement. Do NOT back-fill.
+    blast_radius: >-
+      Every cross-round scorecard comparison in the repository predating SM-04.
+      It does not falsify any of them; it removes one of the grounds they are
+      asserted on.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+    disposition_note: >-
+      Carried to epic/subtract-to-measure SM-05 (#169), the evaluation.
+
+  - id: SM-04-DF-03
+    found_by: "SM-04"
+    found_at_commit: "2098d55"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/", "references/eval_scorecard.md"]
+    summary: >-
+      THE DISPATCH IS THE VECTOR AND NOTHING EXECUTES OVER IT.
+
+      `serve` and `scaffold` now REFUSE to emit a rubric that states a result
+      about the five dimensions. But what a judge is TOLD to read lives in a
+      hand-written `JUDGE-DISPATCH*.md` that no tool parses. FI-03's said
+      "`references/eval_scorecard.md` -- the rubric. Read it." SM-04's says the
+      opposite and puts that file on the forbidden list -- IN PROSE, with nothing
+      behind it.
+
+      So the mechanism shipped at SM-04 covers the bytes the card carries and
+      not the instruction that sends a judge elsewhere. A round can still
+      contaminate its judges in one line of markdown, and the refusal will pass
+      green while it happens.
+
+      This is `R2` applied to SM-04's own instrument: naming the residue is worth
+      more than the appearance of coverage.
+    reproduction: >-
+      `grep -n "eval_scorecard.md"
+      specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/JUDGE-DISPATCH-v2.md`
+      -> line 39, "the rubric. Read it." Nothing in `tests/` or
+      `score_tools.py` reads that file.
+    evidence:
+      - "specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/JUDGE-DISPATCH-v2.md:39"
+      - "specs/results/scorecards/subtract-to-measure/SM-04/JUDGE-DISPATCH.md -- the prose that replaces it"
+      - "examples/validation/scorecards/score_tools.py -- result_leaks, which never sees a dispatch"
+    why_out_of_scope: >-
+      Building a checker over dispatch files is a new instrument, and R1 says an
+      instrument ships with a demonstrated failing input. That is a ticket, not a
+      line. It is also close to the standing rule's boundary: refusing to serve a
+      contaminated card is data hygiene, and a checker that reads a dispatch and
+      refuses is a step toward gating how a round is run.
+    suggested_fix: >-
+      The cheap honest version, if one is wanted: have `scaffold` write the
+      forbidden-reading list into the example directory beside `UNBLINDING.md`,
+      generated rather than hand-written, so a dispatch that contradicts it is
+      contradicted by a file rather than by a reader's memory. Do not make it a
+      refusal.
+    blast_radius: >-
+      Every future round. The version 3 mechanism is necessary and is not
+      sufficient, and this says which half is missing.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+    disposition_note: >-
+      Carried to epic/subtract-to-measure SM-05 (#169), the evaluation.
+
+  - id: SM-04-DF-04
+    found_by: "SM-04 (running its own detector over the whole corpus of cards)"
+    found_at_commit: "2098d55"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      `result_leaks` MUST NEVER BE RUN OVER A FILLED CARD, AND NOTHING STOPS
+      SOMEONE DOING IT.
+
+      Over the 36 `scorecard.md` in the tree it reports 14. Six of those are the
+      SCAFFOLD-EMITTED lines of `SM-04-DF-01`. THE OTHER EIGHT ARE THE JUDGE'S
+      OWN WRITING: "This is the score I moved on most, and rule 5 decided it"
+      (a rationale), and "The rubric's own instability note records that judges
+      who did this moved D4 and D5 by four dimension-points" (a disclosure --
+      which is a judge honestly reporting the contamination, i.e. exactly the
+      material this project most wants written down).
+
+      The detector's contract is SERVED TEXT ONLY, and that contract lives in a
+      docstring. A later ticket wiring it into a close-time card check -- which
+      is a natural-looking thing to do, since `check` already calls
+      `rubric_leak_problems` -- would report a judge's honest disclosure as a
+      violation and teach judges to stop writing them.
+    reproduction: >-
+      Load `score_tools` and run `result_leaks` over every
+      `specs/results/scorecards/**/scorecard.md`: 14 of 36 report, of which 6
+      contain a scaffold-emitted string and 8 do not.
+    evidence:
+      - "specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-W-p1/scorecard.md:123 -- a rationale"
+      - "specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p2/scorecard.md:187 -- a disclosure"
+      - "examples/validation/scorecards/score_tools.py -- result_leaks"
+    why_out_of_scope: >-
+      Fixing it means either narrowing the detector, which weakens the one thing
+      it is for, or adding a guard against a misuse nobody has committed yet.
+      Naming the contract is worth more than either.
+    suggested_fix: >-
+      If it is ever wired into `check`, run it over the SCAFFOLDED REGION only --
+      which is now identifiable, because `served_rubric`'s output is embedded
+      verbatim and its digest is on the card. Never over a judge's Rationale,
+      Verdict or Disclosures.
+    blast_radius: >-
+      None today. The exposure is a future check that punishes the disclosure
+      channel, which has produced more of this project's findings than any other.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+    disposition_note: >-
+      Carried to epic/subtract-to-measure SM-05 (#169), the evaluation.
+
+  - id: SM-04-DF-05
+    found_by: "SM-04"
+    found_at_commit: "0342a3a"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py", "specs/results/scorecards/"]
+    summary: >-
+      EVERY GENERATED `INDEX.md` DECLARES THE WRONG CARD VERSION, BECAUSE
+      `cmd_index` HARDCODED IT.
+
+      `cmd_index` emitted the literal line `scorecard_version 1. See
+      references/eval_scorecard.md.` regardless of the cards below it.
+      `specs/results/scorecards/falsifiable-instruments-rescore-v2/INDEX.md:3`
+      therefore says version 1 over six version 2 cards -- in the round whose
+      entire purpose was measuring the version 1 to version 2 discontinuity.
+
+      It is the same class as everything else this epic keeps finding: a
+      statement copied into a generator, that nothing re-derives, sitting in a
+      file a reader is invited to read "at a glance".
+    reproduction: >-
+      `for f in specs/results/scorecards/*/INDEX.md; do sed -n '3p' $f; done` ->
+      six identical "scorecard_version 1" lines. Then
+      `python3 -c "import json,glob; print({json.load(open(p))['scorecard_version']
+      for p in glob.glob('specs/results/scorecards/falsifiable-instruments-rescore-v2/**/scorecard.json',
+      recursive=True)})"` -> `{2}`.
+    evidence:
+      - "specs/results/scorecards/falsifiable-instruments-rescore-v2/INDEX.md:3"
+      - "examples/validation/scorecards/score_tools.py -- cmd_index at 0342a3a"
+    why_out_of_scope: >-
+      NOT out of scope: it is in the function SM-04's defect 4 had to edit, and
+      leaving a known-false generated line beside the change would be worse than
+      fixing it. Filed because the committed `INDEX.md` files are sealed round
+      evidence and are NOT regenerated -- the stale lines stay, and this is the
+      note beside them.
+    suggested_fix: >-
+      Done: `cmd_index` now reads the versions off the cards it is indexing and
+      prints the set. The already-committed `INDEX.md` files are left as they
+      are, per R-H4.
+    blast_radius: >-
+      Six committed `INDEX.md` files, one of which is materially misleading about
+      the round it indexes.
+    disposition: repaired
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/168"
+    disposition_note: >-
+      Generator repaired in SM-04; the sealed renderings are not edited.
+
+  - id: SM-04-DF-06
+    found_by: "SM-04 blind judge, v3 pass 1 (unprompted, in Disclosures)"
+    found_at_commit: "2098d55"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md"]
+    summary: >-
+      D2 CARRIES A 2-TO-4-POINT CRACK BETWEEN TWO READINGS OF ITS OWN ANCHOR
+      LADDER -- WIDER THAN THE D5 CRACK scorecard_version 3 EXISTS TO RECORD --
+      AND IT WAS FOUND BY A JUDGE WHO HAD NOT BEEN TOLD ANY OF THAT.
+
+      D2 anchor 0 is "Complexity is unmeasured, or measured and ignored". D2
+      anchor 2 is "The design's complexity is proportional to its behavior". The
+      card's global rule is SCORE THE LOWEST ANCHOR THE ARTIFACT FULLY SATISFIES.
+      Read strictly cumulatively -- each anchor requiring the ones beneath it --
+      an artifact that measures no complexity at all FAILS to escape anchor 0 and
+      is forced to 0, whatever its shape. Read as the dimension's own `read_first`
+      implies -- the judge reads the MEASURED DESCRIPTOR, which the harness
+      supplies, and then judges the shape -- the same artifact is a 2.
+
+      The judge scored 2 and filed the alternative:
+
+        "read strictly cumulatively, anchor 2 sits above anchor 0's 'complexity
+         is unmeasured', and this artifact measures none -- forcing 0. I went
+         with 2 per the dimension's own read_first, but this is a 2-TO-4-POINT
+         SPREAD on one artifact depending on how a judge reads cumulativity -- a
+         far wider crack than the D5 one this card version exists to record."
+
+      WHY THIS MATTERS MORE THAN IT LOOKS. D2 = 2 on 31 of 31 cards ever written
+      about `ab_quota_ledger`. `FI-06-DF-05` establishes that anchor 3 is
+      unreachable for a greenfield artifact, which explains the CEILING. This
+      explains the FLOOR: every judge so far has taken the non-cumulative reading
+      and landed on 2, and nothing on the card tells them to. The constant is
+      pinned from both ends by the anchor text, and neither end has been chosen
+      deliberately.
+    reproduction: >-
+      `references/eval_scorecard.md`, D2's five anchors and the "Score the LOWEST
+      anchor the artifact fully satisfies" instruction, against
+      `specs/results/scorecards/ports-as-adapters/blind/artifact_U/`, which
+      records no complexity measurement of any kind. Then the Disclosures of
+      `specs/results/scorecards/subtract-to-measure-sm04-rescore-v3/ab_quota_ledger/20260806-sm04v3-R-p1/scorecard.md`.
+    evidence:
+      - "references/eval_scorecard.md -- D2 anchors 0 and 2, and the read_first preamble"
+      - "specs/results/scorecards/subtract-to-measure-sm04-rescore-v3/ab_quota_ledger/20260806-sm04v3-R-p1/scorecard.md -- Disclosures, rejected item 5"
+      - "specs/desired_program_model/deferred_findings.yaml -- FI-06-DF-05"
+    why_out_of_scope: >-
+      SM-04's prohibition is explicit and this is exactly what it forbids.
+      REWRITING D2's ANCHORS PRE-DECIDES SM-05. The whole epic exists to find out
+      whether D2 can move when given a subject with a real before and after; an
+      anchor edited now would make that result a fact about the edit. `do_not_
+      retire_untested_rule` and "never edit a target to match a result" both bind
+      here, and the SM-04 brief names D2 anchor 3 specifically.
+    suggested_fix: >-
+      NOT BEFORE SM-05, and then only with a version bump and a measured
+      discontinuity. The cheapest honest candidate is not an anchor edit at all:
+      state on the card whether the ladder is CUMULATIVE, once, for all five
+      dimensions. D1 and D4 spell their inheritance out in the anchor text
+      ("3, and ..."); D2's anchors 0-2 do not, and D5's do not either. The
+      ambiguity is in what the card leaves unsaid about its own reading rule, not
+      in any one anchor's words -- which is why it can be fixed without moving a
+      bar, and why it must still be measured when it is.
+    blast_radius: >-
+      Every D2 score in the repository, in both directions. It does not falsify
+      the 31-of-31 constant; it removes one of the two explanations for it that
+      anybody had checked.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+    disposition_note: >-
+      Carried to epic/subtract-to-measure SM-05 (#169), which is the ticket that
+      scores D2 on a real before and after. SM-05 must read this BEFORE scoring
+      and must NOT act on it during the measurement.
+
+  - id: SM-04-DF-07
+    found_by: "SM-04 (the v2/v3 re-score, comparing against FI-03's sealed rows)"
+    found_at_commit: "2098d55"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md", "specs/results/scorecards/"]
+    summary: >-
+      RECORDING JUDGING PRACTICE DID NOT MAKE D4 STABLE. IT MOVES TWO POINTS
+      BETWEEN ROUNDS WHOSE JUDGES ALL EXECUTED THEIR OWN FAULTS.
+
+      FI-03's account of D4 was judging practice: "the arm that matches PA-06's
+      practice is the arm that matches PA-06's numbers", and scorecard_version 2
+      was built on it -- `judging_practice` required, D4 anchor 4 gated on it.
+
+      SM-04 re-scored the same sealed, byte-identical `artifact_U` with four fresh
+      blind judges. ALL FOUR RECORDED `executed_own_faults: true`, with 8, 17, 16
+      and 11 items in `what_was_run`, every one of them fault seeding against a
+      scratch copy. D4 came out 2, 3, 3, 4 -- the whole usable range.
+
+        FI-03 v2 p1  D4 = 4    ->   SM-04 v2 p1  D4 = 2     (-2)
+        FI-03 v2 p2  D4 = 4    ->   SM-04 v2 p2  D4 = 3     (-1)
+        FI-03 v2 p1  D4 = 4    ->   SM-04 v3 p1  D4 = 3     (-1)
+
+      Both ends of every one of those rows record `executed_own_faults: true`. So
+      the variable version 2 exposed is real and is NOT the whole mechanism.
+      `R-H5`'s standing caveat -- a D1, D4 or D5 delta of <= 2 points per judge is
+      within demonstrated noise -- survives, and now survives a round where the
+      one variable anybody had identified was held constant.
+
+      AND A HYPOTHESIS THAT IS NOT A MEASUREMENT. D4 fell in BOTH SM-04 arms
+      relative to FI-03 v2, and the SM-04 arms are the first ever served a card
+      with `SM-04-DF-01`'s three result-stating lines removed -- two of which told
+      the judge that executing earns anchor 4 and that D4 moves. That is
+      consistent with the removed paragraph having INFLATED D4. It is not
+      established and cannot be from this data: round, judges, decontamination and
+      dispatch all differ at once. Recorded so it is not rediscovered as a
+      conclusion.
+    reproduction: >-
+      `python3 -c "import json,glob; [print(p.split('/')[-2],
+      json.load(open(p))['dimensions']['D4']['score'],
+      (json.load(open(p)).get('judging_practice') or {}).get('executed_own_faults'))
+      for p in sorted(glob.glob('specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/*U*/scorecard.json')
+      + glob.glob('specs/results/scorecards/subtract-to-measure-sm04-rescore-v*/ab_quota_ledger/*/scorecard.json'))]"`
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/SM-04/RESULT.md -- section 3"
+      - "specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/RESULT.md -- 'the arm that matches PA-06's practice'"
+      - "specs/results/scorecards/subtract-to-measure-sm04-rescore-v2/ab_quota_ledger/20260806-sm04v2-H-p1/scorecard.json -- D4 = 2, executed_own_faults true"
+    why_out_of_scope: >-
+      SM-04 fixes four named defects and D4's instability is not one of them. It
+      is also exactly what SM-04 is forbidden to touch: D4 stays on the card, and
+      tuning its anchor so the number stops moving would be editing a target to
+      match a result. The measurement is the contribution; the fix is not SM-04's.
+    suggested_fix: >-
+      NONE that touches D4's anchor. What is available and cheap: stop quoting a
+      D4 delta at all outside a within-run comparison, which `R-H5` already says
+      and which the ledger does not yet enforce. Anything more needs a round
+      designed to separate practice, decontamination and round-to-round variance,
+      which is three arms and twelve judges, not four.
+    blast_radius: >-
+      Every D4 number in the repository and the version 2 rationale as stated.
+      Version 2's mechanism is not withdrawn -- recording the practice is right
+      and is what made this measurable -- but the sentence "the mechanism is
+      identified and it is not the rubric" is now known to be incomplete.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+    disposition_note: >-
+      Carried to epic/subtract-to-measure SM-05 (#169), the evaluation.

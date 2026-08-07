@@ -435,6 +435,246 @@ def test_d1_and_d5_are_deliberately_not_gated(st, tmp_path, capsys):
     assert st.check(card, str(path), st.load_rubric(RUBRIC))[0] == []
 
 
+# --------------------------------------------------------------------------
+# SM-04, scorecard_version 3. Four defects, none of them an anchor.
+#
+# 1. the digest was blind to what reached a judge
+# 2. a judge was served the finding they were the instrument for
+# 3. D5's anchor 4 is ambiguous and the ambiguity was invisible
+# 4. `total` was printed while four of its five terms cannot carry a delta
+# --------------------------------------------------------------------------
+
+SEALED_V2_CARD = (SCORECARDS / "falsifiable-instruments-rescore-v2/ab_quota_ledger"
+                  / "20260806-v2-U-p1/scorecard.md")
+
+
+def test_the_cards_this_project_actually_dispatched_carried_the_result_they_measured(st):
+    """THE DEMONSTRATED FAILING INPUT for defect 2, and it is not synthetic.
+
+    FI-03's version 2 judges were handed, inside their own card, the sentence
+    "D1, D4 and D5 all moved on unchanged input" and "four dimension-points
+    moved" -- a result about the five dimensions they were about to score. It
+    was in `_skeleton_md`, so it reached every judge in every round from version
+    2 onward, and nobody had noticed because the leak everyone was looking at
+    was in the rubric file.
+
+    This card is sealed and is never edited, so this test is a fixed point: the
+    detector shipped at SM-04 goes red on bytes this project really dispatched.
+    """
+    leaks = st.result_leaks(SEALED_V2_CARD.read_text())
+    assert leaks, "the sealed version 2 card no longer trips the detector"
+    assert any("dimension-points" in leak and "moved" in leak for leak in leaks), leaks
+    assert any("'D4'" in leak and "moved" in leak for leak in leaks), leaks
+
+
+def test_a_scaffolded_card_carries_no_result_about_the_dimensions_it_scores(st, tmp_path,
+                                                                            capsys):
+    """The same detector, on what the tool emits now. This is the fix."""
+    path, _ = scaffolded(st, tmp_path)
+    capsys.readouterr()
+    assert st.result_leaks(path.with_name("scorecard.md").read_text()) == []
+    assert st.rubric_leak_problems(st.load_rubric(RUBRIC)) == []
+
+
+def test_the_reading_rules_cannot_reach_a_judge_because_nothing_emits_them(st, rubric):
+    """The MECHANISM, as distinct from the backstop.
+
+    `served_rubric` renders parsed structure only. `## Reading history`, the
+    version history, the storage layout and anything a later editor adds are
+    outside it by construction -- not by a rule someone has to remember. R-H5 is
+    the section both FI-03 v1 judges cited back at the round measuring them.
+    """
+    served = st.served_rubric(rubric, 3)
+    for forbidden in ("R-H1", "R-H2", "R-H3", "R-H4", "R-H5",
+                      "Reading history", "Version history", "anchors digest",
+                      "SELF-IMPROVEMENT", "INSTRUMENT-LOG", "EVAL-RERUN", "PA-06"):
+        assert forbidden not in served, f"{forbidden!r} reaches a judge"
+    # and it really is the rubric: every anchor of every dimension is in there
+    for dim in st_dims():
+        for score in "01234":
+            assert rubric["dimensions"][dim]["anchors"][score] in served
+
+
+def test_serve_refuses_a_rubric_that_would_hand_a_judge_a_result(st, tmp_path, capsys):
+    """THE DEMONSTRATED FAILING INPUT for the refusal.
+
+    The sentence pasted in is R-H5's own, moved from the part of the file no
+    judge is served into the part every judge is.
+    """
+    copy = tmp_path / "eval_scorecard.md"
+    copy.write_text(RUBRIC.read_text().replace(
+        "**Anchor 4's phrase",
+        "**D2 and D3 are the dimensions that have held still on unchanged input, "
+        "and D4 and D5 move two points per judge.** Anchor 4's phrase", 1))
+    assert st.main(["serve", "--rubric", str(copy)]) == 3
+    err = capsys.readouterr().err
+    assert "REFUSED" in err and "Nothing was written" in err
+    # and the same refusal stops a whole round being scaffolded, writing nothing
+    epic = tmp_path / "round"
+    assert scaffold(st, epic, labels="K,L,M", rubric=str(copy)) == 3
+    capsys.readouterr()
+    assert not epic.exists(), "a refused scaffold left files behind"
+    # `check` reports it too, so a close catches an edit no scaffold ran against
+    assert any("has scored or moved" in p
+               for p in st.rubric_leak_problems(st.load_rubric(copy)))
+
+
+def test_the_served_digest_moves_when_anything_a_judge_reads_moves(st, rubric, tmp_path):
+    """Defect 1. `The rubric digest changes when the rubric changes in any way
+    that can reach a judge` -- the ticket's own acceptance assertion.
+
+    Each edit below is one word, in a different served region, and each moves
+    the served digest.
+    """
+    base = st.served_digest(rubric, 3)
+    text = RUBRIC.read_text()
+    edits = {
+        "an anchor": ("- **0** — No boundary is discernible; state is written from "
+                      "everywhere.",
+                      "- **0** — No boundary is discernible; state is written from "
+                      "anywhere."),
+        "a caveat": ("**Import topology is not modularity.**",
+                     "**Import topology is not modularity, ever.**"),
+        "a preamble": ("Read the measured descriptor first",
+                       "Read the measured descriptor FIRST"),
+        "a scoring rule": ("**Prose quality is never an input.**",
+                           "**Prose quality is never ever an input.**"),
+        "a question": ("Is the design as simple as its behavior requires, and no simpler?",
+                       "Is the design as simple as its behaviour requires, and no simpler?"),
+    }
+    for what, (old, new) in edits.items():
+        assert text.count(old) == 1, what
+        copy = tmp_path / f"{what.replace(' ', '_')}.md"
+        copy.write_text(text.replace(old, new))
+        assert st.served_digest(st.load_rubric(copy), 3) != base, (
+            f"editing {what} left the served digest unmoved")
+
+
+def test_prose_a_judge_never_sees_is_reported_but_does_not_invalidate(st, rubric, tmp_path,
+                                                                      capsys):
+    """The converse of defect 1, and the reason the fix is not a wider hash.
+
+    `FI-03-DF-02` said it plainly: the digest is RIGHT to exclude prose from the
+    scaffold-time check, because a rubric whose every typo re-scaffolds the round
+    is unusable. What was missing was any record that the file changed at all.
+    So: served digest unmoved, file digest moved, reported PROSE-DRIFT, never a
+    problem.
+    """
+    copy = tmp_path / "eval_scorecard.md"
+    copy.write_text(RUBRIC.read_text().replace(
+        "## Reading history\n",
+        "## Reading history\n\nAn editorial paragraph in a section no judge is served.\n",
+        1))
+    later = st.load_rubric(copy)
+    assert st.served_digest(later, 3) == st.served_digest(rubric, 3)
+    assert later["file_sha256"] != rubric["file_sha256"]
+
+    epic = tmp_path / "e"
+    scaffold(st, epic, labels="K,L,M")
+    capsys.readouterr()
+    path = one_card(epic)
+    card = fill(json.loads(path.read_text()))
+    problems, notes = st.check(card, str(path), later)
+    assert problems == []
+    assert any("PROSE-DRIFT" in n for n in notes), notes
+
+
+def test_a_card_records_the_digest_of_the_bytes_it_was_served(st, tmp_path, capsys):
+    path, card = scaffolded(st, tmp_path)
+    capsys.readouterr()
+    rubric = st.load_rubric(RUBRIC)
+    assert card["rubric"]["served_digest"] == st.served_digest(rubric, 3)
+    assert card["rubric"]["file_sha256"] == rubric["file_sha256"]
+    # the card the judge reads carries the same bytes the digest is over
+    assert st.served_rubric(rubric, 3) in path.with_name("scorecard.md").read_text()
+    # a skeleton served a bar that has since moved is REFUSED, not noted
+    card["rubric"]["served_digest"] = "sha256:0000000000000000"
+    problems, _ = st.check(card, str(path), rubric)
+    assert any("what a judge would read has changed" in p for p in problems), problems
+
+
+def test_d5_scored_where_the_two_readings_differ_must_name_which(st, tmp_path, capsys):
+    """Defect 3, and the demonstrated failing input for it.
+
+    Both version 2 judges executed their own faults and still split 3 against 4
+    on D5, so judging practice does not explain that one. THE ANCHOR IS NOT
+    TOUCHED -- `anchors_digest` is asserted unmoved elsewhere in this file. What
+    version 3 does is what version 2 did for practice: record the choice.
+    """
+    for score in (3, 4):
+        path, card = scaffolded(st, tmp_path / f"s{score}")
+        capsys.readouterr()
+        fill(card, D5={"score": score, "citations": ["NOTES.md:136-141"],
+                       "refuses_to_claim": "that the fake is contract-equivalent"})
+        card["dimensions"]["D5"]["anchor_reading"] = None
+        problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC))
+        assert any("anchor_reading" in p for p in problems), (score, problems)
+        # both readings are legal and neither is corrected
+        for reading in st.ANCHOR_READINGS:
+            card["dimensions"]["D5"]["anchor_reading"] = reading
+            assert st.check(card, str(path), st.load_rubric(RUBRIC))[0] == []
+        card["dimensions"]["D5"]["anchor_reading"] = "whichever"
+        assert st.check(card, str(path), st.load_rubric(RUBRIC))[0] != []
+
+
+def test_d5_below_the_boundary_needs_no_reading(st, tmp_path, capsys):
+    """At 0, 1 and 2 the two readings cannot differ, so requiring the field there
+    would be a bar nobody asked for."""
+    path, card = scaffolded(st, tmp_path)
+    capsys.readouterr()
+    fill(card, D5={"score": 2, "citations": ["NOTES.md:136-141"],
+                   "anchor_reading": None})
+    assert st.check(card, str(path), st.load_rubric(RUBRIC))[0] == []
+
+
+def test_a_version_3_card_has_no_total_and_a_version_2_card_still_checks_its_own(
+        st, tmp_path, capsys):
+    """Defect 4. Four of its five terms cannot carry a delta.
+
+    Versions 1 and 2 keep theirs and the arithmetic is still checked: a sealed
+    card is never edited, and a check that stops looking at one is a check that
+    stopped working.
+    """
+    path, card = scaffolded(st, tmp_path)
+    capsys.readouterr()
+    assert "total" not in card
+    assert "total" not in path.with_name("scorecard.md").read_text().lower()
+    fill(card)
+    assert st.check(card, str(path), st.load_rubric(RUBRIC))[0] == []
+    card["total"] = 5
+    assert any("There is no total from version 3" in p
+               for p in st.check(card, str(path), st.load_rubric(RUBRIC))[0])
+
+    epic2 = tmp_path / "v2"
+    assert scaffold(st, epic2, labels="K,L,M", card_version=2) == 0
+    capsys.readouterr()
+    p2 = one_card(epic2)
+    old = fill(json.loads(p2.read_text()))
+    assert old["total"] == 5
+    assert st.check(old, str(p2), st.load_rubric(RUBRIC))[0] == []
+    old["dimensions"]["D3"]["score"] = 3
+    assert any("does not equal the sum" in p
+               for p in st.check(old, str(p2), st.load_rubric(RUBRIC))[0])
+
+
+def test_neither_index_nor_history_prints_a_total(st, tmp_path, capsys):
+    st.main(["history", "--example", "ab_quota_ledger", "--root", str(SCORECARDS)])
+    out = capsys.readouterr().out
+    assert "| total |" not in out
+    assert "no total column" in out
+    # a computed total never reaches a table row, on any card version
+    assert not [l for l in out.splitlines() if l.startswith("| `2026") and "/20" in l]
+
+    # `index` writes INDEX.md where it is pointed, so point it at a copy
+    epic = tmp_path / "ports-as-adapters"
+    shutil.copytree(SCORECARDS / "ports-as-adapters", epic)
+    st.main(["index", str(epic)])
+    idx = capsys.readouterr().out
+    assert "| total |" not in idx
+    assert not [l for l in idx.splitlines() if l.startswith("| ab_quota") and "/20" in l]
+    assert "No total" in idx
+
+
 def test_the_previous_card_version_can_still_be_scaffolded(st, tmp_path, capsys):
     """`Changing this card` requires a re-score under BOTH versions. A tool that
     can only emit the current one makes its own change rule unfollowable."""
@@ -728,6 +968,92 @@ def test_a_repair_that_declares_no_verdict_count_is_reported(st, tmp_path):
     results2, _ = st.run_audit(root2)
     assert any("no verdict diff exists, and says why" in m for _, m in results2["R-H3"])
     assert not [m for level, m in results2["R-H3"] if level == st.OPEN]
+
+
+# --------------------------------------------------------------------------
+# SM-04's gap mutant: what removing `total` cost, measured rather than asserted.
+#
+# `removal_is_a_delta_rule`: a removal with no mutant in its gap is not a
+# measurement. SM-01 seeded for the two cuts it knew about and neither is this
+# one, so this gap is seeded here. Both ends are measured in ONE RUN -- the
+# before-side detector is `check` on a version 2 card, which still exists at
+# this commit -- so there is no instrument change between the two readings.
+#
+# THE GAP: `total` was a checksum over the five scores. `check`'s
+# `total != running` was the only thing that noticed a score altered in
+# `scorecard.json` after the card was written.
+# --------------------------------------------------------------------------
+
+def _mutate_a_score(card: dict) -> dict:
+    """The mutant: D3 falls from 4 to 2, and nothing else in the card moves."""
+    card = json.loads(json.dumps(card))
+    assert card["dimensions"]["D3"]["score"] == 4
+    card["dimensions"]["D3"]["score"] = 2
+    return card
+
+
+def _seal_and_audit(st, tmp_path, card: dict, name: str):
+    """Seal a card, then mutate it on disk and ask `audit` R-H4 about it."""
+    root = tmp_path / name / "scorecards"
+    d = root / "round" / "ab_quota_ledger" / card["run_id"]
+    d.mkdir(parents=True)
+    path = d / "scorecard.json"
+    path.write_text(json.dumps(card, indent=2))
+    (root / "INSTRUMENT-LOG.toml").write_text("schema_version = 1\n")
+    # `seal` records paths relative to REPO_ROOT, so it needs the card inside it
+    digest = "sha256:" + __import__("hashlib").sha256(path.read_bytes()).hexdigest()[:16]
+    rel = str(path)
+    (root / "INSTRUMENT-LOG.toml").write_text(
+        f'schema_version = 1\n\n[[sealed]]\npath = "{rel}"\nsha256 = "{digest}"\n')
+    path.write_text(json.dumps(_mutate_a_score(card), indent=2))
+    results, _ = st.run_audit(root)
+    return [m for level, m in results["R-H4"] if level == st.VIOLATION]
+
+
+def test_the_price_of_removing_total_measured_on_both_sides(st, tmp_path, capsys):
+    """SM-04-GM-T1. Seeded in the gap `total` covered, read before and after.
+
+    SEALED: still dies. The seal digest catches it, and a seal digest is
+    strictly stronger than the sum -- it covers all five scores, every citation
+    and every rationale. REDUNDANT, the cut was free.
+
+    UNSEALED: NOW SURVIVES. That is the price and it is reported rather than
+    absorbed. Nothing detects a score altered after the fact on an unsealed
+    version 3 card, where the arithmetic used to. `audit` already reports OPEN
+    when no seal digests exist at all, which is the only warning left.
+    """
+    four = {"score": 4, "citations": ["quota_ledger/domain.py:22-43"],
+            "refuses_to_claim": "that anything but the durable side is behind a port"}
+
+    # --- BEFORE: a version 2 card, `total` present -------------------------
+    epic2 = tmp_path / "v2"
+    assert scaffold(st, epic2, labels="K,L,M", card_version=2) == 0
+    capsys.readouterr()
+    p2 = one_card(epic2)
+    v2 = fill(json.loads(p2.read_text()), D3=dict(four))
+    assert st.check(v2, str(p2), st.load_rubric(RUBRIC))[0] == [], "control: card is clean"
+    before_unsealed = [p for p in st.check(_mutate_a_score(v2), str(p2),
+                                           st.load_rubric(RUBRIC))[0]
+                       if "does not equal the sum" in p]
+    before_sealed = _seal_and_audit(st, tmp_path, v2, "before")
+
+    # --- AFTER: a version 3 card, no `total` -------------------------------
+    path, card = scaffolded(st, tmp_path / "v3")
+    capsys.readouterr()
+    v3 = fill(card, D3=dict(four))
+    assert st.check(v3, str(path), st.load_rubric(RUBRIC))[0] == [], "control: card is clean"
+    after_unsealed = st.check(_mutate_a_score(v3), str(path), st.load_rubric(RUBRIC))[0]
+    after_sealed = _seal_and_audit(st, tmp_path, v3, "after")
+
+    # SEALED: dies before, dies after. The cut was free.
+    assert before_sealed and any("HAS BEEN EDITED" in m for m in before_sealed)
+    assert after_sealed and any("HAS BEEN EDITED" in m for m in after_sealed)
+
+    # UNSEALED: died before, SURVIVES after. This is the price.
+    assert before_unsealed, "the version 2 arithmetic did not catch the mutant"
+    assert after_unsealed == [], (
+        "something still catches an altered score on an unsealed version 3 card -- "
+        "re-price the removal, the recorded verdict says nothing does")
 
 
 def test_a_split_goal_verdict_is_two_claims_and_renders_as_two(st, capsys):
