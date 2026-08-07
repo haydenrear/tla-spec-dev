@@ -105,6 +105,27 @@ one cut.
 - **File findings; fix nothing during a measurement.**
 - **Ask every blind agent what it REJECTED.**
 - **Never edit a target to match a result. Report the run that happened.**
+- **NEVER KILL A PROCESS BY NAME ALONE.** Ticket agents run concurrently in
+  sibling worktrees on one machine, and `pkill -f run_gap_mutants.py` matches
+  every worktree, not yours. Scope it to your own tree:
+
+  ```bash
+  pkill -f "<your-worktree-path>.*run_gap_mutants"
+  ```
+
+  This is the same class of mistake as a bare `git worktree add` — a command
+  that looks local and is not — and it was found the same way: **SM-03 ran the
+  unscoped form, disclosed it unprompted, and could not tell retroactively
+  whether it had killed a concurrent ticket's measurement.** SM-02 was running
+  a gap-mutant pass at the time.
+
+  **If a run of yours aborts without an explanation you can account for, treat
+  it as interrupted and re-run it.** Do not reason around a truncated artifact
+  and do not reconcile a partial table into a complete one. An interrupted
+  measurement is not a measurement.
+
+  The rule is the epic owner's omission, not the agent's: the standing rules
+  said this emphatically about worktrees and nothing about processes.
 
 ---
 
