@@ -1,5 +1,103 @@
 # next epic — starter for the next epic owner
 
+> **AMENDED AFTER `SM-05`, the `subtract-to-measure` evaluation (2026-08-07).**
+> Everything below still describes how each earlier result was measured and none
+> of it is edited. What SM-05 adds is at the very top, in section 0-AAAAA,
+> because it **retracts the premise the whole `subtract-to-measure` epic was
+> opened on** and because what it found is a reading failure and not a mechanism
+> failure. Full record:
+> `specs/results/scorecards/subtract-to-measure-sm05/RESULT.md`.
+
+---
+
+## 0-AAAAA. READ BEFORE EVERYTHING — what SM-05 measured
+
+### 1. D2 WORKS. IT WAS NEVER GIVEN A SUBJECT.
+
+Two subjects scored in one round by four judges each at two model tiers:
+
+| subject | D2 |
+|---|---|
+| greenfield `ab_quota_ledger` | **2, 2, 2, 2** |
+| toolchain removal (a real before/after) | **3, 3, 4, 3** |
+
+**Perfect separation, no tier effect.** The card can measure complexity. Five
+epics of greenfield fixtures could never have exercised it, because anchor 3
+requires a measured simplification and a greenfield artifact has no before.
+
+### 2. AND THE EPIC'S PREMISE WAS ALREADY FALSE WHEN IT WAS WRITTEN
+
+`subtract-to-measure` was opened on *"D2 = 2 on 27 of 27 cards ever written"* and
+*"every subject this project has ever scored was greenfield … no greenfield
+artifact can reach D2 anchor 3, ever."*
+
+**41 cards carry a D2 score, across six examples, and D2 has taken three
+values.** `ex3_over_complex` was blind-judged on **2026-08-03** and both judges
+scored **D2 = 3**, citing before and after descriptors. In the one round that
+scored five *different* fixtures, D2 discriminated across 1, 2 and 3 with
+**perfect inter-judge agreement on all five**. The anchors digest is identical at
+v1, v2 and v3, so the bar was the same.
+
+**The "27 of 27" figure is a true fact about one example, restated unscoped as a
+fact about the instrument** — in the charter, in the plan's `purpose`, and in the
+issue. `R-H2` forbids AVERAGING across examples. **Nothing forbids generalising
+from one**, and `history` requires `--example`, so nobody ever saw the six
+columns side by side.
+
+**This is the thing to fix, and it is not a mechanism.** An entire epic was
+justified by a claim that one command against this repository's own sealed cards
+would have refuted. `SM-05-DF-01`.
+
+### 3. WHAT TO DO NEXT, IN ORDER
+
+1. **Give `score_tools.py` a cross-example view, and rescope every statement of
+   the D2 figure to the example it is about.** Cheapest, and it closes the
+   failure mode that has now cost one whole epic.
+2. **Decide what the card is for.** A judge measured, unprompted, that **four of
+   five dimensions have a top rung a subject without a model cannot reach for
+   reasons of shape** — D1/4 needs a model, D2/3–4 need a before, D3/4 needs a
+   fake the spec permits omitting, D4 presupposes a baseline. *"A competent
+   greenfield artifact tops out at 2–3 across the board no matter what it
+   does."* If the card is for model-carrying subjects, say so and stop comparing
+   greenfield cards to it. `SM-05-DF-05`.
+3. **Fix the served scoring rule before the next round.** *"Score the LOWEST
+   anchor the artifact fully satisfies"*, read literally, **yields 0 on every
+   dimension**. Four judges across two rounds have now rejected the literal
+   reading in order to score at all. It is a one-line change and it needs a
+   version bump.
+4. **Stop quoting D3 across subjects of different scale.** On a repository-scale
+   subject D3 spans **2 to 4** between judges at the same tier, because "the
+   domain" has no fixed referent there, and scoring rule 5's adjudication
+   explicitly cannot settle it — both judges say no new evidence exists.
+   `SM-05-DF-06`.
+
+### 4. DO NOT REPEAT THESE THREE
+
+- **Do not open another subtraction epic on the strength of a line count.**
+  `subtract-to-measure` removed 225 lines from `scripts/` and added 1677 net
+  across the trees it touched — **about seven lines of measurement apparatus per
+  line removed.**
+- **Do not dispatch a judge into the live repository.** Statements of how a
+  dimension *scored* are watched by nothing (the one-home check exempts them by
+  design), and seven files carrying them were on no dispatch's forbidden list.
+  **One of them demonstrably moved a score in SM-05**, by its judge's own
+  disclosure. `SM-05-DF-02`.
+- **Do not trust a blind evidence packet that was not generated.** The sealed
+  packets print all three artifacts' complexity figures in one table — served to
+  26 judge-scorings on the two dimensions the project makes cross-epic claims
+  about — and carry visible hand-scrubbing artifacts inside code identifiers.
+  `SM-05-DF-03`.
+
+### 5. THE CHANNEL RESULT, UNCHANGED FOR SEVEN ROUNDS
+
+**The suite produced zero findings again — six of seven rounds.** The
+blind-judge channel produced everything worth having, **including both of the
+round operator's own errors**, one of which the judge showed had moved a
+dimension-point in its own card. Keep funding blind judges and the census
+channel. **Stop reporting the suite as a finding channel.**
+
+---
+
 > **AMENDED AFTER `FI-06`, the `falsifiable-instruments` evaluation
 > (2026-08-06).** Everything below still describes how each earlier result was
 > measured and none of it is edited. What FI-06 adds is at the very top, in
