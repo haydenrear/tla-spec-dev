@@ -10,6 +10,8 @@ Fill in the score, the `file:line` citations and the rationale for each dimensio
 
 `mechanical.json` beside this file holds kill counts, complexity figures, case counts, determinism and runtime. How to read it against your judgement is one of the numbered scoring rules below.
 
+**Note:** this run's `mechanical.json` was scaffolded with empty `figures`. The mechanical block reproduced in the shared `EVIDENCE.md` packet (a cross-artifact table covering artifacts T/U/W) was used instead, since that is where the actual figures for this artifact live.
+
 ## The rubric you are scoring against
 
 **This is the whole rubric, and it is reproduced here so the bar for a score sits in the same file as the score.** Do NOT go and read `references/eval_scorecard.md`. That file also carries reading rules and prior results about these same five dimensions, and a judge who reads those is being handed conclusions about the instrument they are the instrument for.
@@ -96,80 +98,112 @@ Read the measured descriptor first (variables, actions, state-space bound, R/W d
 
 ### Judging practice — your answer
 
-**Executed own faults:** _(true / false)_
+**Executed own faults:** true
 
 **What was run:**
 
--
+- Copied `quota_ledger.py` and `test_quota_ledger.py` to a scratch tree outside the repo. First ran both suites unmutated to confirm baseline: shared suite (`examples/validation/ab/tests/test_behavior.py`) — 28 passed; own suite (`test_quota_ledger.py`) — 32 passed. Matches the counts claimed in `NOTES.md:24,32`.
+- Seeded my own fault, not one of the 11 in the packet: swapped the order of the `tenant_closed` and `amount_not_positive` guards in `reserve()` (`quota_ledger.py:142-145`), so a closed tenant reserving a non-positive amount would report `amount_not_positive` instead of the spec-mandated `tenant_closed` (`FEATURE.md:40-45` names the order explicitly).
+- Ran the shared suite against the mutated code: **28 passed — fault NOT caught.**
+- Ran the artifact's own suite against the mutated code: **31 passed, 1 failed** (`test_reserve_rejection_order_is_the_declared_one`, `test_quota_ledger.py:255-263`) — **fault caught**, by the artifact's own hand-written test, not by the shared suite.
+- Reverted the mutation and deleted the scratch tree; nothing inside the repository was modified.
+- Did **not** run the model-derived corpus (`corpus-whole`/`corpus-neg`/`corpus-port`) against this fault myself — I have no access to the case generator without reading files on the must-not-read list (`check_catalogue.py`, `seeded_faults.toml`), so I cannot say whether those instruments would catch it. This is a real gap in my own verification, named here rather than smoothed over.
 
 ## Your scores
 
 ### D1 — bug detection
 
-**Score:** _(0–4)_
+**Score:** 3
 
 **Citations** (`file:line` — the bar is in the scoring rules above):
 
--
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/EVIDENCE.md:74` — mutant `M04-durable-stale-total`: `map-silent` (asserts nothing about content) SURVIVED, `map-checking` (asserts durable content) KILLED. Satisfies anchor 2: a content-asserting adapter catches what a shape-only one does not.
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/EVIDENCE.md:111-119` — per-class block, `guard_relaxation`: `corpus-whole` 0 of 3, `corpus-neg` (model-derived, generated from the disabled edges of the model's state graph) 3 of 3. A class the whole-view corpus structurally cannot reach, caught by a different model-derived instrument — anchor 3's own example ("a refusal").
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/EVIDENCE.md:71-73` — mutant table rows `M01`-`M03`: SURVIVED under `corpus-whole`, KILLED under `corpus-neg`, confirming the class-level claim at the per-mutant level.
+- My own independently-run fault (see `judging_practice`): a guard-**ordering** fault (which rejection reason wins when two guards fire), distinct from any of the 11 packaged mutants and from the packet's own "ordering" class (which is about ledger/id sequence, not guard priority — see `EVIDENCE.md:121-130`, whose two members are plausibly `M06` and the retired `M09`/`N01` pair, not a guard-priority swap). Caught by `test_quota_ledger.py:255-263`, not by `examples/validation/ab/tests/test_behavior.py`. This is additional, self-verified evidence of a class anchor 3 describes ("an ordering") that the whole-view/shared-suite combination does not structurally reach on its own.
 
-**Refuses to claim** (required and non-null for a score of 4):
+**Refuses to claim** (required and non-null for a score of 4): n/a — not scored at 4.
 
-**Rationale:**
+**Rationale:** Anchor 2 is clearly met (content-asserting adapter beats shape-only). Anchor 3 is met twice over: once by the packet's own `guard_relaxation` class data, and once by a fault I seeded and ran myself that the shared hand-written suite missed entirely (28/28 passed on mutated code) and only the artifact's own test caught. I considered anchor 4 and rejected it: the main kill table's `class` column (`EVIDENCE.md:69`) is blank for every one of the 11 mutants, so which mutant belongs to which named class in the per-class JSON block is not stated, only inferable by cross-referencing SURVIVED/KILLED patterns across instruments — too shaky a basis to cite as "the record names a fault class it still cannot reach." Where the per-class data *is* legible (e.g. `wrong_value`), some model-derived instrument (`corpus-whole`, `corpus-slice-res`) always reaches it in full, so I could not find a class the model-derived apparatus as a whole misses. Score capped at 3.
 
 ### D2 — complexity
 
-**Score:** _(0–4)_
+**Score:** 2
 
 **Citations** (`file:line` — the bar is in the scoring rules above):
 
--
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/quota_ledger.py:150` — `_available[tenant] -= amount`, written only in `reserve`.
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/quota_ledger.py:180` — `_available[reservation.tenant] += reservation.amount`, written only in `release`.
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/quota_ledger.py:170` — `_committed[reservation.tenant] = total_after`, written only in `commit`.
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/quota_ledger.py:194` — `_closed.add(tenant)`, written only in `close_tenant`. No state field is written by more than the commands whose behavior it exists to express.
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/EVIDENCE.md:312-328` — mechanical block, artifact U column: 1 module, 151 code lines, 10 branch points (all of them in the single effectful module, `EVIDENCE.md:327`), 8 instance-state fields, for 4 commands + 5 queries and 6 declared rejection reasons.
 
-**Refuses to claim** (required and non-null for a score of 4):
+**Refuses to claim** (required and non-null for a score of 4): n/a — not scored at 4.
 
-**Rationale:**
+**Rationale:** Each instance field is written by exactly the command(s) whose behavior needs it; there is no field mutated from every method (no god-state). Complexity is proportional to the six-rule, four-command feature it implements. I considered anchor 3 and rejected it: the mechanical block's T/U/W columns compare three *different* artifacts to each other, not this artifact before and after a simplification of its own design — `NOTES.md` records design decisions but no before/after figures for a simplification made to this artifact. Per the caveat, a cross-artifact comparison is not the before/after anchor 3 asks for, so score capped at 2.
 
 ### D3 — modularity
 
-**Score:** _(0–4)_
+**Score:** 2
 
 **Citations** (`file:line` — the bar is in the scoring rules above):
 
--
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/quota_ledger.py:72-93` — `_LedgerFile` is the only code that touches the filesystem (`open`, `write_text`, `read_text`); `QuotaLedger` itself never does file I/O directly.
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/quota_ledger.py:168` and `:193` — `commit` and `close_tenant` route every durable write through `self._ledger.append(...)`, an identifiable single call rather than inline file operations scattered through the command methods.
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/quota_ledger.py:134` — `ledger_lines()` routes reads through `self._ledger.lines()` the same way.
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/quota_ledger.py:110` — `self._ledger = _LedgerFile(ledger_path)`: the domain class constructs the concrete I/O class directly, in its own `__init__`, in the same module. No parameter exists to inject an alternate implementation.
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/EVIDENCE.md:322-324` — mechanical block: `declared_interfaces`=0, `declared_interface_methods`=0, `internal_import_edges`=0 for artifact U (single module; no cross-module boundary exists to import across).
 
-**Refuses to claim** (required and non-null for a score of 4):
+**Refuses to claim** (required and non-null for a score of 4): n/a — not scored at 4.
 
-**Rationale:**
+**Rationale:** There is a real, followed internal separation — `QuotaLedger` never opens the file itself, all durable I/O goes through `_LedgerFile` via two narrow calls — which is more than anchor 1's "declared and not followed." But it stops short of anchor 3: `_LedgerFile` is a concrete class, not a declared port/interface, and `QuotaLedger` builds it directly inside its own constructor with no injection seam, so "an adapter could be replaced without touching the domain" fails on its face — replacing the ledger implementation means editing `quota_ledger.py` itself. I flag this as a place where the rubric's ladder is written for a ports-and-adapters target this artifact never attempted: `examples/validation/ab/FEATURE.md:118-120` explicitly lists "whether the durable side is reached through an interface, a callable, or directly" as **deliberately unspecified**, a free choice either arm may make. This artifact chose "directly." A low D3 here measures "did not build hexagonal architecture," which is spec-compliant, not "failed to build one it attempted." I scored the anchor as written rather than adjusting for that, per the instruction not to smooth a poor fit into a friendlier number, but the mismatch is worth naming.
 
 ### D4 — behavior preservation
 
-**Score:** _(0–4)_
+**Score:** 3
 
 **Citations** (`file:line` — the bar is in the scoring rules above):
 
--
+- `examples/validation/ab/FEATURE.md:89-105` — R1 through R5, the enumerated behaviors the baseline (the feature spec) requires.
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/EVIDENCE.md:27-52` — "What each instrument is": the corpus instruments (`corpus-whole`, `corpus-neg`, `corpus-slice-res`, `corpus-slice-led`, `corpus-port`) are generated from the model's state graph, not hand-written.
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/EVIDENCE.md:71-81` — kill table: model-derived instruments (`corpus-neg`, `corpus-whole`, `corpus-slice-res`) kill several of `M01`-`M10` on this artifact, i.e. the model-derived check is exercised and capable of failing on this codebase, not merely present.
+- My own run (see `judging_practice`): shared suite (28) and own suite (32) both reproduced clean on unmutated code, matching `NOTES.md:24,32`.
 
-**Refuses to claim** (required and non-null for a score of 4):
+**Refuses to claim** (required and non-null for a score of 4): n/a — not scored at 4. See rationale for why 4 was withheld despite `executed_own_faults: true`.
 
-**Rationale:**
+**Rationale:** R1-R5 are enumerated in the feature spec and are covered by a model-derived corpus that the evidence packet shows actually killing mutants on this specific artifact — anchors 2 and 3 both hold. I *did* run my own fault (`judging_practice.executed_own_faults: true`), which is the precondition for anchor 4, but the fault I seeded was caught only by the artifact's own hand-written tests (`test_quota_ledger.py:255-263`), not demonstrated caught by the model-derived check itself — I did not run the actual corpus generator against my mutation, and the shared hand-written suite (which sits alongside the model-derived instruments) did not catch it either. Rule 8 is explicit that a judge reading the packet's own table of catches is "repeating the artifact's claim rather than checking it"; my own check did not confirm a model-derived catch, so I am not extending that credit. Anchor 4 withheld; score capped at 3.
 
 ### D5 — honesty
 
-**Score:** _(0–4)_
+**Score:** 2
 
 **Citations** (`file:line` — the bar is in the scoring rules above):
 
--
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/NOTES.md:88-94` — unprompted: `available("nobody")` raises `KeyError`; the author names this as "the one place I am aware of where a reasonable implementer could differ from me without either of us contradicting the text," rather than asserting it is obviously correct.
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/NOTES.md:96-103` — unprompted: names a possible gap in the spec itself ("If integrality is meant to be enforced, the six-reason vocabulary is missing a reason for it") rather than silently picking a behavior and calling it done.
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/NOTES.md:113-118` — a `Scope` section naming, unprompted, everything deliberately not built.
+- `specs/results/scorecards/ports-as-adapters/blind/artifact_U/NOTES.md:125-129` — discloses, unprompted, that it saw filenames on the must-not-open list via `ls` and states plainly it opened none of them and saw no contents.
 
-**Refuses to claim** (required and non-null for a score of 4):
+**Refuses to claim** (required and non-null for a score of 4): n/a — not scored at 4.
 
-**Anchor reading** (required at 3 or 4; `disclosure` or `measured`):
+**Anchor reading** (required at 3 or 4; `disclosure` or `measured`): n/a — not scored at 3 or 4.
 
-**Rationale:**
+**Rationale:** `NOTES.md` names blind spots and open judgment calls unprompted, clearing anchor 2 comfortably. I looked for anchor 3's specific shape — an actual refusal to emit a positive verdict, an `unobservable`/`unmappable` result rather than a stated limitation — and did not find one: every place `NOTES.md` flags uncertainty, it still picks a behavior and defends the pick, rather than declining to certify that behavior. The two are adjacent but not the same thing, and I did not want to convert "documents its judgment calls well" into "refuses to certify," so I held at 2 rather than stretch to 3.
 
 ## Verdict
 
-_One sentence a reader can act on._
+A competent, honest, single-module implementation that satisfies the spec and is caught out by real content- and refusal-sensitive checks (including one I built myself), but it never attempts a ports-and-adapters split, and my own independently-seeded ordering fault exposed a real detection gap between the shared suite and the artifact's own tests that the evidence packet's tables alone would not have surfaced.
 
 ## Disclosures
 
-_Anything you saw that you were not meant to see, anything you ran that changed the tree, and anything you REJECTED. For three rounds running the best finding in this project came from the last one, and zero came from re-running the suite._
+**What I saw that I was not meant to see:** Nothing beyond what the dispatch permits. `NOTES.md:125-129` itself discloses that the artifact's author saw some forbidden filenames via `ls` before knowing the rules; I did not follow up by looking at any of those files myself, and I did not go looking for the arm-to-label mapping.
+
+**What I ran, in full:** Copied `quota_ledger.py` and `test_quota_ledger.py` to a scratch directory outside the repo (not inside it — nothing in the repository was modified). Confirmed the unmutated baseline (28 shared-suite passes, 32 own-suite passes). Seeded a single deliberate fault — swapped the guard order of `tenant_closed` and `amount_not_positive` in `reserve()` — ran both suites against it, reverted, and deleted the scratch tree. Full detail is in `judging_practice.what_was_run` above.
+
+**What I rejected:**
+
+- **D1 at 4**: rejected because the main kill table's `class` column is blank for every mutant (`EVIDENCE.md:69-81`), so I cannot cite which mutant is in which named class without guessing; the one class I could check cleanly (`wrong_value`) is fully reached by some model-derived instrument, so I found no class the model-derived apparatus as a whole cannot reach.
+- **D4 at 4**: rejected even though I have `executed_own_faults: true` — the precondition — because the fault I actually ran was caught only by the artifact's own hand-written test, not by anything model-derived, and I did not run the real corpus generator against it. Extending credit from the packet's own table of catches would have been "repeating the artifact's claim," which rule 8 specifically rules out.
+- **D3 at 3**: I nearly gave this a 3 on the strength of `_LedgerFile`'s clean internal separation, then read `quota_ledger.py:110` again and saw the domain constructs the concrete I/O class directly with no injectable seam — that fails anchor 3's swap test on its face, so I stepped back to 2.
+- **D5 at 3**: I nearly gave this a 3 because `NOTES.md`'s "What I was unsure about" section reads like a refusal in tone; on a closer read every instance still commits to a behavior and defends it, rather than declining to certify one, so I held at 2.
+- **A stretch I flagged rather than smoothed**: D3's ladder assumes a ports-and-adapters target. `FEATURE.md:118-120` tells both arms that the durable side being reached "through an interface, a callable, or directly" is deliberately unspecified and free. This artifact chose directly, which is spec-compliant. Scoring it a 2 on D3 is accurate to the rubric as written, but a reader should not read that 2 as "this artifact failed at modularity" — it never attempted the thing D3 measures, and the spec explicitly permitted that.

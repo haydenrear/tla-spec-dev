@@ -211,6 +211,10 @@ THE ANCHORS DID NOT MOVE. `anchors_digest` is sha256:eeccf4576bc6fd85 at version
 | `20260806-sm04v2-H-p2` | subtract-to-measure-sm04-rescore-v2 | H | 2 | 2 | 3 | 2 | 2 | 3 | 3 | `2098d55` | — |
 | `20260806-sm04v3-R-p1` | subtract-to-measure-sm04-rescore-v3 | R | 1 | 3 | 3 | 2 | 2 | 3 | 3 | `2098d55` | — |
 | `20260806-sm04v3-R-p2` | subtract-to-measure-sm04-rescore-v3 | R | 2 | 3 | 3 | 2 | 2 | 4 | 2 | `2098d55` | — |
+| `20260807-sm05gf-S-p1` | subtract-to-measure-sm05-greenfield | S | 1 | 3 | 3 | 2 | 2 | 2 | 3 | `f49a1c9` | — |
+| `20260807-sm05gf-S-p2` | subtract-to-measure-sm05-greenfield | S | 2 | 3 | 3 | 2 | 2 | 2 | 3 | `f49a1c9` | — |
+| `20260807-sm05gf-S-p3` | subtract-to-measure-sm05-greenfield | S | 3 | 3 | 3 | 2 | 1 | 3 | 2 | `f49a1c9` | — |
+| `20260807-sm05gf-S-p4` | subtract-to-measure-sm05-greenfield | S | 4 | 3 | 3 | 2 | 2 | 3 | 2 | `f49a1c9` | — |
 
 ## The same artifact, scored twice — declared movements
 
@@ -264,12 +268,27 @@ R-H5. Each row names two cards and is **re-derived from them on every `audit`**,
 | `sm04-v2-to-v3-p2-D5` | D5 | `20260806-sm04v2-H-p2` (3) | `20260806-sm04v3-R-p2` (2) | **-1** | yes |
 | `sm04-v2-to-v3-p1-D2-zero` | D2 | `20260806-sm04v2-H-p1` (2) | `20260806-sm04v3-R-p1` (2) | **+0** | yes |
 | `sm04-v2-to-v3-p1-D3-zero` | D3 | `20260806-sm04v2-H-p1` (2) | `20260806-sm04v3-R-p1` (2) | **+0** | yes |
+| `sm05-gf-D2-zero-high-tier` | D2 | `20260806-sm04v3-R-p1` (2) | `20260807-sm05gf-S-p1` (2) | **+0** | yes |
+| `sm05-gf-D2-zero-low-tier` | D2 | `20260806-sm04v3-R-p1` (2) | `20260807-sm05gf-S-p3` (2) | **+0** | yes |
+| `sm05-gf-D3-zero-high-tier` | D3 | `20260806-sm04v3-R-p1` (2) | `20260807-sm05gf-S-p1` (2) | **+0** | yes |
+| `sm05-gf-D3-low-tier` | D3 | `20260806-sm04v3-R-p1` (2) | `20260807-sm05gf-S-p3` (1) | **-1** | yes |
+| `sm05-gf-D5-low-tier` | D5 | `20260806-sm04v3-R-p1` (3) | `20260807-sm05gf-S-p3` (2) | **-1** | yes |
 
 > **`sm04-fi03v2-to-sm04v2-U-p1-D4`.** TWO POINTS ON BYTE-IDENTICAL BYTES BETWEEN TWO ROUNDS WHOSE JUDGES BOTH EXECUTED THEIR OWN FAULTS. This is the row that makes SM-04-DF-07 a measurement rather than an impression: `readable = true` is earned here, and the movement is the largest single-judge D4 delta in the record. Confounded with SM-04's decontamination of the served card, which is stated in the finding and is why that half is filed as a hypothesis.
 
 > **`sm04-v2-to-v3-p1-D4`.** The version 2 to version 3 discontinuity, measured rather than assumed, per the card's own change rule. Fresh judges each side, same day, same dispatch text, same artifact. Version 3 touches neither D4's anchor nor D5's.
 
 > **`sm04-v2-to-v3-p1-D2-zero`.** D2 = 2 on 31 of 31 cards ever written about this example, these four included. Zero is declared here so it is MEASURED on every audit. It is not evidence that D2 is stable -- FI-06-DF-05 -- because a dimension that has never taken a second value cannot be shown stable by failing to move. SM-05 is the ticket that finds out which.
+
+> **`sm05-gf-D2-zero-high-tier`.** D2 = 2 again, same tier (`claude-opus-5[1m]`), same example, unchanged card. Declared zero so the ABSENCE is re-derived on every audit. WHAT CHANGED IS THE READING, NOT THE NUMBER. SM-04 recorded this zero with the note that SM-05 would find out whether D2 can move. It can: SM-05's OTHER subject, a toolchain removal with a recorded before and after, scored D2 = 3, 3, 4, 3 from four judges in this same round. So this zero is now evidence about the SUBJECT and not about the dimension -- a greenfield artifact cannot reach anchor 3, which requires a measured simplification it has no before for.
+
+> **`sm05-gf-D2-zero-low-tier`.** The tier axis. `to_card` is `claude-sonnet-5`; every one of the 41 prior cards this project has written was `claude-opus-5[1m]`. D2 does not move with judge strength on this subject, and it does not move with judge strength on the removal subject either. Within the range tested, D2's value tracks the SUBJECT and not the judge. WHAT THIS CANNOT SAY: no judge stronger than `claude-opus-5[1m]` was available, so nothing here bears on whether a stronger judge would score differently.
+
+> **`sm05-gf-D3-zero-high-tier`.** D3 = 2 again at the historical tier, the eleventh card on this artifact to say so.
+
+> **`sm05-gf-D3-low-tier`.** D3 MOVED ONE POINT ON BYTE-IDENTICAL BYTES, AND THE VARIABLE IS JUDGE TIER. Ten prior cards on this artifact scored D3 = 2; this one scores 1. Practice is recorded true at both ends, so R-H5's readability condition is met and the movement is not attributable to the variable R-H5 exists to expose. D3 is the dimension the card recommends for cross-epic claims BECAUSE it discriminates and holds still. It held still across four rounds and 60 judge scores at ONE tier. Read this row beside SM-05-DF-06, which records the larger instability: on a repository-scale subject D3 spans 2 to 4 between judges at the same tier, because "the domain" has no fixed referent there.
+
+> **`sm05-gf-D5-low-tier`.** D5 also shows a one-point tier effect: high tier 3, 3 and low tier 2, 2 in this round. Consistent with R-H5's standing caveat that a D1/D4/D5 delta of <= 2 points per judge is within demonstrated noise -- and this round adds that some of that noise has a NAME, which is the judge model.
 
 ## Claims about this example that are not scorecard rows
 

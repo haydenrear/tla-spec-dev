@@ -21,17 +21,17 @@
 #   descriptor_comparison: recorded            -- before/after descriptor doc
 validated_refactor:
   tlc_before:
-    status: "TODO"
-    evidence: "TODO -- path to the pre-change TLC output"
+    status: "not_applicable"
+    evidence: "SM-05 is an evaluation ticket. It changed no model: ticket current and desired are byte-identical (`diff -rq` clean) and `model_delta_expectation: none expected` in the plan. There is no pre-change model to run TLC against because there is no change."
   tlc_after:
-    status: "TODO"
-    evidence: "TODO -- path to the post-change TLC output"
+    status: "not_applicable"
+    evidence: "Same reason. The close reports `direction=zero (vs SM-06)`, which is the measured confirmation that no representation moved."
   behavior_tests:
-    status: "TODO"
-    evidence: "TODO -- path to the behavior-test output"
+    status: "pass"
+    evidence: "uv run --with pytest --with pyyaml python -m pytest tests -q -> 1390 passed in 463.39s. Parent SM-06: 1386. The +4 are ticket-workspace nodes an open specs/tickets/ directory contributes and they go away at close; SM-02 recorded the identical four."
   descriptor_comparison:
-    status: "TODO"
-    evidence: "TODO -- path to the before/after descriptor comparison"
+    status: "recorded"
+    evidence: "specs/results/scorecards/subtract-to-measure-sm05/produced-code-f49a1c9.json and .../packet/produced-code-3f58aca.json -- the epic-wide before/after, reported in RESULT.md section 8. NOT a comparison of a change this ticket made: this ticket changed no code. It is the measurement the ticket exists to report."
 
 # Fuzzing-era retention members -- RECORDED at every close, non-gating since
 # CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
@@ -79,17 +79,37 @@ coverage_audit:
 # Required if complexity INCREASED. Name the new essential behavior the added
 # representation carries. This documents real behavior; it does not waive the
 # increase, which is recorded and reported either way.
-justification: ""
+justification: "No complexity increase. `direction=zero (vs SM-06)`. This ticket added no representation: it changed no .tla, no adapter, no production file. Its entire diff is under specs/results/, specs/desired_program_model/ and NEXT-EPIC.md."
 
 # The recursive refinement loop -- REQUIRED at every close.
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
-  measured: false      # true only if a real TLC run produced the figure
-  applied: false       # if true, approved_by is required
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched and found none THAT THIS TICKET MAY APPLY. SM-05 is a measurement
+    and its standing rule is FILE FINDINGS, FIX NOTHING -- so any refinement it
+    found is filed rather than applied, and applying one would invalidate the
+    measurement it is reporting.
+
+    What the search DID surface, all filed and none applied: the ladder does not
+    fit a subject that ships no model, with four of five top rungs structurally
+    unreachable on a greenfield artifact (SM-05-DF-05); "score the LOWEST anchor
+    the artifact fully satisfies" read literally yields 0 on every dimension, now
+    rejected by four judges across two rounds (SM-05-DF-05); D3's anchors have no
+    referent rule, so "the domain" is ambiguous on a repository-scale subject and
+    D3 spans two points between judges (SM-05-DF-06); and `check`'s citation
+    grammar rejects the annotated citations judges actually write (SM-05-DF-07).
+
+    Every one is a change to `references/eval_scorecard.md` or to
+    `score_tools.py` -- the instrument this ticket is measuring ON -- and every
+    one requires a version bump with its own measured discontinuity, which is the
+    card's own change rule. That is the same ground SM-04 gave for not fixing
+    SM-04-DF-06, and it holds harder here because SM-05 is the round the anchors
+    were finally tested against a subject that could exercise them.
+  measured: false
+  applied: false
   approved_by: ""
 
 # Required only if a generated-states drop at constant distinct states is
@@ -99,4 +119,4 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: "specs/results/scorecards/subtract-to-measure-sm05/RESULT.md"

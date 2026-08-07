@@ -1,0 +1,1422 @@
+{
+  "baselines": {
+    "instrument-registry --only complexity-ledger": {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/instruments/demonstrate.py",
+        "--format",
+        "json",
+        "--only",
+        "complexity-ledger"
+      ],
+      "counts": {
+        "passed": 7
+      },
+      "executed": 1,
+      "exit": 0,
+      "failing_nodes": [],
+      "present": true,
+      "red": false,
+      "tail": [
+        "    }",
+        "  ],",
+        "  \"tier\": \"all\"",
+        "}"
+      ]
+    },
+    "instrument-registry --only corpus-runner": {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/instruments/demonstrate.py",
+        "--format",
+        "json",
+        "--only",
+        "corpus-runner"
+      ],
+      "counts": {},
+      "executed": 1,
+      "exit": 0,
+      "failing_nodes": [],
+      "present": true,
+      "red": false,
+      "tail": [
+        "    }",
+        "  ],",
+        "  \"tier\": \"all\"",
+        "}"
+      ]
+    },
+    "instrument-registry --only spec-yaml-tripwire": {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/instruments/demonstrate.py",
+        "--format",
+        "json",
+        "--only",
+        "spec-yaml-tripwire"
+      ],
+      "counts": {
+        "failed": 1,
+        "passed": 22
+      },
+      "executed": 1,
+      "exit": 0,
+      "failing_nodes": [],
+      "present": true,
+      "red": false,
+      "tail": [
+        "    }",
+        "  ],",
+        "  \"tier\": \"all\"",
+        "}"
+      ]
+    },
+    "port-binding-report": {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/scripts/run_generated_case_adapters.py",
+        "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/sm05/specs/corpus-port/spec-unit/quota_port",
+        "--mapping",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/case_adapters.port-swap.toml",
+        "--port-manifest",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/ab/model/spec_manifest.yaml",
+        "--import-root",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure",
+        "--validate-only"
+      ],
+      "counts": {},
+      "executed": 0,
+      "exit": 2,
+      "failing_nodes": [],
+      "present": true,
+      "red": false,
+      "tail": [
+        "                                      [--fuzz-runs FUZZ_RUNS] [--seed SEED]",
+        "                                      [--fuzz-iteration FUZZ_ITERATION]",
+        "                                      cases_dir",
+        "run_generated_case_adapters.py: error: unrecognized arguments: --port-manifest /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/ab/model/spec_manifest.yaml"
+      ]
+    },
+    "pytest-full": {
+      "argv": [
+        "uv",
+        "run",
+        "--with",
+        "pytest",
+        "--with",
+        "pyyaml",
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests"
+      ],
+      "counts": {
+        "failed": 9,
+        "passed": 1377
+      },
+      "executed": 1386,
+      "exit": 1,
+      "failing_nodes": [
+        "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+        "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+        "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+        "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+        "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+        "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+        "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+        "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+        "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+      ],
+      "present": true,
+      "red": true,
+      "tail": [
+        "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+        "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+        "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+        "9 failed, 1377 passed in 196.10s (0:03:16)"
+      ]
+    },
+    "registry-enumeration": {
+      "argv": [
+        "uv",
+        "run",
+        "--with",
+        "pytest",
+        "--with",
+        "pyyaml",
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated"
+      ],
+      "counts": {
+        "passed": 1
+      },
+      "executed": 1,
+      "exit": 0,
+      "failing_nodes": [],
+      "present": true,
+      "red": false,
+      "tail": [
+        ".                                                                        [100%]",
+        "1 passed in 0.18s"
+      ]
+    },
+    "spec-yaml-tripwire": {
+      "argv": [
+        "uv",
+        "run",
+        "--with",
+        "pytest",
+        "--with",
+        "pyyaml",
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_spec_yaml_valid.py"
+      ],
+      "counts": {
+        "passed": 19
+      },
+      "executed": 19,
+      "exit": 0,
+      "failing_nodes": [],
+      "present": true,
+      "red": false,
+      "tail": [
+        "...................                                                      [100%]",
+        "19 passed in 0.74s"
+      ]
+    },
+    "suite-fake": {
+      "argv": [
+        "uv",
+        "run",
+        "--with",
+        "pytest",
+        "--with",
+        "pyyaml",
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/ab/tests/test_behavior.py"
+      ],
+      "counts": {
+        "passed": 28
+      },
+      "executed": 28,
+      "exit": 0,
+      "failing_nodes": [],
+      "present": true,
+      "red": false,
+      "tail": [
+        "............................                                             [100%]",
+        "28 passed in 1.08s"
+      ]
+    },
+    "suite-real": {
+      "argv": [
+        "uv",
+        "run",
+        "--with",
+        "pytest",
+        "--with",
+        "pyyaml",
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/ab/tests/test_behavior.py"
+      ],
+      "counts": {
+        "passed": 28
+      },
+      "executed": 28,
+      "exit": 0,
+      "failing_nodes": [],
+      "present": true,
+      "red": false,
+      "tail": [
+        "............................                                             [100%]",
+        "28 passed in 0.04s"
+      ]
+    }
+  },
+  "cases": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/sm05/specs/corpus-port/spec-unit/quota_port",
+  "catalogue": "examples/validation/gap_mutants/gap_mutants.toml",
+  "control_red": [
+    {
+      "control": "SM-GM-CTRL-A-commit-credits-one-too-many",
+      "detector": "corpus-port-swap:real",
+      "executed": 0,
+      "why": "control reported CONTROL_RED, want DIES"
+    },
+    {
+      "control": "SM-GM-CTRL-A-commit-credits-one-too-many",
+      "detector": "corpus-port-swap:fake",
+      "executed": 0,
+      "why": "control reported CONTROL_RED, want DIES"
+    },
+    {
+      "control": "SM-GM-CTRL-A-commit-credits-one-too-many",
+      "detector": "corpus-action-bound:real",
+      "executed": 0,
+      "why": "control reported CONTROL_RED, want DIES"
+    },
+    {
+      "control": "SM-GM-CTRL-A-commit-credits-one-too-many",
+      "detector": "corpus-action-bound:fake",
+      "executed": 0,
+      "why": "control reported CONTROL_RED, want DIES"
+    }
+  ],
+  "detectors_with_a_red_control": [
+    "corpus-action-bound:fake",
+    "corpus-action-bound:real",
+    "corpus-port-swap:fake",
+    "corpus-port-swap:real"
+  ],
+  "mutants_not_applied": [],
+  "not_seedable": [
+    {
+      "mechanism": "scripts/code_complexity.py -- the produced-code descriptor",
+      "reason": "IT CORRECTLY CANNOT FAIL. It is a thermometer: it reports, refuses nothing,\ngates nothing, and `EXIT_OK = 0` is the only exit constant in the file. There is\nno gap to seed because there is no claim to catch anything. Named here so that\nits absence from the mutant table is a decision on the record rather than an\nomission, and so that SM-03 does not cut it by counting it with the other eight\nthat cannot be shown to fail.\n",
+      "removed_by": "nothing; it is NOT a removal target"
+    },
+    {
+      "mechanism": "registry row `test-graph-nodes` (test_graph/sources/)",
+      "reason": "NOT IN THIS ENVIRONMENT. Running the Test Graph nodes needs gradle, a JVM and\nJBang, none of which are available here. A mutant seeded into them would report\nINERT on every detector, and an INERT row would be indistinguishable from a\nsurvival to any reader skimming the table. Declared unmeasured rather than\nmeasured as nothing.\n",
+      "removed_by": "SM-03"
+    },
+    {
+      "mechanism": "the `fake =` key of a `[ports.*]` table itself",
+      "reason": "THE FAULT WOULD LIVE IN THE MECHANISM'S OWN DECLARATION. Dropping `fake =` from\n`case_adapters.port-swap.toml` is caught today by `render_oracle_statement`\n('is bound as a port and declares no fake'). But the table is deleted with the\nmachinery, so there is no post-removal tree the mutant could be re-applied to,\nand a before-only reading decides nothing about the cut. SM-GM-P2 seeds the\nequivalent drift in the MANIFEST instead, which outlives SM-02 and is therefore\nre-runnable. Reported so the difference is a decision, not an oversight.\n",
+      "removed_by": "SM-02"
+    },
+    {
+      "mechanism": "registry row `ticket-state-agreement`",
+      "reason": "THE GAP IS ALREADY TOTAL AND THERE IS NOWHERE TO SEED IT. The row is classified\n`no-instrument-exists`: `ticket.yaml`'s `status` is written once by the\nscaffolder and read by nothing (`PA-02-DF-02`, open). Every `ticket.yaml` in the\ntree is under `specs/.history`, which is append-only and must not be mutated\neven in a copy. The cost of removing this row is therefore already paid in full\nand no mutant is needed to price it -- but it is named, because a row that\nvanishes silently from a removal table is how a denominator shrinks.\n",
+      "removed_by": "SM-03"
+    }
+  ],
+  "per_mutant": {
+    "SM-GM-CTRL-A-commit-credits-one-too-many": {
+      "applied": true,
+      "claims_to_catch": "n/a -- this row is the control, not a gap",
+      "control_red": [],
+      "control_role": "positive -- must die on every column that executes an accepted Commit against the reference_ports tree, under BOTH wirings. The fault is in the DOMAIN, so no adapter and no wiring is involved and every column that runs the program at all must see it.",
+      "detectors": {
+        "corpus-action-bound:fake": {
+          "evidence": {
+            "failures": [
+              "    ...<4 lines>...",
+              "    )",
+              "ImportError: cannot import name 'apply_wiring' from 'run_generated_case_adapters' (/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/scripts/run_generated_case_adapters.py)"
+            ],
+            "total_failed": 0,
+            "total_ran": 0
+          },
+          "executable_count_available": true,
+          "executed": 0,
+          "raw_cell": "CONTROL_RED",
+          "uses_ports_binding": false,
+          "verdict": "CONTROL_RED"
+        },
+        "corpus-action-bound:real": {
+          "evidence": {
+            "failures": [
+              "    ...<4 lines>...",
+              "    )",
+              "ImportError: cannot import name 'apply_wiring' from 'run_generated_case_adapters' (/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/scripts/run_generated_case_adapters.py)"
+            ],
+            "total_failed": 0,
+            "total_ran": 0
+          },
+          "executable_count_available": true,
+          "executed": 0,
+          "raw_cell": "CONTROL_RED",
+          "uses_ports_binding": false,
+          "verdict": "CONTROL_RED"
+        },
+        "corpus-port-swap:fake": {
+          "evidence": {
+            "failures": [
+              "    ...<4 lines>...",
+              "    )",
+              "ImportError: cannot import name 'apply_wiring' from 'run_generated_case_adapters' (/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/scripts/run_generated_case_adapters.py)"
+            ],
+            "total_failed": 0,
+            "total_ran": 0
+          },
+          "executable_count_available": true,
+          "executed": 0,
+          "raw_cell": "CONTROL_RED",
+          "uses_ports_binding": true,
+          "verdict": "CONTROL_RED"
+        },
+        "corpus-port-swap:real": {
+          "evidence": {
+            "failures": [
+              "    ...<4 lines>...",
+              "    )",
+              "ImportError: cannot import name 'apply_wiring' from 'run_generated_case_adapters' (/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/scripts/run_generated_case_adapters.py)"
+            ],
+            "total_failed": 0,
+            "total_ran": 0
+          },
+          "executable_count_available": true,
+          "executed": 0,
+          "raw_cell": "CONTROL_RED",
+          "uses_ports_binding": true,
+          "verdict": "CONTROL_RED"
+        },
+        "portswap-suite-fake": {
+          "evidence": {
+            "failures": [
+              "7 failed, 21 passed"
+            ],
+            "total_failed": 1
+          },
+          "executable_count_available": false,
+          "executed": null,
+          "raw_cell": "KILLED",
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        },
+        "portswap-suite-real": {
+          "evidence": {
+            "failures": [
+              "7 failed, 21 passed"
+            ],
+            "total_failed": 1
+          },
+          "executable_count_available": false,
+          "executed": null,
+          "raw_cell": "KILLED",
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        },
+        "pytest-full": {
+          "baseline_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+            "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+            "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+            "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+            "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+            "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+          ],
+          "executable_count_available": true,
+          "executed": 1386,
+          "exit": 1,
+          "new_failing_nodes": [
+            "tests/test_ab_three_arms_and_port_faults.py::test_a_composition_point_wires_the_fake",
+            "tests/test_ab_three_arms_and_port_faults.py::test_every_positive_control_is_probed_against_the_property_it_declares",
+            "tests/test_falsifiable_controls.py::test_every_tree_with_a_port_has_a_control_inside_the_ports_region[reference_ports-catalogue0-domain.py]",
+            "tests/test_falsifiable_controls.py::test_the_probe_reports_a_control_outside_the_ports_region_OUT_OF_REGION",
+            "tests/test_falsifiable_controls.py::test_the_probe_still_says_yes_to_a_control_that_works",
+            "tests/test_falsifiable_controls.py::test_the_shipped_demonstration_command_is_re_runnable_and_passes"
+          ],
+          "self_detected_nodes": [],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "15 failed, 1371 passed in 187.29s (0:03:07)"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        },
+        "suite-fake": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 28,
+          "exit": 1,
+          "new_failing_nodes": [
+            "examples/validation/ab/tests/test_behavior.py::test_close_writes_the_final_total",
+            "examples/validation/ab/tests/test_behavior.py::test_commit_moves_the_hold_into_committed_and_writes_one_line",
+            "examples/validation/ab/tests/test_behavior.py::test_commit_running_total_accumulates",
+            "examples/validation/ab/tests/test_behavior.py::test_commit_totals_are_per_tenant",
+            "examples/validation/ab/tests/test_behavior.py::test_r1_conservation_holds_through_a_mixed_sequence",
+            "examples/validation/ab/tests/test_behavior.py::test_r2_the_durable_ledger_agrees_with_memory",
+            "examples/validation/ab/tests/test_behavior.py::test_r5_the_ledger_is_append_only_and_ordered"
+          ],
+          "self_detected_nodes": [],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/ab/tests/test_behavior.py::test_r1_conservation_holds_through_a_mixed_sequence",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/ab/tests/test_behavior.py::test_r2_the_durable_ledger_agrees_with_memory",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/ab/tests/test_behavior.py::test_r5_the_ledger_is_append_only_and_ordered",
+            "7 failed, 21 passed in 0.05s"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        },
+        "suite-real": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 28,
+          "exit": 1,
+          "new_failing_nodes": [
+            "examples/validation/ab/tests/test_behavior.py::test_close_writes_the_final_total",
+            "examples/validation/ab/tests/test_behavior.py::test_commit_moves_the_hold_into_committed_and_writes_one_line",
+            "examples/validation/ab/tests/test_behavior.py::test_commit_running_total_accumulates",
+            "examples/validation/ab/tests/test_behavior.py::test_commit_totals_are_per_tenant",
+            "examples/validation/ab/tests/test_behavior.py::test_r1_conservation_holds_through_a_mixed_sequence",
+            "examples/validation/ab/tests/test_behavior.py::test_r2_the_durable_ledger_agrees_with_memory",
+            "examples/validation/ab/tests/test_behavior.py::test_r5_the_ledger_is_append_only_and_ordered"
+          ],
+          "self_detected_nodes": [],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/ab/tests/test_behavior.py::test_r1_conservation_holds_through_a_mixed_sequence",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/ab/tests/test_behavior.py::test_r2_the_durable_ledger_agrees_with_memory",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/ab/tests/test_behavior.py::test_r5_the_ledger_is_append_only_and_ordered",
+            "7 failed, 21 passed in 0.89s"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        }
+      },
+      "edits": [
+        {
+          "occurrences_of_find": 1,
+          "op": "replace",
+          "path": "examples/validation/ab/reference_ports/domain.py"
+        }
+      ],
+      "gap": "NONE, on purpose. It moves `committed` and the COMMIT line's running total, both inside the port's derived region, so a column that cannot decide it is a column that is not reaching the subject.",
+      "is_control": true,
+      "mechanism": "positive control for the corpus and suite columns",
+      "must_die_on": [
+        "pytest-full",
+        "suite-real",
+        "suite-fake",
+        "corpus-port-swap:real",
+        "corpus-port-swap:fake",
+        "corpus-action-bound:real",
+        "corpus-action-bound:fake",
+        "portswap-suite-real",
+        "portswap-suite-fake"
+      ],
+      "removed_by": "nothing",
+      "seeded_in": [
+        "examples/validation/ab/reference_ports/domain.py"
+      ],
+      "unmutated_control_failed": [
+        "corpus-action-bound:fake",
+        "corpus-action-bound:real",
+        "corpus-port-swap:fake",
+        "corpus-port-swap:real"
+      ]
+    },
+    "SM-GM-CTRL-B-the-registry-demonstration-stops-reproducing": {
+      "applied": true,
+      "claims_to_catch": "n/a -- this row is the control, not a gap",
+      "control_role": "positive -- must die on `instrument-registry --only complexity-ledger`. It breaks the DEMONSTRATION rather than the instrument: the cited node is renamed away, so the slot's own command cannot run. If this does not go red, that detector decides nothing and every SURVIVES it reported is undecided.",
+      "detectors": {
+        "instrument-registry": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 1,
+          "exit": 1,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "    }",
+            "  ],",
+            "  \"tier\": \"all\"",
+            "}"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        }
+      },
+      "edits": [
+        {
+          "occurrences_of_find": 1,
+          "op": "replace",
+          "path": "examples/validation/instruments/instruments.toml"
+        }
+      ],
+      "gap": "NONE, on purpose.",
+      "is_control": true,
+      "mechanism": "positive control for the instrument-registry detector",
+      "must_die_on": [
+        "instrument-registry"
+      ],
+      "removed_by": "nothing",
+      "seeded_in": [
+        "examples/validation/instruments/instruments.toml"
+      ]
+    },
+    "SM-GM-I1-the-cited-demonstration-node-is-collected-and-skipped": {
+      "applied": true,
+      "claims_to_catch": "`complexity-ledger` -- one of the twelve `expect_exit = 0` slots AND one of the two whose failing.nodes == passing.nodes",
+      "control_role": null,
+      "detectors": {
+        "instrument-registry": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 1,
+          "exit": 1,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "    }",
+            "  ],",
+            "  \"tier\": \"all\"",
+            "}"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        },
+        "pytest-full": {
+          "baseline_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+            "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+            "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+            "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+            "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+            "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+          ],
+          "executable_count_available": true,
+          "executed": 1313,
+          "exit": 1,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "9 failed, 1304 passed, 73 skipped in 203.22s (0:03:23)"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        }
+      },
+      "edits": [
+        {
+          "occurrences_of_find": 1,
+          "op": "replace",
+          "path": "tests/test_complexity_ledger.py"
+        }
+      ],
+      "gap": "THE EXACT HOLE FI-06 NAMED, MADE EXECUTABLE. `demonstrate.py:165-176` compares\nonly the observed exit code, and pytest exits 0 for a passing run AND for a run\nwhose items were all collected and then skipped. So a demonstration whose cited\nnode stops actually asserting anything keeps reporting `ok`, and the registry's\ncount keeps reading as coverage.\n\nTWO SKIP SHAPES, SEEDED SEPARATELY AND ON PURPOSE. This row uses `pytestmark`,\nwhich collects the items and skips them -- pytest exits 0. `SM-GM-I6` uses\n`allow_module_level=True`, which collects nothing -- pytest exits 5. If the\nfirst survives and the second dies, then FI-06's sentence is right about the\nmechanism and imprecise about its reach, and SM-03 needs to know which because\none shape is a real blind spot and the other is not. That distinction was NOT\nin the finding; it came out of a synthetic exercise of this runner before any\nreal mutant was measured, and it is written down here rather than discovered\nlater next to a number.\n\nNote this is also invisible to a full-suite run: a skip is not a failure, so\n`pytest tests -q` stays green either way.\n",
+      "is_control": false,
+      "mechanism": "hollow-pytest-demonstration",
+      "must_die_on": [],
+      "removed_by": "SM-03",
+      "seeded_in": [
+        "tests/test_complexity_ledger.py"
+      ]
+    },
+    "SM-GM-I2-the-demonstrated-instrument-stops-refusing": {
+      "applied": true,
+      "claims_to_catch": "`complexity-ledger` -- the same row, on its other half: the INSTRUMENT going soft rather than the demonstration going quiet",
+      "control_role": null,
+      "detectors": {
+        "instrument-registry": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 1,
+          "exit": 0,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "    }",
+            "  ],",
+            "  \"tier\": \"all\"",
+            "}"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        },
+        "pytest-full": {
+          "baseline_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+            "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+            "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+            "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+            "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+            "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+          ],
+          "executable_count_available": true,
+          "executed": 1386,
+          "exit": 1,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [
+            "tests/test_gap_mutants.py::test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree"
+          ],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "10 failed, 1376 passed in 190.89s (0:03:10)"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        }
+      },
+      "edits": [
+        {
+          "occurrences_of_find": 1,
+          "op": "replace",
+          "path": "scripts/complexity_ledger.py"
+        }
+      ],
+      "gap": "THE HALF OF THE ROW THAT MIGHT NOT BE HOLLOW. `scripts/complexity_ledger.py`\nrefuses a close by returning verdict `rejected`; this mutant makes it record\nevery close instead. If the row catches this, `expect_exit = 0` was carrying\nreal information after all -- it asserts that the node which demonstrates the\nrefusal still passes -- and the correct SM-03 verdict is REPAIR, not DELETE.\nSeeded so that \"hollow\" is measured rather than inherited from a headline.\n",
+      "is_control": false,
+      "mechanism": "hollow-pytest-demonstration",
+      "must_die_on": [],
+      "removed_by": "SM-03",
+      "seeded_in": [
+        "scripts/complexity_ledger.py"
+      ]
+    },
+    "SM-GM-I3-an-instrument-that-was-never-added-to-the-registry": {
+      "applied": true,
+      "claims_to_catch": "`test_the_named_instruments_are_all_enumerated` -- the check that is supposed to keep the registry honest",
+      "control_role": null,
+      "detectors": {
+        "pytest-full": {
+          "baseline_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+            "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+            "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+            "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+            "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+            "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+          ],
+          "executable_count_available": true,
+          "executed": 1388,
+          "exit": 1,
+          "new_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated"
+          ],
+          "self_detected_nodes": [
+            "tests/test_gap_mutants.py::test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree"
+          ],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "11 failed, 1377 passed in 184.02s (0:03:04)"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        },
+        "registry-enumeration": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 1,
+          "exit": 1,
+          "new_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated"
+          ],
+          "self_detected_nodes": [],
+          "tail": [
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_instrument_demonstrations.py:484: AssertionError",
+            "=========================== short test summary info ============================",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated",
+            "1 failed in 0.15s"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        }
+      },
+      "edits": [
+        {
+          "op": "add_file",
+          "path": "scripts/gap_probe_instrument.py"
+        }
+      ],
+      "gap": "`required <= enumerated` IS ONE-DIRECTIONAL. A new instrument is not in\n`required`, so the subset relation stays true whether or not it was registered.\nThe test's own docstring concedes it (`FI-04-DF-04`, confirmed three times), and\nFI-04 shipped `divergence.py` with the suite fully green and the row absent.\nThis mutant adds a file that is an instrument by every criterion the registry\nuses -- executable, under a declared root, argparse, a nonzero exit path -- and\nregisters nothing. If it survives, SM-03's repair has a demonstrated failing\ninput to build against; if the repair works, this same row flips to DIES.\n",
+      "is_control": false,
+      "mechanism": "registry-enumeration-check",
+      "must_die_on": [],
+      "removed_by": "SM-03",
+      "seeded_in": [
+        "scripts/gap_probe_instrument.py"
+      ]
+    },
+    "SM-GM-I4-a-shipped-spec-yaml-is-committed-unparseable": {
+      "applied": true,
+      "claims_to_catch": "`spec-yaml-tripwire`, classified `no-demonstration-constructible` -- 'NOT WITHOUT BREAKING A SHIPPED FILE'",
+      "control_role": null,
+      "detectors": {
+        "instrument-registry": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 1,
+          "exit": 1,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "    }",
+            "  ],",
+            "  \"tier\": \"all\"",
+            "}"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        },
+        "pytest-full": {
+          "baseline_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+            "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+            "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+            "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+            "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+            "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+          ],
+          "executable_count_available": true,
+          "executed": 1386,
+          "exit": 1,
+          "new_failing_nodes": [
+            "tests/test_spec_yaml_valid.py::test_spec_yaml_parses[deferred_findings_hexagonal_prompting.yaml]"
+          ],
+          "self_detected_nodes": [],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_spec_yaml_valid.py::test_spec_yaml_parses[deferred_findings_hexagonal_prompting.yaml]",
+            "10 failed, 1376 passed in 183.60s (0:03:03)"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        },
+        "spec-yaml-tripwire": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 19,
+          "exit": 1,
+          "new_failing_nodes": [
+            "tests/test_spec_yaml_valid.py::test_spec_yaml_parses[deferred_findings_hexagonal_prompting.yaml]"
+          ],
+          "self_detected_nodes": [],
+          "tail": [
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_spec_yaml_valid.py:55: Failed",
+            "=========================== short test summary info ============================",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_spec_yaml_valid.py::test_spec_yaml_parses[deferred_findings_hexagonal_prompting.yaml]",
+            "1 failed, 18 passed in 0.69s"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        }
+      },
+      "edits": [
+        {
+          "op": "append",
+          "path": "specs/results/deferred_findings_hexagonal_prompting.yaml"
+        }
+      ],
+      "gap": "THE REASON MAY BE ABOUT THE RUNNER, NOT THE INSTRUMENT. Four registry rows are\ndeclared unconstructible because a demonstration would have to break a shipped\nfile -- but `demonstrate.py:150-162` runs every pytest slot against REPO_ROOT\nrather than against the staged tree it just built, so breaking a shipped file is\nexactly what it cannot do. This mutant breaks one in a THROWAWAY tree. If the\ntripwire goes red, the demonstration is constructible and the four rows'\ndeclared reason is a property of the runner; if it does not, the rows are right\nand the reason stands as written. Either answer is worth having before SM-03\ndeletes on the strength of it.\n\n`specs/results/deferred_findings_hexagonal_prompting.yaml` is chosen because it\nis a sealed archive leaf: nothing loads it at import time, so a red here is the\ntripwire's doing and not a cascade.\n",
+      "is_control": false,
+      "mechanism": "cannot-fail-instrument",
+      "must_die_on": [],
+      "removed_by": "SM-03",
+      "seeded_in": [
+        "specs/results/deferred_findings_hexagonal_prompting.yaml"
+      ]
+    },
+    "SM-GM-I5-the-enumerator-itself-stops-reporting-a-failure": {
+      "applied": true,
+      "claims_to_catch": "nothing that has ever been named -- `demonstrate.py` is the enumerator and is ABSENT FROM ITS OWN REGISTRY",
+      "control_role": null,
+      "detectors": {
+        "instrument-registry": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 1,
+          "exit": 0,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "    }",
+            "  ],",
+            "  \"tier\": \"all\"",
+            "}"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        },
+        "pytest-full": {
+          "baseline_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+            "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+            "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+            "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+            "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+            "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+          ],
+          "executable_count_available": true,
+          "executed": 1386,
+          "exit": 1,
+          "new_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_the_runner_REPORTS_a_demonstration_that_stops_reproducing",
+            "tests/test_instrument_demonstrations.py::test_the_runner_refuses_a_mutation_that_seeds_nothing"
+          ],
+          "self_detected_nodes": [
+            "tests/test_gap_mutants.py::test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree"
+          ],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "12 failed, 1374 passed in 188.27s (0:03:08)"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        }
+      },
+      "edits": [
+        {
+          "occurrences_of_find": 1,
+          "op": "replace",
+          "path": "examples/validation/instruments/demonstrate.py"
+        }
+      ],
+      "gap": "THE INSTRUMENT THAT COUNTS THE INSTRUMENTS. `demonstrate.py:301` is\n`return 1 if failures else 0` and that exit code is its entire verdict surface.\nThis mutant makes it always return 0. `test_every_fast_demonstration_reproduces`\nasserts `returncode == 0` AND the string 'Every declared demonstration\nreproduced.' -- and the string is printed by `render()` from the same `failures`\nlist, so a mutant that only softens the EXIT leaves the assertion satisfied.\n\nIf this survives, then every count SM-03 is about to report -- 40 enumerated, 35\ninstruments, 26 with a demonstrated failing input -- comes from a program whose\nown verdict nothing watches, and `denominator_rule` has to be applied to the\nenumerator before it is applied to the enumerated.\n",
+      "is_control": false,
+      "mechanism": "unregistered-instrument",
+      "must_die_on": [],
+      "removed_by": "SM-03",
+      "seeded_in": [
+        "examples/validation/instruments/demonstrate.py"
+      ]
+    },
+    "SM-GM-I6-the-cited-demonstration-node-is-not-collected-at-all": {
+      "applied": true,
+      "claims_to_catch": "`complexity-ledger` -- the same row, against the OTHER skip shape",
+      "control_role": null,
+      "detectors": {
+        "instrument-registry": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 1,
+          "exit": 1,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "    }",
+            "  ],",
+            "  \"tier\": \"all\"",
+            "}"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        },
+        "pytest-full": {
+          "baseline_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+            "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+            "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+            "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+            "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+            "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+          ],
+          "executable_count_available": true,
+          "executed": 1313,
+          "exit": 1,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "9 failed, 1304 passed, 1 skipped in 204.75s (0:03:24)"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        }
+      },
+      "edits": [
+        {
+          "occurrences_of_find": 1,
+          "op": "replace",
+          "path": "tests/test_complexity_ledger.py"
+        }
+      ],
+      "gap": "THE CONTRAST ROW FOR SM-GM-I1, and it is here so that a survival there cannot be\nexplained away as 'skips are just invisible'. `pytest.skip(allow_module_level=\nTrue)` collects nothing, and pytest's exit code for that is 5, not 0 -- so\n`expect_exit = 0` should catch it. A pair that only ever seeded one skip shape\nwould license a conclusion about both.\n\nIt is also the sharper reading of the registry's blind spot: the twelve slots\nare blind to a demonstration that goes VACUOUS, not to one that disappears.\n",
+      "is_control": false,
+      "mechanism": "hollow-pytest-demonstration",
+      "must_die_on": [],
+      "removed_by": "SM-03",
+      "seeded_in": [
+        "tests/test_complexity_ledger.py"
+      ]
+    },
+    "SM-GM-P1-fake-journal-records-newest-first": {
+      "applied": true,
+      "claims_to_catch": "a fault behind a declared port, on the side no composition point is obliged to wire",
+      "control_red": [],
+      "control_role": null,
+      "detectors": {
+        "corpus-action-bound:fake": {
+          "evidence": {
+            "failures": [
+              "    ...<4 lines>...",
+              "    )",
+              "ImportError: cannot import name 'apply_wiring' from 'run_generated_case_adapters' (/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/scripts/run_generated_case_adapters.py)"
+            ],
+            "total_failed": 0,
+            "total_ran": 0
+          },
+          "executable_count_available": true,
+          "executed": 0,
+          "raw_cell": "CONTROL_RED",
+          "uses_ports_binding": false,
+          "verdict": "CONTROL_RED"
+        },
+        "corpus-action-bound:real": {
+          "evidence": {
+            "failures": [
+              "    ...<4 lines>...",
+              "    )",
+              "ImportError: cannot import name 'apply_wiring' from 'run_generated_case_adapters' (/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/scripts/run_generated_case_adapters.py)"
+            ],
+            "total_failed": 0,
+            "total_ran": 0
+          },
+          "executable_count_available": true,
+          "executed": 0,
+          "raw_cell": "CONTROL_RED",
+          "uses_ports_binding": false,
+          "verdict": "CONTROL_RED"
+        },
+        "corpus-port-swap:fake": {
+          "evidence": {
+            "failures": [
+              "    ...<4 lines>...",
+              "    )",
+              "ImportError: cannot import name 'apply_wiring' from 'run_generated_case_adapters' (/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/scripts/run_generated_case_adapters.py)"
+            ],
+            "total_failed": 0,
+            "total_ran": 0
+          },
+          "executable_count_available": true,
+          "executed": 0,
+          "raw_cell": "CONTROL_RED",
+          "uses_ports_binding": true,
+          "verdict": "CONTROL_RED"
+        },
+        "corpus-port-swap:real": {
+          "evidence": {
+            "failures": [
+              "    ...<4 lines>...",
+              "    )",
+              "ImportError: cannot import name 'apply_wiring' from 'run_generated_case_adapters' (/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/scripts/run_generated_case_adapters.py)"
+            ],
+            "total_failed": 0,
+            "total_ran": 0
+          },
+          "executable_count_available": true,
+          "executed": 0,
+          "raw_cell": "CONTROL_RED",
+          "uses_ports_binding": true,
+          "verdict": "CONTROL_RED"
+        },
+        "portswap-suite-fake": {
+          "evidence": {
+            "failures": [
+              "5 failed, 23 passed"
+            ],
+            "total_failed": 1
+          },
+          "executable_count_available": false,
+          "executed": null,
+          "raw_cell": "KILLED",
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        },
+        "portswap-suite-real": {
+          "evidence": {
+            "failures": [
+              "28 passed"
+            ],
+            "total_failed": 0
+          },
+          "executable_count_available": false,
+          "executed": null,
+          "raw_cell": "SURVIVED",
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        },
+        "pytest-full": {
+          "baseline_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+            "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+            "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+            "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+            "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+            "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+          ],
+          "executable_count_available": true,
+          "executed": 1386,
+          "exit": 1,
+          "new_failing_nodes": [
+            "tests/test_ab_three_arms_and_port_faults.py::test_a_composition_point_wires_the_fake",
+            "tests/test_ab_three_arms_and_port_faults.py::test_both_wirings_of_one_domain_agree_on_the_feature",
+            "tests/test_ab_three_arms_and_port_faults.py::test_every_adapter_internal_mutant_occurs_exactly_once_and_reverts"
+          ],
+          "self_detected_nodes": [
+            "tests/test_gap_mutants.py::test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree"
+          ],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "13 failed, 1373 passed in 217.07s (0:03:37)"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        },
+        "suite-fake": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 28,
+          "exit": 1,
+          "new_failing_nodes": [
+            "examples/validation/ab/tests/test_behavior.py::test_close_writes_the_final_total",
+            "examples/validation/ab/tests/test_behavior.py::test_commit_running_total_accumulates",
+            "examples/validation/ab/tests/test_behavior.py::test_commit_totals_are_per_tenant",
+            "examples/validation/ab/tests/test_behavior.py::test_r2_the_durable_ledger_agrees_with_memory",
+            "examples/validation/ab/tests/test_behavior.py::test_r5_the_ledger_is_append_only_and_ordered"
+          ],
+          "self_detected_nodes": [],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/ab/tests/test_behavior.py::test_close_writes_the_final_total",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/ab/tests/test_behavior.py::test_r2_the_durable_ledger_agrees_with_memory",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/ab/tests/test_behavior.py::test_r5_the_ledger_is_append_only_and_ordered",
+            "5 failed, 23 passed in 0.07s"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        },
+        "suite-real": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 28,
+          "exit": 0,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "............................                                             [100%]",
+            "28 passed in 0.81s"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        }
+      },
+      "edits": [
+        {
+          "occurrences_of_find": 1,
+          "op": "replace",
+          "path": "examples/validation/ab/reference_ports/journal_memory.py"
+        }
+      ],
+      "gap": "THE FAR SIDE OF `ledger.LedgerAppendPort`. Ordering, not content: PA-M11/PA-M12\nperturb read-back and PA-M13 truncates fields, so a catalogue that only ever\nperturbed those would license the conclusion that this region is a projection\nproblem. It is not -- the fake here is a working implementation whose ORDER is\nwrong, and order is a class the whole-view corpus is documented as reaching\npoorly.\n",
+      "is_control": false,
+      "mechanism": "ports-binding-machinery",
+      "must_die_on": [],
+      "removed_by": "SM-02",
+      "seeded_in": [
+        "examples/validation/ab/reference_ports/journal_memory.py"
+      ],
+      "unmutated_control_failed": [
+        "corpus-action-bound:fake",
+        "corpus-action-bound:real",
+        "corpus-port-swap:fake",
+        "corpus-port-swap:real"
+      ]
+    },
+    "SM-GM-P2-manifest-renames-the-port-out-from-under-the-binding": {
+      "applied": true,
+      "claims_to_catch": "a port renamed in the manifest while the mapping still binds the old name -- the only executable reconciliation between a `[ports.*]` table and `spec_manifest.yaml`",
+      "control_role": null,
+      "detectors": {
+        "port-binding-report": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 0,
+          "exit": 2,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "                                      [--fuzz-runs FUZZ_RUNS] [--seed SEED]",
+            "                                      [--fuzz-iteration FUZZ_ITERATION]",
+            "                                      cases_dir",
+            "run_generated_case_adapters.py: error: unrecognized arguments: --port-manifest /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/examples/validation/ab/model/spec_manifest.yaml"
+          ],
+          "uses_ports_binding": true,
+          "verdict": "INERT"
+        },
+        "pytest-full": {
+          "baseline_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+            "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+            "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+            "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+            "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+            "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+          ],
+          "executable_count_available": true,
+          "executed": 1386,
+          "exit": 1,
+          "new_failing_nodes": [
+            "tests/test_port_case_generation.py::test_a_port_declared_in_the_manifest_is_read_in_the_effect_port_shape",
+            "tests/test_port_case_generation.py::test_the_ab_fixtures_port_region_is_the_ledger_aspect_derived",
+            "tests/test_ports_binding_removed.py::test_the_generator_still_declares_ports_and_still_builds_port_labels"
+          ],
+          "self_detected_nodes": [
+            "tests/test_gap_mutants.py::test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree"
+          ],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "13 failed, 1373 passed in 211.76s (0:03:31)"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        }
+      },
+      "edits": [
+        {
+          "occurrences_of_find": 1,
+          "op": "replace",
+          "path": "examples/validation/ab/model/spec_manifest.yaml"
+        }
+      ],
+      "gap": "DRIFT BETWEEN THE DECLARATION AND THE BINDING. `render_port_binding_report` is\nthe one thing in the toolchain that compares the two directions and says\n`BOUND BUT NOT DECLARED` / `DECLARED BUT NOT BOUND`. It is removed with the\nmachinery. The fault seeded here is in the MANIFEST -- a shipped model\nartifact that outlives SM-02 -- so the mutant is still re-runnable after the\ncut, which a mutant seeded inside the mapping table would not be.\n",
+      "is_control": false,
+      "mechanism": "ports-binding-machinery",
+      "must_die_on": [],
+      "removed_by": "SM-02",
+      "seeded_in": [
+        "examples/validation/ab/model/spec_manifest.yaml"
+      ]
+    },
+    "SM-GM-P3-the-fake-is-silently-a-second-real-adapter": {
+      "applied": true,
+      "claims_to_catch": "a `fake` that is not a fake -- the failure that makes a port swap prove nothing while continuing to report two columns",
+      "control_red": [],
+      "control_role": null,
+      "detectors": {
+        "corpus-action-bound:fake": {
+          "evidence": {
+            "failures": [
+              "    ...<4 lines>...",
+              "    )",
+              "ImportError: cannot import name 'apply_wiring' from 'run_generated_case_adapters' (/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/scripts/run_generated_case_adapters.py)"
+            ],
+            "total_failed": 0,
+            "total_ran": 0
+          },
+          "executable_count_available": true,
+          "executed": 0,
+          "raw_cell": "CONTROL_RED",
+          "uses_ports_binding": false,
+          "verdict": "CONTROL_RED"
+        },
+        "corpus-action-bound:real": {
+          "evidence": {
+            "failures": [
+              "    ...<4 lines>...",
+              "    )",
+              "ImportError: cannot import name 'apply_wiring' from 'run_generated_case_adapters' (/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/scripts/run_generated_case_adapters.py)"
+            ],
+            "total_failed": 0,
+            "total_ran": 0
+          },
+          "executable_count_available": true,
+          "executed": 0,
+          "raw_cell": "CONTROL_RED",
+          "uses_ports_binding": false,
+          "verdict": "CONTROL_RED"
+        },
+        "corpus-port-swap:fake": {
+          "evidence": {
+            "failures": [
+              "    ...<4 lines>...",
+              "    )",
+              "ImportError: cannot import name 'apply_wiring' from 'run_generated_case_adapters' (/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/scripts/run_generated_case_adapters.py)"
+            ],
+            "total_failed": 0,
+            "total_ran": 0
+          },
+          "executable_count_available": true,
+          "executed": 0,
+          "raw_cell": "CONTROL_RED",
+          "uses_ports_binding": true,
+          "verdict": "CONTROL_RED"
+        },
+        "corpus-port-swap:real": {
+          "evidence": {
+            "failures": [
+              "    ...<4 lines>...",
+              "    )",
+              "ImportError: cannot import name 'apply_wiring' from 'run_generated_case_adapters' (/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/scripts/run_generated_case_adapters.py)"
+            ],
+            "total_failed": 0,
+            "total_ran": 0
+          },
+          "executable_count_available": true,
+          "executed": 0,
+          "raw_cell": "CONTROL_RED",
+          "uses_ports_binding": true,
+          "verdict": "CONTROL_RED"
+        },
+        "portswap-suite-fake": {
+          "evidence": {
+            "failures": [
+              "28 passed"
+            ],
+            "total_failed": 0
+          },
+          "executable_count_available": false,
+          "executed": null,
+          "raw_cell": "SURVIVED",
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        },
+        "portswap-suite-real": {
+          "evidence": {
+            "failures": [
+              "28 passed"
+            ],
+            "total_failed": 0
+          },
+          "executable_count_available": false,
+          "executed": null,
+          "raw_cell": "SURVIVED",
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        },
+        "pytest-full": {
+          "baseline_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+            "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+            "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+            "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+            "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+            "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+          ],
+          "executable_count_available": true,
+          "executed": 1386,
+          "exit": 1,
+          "new_failing_nodes": [
+            "tests/test_ab_three_arms_and_port_faults.py::test_a_composition_point_wires_the_fake",
+            "tests/test_ab_three_arms_and_port_faults.py::test_a_fault_seeded_in_the_fake_is_reachable_only_through_the_fake",
+            "tests/test_ab_three_arms_and_port_faults.py::test_both_wirings_of_one_domain_agree_on_the_feature",
+            "tests/test_ab_three_arms_and_port_faults.py::test_each_adapter_is_wired_by_exactly_one_composition_point",
+            "tests/test_code_complexity.py::test_recorded_figures_match_a_live_run"
+          ],
+          "self_detected_nodes": [
+            "tests/test_gap_mutants.py::test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree"
+          ],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-p5pov9a8/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "15 failed, 1371 passed in 215.69s (0:03:35)"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        },
+        "suite-fake": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 28,
+          "exit": 0,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "............................                                             [100%]",
+            "28 passed in 0.04s"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        },
+        "suite-real": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 28,
+          "exit": 0,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "............................                                             [100%]",
+            "28 passed in 0.79s"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        }
+      },
+      "edits": [
+        {
+          "occurrences_of_find": 1,
+          "op": "replace",
+          "path": "examples/validation/ab/reference_ports/quota_ledger_fake.py"
+        }
+      ],
+      "gap": "THE SWAP'S OWN PREMISE. `[ports.*]`'s `fake =` key names a second\nimplementation; if that implementation is the first one under another name,\n`--wiring fake` produces a column that looks independent and is not. This is\nthe fault a swap mechanism exists to make impossible, so if the machinery is\nload-bearing anywhere it is load-bearing here.\n",
+      "is_control": false,
+      "mechanism": "ports-binding-machinery",
+      "must_die_on": [],
+      "removed_by": "SM-02",
+      "seeded_in": [
+        "examples/validation/ab/reference_ports/quota_ledger_fake.py"
+      ],
+      "unmutated_control_failed": [
+        "corpus-action-bound:fake",
+        "corpus-action-bound:real",
+        "corpus-port-swap:fake",
+        "corpus-port-swap:real"
+      ]
+    }
+  },
+  "ref": "HEAD",
+  "registry": {
+    "epic": "subtract-to-measure",
+    "id": "SM-01-gap-mutants",
+    "prices": [
+      "the [ports.*] binding machinery (SM-02, issue #166)",
+      "the hollow instrument demonstrations and the registry's enumeration check (SM-03, issue #167)"
+    ],
+    "seeded_before": "SM-02 and SM-03 -- neither had been dispatched when this file was committed",
+    "ticket": "SM-01"
+  }
+}

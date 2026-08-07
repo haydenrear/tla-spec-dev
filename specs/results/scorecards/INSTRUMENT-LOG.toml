@@ -2287,3 +2287,183 @@ sha256 = "sha256:b602288f59103e68"
 [[sealed]]
 path = "specs/results/scorecards/subtract-to-measure-sm04-rescore-v3/ab_quota_ledger/20260806-sm04v3-R-p2/scorecard.md"
 sha256 = "sha256:22f916305596580d"
+
+
+# ===========================================================================
+# SM-05 -- the greenfield arm, re-scored at two judge tiers
+# ===========================================================================
+#
+# NO INSTRUMENT CHANGE IS DECLARED FOR THIS ROUND. The card is byte-unchanged
+# since SM-06 (`file_sha256 sha256:210618e0c6557592`), so these rows sit inside
+# scorecard_version 3's era and are comparable to SM-04's without a bar.
+#
+# ONLY THE GREENFIELD ARM APPEARS HERE. SM-05's other subject,
+# `toolchain_removal`, is a NEW example with no prior card, so there is nothing
+# on this example to declare a movement against -- R-H2. That is also why the
+# sealed prediction N05 is scored SUPERSEDED rather than PASS: it asks whether
+# D3 moved from "its last sealed value" on the removal, and there was none.
+#
+# THE SECOND AXIS THIS ROUND ADDS IS JUDGE MODEL TIER, and it is NOT a field on
+# a movement. It is recorded per card as `judge.model`, and the tier of each of
+# these rows is stated in the `why`.
+
+[[movement]]
+id = "sm05-gf-D2-zero-high-tier"
+example = "ab_quota_ledger"
+dimension = "D2"
+from_card = "subtract-to-measure-sm04-rescore-v3/ab_quota_ledger/20260806-sm04v3-R-p1"
+to_card = "subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p1"
+points = 0
+readable = true
+from_practice = "executed_own_faults = true"
+to_practice = "executed_own_faults = true"
+why = """
+D2 = 2 again, same tier (`claude-opus-5[1m]`), same example, unchanged card.
+Declared zero so the ABSENCE is re-derived on every audit.
+
+WHAT CHANGED IS THE READING, NOT THE NUMBER. SM-04 recorded this zero with the
+note that SM-05 would find out whether D2 can move. It can: SM-05's OTHER
+subject, a toolchain removal with a recorded before and after, scored D2 = 3, 3,
+4, 3 from four judges in this same round. So this zero is now evidence about the
+SUBJECT and not about the dimension -- a greenfield artifact cannot reach anchor
+3, which requires a measured simplification it has no before for.
+"""
+
+[[movement]]
+id = "sm05-gf-D2-zero-low-tier"
+example = "ab_quota_ledger"
+dimension = "D2"
+from_card = "subtract-to-measure-sm04-rescore-v3/ab_quota_ledger/20260806-sm04v3-R-p1"
+to_card = "subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p3"
+points = 0
+readable = true
+from_practice = "executed_own_faults = true"
+to_practice = "executed_own_faults = true"
+why = """
+The tier axis. `to_card` is `claude-sonnet-5`; every one of the 41 prior cards
+this project has written was `claude-opus-5[1m]`. D2 does not move with judge
+strength on this subject, and it does not move with judge strength on the removal
+subject either. Within the range tested, D2's value tracks the SUBJECT and not
+the judge.
+
+WHAT THIS CANNOT SAY: no judge stronger than `claude-opus-5[1m]` was available,
+so nothing here bears on whether a stronger judge would score differently.
+"""
+
+[[movement]]
+id = "sm05-gf-D3-zero-high-tier"
+example = "ab_quota_ledger"
+dimension = "D3"
+from_card = "subtract-to-measure-sm04-rescore-v3/ab_quota_ledger/20260806-sm04v3-R-p1"
+to_card = "subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p1"
+points = 0
+readable = true
+from_practice = "executed_own_faults = true"
+to_practice = "executed_own_faults = true"
+why = "D3 = 2 again at the historical tier, the eleventh card on this artifact to say so."
+
+[[movement]]
+id = "sm05-gf-D3-low-tier"
+example = "ab_quota_ledger"
+dimension = "D3"
+from_card = "subtract-to-measure-sm04-rescore-v3/ab_quota_ledger/20260806-sm04v3-R-p1"
+to_card = "subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p3"
+points = -1
+readable = true
+from_practice = "executed_own_faults = true"
+to_practice = "executed_own_faults = true"
+why = """
+D3 MOVED ONE POINT ON BYTE-IDENTICAL BYTES, AND THE VARIABLE IS JUDGE TIER.
+Ten prior cards on this artifact scored D3 = 2; this one scores 1. Practice is
+recorded true at both ends, so R-H5's readability condition is met and the
+movement is not attributable to the variable R-H5 exists to expose.
+
+D3 is the dimension the card recommends for cross-epic claims BECAUSE it
+discriminates and holds still. It held still across four rounds and 60 judge
+scores at ONE tier. Read this row beside SM-05-DF-06, which records the larger
+instability: on a repository-scale subject D3 spans 2 to 4 between judges at the
+same tier, because "the domain" has no fixed referent there.
+"""
+
+[[movement]]
+id = "sm05-gf-D5-low-tier"
+example = "ab_quota_ledger"
+dimension = "D5"
+from_card = "subtract-to-measure-sm04-rescore-v3/ab_quota_ledger/20260806-sm04v3-R-p1"
+to_card = "subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p3"
+points = -1
+readable = true
+from_practice = "executed_own_faults = true"
+to_practice = "executed_own_faults = true"
+why = """
+D5 also shows a one-point tier effect: high tier 3, 3 and low tier 2, 2 in this
+round. Consistent with R-H5's standing caveat that a D1/D4/D5 delta of <= 2
+points per judge is within demonstrated noise -- and this round adds that some of
+that noise has a NAME, which is the judge model.
+"""
+
+# --- sealed digests appended by `score_tools.py seal` ---
+
+[[sealed]]
+path = "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p1/scorecard.json"
+sha256 = "sha256:b7d067aa2c5da7cb"
+
+[[sealed]]
+path = "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p1/scorecard.md"
+sha256 = "sha256:01cb49b279d6a5bc"
+
+[[sealed]]
+path = "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p2/scorecard.json"
+sha256 = "sha256:c42fab65d1574b14"
+
+[[sealed]]
+path = "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p2/scorecard.md"
+sha256 = "sha256:bf91312fbddd2862"
+
+[[sealed]]
+path = "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p3/scorecard.json"
+sha256 = "sha256:cb0e86f953460933"
+
+[[sealed]]
+path = "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p3/scorecard.md"
+sha256 = "sha256:459da66f9d68ec3e"
+
+[[sealed]]
+path = "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p4/scorecard.json"
+sha256 = "sha256:6ba969d09c11b0d5"
+
+[[sealed]]
+path = "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p4/scorecard.md"
+sha256 = "sha256:5dcc262e40498a89"
+
+[[sealed]]
+path = "specs/results/scorecards/subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p1/scorecard.json"
+sha256 = "sha256:5c4245e9bca3dfa8"
+
+[[sealed]]
+path = "specs/results/scorecards/subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p1/scorecard.md"
+sha256 = "sha256:7a3f18b7aae32965"
+
+[[sealed]]
+path = "specs/results/scorecards/subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p2/scorecard.json"
+sha256 = "sha256:a6b0c99a7d8d5e3b"
+
+[[sealed]]
+path = "specs/results/scorecards/subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p2/scorecard.md"
+sha256 = "sha256:b10f77ede7d23af3"
+
+[[sealed]]
+path = "specs/results/scorecards/subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p3/scorecard.json"
+sha256 = "sha256:cbed790503c8fa32"
+
+[[sealed]]
+path = "specs/results/scorecards/subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p3/scorecard.md"
+sha256 = "sha256:c6a081f6410db7d0"
+
+[[sealed]]
+path = "specs/results/scorecards/subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p4/scorecard.json"
+sha256 = "sha256:066aee9012efd548"
+
+[[sealed]]
+path = "specs/results/scorecards/subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p4/scorecard.md"
+sha256 = "sha256:b1f8d77429127eea"

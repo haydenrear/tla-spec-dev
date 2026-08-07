@@ -1,13 +1,13 @@
 {
   "scorecard_version": 3,
-  "status": "unfilled",
+  "status": "filled",
   "epic": "subtract-to-measure-sm05",
   "example": "toolchain_removal",
   "run_id": "20260807-sm05rm-K-p3",
   "arm": "K",
-  "commit": "",
+  "commit": "f49a1c9",
   "judge": {
-    "model": "",
+    "model": "claude-sonnet-5",
     "pass": 3,
     "blind_to_arm": true
   },
@@ -46,9 +46,18 @@
         "3": "Also catches at least one fault in a class the whole-view corpus structurally cannot reach on its own (a refusal, an ordering, a cross-aspect before-state).",
         "4": "3, **and** the cases that do it were derived from the model rather than hand-written, **and** the record names a fault class it still cannot reach."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 3,
+      "citations": [
+        "data/gap-mutants-before.json:934",
+        "tests/test_ab_three_arms_and_port_faults.py:314-324",
+        "tests/test_ab_three_arms_and_port_faults.py:329-343",
+        "scripts/run_generated_case_adapters.py:1148",
+        "data/gap-mutants-after-SM-03.json:237",
+        "data/gap-mutants-after-SM-03.json:367",
+        "data/gap-mutants-before.json:525",
+        "data/gap-mutants-before.json:655"
+      ],
+      "rationale": "Anchor 3 is met twice over: an ordering fault the flat model-derived corpus cannot reach on its own (corpus-action-bound SURVIVES on SM-GM-P1 both before and after) is caught by content-asserting hand-written tests, which I confirmed myself by seeding the same fault shape and watching test_a_composition_point_wires_the_fake and test_both_wirings_of_one_domain_agree_on_the_feature fail; and a fault class (a hollow demonstration node, SM-GM-I1/I3) that survived at the before commit is newly caught after change (b)'s derived-walk mechanism. I stopped short of anchor 4: the cases that catch the ordering fault in the after tree are hand-written pytest functions, not TLC-derived case programs -- the one avenue by which a genuinely model-derived case ever caught it (corpus-port-swap, riding the now-deleted [ports.*] machinery) is gone, and the artifact's own comment at scripts/run_generated_case_adapters.py:308-312 says that mechanism had 'zero unique kills across 28 tables' anyway. I considered scoring 4 on the strength of the gap-mutants/dup-mutants catalogues being 'a corpus' in the rubric's parenthetical sense, and rejected it: those catalogues are hand-authored fault tables, not derived from the TLA+ model. Torn between two, I took the lower. The record does name a fault class it still cannot reach (the derived walk's declared blind spot for pytest-file tripwires, EVIDENCE.md section 5), but the model-derived half of anchor 4 fails, so the combination isn't satisfied.",
       "refuses_to_claim": null
     },
     "D2": {
@@ -61,10 +70,16 @@
         "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded.",
         "4": "3, **and** the simplification is shown to be behavior-preserving (D4 \u2265 3), so the reduction is not paid for in lost behavior."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null,
+      "score": 4,
+      "citations": [
+        "data/descriptor-before-3f58aca.json:1270",
+        "data/descriptor-after-f49a1c9.json:1265",
+        "scripts/code_complexity.py:553",
+        "scripts/code_complexity.py:587",
+        "scripts/code_complexity.py:776-777"
+      ],
+      "rationale": "What got simpler: run_generated_case_adapters.py, the single file carrying the removal, drops from code_lines 2341 to 2116, callables 78 to 72, branch_points 473 to 429, public_surface 58 to 53, and loses one internal import edge (generate_cases_from_tlc_dump.py) -- matching the -225 code_lines / -1 internal_import_edges reported for the whole scripts/ tree in EVIDENCE.md section 3, so the whole measured reduction lives in this one removal, not diffuse noise (module_state stays 0 on both sides -- no god-state added or removed). How behavior survived it: D4 is scored 3 (gap-mutants and dup-mutants data plus my own seeded fault show the claimed fault classes still caught after the cut), which clears the >=3 bar this anchor requires. I am not crediting the removal with new bug-catching capacity -- D1 is capped at 3 for the same reason -- only with complexity removed at no cost on the fault classes actually measured.",
+      "refuses_to_claim": "The complexity instrument itself (scripts/code_complexity.py:553,587,776-777) reports unresolved_constructs -- ten getattr()/setattr() sites it cannot resolve, unchanged on both trees -- and does not fold them into the totals it reports as measured.",
       "read_first": "Read the measured descriptor first (variables, actions, state-space bound, R/W density, modularity, dense rows). Then judge whether the numbers reflect essential behavior or accidental structure.",
       "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 or more requires the judge to say *what got simpler and how the behavior survived it*."
     },
@@ -78,10 +93,16 @@
         "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
         "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null,
+      "score": 4,
+      "citations": [
+        "tests/test_ab_three_arms_and_port_faults.py:346-357",
+        "tests/test_ab_three_arms_and_port_faults.py:360-370",
+        "examples/validation/ab/reference_ports/journal_memory.py:23-27",
+        "tests/test_ab_three_arms_and_port_faults.py:314-324",
+        "tests/test_ab_three_arms_and_port_faults.py:329-343"
+      ],
+      "rationale": "test_the_domain_imports_neither_adapter reads domain.py's source and asserts neither 'import journal_file' nor 'import journal_memory' appears -- a runtime-topology check, not an import-graph tool, clearing the Round-2 caveat. test_each_adapter_is_wired_by_exactly_one_composition_point names the specific swap: quota_ledger.py wires journal_file, quota_ledger_fake.py wires journal_memory (four lines, per its own docstring), neither wires the other. test_a_composition_point_wires_the_fake and test_both_wirings_of_one_domain_agree_on_the_feature actually drive the port through both composition points with the identical scripted sequence and compare observations -- I re-ran this myself, and it passed on both wirings before my seeded edit and failed only on the fake wiring's ordering after it. Scope limit: this evidence is entirely from examples/validation/ab/reference_ports/, one reference example; I did not audit the rest of the toolchain's scripts for the same separation. Also worth naming: the removal itself (section 2(a) of the packet) cuts a generic, declarative swap facility (any port swappable via a [ports.*] TOML table in the shared runner) in favor of what remains -- hand-wired, per-example composition points written by hand for each new port. The anchor doesn't require genericity so I'm not scoring against that, but the 'adapter could be replaced without touching the domain' claim now costs a bespoke module per swap rather than a config entry.",
+      "refuses_to_claim": "test_both_wirings_of_one_domain_agree_on_the_feature's own docstring (tests/test_ab_three_arms_and_port_faults.py:329-337) states what it does NOT do: 'it does not stand in for the shared suite... this test only establishes that the fake is substitutable at all.'",
       "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
     },
     "D4": {
@@ -94,10 +115,17 @@
         "3": "2, **and** the check is model-derived (a corpus, a TLC invariant) rather than only hand-written assertions.",
         "4": "3, **and** a deliberate behavior-breaking change is shown to be *caught* \u2014 the check is demonstrated to be capable of failing."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null
+      "score": 3,
+      "citations": [
+        "data/gap-mutants-after-SM-02.json:967",
+        "data/dup-mutants-before.json:37",
+        "data/dup-mutants-before.json:78",
+        "data/dup-mutants-before.json:119",
+        "data/dup-mutants-after.json:38",
+        "data/dup-mutants-after.json:84"
+      ],
+      "rationale": "After the removal, corpus-port-swap:* goes CONTROL_RED (SM-GM-P1, the mechanism that ran it is gone), but portswap-suite-fake and pytest-full still DIE, naming tests/test_ab_three_arms_and_port_faults.py::test_a_composition_point_wires_the_fake among the new failures; same pattern for SM-GM-P2 and SM-GM-P3. EVIDENCE.md section 6: unredacted suite goes from 1177 passed/1 failed (before) to 1386 passed (after) -- more behaviors enumerated and passing, not fewer. dup-mutants: three prose copies of the rubric (M1/M2/M3) were UNCAUGHT before change (c); reintroducing the same shape after (A1/A2) is CAUGHT -- behavior added, shown on the identical fault shape before and after. I also seeded my own ordering fault against the after tree and it was caught by three tests, not zero (judging_practice: executed_own_faults=true). I capped this at 3 rather than 4 for the same reason as D1: anchor 3's 'model-derived... rather than only hand-written assertions' is ambiguous against these tabular-but-hand-authored mutant catalogues, and I did demonstrate anchor 4's second clause myself but declined to stack it on an anchor-3 I only partly believe. Scoring the lower and saying why.",
+      "refuses_to_claim": "scripts/run_generated_case_adapters.py:360-363 -- render_oracle_statement states on every run: 'mutation-kill-test: never carried by this runner... a green run here is not evidence any fault would die.'"
     },
     "D5": {
       "name": "honesty",
@@ -109,19 +137,34 @@
         "3": "2, **and** refuses to emit a positive verdict when its basis does not support one (`unobservable` / `unmappable` rather than a false clean).",
         "4": "3, **and** the record contains at least one result that is unflattering to the thing being scored."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null,
+      "score": 4,
+      "citations": [
+        "scripts/run_generated_case_adapters.py:308-312",
+        "data/gap-mutants-before.json:934",
+        "examples/validation/gap_mutants/run_gap_mutants.py:40-42",
+        "examples/validation/gap_mutants/run_gap_mutants.py:51-58",
+        "examples/validation/gap_mutants/run_gap_mutants.py:98-103",
+        "examples/validation/gap_mutants/run_gap_mutants.py:397",
+        "examples/validation/gap_mutants/run_gap_mutants.py:401",
+        "data/gap-mutants-after-SM-02.json:967",
+        "scripts/run_generated_case_adapters.py:296-372"
+      ],
+      "rationale": "The removal's own stated rationale, in the after tree, is a measured, unflattering fact about a component of the same artifact: 'SM-02 removed the fifth, PA-04's real/fake port swap, on measured evidence: zero unique kills across 28 tables, and SM-01's SM-GM-P3 survived all six of the swap's own columns at 1543 executed cases each while dying to the hand-written suite' (run_generated_case_adapters.py:308-312), matching the raw data at data/gap-mutants-before.json:934 exactly. The gap-mutants runner explicitly declines to render a verdict on the removal itself ('Not a verdict about the removal... Whether a SURVIVES is an acceptable price is SM-05's call and a human's, not this file's', run_gap_mutants.py:40-42) and uses named, distinct refusal states (CONTROL_RED, INERT, REMOVED, NOT_RUN) rather than collapsing an undecided or broken-control cell into SURVIVES/DIES -- exercised for real at data/gap-mutants-after-SM-02.json:967 once the mechanism corpus-port-swap depends on is gone. render_oracle_statement prints what oracles are and are not carried on every run, unprompted. I used the measured reading deliberately: 'zero unique kills across 28 tables' is not the artifact disclosing a general limitation of itself (anchor 2/3 material per the caveat) -- it is a specific, quantified, unflattering result the artifact's own instrumentation produced about a component of itself, used as the stated reason for removing that component. I noticed but am not citing as anchor-4 evidence: a leftover [ports.*] table is now silently ignored by the tomllib reader (run_generated_case_adapters.py:383-385) but rejected by the fallback parser on identical input (run_generated_case_adapters.py:425-426) -- I confirmed this myself by reading both paths, and it is a real inconsistency, but I could not find it named anywhere inside the artifact's own text, only in the evidence packet's neutral description of the diff, so under the measured reading it doesn't count as the artifact producing a result about itself.",
+      "refuses_to_claim": "scripts/run_generated_case_adapters.py:360-363 -- the runner states, every run, that it never carries a mutation-kill oracle and 'a green run here is not evidence any fault would die.'",
       "caveat": "**Anchor 4's phrase \"a result unflattering to the thing being scored\" carries two defensible readings, and the card records which one you used.** Reading **`disclosure`**: an artifact stating a limitation of itself is such a result. Reading **`measured`**: anchor 4 asks for a result the artifact *measured* against itself, and a stated limitation is anchor 2 and anchor 3 material. **Both readings are legal, neither is the right one, and this note does not change the bar** \u2014 score exactly the anchor you would have scored, and name the reading in `dimensions.D5.anchor_reading`. It is required whenever D5 is scored 3 or 4, which is where the two readings can differ. Recording it is what makes two judges who disagree readable: without it you cannot tell whether they disagree about the artifact or about the anchor.",
-      "anchor_reading": null
+      "anchor_reading": "measured"
     }
   },
   "contested": [],
-  "verdict": "",
+  "verdict": "The removal cuts real, measured complexity from exactly the file it claims to (D2=4) without losing the specific fault-catching it claims to preserve (D4=3, D1=3), its own stated justification ('zero unique kills across 28 tables') checks out against the raw mutant data and against a fault I seeded myself, and the artifact is honest about what it no longer carries (D5=4); D1/D4's ceiling is one the artifact cannot reach under the strict model-derived-not-hand-written reading of anchor 4 no matter how good its hand-written suite is.",
   "judging_practice": {
-    "executed_own_faults": null,
-    "what_was_run": [],
-    "note": "REQUIRED from scorecard_version 2. Did you seed a fault of your own and run it against this artifact, or did you score the evidence packet? Both are legal and neither is the right answer; what is not legal is leaving it unsaid. Say which, and list what you ran. D4's anchor 4 is only awardable when this says true, because that anchor asks for a behavior-breaking change SHOWN TO BE CAUGHT."
+    "executed_own_faults": true,
+    "what_was_run": [
+      "Copied the after tree to a scratch dir outside both staged trees and the repo.",
+      "Baseline: uv run --with pytest --with pyyaml python -m pytest tests/test_ab_three_arms_and_port_faults.py -q -- 23 passed, 5 failed (all 5 are PREDICTIONS-PA.md reads, a section-1 redaction, not a defect).",
+      "Seeded my own ordering fault in examples/validation/ab/reference_ports/journal_memory.py (append -> insert(0, ...), the same shape as SM-GM-P1) and reran the same test file: 20 passed, 8 failed. Three failures beyond the redaction baseline are directly caused by the edit: test_a_composition_point_wires_the_fake, test_both_wirings_of_one_domain_agree_on_the_feature, test_every_adapter_internal_mutant_occurs_exactly_once_and_reverts -- all on content assertions.",
+      "Attempted tests/test_card_has_one_home.py (the SM-06 dedup checker) against the same scratch copy to independently verify the dup-mutants finding; it errored because references/eval_scorecard.md is a section-1 redaction and a file I am separately forbidden from reading, so I did not work around it and relied on the packet's own dup-mutants-before.json/dup-mutants-after.json instead.",
+      "Did not run the full suite (EVIDENCE.md section 6 already gives the unredacted numbers) and did not seed a fault against change (b), the instrument-registry derived walk."
+    ]
   }
 }
