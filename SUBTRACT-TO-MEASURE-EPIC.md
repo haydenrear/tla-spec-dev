@@ -105,6 +105,21 @@ one cut.
 - **File findings; fix nothing during a measurement.**
 - **Ask every blind agent what it REJECTED.**
 - **Never edit a target to match a result. Report the run that happened.**
+- **VERIFY YOUR BRANCH POINT AGAINST THE WORK ORDER.** `wt new <ticket>
+  epic/<slug>` branches from the **local** ref, which may be far behind
+  `origin`. SM-06 was branched **21 commits behind**, and caught it only by
+  comparing its own `HEAD` against the SHA written in its dispatch. Left
+  unfixed it would have de-duplicated a *pre-SM-04* card while reporting the
+  card "unchanged" — a true sentence about the wrong tree.
+
+  ```bash
+  git rev-parse --short HEAD          # must match the SHA in your work order
+  git fetch origin && git merge --ff-only origin/epic/<slug>
+  ```
+
+  Third instance of the same family this epic has found: a command that looks
+  local and is not (`git worktree add`, `pkill -f`, and now `wt new` off a
+  stale ref).
 - **NEVER KILL A PROCESS BY NAME ALONE.** Ticket agents run concurrently in
   sibling worktrees on one machine, and `pkill -f run_gap_mutants.py` matches
   every worktree, not yours. Scope it to your own tree:
