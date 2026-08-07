@@ -50,14 +50,14 @@
           "argv": [
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/scripts/run_generated_case_adapters.py",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-kpzcgu6g/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-dzxzagbd/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases",
             "--mapping",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-kpzcgu6g/tree/dh/specs/program_model/case_adapters.toml",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-dzxzagbd/tree/dh/specs/program_model/case_adapters.toml",
             "--view",
             "internal",
             "--batch",
             "--import-root",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-kpzcgu6g/tree/dh"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-dzxzagbd/tree/dh"
           ],
           "counts": null,
           "exit": 1,
@@ -65,20 +65,20 @@
           "problems": [],
           "ran": true,
           "summary": "a checked-out order is persisted with status 'pending' instead of 'accepted' (kill_mutants.toml store-order_store, verbatim)",
-          "tail": "  - projected-state-conformance: no binding declares a projector, an expected_projection or an assertion, so nothing here observes the real system's state except through the adapter's own returned after-state\n  - effect-conformance: this mapping binds no [effect_providers.<Port>] provider, so NO DURABLE-WRITE ORACLE is in this run and a kill count from it is a FLOOR\n  - mutation-kill-test: never carried by this runner. It is a separate instrument (scripts/kill_test.py) and a green run here is not evidence any fault would die\n  - port-fake-real-swap: no [ports.\"Component.Name\"] binding in this mapping. Every binding here drives a whole ACTION, so a fault living inside one implementation of a port is only reachable if the composition point this corpus happens to run wires that implementation\nERROR: 1 batched case executions failed\ninternal_checkout_creates_outbox via Checkout: AssertionError: adapter after-state mismatch for internal_checkout_creates_outbox: orders: expected {'order-1': {'account': 'acct-1', 'items': ['sku-1'], 'status': 'accepted'}}, actual {'order-1': {'account': 'acct-1', 'items': ['sku-1'], 'status': 'pending'}}"
+          "tail": "ORACLES **NOT** CARRIED:\n  - projected-state-conformance: no binding declares a projector, an expected_projection or an assertion, so nothing here observes the real system's state except through the adapter's own returned after-state\n  - effect-conformance: this mapping binds no [effect_providers.<Port>] provider, so NO DURABLE-WRITE ORACLE is in this run and a kill count from it is a FLOOR\n  - mutation-kill-test: never carried by this runner. It is a separate instrument (scripts/kill_test.py) and a green run here is not evidence any fault would die\nERROR: 1 batched case executions failed\ninternal_checkout_creates_outbox via Checkout: AssertionError: adapter after-state mismatch for internal_checkout_creates_outbox: orders: expected {'order-1': {'account': 'acct-1', 'items': ['sku-1'], 'status': 'accepted'}}, actual {'order-1': {'account': 'acct-1', 'items': ['sku-1'], 'status': 'pending'}}"
         },
         "passing": {
           "argv": [
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/scripts/run_generated_case_adapters.py",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-_ncwdjqe/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-kdic_044/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases",
             "--mapping",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-_ncwdjqe/tree/dh/specs/program_model/case_adapters.toml",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-kdic_044/tree/dh/specs/program_model/case_adapters.toml",
             "--view",
             "internal",
             "--batch",
             "--import-root",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-_ncwdjqe/tree/dh"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-kdic_044/tree/dh"
           ],
           "counts": null,
           "exit": 0,
@@ -86,7 +86,7 @@
           "problems": [],
           "ran": true,
           "summary": "the same corpus against the same tree, unmutated",
-          "tail": "ORACLES **NOT** CARRIED:\n  - projected-state-conformance: no binding declares a projector, an expected_projection or an assertion, so nothing here observes the real system's state except through the adapter's own returned after-state\n  - effect-conformance: this mapping binds no [effect_providers.<Port>] provider, so NO DURABLE-WRITE ORACLE is in this run and a kill count from it is a FLOOR\n  - mutation-kill-test: never carried by this runner. It is a separate instrument (scripts/kill_test.py) and a green run here is not evidence any fault would die\n  - port-fake-real-swap: no [ports.\"Component.Name\"] binding in this mapping. Every binding here drives a whole ACTION, so a fault living inside one implementation of a port is only reachable if the composition point this corpus happens to run wires that implementation\nexecuted 4 cases in batch"
+          "tail": "  + output-conformance: 4 binding(s) return a result this run compares field by field against the case's own expectation\nORACLES **NOT** CARRIED:\n  - projected-state-conformance: no binding declares a projector, an expected_projection or an assertion, so nothing here observes the real system's state except through the adapter's own returned after-state\n  - effect-conformance: this mapping binds no [effect_providers.<Port>] provider, so NO DURABLE-WRITE ORACLE is in this run and a kill count from it is a FLOOR\n  - mutation-kill-test: never carried by this runner. It is a separate instrument (scripts/kill_test.py) and a green run here is not evidence any fault would die\nexecuted 4 cases in batch"
         }
       },
       "verdict_surface": "exit code 1 with the per-case diff",
@@ -135,7 +135,7 @@
           "problems": [],
           "ran": true,
           "summary": "an adapter that writes into a directory no port covers, and one that declares a port no case exercises",
-          "tail": "..                                                                       [100%]\n2 passed in 3.32s"
+          "tail": "..                                                                       [100%]\n2 passed in 0.87s"
         },
         "passing": {
           "argv": [
@@ -159,7 +159,7 @@
           "problems": [],
           "ran": true,
           "summary": "an adapter that writes only where its port says it writes",
-          "tail": ".                                                                        [100%]\n1 passed in 0.07s"
+          "tail": ".                                                                        [100%]\n1 passed in 0.03s"
         }
       },
       "verdict_surface": "exit 1 (gap, dead surface, unobservable), exit 2 (malformed declarations)",
@@ -184,13 +184,13 @@
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/scripts/run_kill_test.py",
             "--target",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-v1zqcztt/tree/dh/specs/program_model",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-9h4cb6od/tree/dh/specs/program_model",
             "--root",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-v1zqcztt/tree/dh",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-9h4cb6od/tree/dh",
             "--cfg",
             "Internal.cfg",
             "--corpus-command",
-            "/opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/scripts/run_generated_case_adapters.py /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-v1zqcztt/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases --mapping /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-v1zqcztt/tree/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-v1zqcztt/tree/dh"
+            "/opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/scripts/run_generated_case_adapters.py /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-9h4cb6od/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases --mapping /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-9h4cb6od/tree/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-9h4cb6od/tree/dh"
           ],
           "counts": null,
           "exit": 1,
@@ -205,13 +205,13 @@
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/scripts/run_kill_test.py",
             "--target",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-05pjutvw/tree/dh/specs/program_model",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-bbo8euap/tree/dh/specs/program_model",
             "--root",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-05pjutvw/tree/dh",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-bbo8euap/tree/dh",
             "--cfg",
             "Internal.cfg",
             "--corpus-command",
-            "/opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/scripts/run_generated_case_adapters.py /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-05pjutvw/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases --mapping /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-05pjutvw/tree/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-05pjutvw/tree/dh"
+            "/opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/scripts/run_generated_case_adapters.py /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-bbo8euap/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases --mapping /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-bbo8euap/tree/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-bbo8euap/tree/dh"
           ],
           "counts": null,
           "exit": 0,
@@ -243,9 +243,9 @@
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/scripts/run_kill_test.py",
             "--target",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-ic4kfryz/tree/dh/specs/program_model",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-vadcflpr/tree/dh/specs/program_model",
             "--root",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-ic4kfryz/tree/dh",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-vadcflpr/tree/dh",
             "--list-boundaries"
           ],
           "counts": null,
@@ -261,9 +261,9 @@
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/scripts/run_kill_test.py",
             "--target",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-m0isvnsx/tree/dh/specs/program_model",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-hgxm221m/tree/dh/specs/program_model",
             "--root",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-m0isvnsx/tree/dh",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-hgxm221m/tree/dh",
             "--list-boundaries"
           ],
           "counts": null,
@@ -295,9 +295,9 @@
           "argv": [
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/scripts/corpus_diagnostics.py",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-veykgzao/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-tbpa1uq2/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases",
             "--manifest",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-veykgzao/tree/dh/specs/program_model/spec_manifest.yaml"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-tbpa1uq2/tree/dh/specs/program_model/spec_manifest.yaml"
           ],
           "counts": null,
           "exit": 1,
@@ -311,9 +311,9 @@
           "argv": [
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/scripts/corpus_diagnostics.py",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-oyj7f3cw/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-ld99vqvg/tree/dh/specs/generated/spec_unit/ecommerce_internal_cases",
             "--manifest",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-oyj7f3cw/tree/dh/specs/program_model/spec_manifest.yaml"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-ld99vqvg/tree/dh/specs/program_model/spec_manifest.yaml"
           ],
           "counts": null,
           "exit": 0,
@@ -344,8 +344,8 @@
           "argv": [
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/scripts/analyze_complexity.py",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-iwos73ee/tree/model/QuotaLedger.tla",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-iwos73ee/tree/model/QuotaLedger.cfg"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-mb8bc4ud/tree/model/QuotaLedger.tla",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-mb8bc4ud/tree/model/QuotaLedger.cfg"
           ],
           "counts": null,
           "exit": 0,
@@ -353,14 +353,14 @@
           "problems": [],
           "ran": true,
           "summary": "a model 432x over its own declared state-space bound and 5x over its per-component variable bound: WARNINGS, and exit 0. There is no input that makes this instrument refuse on complexity, deliberately (MF-036, and CD-01: a tool that picks the boundary makes every edge legal by construction).",
-          "tail": "\n  `analyze complexity` exits 0 whenever it can analyze the model -- a complex model\n  is a finding, not a failure. It exits nonzero ONLY when the model cannot be\n  analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not\n  measure this', which is distinct from 'this is complex'.\nwarning: budgets block in /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-iwos73ee/tree/model/spec_manifest.yaml is missing tlc_seconds, max_internal_cases_per_component, max_external_cases_per_action; using documented defaults for those keys"
+          "tail": "\n  `analyze complexity` exits 0 whenever it can analyze the model -- a complex model\n  is a finding, not a failure. It exits nonzero ONLY when the model cannot be\n  analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not\n  measure this', which is distinct from 'this is complex'.\nwarning: budgets block in /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-mb8bc4ud/tree/model/spec_manifest.yaml is missing tlc_seconds, max_internal_cases_per_component, max_external_cases_per_action; using documented defaults for those keys"
         },
         "failing": {
           "argv": [
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/scripts/analyze_complexity.py",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-cjaathno/tree/model/QuotaLedger.tla",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-cjaathno/tree/model/QuotaLedger.cfg"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-7hlgayb7/tree/model/QuotaLedger.tla",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-7hlgayb7/tree/model/QuotaLedger.cfg"
           ],
           "counts": null,
           "exit": 1,
@@ -374,8 +374,8 @@
           "argv": [
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/scripts/analyze_complexity.py",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-p1ixqn29/tree/model/QuotaLedger.tla",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-p1ixqn29/tree/model/QuotaLedger.cfg"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-ewkrn1hh/tree/model/QuotaLedger.tla",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-ewkrn1hh/tree/model/QuotaLedger.cfg"
           ],
           "counts": null,
           "exit": 0,
@@ -383,7 +383,7 @@
           "problems": [],
           "ran": true,
           "summary": "the same model, resolvable",
-          "tail": "\n  `analyze complexity` exits 0 whenever it can analyze the model -- a complex model\n  is a finding, not a failure. It exits nonzero ONLY when the model cannot be\n  analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not\n  measure this', which is distinct from 'this is complex'.\nwarning: no budgets block in /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-p1ixqn29/tree/model/spec_manifest.yaml; using documented default budgets (references/modular_fuzzing.md). Run tla-spec-dev scaffold project to emit one, or add it by hand."
+          "tail": "\n  `analyze complexity` exits 0 whenever it can analyze the model -- a complex model\n  is a finding, not a failure. It exits nonzero ONLY when the model cannot be\n  analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not\n  measure this', which is distinct from 'this is complex'.\nwarning: no budgets block in /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-ewkrn1hh/tree/model/spec_manifest.yaml; using documented default budgets (references/modular_fuzzing.md). Run tla-spec-dev scaffold project to emit one, or add it by hand."
         }
       },
       "verdict_surface": "exit 1 ONLY when the model cannot be analyzed; complexity itself is advisory",
@@ -406,8 +406,8 @@
           "argv": [
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/scripts/code_complexity.py",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-doxh_qlf/tree/subject",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-doxh_qlf/tree/no-such-tree"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-43vq339z/tree/subject",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-43vq339z/tree/no-such-tree"
           ],
           "counts": null,
           "exit": 0,
@@ -460,9 +460,9 @@
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/examples/validation/ab/check_catalogue.py",
             "--root",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-4qih54ir/tree/ab",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-sw2mjzrg/tree/ab",
             "--catalogue",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-4qih54ir/tree/ab/seeded_faults.toml"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-sw2mjzrg/tree/ab/seeded_faults.toml"
           ],
           "counts": null,
           "exit": 1,
@@ -477,9 +477,9 @@
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/examples/validation/ab/check_catalogue.py",
             "--root",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-08vayr73/tree/ab",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-gzr7fpdi/tree/ab",
             "--catalogue",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-08vayr73/tree/ab/seeded_faults.toml"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-gzr7fpdi/tree/ab/seeded_faults.toml"
           ],
           "counts": null,
           "exit": 0,
@@ -529,7 +529,7 @@
           "problems": [],
           "ran": true,
           "summary": "the probe made to go soft: forced to answer HOLDS, the demonstration must fail",
-          "tail": ".                                                                        [100%]\n1 passed in 0.02s"
+          "tail": ".                                                                        [100%]\n1 passed in 0.03s"
         },
         "passing": {
           "argv": [
@@ -690,7 +690,7 @@
           "problems": [],
           "ran": true,
           "summary": "IT CANNOT MEASURE A PORTED TREE AT ALL. Its purge is keyed on ARM_MODULE_PREFIXES = ('quota_ledger',), so on a ported tree `domain` and `journal_file` stay cached and every mutant seeded in them runs against unmutated code: 15 of 15 false SURVIVED, no error, looking exactly like a clean measurement.",
-          "tail": "...                                                                      [100%]\n3 passed in 0.06s"
+          "tail": "...                                                                      [100%]\n3 passed in 0.05s"
         },
         "failing": {
           "argv": [
@@ -699,17 +699,17 @@
             "--label",
             "FI-02-failing",
             "--tree",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-a4g6gtxt/tree/ab",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-3emc2c2m/tree/ab",
             "--module-dir",
             "reference",
             "--binding",
             "reference_binding",
             "--catalogue",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-a4g6gtxt/tree/ab/eval/controls.toml",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-3emc2c2m/tree/ab/eval/controls.toml",
             "--suite",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-a4g6gtxt/tree/ab/tests/test_behavior.py",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-3emc2c2m/tree/ab/tests/test_behavior.py",
             "--out",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-a4g6gtxt/tree/failing.json"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-3emc2c2m/tree/failing.json"
           ],
           "counts": null,
           "exit": 1,
@@ -717,7 +717,7 @@
           "problems": [],
           "ran": true,
           "summary": "the negative control is rewritten into a fault the suite catches, so a control declared to SURVIVE is killed -- the retraction the catalogue itself calls a finding",
-          "tail": "  \"limitations_rejected\": [],\n  \"out\": \"/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-a4g6gtxt/tree/failing.json\",\n  \"polarities_with_no_deciding_control\": [\n    \"negative\"\n  ]\n}"
+          "tail": "  \"limitations_rejected\": [],\n  \"out\": \"/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-3emc2c2m/tree/failing.json\",\n  \"polarities_with_no_deciding_control\": [\n    \"negative\"\n  ]\n}"
         },
         "passing": {
           "argv": [
@@ -726,17 +726,17 @@
             "--label",
             "FI-02-passing",
             "--tree",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-_x9frbd_/tree/ab",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-ip5f_6xj/tree/ab",
             "--module-dir",
             "reference",
             "--binding",
             "reference_binding",
             "--catalogue",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-_x9frbd_/tree/ab/eval/controls.toml",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-ip5f_6xj/tree/ab/eval/controls.toml",
             "--suite",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-_x9frbd_/tree/ab/tests/test_behavior.py",
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-ip5f_6xj/tree/ab/tests/test_behavior.py",
             "--out",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-_x9frbd_/tree/passing.json"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-ip5f_6xj/tree/passing.json"
           ],
           "counts": null,
           "exit": 0,
@@ -744,7 +744,7 @@
           "problems": [],
           "ran": true,
           "summary": "the same controls, unbroken",
-          "tail": "  \"label\": \"FI-02-passing\",\n  \"limitations_contradicted_by_evidence\": [],\n  \"limitations_rejected\": [],\n  \"out\": \"/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-_x9frbd_/tree/passing.json\",\n  \"polarities_with_no_deciding_control\": []\n}"
+          "tail": "  \"label\": \"FI-02-passing\",\n  \"limitations_contradicted_by_evidence\": [],\n  \"limitations_rejected\": [],\n  \"out\": \"/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-ip5f_6xj/tree/passing.json\",\n  \"polarities_with_no_deciding_control\": []\n}"
         }
       },
       "verdict_surface": "exit 1 with controls_red / polarities_with_no_deciding_control",
@@ -850,7 +850,7 @@
           "problems": [],
           "ran": true,
           "summary": "two arms whose swapped columns ran DIFFERENT numbers of compositions -- so\ndivergence is reachable in principle -- and whose cells agree anyway. The\nanalysis must report CLAIMED_REACHABLE_BUT_UNDEMONSTRATED rather than green.\nThe input is synthetic and built in the test, so it cannot stop demonstrating\nwhen someone changes the fixture.\n",
-          "tail": ".                                                                        [100%]\n1 passed in 0.02s"
+          "tail": ".                                                                        [100%]\n1 passed in 0.03s"
         },
         "passing": {
           "argv": [
@@ -898,7 +898,7 @@
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/examples/validation/scorecards/score_tools.py",
             "check",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-dikwoyva/tree/card"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-p5zxuez1/tree/card"
           ],
           "counts": null,
           "exit": 1,
@@ -906,14 +906,14 @@
           "problems": [],
           "ran": true,
           "summary": "a sealed card whose recorded total no longer equals the sum of its dimensions",
-          "tail": "RUBRIC-DRIFT /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-dikwoyva/tree/card/scorecard.json: scaffolded against rubric digest sha256:e33638087c4191da, current rubric is sha256:19c6712ed509a228. A filled card is evidence and is not edited; see `history`/`audit` for how to read it.\nINVALID /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-dikwoyva/tree/card/scorecard.json: total 19 does not equal the sum of dimensions (18)\n1 scorecard(s) checked, 1 filled, 0 unfilled skeleton(s), 1 problem(s)"
+          "tail": "RUBRIC-DRIFT /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-p5zxuez1/tree/card/scorecard.json: scaffolded against rubric digest sha256:e33638087c4191da, current rubric is sha256:19c6712ed509a228. A filled card is evidence and is not edited; see `history`/`audit` for how to read it.\nINVALID /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-p5zxuez1/tree/card/scorecard.json: total 19 does not equal the sum of dimensions (18)\n1 scorecard(s) checked, 1 filled, 0 unfilled skeleton(s), 1 problem(s)"
         },
         "passing": {
           "argv": [
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/examples/validation/scorecards/score_tools.py",
             "check",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-4xu6s_ck/tree/card"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-8ln6vfc0/tree/card"
           ],
           "counts": null,
           "exit": 0,
@@ -921,7 +921,7 @@
           "problems": [],
           "ran": true,
           "summary": "the same card as sealed",
-          "tail": "RUBRIC-DRIFT /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-4xu6s_ck/tree/card/scorecard.json: scaffolded against rubric digest sha256:e33638087c4191da, current rubric is sha256:19c6712ed509a228. A filled card is evidence and is not edited; see `history`/`audit` for how to read it.\n1 scorecard(s) checked, 1 filled, 0 unfilled skeleton(s), 0 problem(s)"
+          "tail": "RUBRIC-DRIFT /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-8ln6vfc0/tree/card/scorecard.json: scaffolded against rubric digest sha256:e33638087c4191da, current rubric is sha256:19c6712ed509a228. A filled card is evidence and is not edited; see `history`/`audit` for how to read it.\n1 scorecard(s) checked, 1 filled, 0 unfilled skeleton(s), 0 problem(s)"
         }
       },
       "verdict_surface": "exit 1 with one INVALID line per problem",
@@ -955,7 +955,7 @@
             "--root",
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/specs/results/scorecards",
             "--rubric",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-1m5n55ht/tree/eval_scorecard.md"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-bkh7xsjy/tree/eval_scorecard.md"
           ],
           "counts": null,
           "exit": 1,
@@ -1023,7 +1023,7 @@
           "problems": [],
           "ran": true,
           "summary": "a sealed card edited after sealing",
-          "tail": ".                                                                        [100%]\n1 passed in 0.70s"
+          "tail": ".                                                                        [100%]\n1 passed in 0.04s"
         },
         "passing": {
           "argv": [
@@ -1047,7 +1047,7 @@
           "problems": [],
           "ran": true,
           "summary": "the committed ledger against its own seals",
-          "tail": ".                                                                        [100%]\n1 passed in 22.22s"
+          "tail": ".                                                                        [100%]\n1 passed in 21.53s"
         }
       },
       "verdict_surface": "exit 3, REFUSED",
@@ -1069,7 +1069,7 @@
         "blind_spot": {
           "argv": [
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-hsx5kz66/tree/specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-l8bmw_q9/tree/specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
           ],
           "counts": null,
           "exit": 0,
@@ -1082,7 +1082,7 @@
         "failing": {
           "argv": [
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-ae8jybb3/tree/specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-z7mm6wvb/tree/specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
           ],
           "counts": null,
           "exit": 1,
@@ -1095,7 +1095,7 @@
         "passing": {
           "argv": [
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-7708uk5e/tree/specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-xc1bp7b8/tree/specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
           ],
           "counts": null,
           "exit": 0,
@@ -1168,7 +1168,7 @@
           "problems": [],
           "ran": true,
           "summary": "an aliased import, a subprocess invocation, and a figure that reaches an if-test, a comparison and a sys.exit",
-          "tail": ".                                                                        [100%]\n1 passed in 0.02s"
+          "tail": ".                                                                        [100%]\n1 passed in 0.03s"
         },
         "passing": {
           "argv": [
@@ -1192,7 +1192,7 @@
           "problems": [],
           "ran": true,
           "summary": "a docstring mention, a comment, and a prose sentence written into markdown -- exactly the shape that was failing it -- report nothing",
-          "tail": ".                                                                        [100%]\n1 passed in 0.01s"
+          "tail": ".                                                                        [100%]\n1 passed in 0.02s"
         }
       },
       "verdict_surface": "pytest assertion naming the file and line",
@@ -1214,7 +1214,7 @@
         "failing": {
           "argv": [
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-3i_aefp1/tree/check_twins.py"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-9krass49/tree/check_twins.py"
           ],
           "counts": null,
           "exit": 1,
@@ -1227,7 +1227,7 @@
         "passing": {
           "argv": [
             "/opt/homebrew/opt/python@3.14/bin/python3.14",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-zb7c60n5/tree/check_twins.py"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-0c4b592b/tree/check_twins.py"
           ],
           "counts": null,
           "exit": 0,
@@ -1301,7 +1301,7 @@
           "problems": [],
           "ran": true,
           "summary": "the repository's own citations",
-          "tail": "........................................................................ [ 92%]\n......                                                                   [100%]\n78 passed in 10.19s"
+          "tail": "........................................................................ [ 92%]\n......                                                                   [100%]\n78 passed in 10.18s"
         }
       },
       "verdict_surface": "pytest assertion",
@@ -1360,14 +1360,14 @@
             "tests/test_spec_yaml_valid.py"
           ],
           "counts": {
-            "passed": 23
+            "passed": 19
           },
           "exit": 0,
           "kind": "pytest",
           "problems": [],
           "ran": true,
           "summary": "the repository's own specs/ tree",
-          "tail": ".......................                                                  [100%]\n23 passed in 0.68s"
+          "tail": "...................                                                      [100%]\n19 passed in 0.70s"
         }
       },
       "verdict_surface": "pytest assertion",
@@ -1450,7 +1450,7 @@
           "problems": [],
           "ran": true,
           "summary": "an explicit override naming a home that is NOT this checkout's: the emitted adapter refuses instead of falling through to whichever home happens to answer",
-          "tail": "....                                                                     [100%]\n4 passed in 1.02s"
+          "tail": "....                                                                     [100%]\n4 passed in 0.40s"
         },
         "passing": {
           "argv": [
@@ -1474,7 +1474,7 @@
           "problems": [],
           "ran": true,
           "summary": "the seven shipped cases, several of which are negative",
-          "tail": "..............                                                           [100%]\n14 passed in 0.61s"
+          "tail": "..............                                                           [100%]\n14 passed in 0.63s"
         }
       },
       "verdict_surface": "pytest assertion",
@@ -1559,7 +1559,7 @@
           "problems": [],
           "ran": true,
           "summary": "a ledger entry left with its scaffolded TEMPLATE sentinel, an increase with no justification, and a decrease whose refactor basis is UNVERIFIED -- three refusals, each asserted to REFUSE",
-          "tail": "....                                                                     [100%]\n4 passed in 0.07s"
+          "tail": "....                                                                     [100%]\n4 passed in 0.03s"
         },
         "passing": {
           "argv": [
@@ -1626,7 +1626,7 @@
           "problems": [],
           "ran": true,
           "summary": "MF-021: a promotion that would delete a current/ path the ticket never received",
-          "tail": "......                                                                   [100%]\n6 passed in 0.05s"
+          "tail": "......                                                                   [100%]\n6 passed in 0.06s"
         },
         "passing": {
           "argv": [
@@ -1650,7 +1650,7 @@
           "problems": [],
           "ran": true,
           "summary": "an ordinary close",
-          "tail": "............                                                             [100%]\n12 passed in 0.08s"
+          "tail": "............                                                             [100%]\n12 passed in 0.06s"
         }
       },
       "verdict_surface": "SystemExit with the refusal",
@@ -1692,7 +1692,7 @@
           "problems": [],
           "ran": true,
           "summary": "a binding with no channel, and one whose adapter reaches the production package",
-          "tail": "..............................                                           [100%]\n30 passed in 0.59s"
+          "tail": "..............................                                           [100%]\n30 passed in 0.44s"
         },
         "passing": {
           "argv": [
@@ -1716,7 +1716,7 @@
           "problems": [],
           "ran": true,
           "summary": "a correctly channelled external binding",
-          "tail": ".......                                                                  [100%]\n7 passed in 0.09s"
+          "tail": ".......                                                                  [100%]\n7 passed in 0.08s"
         }
       },
       "verdict_surface": "ChannelEnforcementError -> SystemExit from the runner and the exporter",
@@ -1782,7 +1782,7 @@
           "problems": [],
           "ran": true,
           "summary": "the committed adapters against the committed model",
-          "tail": "...................                                                      [100%]\n19 passed in 0.24s"
+          "tail": "...................                                                      [100%]\n19 passed in 0.21s"
         }
       },
       "verdict_surface": "AssertionError: 'projected after-state disagrees with the model'",
@@ -1910,7 +1910,7 @@
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/examples/validation/ab/dispatch_record.py",
             "verify",
             "--dir",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-na2l4e2r/tree/empty"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-tvkg1i2a/tree/empty"
           ],
           "counts": null,
           "exit": 0,
@@ -1918,7 +1918,7 @@
           "problems": [],
           "ran": true,
           "summary": "IT CANNOT SEE A DISPATCH THAT WAS NEVER RECORDED. An empty evidence directory\nverifies GREEN. The checker's whole subject is the rows it was given, so an arm\ndispatched with no row at all is invisible to it, and the exit code a reader\nwatches says nothing is wrong.\n\nTHE FAILURE DIRECTION IS NOT THE SAFE ONE, and this is not hypothetical: it is\nthe state ARMS A AND B ARE IN RIGHT NOW. Only arm C has a row, and that row is a\nreconstruction. Arm B's sealed 105 unique content lines -- the denominator of the\nentire length match -- is a number about the file on disk with no artifact\nsaying that is what arm B received. FI-05-DF-02, MAJOR, mine and open.\n\nThe verdict is not silent about it -- `verify` prints \"NO DISPATCH RECORD\" and\n`check_catalogue.py --arms` without `--dispatch-dir` prints that every number\nbelow it came from the bytes on disk -- but a PRINTED WARNING IS NOT A RED, and\ncounting it as one is how a control goes soft. Declared as an inability, per R2.\n",
-          "tail": "dispatch records in /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-na2l4e2r/tree/empty: 0\n  NO DISPATCH RECORD. Any prompt measurement for this round is a\n  measurement of the bytes ON DISK, which PA-06-DF-10 established are\n  not necessarily the bytes that were sent.\n\nevidence is self-consistent"
+          "tail": "dispatch records in /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-tvkg1i2a/tree/empty: 0\n  NO DISPATCH RECORD. Any prompt measurement for this round is a\n  measurement of the bytes ON DISK, which PA-06-DF-10 established are\n  not necessarily the bytes that were sent.\n\nevidence is self-consistent"
         },
         "failing": {
           "argv": [
@@ -1926,7 +1926,7 @@
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/examples/validation/ab/dispatch_record.py",
             "verify",
             "--dir",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-vy89b_pb/tree/d"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-6jfvjelw/tree/d"
           ],
           "counts": null,
           "exit": 1,
@@ -2130,7 +2130,7 @@
           "problems": [],
           "ran": true,
           "summary": "IT CANNOT SEE A SLOT THAT DEMONSTRATES NOTHING, ONLY ONE THAT DEMONSTRATES WRONGLY. `expect_passed` closes the vacuous-run hole SM-GM-I1 found, but a slot citing a node whose assertions are all trivially true still reports `ok` at full count -- the runner judges that the cited test PASSED, never what it asserted.",
-          "tail": ".                                                                        [100%]\n1 passed in 0.25s"
+          "tail": ".                                                                        [100%]\n1 passed in 0.22s"
         },
         "failing": {
           "argv": [
@@ -2155,7 +2155,7 @@
           "problems": [],
           "ran": true,
           "summary": "a declaration that is false (a run declared to exit 1 that exits 0), and a mutation whose `find` string occurs zero times -- the runner must report both rather than print `ok`",
-          "tail": "..                                                                       [100%]\n2 passed in 0.13s"
+          "tail": "..                                                                       [100%]\n2 passed in 0.15s"
         },
         "passing": {
           "argv": [
@@ -2179,7 +2179,7 @@
           "problems": [],
           "ran": true,
           "summary": "the shipped registry's own fast tier, every declaration reproducing",
-          "tail": ".                                                                        [100%]\n1 passed in 55.87s"
+          "tail": ".                                                                        [100%]\n1 passed in 54.22s"
         }
       },
       "verdict_surface": "exit 1 when a declared demonstration stops reproducing",
@@ -2228,7 +2228,7 @@
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/examples/validation/instruments/demonstrate.py",
             "--check-enumeration",
             "--root",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-dy1veg9x/tree"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-qdlp7l01/tree"
           ],
           "counts": null,
           "exit": 1,
@@ -2244,7 +2244,7 @@
             "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-03/examples/validation/instruments/demonstrate.py",
             "--check-enumeration",
             "--root",
-            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-zxkaa17q/tree"
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/fi02-demo-amyogcf8/tree"
           ],
           "counts": null,
           "exit": 0,
@@ -2345,7 +2345,7 @@
           "problems": [],
           "ran": true,
           "summary": "a real fault that dies with its failing node named, and an apply-then-restore that leaves the tree byte-identical",
-          "tail": "..                                                                       [100%]\n2 passed in 0.40s"
+          "tail": "..                                                                       [100%]\n2 passed in 0.36s"
         }
       },
       "verdict_surface": "exit 1 when a declared mutant could not be APPLIED; per-cell DIES/SURVIVES/INERT/REMOVED in its JSON",
@@ -2455,7 +2455,7 @@
           "problems": [],
           "ran": true,
           "summary": "a run with no spec tests at all, a selected target with no validations, an incomplete parent command, and an --out the evidence port does not cover",
-          "tail": "....                                                                     [100%]\n4 passed in 0.57s"
+          "tail": "....                                                                     [100%]\n4 passed in 0.53s"
         },
         "passing": {
           "argv": [

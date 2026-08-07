@@ -1124,7 +1124,20 @@ sm_03_broken: [unclosed, "mapping: value
   summary = "the repository's own specs/ tree"
   nodes = ["tests/test_spec_yaml_valid.py"]
   expect_exit = 0
-  expect_passed_at_least = 23  # SM-03: exit 0 is also what a fully-skipped run returns
+  # SM-03: exit 0 is also what a fully-skipped run returns.
+  #
+  # THE FLOOR WAS 23 AND 23 WAS NEVER A REAL NUMBER. It was measured while
+  # `open ticket SM-03` had four scaffolded YAML files sitting in
+  # `specs/tickets/SM-03/`, and this test parametrises over `specs/**/*.y*ml`.
+  # `close ticket` removed the workspace and the count went back to 19 -- so
+  # the declaration was pinned to a tree that could not outlive the ticket that
+  # wrote it. 19 is the steady state, confirmed on a clean `git archive` of
+  # f0c215d and again at the tip.
+  #
+  # Caught by `demonstrate.py`, which is the point: this slot is `tier = "slow"`
+  # so the fast tier skips it, and the acceptance suite stayed GREEN through
+  # the whole thing. Only the full registry run reports this class.
+  expect_passed_at_least = 19
 
 [[instrument]]
 id = "manifest-self-records-tripwire"

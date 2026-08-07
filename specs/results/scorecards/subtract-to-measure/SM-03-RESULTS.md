@@ -357,8 +357,45 @@ in this document, in `instrument-sweep-after.md`, or in `SM-03-DF-01..03` is
 derived from that file — every count here comes from parsing `instruments.toml`
 or from the registry's own run. Checked by grep, not by memory.
 
-Registry re-run post-merge: **exit 0, every declared demonstration reproduced**,
-counts identical to §1.
+### The reconcile found one stale declaration, and it was mine
+
+The first post-merge registry run was **not** clean. It reported:
+
+```
+spec-yaml-tripwire / passing: 19 test(s) passed, declared at least 23
+```
+
+**SM-02 did not cause it. I did.** `tests/test_spec_yaml_valid.py` parametrises
+over `specs/**/*.y*ml`, and I measured that floor while `open ticket SM-03` had
+four scaffolded YAML files sitting in `specs/tickets/SM-03/`. `close ticket`
+removed the workspace and the count returned to 19. **23 was never a real
+number** — it was a property of a tree that could not outlive the ticket that
+wrote it. 19 is the steady state, confirmed independently on a clean
+`git archive` of `f0c215d` and again at the tip.
+
+Corrected to 19, with the reason written into the row rather than the number
+quietly lowered. This *is* the shape that deserves suspicion — a red made green
+by editing the declaration — so the justification is on the record and the
+control is that 19 is measured on two trees neither of which is the one that
+produced the red.
+
+**Two things this says that the ticket could not otherwise show.**
+
+1. **The repair caught a defect in its own author's work.** `expect_passed` was
+   added so a demonstration could not report `ok` without executing what it
+   claims; the first thing it caught after the merge was a demonstration of mine
+   whose claim had gone stale. That is the instrument doing exactly the job it
+   was built for, against the person who built it.
+2. **The acceptance suite cannot catch this class, and stayed green throughout.**
+   That slot is `tier = "slow"`, so `test_every_fast_demonstration_reproduces`
+   skips it; 1373 and 1366 were both green with the stale floor in place. **Only
+   a full `demonstrate.py` run reports it** — which means "the suite is green" is
+   not evidence the registry is sound, and `SM-05` should run the registry
+   itself rather than infer it from acceptance.
+
+Registry re-run after the correction: **exit 0, `reproduction_failures: []`**,
+counts identical to §1 (47 instruments, 33 with a demonstrated failing input,
+70.2%).
 
 ---
 
