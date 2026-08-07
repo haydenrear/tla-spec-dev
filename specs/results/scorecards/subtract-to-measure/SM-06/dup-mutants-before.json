@@ -1,0 +1,209 @@
+{
+  "head": "6aac1ec9853d5a2698942969304ba8b13d422d15",
+  "baseline": {
+    "suite": {
+      "cmd": "uv run --with pytest --with pyyaml python -m pytest tests -q --no-header -p no:cacheprovider",
+      "exit": 0,
+      "secs": 425.0,
+      "failures": []
+    },
+    "score_tools_check": {
+      "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/scorecards/score_tools.py check specs/results/scorecards",
+      "exit": 0,
+      "secs": 0.1,
+      "failures": []
+    },
+    "score_tools_audit": {
+      "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/scorecards/score_tools.py audit",
+      "exit": 0,
+      "secs": 24.1,
+      "failures": []
+    },
+    "score_tools_serve": {
+      "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/scorecards/score_tools.py serve",
+      "exit": 0,
+      "secs": 0.1,
+      "failures": []
+    },
+    "demonstrate": {
+      "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/instruments/demonstrate.py",
+      "exit": 0,
+      "secs": 179.1,
+      "failures": []
+    }
+  },
+  "mutants": [
+    {
+      "id": "M1",
+      "kind": "prose copy",
+      "where": "README.md",
+      "copies": "the dimension table -- D3's and D4's names and questions",
+      "makes_it_say": "D3 is behavior preservation and D4 is modularity, i.e. the two dimensions swapped. This is the PORTS-AS-ADAPTERS shape exactly: a restated table whose rows got attributed to the wrong thing.",
+      "verdict": "UNCAUGHT",
+      "red_surfaces": [],
+      "observations": {
+        "suite": {
+          "cmd": "uv run --with pytest --with pyyaml python -m pytest tests -q --no-header -p no:cacheprovider",
+          "exit": 0,
+          "secs": 424.2,
+          "failures": []
+        },
+        "score_tools_check": {
+          "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/scorecards/score_tools.py check specs/results/scorecards",
+          "exit": 0,
+          "secs": 0.1,
+          "failures": []
+        },
+        "score_tools_audit": {
+          "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/scorecards/score_tools.py audit",
+          "exit": 0,
+          "secs": 24.6,
+          "failures": []
+        },
+        "score_tools_serve": {
+          "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/scorecards/score_tools.py serve",
+          "exit": 0,
+          "secs": 0.1,
+          "failures": []
+        },
+        "demonstrate": {
+          "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/instruments/demonstrate.py",
+          "exit": 0,
+          "secs": 174.1,
+          "failures": []
+        }
+      }
+    },
+    {
+      "id": "M2",
+      "kind": "prose copy",
+      "where": "specs/results/scorecards/ports-as-adapters/measure/build_evidence_packets.py",
+      "copies": "scoring rule 7, written into the evidence packet a judge is handed",
+      "makes_it_say": "that the mechanical block IS scored -- the exact inversion of the rule, in the one place it most corrupts a measurement.",
+      "verdict": "UNCAUGHT",
+      "red_surfaces": [],
+      "observations": {
+        "suite": {
+          "cmd": "uv run --with pytest --with pyyaml python -m pytest tests -q --no-header -p no:cacheprovider",
+          "exit": 0,
+          "secs": 426.9,
+          "failures": []
+        },
+        "score_tools_check": {
+          "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/scorecards/score_tools.py check specs/results/scorecards",
+          "exit": 0,
+          "secs": 0.1,
+          "failures": []
+        },
+        "score_tools_audit": {
+          "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/scorecards/score_tools.py audit",
+          "exit": 0,
+          "secs": 23.4,
+          "failures": []
+        },
+        "score_tools_serve": {
+          "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/scorecards/score_tools.py serve",
+          "exit": 0,
+          "secs": 0.1,
+          "failures": []
+        },
+        "demonstrate": {
+          "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/instruments/demonstrate.py",
+          "exit": 0,
+          "secs": 173.5,
+          "failures": []
+        }
+      }
+    },
+    {
+      "id": "M3",
+      "kind": "prose copy",
+      "where": "examples/validation/scorecards/score_tools.py (`_skeleton_md`)",
+      "copies": "scoring rules 2 and 7, hand-written into every scaffolded scorecard.md OUTSIDE the served rubric and outside `served_digest`",
+      "makes_it_say": "that a citation is optional and that the mechanical block is scored.",
+      "verdict": "UNCAUGHT",
+      "red_surfaces": [],
+      "observations": {
+        "suite": {
+          "cmd": "uv run --with pytest --with pyyaml python -m pytest tests -q --no-header -p no:cacheprovider",
+          "exit": 0,
+          "secs": 422.6,
+          "failures": []
+        },
+        "score_tools_check": {
+          "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/scorecards/score_tools.py check specs/results/scorecards",
+          "exit": 0,
+          "secs": 0.1,
+          "failures": []
+        },
+        "score_tools_audit": {
+          "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/scorecards/score_tools.py audit",
+          "exit": 0,
+          "secs": 25.5,
+          "failures": []
+        },
+        "score_tools_serve": {
+          "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/scorecards/score_tools.py serve",
+          "exit": 0,
+          "secs": 0.1,
+          "failures": []
+        },
+        "demonstrate": {
+          "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/instruments/demonstrate.py",
+          "exit": 0,
+          "secs": 178.9,
+          "failures": []
+        }
+      }
+    },
+    {
+      "id": "M4",
+      "kind": "digest-covered copy (CONTROL)",
+      "where": "specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p1/scorecard.md",
+      "copies": "the anchors, reproduced into the card so the bar sits beside the score",
+      "makes_it_say": "a D1 anchor 0 that is not the card's D1 anchor 0.",
+      "verdict": "CAUGHT",
+      "red_surfaces": [
+        "suite: exit 0 -> 1, new failures ['tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces', 'tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit', 'tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red']",
+        "score_tools_audit: exit 0 -> 1",
+        "demonstrate: exit 0 -> 1"
+      ],
+      "observations": {
+        "suite": {
+          "cmd": "uv run --with pytest --with pyyaml python -m pytest tests -q --no-header -p no:cacheprovider",
+          "exit": 1,
+          "secs": 435.7,
+          "failures": [
+            "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+            "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+          ]
+        },
+        "score_tools_check": {
+          "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/scorecards/score_tools.py check specs/results/scorecards",
+          "exit": 0,
+          "secs": 0.1,
+          "failures": []
+        },
+        "score_tools_audit": {
+          "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/scorecards/score_tools.py audit",
+          "exit": 1,
+          "secs": 23.3,
+          "failures": []
+        },
+        "score_tools_serve": {
+          "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/scorecards/score_tools.py serve",
+          "exit": 0,
+          "secs": 0.1,
+          "failures": []
+        },
+        "demonstrate": {
+          "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 examples/validation/instruments/demonstrate.py",
+          "exit": 1,
+          "secs": 172.3,
+          "failures": []
+        }
+      }
+    }
+  ]
+}
