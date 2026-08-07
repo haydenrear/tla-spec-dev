@@ -16,6 +16,19 @@ skill-imports:
 
 Core slogan: **The spec should generate the mock.**
 
+## Orientation: start from the skt report
+
+In homes carrying the `skt` plugin, `skt status` is injected at session
+start and reports this skill's surface directly: the `cli` line lists
+`tla-spec-dev` when the CLI is installed, and the `spec` line names the
+active workflow, its open tickets, and whether the current branch's
+ticket **is in the plan**. A ticket agent seeing
+`spec workflow '<name>' active; open tickets: <id> — this branch's
+ticket IS in the plan` lands here to open/close that ticket
+(`tla-spec-dev --spec-root specs open|close ticket <id>`); a branch whose
+ticket is NOT in the plan should stop and reconcile with the plan owner
+before generating anything.
+
 Use this skill when a developer wants TLA+ to be the canonical semantic
 spec for an evolving program, especially a distributed program whose real
 behavior is spread across processes, queues, files, databases, and external
