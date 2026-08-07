@@ -51,11 +51,13 @@ a disclosed leak is recorded, never grounds to discard a card.
 
 ## What you may NOT read
 
-- **Anything under `/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/`.**
+- **Anything under `/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/`
+  except `{{CARD_DIR}}`, which is your own card and is the one thing you write.**
   Your subject is the two staged trees and the packet, all of which are outside
   that path. The live checkout carries this round's bookkeeping, the sealed cards
   of every prior round, the rubric file, the sealed predictions and the epic
-  charter. **Do not open it, do not `git log` it, do not `git show` it.**
+  charter. **Do not open it, do not `git log` it, do not `git show` it, and do
+  not list its directories.** Go straight to `{{CARD_DIR}}` by its full path.
 - **`references/eval_scorecard.md`, anywhere it appears.** Your rubric is in your
   card. That file additionally carries reading rules, a version history and prior
   results about the same five dimensions you are scoring, and a judge who reads
