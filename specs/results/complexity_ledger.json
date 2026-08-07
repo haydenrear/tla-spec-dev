@@ -17949,6 +17949,351 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "SM-04",
+      "workflow": "subtract-to-measure-epic",
+      "recorded_at_utc": "2026-08-07T02:04:04.540113+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 17,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 1111320,
+        "bound_complete": false,
+        "bound_resolved_variables": 7,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.00334800669601341,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 1,111,320 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 7 of 9 declared variables, so the complete bound is at least this large)",
+          "component C1 has 7 variables (complexity_gate, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 16 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 1111320,
+            "bound_complete": false,
+            "percent_lower_bound": 111.1,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 7 of 9 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "SM-02",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 17,
+            "after": 17,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 1111320,
+            "after": 1111320,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the pre-change TLC output",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the post-change TLC output",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the behavior-test output",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the before/after descriptor comparison",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=(absent) (UNVERIFIED)",
+        "tlc_after=(absent) (UNVERIFIED)",
+        "behavior_tests=(absent) (UNVERIFIED)",
+        "descriptor_comparison=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": false,
+        "outcome": "",
+        "detail": "",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+      ],
+      "errors": [
+        "REJECTED -- no recursive refinement record. Every close carries either an approved recommendation with evidence, or an explicit 'searched, found none'. Set `refinement.searched: true` and record the outcome.",
+        "REJECTED -- no `narrative:` recorded. The ledger's machine-checked core is deliberately narrow; the narrative carries the reasoning, the measured alternatives, and any finding the core cannot express."
+      ],
+      "verdict": "rejected"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "SM-04",
+      "workflow": "subtract-to-measure-epic",
+      "recorded_at_utc": "2026-08-07T02:06:40.101802+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 17,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 1111320,
+        "bound_complete": false,
+        "bound_resolved_variables": 7,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.00334800669601341,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 1,111,320 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 7 of 9 declared variables, so the complete bound is at least this large)",
+          "component C1 has 7 variables (complexity_gate, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 16 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 1111320,
+            "bound_complete": false,
+            "percent_lower_bound": 111.1,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 7 of 9 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "SM-02",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 17,
+            "after": 17,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 1111320,
+            "after": 1111320,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the pre-change TLC output",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the post-change TLC output",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the behavior-test output",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the before/after descriptor comparison",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=(absent) (UNVERIFIED)",
+        "tlc_after=(absent) (UNVERIFIED)",
+        "behavior_tests=(absent) (UNVERIFIED)",
+        "descriptor_comparison=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "SEARCHED, FOUND NONE, AND THE ABSENCE IS THE POINT. `direction=zero` against SM-02: nothing in this ticket touches modeled surface. Everything it ships lives under `references/`, `examples/validation/scorecards/`, `tests/` and `specs/results/`, none of which is in `representation_scope`. `specs/current` is byte-unchanged, exactly as `model_delta_expectation: none expected` says. THREE REFINEMENTS WERE CONSIDERED AND ALL THREE REJECTED, and the reasons matter more than the outcome. 1. FOLD THE PROSE INTO THE PARSED RUBRIC DIGEST, so any edit to `references/eval_scorecard.md` invalidates every skeleton. REJECTED, and `FI-03-DF-02` says why in its own words: the digest is RIGHT to exclude prose from the scaffold-time check, because a rubric whose every typo re-scaffolds the round is unusable, and `audit` would have gone red for a typo. What was missing was a RECORD that the file changed, not a wider hash. Shipped as `file_sha256` plus a `PROSE-DRIFT` note, which is an OPEN and never a violation. 2. MAKE `result_leaks` A CLOSE-TIME CHECK OVER FILLED CARDS. REJECTED and filed as `SM-04-DF-04`. Run over the 36 cards in the tree it reports 14, and EIGHT of those are the judge's own writing -- including a judge honestly disclosing that the rubric had contaminated them, which is the most valuable sentence in that round. A check that punishes the disclosure channel would cost more than the leak it catches. The contract is SERVED TEXT ONLY, and it is now written down. 3. BUILD A CHECKER OVER `JUDGE-DISPATCH*.md`, so a dispatch that points a judge at the rubric file is contradicted by a command rather than by a reader's memory. REJECTED and filed as `SM-04-DF-03`. It is a new instrument, R1 says an instrument ships with a demonstrated failing input, and it sits close to the standing rule's boundary -- refusing to serve a contaminated card is data hygiene, and a checker that reads a dispatch and refuses is a step toward gating how a round is run. Naming the residue is worth more than the appearance of coverage.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "SM-04 fixed four defects in the eval scorecard and NOTHING ELSE, and bumped the card to `scorecard_version 3`. THE ANCHORS DID NOT MOVE: `anchors_digest` is `sha256:eeccf4576bc6fd85` at versions 1, 2 and 3 alike, `check` recomputes it from the file on every run, and a test asserts the literal. D2, D4 and D5 are all still on the card. 1. THE DIGEST WAS BLIND TO WHAT REACHED A JUDGE. `sha256:e33638087c4191da` at six commits spanning 9,705 to 19,503 bytes -- one hash over a file that doubled, every version of which the dispatch told the judges to read in full. The fix is not a wider hash: it is that \"what reaches a judge\" now HAS a definition. `served_rubric` renders the judge-facing rubric from parsed structure only, `serve` emits it, `scaffold` writes the same bytes into `scorecard.md`, and every card records `served_digest` over exactly those bytes. Defects 1 and 2 are one fix, because you cannot digest what reaches a judge until you have decided what reaches a judge. 2. A JUDGE WAS SERVED THE FINDING THEY WERE THE INSTRUMENT FOR. The mechanism is the whitelist -- ` later editor adds are outside the renderer by construction, so a new section does not reach a judge by default. The refusal is the backstop. It found two REAL leaks, and the second is the one nobody had seen: `FI-03-DF-02` and `FI-06-DF-04` both located the contamination in the rubric FILE, and neither looked at `_skeleton_md`, which told every version 2 judge \"D1, D4 and D5 all moved on unchanged input\" IN THEIR OWN CARD. 6 of 6 version 2 cards. Filed as `SM-04-DF-01`; two independent adversarial channels named the right paragraph and the wrong file. 3. D5's ANCHOR IS AMBIGUOUS AND STAYS THAT WAY, VISIBLY. The anchor is untouched. Version 3 does to it what version 2 did to practice: record the choice, never mandate it. It fired once in this round and did exactly what it says -- one judge scored 3 with `anchor_reading: measured` and wrote that under `disclosure` the same lines are a 4. The judge who did NOT reach the field found the sharper thing: the two readings only diverge once anchor 3 holds, so the rule as shipped over-collects, which is the safe direction. 4. `total` IS GONE, and the removal is PRICED rather than assumed. `removal_is_a_delta_rule`: SM-01 seeded for two cuts and neither is this one, so the gap was seeded here, both sides measured in one run. SM-04-GM-T1 -- a dimension score altered in a card, nothing else touched: BEFORE, version 2 card, SEALED:    caught twice (total arithmetic + seal) AFTER,  version 3 card, SEALED:    caught once  (seal digest) -> REDUNDANT BEFORE, version 2 card, UNSEALED:  caught once  (total arithmetic) AFTER,  version 3 card, UNSEALED:  CAUGHT BY NOTHING -> LOAD-BEARING So the cut is free on a sealed card and it is not free on an unsealed one. That is the price and it is in the test, not in prose: `test_the_price_of_removing_total_measured_on_both_sides`. THE RE-SCORE THE CHANGE RULE REQUIRES. Four fresh blind judges, one sealed artifact, two under a frozen version 2 rubric and two under version 3, same day, same dispatch. The bump: 3 points of summed |movement| over 10 judge-scores, worst 1 per judge, all on D4 and D5; D1, D2 and D3 moved zero. FI-03's bump was 4 over 30, worst 1 -- same worst case, higher per-score rate on a quarter of the sample. NOTHING HERE SAYS THE BUMP IS FREE. THE FINDING THE CORE CANNOT EXPRESS, and it is unflattering to version 2's own rationale. FI-03 explained D4 by JUDGING PRACTICE and version 2 was built on that explanation. All four judges here recorded `executed_own_faults: true`, and D4 came out 2, 3, 3, 4 -- with a -2 against FI-03's version 2 row, practice recorded true at BOTH ends. Recording the practice made the variable visible; it did not make the dimension stable. `SM-04-DF-07`. The decontamination is confounded with the round and that half is filed as a HYPOTHESIS, not a cause. AND THE ONE ABOUT D2, WHICH THIS TICKET MAY NOT TOUCH. D2 = 2 on 31 of 31 cards ever written; these four are the 28th to the 31st and the first served a card that told them nothing about how D2 has scored. All four gave anchor 3's unreachability as the reason, unprompted. A judge then found a SECOND crack: read cumulatively, D2 anchor 2 sits above anchor 0's \"complexity is unmeasured\", so an artifact measuring none is forced to 0 -- a 2-to-4-point spread, wider than the D5 one version 3 exists to record. Filed as `SM-04-DF-06` and NOT FIXED. Rewriting D2's anchors would pre-decide SM-05, which is the one thing this ticket was told twice not to do. A SHIPPED TRIPWIRE CAUGHT THIS TICKET AND WAS NOT FIXED BY EXEMPTION. Declaring the version bump as an instrument change made `audit` report nine SUPERSEDED-UNMARKED violations at once -- R-H3 firing on the ticket that shipped the change. All nine were answered from the raw data per the card's own straddle warning: six re-affirmed at `2098d55` (nothing measuring kills or complexity imports `score_tools` or reads the rubric -- the three files that name them do so in a docstring), two re-affirmed and widened, and one SUPERSEDED. That last is FI-03's \"at most one dimension-point per judge\", which was a property of two adjacent rounds rather than of the instrument, and which its own `why` had warned was the flattering half of that ticket's numbers. The change is declared with NO `affects`, applying it to every card, which leaves 22 standing OPENs -- scoping it narrower would have kept the audit quiet by narrowing a true statement, and the dilution cost is reported rather than hidden. MY OWN ROUND-CONDUCT ERROR, DISCLOSED. I read both pass-2 cards while their judges were still writing, mistook an in-progress file for an unfilled one, and messaged two judges mid-score. Both correctly refused to change anything and no score moved. Contacting a judge during scoring is the operator error this card's version 3 is about, and an operator who hides their own is not entitled to report anyone else's. It is in RESULT.md section 0. DENOMINATOR RULE. Scoring rules 8 -> 9: numerator rose, nothing removed. Card top-level fields 15 -> 14: `total` out, `served_digest`, `file_sha256` and `anchor_reading` in. Served lines carrying a result about a dimension: 1 -> 0 in the rubric, 3 -> 0 in the scaffold. Tests in `test_score_tools.py` 60 -> 72, ZERO DELETED. Suite 1359 -> 1375: +12 mine, +4 ticket-workspace tests that go away at close. Acceptance: 1375 passed in 445.75s. Parent 0342a3a: 1359 passed in 354.00s. Findings SM-04-DF-01..07 filed: five carried (budget 5, spent exactly), two repaired. NONE of the carried ones fixed.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }
