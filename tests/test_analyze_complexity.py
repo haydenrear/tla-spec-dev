@@ -48,6 +48,8 @@ from scripts.analyze_complexity import (  # noqa: E402
     extract_next_actions,
     find_next_relation,
     interaction_graph,
+    greedy_communities,
+    modularity,
     split_top_level_disjuncts,
     parse_cfg_constants,
     parse_cfg_invariants,
@@ -730,6 +732,103 @@ def test_modularity_is_deterministic_for_the_same_model(tmp_path: Path) -> None:
     second = analyze(tla, cfg, None)
     assert first.modularity_score == second.modularity_score
     assert [sorted(c) for c in first.communities] == [sorted(c) for c in second.communities]
+
+
+def test_dense_community_analysis_does_not_recompute_every_candidate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The close-ticket ledger must remain tractable on a dense 123-variable model."""
+    variables = [f"v{index:03d}" for index in range(123)]
+    active_variables = variables[:67]
+    weights = {
+        (left, right): 1
+        for index, left in enumerate(active_variables)
+        for right in active_variables[index + 1 :]
+    }
+    calls = 0
+
+    def counted_modularity(partition: list[set[str]], graph: dict[tuple[str, str], int]) -> float:
+        nonlocal calls
+        calls += 1
+        if calls > 2:
+            pytest.fail("candidate partitions must not recompute modularity")
+        return modularity(partition, graph)
+
+    monkeypatch.setattr("scripts.analyze_complexity.modularity", counted_modularity)
+    communities, score = greedy_communities(variables, weights)
+
+    assert len(communities) == 57
+    assert communities[0] == set(active_variables)
+    assert all(len(community) == 1 for community in communities[1:])
+    assert score == pytest.approx(0.0)
+    assert calls == 2
+
+
+def test_optimized_community_analysis_matches_the_original_search() -> None:
+    """The delta formula changes cost, not merge choices or the final score."""
+
+    def original_search(
+        variables: list[str], weights: dict[tuple[str, str], int]
+    ) -> tuple[list[set[str]], float]:
+        partition = [{variable} for variable in variables]
+        best_score = modularity(partition, weights)
+        if not weights:
+            return partition, best_score
+        improved = True
+        while improved and len(partition) > 1:
+            improved = False
+            best_pair: tuple[int, int] | None = None
+            best_gain = 0.0
+            for left_index in range(len(partition)):
+                for right_index in range(left_index + 1, len(partition)):
+                    connected = any(
+                        (left in partition[left_index] and right in partition[right_index])
+                        or (left in partition[right_index] and right in partition[left_index])
+                        for left, right in weights
+                    )
+                    if not connected:
+                        continue
+                    candidate = [
+                        community
+                        for index, community in enumerate(partition)
+                        if index not in (left_index, right_index)
+                    ]
+                    candidate.append(partition[left_index] | partition[right_index])
+                    gain = modularity(candidate, weights) - best_score
+                    if gain > best_gain + 1e-12:
+                        best_gain = gain
+                        best_pair = (left_index, right_index)
+            if best_pair is not None:
+                left_index, right_index = best_pair
+                merged = partition[left_index] | partition[right_index]
+                partition = [
+                    community
+                    for index, community in enumerate(partition)
+                    if index not in (left_index, right_index)
+                ]
+                partition.append(merged)
+                best_score += best_gain
+                improved = True
+        partition.sort(key=lambda community: (-len(community), sorted(community)))
+        return partition, modularity(partition, weights)
+
+    variables = ["a", "b", "c", "d", "e", "f"]
+    graphs = [
+        {},
+        {("a", "b"): 1, ("b", "c"): 1, ("d", "e"): 1},
+        {
+            (left, right): ((left_index + 1) * (right_index + 3)) % 5 + 1
+            for left_index, left in enumerate(variables)
+            for right_index, right in enumerate(variables[left_index + 1 :], left_index + 1)
+            if (left_index + right_index) % 3 != 0
+        },
+    ]
+
+    for weights in graphs:
+        expected_communities, expected_score = original_search(variables, weights)
+        communities, score = greedy_communities(variables, weights)
+        assert communities == expected_communities
+        assert score == pytest.approx(expected_score, abs=1e-12)
 
 
 # ---------------------------------------------------------------------------

@@ -1173,29 +1173,65 @@ def greedy_communities(
     """Greedy agglomerative modularity maximization (CNM-style).
 
     Deterministic: ties break on sorted community keys, so the same model
-    always yields the same recommendation.
+    always yields the same recommendation. ``weights`` is the positive-integer
+    graph emitted by :func:`interaction_graph`.
     """
     partition: list[set[str]] = [{v} for v in variables]
     best_q = modularity(partition, weights)
     if not weights:
         return partition, best_q
+
+    # For two communities A and B, recomputing modularity for the complete
+    # candidate partition is unnecessary. With m equal to the total edge
+    # weight, e(A, B) the weight crossing between them, and d(A)/d(B) their
+    # weighted degrees, the exact modularity delta is:
+    #
+    #   e(A, B) / m - d(A) * d(B) / (2 * m**2)
+    #
+    # The previous implementation rebuilt every candidate partition and then
+    # rescanned every edge once per community. On dense 123-variable models
+    # this turned the mandatory close-ticket ledger into billions of Python
+    # membership checks. Rebuild the community crossing weights once per
+    # accepted merge instead. The nested i/j scan and strict epsilon comparison
+    # stay unchanged, preserving deterministic tie order.
+    total = sum(weights.values())
+    degree: dict[str, int] = {variable: 0 for variable in variables}
+    for (left, right), weight in weights.items():
+        degree[left] = degree.get(left, 0) + weight
+        degree[right] = degree.get(right, 0) + weight
+
     improved = True
     while improved and len(partition) > 1:
         improved = False
         best_pair: tuple[int, int] | None = None
         best_gain = 0.0
+
+        community_by_variable = {
+            variable: index
+            for index, community in enumerate(partition)
+            for variable in community
+        }
+        attached = [
+            sum(degree.get(variable, 0) for variable in community)
+            for community in partition
+        ]
+        crossing: dict[tuple[int, int], int] = {}
+        for (left, right), weight in weights.items():
+            left_index = community_by_variable[left]
+            right_index = community_by_variable[right]
+            if left_index == right_index:
+                continue
+            pair = (min(left_index, right_index), max(left_index, right_index))
+            crossing[pair] = crossing.get(pair, 0) + weight
+
         for i in range(len(partition)):
             for j in range(i + 1, len(partition)):
-                connected = any(
-                    (left in partition[i] and right in partition[j])
-                    or (left in partition[j] and right in partition[i])
-                    for (left, right) in weights
-                )
-                if not connected:
+                cross_weight = crossing.get((i, j), 0)
+                if cross_weight == 0:
                     continue
-                candidate = [c for k, c in enumerate(partition) if k not in (i, j)]
-                candidate.append(partition[i] | partition[j])
-                gain = modularity(candidate, weights) - best_q
+                gain = cross_weight / total - (attached[i] * attached[j]) / (
+                    2 * total * total
+                )
                 if gain > best_gain + 1e-12:
                     best_gain = gain
                     best_pair = (i, j)
@@ -1207,7 +1243,9 @@ def greedy_communities(
             best_q += best_gain
             improved = True
     partition.sort(key=lambda c: (-len(c), sorted(c)))
-    return partition, best_q
+    # Report the descriptor's canonical modularity calculation rather than an
+    # accumulated floating-point delta.
+    return partition, modularity(partition, weights)
 
 
 def crossing_actions(
