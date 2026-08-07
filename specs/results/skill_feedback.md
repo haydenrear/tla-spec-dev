@@ -1989,3 +1989,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket SM-06
+
+- close_scope: ticket
+- close_id: SM-06
+- workflow: subtract-to-measure-epic
+- closed_at: 2026-08-07T14:50:01+00:00
+- summary: One home for the card: 20 live statements of a dimension, an anchor or a scoring rule deleted from 5 files; 3 of 4 disagreeing copies were UNCAUGHT before it; the card's content is byte-unchanged
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

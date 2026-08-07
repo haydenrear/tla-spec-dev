@@ -19,10 +19,10 @@ What a judge is given, and why each part is there:
 
 Source code is still ONE artifact per judge.
 
-Nothing in a packet names an arm, a prompt, a ticket or a prediction. The
-mechanical block is recorded and NEVER scored (`references/eval_scorecard.md`
-rule 7), and the packet says so in its own text so that a judge who reads only
-the packet still knows it.
+Nothing in a packet names an arm, a prompt, a ticket or a prediction. Nothing in
+a packet states one of the card's dimensions, anchors or scoring rules either:
+those reach the judge through the rubric rendered into `scorecard.md`, under
+`served_digest`, and a second copy here would be under nothing (SM-06).
 """
 
 from __future__ import annotations
@@ -73,25 +73,35 @@ three artifacts. No artifact's corpus differs from another's by a byte, and the
 table is a difference in the CODE, never in the cases.
 """
 
+# SM-06: this note used to restate two of the card's numbered scoring rules and
+# one of its dimension caveats, in prose written HERE. That is the worst place in
+# the repository for a copy of the card: it is handed to a judge, and it is
+# covered by no digest -- the rubric a judge is served carries its own
+# `served_digest`, and this text is not in it. Inverted as gap mutant M2 it moved
+# no verdict anywhere. Every rule a judge needs is in the card they are served,
+# parsed out of the rubric; what belongs here is only what is true of THIS
+# PACKET and of nothing else.
 RULES_NOTE = """\
 ## How to use this packet
 
-**The mechanical block is recorded and NEVER scored** (`references/
-eval_scorecard.md`, rule 7). It sits beside your judgement so that a reader can
-see when the two disagree, and a disagreement is a finding rather than something
-to resolve by arithmetic. Do not convert a figure into a score.
+**The scoring rules are the ones in your scorecard, and they are not repeated
+here.** They are rendered into `scorecard.md` out of
+`references/eval_scorecard.md`, which is the one place any of them is stated.
+Read them there. Two of them govern this packet directly — how to read the
+mechanical block against your judgement, and whether a claim in an artifact's
+own prose is evidence — and re-stating them in a packet is how a judge ends up
+holding two versions of one rule.
 
-**Score artifacts, never claims.** The artifact's own `NOTES.md` is evidence
-about what its author says, not about what the code does. If a claim in it
-matters to a score, check it against the code or run it.
+What is true of this packet and of nothing else:
 
 **A number under a RED control is a FLOOR.** Read the control section before
 reading any kill number. A positive control that should have died on an
 instrument and did not means that instrument's zeros cannot be told apart from a
 broken instrument.
 
-**A drop in a complexity number is not evidence on its own** (MF-020): a count
-can fall because behaviour was deleted.
+**The mechanical block covers all three artifacts, neutrally labelled**, because
+one column is not a before and an after. Which column belongs to which arm is
+not in this packet and is not for you to work out.
 """
 
 
@@ -244,7 +254,7 @@ Port-binding columns, control roles executed against this run's measured counts:
 {json.dumps(swap.get("control_red", []), indent=2, sort_keys=True)}
 ```
 
-## MECHANICAL BLOCK — recorded, never scored
+## MECHANICAL BLOCK
 
 Complexity of produced code, `role=code` only (implementation modules; test
 modules excluded), over all three artifacts.

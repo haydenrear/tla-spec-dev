@@ -1039,12 +1039,18 @@ def _skeleton_md(args, rubric: dict, label: str, judge: int, rid: str) -> str:
                "file. **The anchors are reproduced here so the bar for a score sits in "
                "the same file as the score.**")
     out.append("")
-    out.append("## The mechanical block is recorded, never scored")
+    # SM-06: this heading and paragraph used to restate the card's rule about the
+    # mechanical block, in prose written HERE rather than parsed out of the
+    # rubric -- so it sat outside `served_digest` and nothing compared it to the
+    # card. Inverted as gap mutant M3 it moved no verdict anywhere in this
+    # repository. The rule is served below with every other numbered rule,
+    # straight out of the card; what stays here is the pointer to the FILE, which
+    # the card does not carry.
+    out.append("## The mechanical block")
     out.append("")
     out.append("`mechanical.json` beside this file holds kill counts, complexity "
-               "figures, case counts, determinism and runtime. It sits beside the "
-               "judgement so a reader can see when the two disagree — **and a "
-               "disagreement is a finding, not a rounding error.**")
+               "figures, case counts, determinism and runtime. How to read it "
+               "against your judgement is one of the numbered scoring rules below.")
     out.append("")
     out.append(served_rubric(rubric, args.card_version))
     if args.card_version >= 2:
@@ -1063,8 +1069,9 @@ def _skeleton_md(args, rubric: dict, label: str, judge: int, rid: str) -> str:
         out.append("")
         out.append("**Score:** _(0–4)_")
         out.append("")
-        out.append("**Citations** (`file:line`; required for any score ≥ 2, and a score "
-                   "≥ 2 without one is capped at 1 by the schema check):")
+        # SM-06: the citation bar is served above, parsed out of the card. This
+        # label names the FORMAT and points at the rule; it does not restate it.
+        out.append("**Citations** (`file:line` — the bar is in the scoring rules above):")
         out.append("")
         out.append("-")
         out.append("")

@@ -1055,6 +1055,101 @@ Byte-identical: nothing in the tripwire was refactored to make this possible.
   expect_passed_at_least = 78  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
+id = "one-home-tripwire"
+name = "one home for the eval card"
+paths = ["tests/test_card_has_one_home.py"]
+family = "repo-tripwire"
+watches = "that no live file outside references/eval_scorecard.md states one of the card's dimensions, anchors or scoring rules"
+verdict_surface = "pytest assertion"
+classification = "demonstrated-can-fail"
+note = """
+SM-06. REGISTERED BY HAND, because a repo tripwire that is a pytest FILE has no
+`__main__` and no exit call and is invisible to `[registry.enumeration]`. That
+is the hole SM-03 wrote down rather than left for the next sweep; this is the
+sixth file in it and the count is now six, not five.
+
+WHY IT EXISTS, MEASURED. Four copies of the card were made to DISAGREE with the
+card at `6aac1ec`, before anything was deleted, and the whole repository was
+asked whether it noticed:
+
+  M1  a charter's dimension table with two rows carrying each other's titles
+      -- the shape two rows of PORTS-AS-ADAPTERS-EPIC.md actually had  UNCAUGHT
+  M2  a scoring rule inverted inside a judge's evidence packet             UNCAUGHT
+  M3  the same rule inverted in every scaffolded scorecard.md              UNCAUGHT
+  M4  an anchor edited inside a SEALED scorecard.md  (the control)         CAUGHT
+
+The 1378-test suite, `demonstrate.py`, `check`, `audit` and `serve` were all
+green on M1, M2 and M3. M4 went red on three surfaces, so that green is a fact
+about the copies and not about a dead harness (R2). Recorded in
+`specs/results/scorecards/subtract-to-measure/SM-06/dup-mutants-before.json`.
+
+WHAT IT CANNOT SEE, and the second one is the load-bearing admission.
+
+A PARAPHRASE ESCAPES. The needles are the card's dimension titles, anchor
+opening clauses and scoring-rule lead sentences, parsed out of the card at run
+time and matched on CONTENT WORDS, so punctuation and dropped connectives do not
+hide a copy. That finds a quotation. It does not find a restatement in someone
+else's words, and no tightening of it will without matching ordinary English as
+well. Several of the copies this ticket deleted were paraphrases and were found
+by READING, not by this. `test_the_blind_spots_are_declared_and_still_real`
+demonstrates the miss rather than asserting it.
+
+ONE SCORING RULE IS NOT WATCHED AT ALL. Its lead sentence is three words, short
+enough that matching it would flag any sentence on the same subject, so it is
+dropped rather than matched loosely. Which rule that is comes out of the card,
+never out of the check.
+
+AND THE SCOPE IS FIVE CARVE-OUTS, WHICH IS THE THING TO WATCH. One principle --
+a record of what was true when it was written is not a live declaration -- with
+five instances: the card, `specs/.history/`, records under `specs/results/`, the
+sealed `PREDICTIONS-*.md`, and `deferred_findings.yaml`, whose findings quote
+the text they are findings about. `.py` under `specs/results/` is deliberately
+IN scope, because `measure/build_evidence_packets.py` writes into a judge's
+packet and was M2. A sixth carve-out should be argued for, not added.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a second home for the card: the rubric staged to a SECOND path in a throwaway tree, so a live file other than the card states every dimension, every anchor and every scoring rule at once"
+  nodes = ["tests/test_card_has_one_home.py"]
+  expect_exit = 1
+  expect_passed = 7
+  expect_output = ["the card is stated outside references/eval_scorecard.md"]
+  # THE FIXTURE IS THE CARD, STAGED TWICE, and nothing here spells a word of it.
+  # A hand-written offending charter would have put a copy of the card into this
+  # registry -- which is the violation this row exists to detect, committed by
+  # the row that detects it. Staging the rubric to a second path produces a
+  # perfect offender that can never drift from the card, because it IS the card.
+    [[instrument.failing.stage]]
+    from = "tests/test_card_has_one_home.py"
+    to = "tests/test_card_has_one_home.py"
+
+    [[instrument.failing.stage]]
+    from = "tests/test_score_tools.py"
+    to = "tests/test_score_tools.py"
+
+    [[instrument.failing.stage]]
+    from = "references/eval_scorecard.md"
+    to = "references/eval_scorecard.md"
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/scorecards/score_tools.py"
+    to = "examples/validation/scorecards/score_tools.py"
+
+    [[instrument.failing.stage]]
+    from = "references/eval_scorecard.md"
+    to = "THE-SECOND-HOME.md"
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the repository as this ticket left it: one home for the card, and the two second copies that something executes a comparison for"
+  nodes = ["tests/test_card_has_one_home.py"]
+  expect_exit = 0
+  expect_passed = 8  # SM-03: exit 0 is also what a fully-skipped run returns
+
+[[instrument]]
 id = "spec-yaml-tripwire"
 name = "spec YAML parses under both readers"
 paths = ["tests/test_spec_yaml_valid.py"]

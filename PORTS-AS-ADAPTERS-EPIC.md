@@ -66,17 +66,11 @@ judgement that must cite the artifact can only be satisfied by changing what the
 artifact is.** That is the whole argument, and it is not a claim that judgement
 cannot be gamed — it is a claim that gaming it requires doing the work.
 
-The defenses are structural rather than exhortation (`references/eval_scorecard.md`):
-
-- score **artifacts, never claims** — a report sentence is not evidence;
-- **any score ≥ 2 without a `file:line` citation is mechanically capped at 1**;
-- **a score of 4 must name something the artifact refuses to claim**, so the top
-  of every scale is unreachable by asserting more;
-- **prose quality is never an input**;
-- **two judges, blind to each other and to arm**, with a spread > 1 recorded as
-  `contested` and adjudicated only on *new* evidence;
-- **the mechanical block sits beside the judgement and is never scored**, so a
-  disagreement between measurement and judgement is visible as a finding.
+The defenses are structural rather than exhortation, and they live in exactly
+one place: **`references/eval_scorecard.md`** — the scoring rules, the anchors,
+the judging protocol. **This charter does not restate them.** It restated the
+baseline table once (§7) and two of those rows were wrong for weeks, which is
+the whole reason it now points instead.
 
 It works. Across 25 independent scores in one epic and 10 in the next, blind
 judges produced **zero contested dimensions** — maximum spread 1. A rubric where
@@ -178,16 +172,11 @@ stopped describing the instrument that produced them. A scorer comparing naively
 across that boundary would have compared two different instruments and called the
 difference progress.
 
-The reading rules, which PA-05 puts in the rubric:
-
-- **A row is comparable only on the same example AND across an unchanged
-  instrument.** Name the instrument change or do not compare.
-- **Never average across examples.** A deliberately incoherent fixture is
-  *supposed* to score low on D3.
-- **A number that moved because the instrument was repaired is not improvement.**
-  Say which happened.
-- **A sealed card is never edited.** When one goes stale the ledger records which
-  number and why, beside it.
+The reading rules PA-05 put in the rubric are `R-H1`..`R-H5` of
+`references/eval_scorecard.md`, and every one of them is executed by
+`score_tools.py audit`. **They are not copied here** — a reading rule stated in
+two places is a reading rule that can disagree with itself, and the audit only
+knows about one of the two.
 
 Three worked examples are already in the record and you should be able to tell
 them apart: guard relaxation 0 → 3 of 3 is a **real mechanism gain**; D1 = 3
@@ -200,54 +189,46 @@ appearing on **both** arms is an **attribution correction**, not a gain; and
 same five dimensions. **One epic's card says how good an artifact is; that file
 says whether we are getting better.**
 
-Baselines you are measured against, all sealed in closed snapshots:
+**The baselines you are measured against are not restated here.** Read them
+from that file and from the sealed cards under `specs/results/scorecards/`:
 
-| | best ever recorded | where |
-|---|---|---|
-| **D1** bug detection | **3** on **BOTH ARMS**, all four judges | corrected — see below; the old text said "(arm B, both judges)" |
-| **D2** complexity | **3**, never 4 | withheld by both judges, twice, for the same reason |
-| **D3** modularity | **4** (arm B, both judges) | first 4 in the project |
-| **D5** honesty | **4** | went to the **treatment** — corrected, see below |
+```bash
+python3 examples/validation/scorecards/score_tools.py history --example <example>
+python3 examples/validation/scorecards/score_tools.py index specs/results/scorecards/<epic>
+```
 
-**D1 correction — 2026-08-05, epic owner, on PA-05's finding `PA-05-DF-01`.**
-This row read *"**3** (arm B, both judges)"*, which credits the treatment with a
-result **both arms got**. Under EVAL-RERUN, D1 = 3 on arm A *and* arm B, from all
-four judges (`hexagonal-prompting-rerun/INDEX.md`). The old wording made an
-attribution correction look like a treatment effect — and it **contradicted §5 of
-this same document**, which says plainly: *"D1 = 3 on BOTH arms. The bug-catching
-gain was the generator, which both arms get — not the prompt."* The table and the
-thesis disagreed, and the table was wrong.
+**This section carried a copy of that table, and the copy is why the sentence
+above exists.** Two of its four rows were wrong, and both were wrong the same
+way: written against `HP-06`'s sealed run, then read forward across the
+instrument change that superseded it.
 
-This is the same defect as the D5 row below, from the same cause: a row written
-against HP-06's sealed run and read forward across an instrument change. PA-05
-found it while building the tool for finding exactly this, which is the strongest
-argument its ticket could have made for itself.
+- One credited the treatment with a bug-detection result **both arms got**, and
+  in doing so **contradicted §5 of this same document**, which says plainly:
+  *"the bug-catching gain was the generator, which both arms get — not the
+  prompt."* The table and the thesis disagreed, and the table was wrong.
+- The other inverted which arm the best-ever honesty score went to. The score
+  itself was right in both runs; the attribution was backwards — in the one
+  document every ticket agent is told to read first.
 
-**D5 correction — 2026-08-05, epic owner, pre-dispatch baseline audit.** This row
-read *"and it went to the control, not the treatment"* until the baselines were
-checked against the artifacts rather than carried forward. That was true of
-HP-06's sealed run: `Y` = arm A = the control, D5 of 4 and 3. It is **false of
-the instrument this epic actually stands on.** EVAL-RERUN at `b3a0199`
-supersedes that run, and there D5 = 4 went to **`Q` = arm B = the treatment**,
-while the control *fell* to 3 and 2 (`closed-snapshot/results/scorecards/
-hexagonal-prompting-rerun/UNBLINDING.md`). The **4** is right in both runs. The
-attribution was inverted — in the one document every ticket agent is told to
-read first.
+Both were corrected by hand, mid-epic, by the epic owner. `PA-05` found the
+first while building the tool for finding exactly this, which is the strongest
+argument its ticket could have made for itself. The findings keep the wrong rows
+verbatim in `specs/desired_program_model/deferred_findings.yaml`, because a
+finding that deletes its own subject is not a finding.
 
-Two things follow, and the second matters more:
+Three things follow, and the third is why this section is now a pointer:
 
-- **The sealed run is not edited.** Both rows stand as measured; this note
-  records which one describes the current instrument.
-- **This is exactly the failure §6 says PA-05 exists to prevent, found in this
-  epic's own starter.** A row went stale, nothing executed the claim, and it was
-  read forward as current through a whole dispatch. *A declaration that nothing
-  executes will drift* — including this one. Treat it as the worked example.
-
-**Watch D5 when the others move.** A rise in D1 bought by a fall in D5 is not
-improvement — it is the toolchain learning to overclaim. And note what the
-correction exposes: across the two runs the control's D5 fell 4/3 → 3/2 while
-its D1 held at 3/3. Different artifacts, different round, different judges — so
-that is a question to ask, **not** a trend to report.
+- **The sealed runs are not edited.** Both stand as measured; `INSTRUMENT-LOG.toml`
+  records which one describes the current instrument, and `history` prints the
+  note beside the row.
+- **Watch every dimension when one moves.** A rise on one bought by a fall on
+  another is not improvement — it is the toolchain learning to overclaim. Read
+  that off the ledger, per example, never off a summary.
+- **A declaration that nothing executes will drift** — including this one. A
+  charter that copies the ledger goes stale; a charter that points at it cannot.
+  `tests/test_card_has_one_home.py` is what turned that from a resolution into a
+  check, after four deliberately disagreeing copies were seeded at `6aac1ec` and
+  **three of the four went unnoticed by every instrument this repository ships**.
 
 ---
 

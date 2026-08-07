@@ -108,9 +108,10 @@ Each of these was learned by breaking it:
 - **Ask every blind agent what it REJECTED.** Three rounds running, that question
   produced the best finding — and the suite produced **zero** findings from 1,329
   green assertions.
-- **Score artifacts, never claims**, and verify a sub-agent's headline yourself
-  before repeating it. Several reports in this project were confidently wrong in
-  ways the committed artifact contradicted.
+- **Verify a sub-agent's headline yourself before repeating it.** Several reports
+  in this project were confidently wrong in ways the committed artifact
+  contradicted. This is the operational form of the card's first scoring rule,
+  which is stated in `references/eval_scorecard.md` and nowhere else.
 - **A declaration nothing executes will drift.** Five mismatches in five
   consecutive attempts by three authors, in both directions — plus a test written
   to close that class which passed vacuously by reading the wrong key.

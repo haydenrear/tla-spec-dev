@@ -1,0 +1,123 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket SM-06",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-06/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-06/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-06/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "references/eval_scorecard.md is the only place stating a dimension, anchor or scoring rule, and something executes that.",
+        "Epic charters point at the card and SELF-IMPROVEMENT.md rather than restating baselines; deletions are reported.",
+        "The three upstream PRs are reconciled to the card on harness, multi-clause targets and per-clause verdicts, and are NOT merged.",
+        "A copy made to disagree with the source is caught, or the failure to catch it is filed as a finding.",
+        "The card's content is unchanged by the de-duplication."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "SM-05"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "references/eval_scorecard.md",
+        "SUBTRACT-TO-MEASURE-EPIC.md"
+      ]
+    },
+    "depends_on": [
+      "SM-01",
+      "SM-04"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/173",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "Removes duplicated statements of the card, which is carrying cost with a measured failure history -- two stale rows in one charter.",
+        "goal": "GOAL-cheaper",
+        "local_signal": "count of places stating a dimension, anchor or scoring rule, before and after"
+      },
+      {
+        "contribution": "direct",
+        "expected_effect": "The gap mutant for a de-duplication: make a copy disagree with the source and show something goes red. If nothing does, that is the finding.",
+        "goal": "GOAL-removal-is-measured",
+        "local_signal": "a deliberately disagreeing copy, and what catches it"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none on the number; the card's CONTENT must be unchanged by the de-duplication",
+        "goal": "GOAL-D2-can-move",
+        "local_signal": "diff references/eval_scorecard.md before and after -- expected unchanged"
+      }
+    ],
+    "id": "SM-06",
+    "implementation_scope": [
+      "references/eval_scorecard.md",
+      "SUBTRACT-TO-MEASURE-EPIC.md",
+      "tests/",
+      "examples/validation/scorecards/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "A REMOVAL TICKET: it deletes duplicated statements of the card. tla-spec-dev's references/eval_scorecard.md becomes the one home for dimensions, anchors, scoring rules, the judging protocol and the reading rules; NOTHING ELSE STATES ANY OF THEM. The scatter has already cost us -- PORTS-AS-ADAPTERS-EPIC.md restated the baseline table and TWO of its rows were wrong, both read forward across an instrument change and corrected mid-epic. A charter that copies the ledger goes stale; one that points at it cannot. Across skills the goal contract is narrower than what this repo does in three measured ways: harness must be one command (we use judged procedures on purpose), a verdict is one word (GOAL-port-reach settled per-clause), and a target is a number (GOAL-complexity-measurable has NO TARGET ON THE NUMBER by design). Reconcile git-epic-skill#6, git-issue-skill#3 and git-issue-workflow-skill#7 to the card, keeping the skills CARD-AGNOSTIC -- they say a judged instrument is a legitimate harness and link the card, acquiring no example/arms/judges/version fields of their own. DO NOT MERGE THOSE PRs; merge authority is the owner's. Ship the gap mutant this epic requires: make a copy disagree with the source and show something goes red -- if nothing does, that is the finding and it is why the copies were dangerous.",
+    "promotion_order": 45,
+    "promotion_predecessor": "SM-04",
+    "schedule_revision": 2,
+    "status": "planned",
+    "title": "One home for the card: centralize in tla-spec-dev, point everywhere else",
+    "wave": 4
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-06/specs/tickets/SM-06",
+  "ticket_id": "SM-06",
+  "ticket_index": 4,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-06/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-06/specs/tickets"
+}

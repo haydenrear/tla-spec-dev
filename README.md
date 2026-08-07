@@ -132,45 +132,27 @@ python3 scripts/run_generated_case_adapters.py path/to/generated_cases --mapping
 ## Evaluation Scorecards
 
 Every eval in this repository is scored on one standardized card, by an agent
-judge, **against artifacts**. The card is the unit of comparison across epics —
-its rubric and anchors are `references/eval_scorecard.md`, and it is versioned so
-that changing it is a deliberate, recorded act rather than silent drift.
+judge, **against artifacts**. The card is the unit of comparison across epics,
+and it is versioned so that changing it is a deliberate, recorded act rather
+than silent drift.
 
-**Why judged and not computed.** Every mechanical gate this project shipped was
-defeated cheaply and none of them ever caught a bug: the complexity gate failed
-every normal program and was retired to advisory; the architecture check reported
-a clean on a divergent codebase for six lines of YAML, then for a 41-line
-re-export file, both with every declaration digest unchanged. **Across two full
-eval rounds and seven repair tickets, bug detection did not move by a single
-cell** — 4 of 6, 6 of 6, 0 of 3, 0 of 3, identical before and after. The
-architecture scanners were removed on 2026-08-04 and what they established is
-now `references/architecture_advice.md`. The argument for judgement is not that
-it cannot be gamed. It is that **a number computed from an artifact can be
-optimized by editing the artifact, while a judgement that must cite the artifact
-can only be satisfied by changing what the artifact is.**
+**`references/eval_scorecard.md` is the one home for that card** — the five
+dimensions, their anchors, the scoring rules, the judging protocol, and the
+rules for reading a history. **Nothing else in this repository states any of
+them, this file included**, and `tests/test_card_has_one_home.py` executes that
+rather than asking anyone to remember it. Its argument for judging rather than
+computing is in the card's own `## Why a judged scorecard and not a metric`,
+on the record of every mechanical gate this project shipped; the scanners that
+argument retired were removed on 2026-08-04 and what they established is now
+`references/architecture_advice.md`.
 
-Five dimensions, 0–4 each:
-
-| | | |
-|---|---|---|
-| **D1** | bug detection | do the model-derived cases and their adapters *catch* seeded faults |
-| **D2** | complexity | is the design as simple as its behavior requires |
-| **D3** | modularity | ports and adapters *in fact* — domain independent of I/O, adapters swappable |
-| **D4** | behavior preservation | does the simpler design still do everything the baseline did |
-| **D5** | honesty | does it refuse rather than falsely certify |
-
-The rules that make a score hard to game are structural, not exhortation:
-
-- **Score artifacts, never claims.** A report sentence asserting a property is
-  not evidence; the code is.
-- **Any score ≥ 2 without a `file:line` citation is mechanically capped at 1.**
-- **A score of 4 must name something the artifact refuses to claim**, so the top
-  of every scale is unreachable by asserting more.
-- **Prose quality is never an input.**
-- **Two judges score blind**; a spread greater than 1 is `contested` and needs a
-  third pass citing *new* evidence.
-- **The mechanical block sits beside the judgement and is never scored** — when
-  measurement and judgement disagree, that disagreement is itself a finding.
+**This section used to summarise the card, and the summary is deleted rather
+than corrected.** A summary of a versioned rubric is a copy that nothing
+compares to the rubric. Four copies were made to disagree with the card at
+`6aac1ec` and **three of the four were missed by the entire test suite,
+`demonstrate.py`, `check`, `audit` and `serve` together** — the one that was
+caught was the one something already compared
+(`specs/results/scorecards/subtract-to-measure/SM-06/`). Read the card.
 
 Check and index a set of cards:
 
@@ -191,15 +173,15 @@ results arrive rather than after, what would count as evidence we are fooling
 ourselves — every prediction passing, findings arriving only from the suite, a
 score moving without an artifact moving.
 
-Two rules a reader will otherwise get wrong:
+**The rules for reading a history are the card's** (`## Reading history`,
+`R-H1`..`R-H5`), and `score_tools.py audit` executes every one of them. They are
+not repeated here: a reading rule stated in two places is a reading rule that
+can disagree with itself, and the audit only knows about one of the two.
 
-- **Never average across examples.** A deliberately incoherent fixture is
-  *supposed* to score low on D3; averaging it with a coherent one produces a
-  number about nothing. Compare the same example across epics, or two arms of one
-  eval.
-- **A judged score is not a kill count.** The mechanical block carries kill
-  tables, and they are reported **per class per arm, never as a single rate** — a
-  number reported without naming its arm is uninterpretable.
+```bash
+python3 examples/validation/scorecards/score_tools.py history --example <example>
+python3 examples/validation/scorecards/score_tools.py audit
+```
 
 ## Spec Evolution History
 

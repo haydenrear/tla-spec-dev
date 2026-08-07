@@ -40,7 +40,7 @@ resolves the conflict between them, and two prohibitions.
 
 | Clause | Why it is worded that way |
 |---|---|
-| the domain holds no handle, path, clock, environment, network or global | This is the operational form of "the domain does not import its I/O". Stated as *what the domain holds*, not *what it imports*, because import topology is not modularity — round 2 proved a codebase can pass every import check with its coupling entirely intact. |
+| the domain holds no handle, path, clock, environment, network or global | This is the operational form of **D3's anchor 3**, which `references/eval_scorecard.md` states and nothing else does. Worded as *what the domain holds*, not *what it imports*, because import topology is not modularity — round 2 proved a codebase can pass every import check with its coupling entirely intact. |
 | a driven port is a small interface the **domain** declares, in the **domain's** vocabulary, named for the need not the technology | Ownership direction is the whole content of dependency inversion. A `FileWriter` interface declared next to the file writer is the same coupling with an extra file. |
 | "two or three methods; a port with ten is a module boundary that got mislabelled" | The failure mode where a port becomes a second copy of the domain's whole surface. |
 | **the domain module does not import the modules that implement its ports** — not "does not use", does not import | The negative form is what makes it checkable by a reader in ten seconds, and it is the one clause here that is literally verifiable by looking. |
