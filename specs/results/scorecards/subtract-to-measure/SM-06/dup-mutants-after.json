@@ -1,0 +1,130 @@
+{
+  "phase": "after",
+  "head": "f26ec408af956cbf8a91d8543411023c95fe8479",
+  "baseline": {
+    "suite": {
+      "cmd": "uv run --with pytest --with pyyaml python -m pytest tests -q --no-header -p no:cacheprovider",
+      "exit": 0,
+      "secs": 447.7,
+      "failures": []
+    },
+    "score_tools_check": {
+      "cmd": "/Users/hayde/.cache/uv/builds-v0/.tmpTuynjc/bin/python examples/validation/scorecards/score_tools.py check specs/results/scorecards",
+      "exit": 0,
+      "secs": 0.1,
+      "failures": []
+    },
+    "score_tools_audit": {
+      "cmd": "/Users/hayde/.cache/uv/builds-v0/.tmpTuynjc/bin/python examples/validation/scorecards/score_tools.py audit",
+      "exit": 0,
+      "secs": 23.7,
+      "failures": []
+    },
+    "score_tools_serve": {
+      "cmd": "/Users/hayde/.cache/uv/builds-v0/.tmpTuynjc/bin/python examples/validation/scorecards/score_tools.py serve",
+      "exit": 0,
+      "secs": 0.1,
+      "failures": []
+    },
+    "demonstrate": {
+      "cmd": "/Users/hayde/.cache/uv/builds-v0/.tmpTuynjc/bin/python examples/validation/instruments/demonstrate.py",
+      "exit": 0,
+      "secs": 211.2,
+      "failures": []
+    }
+  },
+  "mutants": [
+    {
+      "id": "A1",
+      "kind": "reintroduced prose copy",
+      "where": "README.md",
+      "copies": "the dimension table, put back",
+      "makes_it_say": "two keys carrying each other's titles -- M1's shape, after the copy was deleted",
+      "verdict": "CAUGHT",
+      "red_surfaces": [
+        "suite: exit 0 -> 1, new failures ['tests/test_card_has_one_home.py::test_only_the_card_states_a_dimension_an_anchor_or_a_scoring_rule']",
+        "demonstrate: exit 0 -> 1"
+      ],
+      "observations": {
+        "suite": {
+          "cmd": "uv run --with pytest --with pyyaml python -m pytest tests -q --no-header -p no:cacheprovider",
+          "exit": 1,
+          "secs": 454.2,
+          "failures": [
+            "tests/test_card_has_one_home.py::test_only_the_card_states_a_dimension_an_anchor_or_a_scoring_rule"
+          ]
+        },
+        "score_tools_check": {
+          "cmd": "/Users/hayde/.cache/uv/builds-v0/.tmpTuynjc/bin/python examples/validation/scorecards/score_tools.py check specs/results/scorecards",
+          "exit": 0,
+          "secs": 0.1,
+          "failures": []
+        },
+        "score_tools_audit": {
+          "cmd": "/Users/hayde/.cache/uv/builds-v0/.tmpTuynjc/bin/python examples/validation/scorecards/score_tools.py audit",
+          "exit": 0,
+          "secs": 23.7,
+          "failures": []
+        },
+        "score_tools_serve": {
+          "cmd": "/Users/hayde/.cache/uv/builds-v0/.tmpTuynjc/bin/python examples/validation/scorecards/score_tools.py serve",
+          "exit": 0,
+          "secs": 0.1,
+          "failures": []
+        },
+        "demonstrate": {
+          "cmd": "/Users/hayde/.cache/uv/builds-v0/.tmpTuynjc/bin/python examples/validation/instruments/demonstrate.py",
+          "exit": 1,
+          "secs": 220.5,
+          "failures": []
+        }
+      }
+    },
+    {
+      "id": "A2",
+      "kind": "reintroduced prose copy",
+      "where": "PORTS-AS-ADAPTERS-EPIC.md",
+      "copies": "a scoring rule, put back into the charter it was deleted from",
+      "makes_it_say": "that the rule is optional",
+      "verdict": "CAUGHT",
+      "red_surfaces": [
+        "suite: exit 0 -> 1, new failures ['tests/test_card_has_one_home.py::test_only_the_card_states_a_dimension_an_anchor_or_a_scoring_rule']",
+        "demonstrate: exit 0 -> 1"
+      ],
+      "observations": {
+        "suite": {
+          "cmd": "uv run --with pytest --with pyyaml python -m pytest tests -q --no-header -p no:cacheprovider",
+          "exit": 1,
+          "secs": 447.1,
+          "failures": [
+            "tests/test_card_has_one_home.py::test_only_the_card_states_a_dimension_an_anchor_or_a_scoring_rule"
+          ]
+        },
+        "score_tools_check": {
+          "cmd": "/Users/hayde/.cache/uv/builds-v0/.tmpTuynjc/bin/python examples/validation/scorecards/score_tools.py check specs/results/scorecards",
+          "exit": 0,
+          "secs": 0.1,
+          "failures": []
+        },
+        "score_tools_audit": {
+          "cmd": "/Users/hayde/.cache/uv/builds-v0/.tmpTuynjc/bin/python examples/validation/scorecards/score_tools.py audit",
+          "exit": 0,
+          "secs": 24.3,
+          "failures": []
+        },
+        "score_tools_serve": {
+          "cmd": "/Users/hayde/.cache/uv/builds-v0/.tmpTuynjc/bin/python examples/validation/scorecards/score_tools.py serve",
+          "exit": 0,
+          "secs": 0.1,
+          "failures": []
+        },
+        "demonstrate": {
+          "cmd": "/Users/hayde/.cache/uv/builds-v0/.tmpTuynjc/bin/python examples/validation/instruments/demonstrate.py",
+          "exit": 1,
+          "secs": 211.7,
+          "failures": []
+        }
+      }
+    }
+  ]
+}
