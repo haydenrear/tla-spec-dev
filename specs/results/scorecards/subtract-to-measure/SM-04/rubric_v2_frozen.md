@@ -1,60 +1,16 @@
 # The Eval Scorecard
 
-**Scorecard version 3.** Every eval in this repository is scored on this card,
+**Scorecard version 2.** Every eval in this repository is scored on this card,
 by an agent judge, against artifacts. The card is the unit of comparison across
 epics: one epic's numbers mean something only next to another's, so the card is
 versioned and changing it is a deliberate, recorded act.
 
 **Version 2 changed one thing: what the judge DID is now a field on the card.**
-**Version 3 changed three, and none of them is an anchor.** The anchors are
-byte-unchanged from version 1 — see [Version history](#version-history), whose
-digest is checked by `score_tools.py check`. Cards written under an older
-version stay valid, stay comparable to each other, and are **not** comparable
-across a version boundary without saying so.
-
-What version 3 changed:
-
-1. **A judge is served the card; a judge never reads this file.** See
-   [How this card reaches a judge](#how-this-card-reaches-a-judge). The digest
-   recorded on a card now covers **exactly the bytes a judge is served**, so a
-   change to the rubric that can reach a judge cannot be invisible to it.
-2. **D5's anchor 4 has two defensible readings, and the card records which one
-   was used** — the same move version 2 made for judging practice: record the
-   choice, never mandate it. The bar is unchanged; what changed is that the
-   choice is no longer invisible.
-3. **`total` is gone.** It is not a field of a version 3 card and it is not
-   printed by `index` or `history`. See [Reading a card](#reading-a-card).
-
-## How this card reaches a judge
-
-**A judge is handed a scaffolded card. A judge is not handed this file.**
-
-For four rounds the judge dispatch said *"`references/eval_scorecard.md` — the
-rubric. Read it."* This file also carries reading rules, a version history and
-prior results about these same five dimensions. **A judge who reads it is being
-handed conclusions about the instrument they are the instrument for**, which is
-the one thing a measurement may not do.
-
-So the rubric a judge sees is **generated**, not read:
-
-```
-python3 examples/validation/scorecards/score_tools.py serve
-```
-
-`serve` renders the judge-facing rubric out of the parsed structure of this
-file — the five dimension blocks, their anchors and their caveats, and the
-scoring rules — **and nothing else**. Every other section of this file is
-outside what the renderer emits, so a section added to this file does not reach
-a judge by default; it reaches a judge only if someone changes the renderer.
-`scaffold` writes the same bytes into each `scorecard.md`, so the bar for a
-score still sits in the same file as the score, and there is exactly one served
-surface.
-
-`serve` and `scaffold` both **REFUSE** when the served text asserts how one of
-these five dimensions has scored or moved. That refusal is data hygiene on the
-instrument — it decides nothing about any artifact and gates nothing a judge
-may score. It is a backstop and it is not the mechanism: the mechanism is that
-the renderer emits parsed structure only.
+The anchors are byte-unchanged from version 1 — see
+[Version history](#version-history), whose digest is checked by
+`score_tools.py check`. Cards written under version 1 stay valid, stay
+comparable to each other, and are **not** comparable to a version 2 card without
+saying so.
 
 ## Why a judged scorecard and not a metric
 
@@ -173,18 +129,6 @@ evidence about what *calls* what at runtime, not what imports what.
 - **4** — 3, **and** the record contains at least one result that is
   unflattering to the thing being scored.
 
-**Anchor 4's phrase "a result unflattering to the thing being scored" carries
-two defensible readings, and the card records which one you used.** Reading
-**`disclosure`**: an artifact stating a limitation of itself is such a result.
-Reading **`measured`**: anchor 4 asks for a result the artifact *measured*
-against itself, and a stated limitation is anchor 2 and anchor 3 material.
-**Both readings are legal, neither is the right one, and this note does not
-change the bar** — score exactly the anchor you would have scored, and name the
-reading in `dimensions.D5.anchor_reading`. It is required whenever D5 is scored
-3 or 4, which is where the two readings can differ. Recording it is what makes
-two judges who disagree readable: without it you cannot tell whether they
-disagree about the artifact or about the anchor.
-
 ## Scoring rules that make it hard to game
 
 1. **Score artifacts, never claims.** A summary saying "the adapters assert
@@ -213,13 +157,6 @@ disagree about the artifact or about the anchor.
    for a behavior-breaking change *shown to be caught*, and a judge reading a
    table is repeating the artifact's claim rather than checking it. This is the
    anchor's own text made checkable, not a new bar.
-9. **A judge is served the card, never the rubric file.** *(New in version 3.)*
-   The scaffolded `scorecard.md` carries the rubric a judge needs. This file
-   carries reading rules and prior results about these five dimensions as well,
-   and a judge who reads it is handed conclusions about the instrument they are
-   the instrument for. Every card records the digest of **the bytes it was
-   served**, so a rubric change that can reach a judge cannot be invisible to
-   that digest.
 
 ## Storage
 
@@ -250,19 +187,13 @@ Fixtures and harness stay under `examples/validation/`; only *results* live in
 
 ```json
 {
-  "scorecard_version": 3,
+  "scorecard_version": 2,
   "epic": "architectural-coherence",
   "example": "ex4_pipeline_coherent",
   "run_id": "20260803-sc1",
   "arm": null,
   "commit": "<sha the artifacts were scored at>",
   "judge": {"model": "<model id>", "pass": 1, "blind_to_arm": true},
-  "rubric": {
-    "source": "references/eval_scorecard.md",
-    "digest": "<over the parsed anchors and scoring rules>",
-    "served_digest": "<over the EXACT bytes this judge was served>",
-    "file_sha256": "<over the whole rubric file, served and unserved alike>"
-  },
   "judging_practice": {
     "executed_own_faults": true,
     "what_was_run": ["copied the artifact to a scratch tree, inverted the guard in",
@@ -273,25 +204,13 @@ Fixtures and harness stay under `examples/validation/`; only *results* live in
     "D1": {"score": 2, "citations": ["path:line"], "rationale": "...",
            "refuses_to_claim": null},
     "D2": {"score": 3, "citations": ["path:line"], "rationale": "...",
-           "refuses_to_claim": null},
-    "D5": {"score": 3, "citations": ["path:line"], "rationale": "...",
-           "refuses_to_claim": null, "anchor_reading": "measured"}
+           "refuses_to_claim": null}
   },
+  "total": 0,
   "contested": [],
   "verdict": "<one sentence a reader can act on>"
 }
 ```
-
-**There is no `total` from version 3.** A version 1 or 2 card carries one and
-`check` still verifies its arithmetic; a version 3 card that carries one is
-rejected.
-
-`rubric.served_digest` is the load-bearing one. `rubric.digest` covers the
-parsed anchors and scoring rules and is what `check` uses to refuse a skeleton
-scaffolded against a stale bar. `file_sha256` covers the whole rubric file
-including the parts a judge is never served: two cards whose `served_digest`
-agrees while their `file_sha256` differs are reported `PROSE-DRIFT`, which is a
-prompt to go and look and never a violation.
 
 `arm` is `null` for a single-artifact eval and the arm label where arms exist.
 `refuses_to_claim` is required and non-null for any score of 4.
@@ -303,38 +222,14 @@ corrected — a card that is pushed toward one answer records the pressure and n
 the practice. The one consequence a `false` carries is that **D4 cannot be
 scored 4**, and `check` rejects the combination.
 
-`dimensions.D5.anchor_reading` is **required whenever D5 is scored 3 or 4**,
-from version 3. It is `"disclosure"` or `"measured"` — see D5's note above.
-Both are legal, neither is corrected, and it is not required at 0, 1 or 2,
-where the two readings cannot differ.
-
 ## Reading a card
 
-**There is no total, from version 3.** Its five terms are not five independent
-readings: `D2` has taken one value on every card ever written about
-`ab_quota_ledger`, and `D1`, `D4` and `D5` are each demonstrated to take a
-different value from a different judge on the same bytes. A sum over them
-moves for reasons a reader cannot attribute to anything, and it moves *most*
-where the card is *least* readable — so it is the one number in this file that
-rewards the dimensions that measure worst. `index` and `history` print the five
-dimensions and no sum. **Read a dimension. There is nothing to read in a
-headline.**
-
-**Never average across examples** — `ex6_jenga` is a deliberately incoherent
-fixture and is *supposed* to score low on D3; averaging it with `ex4` produces
-a number about nothing.
+A total is for tracking one example over time. **Never average across
+examples** — `ex6_jenga` is a deliberately incoherent fixture and is *supposed*
+to score low on D3; averaging it with `ex4` produces a number about nothing.
 
 Compare like for like: the same example across epics, or two arms of the same
-eval. A dimension that moves is the result.
-
-> **What removing `total` cost, measured rather than asserted.** `total` was a
-> checksum: `check` verified it equalled the sum, so a score edited in
-> `scorecard.json` without updating it was caught. That check is gone with the
-> field on a version 3 card, and the capability it stood for now rests entirely
-> on `seal` and R-H4 — which is strictly stronger, because a seal digest covers
-> all five scores, every citation and every rationale rather than one sum. This
-> was measured with a seeded mutant, before and after: see
-> `specs/results/scorecards/subtract-to-measure/SM-04/`.
+eval. A dimension that moves is the result; a total that moves is a headline.
 
 ## Scaffolding a card
 
@@ -366,10 +261,6 @@ Three properties are mechanisms rather than habits:
   requires every score to be null; a card carrying scores must say `filled`, at
   which point every rule above applies to it. `check --require-filled` is what a
   workflow close runs.
-- **A contaminated card is not scaffolded at all.** *(New in version 3.)* If the
-  served rubric asserts how one of these five dimensions has scored or moved,
-  `scaffold` refuses the whole batch and writes nothing, exactly as it does for
-  a collision. A round cannot begin by handing its judges the answer.
 
 ## Reading history
 
@@ -540,45 +431,24 @@ least one prior example under both versions so the discontinuity is measured
 rather than assumed. A card that changes silently makes every historical
 comparison a guess.
 
-`score_tools.py scaffold --card-version N` emits the schema of card version N so
-that re-score is possible at all; a tool that can only write the current version
+`score_tools.py scaffold --card-version 1` emits the previous card so that
+re-score is possible at all; a tool that can only write the current version
 makes the rule above unfollowable.
-
-**`--card-version` alone is not enough, and saying so is part of the rule.** It
-stamps the requested version number while reading every anchor, rule and digest
-out of the rubric file it is pointed at, so on its own it reproduces the old
-*schema* against the *new* bar. Reproducing the old card means also pointing it
-at the old rubric: **freeze the rubric file before you edit it**, and scaffold
-the old arm with `--rubric <the frozen copy> --card-version N`. FI-03 did this
-by sequencing (`rubric_v1_frozen.md`); SM-04 did it the same way
-(`rubric_v2_frozen.md`). That it is operator sequencing rather than a mechanism
-is `FI-06-DF-11(c)`, open.
 
 ### Version history
 
 The `anchors digest` column is over the **anchors alone**, not the whole rubric,
 and `score_tools.py check` recomputes it from this file. Two versions carrying
-the same digest is the statement that **the bar for each score did not move** —
-only what a card must record about itself did. Note what this does *not* do:
-`check` recomputes only the CURRENT version's row against the anchors in the
-file, so it detects a stale table rather than a moved bar. That is
-`FI-06-DF-11(a)`, open.
+the same digest is the machine-checked statement that **the bar for each score
+did not move** — only what a card must record about itself did.
 
 | version | anchors digest | what changed |
 |---|---|---|
 | **1** | `sha256:eeccf4576bc6fd85` | the original card: five dimensions, seven scoring rules, R-H1..R-H4. |
 | **2** | `sha256:eeccf4576bc6fd85` | `judging_practice` required on every filled card (rule 8); D4 = 4 gated on it; the instability caveat promoted to R-H5 with a check. **Anchors unchanged.** |
-| **3** | `sha256:eeccf4576bc6fd85` | the judge is served a generated card and never this file (rule 9); `served_digest` and `file_sha256` recorded per card; D5 anchor 4's two readings recorded in `anchor_reading`; `total` removed from the card and from every rendering. **Anchors unchanged.** |
 
-**The discontinuity between 1 and 2 was measured, not assumed.** FI-03 re-scored
+**The discontinuity between them was measured, not assumed.** FI-03 re-scored
 the same three sealed artifacts twice on the same day — once under version 1 and
 once under version 2 — with four fresh blind judges, and reports both the v1
 movement against the sealed rows and the v1-to-v2 difference. See
 `specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/RESULT.md`.
-
-**The discontinuity between 2 and 3 was measured the same way, at a quarter of
-the scale, and the reduced power is part of the result.** SM-04 re-scored one
-prior artifact from the same example with four fresh blind judges — two under
-version 2 against a frozen copy of the version 2 rubric, two under version 3 —
-on the same day, from the same dispatch text. See
-`specs/results/scorecards/subtract-to-measure/SM-04/RESULT.md`.

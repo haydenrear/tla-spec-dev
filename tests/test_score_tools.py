@@ -235,6 +235,7 @@ def fill(card, practice=True, ran=("seeded a fault in commit() and ran the suite
     if card.get("scorecard_version", 1) >= 2:
         card["judging_practice"] = {"executed_own_faults": practice,
                                     "what_was_run": list(ran) if practice else []}
+    version = card.get("scorecard_version", 1)
     total = 0
     for dim in st_dims():
         entry = card["dimensions"][dim]
@@ -243,7 +244,14 @@ def fill(card, practice=True, ran=("seeded a fault in commit() and ran the suite
         entry.setdefault("rationale", "because the artifact says so and I ran it")
         entry["rationale"] = entry["rationale"] or "because the artifact says so"
         total += entry["score"]
-    card["total"] = total
+        # scorecard_version 3: the one anchor with two defensible readings says
+        # which one it was scored under, at 3 and 4 where they can differ.
+        if version >= 3 and dim == "D5" and entry["score"] in (3, 4):
+            entry["anchor_reading"] = entry.get("anchor_reading") or "measured"
+    if version < 3:
+        card["total"] = total
+    else:
+        card.pop("total", None)
     return card
 
 
@@ -334,12 +342,18 @@ def test_require_filled_is_what_a_close_runs(st, tmp_path, capsys):
 def test_scaffold_emits_the_current_card_version_with_a_practice_block(st, tmp_path, capsys):
     path, card = scaffolded(st, tmp_path)
     capsys.readouterr()
-    assert card["scorecard_version"] == 2
+    assert card["scorecard_version"] == 3
     assert card["judging_practice"]["executed_own_faults"] is None
     assert card["judging_practice"]["what_was_run"] == []
     md = path.with_name("scorecard.md").read_text()
     assert "Judging practice" in md
-    assert "byte-identical" in md
+    # SM-04: the sentence that used to sit here -- "two judges re-scored
+    # byte-identical trees and four dimension-points moved" -- was a RESULT about
+    # the dimensions the judge was about to score, served to every version 2
+    # judge in their own card. It is gone, and `result_leaks` is why it cannot
+    # come back.
+    assert "byte-identical" not in md
+    assert st.result_leaks(md) == []
 
 
 def test_a_filled_version_2_card_must_say_what_the_judge_did(st, tmp_path, capsys):
@@ -444,11 +458,15 @@ def test_the_version_bump_kept_the_anchors_and_says_so_in_a_digest(st, rubric):
     """
     declared = {v["version"]: v["anchors_digest"] for v in rubric["versions"]}
     assert declared, "the rubric declares no version history"
-    assert rubric["card_version"] == 2
-    assert declared[2] == rubric["anchors_digest"]
-    assert declared[1] == declared[2], (
-        "version 2 declares different anchors from version 1; the bump was supposed to "
-        "change what a card RECORDS, not what a score MEANS")
+    assert rubric["card_version"] == 3
+    assert declared[3] == rubric["anchors_digest"]
+    assert declared[1] == declared[2] == declared[3], (
+        "a version bump declares different anchors from its predecessor; every bump so "
+        "far was supposed to change what a card RECORDS, not what a score MEANS")
+    # SM-04's own prohibition, executed: D2, D4 and D5 stay on the card and NO
+    # ANCHOR WAS TUNED. This is the machine statement of it.
+    assert rubric["anchors_digest"] == "sha256:eeccf4576bc6fd85"
+    assert set(rubric["dimensions"]) == {"D1", "D2", "D3", "D4", "D5"}
     assert st.version_history_problems(rubric) == []
 
 
