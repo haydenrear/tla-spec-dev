@@ -1,0 +1,325 @@
+version: 1
+name: subtract-to-measure-epic
+updated: null
+purpose: >-
+  WE HAVE NEVER GIVEN THE SCORECARD A SUBJECT IT COULD MEASURE. D2 = 2 on 27 of 27 cards ever written, and two explanations have never been separated: the card cannot measure complexity, or there has never been anything to measure. D2 anchor 3 requires a simplification with a recorded before and after, and EVERY subject this project has scored was greenfield -- written once from a prompt, with no before. No greenfield artifact can reach that anchor, ever.
+
+
+  This epic produces the first real before/after: a substantial, evidence-driven REMOVAL from the toolchain itself, which carries five epics of accumulated complexity and mostly cannot be shown to work. The ports binding machinery has zero unique kills across 28 tables. The falsifiability registry's 26 of 35 is at most ~11 of >=43 once swept. The suite has produced zero findings in five of six rounds.
+
+
+  So: cut what cannot be shown to work, seed a mutant in every gap FIRST so the cut is measured rather than assumed, and score the removal on the card. If D2 finally moves, the subjects were the problem. If it does not, the card is -- and it will have been tested rather than assumed.
+planning_rules:
+  no_new_gates_rule: >-
+    Four epics of static checking caught zero bugs. Subtraction is not licence to add a refusal.
+  thermometer_rule: >-
+    Complexity reports, refuses nothing, gates nothing. CD-01: it may not choose the boundary -- including in this epic, where the subject is our own boundary.
+  removal_is_a_delta_rule: >-
+    NEW AND LOAD-BEARING. MF-020 says a number can fall because an edge was deleted. Applied to ourselves: REMOVING AN INSTRUMENT REMOVES THE ABILITY TO DETECT THAT THE REMOVAL WAS HARMFUL. Every removal ships with a mutant seeded in its gap BEFORE the removal. After it, the mutant either still dies (redundant, cut was free) or survives (load-bearing, now priced). Both are results. A removal with no mutant in its gap is not a measurement.
+  denominator_rule: >-
+    NEW. Deleting a hollow demonstration must not quietly improve the ratio. Report deletions separately from repairs, and report the count before and after. A ratio that rises because the denominator shrank is MF-020 wearing this epic's clothes.
+  do_not_retire_untested_rule: >-
+    NEW. D2, D4 and D5 STAY ON THE CARD. Retiring them before SM-05 runs destroys the only measurement that could separate 'the card cannot measure' from 'there was nothing to measure'. Likewise 'defund [ports.*]' is supported and 'defund the corpus' is NOT; the two cuts must not merge.
+  measurement_rule: >-
+    File findings; fix nothing during a measurement. Never edit a target to match a result. Never re-run selectively until a number passes. If every prediction passes, report it as an ALARM. Report per class with executable counts, never a single rate.
+status:
+  workflow: subtract-to-measure-epic
+  active_ticket: null
+  active_ticket_title: null
+  desired_module: TlaSpecDevCli
+  phase: planning
+epic:
+  id: subtract-to-measure
+  branch: epic/subtract-to-measure
+  default_branch: main
+  base_sha: 3f58aca
+  base_note: Branched from main after falsifiable-instruments merged and pushed.
+  schedule_revision: 2
+  review_mode: epic-owner-post-merge
+  notes: >-
+    Never merge to main and never run skill-manager sync without explicit owner say-so. Never invoke tla-spec-dev from PATH. THE PLAN MUST LOAD WITH BOTH LOADERS -- parse_simple_yaml AND the git-epic-workflow validator.
+  schedule_revision_note: >-
+    BUMPED TO 2, 2026-08-06, adding SM-06 at owner direction. tla-spec-dev becomes the AUTHORITATIVE SOURCE for the scorecard: one home for the card, pointers everywhere else, and three open upstream PRs reconciled to it. It is a REMOVAL ticket -- it deletes duplicated statements of the card -- so it belongs in this epic rather than a later one. Only SM-01 had been dispatched when this landed; SM-01 will reconcile.
+deferment_policy:
+  mode: batch
+  blocking: escalate
+  budget: 5
+  backlog: specs/desired_program_model/deferred_findings.yaml
+epic_goals:
+  - id: GOAL-D2-can-move
+    kind: eval
+    statement: >-
+      D2 can move at all, when given a subject with a real before and after. This separates 'the card cannot measure complexity' from 'there has never been anything to measure'.
+    metric: D2 scored by two blind judges on the toolchain's removal, before against after, per judge.
+    harness: >-
+      SM-05 scores the SM-02 + SM-03 removal on the card, with the before/after descriptors SM-01 captured
+    baseline:
+      value: >-
+        D2 = 2 on 27 of 27 cards ever written about the A/B example. A CONSTANT, not a stable dimension. Anchor 3 requires a measured simplification and every subject scored so far was greenfield, so the anchor has been structurally unreachable in every round to date.
+      measured_at: 3f58aca
+      evidence: specs/results/scorecards/ -- FI-06, and every sealed card
+    target: >-
+      D2 reaches 3 or more on the removal, OR the round reports plainly that D2 is still 2 on a genuine measured simplification -- at which point the card cannot measure complexity and D2 must stop being cited, having finally been TESTED rather than assumed. BOTH OUTCOMES DECIDE THE GOAL. What is not permitted is reporting met/missed without saying which explanation the evidence supports.
+    evaluation_ticket: SM-05
+    evidence_root: specs/results/scorecards/subtract-to-measure/GOAL-D2-can-move
+  - id: GOAL-removal-is-measured
+    kind: eval
+    statement: 'Every removal is measured: a mutant seeded in its gap before the cut, re-run after it.'
+    metric: >-
+      Per removed mechanism: gap mutant still dies (redundant) or now survives (load-bearing). Count of removals with NO gap mutant, reported separately.
+    harness: SM-01's seeded gap mutants, re-run on the integrated tip by SM-05
+    baseline:
+      value: >-
+        ZERO. This project has never removed a shipped mechanism and measured what the removal cost. The scanners were deleted in a prior epic with no gap mutants seeded, and what they taught was written to references/architecture_advice.md instead.
+      measured_at: 3f58aca
+      evidence: references/architecture_advice.md
+    target: >-
+      Every removed mechanism has a gap mutant with a before and after verdict. Removals with no gap mutant are counted and named, never omitted.
+    evaluation_ticket: SM-05
+    evidence_root: specs/results/scorecards/subtract-to-measure/GOAL-removal-is-measured
+  - id: GOAL-cheaper
+    kind: quality
+    statement: >-
+      The round costs less per finding than its predecessor, and we know which channels earn their tokens.
+    metric: >-
+      Findings per 100k subagent tokens, BY CHANNEL. Not a total -- the per-channel split is the result.
+    harness: SM-05 reports channel counts against token spend
+    baseline:
+      value: >-
+        falsifiable-instruments: findings by channel 0 : 16 : 1 : 1 : 12 over roughly 2.6M subagent tokens. THE SUITE PRODUCED ZERO FOR THE FIFTH ROUND IN SIX while a full run costs about five minutes each time. The dominant channel is 'build the instrument, then ask what it cannot report'.
+      measured_at: 3f58aca
+      evidence: specs/results/scorecards/falsifiable-instruments/
+    target: >-
+      NO TARGET ON THE TOTAL -- a token target invites a cheaper round rather than a better one. What is targeted: the per-channel ratio is reported as a result, and the round says which channels should keep being funded and which should not.
+    evaluation_ticket: SM-05
+    evidence_root: specs/results/scorecards/subtract-to-measure/GOAL-cheaper
+tickets:
+  - id: SM-01
+    title: Seed the gap mutants and capture the before-state, before anything is removed
+    status: done
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/165
+    schedule_revision: 2
+    depends_on: []
+    blocks: [SM-02, SM-03, SM-04, SM-05, SM-06]
+    wave: 1
+    promotion_order: 10
+    promotion_predecessor: null
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/]
+    objective: >-
+      FIRST AND ALONE. MF-020 applied to ourselves: removing an instrument removes the ability to detect that the removal was harmful. Seed a mutant in the gap each mechanism slated for removal claims to cover, and record what currently catches it. Capture the toolchain's before-state descriptor -- the input D2 anchor 3 has never had. Seal predictions with at least three negatives, committed before any other ticket dispatches, predicting specifically what will NOT get better when we cut.
+    desired_actions: []
+    implementation_scope: [examples/validation/, specs/results/]
+    goals:
+      - goal: GOAL-removal-is-measured
+        contribution: direct
+        expected_effect: >-
+          Supplies every gap mutant the goal is measured with. A mechanism with no seedable gap is REPORTED, never skipped.
+        local_signal: gap mutants seeded, with what currently catches each
+      - goal: GOAL-D2-can-move
+        contribution: enabling
+        expected_effect: none -- supplies the before-state figures D2 anchor 3 requires
+        local_signal: before-state descriptor captured
+      - goal: GOAL-cheaper
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ["A gap mutant exists for every mechanism SM-02 and SM-03 will remove, seeded BEFORE the removal.", The toolchain's before-state descriptor is captured and committed., Predictions sealed with >= 3 negatives before any other ticket dispatches.]
+    model_delta_expectation: none expected
+  - id: SM-02
+    title: Cut the [ports.*] binding machinery
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/166
+    schedule_revision: 1
+    depends_on: [SM-01]
+    blocks: [SM-05]
+    wave: 2
+    promotion_order: 20
+    promotion_predecessor: SM-01
+    conflict_keys:
+      production: [scripts/run_generated_case_adapters.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [references/case_modules.md]
+    objective: >-
+      Zero unique kills across 28 tables, absent from every blind-authored table, strictly dominated by the hand-written suite. It was the centerpiece of the ports-as-adapters epic, which is uncomfortable and is exactly why it should go: this project has never removed a mechanism it shipped. TWO CLAIMS, NOT ONE -- defunding [ports.*] is supported and defunding the corpus is NOT. Do not let the cut widen.
+    desired_actions: []
+    implementation_scope: [scripts/, references/, tests/]
+    goals:
+      - goal: GOAL-removal-is-measured
+        contribution: direct
+        expected_effect: >-
+          The gap mutants for this removal report redundant or load-bearing. If any survives, that is the price and it is reported.
+        local_signal: SM-01's gap mutants re-run after the cut
+      - goal: GOAL-D2-can-move
+        contribution: direct
+        expected_effect: Supplies the larger half of the simplification D2 is scored on
+        local_signal: before/after produced-code figures over the toolchain
+      - goal: GOAL-cheaper
+        contribution: enabling
+        expected_effect: none directly; removes a mechanism whose token cost has bought no measured kill
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ["The [ports.*] binding machinery is removed and the removal is measured by SM-01's gap mutants.", "Per mutant: still dies (redundant) or now survives (load-bearing, priced). Reported either way.", The corpus is NOT removed; guard relaxation does not regress from 3 of 3.]
+    model_delta_expectation: none expected
+  - id: SM-03
+    title: Cut or repair the hollow instruments, and fix the registry that cannot see an omission
+    status: done
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/167
+    schedule_revision: 1
+    depends_on: [SM-01]
+    blocks: [SM-05]
+    wave: 2
+    promotion_order: 30
+    promotion_predecessor: SM-02
+    conflict_keys:
+      production: [tests/test_instrument_demonstrations.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/instruments/]
+    objective: >-
+      Twelve pytest failing slots assert only expect_exit = 0, which a FULLY SKIPPED run satisfies -- false precision, worse than an empty slot because the count reads as coverage. Two rows have failing.nodes == passing.nodes. At least eight instruments are absent from the registry including demonstrate.py itself. DELETION IS THE DEFAULT: an instrument that cannot be shown to fail is not an instrument. ONE EXCEPTION, stated so it is not cut by mistake -- scripts/code_complexity.py correctly cannot fail, because it is a thermometer. Fix the registry's blind spot WITHOUT lengthening the hardcoded list; that shape was rejected at EVAL-RERUN-DF-01 and at ARM_MODULE_PREFIXES.
+    desired_actions: []
+    implementation_scope: [examples/validation/instruments/, tests/, scripts/]
+    goals:
+      - goal: GOAL-D2-can-move
+        contribution: direct
+        expected_effect: Supplies the other half of the simplification, and it is the larger one by count
+        local_signal: instrument count and produced-code figures, before and after
+      - goal: GOAL-removal-is-measured
+        contribution: direct
+        expected_effect: Each deleted instrument's gap mutant reports redundant or load-bearing
+        local_signal: SM-01's gap mutants
+      - goal: GOAL-cheaper
+        contribution: direct
+        expected_effect: Removes the carrying cost of instruments that demonstrably measure nothing
+        local_signal: findings per 100k tokens, by channel
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ['Every hollow slot is repaired or deleted, with deletions reported SEPARATELY from repairs.', "The instrument count is reported before and after; a ratio that rose because the denominator shrank is named as such.", 'The registry can detect an instrument that was never added, and not by lengthening a list.']
+    model_delta_expectation: none expected
+  - id: SM-04
+    title: Harden the scorecard where it is broken, without retiring what has not been tested
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/168
+    schedule_revision: 2
+    depends_on: [SM-01]
+    blocks: [SM-05, SM-06]
+    wave: 3
+    promotion_order: 40
+    promotion_predecessor: SM-03
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/scorecards/score_tools.py, references/eval_scorecard.md]
+    objective: >-
+      Fix what is demonstrably broken and NOTHING ELSE. The rubric digest is identical across a rubric change that changed judging behaviour, because it covers anchors only. FI-03's judges were handed a rubric section stating the result they were the instrument for, while PA-06's judges were not -- a judge must never be given the finding they are measuring. D5 splits 3 vs 4 between judges who BOTH executed, so judging_practice does not explain it and the anchor is ambiguous. `total` is still printed while four of its five terms are unstable or constant. DO NOT RETIRE D2, D4 OR D5 -- that would destroy SM-05's experiment. DO NOT tune an anchor so a number moves.
+    desired_actions: []
+    implementation_scope: [examples/validation/scorecards/, references/eval_scorecard.md, tests/]
+    goals:
+      - goal: GOAL-D2-can-move
+        contribution: guard
+        expected_effect: >-
+          none on the number itself; ensures SM-05's judges are not contaminated the way FI-03's were
+        local_signal: serve a card to a judge and confirm the result-stating section is absent
+      - goal: GOAL-removal-is-measured
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+      - goal: GOAL-cheaper
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: [The rubric digest changes when the rubric changes in any way that can reach a judge., A judge cannot be served a section stating the finding they are the instrument for., 'D2, D4 and D5 remain on the card; no anchor is tuned.']
+    model_delta_expectation: none expected
+  - id: SM-06
+    title: 'One home for the card: centralize in tla-spec-dev, point everywhere else'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/173
+    schedule_revision: 2
+    depends_on: [SM-01, SM-04]
+    blocks: [SM-05]
+    wave: 4
+    promotion_order: 45
+    promotion_predecessor: SM-04
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [references/eval_scorecard.md, SUBTRACT-TO-MEASURE-EPIC.md]
+    objective: >-
+      A REMOVAL TICKET: it deletes duplicated statements of the card. tla-spec-dev's references/eval_scorecard.md becomes the one home for dimensions, anchors, scoring rules, the judging protocol and the reading rules; NOTHING ELSE STATES ANY OF THEM. The scatter has already cost us -- PORTS-AS-ADAPTERS-EPIC.md restated the baseline table and TWO of its rows were wrong, both read forward across an instrument change and corrected mid-epic. A charter that copies the ledger goes stale; one that points at it cannot. Across skills the goal contract is narrower than what this repo does in three measured ways: harness must be one command (we use judged procedures on purpose), a verdict is one word (GOAL-port-reach settled per-clause), and a target is a number (GOAL-complexity-measurable has NO TARGET ON THE NUMBER by design). Reconcile git-epic-skill#6, git-issue-skill#3 and git-issue-workflow-skill#7 to the card, keeping the skills CARD-AGNOSTIC -- they say a judged instrument is a legitimate harness and link the card, acquiring no example/arms/judges/version fields of their own. DO NOT MERGE THOSE PRs; merge authority is the owner's. Ship the gap mutant this epic requires: make a copy disagree with the source and show something goes red -- if nothing does, that is the finding and it is why the copies were dangerous.
+    desired_actions: []
+    implementation_scope: [references/eval_scorecard.md, SUBTRACT-TO-MEASURE-EPIC.md, tests/, examples/validation/scorecards/]
+    goals:
+      - goal: GOAL-cheaper
+        contribution: direct
+        expected_effect: >-
+          Removes duplicated statements of the card, which is carrying cost with a measured failure history -- two stale rows in one charter.
+        local_signal: count of places stating a dimension, anchor or scoring rule, before and after
+      - goal: GOAL-removal-is-measured
+        contribution: direct
+        expected_effect: >-
+          The gap mutant for a de-duplication: make a copy disagree with the source and show something goes red. If nothing does, that is the finding.
+        local_signal: a deliberately disagreeing copy, and what catches it
+      - goal: GOAL-D2-can-move
+        contribution: guard
+        expected_effect: none on the number; the card's CONTENT must be unchanged by the de-duplication
+        local_signal: diff references/eval_scorecard.md before and after -- expected unchanged
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ["references/eval_scorecard.md is the only place stating a dimension, anchor or scoring rule, and something executes that.", "Epic charters point at the card and SELF-IMPROVEMENT.md rather than restating baselines; deletions are reported.", "The three upstream PRs are reconciled to the card on harness, multi-clause targets and per-clause verdicts, and are NOT merged.", "A copy made to disagree with the source is caught, or the failure to catch it is filed as a finding.", The card's content is unchanged by the de-duplication.]
+    model_delta_expectation: none expected
+  - id: SM-05
+    title: 'EVALUATION: score the removal, and find out whether D2 was ever able to move'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/169
+    schedule_revision: 2
+    depends_on: [SM-01, SM-02, SM-03, SM-04, SM-06]
+    blocks: []
+    wave: 5
+    promotion_order: 50
+    promotion_predecessor: SM-06
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/results/scorecards/subtract-to-measure/]
+    objective: >-
+      The epic's product and a MEASUREMENT. Score the toolchain's removal on the card with two blind judges, D2 anchor 3 exactly as written. IF D2 REACHES 3 OR 4, the subjects were the problem and five epics of greenfield fixtures could never have exercised the card. IF D2 IS STILL 2 ON A GENUINE MEASURED SIMPLIFICATION, the card cannot measure complexity and D2 must stop being cited -- having finally been tested. Do not report met/missed without saying which explanation the evidence supports. Also report what the removal COST via SM-01's gap mutants, whether D3 HELD (a D3 regression outranks the D2 result), the per-channel findings-per-token ratio, and whether the instrument counts are honest now. FILE FINDINGS, FIX NOTHING.
+    desired_actions: []
+    implementation_scope: [specs/results/scorecards/, NEXT-EPIC.md]
+    goals:
+      - goal: GOAL-D2-can-move
+        contribution: guard
+        expected_effect: decides the goal
+        local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-removal-is-measured
+        contribution: guard
+        expected_effect: decides the goal
+        local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-cheaper
+        contribution: guard
+        expected_effect: decides the goal
+        local_signal: 'N/A: this ticket is the measurement'
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: [D2 is scored on the removal and the round says WHICH explanation the evidence supports., Every removal reports its gap mutant's before and after verdict., D3 is re-scored and any movement is reported as a regression outranking the D2 result., Findings by channel with the per-token ratio stated as a result., Findings FILED and NONE fixed.]
+    model_delta_expectation: none expected
+    role: evaluation
+    owns_goals: [GOAL-D2-can-move, GOAL-removal-is-measured, GOAL-cheaper]

@@ -1,0 +1,175 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "TODO"
+    evidence: "TODO -- path to the pre-change TLC output"
+  tlc_after:
+    status: "TODO"
+    evidence: "TODO -- path to the post-change TLC output"
+  behavior_tests:
+    status: "TODO"
+    evidence: "TODO -- path to the behavior-test output"
+  descriptor_comparison:
+    status: "TODO"
+    evidence: "TODO -- path to the before/after descriptor comparison"
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness REVIEW, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them, and this
+# is the only sweep that looks at it.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# RECORDED, NEVER REFUSING (2026-08-04, owner direction). It was a hard gate at
+# workflow close with no override; it is now an optional agent-run review whose
+# verdict is written down and read by a person. `incomplete` IS STILL NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it --
+# what was withdrawn is the refusal, not the distinction.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    SEARCHED, FOUND NONE. SM-03's model_delta_expectation is `none expected` and
+    the measured delta is zero: this ticket adds no action, no variable and no
+    state to TlaSpecDevCli.tla, because everything it touches lives under
+    `examples/validation/instruments/`, `tests/` and `specs/results/`, none of
+    which is modeled surface.
+
+    ONE CANDIDATE WAS CONSIDERED AND REJECTED, and it is the one the issue
+    itself proposes. FI-04's suggested fix for the registry blind spot was to
+    put the obligation on `close ticket`: refuse when a diff adds an executable
+    under a declared instrument root and the registry gained no row. That WOULD
+    have been a model delta -- a new precondition on an existing CLI action,
+    which is exactly the shape TlaSpecDevCli.tla represents. It was rejected on
+    `no_new_gates_rule`: four epics of static checking caught zero bugs, and
+    subtraction is not licence to add a refusal on the product's close path.
+    What shipped instead is a repair of a check that already existed, in the
+    repository's own suite, refusing nothing about the product and consulted by
+    no close path.
+
+    Nothing in the recursive-refinement sense was found to collapse.
+  measured: false      # true only if a real TLC run produced the figure
+  applied: false       # if true, approved_by is required
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+    Path: specs/results/scorecards/subtract-to-measure/SM-03-RESULTS.md, read
+    against specs/results/scorecards/subtract-to-measure/after-state/instrument-sweep-after.md
+    and its before-state counterpart.
+
+    NOTHING WAS DELETED, AND THE TICKET'S STATED DEFAULT WAS DELETION. FI-06
+    said twelve pytest failing slots assert only `expect_exit = 0`, "which
+    pytest returns for a passing run and a fully skipped one". SM-01 seeded both
+    skip shapes and measured the sentence: a module-level skip collects nothing,
+    pytest exits 5, and those slots ALREADY went red. Only a pytestmark skip --
+    collected then skipped, exit 0 -- reported `ok`. So the hole is a
+    demonstration that goes VACUOUS, not one that DISAPPEARS, and the twelve are
+    UNCOUNTED rather than hollow. A hollow instrument should be deleted; an
+    uncounted one should be counted. All twelve repaired, zero deleted.
+
+    THE MEASURED ALTERNATIVE THAT WAS REJECTED, and it is the one that would
+    have flattered the number. `ticket-state-agreement` is classified
+    `no-instrument-exists`, watches nothing, and SM-01 recorded that "the
+    removal's cost is already paid in full". Deleting that one row would have
+    moved the ratio from 33/47 to 33/46 by arithmetic alone, with no instrument
+    gained and none lost. That is `denominator_rule`'s exact prohibition -- a
+    ratio that rises because the denominator shrank -- and taking it while
+    reporting a falling ratio elsewhere would have been laundering one number
+    through another. The row stays and stays counted.
+
+    THE COUNT MOVED THE OTHER WAY. 26 of 35 -> 33 of 47; the ratio FELL from
+    74.3% to 70.2%. Numerator +7 = 5 new rows carrying a demonstration + 2
+    repairs of rows whose "no-demonstration-constructible" SM-GM-I4 showed was a
+    fact about demonstrate.py shelling pytest at REPO_ROOT rather than about the
+    instrument. Denominator +12, from the eighteen executables the enumeration
+    could not see. FI-06 said "at least eight"; a derived check found eighteen
+    on its first run, including demonstrate.py itself and run_gap_mutants.py,
+    which SM-01 shipped unregistered in this same epic.
+
+    THE LARGEST PART OF THE WORK MOVES NO FIGURE. Repairing a slot that reported
+    `ok` for the wrong reason so that it reports `ok` for the right one reads
+    identically in the count. The only evidence it changed is SM-GM-I1, which
+    survived the registry at SM-01 and dies against it now: "0 test(s) passed,
+    declared exactly 4" and "4 test(s) SKIPPED, declared 0".
+
+    THE REGISTRY BLIND SPOT, fixed without lengthening a list. `required <=
+    enumerated` over thirteen literal paths is DELETED, not extended -- that
+    shape was rejected at EVAL-RERUN-DF-01 and again at ARM_MODULE_PREFIXES, and
+    is worse here because the literal must be edited by whoever just forgot to
+    register the instrument. [registry.enumeration] declares a scope and the
+    members are derived by walking the tree. SM-GM-I3 flips SURVIVES -> DIES.
+    The check measures a tree it is HANDED, never the one it lives in, because
+    SM-01 found the gap-mutant runner detecting itself.
+
+    Findings SM-03-DF-01..03 filed, none fixed, budget 5 spent 3. The
+    load-bearing one: demonstrate.py judges an EXIT CODE where run_gap_mutants.py
+    one directory over compares FAILURE SETS against a pristine baseline, which
+    is why the last two tripwires still cannot be demonstrated -- one layer of
+    "the reason was about the harness" was peeled off and another was found
+    underneath.
