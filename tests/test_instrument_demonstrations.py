@@ -71,6 +71,17 @@ def _load(path: Path, name: str):
     return module
 
 
+def demonstrate_module():
+    """The enumerator, imported rather than shelled out to.
+
+    Its discovery functions take the tree as an ARGUMENT, which is the whole
+    reason they can be tested against a `tmp_path` instead of against whichever
+    checkout the test happens to run in.
+    """
+
+    return _load(DEMONSTRATE, "sm03_demonstrate")
+
+
 # ---------------------------------------------------------------------------
 # 1. the thermometer tripwire
 # ---------------------------------------------------------------------------
@@ -437,36 +448,285 @@ def test_every_row_is_classified_and_every_gap_carries_a_reason(registry) -> Non
 
 
 def test_the_named_instruments_are_all_enumerated(registry) -> None:
-    """The ticket names eleven by hand. If a rename drops one out of the
-    registry, this says which.
+    """SM-03. THE OMISSION, NOT ONLY THE RENAME.
 
-    IT IS A RENAME GUARD AND NOTHING MORE. `required <= enumerated` cannot catch
-    an instrument that was NEVER ADDED, because a new one is not in `required`
-    and the subset relation stays true either way -- FI-04 shipped
-    `divergence.py` and this suite was fully green with it absent. FI-04-DF-04,
-    confirmed and open; the rows below are added BY HAND by each ticket that
-    ships an instrument, which is the workaround, not the fix.
+    This test used to assert `required <= enumerated` over a literal of
+    thirteen paths. That relation is ONE-DIRECTIONAL, its own docstring
+    conceded it, and `FI-04-DF-04` was confirmed four times: a new instrument
+    is not in `required`, so the subset stays true whether or not anyone
+    registered it. FI-04 shipped `run_arm_swap.py` in the same reconcile as the
+    finding about exactly this, and the suite was fully green with the row
+    absent. `SM-GM-I3` is that failure seeded, and it survived every detector.
+
+    THE REPAIR IS NOT A LONGER LITERAL. That shape was rejected at
+    `EVAL-RERUN-DF-01` and again at `ARM_MODULE_PREFIXES`, and it is worse here
+    than anywhere: the literal has to be edited by the same person who has just
+    forgotten to register the instrument, so the check fails exactly when it is
+    needed. The `required` set is deleted rather than extended.
+
+    What replaces it DERIVES the set from the tree. `[registry.enumeration]`
+    declares a SCOPE -- two roots and two excluded prefixes, each with a
+    written reason -- and the members are discovered by walking it for
+    executables: a `__main__` guard plus a nonzero exit path, which is the
+    definition the registry's own preamble already uses. Adding a file cannot
+    satisfy this; only adding a row can.
+
+    THE PREDICATE OVER-APPROXIMATES ON PURPOSE. `raise SystemExit(main())`
+    reads as a nonzero exit path even where `main()` only ever returns 0, so
+    `generator_vs_suite.py` is flagged despite FI-06 correctly calling it not an
+    instrument. That is the right direction to be wrong in: a false positive
+    costs one row carrying `family = "not-an-instrument"` and a reason, which
+    is what the preamble asks for anyway, while a false negative is the
+    silent omission this registry exists to prevent.
     """
 
-    required = {
-        "scripts/run_generated_case_adapters.py",
-        "scripts/effect_conformance.py",
-        "scripts/analyze_complexity.py",
-        "scripts/code_complexity.py",
-        "examples/validation/ab/check_catalogue.py",
-        "examples/validation/ab/eval/run_controls.py",
-        "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py",
-        "examples/validation/scorecards/score_tools.py",
-        "specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py",
-        "tests/test_code_complexity.py",
-        # FI-04
-        "examples/validation/ab/eval/divergence.py",
-        # FI-05
-        "examples/validation/ab/dispatch_record.py",
-        "examples/validation/check_prediction_seal.py",
+    missing = demonstrate_module().unregistered(REPO_ROOT, registry)
+    assert missing == [], (
+        f"{len(missing)} executable(s) under a declared instrument root have no row in "
+        f"instruments.toml: {missing}. Add a row -- `family = \"not-an-instrument\"` with "
+        f"a reason is a valid answer. Do NOT add the path to a list in this file; there "
+        f"is no longer one to add it to."
+    )
+
+
+def test_the_enumeration_scope_is_declared_with_a_reason_for_every_exclusion(registry) -> None:
+    """The derived check's own cost, pinned the way `GATING_SCAN_EXEMPT` is.
+
+    A derived set is only as honest as its scope, and an exclusion list that
+    can grow quietly is how a scan goes vacuous while still reporting. Both
+    entries are named here, both carry prose, and a third has to break this
+    test to arrive.
+    """
+
+    enumeration = registry["registry"]["enumeration"]
+    assert enumeration["roots"] == ["scripts", "examples/validation"]
+    excluded = enumeration["exclude"]
+    assert [entry["path"] for entry in excluded] == [
+        "examples/validation/runs",
+        "examples/validation/ex1_scaffold_only",
+    ]
+    for entry in excluded:
+        assert (REPO_ROOT / entry["path"]).is_dir(), f"{entry['path']} no longer exists"
+        assert len(entry["reason"].split()) >= 20, (
+            f"{entry['path']} is excluded without a reason anyone can argue with"
+        )
+
+
+def test_the_derived_check_finds_an_instrument_that_was_never_added(tmp_path) -> None:
+    """SM-GM-I3, RUN. The demonstrated failing input for the repair.
+
+    An executable under a declared root -- argparse, a `__main__`, a nonzero
+    exit path -- and no row anywhere. The old subset check was green on exactly
+    this; SM-01 measured it surviving `registry-enumeration` and the full
+    suite.
+
+    Measured against `tmp_path`, never against `REPO_ROOT`: SM-01 found the
+    gap-mutant runner detecting itself because its catalogue check read anchors
+    out of whichever tree it ran in, and anything that measures the registry
+    inherits that risk unless it is told which tree to measure.
+    """
+
+    module = demonstrate_module()
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts" / "gap_probe_instrument.py").write_text(
+        "import argparse, sys\n"
+        "def main(argv=None):\n"
+        "    argparse.ArgumentParser().parse_args(argv)\n"
+        "    return 1\n"
+        'if __name__ == "__main__":\n'
+        "    sys.exit(main())\n",
+        encoding="utf-8",
+    )
+    registry = tomllib.loads(REGISTRY.read_text(encoding="utf-8"))
+
+    assert module.unregistered(tmp_path, registry) == ["scripts/gap_probe_instrument.py"]
+
+    # And the same tree WITHOUT the unregistered file is clean, so the red
+    # above is the file's doing and not the staging's.
+    (tmp_path / "scripts" / "gap_probe_instrument.py").unlink()
+    assert module.unregistered(tmp_path, registry) == []
+
+
+def test_the_derived_check_still_catches_the_rename_the_literal_caught(tmp_path) -> None:
+    """The old check was a rename guard. Removing it must not lose that.
+
+    A registered path that no longer exists is caught by
+    `test_every_declared_path_exists`; a renamed FILE that still exists under a
+    new name is caught here, because the new name is a discovered candidate
+    with no row.
+    """
+
+    module = demonstrate_module()
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts" / "code_complexity_renamed.py").write_text(
+        "import sys\n"
+        "def main():\n"
+        "    return 1\n"
+        'if __name__ == "__main__":\n'
+        "    sys.exit(main())\n",
+        encoding="utf-8",
+    )
+    registry = tomllib.loads(REGISTRY.read_text(encoding="utf-8"))
+    assert module.unregistered(tmp_path, registry) == ["scripts/code_complexity_renamed.py"]
+
+
+def test_the_derived_check_cannot_see_a_tripwire_that_is_a_test_file(tmp_path) -> None:
+    """THE NEW CHECK'S DEMONSTRATED BLIND SPOT, per R2, reported not repaired.
+
+    The predicate is a `__main__` guard plus a nonzero exit path. A repo
+    tripwire that is a pytest FILE has neither: it has no `__main__` and it
+    never calls `exit`. So the five rows this registry leans on hardest --
+    `thermometer-tripwire`, `source-citation-tripwire`, `spec-yaml-tripwire`,
+    `manifest-self-records-tripwire`, `port-declaration-tripwire` -- are
+    exactly the five the derived check would never have asked anyone to add.
+
+    Widening the predicate to "any file under `tests/`" was rejected: it makes
+    every one of ~48 test files owe a row, which is a taxonomy nobody will
+    maintain and a denominator that stops meaning anything. The hole is real,
+    it is bounded, and it is counted rather than closed.
+    """
+
+    module = demonstrate_module()
+    tripwire = REPO_ROOT / "tests" / "test_source_citations.py"
+    assert tripwire.is_file()
+    assert module.is_instrument_candidate(tripwire) is False, (
+        "a pytest tripwire is now discoverable; promote this blind spot to a "
+        "failing input and widen [registry.enumeration] roots to include tests/"
+    )
+
+    # And the shape it CAN see, side by side, so this is a statement about the
+    # predicate rather than about the file happening to be uninteresting.
+    (tmp_path / "scripts").mkdir()
+    executable = tmp_path / "scripts" / "same_logic_but_executable.py"
+    executable.write_text(
+        tripwire.read_text(encoding="utf-8")
+        + "\nimport sys\n"
+        + 'if __name__ == "__main__":\n    sys.exit(1)\n',
+        encoding="utf-8",
+    )
+    assert module.is_instrument_candidate(executable) is True
+
+
+def test_a_cited_node_that_asserts_nothing_still_reports_ok(tmp_path) -> None:
+    """THE ENUMERATOR'S REMAINING BLIND SPOT, after SM-03's repair.
+
+    `expect_passed` closes the hole `SM-GM-I1` found: a slot whose cited node
+    is collected and skipped now reports MISS instead of `ok`. It does NOT
+    close the next one along. The runner judges that the cited test PASSED; it
+    has no view on what the test asserted. A node whose body is `assert True`
+    passes, counts, and satisfies an exact `expect_passed` at full strength.
+
+    So the count proves a demonstration EXECUTED, not that it DEMONSTRATED --
+    and a reader who reads `26 of 35` as "26 instruments were shown to catch
+    something" is still over-trusting it, by less than before and not by zero.
+    Written down here because the alternative is that the next sweep finds it
+    and calls the repair hollow.
+    """
+
+    module = demonstrate_module()
+    vacuous = tmp_path / "test_vacuous_demonstration.py"
+    vacuous.write_text(
+        "def test_it_asserts_nothing_at_all():\n    assert True\n", encoding="utf-8"
+    )
+    spec = {
+        "kind": "pytest",
+        "nodes": [str(vacuous)],
+        "expect_exit": 0,
+        "expect_passed": 1,
     }
-    enumerated = {path for entry in registry["instrument"] for path in entry.get("paths", [])}
-    assert required <= enumerated, sorted(required - enumerated)
+    observed = module.run_pytest(spec, tmp_path)
+    assert observed["counts"].get("passed") == 1
+    assert module.judge(spec, observed) == [], (
+        "the runner now reports a node that asserts nothing; promote this blind "
+        "spot to a failing input"
+    )
+
+
+def test_every_pytest_slot_declares_an_executable_count(registry) -> None:
+    """SM-03. THE HOLE FI-06 NAMED, AND THE ONE IT ACTUALLY HAD.
+
+    `FI-06` reported twelve pytest failing slots asserting only
+    `expect_exit = 0`, *"which pytest returns for a passing run and a fully
+    skipped one"*. `SM-01` seeded both skip shapes and the sentence turned out
+    to be right about the mechanism and wrong about its reach:
+
+        pytest.skip(allow_module_level=True)   nothing collected, exit 5,
+                                               the slot ALREADY went red
+        pytestmark = pytest.mark.skip(...)     items collected then skipped,
+                                               exit 0, the slot said `ok`
+
+    So the blind spot is a demonstration that goes VACUOUS, not one that
+    DISAPPEARS -- and a ticket that deleted these twelve rows on FI-06's
+    sentence as written would have deleted twelve repairable instruments and
+    improved its own ratio doing it.
+
+    The count is what closes it, and it is mandatory rather than encouraged so
+    that a slot added next year cannot arrive uncounted. This is the same
+    requirement `SM-01-DF-01` asks for one layer down, where the port-swap
+    driver's suite columns carry no executable count and are therefore
+    structurally exempt from control checking -- and the same one
+    `tests/test_gap_mutants.py::test_a_pytest_detector_reports_an_executable_count_not_only_an_exit_code`
+    already imposes on the gap-mutant runner.
+    """
+
+    uncounted: list[str] = []
+    for entry in registry["instrument"]:
+        for slot in ("failing", "passing", "blind_spot"):
+            spec = entry.get(slot)
+            if not spec or spec.get("kind") != "pytest":
+                continue
+            if "expect_passed" not in spec and "expect_passed_at_least" not in spec:
+                uncounted.append(f"{entry['id']}/{slot}")
+    assert uncounted == [], (
+        f"{len(uncounted)} pytest demonstration(s) assert only an exit code: {uncounted}. "
+        f"pytest exits 0 for a collected-and-skipped run, so these report `ok` on a "
+        f"demonstration that executed nothing. Declare expect_passed (exact, for node "
+        f"ids) or expect_passed_at_least (a floor, for a whole file)."
+    )
+
+
+def test_no_pytest_slot_runs_the_same_command_as_its_own_passing_slot(registry) -> None:
+    """`FI-06`'s other count: two rows whose `failing.nodes == passing.nodes`.
+
+    `complexity-ledger` and `case-modules-validate` each ran
+    `pytest <the whole file>` twice and reported it as two demonstrations. That
+    is not a break and a control; it is one observation counted twice, and
+    `expect_exit = 0` could not tell the difference. Both are repaired to cite
+    the refusing and the accepting nodes separately, and this keeps a third
+    from appearing.
+    """
+
+    def command(spec: dict | None) -> tuple | None:
+        """What the slot actually RUNS -- the nodes AND the tree they run in.
+
+        `spec-yaml-tripwire` cites the same file in both slots on purpose: the
+        failing slot stages a tree and breaks a document in it, the passing
+        slot runs the shipped tree untouched. Those are two different runs of
+        one command, which is the correct shape. Comparing node lists alone
+        would call that degenerate and comparing nothing would let the real
+        thing back in, so the comparison is over the whole staged command.
+        """
+
+        if not spec or spec.get("kind") != "pytest":
+            return None
+        return (
+            tuple(spec.get("nodes", [])),
+            tuple(sorted((s["from"], s["to"]) for s in spec.get("stage", []))),
+            tuple(sorted(str(sorted(m.items())) for m in spec.get("mutate", []))),
+            spec.get("expect_exit"),
+        )
+
+    degenerate = [
+        entry["id"]
+        for entry in registry["instrument"]
+        if command(entry.get("failing")) is not None
+        and command(entry.get("failing")) == command(entry.get("passing"))
+    ]
+    assert degenerate == [], (
+        f"{degenerate} demonstrate a failure and a pass with the SAME command against "
+        f"the SAME tree. A row that runs one thing and reports two is false precision, "
+        f"which reads as coverage."
+    )
 
 
 def test_every_declared_path_exists(registry) -> None:

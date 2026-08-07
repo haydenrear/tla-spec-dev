@@ -44,12 +44,65 @@ close path consults it. It exits non-zero for exactly one reason: a DECLARED
 demonstration did not reproduce -- which means either the instrument changed or
 the demonstration went stale, and both are things a reader must be told rather
 than left to discover.
+
+SM-03: THE EXECUTABLE COUNT, AND WHY IT IS NOT OPTIONAL
+-------------------------------------------------------
+
+Every pytest demonstration in this file used to be judged on `expect_exit = 0`
+and nothing else, and `FI-06` called those twelve slots hollow on the ground
+that *"pytest returns 0 for a passing run and a fully skipped one"*. `SM-01`
+seeded both skip shapes and measured the sentence:
+
+    pytestmark = pytest.mark.skip(...)          items COLLECTED then skipped,
+                                                pytest exits 0, slot says `ok`
+    pytest.skip(..., allow_module_level=True)   NOTHING collected, pytest exits
+                                                5, slot goes red
+
+So the hole is **not** a demonstration that DISAPPEARS -- that one is already
+caught. It is a demonstration that goes **VACUOUS**: still there, still
+collected, still exit 0, asserting nothing. `SM-GM-I1` is that mutant and it
+survived the registry unchanged.
+
+The repair is the same one `SM-01-DF-01` asked for one layer down, where the
+port-swap driver's suite columns carry no executable count and are therefore
+structurally exempt from control checking: **a slot that cannot say how many
+tests it ran cannot say that anything ran.** Every pytest slot now declares
+
+    expect_passed             an EXACT count -- the slot cites node ids, so the
+                              number is the number of nodes and does not drift
+    expect_passed_at_least    a FLOOR -- the slot cites a whole file on purpose,
+                              so an exact count would break every time a test is
+                              added to it, which is a demonstration going stale
+                              for a reason that has nothing to do with the
+                              instrument
+
+and `expect_skipped` defaults to **0** for every pytest slot, declared or not. A
+skip inside a demonstration is a demonstration that did not happen. Both counts
+are read out of pytest's own summary line, so they are the subprocess's report
+of what it executed rather than this file's belief about it.
+
+`tests/test_instrument_demonstrations.py::test_every_pytest_slot_declares_an_executable_count`
+makes the declaration mandatory, so a new slot cannot arrive uncounted.
+
+SM-03: STAGE-AWARE PYTEST
+-------------------------
+
+`run_pytest` used to run at `REPO_ROOT` unconditionally. Four rows were
+classified `no-demonstration-constructible` with the reason *"not without
+breaking a shipped file"* -- and `SM-01` (`SM-GM-I4`) showed that reason is a
+fact about THIS RUNNER, not about those instruments: break the shipped file in a
+throwaway tree and the tripwire goes red in 23 executed tests. So a pytest slot
+that declares `stage` is now staged exactly like a `cli` slot and run inside the
+staged tree, and those rows get real failing demonstrations instead of an
+excuse.
 """
 
 from __future__ import annotations
 
 import argparse
+import ast
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -147,18 +200,60 @@ def run_cli(spec: dict[str, Any], tree: Path) -> dict[str, Any]:
     }
 
 
+#: pytest's own summary line: `1 failed, 4 passed, 2 skipped in 0.31s`. Read
+#: from the subprocess rather than inferred, because the whole point of the
+#: count is that it is the runner's report of what it executed.
+_OUTCOME = re.compile(
+    r"(\d+) (passed|failed|skipped|error|errors|deselected|xfailed|xpassed|warning|warnings)"
+)
+
+
+def pytest_counts(output: str) -> dict[str, int]:
+    """How many tests actually ran, by outcome.
+
+    `expect_exit = 0` is satisfied by a run that executed NOTHING. This is the
+    number that distinguishes the two, and `SM-GM-I1` is the mutant that proves
+    the distinction is not academic.
+    """
+
+    counts: dict[str, int] = {}
+    for number, outcome in _OUTCOME.findall(output):
+        if outcome in ("errors", "warnings"):
+            outcome = outcome[:-1]
+        counts[outcome] = int(number)
+    return counts
+
+
 def run_pytest(spec: dict[str, Any], tree: Path) -> dict[str, Any]:
+    """Run the cited nodes, in the STAGED tree when the slot declares one.
+
+    `SM-GM-I4`: the four `no-demonstration-constructible` rows were declared
+    unconstructible because a demonstration would have to break a shipped file
+    -- which is true only while this function ignores the tree it was handed.
+    """
+
+    staged = bool(spec.get("stage"))
+    if staged:
+        stage(spec, tree)
     argv = [
         "uv", "run", "--with", "pytest", "--with", "pyyaml",
-        "python", "-m", "pytest", "-q", *spec["nodes"],
+        "python", "-m", "pytest", "-q",
+        *[expand(node, tree) for node in spec["nodes"]],
     ]
     completed = subprocess.run(
-        argv, cwd=REPO_ROOT, capture_output=True, text=True, timeout=spec.get("timeout", 900)
+        argv,
+        cwd=tree if staged else REPO_ROOT,
+        capture_output=True,
+        text=True,
+        timeout=spec.get("timeout", 900),
     )
+    output = completed.stdout + completed.stderr
     return {
         "exit": completed.returncode,
-        "output": completed.stdout + completed.stderr,
+        "output": output,
         "argv": argv,
+        "counts": pytest_counts(output),
+        "staged": staged,
     }
 
 
@@ -173,6 +268,56 @@ def judge(spec: dict[str, Any], observed: dict[str, Any]) -> list[str]:
     for needle in spec.get("expect_absent", []):
         if needle in observed["output"]:
             problems.append(f"output contains {needle!r}, which it must not")
+    problems.extend(judge_counts(spec, observed))
+    return problems
+
+
+def judge_counts(spec: dict[str, Any], observed: dict[str, Any]) -> list[str]:
+    """SM-03. The half of the verdict `expect_exit` cannot carry.
+
+    A demonstration reports what it OBSERVED, and until this ticket a pytest
+    slot observed one integer that a fully-skipped run also produces. Three
+    checks, in the order a reader should think about them:
+
+      1. `expect_passed` -- an exact count, for slots citing node ids.
+      2. `expect_passed_at_least` -- a floor, for slots citing a whole file,
+         where an exact count would go stale on an unrelated new test.
+      3. `expect_skipped`, DEFAULT 0 -- applied whether or not the slot asks
+         for it, because a skipped demonstration is not a demonstration and no
+         slot should have to remember to say so.
+    """
+
+    counts = observed.get("counts")
+    if counts is None:
+        return []
+
+    problems: list[str] = []
+    passed = counts.get("passed", 0)
+
+    exact = spec.get("expect_passed")
+    if exact is not None and passed != exact:
+        problems.append(
+            f"{passed} test(s) passed, declared exactly {exact} "
+            f"-- a demonstration that did not execute what it claims to"
+        )
+    floor = spec.get("expect_passed_at_least")
+    if floor is not None and passed < floor:
+        problems.append(
+            f"{passed} test(s) passed, declared at least {floor} "
+            f"-- a demonstration that did not execute what it claims to"
+        )
+
+    allowed_skips = spec.get("expect_skipped", 0)
+    skipped = counts.get("skipped", 0)
+    if skipped != allowed_skips:
+        problems.append(
+            f"{skipped} test(s) SKIPPED, declared {allowed_skips} -- pytest exits 0 for a "
+            f"collected-and-skipped run, so this slot would otherwise report `ok` on a "
+            f"demonstration that asserted nothing (SM-GM-I1)"
+        )
+    deselected = counts.get("deselected", 0)
+    if deselected:
+        problems.append(f"{deselected} test(s) DESELECTED; a filtered demonstration is vacuous")
     return problems
 
 
@@ -198,10 +343,154 @@ def demonstrate(spec: dict[str, Any]) -> dict[str, Any]:
             "exit": observed["exit"],
             "problems": judge(spec, observed),
             "argv": observed["argv"],
+            # SM-03: the executable count travels into the artifact, so a
+            # future reader can see what a cell ran instead of inferring it
+            # from an exit code that a fully-skipped run also produces.
+            "counts": observed.get("counts"),
             "tail": "\n".join(observed["output"].splitlines()[-6:]),
         }
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
+
+
+# ---------------------------------------------------------------------------
+# SM-03: the omission the enumeration could not see
+# ---------------------------------------------------------------------------
+#
+# `test_the_named_instruments_are_all_enumerated` asserted `required <=
+# enumerated` against a literal set of thirteen paths. That relation is
+# ONE-DIRECTIONAL: a new instrument is not in `required`, so the subset stays
+# true whether or not anyone registered it. It catches a RENAME and it cannot
+# catch an OMISSION, its own docstring conceded so, and `FI-04-DF-04` was
+# confirmed four times -- including by FI-04 itself, which shipped
+# `run_arm_swap.py` in the same reconcile as the finding.
+#
+# The obvious repair is to add the missing paths to `required`. That is the
+# shape rejected at `EVAL-RERUN-DF-01` and again at `ARM_MODULE_PREFIXES`: a
+# literal that must be edited by the same person who forgot to register the
+# instrument is not a check, it is a second thing to forget.
+#
+# So the set is DERIVED FROM THE TREE instead. `roots` declares WHERE the
+# obligation applies -- a scope, one line, whose MEMBERS are discovered -- and
+# every discovered candidate must appear in some row's `paths`. A new
+# executable under a declared root is unregistered the moment it lands, and
+# nothing anyone forgets to edit can make it register itself.
+#
+# WHAT IT CANNOT SEE, stated rather than left for the next sweep to find:
+# the predicate is a `__main__` guard plus a nonzero exit path, so a repo
+# tripwire that is a pytest FILE (the thermometer scan, the citation scan and
+# their three siblings under `tests/`) has neither and is invisible to it.
+# Those rows are added by hand and this check does not pretend otherwise. They
+# are named in the registry's `[registry.enumeration]` comment and in
+# `tests/test_instrument_demonstrations.py`; they are NOT named here, because
+# `test_produced_code_prompt.py` refuses a Python file under `examples/` that
+# names the produced-code instrument -- a mention is how a consumer arrives,
+# and that tripwire went red on this very comment. Fixed by not naming it,
+# never by widening the exemption; the same call SM-01 made one ticket ago.
+
+
+def _has_nonzero_exit(tree: ast.AST) -> bool:
+    """A verdict surface: some path out of this file that is not success."""
+
+    def nonzero(args: list[ast.expr]) -> bool:
+        if not args:
+            return False
+        return any(
+            not (isinstance(arg, ast.Constant) and arg.value in (0, None)) for arg in args
+        )
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call) and isinstance(node.func, (ast.Name, ast.Attribute)):
+            name = node.func.id if isinstance(node.func, ast.Name) else node.func.attr
+            if name in ("exit", "_exit", "SystemExit") and nonzero(node.args):
+                return True
+        if isinstance(node, ast.Raise) and isinstance(node.exc, ast.Call):
+            func = node.exc.func
+            name = func.id if isinstance(func, ast.Name) else getattr(func, "attr", None)
+            if name == "SystemExit" and nonzero(node.exc.args):
+                return True
+    return False
+
+
+def is_instrument_candidate(path: Path) -> bool:
+    """The registry's own definition of a thing that owes it a row.
+
+    Executable (a `__main__` guard) and able to return a verdict (a nonzero
+    exit path). This is exactly what `SM-GM-I3` seeds -- an argparse surface, a
+    `__main__`, a `return 1` -- and it is deliberately structural, so it cannot
+    be satisfied by naming a file somewhere.
+    """
+
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return False
+    if "__main__" not in text:
+        return False
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return False
+    guarded = any(
+        isinstance(node, ast.If)
+        and "__main__" in ast.dump(node.test)
+        for node in ast.walk(tree)
+    )
+    return guarded and _has_nonzero_exit(tree)
+
+
+def discover_candidates(root: Path, enumeration: dict[str, Any]) -> list[str]:
+    """Every executable under the declared roots, found by walking the tree."""
+
+    excluded = tuple(entry["path"] for entry in enumeration.get("exclude", []))
+    found: list[str] = []
+    for declared in enumeration.get("roots", []):
+        base = root / declared
+        if not base.is_dir():
+            continue
+        for path in sorted(base.rglob("*.py")):
+            if "__pycache__" in path.parts:
+                continue
+            relative = path.relative_to(root).as_posix()
+            if any(relative.startswith(f"{prefix}/") for prefix in excluded):
+                continue
+            if is_instrument_candidate(path):
+                found.append(relative)
+    return found
+
+
+def unregistered(root: Path, registry: dict[str, Any]) -> list[str]:
+    enumeration = registry.get("registry", {}).get("enumeration")
+    if not enumeration:
+        raise DemonstrationError("the registry declares no [registry.enumeration] roots")
+    declared = {path for entry in registry["instrument"] for path in entry.get("paths", [])}
+    return [path for path in discover_candidates(root, enumeration) if path not in declared]
+
+
+def check_enumeration(root: Path, registry: dict[str, Any]) -> int:
+    enumeration = registry["registry"]["enumeration"]
+    missing = unregistered(root, registry)
+    print("SM-03 -- executables under a declared root with no row in the registry")
+    print("=" * 78)
+    print(f"root            {root}")
+    print(f"declared roots  {', '.join(enumeration.get('roots', []))}")
+    for entry in enumeration.get("exclude", []):
+        print(f"  excluded      {entry['path']} -- {entry['reason']}")
+    print("")
+    if not missing:
+        print("Every discovered executable has a row.")
+        return 0
+    print(f"UNREGISTERED INSTRUMENTS: {len(missing)}")
+    print("-" * 78)
+    for path in missing:
+        print(f"  {path}")
+    print("")
+    print("  Each of these is executable and has a nonzero exit path, which is the")
+    print("  registry's own definition of something that owes it a row. Add the row --")
+    print("  `family = \"not-an-instrument\"` with a reason is a valid answer and is how")
+    print("  a checked-and-rejected candidate stays on the record instead of going")
+    print("  silent. What is not available is leaving it out.")
+    return 1
 
 
 # ---------------------------------------------------------------------------
@@ -232,6 +521,13 @@ def slot_runnable(spec: dict[str, Any] | None, tier: str) -> bool:
 def run(args: argparse.Namespace) -> int:
     registry = load_registry(args.registry)
     instruments = registry["instrument"]
+
+    if args.check_enumeration:
+        # Measured against `--root`, never against wherever this file happens
+        # to live: SM-01 found the gap-mutant runner detecting itself because
+        # its catalogue check read anchors out of the MUTATED tree. Anything
+        # that measures the registry has to be told which tree to measure.
+        return check_enumeration(args.root.resolve(), registry)
 
     if args.list:
         for entry in instruments:
@@ -397,6 +693,17 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--format", choices=("text", "json"), default="text")
     parser.add_argument("--out", type=Path)
     parser.add_argument("--list", action="store_true")
+    parser.add_argument(
+        "--check-enumeration",
+        action="store_true",
+        help="report executables under a declared root that have no registry row",
+    )
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=REPO_ROOT,
+        help="the tree to scan for --check-enumeration; never assumed",
+    )
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -4626,3 +4626,207 @@ findings:
       machine (26m43s, no anomalous nodes) and none of its cells shows this shape;
       SM-02's run of record shows exactly one, and it is reported rather than
       quietly re-run away.
+
+  - id: SM-03-DF-01
+    found_by: "SM-03 (build the instrument, then ask what it cannot report -- applied to the repair itself)"
+    found_at_commit: "f0c215d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/instruments/demonstrate.py"]
+    summary: >-
+      THE REGISTRY RUNNER JUDGES AN EXIT CODE WHERE ITS SIBLING ONE DIRECTORY
+      OVER COMPARES FAILURE SETS, AND THAT IS WHY TWO TRIPWIRES STILL CANNOT BE
+      DEMONSTRATED.
+
+      SM-03 made `run_pytest` stage, which is what turned `spec-yaml-tripwire`
+      and `source-citation-tripwire` from `no-demonstration-constructible` into
+      `demonstrated-can-fail`. It did not make the third and fourth
+      demonstrable, and the reason is not the tripwires.
+
+      A staged tree small enough to build is not GREEN to begin with.
+      `tests/test_port_declarations.py` imports `run_generated_case_adapters`
+      transitively through `scripts/`, so three of its nodes are red before any
+      fault is seeded. Measured: seeding a degenerate `target: "**"` into the
+      staged manifest produces exactly one NEW failure,
+      `test_no_declared_port_target_is_degenerate[program_model]`, and nothing
+      else moves -- so the demonstration is real and the runner cannot see it,
+      because `judge()` compares `observed["exit"]` against `expect_exit` and
+      red-on-red is indistinguishable from red-on-green.
+
+      THE FIX ALREADY EXISTS IN THIS REPOSITORY, ONE DIRECTORY OVER.
+      `examples/validation/gap_mutants/run_gap_mutants.py` runs every detector
+      on the PRISTINE staged tree first and records its failing node ids,
+      because a `git archive` tree has nine pre-existing failures that read
+      git history. Its verdict rule compares failure SETS and never exit codes,
+      and its docstring says so in the third paragraph. The registry runner has
+      no baseline pass at all.
+
+      Note what this does to the count SM-03 reports: two rows are in
+      "cannot be shown to fail" for a reason that is a property of the harness,
+      which is the same class of error SM-01 found in the reason those rows
+      carried BEFORE this ticket. One layer of it was peeled off and another was
+      found underneath.
+    reproduction: >-
+      Stage `tests/test_port_declarations.py`, `scripts/effect_conformance.py`
+      and `specs/program_model/spec_manifest.yaml` into a scratch tree and run
+      `python -m pytest -q tests/test_port_declarations.py` -> `3 failed, 1
+      passed, 2 skipped`, all three failures `ModuleNotFoundError: No module
+      named 'run_generated_case_adapters'`. Rewrite one manifest port's
+      `target: "**/specs/**"` to `target: "**"` and run again -> `4 failed`,
+      the new one being
+      `test_no_declared_port_target_is_degenerate[program_model]`. Both runs
+      exit 1, so `expect_exit` decides nothing between them.
+    evidence:
+      - "examples/validation/instruments/demonstrate.py -- judge(), which reads observed['exit'] and the expect_* needles only"
+      - "examples/validation/gap_mutants/run_gap_mutants.py -- 'THE BASELINE IS A SET OF FAILURES, NOT AN EXIT CODE'"
+      - "examples/validation/instruments/instruments.toml -- the port-declaration-tripwire row, whose reason now records this"
+    why_out_of_scope: >-
+      `measurement_rule`: file findings, fix nothing during a measurement. SM-03
+      already changed `run_pytest` once, to stage; adding a pristine-baseline
+      pass would be a second structural change to the program that produces the
+      count this ticket exists to report, inside the ticket that reports it. The
+      before and the after would no longer be the same instrument, which is the
+      objection SM-01 raised against editing `run_port_swap.py` mid-epic and it
+      applies here unchanged.
+    suggested_fix: >-
+      Give `run_pytest` the baseline pass `run_gap_mutants.py` already has: run
+      the cited nodes on the staged tree BEFORE the `mutate` block is applied,
+      record the failing node ids, and judge on the difference. `expect_exit`
+      then becomes redundant for staged slots rather than wrong. Roughly thirty
+      lines, and every one of them already exists in the sibling runner.
+    blast_radius: >-
+      Two registry rows -- `port-declaration-tripwire` and
+      `manifest-self-records-tripwire` -- and any future demonstration that
+      wants to break a shipped file inside a tree too small to be green. It does
+      not affect the counts SM-03 reports for the rows that ARE demonstrated:
+      those are unstaged pytest slots at REPO_ROOT, which is green, so exit code
+      and failure set agree there.
+
+  - id: SM-03-DF-02
+    found_by: "SM-03 (re-derived from FI-06-DF-01 rather than quoted)"
+    found_at_commit: "f0c215d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/extract_spec_manifest.py", "scripts/generate_python.py", "scripts/generate_docs.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      `scripts/extract_spec_manifest.py` IS RED ON THE SHIPPED TREE, STILL, AND
+      IS NOW REGISTERED SO THAT IT IS RED IN PUBLIC.
+
+      `cd specs/program_model && python3 ../../scripts/extract_spec_manifest.py
+      spec_manifest.yaml` exits 1 with three `ERROR: missing required manifest
+      key` lines -- `state`, `commands`, `results`. FI-06 reported it; SM-03
+      re-ran it rather than quoting it, and the output is identical.
+
+      TWO THINGS THAT ARE NEW HERE. First, `validate_manifest` is shared by
+      three executables -- `extract_spec_manifest.py`, `generate_python.py` and
+      `generate_docs.py` -- so a manifest that fails it fails all three, and all
+      three were absent from the registry until this ticket. Second, the reason
+      nobody noticed is now measurable rather than anecdotal: none of the three
+      had a row, so `demonstrate.py` never ran them, and the enumeration check
+      that was supposed to notice the omission was `required <= enumerated`
+      over a literal that did not name them.
+
+      It is registered as `demonstrated-can-fail` with its note carrying the
+      red output verbatim. A registered red instrument is worth more to the next
+      ticket than an unregistered green-looking one.
+    reproduction: >-
+      `cd specs/program_model && python3 ../../scripts/extract_spec_manifest.py spec_manifest.yaml; echo $?`
+      -> three ERROR lines and exit 1.
+    evidence:
+      - "scripts/extract_spec_manifest.py -- validate_manifest and main()"
+      - "examples/validation/instruments/instruments.toml -- the manifest-validator row"
+      - "specs/desired_program_model/deferred_findings.yaml -- FI-06-DF-01, which reported it first"
+    why_out_of_scope: >-
+      `measurement_rule`, and more specifically: repairing the manifest changes
+      `specs/program_model/spec_manifest.yaml`, which is an input to the
+      spec-workflow close path SM-03 has to run, and to the trees SM-05 scores.
+      Repairing the VALIDATOR instead would change what "red on the shipped
+      tree" means while this ticket is counting instruments that are red.
+    suggested_fix: >-
+      Decide which is wrong -- the three required keys or the manifest that
+      omits them -- and say which in the fix. The keys have been required since
+      the validator was written and no shipped manifest has ever carried them,
+      which argues the requirement is the defect, but that is a judgement this
+      ticket has no standing to make.
+    blast_radius: >-
+      Three executables share the predicate. Anything generated from a manifest
+      that does not validate is generated by a program that declined to check
+      and ran anyway, or did not run at all, and nothing in the repository
+      distinguishes those two outcomes today.
+
+  - id: SM-03-DF-03
+    found_by: "SM-03 (the derived enumeration check, on its first run)"
+    found_at_commit: "f0c215d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/instruments/instruments.toml"]
+    summary: >-
+      THE REGISTRY WAS SHORT BY EIGHTEEN, NOT BY EIGHT, AND THE DENOMINATOR MOVED
+      THE WRONG WAY FOR THE RIGHT REASON.
+
+      `FI-06-DF-01` said "at least eight" and listed the eight it had found by
+      hand. Replacing the hardcoded subset check with a walk of the declared
+      roots found EIGHTEEN executables with no row, on the first run, including
+      `demonstrate.py` itself, `run_gap_mutants.py` (shipped by SM-01 in this
+      epic, unregistered on arrival -- the fifth occurrence of FI-04-DF-04) and
+      `scripts/tla_spec_dev.py`, which is the CLI the whole toolchain is named
+      after.
+
+      "At least eight" was right and it was an undercount by more than a factor
+      of two, which is what a hand-enumerated floor is worth.
+
+      THE PART THAT MATTERS FOR `denominator_rule`. Registering all eighteen
+      takes the instrument count from 35 to 47 while the demonstrated count goes
+      from 26 to 33, so the headline ratio FALLS from 74.3% to 70.2%. That is
+      not a regression: it is the first time the denominator has been derived
+      rather than remembered. `26 of 35` was never a ratio over a known set.
+      And the +7 on the numerator splits: 5 new rows that arrived carrying a
+      demonstration, 2 REPAIRS of rows already counted. The eighteen new rows
+      contributed 12 to the denominator and 5 to the numerator, which is the
+      direction a truthful sweep moves a flattering number.
+
+      Twelve of the eighteen are registered without a failing demonstration and
+      say why, per R2. Six of those reasons are "constructible, not constructed
+      here", which is a backlog and is named as one rather than dressed as a
+      property of the instruments.
+    reproduction: >-
+      `python3 examples/validation/instruments/demonstrate.py --check-enumeration`
+      at `f0c215d` with the `[registry.enumeration]` block applied and the
+      eighteen rows removed -> `UNREGISTERED INSTRUMENTS: 18`.
+    evidence:
+      - "examples/validation/instruments/instruments.toml -- [registry.enumeration] and the SM-03 section"
+      - "tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated"
+      - "specs/results/scorecards/subtract-to-measure/after-state/instrument-sweep-after.md"
+    why_out_of_scope: >-
+      Not out of scope -- the eighteen rows are IN this ticket. What is deferred
+      is the six demonstrations the new rows say are constructible and were not
+      constructed: `scaffold-overwrite-refusal` (two clear refusal paths, no
+      test asserting either), `onboarding-scaffold`, `generation-refusal`,
+      `docs-generation-refusal`, `workflow-convergence`, and
+      `manifest-self-records-tripwire`. Each carries its own reason in the
+      registry.
+    suggested_fix: >-
+      Write the six. `scaffold-overwrite-refusal` is the cheapest and the most
+      embarrassing to be missing: `scripts/scaffold_spec.py` refuses to
+      overwrite an existing file and refuses unsupported view names, and neither
+      refusal has a test.
+    blast_radius: >-
+      Every count derived from the registry, in this epic and after it, and the
+      before/after figures SM-05 scores D2 on. The before-state artifact records
+      35 instruments; the after records 47, and the difference is 12 rows that
+      existed all along.

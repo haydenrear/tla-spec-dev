@@ -548,16 +548,38 @@ control_role = "positive -- must die on `instrument-registry --only complexity-l
 claims_to_catch = "n/a -- this row is the control, not a gap"
 gap = "NONE, on purpose."
 must_die_on = ["instrument-registry"]
+re_anchored_by = "SM-03"
+re_anchor_note = '''
+SM-03 MOVED THIS CONTROL'S ANCHOR AND CHANGED NOTHING ELSE ABOUT IT. Recorded
+here rather than done quietly, because re-anchoring a positive control is one
+step away from editing a target to match a result.
+
+WHAT HAPPENED. The anchor was the verbatim text of `complexity-ledger`'s
+failing slot -- `nodes = ["tests/test_complexity_ledger.py"]` followed by
+`expect_exit = 0`. That row was one of the TWO whose `failing.nodes ==
+passing.nodes`: it ran the whole file for both slots and reported one
+observation as two. SM-03 repaired it to cite four refusing nodes and three
+accepting ones, so the anchor text no longer occurs anywhere in the tree and
+the control reported `anchor occurs 0x`. The shipped tripwire
+`tests/test_gap_mutants.py::test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree`
+is what caught it -- SM-01 wrote that tripwire and it caught SM-01 too.
+
+WHAT THE CONTROL STILL DOES, unchanged: it renames the cited node away so the
+slot's own command cannot run, and `instrument-registry --only
+complexity-ledger` must go red. Same mechanism, same detector, same
+`must_die_on`, same `control_role` sentence. Only the string it attaches to
+moved, and it moved because the row underneath it was repaired.
+
+WHY RE-ANCHOR RATHER THAN REPORT IT UNAPPLIED. R2: a run whose positive control
+cannot fire decides nothing, and every verdict in the after-table would be
+undecided. SM-01's before-table is readable precisely BECAUSE both controls
+died on every detector they declare. No verdict was consulted in choosing the
+new anchor, and no gap mutant was touched.
+'''
 [[control.edit]]
 path = "examples/validation/instruments/instruments.toml"
-find = '''  nodes = ["tests/test_complexity_ledger.py"]
-  expect_exit = 0
-
-  [instrument.passing]'''
-replace = '''  nodes = ["tests/test_complexity_ledger.py::test_no_such_node_SM_GM_CTRL_B"]
-  expect_exit = 0
-
-  [instrument.passing]'''
+find = '''    "tests/test_complexity_ledger.py::TestIncreaseJustification::test_template_sentinel_does_not_count_as_a_justification",'''
+replace = '''    "tests/test_complexity_ledger.py::TestIncreaseJustification::test_no_such_node_SM_GM_CTRL_B",'''
 [[control.detector]]
 id = "instrument-registry"
 args = ["--only", "complexity-ledger"]
