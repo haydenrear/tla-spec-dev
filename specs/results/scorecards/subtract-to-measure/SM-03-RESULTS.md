@@ -317,7 +317,52 @@ SM-01 wrote that tripwire, and it caught SM-01 too.
 
 ---
 
-## 8. Findings
+## 8. Reconcile onto SM-02 (`0342a3a`)
+
+Merged at `f07ea7b`. **One number moved and it is not a registry number.**
+
+| figure | before reconcile | after | why |
+|---|---|---|---|
+| acceptance suite | 1373 passed | **1366 passed** | SM-02 deleted `test_port_adapter_binding.py` (**21** collected nodes) and added `test_ports_binding_removed.py` (**14**). `1373 − 21 + 14 = 1366`, exactly |
+| instruments | 47 | **47** | — |
+| with a demonstrated failing input | 33 | **33** | — |
+| headline ratio | 70.2% | **70.2%** | — |
+| discovered candidates under the declared roots | 35 | **35** | — |
+| unregistered | 0 | **0** | — |
+
+Both node counts were **counted here, not quoted**: 21 by collecting the deleted
+file out of a `git archive` of `f0c215d`, 14 by collecting the added file at the
+tip. Nothing was re-run to make a number match.
+
+**The check the epic owner asked for, and it was the one that mattered.** This
+registry no longer uses a literal list — it walks the tree — so SM-02's
+deletions could have moved my denominator without my touching anything, and
+`denominator_rule` would then apply to a change I did not make. Tested as a
+**set**, not a count: the candidate set discovered under
+`[registry.enumeration] roots` at `f0c215d` and at `f07ea7b` is **identical —
+35 both sides, zero lost, zero gained**. Every declared path still exists.
+SM-02's "registry impact: none" is confirmed against the derived walk, not
+merely against the literal it replaced.
+
+Why nothing moved, stated so the next removal can predict it: SM-02's deletions
+landed in `tests/`, `references/` and
+`specs/results/scorecards/ports-as-adapters/`, and **none of those is a declared
+root**. Its one edit inside a root — `scripts/run_generated_case_adapters.py`,
+which lost the `[ports.*]` branch — left both halves of the predicate intact, so
+the file is still a candidate and is still registered as `corpus-runner`.
+
+**`SM-02-DF-02` reaches no figure here.** It reports SM-01's sealed
+`produced-code-before.json` as 105 lines low on two of its four trees. No number
+in this document, in `instrument-sweep-after.md`, or in `SM-03-DF-01..03` is
+derived from that file — every count here comes from parsing `instruments.toml`
+or from the registry's own run. Checked by grep, not by memory.
+
+Registry re-run post-merge: **exit 0, every declared demonstration reproduced**,
+counts identical to §1.
+
+---
+
+## 9. Findings
 
 `SM-03-DF-01` … `SM-03-DF-03` in
 `specs/desired_program_model/deferred_findings.yaml`. **Budget 5, spent 3, none
