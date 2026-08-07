@@ -1,0 +1,125 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket SM-05",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "D2 is scored on the removal and the round says WHICH explanation the evidence supports.",
+        "Every removal reports its gap mutant's before and after verdict., D3 is re-scored and any movement is reported as a regression outranking the D2 result., Findings by channel with the per-token ratio stated as a result., Findings FILED and NONE fixed."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "specs/results/scorecards/subtract-to-measure/"
+      ]
+    },
+    "depends_on": [
+      "SM-01",
+      "SM-02",
+      "SM-03",
+      "SM-04",
+      "SM-06"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/169",
+    "goals": [
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal",
+        "goal": "GOAL-D2-can-move",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal",
+        "goal": "GOAL-removal-is-measured",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal",
+        "goal": "GOAL-cheaper",
+        "local_signal": "N/A: this ticket is the measurement"
+      }
+    ],
+    "id": "SM-05",
+    "implementation_scope": [
+      "specs/results/scorecards/",
+      "NEXT-EPIC.md"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "The epic's product and a MEASUREMENT. Score the toolchain's removal on the card with two blind judges, D2 anchor 3 exactly as written. IF D2 REACHES 3 OR 4, the subjects were the problem and five epics of greenfield fixtures could never have exercised the card. IF D2 IS STILL 2 ON A GENUINE MEASURED SIMPLIFICATION, the card cannot measure complexity and D2 must stop being cited -- having finally been tested. Do not report met/missed without saying which explanation the evidence supports. Also report what the removal COST via SM-01's gap mutants, whether D3 HELD (a D3 regression outranks the D2 result), the per-channel findings-per-token ratio, and whether the instrument counts are honest now. FILE FINDINGS, FIX NOTHING.",
+    "owns_goals": [
+      "GOAL-D2-can-move",
+      "GOAL-removal-is-measured",
+      "GOAL-cheaper"
+    ],
+    "promotion_order": 50,
+    "promotion_predecessor": "SM-06",
+    "role": "evaluation",
+    "schedule_revision": 3,
+    "schedule_revision_note": "BUMPED TO 3, 2026-08-07, owner-agreed eval design. A lone D2 score cannot distinguish \"the card works now\" from \"these judges were generous\", so the round scores TWO SUBJECTS IN ONE PASS: the toolchain removal (a real before/after) AND a greenfield fixture re-scored (which by construction cannot reach anchor 3). If D2 separates between them, the difference is the SUBJECT and five epics of fixtures were the problem. If D2 is 2 on both, the card cannot measure complexity. SECOND AXIS: the same subjects judged at DIFFERENT MODEL TIERS. If D2 stays 2 regardless of judge strength that is strong evidence it is the card; if a stronger judge reaches anchor 3, it was judging capacity all along. COST: this expansion works against GOAL-cheaper and the round REPORTS THAT TENSION AS A RESULT, including reporting the goal MISSED if the expansion causes it. An epic that hides the cost of its own thoroughness is not measuring.",
+    "status": "planned",
+    "title": "EVALUATION: score the removal, and find out whether D2 was ever able to move",
+    "wave": 5
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/specs/tickets/SM-05",
+  "ticket_id": "SM-05",
+  "ticket_index": 5,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-05/specs/tickets"
+}
