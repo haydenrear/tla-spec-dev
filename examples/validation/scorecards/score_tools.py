@@ -1,23 +1,40 @@
 #!/usr/bin/env python3
-"""Scorecard scaffold, schema check, index, and history reader (scorecard_version 2).
+"""Scorecard scaffold, schema check, index, and history reader (scorecard_version 3).
 
 Deliberately lives under examples/validation/ rather than scripts/: scripts/**
 is IN MODEL per the plan's representation_scope, and eval harness is not program
 surface. Putting it here keeps the model's surface unchanged.
 
   python3 score_tools.py scaffold <epic-dir> --example E --arms A,B,C --judges 2
-                                  [--card-version {1,2}]
+                                  [--card-version {1,2,3}]
+  python3 score_tools.py serve [--card-version N] [--rubric F] [--out FILE]
   python3 score_tools.py check <dir-or-file>... [--require-filled]
   python3 score_tools.py index <epic-dir>
   python3 score_tools.py history --example E [--root DIR] [--write FILE]
   python3 score_tools.py audit [--root DIR]
   python3 score_tools.py seal <dir>...
 
-`--card-version 1` exists so a prior version of the card can be reproduced
-exactly. Changing the card requires re-scoring a prior example under BOTH
-versions, and a tool that can only emit the current version makes that
-impossible -- so the ability to scaffold the OLD card is part of the change
-rule, not a debugging convenience.
+`serve` is the version 3 answer to a defect measured at FI-03: four judges were
+dispatched with "references/eval_scorecard.md -- the rubric. Read it", and that
+file also carries reading rules and prior results ABOUT THE FIVE DIMENSIONS THE
+JUDGES WERE SCORING. Both v1 judges cited one of those paragraphs, unprompted,
+as their reason for scoring D4 the way they did (FI-06-DF-04, FI-03-DF-02). A
+judge must never be handed the finding they are the instrument for.
+
+So the rubric a judge sees is RENDERED from the parsed structure of the file --
+dimensions, anchors, caveats, scoring rules -- and nothing else. Every other
+section is outside what the renderer emits, so a new section does not reach a
+judge by default. `scaffold` writes the same bytes into `scorecard.md`, so there
+is exactly ONE served surface, and every card records its digest.
+
+`--card-version N` exists so a prior version of the card can be reproduced.
+Changing the card requires re-scoring a prior example under BOTH versions, and a
+tool that can only emit the current version makes that impossible -- so the
+ability to scaffold the OLD card is part of the change rule, not a debugging
+convenience. NOTE WHAT IT DOES NOT DO (FI-06-DF-11(c), open): it stamps the
+requested version while reading every anchor and rule from the rubric it is
+POINTED AT. Reproducing an old card means also pointing it at a frozen copy of
+the old rubric, with `--rubric`.
 
 `check` enforces the rules from references/eval_scorecard.md that can be
 enforced mechanically. The ones that matter -- score artifacts not claims, prose
@@ -51,8 +68,22 @@ import sys
 import tomllib
 from datetime import date as _date
 
-VERSION = 2
-SUPPORTED_VERSIONS = (1, 2)
+VERSION = 3
+SUPPORTED_VERSIONS = (1, 2, 3)
+
+# The dimension whose top anchor carries two defensible readings, and the card
+# version from which the reading is a recorded field rather than a private one.
+# This is version 2's move applied to an anchor instead of to a practice:
+# RECORD THE CHOICE, NEVER MANDATE IT. The bar did not move -- `anchors_digest`
+# is byte-identical across versions 1, 2 and 3 and `check` recomputes it.
+#
+# It is required only at 3 and 4. Below that the two readings cannot differ:
+# anchor 2 is "names its blind spots" and anchor 3 is "refuses rather than
+# falsely certifies", and neither turns on what counts as an unflattering
+# result.
+ANCHOR_READING_DIM = "D5"
+ANCHOR_READING_SCORES = (3, 4)
+ANCHOR_READINGS = ("disclosure", "measured")
 
 # The dimension whose TOP ANCHOR cannot be awarded from the evidence packet.
 # D4's anchor 4 asks for "a deliberate behavior-breaking change ... shown to be
@@ -202,7 +233,116 @@ def load_rubric(path: pathlib.Path) -> dict:
         json.dumps({"dimensions": dims, "scoring_rules": rules},
                    sort_keys=True).encode()).hexdigest()[:16]
     rubric["anchors_digest"] = anchors_digest(dims)
+    # The whole file, served and unserved alike. `FI-03-DF-02` asked for exactly
+    # this: a record that the rubric file changed AT ALL between two rounds that
+    # are being compared. It is deliberately not the drift check -- a typo in a
+    # section no judge reads must not invalidate a skeleton.
+    rubric["file_sha256"] = "sha256:" + hashlib.sha256(text.encode()).hexdigest()[:16]
     return rubric
+
+
+# --------------------------------------------------------------------------
+# what a judge is served, and the digest over exactly those bytes
+# --------------------------------------------------------------------------
+
+# A "result about this card" is a claim that one of the five dimensions MOVED,
+# HELD STILL, or is STABLE or NOISY -- the class of statement FI-03's judges
+# were handed and then cited back, unprompted, as their reason for scoring the
+# way they did.
+#
+# THIS IS A BACKSTOP AND IT IS NOT THE MECHANISM. The mechanism is that
+# `served_rubric` renders parsed structure only, so a section of the rubric
+# cannot reach a judge unless the renderer puts it there. This list cannot be
+# complete: an author who writes "D5 wobbles" passes it. It exists because the
+# two leaks it was built against were BOTH INSIDE the served surface -- rule 8's
+# cross-reference to R-H5, and the scaffold's own judging-practice section,
+# which told every version 2 judge that "D1, D4 and D5 all moved on unchanged
+# input" -- where the renderer could not help.
+RESULT_WORDS = re.compile(
+    r"\b(mov(?:e|es|ed|ing)|movements?|unchanged|held\s+still|holds\s+still|"
+    r"stable|stability|unstable|instability|nois(?:e|y)|deltas?)\b", re.I)
+# The subject has to be a dimension or a dimension's score. "Any dimension where
+# two judges differ by more than 1 is contested" is a scoring rule, not a result.
+RESULT_SUBJECTS = re.compile(
+    r"(\bD[1-5]\b|\bdimension[- ]points?\b|\bjudge[- ]scores?\b)")
+
+
+def result_leaks(served: str) -> list[str]:
+    """Lines of the served text that assert how a dimension has scored or moved."""
+    bad = []
+    for i, line in enumerate(served.splitlines(), 1):
+        subject = RESULT_SUBJECTS.search(line)
+        word = RESULT_WORDS.search(line)
+        if subject and word:
+            bad.append(f"line {i}: {subject.group(0)!r} with {word.group(0)!r} -- "
+                       f"{' '.join(line.split())[:160]}")
+    return bad
+
+
+def served_rubric(rubric: dict, card_version: int = VERSION) -> str:
+    """THE BYTES A JUDGE IS SERVED. Rendered from parsed structure ONLY.
+
+    Nothing here reads the rubric file as text. Every line is either written in
+    this function or came out of `load_rubric`'s parse of a dimension block or a
+    numbered scoring rule -- so `## Reading history`, `## Version history`, the
+    storage layout, the change rule and anything a later editor adds are outside
+    the served surface by construction rather than by a rule someone remembers.
+    """
+    out = ["## The rubric you are scoring against", ""]
+    if card_version >= 3:
+        out.append("**This is the whole rubric, and it is reproduced here so the bar for a "
+                   "score sits in the same file as the score.** Do NOT go and read "
+                   "`references/eval_scorecard.md`. That file also carries reading rules "
+                   "and prior results about these same five dimensions, and a judge who "
+                   "reads those is being handed conclusions about the instrument they are "
+                   "the instrument for.")
+        out.append("")
+    out.append("### The scoring rules")
+    out.append("")
+    for i, rule in enumerate(rubric["scoring_rules"], 1):
+        out.append(f"{i}. {rule}")
+    out.append("")
+    out.append("**Score the LOWEST anchor the artifact fully satisfies; when torn "
+               "between two, take the lower and say why.**")
+    out.append("")
+    if card_version >= 2:
+        out.append("### Judging practice — REQUIRED, and it is a field on the card")
+        out.append("")
+        out.append("**Did you seed a fault of your own and run it against this artifact, or "
+                   "did you score the evidence packet?** Both are legal. Neither is the "
+                   "right answer. What is not legal is leaving it unsaid.")
+        out.append("")
+        out.append("Fill `judging_practice` in `scorecard.json`: `executed_own_faults` true "
+                   "or false, and `what_was_run` listing what you actually ran.")
+        out.append("")
+        out.append("**D4's anchor 4 is only awardable when this says `true`**, because that "
+                   "anchor asks for a behavior-breaking change *shown to be caught*, and a "
+                   "judge reading a table is repeating the artifact's claim rather than "
+                   "checking it. If you did not run one, the highest D4 you can support is "
+                   "3 — say that the packet asserts it and you did not verify it.")
+        out.append("")
+    for key in DIMS:
+        d = rubric["dimensions"][key]
+        out.append(f"### {key} — {d['name']}")
+        out.append("")
+        if d["question"]:
+            out.append(f"*{d['question']}*")
+            out.append("")
+        if d.get("preamble"):
+            out.append(d["preamble"])
+            out.append("")
+        for score in ("0", "1", "2", "3", "4"):
+            out.append(f"- **{score}** — {d['anchors'][score]}")
+        out.append("")
+        if d["caveat"]:
+            out.append(f"> {d['caveat']}")
+            out.append("")
+    return "\n".join(out)
+
+
+def served_digest(rubric: dict, card_version: int = VERSION) -> str:
+    return "sha256:" + hashlib.sha256(
+        served_rubric(rubric, card_version).encode()).hexdigest()[:16]
 
 
 def anchors_digest(dims: dict) -> str:
@@ -246,6 +386,25 @@ def version_history_problems(rubric: dict) -> list[str]:
         if earlier not in seen:
             bad.append(f"{rubric['source']}: version history drops version {earlier}. The old "
                        f"rows are kept so a historical comparison is not a guess.")
+    return bad
+
+
+def rubric_leak_problems(rubric: dict) -> list[str]:
+    """A judge must never be handed the finding they are the instrument for.
+
+    Run over the SERVED text, at every version the rubric can be served at, so a
+    result written into a dimension caveat or a scoring rule is caught wherever
+    it would reach a judge. It reports; `serve` and `scaffold` refuse.
+    """
+    bad: list[str] = []
+    seen: set[str] = set()
+    for cv in SUPPORTED_VERSIONS:
+        for leak in result_leaks(served_rubric(rubric, cv)):
+            if leak in seen:
+                continue
+            seen.add(leak)
+            bad.append(f"{rubric['source']}: the text served to a judge asserts how one of "
+                       f"these five dimensions has scored or moved -- {leak}")
     return bad
 
 
@@ -353,6 +512,35 @@ def check(card: dict, where: str, rubric: dict | None = None,
                 notes.append(f"RUBRIC-DRIFT {where}: {msg}. A filled card is evidence and "
                              f"is not edited; see `history`/`audit` for how to read it.")
 
+    # scorecard_version 3: the digest over the bytes this judge was SERVED.
+    # `digest` covers the parsed anchors and rules and was identical --
+    # sha256:e33638087c4191da -- across six commits and a 2x growth of the rubric
+    # file, all of which the judges were told to read in full (FI-03-DF-02,
+    # FI-06-DF-11(b)). This one moves whenever what reaches a judge moves.
+    if rubric is not None and version >= 3:
+        block = card.get("rubric") or {}
+        got_served = block.get("served_digest")
+        want_served = served_digest(rubric, version)
+        if not got_served:
+            err("rubric.served_digest is required from scorecard_version 3 -- a card "
+                "that does not record the bytes its judge was served cannot say whether "
+                "another card was served the same ones")
+        elif got_served != want_served:
+            msg = (f"served against rubric {got_served}, the current rubric serves "
+                   f"{want_served}")
+            if status == "unfilled":
+                err(msg + " -- re-scaffold: what a judge would read has changed")
+            else:
+                notes.append(f"SERVED-DRIFT {where}: {msg}. The bar this judge read is "
+                             f"not the bar in the tree; a filled card is evidence and is "
+                             f"not edited.")
+        elif block.get("file_sha256") and rubric.get("file_sha256") \
+                and block["file_sha256"] != rubric["file_sha256"]:
+            notes.append(f"PROSE-DRIFT {where}: the rubric file changed "
+                         f"({block['file_sha256']} -> {rubric['file_sha256']}) in a part "
+                         f"NO JUDGE IS SERVED -- the served digest is unchanged. This is a "
+                         f"prompt to go and look, never a violation.")
+
     running = 0
     for dim in DIMS:
         entry = dims.get(dim)
@@ -391,12 +579,36 @@ def check(card: dict, where: str, rubric: dict | None = None,
                 f"anchor asks for a behavior-breaking change SHOWN TO BE CAUGHT -- a judge "
                 f"who executes one can say so; a judge reading a table is repeating the "
                 f"artifact's claim. Score 3 and say the packet asserts it, or run one.")
+        # scorecard_version 3: the one anchor with two defensible readings says
+        # WHICH ONE it was scored under. The bar is unchanged and neither reading
+        # is corrected -- what changes is that two judges who split can be read.
+        if version >= 3 and dim == ANCHOR_READING_DIM and score in ANCHOR_READING_SCORES:
+            reading = entry.get("anchor_reading")
+            if reading not in ANCHOR_READINGS:
+                err(f"{dim} scored {score} with anchor_reading {reading!r}; it must be one "
+                    f"of {list(ANCHOR_READINGS)}. Anchor 4 asks for 'a result unflattering "
+                    f"to the thing being scored' and that phrase has two defensible "
+                    f"readings -- a disclosure the artifact makes about itself, or a "
+                    f"result the artifact MEASURED against itself. Both are legal and "
+                    f"neither is corrected; say which you used.")
         if not str(entry.get("rationale") or "").strip():
             err(f"{dim} has no rationale")
 
     if status != "unfilled":
+        # `total` is not a field of a version 3 card. Four of its five terms
+        # cannot carry a delta -- D2 has taken one value on every card ever
+        # written about `ab_quota_ledger`, and D1, D4 and D5 each take a
+        # different value from a different judge on the same bytes -- so a sum
+        # over them moves most where the card reads worst. Versions 1 and 2
+        # carry one and their arithmetic is still checked, because a sealed card
+        # is never edited and a check that stops looking at it is a check that
+        # stopped working.
         total = card.get("total")
-        if total != running:
+        if version >= 3:
+            if total is not None:
+                err(f"total {total!r} is set on a version {version} card. There is no "
+                    f"total from version 3: read a dimension, not a headline.")
+        elif total != running:
             err(f"total {total!r} does not equal the sum of dimensions ({running})")
     return bad, notes
 
@@ -424,6 +636,7 @@ def cmd_check(argv: list[str]) -> int:
     cards, problems, notes = [], [], []
     if rubric is not None:
         problems.extend(version_history_problems(rubric))
+        problems.extend(rubric_leak_problems(rubric))
     for arg in args.paths:
         cards.extend(load(pathlib.Path(arg)))
     if not cards:
@@ -446,6 +659,51 @@ def cmd_check(argv: list[str]) -> int:
 
 
 # --------------------------------------------------------------------------
+# serve: what a judge is given, and the refusal that keeps a result out of it
+# --------------------------------------------------------------------------
+
+def cmd_serve(argv: list[str]) -> int:
+    ap = argparse.ArgumentParser(prog="score_tools.py serve")
+    ap.add_argument("--rubric", default=str(DEFAULT_RUBRIC))
+    ap.add_argument("--card-version", type=int, default=VERSION, choices=SUPPORTED_VERSIONS)
+    ap.add_argument("--out", default=None, help="write the served rubric here as well")
+    ap.add_argument("--digest-only", action="store_true")
+    args = ap.parse_args(argv)
+
+    try:
+        rubric = load_rubric(pathlib.Path(args.rubric))
+    except RubricError as exc:
+        print(f"REFUSED: {exc}", file=sys.stderr)
+        return 2
+
+    served = served_rubric(rubric, args.card_version)
+    leaks = result_leaks(served)
+    if leaks:
+        print("REFUSED: this rubric would hand a judge a result about the very "
+              "dimensions they are scoring. Nothing was written.", file=sys.stderr)
+        for leak in leaks:
+            print(f"  {leak}", file=sys.stderr)
+        print("A judge must never be handed the finding they are the instrument for. "
+              "Move the statement out of the dimension blocks and the scoring rules; "
+              "nothing else in the rubric file is served.", file=sys.stderr)
+        return 3
+
+    if args.digest_only:
+        print(served_digest(rubric, args.card_version))
+        return 0
+    print(served)
+    if args.out:
+        p = pathlib.Path(args.out)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(served)
+        print(f"wrote {p}", file=sys.stderr)
+    print(f"served digest {served_digest(rubric, args.card_version)} "
+          f"(card version {args.card_version}, rubric file "
+          f"{rubric.get('file_sha256')})", file=sys.stderr)
+    return 0
+
+
+# --------------------------------------------------------------------------
 # index
 # --------------------------------------------------------------------------
 
@@ -459,25 +717,32 @@ def cmd_index(argv: list[str]) -> int:
     for _, card in cards:
         by_example.setdefault(card["example"], []).append(card)
 
+    versions = sorted({c.get("scorecard_version") for _, c in cards
+                       if c.get("scorecard_version")})
     out = [f"# Scorecards — {root.name}", ""]
-    out.append("scorecard_version 1. See `references/eval_scorecard.md`.")
+    out.append("scorecard_version "
+               + (", ".join(str(v) for v in versions) if versions else str(VERSION))
+               + ". See `references/eval_scorecard.md`.")
     out.append("")
     out.append("**Never average across examples.** `ex6_jenga` is a deliberately")
     out.append("incoherent fixture and is supposed to score low on D3; averaging it")
     out.append("with `ex4` produces a number about nothing. Nothing in this file is")
     out.append("computed across two examples.")
     out.append("")
+    out.append("**No total, from scorecard_version 3.** Four of its five terms cannot")
+    out.append("carry a delta, so a sum over them moves most where the card reads")
+    out.append("worst. Read a dimension.")
+    out.append("")
     header = ("| example | arm | "
               + " | ".join(f"D{i+1} {NAMES['D' + str(i + 1)]}" for i in range(5))
-              + " | total | contested |")
+              + " | contested |")
     out.append(header)
-    out.append("|" + "---|" * 9)
+    out.append("|" + "---|" * 8)
     for example in sorted(by_example):
         for card in sorted(by_example[example], key=lambda c: (str(c.get("arm")), c["run_id"])):
             d = card["dimensions"]
             row = [example, str(card.get("arm") or "—")]
             row += [str(d[k]["score"]) for k in DIMS]
-            row.append(f"**{card['total']}**/20")
             row.append(", ".join(card.get("contested") or []) or "—")
             out.append("| " + " | ".join(row) + " |")
     out.append("")
@@ -547,6 +812,21 @@ def cmd_scaffold(argv: list[str]) -> int:
     except RubricError as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 2
+
+    # A round may not begin by handing its judges the answer. Checked BEFORE any
+    # path is planned, so nothing is written -- the same discipline as the
+    # collision refusal below.
+    leaks = result_leaks(served_rubric(rubric, args.card_version))
+    if leaks:
+        print("REFUSED: the rubric this would serve asserts how one of the five "
+              "dimensions has scored or moved. Nothing was written.", file=sys.stderr)
+        for leak in leaks:
+            print(f"  {leak}", file=sys.stderr)
+        print("A judge must never be handed the finding they are the instrument for. "
+              "FI-03 dispatched four judges with the whole rubric file and both v1 "
+              "judges cited a results paragraph back as their reason for scoring D4 the "
+              "way they did.", file=sys.stderr)
+        return 3
 
     arms = [a.strip() for a in args.arms.split(",") if a.strip()]
     if not arms:
@@ -631,9 +911,29 @@ def cmd_scaffold(argv: list[str]) -> int:
     return 0
 
 
-def _rubric_block(rubric: dict) -> dict:
-    return {"source": rubric["source"], "digest": rubric["digest"],
-            "scoring_rules": rubric["scoring_rules"]}
+def _rubric_block(rubric: dict, card_version: int = VERSION) -> dict:
+    """What the card records about the rubric it was scored against.
+
+    Three digests, three questions, and only the middle one is about the bar a
+    judge actually read:
+
+    * `digest` -- the parsed anchors and scoring rules. `check` refuses a
+      SKELETON scaffolded against a stale one, and notes drift on a filled card.
+    * `served_digest` -- the EXACT bytes `served_rubric` emitted for this card.
+      This is the one that answers "did the rubric change in any way that could
+      reach this judge". It was added at SM-04 because `digest` was identical --
+      `sha256:e33638087c4191da` -- across six commits and a 2x growth of the
+      rubric file, every one of which the judges were told to read in full.
+    * `file_sha256` -- the whole rubric file, served and unserved alike. Two
+      cards whose served digests agree and whose file digests differ are
+      `PROSE-DRIFT`: a prompt to go and look, never a violation.
+    """
+    block = {"source": rubric["source"], "digest": rubric["digest"],
+             "scoring_rules": rubric["scoring_rules"]}
+    if card_version >= 3:
+        block["served_digest"] = served_digest(rubric, card_version)
+        block["file_sha256"] = rubric.get("file_sha256")
+    return block
 
 
 def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
@@ -653,6 +953,8 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
             entry["read_first"] = d["preamble"]
         if d["caveat"]:
             entry["caveat"] = d["caveat"]
+        if args.card_version >= 3 and key == ANCHOR_READING_DIM:
+            entry["anchor_reading"] = None
         dims[key] = entry
     card = {
         "scorecard_version": args.card_version,
@@ -663,44 +965,64 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
         "arm": label,
         "commit": "",
         "judge": {"model": "", "pass": judge, "blind_to_arm": not args.unblinded},
-        "rubric": _rubric_block(rubric),
+        "rubric": _rubric_block(rubric, args.card_version),
         "how_to_fill": [
             "Score the LOWEST anchor the artifact fully satisfies. Torn between two: "
             "take the lower and say why.",
             "Set `status` to \"filled\", `commit` to the sha the artifacts were scored "
             "at, and name your model in `judge.model`.",
-            "`total` is the sum of the five scores; the schema check recomputes it.",
             "Leave `anchors` as scaffolded. They are read from the rubric so the bar "
             "and the score live in one file; editing them here forks the rubric "
             "silently, which is the drift this scaffold exists to remove.",
         ],
         "dimensions": dims,
-        "total": None,
         "contested": [],
         "verdict": "",
     }
+    if args.card_version < 3:
+        card["total"] = None
+        card["how_to_fill"].insert(
+            2, "`total` is the sum of the five scores; the schema check recomputes it.")
     if args.card_version >= 2:
         card["judging_practice"] = {
             "executed_own_faults": None,
             "what_was_run": [],
             "note": ("REQUIRED from scorecard_version 2. Did you seed a fault of your own "
                      "and run it against this artifact, or did you score the evidence "
-                     "packet? Both are legal. Say which, and list what you ran. Four "
-                     "dimension-points moved on byte-identical trees the last time this "
-                     "was a private choice, and D4's anchor 4 is only awardable when this "
-                     "says true."),
+                     "packet? Both are legal and neither is the right answer; what is not "
+                     "legal is leaving it unsaid. Say which, and list what you ran. D4's "
+                     "anchor 4 is only awardable when this says true, because that anchor "
+                     "asks for a behavior-breaking change SHOWN TO BE CAUGHT."),
         }
         card["how_to_fill"].insert(2, (
             "Fill `judging_practice`: `executed_own_faults` true or false, and "
             "`what_was_run` listing what you ran. FALSE IS A LEGAL AND USEFUL ANSWER -- "
             "it is recorded, never corrected. Delete the `note` key once you have."))
+    if args.card_version >= 3:
+        card["how_to_fill"].append(
+            f"If you score {ANCHOR_READING_DIM} at "
+            f"{' or '.join(str(s) for s in ANCHOR_READING_SCORES)}, set "
+            f"`dimensions.{ANCHOR_READING_DIM}.anchor_reading` to "
+            f"{' or '.join(repr(r) for r in ANCHOR_READINGS)} -- which of the anchor's "
+            f"two defensible readings you scored under. Both are legal and neither is "
+            f"corrected; recording it is what lets a reader tell a disagreement about "
+            f"the artifact from a disagreement about the anchor.")
     return json.dumps(card, indent=2) + "\n"
 
 
 def _skeleton_md(args, rubric: dict, label: str, judge: int, rid: str) -> str:
+    """The file the judge reads and fills.
+
+    Its rubric half is `served_rubric` verbatim -- the SAME bytes `serve` emits
+    and the same bytes `rubric.served_digest` is taken over. One served surface,
+    so a judge cannot be reading one rubric while the card records another.
+    """
     out = [f"# Scorecard — {args.example}, artifact `{label}`, judge pass {judge}", ""]
-    out.append(f"`run_id`: `{rid}` · scorecard_version {args.card_version} · rubric "
-               f"`{rubric['source']}` digest `{rubric['digest']}`")
+    line = (f"`run_id`: `{rid}` · scorecard_version {args.card_version} · rubric "
+            f"`{rubric['source']}` digest `{rubric['digest']}`")
+    if args.card_version >= 3:
+        line += f" · served `{served_digest(rubric, args.card_version)}`"
+    out.append(line)
     out.append("")
     if args.unblinded:
         out.append(f"**NOT BLINDED.** This card was scaffolded with `--unblinded`: "
@@ -717,36 +1039,22 @@ def _skeleton_md(args, rubric: dict, label: str, judge: int, rid: str) -> str:
                "file. **The anchors are reproduced here so the bar for a score sits in "
                "the same file as the score.**")
     out.append("")
-    out.append("## The rules, in the file where the score is written")
+    # SM-06: this heading and paragraph used to restate the card's rule about the
+    # mechanical block, in prose written HERE rather than parsed out of the
+    # rubric -- so it sat outside `served_digest` and nothing compared it to the
+    # card. Inverted as gap mutant M3 it moved no verdict anywhere in this
+    # repository. The rule is served below with every other numbered rule,
+    # straight out of the card; what stays here is the pointer to the FILE, which
+    # the card does not carry.
+    out.append("## The mechanical block")
     out.append("")
-    for i, rule in enumerate(rubric["scoring_rules"], 1):
-        out.append(f"{i}. {rule}")
+    out.append("`mechanical.json` beside this file holds kill counts, complexity "
+               "figures, case counts, determinism and runtime. How to read it "
+               "against your judgement is one of the numbered scoring rules below.")
     out.append("")
-    out.append("**Score the LOWEST anchor the artifact fully satisfies; when torn "
-               "between two, take the lower and say why.**")
-    out.append("")
+    out.append(served_rubric(rubric, args.card_version))
     if args.card_version >= 2:
-        out.append("## Judging practice — REQUIRED, and it is a field on the card")
-        out.append("")
-        out.append("**Did you seed a fault of your own and run it against this artifact, or "
-                   "did you score the evidence packet?** Both are legal. Neither is the "
-                   "right answer. What is not legal is leaving it unsaid.")
-        out.append("")
-        out.append("Fill `judging_practice` in `scorecard.json`: `executed_own_faults` true "
-                   "or false, and `what_was_run` listing what you actually ran.")
-        out.append("")
-        out.append("> This field exists because two judges re-scored **byte-identical "
-                   "trees** and four dimension-points moved. Both had privately chosen to "
-                   "seed and run their own faults; the round before them had not; and "
-                   "nothing on either card said so. **The card was measuring the judge and "
-                   "reporting it as the artifact.**")
-        out.append("")
-        out.append("**D4's anchor 4 is only awardable when this says `true`.** That anchor "
-                   "asks for a behavior-breaking change *shown to be caught*. If you did "
-                   "not run one, the highest D4 you can support is 3 — say that the packet "
-                   "asserts it and you did not verify it. **D1, D4 and D5 all moved on "
-                   "unchanged input; only D4's anchor is gated, because only D4's anchor "
-                   "asks you to run something.**")
+        out.append("### Judging practice — your answer")
         out.append("")
         out.append("**Executed own faults:** _(true / false)_")
         out.append("")
@@ -754,38 +1062,26 @@ def _skeleton_md(args, rubric: dict, label: str, judge: int, rid: str) -> str:
         out.append("")
         out.append("-")
         out.append("")
-    out.append("## The mechanical block is recorded, never scored")
-    out.append("")
-    out.append("`mechanical.json` beside this file holds kill counts, complexity "
-               "figures, case counts, determinism and runtime. It sits beside the "
-               "judgement so a reader can see when the two disagree — **and a "
-               "disagreement is a finding, not a rounding error.**")
+    out.append("## Your scores")
     out.append("")
     for key in DIMS:
-        d = rubric["dimensions"][key]
-        out.append(f"## {key} — {d['name']}")
+        out.append(f"### {key} — {NAMES[key]}")
         out.append("")
-        if d["question"]:
-            out.append(f"*{d['question']}*")
-            out.append("")
-        if d.get("preamble"):
-            out.append(d["preamble"])
-            out.append("")
-        for score in ("0", "1", "2", "3", "4"):
-            out.append(f"- **{score}** — {d['anchors'][score]}")
-        out.append("")
-        if d["caveat"]:
-            out.append(f"> {d['caveat']}")
-            out.append("")
         out.append("**Score:** _(0–4)_")
         out.append("")
-        out.append("**Citations** (`file:line`; required for any score ≥ 2, and a score "
-                   "≥ 2 without one is capped at 1 by the schema check):")
+        # SM-06: the citation bar is served above, parsed out of the card. This
+        # label names the FORMAT and points at the rule; it does not restate it.
+        out.append("**Citations** (`file:line` — the bar is in the scoring rules above):")
         out.append("")
         out.append("-")
         out.append("")
         out.append("**Refuses to claim** (required and non-null for a score of 4):")
         out.append("")
+        if args.card_version >= 3 and key == ANCHOR_READING_DIM:
+            out.append(f"**Anchor reading** (required at "
+                       f"{' or '.join(str(s) for s in ANCHOR_READING_SCORES)}; "
+                       f"{' or '.join('`%s`' % r for r in ANCHOR_READINGS)}):")
+            out.append("")
         out.append("**Rationale:**")
         out.append("")
     out.append("## Verdict")
@@ -1014,6 +1310,11 @@ def cmd_history(argv: list[str]) -> int:
                "incoherent fixture is *supposed* to score low on D3, and a mean over it "
                "is a number about nothing.")
     out.append("")
+    out.append("**There is no total column, from scorecard_version 3.** Four of its five "
+               "terms cannot carry a delta, and a sum over them moves most where the card "
+               "reads worst. The `ver` column is the card version: rows on opposite sides "
+               "of a version boundary are not comparable without saying so.")
+    out.append("")
     out.append("**A row is comparable to another only on the same example AND across an "
                "unchanged instrument.** The bars below are instrument changes. Rows on "
                "opposite sides of one are not comparable until the change is named — and "
@@ -1026,20 +1327,20 @@ def cmd_history(argv: list[str]) -> int:
             out.append("_(no rows measured in this era)_")
             out.append("")
             return
-        out.append("| run | round | arm | pass | D1 | D2 | D3 | D4 | D5 | total | commit | note |")
+        out.append("| run | round | arm | pass | ver | D1 | D2 | D3 | D4 | D5 | commit | note |")
         out.append("|" + "---|" * 12)
         for r in era_rows:
             c = r["card"]
             d = c.get("dimensions") or {}
             if c.get("status") == "unfilled":
-                scores, total = ["—"] * 5, "_unfilled_"
+                scores = ["—"] * 5
             else:
                 scores = [str(d.get(k, {}).get("score", "?")) for k in DIMS]
-                total = f"**{c.get('total')}**/20"
             marks = notes_by_card.get(r["key"], [])
             out.append("| " + " | ".join([
                 f"`{c['run_id']}`", r["round"], str(c.get("arm") or "—"),
-                str((c.get("judge") or {}).get("pass", "—")), *scores, total,
+                str((c.get("judge") or {}).get("pass", "—")),
+                str(c.get("scorecard_version") or "?"), *scores,
                 f"`{str(c.get('commit') or '')[:7]}`",
                 " ".join(f"**[{n['id']}]**" for n in marks) or "—"]) + " |")
         out.append("")
@@ -1594,6 +1895,7 @@ COMMANDS = {
     "check": cmd_check,
     "index": cmd_index,
     "scaffold": cmd_scaffold,
+    "serve": cmd_serve,
     "history": cmd_history,
     "audit": cmd_audit,
     "seal": cmd_seal,

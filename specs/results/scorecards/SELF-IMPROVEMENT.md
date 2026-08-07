@@ -1481,3 +1481,122 @@ length-match (§3, still uncorrected). **The document that exists to warn agains
 reading a row forward without checking it contains two rows read forward without
 checking.** The mechanisms are better and the reading discipline is not, and the
 reading discipline is what every one of these failures has been.
+
+---
+
+# SM-05 — subtract-to-measure, the evaluation (2026-08-07)
+
+**Commit scored `f49a1c9`. Two subjects, four judges each, two model tiers, one
+round. Nothing was fixed.**
+
+## The headline — D2 separates on the SUBJECT, at both tiers
+
+| subject | tier | D1 | **D2** | D3 | D4 | D5 |
+|---|---|---|---|---|---|---|
+| greenfield `ab_quota_ledger` | high | 3, 3 | **2, 2** | 2, 2 | 2, 2 | 3, 3 |
+| greenfield `ab_quota_ledger` | low | 3, 3 | **2, 2** | 1, 2 | 3, 3 | 2, 2 |
+| **toolchain removal** | high | 2, 3 | **3, 3** | 2, 2 | 2, 2 | 4, 4 |
+| **toolchain removal** | low | 3, 2 | **4, 3** | 4, 3 | 3, 2 | 4, 4 |
+
+**D2 = 2 on 4 of 4 greenfield cards and >= 3 on 4 of 4 removal cards, with no
+overlap and no tier effect.** The evidence supports **explanation (b)**: the card
+can measure complexity and had never been given a subject with a before. Judges
+in both arms gave the mechanism unprompted — greenfield: *"anchors 3-4 need a
+'before' a greenfield artifact cannot have"*; removal: *"a simplification was
+made and both before/after figures are recorded."*
+
+**D1 and D2 show no tier effect. D3 and D5 each move one point at the lower
+tier.** All 41 prior cards were judged at the high tier, so the axis only runs
+downward and says nothing about a judge stronger than `claude-opus-5[1m]`.
+
+## AND THE PREMISE THAT JUSTIFIED THIS EPIC WAS ALREADY FALSE
+
+**Read this before citing "D2 has never moved" again.** The epic opened on *"D2 =
+2 on 27 of 27 cards ever written"* and *"every subject this project has ever
+scored was greenfield … no greenfield artifact can reach D2 anchor 3, ever."*
+
+**41 cards carry a D2 score, across six examples, and D2 has taken three values:
+1 (`ex6_jenga`), 2 (four examples), and 3 (`ex3_over_complex`).** `ex3` was
+blind-judged on 2026-08-03 and **both judges scored D2 = 3**, citing before and
+after descriptors, both declining 4 for the MF-020 reason. In the one round that
+scored five *different* fixtures, D2 discriminated across three values with
+**perfect inter-judge agreement on all five**. The anchors digest is identical at
+v1, v2 and v3, so those cards were scored against the same bar.
+
+The "27 of 27" figure is a true fact about **one example** — the only one ever
+re-scored — restated **unscoped** as a fact about the instrument, in the charter,
+in the plan's `purpose`, and in the issue. `R-H2` forbids AVERAGING across
+examples; **nothing forbids generalising from one**, and `history` requires
+`--example`, so the spread is visible only to someone who already suspects it.
+**That is the error that actually occurred, five epics running.**
+`SM-05-DF-01`.
+
+## D3 did not hold, and that outranks the headline
+
+On the removal, D3 scored 2, 2, 4, 3 — **`contested` under scoring rule 5**, and
+the rule's remedy cannot reach it. Both judges state the disagreement is about
+**what the artifact is**, not about the evidence: one refused D3 = 4 that its own
+execution supported, because the port lives in a *test fixture*, not the
+toolchain. The other named the cause independently — *"the 2->3 seam, where 'the
+domain' silently changes referent."*
+
+**D3 holds still on single-artifact fixtures and spans two points on a
+repository-scale subject.** `ports-as-adapters` rests its headline on D3 and this
+file recommends D3 for cross-epic claims. That recommendation now carries a
+scope. `SM-05-DF-06`.
+
+## What the removals cost — zero, and one cost nothing could price
+
+Nine gap mutants re-run on the integrated tip, both positive controls green on
+every surviving detector, `mutants_not_applied: []`. **Zero mutants went `DIES` →
+`SURVIVES`. Two went `SURVIVES` → `DIES`** (SM-03's repairs). Four mechanisms had
+no seedable gap and are named rather than omitted.
+
+**The cost with no mutant able to price it:** the four `corpus-*` columns report
+`CONTROL_RED`, because SM-02 deleted `apply_wiring` while a sealed driver still
+imports it. Two judges read that as a real price — *"the cut also broke the only
+model-derived check pointed at it."* Not repaired: fix nothing during a
+measurement.
+
+## The subtraction epic is net ADDITIVE
+
+`3f58aca` → `f49a1c9`: `scripts/` **−225**, `tests/` **+982**,
+`examples/validation/` **+920** — **net +1677 `code_lines`**, 4948 insertions
+against 1020 deletions. **Roughly seven lines of measurement apparatus per line
+removed.** Two judges reached this independently and let it cap their score. The
+D2 = 3 survives it only because anchor 3 asks for a *measured* simplification with
+both figures recorded, not for a net reduction.
+
+## FINDINGS BY CHANNEL — 0 suite : 3 blind-judge : 4 census, over seven filed
+
+**The suite produced zero findings for the sixth round in seven.** The
+blind-judge channel produced the round's best material at **0.26 findings per
+100k judge-tokens**, **including both of the round operator's own redaction
+errors** — one of which a judge showed had moved a dimension-point in its own
+card, and disclosed rather than absorbed. The operator's errors are not counted
+as findings; they are round-conduct defects, and the class they belong to is
+`SM-05-DF-02`.
+
+**`GOAL-cheaper` is MISSED and the expansion caused it.** 1,162,275 subagent
+tokens across eight judges, against SM-04's ~420k for four — the removal subject
+is a repository and costs ~60% more per judge than a 200-line fixture. The
+per-channel clause of the target is met; the "costs less per finding" clause is
+not — **0.60 findings per 100k against the predecessor's ~1.15, about half the
+rate.** **The round bought the epic's only decisive result and paid above the going
+rate for it.** Keep funding blind judges and the census channel; **the suite is
+not a finding channel and should stop being reported as one.**
+
+## Did this epic make the numbers mean more?
+
+**D2 means more** — cited for five epics as a constant, now demonstrated to
+discriminate across three values and to separate two subjects in one round at two
+tiers. What changed is not the card: it is that the card was finally given
+something to measure, and the citation was finally checked.
+
+**D3 means less than it was claimed to.** **The instrument counts mean less** —
+"33 of 47" is 18 observed refusals plus 16 assertions added together, and it was
+taken in the wrong worktree; measured at the scored commit it is 34 of 48.
+
+**And the durable lesson is a reading habit, not a figure.** The premise that
+justified an entire epic was checkable in one command against this repository's
+own sealed cards, and five epics restated it without running it.

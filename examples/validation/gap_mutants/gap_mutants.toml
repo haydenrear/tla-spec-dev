@@ -1,0 +1,585 @@
+# SM-01 -- a fault seeded in the gap each mechanism slated for removal claims
+# to cover, SEEDED AND MEASURED BEFORE THE REMOVAL.
+#
+# `removal_is_a_delta_rule`: MF-020 says a number can fall because an edge was
+# DELETED. Applied to ourselves -- removing an instrument removes the ability to
+# detect that the removal was harmful. So every removal carries a mutant in its
+# gap, measured now against every detector that exists now, and re-run by SM-05
+# after the cut. Still dies => REDUNDANT, the cut was free. Now survives =>
+# LOAD-BEARING, and we have just priced it. BOTH ARE RESULTS.
+#
+# WHAT THIS FILE IS NOT. It is not a kill catalogue and it is not a gate. It
+# does not claim these are the only faults in these regions, and it makes no
+# claim about a fault class it does not seed. Where a mechanism has NO seedable
+# gap, the row is in `[[not_seedable]]` with the reason -- reported, never
+# dropped, because silence and "we checked and there is none" are different
+# claims (R2).
+
+[registry]
+id = "SM-01-gap-mutants"
+ticket = "SM-01"
+epic = "subtract-to-measure"
+seeded_before = "SM-02 and SM-03 -- neither had been dispatched when this file was committed"
+prices = [
+  "the [ports.*] binding machinery (SM-02, issue #166)",
+  "the hollow instrument demonstrations and the registry's enumeration check (SM-03, issue #167)",
+]
+
+
+# ===========================================================================
+# DETECTORS -- what exists NOW that could catch any of this
+# ===========================================================================
+#
+# `uses_ports_binding` marks the detectors that will not exist after SM-02.
+# `entry_point`, when the file is gone, makes the cell REMOVED -- never
+# SURVIVES. A detector that no longer exists cannot be said to have failed to
+# catch anything, and recording it as a survival is exactly the MF-020 shape
+# this epic was opened to avoid.
+
+[[detector]]
+id = "pytest-full"
+kind = "pytest"
+nodes = ["{tree}/tests"]
+uses_ports_binding = false
+note = """
+The plan's own acceptance command. 1335 passing at abc9124 in a real checkout;
+NINE fail in a `git archive` tree because they read git history, and those nine
+are recorded as the pristine baseline rather than excused in prose.
+"""
+
+[[detector]]
+id = "suite-real"
+kind = "pytest"
+nodes = ["{tree}/examples/validation/ab/tests/test_behavior.py"]
+uses_ports_binding = false
+note = "the hand-written suite through the REAL composition point. No [ports.*] anywhere on this path."
+[detector.env]
+QUOTA_LEDGER_DIR = "{tree}/examples/validation/ab/reference_ports"
+QUOTA_LEDGER_IMPL = "quota_ledger"
+
+[[detector]]
+id = "suite-fake"
+kind = "pytest"
+nodes = ["{tree}/examples/validation/ab/tests/test_behavior.py"]
+uses_ports_binding = false
+note = """
+THE COLUMN SM-02'S CASE RESTS ON. The same suite through the FAKE composition
+point -- four lines of `quota_ledger_fake.py`, no binding table, no wiring flag,
+no mapping. If this reaches every gap the ports machinery reaches, the machinery
+is redundant and the cut is free. Run here with a real executable count, which
+the shipped port-swap driver's own suite columns do not carry.
+"""
+[detector.env]
+QUOTA_LEDGER_DIR = "{tree}/examples/validation/ab/reference_ports"
+QUOTA_LEDGER_IMPL = "quota_ledger_fake"
+
+[[detector]]
+id = "instrument-registry"
+kind = "cli"
+entry_point = "examples/validation/instruments/demonstrate.py"
+uses_ports_binding = false
+argv = ["{python}", "{tree}/examples/validation/instruments/demonstrate.py", "--format", "json"]
+executed_if_stdout_contains = ["\"rows\""]
+note = "the falsifiability registry, per row. Exit 1 iff a DECLARED demonstration stops reproducing."
+
+[[detector]]
+id = "registry-enumeration"
+kind = "pytest"
+nodes = ["{tree}/tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated"]
+uses_ports_binding = false
+note = "the hardcoded `required <= enumerated` subset check SM-03 must repair without lengthening the list."
+
+[[detector]]
+id = "spec-yaml-tripwire"
+kind = "pytest"
+nodes = ["{tree}/tests/test_spec_yaml_valid.py"]
+uses_ports_binding = false
+note = "registry row `spec-yaml-tripwire`, classified `no-demonstration-constructible`."
+
+[[detector]]
+id = "port-binding-report"
+kind = "cli"
+entry_point = "scripts/run_generated_case_adapters.py"
+uses_ports_binding = true
+argv = [
+  "{python}", "{tree}/scripts/run_generated_case_adapters.py", "{cases}",
+  "--mapping", "{tree}/specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/case_adapters.port-swap.toml",
+  "--port-manifest", "{tree}/examples/validation/ab/model/spec_manifest.yaml",
+  "--import-root", "{tree}/specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure",
+  "--validate-only",
+]
+executed_if_stdout_contains = ["PORT BINDINGS"]
+red_if_stdout_contains = [
+  "BOUND BUT NOT DECLARED",
+  "DECLARED BUT NOT BOUND",
+  "NOT DECLARED by the manifest",
+]
+note = """
+`render_port_binding_report` -- the manifest-drift reconciliation that only the
+`[ports.*]` machinery performs. IT REFUSES NOTHING: it prints and exits 0, so
+`red_if_stdout_contains` reads the printed verdict rather than the exit code.
+That is the R2 shape (`FI-02-DF-02`) declared up front rather than discovered
+later: a printed warning is not a red, and this detector is counted as one only
+because the reading is taken from the text.
+"""
+[detector.env]
+QUOTA_LEDGER_DIR = "{tree}/examples/validation/ab/reference_ports"
+QUOTA_LEDGER_BINDING = "ports_binding"
+
+
+# ===========================================================================
+# MECHANISM 1 -- the [ports.*] binding machinery (SM-02, issue #166)
+# ===========================================================================
+#
+# What the machinery claims, from `references/case_modules.md:436-497`: with a
+# `[ports."Component.Name"]` table declaring `adapter` and `fake`,
+# `--wiring fake` swaps the adapter for the fake, so A FAULT ON EITHER SIDE OF
+# THE PORT IS ON SOME RUN'S EXECUTED PATH. Without the table "there is nothing
+# to swap, so `--wiring fake` runs the real adapter and PA-M12 is unreachable by
+# any wiring".
+#
+# The gap is therefore THE FAR SIDE OF A DECLARED PORT. Three mutants live
+# there: one on the fake's write path, one on the declaration the binding
+# resolves against, and one that makes the fake stop being a fake at all.
+
+[[mutant]]
+id = "SM-GM-P1-fake-journal-records-newest-first"
+mechanism = "ports-binding-machinery"
+removed_by = "SM-02"
+port_swap_path = "reference_ports/journal_memory.py"
+claims_to_catch = "a fault behind a declared port, on the side no composition point is obliged to wire"
+gap = """
+THE FAR SIDE OF `ledger.LedgerAppendPort`. Ordering, not content: PA-M11/PA-M12
+perturb read-back and PA-M13 truncates fields, so a catalogue that only ever
+perturbed those would license the conclusion that this region is a projection
+problem. It is not -- the fake here is a working implementation whose ORDER is
+wrong, and order is a class the whole-view corpus is documented as reaching
+poorly.
+"""
+[[mutant.edit]]
+path = "examples/validation/ab/reference_ports/journal_memory.py"
+find = "        self._lines.append(line)"
+replace = "        self._lines.insert(0, line)  # SM-GM-P1: the fake journal records newest-first, so every ledger read-back is reversed"
+[[mutant.detector]]
+id = "pytest-full"
+[[mutant.detector]]
+id = "suite-real"
+[[mutant.detector]]
+id = "suite-fake"
+
+
+[[mutant]]
+id = "SM-GM-P2-manifest-renames-the-port-out-from-under-the-binding"
+mechanism = "ports-binding-machinery"
+removed_by = "SM-02"
+claims_to_catch = "a port renamed in the manifest while the mapping still binds the old name -- the only executable reconciliation between a `[ports.*]` table and `spec_manifest.yaml`"
+gap = """
+DRIFT BETWEEN THE DECLARATION AND THE BINDING. `render_port_binding_report` is
+the one thing in the toolchain that compares the two directions and says
+`BOUND BUT NOT DECLARED` / `DECLARED BUT NOT BOUND`. It is removed with the
+machinery. The fault seeded here is in the MANIFEST -- a shipped model
+artifact that outlives SM-02 -- so the mutant is still re-runnable after the
+cut, which a mutant seeded inside the mapping table would not be.
+"""
+[[mutant.edit]]
+path = "examples/validation/ab/model/spec_manifest.yaml"
+find = "        LedgerAppendPort:"
+replace = "        LedgerAppendPortRenamed:  # SM-GM-P2: the port is renamed in the manifest; `actions:` and every binding still say LedgerAppendPort"
+[[mutant.detector]]
+id = "pytest-full"
+[[mutant.detector]]
+id = "port-binding-report"
+
+
+[[mutant]]
+id = "SM-GM-P3-the-fake-is-silently-a-second-real-adapter"
+mechanism = "ports-binding-machinery"
+removed_by = "SM-02"
+port_swap_path = "reference_ports/quota_ledger_fake.py"
+claims_to_catch = "a `fake` that is not a fake -- the failure that makes a port swap prove nothing while continuing to report two columns"
+gap = """
+THE SWAP'S OWN PREMISE. `[ports.*]`'s `fake =` key names a second
+implementation; if that implementation is the first one under another name,
+`--wiring fake` produces a column that looks independent and is not. This is
+the fault a swap mechanism exists to make impossible, so if the machinery is
+load-bearing anywhere it is load-bearing here.
+"""
+[[mutant.edit]]
+path = "examples/validation/ab/reference_ports/quota_ledger_fake.py"
+find = "        super().__init__(quotas, InMemoryJournal())"
+replace = """        from journal_file import FileJournal  # SM-GM-P3
+        super().__init__(quotas, FileJournal(ledger_path))  # SM-GM-P3: the fake composition point wires the REAL adapter"""
+[[mutant.detector]]
+id = "pytest-full"
+[[mutant.detector]]
+id = "suite-real"
+[[mutant.detector]]
+id = "suite-fake"
+
+
+# ===========================================================================
+# MECHANISM 2 -- the hollow instrument demonstrations (SM-03, issue #167)
+# ===========================================================================
+#
+# What the twelve pytest failing slots claim: "this instrument has a
+# demonstrated FAILING input." What they assert: `expect_exit = 0` on a pytest
+# node and nothing else -- which a passing run satisfies and A FULLY SKIPPED RUN
+# ALSO SATISFIES. Two of the twelve go further and declare
+# `failing.nodes == passing.nodes`, so the two demonstrations are the same
+# command with the same expectation.
+#
+# The gap is therefore in TWO DIFFERENT PLACES and they must not be merged:
+#   * the instrument going soft         -- SM-GM-I2
+#   * the demonstration ceasing to run  -- SM-GM-I1
+# A row that catches the first and not the second is not hollow; it is
+# narrower than it reads. Which one it is decides whether SM-03 deletes or
+# repairs, so both are seeded.
+
+[[mutant]]
+id = "SM-GM-I1-the-cited-demonstration-node-is-collected-and-skipped"
+mechanism = "hollow-pytest-demonstration"
+removed_by = "SM-03"
+claims_to_catch = "`complexity-ledger` -- one of the twelve `expect_exit = 0` slots AND one of the two whose failing.nodes == passing.nodes"
+gap = """
+THE EXACT HOLE FI-06 NAMED, MADE EXECUTABLE. `demonstrate.py:165-176` compares
+only the observed exit code, and pytest exits 0 for a passing run AND for a run
+whose items were all collected and then skipped. So a demonstration whose cited
+node stops actually asserting anything keeps reporting `ok`, and the registry's
+count keeps reading as coverage.
+
+TWO SKIP SHAPES, SEEDED SEPARATELY AND ON PURPOSE. This row uses `pytestmark`,
+which collects the items and skips them -- pytest exits 0. `SM-GM-I6` uses
+`allow_module_level=True`, which collects nothing -- pytest exits 5. If the
+first survives and the second dies, then FI-06's sentence is right about the
+mechanism and imprecise about its reach, and SM-03 needs to know which because
+one shape is a real blind spot and the other is not. That distinction was NOT
+in the finding; it came out of a synthetic exercise of this runner before any
+real mutant was measured, and it is written down here rather than discovered
+later next to a number.
+
+Note this is also invisible to a full-suite run: a skip is not a failure, so
+`pytest tests -q` stays green either way.
+"""
+[[mutant.edit]]
+path = "tests/test_complexity_ledger.py"
+find = "from __future__ import annotations"
+replace = """from __future__ import annotations
+
+import pytest as _sm_gm_i1_pytest  # SM-GM-I1
+pytestmark = _sm_gm_i1_pytest.mark.skip(
+    "SM-GM-I1 gap mutant: every item is collected and skipped, and pytest still exits 0"
+)"""
+[[mutant.detector]]
+id = "pytest-full"
+[[mutant.detector]]
+id = "instrument-registry"
+args = ["--only", "complexity-ledger"]
+
+
+[[mutant]]
+id = "SM-GM-I6-the-cited-demonstration-node-is-not-collected-at-all"
+mechanism = "hollow-pytest-demonstration"
+removed_by = "SM-03"
+claims_to_catch = "`complexity-ledger` -- the same row, against the OTHER skip shape"
+gap = """
+THE CONTRAST ROW FOR SM-GM-I1, and it is here so that a survival there cannot be
+explained away as 'skips are just invisible'. `pytest.skip(allow_module_level=
+True)` collects nothing, and pytest's exit code for that is 5, not 0 -- so
+`expect_exit = 0` should catch it. A pair that only ever seeded one skip shape
+would license a conclusion about both.
+
+It is also the sharper reading of the registry's blind spot: the twelve slots
+are blind to a demonstration that goes VACUOUS, not to one that disappears.
+"""
+[[mutant.edit]]
+path = "tests/test_complexity_ledger.py"
+find = "from __future__ import annotations"
+replace = """from __future__ import annotations
+
+import pytest as _sm_gm_i6_pytest  # SM-GM-I6
+_sm_gm_i6_pytest.skip(
+    "SM-GM-I6 gap mutant: the module is never collected, and pytest exits 5",
+    allow_module_level=True,
+)"""
+[[mutant.detector]]
+id = "pytest-full"
+[[mutant.detector]]
+id = "instrument-registry"
+args = ["--only", "complexity-ledger"]
+
+
+[[mutant]]
+id = "SM-GM-I2-the-demonstrated-instrument-stops-refusing"
+mechanism = "hollow-pytest-demonstration"
+removed_by = "SM-03"
+claims_to_catch = "`complexity-ledger` -- the same row, on its other half: the INSTRUMENT going soft rather than the demonstration going quiet"
+gap = """
+THE HALF OF THE ROW THAT MIGHT NOT BE HOLLOW. `scripts/complexity_ledger.py`
+refuses a close by returning verdict `rejected`; this mutant makes it record
+every close instead. If the row catches this, `expect_exit = 0` was carrying
+real information after all -- it asserts that the node which demonstrates the
+refusal still passes -- and the correct SM-03 verdict is REPAIR, not DELETE.
+Seeded so that "hollow" is measured rather than inherited from a headline.
+"""
+[[mutant.edit]]
+path = "scripts/complexity_ledger.py"
+find = '"verdict": "rejected" if errors else "recorded",'
+replace = '"verdict": "recorded",  # SM-GM-I2: the ledger records every close and refuses none'
+[[mutant.detector]]
+id = "pytest-full"
+[[mutant.detector]]
+id = "instrument-registry"
+args = ["--only", "complexity-ledger"]
+
+
+[[mutant]]
+id = "SM-GM-I3-an-instrument-that-was-never-added-to-the-registry"
+mechanism = "registry-enumeration-check"
+removed_by = "SM-03"
+claims_to_catch = "`test_the_named_instruments_are_all_enumerated` -- the check that is supposed to keep the registry honest"
+gap = """
+`required <= enumerated` IS ONE-DIRECTIONAL. A new instrument is not in
+`required`, so the subset relation stays true whether or not it was registered.
+The test's own docstring concedes it (`FI-04-DF-04`, confirmed three times), and
+FI-04 shipped `divergence.py` with the suite fully green and the row absent.
+This mutant adds a file that is an instrument by every criterion the registry
+uses -- executable, under a declared root, argparse, a nonzero exit path -- and
+registers nothing. If it survives, SM-03's repair has a demonstrated failing
+input to build against; if the repair works, this same row flips to DIES.
+"""
+[[mutant.edit]]
+path = "scripts/gap_probe_instrument.py"
+add_file = '''#!/usr/bin/env python3
+"""SM-GM-I3 gap mutant: an instrument that was never added to the registry.
+
+Executable, under a declared instrument root, argparse surface, and a nonzero
+exit path -- everything `instruments.toml` uses to recognise an instrument, and
+no row anywhere. Applied only inside a throwaway staged tree by
+`examples/validation/gap_mutants/run_gap_mutants.py`; it is never committed.
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--refuse", action="store_true")
+    args = parser.parse_args(argv)
+    if args.refuse:
+        print("gap probe: REFUSED")
+        return 1
+    print("gap probe: clean")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+'''
+[[mutant.detector]]
+id = "pytest-full"
+[[mutant.detector]]
+id = "registry-enumeration"
+
+
+[[mutant]]
+id = "SM-GM-I4-a-shipped-spec-yaml-is-committed-unparseable"
+mechanism = "cannot-fail-instrument"
+removed_by = "SM-03"
+claims_to_catch = "`spec-yaml-tripwire`, classified `no-demonstration-constructible` -- 'NOT WITHOUT BREAKING A SHIPPED FILE'"
+gap = """
+THE REASON MAY BE ABOUT THE RUNNER, NOT THE INSTRUMENT. Four registry rows are
+declared unconstructible because a demonstration would have to break a shipped
+file -- but `demonstrate.py:150-162` runs every pytest slot against REPO_ROOT
+rather than against the staged tree it just built, so breaking a shipped file is
+exactly what it cannot do. This mutant breaks one in a THROWAWAY tree. If the
+tripwire goes red, the demonstration is constructible and the four rows'
+declared reason is a property of the runner; if it does not, the rows are right
+and the reason stands as written. Either answer is worth having before SM-03
+deletes on the strength of it.
+
+`specs/results/deferred_findings_hexagonal_prompting.yaml` is chosen because it
+is a sealed archive leaf: nothing loads it at import time, so a red here is the
+tripwire's doing and not a cascade.
+"""
+[[mutant.edit]]
+path = "specs/results/deferred_findings_hexagonal_prompting.yaml"
+append = """
+
+# SM-GM-I4: deliberately unparseable below this line
+sm_gm_i4: [unclosed, "mapping: value
+  - and: a: b: c
+"""
+[[mutant.detector]]
+id = "pytest-full"
+[[mutant.detector]]
+id = "spec-yaml-tripwire"
+[[mutant.detector]]
+id = "instrument-registry"
+args = ["--only", "spec-yaml-tripwire"]
+
+
+[[mutant]]
+id = "SM-GM-I5-the-enumerator-itself-stops-reporting-a-failure"
+mechanism = "unregistered-instrument"
+removed_by = "SM-03"
+claims_to_catch = "nothing that has ever been named -- `demonstrate.py` is the enumerator and is ABSENT FROM ITS OWN REGISTRY"
+gap = """
+THE INSTRUMENT THAT COUNTS THE INSTRUMENTS. `demonstrate.py:301` is
+`return 1 if failures else 0` and that exit code is its entire verdict surface.
+This mutant makes it always return 0. `test_every_fast_demonstration_reproduces`
+asserts `returncode == 0` AND the string 'Every declared demonstration
+reproduced.' -- and the string is printed by `render()` from the same `failures`
+list, so a mutant that only softens the EXIT leaves the assertion satisfied.
+
+If this survives, then every count SM-03 is about to report -- 40 enumerated, 35
+instruments, 26 with a demonstrated failing input -- comes from a program whose
+own verdict nothing watches, and `denominator_rule` has to be applied to the
+enumerator before it is applied to the enumerated.
+"""
+[[mutant.edit]]
+path = "examples/validation/instruments/demonstrate.py"
+find = "    return 1 if failures else 0"
+replace = "    return 0  # SM-GM-I5: the enumerator never reports a non-reproducing demonstration"
+[[mutant.detector]]
+id = "pytest-full"
+[[mutant.detector]]
+id = "instrument-registry"
+args = ["--only", "corpus-runner"]
+
+
+# ===========================================================================
+# NO SEEDABLE GAP -- REPORTED, NEVER SKIPPED (R2)
+# ===========================================================================
+
+[[not_seedable]]
+mechanism = "scripts/code_complexity.py -- the produced-code descriptor"
+removed_by = "nothing; it is NOT a removal target"
+reason = """
+IT CORRECTLY CANNOT FAIL. It is a thermometer: it reports, refuses nothing,
+gates nothing, and `EXIT_OK = 0` is the only exit constant in the file. There is
+no gap to seed because there is no claim to catch anything. Named here so that
+its absence from the mutant table is a decision on the record rather than an
+omission, and so that SM-03 does not cut it by counting it with the other eight
+that cannot be shown to fail.
+"""
+
+[[not_seedable]]
+mechanism = "registry row `test-graph-nodes` (test_graph/sources/)"
+removed_by = "SM-03"
+reason = """
+NOT IN THIS ENVIRONMENT. Running the Test Graph nodes needs gradle, a JVM and
+JBang, none of which are available here. A mutant seeded into them would report
+INERT on every detector, and an INERT row would be indistinguishable from a
+survival to any reader skimming the table. Declared unmeasured rather than
+measured as nothing.
+"""
+
+[[not_seedable]]
+mechanism = "the `fake =` key of a `[ports.*]` table itself"
+removed_by = "SM-02"
+reason = """
+THE FAULT WOULD LIVE IN THE MECHANISM'S OWN DECLARATION. Dropping `fake =` from
+`case_adapters.port-swap.toml` is caught today by `render_oracle_statement`
+('is bound as a port and declares no fake'). But the table is deleted with the
+machinery, so there is no post-removal tree the mutant could be re-applied to,
+and a before-only reading decides nothing about the cut. SM-GM-P2 seeds the
+equivalent drift in the MANIFEST instead, which outlives SM-02 and is therefore
+re-runnable. Reported so the difference is a decision, not an oversight.
+"""
+
+[[not_seedable]]
+mechanism = "registry row `ticket-state-agreement`"
+removed_by = "SM-03"
+reason = """
+THE GAP IS ALREADY TOTAL AND THERE IS NOWHERE TO SEED IT. The row is classified
+`no-instrument-exists`: `ticket.yaml`'s `status` is written once by the
+scaffolder and read by nothing (`PA-02-DF-02`, open). Every `ticket.yaml` in the
+tree is under `specs/.history`, which is append-only and must not be mutated
+even in a copy. The cost of removing this row is therefore already paid in full
+and no mutant is needed to price it -- but it is named, because a row that
+vanishes silently from a removal table is how a denominator shrinks.
+"""
+
+
+# ===========================================================================
+# POSITIVE CONTROLS
+# ===========================================================================
+#
+# R2: a control that cannot fail is worse than no control. Without these, a
+# `SURVIVES` in the table above cannot be told apart from a detector that was
+# never reaching the subject at all -- which is exactly PA-04's first run, where
+# `control_red: []` was printed while a declared control had survived four
+# columns that each executed 294 accepting cases.
+#
+# They run through the SAME code path as the gap mutants. A control measured by
+# a second path is not a control for the first one.
+
+[[control]]
+id = "SM-GM-CTRL-A-commit-credits-one-too-many"
+mechanism = "positive control for the corpus and suite columns"
+removed_by = "nothing"
+control_role = "positive -- must die on every column that executes an accepted Commit against the reference_ports tree, under BOTH wirings. The fault is in the DOMAIN, so no adapter and no wiring is involved and every column that runs the program at all must see it."
+port_swap_path = "reference_ports/domain.py"
+claims_to_catch = "n/a -- this row is the control, not a gap"
+gap = "NONE, on purpose. It moves `committed` and the COMMIT line's running total, both inside the port's derived region, so a column that cannot decide it is a column that is not reaching the subject."
+must_die_on = ["pytest-full", "suite-real", "suite-fake",
+               "corpus-port-swap:real", "corpus-port-swap:fake",
+               "corpus-action-bound:real", "corpus-action-bound:fake",
+               "portswap-suite-real", "portswap-suite-fake"]
+[[control.edit]]
+path = "examples/validation/ab/reference_ports/domain.py"
+find = "        self._committed[reservation.tenant] += reservation.amount"
+replace = "        self._committed[reservation.tenant] += reservation.amount + 1  # SM-GM-CTRL-A: a commit credits one unit more than the reservation held"
+[[control.detector]]
+id = "pytest-full"
+[[control.detector]]
+id = "suite-real"
+[[control.detector]]
+id = "suite-fake"
+
+[[control]]
+id = "SM-GM-CTRL-B-the-registry-demonstration-stops-reproducing"
+mechanism = "positive control for the instrument-registry detector"
+removed_by = "nothing"
+control_role = "positive -- must die on `instrument-registry --only complexity-ledger`. It breaks the DEMONSTRATION rather than the instrument: the cited node is renamed away, so the slot's own command cannot run. If this does not go red, that detector decides nothing and every SURVIVES it reported is undecided."
+claims_to_catch = "n/a -- this row is the control, not a gap"
+gap = "NONE, on purpose."
+must_die_on = ["instrument-registry"]
+re_anchored_by = "SM-03"
+re_anchor_note = '''
+SM-03 MOVED THIS CONTROL'S ANCHOR AND CHANGED NOTHING ELSE ABOUT IT. Recorded
+here rather than done quietly, because re-anchoring a positive control is one
+step away from editing a target to match a result.
+
+WHAT HAPPENED. The anchor was the verbatim text of `complexity-ledger`'s
+failing slot -- `nodes = ["tests/test_complexity_ledger.py"]` followed by
+`expect_exit = 0`. That row was one of the TWO whose `failing.nodes ==
+passing.nodes`: it ran the whole file for both slots and reported one
+observation as two. SM-03 repaired it to cite four refusing nodes and three
+accepting ones, so the anchor text no longer occurs anywhere in the tree and
+the control reported `anchor occurs 0x`. The shipped tripwire
+`tests/test_gap_mutants.py::test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree`
+is what caught it -- SM-01 wrote that tripwire and it caught SM-01 too.
+
+WHAT THE CONTROL STILL DOES, unchanged: it renames the cited node away so the
+slot's own command cannot run, and `instrument-registry --only
+complexity-ledger` must go red. Same mechanism, same detector, same
+`must_die_on`, same `control_role` sentence. Only the string it attaches to
+moved, and it moved because the row underneath it was repaired.
+
+WHY RE-ANCHOR RATHER THAN REPORT IT UNAPPLIED. R2: a run whose positive control
+cannot fire decides nothing, and every verdict in the after-table would be
+undecided. SM-01's before-table is readable precisely BECAUSE both controls
+died on every detector they declare. No verdict was consulted in choosing the
+new anchor, and no gap mutant was touched.
+'''
+[[control.edit]]
+path = "examples/validation/instruments/instruments.toml"
+find = '''    "tests/test_complexity_ledger.py::TestIncreaseJustification::test_template_sentinel_does_not_count_as_a_justification",'''
+replace = '''    "tests/test_complexity_ledger.py::TestIncreaseJustification::test_no_such_node_SM_GM_CTRL_B",'''
+[[control.detector]]
+id = "instrument-registry"
+args = ["--only", "complexity-ledger"]

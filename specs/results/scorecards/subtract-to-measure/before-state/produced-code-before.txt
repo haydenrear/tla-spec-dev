@@ -1,0 +1,479 @@
+code complexity report v1
+target: scripts
+
+Figures only. Nothing here is a judgement of them and nothing is prescribed. A figure moving in either direction is not, by itself, evidence about the design (MF-020): a count can fall because behaviour was deleted.
+
+module                             role    code    defs  public    inst     mod  branch   worst   depth   iface  effect
+-----------------------------------------------------------------------------------------------------------------------
+analyze_complexity.py              code    1841      59      69       0       0     329      48       4       0      30
+budgets.py                         code     174       5       7       0       0      20      11       3       0       6
+case_modules.py                    code     721      35      38       0       0     125      20       3       0      32
+close-spec-workflow.py             code       4       0       0       0       0       1       0       0       0       0
+close-ticket.py                    code       4       0       0       0       0       1       0       0       0       0
+close_spec_workflow.py             code      47       1       1       0       0       5       3       3       0       3
+close_ticket.py                    code      49       1       1       0       0       2       0       0       0       0
+close_tickets.py                   code     229      11      10       0       0      45      13       3       0      18
+code_complexity.py                 code     803      20      24       0       0     170      64       8       0       8
+complexity_ledger.py               code     860      33      43       0       0     157      39       3       0      12
+corpus_diagnostics.py              code     734      34      45       0       0     120      19       3       0      12
+effect_conformance.py              code    1445      74      70      13       0     172      25       4       0      12
+effect_conformance_report.py       code     140       5       5       0       0      21      10       2       0      13
+export_testgraph_cases.py          code     226       6       6       0       0      22       5       2       0       9
+extract_spec_manifest.py           code     305      18       6       0       0     111      23       5       0       6
+fitness_functions.py               code     362      12      18       0       0      75      18       4       0       2
+generate_cases_from_tlc_dump.py    code    3001     104     105       6       0     565      47       5       0      45
+generate_docs.py                   code      26       1       2       0       0       3       2       2       0       5
+generate_python.py                 code     874      38      41       0       0     120      17       4       0      11
+infer_action_params.py             code     698      33      43       1       0     123      32       4       0       5
+kill_test.py                       test     910      33      46       0       0     101      17       6       0      14
+new_ticket_workflow.py             code     848      42      41       0       0      96      18       3       0      51
+onboard_program_model.py           code    1051      26      23       0       0      20       6       2       0      10
+run_generated_case_adapters.py     code    2341      78      58       9       0     473      85      11       0      30
+run_kill_test.py                   test     202       4       5       0       0      22      19       2       0      23
+scaffold_spec.py                   code     705       8      22       0       2       9       3       1       0       7
+scaffold_spec_workflow.py          code      41       3       3       0       0       2       1       1       0       5
+skill_feedback.py                  code     380      19      28       0       0      35       7       3       0      16
+spec_evolution.py                  code    1016      54      63       0       0     191      25       3       0      80
+spec_paths.py                      code     117       7      11       0       0      12       3       1       0       3
+start_ticket.py                    code      30       1       1       0       0       2       0       0       0       1
+testgraph_channels.py              code     388      15      22       2       0      70      19       6       0       4
+tla_spec_dev.py                    code     680      23      25       0       0      52      24       3       0      47
+
+TOTAL (all modules): modules=33
+  code_lines=21252  callables=803  classes=90  public_surface=882
+  instance_state=31  module_state=2  branch_points=3272
+  max_branch_points_in_callable=85  max_depth=11
+  declared_interfaces=0  declared_interface_methods=0
+  internal_import_edges=60  effectful_calls=520  modules_with_effectful_calls=30
+  branch_points_in_effectful_modules=3268  instance_state_in_effectful_modules=31
+  effect_sinks: chmod, copyfile, copytree, environ, exists, flush, glob, is_dir, is_file, iterdir, mkdir, mkdtemp, now, print, read_bytes, read_text, rglob, rmdir, rmtree, stat, stderr, stdout, unlink, write_text  (groups: clock, filesystem, process, stdio)
+
+TOTAL (role=code): modules=31
+  code_lines=20140  callables=766  classes=86  public_surface=831
+  instance_state=31  module_state=2  branch_points=3149
+  max_branch_points_in_callable=85  max_depth=11
+  declared_interfaces=0  declared_interface_methods=0
+  internal_import_edges=58  effectful_calls=483  modules_with_effectful_calls=28
+  branch_points_in_effectful_modules=3145  instance_state_in_effectful_modules=31
+  effect_sinks: chmod, copyfile, copytree, environ, exists, flush, glob, is_dir, is_file, iterdir, mkdir, mkdtemp, now, print, read_bytes, read_text, rglob, rmdir, rmtree, stat, stderr, stdout, unlink, write_text  (groups: clock, filesystem, process, stdio)
+
+internal import edges (60):
+  analyze_complexity.py -> budgets.py
+  analyze_complexity.py -> extract_spec_manifest.py
+  analyze_complexity.py -> fitness_functions.py
+  analyze_complexity.py -> spec_paths.py
+  budgets.py -> extract_spec_manifest.py
+  case_modules.py -> analyze_complexity.py
+  case_modules.py -> extract_spec_manifest.py
+  case_modules.py -> generate_cases_from_tlc_dump.py
+  close-spec-workflow.py -> close_spec_workflow.py
+  close-ticket.py -> close_ticket.py
+  close_spec_workflow.py -> spec_evolution.py
+  close_ticket.py -> spec_evolution.py
+  close_tickets.py -> extract_spec_manifest.py
+  close_tickets.py -> spec_evolution.py
+  complexity_ledger.py -> analyze_complexity.py
+  complexity_ledger.py -> extract_spec_manifest.py
+  corpus_diagnostics.py -> budgets.py
+  corpus_diagnostics.py -> run_generated_case_adapters.py
+  effect_conformance.py -> run_generated_case_adapters.py
+  effect_conformance_report.py -> effect_conformance.py
+  effect_conformance_report.py -> extract_spec_manifest.py
+  export_testgraph_cases.py -> corpus_diagnostics.py
+  export_testgraph_cases.py -> generate_cases_from_tlc_dump.py
+  export_testgraph_cases.py -> run_generated_case_adapters.py
+  export_testgraph_cases.py -> spec_paths.py
+  export_testgraph_cases.py -> testgraph_channels.py
+  generate_cases_from_tlc_dump.py -> analyze_complexity.py
+  generate_cases_from_tlc_dump.py -> case_modules.py
+  generate_cases_from_tlc_dump.py -> corpus_diagnostics.py
+  generate_cases_from_tlc_dump.py -> extract_spec_manifest.py
+  generate_cases_from_tlc_dump.py -> infer_action_params.py
+  generate_cases_from_tlc_dump.py -> spec_paths.py
+  generate_docs.py -> extract_spec_manifest.py
+  generate_docs.py -> generate_python.py
+  generate_python.py -> extract_spec_manifest.py
+  kill_test.py -> budgets.py
+  new_ticket_workflow.py -> budgets.py
+  new_ticket_workflow.py -> extract_spec_manifest.py
+  new_ticket_workflow.py -> onboard_program_model.py
+  onboard_program_model.py -> budgets.py
+  run_generated_case_adapters.py -> effect_conformance.py
+  run_generated_case_adapters.py -> extract_spec_manifest.py
+  run_generated_case_adapters.py -> generate_cases_from_tlc_dump.py
+  run_generated_case_adapters.py -> spec_paths.py
+  run_generated_case_adapters.py -> testgraph_channels.py
+  run_kill_test.py -> kill_test.py
+  spec_evolution.py -> complexity_ledger.py
+  spec_evolution.py -> extract_spec_manifest.py
+  spec_evolution.py -> skill_feedback.py
+  start_ticket.py -> new_ticket_workflow.py
+  testgraph_channels.py -> extract_spec_manifest.py
+  testgraph_channels.py -> run_generated_case_adapters.py
+  tla_spec_dev.py -> analyze_complexity.py
+  tla_spec_dev.py -> budgets.py
+  tla_spec_dev.py -> corpus_diagnostics.py
+  tla_spec_dev.py -> extract_spec_manifest.py
+  tla_spec_dev.py -> generate_cases_from_tlc_dump.py
+  tla_spec_dev.py -> new_ticket_workflow.py
+  tla_spec_dev.py -> run_kill_test.py
+  tla_spec_dev.py -> spec_evolution.py
+
+completeness: 33/33 files parsed (fraction 1.000)
+  not resolved: code_complexity.py: getattr(): a reference this instrument cannot resolve
+  not resolved: corpus_diagnostics.py: getattr(): a reference this instrument cannot resolve
+  not resolved: effect_conformance.py: getattr(): a reference this instrument cannot resolve
+  not resolved: effect_conformance.py: setattr(): a state write this instrument cannot name
+  not resolved: effect_conformance_report.py: getattr(): a reference this instrument cannot resolve
+  not resolved: export_testgraph_cases.py: getattr(): a reference this instrument cannot resolve
+  not resolved: generate_cases_from_tlc_dump.py: getattr(): a reference this instrument cannot resolve
+  not resolved: run_generated_case_adapters.py: getattr(): a reference this instrument cannot resolve
+  not resolved: run_kill_test.py: getattr(): a reference this instrument cannot resolve
+  not resolved: tla_spec_dev.py: getattr(): a reference this instrument cannot resolve
+  effectful_calls undercounts by construction: 18 sink names are left out of the vocabulary for colliding with in-memory operations (call ~ any callable-invoking method, copy ~ dict.copy / list.copy, delete ~ too generic to attribute, exit ~ any exit method, get ~ dict.get, head ~ too generic to attribute, move ~ too generic to attribute, post ~ too generic to attribute, put ~ queue.put, remove ~ list.remove / set.remove, replace ~ str.replace / dataclasses.replace, request ~ too generic to attribute, run ~ any runner method, sample ~ random.sample / statistical sampling, send ~ generator.send, spawn ~ too generic to attribute, time ~ any attribute named time, walk ~ ast.walk)
+
+column key: role=role; code=code_lines; defs=callables; public=public_surface; inst=instance_state; mod=module_state; branch=branch_points; worst=max_branch_points_in_callable; depth=max_depth; iface=declared_interfaces; effect=effectful_calls
+role rule: role is assigned by NAME alone: a path component in ['test', 'testing', 'tests'], or a filename matching test_*.py, *_test.py or conftest.py, is role=test. Contents are never read.
+
+code complexity report v1
+target: tests
+
+Figures only. Nothing here is a judgement of them and nothing is prescribed. A figure moving in either direction is not, by itself, evidence about the design (MF-020): a count can fall because behaviour was deleted.
+
+module                                        role    code    defs  public    inst     mod  branch   worst   depth   iface  effect
+----------------------------------------------------------------------------------------------------------------------------------
+conftest.py                                   test      59       2       5       0       0       1       0       0       0       4
+corpus_fixtures.py                            code     177       7       8       0       0       7       2       1       0       0
+effect_adapter_fixtures.py                    code      37       2       5       0       0       2       1       0       0       4
+test_ab_three_arms_and_port_faults.py         test     449      34      35       0       0      33       4       3       0      24
+test_analyze_complexity.py                    test    1474      86     110       0       0      30       8       2       0      65
+test_budgets.py                               test     148      15      16       0       0       7       2       2       0      11
+test_case_adapter_runtime.py                  test     487      22      27       0       0       9       3       1       0      11
+test_case_modules.py                          test     419      32      34       0       0       4       1       1       0      24
+test_code_complexity.py                       test     815      47      47       0       0     143      27       6       0      31
+test_complexity_ledger.py                     test     961      82      94       0       0      23       3       2       0       7
+test_control_role_is_executed.py              test     219      16      19       0       0       2       1       1       0       0
+test_corpus_diagnostics.py                    test     337      30      30       0       0      17       4       2       0      11
+test_dispatch_record.py                       test     210      14      18       0       1       6       2       2       0      16
+test_effect_conformance.py                    test    1291     114     128       0       0      36       3       3       0      61
+test_effect_conformance_cli.py                test      81       9      11       0       0       1       1       1       0       5
+test_effect_conformance_runner.py             test     146      11      17       0       0       2       1       1       0       4
+test_effect_provider_example_validation.py    test      85       4       6       0       0       1       1       1       0       6
+test_effect_provider_fuzzing.py               test    1345      27      25       0       0      22       6       1       0      52
+test_effect_provider_runtime.py               test    1242      36      38       0       0       5       2       1       0      40
+test_eval_controls.py                         test     435      39      44       0       0      14       3       3       0       5
+test_export_testgraph_cases.py                test     195      10       8       0       0       2       1       1       0       7
+test_extract_spec_manifest.py                 test     143       7       8       0       0       2       2       1       0       5
+test_falsifiable_controls.py                  test     412      26      31       0       0      25       5       2       0      17
+test_fitness_functions.py                     test     318      21      25       0       0       6       2       1       0       7
+test_fixture_can_diverge.py                   test     269      19      25       0       0      15       3       2       0       9
+test_gap_mutants.py                           test     308      30      32       0       0      21       7       4       0      22
+test_generate_cases_from_tlc_dump.py          test     634      48      51       0       0      12       3       2       0      10
+test_generate_python_effect_providers.py      test     296      19      21       5       0       4       2       3       0      12
+test_infer_action_params.py                   test     820      55      63       0       0      24      16       1       0       1
+test_instrument_demonstrations.py             test     478      22      29       0       0      33       9       5       0      13
+test_kill_test.py                             test     803      66      77       0       0      20       3       2       0      29
+test_new_ticket_workflow.py                   test     545      22      23       0       0      16       5       1       0     126
+test_onboard_program_model.py                 test     133      10      11       0       0       3       2       1       0      22
+test_port_adapter_binding.py                  test     348      20      19       0       0       3       1       1       0       6
+test_port_case_generation.py                  test     486      42      34       7       0      20       3       2       0      11
+test_port_declarations.py                     test     113       4       6       0       0      14       7       2       0       2
+test_prediction_seal.py                       test     177      15      18       0       1      10       4       3       0       6
+test_produced_code_prompt.py                  test     316      20      28       0       0      27       9       3       0      19
+test_promotion_preserves_current.py           test     140       8       8       0       0       4       1       1       0      12
+test_scaffold_skill_root.py                   test     215      11       9       0       0       4       4       1       0       9
+test_scaffold_spec_views.py                   test      89       6       9       0       0       2       2       1       0      15
+test_score_tools.py                           test     871      71      76       0       0      56       4       3       0      54
+test_skill_feedback.py                        test     326      21      24       0       0       6       3       1       0      36
+test_source_citations.py                      test     128       4       9       0       0      15      10       2       0       7
+test_spec_evolution.py                        test     217      13      19       0       0       2       1       1       0      19
+test_spec_manifest_records.py                 test     241      14      17       0       0      20       8       3       0      11
+test_spec_yaml_valid.py                       test      45       3       4       0       0       4       3       1       0       4
+test_testgraph_channels.py                    test     467      33      28       0       0       5       1       1       0      25
+test_tla_spec_dev_cli.py                      test     426      22      21       0       0      10       7       5       0      47
+
+TOTAL (all modules): modules=49
+  code_lines=20376  callables=1291  classes=75  public_surface=1450
+  instance_state=12  module_state=2  branch_points=750
+  max_branch_points_in_callable=27  max_depth=6
+  declared_interfaces=0  declared_interface_methods=0
+  internal_import_edges=8  effectful_calls=944  modules_with_effectful_calls=47
+  branch_points_in_effectful_modules=741  instance_state_in_effectful_modules=12
+  effect_sinks: copytree, environ, exists, glob, is_dir, is_file, iterdir, mkdir, mkdtemp, open, read_bytes, read_text, rename, rglob, rmtree, stat, stderr, unlink, write_bytes, write_text  (groups: filesystem, process, stdio)
+
+TOTAL (role=code): modules=2
+  code_lines=214  callables=9  classes=5  public_surface=13
+  instance_state=0  module_state=0  branch_points=9
+  max_branch_points_in_callable=2  max_depth=1
+  declared_interfaces=0  declared_interface_methods=0
+  internal_import_edges=0  effectful_calls=4  modules_with_effectful_calls=1
+  branch_points_in_effectful_modules=2  instance_state_in_effectful_modules=0
+  effect_sinks: mkdir, write_text  (groups: filesystem)
+
+internal import edges (8):
+  test_corpus_diagnostics.py -> corpus_fixtures.py
+  test_fitness_functions.py -> test_analyze_complexity.py
+  test_instrument_demonstrations.py -> test_code_complexity.py
+  test_new_ticket_workflow.py -> conftest.py
+  test_produced_code_prompt.py -> test_code_complexity.py
+  test_skill_feedback.py -> conftest.py
+  test_spec_evolution.py -> conftest.py
+  test_tla_spec_dev_cli.py -> conftest.py
+
+completeness: 49/49 files parsed (fraction 1.000)
+  not resolved: test_case_modules.py: setattr(): a state write this instrument cannot name
+  not resolved: test_code_complexity.py: getattr(): a reference this instrument cannot resolve
+  not resolved: test_effect_provider_example_validation.py: setattr(): a state write this instrument cannot name
+  not resolved: test_effect_provider_fuzzing.py: setattr(): a state write this instrument cannot name
+  not resolved: test_effect_provider_runtime.py: setattr(): a state write this instrument cannot name
+  not resolved: test_export_testgraph_cases.py: setattr(): a state write this instrument cannot name
+  effectful_calls undercounts by construction: 18 sink names are left out of the vocabulary for colliding with in-memory operations (call ~ any callable-invoking method, copy ~ dict.copy / list.copy, delete ~ too generic to attribute, exit ~ any exit method, get ~ dict.get, head ~ too generic to attribute, move ~ too generic to attribute, post ~ too generic to attribute, put ~ queue.put, remove ~ list.remove / set.remove, replace ~ str.replace / dataclasses.replace, request ~ too generic to attribute, run ~ any runner method, sample ~ random.sample / statistical sampling, send ~ generator.send, spawn ~ too generic to attribute, time ~ any attribute named time, walk ~ ast.walk)
+
+column key: role=role; code=code_lines; defs=callables; public=public_surface; inst=instance_state; mod=module_state; branch=branch_points; worst=max_branch_points_in_callable; depth=max_depth; iface=declared_interfaces; effect=effectful_calls
+role rule: role is assigned by NAME alone: a path component in ['test', 'testing', 'tests'], or a filename matching test_*.py, *_test.py or conftest.py, is role=test. Contents are never read.
+
+code complexity report v1
+target: examples/validation
+
+Figures only. Nothing here is a judgement of them and nothing is prescribed. A figure moving in either direction is not, by itself, evidence about the design (MF-020): a count can fall because behaviour was deleted.
+
+module                                                                  role    code    defs  public    inst     mod  branch   worst   depth   iface  effect
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+ab/check_catalogue.py                                                   code    1029      19      31       5       0     127      34       4       0     100
+ab/dispatch_record.py                                                   code     427      16      22       0       0      58      17       6       0      69
+ab/eval/divergence.py                                                   code     409       8       9       0       0      59      29       4       0       6
+ab/eval/generator_vs_suite.py                                           code     163       5      12       0       0      22       9       2       0       6
+ab/eval/oracle.py                                                       code     289      23      16       2       0      39       7       3       0       4
+ab/eval/reference_binding.py                                            code      65       5       5       0       0       5       2       1       0       1
+ab/eval/run_arm_swap.py                                                 code     149       2       8       0       0       8       4       2       0      16
+ab/eval/run_controls.py                                                 code     737      19      24       0       1     111      28       4       0      18
+ab/eval/witnesses.py                                                    code      33       1       1       0       0       0       0       0       0       0
+ab/reference/quota_ledger.py                                            code     122      13      15       7       0      10       4       1       0       3
+ab/reference_ports/domain.py                                            code     131      14      18       7       0       9       4       1       1       0
+ab/reference_ports/journal_file.py                                      code      28       3       3       1       0       1       1       1       0       3
+ab/reference_ports/journal_memory.py                                    code      33       3       3       1       0       1       1       0       0       0
+ab/reference_ports/quota_ledger.py                                      code      26       1       1       0       0       0       0       0       0       0
+ab/reference_ports/quota_ledger_fake.py                                 code      37       1       1       0       0       0       0       0       0       0
+ab/tests/test_behavior.py                                               test     223      26      28       0       0       5       4       1       0       2
+check_prediction_seal.py                                                code     411      19      32       0       0      81      25       5       0      35
+check_twins.py                                                          code      49       2       6       0       0      10       9       3       0       8
+ex1_scaffold_only/taskq/taskq.py                                        code      61       8      10       0       0      13       5       1       0       9
+ex1_scaffold_only/taskq/tests/test_taskq.py                             test      28       6       6       0       0       0       0       0       0       0
+ex3_over_complex/order_hub/order_hub.py                                 code      44       6       8       0       0       7       2       1       0       0
+ex3_over_complex/order_hub/tests/test_order_hub.py                      test      39       6       6       0       0       2       1       1       0       0
+ex4_pipeline_coherent/generated/pipeline_contract/__init__.py           code       3       0       0       0       0       0       0       0       0       0
+ex4_pipeline_coherent/generated/pipeline_contract/contract_tests.py     code      18       2       1       0       0       2       1       1       0       0
+ex4_pipeline_coherent/generated/pipeline_contract/fake.py               code      10       3       3       1       0       0       0       0       0       0
+ex4_pipeline_coherent/generated/pipeline_contract/ports.py              code       6       1       2       0       0       0       0       0       1       0
+ex4_pipeline_coherent/generated/pipeline_contract/strategies.py         code      23       5       4       0       0       2       1       1       0       0
+ex4_pipeline_coherent/generated/pipeline_contract/traces.py             code       1       0       0       0       0       0       0       0       0       0
+ex4_pipeline_coherent/generated/pipeline_contract/types.py              code       7       0       2       0       0       0       0       0       0       0
+ex4_pipeline_coherent/generated/pipeline_contract/validators.py         code      36       6       5       0       0       4       2       2       0       0
+ex4_pipeline_coherent/pipeline/dispatch/__init__.py                     code       1       0       0       0       0       0       0       0       0       0
+ex4_pipeline_coherent/pipeline/dispatch/delivery.py                     code      29       4       4       2       0       3       2       1       0       0
+ex4_pipeline_coherent/pipeline/dispatch/failures.py                     code      22       3       3       2       0       2       2       1       0       0
+ex4_pipeline_coherent/pipeline/ingest/__init__.py                       code       1       0       0       0       0       0       0       0       0       0
+ex4_pipeline_coherent/pipeline/ingest/inbox.py                          code      22       4       4       2       0       1       1       1       0       0
+ex4_pipeline_coherent/pipeline/ingest/queue.py                          code      35       4       4       2       0       3       2       1       0       0
+ex4_pipeline_coherent/pipeline/ledger/__init__.py                       code       1       0       0       0       0       0       0       0       0       0
+ex4_pipeline_coherent/pipeline/ledger/journal.py                        code      38       4       3       3       0       3       2       1       0       0
+ex4_pipeline_coherent/specs/__init__.py                                 code       0       0       0       0       0       0       0       0       0       0
+ex4_pipeline_coherent/specs/program_model/__init__.py                   code       0       0       0       0       0       0       0       0       0       0
+ex4_pipeline_coherent/specs/program_model/adapters.py                   code     133      11      11       6       1       6       2       1       0       0
+ex4_pipeline_coherent/specs/program_model/providers.py                  code      86       5       9       2       0       5       4       2       0       5
+ex4_pipeline_coherent/specs/program_model/tlc_projection.py             code      51       3       2       0       0       3       3       1       0       0
+ex4_pipeline_coherent/tests/driver.py                                   test      49       7       7       5       0       0       0       0       0       0
+ex4_pipeline_coherent/tests/test_behavior.py                            test      90       8       9       0       0       1       1       1       0       0
+ex5_pipeline_divergent/generated/pipeline_contract/__init__.py          code       3       0       0       0       0       0       0       0       0       0
+ex5_pipeline_divergent/generated/pipeline_contract/contract_tests.py    code      18       2       1       0       0       2       1       1       0       0
+ex5_pipeline_divergent/generated/pipeline_contract/fake.py              code      10       3       3       1       0       0       0       0       0       0
+ex5_pipeline_divergent/generated/pipeline_contract/ports.py             code       6       1       2       0       0       0       0       0       1       0
+ex5_pipeline_divergent/generated/pipeline_contract/strategies.py        code      23       5       4       0       0       2       1       1       0       0
+ex5_pipeline_divergent/generated/pipeline_contract/traces.py            code       1       0       0       0       0       0       0       0       0       0
+ex5_pipeline_divergent/generated/pipeline_contract/types.py             code       7       0       2       0       0       0       0       0       0       0
+ex5_pipeline_divergent/generated/pipeline_contract/validators.py        code      36       6       5       0       0       4       2       2       0       0
+ex5_pipeline_divergent/pipeline/dispatch/__init__.py                    code       1       0       0       0       0       0       0       0       0       0
+ex5_pipeline_divergent/pipeline/dispatch/delivery.py                    code      29       4       4       2       0       3       2       1       0       0
+ex5_pipeline_divergent/pipeline/dispatch/failures.py                    code      22       3       3       2       0       2       2       1       0       0
+ex5_pipeline_divergent/pipeline/ingest/__init__.py                      code       1       0       0       0       0       0       0       0       0       0
+ex5_pipeline_divergent/pipeline/ingest/inbox.py                         code      28       5       5       2       0       1       1       1       0       0
+ex5_pipeline_divergent/pipeline/ingest/queue.py                         code      33       5       5       2       0       3       2       1       0       0
+ex5_pipeline_divergent/pipeline/ledger/__init__.py                      code       1       0       0       0       0       0       0       0       0       0
+ex5_pipeline_divergent/pipeline/ledger/journal.py                       code      44       6       5       2       0       4       2       1       0       0
+ex5_pipeline_divergent/tests/driver.py                                  test      45       7       7       5       0       0       0       0       0       0
+ex5_pipeline_divergent/tests/test_behavior.py                           test      90       8       9       0       0       1       1       1       0       0
+ex6_jenga/hub/billing/__init__.py                                       code       1       0       0       0       0       0       0       0       0       0
+ex6_jenga/hub/billing/audit.py                                          code      15       3       3       2       0       3       2       1       0       0
+ex6_jenga/hub/notify/__init__.py                                        code       1       0       0       0       0       0       0       0       0       0
+ex6_jenga/hub/notify/flags.py                                           code      17       3       3       2       0       2       2       1       0       0
+ex6_jenga/hub/orders/__init__.py                                        code       1       0       0       0       0       0       0       0       0       0
+ex6_jenga/hub/orders/lifecycle.py                                       code      21       4       4       3       0       0       0       0       0       0
+gap_mutants/run_gap_mutants.py                                          code     451      10      20       0       0      66      18       5       0      35
+instruments/demonstrate.py                                              code     328      15      20       0       0      56      14       3       0      17
+instruments/fixtures/blinding/arm_t/ledger.py                           code       9       3       3       1       0       0       0       0       0       0
+instruments/fixtures/blinding/arm_u/ledger.py                           code       9       3       3       1       0       0       0       0       0       0
+instruments/fixtures/blinding/arm_w/ledger.py                           code       9       3       3       1       0       0       0       0       0       0
+runs/ex1-run4/artifacts/providers.py                                    code     112      11      11       7       0      13      10       4       0       8
+runs/ex2-run4/artifacts/providers.py                                    code     132       9       8       4       0      13      11       2       0       4
+runs/ex3-run1/artifacts/order_hub_after.py                              code      40       6       8       0       0       7       2       1       0       0
+runs/ex3-run4/artifacts/providers.py                                    code      88       6       6       5       0       9       2       2       0       2
+runs/ex4-run1/artifacts/df02_blast.py                                   code     118       4      16       0       1      17       3       2       0      18
+runs/ex4-run1/artifacts/kill_matrix.py                                  code     124       4      10       0       0      20       9       4       0      23
+runs/ex4-run1/artifacts/replay.py                                       code      81       1       7       0       0       7       2       2       0      18
+runs/ex4-run4/artifacts/kill_matrix_round2.py                           code     201       8      15       0       0      28      17       3       0      29
+runs/ex4-run5/artifacts/replay.py                                       code      81       1       7       0       0       7       2       2       0      18
+runs/ex4-run6/artifacts/mutant_run.py                                   code     123       6      11       0       0      14       8       2       0      12
+runs/ex4-run6/artifacts/sanitize_runB.py                                code      85       1       4       0       0       5       1       1       0       9
+runs/ex5-run3/artifacts/df02_blast_round2.py                            code     147       4      17       0       3      35       3       2       0      28
+runs/ex5-run4/artifacts/reexport_attack/shared.py                       code      16       1       0       0       0       1       1       1       0       0
+runs/ex5-run4/artifacts/sanitize_runA.py                                code     180       0       3       0       0       7       0       0       0       7
+scorecards/score_tools.py                                               code    1383      44      43       0       0     353      63       5       0      80
+
+TOTAL (all modules): modules=89
+  code_lines=9366  callables=481  classes=67  public_surface=618
+  instance_state=90  module_state=6  branch_points=1288
+  max_branch_points_in_callable=63  max_depth=6
+  declared_interfaces=3  declared_interface_methods=4
+  internal_import_edges=70  effectful_calls=593  modules_with_effectful_calls=30
+  branch_points_in_effectful_modules=1204  instance_state_in_effectful_modules=33
+  effect_sinks: TemporaryDirectory, argv, choice, copytree, environ, exists, is_dir, is_file, mkdir, mkdtemp, open, print, read_bytes, read_text, rglob, rmtree, shuffle, stderr, today, unlink, write_bytes, write_text  (groups: clock, filesystem, process, randomness, stdio)
+
+TOTAL (role=code): modules=82
+  code_lines=8802  callables=413  classes=65  public_surface=546
+  instance_state=80  module_state=6  branch_points=1279
+  max_branch_points_in_callable=63  max_depth=6
+  declared_interfaces=3  declared_interface_methods=4
+  internal_import_edges=56  effectful_calls=591  modules_with_effectful_calls=29
+  branch_points_in_effectful_modules=1199  instance_state_in_effectful_modules=33
+  effect_sinks: TemporaryDirectory, argv, choice, copytree, environ, exists, is_dir, is_file, mkdir, mkdtemp, open, print, read_bytes, read_text, rglob, rmtree, shuffle, stderr, today, unlink, write_bytes, write_text  (groups: clock, filesystem, process, randomness, stdio)
+
+internal import edges (70):
+  ab/check_catalogue.py -> ab/dispatch_record.py
+  ab/eval/run_controls.py -> ex4_pipeline_coherent/generated/pipeline_contract/types.py
+  ab/reference_ports/quota_ledger.py -> ab/reference_ports/domain.py
+  ab/reference_ports/quota_ledger.py -> ab/reference_ports/journal_file.py
+  ab/reference_ports/quota_ledger_fake.py -> ab/reference_ports/domain.py
+  ab/reference_ports/quota_ledger_fake.py -> ab/reference_ports/journal_memory.py
+  ex1_scaffold_only/taskq/tests/test_taskq.py -> ex1_scaffold_only/taskq/taskq.py
+  ex3_over_complex/order_hub/tests/test_order_hub.py -> ex3_over_complex/order_hub/order_hub.py
+  ex4_pipeline_coherent/generated/pipeline_contract/__init__.py -> ex4_pipeline_coherent/generated/pipeline_contract/fake.py
+  ex4_pipeline_coherent/generated/pipeline_contract/__init__.py -> ex4_pipeline_coherent/generated/pipeline_contract/ports.py
+  ex4_pipeline_coherent/generated/pipeline_contract/__init__.py -> ex4_pipeline_coherent/generated/pipeline_contract/types.py
+  ex4_pipeline_coherent/generated/pipeline_contract/contract_tests.py -> ex4_pipeline_coherent/generated/pipeline_contract/fake.py
+  ex4_pipeline_coherent/generated/pipeline_contract/contract_tests.py -> ex4_pipeline_coherent/generated/pipeline_contract/types.py
+  ex4_pipeline_coherent/generated/pipeline_contract/contract_tests.py -> ex4_pipeline_coherent/generated/pipeline_contract/validators.py
+  ex4_pipeline_coherent/generated/pipeline_contract/fake.py -> ex4_pipeline_coherent/generated/pipeline_contract/types.py
+  ex4_pipeline_coherent/generated/pipeline_contract/ports.py -> ex4_pipeline_coherent/generated/pipeline_contract/types.py
+  ex4_pipeline_coherent/generated/pipeline_contract/strategies.py -> ex4_pipeline_coherent/generated/pipeline_contract/types.py
+  ex4_pipeline_coherent/generated/pipeline_contract/traces.py -> ex4_pipeline_coherent/generated/pipeline_contract/types.py
+  ex4_pipeline_coherent/generated/pipeline_contract/validators.py -> ex4_pipeline_coherent/generated/pipeline_contract/types.py
+  ex4_pipeline_coherent/pipeline/dispatch/delivery.py -> ex4_pipeline_coherent/pipeline/ingest/queue.py
+  ex4_pipeline_coherent/pipeline/dispatch/failures.py -> ex4_pipeline_coherent/pipeline/dispatch/delivery.py
+  ex4_pipeline_coherent/pipeline/ingest/queue.py -> ex4_pipeline_coherent/pipeline/ingest/inbox.py
+  ex4_pipeline_coherent/pipeline/ledger/journal.py -> ex4_pipeline_coherent/generated/pipeline_contract/types.py
+  ex4_pipeline_coherent/pipeline/ledger/journal.py -> ex4_pipeline_coherent/pipeline/dispatch/delivery.py
+  ex4_pipeline_coherent/specs/program_model/adapters.py -> ex4_pipeline_coherent/pipeline/dispatch/delivery.py
+  ex4_pipeline_coherent/specs/program_model/adapters.py -> ex4_pipeline_coherent/pipeline/dispatch/failures.py
+  ex4_pipeline_coherent/specs/program_model/adapters.py -> ex4_pipeline_coherent/pipeline/ingest/inbox.py
+  ex4_pipeline_coherent/specs/program_model/adapters.py -> ex4_pipeline_coherent/pipeline/ingest/queue.py
+  ex4_pipeline_coherent/specs/program_model/adapters.py -> ex4_pipeline_coherent/pipeline/ledger/journal.py
+  ex4_pipeline_coherent/specs/program_model/providers.py -> ex4_pipeline_coherent/generated/pipeline_contract/types.py
+  ex4_pipeline_coherent/tests/driver.py -> ex4_pipeline_coherent/pipeline/dispatch/delivery.py
+  ex4_pipeline_coherent/tests/driver.py -> ex4_pipeline_coherent/pipeline/dispatch/failures.py
+  ex4_pipeline_coherent/tests/driver.py -> ex4_pipeline_coherent/pipeline/ingest/inbox.py
+  ex4_pipeline_coherent/tests/driver.py -> ex4_pipeline_coherent/pipeline/ingest/queue.py
+  ex4_pipeline_coherent/tests/driver.py -> ex4_pipeline_coherent/pipeline/ledger/journal.py
+  ex4_pipeline_coherent/tests/test_behavior.py -> ex4_pipeline_coherent/tests/driver.py
+  ex5_pipeline_divergent/generated/pipeline_contract/__init__.py -> ex5_pipeline_divergent/generated/pipeline_contract/fake.py
+  ex5_pipeline_divergent/generated/pipeline_contract/__init__.py -> ex5_pipeline_divergent/generated/pipeline_contract/ports.py
+  ex5_pipeline_divergent/generated/pipeline_contract/__init__.py -> ex5_pipeline_divergent/generated/pipeline_contract/types.py
+  ex5_pipeline_divergent/generated/pipeline_contract/contract_tests.py -> ex5_pipeline_divergent/generated/pipeline_contract/fake.py
+  ex5_pipeline_divergent/generated/pipeline_contract/contract_tests.py -> ex5_pipeline_divergent/generated/pipeline_contract/types.py
+  ex5_pipeline_divergent/generated/pipeline_contract/contract_tests.py -> ex5_pipeline_divergent/generated/pipeline_contract/validators.py
+  ex5_pipeline_divergent/generated/pipeline_contract/fake.py -> ex5_pipeline_divergent/generated/pipeline_contract/types.py
+  ex5_pipeline_divergent/generated/pipeline_contract/ports.py -> ex5_pipeline_divergent/generated/pipeline_contract/types.py
+  ex5_pipeline_divergent/generated/pipeline_contract/strategies.py -> ex5_pipeline_divergent/generated/pipeline_contract/types.py
+  ex5_pipeline_divergent/generated/pipeline_contract/traces.py -> ex5_pipeline_divergent/generated/pipeline_contract/types.py
+  ex5_pipeline_divergent/generated/pipeline_contract/validators.py -> ex5_pipeline_divergent/generated/pipeline_contract/types.py
+  ex5_pipeline_divergent/pipeline/dispatch/delivery.py -> ex4_pipeline_coherent/pipeline/ingest/queue.py
+  ex5_pipeline_divergent/pipeline/dispatch/failures.py -> ex4_pipeline_coherent/pipeline/dispatch/delivery.py
+  ex5_pipeline_divergent/pipeline/ingest/inbox.py -> ex4_pipeline_coherent/pipeline/ledger/journal.py
+  ex5_pipeline_divergent/pipeline/ingest/queue.py -> ex4_pipeline_coherent/pipeline/ingest/inbox.py
+  ex5_pipeline_divergent/pipeline/ingest/queue.py -> ex4_pipeline_coherent/pipeline/ledger/journal.py
+  ex5_pipeline_divergent/pipeline/ledger/journal.py -> ex4_pipeline_coherent/generated/pipeline_contract/types.py
+  ex5_pipeline_divergent/pipeline/ledger/journal.py -> ex4_pipeline_coherent/pipeline/ingest/inbox.py
+  ex5_pipeline_divergent/tests/driver.py -> ex4_pipeline_coherent/pipeline/dispatch/delivery.py
+  ex5_pipeline_divergent/tests/driver.py -> ex4_pipeline_coherent/pipeline/dispatch/failures.py
+  ex5_pipeline_divergent/tests/driver.py -> ex4_pipeline_coherent/pipeline/ingest/inbox.py
+  ex5_pipeline_divergent/tests/driver.py -> ex4_pipeline_coherent/pipeline/ingest/queue.py
+  ex5_pipeline_divergent/tests/driver.py -> ex4_pipeline_coherent/pipeline/ledger/journal.py
+  ex5_pipeline_divergent/tests/test_behavior.py -> ex4_pipeline_coherent/tests/driver.py
+  ex6_jenga/hub/billing/audit.py -> ex6_jenga/hub/notify/flags.py
+  ex6_jenga/hub/billing/audit.py -> ex6_jenga/hub/orders/lifecycle.py
+  ex6_jenga/hub/notify/flags.py -> ex6_jenga/hub/billing/audit.py
+  ex6_jenga/hub/notify/flags.py -> ex6_jenga/hub/orders/lifecycle.py
+  ex6_jenga/hub/orders/lifecycle.py -> ex6_jenga/hub/billing/audit.py
+  ex6_jenga/hub/orders/lifecycle.py -> ex6_jenga/hub/notify/flags.py
+  runs/ex1-run4/artifacts/providers.py -> ex4_pipeline_coherent/generated/pipeline_contract/types.py
+  runs/ex2-run4/artifacts/providers.py -> ab/reference_ports/domain.py
+  runs/ex2-run4/artifacts/providers.py -> ex4_pipeline_coherent/generated/pipeline_contract/types.py
+  runs/ex3-run4/artifacts/providers.py -> ex4_pipeline_coherent/generated/pipeline_contract/types.py
+
+completeness: 89/89 files parsed (fraction 1.000)
+  not resolved: ab/eval/run_controls.py: getattr(): a reference this instrument cannot resolve
+  not resolved: ex4_pipeline_coherent/generated/pipeline_contract/__init__.py: from .ports import *: names this instrument cannot attribute
+  not resolved: ex4_pipeline_coherent/generated/pipeline_contract/__init__.py: from .types import *: names this instrument cannot attribute
+  not resolved: ex4_pipeline_coherent/generated/pipeline_contract/contract_tests.py: getattr(): a reference this instrument cannot resolve
+  not resolved: ex4_pipeline_coherent/generated/pipeline_contract/validators.py: getattr(): a reference this instrument cannot resolve
+  not resolved: ex4_pipeline_coherent/specs/program_model/adapters.py: getattr(): a reference this instrument cannot resolve
+  not resolved: ex5_pipeline_divergent/generated/pipeline_contract/__init__.py: from .ports import *: names this instrument cannot attribute
+  not resolved: ex5_pipeline_divergent/generated/pipeline_contract/__init__.py: from .types import *: names this instrument cannot attribute
+  not resolved: ex5_pipeline_divergent/generated/pipeline_contract/contract_tests.py: getattr(): a reference this instrument cannot resolve
+  not resolved: ex5_pipeline_divergent/generated/pipeline_contract/validators.py: getattr(): a reference this instrument cannot resolve
+  not resolved: runs/ex5-run4/artifacts/reexport_attack/shared.py: getattr(): a reference this instrument cannot resolve
+  effectful_calls undercounts by construction: 18 sink names are left out of the vocabulary for colliding with in-memory operations (call ~ any callable-invoking method, copy ~ dict.copy / list.copy, delete ~ too generic to attribute, exit ~ any exit method, get ~ dict.get, head ~ too generic to attribute, move ~ too generic to attribute, post ~ too generic to attribute, put ~ queue.put, remove ~ list.remove / set.remove, replace ~ str.replace / dataclasses.replace, request ~ too generic to attribute, run ~ any runner method, sample ~ random.sample / statistical sampling, send ~ generator.send, spawn ~ too generic to attribute, time ~ any attribute named time, walk ~ ast.walk)
+
+column key: role=role; code=code_lines; defs=callables; public=public_surface; inst=instance_state; mod=module_state; branch=branch_points; worst=max_branch_points_in_callable; depth=max_depth; iface=declared_interfaces; effect=effectful_calls
+role rule: role is assigned by NAME alone: a path component in ['test', 'testing', 'tests'], or a filename matching test_*.py, *_test.py or conftest.py, is role=test. Contents are never read.
+
+code complexity report v1
+target: specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure
+
+Figures only. Nothing here is a judgement of them and nothing is prescribed. A figure moving in either direction is not, by itself, evidence about the design (MF-020): a count can fall because behaviour was deleted.
+
+module                      role    code    defs  public    inst     mod  branch   worst   depth   iface  effect
+----------------------------------------------------------------------------------------------------------------
+arm_b_fake.py               code      41       1       1       0       0       0       0       0       0       0
+port_corpus_run.py          code     130       1       3       0       1      16      13       4       0       5
+port_journal_adapters.py    code     172       9       4       3       1      10       4       3       0       4
+ports_binding.py            code      98       9       8       0       1       6       2       1       0       1
+run_port_swap.py            code     435      11      23       0       0      52      15       4       0      19
+
+TOTAL (all modules): modules=5
+  code_lines=876  callables=31  classes=5  public_surface=39
+  instance_state=3  module_state=3  branch_points=84
+  max_branch_points_in_callable=15  max_depth=4
+  declared_interfaces=0  declared_interface_methods=0
+  internal_import_edges=0  effectful_calls=29  modules_with_effectful_calls=4
+  branch_points_in_effectful_modules=84  instance_state_in_effectful_modules=3
+  effect_sinks: copytree, environ, mkdir, mkdtemp, print, read_text, rglob, rmtree, write_text  (groups: filesystem, process, stdio)
+
+TOTAL (role=code): modules=5
+  code_lines=876  callables=31  classes=5  public_surface=39
+  instance_state=3  module_state=3  branch_points=84
+  max_branch_points_in_callable=15  max_depth=4
+  declared_interfaces=0  declared_interface_methods=0
+  internal_import_edges=0  effectful_calls=29  modules_with_effectful_calls=4
+  branch_points_in_effectful_modules=84  instance_state_in_effectful_modules=3
+  effect_sinks: copytree, environ, mkdir, mkdtemp, print, read_text, rglob, rmtree, write_text  (groups: filesystem, process, stdio)
+
+internal import edges (0):
+  (none: no module in this tree imports another)
+
+completeness: 5/5 files parsed (fraction 1.000)
+  not resolved: port_corpus_run.py: getattr(): a reference this instrument cannot resolve
+  not resolved: port_journal_adapters.py: getattr(): a reference this instrument cannot resolve
+  effectful_calls undercounts by construction: 18 sink names are left out of the vocabulary for colliding with in-memory operations (call ~ any callable-invoking method, copy ~ dict.copy / list.copy, delete ~ too generic to attribute, exit ~ any exit method, get ~ dict.get, head ~ too generic to attribute, move ~ too generic to attribute, post ~ too generic to attribute, put ~ queue.put, remove ~ list.remove / set.remove, replace ~ str.replace / dataclasses.replace, request ~ too generic to attribute, run ~ any runner method, sample ~ random.sample / statistical sampling, send ~ generator.send, spawn ~ too generic to attribute, time ~ any attribute named time, walk ~ ast.walk)
+
+column key: role=role; code=code_lines; defs=callables; public=public_surface; inst=instance_state; mod=module_state; branch=branch_points; worst=max_branch_points_in_callable; depth=max_depth; iface=declared_interfaces; effect=effectful_calls
+role rule: role is assigned by NAME alone: a path component in ['test', 'testing', 'tests'], or a filename matching test_*.py, *_test.py or conftest.py, is role=test. Contents are never read.

@@ -1941,3 +1941,75 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket SM-01
+
+- close_scope: ticket
+- close_id: SM-01
+- workflow: subtract-to-measure-epic
+- closed_at: 2026-08-06T20:43:01+00:00
+- summary: Seeded 9 gap mutants and 2 positive controls before any removal, captured the before-state descriptor, sealed 12 predictions with 6 negatives. 3 PASS / 4 FAIL of the 7 decidable now.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket SM-02
+
+- close_scope: ticket
+- close_id: SM-02
+- workflow: subtract-to-measure-epic
+- closed_at: 2026-08-06T23:11:15+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket SM-03
+
+- close_scope: ticket
+- close_id: SM-03
+- workflow: subtract-to-measure-epic
+- closed_at: 2026-08-06T22:14:10+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket SM-04
+
+- close_scope: ticket
+- close_id: SM-04
+- workflow: subtract-to-measure-epic
+- closed_at: 2026-08-07T02:06:40+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket SM-06
+
+- close_scope: ticket
+- close_id: SM-06
+- workflow: subtract-to-measure-epic
+- closed_at: 2026-08-07T14:50:01+00:00
+- summary: One home for the card: 20 live statements of a dimension, an anchor or a scoring rule deleted from 5 files; 3 of 4 disagreeing copies were UNCAUGHT before it; the card's content is byte-unchanged
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket SM-05
+
+- close_scope: ticket
+- close_id: SM-05
+- workflow: subtract-to-measure-epic
+- closed_at: 2026-08-07T18:51:44+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

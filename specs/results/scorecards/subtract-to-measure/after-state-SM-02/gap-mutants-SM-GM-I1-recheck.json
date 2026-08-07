@@ -1,0 +1,172 @@
+{
+  "baselines": {
+    "instrument-registry --only complexity-ledger": {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-0jbd8ear/tree/examples/validation/instruments/demonstrate.py",
+        "--format",
+        "json",
+        "--only",
+        "complexity-ledger"
+      ],
+      "counts": {
+        "passed": 146
+      },
+      "executed": 1,
+      "exit": 0,
+      "failing_nodes": [],
+      "present": true,
+      "red": false,
+      "tail": [
+        "    }",
+        "  ],",
+        "  \"tier\": \"all\"",
+        "}"
+      ]
+    },
+    "pytest-full": {
+      "argv": [
+        "uv",
+        "run",
+        "--with",
+        "pytest",
+        "--with",
+        "pyyaml",
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-0jbd8ear/tree/tests"
+      ],
+      "counts": {
+        "failed": 9,
+        "passed": 1354
+      },
+      "executed": 1363,
+      "exit": 1,
+      "failing_nodes": [
+        "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+        "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+        "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+        "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+        "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+        "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+        "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+        "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+        "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+      ],
+      "present": true,
+      "red": true,
+      "tail": [
+        "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-0jbd8ear/tree/tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+        "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-0jbd8ear/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+        "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-0jbd8ear/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+        "9 failed, 1354 passed in 134.16s (0:02:14)"
+      ]
+    }
+  },
+  "cases": null,
+  "catalogue": "examples/validation/gap_mutants/gap_mutants.toml",
+  "control_red": [],
+  "detectors_with_a_red_control": [],
+  "mutants_not_applied": [],
+  "not_seedable": [
+    {
+      "mechanism": "scripts/code_complexity.py -- the produced-code descriptor",
+      "reason": "IT CORRECTLY CANNOT FAIL. It is a thermometer: it reports, refuses nothing,\ngates nothing, and `EXIT_OK = 0` is the only exit constant in the file. There is\nno gap to seed because there is no claim to catch anything. Named here so that\nits absence from the mutant table is a decision on the record rather than an\nomission, and so that SM-03 does not cut it by counting it with the other eight\nthat cannot be shown to fail.\n",
+      "removed_by": "nothing; it is NOT a removal target"
+    },
+    {
+      "mechanism": "registry row `test-graph-nodes` (test_graph/sources/)",
+      "reason": "NOT IN THIS ENVIRONMENT. Running the Test Graph nodes needs gradle, a JVM and\nJBang, none of which are available here. A mutant seeded into them would report\nINERT on every detector, and an INERT row would be indistinguishable from a\nsurvival to any reader skimming the table. Declared unmeasured rather than\nmeasured as nothing.\n",
+      "removed_by": "SM-03"
+    },
+    {
+      "mechanism": "the `fake =` key of a `[ports.*]` table itself",
+      "reason": "THE FAULT WOULD LIVE IN THE MECHANISM'S OWN DECLARATION. Dropping `fake =` from\n`case_adapters.port-swap.toml` is caught today by `render_oracle_statement`\n('is bound as a port and declares no fake'). But the table is deleted with the\nmachinery, so there is no post-removal tree the mutant could be re-applied to,\nand a before-only reading decides nothing about the cut. SM-GM-P2 seeds the\nequivalent drift in the MANIFEST instead, which outlives SM-02 and is therefore\nre-runnable. Reported so the difference is a decision, not an oversight.\n",
+      "removed_by": "SM-02"
+    },
+    {
+      "mechanism": "registry row `ticket-state-agreement`",
+      "reason": "THE GAP IS ALREADY TOTAL AND THERE IS NOWHERE TO SEED IT. The row is classified\n`no-instrument-exists`: `ticket.yaml`'s `status` is written once by the\nscaffolder and read by nothing (`PA-02-DF-02`, open). Every `ticket.yaml` in the\ntree is under `specs/.history`, which is append-only and must not be mutated\neven in a copy. The cost of removing this row is therefore already paid in full\nand no mutant is needed to price it -- but it is named, because a row that\nvanishes silently from a removal table is how a denominator shrinks.\n",
+      "removed_by": "SM-03"
+    }
+  ],
+  "per_mutant": {
+    "SM-GM-I1-the-cited-demonstration-node-is-collected-and-skipped": {
+      "applied": true,
+      "claims_to_catch": "`complexity-ledger` -- one of the twelve `expect_exit = 0` slots AND one of the two whose failing.nodes == passing.nodes",
+      "control_role": null,
+      "detectors": {
+        "instrument-registry": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 1,
+          "exit": 0,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "    }",
+            "  ],",
+            "  \"tier\": \"all\"",
+            "}"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        },
+        "pytest-full": {
+          "baseline_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+            "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+            "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+            "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+            "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+            "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+          ],
+          "executable_count_available": true,
+          "executed": 1290,
+          "exit": 1,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-0jbd8ear/tree/tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-0jbd8ear/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-0jbd8ear/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "9 failed, 1281 passed, 73 skipped in 123.38s (0:02:03)"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        }
+      },
+      "edits": [
+        {
+          "occurrences_of_find": 1,
+          "op": "replace",
+          "path": "tests/test_complexity_ledger.py"
+        }
+      ],
+      "gap": "THE EXACT HOLE FI-06 NAMED, MADE EXECUTABLE. `demonstrate.py:165-176` compares\nonly the observed exit code, and pytest exits 0 for a passing run AND for a run\nwhose items were all collected and then skipped. So a demonstration whose cited\nnode stops actually asserting anything keeps reporting `ok`, and the registry's\ncount keeps reading as coverage.\n\nTWO SKIP SHAPES, SEEDED SEPARATELY AND ON PURPOSE. This row uses `pytestmark`,\nwhich collects the items and skips them -- pytest exits 0. `SM-GM-I6` uses\n`allow_module_level=True`, which collects nothing -- pytest exits 5. If the\nfirst survives and the second dies, then FI-06's sentence is right about the\nmechanism and imprecise about its reach, and SM-03 needs to know which because\none shape is a real blind spot and the other is not. That distinction was NOT\nin the finding; it came out of a synthetic exercise of this runner before any\nreal mutant was measured, and it is written down here rather than discovered\nlater next to a number.\n\nNote this is also invisible to a full-suite run: a skip is not a failure, so\n`pytest tests -q` stays green either way.\n",
+      "is_control": false,
+      "mechanism": "hollow-pytest-demonstration",
+      "must_die_on": [],
+      "removed_by": "SM-03",
+      "seeded_in": [
+        "tests/test_complexity_ledger.py"
+      ]
+    }
+  },
+  "ref": "HEAD",
+  "registry": {
+    "epic": "subtract-to-measure",
+    "id": "SM-01-gap-mutants",
+    "prices": [
+      "the [ports.*] binding machinery (SM-02, issue #166)",
+      "the hollow instrument demonstrations and the registry's enumeration check (SM-03, issue #167)"
+    ],
+    "seeded_before": "SM-02 and SM-03 -- neither had been dispatched when this file was committed",
+    "ticket": "SM-01"
+  }
+}

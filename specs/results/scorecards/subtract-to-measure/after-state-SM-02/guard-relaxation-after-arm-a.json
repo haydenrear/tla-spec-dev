@@ -1,0 +1,703 @@
+{
+  "actions_with_zero_executed_cases": {
+    "corpus-neg": []
+  },
+  "catalogues": [
+    "specs/results/scorecards/hexagonal-prompting-rerun/measure/catalogue_arm_a.toml",
+    "specs/results/scorecards/hexagonal-prompting-rerun/measure/controls_arm_a.toml"
+  ],
+  "control_coverage": {
+    "negative": {
+      "deciding": [
+        "N01-negative-control-outstanding-id-order"
+      ],
+      "declared": [
+        "M09-negative-control-ledger-order",
+        "N01-negative-control-outstanding-id-order"
+      ],
+      "green": true
+    },
+    "positive": {
+      "deciding": [
+        "M07-positive-control-wrong-hold"
+      ],
+      "declared": [
+        "M07-positive-control-wrong-hold"
+      ],
+      "green": true
+    }
+  },
+  "control_verdicts": {
+    "M07-positive-control-wrong-hold": {
+      "green": true,
+      "instruments_decided": [
+        "suite"
+      ],
+      "instruments_not_decidable": [
+        "corpus-neg"
+      ],
+      "instruments_wrong": [],
+      "must_be": "KILLED",
+      "role": "positive"
+    },
+    "M09-negative-control-ledger-order": {
+      "decides_nothing": true,
+      "green": true,
+      "measured_cells": {
+        "corpus-neg": "SURVIVED",
+        "suite": "KILLED"
+      },
+      "replaced_by": "N01-negative-control-outstanding-id-order",
+      "retirement_reason": "Retired for the reason given in full in examples/validation/ab/eval/controls.toml:\nM09 reverses a SEQUENCE and this model represents its ledger as one\n(`ledger' = Append(ledger, ...)`, projected as a tuple and compared\npositionally), so ordering is expressible and the corpus sees it. The retirement\nis a property of the MODEL, so it holds on every tree measured against that\nmodel. M09 is not deleted, not re-seeded and not excused: it still runs and is\nstill scored in the `ordering` class row. What it stops doing is deciding\nwhether the instrument works.",
+      "role": "negative (RETIRED)"
+    },
+    "N01-negative-control-outstanding-id-order": {
+      "green": true,
+      "instruments_decided": [
+        "corpus-neg",
+        "suite"
+      ],
+      "instruments_not_decidable": [],
+      "instruments_wrong": [],
+      "must_be": "SURVIVED",
+      "reality_witness": {
+        "on_mutated_tree": true,
+        "on_pristine_tree": false,
+        "separates_the_trees": true,
+        "spec": "witnesses:outstanding_ids_not_ascending"
+      },
+      "role": "negative"
+    }
+  },
+  "controls_on_unmutated_code": {
+    "corpus-neg": {
+      "cases": 118,
+      "failures": [],
+      "mapping": "case_adapters.map-none.toml",
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 22,
+          "ran_accepting": 0,
+          "ran_refusing": 22,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 4,
+          "ran_accepting": 0,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 4,
+          "ran_accepting": 0,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 64,
+          "ran_accepting": 0,
+          "ran_refusing": 64,
+          "skipped": 24
+        }
+      },
+      "skipped_by_rule": {
+        "refused only by a constraint on `r`, which this API allocates": 24
+      },
+      "total_failed": 0,
+      "total_ran": 94,
+      "total_skipped": 24
+    },
+    "suite": {
+      "failures": [
+        "28 passed"
+      ],
+      "total_failed": 0
+    }
+  },
+  "declared_suppression_keys": {
+    "specs/results/scorecards/hexagonal-prompting-rerun/measure/controls_arm_a.toml": [
+      "limitation",
+      "limitation[0].witness_ran_must_be",
+      "limitation[1].witness_ran_must_be",
+      "retired_control"
+    ]
+  },
+  "evidence": {
+    "M01-guard-zero-amount": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 4,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "suite": {}
+      },
+      "why": {
+        "corpus-neg": [
+          "case_0031_reserve_rejected: AssertionError: adapter output mismatch for case_0031_reserve_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r1', 't': 't1'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))",
+          "case_0032_reserve_rejected: AssertionError: adapter output mismatch for case_0032_reserve_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r2', 't': 't1'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))",
+          "case_0049_reserve_rejected: AssertionError: adapter output mismatch for case_0049_reserve_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r1', 't': 't2'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))"
+        ],
+        "suite": [
+          "2 failed, 26 passed"
+        ]
+      }
+    },
+    "M02-guard-over-quota": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 36,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "suite": {}
+      },
+      "why": {
+        "corpus-neg": [
+          "case_0033_reserve_rejected: AssertionError: adapter output mismatch for case_0033_reserve_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 1, 'r': 'r1', 't': 't1'}, reason='a <= available[t]', changed={}, outcome_fields=('reason', 'status'))",
+          "case_0034_reserve_rejected: AssertionError: adapter output mismatch for case_0034_reserve_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 1, 'r': 'r2', 't': 't1'}, reason='a <= available[t]', changed={}, outcome_fields=('reason', 'status'))",
+          "case_0035_reserve_rejected: AssertionError: adapter output mismatch for case_0035_reserve_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 2, 'r': 'r1', 't': 't1'}, reason='a <= available[t]', changed={}, outcome_fields=('reason', 'status'))"
+        ],
+        "suite": [
+          "1 failed, 27 passed"
+        ]
+      }
+    },
+    "M03-guard-close-with-outstanding": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 18,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "suite": {}
+      },
+      "why": {
+        "corpus-neg": [
+          "case_0005_close_tenant_rejected: AssertionError: adapter output mismatch for case_0005_close_tenant_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't1'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))",
+          "case_0006_close_tenant_rejected: AssertionError: adapter output mismatch for case_0006_close_tenant_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't2'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))",
+          "case_0007_close_tenant_rejected: AssertionError: adapter output mismatch for case_0007_close_tenant_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't1'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))"
+        ],
+        "suite": [
+          "2 failed, 26 passed"
+        ]
+      }
+    },
+    "M04-durable-stale-total": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "suite": {}
+      },
+      "why": {
+        "suite": [
+          "6 failed, 22 passed"
+        ]
+      }
+    },
+    "M05-durable-close-line-zero-and-swallowed": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "suite": {}
+      },
+      "why": {
+        "suite": [
+          "2 failed, 26 passed"
+        ]
+      }
+    },
+    "M06-wrong-status-on-release": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "suite": {}
+      },
+      "why": {
+        "suite": [
+          "1 failed, 27 passed"
+        ]
+      }
+    },
+    "M07-positive-control-wrong-hold": {
+      "declared_limitations": {
+        "corpus-neg": {
+          "reason": "M07 is a fault on the ACCEPT path of `reserve`: the hold is one unit too large\non a reservation that succeeds. The negative corpus contains only DISABLED edges\n-- every case asserts a refusal plus inertness -- so it executes no accepted\n`Reserve` at all. Zero accepted Reserve cases is not \"the negative corpus missed\na blatant fault\"; it is the negative corpus doing exactly what it is for.",
+          "verified": true,
+          "witness": "positive Reserve cases executed",
+          "witness_basis": "measured",
+          "witness_expected": 0,
+          "witness_observed": 0
+        }
+      },
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "suite": {}
+      },
+      "why": {
+        "suite": [
+          "7 failed, 21 passed"
+        ]
+      }
+    },
+    "M08-cross-aspect-commit-refunds-the-hold": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "suite": {}
+      },
+      "why": {
+        "suite": [
+          "2 failed, 26 passed"
+        ]
+      }
+    },
+    "M09-negative-control-ledger-order": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "suite": {}
+      },
+      "why": {
+        "suite": [
+          "5 failed, 23 passed"
+        ]
+      }
+    },
+    "M10-apply-only-double-refund": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "suite": {}
+      },
+      "why": {
+        "suite": [
+          "2 failed, 26 passed"
+        ]
+      }
+    },
+    "N01-negative-control-outstanding-id-order": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "suite": {}
+      },
+      "why": {
+        "suite": [
+          "28 passed"
+        ]
+      }
+    }
+  },
+  "instruments": [
+    "corpus-neg",
+    "suite"
+  ],
+  "label": "SM-02-guard-relaxation-check-arm-A",
+  "limitations_contradicted_by_evidence": [],
+  "limitations_rejected": [],
+  "mutants": 11,
+  "per_class": {
+    "cross_aspect": {
+      "corpus-neg": "0 of 1",
+      "suite": "1 of 1"
+    },
+    "durable_content": {
+      "corpus-neg": "0 of 2",
+      "suite": "2 of 2"
+    },
+    "guard_relaxation": {
+      "corpus-neg": "3 of 3",
+      "suite": "3 of 3"
+    },
+    "ordering": {
+      "corpus-neg": "0 of 2",
+      "suite": "1 of 2"
+    },
+    "output_oracle": {
+      "corpus-neg": "0 of 1",
+      "suite": "1 of 1"
+    },
+    "wrong_value": {
+      "corpus-neg": "0 of 1 (1 not decidable)",
+      "suite": "2 of 2"
+    }
+  },
+  "per_mutant": {
+    "M01-guard-zero-amount": {
+      "corpus-neg": "KILLED",
+      "suite": "KILLED"
+    },
+    "M02-guard-over-quota": {
+      "corpus-neg": "KILLED",
+      "suite": "KILLED"
+    },
+    "M03-guard-close-with-outstanding": {
+      "corpus-neg": "KILLED",
+      "suite": "KILLED"
+    },
+    "M04-durable-stale-total": {
+      "corpus-neg": "SURVIVED",
+      "suite": "KILLED"
+    },
+    "M05-durable-close-line-zero-and-swallowed": {
+      "corpus-neg": "SURVIVED",
+      "suite": "KILLED"
+    },
+    "M06-wrong-status-on-release": {
+      "corpus-neg": "SURVIVED",
+      "suite": "KILLED"
+    },
+    "M07-positive-control-wrong-hold": {
+      "corpus-neg": "NOT_DECIDABLE",
+      "suite": "KILLED"
+    },
+    "M08-cross-aspect-commit-refunds-the-hold": {
+      "corpus-neg": "SURVIVED",
+      "suite": "KILLED"
+    },
+    "M09-negative-control-ledger-order": {
+      "corpus-neg": "SURVIVED",
+      "suite": "KILLED"
+    },
+    "M10-apply-only-double-refund": {
+      "corpus-neg": "SURVIVED",
+      "suite": "KILLED"
+    },
+    "N01-negative-control-outstanding-id-order": {
+      "corpus-neg": "SURVIVED",
+      "suite": "SURVIVED"
+    }
+  },
+  "reality_witnesses": {
+    "N01-negative-control-outstanding-id-order": {
+      "on_mutated_tree": true,
+      "on_pristine_tree": false,
+      "separates_the_trees": true,
+      "spec": "witnesses:outstanding_ids_not_ascending"
+    }
+  },
+  "retired_controls": {
+    "M09-negative-control-ledger-order": {
+      "mutant": "M09-negative-control-ledger-order",
+      "reason": "Retired for the reason given in full in examples/validation/ab/eval/controls.toml:\nM09 reverses a SEQUENCE and this model represents its ledger as one\n(`ledger' = Append(ledger, ...)`, projected as a tuple and compared\npositionally), so ordering is expressible and the corpus sees it. The retirement\nis a property of the MODEL, so it holds on every tree measured against that\nmodel. M09 is not deleted, not re-seeded and not excused: it still runs and is\nstill scored in the `ordering` class row. What it stops doing is deciding\nwhether the instrument works.\n",
+      "replaced_by": "N01-negative-control-outstanding-id-order",
+      "was": "negative"
+    }
+  },
+  "tree": "specs/results/scorecards/hexagonal-prompting-rerun/measure/../arms/arm_a"
+}

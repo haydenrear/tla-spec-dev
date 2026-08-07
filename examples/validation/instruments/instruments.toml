@@ -49,6 +49,49 @@ epic prefers it to a flattering one; what is targeted is only that nothing is
 silently omitted.
 """
 
+# SM-03. WHERE THE OBLIGATION TO REGISTER APPLIES.
+#
+# Until this ticket, "nothing is silently omitted" was checked by
+# `required <= enumerated` over a literal of thirteen paths -- a RENAME guard
+# that could not catch an instrument NEVER ADDED, conceded in its own docstring
+# and confirmed four times as `FI-04-DF-04`. Lengthening that literal was
+# rejected at `EVAL-RERUN-DF-01` and again at `ARM_MODULE_PREFIXES`, and it
+# would be worse here: the literal has to be edited by the same person who
+# forgot to register the instrument.
+#
+# This block declares a SCOPE instead. Its members are DISCOVERED by walking
+# the tree for executables -- a `__main__` guard plus a nonzero exit path,
+# which is the definition the preamble above already uses -- and every one of
+# them must appear in some row's `paths`. Adding a file cannot satisfy it; only
+# adding a row can.
+#
+# WHAT IT STILL CANNOT SEE. A repo tripwire that is a pytest FILE has no
+# `__main__` and no exit call, so `tests/test_code_complexity.py` and its four
+# siblings are invisible to the scan and are registered by hand. That is a real
+# remaining hole and it is written here rather than left for the next sweep.
+[registry.enumeration]
+roots = ["scripts", "examples/validation"]
+
+  [[registry.enumeration.exclude]]
+  path = "examples/validation/runs"
+  reason = """
+SEALED MEASUREMENT ARCHIVES. `runs/ex4-run1/artifacts/kill_matrix.py` and its
+two siblings are kept byte-identical to the run that produced them; they are
+records of a measurement, not instruments of the toolchain, and re-running one
+is not a property of anything this repository ships. Already declared out by
+the preamble's "WHAT IS DELIBERATELY OUT"; declared out here too so the scan
+agrees with the prose instead of contradicting it.
+"""
+
+  [[registry.enumeration.exclude]]
+  path = "examples/validation/ex1_scaffold_only"
+  reason = """
+A SCAFFOLDED SUBJECT, NOT AN INSTRUMENT. `taskq/taskq.py` is a program the
+toolchain GENERATED, checked in as an example of its output. It is the thing
+instruments are pointed AT. Registering it would put the subject into the
+denominator of a count about the measuring equipment.
+"""
+
 
 # ===========================================================================
 # THE FOUR ORACLES
@@ -125,6 +168,7 @@ decides a run.
     "tests/test_effect_conformance_runner.py::TestRunnerEnforcesEffectConformance::test_dead_declared_port_fails_the_run",
   ]
   expect_exit = 0
+  expect_passed = 2  # SM-03: exit 0 is also what a fully-skipped run returns
 
   [instrument.passing]
   kind = "pytest"
@@ -132,6 +176,7 @@ decides a run.
   summary = "an adapter that writes only where its port says it writes"
   nodes = ["tests/test_effect_conformance_runner.py::TestRunnerEnforcesEffectConformance::test_declared_only_adapter_passes"]
   expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
 
   [instrument.blind_spot]
   kind = "declared"
@@ -429,6 +474,7 @@ as evidence its repair worked.
   summary = "the probe made to go soft: forced to answer HOLDS, the demonstration must fail"
   nodes = ["tests/test_falsifiable_controls.py::test_the_demonstration_FAILS_if_the_probe_goes_soft"]
   expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
 
   [instrument.passing]
   summary = "five controls broken on purpose, each declaring the verdict the probe must return, plus one that works"
@@ -477,6 +523,7 @@ note = "`check_arms()` takes no root and resolves the three PROMPT.md files from
   summary = "the vocabulary probe run against text that DOES carry architectural vocabulary, so a probe that found nothing anywhere would fail"
   nodes = ["tests/test_ab_three_arms_and_port_faults.py::test_the_vocabulary_probe_is_not_vacuous"]
   expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
 
   [instrument.passing]
   summary = "the three shipped prompts"
@@ -555,6 +602,7 @@ classification = "demonstrated-can-fail"
   summary = "IT CANNOT MEASURE A PORTED TREE AT ALL. Its purge is keyed on ARM_MODULE_PREFIXES = ('quota_ledger',), so on a ported tree `domain` and `journal_file` stay cached and every mutant seeded in them runs against unmutated code: 15 of 15 false SURVIVED, no error, looking exactly like a clean measurement."
   nodes = ["tests/test_instrument_demonstrations.py::TestRunControlsCannotMeasureAPortedTree"]
   expect_exit = 0
+  expect_passed = 3  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "port-swap-driver"
@@ -580,6 +628,7 @@ FI-02-DF-02.
   summary = "a red control changes nothing about the exit code, shown against the shipped source"
   nodes = ["tests/test_instrument_demonstrations.py::test_port_swap_driver_has_no_nonzero_exit_path"]
   expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "divergence-reachability"
@@ -620,12 +669,14 @@ when someone changes the fixture.
 """
   nodes = ["tests/test_fixture_can_diverge.py::test_divergence_goes_RED_when_it_claims_reachability_its_own_run_cannot_show"]
   expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
 
   [instrument.passing]
   kind = "pytest"
   summary = "two arms with one composition each and agreeing cells: NULL STILL ENTAILED, no red"
   nodes = ["tests/test_fixture_can_diverge.py::test_divergence_reports_the_null_still_entailed_when_nothing_diverges"]
   expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
 
   [instrument.blind_spot]
   kind = "pytest"
@@ -640,6 +691,7 @@ COUNT rather than a refusal.
 """
   nodes = ["tests/test_fixture_can_diverge.py::test_the_divergence_count_is_not_inflated_by_arm_b_having_an_extra_row"]
   expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "scorecard-check"
@@ -746,6 +798,7 @@ classification = "demonstrated-can-fail"
   summary = "a sealed card edited after sealing"
   nodes = ["tests/test_score_tools.py::test_editing_a_sealed_card_is_detected"]
   expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
 
   [instrument.passing]
   kind = "pytest"
@@ -753,6 +806,7 @@ classification = "demonstrated-can-fail"
   summary = "the committed ledger against its own seals"
   nodes = ["tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit"]
   expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "blinding-sanitiser"
@@ -866,6 +920,7 @@ blind spot, which is real and is not closed.
   summary = "an aliased import, a subprocess invocation, and a figure that reaches an if-test, a comparison and a sys.exit"
   nodes = ["tests/test_instrument_demonstrations.py::TestThermometerTripwire::test_it_reports_a_gate"]
   expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
 
   [instrument.passing]
   kind = "pytest"
@@ -873,6 +928,7 @@ blind spot, which is real and is not closed.
   summary = "a docstring mention, a comment, and a prose sentence written into markdown -- exactly the shape that was failing it -- report nothing"
   nodes = ["tests/test_instrument_demonstrations.py::TestThermometerTripwire::test_it_reports_no_gate_for_prose"]
   expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
 
   [instrument.blind_spot]
   kind = "pytest"
@@ -880,6 +936,7 @@ blind spot, which is real and is not closed.
   summary = "a consumer that reads a previously written complexity JSON and gates on it WITHOUT EVER NAMING THE INSTRUMENT is invisible -- and that is the route the one real reader in this repository takes, so the scan can never be relied on alone"
   nodes = ["tests/test_instrument_demonstrations.py::TestThermometerTripwire::test_the_blind_spot_is_real"]
   expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "twin-fixture-integrity"
@@ -953,19 +1010,40 @@ paths = ["tests/test_source_citations.py"]
 family = "repo-tripwire"
 watches = "that every `path:line (anchor)` citation in the scripts and manifests still lands on the line it names"
 verdict_surface = "pytest assertion"
-classification = "no-demonstration-constructible"
-no_failing_demonstration = """
-NOT WITHOUT BREAKING A SHIPPED FILE. Its predicate is written inline in a
-pytest parametrised over a FIXED list resolved from the test file's own
-location, so there is no root a fixture tree could be handed and no factored
-function a demonstration could call. The only red input is a real citation, a
-real manifest or a real YAML document broken on purpose in the tree every other
-measurement in this epic reads. NOT REPAIRED HERE: refactoring a tripwire to be
-demonstrable while it is watching the trees this ticket measures is the
-forbidden half of the repair rule, and the honest move is to count it. Three
-tripwires share this shape -- `test_source_citations.py`,
-`test_spec_yaml_valid.py` and `test_port_declarations.py` -- and each is
-counted separately rather than folded into one row.
+classification = "demonstrated-can-fail"
+note = """
+SM-03. The second of the four rows whose `no-demonstration-constructible` was a
+fact about `demonstrate.py` rather than about the instrument -- see
+`spec-yaml-tripwire` below for the measurement (`SM-GM-I4`) that established
+it. `REPO_ROOT` here is `Path(__file__).parents[1]`, so a tripwire that
+"resolves from the test file's own location" follows the test file wherever it
+is staged. That was the whole obstacle, and it was the harness's.
+
+Byte-identical: nothing in the tripwire was refactored to make this possible.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a stale internal citation in a staged script -- `budgets.py:3 (anchor)` where the anchor is really on line 217 -- which is exactly the one-line-shift shape RC-02 was written for and which a 'does the line exist' check passes"
+  nodes = ["tests/test_source_citations.py"]
+  expect_exit = 1
+  expect_passed = 1
+  expect_output = ["does not contain the anchor"]
+
+    [[instrument.failing.stage]]
+    from = "tests/test_source_citations.py"
+    to = "tests/test_source_citations.py"
+
+    [[instrument.failing.stage]]
+    from = "scripts/budgets.py"
+    to = "scripts/budgets.py"
+
+    [[instrument.failing.mutate]]
+    file = "scripts/budgets.py"
+    append = """
+
+# SM-03: a deliberately stale citation -- scripts/budgets.py:3 (sm_03_anchor_not_on_line_3)
 """
 
   [instrument.passing]
@@ -974,6 +1052,102 @@ counted separately rather than folded into one row.
   summary = "the repository's own citations"
   nodes = ["tests/test_source_citations.py"]
   expect_exit = 0
+  expect_passed_at_least = 78  # SM-03: exit 0 is also what a fully-skipped run returns
+
+[[instrument]]
+id = "one-home-tripwire"
+name = "one home for the eval card"
+paths = ["tests/test_card_has_one_home.py"]
+family = "repo-tripwire"
+watches = "that no live file outside references/eval_scorecard.md states one of the card's dimensions, anchors or scoring rules"
+verdict_surface = "pytest assertion"
+classification = "demonstrated-can-fail"
+note = """
+SM-06. REGISTERED BY HAND, because a repo tripwire that is a pytest FILE has no
+`__main__` and no exit call and is invisible to `[registry.enumeration]`. That
+is the hole SM-03 wrote down rather than left for the next sweep; this is the
+sixth file in it and the count is now six, not five.
+
+WHY IT EXISTS, MEASURED. Four copies of the card were made to DISAGREE with the
+card at `6aac1ec`, before anything was deleted, and the whole repository was
+asked whether it noticed:
+
+  M1  a charter's dimension table with two rows carrying each other's titles
+      -- the shape two rows of PORTS-AS-ADAPTERS-EPIC.md actually had  UNCAUGHT
+  M2  a scoring rule inverted inside a judge's evidence packet             UNCAUGHT
+  M3  the same rule inverted in every scaffolded scorecard.md              UNCAUGHT
+  M4  an anchor edited inside a SEALED scorecard.md  (the control)         CAUGHT
+
+The 1378-test suite, `demonstrate.py`, `check`, `audit` and `serve` were all
+green on M1, M2 and M3. M4 went red on three surfaces, so that green is a fact
+about the copies and not about a dead harness (R2). Recorded in
+`specs/results/scorecards/subtract-to-measure/SM-06/dup-mutants-before.json`.
+
+WHAT IT CANNOT SEE, and the second one is the load-bearing admission.
+
+A PARAPHRASE ESCAPES. The needles are the card's dimension titles, anchor
+opening clauses and scoring-rule lead sentences, parsed out of the card at run
+time and matched on CONTENT WORDS, so punctuation and dropped connectives do not
+hide a copy. That finds a quotation. It does not find a restatement in someone
+else's words, and no tightening of it will without matching ordinary English as
+well. Several of the copies this ticket deleted were paraphrases and were found
+by READING, not by this. `test_the_blind_spots_are_declared_and_still_real`
+demonstrates the miss rather than asserting it.
+
+ONE SCORING RULE IS NOT WATCHED AT ALL. Its lead sentence is three words, short
+enough that matching it would flag any sentence on the same subject, so it is
+dropped rather than matched loosely. Which rule that is comes out of the card,
+never out of the check.
+
+AND THE SCOPE IS FIVE CARVE-OUTS, WHICH IS THE THING TO WATCH. One principle --
+a record of what was true when it was written is not a live declaration -- with
+five instances: the card, `specs/.history/`, records under `specs/results/`, the
+sealed `PREDICTIONS-*.md`, and `deferred_findings.yaml`, whose findings quote
+the text they are findings about. `.py` under `specs/results/` is deliberately
+IN scope, because `measure/build_evidence_packets.py` writes into a judge's
+packet and was M2. A sixth carve-out should be argued for, not added.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a second home for the card: the rubric staged to a SECOND path in a throwaway tree, so a live file other than the card states every dimension, every anchor and every scoring rule at once"
+  nodes = ["tests/test_card_has_one_home.py"]
+  expect_exit = 1
+  expect_passed = 7
+  expect_output = ["the card is stated outside references/eval_scorecard.md"]
+  # THE FIXTURE IS THE CARD, STAGED TWICE, and nothing here spells a word of it.
+  # A hand-written offending charter would have put a copy of the card into this
+  # registry -- which is the violation this row exists to detect, committed by
+  # the row that detects it. Staging the rubric to a second path produces a
+  # perfect offender that can never drift from the card, because it IS the card.
+    [[instrument.failing.stage]]
+    from = "tests/test_card_has_one_home.py"
+    to = "tests/test_card_has_one_home.py"
+
+    [[instrument.failing.stage]]
+    from = "tests/test_score_tools.py"
+    to = "tests/test_score_tools.py"
+
+    [[instrument.failing.stage]]
+    from = "references/eval_scorecard.md"
+    to = "references/eval_scorecard.md"
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/scorecards/score_tools.py"
+    to = "examples/validation/scorecards/score_tools.py"
+
+    [[instrument.failing.stage]]
+    from = "references/eval_scorecard.md"
+    to = "THE-SECOND-HOME.md"
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the repository as this ticket left it: one home for the card, and the two second copies that something executes a comparison for"
+  nodes = ["tests/test_card_has_one_home.py"]
+  expect_exit = 0
+  expect_passed = 8  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "spec-yaml-tripwire"
@@ -982,20 +1156,61 @@ paths = ["tests/test_spec_yaml_valid.py"]
 family = "repo-tripwire"
 watches = "that every YAML under specs/ loads under PyYAML AND under the repository's own simple parser"
 verdict_surface = "pytest assertion"
-classification = "no-demonstration-constructible"
-note = "The epic's plan notes name this one directly: ports-as-adapters spent its whole length with open/close ticket unrunnable because only the first reader was checked."
-no_failing_demonstration = """
-NOT WITHOUT BREAKING A SHIPPED FILE. Its predicate is written inline in a
-pytest parametrised over a FIXED list resolved from the test file's own
-location, so there is no root a fixture tree could be handed and no factored
-function a demonstration could call. The only red input is a real citation, a
-real manifest or a real YAML document broken on purpose in the tree every other
-measurement in this epic reads. NOT REPAIRED HERE: refactoring a tripwire to be
-demonstrable while it is watching the trees this ticket measures is the
-forbidden half of the repair rule, and the honest move is to count it. Three
-tripwires share this shape -- `test_source_citations.py`,
-`test_spec_yaml_valid.py` and `test_port_declarations.py` -- and each is
-counted separately rather than folded into one row.
+classification = "demonstrated-can-fail"
+note = """
+The epic's plan notes name this one directly: ports-as-adapters spent its whole
+length with open/close ticket unrunnable because only the first reader was
+checked.
+
+SM-03: THE REASON WAS ABOUT THE RUNNER, NOT ABOUT THIS INSTRUMENT.
+
+It was classified `no-demonstration-constructible` on the ground that the only
+red input is *"a real YAML document broken on purpose in the tree every other
+measurement in this epic reads"*. That was true only while `demonstrate.py` ran
+every pytest slot at `REPO_ROOT` regardless of the tree it had just staged.
+`SM-GM-I4` measured it: break a shipped YAML in a THROWAWAY tree and the
+tripwire goes red in 23 executed tests. The instrument was demonstrable the
+whole time; the harness could not point at it.
+
+`run_pytest` now stages, and this is a `demonstrated-can-fail` row. Note what
+it did NOT take: the tripwire is byte-identical. Nothing was refactored to be
+demonstrable while it was watching the trees this ticket measures -- that is
+the forbidden half of the repair rule, and it is why the original
+classification was defensible even though its stated reason was wrong.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a shipped YAML document committed unparseable -- an unclosed flow sequence and a doubled mapping key -- in a STAGED tree, which is the SM-GM-I4 edit"
+  nodes = ["tests/test_spec_yaml_valid.py"]
+  expect_exit = 1
+  expect_passed = 3
+  expect_output = ["is not valid YAML"]
+
+    [[instrument.failing.stage]]
+    from = "tests/test_spec_yaml_valid.py"
+    to = "tests/test_spec_yaml_valid.py"
+
+    [[instrument.failing.stage]]
+    from = "specs/results/coverage_audit_ledger_input.yaml"
+    to = "specs/coverage_audit_ledger_input.yaml"
+
+    [[instrument.failing.stage]]
+    from = "specs/desired_program_model/desired_state.yaml"
+    to = "specs/desired_state.yaml"
+
+    [[instrument.failing.stage]]
+    from = "specs/results/complexity_ledger_input.yaml"
+    to = "specs/complexity_ledger_input.yaml"
+
+    [[instrument.failing.mutate]]
+    file = "specs/complexity_ledger_input.yaml"
+    append = """
+
+# SM-03: deliberately unparseable below this line, per SM-GM-I4
+sm_03_broken: [unclosed, "mapping: value
+  - and: a: b: c
 """
 
   [instrument.passing]
@@ -1004,6 +1219,20 @@ counted separately rather than folded into one row.
   summary = "the repository's own specs/ tree"
   nodes = ["tests/test_spec_yaml_valid.py"]
   expect_exit = 0
+  # SM-03: exit 0 is also what a fully-skipped run returns.
+  #
+  # THE FLOOR WAS 23 AND 23 WAS NEVER A REAL NUMBER. It was measured while
+  # `open ticket SM-03` had four scaffolded YAML files sitting in
+  # `specs/tickets/SM-03/`, and this test parametrises over `specs/**/*.y*ml`.
+  # `close ticket` removed the workspace and the count went back to 19 -- so
+  # the declaration was pinned to a tree that could not outlive the ticket that
+  # wrote it. 19 is the steady state, confirmed on a clean `git archive` of
+  # f0c215d and again at the tip.
+  #
+  # Caught by `demonstrate.py`, which is the point: this slot is `tier = "slow"`
+  # so the fast tier skips it, and the acceptance suite stayed GREEN through
+  # the whole thing. Only the full registry run reports this class.
+  expect_passed_at_least = 19
 
 [[instrument]]
 id = "manifest-self-records-tripwire"
@@ -1014,14 +1243,23 @@ watches = "the manifest's own prose counts against the module beside it, and tha
 verdict_surface = "pytest assertion"
 classification = "no-demonstration-constructible"
 no_failing_demonstration = """
-Its assertions are written against the three committed trees directly, with no
-predicate factored out that a fixture could be handed, so the only way to show
-it red is to break a real manifest -- and the shipped trees are the subject of
-every other measurement in this epic. NOT REPAIRED HERE: refactoring a tripwire
-to be demonstrable while it is watching the trees this ticket measures is the
-forbidden half of the repair rule. The same reasoning applies to
-`tests/test_scaffold_skill_root.py` and `tests/test_port_declarations.py`,
-which are enumerated separately below.
+SM-03 REPLACED THE REASON THAT USED TO BE HERE, WHICH WAS FALSE.
+
+It said the only way to show it red is to break a real manifest "and the
+shipped trees are the subject of every other measurement in this epic".
+`SM-GM-I4` refuted that: a shipped file broken in a THROWAWAY tree turns the
+sibling tripwire red in 23 executed tests, and since this ticket `run_pytest`
+stages, so breaking a shipped file no longer means touching the shipped tree.
+Two of the four rows that carried this reason are now `demonstrated-can-fail`.
+
+WHAT IS ACTUALLY LEFT, and it is smaller and duller than the old sentence. Its
+assertions read all THREE manifest trees -- `program_model`, `current`,
+`desired_program_model` -- and cross-check each manifest's prose counts against
+the module beside it, so a staged tree has to carry three manifests and three
+TLA+ modules kept mutually consistent. Constructible; not constructed at SM-03,
+which spent its staging budget on the two rows above. This row is counted in
+"cannot be shown to fail" and it is a SCOPE statement about this ticket, not a
+property of the instrument. `SM-03-DF-03`.
 """
 
   [instrument.passing]
@@ -1030,6 +1268,7 @@ which are enumerated separately below.
   summary = "the three committed trees"
   nodes = ["tests/test_spec_manifest_records.py"]
   expect_exit = 0
+  expect_passed_at_least = 18  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "skill-root-tripwire"
@@ -1047,6 +1286,7 @@ note = "Already falsifiable as shipped: it executes the emitted bytes in subproc
   summary = "the seven shipped cases, several of which are negative"
   nodes = ["tests/test_scaffold_skill_root.py"]
   expect_exit = 0
+  expect_passed_at_least = 14  # SM-03: exit 0 is also what a fully-skipped run returns
 
   [instrument.failing]
   kind = "pytest"
@@ -1057,6 +1297,7 @@ note = "Already falsifiable as shipped: it executes the emitted bytes in subproc
     "tests/test_scaffold_skill_root.py::test_an_explicit_override_that_is_wrong_refuses_instead_of_falling_through",
   ]
   expect_exit = 0
+  expect_passed = 4  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "port-declaration-tripwire"
@@ -1068,17 +1309,31 @@ verdict_surface = "pytest assertion"
 classification = "no-demonstration-constructible"
 note = "This tripwire is itself an S2 instrument -- it exists precisely to reject a criterion nothing can fail -- and it does not satisfy S2 itself."
 no_failing_demonstration = """
-NOT WITHOUT BREAKING A SHIPPED FILE. Its predicate is written inline in a
-pytest parametrised over a FIXED list resolved from the test file's own
-location, so there is no root a fixture tree could be handed and no factored
-function a demonstration could call. The only red input is a real citation, a
-real manifest or a real YAML document broken on purpose in the tree every other
-measurement in this epic reads. NOT REPAIRED HERE: refactoring a tripwire to be
-demonstrable while it is watching the trees this ticket measures is the
-forbidden half of the repair rule, and the honest move is to count it. Three
-tripwires share this shape -- `test_source_citations.py`,
-`test_spec_yaml_valid.py` and `test_port_declarations.py` -- and each is
-counted separately rather than folded into one row.
+SM-03 REPLACED THE REASON THAT USED TO BE HERE, WHICH WAS FALSE.
+
+It said "NOT WITHOUT BREAKING A SHIPPED FILE ... no root a fixture tree could be
+handed". `SM-GM-I4` refuted that for this whole family and `spec-yaml-tripwire`
+and `source-citation-tripwire` are now demonstrated by breaking a shipped file
+in a STAGED tree, which is what `run_pytest` does since this ticket. The old
+sentence was a fact about the harness.
+
+THE REAL OBSTACLE, MEASURED RATHER THAN ASSERTED. Staging it and seeding a
+degenerate `target: "**"` DOES produce the extra failure --
+`test_no_declared_port_target_is_degenerate[program_model]` appears and nothing
+else changes. But the staged tree is not green to begin with: the file imports
+`run_generated_case_adapters` transitively through `scripts/`, and a tree small
+enough to stage cannot satisfy that import, so three unrelated nodes are red
+before the seed lands.
+
+AND THAT IS A DEFECT IN THE RUNNER, NOT IN THIS ROW. `demonstrate.py` judges an
+EXIT CODE, so red-on-red is indistinguishable from red-on-green and the
+demonstration would report `ok` for the wrong reason. `run_gap_mutants.py`
+solved exactly this one directory over -- it runs each detector on the pristine
+tree first and compares FAILURE SETS, never exit codes, because a `git archive`
+tree has nine pre-existing failures. The registry runner has no such baseline.
+Filed as `SM-03-DF-01`; NOT fixed here, because a second structural change to
+the runner inside the ticket that is counting what the runner reports is how a
+measurement stops being one.
 """
 
   [instrument.passing]
@@ -1087,6 +1342,7 @@ counted separately rather than folded into one row.
   summary = "the repository's declared ports"
   nodes = ["tests/test_port_declarations.py"]
   expect_exit = 0
+  expect_passed_at_least = 6  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "complexity-ledger"
@@ -1097,19 +1353,43 @@ watches = "that a complexity increase carries a justification, a decrease carrie
 verdict_surface = "SystemExit on the close path: 'close refused by the complexity ledger'"
 classification = "demonstrated-can-fail"
 
+# SM-03. THIS ROW RAN THE SAME COMMAND TWICE.
+#
+# `failing.nodes == passing.nodes == ["tests/test_complexity_ledger.py"]`, both
+# `expect_exit = 0`. The two slots were byte-identical, so the pair demonstrated
+# ONE thing -- that the file is green -- and reported it as two. One of only two
+# rows in the registry with that shape, and the row `SM-GM-I1` was seeded
+# against.
+#
+# Repaired by citing the nodes that actually perform the break-and-check, so
+# `failing` runs refusals and `passing` runs acceptances and the two are
+# different runs. With the counts below, a `pytestmark` skip now makes both
+# slots report MISS instead of `ok`.
+
   [instrument.failing]
   kind = "pytest"
   tier = "slow"
-  summary = "a ledger entry left with its scaffolded TEMPLATE sentinel, and a decrease whose refactor is UNVERIFIED"
-  nodes = ["tests/test_complexity_ledger.py"]
+  summary = "a ledger entry left with its scaffolded TEMPLATE sentinel, an increase with no justification, and a decrease whose refactor basis is UNVERIFIED -- three refusals, each asserted to REFUSE"
+  nodes = [
+    "tests/test_complexity_ledger.py::TestIncreaseJustification::test_template_sentinel_does_not_count_as_a_justification",
+    "tests/test_complexity_ledger.py::TestIncreaseJustification::test_increase_without_justification_is_refused",
+    "tests/test_complexity_ledger.py::TestAntiGaming::test_decrease_without_the_validated_refactor_basis_is_rejected",
+    "tests/test_complexity_ledger.py::TestValidatedRefactorBasis::test_decrease_with_failed_behavior_tests_is_rejected",
+  ]
   expect_exit = 0
+  expect_passed = 4  # SM-03: exit 0 is also what a fully-skipped run returns
 
   [instrument.passing]
   kind = "pytest"
   tier = "slow"
-  summary = "a complete entry"
-  nodes = ["tests/test_complexity_ledger.py"]
+  summary = "a complete entry, a zero delta, and an increase that DOES carry a justification -- the same instrument on subjects it must not refuse"
+  nodes = [
+    "tests/test_complexity_ledger.py::TestIncreaseJustification::test_increase_with_justification_is_allowed_and_still_recorded",
+    "tests/test_complexity_ledger.py::TestDelta::test_zero_delta_is_accepted_and_reported_as_zero",
+    "tests/test_complexity_ledger.py::TestDelta::test_first_entry_establishes_a_baseline",
+  ]
   expect_exit = 0
+  expect_passed = 3  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "close-promotion-preconditions"
@@ -1126,6 +1406,7 @@ classification = "demonstrated-can-fail"
   summary = "MF-021: a promotion that would delete a current/ path the ticket never received"
   nodes = ["tests/test_promotion_preserves_current.py"]
   expect_exit = 0
+  expect_passed_at_least = 6  # SM-03: exit 0 is also what a fully-skipped run returns
 
   [instrument.passing]
   kind = "pytest"
@@ -1133,6 +1414,7 @@ classification = "demonstrated-can-fail"
   summary = "an ordinary close"
   nodes = ["tests/test_spec_evolution.py"]
   expect_exit = 0
+  expect_passed_at_least = 12  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "external-channel-enforcement"
@@ -1149,6 +1431,7 @@ classification = "demonstrated-can-fail"
   summary = "a binding with no channel, and one whose adapter reaches the production package"
   nodes = ["tests/test_testgraph_channels.py"]
   expect_exit = 0
+  expect_passed_at_least = 30  # SM-03: exit 0 is also what a fully-skipped run returns
 
   [instrument.passing]
   kind = "pytest"
@@ -1156,6 +1439,7 @@ classification = "demonstrated-can-fail"
   summary = "a correctly channelled external binding"
   nodes = ["tests/test_export_testgraph_cases.py"]
   expect_exit = 0
+  expect_passed_at_least = 7  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "spec-unit-adapter-conformance"
@@ -1173,6 +1457,7 @@ note = "The single largest refusal surface in the repository and the easiest to 
   summary = "a projected after-state that disagrees with the model, and a stutter step that changed state"
   nodes = ["tests/test_case_adapter_runtime.py::test_assert_case_result_per_field_fails_on_checked_field"]
   expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
 
   [instrument.passing]
   kind = "pytest"
@@ -1180,6 +1465,7 @@ note = "The single largest refusal surface in the repository and the easiest to 
   summary = "the committed adapters against the committed model"
   nodes = ["tests/test_case_adapter_runtime.py"]
   expect_exit = 0
+  expect_passed_at_least = 19  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "case-modules-validate"
@@ -1190,19 +1476,38 @@ watches = "the `case_modules:` block: that an `extends:` resolves and a declared
 verdict_surface = "exit 1 on an error, exit 2 on a missing manifest"
 classification = "demonstrated-can-fail"
 
+# SM-03. THE SECOND OF THE TWO ROWS THAT RAN THE SAME COMMAND TWICE.
+#
+# Same shape as `complexity-ledger` above: both slots were
+# `["tests/test_case_modules.py"]`, both `expect_exit = 0`. Repaired the same
+# way -- the failing slot now runs four nodes that each assert a REFUSAL, and
+# the passing slot three that assert the validator stays quiet, including the
+# absent-block case that is deliberately not a problem.
+
   [instrument.failing]
   kind = "pytest"
   tier = "slow"
-  summary = "a case module whose `extends:` names a module that does not exist"
-  nodes = ["tests/test_case_modules.py"]
+  summary = "a case module whose `extends:` names a module that does not exist, two siblings defining the same module, a `given` with no recorded claim, and a generation that must refuse before TLC"
+  nodes = [
+    "tests/test_case_modules.py::test_an_unresolvable_extends_names_the_module_and_every_directory",
+    "tests/test_case_modules.py::test_two_siblings_defining_the_same_module_is_an_error_not_a_coin_flip",
+    "tests/test_case_modules.py::test_a_given_without_a_recorded_claim_is_a_schema_error",
+    "tests/test_case_modules.py::test_generation_refuses_before_tlc_when_a_module_is_missing",
+  ]
   expect_exit = 0
+  expect_passed = 4  # SM-03: exit 0 is also what a fully-skipped run returns
 
   [instrument.passing]
   kind = "pytest"
   tier = "slow"
   summary = "a well-formed block, and an absent block (which is deliberately not a problem)"
-  nodes = ["tests/test_case_modules.py"]
+  nodes = [
+    "tests/test_case_modules.py::test_a_manifest_without_the_block_is_not_a_problem",
+    "tests/test_case_modules.py::test_declarations_carry_form_scope_and_claim",
+    "tests/test_case_modules.py::test_the_shipped_example_declares_its_case_modules",
+  ]
   expect_exit = 0
+  expect_passed = 3  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "test-graph-nodes"
@@ -1488,3 +1793,424 @@ watches = "nothing"
 verdict_surface = "none -- always returns 0"
 classification = "not-an-instrument"
 no_failing_demonstration = "Pure renderer. It writes INDEX.md and prints it."
+
+
+# ===========================================================================
+# ADDED BY SM-03 -- THE EIGHTEEN THE ENUMERATION COULD NOT SEE
+# ===========================================================================
+#
+# `FI-06-DF-01` said the registry was short by "AT LEAST EIGHT". Once the check
+# stopped being a literal and started walking the tree, the number was
+# EIGHTEEN, and one of them is `demonstrate.py` -- the file that prints the
+# count.
+#
+# READ THE ARITHMETIC BEFORE THE ROWS. These rows make the denominator BIGGER
+# and the headline ratio WORSE, and that is the honest direction:
+# `26 of 35` was never a ratio over a known set, it was a ratio over the set
+# somebody remembered. `denominator_rule` is usually pointed at a denominator
+# that SHRANK; it applies just as hard to one that was too small to begin with.
+#
+# Most of these carry no failing demonstration and say why. That is the R2
+# shape, not a placeholder: a row with a written reason is a thing a reader can
+# argue with, and a missing row is not.
+
+
+[[instrument]]
+id = "enumeration-runner"
+name = "the instrument enumerator itself"
+paths = ["examples/validation/instruments/demonstrate.py"]
+family = "measurement"
+watches = "every declared demonstration in this file, and whether it still reproduces"
+verdict_surface = "exit 1 when a declared demonstration stops reproducing"
+classification = "demonstrated-can-fail"
+note = """
+THE INSTRUMENT THAT COUNTS THE INSTRUMENTS, ABSENT FROM ITS OWN REGISTRY for
+three tickets. `FI-06-DF-01` named it; `SM-GM-I5` seeded its verdict away and
+found the enumerator's exit code IS watched, by the two nodes cited below --
+so the counts this file prints were not, after all, coming from a program
+nobody checked. That was a refutation of `SM-01`'s own prediction `N06` and it
+is why this row is `demonstrated-can-fail` rather than an admission.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a declaration that is false (a run declared to exit 1 that exits 0), and a mutation whose `find` string occurs zero times -- the runner must report both rather than print `ok`"
+  nodes = [
+    "tests/test_instrument_demonstrations.py::test_the_runner_REPORTS_a_demonstration_that_stops_reproducing",
+    "tests/test_instrument_demonstrations.py::test_the_runner_refuses_a_mutation_that_seeds_nothing",
+  ]
+  expect_exit = 0
+  expect_passed = 2
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the shipped registry's own fast tier, every declaration reproducing"
+  nodes = ["tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces"]
+  expect_exit = 0
+  expect_passed = 1
+
+  [instrument.blind_spot]
+  kind = "pytest"
+  tier = "slow"
+  summary = "IT CANNOT SEE A SLOT THAT DEMONSTRATES NOTHING, ONLY ONE THAT DEMONSTRATES WRONGLY. `expect_passed` closes the vacuous-run hole SM-GM-I1 found, but a slot citing a node whose assertions are all trivially true still reports `ok` at full count -- the runner judges that the cited test PASSED, never what it asserted."
+  nodes = ["tests/test_instrument_demonstrations.py::test_a_cited_node_that_asserts_nothing_still_reports_ok"]
+  expect_exit = 0
+  expect_passed = 1
+
+
+[[instrument]]
+id = "registry-enumeration-coverage"
+name = "executables under a declared root with no registry row"
+paths = ["examples/validation/instruments/demonstrate.py"]
+family = "repo-tripwire"
+watches = "every `__main__`-guarded file with a nonzero exit path under `[registry.enumeration] roots`, against the set of declared `paths`"
+verdict_surface = "exit 1 naming each unregistered executable"
+classification = "demonstrated-can-fail"
+note = """
+SM-03's repair of `FI-04-DF-04`, confirmed four times and never fixed because
+every proposed fix was a longer list. `SM-GM-I3` is its demonstrated failing
+input and it SURVIVED everything at SM-01: a new executable under `scripts/`
+with argparse, a `__main__` and a nonzero exit, no row, and both
+`registry-enumeration` and the full suite green.
+
+It is measured against a tree it is HANDED, never against wherever it lives.
+SM-01 found the gap-mutant runner detecting itself for exactly the opposite
+reason, and anything that measures the registry inherits that risk.
+"""
+
+  [instrument.failing]
+  summary = "an executable under a declared root, with argparse, a `__main__` and a nonzero exit path, and no row anywhere -- SM-GM-I3, staged"
+  argv = ["{python}", "{repo}/examples/validation/instruments/demonstrate.py",
+          "--check-enumeration", "--root", "{tree}"]
+  expect_exit = 1
+  expect_output = ["UNREGISTERED INSTRUMENTS: 1", "scripts/gap_probe_instrument.py"]
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/gap_mutants/run_gap_mutants.py"
+    to = "scripts/gap_probe_instrument.py"
+
+  [instrument.passing]
+  summary = "THE SAME FILE, at a path the registry DOES declare. The scan discovers a candidate in both trees, so the red above is the missing ROW's doing and not the staging's -- a passing slot that staged an empty tree would only have proved that nothing was found."
+  argv = ["{python}", "{repo}/examples/validation/instruments/demonstrate.py",
+          "--check-enumeration", "--root", "{tree}"]
+  expect_exit = 0
+  expect_output = ["Every discovered executable has a row."]
+
+    [[instrument.passing.stage]]
+    from = "examples/validation/gap_mutants/run_gap_mutants.py"
+    to = "scripts/tla_spec_dev.py"
+
+  [instrument.blind_spot]
+  kind = "pytest"
+  tier = "slow"
+  summary = "IT CANNOT SEE A REPO TRIPWIRE THAT IS A PYTEST FILE. The predicate is a `__main__` guard plus a nonzero exit path, and `tests/test_code_complexity.py` and its four siblings have neither -- so the five rows the registry most depends on are exactly the five this check would never have asked for."
+  nodes = ["tests/test_instrument_demonstrations.py::test_the_derived_check_cannot_see_a_tripwire_that_is_a_test_file"]
+  expect_exit = 0
+  expect_passed = 1
+
+
+[[instrument]]
+id = "gap-mutant-runner"
+name = "SM-01's gap-mutant runner"
+paths = ["examples/validation/gap_mutants/run_gap_mutants.py"]
+family = "measurement"
+watches = "whether a fault seeded in a mechanism's gap is detected, before and after that mechanism is removed"
+verdict_surface = "exit 1 when a declared mutant could not be APPLIED; per-cell DIES/SURVIVES/INERT/REMOVED in its JSON"
+classification = "demonstrated-can-fail"
+note = """
+Shipped by SM-01 in this epic and unregistered on arrival -- the fifth
+occurrence of `FI-04-DF-04`, and the second by a ticket that was writing about
+the failure while committing it. Registered here by the check that now catches
+it.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "an anchor that matches twice, an edit that changes nothing, an add_file that would overwrite, and a target that does not exist -- four ways to seed nothing, each of which must REFUSE rather than report a survival"
+  nodes = [
+    "tests/test_gap_mutants.py::test_an_anchor_that_matches_twice_refuses_rather_than_mutating_one",
+    "tests/test_gap_mutants.py::test_an_edit_that_changes_nothing_refuses",
+    "tests/test_gap_mutants.py::test_an_add_file_that_would_overwrite_refuses",
+    "tests/test_gap_mutants.py::test_a_missing_target_refuses_rather_than_reporting_a_survival",
+  ]
+  expect_exit = 0
+  expect_passed = 4
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a real fault that dies with its failing node named, and an apply-then-restore that leaves the tree byte-identical"
+  nodes = [
+    "tests/test_gap_mutants.py::test_a_real_fault_dies_and_the_failing_node_is_named",
+    "tests/test_gap_mutants.py::test_apply_then_restore_leaves_the_tree_byte_identical",
+  ]
+  expect_exit = 0
+  expect_passed = 2
+
+  [instrument.blind_spot]
+  kind = "pytest"
+  tier = "slow"
+  summary = "IT DETECTED ITSELF. Its catalogue-integrity test reads mutant anchors out of whichever tree it runs in, which during a measurement is the MUTATED one, so it fired on every mutant and on two of them was the ONLY new failure -- scoring both DIES where the repository catches neither. Excluded from the verdict and reported per cell, not repaired."
+  nodes = ["tests/test_gap_mutants.py::test_this_runners_own_integrity_test_is_not_counted_as_a_repository_kill"]
+  expect_exit = 0
+  expect_passed = 1
+
+
+[[instrument]]
+id = "manifest-validator"
+name = "spec manifest validator"
+paths = ["scripts/extract_spec_manifest.py"]
+family = "workflow"
+watches = "that a spec_manifest.yaml carries every required key and parses under the constrained YAML subset"
+verdict_surface = "exit 1 with `ERROR: missing required manifest key: ...`"
+classification = "demonstrated-can-fail"
+note = """
+IT IS RED ON THE SHIPPED TREE AND HAS BEEN FOR AT LEAST TWO EPICS.
+
+    cd specs/program_model && python3 ../../scripts/extract_spec_manifest.py spec_manifest.yaml
+    ERROR: missing required manifest key: state
+    ERROR: missing required manifest key: commands
+    ERROR: missing required manifest key: results
+    exit 1
+
+Re-derived at SM-03, not quoted from FI-06. `scripts/generate_python.py` shares
+the predicate. NOT FIXED HERE -- `measurement_rule` forbids fixing during a
+measurement, and a red instrument that is now REGISTERED and visible is worth
+more to the next ticket than a quietly green one. `SM-03-DF-02`.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "an inline mapping the constrained parser cannot represent -- it must fail CLOSED with an actionable dependency-invariant error rather than silently parsing differently with and without PyYAML installed"
+  nodes = [
+    "tests/test_extract_spec_manifest.py::test_inline_mapping_fails_closed_with_actionable_dependency_invariant_error",
+  ]
+  expect_exit = 0
+  expect_passed = 1
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the same manifests parsed with and without the optional YAML package, generating an identical tree"
+  nodes = [
+    "tests/test_extract_spec_manifest.py::test_complete_generated_tree_is_identical_with_and_without_site_packages",
+    "tests/test_extract_spec_manifest.py::test_load_manifest_ignores_optional_yaml_package",
+  ]
+  expect_exit = 0
+  expect_passed = 2
+
+
+[[instrument]]
+id = "cli-facade"
+name = "the tla-spec-dev CLI"
+paths = ["scripts/tla_spec_dev.py"]
+family = "workflow"
+watches = "that a subcommand's preconditions hold -- spec tests exist, a target has validations, an --out path is covered by the evidence port"
+verdict_surface = "exit 2 with next-step guidance"
+classification = "demonstrated-can-fail"
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a run with no spec tests at all, a selected target with no validations, an incomplete parent command, and an --out the evidence port does not cover"
+  nodes = [
+    "tests/test_tla_spec_dev_cli.py::test_run_spec_unit_tests_fails_when_no_spec_tests_exist",
+    "tests/test_tla_spec_dev_cli.py::test_cli_run_spec_unit_tests_fails_when_any_selected_target_has_no_validations",
+    "tests/test_tla_spec_dev_cli.py::test_incomplete_parent_commands_fail_with_next_step_guidance",
+    "tests/test_tla_spec_dev_cli.py::test_analyze_out_refuses_a_path_the_evidence_port_does_not_cover",
+  ]
+  expect_exit = 0
+  expect_passed = 4
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the shipped CLI surface, exercised end to end"
+  nodes = ["tests/test_tla_spec_dev_cli.py"]
+  expect_exit = 0
+  expect_passed_at_least = 19
+
+
+# ---------------------------------------------------------------------------
+# REGISTERED, AND CANNOT BE SHOWN TO FAIL -- the count this file exists to print
+# ---------------------------------------------------------------------------
+
+[[instrument]]
+id = "generation-refusal"
+name = "spec-double generation"
+paths = ["scripts/generate_python.py"]
+family = "workflow"
+watches = "the manifest it generates from -- it REFUSES to generate against one that does not validate"
+verdict_surface = "SystemExit with the manifest errors"
+classification = "no-demonstration-constructible"
+no_failing_demonstration = """
+NOT WITHOUT A STAGED MANIFEST TREE THIS TICKET DID NOT BUILD, and the honest
+reason is narrower than that: the refusal shares `validate_manifest` with
+`manifest-validator` above, which IS demonstrated, so what is undemonstrated is
+only that `generate_python.py` propagates it. Registered as a gap rather than
+counted as covered by its neighbour.
+"""
+
+[[instrument]]
+id = "docs-generation-refusal"
+name = "docs.md generation"
+paths = ["scripts/generate_docs.py"]
+family = "workflow"
+watches = "the same manifest predicate, before writing docs.md"
+verdict_surface = "exit 1 with `ERROR: <manifest error>`"
+classification = "no-demonstration-constructible"
+no_failing_demonstration = """
+THE THIRD CONSUMER OF THE SAME PREDICATE, and the same gap: `validate_manifest`
+is demonstrated at `manifest-validator`, this file's propagation of it is not.
+Thirty-seven lines, no test file of its own.
+"""
+
+[[instrument]]
+id = "tlc-dump-case-generation"
+name = "TLC dump to generated cases"
+paths = ["scripts/generate_cases_from_tlc_dump.py"]
+family = "workflow"
+watches = "the TLC DOT dump and the config it was produced from -- a missing config, an unparseable dump, or zero states parsed all refuse"
+verdict_surface = "SystemExit with the reason; return 2 when it could not measure"
+classification = "no-demonstration-constructible"
+no_failing_demonstration = """
+NOT WITHOUT A TLC RUN. Every refusal path needs a real DOT dump to refuse
+against, and producing one needs a JVM and TLC, which this checkout does not
+provision -- the same environmental reason `test-graph-nodes` carries, and it
+is worth naming that TWO rows now cite it. `tests/test_generate_cases_from_tlc_dump.py`
+covers the parsing, not the refusal.
+"""
+
+[[instrument]]
+id = "scaffold-overwrite-refusal"
+name = "tutorial spec scaffolder"
+paths = ["scripts/scaffold_spec.py"]
+family = "workflow"
+watches = "the target tree -- it refuses to overwrite an existing file, and refuses unsupported view names"
+verdict_surface = "SystemExit: `refusing to overwrite existing file: <path>`"
+classification = "no-demonstration-constructible"
+no_failing_demonstration = """
+CONSTRUCTIBLE AND NOT CONSTRUCTED. Two clear refusal paths at :38 and :54 and
+neither has a test asserting the refusal; `tests/test_scaffold_spec_views.py`
+covers what it EMITS, not what it declines to. This is a gap in the tests, not
+in the instrument, and saying so is more use than a row that implies otherwise.
+"""
+
+[[instrument]]
+id = "workflow-convergence"
+name = "ticket-workflow close preconditions"
+paths = ["scripts/close_tickets.py"]
+family = "workflow"
+watches = "that current, desired and the program model have converged before a workflow is closed"
+verdict_surface = "SystemExit: `cannot accept new workflow state: missing model directory`"
+classification = "no-demonstration-constructible"
+no_failing_demonstration = """
+OVERLAPS `close-promotion-preconditions`, WHICH IS DEMONSTRATED, and this file
+is the other half of that path. Not demonstrated separately here, and the
+overlap is stated so that the two are not read as independent coverage of the
+same close.
+"""
+
+[[instrument]]
+id = "arm-swap-driver"
+name = "FI-04's arm-swap driver"
+paths = ["examples/validation/ab/eval/run_arm_swap.py"]
+family = "measurement"
+watches = "a catalogue's kill table across swapped arms, and the control state of the run"
+verdict_surface = "SystemExit(status or report_control_state(out))"
+classification = "no-demonstration-constructible"
+no_failing_demonstration = """
+THE ROW `FI-06-DF-01` LED WITH. Shipped by FI-04 in the SAME directory and the
+SAME reconcile as `divergence.py` -- which FI-04 registered by hand while
+writing `FI-04-DF-04` about exactly this failure. Absent for two epics.
+
+Undemonstrated because a run needs a generated corpus and a sealed catalogue,
+which is the `port-swap-driver` situation one row over. Unlike that one, its
+exit code DOES carry the control state, so it is not `demonstrated-cannot-fail`
+and must not be recorded as such.
+"""
+
+[[instrument]]
+id = "onboarding-scaffold"
+name = "whole-program model onboarding"
+paths = ["scripts/onboard_program_model.py"]
+family = "workflow"
+watches = "the repository it is onboarding, and refuses when the baseline it would create already exists"
+verdict_surface = "SystemExit from main()"
+classification = "no-demonstration-constructible"
+no_failing_demonstration = """
+`tests/test_onboard_program_model.py` covers what it SCAFFOLDS. No node asserts
+a refusal, so there is nothing here to cite; 1408 lines whose declining
+behaviour is untested.
+"""
+
+
+# ---------------------------------------------------------------------------
+# ENUMERATED BY SM-03 AND CLASSIFIED AS NOT INSTRUMENTS
+#
+# Each was flagged by the derived check, checked by hand, and rejected. The
+# preamble's rule: a checked-and-rejected candidate is LISTED so the omission
+# is on the record rather than silent. Four of the five are flagged only
+# because `raise SystemExit(main())` reads as a nonzero exit path even where
+# `main()` returns 0 unconditionally -- the over-approximation the derived
+# check makes on purpose, and this is what paying for it looks like.
+# ---------------------------------------------------------------------------
+
+[[instrument]]
+id = "close-entrypoint-shims"
+name = "hyphenated close entrypoints"
+paths = ["scripts/close-ticket.py", "scripts/close-spec-workflow.py"]
+family = "not-an-instrument"
+watches = "nothing"
+verdict_surface = "none of its own"
+classification = "not-an-instrument"
+no_failing_demonstration = "Eight lines each: `from close_ticket import main` and `raise SystemExit(main())`. Compatibility aliases. Any verdict is the delegate's and is registered there."
+
+[[instrument]]
+id = "history-recorders"
+name = "append-only history recorders"
+paths = ["scripts/close_ticket.py", "scripts/close_spec_workflow.py"]
+family = "not-an-instrument"
+watches = "nothing -- it RECORDS a close that something else decided"
+verdict_surface = "none; `main()` returns 0 unconditionally"
+classification = "not-an-instrument"
+no_failing_demonstration = "Both `main()` bodies end in `return 0` with no branch. The preconditions they record against are checked by `close-promotion-preconditions` (`scripts/spec_evolution.py`), which is where that verdict lives and is demonstrated."
+
+[[instrument]]
+id = "workflow-scaffold"
+name = "spec workflow scaffolder"
+paths = ["scripts/scaffold_spec_workflow.py"]
+family = "not-an-instrument"
+watches = "nothing"
+verdict_surface = "none; `main()` returns 0 unconditionally"
+classification = "not-an-instrument"
+no_failing_demonstration = "Fifty-three lines that create directories with `write_if_missing` and print a next step. It declines nothing and reports nothing about a subject."
+
+[[instrument]]
+id = "action-parameter-recovery"
+name = "TLA+ action parameter recovery"
+paths = ["scripts/infer_action_params.py"]
+family = "not-an-instrument"
+watches = "nothing -- it RECOVERS params from a case's own before/after pair"
+verdict_surface = "none; `main()` returns 0 unconditionally"
+classification = "not-an-instrument"
+no_failing_demonstration = "MF-029's recovery pass. A case whose params it cannot recover keeps the params it had; there is no refusal and no verdict about the corpus."
+
+[[instrument]]
+id = "generator-vs-suite"
+name = "generator against hand-written suite, as sets"
+paths = ["examples/validation/ab/eval/generator_vs_suite.py"]
+family = "not-an-instrument"
+watches = "sealed kill tables it reads; it computes a comparison and prints it"
+verdict_surface = "none; `main()` returns 0 unconditionally"
+classification = "not-an-instrument"
+no_failing_demonstration = """
+`FI-06-DF-01` reached the same conclusion by hand and then noted it had no row
+either -- so it is here for the reason the preamble gives, not because the
+verdict changed. Its output is an argument (that the dominance result is a
+property of who wrote the catalogue) and arguments are read, not exited on.
+"""

@@ -4146,3 +4146,1984 @@ findings:
     disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
     disposition_note: >-
       Carried to epic/subtract-to-measure SM-05 (#169), the evaluation: score the removal on the card and find out whether D2 was ever able to move.
+  - id: SM-01-DF-01
+    found_by: "SM-01"
+    found_at_commit: "b2b8e9c"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"]
+    summary: >-
+      THE TWO COLUMNS SM-02'S ENTIRE CASE RESTS ON CARRY NO EXECUTABLE COUNT AND
+      ARE STRUCTURALLY EXEMPT FROM CONTROL CHECKING. `run_port_swap.run_suite`
+      returns `{"total_failed": int(returncode != 0), "failures": tail}` and
+      nothing else -- no `total_ran`, no `total_skipped`, no `per_action`. Every
+      `corpus-*` column carries all four.
+
+      Two consequences, and the second is worse than the first.
+
+      (1) A `SURVIVED` in `suite-real` or `suite-fake` cannot be told apart from
+      a suite that did not run. `total_failed` is derived from an exit code, and
+      pytest exits 0 for a passing run and for a run whose items were collected
+      and skipped -- which is the FI-06 finding, in the driver rather than in the
+      registry.
+
+      (2) `control_verdict` decides a control's role against `witness_count`,
+      which reads `per_action`. The suite columns have no `per_action`, so
+      `witness_count` returns `None`, which the function's own docstring defines
+      as "not evaluable ... nothing is decided against it". THE TWO SUITE COLUMNS
+      ARE THEREFORE NEVER DECIDED BY THE CONTROL MACHINERY AT ALL. That machinery
+      exists because PA-04's first run reported `control_red: []` while a
+      declared control survived four columns; the repair covered the corpus
+      columns and left the suite columns in exactly the state it was written to
+      end.
+
+      This matters here and not in the abstract. `suite-fake` strictly dominating
+      `corpus-port-swap:fake` -- it kills PA-M13 and the port column does not --
+      is the load-bearing evidence for defunding the `[ports.*]` machinery. That
+      domination is measured on a column with no executable count and no control.
+    reproduction: >-
+      `python3 -c "import json; d=json.load(open('specs/results/scorecards/subtract-to-measure/before-state/port-swap-existing-catalogue-before.json')); print({k: sorted(v) for k,v in d['controls_on_unmutated_code'].items()})"`
+      -> the four `corpus-*` entries carry `per_action`, `total_ran`,
+      `total_skipped`; `suite-real` and `suite-fake` carry `failures` and
+      `total_failed` only. Then read `run_port_swap.py:176-190` (`run_suite`) and
+      `:192-208` (`witness_count`).
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/before-state/port-swap-existing-catalogue-before.json"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"
+      - "specs/results/scorecards/subtract-to-measure/before-state/gap-mutants-before.json"
+    why_out_of_scope: >-
+      `run_port_swap.py` is a sealed measurement artifact under
+      `specs/results/`, and SM-01's whole discipline is that nothing is repaired
+      during a measurement. Editing the driver mid-epic would also change the
+      instrument SM-05 re-runs the gap mutants on, so the before and the after
+      would no longer be the same instrument.
+    suggested_fix: >-
+      Have `run_suite` parse pytest's summary line for passed/failed/skipped and
+      return `total_ran`, exactly as `port_corpus_run.py` already does for the
+      corpus columns; then the existing `witness_count`/`control_verdict` path
+      covers the suite columns with no new logic. SM-01's own runner does this
+      and reports the counted readings under `suite-real` / `suite-fake` beside
+      the driver's uncounted ones, which are kept as `portswap-suite-real` /
+      `portswap-suite-fake` precisely so the two readings can be compared rather
+      than one silently overwriting the other.
+    blast_radius: >-
+      Every `suite-*` cell in every sealed port-swap table, including the PA-04
+      and PA-06 records and the before-state table this ticket captured. None of
+      those numbers is shown to be wrong -- SM-01's counted re-measurement of the
+      same subject agrees with them -- but none of them is decidable from the
+      artifact alone.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/189"
+    disposition_note: >-
+      Carried to the successor epic RD-02 (#189): price the safety apparatus. The simplification came out net +1677 code_lines because every removal shipped new instruments to prove it safe, and nobody measured that as a cost.
+  - id: SM-01-DF-02
+    found_by: "SM-01"
+    found_at_commit: "b2b8e9c"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"]
+    summary: >-
+      THE PORT-SWAP DRIVER CANNOT BE DRIVEN WITH A CATALOGUE THAT LIVES OUTSIDE
+      THE REPOSITORY. `main()` builds its report with
+      `[str(path.relative_to(REPO_ROOT)) for path in subject["catalogues"]]`, so
+      a caller that follows `run_arm_swap.py`'s documented data-swap pattern and
+      points `catalogues` at a generated file in a temp directory gets
+      `ValueError: '/var/folders/.../gap_mutants_ports.toml' is not in the
+      subpath of '<repo>'` -- after the entire measurement has run, at the point
+      the artifact is written.
+
+      The failure is late, total, and about provenance formatting rather than
+      about anything measured. `run_arm_swap.py` gets away with it only because
+      its catalogues happen to be committed files.
+    reproduction: >-
+      Set `run_port_swap.SUBJECTS["reference_ports"]["catalogues"] = [Path(tempfile.mkdtemp()) / "c.toml"]`
+      and call `run_port_swap.main()`. Traceback at `run_port_swap.py:523`.
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"
+      - "examples/validation/gap_mutants/run_gap_mutants.py -- `run_ports_family`, and the comment on the scratch directory it is forced to create inside the repo"
+    why_out_of_scope: >-
+      Sealed measurement artifact; nothing is repaired during a measurement.
+    suggested_fix: >-
+      `str(path.relative_to(REPO_ROOT)) if path.is_relative_to(REPO_ROOT) else str(path)`.
+      One line, no behaviour change to any verdict.
+    blast_radius: >-
+      Worked around here by writing the derived catalogue into a throwaway
+      directory beside the gap-mutant runner and deleting it in `finally`. Any
+      future caller that wants to measure a catalogue it generated hits the same
+      wall.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/189"
+    disposition_note: >-
+      Carried to the successor epic RD-02 (#189): price the safety apparatus. The simplification came out net +1677 code_lines because every removal shipped new instruments to prove it safe, and nobody measured that as a cost.
+  - id: SM-01-DF-03
+    found_by: "SM-01"
+    found_at_commit: "b2b8e9c"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/"]
+    summary: >-
+      THE ACCEPTANCE SUITE IS NOT RUNNABLE AGAINST THE REPOSITORY'S OWN SOURCE
+      TREE. `git archive HEAD | tar -x` and then
+      `uv run --with pytest --with pyyaml python -m pytest tests -q` gives
+      **9 failed, 1326 passed** where a real checkout gives **1335 passed**. All
+      nine read git history:
+      `test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces`,
+      `test_prediction_seal.py::test_n05_is_reported_against_the_real_record`,
+      and seven in `test_score_tools.py`.
+
+      Nothing declares this. There is no marker, no skip reason and no note; a
+      tree with no `.git` simply reports nine failures that look like defects.
+      Every instrument in this project that stages a copy of the repository --
+      `demonstrate.py`, `run_port_swap.py`, and now the gap-mutant runner -- has
+      to decide what to do about it privately, which is how two of them end up
+      deciding differently.
+    reproduction: >-
+      `rm -rf /tmp/arch && mkdir /tmp/arch && git archive HEAD | tar -x -C /tmp/arch && cd /tmp/arch && uv run --with pytest --with pyyaml python -m pytest tests -q`
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/before-state/README.md"
+      - "specs/results/scorecards/subtract-to-measure/before-state/gap-mutants-before.json -- the `baselines` block names all nine"
+    why_out_of_scope: >-
+      Repairing nine tests during a measurement changes the detector the gap
+      mutants are measured against, in the same commit that measures them.
+    suggested_fix: >-
+      Mark the nine with a shared `pytest.mark.needs_git_history` and a
+      `skipif` on `(Path(__file__).parents[1] / ".git").exists()`, so a
+      source-only tree reports them SKIPPED with a reason rather than FAILED.
+      Do NOT delete them: they are the only checks on the committed record.
+    blast_radius: >-
+      Handled here by comparing FAILURE SETS rather than exit codes -- a mutant
+      DIES only when it produces failures the pristine staged tree did not have,
+      and the nine are written into the artifact by name. Any consumer that
+      keys on the exit code instead reports the whole suite as red and decides
+      nothing.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/189"
+    disposition_note: >-
+      Carried to the successor epic RD-02 (#189): price the safety apparatus. The simplification came out net +1677 code_lines because every removal shipped new instruments to prove it safe, and nobody measured that as a cost.
+  - id: SM-01-DF-04
+    found_by: "SM-01"
+    found_at_commit: "4b29bcc"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/run_generated_case_adapters.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/"]
+    summary: >-
+      THE PORT SWAP CANNOT DETECT THAT ITS OWN FAKE IS NOT A FAKE. `SM-GM-P3`
+      rewrites `quota_ledger_fake.py`'s one composition line so the FAKE
+      composition point wires `journal_file.FileJournal` -- the real adapter --
+      instead of `journal_memory.InMemoryJournal`. `--wiring fake` and
+      `--wiring real` then run the same program under two names.
+
+      MEASURED, at `4b29bcc`, over a 1855-case `--port-cases only` corpus:
+      SURVIVED on `corpus-port-swap:fake`, `corpus-port-swap:real`,
+      `corpus-action-bound:fake` and `corpus-action-bound:real` at 1543 executed
+      cases EACH, and SURVIVED on both of the driver's suite columns. The run
+      goes on printing `port-fake-real-swap on ledger.LedgerAppendPort: THIS RUN
+      USED THE FAKE SIDE` while the fake side is the real side.
+
+      It dies to four HAND-WRITTEN pytest nodes and nothing else:
+      `tests/test_ab_three_arms_and_port_faults.py::test_a_composition_point_wires_the_fake`,
+      `::test_a_fault_seeded_in_the_fake_is_reachable_only_through_the_fake`,
+      `::test_both_wirings_of_one_domain_agree_on_the_feature`,
+      `::test_each_adapter_is_wired_by_exactly_one_composition_point`.
+
+      This is the one failure a swap mechanism exists to make impossible: a
+      column that looks independent and is not. Every PA-M11/PA-M12 style
+      conclusion drawn from the two columns assumes they are two, and the
+      machinery carries no check that they are.
+
+      THE POSITIVE CONTROL RULES OUT THE OTHER EXPLANATION. `SM-GM-CTRL-A`, a
+      one-unit error in `domain.py`, DIED on all six of those columns in the same
+      run at the same case counts. The columns were reaching the subject; they
+      were not reaching THIS.
+    reproduction: >-
+      `python3 examples/validation/gap_mutants/run_gap_mutants.py --only SM-GM-P3-the-fake-is-silently-a-second-real-adapter --only SM-GM-CTRL-A-commit-credits-one-too-many --cases <port corpus> --out /tmp/p3.json`
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/before-state/gap-mutants-before.json"
+      - "specs/results/scorecards/subtract-to-measure/SM-01-RESULTS.md"
+      - "examples/validation/gap_mutants/gap_mutants.toml -- SM-GM-P3"
+    why_out_of_scope: >-
+      SM-01 seeds and measures; it removes and repairs nothing. And the repair
+      is not obvious: an assertion that two wirings DISAGREE is wrong, because
+      `journal_memory.py`'s own docstring says a fake must be a working
+      implementation of the same interface, so agreement is the correct
+      behaviour on a healthy tree.
+    suggested_fix: >-
+      NOT by asserting the two columns differ. The property that actually failed
+      is that the two `[ports.*]` entries resolve to DISTINCT implementation
+      modules; `apply_wiring` could report when `mapping.fake` and
+      `mapping.adapter` resolve to the same underlying module and say so in the
+      oracle statement, which already has a slot for exactly this class of
+      disclosure. If SM-02 removes the machinery, the finding is closed by
+      deletion -- and the four pytest nodes that DO catch it are the thing that
+      must not be cut with it.
+    blast_radius: >-
+      No sealed number is shown to be wrong; the shipped fake is a real fake and
+      the columns were genuinely two on every run recorded. What is unsupported
+      is the inference that a port-swap table GUARANTEES they are two.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/189"
+    disposition_note: >-
+      Carried to the successor epic RD-02 (#189): price the safety apparatus. The simplification came out net +1677 code_lines because every removal shipped new instruments to prove it safe, and nobody measured that as a cost.
+  - id: SM-01-DF-05
+    found_by: "SM-01"
+    found_at_commit: "4b29bcc"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/instruments/instruments.toml", "examples/validation/instruments/demonstrate.py"]
+    summary: >-
+      FI-06 IS RIGHT ABOUT THE MECHANISM AND WRONG ABOUT ITS REACH, AND SM-03
+      NEEDS THE DIFFERENCE. The finding reads: all twelve pytest failing slots
+      assert only `expect_exit = 0`, "which pytest returns for a passing run AND
+      a fully skipped one". Two skip shapes exist and they do not exit alike.
+
+      MEASURED on the `complexity-ledger` row, which is one of the twelve AND one
+      of the two whose `failing.nodes == passing.nodes`:
+
+        SM-GM-I1  `pytestmark = pytest.mark.skip(...)`      items collected then
+                  skipped, pytest exits 0  -> demonstration reports `ok`
+                  -> SURVIVES on `instrument-registry` AND on the full suite
+                  (1297 executed, 73 fewer than baseline, zero failures)
+
+        SM-GM-I6  `pytest.skip(..., allow_module_level=True)`  nothing collected,
+                  pytest exits 5  -> demonstration goes red -> DIES on
+                  `instrument-registry`
+
+      So the twelve slots are NOT blind to a demonstration that disappears. They
+      are blind to one that goes VACUOUS -- which is the more dangerous of the
+      two, because a vacuous demonstration keeps reporting and keeps counting.
+
+      This matters for the verdict SM-03 reaches. "The count is false precision"
+      is still true; "a fully skipped run satisfies it" is true of one shape and
+      false of the other, and a ticket that deletes twelve rows citing the
+      sentence as written is deleting on a claim that has now been measured and
+      partly refuted.
+    reproduction: >-
+      `python3 examples/validation/gap_mutants/run_gap_mutants.py --only SM-GM-I1-the-cited-demonstration-node-is-collected-and-skipped --only SM-GM-I6-the-cited-demonstration-node-is-not-collected-at-all --out /tmp/skips.json`
+      then read the two `instrument-registry` cells. Read them as a DIFFERENCE,
+      never as "1 of 2 caught".
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/before-state/gap-mutants-before.json"
+      - "specs/results/scorecards/falsifiable-instruments/RESULTS.md -- the FI-06 sentence"
+      - "examples/validation/instruments/demonstrate.py -- judge(), which compares only observed['exit']"
+    why_out_of_scope: >-
+      Repairing a demonstration slot is SM-03's ticket by name, and doing it
+      during the measurement that prices SM-03's removals would destroy the
+      before half of the before/after.
+    suggested_fix: >-
+      Give every pytest slot an `expect_output` naming the count it must see
+      (`"1 passed"`, `"2 passed"`), which `judge()` already supports and which no
+      slot uses. That closes the vacuous-demonstration hole without a new field,
+      a new gate or a longer list. It does NOT close the deeper one -- a slot
+      whose cited node still runs but no longer asserts anything -- and SM-03
+      should say so rather than claim it does.
+    blast_radius: >-
+      The `26 of 35` headline is unchanged in either direction by this finding;
+      what changes is which twelve rows are hollow and in what way, which is
+      exactly the input SM-03 decides delete-versus-repair on.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/189"
+    disposition_note: >-
+      Carried to the successor epic RD-02 (#189): price the safety apparatus. The simplification came out net +1677 code_lines because every removal shipped new instruments to prove it safe, and nobody measured that as a cost.
+  - id: SM-02-DF-01
+    found_by: "SM-02"
+    found_at_commit: "067c5ea"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/run_generated_case_adapters.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/case_modules.md"]
+    summary: >-
+      THE RESIDUE OF THE CUT, AND THE TWO TOML READERS NOW DISAGREE ABOUT IT.
+      SM-02 removed the `[ports.*]` branch from `load_mappings` and from
+      `parse_simple_mapping_toml`. It added NO refusal, because
+      `no_new_gates_rule` forbids one. The consequence is that the two readers
+      the runner ships now behave differently on the same file:
+
+        tomllib (Python >= 3.11, the normal path)  parses the `[ports.*]` table
+          into a dict that `load_mappings` never looks at. A MIXED mapping --
+          `[actions.*]` plus `[ports.*]` -- loads, runs, and silently drives
+          zero port bindings, with nothing printed. A ports-ONLY mapping reports
+          the pre-existing `no adapter mappings found in <path>`.
+
+        parse_simple_mapping_toml (Python < 3.11, and the fallback)  now has no
+          branch for `[ports.` at all, so the first `key = value` line inside
+          the table raises `unsupported TOML line`.
+
+      So the same file is accepted-and-ignored on one interpreter and rejected on
+      the other. Both are defensible; having both is not. The four shipped
+      mappings that still carry a `[ports.*]` table are all sealed measurement
+      artifacts under `specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/`,
+      so nothing in the working toolchain hits this today -- which is exactly why
+      it is easy to leave and easy to be surprised by later.
+    reproduction: >-
+      `python3 -c "import sys; sys.path.insert(0,'scripts'); from run_generated_case_adapters import load_mappings, parse_simple_mapping_toml; open('/tmp/m.toml','w').write('[actions.Commit]\nadapter = \"m:A\"\n\n[ports.\"ledger.LedgerAppendPort\"]\nadapter = \"m:R\"\nfake = \"m:F\"\n'); print(sorted(load_mappings(__import__(\"pathlib\").Path('/tmp/m.toml'))))"`
+      -> `['Commit']`, no notice. Then feed the same text to
+      `parse_simple_mapping_toml` -> `ValueError: unsupported TOML line`.
+    evidence:
+      - "scripts/run_generated_case_adapters.py -- load_mappings, parse_simple_mapping_toml"
+      - "tests/test_ports_binding_removed.py::test_a_ports_only_mapping_now_declares_no_binding_at_all"
+      - "tests/test_ports_binding_removed.py::test_the_fallback_toml_parser_no_longer_knows_what_a_ports_table_is"
+    why_out_of_scope: >-
+      Both candidate repairs add something. A printed notice re-introduces a
+      reader of `ports` into the file this ticket is measured on removing code
+      from, and a refusal is a new gate, which `no_new_gates_rule` forbids
+      outright. Neither belongs in the ticket whose whole subject is whether a
+      removal can be measured. Filed rather than fixed, per `measurement_rule`.
+    suggested_fix: >-
+      If it is ever worth spending, the cheap shape is to make the two readers
+      agree by DELETION rather than by addition: have `load_mappings` reject any
+      top-level table it does not know, which subtracts the asymmetry instead of
+      adding a special case for `ports`. That is a refusal and therefore not
+      SM-02's to make; it should be weighed against simply leaving a dead table
+      inert, which is what the sealed artifacts want.
+    blast_radius: >-
+      Zero shipped mapping outside `specs/results/` declares a `[ports.*]` table,
+      and the four that do are sealed evidence that is not re-run except by
+      `run_gap_mutants.run_ports_family`, where the failure is already reported
+      as CONTROL_RED rather than as a survival.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/189"
+    disposition_note: >-
+      Carried to the successor epic RD-02 (#189): price the safety apparatus. The simplification came out net +1677 code_lines because every removal shipped new instruments to prove it safe, and nobody measured that as a cost.
+  - id: SM-02-DF-02
+    found_by: "SM-02"
+    found_at_commit: "067c5ea"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/subtract-to-measure/before-state/produced-code-before.json"]
+    summary: >-
+      THE SEALED BEFORE-STATE IS NOT THE STATE SM-02 BRANCHED FROM, ON TWO OF ITS
+      FOUR TREES. `produced-code-before.json` is the artifact `D2` anchor 3's
+      "before figures" are supposed to come from, and `SM-05` is instructed to
+      diff the after against exactly it. Re-run at `f0c215d` -- the SM-01 merge
+      commit, which is SM-02's parent -- with the identical command and the
+      identical interpreter (`/opt/homebrew/opt/python@3.14/bin/python3.14`):
+
+        tree                  produced-code-before.json   f0c215d      drift
+        scripts/                            21252         21252          0
+        tests/                              20376         20443        +67
+        examples/validation/                 9366          9404        +38
+        .../GOAL-port-reach/measure/           876           876          0
+
+      SM-01 captured the artifact and then kept editing its own instrument and
+      its own tests -- `run_gap_mutants.py` and `test_gap_mutants.py` -- before
+      merging. Nothing here is wrong about SM-01's work; the artifact simply
+      describes an earlier commit than the one it is filed under.
+
+      IT MATTERS BECAUSE OF `denominator_rule`, INVERTED. A ratio that rises
+      because the denominator shrank is MF-020 wearing this epic's clothes; so is
+      a REMOVAL that looks 105 lines smaller than it was because the baseline was
+      taken 105 lines early. `SM-05` diffing naively against this file will
+      credit `SM-02` and `SM-03` with removing 105 lines of `SM-01`'s own
+      instrument that they never touched. `scripts/` -- the tree `N03` is stated
+      on, and the only tree either removal ticket materially changes -- is exact,
+      so `N03` itself is unaffected.
+    reproduction: >-
+      `git archive f0c215d | tar -x -C <tmp> && cd <tmp> && /opt/homebrew/opt/python@3.14/bin/python3.14 scripts/code_complexity.py scripts tests examples/validation specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure --json`
+      then compare `reports[i].totals.code_lines` against
+      `specs/results/scorecards/subtract-to-measure/before-state/produced-code-before.json`.
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/before-state/produced-code-before.json"
+      - "specs/results/scorecards/subtract-to-measure/SM-02-RESULTS.md -- the three-way table"
+    why_out_of_scope: >-
+      Re-capturing the before-state would be editing a sealed artifact during the
+      measurement it seals, which is the one thing `measurement_rule` names. The
+      before-state is also SM-01's deliverable, not SM-02's.
+    suggested_fix: >-
+      `SM-05` should diff against the `f0c215d` re-measurement recorded in
+      SM-02-RESULTS.md, and report the SM-01 drift as a separate row rather than
+      folding it into the removal. Do NOT overwrite `produced-code-before.json`;
+      an artifact that changes after the fact is worse than one that is 105 lines
+      early and says so.
+    blast_radius: >-
+      `GOAL-D2-can-move`'s before/after figures on two of four trees. The
+      `scripts/` figures, which carry `N03` and the bulk of both removals, are
+      unaffected.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/189"
+    disposition_note: >-
+      Carried to the successor epic RD-02 (#189): price the safety apparatus. The simplification came out net +1677 code_lines because every removal shipped new instruments to prove it safe, and nobody measured that as a cost.
+  - id: SM-02-DF-03
+    found_by: "SM-02"
+    found_at_commit: "067c5ea"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/gap_mutants/run_gap_mutants.py"]
+    summary: >-
+      A SINGLE FLAKY NODE UNDER MACHINE CONTENTION PRODUCES A `DIES` THAT IS
+      INDISTINGUISHABLE FROM A REAL KILL AT THE VERDICT LEVEL. `verdict()` returns
+      `DIES` as soon as `new_failures()` is non-empty -- one node is enough -- and
+      the rendered table prints `DIES <detector> <n> executed` with no indication
+      of WHICH node died. A reader who does not open `new_failing_nodes` in the
+      JSON cannot tell a kill from a coincidence.
+
+      OBSERVED, not hypothesised. In SM-02's run of record `SM-GM-I1` reported
+      `SURVIVES -> DIES` on `pytest-full`. Its one new failing node was
+      `tests/test_testgraph_channels.py::test_runner_refuses_a_binding_without_a_channel`
+      -- unrelated to the mutant (which skips `tests/test_complexity_ledger.py`),
+      unrelated to anything SM-02 removed, and PASSING in the acceptance suite at
+      the same commit. Re-run alone on a quiet machine at the same commit:
+      `SURVIVES, 1290 executed, new_failing_nodes: []`. Three heavy pytest runs
+      were in flight on one machine at the time (SM-02's own acceptance run,
+      SM-03's ticket, and the staged-tree run).
+
+      THE RUNNER ALREADY HAS THE MACHINERY TO SAY THIS AND DOES NOT USE IT. It
+      excludes `SELF_DETECTION` nodes from the verdict and reports them separately
+      in `self_detected_nodes` -- exactly the right shape, applied to exactly one
+      known node. A cell whose entire kill set is a node the mutant's own
+      `[[mutant.edit]]` paths cannot reach is the same class of problem and gets
+      no such treatment.
+
+      This is not the FI-01-DF-01 shape (a false SURVIVED). It is its mirror: a
+      false DIES, which in a REMOVAL epic is the more expensive error, because a
+      false DIES makes a cut look free when it is not -- or, as here, makes an
+      untouched mechanism-2 row look like scope leakage from SM-02.
+    reproduction: >-
+      Compare the `SM-GM-I1` `pytest-full` cell in
+      `specs/results/scorecards/subtract-to-measure/gap-mutants-after-SM-02.json`
+      (`DIES`, one new node in `tests/test_testgraph_channels.py`) against
+      `python3.14 examples/validation/gap_mutants/run_gap_mutants.py --family staged
+      --only SM-GM-I1-the-cited-demonstration-node-is-collected-and-skipped --out /tmp/i1.json`
+      run with nothing else on the machine (`SURVIVES`, 1290 executed, zero new
+      nodes).
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/gap-mutants-after-SM-02.json"
+      - "specs/results/scorecards/subtract-to-measure/SM-02-RESULTS.md -- section 1, the mechanism-2 scope check"
+      - "examples/validation/gap_mutants/run_gap_mutants.py -- verdict(), new_failures(), SELF_DETECTION"
+    why_out_of_scope: >-
+      `run_gap_mutants.py` is the instrument SM-05 re-runs the before/after
+      comparison on. Editing its verdict rule during the measurement it is taking
+      would mean the before and the after were produced by two different
+      instruments, which is the one thing the removal_is_a_delta_rule cannot
+      tolerate. Filed, and BOTH runs reported, rather than fixed.
+    suggested_fix: >-
+      Do NOT add a retry loop and do NOT lengthen SELF_DETECTION -- that shape was
+      rejected at EVAL-RERUN-DF-01 and again at ARM_MODULE_PREFIXES. The cheap
+      honest move is to print the new failing nodes in `render()` beside every
+      `DIES`, so a contaminated cell is visible in the run output rather than only
+      in the JSON. A reader cannot reach a verdict without reading what produced
+      it -- the same rule `render_oracle_statement` already applies to kill counts.
+    blast_radius: >-
+      Every `pytest-full` cell in every gap-mutant table, before and after,
+      whenever the machine is loaded. SM-01's before-state was taken on a quiet
+      machine (26m43s, no anomalous nodes) and none of its cells shows this shape;
+      SM-02's run of record shows exactly one, and it is reported rather than
+      quietly re-run away.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/189"
+    disposition_note: >-
+      Carried to the successor epic RD-02 (#189): price the safety apparatus. The simplification came out net +1677 code_lines because every removal shipped new instruments to prove it safe, and nobody measured that as a cost.
+  - id: SM-03-DF-01
+    found_by: "SM-03 (build the instrument, then ask what it cannot report -- applied to the repair itself)"
+    found_at_commit: "f0c215d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/instruments/demonstrate.py"]
+    summary: >-
+      THE REGISTRY RUNNER JUDGES AN EXIT CODE WHERE ITS SIBLING ONE DIRECTORY
+      OVER COMPARES FAILURE SETS, AND THAT IS WHY TWO TRIPWIRES STILL CANNOT BE
+      DEMONSTRATED.
+
+      SM-03 made `run_pytest` stage, which is what turned `spec-yaml-tripwire`
+      and `source-citation-tripwire` from `no-demonstration-constructible` into
+      `demonstrated-can-fail`. It did not make the third and fourth
+      demonstrable, and the reason is not the tripwires.
+
+      A staged tree small enough to build is not GREEN to begin with.
+      `tests/test_port_declarations.py` imports `run_generated_case_adapters`
+      transitively through `scripts/`, so three of its nodes are red before any
+      fault is seeded. Measured: seeding a degenerate `target: "**"` into the
+      staged manifest produces exactly one NEW failure,
+      `test_no_declared_port_target_is_degenerate[program_model]`, and nothing
+      else moves -- so the demonstration is real and the runner cannot see it,
+      because `judge()` compares `observed["exit"]` against `expect_exit` and
+      red-on-red is indistinguishable from red-on-green.
+
+      THE FIX ALREADY EXISTS IN THIS REPOSITORY, ONE DIRECTORY OVER.
+      `examples/validation/gap_mutants/run_gap_mutants.py` runs every detector
+      on the PRISTINE staged tree first and records its failing node ids,
+      because a `git archive` tree has nine pre-existing failures that read
+      git history. Its verdict rule compares failure SETS and never exit codes,
+      and its docstring says so in the third paragraph. The registry runner has
+      no baseline pass at all.
+
+      Note what this does to the count SM-03 reports: two rows are in
+      "cannot be shown to fail" for a reason that is a property of the harness,
+      which is the same class of error SM-01 found in the reason those rows
+      carried BEFORE this ticket. One layer of it was peeled off and another was
+      found underneath.
+    reproduction: >-
+      Stage `tests/test_port_declarations.py`, `scripts/effect_conformance.py`
+      and `specs/program_model/spec_manifest.yaml` into a scratch tree and run
+      `python -m pytest -q tests/test_port_declarations.py` -> `3 failed, 1
+      passed, 2 skipped`, all three failures `ModuleNotFoundError: No module
+      named 'run_generated_case_adapters'`. Rewrite one manifest port's
+      `target: "**/specs/**"` to `target: "**"` and run again -> `4 failed`,
+      the new one being
+      `test_no_declared_port_target_is_degenerate[program_model]`. Both runs
+      exit 1, so `expect_exit` decides nothing between them.
+    evidence:
+      - "examples/validation/instruments/demonstrate.py -- judge(), which reads observed['exit'] and the expect_* needles only"
+      - "examples/validation/gap_mutants/run_gap_mutants.py -- 'THE BASELINE IS A SET OF FAILURES, NOT AN EXIT CODE'"
+      - "examples/validation/instruments/instruments.toml -- the port-declaration-tripwire row, whose reason now records this"
+    why_out_of_scope: >-
+      `measurement_rule`: file findings, fix nothing during a measurement. SM-03
+      already changed `run_pytest` once, to stage; adding a pristine-baseline
+      pass would be a second structural change to the program that produces the
+      count this ticket exists to report, inside the ticket that reports it. The
+      before and the after would no longer be the same instrument, which is the
+      objection SM-01 raised against editing `run_port_swap.py` mid-epic and it
+      applies here unchanged.
+    suggested_fix: >-
+      Give `run_pytest` the baseline pass `run_gap_mutants.py` already has: run
+      the cited nodes on the staged tree BEFORE the `mutate` block is applied,
+      record the failing node ids, and judge on the difference. `expect_exit`
+      then becomes redundant for staged slots rather than wrong. Roughly thirty
+      lines, and every one of them already exists in the sibling runner.
+    blast_radius: >-
+      Two registry rows -- `port-declaration-tripwire` and
+      `manifest-self-records-tripwire` -- and any future demonstration that
+      wants to break a shipped file inside a tree too small to be green. It does
+      not affect the counts SM-03 reports for the rows that ARE demonstrated:
+      those are unstaged pytest slots at REPO_ROOT, which is green, so exit code
+      and failure set agree there.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/189"
+    disposition_note: >-
+      Carried to the successor epic RD-02 (#189): price the safety apparatus. The simplification came out net +1677 code_lines because every removal shipped new instruments to prove it safe, and nobody measured that as a cost.
+  - id: SM-03-DF-02
+    found_by: "SM-03 (re-derived from FI-06-DF-01 rather than quoted)"
+    found_at_commit: "f0c215d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/extract_spec_manifest.py", "scripts/generate_python.py", "scripts/generate_docs.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      `scripts/extract_spec_manifest.py` IS RED ON THE SHIPPED TREE, STILL, AND
+      IS NOW REGISTERED SO THAT IT IS RED IN PUBLIC.
+
+      `cd specs/program_model && python3 ../../scripts/extract_spec_manifest.py
+      spec_manifest.yaml` exits 1 with three `ERROR: missing required manifest
+      key` lines -- `state`, `commands`, `results`. FI-06 reported it; SM-03
+      re-ran it rather than quoting it, and the output is identical.
+
+      TWO THINGS THAT ARE NEW HERE. First, `validate_manifest` is shared by
+      three executables -- `extract_spec_manifest.py`, `generate_python.py` and
+      `generate_docs.py` -- so a manifest that fails it fails all three, and all
+      three were absent from the registry until this ticket. Second, the reason
+      nobody noticed is now measurable rather than anecdotal: none of the three
+      had a row, so `demonstrate.py` never ran them, and the enumeration check
+      that was supposed to notice the omission was `required <= enumerated`
+      over a literal that did not name them.
+
+      It is registered as `demonstrated-can-fail` with its note carrying the
+      red output verbatim. A registered red instrument is worth more to the next
+      ticket than an unregistered green-looking one.
+    reproduction: >-
+      `cd specs/program_model && python3 ../../scripts/extract_spec_manifest.py spec_manifest.yaml; echo $?`
+      -> three ERROR lines and exit 1.
+    evidence:
+      - "scripts/extract_spec_manifest.py -- validate_manifest and main()"
+      - "examples/validation/instruments/instruments.toml -- the manifest-validator row"
+      - "specs/desired_program_model/deferred_findings.yaml -- FI-06-DF-01, which reported it first"
+    why_out_of_scope: >-
+      `measurement_rule`, and more specifically: repairing the manifest changes
+      `specs/program_model/spec_manifest.yaml`, which is an input to the
+      spec-workflow close path SM-03 has to run, and to the trees SM-05 scores.
+      Repairing the VALIDATOR instead would change what "red on the shipped
+      tree" means while this ticket is counting instruments that are red.
+    suggested_fix: >-
+      Decide which is wrong -- the three required keys or the manifest that
+      omits them -- and say which in the fix. The keys have been required since
+      the validator was written and no shipped manifest has ever carried them,
+      which argues the requirement is the defect, but that is a judgement this
+      ticket has no standing to make.
+    blast_radius: >-
+      Three executables share the predicate. Anything generated from a manifest
+      that does not validate is generated by a program that declined to check
+      and ran anyway, or did not run at all, and nothing in the repository
+      distinguishes those two outcomes today.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/189"
+    disposition_note: >-
+      Carried to the successor epic RD-02 (#189): price the safety apparatus. The simplification came out net +1677 code_lines because every removal shipped new instruments to prove it safe, and nobody measured that as a cost.
+  - id: SM-03-DF-03
+    found_by: "SM-03 (the derived enumeration check, on its first run)"
+    found_at_commit: "f0c215d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/instruments/instruments.toml"]
+    summary: >-
+      THE REGISTRY WAS SHORT BY EIGHTEEN, NOT BY EIGHT, AND THE DENOMINATOR MOVED
+      THE WRONG WAY FOR THE RIGHT REASON.
+
+      `FI-06-DF-01` said "at least eight" and listed the eight it had found by
+      hand. Replacing the hardcoded subset check with a walk of the declared
+      roots found EIGHTEEN executables with no row, on the first run, including
+      `demonstrate.py` itself, `run_gap_mutants.py` (shipped by SM-01 in this
+      epic, unregistered on arrival -- the fifth occurrence of FI-04-DF-04) and
+      `scripts/tla_spec_dev.py`, which is the CLI the whole toolchain is named
+      after.
+
+      "At least eight" was right and it was an undercount by more than a factor
+      of two, which is what a hand-enumerated floor is worth.
+
+      THE PART THAT MATTERS FOR `denominator_rule`. Registering all eighteen
+      takes the instrument count from 35 to 47 while the demonstrated count goes
+      from 26 to 33, so the headline ratio FALLS from 74.3% to 70.2%. That is
+      not a regression: it is the first time the denominator has been derived
+      rather than remembered. `26 of 35` was never a ratio over a known set.
+      And the +7 on the numerator splits: 5 new rows that arrived carrying a
+      demonstration, 2 REPAIRS of rows already counted. The eighteen new rows
+      contributed 12 to the denominator and 5 to the numerator, which is the
+      direction a truthful sweep moves a flattering number.
+
+      Twelve of the eighteen are registered without a failing demonstration and
+      say why, per R2. Six of those reasons are "constructible, not constructed
+      here", which is a backlog and is named as one rather than dressed as a
+      property of the instruments.
+    reproduction: >-
+      `python3 examples/validation/instruments/demonstrate.py --check-enumeration`
+      at `f0c215d` with the `[registry.enumeration]` block applied and the
+      eighteen rows removed -> `UNREGISTERED INSTRUMENTS: 18`.
+    evidence:
+      - "examples/validation/instruments/instruments.toml -- [registry.enumeration] and the SM-03 section"
+      - "tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated"
+      - "specs/results/scorecards/subtract-to-measure/after-state/instrument-sweep-after.md"
+    why_out_of_scope: >-
+      Not out of scope -- the eighteen rows are IN this ticket. What is deferred
+      is the six demonstrations the new rows say are constructible and were not
+      constructed: `scaffold-overwrite-refusal` (two clear refusal paths, no
+      test asserting either), `onboarding-scaffold`, `generation-refusal`,
+      `docs-generation-refusal`, `workflow-convergence`, and
+      `manifest-self-records-tripwire`. Each carries its own reason in the
+      registry.
+    suggested_fix: >-
+      Write the six. `scaffold-overwrite-refusal` is the cheapest and the most
+      embarrassing to be missing: `scripts/scaffold_spec.py` refuses to
+      overwrite an existing file and refuses unsupported view names, and neither
+      refusal has a test.
+    blast_radius: >-
+      Every count derived from the registry, in this epic and after it, and the
+      before/after figures SM-05 scores D2 on. The before-state artifact records
+      35 instruments; the after records 47, and the difference is 12 rows that
+      existed all along.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/189"
+    disposition_note: >-
+      Carried to the successor epic RD-02 (#189): price the safety apparatus. The simplification came out net +1677 code_lines because every removal shipped new instruments to prove it safe, and nobody measured that as a cost.
+  - id: SM-04-DF-01
+    found_by: "SM-04 (building the leak detector and pointing it at the shipped cards)"
+    found_at_commit: "0342a3a"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      THE CONTAMINATION WAS IN THE SCAFFOLD, NOT ONLY IN THE RUBRIC FILE, AND
+      EVERY CARD SCAFFOLDED UNDER VERSION 2 CARRIED IT.
+
+      `FI-03-DF-02` and `FI-06-DF-04` both located the leak in
+      `references/eval_scorecard.md` and both suggested the same fix: split the
+      rubric and dispatch only the judge-facing half. NEITHER LOOKED AT
+      `_skeleton_md`. The scaffolded `scorecard.md` -- the file the judge writes
+      into, which they read whether or not they ever open the rubric -- emitted
+      three result-stating lines of its own:
+
+        rule 8's cross-reference, rendered as the link text
+        "r-h5--A-MOVEMENT-IS-A-MEASUREMENT-only-if-the-judging-practice..."
+
+        "> This field exists because two judges re-scored **byte-identical
+         trees** and FOUR DIMENSION-POINTS MOVED."
+
+        "**D1, D4 AND D5 ALL MOVED ON UNCHANGED INPUT; only D4's anchor is
+         gated, because only D4's anchor asks you to run something.**"
+
+      6 of 6 cards scaffolded under version 2 carry all three. So the
+      contamination FI-06-DF-04 scoped to "the rubric the judges were instructed
+      to read" was also present in the one file they could not avoid reading, and
+      a round that had correctly refused to hand out the rubric file would still
+      have handed out the finding.
+
+      The last of the three is the sharpest: it names D5 explicitly as a
+      dimension that moves, and D5 is where FI-03's version 2 judges then split
+      3 against 4.
+    reproduction: >-
+      `grep -c "D1, D4 and D5 all moved on unchanged input"
+      specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/*/scorecard.md`
+      -> 1 on each of six. Then, at any commit from SM-04 forward,
+      `python3 -c "import importlib.util,sys; ..."` loading `score_tools` and
+      calling `result_leaks(open(<that card>).read())`.
+    evidence:
+      - "specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-U-p1/scorecard.md:18,28,30"
+      - "examples/validation/scorecards/score_tools.py -- _skeleton_md at 0342a3a"
+      - "specs/desired_program_model/deferred_findings.yaml -- FI-03-DF-02, FI-06-DF-04"
+    why_out_of_scope: >-
+      NOT out of scope: this is SM-04's own defect 2 and it is repaired here.
+      Filed anyway, because the fix is not the finding -- the finding is that two
+      independent adversarial channels named the right paragraph and the wrong
+      file, and a third would have too. Recorded so the next round does not read
+      "the leak was in the rubric" and stop looking.
+    suggested_fix: >-
+      Done at SM-04. `served_rubric` renders the judge-facing rubric from parsed
+      structure only and `_skeleton_md` embeds those exact bytes, so there is one
+      served surface and `result_leaks` reads all of it. The three lines are gone
+      and `tests/test_score_tools.py::test_the_cards_this_project_actually_dispatched_carried_the_result_they_measured`
+      pins the sealed card as a permanent demonstrated failing input.
+    blast_radius: >-
+      Every version 2 judge-score in the repository: six cards, thirty
+      judge-scores, which is FI-03's entire version 2 arm and therefore half of
+      the v1-to-v2 discontinuity measurement. It does not change FI-06-DF-04's
+      conclusion; it widens it.
+    disposition: repaired
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/168"
+    disposition_note: >-
+      Repaired in SM-04 as part of defect 2. The sealed cards are NOT edited; the
+      correction is that no future card can carry it.
+
+  - id: SM-04-DF-02
+    found_by: "SM-04"
+    found_at_commit: "2098d55"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md", "specs/results/scorecards/SELF-IMPROVEMENT.md"]
+    summary: >-
+      NO CARD WRITTEN BEFORE VERSION 3 CAN EVER SAY WHAT ITS JUDGE WAS SERVED,
+      AND THE LEDGER'S CROSS-ROUND COMPARISONS DO NOT SAY SO.
+
+      `rubric.served_digest` starts at scorecard_version 3. For the 36 cards
+      written under versions 1 and 2, the question "were these two judges served
+      the same bytes" is permanently unanswerable -- the parsed digest they DO
+      carry was `sha256:e33638087c4191da` across six commits and a 2x growth of
+      the rubric file, so it answers a different question.
+
+      This is the same shape as `R-H5`'s `readable = false` for version 1 cards,
+      and like that one it is the CORRECT answer rather than a defect to be
+      cleared. What is missing is that nothing says it. `SELF-IMPROVEMENT.md`
+      and `FI-03`'s `RESULT.md` compare version 1 and version 2 arms and treat
+      "same rubric digest" as "same bar", which for those rounds it is not known
+      to be.
+    reproduction: >-
+      `python3 -c "import json,glob; print(sorted({('served_digest' in
+      (json.load(open(p)).get('rubric') or {})) for p in
+      glob.glob('specs/results/scorecards/**/scorecard.json', recursive=True)}))"`
+      -> every pre-SM-04 card False.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py -- _rubric_block, gated on card_version >= 3"
+      - "references/eval_scorecard.md -- Version history, the FI-06-DF-11(b) note"
+      - "specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/RESULT.md"
+    why_out_of_scope: >-
+      SM-04 fixes what is demonstrably broken and nothing else. Back-filling a
+      served digest onto a sealed card would require deciding what its judge was
+      served, which nobody recorded -- and R-H4 forbids editing a sealed card in
+      any case. The honest move is to state the limit, not to manufacture the
+      number.
+    suggested_fix: >-
+      Say it where the comparisons are made: a cross-round claim whose ends are
+      not both version 3 cannot assert that the two judges read the same bar, and
+      `audit` could report that as an OPEN the way `R-H5` reports an unreadable
+      movement. Do NOT back-fill.
+    blast_radius: >-
+      Every cross-round scorecard comparison in the repository predating SM-04.
+      It does not falsify any of them; it removes one of the grounds they are
+      asserted on.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+    disposition_note: >-
+      Carried to epic/subtract-to-measure SM-05 (#169), the evaluation.
+
+  - id: SM-04-DF-03
+    found_by: "SM-04"
+    found_at_commit: "2098d55"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/", "references/eval_scorecard.md"]
+    summary: >-
+      THE DISPATCH IS THE VECTOR AND NOTHING EXECUTES OVER IT.
+
+      `serve` and `scaffold` now REFUSE to emit a rubric that states a result
+      about the five dimensions. But what a judge is TOLD to read lives in a
+      hand-written `JUDGE-DISPATCH*.md` that no tool parses. FI-03's said
+      "`references/eval_scorecard.md` -- the rubric. Read it." SM-04's says the
+      opposite and puts that file on the forbidden list -- IN PROSE, with nothing
+      behind it.
+
+      So the mechanism shipped at SM-04 covers the bytes the card carries and
+      not the instruction that sends a judge elsewhere. A round can still
+      contaminate its judges in one line of markdown, and the refusal will pass
+      green while it happens.
+
+      This is `R2` applied to SM-04's own instrument: naming the residue is worth
+      more than the appearance of coverage.
+    reproduction: >-
+      `grep -n "eval_scorecard.md"
+      specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/JUDGE-DISPATCH-v2.md`
+      -> line 39, "the rubric. Read it." Nothing in `tests/` or
+      `score_tools.py` reads that file.
+    evidence:
+      - "specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/JUDGE-DISPATCH-v2.md:39"
+      - "specs/results/scorecards/subtract-to-measure/SM-04/JUDGE-DISPATCH.md -- the prose that replaces it"
+      - "examples/validation/scorecards/score_tools.py -- result_leaks, which never sees a dispatch"
+    why_out_of_scope: >-
+      Building a checker over dispatch files is a new instrument, and R1 says an
+      instrument ships with a demonstrated failing input. That is a ticket, not a
+      line. It is also close to the standing rule's boundary: refusing to serve a
+      contaminated card is data hygiene, and a checker that reads a dispatch and
+      refuses is a step toward gating how a round is run.
+    suggested_fix: >-
+      The cheap honest version, if one is wanted: have `scaffold` write the
+      forbidden-reading list into the example directory beside `UNBLINDING.md`,
+      generated rather than hand-written, so a dispatch that contradicts it is
+      contradicted by a file rather than by a reader's memory. Do not make it a
+      refusal.
+    blast_radius: >-
+      Every future round. The version 3 mechanism is necessary and is not
+      sufficient, and this says which half is missing.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+    disposition_note: >-
+      Carried to epic/subtract-to-measure SM-05 (#169), the evaluation.
+
+  - id: SM-04-DF-04
+    found_by: "SM-04 (running its own detector over the whole corpus of cards)"
+    found_at_commit: "2098d55"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      `result_leaks` MUST NEVER BE RUN OVER A FILLED CARD, AND NOTHING STOPS
+      SOMEONE DOING IT.
+
+      Over the 36 `scorecard.md` in the tree it reports 14. Six of those are the
+      SCAFFOLD-EMITTED lines of `SM-04-DF-01`. THE OTHER EIGHT ARE THE JUDGE'S
+      OWN WRITING: "This is the score I moved on most, and rule 5 decided it"
+      (a rationale), and "The rubric's own instability note records that judges
+      who did this moved D4 and D5 by four dimension-points" (a disclosure --
+      which is a judge honestly reporting the contamination, i.e. exactly the
+      material this project most wants written down).
+
+      The detector's contract is SERVED TEXT ONLY, and that contract lives in a
+      docstring. A later ticket wiring it into a close-time card check -- which
+      is a natural-looking thing to do, since `check` already calls
+      `rubric_leak_problems` -- would report a judge's honest disclosure as a
+      violation and teach judges to stop writing them.
+    reproduction: >-
+      Load `score_tools` and run `result_leaks` over every
+      `specs/results/scorecards/**/scorecard.md`: 14 of 36 report, of which 6
+      contain a scaffold-emitted string and 8 do not.
+    evidence:
+      - "specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-W-p1/scorecard.md:123 -- a rationale"
+      - "specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p2/scorecard.md:187 -- a disclosure"
+      - "examples/validation/scorecards/score_tools.py -- result_leaks"
+    why_out_of_scope: >-
+      Fixing it means either narrowing the detector, which weakens the one thing
+      it is for, or adding a guard against a misuse nobody has committed yet.
+      Naming the contract is worth more than either.
+    suggested_fix: >-
+      If it is ever wired into `check`, run it over the SCAFFOLDED REGION only --
+      which is now identifiable, because `served_rubric`'s output is embedded
+      verbatim and its digest is on the card. Never over a judge's Rationale,
+      Verdict or Disclosures.
+    blast_radius: >-
+      None today. The exposure is a future check that punishes the disclosure
+      channel, which has produced more of this project's findings than any other.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+    disposition_note: >-
+      Carried to epic/subtract-to-measure SM-05 (#169), the evaluation.
+
+  - id: SM-04-DF-05
+    found_by: "SM-04"
+    found_at_commit: "0342a3a"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py", "specs/results/scorecards/"]
+    summary: >-
+      EVERY GENERATED `INDEX.md` DECLARES THE WRONG CARD VERSION, BECAUSE
+      `cmd_index` HARDCODED IT.
+
+      `cmd_index` emitted the literal line `scorecard_version 1. See
+      references/eval_scorecard.md.` regardless of the cards below it.
+      `specs/results/scorecards/falsifiable-instruments-rescore-v2/INDEX.md:3`
+      therefore says version 1 over six version 2 cards -- in the round whose
+      entire purpose was measuring the version 1 to version 2 discontinuity.
+
+      It is the same class as everything else this epic keeps finding: a
+      statement copied into a generator, that nothing re-derives, sitting in a
+      file a reader is invited to read "at a glance".
+    reproduction: >-
+      `for f in specs/results/scorecards/*/INDEX.md; do sed -n '3p' $f; done` ->
+      six identical "scorecard_version 1" lines. Then
+      `python3 -c "import json,glob; print({json.load(open(p))['scorecard_version']
+      for p in glob.glob('specs/results/scorecards/falsifiable-instruments-rescore-v2/**/scorecard.json',
+      recursive=True)})"` -> `{2}`.
+    evidence:
+      - "specs/results/scorecards/falsifiable-instruments-rescore-v2/INDEX.md:3"
+      - "examples/validation/scorecards/score_tools.py -- cmd_index at 0342a3a"
+    why_out_of_scope: >-
+      NOT out of scope: it is in the function SM-04's defect 4 had to edit, and
+      leaving a known-false generated line beside the change would be worse than
+      fixing it. Filed because the committed `INDEX.md` files are sealed round
+      evidence and are NOT regenerated -- the stale lines stay, and this is the
+      note beside them.
+    suggested_fix: >-
+      Done: `cmd_index` now reads the versions off the cards it is indexing and
+      prints the set. The already-committed `INDEX.md` files are left as they
+      are, per R-H4.
+    blast_radius: >-
+      Six committed `INDEX.md` files, one of which is materially misleading about
+      the round it indexes.
+    disposition: repaired
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/168"
+    disposition_note: >-
+      Generator repaired in SM-04; the sealed renderings are not edited.
+
+  - id: SM-04-DF-06
+    found_by: "SM-04 blind judge, v3 pass 1 (unprompted, in Disclosures)"
+    found_at_commit: "2098d55"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md"]
+    summary: >-
+      D2 CARRIES A 2-TO-4-POINT CRACK BETWEEN TWO READINGS OF ITS OWN ANCHOR
+      LADDER -- WIDER THAN THE D5 CRACK scorecard_version 3 EXISTS TO RECORD --
+      AND IT WAS FOUND BY A JUDGE WHO HAD NOT BEEN TOLD ANY OF THAT.
+
+      D2 anchor 0 is "Complexity is unmeasured, or measured and ignored". D2
+      anchor 2 is "The design's complexity is proportional to its behavior". The
+      card's global rule is SCORE THE LOWEST ANCHOR THE ARTIFACT FULLY SATISFIES.
+      Read strictly cumulatively -- each anchor requiring the ones beneath it --
+      an artifact that measures no complexity at all FAILS to escape anchor 0 and
+      is forced to 0, whatever its shape. Read as the dimension's own `read_first`
+      implies -- the judge reads the MEASURED DESCRIPTOR, which the harness
+      supplies, and then judges the shape -- the same artifact is a 2.
+
+      The judge scored 2 and filed the alternative:
+
+        "read strictly cumulatively, anchor 2 sits above anchor 0's 'complexity
+         is unmeasured', and this artifact measures none -- forcing 0. I went
+         with 2 per the dimension's own read_first, but this is a 2-TO-4-POINT
+         SPREAD on one artifact depending on how a judge reads cumulativity -- a
+         far wider crack than the D5 one this card version exists to record."
+
+      WHY THIS MATTERS MORE THAN IT LOOKS. D2 = 2 on 31 of 31 cards ever written
+      about `ab_quota_ledger`. `FI-06-DF-05` establishes that anchor 3 is
+      unreachable for a greenfield artifact, which explains the CEILING. This
+      explains the FLOOR: every judge so far has taken the non-cumulative reading
+      and landed on 2, and nothing on the card tells them to. The constant is
+      pinned from both ends by the anchor text, and neither end has been chosen
+      deliberately.
+    reproduction: >-
+      `references/eval_scorecard.md`, D2's five anchors and the "Score the LOWEST
+      anchor the artifact fully satisfies" instruction, against
+      `specs/results/scorecards/ports-as-adapters/blind/artifact_U/`, which
+      records no complexity measurement of any kind. Then the Disclosures of
+      `specs/results/scorecards/subtract-to-measure-sm04-rescore-v3/ab_quota_ledger/20260806-sm04v3-R-p1/scorecard.md`.
+    evidence:
+      - "references/eval_scorecard.md -- D2 anchors 0 and 2, and the read_first preamble"
+      - "specs/results/scorecards/subtract-to-measure-sm04-rescore-v3/ab_quota_ledger/20260806-sm04v3-R-p1/scorecard.md -- Disclosures, rejected item 5"
+      - "specs/desired_program_model/deferred_findings.yaml -- FI-06-DF-05"
+    why_out_of_scope: >-
+      SM-04's prohibition is explicit and this is exactly what it forbids.
+      REWRITING D2's ANCHORS PRE-DECIDES SM-05. The whole epic exists to find out
+      whether D2 can move when given a subject with a real before and after; an
+      anchor edited now would make that result a fact about the edit. `do_not_
+      retire_untested_rule` and "never edit a target to match a result" both bind
+      here, and the SM-04 brief names D2 anchor 3 specifically.
+    suggested_fix: >-
+      NOT BEFORE SM-05, and then only with a version bump and a measured
+      discontinuity. The cheapest honest candidate is not an anchor edit at all:
+      state on the card whether the ladder is CUMULATIVE, once, for all five
+      dimensions. D1 and D4 spell their inheritance out in the anchor text
+      ("3, and ..."); D2's anchors 0-2 do not, and D5's do not either. The
+      ambiguity is in what the card leaves unsaid about its own reading rule, not
+      in any one anchor's words -- which is why it can be fixed without moving a
+      bar, and why it must still be measured when it is.
+    blast_radius: >-
+      Every D2 score in the repository, in both directions. It does not falsify
+      the 31-of-31 constant; it removes one of the two explanations for it that
+      anybody had checked.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+    disposition_note: >-
+      Carried to epic/subtract-to-measure SM-05 (#169), which is the ticket that
+      scores D2 on a real before and after. SM-05 must read this BEFORE scoring
+      and must NOT act on it during the measurement.
+
+  - id: SM-04-DF-07
+    found_by: "SM-04 (the v2/v3 re-score, comparing against FI-03's sealed rows)"
+    found_at_commit: "2098d55"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md", "specs/results/scorecards/"]
+    summary: >-
+      RECORDING JUDGING PRACTICE DID NOT MAKE D4 STABLE. IT MOVES TWO POINTS
+      BETWEEN ROUNDS WHOSE JUDGES ALL EXECUTED THEIR OWN FAULTS.
+
+      FI-03's account of D4 was judging practice: "the arm that matches PA-06's
+      practice is the arm that matches PA-06's numbers", and scorecard_version 2
+      was built on it -- `judging_practice` required, D4 anchor 4 gated on it.
+
+      SM-04 re-scored the same sealed, byte-identical `artifact_U` with four fresh
+      blind judges. ALL FOUR RECORDED `executed_own_faults: true`, with 8, 17, 16
+      and 11 items in `what_was_run`, every one of them fault seeding against a
+      scratch copy. D4 came out 2, 3, 3, 4 -- the whole usable range.
+
+        FI-03 v2 p1  D4 = 4    ->   SM-04 v2 p1  D4 = 2     (-2)
+        FI-03 v2 p2  D4 = 4    ->   SM-04 v2 p2  D4 = 3     (-1)
+        FI-03 v2 p1  D4 = 4    ->   SM-04 v3 p1  D4 = 3     (-1)
+
+      Both ends of every one of those rows record `executed_own_faults: true`. So
+      the variable version 2 exposed is real and is NOT the whole mechanism.
+      `R-H5`'s standing caveat -- a D1, D4 or D5 delta of <= 2 points per judge is
+      within demonstrated noise -- survives, and now survives a round where the
+      one variable anybody had identified was held constant.
+
+      AND A HYPOTHESIS THAT IS NOT A MEASUREMENT. D4 fell in BOTH SM-04 arms
+      relative to FI-03 v2, and the SM-04 arms are the first ever served a card
+      with `SM-04-DF-01`'s three result-stating lines removed -- two of which told
+      the judge that executing earns anchor 4 and that D4 moves. That is
+      consistent with the removed paragraph having INFLATED D4. It is not
+      established and cannot be from this data: round, judges, decontamination and
+      dispatch all differ at once. Recorded so it is not rediscovered as a
+      conclusion.
+    reproduction: >-
+      `python3 -c "import json,glob; [print(p.split('/')[-2],
+      json.load(open(p))['dimensions']['D4']['score'],
+      (json.load(open(p)).get('judging_practice') or {}).get('executed_own_faults'))
+      for p in sorted(glob.glob('specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/*U*/scorecard.json')
+      + glob.glob('specs/results/scorecards/subtract-to-measure-sm04-rescore-v*/ab_quota_ledger/*/scorecard.json'))]"`
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/SM-04/RESULT.md -- section 3"
+      - "specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/RESULT.md -- 'the arm that matches PA-06's practice'"
+      - "specs/results/scorecards/subtract-to-measure-sm04-rescore-v2/ab_quota_ledger/20260806-sm04v2-H-p1/scorecard.json -- D4 = 2, executed_own_faults true"
+    why_out_of_scope: >-
+      SM-04 fixes four named defects and D4's instability is not one of them. It
+      is also exactly what SM-04 is forbidden to touch: D4 stays on the card, and
+      tuning its anchor so the number stops moving would be editing a target to
+      match a result. The measurement is the contribution; the fix is not SM-04's.
+    suggested_fix: >-
+      NONE that touches D4's anchor. What is available and cheap: stop quoting a
+      D4 delta at all outside a within-run comparison, which `R-H5` already says
+      and which the ledger does not yet enforce. Anything more needs a round
+      designed to separate practice, decontamination and round-to-round variance,
+      which is three arms and twelve judges, not four.
+    blast_radius: >-
+      Every D4 number in the repository and the version 2 rationale as stated.
+      Version 2's mechanism is not withdrawn -- recording the practice is right
+      and is what made this measurable -- but the sentence "the mechanism is
+      identified and it is not the rubric" is now known to be incomplete.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+    disposition_note: >-
+      Carried to epic/subtract-to-measure SM-05 (#169), the evaluation.
+
+  - id: SM-06-DF-01
+    found_by: "SM-06 (the de-duplication gap mutants, run before anything was deleted)"
+    found_at_commit: "6aac1ec"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md", "specs/results/scorecards/"]
+    summary: >-
+      NOTHING IN THIS REPOSITORY COULD DETECT A COPY OF THE CARD THAT DISAGREED
+      WITH THE CARD. THREE OF FOUR SEEDED DISAGREEMENTS WERE MISSED BY EVERY
+      INSTRUMENT IT SHIPS, INCLUDING THE ONE INSIDE A JUDGE'S EVIDENCE PACKET.
+
+      `removal_is_a_delta_rule` asks for a mutant in the gap a removal opens. For
+      a de-duplication the gap is not "does it still work" -- nothing executed
+      the copies. It is: if a copy disagreed with the source, would anything go
+      red? Four copies were made to disagree, at `6aac1ec`, BEFORE any deletion:
+
+        M1  a charter's dimension table, two rows carrying each other's
+            titles -- the shape two rows of PORTS-AS-ADAPTERS-EPIC.md
+            actually had                                            UNCAUGHT
+        M2  a scoring rule inverted inside the evidence packet a
+            judge is handed                                         UNCAUGHT
+        M3  the same rule inverted in the heading every scaffolded
+            scorecard.md carries                                    UNCAUGHT
+        M4  an anchor edited inside a SEALED scorecard.md (CONTROL)  CAUGHT
+
+      On M1, M2 and M3 the 1378-test suite, `demonstrate.py`, `check`, `audit`
+      and `serve` were all exit 0 with zero new failures. M4 went red on the
+      suite (3 nodes), on `audit` and on `demonstrate`, so the green above is a
+      fact about the copies rather than a dead harness (R2).
+
+      THE PATTERN IS THE FINDING. The one copy anything caught was the one
+      something already compared to the card. Prose copies were covered by
+      nothing, and PORTS-AS-ADAPTERS-EPIC.md had already proved what that costs:
+      two of its four restated baseline rows were wrong for weeks and were read
+      forward across an instrument change.
+    reproduction: >-
+      `uv run --with pytest --with pyyaml python
+      specs/results/scorecards/subtract-to-measure/SM-06/run_dup_mutants.py --before`
+      at the parent commit. Roughly 50 minutes; it reverts every mutation on the
+      way out, including on failure.
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/SM-06/dup-mutants-before.json"
+      - "specs/results/scorecards/subtract-to-measure/SM-06/RESULT.md"
+      - "tests/test_card_has_one_home.py -- the check this measurement justifies"
+    why_out_of_scope: >-
+      NOT out of scope, and it is not left open either: SM-06 deleted every live
+      copy and shipped `tests/test_card_has_one_home.py` so a reintroduced one
+      goes red. What is filed here is the MEASUREMENT, because it is the epic's
+      `GOAL-removal-is-measured` evidence and because the class it names is only
+      partly closed -- see SM-06-DF-04 for what the check still cannot see.
+    suggested_fix: >-
+      Done for the verbatim class. The residue is SM-06-DF-04 (paraphrase) and
+      SM-06-DF-02 (prose in a scaffolded card that no digest covers).
+    blast_radius: >-
+      Every judged round scored before this ticket. A judge's evidence packet
+      carried a hand-written statement of a scoring rule that nothing compared to
+      the rule, and an inversion of it would have reached judges unremarked.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+
+  - id: SM-06-DF-02
+    found_by: "SM-06 (gap mutant M3)"
+    found_at_commit: "6aac1ec"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py", "references/eval_scorecard.md"]
+    summary: >-
+      `served_digest` DOES NOT COVER EVERY BYTE A JUDGE IS SERVED. IT COVERS THE
+      RUBRIC SECTION OF THE CARD, NOT THE CARD.
+
+      scorecard_version 3 states that "the digest recorded on a card now covers
+      exactly the bytes a judge is served". A judge is served `scorecard.md`, and
+      `_skeleton_md` writes prose of its own around `served_rubric` -- headings,
+      the blinding note, the citation label, the disclosures section. None of
+      that is inside `served_digest`, which is taken over `served_rubric` alone.
+
+      M3 measured the consequence: inverting `_skeleton_md`'s hand-written
+      statement of a scoring rule changed no digest, no verdict and no exit code
+      anywhere in the repository. Every judge would have been handed the
+      inversion with a digest that still matched.
+
+      SM-06 deleted the two restatements that made this dangerous, so no scoring
+      rule is stated twice in a scaffolded card today. THE STRUCTURAL GAP IS NOT
+      CLOSED: any prose a later author adds to `_skeleton_md` reaches a judge
+      from outside the digest, exactly as these did.
+    reproduction: >-
+      `python3 -c "import importlib.util,pathlib;
+      s=importlib.util.spec_from_file_location('st','examples/validation/scorecards/score_tools.py');
+      m=importlib.util.module_from_spec(s); s.loader.exec_module(m);
+      r=m.load_rubric(pathlib.Path('references/eval_scorecard.md'));
+      print(m.served_digest(r,3))"` -- then scaffold a card and observe that
+      `scorecard.md` is strictly larger than `served_rubric(r, 3)` while carrying
+      that digest.
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/SM-06/dup-mutants-before.json -- M3"
+      - "examples/validation/scorecards/score_tools.py -- `_skeleton_md`, and `served_digest` beside it"
+      - "references/eval_scorecard.md -- 'How this card reaches a judge'"
+    why_out_of_scope: >-
+      SM-06 is a REMOVAL ticket and the removal is done. Widening `served_digest`
+      to the whole scaffolded card is a change to the card's own contract, which
+      is SM-04's surface and sealed behind `anchors_digest sha256:eeccf4576bc6fd85`
+      -- and it is not free: a digest over the whole card moves whenever the
+      blinding label changes, which would re-scaffold rounds for no reason.
+      `FI-03-DF-02` argued exactly that trade-off in the other direction.
+    suggested_fix: >-
+      Either take a second digest over the FULL scaffolded card and record it
+      beside `served_digest`, the way `file_sha256` sits beside it for the rubric
+      file, or run `result_leaks` over the whole rendered `scorecard.md` rather
+      than over `served_rubric` alone. The second is cheaper and catches the
+      class M3 belongs to; neither is SM-06's to choose.
+    blast_radius: >-
+      Every card scaffolded under version 3. The digests are not wrong, but the
+      sentence "exactly the bytes a judge is served" is broader than what is
+      computed, and a reader relying on it is relying on something else.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+
+  - id: SM-06-DF-03
+    found_by: "SM-06 (gap mutant M4, the control)"
+    found_at_commit: "6aac1ec"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      `check` DID NOT CATCH AN EDITED ANCHOR INSIDE A CARD. `audit` DID, AND FOR
+      A DIFFERENT REASON THAN THE ONE ANYONE WOULD PREDICT.
+
+      M4 edited an anchor inside a scaffolded `scorecard.md` so that the copy
+      reproduced beside the score no longer agreed with the card. The predicted
+      catcher was `rubric.digest`, which the card describes as what `check` uses
+      "to refuse a skeleton scaffolded against a stale bar".
+
+      `score_tools.py check specs/results/scorecards` returned EXIT 0. What went
+      red was `audit` -- R-H4's seal digest, which covers the card's contents and
+      refuses when they changed -- and the three suite nodes that run it.
+
+      The distinction is real and worth writing down: `rubric.digest` is recorded
+      AT SCAFFOLD TIME and compared to the rubric, so it detects a card scaffolded
+      against a bar that has since moved. It does not read the anchors reproduced
+      inside the card, so it cannot detect the card being edited afterwards. A
+      card whose anchors were altered after scaffolding and BEFORE sealing passes
+      `check` and is invisible to `audit` too.
+    reproduction: >-
+      Edit one anchor line inside any `specs/results/scorecards/**/scorecard.md`,
+      then run `python3 examples/validation/scorecards/score_tools.py check
+      specs/results/scorecards` (exit 0) and
+      `python3 examples/validation/scorecards/score_tools.py audit` (exit 1, and
+      only because that card is sealed).
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/SM-06/dup-mutants-before.json -- M4, score_tools_check exit 0"
+      - "references/eval_scorecard.md -- `rubric.served_digest` is the load-bearing one"
+    why_out_of_scope: >-
+      Making `check` re-derive the anchors from the card text inside `scorecard.md`
+      is new checking behaviour on the scorecard tool, which is SM-04's surface,
+      and SM-06 adds no gate. The measurement is the contribution.
+    suggested_fix: >-
+      `check` already parses the rubric; have it also parse the anchors out of the
+      `scorecard.md` it is checking and compare, reporting a mismatch the way it
+      reports `PROSE-DRIFT`. Note the gap it does NOT close: an unsealed card
+      edited between scaffold and fill has no digest anywhere.
+    blast_radius: >-
+      Unsealed cards between scaffolding and sealing. Sealed ones are covered by
+      R-H4, which is what caught M4.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+
+  - id: SM-06-DF-04
+    found_by: "SM-06 (building the check, and measuring what it misses)"
+    found_at_commit: "6aac1ec"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_card_has_one_home.py"]
+    summary: >-
+      THE ONE-HOME CHECK CANNOT SEE A PARAPHRASE, AND SEVERAL OF THE COPIES IT
+      WAS BUILT TO REPLACE WERE PARAPHRASES.
+
+      `tests/test_card_has_one_home.py` derives every needle from the card and
+      matches on content words, which finds a quotation that reworded its
+      punctuation or its connectives. It does not find a restatement in someone
+      else's words. Measured, not assumed: README stated one scoring rule in its
+      own wording, sharing no content-word run with the card's wording of it, and
+      the scanner did not flag that line. It was found by reading and deleted by
+      hand, along with three others in the same class.
+
+      A second blind spot: one scoring rule's lead sentence is three words, short
+      enough that matching it would flag any sentence on the same subject, so it
+      is dropped and that rule is not watched at all.
+
+      Both are demonstrated by `test_the_blind_spots_are_declared_and_still_real`
+      rather than only written down, so the day either stops being true the test
+      says so.
+
+      AND THE SCOPE IS FIVE CARVE-OUTS. One principle -- a record of what was true
+      when it was written is not a live declaration -- with five instances. Each
+      is argued in the file's docstring; none is executed as a rule. A sixth added
+      without argument is how this becomes a whitelist.
+    reproduction: >-
+      `uv run --with pytest --with pyyaml python -m pytest
+      tests/test_card_has_one_home.py::test_the_blind_spots_are_declared_and_still_real -q`
+    evidence:
+      - "tests/test_card_has_one_home.py -- 'WHAT THIS CANNOT SEE'"
+      - "examples/validation/instruments/instruments.toml -- one-home-tripwire"
+    why_out_of_scope: >-
+      Widening the matcher to catch a paraphrase means matching ordinary English,
+      which trades a real blind spot for false positives on a check whose whole
+      value is that nobody turns it off. R2 says report the inability rather than
+      buy coverage with noise.
+    suggested_fix: >-
+      None mechanical that is worth its false positives. What would work is a
+      judged pass: ask a blind agent to find restatements of the card, which is
+      the channel that has produced almost every finding worth having in this
+      project and which no scanner has beaten.
+    blast_radius: >-
+      A paraphrase of the card can still land anywhere and go stale. The measured
+      failure history -- two wrong rows in one charter -- was a table, which this
+      check does catch.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+
+  - id: SM-06-DF-05
+    found_by: "SM-06 (provisioning its own worktree)"
+    found_at_commit: "6aac1ec"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      `wt new SM-06 epic/subtract-to-measure` BRANCHED FROM THE STALE LOCAL
+      `epic/subtract-to-measure`, TWENTY-ONE COMMITS BEHIND `origin/`.
+
+      The front door was used exactly as the work order spells it. The local
+      branch was at `67b9943` -- the commit that OPENED SM-06 in the plan -- while
+      `origin/epic/subtract-to-measure` was at `6aac1ec` with SM-01 through SM-04
+      merged. `wt` resolved the bare name against the local ref and created
+      `feature/SM-06` from it.
+
+      SM-06 depends on SM-04 and is sequenced behind it deliberately, because both
+      touch `references/eval_scorecard.md`. Had this not been noticed, the ticket
+      would have de-duplicated a version 1 card, produced a diff against a rubric
+      three versions stale, and reported "the card's content is unchanged" about
+      a card that had in fact changed twice underneath it. It was caught only by
+      comparing `git rev-parse HEAD` against the SHA named in the work order.
+
+      THE FAILURE DIRECTION IS THE BAD ONE: a stale base looks exactly like a
+      fresh one, and every check the ticket runs passes on it.
+    reproduction: >-
+      `git rev-parse epic/subtract-to-measure origin/epic/subtract-to-measure` in
+      any checkout that has not pulled the epic branch since it was created. The
+      two differ; `wt new <ticket> epic/<name>` uses the first.
+    evidence:
+      - "git rev-parse epic/subtract-to-measure -> 67b9943 while origin/ was 6aac1ec"
+      - "specs/desired_program_model/ticket_plan.yaml -- SM-06 promotion_predecessor SM-04"
+    why_out_of_scope: >-
+      It is in `git-issue-workflow`'s `scripts/wt`, not in this repository, and
+      SM-06 has no authority to change a skill it is also forbidden to sync.
+    suggested_fix: >-
+      `wt new` should resolve an epic branch as `origin/<branch>` after a fetch,
+      or refuse when the local ref is behind its upstream and say by how many
+      commits. A work order that names a base SHA already carries what is needed
+      to check: compare `git rev-parse HEAD` to it and refuse on a mismatch.
+    blast_radius: >-
+      Every epic ticket in every repository that uses this front door, and it is
+      worst precisely where the epic sequences tickets behind one another for a
+      shared file -- which is the case the sequencing exists for.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+
+  - id: SM-05-DF-01
+    found_by: "SM-05 (census of every sealed card, before dispatching any judge)"
+    found_at_commit: "f49a1c9"
+    schedule_revision: 3
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["SUBTRACT-TO-MEASURE-EPIC.md", "specs/desired_program_model/ticket_plan.yaml", "references/eval_scorecard.md"]
+    summary: >-
+      THE EPIC'S FOUNDING PREMISE IS FALSE AS STATED. D2 HAS TAKEN THREE VALUES
+      ACROSS SIX EXAMPLES, AND ANCHOR 3 WAS REACHED BY TWO BLIND JUDGES IN A
+      PRIOR EPIC. THE "27 OF 27" FIGURE IS A FACT ABOUT ONE EXAMPLE, RESTATED
+      UNSCOPED AS A FACT ABOUT THE INSTRUMENT.
+
+      `SUBTRACT-TO-MEASURE-EPIC.md:17` states "D2 = 2 on 27 of 27 cards ever
+      written", and `:24` adds "EVERY subject this project has ever scored was
+      greenfield ... No greenfield artifact can reach D2 anchor 3, ever."
+      `ticket_plan.yaml:5` states both the same way. The scoped form -- "about
+      the A/B example" -- appears at `ticket_plan.yaml:58` and in SM-04's
+      RESULT.md, and is correct; the unscoped form is what the epic was opened on.
+
+      Measured over every `scorecard.json` in `specs/results/scorecards/`:
+
+        example                   n    D2 values
+        ab_quota_ledger          31    2
+        ex1_scaffold_only         2    2
+        ex4_pipeline_coherent     2    2
+        ex5_pipeline_divergent    2    2
+        ex6_jenga                 2    1
+        ex3_over_complex          2    3
+
+      41 cards, six examples, THREE values. `ex3_over_complex` was blind-judged
+      on 2026-08-03 and BOTH judges scored D2 = 3, citing before and after
+      descriptors (bound 8,388,608 -> 624, dense rows 3 -> 1) and both declining
+      4 for the MF-020 reason. In the one round that scored five DIFFERENT
+      fixtures, D2 discriminated across three values with perfect inter-judge
+      agreement on all five.
+
+      The anchors digest is `sha256:eeccf4576bc6fd85` at versions 1, 2 and 3
+      alike, so those cards were scored against the same bar as SM-05's.
+
+      `references/architecture_advice.md:376-390` records the ex3 result in plain
+      English, including "Across the whole architectural-coherence baseline, D2
+      never reached 4" -- a sentence that presupposes it reached 3.
+    reproduction: >-
+      python3 -c "import json,glob; [print(json.load(open(p))['example'],
+      json.load(open(p))['dimensions']['D2']['score']) for p in
+      glob.glob('specs/results/scorecards/**/scorecard.json', recursive=True)]"
+
+      Or: `score_tools.py history --example ex3_over_complex`, which prints D2 = 3
+      in both rows.
+    evidence:
+      - "specs/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j1/scorecard.json -- D2 score 3"
+      - "specs/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j2/scorecard.json -- D2 score 3"
+      - "specs/results/scorecards/architectural-coherence/ex6_jenga/20260803-j1/scorecard.json -- D2 score 1"
+      - "references/architecture_advice.md:376-390"
+      - "SUBTRACT-TO-MEASURE-EPIC.md:17 and :24; specs/desired_program_model/ticket_plan.yaml:5"
+    why_out_of_scope: >-
+      SM-05 is a measurement ticket and may not edit the charter, the plan or the
+      card. Correcting the premise is an owner act, and doing it inside the round
+      the premise justified would be editing a target to match a result.
+    suggested_fix: >-
+      Rescope every statement of the figure to the example it is about, and give
+      `score_tools.py` a cross-example view. R-H2 forbids AVERAGING across
+      examples and `history` requires `--example`, so the spread is only visible
+      to someone who already suspects it and queries each example by name.
+      NOTHING FORBIDS GENERALISING FROM ONE EXAMPLE TO A CLAIM ABOUT THE
+      INSTRUMENT, and that is the error that actually occurred, five epics
+      running.
+    blast_radius: >-
+      The whole epic's justification, and every document that repeats the figure:
+      the charter, the plan's `purpose`, issue #169, and the SM-05 dispatch. The
+      measurement SM-05 ran is still worth having -- it replicates the result on a
+      real before/after rather than a fixture, and adds a judge-tier axis -- but
+      it is a replication and was reported as a first.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/188"
+    disposition_note: >-
+      Carried to the successor epic RD-01 (#188): make a single-example generalisation catchable and make contested compute. The premise of subtract-to-measure was a claim about ONE example restated as a fact about the instrument, and nothing existed to refuse it.
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+
+  - id: SM-05-DF-02
+    found_by: "SM-05 (staging the judge trees and scanning them), and a blind judge who was moved by it"
+    found_at_commit: "f49a1c9"
+    schedule_revision: 3
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_card_has_one_home.py", "specs/results/", "references/"]
+    summary: >-
+      NOTHING WATCHES A STATEMENT OF HOW A DIMENSION HAS SCORED. SM-06 CLOSED THE
+      "COPY OF THE CARD" CLASS AND DELIBERATELY EXEMPTED THE "COPY OF A RESULT"
+      CLASS -- WHICH IS THE CLASS THAT REACHES A JUDGE.
+
+      `tests/test_card_has_one_home.py:378` is
+      `test_a_score_citation_is_not_a_statement_of_the_card`, and its docstring
+      argues the exemption: "a checker that flags it would be turned off within a
+      week". The argument is sound and the consequence is unwatched: a sentence
+      asserting how D2 has scored is not a statement OF the card, so nothing
+      compares it to anything.
+
+      Seven files carrying prior D-results were on NO dispatch's forbidden list:
+
+        specs/results/complexity_ledger.json
+        specs/results/skill_feedback.md
+        specs/results/deferred_findings_hexagonal_prompting.yaml
+        references/architecture_advice.md
+        references/hexagonal_prompting.md
+        examples/validation/instruments/instruments.toml
+        examples/validation/ab/eval/results/*.json
+
+      Every judge dispatch ever written forbids "everything under
+      `specs/results/scorecards/`" and stops there. `complexity_ledger.json` and
+      `skill_feedback.md` sit one directory up. `skill_feedback.md` has carried
+      "GOAL-simpler-same-behavior MISSED (D2 = 2 from all four judges -- an A/B
+      cannot reach anchor 3)" since `1a2b65f` on 2026-08-04, so SIXTEEN judges
+      across three rounds (FI-03 v1, FI-03 v2, SM-04) could read the exact
+      conclusion they were the instrument for. No SM-04 card mentions either file,
+      so there is no evidence any of them did -- and nothing would have recorded it.
+
+      IT IS NOT HYPOTHETICAL. SM-05's own judge `K-p2` disclosed reading
+      `examples/validation/ab/eval/results/final-run-2.json` and stated that
+      `per_class.guard_relaxation` from it "is the entire basis for D1 = 3;
+      without it D1 would be 2". One dimension-point, moved, disclosed.
+
+      AND THE FILER COMMITTED THE SAME ERROR. SM-05's redaction scanner matched
+      the shape `D1 = 2` and missed `before/README.md:139-162`, which states a
+      result as "bug detection did not move by a single cell -- 4 of 6, 6 of 6,
+      0 of 3, 0 of 3". A result stated without its dimension's name is invisible
+      to a pattern keyed on the dimension's name.
+    reproduction: >-
+      grep -rlE 'D[1-5] ?= ?[0-9]' --include='*.md' --include='*.json'
+      --include='*.toml' . | grep -v scorecards/ | grep -v '\.history'
+    evidence:
+      - "tests/test_card_has_one_home.py:378-388 -- the exemption and its argument"
+      - "specs/results/skill_feedback.md:1795 -- 'D2 = 2 from all four judges -- an A/B cannot reach anchor 3'"
+      - "specs/results/complexity_ledger.json:18284 -- 'D2 = 2 on 31 of 31 cards ever written' and 'Rewriting D2's anchors would pre-decide SM-05'"
+      - "specs/results/scorecards/subtract-to-measure/SM-04/JUDGE-DISPATCH.md:70 -- forbids only specs/results/scorecards/"
+      - "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p2/scorecard.md -- the judge's own disclosure that a leaked file moved D1"
+    why_out_of_scope: >-
+      Widening the one-home check to results, or widening every dispatch's
+      forbidden list, is a change to the instrument during the round it is
+      measuring. `measurement_rule`.
+    suggested_fix: >-
+      Two separable things. (1) The forbidden list should name `specs/results/`
+      rather than `specs/results/scorecards/`, and should be DERIVED rather than
+      hand-written -- a hand-written list is the shape rejected at
+      `EVAL-RERUN-DF-01`. (2) A judge-facing tree should be produced by a
+      committed, executable redaction whose OUTPUT is scanned, not by a list
+      someone maintains; and the scan must match a result's SHAPE ("N of M",
+      "did not move", a kill-class table) and not only a dimension's name.
+    blast_radius: >-
+      Sixteen judge-scorings across three rounds could reach an unforbidden
+      statement of a prior D-result, and one scoring in THIS round demonstrably
+      did. Every cross-round D-delta this project has quoted rests on judges whose
+      exposure to prior results was neither controlled nor recorded.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/188"
+    disposition_note: >-
+      Carried to the successor epic RD-01 (#188): make a single-example generalisation catchable and make contested compute. The premise of subtract-to-measure was a claim about ONE example restated as a fact about the instrument, and nothing existed to refuse it.
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+
+  - id: SM-05-DF-03
+    found_by: "SM-05's blind judges (four of them, independently, unprompted)"
+    found_at_commit: "f49a1c9"
+    schedule_revision: 3
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/ports-as-adapters/blind/"]
+    summary: >-
+      THE BLIND EVIDENCE PACKET IS NOT BLIND. IT PRINTS ALL THREE ARTIFACTS'
+      COMPLEXITY FIGURES IN ONE TABLE, AND THE SEALED BYTES CARRY VISIBLE
+      SCRUBBING ARTIFACTS.
+
+      (a) `blind/artifact_{T,U,W}/EVIDENCE.md` each carry the identical block
+      "figure | artifact T | artifact U | artifact W" over 17 rows, including
+      `declared_interfaces` 1 / 0 / 0 and `code_lines` 202 / 151 / 78. A judge
+      scoring one artifact is handed its ranking against two others on exactly
+      the D2- and D3-relevant figures. 22 prior cards across five rounds were
+      served it; SM-05's four greenfield judges make 26.
+
+      Judges rejected it on their own initiative rather than being protected from
+      it -- `S-p1`: "Rejected the mechanical block for D2 -- MF-020 specifically:
+      this artifact is smaller than T partly BECAUSE it declares no interfaces."
+      That is discipline doing a mechanism's job.
+
+      (b) THE SEALED BYTES ARE NOT SEALED. `artifact_U/NOTES.md:1`,
+      `:128` and `test_quota_ledger.py:1` contain post-hoc string substitutions --
+      "this artifact" -- and `NOTES.md:128` lands one INSIDE A DIRECTORY PATH,
+      rendering "`this artifact/`". That tells a judge the substituted token was a
+      directory name, i.e. an arm directory. Four judges noticed independently.
+
+      (c) `git status` at the repository root lists sibling card paths. Three
+      SM-05 judges and three SM-04 judges disclosed seeing other judges'
+      directories this way. Running `git status` to prove you touched nothing is
+      an unremarkable thing for a judge to do, and it is how the blinding leaks.
+    reproduction: >-
+      grep -c "artifact T | artifact U | artifact W"
+      specs/results/scorecards/ports-as-adapters/blind/artifact_*/EVIDENCE.md
+      -- 1 in each.
+
+      grep -n "this artifact"
+      specs/results/scorecards/ports-as-adapters/blind/artifact_U/NOTES.md
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/blind/artifact_U/EVIDENCE.md:310-328 -- the three-artifact table"
+      - "specs/results/scorecards/ports-as-adapters/blind/artifact_U/NOTES.md:128 -- 'this artifact/' inside a path"
+      - "22 prior scorecard.json on arms T/U/W/H/R across five epics"
+    why_out_of_scope: >-
+      These are SEALED measurement artifacts under R-H4. Editing them to fix the
+      blinding would alter the bytes 26 cards were scored against and destroy the
+      comparability that is the only reason to reuse them.
+    suggested_fix: >-
+      Do not repair the sealed packets. Build the NEXT round's packets with a
+      per-artifact mechanical block, and generate the scrub rather than applying
+      it by hand so a substitution cannot land inside an identifier or a path. For
+      `git status`: give each judge its own worktree, which is the only fix that
+      does not rely on a judge choosing not to look.
+    blast_radius: >-
+      26 judge-scorings across six rounds, on the two dimensions the project makes
+      its cross-epic claims about. Every one of them was comparative when the card
+      says the eval is single-artifact.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/188"
+    disposition_note: >-
+      Carried to the successor epic RD-01 (#188): make a single-example generalisation catchable and make contested compute. The premise of subtract-to-measure was a claim about ONE example restated as a fact about the instrument, and nothing existed to refuse it.
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+
+  - id: SM-05-DF-04
+    found_by: "SM-05 (parsing the registry's own output), and a blind judge on the provenance half"
+    found_at_commit: "f49a1c9"
+    schedule_revision: 3
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/instruments/instruments.toml", "examples/validation/instruments/demonstrate.py"]
+    summary: >-
+      "34 OF 48 WITH A DEMONSTRATED FAILING INPUT" IS TWO DIFFERENT MEASUREMENTS
+      ADDED TOGETHER, AND THE FIGURE THE EPIC QUOTES WAS TAKEN IN THE WRONG TREE.
+
+      (a) PROVENANCE. `after-state/instruments-after.json` -- the artifact SM-03
+      published and SM-05 served to judges -- has argv naming
+      `wt-epic-subtract-to-measure-SM-03`. Its counts are SM-03's tip, BEFORE
+      SM-06 merged, and `one-home-tripwire` is registered at `f49a1c9` and absent
+      from it. Found by judge `K-p1` reading the argv, not by the round operator.
+      Re-run at the scored commit: 58 enumerated, 48 instruments, 34 with a
+      demonstrated failing input, `reproduction_failures: 0`. The quoted 47 / 33
+      is stale at the tip it is quoted about.
+
+      (b) THE COUNT IS NOT HOMOGENEOUS. Splitting the 34 by what the registry
+      actually OBSERVED:
+
+        15  non-pytest CLI slot exiting nonzero    -- the instrument refused
+         3  pytest slot with failed >= 1           -- the instrument went red
+        16  pytest slot that PASSES                -- a META-TEST asserted it would refuse
+
+      18 observed, 16 asserted. The asserted shape is not hollow: if the
+      instrument stopped refusing, its meta-test would fail and the slot would go
+      red. But it is a weaker observation, NO FIELD RECORDS WHICH SHAPE A ROW
+      USES, and the only mutant aimed at that class -- `SM-GM-I2` -- is recorded
+      by SM-01 as under-powered, so the difference has never been priced.
+
+      Nearly half the headline rests on the evidence shape that failed at FI-01,
+      where three of four deliberately broken controls reported HOLDS against a
+      probe whose own tests passed.
+    reproduction: >-
+      python3 examples/validation/instruments/demonstrate.py --format json, then
+      split `rows` where `has_failing_demonstration` by whether the failing slot's
+      argv runs pytest and whether its `counts.failed` exceeds zero.
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure-sm05/instruments-SM-05.json -- 58/48/34 at f49a1c9, reproduction_failures 0"
+      - "specs/results/scorecards/subtract-to-measure/after-state/instruments-after.json -- argv names the SM-03 worktree; no one-home-tripwire row"
+      - "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p1/scorecard.md -- the provenance disclosure"
+    why_out_of_scope: >-
+      Recording the evidence shape is a schema change to the registry, and
+      re-measuring the ratio is the thing this ticket is reporting. Both are fixes
+      during a measurement.
+    suggested_fix: >-
+      Give each `[instrument.failing]` slot a recorded `observation` of
+      `refused` or `asserted`, derived rather than declared -- the runner already
+      knows which, because it parses the counts. Report the two numbers separately
+      and never their sum. And seed a mutant with enough power to price the
+      asserted class, which `SM-GM-I2` was not.
+    blast_radius: >-
+      Every quotation of the ratio since FI-02, including this epic's charter
+      ("26 of 35 is at most ~11 of >=43 once swept") and SM-03's headline. The
+      direction of the error is not consistently flattering, which is why it has
+      survived: the corrected count at the tip is HIGHER, not lower.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/188"
+    disposition_note: >-
+      Carried to the successor epic RD-01 (#188): make a single-example generalisation catchable and make contested compute. The premise of subtract-to-measure was a claim about ONE example restated as a fact about the instrument, and nothing existed to refuse it.
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+
+  - id: SM-05-DF-05
+    found_by: "SM-05's blind judges (the ladder-fit question), escalating SM-04-DF-06"
+    found_at_commit: "f49a1c9"
+    schedule_revision: 3
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md"]
+    summary: >-
+      THE LADDER DOES NOT FIT A SUBJECT THAT SHIPS NO MODEL. FOUR OF FIVE TOP
+      RUNGS ARE STRUCTURALLY UNREACHABLE ON A GREENFIELD ARTIFACT, AND
+      SM-04-DF-06's CUMULATIVITY CRACK IS NOT SPECIFIC TO D2 -- IT IS ON EVERY
+      DIMENSION.
+
+      SM-05 asked each judge, in the dispatch, to say where the ladder broke
+      rather than smooth it over. `S-p2`, unprompted and in full:
+
+        "four of five dimensions have a top rung this subject cannot reach for
+        reasons of SHAPE, not quality -- D1/4 needs a model, D2/3-4 need a
+        'before' (and D2's read_first names a descriptor that doesn't exist here
+        at all), D3/4 needs a fake FEATURE.md explicitly permits omitting, and
+        D4's whole question presupposes a baseline. A competent greenfield
+        artifact tops out at 2-3 across the board no matter what it does;
+        comparing these numbers to a model-carrying subject's compares different
+        ladders."
+
+      A SECOND CRACK SM-04 DID NOT HAVE. D2's `read_first` instructs the judge to
+      "read the measured descriptor first (variables, actions, state-space bound,
+      R/W density, modularity, dense rows)" -- a MODEL descriptor. `ab_quota_ledger`
+      ships no model, so D2's own first instruction is unperformable on the
+      subject this project scored 31 times. The only measurement in the packet is
+      a CODE complexity block, which scoring rule 7 forbids converting into a
+      score.
+
+      AND THE CUMULATIVITY CRACK GENERALISES. SM-04-DF-06 reported a 2-to-4-point
+      spread on D2 from one judge. Three more judges found it independently, at
+      two tiers, and one widened it to every dimension -- `K-p2`:
+
+        "'Score the LOWEST anchor the artifact fully satisfies' is served
+        verbatim to every judge in both scorecard.md and how_to_fill, and read
+        literally it yields 0 on every dimension. I scored the highest anchor
+        fully satisfied and broke ties downward, which the tie-break clause
+        presumes -- but a judge who took it literally would produce a card of
+        zeros that looked like a finding."
+
+      Four judges across two rounds have now rejected the served rule's literal
+      reading in order to score at all. The rule as served is not the rule anyone
+      applies.
+    reproduction: >-
+      `score_tools.py serve` and read the scoring-rules block against the D2
+      anchors; then read `dimensions.D2.read_first` against any artifact under
+      `blind/` that ships no `.tla`.
+    evidence:
+      - "references/eval_scorecard.md:99-101 -- 'Score the LOWEST anchor the artifact fully satisfies'"
+      - "references/eval_scorecard.md:119-121 -- D2's read_first, naming a model descriptor"
+      - "specs/results/scorecards/subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p2/scorecard.json -- the ladder-fit answer and the cumulativity rejection"
+      - "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p2/scorecard.md -- 'yields 0 on every dimension'"
+      - "SM-04-DF-06 -- the same crack, one judge, D2 only"
+    why_out_of_scope: >-
+      Rewriting an anchor or a scoring rule requires a version bump with its own
+      measured discontinuity, and doing it inside the round that measures the
+      anchors would pre-decide the result -- the identical reason SM-04 gave for
+      not fixing SM-04-DF-06.
+    suggested_fix: >-
+      Two things, and the first is cheap. (1) Rule the tie-break explicitly:
+      "score the HIGHEST anchor the artifact fully satisfies; when torn between
+      two, take the lower and say why" is what every judge actually does and what
+      the existing tie-break clause presumes. (2) Decide whether the card is for
+      model-carrying subjects only. If it is, say so, and stop comparing greenfield
+      cards to it. If it is not, D1/4, D2/3, D3/4 and D4/2-4 need rungs that a
+      subject without a model can reach.
+    blast_radius: >-
+      Every card ever written. If a competent greenfield artifact structurally
+      tops out at 2-3, then 31 of the project's 41 cards were scored on a ladder
+      whose upper half was unreachable, and every cross-subject comparison drawn
+      from them compares different ladders.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/188"
+    disposition_note: >-
+      Carried to the successor epic RD-01 (#188): make a single-example generalisation catchable and make contested compute. The premise of subtract-to-measure was a claim about ONE example restated as a fact about the instrument, and nothing existed to refuse it.
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+
+  - id: SM-05-DF-06
+    found_by: "SM-05 (two blind judges disagreeing by two points, and naming why)"
+    found_at_commit: "f49a1c9"
+    schedule_revision: 3
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md"]
+    summary: >-
+      D3 -- THE DIMENSION THIS PROJECT RESTS ITS CROSS-EPIC CLAIMS ON BECAUSE IT
+      "DISCRIMINATES AND HOLDS STILL" -- SPANS TWO POINTS ON A REPOSITORY-SCALE
+      SUBJECT, AND RULE 5's ADJUDICATION CANNOT SETTLE IT.
+
+      On the toolchain removal, four judges scored D3 at 2, 2, 4, 3. The 2-vs-4
+      pair is `contested` under scoring rule 5, which requires "a third pass that
+      must cite NEW EVIDENCE, not re-read the same lines". Both judges state that
+      no new evidence exists, because the disagreement is not evidentiary.
+
+      `K-p2`: "A D3 of 4 I could have justified with my own execution -- 28/28
+      against real and fake -- put aside because `reference_ports/domain.py:3-5`
+      says that tree is a FIXTURE the instruments are pointed at, not the
+      artifact. That is the largest swing in the card (2 vs 4 on identical lines)
+      and it is a disagreement about what 'it' means, not about the code; NO NEW
+      EVIDENCE WILL SETTLE IT."
+
+      `K-p1`, independently: "D3 at the 2->3 seam, where 'the domain' silently
+      changes referent."
+
+      D3's anchors 3 and 4 say "the domain does not import its I/O" and "a driven
+      port is exercised by a real adapter AND a fake". On a single artifact "the
+      domain" is unambiguous. On a repository that CONTAINS test fixtures which
+      themselves have domains and ports, it is not, and the card gives no rule for
+      choosing the referent.
+
+      A SECOND, SMALLER INSTABILITY: D3 moved one point on byte-identical
+      greenfield bytes at the lower judge tier (`S-p3` = 1 against ten prior cards
+      at 2). D5 shows the same one-point tier effect. D1 and D2 show none.
+
+      AND NOTHING COMPUTES `contested`. Scoring rule 5 says a dimension where two
+      judges differ by more than 1 "is RECORDED as `contested`". The field is
+      per-card, every judge left it `[]`, and neither `check` nor `index` compares
+      cards to each other -- `index` printed "contested: --" on all four removal
+      rows while the D3 spread across them was two points. So the one rule the
+      card has for judge disagreement is a declaration with no executor, which is
+      the `declaration_executability_rule` shape this project has now filed
+      against five separate declarations. The spread in this finding was found by
+      reading four cards side by side, which is exactly what no tool does.
+    reproduction: >-
+      Compare `dimensions.D3` across the four cards under
+      `specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/`.
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p2/scorecard.json -- D3 = 2, with the fixture argument"
+      - "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p3/scorecard.json -- D3 = 4, citing test_the_domain_imports_neither_adapter"
+      - "specs/results/scorecards/subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p3/scorecard.json -- D3 = 1 against ten prior cards at 2"
+      - "references/eval_scorecard.md -- D3 anchors 3 and 4; scoring rule 5"
+    why_out_of_scope: >-
+      Adding a referent rule to D3 is an anchor change and needs a version bump
+      with a measured discontinuity. It also cannot be decided by the ticket whose
+      subject is the ambiguous case.
+    suggested_fix: >-
+      A card should record WHAT THE ARTIFACT IS before it records a score -- an
+      explicit subject boundary, written by the round and served with the packet,
+      naming which trees are the artifact and which are fixtures it is pointed at.
+      That is cheaper than an anchor change and it is what both judges were
+      missing. Until then, D3 should not be quoted across subjects of different
+      scale, and PA-06's D3-based headline should carry the scope it was measured
+      at.
+    blast_radius: >-
+      `ports-as-adapters` rests its headline on D3 and the card recommends D3 for
+      cross-epic claims precisely because it held still. That recommendation is
+      supported on single-artifact fixtures and is now measured NOT to hold on a
+      repository-scale subject.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/188"
+    disposition_note: >-
+      Carried to the successor epic RD-01 (#188): make a single-example generalisation catchable and make contested compute. The premise of subtract-to-measure was a claim about ONE example restated as a fact about the instrument, and nothing existed to refuse it.
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+
+  - id: SM-05-DF-07
+    found_by: "SM-05 (running check over its own eight cards)"
+    found_at_commit: "f49a1c9"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py", "references/eval_scorecard.md"]
+    summary: >-
+      `check`'s CITATION GRAMMAR REJECTS THE ANNOTATED CITATIONS JUDGES ACTUALLY
+      WRITE, AND SCORING RULE 2's STATED CONSEQUENCE IS NOT WHAT THE CODE DOES.
+
+      `score_tools.py check --require-filled` over SM-05's eight cards reports 150
+      problems and exits 1. EVERY ONE of the 150 is the same class -- "citation
+      ... is not file:line or file:line-line" -- because judges wrote
+      `path:line -- what is there` rather than a bare `path:line`. Zero problems
+      are substantive: no missing citation, no 4 without `refuses_to_claim`, no
+      D4 = 4 against `executed_own_faults: false`, no missing `anchor_reading`.
+
+      So a round of eight well-evidenced cards fails the check that a workflow
+      close runs, for punctuation. The fix a hurried operator reaches for is to
+      rewrite the judges' citations, which is editing a measurement.
+
+      SEPARATELY, THE RULE MISDESCRIBES ITS OWN MECHANISM. Rule 2 as served reads
+      "A score with no citation is capped at 1, MECHANICALLY, by the schema
+      check." `check` does not cap anything: it appends a problem string and
+      returns a nonzero exit. The score stays as written and `index` and `history`
+      print it unchanged. A rule that says it caps and only reports is the
+      `declaration_executability_rule` shape the project has filed four times
+      against other declarations.
+    reproduction: >-
+      python3 examples/validation/scorecards/score_tools.py check
+      specs/results/scorecards/subtract-to-measure-sm05
+      specs/results/scorecards/subtract-to-measure-sm05-greenfield --require-filled
+      -- 150 problems, exit 1, all of one class.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py:565-571 -- CITE.match, and the 'caps it at 1' message that caps nothing"
+      - "references/eval_scorecard.md:192 -- rule 2 as served"
+      - "all eight cards under specs/results/scorecards/subtract-to-measure-sm05*/"
+    why_out_of_scope: >-
+      Loosening the grammar changes the instrument every card is validated by,
+      inside the round it is validating. And the cards may not be edited to suit
+      it: `measurement_rule`.
+    suggested_fix: >-
+      Accept `path:line` and `path:line-line` as a PREFIX, with free text after a
+      separator -- the citation is still machine-checkable and the judge's reason
+      survives beside it, which is what makes a card readable. Then either make
+      rule 2 cap the score in the emitted reading, or reword it to say what it
+      does: refuse the batch.
+    blast_radius: >-
+      Any round whose judges explain their citations. Prior rounds passed because
+      their judges happened to write bare references; nothing asked them to.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/188"
+    disposition_note: >-
+      Carried to the successor epic RD-01 (#188): make a single-example generalisation catchable and make contested compute. The premise of subtract-to-measure was a claim about ONE example restated as a fact about the instrument, and nothing existed to refuse it.
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
