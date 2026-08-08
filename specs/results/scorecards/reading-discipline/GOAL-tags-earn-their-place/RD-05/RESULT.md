@@ -6,9 +6,11 @@ authoritative values, one demonstrated dimension, one example, one judge tier.
 
 - **Tree:** `/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-05`, a
   ticket worktree, branched from `epic/reading-discipline` at `c9237e6`
-  (verified against the work order; the LOCAL ref was **eight commits behind**
-  and was fast-forwarded from `origin` before `wt new` — RD-02 found four,
-  SM-06 found twenty-one).
+  (verified against the work order; the LOCAL ref was at `7514df0`, **14 commits
+  behind** `origin/epic/reading-discipline`, and was fast-forwarded before
+  `wt new` — RD-02 found four, SM-06 found twenty-one. *`git rev-list --count`
+  says 14; an earlier draft of this line said eight, from counting the log by
+  eye. Corrected against the command rather than left standing.*)
 - **Design:** `references/architecture_tags.md`, §§1–12 RD-04's and §13 RD-05's.
 - **Evidence:** `analysis/` in this directory — `tags.txt`, `result.json`,
   `compare-*.txt`, `audit.txt`, `scope-own-writing.txt`, all produced by the
@@ -265,7 +267,7 @@ Archives built with `git archive <sha> | tar -x -C <clean dir>`.
 | archive, **no homes** — RD-05 first tip | `4ec3028` | **12 failed, 1449 passed, 9 skipped** |
 | archive, **no homes** — RD-05 second tip | `5ccda71` | **10 failed, 1455 passed, 9 skipped** |
 | archive, **no homes** — RD-05 final tip | `67e3085` | **10 failed, 1457 passed, 9 skipped** |
-| ticket worktree | `67e3085` | **SUITE_WORKTREE** |
+| ticket worktree | `67e3085` | **2 failed, 1474 passed** |
 
 ### 6.1 The like-for-like diff, member by member
 
@@ -300,6 +302,29 @@ So of the 38 extra passes, 33 are tests this ticket wrote and 4 are the ticket
 workflow's own scaffold being validated; the last is the failure that stopped
 failing. **The numerator fell by one and the denominator rose by 37**, and
 saying which is the `denominator_rule`.
+
+### 6.2 The worktree number, and why it is not the comparison
+
+**Both of its two failures are `RD-01-DF-02`'s class, and neither reproduces in
+the archive tree at the same commit.**
+
+- `test_no_reader_of_this_instrument_gates_on_its_output` fails with **88
+  refusing uses, every one under `.skill-manager/`** — the gitignored
+  per-checkout home `wt new` creates, holding a full copy of the instrument and
+  its tests. RD-04 saw 248 items across four homes; this worktree has one home
+  and 88. In the archive tree the same test is **green**, which is RD-05's
+  headline result.
+- `test_card_has_one_home::test_only_the_card_states_a_dimension_an_anchor_or_a_scoring_rule`
+  reports exactly one offender, `tests/test_score_tools.py:540` — and the file it
+  read is
+  `.skill-manager/skills/spec-double-compiler/tests/test_score_tools.py`.
+  **Zero RD-05 files are flagged by it**, checked directly rather than inferred:
+  `architecture_tags.py` restates no anchor, no dimension and no scoring rule,
+  which is the discipline RD-04 had to apply to two of its own files.
+
+**So the worktree figure is not comparable to either archive figure.** It is
+reported rather than dropped, and it is also the third independent reproduction
+of a false-positive class that has been misread as a green for several rounds.
 
 **The parent is not green in any tree.** Eleven failures at `c9237e6` with no
 homes — RD-02's and RD-04's finding, reproduced independently a third time.
