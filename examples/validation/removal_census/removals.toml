@@ -1,0 +1,529 @@
+schema_version = 1
+
+# ===========================================================================
+# THE REMOVAL CENSUS -- what `subtract-to-measure` paid to prove itself safe
+# ===========================================================================
+#
+# READ THE ROWS, NOT A TOTAL. The predecessor published one figure -- "-225
+# lines from scripts/" -- which was true, and which hid that the same epic
+# added 1677 net `code_lines` across the trees it touched. `removal_census.py`
+# refuses `--total` for that reason.
+#
+# WHAT EACH ROLE MEANS, because the split is where a census can lie:
+#
+#   cut_production  lines of the MECHANISM deleted
+#   cut_tests       lines of the mechanism's OWN tests deleted -- real deletion,
+#                   but they stopped testing anything the moment the mechanism
+#                   went, so counting them in one denominator with production
+#                   code makes every ratio look cheaper than it is
+#   cut_prose       documentation of the deleted mechanism
+#   replacement     lines added that ARE the new mechanism -- not proof
+#   proof           lines added whose only job is to show the removal was safe:
+#                   seeded mutants, tests that assert the gap stayed covered,
+#                   tripwires that keep the thing removed
+#
+# `denominator_rule`: two ratios are reported per removal, over
+# `cut_production` and over all cut lines, and they are not averaged.
+#
+# SCOPE (R3). Every figure here is `git diff -U0` line counts over the named
+# paths at the named commit range. It is NOT `code_lines` from
+# `scripts/code_complexity.py`, which counts differently and is what the +1677
+# figure was measured in. The two are not interchangeable and no row claims to
+# be the other.
+
+report_total = false
+
+gap_mutant_before_table = "specs/results/scorecards/subtract-to-measure/before-state/gap-mutants-before.json"
+
+
+# ---------------------------------------------------------------------------
+# (a) the [ports.*] binding machinery -- SM-02
+# ---------------------------------------------------------------------------
+
+[[removal]]
+id = "ports-binding-machinery"
+ticket = "SM-02"
+name = "the [ports.*] binding facility in the case-adapter runner"
+base = "0342a3a^1"
+head = "0342a3a"
+gap_mutants = [
+  "SM-GM-P1-fake-journal-records-newest-first",
+  "SM-GM-P2-manifest-renames-the-port-out-from-under-the-binding",
+  "SM-GM-P3-the-fake-is-silently-a-second-real-adapter",
+]
+# Every column that ran THROUGH the machinery. `corpus-action-bound` is here
+# because `port_corpus_run.py` imports `apply_wiring` at module scope, so it
+# died at import after the cut and the runner marked it CONTROL_RED.
+deletes_detectors = [
+  "corpus-port-swap:real", "corpus-port-swap:fake",
+  "corpus-action-bound:real", "corpus-action-bound:fake",
+  "port-binding-report",
+]
+
+[[removal.region]]
+role = "cut_production"
+kind = "diff"
+path = "scripts/run_generated_case_adapters.py"
+count = "deleted"
+expect_lines = 290
+reason = "twelve pieces of the binding facility: AdapterMapping.binds/.port/.fake, the [ports.*] branches of both TOML readers, _port_declaration_type, port_case_label, load_declared_ports, port_bindings, apply_wiring, render_port_binding_report, the port-fake-real-swap half of render_oracle_statement, the port-first precedence in adapter_for_case, and the --wiring / --port-manifest flags"
+
+[[removal.region]]
+role = "cut_production"
+kind = "diff"
+path = "scripts/effect_conformance.py"
+count = "deleted"
+expect_lines = 1
+reason = "one call site of the deleted facility"
+
+[[removal.region]]
+role = "cut_tests"
+kind = "diff"
+path = "tests/test_port_adapter_binding.py"
+count = "deleted"
+expect_lines = 462
+reason = "the deleted mechanism's own test file, 21 collected nodes, removed whole. Real deletion; it tested nothing that still exists."
+
+[[removal.region]]
+role = "cut_prose"
+kind = "diff"
+path = "references/case_modules.md"
+count = "deleted"
+expect_lines = 75
+reason = "the documentation of the deleted facility"
+
+[[removal.region]]
+role = "replacement"
+kind = "diff"
+path = "scripts/run_generated_case_adapters.py"
+count = "added"
+expect_lines = 28
+reason = "the rewiring the cut needed, including the comment recording that the facility had zero unique kills across 28 tables"
+
+[[removal.region]]
+role = "replacement"
+kind = "diff"
+path = "scripts/effect_conformance.py"
+count = "added"
+expect_lines = 1
+reason = "the rewired call site"
+
+[[removal.region]]
+role = "replacement"
+kind = "diff"
+path = "references/case_modules.md"
+count = "added"
+expect_lines = 48
+reason = "the documentation rewritten to describe what is there now"
+
+[[removal.region]]
+role = "proof"
+kind = "diff"
+path = "tests/test_ports_binding_removed.py"
+count = "added"
+expect_lines = 220
+reason = "14 nodes added ONLY to demonstrate the facility is gone and to keep it gone. Nothing in the product calls them."
+
+[[removal.region]]
+role = "proof"
+kind = "span"
+commit = "f0c215d"
+path = "examples/validation/gap_mutants/gap_mutants.toml"
+start = "MECHANISM 1 -- the [ports.*] binding machinery"
+end = "MECHANISM 2 -- the hollow instrument demonstrations"
+expect_lines = 90
+reason = "the three mutants seeded in this mechanism's gap, with their declared gaps and detector bindings. Section runs from its own title line to the line before the next section's."
+
+
+# ---------------------------------------------------------------------------
+# (b) the thirteen-path enumeration literal -- SM-03
+# ---------------------------------------------------------------------------
+
+[[removal]]
+id = "hardcoded-enumeration-literal"
+ticket = "SM-03"
+name = "the literal of thirteen paths the instrument registry checked itself against"
+base = "bf0fb29^1"
+head = "bf0fb29"
+gap_mutants = [
+  "SM-GM-I1-the-cited-demonstration-node-is-collected-and-skipped",
+  "SM-GM-I2-the-demonstrated-instrument-stops-refusing",
+  "SM-GM-I3-an-instrument-that-was-never-added-to-the-registry",
+  "SM-GM-I4-a-shipped-spec-yaml-is-committed-unparseable",
+  "SM-GM-I5-the-enumerator-itself-stops-reporting-a-failure",
+  "SM-GM-I6-the-cited-demonstration-node-is-not-collected-at-all",
+]
+# EMPTY, AND THAT IS THE MEASUREMENT. This removal deleted no detector: the
+# literal lived INSIDE `instrument-registry`, which outlived it. So no mutant
+# in this row could have gone DIES -> SURVIVES, whatever it was.
+deletes_detectors = []
+
+[[removal.region]]
+role = "cut_tests"
+kind = "span"
+commit = "bf0fb29^1"
+path = "tests/test_instrument_demonstrations.py"
+start = "def test_the_named_instruments_are_all_enumerated"
+end = "def test_every_declared_path_exists"
+expect_lines = 33
+reason = "the 13-path `required` set, its `required <= enumerated` assertion, and the docstring conceding the check was one-directional"
+
+[[removal.region]]
+role = "replacement"
+kind = "span"
+commit = "bf0fb29"
+path = "examples/validation/instruments/demonstrate.py"
+start = "# SM-03: the omission the enumeration could not see"
+end = "# the enumeration"
+expect_lines = 140
+reason = "the derived walk that replaced the literal: the AST predicate, discover_candidates, unregistered, check_enumeration"
+
+[[removal.region]]
+role = "replacement"
+kind = "span"
+commit = "bf0fb29"
+path = "examples/validation/instruments/instruments.toml"
+start = "[registry.enumeration]"
+end = "THE FOUR ORACLES"
+expect_lines = 25
+reason = "the declared scope the walk derives from: two roots and two exclusions, each with a written reason"
+
+[[removal.region]]
+role = "proof"
+kind = "span"
+commit = "bf0fb29"
+path = "tests/test_instrument_demonstrations.py"
+start = "def test_the_enumeration_scope_is_declared_with_a_reason_for_every_exclusion"
+end = "def test_a_cited_node_that_asserts_nothing_still_reports_ok"
+expect_lines = 118
+reason = "four tests added only to show the derived walk finds what the literal found, finds what the literal could NOT find, and to declare the walk's own blind spot"
+
+[[removal.region]]
+role = "proof"
+kind = "span"
+commit = "f0c215d"
+path = "examples/validation/gap_mutants/gap_mutants.toml"
+start = "MECHANISM 2 -- the hollow instrument demonstrations"
+end = "NO SEEDABLE GAP"
+expect_lines = 233
+reason = "the six mutants seeded in this mechanism's gap"
+
+
+# ---------------------------------------------------------------------------
+# (c) twenty duplicated statements of the card -- SM-06
+# ---------------------------------------------------------------------------
+
+[[removal]]
+id = "card-duplication"
+ticket = "SM-06"
+name = "twenty statements of the scorecard's contents outside its one home"
+base = "acbd577^1"
+head = "acbd577"
+gap_mutants = []
+no_gap_reason = """
+NOT IN `gap_mutants.toml`, and seeded separately. SM-01 seeded for the two cuts
+it knew about and this was not one, so SM-06 wrote its own runner
+(`specs/results/scorecards/subtract-to-measure/SM-06/run_dup_mutants.py`) and
+seeded four copies made to DISAGREE with the card, before a line was deleted.
+Three of the four were invisible to every instrument this repository ships.
+Counted in `[[mutant_outside_this_table]]`, not in the discriminate table,
+because they were never run through the same harness.
+"""
+deletes_detectors = []
+
+[[removal.region]]
+role = "cut_prose"
+kind = "diff"
+path = "README.md"
+count = "deleted"
+expect_lines = 47
+reason = "restatements of the card's dimensions and scoring rules"
+
+[[removal.region]]
+role = "cut_prose"
+kind = "diff"
+path = "PORTS-AS-ADAPTERS-EPIC.md"
+count = "deleted"
+expect_lines = 69
+reason = "restatements of the card's dimensions and scoring rules"
+
+[[removal.region]]
+role = "cut_prose"
+kind = "diff"
+path = "PORTS-AS-ADAPTERS-STARTER-PROMPT.md"
+count = "deleted"
+expect_lines = 3
+reason = "restatements of the card's dimensions and scoring rules"
+
+[[removal.region]]
+role = "cut_prose"
+kind = "diff"
+path = "references/hexagonal_prompting.md"
+count = "deleted"
+expect_lines = 1
+reason = "one restatement"
+
+[[removal.region]]
+role = "replacement"
+kind = "diff"
+path = "README.md"
+count = "added"
+expect_lines = 29
+reason = "pointers to the one home in place of the copies"
+
+[[removal.region]]
+role = "replacement"
+kind = "diff"
+path = "PORTS-AS-ADAPTERS-EPIC.md"
+count = "added"
+expect_lines = 50
+reason = "pointers to the one home in place of the copies"
+
+[[removal.region]]
+role = "replacement"
+kind = "diff"
+path = "PORTS-AS-ADAPTERS-STARTER-PROMPT.md"
+count = "added"
+expect_lines = 4
+reason = "pointers to the one home in place of the copies"
+
+[[removal.region]]
+role = "replacement"
+kind = "diff"
+path = "references/hexagonal_prompting.md"
+count = "added"
+expect_lines = 1
+reason = "pointer to the one home"
+
+[[removal.region]]
+role = "proof"
+kind = "diff"
+path = "tests/test_card_has_one_home.py"
+count = "added"
+expect_lines = 428
+reason = "the tripwire that keeps the copies from being written again -- the only thing standing between the tree and the state SM-06 found it in"
+
+[[removal.region]]
+role = "proof"
+kind = "diff"
+path = "examples/validation/instruments/instruments.toml"
+count = "added"
+expect_lines = 95
+reason = "the registry rows and demonstrations for that tripwire"
+
+[[removal.region]]
+role = "proof"
+kind = "diff"
+path = "examples/validation/scorecards/score_tools.py"
+count = "added"
+expect_lines = 13
+reason = "the scorer's side of the one-home rule"
+
+[[removal.region]]
+role = "proof"
+kind = "diff"
+path = "specs/results/scorecards/subtract-to-measure/SM-06/run_dup_mutants.py"
+count = "added"
+expect_lines = 347
+reason = "SM-06's own mutant runner, written because the shared catalogue had not seeded this gap. NOTE THE SCOPE: it lives under specs/results/, so it is invisible to the four trees the +1677 figure was measured over."
+
+
+# ---------------------------------------------------------------------------
+# (d) the `total` checksum field -- SM-04
+# ---------------------------------------------------------------------------
+
+[[removal]]
+id = "total-checksum-field"
+ticket = "SM-04"
+name = "the `total` field, a checksum over the five dimension scores"
+base = "6aac1ec^1"
+head = "6aac1ec"
+gap_mutants = []
+no_gap_reason = """
+NOT IN `gap_mutants.toml` EITHER, and this is the one that matters. SM-04
+seeded `SM-04-GM-T1` as an EXECUTING TEST
+(`tests/test_score_tools.py::test_the_price_of_removing_total_measured_on_both_sides`)
+rather than as a catalogue row, and it is the ONLY mutant in the whole epic
+that went DIES -> SURVIVES: an altered score on an UNSEALED version 3 card is
+now detected by nothing, where `total != running` used to catch it. Counted in
+`[[mutant_outside_this_table]]`.
+"""
+deletes_detectors = []
+
+[[removal.region]]
+role = "cut_production"
+kind = "diff"
+path = "examples/validation/scorecards/score_tools.py"
+count = "deleted"
+match = "\\btotal\\b"
+expect_lines = 9
+reason = "the field, the `total != running` check, the schema entry, and the two table columns that printed it. Attributed by token rather than by hunk because the cut is embedded in SM-04's larger version-3 change."
+
+[[removal.region]]
+role = "cut_prose"
+kind = "diff"
+path = "references/eval_scorecard.md"
+count = "deleted"
+match = "\\btotal\\b"
+expect_lines = 3
+reason = "the card's own statement of the field"
+
+[[removal.region]]
+role = "replacement"
+kind = "diff"
+path = "examples/validation/scorecards/score_tools.py"
+count = "added"
+match = "\\btotal\\b"
+expect_lines = 9
+reason = "the version-3 refusal, the version-2 back-compatibility branch, and the two 'no total column' notices that replaced the columns"
+
+[[removal.region]]
+role = "proof"
+kind = "span"
+commit = "6aac1ec"
+path = "tests/test_score_tools.py"
+start = "def test_a_version_3_card_has_no_total_and_a_version_2_card_still_checks_its_own"
+end = "def test_the_previous_card_version_can_still_be_scaffolded"
+expect_lines = 48
+reason = "two tests asserting the field is gone from a version 3 card and still checked on a version 2 one"
+
+[[removal.region]]
+role = "proof"
+kind = "span"
+commit = "6aac1ec"
+path = "tests/test_score_tools.py"
+start = "# SM-04's gap mutant: what removing `total` cost"
+end = "def test_a_split_goal_verdict_is_two_claims"
+expect_lines = 85
+reason = "SM-04-GM-T1 itself: the mutant, its two helpers, and the assertion whose failure message asks a future reader to re-price the removal"
+
+
+# ---------------------------------------------------------------------------
+# (e) RD-02's own removal -- the dead `port-binding-report` detector
+# ---------------------------------------------------------------------------
+#
+# Filled in by RD-02 after the cut. Priced by the same rules as the four above,
+# including the parts that make it look bad.
+
+[[removal]]
+id = "dead-port-binding-report-detector"
+ticket = "RD-02"
+name = "the gap-mutant detector whose entry point stopped accepting its own flags"
+base = "7514df0"
+head = "HEAD"
+gap_mutants = ["SM-GM-P2-manifest-renames-the-port-out-from-under-the-binding"]
+deletes_detectors = ["port-binding-report"]
+
+[[removal.region]]
+role = "cut_production"
+kind = "diff"
+path = "examples/validation/gap_mutants/gap_mutants.toml"
+count = "deleted"
+expect_lines = 33
+reason = "the `port-binding-report` detector block and SM-GM-P2's binding to it. Its argv passes `--port-manifest`, a flag SM-02 deleted; at HEAD it exits 2 with `unrecognized arguments` and has reported INERT on every run since."
+
+[[removal.region]]
+role = "replacement"
+kind = "diff"
+path = "examples/validation/gap_mutants/gap_mutants.toml"
+count = "added"
+expect_lines = 24
+reason = "a `[[not_seedable]]` row recording what the column used to claim and why it is gone, so its absence from the table is a decision on the record rather than an omission"
+
+[[removal.region]]
+role = "proof"
+kind = "diff"
+path = "tests/test_gap_mutants.py"
+count = "added"
+expect_lines = 40
+reason = "the tripwire that refuses a detector whose entry point cannot accept its own argv -- the class of defect this removal is one instance of"
+
+
+# ===========================================================================
+# SHARED APPARATUS -- NOT ALLOCATED TO ANY REMOVAL
+# ===========================================================================
+#
+# Splitting a shared runner across the removals it serves needs a weighting the
+# data does not supply, and an invented weighting is how a per-removal figure
+# becomes a total in disguise. These are reported as their own rows.
+
+[[shared_apparatus]]
+id = "gap-mutant-runner"
+kind = "diff"
+path = "examples/validation/gap_mutants/run_gap_mutants.py"
+base = "f0c215d^1"
+head = "f0c215d"
+count = "added"
+expect_lines = 633
+serves = ["ports-binding-machinery", "hardcoded-enumeration-literal"]
+reason = "the staged-tree mutant runner. Serves both catalogue removals; nothing in the product invokes it."
+
+[[shared_apparatus]]
+id = "gap-mutant-runner-tests"
+kind = "diff"
+path = "tests/test_gap_mutants.py"
+base = "f0c215d^1"
+head = "f0c215d"
+count = "added"
+expect_lines = 486
+serves = ["ports-binding-machinery", "hardcoded-enumeration-literal"]
+reason = "tests of the runner -- apparatus for the apparatus"
+
+[[shared_apparatus]]
+id = "gap-mutant-catalogue-frame"
+kind = "span"
+commit = "f0c215d"
+path = "examples/validation/gap_mutants/gap_mutants.toml"
+start = "SM-01 -- a fault seeded in the gap each mechanism"
+end = "MECHANISM 1 -- the [ports.*] binding machinery"
+expect_lines = 130
+serves = ["ports-binding-machinery", "hardcoded-enumeration-literal"]
+reason = "the catalogue preamble and the eight detector declarations both mechanisms' mutants bind to"
+
+[[shared_apparatus]]
+id = "sealed-predictions"
+kind = "diff"
+path = "examples/validation/PREDICTIONS-SM.md"
+base = "f0c215d^1"
+head = "f0c215d"
+count = "added"
+expect_lines = 260
+serves = ["ports-binding-machinery", "hardcoded-enumeration-literal", "card-duplication", "total-checksum-field"]
+reason = "the predictions sealed before any number existed. Four of them were refuted, which is the strongest single argument in the record that the apparatus was not decorative."
+
+
+# ===========================================================================
+# MUTANTS SEEDED UNDER `removal_is_a_delta_rule` BUT NOT IN THE CATALOGUE
+# ===========================================================================
+#
+# R3. "Two epics of gap mutants produced two SURVIVES -> DIES and zero
+# DIES -> SURVIVES" is a claim about `gap_mutants.toml`'s SM-GM series. These
+# mutants were seeded under the same rule, by the same epic, and are not in it.
+# ONE OF THEM WENT DIES -> SURVIVES. Counting them separately is the point.
+
+[[mutant_outside_this_table]]
+id = "SM-04-GM-T1"
+seeded_by = "SM-04"
+lives_in = "tests/test_score_tools.py::test_the_price_of_removing_total_measured_on_both_sides"
+removal = "total-checksum-field"
+before = "DIES -- `check` reports `total does not equal the sum` on an altered unsealed version 2 card"
+after = "SURVIVES on an unsealed version 3 card; still DIES on a sealed one, where the R-H4 seal digest catches it"
+verdict = "DIES -> SURVIVES. The only one in the epic. The removal was LOAD-BEARING for unsealed cards and the price was reported rather than absorbed."
+
+[[mutant_outside_this_table]]
+id = "SM-06-DUP-M1..M3"
+seeded_by = "SM-06"
+lives_in = "specs/results/scorecards/subtract-to-measure/SM-06/run_dup_mutants.py"
+removal = "card-duplication"
+before = "UNCAUGHT on all five surfaces -- pytest, score_tools check/audit/serve, demonstrate.py"
+after = "the copies they mutated no longer exist; the after-run seeded REINTRODUCTION instead (A1, A2), both CAUGHT"
+verdict = "no transition, because there was no kill to lose. The informative half of this mutant was the BEFORE table: three of four disagreeing copies of the card were invisible to every instrument this repository ships."
+
+[[mutant_outside_this_table]]
+id = "SM-06-DUP-M4"
+seeded_by = "SM-06"
+lives_in = "specs/results/scorecards/subtract-to-measure/SM-06/run_dup_mutants.py"
+removal = "card-duplication"
+before = "CAUGHT -- by `score_tools.py audit` (R-H4's seal digest), NOT by `check` as its author predicted"
+after = "not re-run; the surface it rode was not removed"
+verdict = "positive control, GREEN. And it caught the round's own prediction being wrong, which is why it was worth running."

@@ -2377,3 +2377,125 @@ than none, because it reads as one that happened.
   cwd = "{repo}"
   expect_exit = 0
   expect_output = ["0 violation(s)"]
+
+[[instrument]]
+id = "removal-census"
+name = "RD-02 removal census -- what a removal cost to prove safe"
+paths = ["examples/validation/removal_census/removal_census.py",
+         "examples/validation/removal_census/removals.toml"]
+family = "measurement"
+watches = "every declared removal region against the commit range it claims to measure, and refuses when the manifest no longer measures what it recorded"
+verdict_surface = "exit 2 with CENSUS-DRIFT naming the region, the measured count and the recorded one"
+classification = "demonstrated-can-fail"
+note = """
+`subtract-to-measure` published `-225 lines from scripts/` and the same epic
+added 1677 net `code_lines` across the trees it touched, because every removal
+shipped instruments, tests and demonstrations to prove the removal safe and
+nobody counted that as a cost.
+
+THE CENSUS REFUSES A TOTAL, on purpose and in code. `--total` and
+`report_total = true` both exit 2 with the 1677 figure in the refusal, because
+a total over removals hides which removals paid for themselves and that is the
+defect this instrument exists to correct.
+
+Its numbers are MEASURED from git on every run, never typed in: `check`
+re-measures every declared region and reports CENSUS-DRIFT when the manifest
+and the tree disagree. That is the failing input below.
+"""
+
+  [instrument.failing]
+  summary = "the real manifest with SM-02's deleted-line count moved by one -- 290 to 291, the way a hand-maintained census goes stale"
+  argv = ["{python}", "{repo}/examples/validation/removal_census/removal_census.py",
+          "--manifest", "{tree}/census/removals.toml", "check"]
+  cwd = "{repo}"
+  expect_exit = 2
+  expect_output = ["CENSUS-DRIFT", "measures 290, manifest says 291"]
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/removal_census"
+    to = "census"
+
+    [[instrument.failing.mutate]]
+    file = "census/removals.toml"
+    find = "expect_lines = 290"
+    replace = "expect_lines = 291"
+
+  [instrument.passing]
+  summary = "the shipped manifest against the shipped history"
+  argv = ["{python}", "{repo}/examples/validation/removal_census/removal_census.py", "check"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["every declared region measures what the manifest recorded"]
+
+  [instrument.blind_spot]
+  kind = "declared"
+  summary = "IT CANNOT TELL A PROOF LINE FROM A REPLACEMENT LINE. The role of every region is DECLARED by a human in the manifest, with a written reason, and nothing derives it. A future author who classifies a new mechanism as `proof` makes the ratio look worse and one who classifies apparatus as `replacement` makes it look better, and this instrument would report both without complaint."
+  reason = "There is no mechanical definition of `exists only to prove the removal safe`, and inventing one would be a check that cannot fail rather than a measurement. The defence is that every region carries its reason in the manifest and `check` pins the LINE COUNTS, so a reclassification is visible in a diff even though it is not refused."
+
+[[instrument]]
+id = "gap-mutant-detector-argv"
+name = "a cli detector's argv against its entry point"
+paths = ["tests/test_gap_mutants.py"]
+family = "tripwire"
+watches = "every cli detector in gap_mutants.toml for a flag its entry point no longer declares"
+verdict_surface = "a failing pytest node naming the detector and the rejected flags"
+classification = "demonstrated-can-fail"
+note = """
+RD-02. `port-binding-report` passed `--port-manifest` to
+`run_generated_case_adapters.py`; SM-02 deleted that flag in the same epic.
+For two epics the detector exited 2 with `unrecognized arguments`, executed
+nothing, and reported INERT -- which decides nothing and was correctly not read
+as a survival, so the table was never wrong. It was carrying a column that
+could never speak again, in a catalogue whose whole argument is R2.
+
+The failing input is the catalogue as it stood at `7514df0`, which is the
+subject rather than a fixture.
+"""
+
+  [instrument.failing]
+  summary = "the catalogue at 7514df0, before RD-02 removed the dead column -- port-binding-report's --port-manifest against an entry point that no longer declares it"
+  argv = ["{python}", "-m", "pytest", "-q",
+          "{tree}/tests/test_gap_mutants.py::test_every_cli_detector_declares_flags_its_entry_point_still_accepts"]
+  cwd = "{tree}"
+  expect_exit = 1
+  expect_passed = 0
+  expect_output = ["port-binding-report", "--port-manifest"]
+
+    [[instrument.failing.stage]]
+    from = "tests"
+    to = "tests"
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/gap_mutants"
+    to = "examples/validation/gap_mutants"
+
+    [[instrument.failing.stage]]
+    from = "scripts"
+    to = "scripts"
+
+    [[instrument.failing.mutate]]
+    file = "examples/validation/gap_mutants/gap_mutants.toml"
+    find = "# NO SEEDABLE GAP -- REPORTED, NEVER SKIPPED (R2)"
+    replace = """# RD-02 DEMONSTRATION -- the dead column put back as 7514df0 carried it.
+[[detector]]
+id = "port-binding-report"
+kind = "cli"
+entry_point = "scripts/run_generated_case_adapters.py"
+uses_ports_binding = true
+argv = ["{python}", "{tree}/scripts/run_generated_case_adapters.py", "{cases}", "--mapping", "m", "--port-manifest", "p", "--validate-only"]
+note = "reinstated by the RD-02 demonstration only"
+
+# NO SEEDABLE GAP -- REPORTED, NEVER SKIPPED (R2)"""
+
+  [instrument.passing]
+  summary = "the shipped catalogue, whose two cli detectors both pass flags their entry points declare"
+  argv = ["{python}", "-m", "pytest", "-q",
+          "{repo}/tests/test_gap_mutants.py::test_every_cli_detector_declares_flags_its_entry_point_still_accepts"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_passed = 1
+
+  [instrument.blind_spot]
+  kind = "declared"
+  summary = "IT COMPARES FLAG NAMES, NOT MEANINGS. A flag still declared but now doing something else, or a positional argument that moved, is invisible to it."
+  reason = "It catches the failure that actually happened and nothing wider. A check that claimed to verify a detector still MEASURES what it claims would have to run it, and running `instrument-registry` means running the whole registry."
