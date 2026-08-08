@@ -229,10 +229,13 @@ so re-run §1b's gate immediately before it rather than trusting the earlier pas
 a worktree can be used again between the audit and the teardown.
 
 ```bash
-# One command, every repo shape, and for a hand-made epic/ticket worktree too:
+# One command, every repo shape, and for a declared epic/ticket worktree too:
 # it runs the gate and, only on a clean verdict, removes the worktree
 # (refusing with exit 4 otherwise). It resolves <ticket> by searching where
 # ticket worktrees live, so the declared ../wt-<issue>-<slug> path is found.
+skt ticket close <ticket>
+
+# Where skt is not installed, the same door by its resolved path:
 WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"
 "$WT" close <ticket>
 

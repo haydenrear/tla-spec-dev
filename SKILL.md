@@ -94,10 +94,22 @@ This skill has three roles:
     worktree has been through `skill-manager home close-out` — see
     `references/plan-and-schedule.md` §2 and `references/finalize.md` §1b.
 
-    **That home does not appear on its own.** An epic branches by hand, because
-    the epic branch and every ticket worktree path are *declared* by the plan and
-    the assignment — so the home is a second, explicit step, and `git worktree
-    add` on its own leaves the agent writing the operator's global home:
+    **That home does not appear on its own.** The epic branch and every ticket
+    worktree path are *declared* by the plan and the assignment — the one case
+    the conventional front door's derived path cannot serve. In a home carrying
+    the `skt` plugin, one command does the declared pair — worktree at the
+    declared path, pinned to the resolved base, WITH its own home, rolled back
+    together if the bootstrap fails:
+
+    ```bash
+    skt ticket new <ticket> --base "$commit_oid" --path <declared-worktree>
+    ```
+
+    It applies the index-base pinning conventions (clean slate, OIDs resolved
+    once, create-only retention ref, branch from the pinned commit) and refuses
+    a retention-ref conflict rather than repinning. Without skt, the same pair
+    is two hand-run steps — and `git worktree add` on its own leaves the agent
+    writing the operator's global home:
 
     ```bash
     SKILLS="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts"
@@ -107,26 +119,34 @@ This skill has three roles:
     ```
 
     Teardown is one command in every case, because it resolves a ticket by
-    searching rather than by the path convention:
-    `"$SKILLS/wt" close <ticket>`. A repository that has never been given a home
-    makes `bootstrap-home.sh` the *first* thing run in it, which is the same
-    one-time per-repository step `wt new` prints as its `fix:` line elsewhere.
+    searching rather than by the path convention: `skt ticket close <ticket>`,
+    or `"$SKILLS/wt" close <ticket>` where skt is absent. A repository that has
+    never been given a home makes `bootstrap-home.sh` the *first* thing run in
+    it, which is the same one-time per-repository step `wt new` prints as its
+    `fix:` line elsewhere.
 11. **The epic owns whether the homes are CURRENT, and checks before scheduling
     anything.** Every ticket worktree is a *copy* of the project home, and the
     project home is a copy of the root `~/.skill-manager`. Copies do not update
     themselves. So a skill fixed and merged yesterday is still absent from a
     home cloned the day before, and every ticket agent the epic deploys inherits
-    that staleness — silently, because nothing reports it.
+    that staleness — silently in a home without skt; with the skt plugin
+    installed, the session hooks surface it, but the epic must not assume every
+    home has them.
 
-    Nothing in the tool answers this today, which is why it is the epic's job.
-    `home drift` answers "did anything change *in* this home" and exits 0 on a
-    stale one. `home verify` answers "does everything in it *resolve*" and is
-    equally happy. Neither answers "is this home *current*", and that is the
-    question a fan-out depends on: the epic is the last point where one check
-    covers every ticket that follows.
+    The tool answers this now: `skt check` compares each change-managed unit's
+    installed hash against its source's tip and names what is stale and the
+    command that pulls it. (`home drift` answers "did anything change *in* this
+    home" and exits 0 on a stale one; `home verify` answers "does everything in
+    it *resolve*" — neither answers "is this home *current*", which is why the
+    check exists.) The epic is still the last point where one check covers every
+    ticket that follows, so BEFORE scheduling, run it in both tiers:
 
-    Before scheduling, compare what the root home has installed against the
-    sources it was installed from, and against the project home:
+    ```bash
+    skt check                                     # in the root home
+    SKILL_MANAGER_HOME=<repo>/.skill-manager skt check    # and the project home
+    ```
+
+    Where skt is not installed, the same comparison by hand:
 
     ```bash
     for f in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/installed/*.json; do
@@ -135,8 +155,9 @@ This skill has three roles:
     done
     ```
 
-    Any unit behind its merged source gets `skill-manager sync <unit>` in the
-    root home **and** in the project home before the first ticket is scheduled —
+    Any unit behind its merged source gets `skt sync <unit>` (or `skill-manager
+    sync <unit>`) in the root home **and** in the project home before the first
+    ticket is scheduled —
     not after, because a worktree cloned from a stale project home carries the
     staleness into work you will then have to redo. Sync in dependency order:
     a unit whose `skill-imports` name a file added by another unit fails
