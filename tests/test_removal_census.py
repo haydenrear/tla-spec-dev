@@ -37,6 +37,51 @@ MANIFEST = REPO_ROOT / "examples/validation/removal_census/removals.toml"
 tomllib = pytest.importorskip("tomllib")
 
 
+def _git_history_reachable() -> bool:
+    """The census measures from git. A tree with no `.git` cannot run it."""
+    probe = subprocess.run(
+        ["git", "rev-parse", "--verify", "HEAD"],
+        cwd=str(REPO_ROOT), capture_output=True, text=True,
+    )
+    return probe.returncode == 0
+
+
+HAS_GIT = _git_history_reachable()
+
+# WHY A SKIP AND NOT A FAILURE, and why it is guarded below.
+#
+# `run_gap_mutants.py` stages the tree with `git archive`, so the copy every
+# mutant is measured against HAS NO `.git`. Six of the tests here shell out to a
+# census that measures FROM git, and at `bfd04af` they went red in that staged
+# tree -- six new baseline failures in a table where a baseline failure is noise
+# every future removal has to subtract.
+#
+# A skip is the honest verdict there and a LIE anywhere else, which is `FI-06`
+# exactly: `expect_exit = 0` is satisfied by a fully skipped run. So the skip
+# cannot go vacuous unnoticed --
+# `test_the_git_guard_does_not_fire_in_a_real_checkout` fails if this whole file
+# ever skips in a tree that has history.
+needs_git = pytest.mark.skipif(
+    not HAS_GIT,
+    reason="the census measures line counts from git; this tree has no reachable history "
+           "(a `git archive` staging tree, as run_gap_mutants.py produces)",
+)
+
+
+def test_the_git_guard_does_not_fire_in_a_real_checkout() -> None:
+    """NOT SKIPPABLE, and the reason the skips above are readable.
+
+    A guard that silently turns a file green is the failure mode this repository
+    has already bought twice. If this node passes and the rest of the file
+    skipped, the tree genuinely has no history. If this node FAILS, the guard is
+    wrong and the skips meant nothing.
+    """
+    assert (REPO_ROOT / ".git").exists() == HAS_GIT, (
+        f"the git guard disagrees with the tree: .git exists="
+        f"{(REPO_ROOT / '.git').exists()}, guard={HAS_GIT}"
+    )
+
+
 def run(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         [sys.executable, str(CENSUS), *args],
@@ -61,6 +106,7 @@ def mutated_manifest(tmp_path: Path, find: str, replace: str) -> Path:
 # -- 1. the three refusals, each on the real manifest -----------------------
 
 
+@needs_git
 def test_it_refuses_to_emit_a_total_over_removals() -> None:
     """THE REFUSAL IS THE INSTRUMENT. A total is what the predecessor reported."""
     ok = run("census")
@@ -71,6 +117,7 @@ def test_it_refuses_to_emit_a_total_over_removals() -> None:
     assert "1677" in refused.stderr, "the refusal has to say WHY, with the figure"
 
 
+@needs_git
 def test_a_total_declared_in_the_manifest_is_refused_the_same_way(tmp_path: Path) -> None:
     """A flag anyone can pass is a flag anyone can also set in the file."""
     path = mutated_manifest(tmp_path, "report_total = false", "report_total = true")
@@ -78,6 +125,7 @@ def test_a_total_declared_in_the_manifest_is_refused_the_same_way(tmp_path: Path
     assert refused.returncode == 2 and "REFUSED" in refused.stderr
 
 
+@needs_git
 def test_a_manifest_that_has_drifted_from_the_tree_is_refused(tmp_path: Path) -> None:
     """DEMONSTRATED FAILING INPUT, on the real manifest.
 
@@ -93,6 +141,7 @@ def test_a_manifest_that_has_drifted_from_the_tree_is_refused(tmp_path: Path) ->
     assert "measures 290, manifest says 291" in drifted.stderr
 
 
+@needs_git
 def test_a_removal_with_no_mutant_and_no_reason_is_refused(tmp_path: Path) -> None:
     """`removal_is_a_delta_rule`, enforced against the manifest rather than
     remembered. `card-duplication` legitimately has no catalogue mutant and says
@@ -110,6 +159,7 @@ def test_a_removal_with_no_mutant_and_no_reason_is_refused(tmp_path: Path) -> No
 # -- 2. what the census is FOR ---------------------------------------------
 
 
+@needs_git
 def test_no_row_of_the_output_is_a_total() -> None:
     """Not a promise in a docstring: the rendered table is inspected."""
     out = run("census").stdout
@@ -120,6 +170,7 @@ def test_no_row_of_the_output_is_a_total() -> None:
     assert "No total row" in out
 
 
+@needs_git
 def test_every_figure_carries_the_scope_it_was_measured_over(tmp_path: Path) -> None:
     """R3. A count with no scope is the defect this epic was opened on."""
     out = tmp_path / "census.json"
@@ -131,6 +182,7 @@ def test_every_figure_carries_the_scope_it_was_measured_over(tmp_path: Path) -> 
             assert region["scope"] and region["reason"], (removal["id"], region)
 
 
+@needs_git
 def test_each_removal_reports_two_denominators_and_never_their_average(manifest) -> None:
     """`denominator_rule`. `cut_tests` is real deletion and is not the mechanism;
     folding it into one denominator makes every ratio look cheaper than it is.
@@ -145,6 +197,7 @@ def test_each_removal_reports_two_denominators_and_never_their_average(manifest)
 # -- 3. the discriminating-power reading, against the sealed before-table ---
 
 
+@needs_git
 def test_the_discriminate_table_is_read_from_the_sealed_before_state(manifest) -> None:
     """The verdicts are derived from `gap-mutants-before.json` as SM-01 sealed
     it, not from anything this ticket produced."""
@@ -155,6 +208,7 @@ def test_the_discriminate_table_is_read_from_the_sealed_before_state(manifest) -
     assert str(table.relative_to(REPO_ROOT)) in out.stdout
 
 
+@needs_git
 def test_no_catalogue_mutant_could_have_priced_a_removal_and_it_says_so(tmp_path: Path) -> None:
     """THE FINDING, ASSERTED SO IT CANNOT ROT.
 
