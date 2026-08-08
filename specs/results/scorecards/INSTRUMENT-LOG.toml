@@ -2520,3 +2520,73 @@ IT IS ALSO A CLEAN TIER SPLIT: `opus` 2, 2 against `sonnet` 4, 3, disjoint, with
 D2 agreeing across both tiers on the same four cards. `score_tools.py contested`
 prints both.
 """
+
+# ===========================================================================
+# DEMONSTRATION TABLE — RD-05, R-H1's third clause
+# ===========================================================================
+#
+# R-H1 has carried two comparability axes since it was written: same example,
+# unchanged instrument. Architecture is the third, and it has been handled by
+# prose telling readers that a deliberately incoherent fixture is *supposed* to
+# score low on D3.
+#
+# AN ENTRY HERE GRANTS A REFUSAL, AND IT IS THE ONLY THING THAT DOES. It is
+# keyed on `(dimension, value-pair)`, so a separation demonstrated on one
+# dimension grants NOTHING on the other four — that is attack A4's defence and
+# it is the design's answer to the trap this epic exists to avoid. Measured
+# today the table has ONE ROW.
+#
+# THESE ENTRIES DO NOT SET ANYTHING. Every field is re-derived from the cards on
+# every `audit`, exactly as R-H5 re-derives `points` and R-H6 re-derives
+# `contested`. An entry the cards no longer support is a VIOLATION; a separation
+# the cards DO support with no entry beside it is OPEN, because an authority
+# nobody declared is not an authority.
+#
+# AND THE REFUSAL IS ONLY EVER AN ANNOTATION. An INCOMPARABLE pair PRINTS BOTH
+# SCORE SETS — `score_tools.py tags --compare arm_b arm_a` is the executed form.
+# A tag can never reduce the set of printed numbers; it can only add a word
+# beside two of them.
+
+[[demonstration]]
+id = "effect_boundary-ab_quota_ledger-D3-effectful-vs-ports-and-adapters"
+axis = "effect_boundary"
+example = "ab_quota_ledger"
+dimension = "D3"
+values = ["effectful", "ports-and-adapters"]
+separates = true
+ranges = { effectful = [1, 2], "ports-and-adapters" = [4, 4] }
+tiers_measured = ["opus"]
+found_by = "RD-04"
+implemented_by = "RD-05"
+why = """
+THE ONE SEPARATION IN THE RECORD, AND FOUR PREDICTIONS THAT FAILED TO JOIN IT.
+Over 34 cards of `ab_quota_ledger` — eight rounds, all three card versions —
+the 24 cards whose subject derives `effectful` score D3 in 1–2 and the 10 whose
+subject derives `ports-and-adapters` score 4–4. Disjoint. On D1, D2, D4 and D5
+the same two groups OVERLAP, so on those four dimensions a "different
+architecture" objection is not available at all.
+
+THE ADMISSION IS CORRELATION, NOT CAUSE, and the row carries its confounds
+rather than dropping them. `arm_b` differs from `arm_a` in architecture *and*
+prompt *and* author *and* size. `arm_c` is the length-matched control built at
+PA-06 — +3.8% unique content over `arm_b`, 0 of 109 architectural terms — and it
+lands with `arm_a`, so verbosity is controlled. THE AUTHOR CONFOUND IS NOT
+CONTROLLED (RD-04 §9.6) and no within-author pair exists.
+
+THE SAME-TAG CONTROL HOLDS. `arm_a` and `arm_c` are two subjects of the same
+example carrying the SAME derived value; they overlap on all five dimensions,
+D3 included. The separation is not reproduced by an arbitrary pair.
+
+THE PREDICATE DOES NOT ENTAIL THE SCORE. Derivation clause (c) asks for a second
+implementation and D3's anchor 4 asks for a driven port exercised by a real
+adapter and a fake — close enough that the separation could be the predicate
+encoding the anchor. `ex4_pipeline_coherent` derives `ports-and-adapters` under
+all three clauses and was scored D3 = 3 by both blind judges. Correlated, not
+entailed.
+
+`tiers_measured = ["opus"]` IS A LIMIT, NOT A FOOTNOTE. No `sonnet` judge has
+ever scored a `ports-and-adapters` subject on this example: n = 0, filed as
+`RD-04-DF-03`. A cross-tier comparison on D3 is not covered by anything measured
+here, and the epic owner's §6b ruling says in as many words that a ruling the
+mechanism is sound does not make the evidence under it wider than it is.
+"""

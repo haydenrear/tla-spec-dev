@@ -1,10 +1,16 @@
 # Architecture Tags
 
-**RD-04 research output. A design, not an implementation.** Nothing in this
-repository reads this file yet; `RD-05` implements what it decides, and the open
-questions in [§9](#9-what-rd-04-could-not-settle) are the parts it must not
-assume. Every figure below carries the example it was computed over — the
-scope-carrying rule this epic exists to add applies first to this page.
+**RD-04 research output, IMPLEMENTED BY RD-05 — see [§13](#13-what-rd-05-shipped-and-what-it-left-open).**
+Sections 1–12 are RD-04's and are not rewritten; §13 records what shipped, what
+RD-05 settled and how, and which of §9's ten questions are still open. Every
+figure below carries the example it was computed over — the scope-carrying rule
+this epic exists to add applies first to this page.
+
+The shipped surface is `examples/validation/scorecards/architecture_tags.py`,
+its declared scopes are `examples/validation/scorecards/subjects.toml`, and the
+one row that grants a refusal is a `[[demonstration]]` in
+`specs/results/scorecards/INSTRUMENT-LOG.toml` that `audit` re-derives on every
+run.
 
 The evidence is `specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place/RD-04/`.
 The analysis that produced it is `analysis/derive_and_test.py` in that directory
@@ -868,3 +874,94 @@ accommodates and to stop there.
 authoritative values, one demonstrated dimension, one example, one judge tier.
 Everything above that is an open question in §9. Any sentence claiming more than
 that about this page is unsupported.
+
+*RD-05 note:* the second clause of the first sentence is the only one that
+changed. The evidence under it did not — see §13.
+
+---
+
+## 13. What RD-05 shipped, and what it left open
+
+**The design is now executed. The evidence under it is exactly as wide as it was
+when RD-04 wrote §12,** and every limit that section states still holds: one
+axis, two authoritative values, one demonstrated dimension, one example, one
+judge tier.
+
+### 13.1 What shipped
+
+| surface | what it does |
+|---|---|
+| `examples/validation/scorecards/subjects.toml` | the **declared** scopes — eleven of them, each a path list, a declared value and the cards that scored it. Nothing here is computed and nothing here may be |
+| `examples/validation/scorecards/architecture_tags.py` | derivation, the demonstration table, comparability verdicts and `SCOPE-DRIFT`. Exit code always 0 |
+| `score_tools.py tags [--compare A B]` | the same, and the pair view that prints both score sets |
+| `audit`, R-H1's third clause | re-derives the table from the cards every run; a `[[demonstration]]` the cards no longer support is a VIOLATION, an undeclared separation is `OPEN`, a drifted card is `OPEN` |
+| `[[demonstration]]` in `INSTRUMENT-LOG.toml` | **one row**, D3, `effectful`/`ports-and-adapters`, `tiers_measured = ["opus"]` |
+| `tests/test_architecture_tags.py` | 30 tests; the failing input is `toolchain_removal`'s sealed cards |
+
+**The vocabulary did not grow.** Two values with refusal authority, both
+demonstrated in the one cell that separates; `UNDERIVABLE:<reason>` and
+`UNDEMONSTRATED:<name>` with none. `pure` and `greenfield` were *not* admitted —
+§9.3 and §9.4 name the experiments that would decide them, and earn-its-place is
+a deletion rule, so it cannot admit either.
+
+### 13.2 What RD-05 settled, and how
+
+- **§9.9 — the thermostat question.** Settled **by the epic owner's ruling**
+  (`READING-DISCIPLINE-EPIC.md` §6b), not by RD-05: the invariant means a figure
+  deciding something about the CODE. RD-05 did **not** add itself to
+  `GATING_SCAN_EXEMPT`. It fixed the invariant's **statement**:
+  `test_no_reader_of_this_instrument_gates_on_its_output` now forbids
+  `refusing_uses` — a figure reaching a `raise`, an `assert`, an `exit`, or a
+  branch whose arm does one of those — and reports the rest as `observing_uses`.
+  `architecture_tags.py` is scanned like any other file and stays green because
+  of a property it has, pinned by
+  `test_the_derivation_observes_and_never_refuses`.
+  **The ruling's own limit stands and is [§13.3](#133-what-is-still-open):** the
+  separation is `opus`-only.
+- **§9.8 — `scope` refuting a true subject-scoped claim.** Settled the second
+  way §9.8 permits: **an unresolvable subject scope is not resolved to the
+  example.** `subjects.toml` gives `scope` nothing to fall back on because the
+  fix is upstream of it — every figure this design makes worth writing is now
+  written at *subject* scope and RD-05's own claims are phrased so the checker
+  can reach them or are reported `UNREACHABLE`. `RD-04-DF-01` stays open: the
+  checker itself is unchanged, and RD-05 files `RD-05-DF-01` for the narrower
+  half it measured.
+- **§7.3 — null-entailment.** Settled as a shipped column rather than a note.
+  Every non-separating cell prints the population's observed range, and a range
+  that is a single point is printed `NULL-ENTAILED`. Three of the four
+  `overlaps` cells are measurements; D2's is not.
+- **§9.7 — composite subjects.** Settled only in the half RD-04 said could be:
+  `toolchain_removal`'s four cards are **re-attributed by a `[[note]]`-shaped
+  report, never edited** (R-H4). `SCOPE-DRIFT` names two of the four. Whether one
+  round may emit several scoped cards, and how `contested` groups them, is
+  **untouched** and stays open.
+
+### 13.3 What is still open
+
+**§9.1 stays a question and is the axis's binding limit.** No `sonnet` judge has
+ever scored a `ports-and-adapters` subject on `ab_quota_ledger`: n = 0. The
+demonstration row carries `tiers_measured = ["opus"]`, `audit` re-derives that
+field, and a declared `["opus", "sonnet"]` is a VIOLATION until two `sonnet`
+judges score `blind/artifact_T`. **Nothing RD-05 built makes that evidence
+wider.**
+
+**§9.2** — the `0.5` threshold is a printed constant now and is still
+unmeasured near its boundary. **§9.3** — `pure` still has one data point.
+**§9.4** — `greenfield` is still not architecture and still fails earn-its-place
+on the record as it stands. **§9.5** — non-Python subjects are still
+`UNDERIVABLE:unparsed` and still untested. **§9.6** — the author confound is
+still uncontrolled. **§9.10** — `arm_a` D3 = 2 against `arm_c` D3 = 1 is still
+unexplained, and the vocabulary still does not grow a value to cover it.
+
+### 13.4 One correction to this page
+
+§3.1's table prints `—` for `ex6_jenga`'s state co-location. RD-04's own machine
+record — `analysis/result.json` — gives **0.0**, on `instance_state = 7`, which
+is what the shipped derivation reproduces. `—` is what that column prints where
+there is no instance state at all, which is right for `ex1_scaffold_only`,
+`ex3_over_complex` and `spec_double_compiler/` and wrong for `ex6_jenga`. One
+cell, a transcription slip in the table rather than a difference in the
+predicate — the machine record is right. Recorded here rather than edited there,
+and pinned by
+`test_the_derivation_reproduces_rd04s_sealed_machine_record`, which compares
+against `result.json` and deliberately not against this page.
