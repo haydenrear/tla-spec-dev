@@ -115,6 +115,42 @@ Three guards, and they are not negotiable:
 
 ---
 
+## 6a. What RD-01 measured, and what every later ticket must carry
+
+**19 of 44 counted figures in this repository do not survive a check.** 19
+REFUTED · 11 COUNT-MOVED · 6 HOLDS · 8 UNREACHABLE, against a baseline of zero.
+Four are live assertions, including the figure `subtract-to-measure` was opened
+on; nine more are quotations that carried them forward; **one sits inside the
+section of `references/eval_scorecard.md` that declares R3 itself.**
+
+Three things follow that bind the rest of this epic:
+
+**"The suite is green" has never been true in a ticket worktree** (`RD-01-DF-02`,
+owner-verified by direct comparison). `test_card_has_one_home.py` and
+`test_code_complexity.py` walk the gitignored `.claude/` and `.skill-manager/`
+homes **that `wt new` itself creates**, and those homes hold copies of the card
+and of the instrument. Same two files: **44 passed** in a tree with no homes,
+**2 failed** in a ticket worktree. Zero tracked-file violations either side — a
+false-positive class in the tripwires, not a defect in the tree.
+
+> **Say which tree a suite number came from.** A green from a ticket worktree
+> was never green, and a red from one may be this and not you. The epic owner
+> reported ticket-worktree greens as evidence for several rounds.
+
+**Rule 5's third pass has never been applied to anything, ever** (`RD-01-DF-03`).
+`contested` now computes and fires on exactly one group in 49 sealed cards. The
+rule says that group needs a third pass citing **new** evidence. Either run it or
+record that it will not be run and why — a rule that fires and is then ignored is
+worse than one that never fired.
+
+**A tier split is a real effect and there are three of them**, two of which
+nobody had looked for: D3 `opus`[2,2] vs `sonnet`[3,4]; greenfield D4
+`opus`[2,2] vs `sonnet`[3,3]; and greenfield D5 `opus`[3,3] vs `sonnet`[2,2] —
+**running the other way.** D2 overlaps. Record the tier on every card you
+produce, and do not compare across tiers without saying so.
+
+---
+
 ## 7. The standing rule
 
 **A low or unflattering result is the preferred outcome.** The predecessor's
