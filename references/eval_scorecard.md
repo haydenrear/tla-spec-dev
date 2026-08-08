@@ -533,6 +533,79 @@ version 2 removes is not the choice — it is the choice being invisible.**
 > `specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/RESULT.md`
 > and it is not a pass. Read it before quoting any D1, D4 or D5 delta.
 
+### R-H6 — `contested` is computed from the cards, never declared on one
+
+**Scoring rule 5 has said since version 1 that any dimension where two judges
+differ by more than 1 is `contested`. Nothing computed it for three epics.**
+Every card ever written carries `contested = []`, including the four
+`toolchain_removal` cards whose D3 came out **2, 2, 3, 4 — a spread of 2** —
+where `index` printed `—` on all four rows.
+
+It was never filled in for a structural reason, and that reason decides the fix.
+`contested` is a property of a **judge group** — the judges of one artifact in
+one round — and rule 5 also says those judges are **blind to each other**, so a
+field asking one judge to record how far they are from another asks for
+something that judge is forbidden to know. So it is **computed on every read**,
+and the card's own `contested` field is read as a *declaration* and compared
+against the computation. Where they differ the computation wins and the
+difference is printed beside the row, because a sealed card is never edited.
+
+```
+python3 examples/validation/scorecards/score_tools.py contested
+```
+
+*Executed as:* `contested` and `index` re-derive the spread per dimension per
+judge group. A card **declaring** a dimension contested that the cards do not
+support is a VIOLATION — a declaration must not be able to manufacture one, for
+the same reason `EVAL-SUPPRESS` showed it must not be able to erase one. A group
+that **is** contested and carries no `[[contested]]` entry in
+`INSTRUMENT-LOG.toml` is reported `OPEN`, so the flag firing with nothing beside
+it stays visible rather than being satisfied by being printed. A `[[contested]]`
+entry whose `spread` or `scores` no longer match the cards is a VIOLATION,
+re-derived exactly as R-H5 re-derives `points`; one that says nothing about the
+third pass rule 5 asks for is a VIOLATION, and **`third_pass = "none"` is a legal
+and useful answer while silence is not.**
+
+**And the judge tier is a field of the card.** `opus` judged D3 **2, 2** and
+`sonnet` **4, 3** on the same artifact while D2 agreed across both tiers, and
+nothing in the record surfaced it. `judge.tier` is **derived** from `judge.model`
+wherever a model id names a tier — a tag asserted by hand is a tag that can be
+asserted wrongly — and `check` refuses a declared tier that contradicts the model
+id. `contested` and `index` report a **tier split**: a dimension where two tiers'
+score ranges are **disjoint** on the same artifact. An overlap is deliberately
+not a split; calling one would let the tag say something the numbers do not.
+
+### R3 — a claim carries its scope
+
+**A figure of the form `D<n> = k on N of N cards` is a statement about whichever
+examples produced those N cards.** If the population its own words denote is
+wider than the set it was computed over, **the claim is wrong even when every
+number in it is right.** `R-H2` forbids *averaging* across examples; nothing
+forbade *generalising from one*. `subtract-to-measure` was opened on
+*"D2 = 2 on 27 of 27 cards"* — true of one example — restated it in the charter,
+the plan and the issue, and "verified" it with a script containing
+`if "ab_quota_ledger" not in f: continue`.
+
+```
+python3 examples/validation/scorecards/score_tools.py scope
+```
+
+*Executed as:* every such figure in the charters, the plan, the ledger and the
+narrative results is re-derived against the cards on disk, read **at the scope
+its own words carry** — the named example when one sits beside the figure, every
+card when none does. A figure with a counterexample in the population it denotes
+is `REFUTED` and the contradicting cards are **named**. A figure with no
+counterexample whose denominator has moved is `COUNT-MOVED`, which is staleness
+and is not refutation. **What it cannot reach is counted separately and never
+omitted** — an anaphoric scope, an arm label, a non-card noun, a qualifier the
+corpus does not define — because `absent` and `checked, none found` are different
+claims and this project has been caught conflating them.
+
+It **refuses a claim and gates nothing about any artifact**; no close path
+consults it. It exits non-zero on this repository's own record, and that is its
+demonstrated failing input rather than a defect in it — see
+`examples/validation/instruments/instruments.toml`.
+
 ## Changing this card
 
 Bump `scorecard_version`, keep the old anchors in the file, and re-score at
