@@ -85,11 +85,32 @@ justification: ""
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
-  measured: false      # true only if a real TLC run produced the figure
-  applied: false       # if true, approved_by is required
+  searched: true
+  outcome: "none"
+  detail: >-
+    SEARCHED, FOUND NONE, AND THE ONE REFINEMENT CONSIDERED WAS DECLINED ON
+    RECORD. RD-05 adds no TLA+ representation at all: the model is unchanged and
+    the complexity delta is zero against RD-04. The tag is an eval-harness
+    surface under examples/validation/, which the plan's representation_scope
+    keeps out of the model, and it refuses nothing about any artifact.
+
+    THE REFINEMENT CONSIDERED AND DECLINED: caching the derived tag per subject
+    so that `audit` does not shell out to the complexity instrument eleven times
+    per run (~1.1 s). It would remove the only expensive step in R-H1's third
+    clause. It is declined because RE-DERIVATION IS THE ANTI-STALENESS PROPERTY
+    -- a cached authority row is exactly the stale row the clause exists to
+    catch, and R-H5's history is an unnumbered rule with no check that `audit`
+    rejected within the minute. Priced instead, as RD-05-DF-05.
+
+    A second was considered and declined harder: making the derivation read a
+    previously written complexity JSON instead of invoking the instrument. That
+    would also have removed the file from two tripwires' reach -- which is the
+    demonstrated blind spot at
+    tests/test_instrument_demonstrations.py::test_the_blind_spot_is_real, and
+    using it deliberately would be defeating a tripwire rather than satisfying
+    one.
+  measured: false      # no TLC run: no model changed
+  applied: false
   approved_by: ""
 
 # Required only if a generated-states drop at constant distinct states is
@@ -99,4 +120,36 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: >-
+  specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place/RD-05/RESULT.md
+  is the narrative ledger, and references/architecture_tags.md §13 is the design
+  side of it.
+
+  WHAT WAS ADDED, AND WHY IT IS NOT PROGRAM COMPLEXITY. One eval-harness module
+  (`examples/validation/scorecards/architecture_tags.py`), one declared-scope
+  registry (`subjects.toml`), two commands on `score_tools.py`, a third clause on
+  R-H1 that `audit` executes, and 32 tests. NO TLA+, no adapters, no test-graph
+  node, and no gate: the exit code of every tag command is 0 by construction and
+  a test asserts it. The model delta is ZERO and was expected to be
+  (`model_delta_expectation: none expected` in the plan).
+
+  WHAT IT BUYS. Architecture becomes a third comparability axis, so an
+  architecture-scoped claim can be refused the way an example-scoped one is --
+  but ONLY on the one (dimension, value-pair) cell the record demonstrates, D3
+  on ab_quota_ledger, in one judge tier. On D1, D2, D4 and D5 a "different
+  architecture" objection is not available at all.
+
+  THE MEASURED ALTERNATIVE THAT MATTERS. The epic owner's §6b ruling licensed
+  deriving the tag from complexity figures; RD-05 could have taken the exemption
+  the ruling explicitly forbade, or moved the file out of the scan's reach. Both
+  were rejected and the INVARIANT'S STATEMENT was corrected instead: it now
+  forbids a figure REFUSING (raise / assert / exit / a branch whose arm does
+  one), and reports observation. Measured effect, archive tree, no homes: the
+  one failure RD-04 escalated goes green and the like-for-like diff against the
+  parent is exactly one member removed, nothing added.
+
+  THE FINDING THE CORE CANNOT EXPRESS. RD-05-DF-01: the scan that produced the
+  escalation was firing on a subprocess exit status, not on a figure, because
+  taint does not cross a function boundary -- so the clauses §9.9 escalated were
+  never visible to it, and an empty refusal list is not coverage. The repair
+  re-classifies what the scan sees and does not widen it.
