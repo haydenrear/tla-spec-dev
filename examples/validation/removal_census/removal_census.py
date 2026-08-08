@@ -157,7 +157,8 @@ def measure_region(region: dict, removal: dict) -> dict:
         commit = region.get("commit", base)
         count = span_lines(commit, region["path"], region["start"], region["end"])
         scope = (
-            f"{region['path']}@{commit} lines {region['start']!r}..{region['end']!r} inclusive"
+            f"{region['path']}@{commit} from {region['start']!r} up to but NOT "
+            f"including {region['end']!r}"
         )
     else:
         raise CensusRefusal(f"unknown region kind {kind!r}")

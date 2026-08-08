@@ -108,6 +108,31 @@ therefore a **lower bound** on what the removal cost, and says so.
   there because a ticket that prices four removals and exempts its own has not
   measured anything.
 
+### And this ticket is the same shape, at a worse ratio
+
+The row above prices the **removal**. Here is the **ticket**, on the four trees
+the predecessor's `+1677` was measured over:
+
+```
+$ git diff --numstat 7514df0..807b5bb -- scripts tests examples/validation references
+   +1403  -33
+```
+
+**A ticket dispatched to price the cost of proving removals safe removed 33
+lines and added 1403** — roughly **42 added per line removed**, worse than every
+row in §1.
+
+The defence available to me is the one that was available to
+`subtract-to-measure`, and it is not nothing: 957 of those lines are the census
+instrument and its manifest, which is the *product* of the ticket rather than
+proof that a removal was safe, and the census's `proof` role excludes it for
+exactly that reason. **But that is a classification I made about my own work, it
+is the instrument's declared blind spot, and the ratio is what it is.**
+
+Recorded because the standing rule is that an epic closing with only good news
+about itself has not been measured — and because a census whose author exempts
+himself from it measures nothing.
+
 ---
 
 ## 2. THE DENOMINATOR, AND A FREE 2.9× I DECLINED
@@ -163,10 +188,10 @@ This is **not** a statement about every mutant ever seeded under
 `removal_is_a_delta_rule`; §3.3 is about the ones outside it, and one of them
 fired.
 
-Two of those rows are structural rather than incidental: **`SM-03` deleted no
-detector at all.** The literal it removed lived *inside* `registry-enumeration`, whose pytest node kept its name and got a new body,
-which outlived it. All six I-series mutants were incapable of pricing that
-removal whatever they contained.
+Six of those rows are structural rather than incidental: **`SM-03` deleted no
+detector at all.** The literal it removed lived inside `registry-enumeration`,
+whose pytest node kept its name and got a new body. All six I-series mutants
+were incapable of pricing that removal whatever they contained.
 
 `tests/test_removal_census.py::test_no_catalogue_mutant_could_have_priced_a_removal_and_it_says_so`
 asserts this, so that a future removal seeding a mutant that **is**
