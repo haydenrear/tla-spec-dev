@@ -187,8 +187,26 @@ git worktree add ../wt-<issue-number>-<slug> \
 cd ../wt-<issue-number>-<slug>
 ```
 
+**Those first three lines are load-bearing, not tidiness.** `git fetch origin`
+then `commit_oid=$(git rev-parse origin/epic/<slug>)` is what makes the branch
+point the PUBLISHED tip. Branching a bare `epic/<slug>` instead resolves the
+**local** ref — and in an epic whose ticket PRs are merged server-side with `gh
+pr merge`, `origin/epic/<slug>` advances while your local `epic/<slug>` never
+does, and neither does your local *copy* of the remote ref, because only a fetch
+moves that. Measured once: a ticket branched **21 commits behind** and caught it
+only because its work order carried a `base_sha` it thought to compare `HEAD`
+against. It would otherwise have edited a superseded file and reported a true
+sentence about the wrong tree.
+
+`wt new` refuses that case now (exit 7, git-issue-workflow-skill#10) — but
+**epic mode does not go through `wt new`**, it calls `git worktree add` directly,
+which has no such gate. So in epic mode the fetch-and-resolve above *is* the
+protection. Do not skip it, and do not substitute a bare branch name for
+`"$commit_oid"`.
+
 An ordinary (non-epic) ticket does both of those in one command, `wt new <ticket>
-"$commit_oid"`. Epic mode branches by hand because `wt` chooses the worktree path
+"$commit_oid"` — which is also a resolved SHA, and for the same reason. Epic mode
+branches by hand because `wt` chooses the worktree path
 (`<parent>/<repo>-<ticket>`) and an epic assignment **declares** it — the
 assignment wins. The home the two routes produce is identical, and teardown is
 the same single command either way:
