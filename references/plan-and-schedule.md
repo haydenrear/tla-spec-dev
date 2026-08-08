@@ -72,6 +72,9 @@ tree_oid=$(git rev-parse "origin/<default-branch>^{tree}")
 git update-ref "refs/index-bases/$(basename "$(git rev-parse --show-toplevel)")/${tree_oid}" "$commit_oid" ""
 git worktree add ../wt-epic-<slug> -b epic/<slug> "$commit_oid"
 cd ../wt-epic-<slug>
+# NOT DONE YET: this worktree has NO home until the bootstrap under
+# "Skill Manager homes" below runs — that block is part of THIS step,
+# not optional reading (the W2 eval measured an agent stopping here).
 ```
 
 Record the starting SHA (`commit_oid`). Never create ticket branches from the
