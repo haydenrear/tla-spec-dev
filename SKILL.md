@@ -6,7 +6,7 @@ skill-imports:
     path: references/cli.md
     reason: Explains how skill-manager exposes declared CLI tools such as tlc2, pytest, and jinja2.
     section: runtime
-  - unit: skill-publisher
+  - unit: skt
     path: references/skills.md
     reason: Explains installable skill layout and skill-manager.toml validation.
     section: schema
