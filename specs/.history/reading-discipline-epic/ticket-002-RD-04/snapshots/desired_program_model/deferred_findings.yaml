@@ -6409,267 +6409,6 @@ findings:
       Two rows read by every epic that asks how to cite D1 or D2. One of them has
       already justified an epic.
     disposition: open
-
-  - id: RD-02-DF-01
-    found_by: "RD-02"
-    found_at_commit: "7514df0"
-    schedule_revision: 1
-    severity: major
-    surface:
-      production: []
-      tla: []
-      adapters: []
-      test_graph: []
-      workflow: ["examples/validation/scorecards/score_tools.py"]
-    summary: >-
-      `scope` REACHES ONLY COUNTED FIGURES THAT NAME A DIMENSION, AND `19 of 44`
-      IS SCOPED TO THOSE.
-
-      DISTINCT FROM `RD-01-DF-01`, which is about generalisations that carry NO
-      COUNT. This is about figures that DO count and are still invisible:
-      `_ANOTHER_DIM = re.compile(r"D[1-5]")` means a counted claim reaches the
-      sweep only if a dimension's name sits beside it.
-
-      Demonstrated on RD-02's own result document, which carries at least twelve
-      counted figures -- "0 of 9 mutants", "3 of 4 copies", "13 of 14",
-      "9 of the 10 rows". `scope --path` over it reports
-      `0 counted figure(s): 0 REFUTED, 0 COUNT-MOVED, 0 HOLDS, 0 UNREACHABLE`.
-      Not one refused, and not one counted as UNREACHABLE -- which is the count
-      that exists so a claim the check cannot reach is not read as one that
-      holds.
-
-      A three-line probe separates the two cases cleanly: `D2 = 2 on 27 of 27
-      cards` is REFUTED with four counterexamples; `0 of 9 mutants could have
-      priced a removal` and `3 of 4 copies were invisible` are not seen at all.
-      One counted figure reported out of three.
-
-      SO `19 of 44` IS A COUNT OF DIMENSION-NAMED FIGURES, not of counted figures
-      in this repository. This document alone would add twelve to a denominator
-      it is not in. THIS IS `SM-05-DF-02` INSIDE THE EPIC THAT WAS OPENED TO FIX
-      IT -- SM-05 disclosed the same class error about its own leak scanner in
-      the same words: a result stated without the dimension's name is invisible
-      to a pattern keyed on the dimension's name.
-    reproduction: >-
-      printf 'D2 = 2 on 27 of 27 cards\n0 of 9 mutants could have priced a
-      removal\n3 of 4 copies were invisible\n' > /tmp/probe.md; python3
-      examples/validation/scorecards/score_tools.py scope --path /tmp/probe.md
-      -- reports `1 counted figure(s)`.
-    evidence:
-      - "examples/validation/scorecards/score_tools.py -- _ANOTHER_DIM = re.compile(r\"D[1-5]\")"
-      - "specs/results/scorecards/reading-discipline/GOAL-apparatus-priced/RD-02-RESULT.md section 5a"
-    why_out_of_scope: >-
-      RD-01 owns the instrument, this is a measurement ticket, and RD-03 sweeps
-      the record on the integrated tip. Editing a check during a round that is
-      measuring what the check reports is how a target gets edited to match a
-      result.
-    suggested_fix: >-
-      Not a wider regex on its own -- `N of M` with no dimension name is common
-      enough in ordinary prose that matching it bare would inflate the count.
-      Either the figure declares its population inline, or `scope` grows a second
-      report -- counted figures it cannot attribute to a dimension, listed and
-      counted separately, so the denominator stops being silently narrow. RD-03
-      decides.
-    blast_radius: >-
-      Every counted figure in the record that does not name a dimension. Unknown
-      by construction, and at least twelve in RD-02's result alone.
-    disposition: open
-
-  - id: RD-02-DF-02
-    found_by: "RD-02"
-    found_at_commit: "7514df0"
-    schedule_revision: 1
-    severity: major
-    surface:
-      production: []
-      tla: []
-      adapters: []
-      test_graph: []
-      workflow: ["specs/desired_program_model/ticket_plan.yaml"]
-    summary: >-
-      "ZERO `DIES` -> `SURVIVES` ACROSS EVERYTHING CUT IN TWO EPICS" IS A CLAIM
-      ABOUT ONE CATALOGUE, RESTATED AS A CLAIM ABOUT THE RULE. AND OUTSIDE THAT
-      CATALOGUE IT IS FALSE.
-
-      True of `examples/validation/gap_mutants/gap_mutants.toml`'s SM-GM series.
-      `removal_is_a_delta_rule` says EVERY removal ships with a mutant seeded in
-      its gap, and two more sets satisfy it: SM-06's dup-mutants, and
-      `SM-04-GM-T1`, seeded by SM-04 for the `total` removal as an EXECUTING TEST
-      rather than a catalogue row.
-
-      `SM-04-GM-T1` WENT `DIES` -> `SURVIVES`. Its own docstring:
-      "UNSEALED: died before, SURVIVES after. This is the price." An altered
-      score on an unsealed version 3 card is detected by nothing, where
-      `total != running` used to catch it. It is the only removal in
-      `subtract-to-measure` measured to cost anything, and its assertion's
-      failure message asks a future reader to re-price the removal.
-
-      This is the epic's own defect, one layer up: a figure true of one
-      instrument's catalogue, restated as a property of the rule. It is live in
-      issue #189 and in `ticket_plan.yaml`'s `GOAL-apparatus-priced` baseline,
-      which RD-03 re-measures against.
-    reproduction: >-
-      grep -n "the price of removing total" tests/test_score_tools.py; read the
-      docstring at test_the_price_of_removing_total_measured_on_both_sides.
-      python3 examples/validation/removal_census/removal_census.py discriminate
-      -- the scope sentence names what the table does and does not cover.
-    evidence:
-      - "tests/test_score_tools.py -- test_the_price_of_removing_total_measured_on_both_sides"
-      - "specs/desired_program_model/ticket_plan.yaml -- GOAL-apparatus-priced baseline"
-      - "examples/validation/removal_census/removals.toml -- [[mutant_outside_this_table]]"
-    why_out_of_scope: >-
-      The baseline is the epic owner's text and RD-03 is the ticket that decides
-      goals. A ticket that edits the baseline it is measured against has removed
-      the measurement.
-    suggested_fix: >-
-      Restate the baseline at the scope it holds -- the SM-GM catalogue -- and
-      count mutants seeded outside it separately, as
-      `removals.toml`'s `[[mutant_outside_this_table]]` now does.
-    blast_radius: >-
-      The `GOAL-apparatus-priced` baseline, issue #189, and any later reading
-      that treats the apparatus as never having fired.
-    disposition: open
-
-  - id: RD-02-DF-03
-    found_by: "RD-02"
-    found_at_commit: "7514df0"
-    schedule_revision: 1
-    severity: minor
-    surface:
-      production: []
-      tla: []
-      adapters: []
-      test_graph: []
-      workflow: ["specs/results/scorecards/subtract-to-measure/"]
-    summary: >-
-      THERE IS A `DIES` -> `SURVIVES` IN THE PUBLISHED TABLES AND IT IS CARRIED
-      FORWARD AS A ZERO.
-
-      `SM-GM-I1` on `pytest-full` reads `SURVIVES` in SM-01's before-table,
-      `DIES` in SM-02's re-run, and `SURVIVES` again in SM-03's after-run and in
-      SM-05's. SM-05 names it "the one cell known to have flaked historically"
-      and attributes the movement to machine contention, which is a reasonable
-      attribution supported by the concurrency SM-02 documented.
-
-      What is filed is not the attribution. It is that every restatement since
-      has dropped it: the figure is quoted as a flat zero, so a reader cannot
-      tell that the zero rests on a judgement call about one cell in one run.
-    reproduction: >-
-      Compare the `SM-GM-I1` row across
-      before-state/gap-mutants-before.json, after-state-SM-02/gap-mutants-after-SM-02.json
-      and after-state/gap-mutants-after.json.
-    evidence:
-      - "specs/results/scorecards/subtract-to-measure/before-state/gap-mutants-before.json"
-      - "specs/results/scorecards/subtract-to-measure/after-state-SM-02/gap-mutants-after-SM-02.json"
-      - "specs/results/scorecards/subtract-to-measure/after-state/gap-mutants-after.json"
-      - "specs/results/scorecards/subtract-to-measure-sm05/RESULT.md -- the contention disclosure"
-    why_out_of_scope: >-
-      Re-running the cell to settle it is a measurement this ticket was not
-      dispatched to make, and re-running selectively until a number resolves is
-      the shape `measurement_rule` forbids.
-    suggested_fix: >-
-      Wherever the figure is quoted, quote the attribution with it, or re-run
-      `SM-GM-I1` on an idle machine and record the result either way.
-    blast_radius: >-
-      One cell, three published tables, and every restatement of the zero.
-    disposition: open
-
-  - id: RD-02-DF-04
-    found_by: "RD-02"
-    found_at_commit: "7514df0"
-    schedule_revision: 1
-    severity: major
-    surface:
-      production: []
-      tla: []
-      adapters: []
-      test_graph: []
-      workflow: ["examples/validation/gap_mutants/gap_mutants.toml"]
-    summary: >-
-      THE SEEDING RULE STRUCTURALLY EXCLUDES THE FAULTS THAT COULD PRICE A
-      REMOVAL, AND THE EXCLUSION WAS DISCLOSED AND NEVER READ AS ONE.
-
-      A gap mutant can report that a removal cost something only if EVERY
-      detector that killed it is a detector the removal deletes. Computed over
-      SM-01's sealed before-table, that is 0 of 9 -- each mutant was already
-      dying on a detector that outlived its cut, or was not dying at all. The
-      `DIES` verdicts SM-02 and SM-05 re-ran and published were entailed by the
-      before-table before either cut was made.
-
-      The mechanism is the re-runnability requirement. A mutant must be
-      applicable to the AFTER tree, and a fault only the removed mechanism
-      catches usually lives on a surface the removal deletes. SM-01 named
-      exactly such a fault for the ports machinery -- dropping `fake =` from a
-      `[ports.*]` table, "caught today by `render_oracle_statement`" -- and put
-      it in `[[not_seedable]]` with the reason, on the record, before anything
-      was cut.
-
-      Nothing read that as the reason the table could only come out one way, and
-      "the measured price of removing the `[ports.*]` machinery is ZERO" was
-      published as a measurement rather than as an entailment.
-    reproduction: >-
-      python3 examples/validation/removal_census/removal_census.py discriminate
-      -- 0 of 10 rows DISCRIMINATING. The excluded fault is the third
-      `[[not_seedable]]` row of gap_mutants.toml.
-    evidence:
-      - "examples/validation/gap_mutants/gap_mutants.toml -- [[not_seedable]], the `fake =` key"
-      - "specs/results/scorecards/reading-discipline/GOAL-apparatus-priced/discriminating-power.json"
-      - "specs/results/scorecards/subtract-to-measure/SM-02-RESULTS.md -- the ZERO headline"
-    why_out_of_scope: >-
-      The fix is a change to how removals are seeded, which is a design decision
-      for the epic rather than a repair a measurement ticket makes to the
-      catalogue it is measuring.
-    suggested_fix: >-
-      Classify discriminating power from the before-table and REPORT IT with the
-      verdict, so an entailed `DIES` reads as entailed. `removal_census.py
-      discriminate` does this at zero per-removal cost. Where the only
-      discriminating fault is unseedable, say the removal is priced at zero BY
-      THE BEFORE-TABLE and skip the re-run rather than dressing it as a
-      measurement.
-    blast_radius: >-
-      Every removal priced under `removal_is_a_delta_rule` in two epics, and the
-      SM-02 headline specifically.
-    disposition: open
-
-  - id: RD-02-DF-05
-    found_by: "RD-02"
-    found_at_commit: "7514df0"
-    schedule_revision: 1
-    severity: minor
-    surface:
-      production: []
-      tla: []
-      adapters: []
-      test_graph: []
-      workflow: ["SUBTRACT-TO-MEASURE-EPIC.md", "NEXT-EPIC.md", "specs/desired_program_model/ticket_plan.yaml"]
-    summary: >-
-      `subtract-to-measure` IS DESCRIBED AS A SIMPLIFICATION IN THREE PLACES AND
-      THE CENSUS SAYS IT WAS NOT ONE.
-
-      It came out +1677 net `code_lines` across the trees it touched. Per removal,
-      the proof cost 1.07 lines per line of production code cut at best and 14.78
-      at worst, and the removal with the worst ratio -- `total` -- is the only one
-      measured to cost anything. Its two largest removals cut no production code
-      at all: SM-03 removed a literal from a test file, SM-06 removed duplicated
-      prose.
-
-      None of that makes the epic wrong. Proving a removal is free costs code and
-      three of its four removals were re-scoped by what the measurement said. What
-      is filed is the NAME: it was a re-instrumentation epic that also removed four
-      things, and "the great simplification" is not a description of it.
-    reproduction: >-
-      python3 examples/validation/removal_census/removal_census.py census
-    evidence:
-      - "specs/results/scorecards/reading-discipline/GOAL-apparatus-priced/removal-census.json"
-      - "NEXT-EPIC.md -- 'removed 225 lines from scripts/ and added 1677 net'"
-    why_out_of_scope: >-
-      All three files are outside RD-02's `implementation_scope`
-      (`examples/validation/`, `specs/results/`, `tests/`), and a measurement
-      ticket that rewrites the charter it measures has edited its target.
-    suggested_fix: >-
-      Say what the epic did. Nothing about the results changes.
-    blast_radius: >-
-      Three documents, and the framing every successor epic inherits from them.
-    disposition: open
   - id: RD-04-DF-01
     found_by: "RD-04"
     found_at_commit: "7514df0"
@@ -6696,48 +6435,30 @@ findings:
       other `ports-and-adapters` subject of that example has a card. `scope`
       gives it TWO DIFFERENT VERDICTS:
 
-      QUALIFIER IMMEDIATELY AFTER THE COUNT -> UNREACHABLE, "the counted noun
-      narrows the population with ['ports-and-adapters'], which names no example
-      in this corpus".
+      ON ONE LINE -> UNREACHABLE, "the counted noun narrows the population with
+      ['ports-and-adapters'], which names no example in this corpus".
 
-      THE SAME QUALIFIER ANYWHERE ELSE -> REFUTED. After the card noun, in an
-      aside, or on the next line, the narrowing word is invisible: scope falls
-      back to the example, the population is 35, and it reports "25 card(s) in
-      the population its words denote do not carry D3 = 4" and names twelve of
-      them. EVERY ONE OF THOSE 25 IS A CARD ABOUT A DIFFERENT SUBJECT.
+      WRAPPED AFTER "10 of 10" -> REFUTED. The noun is empty, scope falls back to
+      the example, the population is 35, and it reports "25 card(s) in the
+      population its words denote do not carry D3 = 4" and names twelve of them.
+      EVERY ONE OF THOSE 25 IS A CARD ABOUT A DIFFERENT SUBJECT.
 
       THE CLAIM IS TRUE AND THE REFUTATION IS MANUFACTURED, by a checker that
-      cannot see the axis the claim is scoped on.
+      cannot see the axis the claim is scoped on, and the difference between the
+      two answers is a line break.
 
-      THE MECHANISM IS PLACEMENT, NOT WRAPPING. `scope` inspects a window of at
-      most three words immediately after the count. Line-wrapping is one instance
-      of that; it was found first and stated too narrowly, the epic owner could
-      not reproduce it with different probe text and named the broader class, and
-      two further probes confirm the general form on a single line.
-
-      AND A SECOND BLIND SPOT COMPOUNDS IT, MEASURED BY RD-02: `scope` is keyed
-      on a `D[1-5]` token, so a counted figure naming its dimension IN WORDS is
-      never counted. A four-line probe carrying four counted figures reports
-      "1 counted figure(s)".
-
-      TOGETHER THESE MAKE RD-01's OWN HEADLINE A SCOPED CLAIM WHOSE SCOPE NOBODY
-      STATED. Its denominator is `figures carrying a dimension token`, not
-      `counted figures`; its numerator can include refutations that are artifacts
-      of qualifier placement rather than false claims. REFUTED is the verdict
-      GOAL-scope-loss-catchable counts as its HEADLINE, with no target on it and
-      a high count declared the honest outcome, so a checker that can both miss
-      figures and manufacture refutations can move that headline in EITHER
-      direction. RD-01's own doctrine -- `absent` and `checked, none found` are
-      different claims -- applies with more force to `refuted` and
-      `could not read`.
+      This is not a cosmetic parse bug. REFUTED is the verdict
+      GOAL-scope-loss-catchable counts as its HEADLINE, with no target on it and a
+      high count declared the honest outcome. A checker that can manufacture a
+      refutation can inflate that headline. RD-01's own doctrine -- `absent` and
+      `checked, none found` are different claims -- applies with more force to
+      `refuted` and `could not read`.
     reproduction: >-
-      Five probe files preserved at
-      specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place/RD-04/analysis/wrap_probe/,
-      with a README naming each. `python3
-      examples/validation/scorecards/score_tools.py scope --path <that dir>/<f>`:
-      same_line.md -> 1 UNREACHABLE; wrapped.md, qualifier_after_noun.md and
-      qualifier_in_aside.md -> 1 REFUTED each, the last two on a single line;
-      no_dimension_token.md -> "1 counted figure(s)" out of four.
+      Two one-line files preserved at
+      specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place/RD-04/analysis/wrap_probe/.
+      `python3 examples/validation/scorecards/score_tools.py scope --path
+      <that dir>/same_line.md` -> 1 UNREACHABLE. The same sentence in
+      `wrapped.md`, broken after "10 of 10" -> 1 REFUTED with 25 counterexamples.
     evidence:
       - "references/architecture_tags.md -- section 9.8"
       - "examples/validation/scorecards/score_tools.py -- evaluate_claim, the named-example branch"
@@ -6852,64 +6573,9 @@ findings:
       adapters: []
       test_graph: []
       workflow: ["references/architecture_tags.md"]
-    severity_note: >-
-      (c) IS BLOCKING FOR RD-05 AND IS ESCALATED TO THE EPIC OWNER RATHER THAN
-      PARKED. It is recorded on this finding rather than as a sixth because the
-      deferment budget is 5 and all three items are properties of the same
-      derivation predicate.
     summary: >-
-      THREE UNVALIDATED PROPERTIES OF THE DERIVATION PREDICATE: A PICKED
-      THRESHOLD, A CLAUSE CORRELATED WITH THE ANCHOR IT SEPARATES ON, AND A
-      STANDING INVARIANT THAT FORBIDS THE WHOLE MECHANISM.
-
-      (c) THE THERMOSTAT COLLISION -- BLOCKING FOR RD-05, FOUND ONLY IN A TREE
-      WITH NO PER-CHECKOUT HOMES.
-      tests/test_code_complexity.py::test_no_reader_of_this_instrument_gates_on_its_output
-      states a repository-wide invariant: a file "is allowed to refer to the
-      instrument and to transcribe its figures. It is not allowed to branch on
-      them, compare them, assert on them or exit on them -- that is a thermostat,
-      whatever it is called."
-
-      RD-04's derivation predicate branches on exactly those figures:
-      instance_state_in_effectful_modules / instance_state against a threshold,
-      declared_interfaces and effectful_calls against zero. RD-04's own analysis
-      script trips the tripwire in the homeless tree, and RD-05's implementation
-      will trip it harder because it will branch on a SHIPPED path.
-
-      THE TWO READINGS. Either it IS a thermostat, in which case the tag cannot
-      be derived at all -- and derivation is the ENTIRE anti-suppression
-      mechanism, so a declared-only tag is the suppression key the ticket exists
-      to prevent. Or it is NOT: the invariant is aimed at a figure deciding
-      something about the CODE, and the plan's own no_new_gates_rule says a tag
-      "constrains what may be COMPARED and refuses nothing about the code", so a
-      derived tag is a classifier over the RECORD rather than a thermostat over
-      the PROGRAM.
-
-      RD-04's view is the second and it is a VIEW, NOT A DEMONSTRATION. The
-      invariant as written carries no such exception, and the existing
-      GATING_SCAN_EXEMPT entries are each bounded by a property another test
-      checks. RD-05 MUST NOT ADD ITSELF TO THAT LIST without the invariant's
-      scope being stated by the owner.
-
-      (b) THE CLAUSE-(c) / ANCHOR-4 CORRELATION. Derivation clause (c) asks for a
-      second implementation behind the seam; D3's anchor 4 asks for a driven port
-      exercised by a real adapter AND a fake. Close enough that the D3 separation
-      could be the predicate quietly encoding the anchor, in which case
-      `ports-and-adapters` would ENTAIL a high D3 and the separation would
-      measure nothing -- the same NULL-ENTAILED shape RD-02 found in the gap
-      mutants, where a mutant can price a removal only if every detector that
-      killed it is one the removal deletes.
-
-      ENTAILMENT IS REFUTED BY THE RECORD: `ex4_pipeline_coherent` derives
-      `ports-and-adapters` under all three clauses and was scored D3 = 3 by BOTH
-      blind judges, so the predicate does not force a 4. (A claim about the
-      PREDICATE, not a comparison across examples, so R-H2 does not bite.) The
-      CORRELATION stands and is unquantified: one counterexample refutes
-      entailment and does not measure how much of the separation the overlap
-      explains. RD-05 carries it on the demonstration table row as a declared
-      confound.
-
-      (a) THE THRESHOLD.
+      THE DERIVATION'S ONE NUMERIC THRESHOLD IS UNVALIDATED, AND SAYING SO IS
+      PART OF SHIPPING IT.
 
       RD-04's derivation predicate requires
       `instance_state_in_effectful_modules / instance_state < 0.5`. Across the

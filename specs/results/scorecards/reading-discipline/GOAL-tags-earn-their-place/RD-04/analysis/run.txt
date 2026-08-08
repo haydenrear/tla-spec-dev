@@ -1,0 +1,103 @@
+==============================================================================
+RD-04 -- derivation over the trees the sealed cards were scored over
+==============================================================================
+arm_b                    derived=ports-and-adapters               declared=ports-and-adapters   agree
+                           iface=1 eff_mods=1/4 state_coloc=0.125
+arm_a                    derived=effectful                        declared=effectful            agree
+                           iface=0 eff_mods=1/1 state_coloc=1.0
+arm_c                    derived=effectful                        declared=effectful            agree
+                           iface=0 eff_mods=1/1 state_coloc=1.0
+toolchain                derived=effectful                        declared=effectful            agree
+                           iface=0 eff_mods=28/31 state_coloc=1.0
+toolchain_fixture        derived=ports-and-adapters               declared=ports-and-adapters   agree
+                           iface=1 eff_mods=1/5 state_coloc=0.111
+ex1_scaffold_only        derived=effectful                        declared=effectful            agree
+                           iface=0 eff_mods=1/1 state_coloc=None
+ex3_over_complex         derived=UNDERIVABLE:no-effect-surface    declared=effectful            *** DISAGREE ***
+                           iface=0 eff_mods=0/1 state_coloc=None
+ex4_pipeline_coherent    derived=ports-and-adapters               declared=ports-and-adapters   agree
+                           iface=1 eff_mods=1/21 state_coloc=0.1
+ex5_pipeline_divergent   derived=UNDERIVABLE:no-effect-surface    declared=ports-and-adapters   *** DISAGREE ***
+                           iface=1 eff_mods=0/16 state_coloc=0.0
+ex6_jenga                derived=UNDERIVABLE:no-effect-surface    declared=effectful            *** DISAGREE ***
+                           iface=0 eff_mods=0/6 state_coloc=0.0
+
+==============================================================================
+EARN-ITS-PLACE -- within one example, per dimension, per tag pair
+R-H2 respected: no comparison below crosses an example boundary.
+==============================================================================
+
+ab_quota_ledger:  effectful  vs  ports-and-adapters
+   D1  effectful          [2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4]  n=24
+       ports-and-adapters [3, 3, 3, 3, 3, 3, 3, 3, 3, 4]  n=10   -> overlaps
+   D2  effectful          [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]  n=24
+       ports-and-adapters [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]  n=10   -> overlaps
+   D3  effectful          [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]  n=24
+       ports-and-adapters [4, 4, 4, 4, 4, 4, 4, 4, 4, 4]  n=10   -> SEPARATES
+   D4  effectful          [2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4]  n=24
+       ports-and-adapters [2, 3, 3, 3, 3, 3, 4, 4, 4, 4]  n=10   -> overlaps
+   D5  effectful          [2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]  n=24
+       ports-and-adapters [3, 3, 3, 3, 3, 3, 4, 4, 4, 4]  n=10   -> overlaps
+
+ex1_scaffold_only: only one tag value present (['effectful']) -- NO TEST POSSIBLE
+
+ex3_over_complex: only one tag value present (['UNDERIVABLE:no-effect-surface']) -- NO TEST POSSIBLE
+
+ex4_pipeline_coherent: only one tag value present (['ports-and-adapters']) -- NO TEST POSSIBLE
+
+ex5_pipeline_divergent: only one tag value present (['UNDERIVABLE:no-effect-surface']) -- NO TEST POSSIBLE
+
+ex6_jenga: only one tag value present (['UNDERIVABLE:no-effect-surface']) -- NO TEST POSSIBLE
+
+toolchain_removal: only one tag value present (['effectful']) -- NO TEST POSSIBLE
+
+==============================================================================
+NULL-ENTAILMENT CHECK -- is an `overlaps` verdict a measurement?
+==============================================================================
+  ab_quota_ledger D1: population took [2, 3, 4] -> measured -- a separation was possible and did not occur
+  ab_quota_ledger D2: population took [2] -> NULL-ENTAILED -- no separation was possible on this dimension
+  ab_quota_ledger D4: population took [2, 3, 4] -> measured -- a separation was possible and did not occur
+  ab_quota_ledger D5: population took [2, 3, 4] -> measured -- a separation was possible and did not occur
+
+==============================================================================
+DOES THE DERIVATION ENTAIL D3 = 4? (a claim about the predicate)
+==============================================================================
+  arm_b: derived ports-and-adapters, D3 scored [4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+  ex4_pipeline_coherent: derived ports-and-adapters, D3 scored [3, 3]  <-- COUNTEREXAMPLE: below 4
+
+==============================================================================
+SAME-TAG CONTROL -- two subjects, same example, SAME derived tag
+==============================================================================
+
+ab_quota_ledger: arm_a vs arm_c (both effectful)
+   D1  [2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4] vs [3, 3, 3, 3, 3, 3] -> overlaps (control holds)
+   D2  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2] vs [2, 2, 2, 2, 2, 2] -> overlaps (control holds)
+   D3  [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2] vs [1, 1, 1, 1, 1, 1] -> overlaps (control holds)
+   D4  [2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4] vs [3, 3, 3, 3, 3, 4] -> overlaps (control holds)
+   D5  [2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4] vs [4, 4, 4, 4, 4, 4] -> overlaps (control holds)
+
+==============================================================================
+TIER CHECK on each SEPARATES result
+==============================================================================
+  ab_quota_ledger D3 effectful/ports-and-adapters tier=opus: [1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2] vs [4, 4, 4, 4, 4, 4, 4, 4, 4, 4] -> SEPARATES
+  ab_quota_ledger D3 effectful/ports-and-adapters tier=sonnet: NOT MEASURED (n_a=2, n_b=0) -- absent, not 'no separation'
+
+==============================================================================
+toolchain_removal D3 == 2,2,3,4 -- decomposed by CITED SCOPE
+==============================================================================
+  20260807-sm05rm-K-p1  tier=opus  D3=2  cites={'scripts/': 2, 'spec_double_compiler/': 1, 'examples/validation/ab/reference_ports/': 1}
+      -> scope scripts/  derived tag = effectful
+  20260807-sm05rm-K-p2  tier=opus  D3=2  cites={'scripts/': 4, 'spec_double_compiler/': 0, 'examples/validation/ab/reference_ports/': 1}
+      -> scope scripts/  derived tag = effectful
+  20260807-sm05rm-K-p3  tier=sonnet  D3=4  cites={'scripts/': 0, 'spec_double_compiler/': 0, 'examples/validation/ab/reference_ports/': 1}
+      -> scope examples/validation/ab/reference_ports/  derived tag = ports-and-adapters
+  20260807-sm05rm-K-p4  tier=sonnet  D3=3  cites={'scripts/': 3, 'spec_double_compiler/': 4, 'examples/validation/ab/reference_ports/': 1}
+      -> scope spec_double_compiler/  derived tag = UNDERIVABLE:no-effect-surface
+
+==============================================================================
+CARDS NOT MAPPED TO A SUBJECT (counted, never omitted)
+==============================================================================
+  hexagonal-prompting/ab_quota_ledger/20260804-owner-pre arm=A-control-reference
+  total unmapped: 1 of 49
+
+wrote /Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-04/specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place/RD-04/analysis/result.json

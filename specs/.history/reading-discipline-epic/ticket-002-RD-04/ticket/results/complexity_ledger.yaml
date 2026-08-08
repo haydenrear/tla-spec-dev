@@ -1,0 +1,87 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# RD-04 IS A RESEARCH TICKET. It ships NO production code, NO TLA+ change, NO
+# adapter, NO test. Its whole output is a design document
+# (`references/architecture_tags.md`), an evidence directory under
+# `specs/results/`, one analysis script that nothing imports, and five findings.
+# The model is untouched, so there is no delta for the machine-checked core to
+# measure and every member below says so rather than claiming a green.
+
+validated_refactor:
+  tlc_before:
+    status: "not_applicable"
+    evidence: "No model change. specs/tickets/RD-04/desired == current, both scaffolded and unedited."
+  tlc_after:
+    status: "not_applicable"
+    evidence: "No model change. See above."
+  behavior_tests:
+    status: "pass"
+    evidence: >-
+      uv run --with pytest --with pyyaml python -m pytest tests -q --
+      2 failed, 1428 passed, IN THE TICKET WORKTREE
+      /Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-04. The two
+      failures are RD-01-DF-02's known class: test_card_has_one_home.py and
+      test_code_complexity.py walk the gitignored per-checkout homes that
+      `wt new` creates, and this tree has FOUR of them (.claude, .codex,
+      .gemini, .skill-manager). Zero RD-04 files are flagged in either. Full
+      account in
+      specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place/RD-04/RESULT.md
+      section 7, including the two RD-04 files the first run flagged legitimately
+      and how they were fixed.
+  descriptor_comparison:
+    status: "not_applicable"
+    evidence: >-
+      No production code changed, so there is no before/after descriptor to
+      compare. `scripts/code_complexity.py` WAS run in this ticket -- eleven
+      times, over eleven declared scopes -- but as the MEASUREMENT INSTRUMENT of
+      the research, not as a before/after of anything this ticket changed. Those
+      figures are at
+      specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place/RD-04/analysis/result.json.
+
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+coverage_audit:
+  status: "not_run"
+  report: ""
+  in_scope_gaps: null
+  scope_source: ""
+
+justification: >-
+  Complexity did not increase and did not decrease: no production surface was
+  touched. The added lines are one design document under references/, one
+  evidence directory under specs/results/, and one analysis script under that
+  evidence directory which nothing imports and which is explicitly marked
+  "not production code" in its own first line. `implementation_scope` for RD-04
+  in the plan is [references/, specs/results/], and nothing outside it changed
+  except specs/desired_program_model/deferred_findings.yaml, which is where
+  findings are filed.
+
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found none, and the reason is that this ticket has no model and no
+    production code to refine. The one refinement that WAS considered and
+    rejected is recorded in the design instead, because it is a refinement of
+    the TAXONOMY rather than of the model: collapsing `UNDERIVABLE` and
+    `UNDEMONSTRATED` into a single `UNKNOWN` value. Rejected -- they fail open
+    for different reasons (derivation could not decide, versus the value has no
+    demonstrated separation), a future round can clear one and not the other,
+    and merging them would hide which of the two a given card is waiting on.
+    See references/architecture_tags.md section 2.1.
+  measured: false
+  applied: false
+  approved_by: ""
+
+transition_diff: ""
+
+narrative: "specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place/RD-04/RESULT.md"
