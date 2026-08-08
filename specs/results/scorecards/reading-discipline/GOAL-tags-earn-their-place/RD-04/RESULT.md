@@ -293,34 +293,72 @@ Filed, not fixed — this ticket is a measurement.
 
 ---
 
-## 7. Suite
+## 7. Suite — four runs, each naming its tree
 
-**Run, and the number names its tree, and it is not evidence for anything.**
+**RD-02 established the method and it is used here: a ticket-worktree number and
+an archive number are different measurements, and only the archive pair is
+like-for-like.** `RD-01-DF-02` established why: `wt new` creates gitignored
+per-checkout homes holding full copies of the card, the instrument and the sealed
+scorecards, and two tripwires walk them. **This worktree has four homes** —
+`.claude/`, `.codex/`, `.gemini/`, `.skill-manager/`.
 
-```
-uv run --with pytest --with pyyaml python -m pytest tests -q
-2 failed, 1428 passed in 704.99s
-```
+| tree | commit | result |
+|---|---|---|
+| archive, **no homes** — the parent | `5b3ba21` | **10 failed, 1420 passed, 9 skipped** |
+| archive, **no homes** — RD-04's tip | `999da5b` | **11 failed, 1419 passed, 9 skipped** |
+| ticket worktree `wt-epic-reading-discipline-RD-04` | `999da5b` | **3 failed, 1436 passed** — one of the three is a disk artifact, §7.2 |
 
-**In the ticket worktree `/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-04`.**
-The two failures are `RD-01-DF-02`'s known class exactly:
-`test_card_has_one_home.py` and `test_code_complexity.py` walk the gitignored
-per-checkout homes that `wt new` itself creates. **This tree has four of them** —
-`.claude/`, `.codex/`, `.gemini/` and `.skill-manager/` — each holding a full
-copy of the card, the instrument and the sealed scorecards, so the same
-violation is reported four times over.
+Archives built with `git archive <sha> | tar -x -C <clean dir>`, so no home exists
+to walk.
 
-**The first run of those two tripwires flagged two files of RD-04's own**, and
-those were real:
+### 7.1 RD-04 adds exactly one failure, and it is a finding
 
-- `references/architecture_tags.md` restated D3's anchor 3 verbatim in a table
-  cell, and again in §2.1;
-- `analysis/derive_and_test.py` restated it in a comment — and `.py` files under
-  `specs/results/` are deliberately **in** scope for that check, because they are
-  generators rather than records.
+**The two archive sets differ by one member.** RD-04's eleven are the parent's ten
+plus `test_code_complexity.py::test_no_reader_of_this_instrument_gates_on_its_output`.
+Nothing else moved; 1420 → 1419 passed accounts for the single flip.
 
-Both were rewritten to *refer* to the anchor by id rather than repeat its text.
-**Zero RD-04 files are flagged now**; every remaining line in both failures comes
-from a gitignored home. This ticket adds no production code and no test, so the
-suite decides nothing about it either way — but it did catch RD-04 doing the
-thing it exists to catch, which is worth recording.
+**That one failure is `RD-04-DF-04(c)`, escalated**: the derivation predicate
+branches on complexity figures, and that test states a repository-wide invariant
+against branching on them. It is not a defect in the tree and it is not fixed
+here — see `references/architecture_tags.md` §9.9 for the two readings and why
+RD-04 does not have the authority to choose between them.
+
+**The parent is not green in any tree.** Ten failures at `5b3ba21` with no homes —
+RD-02's finding, reproduced independently here.
+
+### 7.2 The ticket-worktree number, and two numbers reported as void
+
+The clean run at `999da5b` over a committed, unmoving tree: **3 failed, 1436
+passed.** Two are `RD-01-DF-02`'s known class plus §7.1's finding. **The third,
+`test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces`,
+failed with `OSError: [Errno 28] No space left on device`** — the two 272 MB
+archive trees this section's like-for-like comparison required had filled the
+disk. Removed them and re-ran that file: **26 passed in 123.81s.**
+
+**RD-04's own measurement apparatus caused a failure in the tree it was
+measuring.** Priced here rather than silently re-run into a nicer number.
+
+Two further numbers are reported **void** rather than dropped:
+
+- An earlier ticket-worktree run reported 3 failed / 1436 passed including
+  `test_removal_census.py::test_a_manifest_that_has_drifted_from_the_tree_is_refused`.
+  It was started **while this ticket was still editing files**, and that file's
+  twelve tests pass in 5.72s against the committed tree. Taken over a moving tree.
+- Before reconcile this worktree reported **2 failed / 1428 passed at `a338cfc`**.
+  A ticket-worktree number, not comparable to either archive figure: removing the
+  homes yields a *different and larger* failure set, not a subset.
+
+### 7.3 What the homeless tree found that the worktree hid
+
+**The homes did not only add noise — they buried a real hit.** In the ticket
+worktree, `test_no_reader_of_this_instrument_gates_on_its_output` fails with 248
+items, all but one from `.claude/`, `.codex/`, `.gemini/` and `.skill-manager/`.
+In the archive tree it fails with **two**, and the first is RD-04's own analysis
+script. **The finding was only legible once the homes were gone**, which is the
+same experience RD-02 reported: it found both of its own failures that way, and
+no test either ticket wrote caught them.
+
+RD-04's first run of the two tripwires in the ticket worktree *did* flag two RD-04
+files legitimately — both restated D3's anchor 3, and `.py` under `specs/results/`
+is deliberately in scope for that check. Both were rewritten to refer to the
+anchor by id. **Zero RD-04 files are flagged by `test_card_has_one_home` now.**
