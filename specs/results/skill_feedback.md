@@ -2025,3 +2025,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket RD-04
+
+- close_scope: ticket
+- close_id: RD-04
+- workflow: reading-discipline-epic
+- closed_at: 2026-08-08T20:24:10+00:00
+- summary: RESEARCH: architecture tags -- one axis, two demonstrated values, per-dimension refusal authority, and the suppression-key attack answered by fail-open derivation.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
