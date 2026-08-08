@@ -511,11 +511,74 @@ I am not fixing it. It is `RD-01`'s instrument, it is a measurement round, and
 `test_card_has_one_home.py` and `test_code_complexity.py` walk the gitignored
 `.claude/` and `.skill-manager/` homes **that `wt new` itself creates**.
 
-Every number below is from **`/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-02`,
-a ticket worktree with both homes present.** They are not comparable to a number
-from a tree without them, and no number here is reported as "green".
+**No number here is reported as green, and each one names its tree.**
 
-*(figures inserted at close-out — see `SUITE.md` in this directory)*
+| tree | commit | result |
+|---|---|---|
+| **ticket worktree**, `.claude/` + `.skill-manager/` present | **`b7c8548`, final** | **2 failed, 1437 passed** |
+| ticket worktree, before the fix below | `807b5bb` | 3 failed, 1436 passed |
+| **`git archive` tree**, no homes, no `.git` | **`7514df0`, the parent** | **10 failed, 1416 passed** |
+| `git archive` tree, no homes, no `.git` | `807b5bb`, before the fix below | 11 failed, 1419 passed, 9 skipped |
+
+### The ticket worktree: exactly the two RD-01 named, and nothing else
+
+```
+FAILED tests/test_card_has_one_home.py::test_only_the_card_states_a_dimension_an_anchor_or_a_scoring_rule
+FAILED tests/test_code_complexity.py::test_no_reader_of_this_instrument_gates_on_its_output
+```
+
+**Confirmed as those two and not mine**, from the failure text itself:
+
+```
+Left contains 246 more items, first extra item:
+  '.skill-manager/skills/spec-double-compiler/tests/test_code_complexity.py:1009: a figure is compared'
+```
+
+246 of the reported violations are inside the gitignored `.skill-manager/` home
+that `wt new` created. **Zero tracked-file violations**, exactly as
+`RD-01-DF-02` measured.
+
+A third failure — `test_every_cited_pytest_node_exists` — was present until
+`b7c8548` **and it was mine**. How it was found is the last part of this section.
+
+### The parent commit is not green either, in any tree
+
+**`7514df0` in a `git archive` tree — no homes at all — is `10 failed, 1416
+passed`.** The two home-walking files pass there, exactly as `RD-01-DF-02`
+predicts. The ten are nine `test_score_tools.py` nodes plus
+`test_prediction_seal.py::test_n05_is_reported_against_the_real_record` — the
+record-auditing nodes RD-01 deliberately left red (*"nothing in the record was
+edited to clear them; `scope` exits 1 over this repository and is expected to"*).
+
+**So the caveat is wider than the two files.** `RD-01-DF-02` says a green in a
+ticket worktree was never green. The like-for-like comparison says there was no
+green to have: **removing the homes does not produce a clean suite, it produces a
+different set of ten failures**, and that is the baseline every ticket in this
+epic is measured against.
+
+### And the like-for-like diff caught two failures of my own
+
+This is the only reason I found them. Same tree shape, two commits:
+
+| | `7514df0` | `807b5bb` |
+|---|---|---|
+| failed | 10 | **11** |
+| `test_every_cited_pytest_node_exists` | passes | **FAILS** |
+| `test_every_fast_demonstration_reproduces` | passes | **FAILS** |
+
+Both mine, both real:
+
+1. `gap-mutant-detector-argv`'s failing slot cited `{tree}/tests/…`, and
+   `run_pytest` already expands and runs with `cwd=tree`, so the literal never
+   resolved to a file.
+2. `removal-census`'s demonstrations shell out to git across the whole history —
+   which is what `tier = "slow"` exists for — and the fast pass runs in a tree
+   that has none.
+
+Fixed, and **neither was caught by any test I wrote.** Both were caught by
+running the same suite in two trees and subtracting — which is the before/after
+discipline this ticket spent its length pricing, applied to itself and earning
+its keep on the spot.
 
 ---
 
