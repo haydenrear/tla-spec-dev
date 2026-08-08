@@ -114,8 +114,10 @@ This skill has three roles:
     ```bash
     SKILLS="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts"
 
-    git worktree add <declared-worktree> -b <declared-branch> "$commit_oid"
-    "$SKILLS/bootstrap-home.sh" --root <declared-worktree>    # never skip this
+    # ONE chained command, deliberately: the add alone produces a worktree
+    # with NO home — the exact hazard measured live in the W2 eval.
+    git worktree add <declared-worktree> -b <declared-branch> "$commit_oid" \
+      && "$SKILLS/bootstrap-home.sh" --root <declared-worktree>
     ```
 
     Teardown is one command in every case, because it resolves a ticket by

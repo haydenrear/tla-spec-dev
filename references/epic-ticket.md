@@ -187,15 +187,15 @@ test -z "$(git status --porcelain)" || { echo "dirty tree — reconcile first"; 
 commit_oid=$(git rev-parse origin/epic/<slug>)
 tree_oid=$(git rev-parse "origin/epic/<slug>^{tree}")
 git update-ref "refs/index-bases/$(basename "$(git rev-parse --show-toplevel)")/${tree_oid}" "$commit_oid" ""
+# ONE chained command, deliberately. `git worktree add` alone leaves a checkout
+# with NO Skill Manager home — an agent launched there reads and writes the
+# operator's global ~/.skill-manager, and an epic runs several ticket agents at
+# once. The W2 eval measured an agent running the add and stopping, so the two
+# halves are not separable here:
 git worktree add ../wt-<issue-number>-<slug> \
-  -b feature/<issue-number>-<slug> "$commit_oid"
-
-# `git worktree add` alone leaves a checkout with NO Skill Manager home, so an
-# agent launched here reads and writes the operator's global ~/.skill-manager —
-# and an epic runs several ticket agents at once. Close that window now, before
-# anything that installs, syncs, binds or resolves:
-"${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/bootstrap-home.sh" \
-  --root ../wt-<issue-number>-<slug>
+  -b feature/<issue-number>-<slug> "$commit_oid" \
+  && "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/bootstrap-home.sh" \
+       --root ../wt-<issue-number>-<slug>
 
 cd ../wt-<issue-number>-<slug>
 ```
