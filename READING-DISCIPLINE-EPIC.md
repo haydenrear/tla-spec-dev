@@ -151,6 +151,49 @@ produce, and do not compare across tiers without saying so.
 
 ---
 
+## 6b. OWNER RULING: deriving a tag is not a thermostat, and the invariant must say so
+
+**RD-04 escalated this as blocking and was right to.**
+`test_no_reader_of_this_instrument_gates_on_its_output` states a repository-wide
+invariant: a file *"is allowed to refer to the instrument and to transcribe its
+figures. It is not allowed to branch on them, compare them, assert on them or
+exit on them — that is a thermostat, whatever it is called."* **The tag's
+derivation predicate branches on exactly those figures.**
+
+**The ruling: the invariant means a figure deciding something about the CODE.
+Deriving a comparability label is not that, and the invariant's wording is
+wrong rather than the design.**
+
+The distinction that decides it, and it is `CD-01`:
+
+- **Choosing the boundary** — "your port should go here" — is forbidden, because
+  a tool that picks the cut makes every edge legal by construction.
+- **Observing where the boundary already is** — "these effectful calls sit in one
+  module" — is the thermometer's entire job. The tag reads where the boundary
+  *is*. It proposes none, refuses none, scores none.
+
+`no_new_gates_rule` already draws this line: **a tag constrains what may be
+COMPARED and refuses nothing about the code.**
+
+**Three conditions on the ruling, and they are not optional:**
+
+1. **RD-05 does not add itself to `GATING_SCAN_EXEMPT`.** RD-04 is right that a
+   unilateral exemption would be the wrong repair. **Fix the invariant's
+   statement** so it says *gating on the code*, and make the distinction
+   explicit in the docstring. An exemption hides a correct rule; a corrected
+   rule survives the next reader.
+2. **The new risk is a wrong predicate, not a wrong principle.** A derivation
+   that misfires suppresses a *legitimate* comparison — the suppression key
+   arriving through a bad predicate rather than through malice. So the
+   derivation must be checkable against the artifact, and a
+   derivation/declaration disagreement must **fail open**, which RD-04's design
+   already does. Keep it.
+3. **State the ruling's own limit.** The separation the tag rests on is
+   **`opus`-only, n = 0 in `sonnet`** (RD-04 §9.1). A ruling that a mechanism is
+   sound does not make the evidence under it wider than it is.
+
+---
+
 ## 7. The standing rule
 
 **A low or unflattering result is the preferred outcome.** The predecessor's
