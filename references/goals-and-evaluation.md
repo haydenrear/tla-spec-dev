@@ -18,7 +18,7 @@ Goals are agreed with the user at epic creation, alongside the deferment policy
 ## What counts as a goal
 
 A goal is a specific, falsifiable claim about the program after the epic, with
-a command that decides it. Write goals as outcomes, not as work.
+a named instrument that decides it. Write goals as outcomes, not as work.
 
 | Not a goal | Goal |
 | --- | --- |
@@ -30,22 +30,90 @@ Goal kinds:
 
 - **`perf`** — latency, throughput, memory, cost; needs a baseline run and a
   target expressed against it.
-- **`eval`** — accuracy/quality on a fixed dataset with a scoring harness; needs
-  a pinned dataset and scorer version.
+- **`eval`** — accuracy/quality judged against a fixed artifact set; needs a
+  pinned dataset and scorer version, or — for a judged instrument — a pinned
+  rubric version and a stated judging setup.
 - **`integration`** — a named end-to-end Test Graph or system path passing under
   realistic composition, not per-ticket units.
 - **`quality`** — an invariant/coverage/robustness property with a deciding
   command (TLC model, fuzz budget, conformance suite).
 
-Every goal names one deciding command. A goal nobody can run is a slogan; either
-find the harness, schedule a wave-1 ticket that builds it, or drop the goal.
+Every goal names one deciding instrument. A goal nobody can decide is a slogan;
+either find the harness, schedule a wave-1 ticket that builds it, or drop the
+goal.
+
+### The instrument does not have to be a command
+
+For a long time this file said "one deciding command", and its only worked
+example was a benchmark script. That framing is too narrow, and the project's
+own flagship consumer already runs outside it: `tla-spec-dev`'s
+`ports-as-adapters` epic declares goals whose harness reads
+
+> the HP-01-shaped seeded catalogue extended with adapter-internal faults, run
+> against real and fake wirings, **scored by two blind judges**
+
+which is a procedure, not a command line. That repository moved to judged
+scoring deliberately and on evidence, and states the reason itself: *"A number
+computed from the artifact can be optimized by editing the artifact. A
+judgement that must cite the artifact can only be satisfied by changing what
+the artifact is"* (`tla-spec-dev/references/eval_scorecard.md`). That file is
+the worked example of a judged instrument and **the sole authority on its own
+dimensions, anchors, scoring rules, judging protocol, storage, sealing and
+history rules**. This file cites it and restates none of them.
+
+So a `harness` is whatever **decides the goal reproducibly and independently of
+the person hoping it passed**. Three shapes all qualify:
+
+- **a command** — a benchmark, an eval scorer, a graph run. Write the exact
+  invocation;
+- **a judged procedure** — an artifact scored against a versioned rubric by
+  judges who cite the artifact, blind to arm where arms exist. Write what is
+  scored, by how many judges, under which rubric version, and where the
+  evidence lands;
+- **a mixed instrument** — measured figures recorded beside a judged score, read
+  together rather than combined. How the two are reconciled is the instrument's
+  rule to state, not this file's.
+
+What is still forbidden is an instrument nobody can execute at all. "The design
+feels cleaner" names no instrument; "scored against `<rubric>` version N by two
+blind judges, results under `<evidence_root>`" names one, and the fact that a
+human runs it does not make it unfalsifiable.
+
+**Name the instrument; do not copy it.** Write which rubric, which version, how
+many judges, and where the evidence lands — and then link the rubric. Never
+restate its dimensions, its anchors, its scoring rules or its comparability
+rules here. A rubric's own repository versions those and executes checks over
+them; a copy in this file is covered by nothing and will drift. `tla-spec-dev`
+learned this by measurement: a charter there restated a table of judged results
+and two of its rows were wrong, read forward across a change to the instrument
+before anyone noticed.
+
+### Not every target is a number
+
+A target states what counts as success. Usually that is a threshold, but two
+legitimate shapes are not:
+
+- **A multi-clause target.** `GOAL-port-reach` targets "the same adapter-internal
+  fault dies on at least one generated instrument, **and** no positive control is
+  red" — two independent clauses that can settle differently, and did.
+- **A goal with deliberately no numeric target**, where the epic is building the
+  instrument itself. `GOAL-complexity-measurable` says it outright: *"NO TARGET
+  ON THE NUMBER ITSELF — a threshold before anything can produce a number would
+  be inventing the answer."* Its baseline is "no such instrument exists". A
+  first-measurement goal is decided by whether the instrument runs and
+  discriminates, not by a figure chosen before anything could produce one.
+
+Write either plainly in `target`. Do not manufacture a threshold to make the
+field look conventional — an invented number is the failure this whole primitive
+exists to prevent, and it is worse than an honest "no target on the number".
 
 ## Ask the user at epic creation
 
 Ask before scaffolding the workflow, and ask concretely:
 
 > What should be measurably better when this epic is done? For each outcome I
-> need: the metric, the command that measures it, its value today, and the
+> need: the metric, the instrument that decides it — a command, or a judged
+> procedure with its rubric — its value today, and the
 > threshold that counts as success. If a harness does not exist yet, I will
 > schedule a wave-1 ticket to build it and measure the baseline before the
 > tickets that change behavior.
@@ -81,6 +149,28 @@ if nobody knows today's number.
 
 Never take the baseline after the first behavioral ticket has merged; that
 measures the epic against itself.
+
+**A judged baseline is a prior scored run, not a recollection.** Where the
+instrument is a judged one, `baseline.value` cites the sealed card that produced
+the number and `baseline.evidence` points at it, so the comparison is against a
+record that cannot be edited afterwards. Two consequences follow, both learned
+the hard way in `ports-as-adapters`:
+
+- **A baseline can be superseded before the epic starts.** A wider or repaired
+  instrument may have re-measured the same thing since. Move the bar to the
+  newer number, say which run it came from, and leave the superseded run sealed
+  and unedited on the record — measuring divergence against a weaker instrument
+  credits movement the better one absorbs.
+- **A number measured on one instrument is not comparable across a repair of
+  that instrument.** If the instrument changed between baseline and measurement,
+  say so and treat the movement as a fact about the instrument until proven
+  otherwise. `tla-spec-dev` executes this as a rule and an audit; the general
+  point is that "the number moved" and "the thing got better" are different
+  claims.
+
+A baseline of `unmeasured` is honest and warns; a baseline of "no such
+instrument exists" is the normal state of a goal whose epic is building the
+instrument, and it belongs in the field verbatim rather than as a guess.
 
 ## Plan schema
 
@@ -186,7 +276,8 @@ close record. Its slice is the measurement, not the behavior. It:
 - promotes last among the contributors to the goals it owns;
 - runs each owned goal's `harness` on the integrated epic tip, from a fresh
   start, and writes results under the goal's `evidence_root`;
-- reports **baseline → measured → target** and a verdict per goal;
+- reports **baseline → measured → target** and a verdict per goal — **one
+  verdict per clause** where the target has more than one (see below);
 - files deferred findings for regressions it uncovers instead of fixing them;
 - never edits the target to match the result, and never re-runs selectively
   until a number passes. Report the run that happened.
@@ -197,12 +288,26 @@ recorded reason, or re-scope the goal — all at finalization.
 
 ## Finalization
 
-The epic PR reports every goal as a row:
+The epic PR reports every goal as a row — and every **clause** of a goal as its
+own row:
 
-| Goal | Kind | Baseline | Measured | Target | Verdict |
-| --- | --- | --- | --- | --- | --- |
+| Goal | Clause | Kind | Baseline | Measured | Target | Verdict |
+| --- | --- | --- | --- | --- | --- | --- |
 
 Verdicts are `met`, `missed`, or `unmeasured` (with a reason). An epic may close
 with a missed goal only when the user has explicitly accepted it and the reason
 is recorded in the PR body. Never close with a silently unmeasured goal: run it,
 or say why it could not run.
+
+**A goal verdict is not always one word.** Where a target has several clauses,
+each is measured and reported separately; `GOAL-port-reach` settled as *clause 1
+met, clause 2 not met*, and a single token could not have carried that. The
+reason to insist is not tidiness — a ledger that stores one verdict per
+multi-clause goal has to choose which clause the word refers to, **and it will
+choose the flattering one**. Use `—` in the Clause column for a single-clause
+goal so the shape stays uniform.
+
+A goal whose target is deliberately not a number (an instrument-building goal)
+is still reported here: `Measured` is what the instrument produced on its first
+real run, `Target` restates the no-threshold decision, and the verdict says
+whether the instrument ran and discriminated.

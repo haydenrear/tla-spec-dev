@@ -141,12 +141,16 @@ the integrated epic tip, not by trusting a ticket-branch number.
   from the post-epic branch and call it a comparison.
 - Store results under each goal's `evidence_root` and cite them in the epic PR.
 
-Report every goal:
+Report every goal, and every clause of a goal whose target has more than one, as
+its own row (`—` in the Clause column when there is only one):
 
-| Goal | Kind | Baseline | Measured | Target | Verdict |
-| --- | --- | --- | --- | --- | --- |
+| Goal | Clause | Kind | Baseline | Measured | Target | Verdict |
+| --- | --- | --- | --- | --- | --- | --- |
 
-Verdicts are `met`, `missed`, or `unmeasured` with a reason. A missed goal is a
+Verdicts are `met`, `missed`, or `unmeasured` with a reason. **A goal verdict is
+not always one word**: a multi-clause target can settle as met on one clause and
+missed on another, and one token per goal forces a choice that will fall the
+flattering way (`references/goals-and-evaluation.md`). A missed goal is a
 decision for the user, presented with the measured shortfall and the options:
 add a ticket inside this epic (finalization restarts from step 1), accept the
 shortfall with a recorded reason, or carry it out of the epic as a new issue.
