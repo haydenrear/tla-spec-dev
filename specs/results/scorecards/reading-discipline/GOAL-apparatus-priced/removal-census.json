@@ -1,0 +1,386 @@
+{
+  "schema_version": 1,
+  "measured_at": "bfd04afdd672b30d9f15210262bc9e4d5fb4ec89",
+  "instrument": "examples/validation/removal_census/removal_census.py",
+  "removals": [
+    {
+      "id": "ports-binding-machinery",
+      "ticket": "SM-02",
+      "name": "the [ports.*] binding facility in the case-adapter runner",
+      "scope": "0342a3a^1..0342a3a",
+      "gap_mutants": [
+        "SM-GM-P1-fake-journal-records-newest-first",
+        "SM-GM-P2-manifest-renames-the-port-out-from-under-the-binding",
+        "SM-GM-P3-the-fake-is-silently-a-second-real-adapter"
+      ],
+      "no_gap_reason": null,
+      "deletes_detectors": [
+        "corpus-port-swap:real",
+        "corpus-port-swap:fake",
+        "corpus-action-bound:real",
+        "corpus-action-bound:fake",
+        "port-binding-report"
+      ],
+      "lines": {
+        "cut_production": 291,
+        "cut_tests": 462,
+        "cut_prose": 75,
+        "replacement": 77,
+        "proof": 310
+      },
+      "cut_all": 828,
+      "ratio_proof_over_production": 1.07,
+      "ratio_proof_over_all_cut": 0.37,
+      "regions": [
+        {
+          "role": "cut_production",
+          "lines": 290,
+          "scope": "git diff -U0 0342a3a^1..0342a3a -- scripts/run_generated_case_adapters.py | deleted only",
+          "reason": "twelve pieces of the binding facility: AdapterMapping.binds/.port/.fake, the [ports.*] branches of both TOML readers, _port_declaration_type, port_case_label, load_declared_ports, port_bindings, apply_wiring, render_port_binding_report, the port-fake-real-swap half of render_oracle_statement, the port-first precedence in adapter_for_case, and the --wiring / --port-manifest flags"
+        },
+        {
+          "role": "cut_production",
+          "lines": 1,
+          "scope": "git diff -U0 0342a3a^1..0342a3a -- scripts/effect_conformance.py | deleted only",
+          "reason": "one call site of the deleted facility"
+        },
+        {
+          "role": "cut_tests",
+          "lines": 462,
+          "scope": "git diff -U0 0342a3a^1..0342a3a -- tests/test_port_adapter_binding.py | deleted only",
+          "reason": "the deleted mechanism's own test file, 21 collected nodes, removed whole. Real deletion; it tested nothing that still exists."
+        },
+        {
+          "role": "cut_prose",
+          "lines": 75,
+          "scope": "git diff -U0 0342a3a^1..0342a3a -- references/case_modules.md | deleted only",
+          "reason": "the documentation of the deleted facility"
+        },
+        {
+          "role": "replacement",
+          "lines": 28,
+          "scope": "git diff -U0 0342a3a^1..0342a3a -- scripts/run_generated_case_adapters.py | added only",
+          "reason": "the rewiring the cut needed, including the comment recording that the facility had zero unique kills across 28 tables"
+        },
+        {
+          "role": "replacement",
+          "lines": 1,
+          "scope": "git diff -U0 0342a3a^1..0342a3a -- scripts/effect_conformance.py | added only",
+          "reason": "the rewired call site"
+        },
+        {
+          "role": "replacement",
+          "lines": 48,
+          "scope": "git diff -U0 0342a3a^1..0342a3a -- references/case_modules.md | added only",
+          "reason": "the documentation rewritten to describe what is there now"
+        },
+        {
+          "role": "proof",
+          "lines": 220,
+          "scope": "git diff -U0 0342a3a^1..0342a3a -- tests/test_ports_binding_removed.py | added only",
+          "reason": "14 nodes added ONLY to demonstrate the facility is gone and to keep it gone. Nothing in the product calls them."
+        },
+        {
+          "role": "proof",
+          "lines": 90,
+          "scope": "examples/validation/gap_mutants/gap_mutants.toml@f0c215d lines 'MECHANISM 1 -- the [ports.*] binding machinery'..'MECHANISM 2 -- the hollow instrument demonstrations' inclusive",
+          "reason": "the three mutants seeded in this mechanism's gap, with their declared gaps and detector bindings. Section runs from its own title line to the line before the next section's."
+        }
+      ]
+    },
+    {
+      "id": "hardcoded-enumeration-literal",
+      "ticket": "SM-03",
+      "name": "the literal of thirteen paths the instrument registry checked itself against",
+      "scope": "bf0fb29^1..bf0fb29",
+      "gap_mutants": [
+        "SM-GM-I1-the-cited-demonstration-node-is-collected-and-skipped",
+        "SM-GM-I2-the-demonstrated-instrument-stops-refusing",
+        "SM-GM-I3-an-instrument-that-was-never-added-to-the-registry",
+        "SM-GM-I4-a-shipped-spec-yaml-is-committed-unparseable",
+        "SM-GM-I5-the-enumerator-itself-stops-reporting-a-failure",
+        "SM-GM-I6-the-cited-demonstration-node-is-not-collected-at-all"
+      ],
+      "no_gap_reason": null,
+      "deletes_detectors": [],
+      "lines": {
+        "cut_production": 0,
+        "cut_tests": 33,
+        "cut_prose": 0,
+        "replacement": 165,
+        "proof": 351
+      },
+      "cut_all": 33,
+      "ratio_proof_over_production": null,
+      "ratio_proof_over_all_cut": 10.64,
+      "regions": [
+        {
+          "role": "cut_tests",
+          "lines": 33,
+          "scope": "tests/test_instrument_demonstrations.py@bf0fb29^1 lines 'def test_the_named_instruments_are_all_enumerated'..'def test_every_declared_path_exists' inclusive",
+          "reason": "the 13-path `required` set, its `required <= enumerated` assertion, and the docstring conceding the check was one-directional"
+        },
+        {
+          "role": "replacement",
+          "lines": 140,
+          "scope": "examples/validation/instruments/demonstrate.py@bf0fb29 lines '# SM-03: the omission the enumeration could not see'..'# the enumeration' inclusive",
+          "reason": "the derived walk that replaced the literal: the AST predicate, discover_candidates, unregistered, check_enumeration"
+        },
+        {
+          "role": "replacement",
+          "lines": 25,
+          "scope": "examples/validation/instruments/instruments.toml@bf0fb29 lines '[registry.enumeration]'..'THE FOUR ORACLES' inclusive",
+          "reason": "the declared scope the walk derives from: two roots and two exclusions, each with a written reason"
+        },
+        {
+          "role": "proof",
+          "lines": 118,
+          "scope": "tests/test_instrument_demonstrations.py@bf0fb29 lines 'def test_the_enumeration_scope_is_declared_with_a_reason_for_every_exclusion'..'def test_a_cited_node_that_asserts_nothing_still_reports_ok' inclusive",
+          "reason": "four tests added only to show the derived walk finds what the literal found, finds what the literal could NOT find, and to declare the walk's own blind spot"
+        },
+        {
+          "role": "proof",
+          "lines": 233,
+          "scope": "examples/validation/gap_mutants/gap_mutants.toml@f0c215d lines 'MECHANISM 2 -- the hollow instrument demonstrations'..'NO SEEDABLE GAP' inclusive",
+          "reason": "the six mutants seeded in this mechanism's gap"
+        }
+      ]
+    },
+    {
+      "id": "card-duplication",
+      "ticket": "SM-06",
+      "name": "twenty statements of the scorecard's contents outside its one home",
+      "scope": "acbd577^1..acbd577",
+      "gap_mutants": [],
+      "no_gap_reason": "NOT IN `gap_mutants.toml`, and seeded separately. SM-01 seeded for the two cuts\nit knew about and this was not one, so SM-06 wrote its own runner\n(`specs/results/scorecards/subtract-to-measure/SM-06/run_dup_mutants.py`) and\nseeded four copies made to DISAGREE with the card, before a line was deleted.\nThree of the four were invisible to every instrument this repository ships.\nCounted in `[[mutant_outside_this_table]]`, not in the discriminate table,\nbecause they were never run through the same harness.\n",
+      "deletes_detectors": [],
+      "lines": {
+        "cut_production": 0,
+        "cut_tests": 0,
+        "cut_prose": 120,
+        "replacement": 84,
+        "proof": 883
+      },
+      "cut_all": 120,
+      "ratio_proof_over_production": null,
+      "ratio_proof_over_all_cut": 7.36,
+      "regions": [
+        {
+          "role": "cut_prose",
+          "lines": 47,
+          "scope": "git diff -U0 acbd577^1..acbd577 -- README.md | deleted only",
+          "reason": "restatements of the card's dimensions and scoring rules"
+        },
+        {
+          "role": "cut_prose",
+          "lines": 69,
+          "scope": "git diff -U0 acbd577^1..acbd577 -- PORTS-AS-ADAPTERS-EPIC.md | deleted only",
+          "reason": "restatements of the card's dimensions and scoring rules"
+        },
+        {
+          "role": "cut_prose",
+          "lines": 3,
+          "scope": "git diff -U0 acbd577^1..acbd577 -- PORTS-AS-ADAPTERS-STARTER-PROMPT.md | deleted only",
+          "reason": "restatements of the card's dimensions and scoring rules"
+        },
+        {
+          "role": "cut_prose",
+          "lines": 1,
+          "scope": "git diff -U0 acbd577^1..acbd577 -- references/hexagonal_prompting.md | deleted only",
+          "reason": "one restatement"
+        },
+        {
+          "role": "replacement",
+          "lines": 29,
+          "scope": "git diff -U0 acbd577^1..acbd577 -- README.md | added only",
+          "reason": "pointers to the one home in place of the copies"
+        },
+        {
+          "role": "replacement",
+          "lines": 50,
+          "scope": "git diff -U0 acbd577^1..acbd577 -- PORTS-AS-ADAPTERS-EPIC.md | added only",
+          "reason": "pointers to the one home in place of the copies"
+        },
+        {
+          "role": "replacement",
+          "lines": 4,
+          "scope": "git diff -U0 acbd577^1..acbd577 -- PORTS-AS-ADAPTERS-STARTER-PROMPT.md | added only",
+          "reason": "pointers to the one home in place of the copies"
+        },
+        {
+          "role": "replacement",
+          "lines": 1,
+          "scope": "git diff -U0 acbd577^1..acbd577 -- references/hexagonal_prompting.md | added only",
+          "reason": "pointer to the one home"
+        },
+        {
+          "role": "proof",
+          "lines": 428,
+          "scope": "git diff -U0 acbd577^1..acbd577 -- tests/test_card_has_one_home.py | added only",
+          "reason": "the tripwire that keeps the copies from being written again -- the only thing standing between the tree and the state SM-06 found it in"
+        },
+        {
+          "role": "proof",
+          "lines": 95,
+          "scope": "git diff -U0 acbd577^1..acbd577 -- examples/validation/instruments/instruments.toml | added only",
+          "reason": "the registry rows and demonstrations for that tripwire"
+        },
+        {
+          "role": "proof",
+          "lines": 13,
+          "scope": "git diff -U0 acbd577^1..acbd577 -- examples/validation/scorecards/score_tools.py | added only",
+          "reason": "the scorer's side of the one-home rule"
+        },
+        {
+          "role": "proof",
+          "lines": 347,
+          "scope": "git diff -U0 acbd577^1..acbd577 -- specs/results/scorecards/subtract-to-measure/SM-06/run_dup_mutants.py | added only",
+          "reason": "SM-06's own mutant runner, written because the shared catalogue had not seeded this gap. NOTE THE SCOPE: it lives under specs/results/, so it is invisible to the four trees the +1677 figure was measured over."
+        }
+      ]
+    },
+    {
+      "id": "total-checksum-field",
+      "ticket": "SM-04",
+      "name": "the `total` field, a checksum over the five dimension scores",
+      "scope": "6aac1ec^1..6aac1ec",
+      "gap_mutants": [],
+      "no_gap_reason": "NOT IN `gap_mutants.toml` EITHER, and this is the one that matters. SM-04\nseeded `SM-04-GM-T1` as an EXECUTING TEST\n(`tests/test_score_tools.py::test_the_price_of_removing_total_measured_on_both_sides`)\nrather than as a catalogue row, and it is the ONLY mutant in the whole epic\nthat went DIES -> SURVIVES: an altered score on an UNSEALED version 3 card is\nnow detected by nothing, where `total != running` used to catch it. Counted in\n`[[mutant_outside_this_table]]`.\n",
+      "deletes_detectors": [],
+      "lines": {
+        "cut_production": 9,
+        "cut_tests": 0,
+        "cut_prose": 3,
+        "replacement": 9,
+        "proof": 133
+      },
+      "cut_all": 12,
+      "ratio_proof_over_production": 14.78,
+      "ratio_proof_over_all_cut": 11.08,
+      "regions": [
+        {
+          "role": "cut_production",
+          "lines": 9,
+          "scope": "git diff -U0 6aac1ec^1..6aac1ec -- examples/validation/scorecards/score_tools.py | lines matching /\\btotal\\b/ | deleted only",
+          "reason": "the field, the `total != running` check, the schema entry, and the two table columns that printed it. Attributed by token rather than by hunk because the cut is embedded in SM-04's larger version-3 change."
+        },
+        {
+          "role": "cut_prose",
+          "lines": 3,
+          "scope": "git diff -U0 6aac1ec^1..6aac1ec -- references/eval_scorecard.md | lines matching /\\btotal\\b/ | deleted only",
+          "reason": "the card's own statement of the field"
+        },
+        {
+          "role": "replacement",
+          "lines": 9,
+          "scope": "git diff -U0 6aac1ec^1..6aac1ec -- examples/validation/scorecards/score_tools.py | lines matching /\\btotal\\b/ | added only",
+          "reason": "the version-3 refusal, the version-2 back-compatibility branch, and the two 'no total column' notices that replaced the columns"
+        },
+        {
+          "role": "proof",
+          "lines": 48,
+          "scope": "tests/test_score_tools.py@6aac1ec lines 'def test_a_version_3_card_has_no_total_and_a_version_2_card_still_checks_its_own'..'def test_the_previous_card_version_can_still_be_scaffolded' inclusive",
+          "reason": "two tests asserting the field is gone from a version 3 card and still checked on a version 2 one"
+        },
+        {
+          "role": "proof",
+          "lines": 85,
+          "scope": "tests/test_score_tools.py@6aac1ec lines \"# SM-04's gap mutant: what removing `total` cost\"..'def test_a_split_goal_verdict_is_two_claims' inclusive",
+          "reason": "SM-04-GM-T1 itself: the mutant, its two helpers, and the assertion whose failure message asks a future reader to re-price the removal"
+        }
+      ]
+    },
+    {
+      "id": "dead-port-binding-report-detector",
+      "ticket": "RD-02",
+      "name": "the gap-mutant detector whose entry point stopped accepting its own flags",
+      "scope": "7514df0..HEAD",
+      "gap_mutants": [
+        "SM-GM-P2-manifest-renames-the-port-out-from-under-the-binding"
+      ],
+      "no_gap_reason": null,
+      "deletes_detectors": [
+        "port-binding-report"
+      ],
+      "lines": {
+        "cut_production": 33,
+        "cut_tests": 0,
+        "cut_prose": 0,
+        "replacement": 24,
+        "proof": 40
+      },
+      "cut_all": 33,
+      "ratio_proof_over_production": 1.21,
+      "ratio_proof_over_all_cut": 1.21,
+      "regions": [
+        {
+          "role": "cut_production",
+          "lines": 33,
+          "scope": "git diff -U0 7514df0..HEAD -- examples/validation/gap_mutants/gap_mutants.toml | deleted only",
+          "reason": "the `port-binding-report` detector block and SM-GM-P2's binding to it. Its argv passes `--port-manifest`, a flag SM-02 deleted; at HEAD it exits 2 with `unrecognized arguments` and has reported INERT on every run since."
+        },
+        {
+          "role": "replacement",
+          "lines": 24,
+          "scope": "git diff -U0 7514df0..HEAD -- examples/validation/gap_mutants/gap_mutants.toml | added only",
+          "reason": "a `[[not_seedable]]` row recording what the column used to claim and why it is gone, so its absence from the table is a decision on the record rather than an omission"
+        },
+        {
+          "role": "proof",
+          "lines": 40,
+          "scope": "git diff -U0 7514df0..HEAD -- tests/test_gap_mutants.py | added only",
+          "reason": "the tripwire that refuses a detector whose entry point cannot accept its own argv -- the class of defect this removal is one instance of"
+        }
+      ]
+    }
+  ],
+  "shared_apparatus": [
+    {
+      "role": "proof",
+      "lines": 633,
+      "scope": "git diff -U0 f0c215d^1..f0c215d -- examples/validation/gap_mutants/run_gap_mutants.py | added only",
+      "reason": "the staged-tree mutant runner. Serves both catalogue removals; nothing in the product invokes it.",
+      "id": "gap-mutant-runner",
+      "serves": [
+        "ports-binding-machinery",
+        "hardcoded-enumeration-literal"
+      ]
+    },
+    {
+      "role": "proof",
+      "lines": 486,
+      "scope": "git diff -U0 f0c215d^1..f0c215d -- tests/test_gap_mutants.py | added only",
+      "reason": "tests of the runner -- apparatus for the apparatus",
+      "id": "gap-mutant-runner-tests",
+      "serves": [
+        "ports-binding-machinery",
+        "hardcoded-enumeration-literal"
+      ]
+    },
+    {
+      "role": "proof",
+      "lines": 130,
+      "scope": "examples/validation/gap_mutants/gap_mutants.toml@f0c215d lines 'SM-01 -- a fault seeded in the gap each mechanism'..'MECHANISM 1 -- the [ports.*] binding machinery' inclusive",
+      "reason": "the catalogue preamble and the eight detector declarations both mechanisms' mutants bind to",
+      "id": "gap-mutant-catalogue-frame",
+      "serves": [
+        "ports-binding-machinery",
+        "hardcoded-enumeration-literal"
+      ]
+    },
+    {
+      "role": "proof",
+      "lines": 260,
+      "scope": "git diff -U0 f0c215d^1..f0c215d -- examples/validation/PREDICTIONS-SM.md | added only",
+      "reason": "the predictions sealed before any number existed. Four of them were refuted, which is the strongest single argument in the record that the apparatus was not decorative.",
+      "id": "sealed-predictions",
+      "serves": [
+        "ports-binding-machinery",
+        "hardcoded-enumeration-literal",
+        "card-duplication",
+        "total-checksum-field"
+      ]
+    }
+  ],
+  "shared_apparatus_note": "NOT allocated to any removal. Splitting a shared runner across the removals it serves would require a weighting the data does not supply, and an invented weighting is how a per-removal figure becomes a total in disguise."
+}

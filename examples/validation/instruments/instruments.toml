@@ -2453,10 +2453,10 @@ subject rather than a fixture.
 """
 
   [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
   summary = "the catalogue at 7514df0, before RD-02 removed the dead column -- port-binding-report's --port-manifest against an entry point that no longer declares it"
-  argv = ["{python}", "-m", "pytest", "-q",
-          "{tree}/tests/test_gap_mutants.py::test_every_cli_detector_declares_flags_its_entry_point_still_accepts"]
-  cwd = "{tree}"
+  nodes = ["{tree}/tests/test_gap_mutants.py::test_every_cli_detector_declares_flags_its_entry_point_still_accepts"]
   expect_exit = 1
   expect_passed = 0
   expect_output = ["port-binding-report", "--port-manifest"]
@@ -2488,10 +2488,10 @@ note = "reinstated by the RD-02 demonstration only"
 # NO SEEDABLE GAP -- REPORTED, NEVER SKIPPED (R2)"""
 
   [instrument.passing]
-  summary = "the shipped catalogue, whose two cli detectors both pass flags their entry points declare"
-  argv = ["{python}", "-m", "pytest", "-q",
-          "{repo}/tests/test_gap_mutants.py::test_every_cli_detector_declares_flags_its_entry_point_still_accepts"]
-  cwd = "{repo}"
+  kind = "pytest"
+  tier = "slow"
+  summary = "the shipped catalogue, whose one remaining cli detector passes only flags its entry point declares"
+  nodes = ["tests/test_gap_mutants.py::test_every_cli_detector_declares_flags_its_entry_point_still_accepts"]
   expect_exit = 0
   expect_passed = 1
 
