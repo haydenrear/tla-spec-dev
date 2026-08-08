@@ -194,6 +194,32 @@ is RD-05's reading and is flagged for the owner rather than presented as covered
 
 ---
 
+## 4.3 The card did not change, and that is measured rather than assumed
+
+R-H1's text grew a third clause in `references/eval_scorecard.md`. **The standing
+rule is that changing the card needs a `scorecard_version` bump, the old anchors
+kept, and a re-score under both versions** — so whether the card changed is a
+question with a computable answer, and it was computed rather than argued.
+
+| digest | before (`c9237e6`) | after |
+|---|---|---|
+| `served_digest` v3 | `sha256:694280073db988fe` | **identical** |
+| `served_digest` v2 | `sha256:fba145a46e7a7de2` | **identical** |
+| `served_digest` v1 | `sha256:ea225ec882de02e4` | **identical** |
+| `anchors_digest` | `sha256:eeccf4576bc6fd85` | **identical** |
+
+`served_rubric` renders from the parsed structure — dimensions, anchors, caveats,
+scoring rules — and `## Reading history` is outside it by construction, which is
+the property SM-04 added `served_digest` to make checkable. **No judge is served
+a different byte, no anchor moved, and no version bump is due.** The edit shows
+up only as `PROSE-DRIFT`, which is a prompt to go and look and never a violation.
+
+No new `R-H` id was created either: R-H1 absorbed the clause, so it inherits a
+check that already runs. `audit` fails if the rubric declares an `R-H` with
+nothing executing it, and it reports `0 violation(s)`.
+
+---
+
 ## 5. What RD-05 settled, and how — and what stays open
 
 ### Settled
@@ -237,20 +263,43 @@ Archives built with `git archive <sha> | tar -x -C <clean dir>`.
 |---|---|---|
 | archive, **no homes** — the parent | `c9237e6` | **11 failed, 1419 passed, 9 skipped** |
 | archive, **no homes** — RD-05 first tip | `4ec3028` | **12 failed, 1449 passed, 9 skipped** |
-| archive, **no homes** — RD-05 final tip | `5ccda71` | **SUITE_TIP2** |
-| ticket worktree | `5ccda71` | **SUITE_WORKTREE** |
+| archive, **no homes** — RD-05 second tip | `5ccda71` | **10 failed, 1455 passed, 9 skipped** |
+| archive, **no homes** — RD-05 final tip | `67e3085` | **10 failed, 1457 passed, 9 skipped** |
+| ticket worktree | `67e3085` | **SUITE_WORKTREE** |
 
 ### 6.1 The like-for-like diff, member by member
 
-**Parent → first tip: one failure removed, two added.**
+**Parent → first tip (`4ec3028`): one failure removed, two added.**
 
 - **Removed:** `test_code_complexity.py::test_no_reader_of_this_instrument_gates_on_its_output`
   — RD-04's escalated failure, green under the corrected statement.
 - **Added:** `test_produced_code_prompt.py::test_nothing_executable_consumes_the_instrument_after_the_prompt_landed`
   and `::test_the_prompt_mentions_it_only_as_prose` — §4.2, a real regression in
-  a second invariant, which **no test RD-05 wrote caught**.
+  a second invariant, which **no test RD-05 wrote caught**. It is reported here
+  rather than quietly re-measured away: the first tip was worse than the parent
+  and the archive run is the only thing that said so.
 
-**Parent → final tip:** DIFF_FINAL
+**Parent → final tip (`67e3085`): exactly one member removed, nothing added.**
+
+```
+< FAILED tests/test_code_complexity.py::test_no_reader_of_this_instrument_gates_on_its_output
+```
+
+That is the whole diff. The denominator moved too, so it is accounted for by
+`pytest --collect-only` on both archives rather than asserted: **1439 → 1476
+collected, +37**, and every one is named —
+
+| where | count |
+|---|---|
+| `tests/test_architecture_tags.py`, new | **+32** |
+| `test_code_complexity.py::test_the_derivation_observes_and_never_refuses`, new | +1 |
+| `test_spec_yaml_valid.py::test_spec_yaml_parses`, parametrised over the specs tree | **+4** — the four YAML files `start_ticket.py RD-05` scaffolded, not tests RD-05 wrote |
+| `test_produced_code_prompt.py`, renamed | 0 |
+
+So of the 38 extra passes, 33 are tests this ticket wrote and 4 are the ticket
+workflow's own scaffold being validated; the last is the failure that stopped
+failing. **The numerator fell by one and the denominator rose by 37**, and
+saying which is the `denominator_rule`.
 
 **The parent is not green in any tree.** Eleven failures at `c9237e6` with no
 homes — RD-02's and RD-04's finding, reproduced independently a third time.
@@ -276,6 +325,30 @@ at `c9237e6` and unmoved; the 3 HOLDS and the 1 UNREACHABLE are RD-04's, the
 UNREACHABLE being the demonstrated failing input RD-04 left in place on purpose.
 **RD-05 adds zero counted figures to either file** — the parent's
 `eval_scorecard.md` reports `1 counted figure(s): 1 REFUTED` and so does the tip.
+
+### 7.1 And `scope` refutes this document, for quoting the figure it is reporting
+
+Run over this file, `scope` reports **3 counted figures: 1 REFUTED, 2 HOLDS**
+(`analysis/scope-result-md.txt`).
+
+- Both HOLDS are the same figure of RD-05's own — *"`D2 = 2` on 35 of 35 cards
+  of `ab_quota_ledger`"*, in §1 and again in this bullet — deliberately phrased
+  at example scope so the checker can resolve it.
+- **The REFUTED is §7's own sentence naming the historical claim**, *"D2 = 2 on
+  27 of 27 cards"*, written there in order to say that it is the pre-existing
+  false one. `scope` refutes the mention, at population 49, and names eight
+  counterexamples.
+
+**The checker cannot tell a claim from a mention of a claim.** RD-01 already
+counted nine refuted figures that were *quotations carrying a claim forward*;
+this is the same mechanism with the sign flipped — a quotation carrying a claim
+forward **in order to report it as false** is refuted identically. A third bound
+beside `RD-02-DF-01`'s dimension token and `RD-04-DF-01`'s qualifier window.
+
+**The sentence is left exactly as written.** Rephrasing it to dodge the checker
+would be editing a target to match a result, and the count is more honest with
+the refutation in it: `GOAL-scope-loss-catchable`'s headline is a count of
+REFUTED verdicts, and this is one that names no false belief anywhere.
 
 **Which bound applies to everything else RD-05 wrote:** `RD-02-DF-01`. `scope` is
 keyed on a `\bD[1-5]\b` token, so every figure in this document that names its
