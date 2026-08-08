@@ -49,6 +49,21 @@ snapshot branching consume these OIDs as base-snapshot identity):
 Choose a short stable slug and create a dedicated epic worktree from the fetched
 default-branch tip:
 
+In a home carrying the `skt` plugin, one command applies every convention below
+— clean-slate check, OIDs resolved once, create-only retention ref, branch from
+the pinned commit — and gives the worktree its own home in the same breath,
+rolling both back if the bootstrap fails:
+
+```bash
+git fetch origin
+skt ticket new epic-<slug> --base origin/<default-branch> --path ../wt-epic-<slug>
+cd ../wt-epic-<slug>
+```
+
+(The branch it creates is `feature/epic-<slug>`; rename with `git branch -m
+epic/<slug>` if the plan declares the bare epic name, or pass the resolved
+`commit_oid` as `--base`.) Without skt, the same conventions by hand:
+
 ```bash
 git fetch origin
 test -z "$(git status --porcelain)" || { echo "dirty tree — reconcile first"; exit 1; }
@@ -87,6 +102,7 @@ binds, or resolves — those all write into whatever `SKILL_MANAGER_HOME` names,
 before the local home exists that is the operator's global home:
 
 ```bash
+# the skt path above already did this; by hand it is:
 "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/bootstrap-home.sh" \
   --root ../wt-epic-<slug>
 ```
