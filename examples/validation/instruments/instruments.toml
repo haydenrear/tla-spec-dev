@@ -2404,6 +2404,7 @@ and the tree disagree. That is the failing input below.
 """
 
   [instrument.failing]
+  tier = "slow"
   summary = "the real manifest with SM-02's deleted-line count moved by one -- 290 to 291, the way a hand-maintained census goes stale"
   argv = ["{python}", "{repo}/examples/validation/removal_census/removal_census.py",
           "--manifest", "{tree}/census/removals.toml", "check"]
@@ -2421,6 +2422,7 @@ and the tree disagree. That is the failing input below.
     replace = "expect_lines = 291"
 
   [instrument.passing]
+  tier = "slow"
   summary = "the shipped manifest against the shipped history"
   argv = ["{python}", "{repo}/examples/validation/removal_census/removal_census.py", "check"]
   cwd = "{repo}"
@@ -2456,7 +2458,7 @@ subject rather than a fixture.
   kind = "pytest"
   tier = "slow"
   summary = "the catalogue at 7514df0, before RD-02 removed the dead column -- port-binding-report's --port-manifest against an entry point that no longer declares it"
-  nodes = ["{tree}/tests/test_gap_mutants.py::test_every_cli_detector_declares_flags_its_entry_point_still_accepts"]
+  nodes = ["tests/test_gap_mutants.py::test_every_cli_detector_declares_flags_its_entry_point_still_accepts"]
   expect_exit = 1
   expect_passed = 0
   expect_output = ["port-binding-report", "--port-manifest"]
