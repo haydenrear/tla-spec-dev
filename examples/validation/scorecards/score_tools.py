@@ -519,6 +519,38 @@ def check(card: dict, where: str, rubric: dict | None = None,
                      f"the card from RD-01; an unrecognised model is recorded here rather "
                      f"than guessed.")
 
+    # RD-05, attack A5: a scope declared before scoring, and refused if it moved.
+    # A card MAY carry no subject -- every card sealed before RD-05 does not, and
+    # R-H4 forbids adding one -- but a card that names a subject must name a
+    # DECLARED one and must carry that subject's scope unchanged. A scope change
+    # is not an architecture change and must never be read as one.
+    subject = card.get("subject")
+    if isinstance(subject, dict):
+        name = subject.get("name")
+        try:
+            declared = arch().load_subjects()
+        except Exception as exc:                     # pragma: no cover - unreadable file
+            notes.append(f"SUBJECTS-UNREADABLE {where}: {exc}")
+            declared = {}
+        if declared and name not in declared:
+            err(f"subject.name {name!r} is not declared in subjects.toml. A scope is "
+                f"declared before scoring; a card cannot invent one afterwards.")
+        elif declared:
+            want = list(declared[name]["scope"])
+            got = list(subject.get("scope") or [])
+            if got != want:
+                err(f"subject.scope {got} does not match the declared scope of "
+                    f"{name!r} ({want}). THE SCOPE MOVED. Four judges scored three "
+                    f"different subjects of one artifact once already, and D3 came "
+                    f"out 2, 2, 3, 4.")
+            if subject.get("declared_effect_boundary") != declared[name]["declared"]:
+                err(f"subject.declared_effect_boundary "
+                    f"{subject.get('declared_effect_boundary')!r} does not match "
+                    f"subjects.toml ({declared[name]['declared']!r}). A declaration "
+                    f"refuses nothing and it is still not editable per card.")
+    elif subject is not None:
+        err(f"subject must be an object or null, got {type(subject).__name__}")
+
     missing = [d for d in DIMS if d not in dims]
     if missing:
         err(f"missing dimensions: {', '.join(missing)}")
@@ -1137,6 +1169,13 @@ def cmd_scaffold(argv: list[str]) -> int:
     ap.add_argument("--labels", default=None,
                     help="explicit opaque labels, comma-separated (testing / re-scaffold)")
     ap.add_argument("--seed", type=int, default=None, help="seed the label shuffle")
+    ap.add_argument("--subject", default=None,
+                    help="a subject declared in examples/validation/scorecards/"
+                         "subjects.toml. Writes its SCOPE into the unfilled skeleton, "
+                         "before any judge is dispatched; `check` then refuses a card "
+                         "whose scope moved. A program that is one thing wrapping "
+                         "another declares SEVERAL scoped subjects and scaffolds one "
+                         "card per subject.")
     ap.add_argument("--unblinded", action="store_true",
                     help="DELIBERATELY skip blinding: emit real arm names as labels")
     ap.add_argument("--reason", default=None, help="required with --unblinded")
@@ -1275,6 +1314,21 @@ def _rubric_block(rubric: dict, card_version: int = VERSION) -> dict:
     return block
 
 
+def _subject_block(name: str | None) -> dict | None:
+    """The declared scope, copied out of `subjects.toml` into the skeleton."""
+    if not name:
+        return None
+    subjects = arch().load_subjects()
+    if name not in subjects:
+        raise RubricError(f"--subject {name!r} is not declared in "
+                          f"{arch().DEFAULT_SUBJECTS}. A scope is DECLARED, never "
+                          f"invented at scaffold time.")
+    s = subjects[name]
+    return {"name": name, "scope": list(s["scope"]),
+            "declared_effect_boundary": s["declared"],
+            "axis": arch().AXIS}
+
+
 def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
     dims = {}
     for key in DIMS:
@@ -1311,6 +1365,19 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
         # what someone would prefer it said.
         "judge": {"model": "", "tier": "", "pass": judge,
                   "blind_to_arm": not args.unblinded},
+        # RD-05, attack A5. THE SCOPE IS WRITTEN BEFORE ANY JUDGE IS DISPATCHED
+        # and it is copied from `subjects.toml`, so what the card is about is
+        # fixed before the numbers exist. `check` refuses a card whose
+        # `subject.scope` no longer matches the declared one. Choosing the scope
+        # that carries the flattering tag is not hypothetical: it is what
+        # produced `toolchain_removal` D3 = 4 on a card whose every citation is
+        # to a fixture.
+        #
+        # It is `null` where the round declared no subject, which is every card
+        # sealed before RD-05 and any round that declines to declare one. A card
+        # with no subject is attributed through `subjects.toml`'s `labels` or
+        # not at all, and an unattributed card enters no comparison.
+        "subject": _subject_block(getattr(args, "subject", None)),
         "rubric": _rubric_block(rubric, args.card_version),
         "how_to_fill": [
             "Score the LOWEST anchor the artifact fully satisfies. Torn between two: "

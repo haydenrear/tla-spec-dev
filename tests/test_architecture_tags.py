@@ -334,6 +334,52 @@ def test_scope_drift_reaches_only_cards_it_can_locate(at, world) -> None:
     assert all(any(v for v in d["citation_counts"].values()) for d in drifts)
 
 
+def test_a_scaffolded_scope_is_declared_before_scoring_and_a_moved_one_is_refused(
+        st, tmp_path) -> None:
+    """A5's other half: choose the scope that carries the flattering tag.
+
+    The scope goes into the UNFILLED skeleton, copied out of `subjects.toml`
+    before any judge is dispatched, and `check` refuses a card whose scope no
+    longer matches. That reuses the machinery that already refuses a second
+    scaffold over a measurement; it invents nothing.
+    """
+
+    epic = tmp_path / "round"
+    assert st.main(["scaffold", str(epic), "--example", "ab_quota_ledger",
+                    "--arms", "A,B", "--judges", "1", "--subject", "arm_b",
+                    "--run-date", "20260808"]) == 0
+    cards = sorted(epic.rglob("scorecard.json"))
+    assert cards
+    card = json.loads(cards[0].read_text())
+    assert card["subject"]["name"] == "arm_b"
+    assert card["subject"]["scope"] == [
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T"]
+    assert card["status"] == "unfilled", "the scope is fixed before the numbers exist"
+    problems, _ = st.check(card, str(cards[0]))
+    assert problems == [], problems
+
+    card["subject"]["scope"] = ["scripts"]
+    problems, _ = st.check(card, str(cards[0]))
+    assert any("THE SCOPE MOVED" in p for p in problems), problems
+
+    card["subject"] = {"name": "not_a_subject", "scope": ["scripts"]}
+    problems, _ = st.check(card, str(cards[0]))
+    assert any("is not declared in subjects.toml" in p for p in problems), problems
+
+
+def test_a_card_with_no_subject_is_legal_and_is_every_sealed_card(at, world) -> None:
+    """R-H4: a sealed card is never edited, so none of the 49 carries a subject
+    field and the attribution for them lives in `subjects.toml` beside them."""
+
+    declared = [r for r in world["rows"] if r["declared_subject"]]
+    assert declared == [], "a sealed card grew a subject field"
+    mapped = [r for r in world["rows"] if at.subject_of(r, world["subjects"])]
+    unmapped = [r["key"] for r in world["rows"]
+                if not at.subject_of(r, world["subjects"])]
+    assert len(mapped) == 48 and len(unmapped) == 1, (len(mapped), unmapped)
+    assert "owner-pre" in unmapped[0], unmapped
+
+
 # ---------------------------------------------------------------------------
 # 6. the table is re-derived, and a stale row is a violation
 # ---------------------------------------------------------------------------

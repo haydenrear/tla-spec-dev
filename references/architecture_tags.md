@@ -892,6 +892,7 @@ judge tier.
 | surface | what it does |
 |---|---|
 | `examples/validation/scorecards/subjects.toml` | the **declared** scopes — eleven of them, each a path list, a declared value and the cards that scored it. Nothing here is computed and nothing here may be |
+| `scaffold --subject NAME` | copies that scope into the **unfilled** skeleton, before any judge is dispatched; `check` refuses a filled card whose `subject.scope` moved — attack A5, executed |
 | `examples/validation/scorecards/architecture_tags.py` | derivation, the demonstration table, comparability verdicts and `SCOPE-DRIFT`. Exit code always 0 |
 | `score_tools.py tags [--compare A B]` | the same, and the pair view that prints both score sets |
 | `audit`, R-H1's third clause | re-derives the table from the cards every run; a `[[demonstration]]` the cards no longer support is a VIOLATION, an undeclared separation is `OPEN`, a drifted card is `OPEN` |
