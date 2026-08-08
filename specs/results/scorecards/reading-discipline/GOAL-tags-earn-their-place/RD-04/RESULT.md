@@ -52,12 +52,13 @@ across **eight rounds and all three card versions**. `effectful` = `arm_a` +
 | dimension | `effectful` n=24 | `ports-and-adapters` n=10 | verdict |
 |---|---|---|---|
 | D1 | 2–4 | 3–4 | overlaps |
-| D2 | 2–2 | 2–2 | overlaps |
+| D2 | 2–2 | 2–2 | overlaps — **NULL-ENTAILED**, §1.6 |
 | **D3** | **1–2** | **4–4** | **SEPARATES** |
 | D4 | 2–4 | 2–4 | overlaps |
 | D5 | 2–4 | 3–4 | overlaps |
 
-**One dimension of five.** The axis earns its place on D3 and on nothing else.
+**One dimension of five.** The axis earns its place on D3 and on nothing else —
+and **only three of the four `overlaps` cells are measurements**; see §1.6.
 
 ### 1.3 The same-tag control
 
@@ -116,6 +117,45 @@ confounded across these four cards. This shows the spread is *explained by*
 scope. It does not show tier is not also a factor, and RD-01's other two tier
 splits (greenfield D4, greenfield D5) are untouched by it.
 
+### 1.6 Null-entailment — is an `overlaps` verdict a measurement?
+
+**RD-02 measured that a gap mutant can price a removal only if every detector
+that killed it is one the removal deletes — 0 of 9 over the sealed table — so its
+zero-price results were entailed by the setup rather than measured.** The
+earn-its-place test has the same failure mode, and RD-04's first draft did not
+state it. Added on reconcile at the epic owner's direction.
+
+A dimension that took **one value** across the whole population cannot separate,
+so an `overlaps` verdict there reports the example rather than the tag:
+
+| dimension | values the population took | the verdict is |
+|---|---|---|
+| D1 | 2, 3, 4 | a measurement |
+| **D2** | **2** | **NULL-ENTAILED — no separation was possible** |
+| D4 | 2, 3, 4 | a measurement |
+| D5 | 2, 3, 4 | a measurement |
+
+**Three of four are measurements; one is not.** The design is unchanged — D2 gets
+no refusal authority either way — but it gets none for a *weaker* reason than the
+other three, and that must be said rather than folded into a single "overlaps".
+
+### 1.7 The converse — does the derivation entail the score it separates on?
+
+Derivation clause (c) asks for a second implementation behind the seam; D3's
+anchor 4 asks for a driven port exercised by a real adapter *and* a fake. Close
+enough that the separation could be the predicate encoding the anchor.
+
+**Refuted by the record: `ex4_pipeline_coherent` derives `ports-and-adapters`
+under all three clauses and was scored D3 = 3 by both blind judges.** The
+predicate does not force a 4.
+
+*Not an R-H2 violation:* this is a claim about the **predicate**, not a
+comparison of scores across examples. One counterexample anywhere refutes it, and
+no `ex4` number is compared with any `ab_quota_ledger` number.
+
+The clauses remain **correlated** with the anchor. That is a confound the
+demonstration table row carries forward; it is not an entailment.
+
 ---
 
 ## 2. What this would have caught, and what it would not
@@ -156,35 +196,59 @@ Take the true figure *"D3 = 4 on 10 of 10 `ports-and-adapters` cards of
 `ab_quota_ledger`"* — all 10 cards of `arm_b` carry D3 = 4 and no other
 `ports-and-adapters` subject of that example has a card.
 
-| the same sentence | verdict |
+| probe | verdict |
 |---|---|
-| on one line | `UNREACHABLE` — unresolved qualifier |
-| wrapped after `10 of 10` | **`REFUTED`**, population 35, *"25 card(s) in the population its words denote do not carry D3 = 4"*, twelve named |
+| `same_line.md` — qualifier immediately after the count | `UNREACHABLE` |
+| `wrapped.md` — the same, wrapped after `10 of 10` | **`REFUTED`**, population 35, *"25 card(s) … do not carry D3 = 4"*, twelve named |
+| `qualifier_after_noun.md` — `…10 of 10 cards of the \`ports-and-adapters\` subject of \`ab_quota_ledger\`` | **`REFUTED`**, one line |
+| `qualifier_in_aside.md` — `…10 of 10 cards, on the example \`ab_quota_ledger\`, of arm_b's subject` | **`REFUTED`**, one line |
 
 **Every one of those 25 counterexamples is a card about a different subject. The
-claim is true and the refutation is manufactured — and the difference between the
-two answers is a line break.** Both files are preserved at
+claim is true and the refutation is manufactured.** All four probes preserved at
 `analysis/wrap_probe/`.
 
-This is not cosmetic. `REFUTED` is the verdict `GOAL-scope-loss-catchable` counts
-as its **headline**, with no target on it and a high count declared the honest
-outcome. A checker that can manufacture a refutation can inflate that headline.
-Filed as `RD-04-DF-01`.
+**The mechanism is placement, not wrapping**, and the narrower first statement is
+corrected here. `scope` inspects a window of at most three words immediately
+after the count: a narrowing word inside it is seen (`UNREACHABLE`); the same
+word after the card noun, in an aside, or on the next line is invisible, and the
+figure is refuted at example scope. *The epic owner could not reproduce the
+wrapping instance with different probe text and identified the broader class; the
+last two probes were added to confirm it.*
+
+**And a second blind spot compounds it, measured by RD-02.** `scope` is keyed on
+a `D[1-5]` token. A four-line probe (`no_dimension_token.md`) carrying four
+counted figures — three naming their dimension in words, one naming `D3` —
+reports **"1 counted figure(s)"**.
+
+Together: **RD-01's own headline is a scoped claim whose scope nobody stated.**
+Its denominator is *figures carrying a dimension token*, not *counted figures*;
+its numerator can include refutations that are artifacts of placement rather than
+false claims. `REFUTED` is the verdict `GOAL-scope-loss-catchable` counts as its
+**headline**, with no target and a high count declared the honest outcome — so a
+checker that can both miss figures and manufacture refutations can move that
+headline in either direction. Filed as `RD-04-DF-01`.
 
 ### 3.2 What this ticket did to the sweep's own counts
 
-RD-01's baseline over this repository was **19 REFUTED · 11 COUNT-MOVED · 6
-HOLDS · 8 UNREACHABLE**, 44 counted figures. After RD-04 it is **20 · 11 · 9 ·
-12**, 52 figures.
+At the reconciled tip (`5b3ba21` merged in) the repository-wide sweep reports
+**58 counted figures: 26 REFUTED · 11 COUNT-MOVED · 9 HOLDS · 12 UNREACHABLE.**
 
-**Attributed, per the denominator rule.** All 8 new figures are RD-04's own text:
-3 `HOLDS` and 1 `UNREACHABLE` in `references/architecture_tags.md`, 1
-`UNREACHABLE` in this file, 1 `UNREACHABLE` in the finding text, and the two
-`wrap_probe/` files — 1 `UNREACHABLE` and **the 1 `REFUTED`**.
+**Attributed, per the denominator rule:**
 
-**The numerator on REFUTED rose by exactly one and it is this ticket's own
-deliberate probe.** RD-04 discovered no new false claim in the historical record;
-that sweep is RD-03's job.
+| | RD-04's files | everything else |
+|---|---|---|
+| REFUTED | **4 — every one a probe under `analysis/wrap_probe/`** | 22 |
+| HOLDS | 3 | 6 |
+| UNREACHABLE | 3 | 9 |
+| COUNT-MOVED | 0 | 11 |
+
+**RD-04 discovered no new false claim in the historical record.** Every REFUTED
+it adds is a deliberate failing input carrying a README that says so. The
+historical sweep is RD-03's job.
+
+**And the denominator itself is not what it looks like** — §3.1: `scope` counts
+only figures carrying a `D[1-5]` token, so "58 counted figures" is a statement
+about that subset and not about counted figures in this repository.
 
 ---
 

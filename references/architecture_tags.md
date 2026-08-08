@@ -224,12 +224,15 @@ derives `effectful` against the 10 whose subject derives `ports-and-adapters`:
 | dimension | `effectful` (n=24) | `ports-and-adapters` (n=10) | verdict |
 |---|---|---|---|
 | D1 | 2–4 | 3–4 | overlaps |
-| D2 | 2–2 | 2–2 | overlaps |
+| D2 | 2–2 | 2–2 | overlaps — **NULL-ENTAILED**, see [§7.3](#73-null-entailment-which-of-the-four-overlaps-verdicts-are-measurements) |
 | **D3** | **1–2** | **4–4** | **SEPARATES** |
 | D4 | 2–4 | 2–4 | overlaps |
 | D5 | 2–4 | 3–4 | overlaps |
 
-**The axis earns its place on D3 and on nothing else.** That is the measured
+**The axis earns its place on D3 and on nothing else** — with the caveat that
+three of the four `overlaps` cells are measurements and **D2's is not**: that
+dimension took a single value across the entire population, so no separation was
+possible on it and the cell reports the example rather than the tag. That is the measured
 answer and it is what the design is built around: refusal authority is granted
 per dimension, and on D1, D2, D4 and D5 a "different architecture" objection is
 simply not available.
@@ -340,7 +343,7 @@ may not buy more than saying something.
 **Defeated by the earn-its-place test.** A value with no demonstrated separation
 is `UNDEMONSTRATED` and fails open exactly like `UNDERIVABLE`. The vocabulary may
 grow without limit; the *refusing* vocabulary grows only by a blind round with a
-within-example pair, at the cost in [§7.3](#73-what-the-test-costs). Under this
+within-example pair, at the cost in [§7.5](#75-what-it-costs). Under this
 design the refusing vocabulary today has exactly **two** values.
 
 ### A4 — Spread the earned refusal across the other four dimensions
@@ -485,25 +488,83 @@ it will be over-read.
   the author confound. So a value that passes is **admitted, not proven**, and it
   must carry its confound list forward on the demonstration table row.
 
-Two failure modes the test cannot see, both real in this record:
+Three failure modes the test cannot see, all three real in this record:
 
 - **It cannot detect a ceiling.** A value that changes a *reachable maximum*
   without changing the *observed* score is invisible to it. That is exactly the
   greenfield case: four judges wrote that D2's anchor 3 is unreachable by
   construction for a greenfield artifact, and D2 came out **2** — the same value
   it takes everywhere on that example, where `D2 = 2` on 35 of 35 cards of
-  `ab_quota_ledger`. The rationales moved; the scores did not. Under the test as written, `greenfield` is deleted, and the thing that
+  `ab_quota_ledger`. The rationales moved; the scores did not. Under the test as
+  written, `greenfield` is deleted, and the thing that
   cost an epic goes unrecorded.
 - **It cannot see a value that occurs in only one example.** No sibling, no test,
   ever. `no-effect-surface` is stuck there today.
+- **A `no separation` verdict can be entailed rather than measured.** See
+  [§7.3](#73-null-entailment-which-of-the-four-overlaps-verdicts-are-measurements).
 
-Both are arguments for a *second*, weaker admission route — a demonstrated
+The first two are arguments for a *second*, weaker admission route — a demonstrated
 **unreachable anchor**, cited from the rubric text rather than from a score
 delta. RD-04 does **not** recommend building it, because a rationale-based route
 is exactly the door A1 walks through. It is named in §9 so RD-05 decides it
 deliberately.
 
-### 7.3 What it costs
+### 7.3 Null-entailment: which of the four `overlaps` verdicts are measurements
+
+**RD-02 measured that a gap mutant can price a removal only if every detector
+that killed it is one the removal deletes — 0 of 9 over the sealed table — so its
+zero-price results were *entailed by the setup* rather than measured.** The
+earn-its-place test has the same failure mode. RD-04 did not state it in the
+first draft; it is stated here rather than left for RD-05 to inherit.
+
+**A dimension that took one value across the whole population cannot separate.**
+An `overlaps` verdict on such a dimension reports the example, not the tag.
+Re-run over §4.1's four `overlaps` results, printing the population's observed
+range beside each:
+
+| dimension | values the population took | the `overlaps` verdict is |
+|---|---|---|
+| D1 | 2, 3, 4 | **a measurement** — a separation was possible and did not occur |
+| **D2** | **2** | **NULL-ENTAILED — no separation was possible** |
+| D4 | 2, 3, 4 | a measurement |
+| D5 | 2, 3, 4 | a measurement |
+
+**Three of the four are measurements and one is not.** The claim that
+architecture separates D3 *and nothing else* is therefore supported on D1, D4 and
+D5, and **carries no evidence at all on D2** — that cell says only that
+`ab_quota_ledger` has never produced a D2 other than 2, which was already known
+and is a fact about the example rather than about the tag.
+
+It does not change the design: D2 gets no refusal authority either way, and it
+gets none for a *weaker* reason than the other three. **What changes is what may
+be said about it.**
+
+**The rule RD-05 must carry:** a `does not separate` verdict is reported with the
+population's observed range beside it, and marked `NULL-ENTAILED` when that range
+is a single point. A null result that could not have come out otherwise is not a
+null result.
+
+### 7.4 And the converse — does the derivation borrow the anchor?
+
+The mirror risk, on the *positive* side. Derivation clause (c) asks for a second
+implementation behind the seam; D3's anchor 4 asks for a driven port exercised by
+a real adapter *and* a fake. Those are close enough that the D3 separation could
+be the predicate quietly encoding the anchor — in which case `ports-and-adapters`
+would *entail* a high D3 and the separation would measure nothing.
+
+**Refuted by the record.** `ex4_pipeline_coherent` derives `ports-and-adapters`
+under all three clauses and was scored **D3 = 3 by both blind judges**. The
+predicate does not force a 4.
+
+*Why this is not an R-H2 violation:* it is a claim about the **predicate**, not a
+comparison of scores across examples. One counterexample anywhere refutes *"the
+predicate entails D3 = 4"*, and none of `ex4`'s numbers is compared with any of
+`ab_quota_ledger`'s.
+
+The clauses remain **correlated** with the anchor, and that correlation is a
+confound the demonstration table row must carry forward. It is not an entailment.
+
+### 7.5 What it costs
 
 - **At least one blind round per candidate value**: two judges minimum, on an
   example that already has a sibling artifact differing in that value, plus the
@@ -629,7 +690,7 @@ per-scope), and whether the four sealed cards can be *re-attributed* rather than
 re-run, are all undecided. **The sealed cards are never edited** — R-H4 — so any
 re-attribution is a `[[note]]` beside them, not a correction to them.
 
-### 9.8 `scope` does not merely fail on a subject-scoped claim — it refutes it
+### 9.8 `scope` refutes a true subject-scoped claim, and the reason is placement
 
 RD-01's `score_tools.py scope` resolves a figure's population from a **named
 example** in the window, and reports an **arm-scoped** figure `UNREACHABLE` on
@@ -637,32 +698,53 @@ the stated ground that arm labels are round-local and opaque by design. Every
 figure this design makes worth writing is scoped by a **subject**, which is
 neither an example nor an arm.
 
-Take the figure this design most wants to write, which is **true**: all 10 cards
-of the subject `arm_b` carry D3 = 4, and no card of any other
-`ports-and-adapters` subject of `ab_quota_ledger` exists.
+Take the figure this design most wants to write. It is **true**: all 10 cards of
+the subject `arm_b` carry D3 = 4, and no card of any other `ports-and-adapters`
+subject of `ab_quota_ledger` exists.
 
 > D3 = 4 on 10 of 10 `ports-and-adapters` cards of `ab_quota_ledger`.
 
-`scope` gives that sentence **two different verdicts depending on where the line
-wraps.** Measured, both files preserved under
+**`scope` returns `REFUTED` for it — a true figure — and whether it does depends
+on where the narrowing word sits.** Four probes, preserved under
 `analysis/wrap_probe/`:
 
-| the sentence | verdict |
+| probe | verdict |
 |---|---|
-| on one line | `UNREACHABLE` — *"the counted noun narrows the population with ['ports-and-adapters'], which names no example in this corpus"* |
-| wrapped after `10 of 10` | **`REFUTED`** — scope falls back to the example, population 35, *"25 card(s) in the population its words denote do not carry D3 = 4"*, with twelve of them named |
+| `…10 of 10 \`ports-and-adapters\` cards of \`ab_quota_ledger\`` | `UNREACHABLE` — *"the counted noun narrows the population with ['ports-and-adapters']"* |
+| the same, wrapped after `10 of 10` | **`REFUTED`**, population 35, *"25 card(s) … do not carry D3 = 4"*, twelve named |
+| `…10 of 10 cards of the \`ports-and-adapters\` subject of \`ab_quota_ledger\`` | **`REFUTED`**, on one line |
+| `…10 of 10 cards, on the example \`ab_quota_ledger\`, of arm_b's subject` | **`REFUTED`**, on one line |
+
+**The mechanism is placement, not wrapping.** `scope` inspects a window of at
+most three words immediately after the count. A narrowing word inside that
+window is seen, and the figure is `UNREACHABLE`. **The same narrowing word
+anywhere else — after the card noun, in an aside, or on the next line — is
+invisible, and the figure is refuted at example scope.** Line-wrapping is one
+instance of the general case. *(This section was first written on the wrapping
+instance alone; the epic owner could not reproduce that instance with different
+probe text and identified the broader class, which the four probes above
+confirm. The narrower statement is corrected here rather than left standing.)*
 
 **Every one of those 25 counterexamples is a card about a different subject.**
-The claim is true; the refutation is manufactured by a checker that cannot see
-the axis the claim is scoped on — and which of the two answers you get is decided
-by a line break.
+The claim is true and the refutation is manufactured, by a checker that cannot
+see the axis the claim is scoped on.
 
-This matters beyond this page, because `REFUTED` is the verdict
-`GOAL-scope-loss-catchable` counts as its **headline**, with no target on it and
-a high count declared the honest outcome. **A checker that can manufacture a
-refutation can inflate that headline**, and RD-01's own doctrine — `absent` and
-`checked, none found` are different claims — applies with more force to `refuted`
-and `could not read`.
+**And a second blind spot compounds it, measured by RD-02:** `scope` is keyed on
+a `D[1-5]` token, so a counted figure that names its dimension in words is
+invisible. A four-line probe carrying four counted figures — *"Bug detection came
+out 4 on 10 of 10 cards…"*, *"Modularity was 4 on 10 of 10 cards…"*, *"D3 = 4 on
+10 of 10 cards…"*, *"The complexity dimension scored 2 on 35 of 35 cards…"* —
+reports **"1 counted figure(s)"**.
+
+Together these make **RD-01's own headline a scoped claim whose scope nobody
+stated.** Its denominator is *figures carrying a dimension token*, not *counted
+figures*; and its numerator can include refutations that are artifacts of
+qualifier placement rather than false claims. `REFUTED` is the verdict
+`GOAL-scope-loss-catchable` counts as its headline, with no target on it and a
+high count declared the honest outcome — **so a checker that can both miss
+figures and manufacture refutations can move that headline in either direction.**
+RD-01's own doctrine, that `absent` and `checked, none found` are different
+claims, applies with more force to `refuted` and `could not read`.
 
 **RD-05 must either teach `scope` to resolve a subject scope from the cards'
 `subject.scope` field, or make an unresolvable subject scope report
@@ -672,7 +754,47 @@ it is not.
 The other three counted figures on this page report `HOLDS` only because each was
 deliberately phrased at example scope. Filed as `RD-04-DF-01`.
 
-### 9.9 `arm_a` D3 = 2 against `arm_c` D3 = 1
+### 9.9 The derivation branches on complexity figures, and a standing invariant forbids that
+
+**Found only in a tree with no per-checkout homes, and it is the most consequential
+open question here.**
+
+`tests/test_code_complexity.py::test_no_reader_of_this_instrument_gates_on_its_output`
+states a repository-wide invariant in its own docstring: a file *"is allowed to
+refer to the instrument and to transcribe its figures. It is not allowed to
+branch on them, compare them, assert on them or exit on them — that is a
+thermostat, whatever it is called."*
+
+**RD-04's derivation predicate does exactly that.** Clause (b) compares
+`instance_state_in_effectful_modules / instance_state` against a threshold;
+clauses (a) and (c) compare `declared_interfaces` and `effectful_calls` against
+zero. The analysis script trips the tripwire, and **RD-05's implementation will
+trip it harder**, because it will do the same branching on a shipped path rather
+than in an evidence directory.
+
+Two readings, and RD-04 does not have the authority to choose:
+
+- **It is a thermostat.** Then the tag cannot be derived at all — and derivation
+  is the *entire* anti-suppression mechanism ([§5, A1](#5-the-suppression-key-attack)).
+  A declared-only tag is the suppression key this ticket exists to prevent.
+- **It is not.** The invariant is aimed at a figure *deciding something about the
+  code* — the thermostat that fails a build, refuses a design, or chooses a
+  boundary (`CD-01`). A derived tag **refuses nothing about any artifact**; the
+  plan's own `no_new_gates_rule` says a tag *"constrains what may be COMPARED and
+  refuses nothing about the code."* On this reading the tag is a classifier over
+  the *record*, not a thermostat over the *program*.
+
+RD-04's view is the second, and it is a **view, not a demonstration**. The
+invariant as written carries no such exception, and the existing
+`GATING_SCAN_EXEMPT` list is bounded by a property another test checks — so an
+exemption for a derivation would have to earn one the same way, or the invariant
+would have to say what it means.
+
+**RD-05 cannot resolve this by itself and must not add itself to the exemption
+list without the invariant's scope being stated.** Escalated to the epic owner
+rather than filed quietly.
+
+### 9.10 `arm_a` D3 = 2 against `arm_c` D3 = 1
 
 Same derived value, ranges 1–2 and 1–1, eighteen cards against six. The design
 explains none of it and does not grow a value to cover it.

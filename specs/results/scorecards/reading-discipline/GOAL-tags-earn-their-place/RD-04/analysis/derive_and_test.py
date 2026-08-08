@@ -314,6 +314,53 @@ def main() -> int:
                     )
 
     # ---------------------------------------------------------------------
+    # NULL-ENTAILMENT. RD-02 measured that a gap mutant can price a removal only
+    # if every detector that killed it is one the removal deletes -- 0 of 9 over
+    # the sealed table -- so its zero-price results were ENTAILED rather than
+    # measured. The same shape applies here: a dimension that took ONE value
+    # across the whole population cannot separate, so an `overlaps` verdict on it
+    # reports the setup rather than the tag.
+    # ---------------------------------------------------------------------
+    print("\n" + "=" * 78)
+    print("NULL-ENTAILMENT CHECK -- is an `overlaps` verdict a measurement?")
+    print("=" * 78)
+    for r in results:
+        if r["separates"]:
+            continue
+        ex, d = r["example"], r["dimension"]
+        pop = sorted({x[0] for t in by_example[ex].values()
+                      for x in t[d] if x[0] is not None})
+        r["population_values"] = pop
+        r["null_entailed"] = len(pop) < 2
+        print(f"  {ex} {d}: population took {pop} -> "
+              + ("NULL-ENTAILED -- no separation was possible on this dimension"
+                 if len(pop) < 2 else "measured -- a separation was possible and did not occur"))
+
+    # ---------------------------------------------------------------------
+    # THE CONVERSE ENTAILMENT, on the separation itself. Derivation clause (c)
+    # asks for a second implementation; D3's anchor 4 asks for a driven port
+    # exercised by a real adapter AND a fake. Those are close enough that the
+    # separation could be the predicate borrowing the anchor. One counterexample
+    # anywhere refutes that -- this is a claim about the PREDICATE, not a
+    # comparison between examples, so R-H2 does not bite.
+    # ---------------------------------------------------------------------
+    print("\n" + "=" * 78)
+    print("DOES THE DERIVATION ENTAIL D3 = 4? (a claim about the predicate)")
+    print("=" * 78)
+    for name, s in SUBJECTS.items():
+        if derived.get(name, {}).get("value") != "ports-and-adapters":
+            continue
+        scores = sorted(
+            x[0]
+            for c in cards
+            if subject_of(c, SUBJECTS) == name and c["scores"]["D3"] is not None
+            for x in [(c["scores"]["D3"],)]
+        )
+        if scores:
+            print(f"  {name}: derived ports-and-adapters, D3 scored {scores}"
+                  + ("  <-- COUNTEREXAMPLE: below 4" if min(scores) < 4 else ""))
+
+    # ---------------------------------------------------------------------
     # THE CONTROL the earn-its-place test needs and does not state.
     # Two subjects carrying the SAME tag, same example. If those separate too,
     # the separation above is not about the tag.

@@ -52,6 +52,20 @@ ex6_jenga: only one tag value present (['UNDERIVABLE:no-effect-surface']) -- NO 
 toolchain_removal: only one tag value present (['effectful']) -- NO TEST POSSIBLE
 
 ==============================================================================
+NULL-ENTAILMENT CHECK -- is an `overlaps` verdict a measurement?
+==============================================================================
+  ab_quota_ledger D1: population took [2, 3, 4] -> measured -- a separation was possible and did not occur
+  ab_quota_ledger D2: population took [2] -> NULL-ENTAILED -- no separation was possible on this dimension
+  ab_quota_ledger D4: population took [2, 3, 4] -> measured -- a separation was possible and did not occur
+  ab_quota_ledger D5: population took [2, 3, 4] -> measured -- a separation was possible and did not occur
+
+==============================================================================
+DOES THE DERIVATION ENTAIL D3 = 4? (a claim about the predicate)
+==============================================================================
+  arm_b: derived ports-and-adapters, D3 scored [4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+  ex4_pipeline_coherent: derived ports-and-adapters, D3 scored [3, 3]  <-- COUNTEREXAMPLE: below 4
+
+==============================================================================
 SAME-TAG CONTROL -- two subjects, same example, SAME derived tag
 ==============================================================================
 
