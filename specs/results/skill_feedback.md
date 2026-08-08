@@ -2013,3 +2013,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket RD-01
+
+- close_scope: ticket
+- close_id: RD-01
+- workflow: reading-discipline-epic
+- closed_at: 2026-08-08T17:20:57+00:00
+- summary: RD-01: R3 executed -- a claim carries its scope; contested computes; judge tier is a field
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

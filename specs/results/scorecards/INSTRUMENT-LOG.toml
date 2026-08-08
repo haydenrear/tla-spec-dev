@@ -2467,3 +2467,56 @@ sha256 = "sha256:066aee9012efd548"
 [[sealed]]
 path = "specs/results/scorecards/subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p4/scorecard.md"
 sha256 = "sha256:b1f8d77429127eea"
+
+# ===========================================================================
+# CONTESTED — RD-01, R-H6
+# ===========================================================================
+#
+# Scoring rule 5 has said since scorecard version 1 that a spread greater than
+# 1 across the blind judges of one artifact is `contested` and is adjudicated
+# by a third pass citing NEW evidence. NOTHING COMPUTED IT FOR THREE EPICS and
+# every card ever written carries `contested = []`.
+#
+# THESE ENTRIES DO NOT SET THE FLAG. The flag is re-derived from the cards on
+# every `audit`, `contested` and `index` run; an entry here records what was
+# DONE about a contested dimension, and `audit` re-derives `spread` and
+# `scores` from the cards exactly as R-H5 re-derives `points`. A group that is
+# contested with no entry here is reported OPEN and stays visible. An entry
+# claiming a dimension the cards do not support is a VIOLATION -- a
+# declaration must not be able to manufacture one, for the same reason
+# EVAL-SUPPRESS showed it must not be able to erase one.
+
+[[contested]]
+id = "sm05-toolchain-d3-spread-2"
+round = "subtract-to-measure-sm05"
+example = "toolchain_removal"
+arm = "K"
+dimension = "D3"
+spread = 2
+scores = [2, 2, 4, 3]
+third_pass = "none"
+found_by = "RD-01"
+why = """
+FOUND BY COMPUTING THE RULE, NOT BY BEING TOLD. This is the only judge group in
+all 49 sealed cards with a spread greater than 1 on any dimension, and it went
+unrecorded through the round that produced it, through that epic's close, and
+through the `index` run that printed `--` on all four of its rows.
+
+`third_pass = "none"`, AND THAT IS THE RESULT RATHER THAN A GAP TO BE FILLED
+LATER. Rule 5's remedy has never been applied to anything. Passes 3 and 4 are
+not it: they were dispatched as two more BLIND passes on the same packet, at the
+same time as 1 and 2, not as an adjudication citing new evidence -- and both of
+them are on one side of the split, which is the shape a third pass exists to
+break. Re-running one now would be a measurement made during a measurement and
+is left to the epic that reads this.
+
+WHAT THE SPREAD IS ABOUT, from the cards themselves: the two lower judges refuse
+a D3 = 4 their own execution supports because the port lives in a fixture --
+`20260807-sm05rm-K-p1/scorecard.md:285` rejects it in as many words -- so the
+disagreement is about WHAT THE ARTIFACT IS rather than about what it does. That
+is RD-04's subject and this entry is the evidence it starts from.
+
+IT IS ALSO A CLEAN TIER SPLIT: `opus` 2, 2 against `sonnet` 4, 3, disjoint, with
+D2 agreeing across both tiers on the same four cards. `score_tools.py contested`
+prints both.
+"""
