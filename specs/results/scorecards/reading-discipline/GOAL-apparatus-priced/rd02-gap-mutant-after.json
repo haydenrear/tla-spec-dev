@@ -1,0 +1,157 @@
+{
+  "baselines": {
+    "pytest-full": {
+      "argv": [
+        "uv",
+        "run",
+        "--with",
+        "pytest",
+        "--with",
+        "pyyaml",
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-84997dyt/tree/tests"
+      ],
+      "counts": {
+        "failed": 16,
+        "passed": 1422
+      },
+      "executed": 1438,
+      "exit": 1,
+      "failing_nodes": [
+        "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+        "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+        "tests/test_removal_census.py::test_a_manifest_that_has_drifted_from_the_tree_is_refused",
+        "tests/test_removal_census.py::test_a_removal_with_no_mutant_and_no_reason_is_refused",
+        "tests/test_removal_census.py::test_each_removal_reports_two_denominators_and_never_their_average",
+        "tests/test_removal_census.py::test_every_figure_carries_the_scope_it_was_measured_over",
+        "tests/test_removal_census.py::test_it_refuses_to_emit_a_total_over_removals",
+        "tests/test_removal_census.py::test_no_row_of_the_output_is_a_total",
+        "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+        "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+        "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+        "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+        "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+        "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+        "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit_with_rh6",
+        "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+      ],
+      "present": true,
+      "red": true,
+      "tail": [
+        "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-84997dyt/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+        "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-84997dyt/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+        "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-84997dyt/tree/tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit_with_rh6",
+        "16 failed, 1422 passed in 270.05s (0:04:30)"
+      ]
+    }
+  },
+  "cases": null,
+  "catalogue": "examples/validation/gap_mutants/gap_mutants.toml",
+  "control_red": [],
+  "detectors_with_a_red_control": [],
+  "mutants_not_applied": [],
+  "not_seedable": [
+    {
+      "mechanism": "detector `port-binding-report` -- RD-02, and it was a detector that could not run",
+      "reason": "ITS ENTRY POINT STOPPED ACCEPTING ITS OWN ARGV WHEN SM-02 LANDED, AND NOTHING\nNOTICED FOR TWO EPICS. The column passed `--port-manifest` to\n`run_generated_case_adapters.py`; SM-02 deleted that flag with the rest of the\n`[ports.*]` machinery. Since then the detector exits 2 with `unrecognized\narguments`, executes nothing, and the runner reports `INERT` -- which decides\nnothing and is correctly not a survival, so the table was never WRONG. It was\ncarrying a column that could never say anything again, in a file whose whole\nargument is that a control which cannot fail is worse than no control (R2).\n\nMeasured, not asserted. At `7514df0`, `SM-GM-P2` against this column:\n`INERT`, `executed = 0`, `exit = 2`, while `pytest-full` killed the same mutant\nat 1426 executed nodes. The gap this removal opens is therefore the gap the\ncolumn was already failing to cover, and `pytest-full` covers it -- re-measured\nafter the cut in\n`specs/results/scorecards/reading-discipline/GOAL-apparatus-priced/`.\n\nNamed here rather than deleted silently, because a detector that vanishes from\na table is how a denominator shrinks (`denominator_rule`).\n",
+      "removed_by": "RD-02"
+    },
+    {
+      "mechanism": "scripts/code_complexity.py -- the produced-code descriptor",
+      "reason": "IT CORRECTLY CANNOT FAIL. It is a thermometer: it reports, refuses nothing,\ngates nothing, and `EXIT_OK = 0` is the only exit constant in the file. There is\nno gap to seed because there is no claim to catch anything. Named here so that\nits absence from the mutant table is a decision on the record rather than an\nomission, and so that SM-03 does not cut it by counting it with the other eight\nthat cannot be shown to fail.\n",
+      "removed_by": "nothing; it is NOT a removal target"
+    },
+    {
+      "mechanism": "registry row `test-graph-nodes` (test_graph/sources/)",
+      "reason": "NOT IN THIS ENVIRONMENT. Running the Test Graph nodes needs gradle, a JVM and\nJBang, none of which are available here. A mutant seeded into them would report\nINERT on every detector, and an INERT row would be indistinguishable from a\nsurvival to any reader skimming the table. Declared unmeasured rather than\nmeasured as nothing.\n",
+      "removed_by": "SM-03"
+    },
+    {
+      "mechanism": "the `fake =` key of a `[ports.*]` table itself",
+      "reason": "THE FAULT WOULD LIVE IN THE MECHANISM'S OWN DECLARATION. Dropping `fake =` from\n`case_adapters.port-swap.toml` is caught today by `render_oracle_statement`\n('is bound as a port and declares no fake'). But the table is deleted with the\nmachinery, so there is no post-removal tree the mutant could be re-applied to,\nand a before-only reading decides nothing about the cut. SM-GM-P2 seeds the\nequivalent drift in the MANIFEST instead, which outlives SM-02 and is therefore\nre-runnable. Reported so the difference is a decision, not an oversight.\n",
+      "removed_by": "SM-02"
+    },
+    {
+      "mechanism": "registry row `ticket-state-agreement`",
+      "reason": "THE GAP IS ALREADY TOTAL AND THERE IS NOWHERE TO SEED IT. The row is classified\n`no-instrument-exists`: `ticket.yaml`'s `status` is written once by the\nscaffolder and read by nothing (`PA-02-DF-02`, open). Every `ticket.yaml` in the\ntree is under `specs/.history`, which is append-only and must not be mutated\neven in a copy. The cost of removing this row is therefore already paid in full\nand no mutant is needed to price it -- but it is named, because a row that\nvanishes silently from a removal table is how a denominator shrinks.\n",
+      "removed_by": "SM-03"
+    }
+  ],
+  "per_mutant": {
+    "SM-GM-P2-manifest-renames-the-port-out-from-under-the-binding": {
+      "applied": true,
+      "claims_to_catch": "a port renamed in the manifest while the mapping still binds the old name -- the only executable reconciliation between a `[ports.*]` table and `spec_manifest.yaml`",
+      "control_role": null,
+      "detectors": {
+        "pytest-full": {
+          "baseline_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+            "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+            "tests/test_removal_census.py::test_a_manifest_that_has_drifted_from_the_tree_is_refused",
+            "tests/test_removal_census.py::test_a_removal_with_no_mutant_and_no_reason_is_refused",
+            "tests/test_removal_census.py::test_each_removal_reports_two_denominators_and_never_their_average",
+            "tests/test_removal_census.py::test_every_figure_carries_the_scope_it_was_measured_over",
+            "tests/test_removal_census.py::test_it_refuses_to_emit_a_total_over_removals",
+            "tests/test_removal_census.py::test_no_row_of_the_output_is_a_total",
+            "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+            "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+            "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit_with_rh6",
+            "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+          ],
+          "executable_count_available": true,
+          "executed": 1438,
+          "exit": 1,
+          "new_failing_nodes": [
+            "tests/test_port_case_generation.py::test_a_port_declared_in_the_manifest_is_read_in_the_effect_port_shape",
+            "tests/test_port_case_generation.py::test_the_ab_fixtures_port_region_is_the_ledger_aspect_derived",
+            "tests/test_ports_binding_removed.py::test_the_generator_still_declares_ports_and_still_builds_port_labels"
+          ],
+          "self_detected_nodes": [
+            "tests/test_gap_mutants.py::test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree"
+          ],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-84997dyt/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-84997dyt/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-84997dyt/tree/tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit_with_rh6",
+            "20 failed, 1418 passed in 280.74s (0:04:40)"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        }
+      },
+      "edits": [
+        {
+          "occurrences_of_find": 1,
+          "op": "replace",
+          "path": "examples/validation/ab/model/spec_manifest.yaml"
+        }
+      ],
+      "gap": "DRIFT BETWEEN THE DECLARATION AND THE BINDING. `render_port_binding_report` is\nthe one thing in the toolchain that compares the two directions and says\n`BOUND BUT NOT DECLARED` / `DECLARED BUT NOT BOUND`. It is removed with the\nmachinery. The fault seeded here is in the MANIFEST -- a shipped model\nartifact that outlives SM-02 -- so the mutant is still re-runnable after the\ncut, which a mutant seeded inside the mapping table would not be.\n",
+      "is_control": false,
+      "mechanism": "ports-binding-machinery",
+      "must_die_on": [],
+      "removed_by": "SM-02",
+      "seeded_in": [
+        "examples/validation/ab/model/spec_manifest.yaml"
+      ]
+    }
+  },
+  "ref": "HEAD",
+  "registry": {
+    "epic": "subtract-to-measure",
+    "id": "SM-01-gap-mutants",
+    "prices": [
+      "the [ports.*] binding machinery (SM-02, issue #166)",
+      "the hollow instrument demonstrations and the registry's enumeration check (SM-03, issue #167)"
+    ],
+    "seeded_before": "SM-02 and SM-03 -- neither had been dispatched when this file was committed",
+    "ticket": "SM-01"
+  }
+}
