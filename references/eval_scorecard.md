@@ -394,14 +394,66 @@ will drift, which is the class of artifact this project keeps finding stale — 
 
 ### R-H1 — Name the instrument change or do not compare
 
-A row is comparable to another **only** on the same example **and** across an
-unchanged instrument. `history` prints the changes as bars between the rows and
-says plainly that rows on opposite sides are not comparable.
+A row is comparable to another **only** on the same example, **and** across an
+unchanged instrument, **and** — on any dimension for which the demonstration
+table records a separation between the two rows' **derived** architecture
+values — at the same derived architecture value. `history` prints the changes as
+bars between the rows and says plainly that rows on opposite sides are not
+comparable.
 
 *Executed as:* every declared change must name a commit that resolves **and**
 that actually touched one of its declared instrument paths — a fictional era
 boundary is a violation — and every card measured before a change affecting its
 example, carrying no note, is reported `OPEN`.
+
+**The third clause — architecture (RD-05).** Architecture has always been a
+comparability axis and was handled by prose telling readers that a deliberately
+incoherent fixture is *supposed* to score low on D3. It is now a computed field:
+one axis, `effect_boundary`, with two values that carry refusal authority —
+`ports-and-adapters`, `effectful` — and two that carry none,
+`UNDERIVABLE:<reason>` and `UNDEMONSTRATED:<name>`. The values are **nominal and
+never ranked**; the moment one is better the tag is a target and `MF-020`
+applies. The design is `references/architecture_tags.md` and the measurement
+under it is RD-04's.
+
+Three properties keep it a comparability axis rather than a suppression key, and
+none is optional:
+
+- **Refusal authority is per dimension.** It is keyed on `(dimension,
+  value-pair)` and read from `[[demonstration]]` entries that `audit`
+  **re-derives from the cards on every run**, exactly as R-H5 re-derives
+  `points`. Measured today the table has **one row**, D3 — the other four
+  dimensions overlap, so on D1, D2, D4 and D5 a "different architecture"
+  objection is not available at all.
+- **An `INCOMPARABLE` pair prints both score sets.** The verdict annotates the
+  *pair*; it never touches a row. `ABSENT`, `UNDERIVABLE` and `INCOMPARABLE` are
+  three distinct states with three distinct counters, because a missing row and
+  an incomparable one are not the same claim. **A tag can never reduce the set of
+  printed numbers; it can only add a word beside two of them.**
+- **Only the DERIVED value refuses, and everything unresolved fails open.** The
+  declared value is recorded and never has authority; an underivable subject is
+  comparable to everything; a derivation/declaration disagreement is reported as
+  `TAG-DISPUTED`, is never corrected and blocks nothing.
+
+*Executed as:* `score_tools.py tags` derives every scope declared in
+`examples/validation/scorecards/subjects.toml` and prints the table with the
+population's observed range beside every `does not separate` verdict, marked
+`NULL-ENTAILED` where that range is a single point — a null result that could not
+have come out otherwise is not a null result. `audit` re-derives the table: a
+`[[demonstration]]` the cards no longer support is a **VIOLATION**, a separation
+the cards support with no entry beside it is `OPEN`, and a card whose D3
+citations fall predominantly outside its declared scope is reported
+`SCOPE-DRIFT`. **A scope change is not an architecture change and must never be
+read as one.**
+
+> **What the axis rests on, stated as a limit.** One example, one dimension, one
+> judge tier. The separation is demonstrated in `opus` and has **never been
+> measured in `sonnet` on a `ports-and-adapters` subject — n = 0**
+> (`RD-04-DF-03`), so the row carries `tiers_measured` and a cross-tier
+> comparison on D3 is covered by nothing measured here. Earn-its-place is a
+> **deletion** rule and not a promotion one: it establishes correlation, cannot
+> establish cause, cannot detect a ceiling, and cannot see a value occurring in
+> one example. Delete decoration with it; do not admit a value with it.
 
 ### R-H2 — Never average across examples
 

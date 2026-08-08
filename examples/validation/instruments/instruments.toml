@@ -809,6 +809,88 @@ classification = "demonstrated-can-fail"
   expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
+id = "architecture-tag-derivation"
+name = "effect_boundary architecture tag (RD-05)"
+paths = ["examples/validation/scorecards/architecture_tags.py",
+         "examples/validation/scorecards/subjects.toml"]
+family = "measurement"
+watches = "which architecture a score describes -- derived from the tree over a DECLARED scope, and which cards cite predominantly outside the scope they were attributed to"
+verdict_surface = "printed SCOPE-DRIFT and INCOMPARABLE lines; THE EXIT CODE IS ALWAYS 0"
+classification = "demonstrated-can-fail"
+note = """
+IT REFUSES NOTHING ABOUT ANY ARTIFACT, and the always-zero exit is the point
+rather than an omission. `no_new_gates_rule`: a tag constrains what may be
+COMPARED. Five epics of static checking on the product caught zero bugs and this
+is deliberately not a sixth.
+
+WHAT IT CAN REFUSE is a COMPARISON, on one dimension of one example, between two
+derived values -- and an INCOMPARABLE verdict PRINTS BOTH SCORE SETS, so it can
+never reduce the set of printed numbers. `EVAL-SUPPRESS` is why that is a
+property with a test on it rather than a promise.
+
+THE FAILING INPUT IS REAL HISTORICAL DATA, per R1: the four sealed cards of
+`toolchain_removal`, the only contested group in 49 cards, two of which cite
+predominantly outside the scope the round was attributed to. Within each scope
+the spread is zero -- the four judges scored three subjects.
+"""
+
+  [instrument.failing]
+  summary = "the sealed toolchain_removal cards: two of four cite outside their declared scope"
+  argv = ["{python}", "{repo}/examples/validation/scorecards/architecture_tags.py", "drift"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["SCOPE-DRIFT", "20260807-sm05rm-K-p3", "20260807-sm05rm-K-p4",
+                   "2 card(s) cite predominantly outside their declared scope"]
+
+  [instrument.passing]
+  summary = "the eleven declared scopes: seven decided, four refused, and every refusal reported as one"
+  argv = ["{python}", "{repo}/examples/validation/scorecards/architecture_tags.py", "derive"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["7 of 11 subject(s) decided", "UNDERIVABLE:no-effect-surface",
+                   "state_colocation threshold = 0.5"]
+  expect_absent = ["SCOPE-DRIFT"]
+
+  [instrument.blind_spot]
+  kind = "declared"
+  summary = "the axis has authority on ONE dimension of ONE example in ONE judge tier: D3 on ab_quota_ledger, opus only, n = 0 in sonnet on a ports-and-adapters subject. The derivation is a Python AST walk, so every non-Python subject is UNDERIVABLE:unparsed and comparable to everything; the state-colocation threshold of 0.5 has never been measured near its boundary; and SCOPE-DRIFT counts a scope's LAST path segment, so two scopes sharing a basename would collide."
+  reason = "Every one of these is an open question RD-04 left open and RD-05 declined to close by assuming an answer. RD-04-DF-03 and RD-04-DF-04 carry two of them. A green run of this instrument says nothing about any of them."
+
+[[instrument]]
+id = "architecture-demonstration-table"
+name = "demonstration table re-derivation (R-H1 third clause)"
+paths = ["examples/validation/scorecards/score_tools.py",
+         "specs/results/scorecards/INSTRUMENT-LOG.toml"]
+family = "measurement"
+watches = "that a `[[demonstration]]` granting refusal authority is still supported by the cards, and that a separation the cards DO support is not granted silently"
+verdict_surface = "exit 1 with a VIOLATION line from `audit`"
+classification = "demonstrated-can-fail"
+note = """
+A ROW HERE IS THE ONLY THING THAT GRANTS A REFUSAL, so it is the last thing that
+may be allowed to go stale: a stale row means a comparison refused on evidence
+nobody can find. Re-derived on every `audit`, exactly as R-H5 re-derives
+`points` and R-H6 re-derives `contested`. A separation the cards support with no
+entry beside it is OPEN, not silently granted -- an authority nobody declared is
+not an authority.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a demonstration row moved to a dimension the cards do not separate on"
+  nodes = ["tests/test_architecture_tags.py::test_a_demonstration_the_cards_no_longer_support_is_a_violation"]
+  expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the committed ledger's one row, re-derived from the 34 cards"
+  nodes = ["tests/test_architecture_tags.py::test_the_committed_demonstration_re_derives_from_the_cards"]
+  expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
+
+[[instrument]]
 id = "blinding-sanitiser"
 name = "judge-blinding sanitiser"
 paths = ["specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"]

@@ -1,0 +1,20 @@
+example: ab_quota_ledger
+  arm_b [ports-and-adapters]   vs   arm_a [effectful]
+
+D1  arm_b [3, 3, 3, 3, 3, 3, 3, 3, 3, 4]
+    arm_a [2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4]
+    -> comparable (ports-and-adapters/effectful has demonstrated no separation on D1, so a 'different architecture' objection is not available here)
+D2  arm_b [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    arm_a [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    -> comparable (ports-and-adapters/effectful has demonstrated no separation on D2, so a 'different architecture' objection is not available here)
+D3  arm_b [4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+    arm_a [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    -> INCOMPARABLE (effect_boundary: ports-and-adapters/effectful, demonstrated on D3, table row `effect_boundary-ab_quota_ledger-D3-effectful-vs-ports-and-adapters`, tiers measured ['opus'])
+D4  arm_b [2, 3, 3, 3, 3, 3, 4, 4, 4, 4]
+    arm_a [2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4]
+    -> comparable (ports-and-adapters/effectful has demonstrated no separation on D4, so a 'different architecture' objection is not available here)
+D5  arm_b [3, 3, 3, 3, 3, 3, 4, 4, 4, 4]
+    arm_a [2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4]
+    -> comparable (ports-and-adapters/effectful has demonstrated no separation on D5, so a 'different architecture' objection is not available here)
+
+incomparable pairs reported: 1     absent: 0     comparable: 4

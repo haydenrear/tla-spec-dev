@@ -63,6 +63,11 @@ from scripts.code_complexity import (  # noqa: E402
 SCRIPT = REPO_ROOT / "scripts" / "code_complexity.py"
 INTUITION_DOC = REPO_ROOT / "references" / "complexity_intuition.md"
 
+#: RD-05. The one shipped file that reads this instrument's figures on purpose,
+#: named here so the §6b ruling has a subject rather than a category. It is NOT
+#: on `GATING_SCAN_EXEMPT` and it is scanned like any other file.
+DERIVATION = REPO_ROOT / "examples/validation/scorecards/architecture_tags.py"
+
 FLAT_TREE = REPO_ROOT / "examples" / "validation" / "ab" / "reference"
 PORTED_TREE = REPO_ROOT / "examples" / "validation" / "ab" / "reference_ports"
 SEALED_ARMS = (
@@ -457,12 +462,46 @@ def _target_names(target: ast.AST) -> list[str]:
     return []
 
 
-def gating_uses(source: str) -> list[tuple[int, str]]:
-    """Lines at which a value reached from this instrument enters a CONDITION.
+def _refuses(node: ast.AST) -> bool:
+    """Does this statement REFUSE -- raise, assert, or exit?
+
+    The vocabulary of a verdict about the subject. RD-05: it is what separates
+    the two classes below, and it is deliberately syntactic, because a
+    distinction that needs a reader's judgement is one that drifts.
+    """
+
+    for child in ast.walk(node):
+        if isinstance(child, (ast.Raise, ast.Assert)):
+            return True
+        if isinstance(child, ast.Call):
+            callee = child.func
+            name = (callee.attr if isinstance(callee, ast.Attribute)
+                    else getattr(callee, "id", None))
+            if name in {"exit", "_exit", "SystemExit"}:
+                return True
+    return False
+
+
+REFUSAL = "refusal"
+OBSERVATION = "observation"
+
+
+def _uses(source: str) -> list[tuple[int, str, str]]:
+    """Lines at which a value reached from this instrument enters a CONDITION,
+    each classified `REFUSAL` or `OBSERVATION`. See `refusing_uses`.
 
     Deliberately conservative on propagation -- a call with a tainted argument
     yields a tainted result -- because the cost of a false name in this list is
     a sentence of explanation, and the cost of a miss is a thermostat.
+
+    KNOWN BLIND SPOT, unchanged by RD-05 and worth stating where it bites:
+    taint does not cross a function boundary. A predicate that takes the
+    instrument's record as a PARAMETER and compares its fields is invisible
+    here -- which is exactly the shape of
+    `examples/validation/scorecards/architecture_tags.py::derive`. What this
+    scan sees of that file is the invocation and the branch on its exit status.
+    So an empty result is not a proof of anything; a non-empty one names a
+    real line.
     """
 
     try:
@@ -471,7 +510,7 @@ def gating_uses(source: str) -> list[tuple[int, str]]:
         return []
 
     names = _bound_names(tree)
-    gates: list[tuple[int, str]] = []
+    gates: list[tuple[int, str, str]] = []
 
     # One forward pass binding names, then the condition scan. Order matters
     # little here because a gate is reported on the line it appears on.
@@ -491,21 +530,70 @@ def gating_uses(source: str) -> list[tuple[int, str]]:
 
     for node in ast.walk(tree):
         if isinstance(node, (ast.If, ast.While, ast.IfExp)) and _tainted(node.test, names):
-            gates.append((node.lineno, "reaches an if/while test"))
+            # THE ONE LINE THE RULING TURNS ON. A branch on a figure whose arm
+            # REFUSES -- raises, asserts, exits -- is a figure deciding
+            # something about the code. A branch on a figure whose arms only
+            # produce a value is a figure being read.
+            # `IfExp` carries expressions where `If` carries statement lists;
+            # an expression arm can still call `exit()`, so both are walked.
+            arms: list[ast.AST] = []
+            for attr in ("body", "orelse"):
+                value = getattr(node, attr, None)
+                arms.extend(value if isinstance(value, list) else
+                            [value] if isinstance(value, ast.AST) else [])
+            refuses = any(_refuses(arm) for arm in arms)
+            gates.append((node.lineno, "reaches an if/while test",
+                          REFUSAL if refuses else OBSERVATION))
         elif isinstance(node, ast.Assert) and _tainted(node.test, names):
-            gates.append((node.lineno, "reaches an assert"))
+            gates.append((node.lineno, "reaches an assert", REFUSAL))
         elif isinstance(node, ast.Compare) and _tainted(node, names):
-            gates.append((node.lineno, "is compared"))
+            gates.append((node.lineno, "is compared", OBSERVATION))
         elif isinstance(node, ast.Call):
             callee = node.func
             name = callee.attr if isinstance(callee, ast.Attribute) else getattr(callee, "id", None)
             if name in {"exit", "_exit", "SystemExit"} and any(
                 _tainted(arg, names) for arg in node.args
             ):
-                gates.append((node.lineno, f"reaches {name}()"))
+                gates.append((node.lineno, f"reaches {name}()", REFUSAL))
         elif isinstance(node, ast.Raise) and _tainted(node.exc, names):
-            gates.append((node.lineno, "reaches a raise"))
+            gates.append((node.lineno, "reaches a raise", REFUSAL))
     return sorted(set(gates))
+
+
+def gating_uses(source: str) -> list[tuple[int, str]]:
+    """Every use, refusing or observing. FI-02's original surface, unchanged."""
+
+    return sorted({(lineno, why) for lineno, why, _ in _uses(source)})
+
+
+def refusing_uses(source: str) -> list[tuple[int, str]]:
+    """The uses in which a figure DECIDES SOMETHING ABOUT THE CODE.
+
+    RD-05, under the epic owner's ruling (`READING-DISCIPLINE-EPIC.md` §6b).
+    `CD-01` is the distinction and it is not a new one:
+
+      * **Choosing the boundary** -- "your port should go here" -- is
+        forbidden, because a tool that picks the cut makes every edge legal by
+        construction. A figure that fails a build, refuses a design or exits on
+        a threshold is that tool.
+      * **Observing where the boundary already is** -- "these effectful calls
+        sit in one module" -- is the thermometer's entire job.
+
+    So a refusal is `raise`, `assert`, `exit`, or a branch on a figure whose
+    arm does one of those. A comparison whose only product is a VALUE is an
+    observation and is reported by `gating_uses` rather than forbidden.
+    """
+
+    return sorted({(lineno, why) for lineno, why, kind in _uses(source)
+                   if kind == REFUSAL})
+
+
+def observing_uses(source: str) -> list[tuple[int, str]]:
+    """The complement. Not forbidden, and not free either -- see
+    `test_the_derivation_observes_and_never_refuses`."""
+
+    return sorted({(lineno, why) for lineno, why, kind in _uses(source)
+                   if kind == OBSERVATION})
 
 
 def _scannable_files(root: Path) -> list[Path]:
@@ -574,15 +662,42 @@ def test_nothing_executable_reads_this_instrument() -> None:
 
 
 def test_no_reader_of_this_instrument_gates_on_its_output() -> None:
-    """THE INVARIANT THE DOCSTRING ALWAYS STATED, now the one being tested.
+    """NOTHING LETS A FIGURE FROM THIS INSTRUMENT DECIDE ANYTHING ABOUT THE CODE.
 
-    Repository-wide, `specs/**` included, minus the instrument's own test file.
-    A file is allowed to refer to the instrument and to transcribe its figures.
-    It is not allowed to branch on them, compare them, assert on them or exit
-    on them -- that is a thermostat, whatever it is called.
+    Repository-wide, `specs/**` included, minus the instrument's own tests.
+
+    THE STATEMENT CHANGED AT RD-05 AND THE RULE DID NOT WEAKEN INTO AN
+    EXEMPTION. What stood here read: a file "is not allowed to branch on them,
+    compare them, assert on them or exit on them -- that is a thermostat,
+    whatever it is called." RD-04 measured that its derivation predicate does
+    exactly that, escalated it as blocking rather than adding itself to
+    `GATING_SCAN_EXEMPT`, and the epic owner ruled
+    (`READING-DISCIPLINE-EPIC.md` §6b) that **the invariant means a figure
+    deciding something about the CODE, and its wording was wrong rather than
+    the design.**
+
+    THE DISTINCTION, WHICH IS `CD-01`'S AND NOT A NEW ONE:
+
+      * **Choosing the boundary** -- "your port should go here", a build that
+        fails on a threshold, a design refused for a figure -- is forbidden. A
+        tool that picks the cut makes every edge legal by construction.
+      * **Observing where the boundary already is** -- "these effectful calls
+        sit in one module" -- is the thermometer's entire job, and a label
+        derived from that observation refuses nothing about any artifact.
+        `no_new_gates_rule` draws the same line: a tag constrains what may be
+        COMPARED and refuses nothing about the code.
+
+    So the forbidden class is `refusing_uses`: `raise`, `assert`, `exit`, or a
+    branch on a figure whose arm does one of those. `examples/validation/
+    scorecards/architecture_tags.py` reads figures, is NOT exempt here, and is
+    pinned by `test_the_derivation_observes_and_never_refuses` below.
+
+    AN EXEMPTION HIDES A CORRECT RULE; A CORRECTED RULE SURVIVES THE NEXT
+    READER. The exemption list is unchanged at three entries -- the two files
+    whose subject is the instrument, and FI-05's, bounded by its own test.
     """
 
-    gates: list[str] = []
+    refusals: list[str] = []
     for path in _scannable_files(REPO_ROOT):
         if path.suffix != ".py":
             continue
@@ -597,10 +712,48 @@ def test_no_reader_of_this_instrument_gates_on_its_output() -> None:
             continue
         if not executable_references(text):
             continue
-        for lineno, why in gating_uses(text):
-            gates.append(f"{rel}:{lineno}: a figure {why}")
+        for lineno, why in refusing_uses(text):
+            refusals.append(f"{rel}:{lineno}: a figure {why}")
 
-    assert sorted(gates) == []
+    assert sorted(refusals) == []
+
+
+def test_the_derivation_observes_and_never_refuses() -> None:
+    """THE OTHER HALF OF THE RULING, and the reason it is not an exemption.
+
+    `architecture_tags.py` is the one shipped file that reads this instrument's
+    figures on purpose. It is scanned by the test above like any other file, so
+    the way it stays green has to be a PROPERTY OF THE FILE rather than a line
+    in a list: it observes and it never refuses.
+
+    Pinned both ways. If the file stops reading the instrument, the first
+    assertion fails and the ruling has nothing left to license. If it grows a
+    refusal -- an `assert` on a figure, an `exit` on a threshold, a branch that
+    raises -- the third fails, and the wrong-predicate risk the ruling names has
+    become a real gate rather than a possible one.
+
+    WHAT THE MIDDLE ASSERTION IS AND IS NOT. It says the scan REACHES this
+    file, not that the scan sees the derivation's clauses. It does not: taint
+    does not cross a function boundary, so the comparisons inside `derive` --
+    the ones §9.9 escalated -- are invisible to it, and the taint set is
+    name-keyed rather than scope-aware, so some of what it does report is a
+    name collision. `RD-05-DF-01`. An empty refusal list is a reachable
+    property of this file; it is not proof that no figure decides anything.
+    """
+
+    text = DERIVATION.read_text(encoding="utf-8")
+    assert executable_references(text), (
+        f"{DERIVATION.name} no longer reads the instrument; the §6b ruling is about a "
+        f"file that does"
+    )
+    assert observing_uses(text), (
+        f"{DERIVATION.name} names the instrument and observes no figure -- either it "
+        f"stopped deriving, or the scan stopped reaching it"
+    )
+    assert refusing_uses(text) == [], (
+        f"{DERIVATION.name} now REFUSES on a figure. A derived comparability label is not "
+        f"a thermostat; a figure that raises, asserts or exits is one."
+    )
 
 
 # ---------------------------------------------------------------------------

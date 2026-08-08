@@ -162,6 +162,28 @@ CLAIM_STATUSES = {"current", "sealed", "superseded", "known_wrong", "under_revie
                   "refuted"}
 
 
+# RD-05. The third comparability axis lives in a sibling module because it has
+# a subject of its own -- the declared scopes and the derivation over them --
+# and because this file is already the longest thing in the eval harness.
+# Loaded by path rather than by name: `score_tools.py` is executed as a script
+# AND loaded by `spec_from_file_location` from the tests, and only one of those
+# puts this directory on `sys.path`.
+_ARCH_CACHE: dict = {}
+
+
+def arch():
+    """The `effect_boundary` module. See `architecture_tags.py`."""
+    if "mod" not in _ARCH_CACHE:
+        import importlib.util
+        path = HERE.parent / "architecture_tags.py"
+        spec = importlib.util.spec_from_file_location("_score_tools_arch", path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+        _ARCH_CACHE["mod"] = module
+    return _ARCH_CACHE["mod"]
+
+
 # --------------------------------------------------------------------------
 # the rubric: one source of truth for the anchors
 # --------------------------------------------------------------------------
@@ -496,6 +518,38 @@ def check(card: dict, where: str, rubric: dict | None = None,
                      f"tier this knows and the card declares none. The tier is a field of "
                      f"the card from RD-01; an unrecognised model is recorded here rather "
                      f"than guessed.")
+
+    # RD-05, attack A5: a scope declared before scoring, and refused if it moved.
+    # A card MAY carry no subject -- every card sealed before RD-05 does not, and
+    # R-H4 forbids adding one -- but a card that names a subject must name a
+    # DECLARED one and must carry that subject's scope unchanged. A scope change
+    # is not an architecture change and must never be read as one.
+    subject = card.get("subject")
+    if isinstance(subject, dict):
+        name = subject.get("name")
+        try:
+            declared = arch().load_subjects()
+        except Exception as exc:                     # pragma: no cover - unreadable file
+            notes.append(f"SUBJECTS-UNREADABLE {where}: {exc}")
+            declared = {}
+        if declared and name not in declared:
+            err(f"subject.name {name!r} is not declared in subjects.toml. A scope is "
+                f"declared before scoring; a card cannot invent one afterwards.")
+        elif declared:
+            want = list(declared[name]["scope"])
+            got = list(subject.get("scope") or [])
+            if got != want:
+                err(f"subject.scope {got} does not match the declared scope of "
+                    f"{name!r} ({want}). THE SCOPE MOVED. Four judges scored three "
+                    f"different subjects of one artifact once already, and D3 came "
+                    f"out 2, 2, 3, 4.")
+            if subject.get("declared_effect_boundary") != declared[name]["declared"]:
+                err(f"subject.declared_effect_boundary "
+                    f"{subject.get('declared_effect_boundary')!r} does not match "
+                    f"subjects.toml ({declared[name]['declared']!r}). A declaration "
+                    f"refuses nothing and it is still not editable per card.")
+    elif subject is not None:
+        err(f"subject must be an object or null, got {type(subject).__name__}")
 
     missing = [d for d in DIMS if d not in dims]
     if missing:
@@ -1115,6 +1169,13 @@ def cmd_scaffold(argv: list[str]) -> int:
     ap.add_argument("--labels", default=None,
                     help="explicit opaque labels, comma-separated (testing / re-scaffold)")
     ap.add_argument("--seed", type=int, default=None, help="seed the label shuffle")
+    ap.add_argument("--subject", default=None,
+                    help="a subject declared in examples/validation/scorecards/"
+                         "subjects.toml. Writes its SCOPE into the unfilled skeleton, "
+                         "before any judge is dispatched; `check` then refuses a card "
+                         "whose scope moved. A program that is one thing wrapping "
+                         "another declares SEVERAL scoped subjects and scaffolds one "
+                         "card per subject.")
     ap.add_argument("--unblinded", action="store_true",
                     help="DELIBERATELY skip blinding: emit real arm names as labels")
     ap.add_argument("--reason", default=None, help="required with --unblinded")
@@ -1253,6 +1314,21 @@ def _rubric_block(rubric: dict, card_version: int = VERSION) -> dict:
     return block
 
 
+def _subject_block(name: str | None) -> dict | None:
+    """The declared scope, copied out of `subjects.toml` into the skeleton."""
+    if not name:
+        return None
+    subjects = arch().load_subjects()
+    if name not in subjects:
+        raise RubricError(f"--subject {name!r} is not declared in "
+                          f"{arch().DEFAULT_SUBJECTS}. A scope is DECLARED, never "
+                          f"invented at scaffold time.")
+    s = subjects[name]
+    return {"name": name, "scope": list(s["scope"]),
+            "declared_effect_boundary": s["declared"],
+            "axis": arch().AXIS}
+
+
 def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
     dims = {}
     for key in DIMS:
@@ -1289,6 +1365,19 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
         # what someone would prefer it said.
         "judge": {"model": "", "tier": "", "pass": judge,
                   "blind_to_arm": not args.unblinded},
+        # RD-05, attack A5. THE SCOPE IS WRITTEN BEFORE ANY JUDGE IS DISPATCHED
+        # and it is copied from `subjects.toml`, so what the card is about is
+        # fixed before the numbers exist. `check` refuses a card whose
+        # `subject.scope` no longer matches the declared one. Choosing the scope
+        # that carries the flattering tag is not hypothetical: it is what
+        # produced `toolchain_removal` D3 = 4 on a card whose every citation is
+        # to a fixture.
+        #
+        # It is `null` where the round declared no subject, which is every card
+        # sealed before RD-05 and any round that declines to declare one. A card
+        # with no subject is attributed through `subjects.toml`'s `labels` or
+        # not at all, and an unattributed card enters no comparison.
+        "subject": _subject_block(getattr(args, "subject", None)),
         "rubric": _rubric_block(rubric, args.card_version),
         "how_to_fill": [
             "Score the LOWEST anchor the artifact fully satisfies. Torn between two: "
@@ -1531,12 +1620,13 @@ def load_log(root: pathlib.Path) -> dict:
     path = root / LOG_NAME
     if not path.exists():
         return {"path": path, "changes": [], "notes": [], "claims": [], "sealed": [],
-                "movements": [], "contested": []}
+                "movements": [], "contested": [], "demonstrations": []}
     data = tomllib.loads(path.read_text())
     return {"path": path, "changes": data.get("change", []), "notes": data.get("note", []),
             "claims": data.get("claim", []), "sealed": data.get("sealed", []),
             "movements": data.get("movement", []),
-            "contested": data.get("contested", [])}
+            "contested": data.get("contested", []),
+            "demonstrations": data.get("demonstration", [])}
 
 
 def card_date(card: dict) -> str | None:
@@ -1877,6 +1967,93 @@ def audit_rh1(ctx: dict) -> list[tuple[str, str]]:
             out.append((OPEN, f"card `{r['key']}`: measured before {', '.join(later)} and "
                               f"carries no note. It is not comparable to anything measured "
                               f"after; record WHICH number and WHY beside it."))
+    out.extend(audit_rh1_architecture(ctx))
+    return out
+
+
+def audit_rh1_architecture(ctx: dict) -> list[tuple[str, str]]:
+    """R-H1's THIRD CLAUSE (RD-05): the demonstration table, re-derived.
+
+    R-H1 grew a third comparability axis rather than gaining an `R-H7`,
+    deliberately: R-H5's own history is that an unnumbered rule with no check
+    was added at close and `audit` rejected it within the minute, so a new
+    `R-H` id is a promise to ship a check and folding into R-H1 inherits one
+    that already runs.
+
+    What is checked: every `[[demonstration]]` in the ledger is RE-DERIVED FROM
+    THE CARDS, exactly as R-H5 re-derives `points` and R-H6 re-derives
+    `contested`. An entry the cards no longer support is a VIOLATION, not a
+    rounding error -- and a separation the cards DO support with no entry
+    beside it is `OPEN`, because an undeclared authority is one nobody agreed
+    to.
+    """
+    out: list[tuple[str, str]] = []
+    declared = ctx.get("demonstrations") or []
+    module = arch()
+    subjects = module.load_subjects()
+    derived = module.derive_subjects(subjects, REPO_ROOT)
+    unmeasurable = [n for n, d in derived.items()
+                    if d["derived"].endswith("unmeasurable")]
+    if unmeasurable:
+        out.append((UNVERIFIED, f"the {module.AXIS} axis could not be derived for "
+                                f"{sorted(unmeasurable)} in this tree -- their declared "
+                                f"scope is absent, so nothing about them is checked here"))
+    rows = module.card_rows(ctx["root"])
+    entries = {e["id"]: e for e in module.demonstration_table(rows, derived, subjects)}
+    if len(unmeasurable) == len(derived):
+        out.append((UNVERIFIED, "no declared scope resolves in this tree; the demonstration "
+                                "table is not re-derivable here and nothing below is checked"))
+        return out
+    for entry in declared:
+        eid = str(entry.get("id"))
+        got = entries.get(eid)
+        if got is None:
+            out.append((VIOLATION,
+                        f"`[[demonstration]]` `{eid}`: names no cell the cards produce. "
+                        f"A stale authority row is worse than none, because a comparison "
+                        f"gets refused on evidence nobody can find."))
+            continue
+        for field in ("separates", "dimension", "example"):
+            if field in entry and entry[field] != got[field]:
+                out.append((VIOLATION,
+                            f"`[[demonstration]]` `{eid}`: declares {field} = "
+                            f"{entry[field]!r}; the cards give {got[field]!r}."))
+                break
+        else:
+            if entry.get("ranges") and {k: list(v) for k, v in entry["ranges"].items()} \
+                    != got["ranges"]:
+                out.append((VIOLATION,
+                            f"`[[demonstration]]` `{eid}`: declares ranges "
+                            f"{entry['ranges']}; the cards give {got['ranges']}."))
+                continue
+            if entry.get("tiers_measured") is not None \
+                    and list(entry["tiers_measured"]) != got["tiers_measured"]:
+                out.append((VIOLATION,
+                            f"`[[demonstration]]` `{eid}`: declares tiers_measured "
+                            f"{list(entry['tiers_measured'])}; the cards give "
+                            f"{got['tiers_measured']}. A separation present in one tier "
+                            f"and absent in the other is a fact about the tier."))
+                continue
+            verdict = "SEPARATES" if got["separates"] else "does not separate"
+            null = " NULL-ENTAILED" if got["null_entailed"] else ""
+            out.append((OK, f"`[[demonstration]]` `{eid}`: {got['dimension']} "
+                            f"{'/'.join(got['values'])} {verdict} re-derived "
+                            f"{got['ranges']}, population took "
+                            f"{got['population_values']}{null}, tiers "
+                            f"{got['tiers_measured']}"))
+    undeclared = [e for e in entries.values()
+                  if e["separates"] and e["id"] not in {str(d.get("id")) for d in declared}]
+    for e in undeclared:
+        out.append((OPEN, f"the cards support a separation on {e['dimension']} between "
+                          f"{'/'.join(e['values'])} ({e['ranges']}) and no "
+                          f"`[[demonstration]]` records it. Until one does the pair refuses "
+                          f"nothing -- an authority nobody declared is not an authority."))
+    for card in module.scope_drift(rows, subjects):
+        out.append((OPEN, f"SCOPE-DRIFT card `{card['card']}`: attributed to subject "
+                          f"`{card['declared_subject']}`, its own {card['dimension']} "
+                          f"citations name `{card['cited_subject']}` "
+                          f"{card['citation_counts']}. A scope change is not an "
+                          f"architecture change and must never be read as one."))
     return out
 
 
@@ -2201,6 +2378,7 @@ def run_audit(root: pathlib.Path) -> tuple[dict[str, list[tuple[str, str]]], dic
         "sealed": log["sealed"],
         "movements": log["movements"],
         "contested": log["contested"],
+        "demonstrations": log["demonstrations"],
         "groups": judge_groups(root),
         "rows": all_rows,
         "all_rows": all_rows,
@@ -2584,8 +2762,59 @@ def cmd_seal(argv: list[str]) -> int:
 
 # --------------------------------------------------------------------------
 
+def cmd_tags(argv: list[str]) -> int:
+    """The third comparability axis, printed. It refuses nothing and exits 0.
+
+    `--compare A B` prints one pair, one line per dimension, and BOTH SCORE
+    SETS ARE ON EVERY LINE INCLUDING THE INCOMPARABLE ONE. That is the whole
+    anti-suppression invariant and it is executed here rather than promised:
+    the verdict annotates the pair, and a tag can never reduce the set of
+    printed numbers.
+    """
+    ap = argparse.ArgumentParser(prog="score_tools.py tags")
+    ap.add_argument("--root", default=str(DEFAULT_SCORECARD_ROOT))
+    ap.add_argument("--compare", nargs=2, default=None, metavar=("A", "B"),
+                    help="two declared subjects of the same example")
+    args = ap.parse_args(argv)
+    module = arch()
+    root = pathlib.Path(args.root)
+    subjects = module.load_subjects()
+    derived = module.derive_subjects(subjects, REPO_ROOT)
+    rows = module.card_rows(root)
+    entries = module.demonstration_table(rows, derived, subjects)
+    if args.compare:
+        a, b = args.compare
+        unknown = [x for x in (a, b) if x not in subjects]
+        if unknown:
+            print(f"no declared subject {unknown} in "
+                  f"{module.DEFAULT_SUBJECTS}", file=sys.stderr)
+            return 2
+        table = module.authority(entries)
+        example = subjects[a]["example"]
+        print(f"example: {example}")
+        print(f"  {a} [{derived[a]['derived']}]   vs   {b} [{derived[b]['derived']}]")
+        print()
+        counts = {module.COMPARABLE: 0, module.INCOMPARABLE: 0, module.ABSENT: 0}
+        for line in module.compare(rows, derived, subjects, example, a, b, table):
+            counts[line["state"]] = counts.get(line["state"], 0) + 1
+            print(f"{line['dimension']}  {a} {line['scores_a']}")
+            print(f"    {b} {line['scores_b']}")
+            print(f"    -> {line['state']} ({line['reason']})")
+        print()
+        print(f"incomparable pairs reported: {counts[module.INCOMPARABLE]}     "
+              f"absent: {counts[module.ABSENT]}     comparable: {counts[module.COMPARABLE]}")
+        return 0
+    print(module.render_derive(subjects, derived))
+    print()
+    print(module.render_table(entries, module.same_tag_controls(rows, derived, subjects)))
+    print()
+    print(module.render_drift(module.scope_drift(rows, subjects), len(rows)))
+    return 0
+
+
 COMMANDS = {
     "check": cmd_check,
+    "tags": cmd_tags,
     "index": cmd_index,
     "scaffold": cmd_scaffold,
     "serve": cmd_serve,
