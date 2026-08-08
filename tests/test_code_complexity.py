@@ -729,8 +729,16 @@ def test_the_derivation_observes_and_never_refuses() -> None:
     Pinned both ways. If the file stops reading the instrument, the first
     assertion fails and the ruling has nothing left to license. If it grows a
     refusal -- an `assert` on a figure, an `exit` on a threshold, a branch that
-    raises -- the second fails, and the wrong-predicate risk the ruling names
-    has become a real gate rather than a possible one.
+    raises -- the third fails, and the wrong-predicate risk the ruling names has
+    become a real gate rather than a possible one.
+
+    WHAT THE MIDDLE ASSERTION IS AND IS NOT. It says the scan REACHES this
+    file, not that the scan sees the derivation's clauses. It does not: taint
+    does not cross a function boundary, so the comparisons inside `derive` --
+    the ones §9.9 escalated -- are invisible to it, and the taint set is
+    name-keyed rather than scope-aware, so some of what it does report is a
+    name collision. `RD-05-DF-01`. An empty refusal list is a reachable
+    property of this file; it is not proof that no figure decides anything.
     """
 
     text = DERIVATION.read_text(encoding="utf-8")

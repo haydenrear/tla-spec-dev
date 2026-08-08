@@ -6988,3 +6988,197 @@ findings:
       One of RD-01's three reported tier splits, and the only contested group in
       49 sealed cards.
     disposition: open
+  - id: RD-05-DF-01
+    found_by: "RD-05"
+    found_at_commit: "4ec3028"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_code_complexity.py"]
+    summary: >-
+      THE INVARIANT THAT BLOCKED RD-04 WAS FIRING ON THE WRONG LINE, AND IT
+      CANNOT SEE THE THING IT WAS ESCALATED ABOUT.
+
+      `test_no_reader_of_this_instrument_gates_on_its_output` propagates taint
+      through assignments WITHIN A MODULE and does not cross a function
+      boundary. RD-04's `analysis/derive_and_test.py` was flagged at line 130 --
+      `if out.returncode != 0`, a branch on a SUBPROCESS EXIT STATUS -- and the
+      three clause comparisons inside `derive(record)` that the whole §9.9
+      escalation is about were NEVER SEEN, because `record` arrives as a
+      parameter and carries no taint.
+
+      So the escalated finding was true (the predicate does branch on figures)
+      and the test that reported it was reporting something else.
+
+      AND THE TAINT SET IS NAME-KEYED RATHER THAN SCOPE-AWARE, which cuts the
+      other way. `measure()` builds a local `args` list holding the
+      instrument's path; that puts the NAME `args` into a module-wide set, so
+      every unrelated `args` in the file is tainted and
+      `root = pathlib.Path(args.root)` in `main()` spreads it further.
+      `architecture_tags.py` reports 53 observing uses and ZERO refusals, and a
+      substantial share of the 53 is that name collision rather than a figure --
+      `return value in VALUES` is one of them.
+
+      BOTH DIRECTIONS AT ONCE: the scan misses the clause it was escalated
+      about and flags comparisons that touch no figure. RD-05's repair
+      re-classifies what the scan already sees and DOES NOT WIDEN WHAT IT SEES,
+      so an empty refusal list is not evidence that no figure decides anything.
+
+      This matters for the exact risk the epic owner's ruling names -- a wrong
+      PREDICATE rather than a wrong principle. The scan is not what would catch
+      one.
+    suggested_fix: >-
+      Either propagate taint into a function whose parameter is bound from a
+      tainted call at any call site, or state the boundary limit in the
+      docstring and stop reading an empty result as coverage. RD-05 did the
+      second (the limit is written into `_uses`); the first is a real change to
+      the scanner and is not a measurement ticket's to make.
+    blast_radius: >-
+      One repository-wide tripwire, the §6b ruling that rests on it, and any
+      future reader who takes a green from it as evidence that no figure
+      decides anything.
+    disposition: open
+  - id: RD-05-DF-02
+    found_by: "RD-05"
+    found_at_commit: "4ec3028"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/subjects.toml"]
+    summary: >-
+      THE ONE PLACE A DECLARATION CAN STILL MOVE A REFUSAL, NAMED RATHER THAN
+      LEFT TO BE FOUND.
+
+      The design's A1 defence is that a DECLARED VALUE never refuses -- only the
+      derived one does, and moving the derived value means moving the state out
+      of the effectful module. That holds. But the demonstration table is
+      re-derived from THE CARDS THAT MAP TO EACH SUBJECT, and that mapping is
+      declared: `subjects.toml` says which round/arm labels belong to which
+      scope. Nothing derives it and nothing can -- a sealed card carries no
+      subject field and R-H4 forbids adding one.
+
+      So an author who cannot edit `instance_state_in_effectful_modules` CAN
+      edit which cards enter the comparison, and the separation is computed over
+      whatever population that leaves. Dropping `arm_c` from `arm_a`'s label
+      list, for instance, changes the population every `does not separate`
+      verdict is read against.
+
+      IT IS NOT HYPOTHETICAL IN ONE DIRECTION: RD-04's analysis computed
+      null-entailment populations over MAPPED cards only, RD-05 had to choose
+      the same, and the choice changes D1's reported population (the unmapped
+      owner-pre card carries D1 = 0). Neither choice is wrong; nothing
+      currently states which one the rule means.
+    suggested_fix: >-
+      Make the mapping checkable rather than trusted: `audit` could report any
+      card of a mapped example that belongs to NO subject, so a card silently
+      dropped from a population is visible the way `contested` is. RD-05 reports
+      the count (1 of 49) and does not check it, because filing beats fixing
+      during a measurement.
+    blast_radius: >-
+      Every refusal the axis grants, and every population range printed beside a
+      `does not separate` verdict.
+    disposition: open
+  - id: RD-05-DF-03
+    found_by: "RD-05"
+    found_at_commit: "4ec3028"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/architecture_tags.md"]
+    summary: >-
+      RD-04'S DESIGN PAGE DISAGREES WITH ITS OWN MACHINE RECORD IN ONE CELL.
+
+      §3.1's table prints `--` for `ex6_jenga`'s state co-location.
+      `analysis/result.json` gives 0.0 on `instance_state = 7`, and the shipped
+      derivation reproduces the machine record. `--` is what that column means
+      where there is NO instance state at all, which is correct for
+      `ex1_scaffold_only`, `ex3_over_complex` and `spec_double_compiler/` and
+      wrong for `ex6_jenga`.
+
+      A transcription slip, not a difference in the predicate, and it decides
+      nothing -- `ex6_jenga` derives UNDERIVABLE on the effect-surface guard
+      before the clause is reached either way. Filed because a page that argues
+      for an instrument by printing its figures is exactly where an unchecked
+      figure does damage, and this project has now found one on that page twice
+      (RD-04 found its own "39 of 39" the same way).
+    suggested_fix: >-
+      Corrected in §13.4 beside the table rather than by editing §3.1, and
+      pinned by `test_the_derivation_reproduces_rd04s_sealed_machine_record`,
+      which compares against `result.json` and deliberately not against the page.
+    blast_radius: One cell of one table.
+    disposition: open
+  - id: RD-05-DF-04
+    found_by: "RD-05"
+    found_at_commit: "4ec3028"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/architecture_tags.py"]
+    summary: >-
+      `SCOPE-DRIFT` ATTRIBUTES A CITATION BY A SCOPE'S LAST PATH SEGMENT, SO TWO
+      SCOPES SHARING A BASENAME WOULD COLLIDE.
+
+      A judge writes `after/scripts/x.py:9`, `<TREES>/after/scripts/x.py:9` and
+      `scripts/x.py:9` for the same file, none of them rooted at the repository,
+      so a prefix match against the declared scope finds almost nothing -- it
+      found ONE of the two real drifts before this was changed to RD-04's
+      last-segment method. The last-segment method reproduces RD-04 §1.5's
+      counts exactly (2/1/1, 4/0/1, 3/4/1, 0/0/1) and finds both.
+
+      The cost is that `scripts/` and `skill-scripts/` are the same token to it,
+      and two declared scopes ending in the same directory name cannot be told
+      apart. Neither collision exists in the eleven declared scopes today.
+    suggested_fix: >-
+      Normalise a citation against the declared scope list before counting, or
+      require a card written from RD-05 onward to cite repository-relative paths
+      and match those exactly, keeping the loose match only for sealed cards.
+    blast_radius: >-
+      The SCOPE-DRIFT report, which is OPEN-level and refuses nothing.
+    disposition: open
+  - id: RD-05-DF-05
+    found_by: "RD-05"
+    found_at_commit: "4ec3028"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      THE DEMONSTRATION TABLE RUNS THE COMPLEXITY INSTRUMENT ELEVEN TIMES ON
+      EVERY `audit`, AND THAT IS THE PRICE OF NOT CACHING IT.
+
+      R-H1's third clause re-derives the table from the tree on every run, which
+      is the property that stops an authority row going stale -- and it costs
+      ~1.1s of subprocess time per `audit`, `index` being unaffected. The
+      alternative is a cached derivation, which is exactly the staleness the
+      clause exists to prevent, so the cost is deliberate.
+
+      It also makes `audit` depend on the declared scopes EXISTING in the tree
+      it is run in. In a tree where they do not, the clause reports UNVERIFIED
+      and checks nothing rather than reporting a violation -- so a green audit in
+      such a tree says nothing about the table. Recorded so that is not read as
+      a clean result.
+    suggested_fix: >-
+      Nothing, unless `audit` becomes hot. If it does, the honest move is a
+      `--skip-architecture` flag that PRINTS that it skipped, never a cache.
+    blast_radius: "`audit` runtime, and what a green audit means in a partial tree."
+    disposition: open
