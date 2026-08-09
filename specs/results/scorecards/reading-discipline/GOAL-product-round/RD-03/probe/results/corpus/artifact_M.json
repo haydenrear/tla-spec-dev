@@ -1,0 +1,3933 @@
+{
+  "actions_with_zero_executed_cases": {
+    "corpus-neg": [],
+    "corpus-whole": [
+      "RefuseCloseAlreadyClosed",
+      "RefuseCloseOutstanding",
+      "RefuseCommitUnknown",
+      "RefuseReleaseUnknown",
+      "RefuseReserveClosed",
+      "RefuseReserveNotPositive",
+      "RefuseReserveOverQuota"
+    ],
+    "map-checking": [
+      "RefuseCloseAlreadyClosed",
+      "RefuseCloseOutstanding",
+      "RefuseCommitUnknown",
+      "RefuseReleaseUnknown",
+      "RefuseReserveClosed",
+      "RefuseReserveNotPositive",
+      "RefuseReserveOverQuota"
+    ],
+    "map-silent": [
+      "RefuseCloseAlreadyClosed",
+      "RefuseCloseOutstanding",
+      "RefuseCommitUnknown",
+      "RefuseReleaseUnknown",
+      "RefuseReserveClosed",
+      "RefuseReserveNotPositive",
+      "RefuseReserveOverQuota"
+    ]
+  },
+  "catalogues": [
+    "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/probe/catalogues/artifact_M.toml"
+  ],
+  "control_coverage": {},
+  "control_verdicts": {},
+  "controls_on_unmutated_code": {
+    "corpus-neg": {
+      "cases": 118,
+      "failures": [],
+      "mapping": "case_adapters.map-none.toml",
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 22,
+          "ran_accepting": 0,
+          "ran_refusing": 22,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 4,
+          "ran_accepting": 0,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 4,
+          "ran_accepting": 0,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 64,
+          "ran_accepting": 0,
+          "ran_refusing": 64,
+          "skipped": 24
+        }
+      },
+      "skipped_by_rule": {
+        "refused only by a constraint on `r`, which this API allocates": 24
+      },
+      "total_failed": 0,
+      "total_ran": 94,
+      "total_skipped": 24
+    },
+    "corpus-whole": {
+      "cases": 43128,
+      "failures": [],
+      "mapping": "case_adapters.map-none.toml",
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 1872,
+          "ran_accepting": 1872,
+          "ran_refusing": 0,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 784,
+          "ran_accepting": 784,
+          "ran_refusing": 0,
+          "skipped": 0
+        },
+        "RefuseCloseAlreadyClosed": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 2660
+        },
+        "RefuseCloseOutstanding": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 784
+        },
+        "RefuseCommitUnknown": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 4514
+        },
+        "RefuseReleaseUnknown": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 4514
+        },
+        "RefuseReserveClosed": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 15960
+        },
+        "RefuseReserveNotPositive": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 5276
+        },
+        "RefuseReserveOverQuota": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 5392
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 784,
+          "ran_accepting": 784,
+          "ran_refusing": 0,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 294,
+          "ran_accepting": 294,
+          "ran_refusing": 0,
+          "skipped": 294
+        }
+      },
+      "skipped_by_rule": {
+        "action has no binding in this API": 39100,
+        "model named a different free id; this API allocates the next one": 28,
+        "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+      },
+      "total_failed": 0,
+      "total_ran": 3734,
+      "total_skipped": 39394
+    },
+    "map-checking": {
+      "cases": 43128,
+      "failures": [],
+      "mapping": "case_adapters.map-checking.toml",
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 1872,
+          "ran_accepting": 1872,
+          "ran_refusing": 0,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 784,
+          "ran_accepting": 784,
+          "ran_refusing": 0,
+          "skipped": 0
+        },
+        "RefuseCloseAlreadyClosed": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 2660
+        },
+        "RefuseCloseOutstanding": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 784
+        },
+        "RefuseCommitUnknown": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 4514
+        },
+        "RefuseReleaseUnknown": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 4514
+        },
+        "RefuseReserveClosed": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 15960
+        },
+        "RefuseReserveNotPositive": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 5276
+        },
+        "RefuseReserveOverQuota": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 5392
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 784,
+          "ran_accepting": 784,
+          "ran_refusing": 0,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 294,
+          "ran_accepting": 294,
+          "ran_refusing": 0,
+          "skipped": 294
+        }
+      },
+      "skipped_by_rule": {
+        "action has no binding in this API": 39100,
+        "model named a different free id; this API allocates the next one": 28,
+        "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+      },
+      "total_failed": 0,
+      "total_ran": 3734,
+      "total_skipped": 39394
+    },
+    "map-silent": {
+      "cases": 43128,
+      "failures": [],
+      "mapping": "case_adapters.map-silent.toml",
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 1872,
+          "ran_accepting": 1872,
+          "ran_refusing": 0,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 784,
+          "ran_accepting": 784,
+          "ran_refusing": 0,
+          "skipped": 0
+        },
+        "RefuseCloseAlreadyClosed": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 2660
+        },
+        "RefuseCloseOutstanding": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 784
+        },
+        "RefuseCommitUnknown": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 4514
+        },
+        "RefuseReleaseUnknown": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 4514
+        },
+        "RefuseReserveClosed": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 15960
+        },
+        "RefuseReserveNotPositive": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 5276
+        },
+        "RefuseReserveOverQuota": {
+          "failed": 0,
+          "ran": 0,
+          "ran_accepting": 0,
+          "ran_refusing": 0,
+          "skipped": 5392
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 784,
+          "ran_accepting": 784,
+          "ran_refusing": 0,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 294,
+          "ran_accepting": 294,
+          "ran_refusing": 0,
+          "skipped": 294
+        }
+      },
+      "skipped_by_rule": {
+        "action has no binding in this API": 39100,
+        "model named a different free id; this API allocates the next one": 28,
+        "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+      },
+      "total_failed": 0,
+      "total_ran": 3734,
+      "total_skipped": 39394
+    }
+  },
+  "declared_suppression_keys": {},
+  "evidence": {
+    "FI-M15": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "corpus-whole": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 784,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-checking": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 784,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-silent": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 784,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        }
+      },
+      "why": {
+        "corpus-whole": [
+          "case_0022_commit: AssertionError: adapter after-state mismatch for case_0022_commit: committed: expected {'t1': 1, 't2': 0}, actual {'t1': 2, 't2': 0}",
+          "case_0037_commit: AssertionError: adapter after-state mismatch for case_0037_commit: committed: expected {'t1': 0, 't2': 1}, actual {'t1': 0, 't2': 2}",
+          "case_0051_commit: AssertionError: adapter after-state mismatch for case_0051_commit: committed: expected {'t1': 2, 't2': 0}, actual {'t1': 3, 't2': 0}"
+        ],
+        "map-checking": [
+          "case_0022_commit: AssertionError: adapter after-state mismatch for case_0022_commit: committed: expected {'t1': 1, 't2': 0}, actual {'t1': 2, 't2': 0}",
+          "case_0037_commit: AssertionError: adapter after-state mismatch for case_0037_commit: committed: expected {'t1': 0, 't2': 1}, actual {'t1': 0, 't2': 2}",
+          "case_0051_commit: AssertionError: adapter after-state mismatch for case_0051_commit: committed: expected {'t1': 2, 't2': 0}, actual {'t1': 3, 't2': 0}"
+        ],
+        "map-silent": [
+          "case_0022_commit: AssertionError: adapter after-state mismatch for case_0022_commit: committed: expected {'t1': 1, 't2': 0}, actual {'t1': 2, 't2': 0}",
+          "case_0037_commit: AssertionError: adapter after-state mismatch for case_0037_commit: committed: expected {'t1': 0, 't2': 1}, actual {'t1': 0, 't2': 2}",
+          "case_0051_commit: AssertionError: adapter after-state mismatch for case_0051_commit: committed: expected {'t1': 2, 't2': 0}, actual {'t1': 3, 't2': 0}"
+        ]
+      }
+    },
+    "M01": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 4,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "corpus-whole": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-checking": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-silent": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        }
+      },
+      "why": {
+        "corpus-neg": [
+          "case_0031_reserve_rejected: AssertionError: adapter output mismatch for case_0031_reserve_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r1', 't': 't1'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))",
+          "case_0032_reserve_rejected: AssertionError: adapter output mismatch for case_0032_reserve_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r2', 't': 't1'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))",
+          "case_0049_reserve_rejected: AssertionError: adapter output mismatch for case_0049_reserve_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r1', 't': 't2'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))"
+        ]
+      }
+    },
+    "M03": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 18,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "corpus-whole": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-checking": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-silent": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        }
+      },
+      "why": {
+        "corpus-neg": [
+          "case_0005_close_tenant_rejected: AssertionError: adapter output mismatch for case_0005_close_tenant_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't1'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))",
+          "case_0006_close_tenant_rejected: AssertionError: adapter output mismatch for case_0006_close_tenant_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't2'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))",
+          "case_0007_close_tenant_rejected: AssertionError: adapter output mismatch for case_0007_close_tenant_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't1'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))"
+        ]
+      }
+    },
+    "M04": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "corpus-whole": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-checking": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 784,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-silent": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        }
+      },
+      "why": {
+        "map-checking": [
+          "case_0022_commit: AssertionError: DETECTOR[provider_content_assertion] LedgerAppendPort.append wrote total=0 but the model says committed[tenant] == 1 (action='Commit', case='case_0022_commit')",
+          "case_0037_commit: AssertionError: DETECTOR[provider_content_assertion] LedgerAppendPort.append wrote total=0 but the model says committed[tenant] == 1 (action='Commit', case='case_0037_commit')",
+          "case_0051_commit: AssertionError: DETECTOR[provider_content_assertion] LedgerAppendPort.append wrote total=0 but the model says committed[tenant] == 2 (action='Commit', case='case_0051_commit')"
+        ]
+      }
+    },
+    "M05": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "corpus-whole": {
+          "CloseTenant": {
+            "failed": 990,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-checking": {
+          "CloseTenant": {
+            "failed": 990,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-silent": {
+          "CloseTenant": {
+            "failed": 990,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        }
+      },
+      "why": {
+        "corpus-whole": [
+          "case_0263_close_tenant: AssertionError: adapter after-state mismatch for case_0263_close_tenant: ledger: expected (('COMMIT', 't1', 1), ('CLOSE', 't1', 1)), actual (('COMMIT', 't1', 1), ('CLOSE', 't1', 0))",
+          "case_0415_close_tenant: AssertionError: adapter after-state mismatch for case_0415_close_tenant: ledger: expected (('COMMIT', 't2', 1), ('CLOSE', 't2', 1)), actual (('COMMIT', 't2', 1), ('CLOSE', 't2', 0))",
+          "case_0553_close_tenant: AssertionError: adapter after-state mismatch for case_0553_close_tenant: ledger: expected (('COMMIT', 't1', 2), ('CLOSE', 't1', 2)), actual (('COMMIT', 't1', 2), ('CLOSE', 't1', 0))"
+        ],
+        "map-checking": [
+          "case_0263_close_tenant: AssertionError: adapter after-state mismatch for case_0263_close_tenant: ledger: expected (('COMMIT', 't1', 1), ('CLOSE', 't1', 1)), actual (('COMMIT', 't1', 1), ('CLOSE', 't1', 0))",
+          "case_0415_close_tenant: AssertionError: adapter after-state mismatch for case_0415_close_tenant: ledger: expected (('COMMIT', 't2', 1), ('CLOSE', 't2', 1)), actual (('COMMIT', 't2', 1), ('CLOSE', 't2', 0))",
+          "case_0553_close_tenant: AssertionError: adapter after-state mismatch for case_0553_close_tenant: ledger: expected (('COMMIT', 't1', 2), ('CLOSE', 't1', 2)), actual (('COMMIT', 't1', 2), ('CLOSE', 't1', 0))"
+        ],
+        "map-silent": [
+          "case_0263_close_tenant: AssertionError: adapter after-state mismatch for case_0263_close_tenant: ledger: expected (('COMMIT', 't1', 1), ('CLOSE', 't1', 1)), actual (('COMMIT', 't1', 1), ('CLOSE', 't1', 0))",
+          "case_0415_close_tenant: AssertionError: adapter after-state mismatch for case_0415_close_tenant: ledger: expected (('COMMIT', 't2', 1), ('CLOSE', 't2', 1)), actual (('COMMIT', 't2', 1), ('CLOSE', 't2', 0))",
+          "case_0553_close_tenant: AssertionError: adapter after-state mismatch for case_0553_close_tenant: ledger: expected (('COMMIT', 't1', 2), ('CLOSE', 't1', 2)), actual (('COMMIT', 't1', 2), ('CLOSE', 't1', 0))"
+        ]
+      }
+    },
+    "M06": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "corpus-whole": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 784,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-checking": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 784,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-silent": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 784,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        }
+      },
+      "why": {
+        "corpus-whole": [
+          "case_0023_release: AssertionError: adapter after-state mismatch for case_0023_release: reason: expected 'none', actual 'unknown_reservation'; status: expected 'accepted', actual 'rejected'",
+          "case_0038_release: AssertionError: adapter after-state mismatch for case_0038_release: reason: expected 'none', actual 'unknown_reservation'; status: expected 'accepted', actual 'rejected'",
+          "case_0052_release: AssertionError: adapter after-state mismatch for case_0052_release: reason: expected 'none', actual 'unknown_reservation'; status: expected 'accepted', actual 'rejected'"
+        ],
+        "map-checking": [
+          "case_0023_release: AssertionError: adapter after-state mismatch for case_0023_release: reason: expected 'none', actual 'unknown_reservation'; status: expected 'accepted', actual 'rejected'",
+          "case_0038_release: AssertionError: adapter after-state mismatch for case_0038_release: reason: expected 'none', actual 'unknown_reservation'; status: expected 'accepted', actual 'rejected'",
+          "case_0052_release: AssertionError: adapter after-state mismatch for case_0052_release: reason: expected 'none', actual 'unknown_reservation'; status: expected 'accepted', actual 'rejected'"
+        ],
+        "map-silent": [
+          "case_0023_release: AssertionError: adapter after-state mismatch for case_0023_release: reason: expected 'none', actual 'unknown_reservation'; status: expected 'accepted', actual 'rejected'",
+          "case_0038_release: AssertionError: adapter after-state mismatch for case_0038_release: reason: expected 'none', actual 'unknown_reservation'; status: expected 'accepted', actual 'rejected'",
+          "case_0052_release: AssertionError: adapter after-state mismatch for case_0052_release: reason: expected 'none', actual 'unknown_reservation'; status: expected 'accepted', actual 'rejected'"
+        ]
+      }
+    },
+    "M07": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "corpus-whole": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 294,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-checking": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 294,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-silent": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 294,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        }
+      },
+      "why": {
+        "corpus-whole": [
+          "case_0001_reserve: AssertionError: adapter after-state mismatch for case_0001_reserve: available: expected {'t1': 1, 't2': 2}, actual {'t1': 0, 't2': 2}",
+          "case_0002_reserve: AssertionError: adapter after-state mismatch for case_0002_reserve: available: expected {'t1': 2, 't2': 1}, actual {'t1': 2, 't2': 0}",
+          "case_0003_reserve: AssertionError: adapter after-state mismatch for case_0003_reserve: available: expected {'t1': 0, 't2': 2}, actual {'t1': -1, 't2': 2}"
+        ],
+        "map-checking": [
+          "case_0001_reserve: AssertionError: adapter after-state mismatch for case_0001_reserve: available: expected {'t1': 1, 't2': 2}, actual {'t1': 0, 't2': 2}",
+          "case_0002_reserve: AssertionError: adapter after-state mismatch for case_0002_reserve: available: expected {'t1': 2, 't2': 1}, actual {'t1': 2, 't2': 0}",
+          "case_0003_reserve: AssertionError: adapter after-state mismatch for case_0003_reserve: available: expected {'t1': 0, 't2': 2}, actual {'t1': -1, 't2': 2}"
+        ],
+        "map-silent": [
+          "case_0001_reserve: AssertionError: adapter after-state mismatch for case_0001_reserve: available: expected {'t1': 1, 't2': 2}, actual {'t1': 0, 't2': 2}",
+          "case_0002_reserve: AssertionError: adapter after-state mismatch for case_0002_reserve: available: expected {'t1': 2, 't2': 1}, actual {'t1': 2, 't2': 0}",
+          "case_0003_reserve: AssertionError: adapter after-state mismatch for case_0003_reserve: available: expected {'t1': 0, 't2': 2}, actual {'t1': -1, 't2': 2}"
+        ]
+      }
+    },
+    "M08": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "corpus-whole": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 784,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-checking": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 784,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-silent": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 784,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        }
+      },
+      "why": {
+        "corpus-whole": [
+          "case_0022_commit: AssertionError: adapter after-state mismatch for case_0022_commit: available: expected {'t1': 1, 't2': 2}, actual {'t1': 2, 't2': 2}",
+          "case_0037_commit: AssertionError: adapter after-state mismatch for case_0037_commit: available: expected {'t1': 2, 't2': 1}, actual {'t1': 2, 't2': 2}",
+          "case_0051_commit: AssertionError: adapter after-state mismatch for case_0051_commit: available: expected {'t1': 0, 't2': 2}, actual {'t1': 2, 't2': 2}"
+        ],
+        "map-checking": [
+          "case_0022_commit: AssertionError: adapter after-state mismatch for case_0022_commit: available: expected {'t1': 1, 't2': 2}, actual {'t1': 2, 't2': 2}",
+          "case_0037_commit: AssertionError: adapter after-state mismatch for case_0037_commit: available: expected {'t1': 2, 't2': 1}, actual {'t1': 2, 't2': 2}",
+          "case_0051_commit: AssertionError: adapter after-state mismatch for case_0051_commit: available: expected {'t1': 0, 't2': 2}, actual {'t1': 2, 't2': 2}"
+        ],
+        "map-silent": [
+          "case_0022_commit: AssertionError: adapter after-state mismatch for case_0022_commit: available: expected {'t1': 1, 't2': 2}, actual {'t1': 2, 't2': 2}",
+          "case_0037_commit: AssertionError: adapter after-state mismatch for case_0037_commit: available: expected {'t1': 2, 't2': 1}, actual {'t1': 2, 't2': 2}",
+          "case_0051_commit: AssertionError: adapter after-state mismatch for case_0051_commit: available: expected {'t1': 0, 't2': 2}, actual {'t1': 2, 't2': 2}"
+        ]
+      }
+    },
+    "M09": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "corpus-whole": {
+          "CloseTenant": {
+            "failed": 1514,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 484,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-checking": {
+          "CloseTenant": {
+            "failed": 1514,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 484,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-silent": {
+          "CloseTenant": {
+            "failed": 1514,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 484,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        }
+      },
+      "why": {
+        "corpus-whole": [
+          "case_0147_close_tenant: AssertionError: adapter after-state mismatch for case_0147_close_tenant: ledger: expected (('CLOSE', 't1', 0), ('CLOSE', 't2', 0)), actual (('CLOSE', 't2', 0), ('CLOSE', 't1', 0))",
+          "case_0165_close_tenant: AssertionError: adapter after-state mismatch for case_0165_close_tenant: ledger: expected (('CLOSE', 't2', 0), ('CLOSE', 't1', 0)), actual (('CLOSE', 't1', 0), ('CLOSE', 't2', 0))",
+          "case_0263_close_tenant: AssertionError: adapter after-state mismatch for case_0263_close_tenant: ledger: expected (('COMMIT', 't1', 1), ('CLOSE', 't1', 1)), actual (('CLOSE', 't1', 1), ('COMMIT', 't1', 1))"
+        ],
+        "map-checking": [
+          "case_0147_close_tenant: AssertionError: adapter after-state mismatch for case_0147_close_tenant: ledger: expected (('CLOSE', 't1', 0), ('CLOSE', 't2', 0)), actual (('CLOSE', 't2', 0), ('CLOSE', 't1', 0))",
+          "case_0165_close_tenant: AssertionError: adapter after-state mismatch for case_0165_close_tenant: ledger: expected (('CLOSE', 't2', 0), ('CLOSE', 't1', 0)), actual (('CLOSE', 't1', 0), ('CLOSE', 't2', 0))",
+          "case_0263_close_tenant: AssertionError: adapter after-state mismatch for case_0263_close_tenant: ledger: expected (('COMMIT', 't1', 1), ('CLOSE', 't1', 1)), actual (('CLOSE', 't1', 1), ('COMMIT', 't1', 1))"
+        ],
+        "map-silent": [
+          "case_0147_close_tenant: AssertionError: adapter after-state mismatch for case_0147_close_tenant: ledger: expected (('CLOSE', 't1', 0), ('CLOSE', 't2', 0)), actual (('CLOSE', 't2', 0), ('CLOSE', 't1', 0))",
+          "case_0165_close_tenant: AssertionError: adapter after-state mismatch for case_0165_close_tenant: ledger: expected (('CLOSE', 't2', 0), ('CLOSE', 't1', 0)), actual (('CLOSE', 't1', 0), ('CLOSE', 't2', 0))",
+          "case_0263_close_tenant: AssertionError: adapter after-state mismatch for case_0263_close_tenant: ledger: expected (('COMMIT', 't1', 1), ('CLOSE', 't1', 1)), actual (('CLOSE', 't1', 1), ('COMMIT', 't1', 1))"
+        ]
+      }
+    },
+    "M10": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "corpus-whole": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 784,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-checking": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 784,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-silent": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 784,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        }
+      },
+      "why": {
+        "corpus-whole": [
+          "case_0023_release: AssertionError: adapter after-state mismatch for case_0023_release: available: expected {'t1': 2, 't2': 2}, actual {'t1': 3, 't2': 2}",
+          "case_0038_release: AssertionError: adapter after-state mismatch for case_0038_release: available: expected {'t1': 2, 't2': 2}, actual {'t1': 2, 't2': 3}",
+          "case_0052_release: AssertionError: adapter after-state mismatch for case_0052_release: available: expected {'t1': 2, 't2': 2}, actual {'t1': 4, 't2': 2}"
+        ],
+        "map-checking": [
+          "case_0023_release: AssertionError: adapter after-state mismatch for case_0023_release: available: expected {'t1': 2, 't2': 2}, actual {'t1': 3, 't2': 2}",
+          "case_0038_release: AssertionError: adapter after-state mismatch for case_0038_release: available: expected {'t1': 2, 't2': 2}, actual {'t1': 2, 't2': 3}",
+          "case_0052_release: AssertionError: adapter after-state mismatch for case_0052_release: available: expected {'t1': 2, 't2': 2}, actual {'t1': 4, 't2': 2}"
+        ],
+        "map-silent": [
+          "case_0023_release: AssertionError: adapter after-state mismatch for case_0023_release: available: expected {'t1': 2, 't2': 2}, actual {'t1': 3, 't2': 2}",
+          "case_0038_release: AssertionError: adapter after-state mismatch for case_0038_release: available: expected {'t1': 2, 't2': 2}, actual {'t1': 2, 't2': 3}",
+          "case_0052_release: AssertionError: adapter after-state mismatch for case_0052_release: available: expected {'t1': 2, 't2': 2}, actual {'t1': 4, 't2': 2}"
+        ]
+      }
+    },
+    "PA-M11": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 14,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 2,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 2,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 50,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "corpus-whole": {
+          "CloseTenant": {
+            "failed": 1872,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 404,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 404,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 144,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-checking": {
+          "CloseTenant": {
+            "failed": 1872,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 404,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 404,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 144,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-silent": {
+          "CloseTenant": {
+            "failed": 1872,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 404,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 404,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 144,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        }
+      },
+      "why": {
+        "corpus-neg": [
+          "case_0001_close_tenant_rejected: AssertionError: adapter after-state mismatch for case_0001_close_tenant_rejected: ledger: expected (('COMMIT', 't1', 2), ('CLOSE', 't2', 0)), actual (('COMMIT', 't1', 2),)",
+          "case_0002_close_tenant_rejected: AssertionError: adapter after-state mismatch for case_0002_close_tenant_rejected: ledger: expected (('CLOSE', 't1', 0),), actual ()",
+          "case_0003_close_tenant_rejected: AssertionError: adapter after-state mismatch for case_0003_close_tenant_rejected: ledger: expected (('COMMIT', 't2', 1), ('CLOSE', 't2', 1), ('CLOSE', 't1', 0)), actual (('COMMIT', 't2', 1),)"
+        ],
+        "corpus-whole": [
+          "case_0009_close_tenant: AssertionError: adapter after-state mismatch for case_0009_close_tenant: ledger: expected (('CLOSE', 't1', 0),), actual ()",
+          "case_0010_close_tenant: AssertionError: adapter after-state mismatch for case_0010_close_tenant: ledger: expected (('CLOSE', 't2', 0),), actual ()",
+          "case_0024_close_tenant: AssertionError: adapter after-state mismatch for case_0024_close_tenant: ledger: expected (('CLOSE', 't2', 0),), actual ()"
+        ],
+        "map-checking": [
+          "case_0009_close_tenant: AssertionError: adapter after-state mismatch for case_0009_close_tenant: ledger: expected (('CLOSE', 't1', 0),), actual ()",
+          "case_0010_close_tenant: AssertionError: adapter after-state mismatch for case_0010_close_tenant: ledger: expected (('CLOSE', 't2', 0),), actual ()",
+          "case_0024_close_tenant: AssertionError: adapter after-state mismatch for case_0024_close_tenant: ledger: expected (('CLOSE', 't2', 0),), actual ()"
+        ],
+        "map-silent": [
+          "case_0009_close_tenant: AssertionError: adapter after-state mismatch for case_0009_close_tenant: ledger: expected (('CLOSE', 't1', 0),), actual ()",
+          "case_0010_close_tenant: AssertionError: adapter after-state mismatch for case_0010_close_tenant: ledger: expected (('CLOSE', 't2', 0),), actual ()",
+          "case_0024_close_tenant: AssertionError: adapter after-state mismatch for case_0024_close_tenant: ledger: expected (('CLOSE', 't2', 0),), actual ()"
+        ]
+      }
+    },
+    "PA-M14": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-neg": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 22,
+            "ran_accepting": 0,
+            "ran_refusing": 22,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 4,
+            "ran_accepting": 0,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 64,
+            "ran_accepting": 0,
+            "ran_refusing": 64,
+            "skipped": 24
+          }
+        },
+        "corpus-whole": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 294,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-checking": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 294,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        },
+        "map-silent": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 1872,
+            "ran_accepting": 1872,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "RefuseCloseAlreadyClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 2660
+          },
+          "RefuseCloseOutstanding": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 784
+          },
+          "RefuseCommitUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReleaseUnknown": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 4514
+          },
+          "RefuseReserveClosed": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 15960
+          },
+          "RefuseReserveNotPositive": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5276
+          },
+          "RefuseReserveOverQuota": {
+            "failed": 0,
+            "ran": 0,
+            "ran_accepting": 0,
+            "ran_refusing": 0,
+            "skipped": 5392
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 784,
+            "ran_accepting": 784,
+            "ran_refusing": 0,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 294,
+            "ran": 294,
+            "ran_accepting": 294,
+            "ran_refusing": 0,
+            "skipped": 294
+          }
+        }
+      },
+      "why": {
+        "corpus-whole": [
+          "case_0001_reserve: AssertionError: adapter after-state mismatch for case_0001_reserve: amt: expected {'r1': 1, 'r2': 0}, actual {'r1': 2, 'r2': 0}",
+          "case_0002_reserve: AssertionError: adapter after-state mismatch for case_0002_reserve: amt: expected {'r1': 1, 'r2': 0}, actual {'r1': 2, 'r2': 0}",
+          "case_0003_reserve: AssertionError: adapter after-state mismatch for case_0003_reserve: amt: expected {'r1': 2, 'r2': 0}, actual {'r1': 3, 'r2': 0}"
+        ],
+        "map-checking": [
+          "case_0001_reserve: AssertionError: adapter after-state mismatch for case_0001_reserve: amt: expected {'r1': 1, 'r2': 0}, actual {'r1': 2, 'r2': 0}",
+          "case_0002_reserve: AssertionError: adapter after-state mismatch for case_0002_reserve: amt: expected {'r1': 1, 'r2': 0}, actual {'r1': 2, 'r2': 0}",
+          "case_0003_reserve: AssertionError: adapter after-state mismatch for case_0003_reserve: amt: expected {'r1': 2, 'r2': 0}, actual {'r1': 3, 'r2': 0}"
+        ],
+        "map-silent": [
+          "case_0001_reserve: AssertionError: adapter after-state mismatch for case_0001_reserve: amt: expected {'r1': 1, 'r2': 0}, actual {'r1': 2, 'r2': 0}",
+          "case_0002_reserve: AssertionError: adapter after-state mismatch for case_0002_reserve: amt: expected {'r1': 1, 'r2': 0}, actual {'r1': 2, 'r2': 0}",
+          "case_0003_reserve: AssertionError: adapter after-state mismatch for case_0003_reserve: amt: expected {'r1': 2, 'r2': 0}, actual {'r1': 3, 'r2': 0}"
+        ]
+      }
+    }
+  },
+  "instruments": [
+    "corpus-whole",
+    "corpus-neg",
+    "map-silent",
+    "map-checking"
+  ],
+  "label": "RD03-artifact_M",
+  "limitations_contradicted_by_evidence": [],
+  "limitations_rejected": [],
+  "mutants": 12,
+  "per_class": {
+    "adapter_internal": {
+      "corpus-neg": "1 of 1",
+      "corpus-whole": "1 of 1",
+      "map-checking": "1 of 1",
+      "map-silent": "1 of 1"
+    },
+    "cross_aspect": {
+      "corpus-neg": "0 of 1",
+      "corpus-whole": "1 of 1",
+      "map-checking": "1 of 1",
+      "map-silent": "1 of 1"
+    },
+    "durable_content": {
+      "corpus-neg": "0 of 2",
+      "corpus-whole": "1 of 2",
+      "map-checking": "2 of 2",
+      "map-silent": "1 of 2"
+    },
+    "guard_relaxation": {
+      "corpus-neg": "2 of 2",
+      "corpus-whole": "0 of 2",
+      "map-checking": "0 of 2",
+      "map-silent": "0 of 2"
+    },
+    "ordering": {
+      "corpus-neg": "0 of 1",
+      "corpus-whole": "1 of 1",
+      "map-checking": "1 of 1",
+      "map-silent": "1 of 1"
+    },
+    "output_oracle": {
+      "corpus-neg": "0 of 1",
+      "corpus-whole": "1 of 1",
+      "map-checking": "1 of 1",
+      "map-silent": "1 of 1"
+    },
+    "wrong_value": {
+      "corpus-neg": "0 of 4",
+      "corpus-whole": "4 of 4",
+      "map-checking": "4 of 4",
+      "map-silent": "4 of 4"
+    }
+  },
+  "per_mutant": {
+    "FI-M15": {
+      "corpus-neg": "SURVIVED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED"
+    },
+    "M01": {
+      "corpus-neg": "KILLED",
+      "corpus-whole": "SURVIVED",
+      "map-checking": "SURVIVED",
+      "map-silent": "SURVIVED"
+    },
+    "M03": {
+      "corpus-neg": "KILLED",
+      "corpus-whole": "SURVIVED",
+      "map-checking": "SURVIVED",
+      "map-silent": "SURVIVED"
+    },
+    "M04": {
+      "corpus-neg": "SURVIVED",
+      "corpus-whole": "SURVIVED",
+      "map-checking": "KILLED",
+      "map-silent": "SURVIVED"
+    },
+    "M05": {
+      "corpus-neg": "SURVIVED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED"
+    },
+    "M06": {
+      "corpus-neg": "SURVIVED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED"
+    },
+    "M07": {
+      "corpus-neg": "SURVIVED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED"
+    },
+    "M08": {
+      "corpus-neg": "SURVIVED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED"
+    },
+    "M09": {
+      "corpus-neg": "SURVIVED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED"
+    },
+    "M10": {
+      "corpus-neg": "SURVIVED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED"
+    },
+    "PA-M11": {
+      "corpus-neg": "KILLED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED"
+    },
+    "PA-M14": {
+      "corpus-neg": "SURVIVED",
+      "corpus-whole": "KILLED",
+      "map-checking": "KILLED",
+      "map-silent": "KILLED"
+    }
+  },
+  "reality_witnesses": {},
+  "retired_controls": {},
+  "tree": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/probe/trees/artifact_M"
+}

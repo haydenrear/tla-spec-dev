@@ -1,0 +1,43 @@
+[effect-mapping] NO DURABLE-WRITE ORACLE: LedgerAppendPort (kind: durable_write) is bound to the SILENT provider quota_ledger_effects.effect_providers:SilentLedgerAppendPortProvider under mapping /Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-03/specs/results/scorecards/hexagonal-prompting/measure/case_adapters.map-silent.toml. Nothing compares what crossed this port against the model, so kills counted under this mapping are a FLOOR, not a total, and a green run over-reads.
+[effect-mapping] DURABLE-WRITE ORACLE ACTIVE: LedgerAppendPort (kind: durable_write) is bound to quota_ledger_effects.effect_providers:ContentAssertingLedgerAppendPortProvider under mapping /Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-03/specs/results/scorecards/hexagonal-prompting/measure/case_adapters.map-checking.toml, asserting 1 content field(s) against the modeled after-state: append.total == committed[tenant]
+{
+  "actions_with_zero_executed_cases": {
+    "corpus-neg": [],
+    "corpus-whole": [
+      "RefuseCloseAlreadyClosed",
+      "RefuseCloseOutstanding",
+      "RefuseCommitUnknown",
+      "RefuseReleaseUnknown",
+      "RefuseReserveClosed",
+      "RefuseReserveNotPositive",
+      "RefuseReserveOverQuota"
+    ],
+    "map-checking": [
+      "RefuseCloseAlreadyClosed",
+      "RefuseCloseOutstanding",
+      "RefuseCommitUnknown",
+      "RefuseReleaseUnknown",
+      "RefuseReserveClosed",
+      "RefuseReserveNotPositive",
+      "RefuseReserveOverQuota"
+    ],
+    "map-silent": [
+      "RefuseCloseAlreadyClosed",
+      "RefuseCloseOutstanding",
+      "RefuseCommitUnknown",
+      "RefuseReleaseUnknown",
+      "RefuseReserveClosed",
+      "RefuseReserveNotPositive",
+      "RefuseReserveOverQuota"
+    ]
+  },
+  "control_coverage": {},
+  "control_verdicts": {},
+  "controls_red": [],
+  "declared_suppression_keys": {},
+  "label": "RD03-artifact_Z",
+  "limitations_contradicted_by_evidence": [],
+  "limitations_rejected": [],
+  "out": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/probe/out/corpus/artifact_Z.json",
+  "polarities_with_no_deciding_control": []
+}

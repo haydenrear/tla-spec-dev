@@ -1,5 +1,201 @@
 # next epic — starter for the next epic owner
 
+> **AMENDED AFTER `RD-03`, the `reading-discipline` evaluation (2026-08-09).**
+> Everything below still describes how each earlier result was measured and none
+> of it is edited. What RD-03 adds is at the very top, in section 0-AAAAAA,
+> because it is **the first round in this family that pointed the instruments at
+> the software** and because two of the things it found retire figures the
+> sections below still rest on. Full record:
+> `specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/RESULT.md`.
+
+---
+
+## 0-AAAAAA. READ BEFORE EVERYTHING — what RD-03 measured
+
+### 1. THE D2 CONSTANT IS DEAD, AND IT DIED FOR THE REASON SM-05 PREDICTED
+
+`D2 = 2` held on **35 of 35** cards ever written about `ab_quota_ledger`. It was
+the figure `subtract-to-measure` was opened on, and SM-05 correctly diagnosed why:
+**anchor 3 requires a measured simplification and a greenfield artifact has no
+before.** RD-06 built three before/after pairs. RD-03 scored them with twelve
+blind judges at two tiers.
+
+| pair | `code_lines` before → after | D2 on the after tree |
+|---|---|---|
+| `Z` → `M` | 158 → **156** | **4, 4, 3, 3** |
+| `N` → `D` | 283 → **280** | **3, 4, 3, 3** |
+| `E` → `F` | 163 → **163** | **2, 2, 2, 2** |
+| the three greenfield before-trees | — | **2, on 12 of 12 cards** |
+
+**Eight judges saw a code change and eight awarded anchor 3. Four saw none and
+four refused it. NOT ONE SPLIT ON THE SIZE OF THE DELTA.** The round was designed
+to ask whether a two-line delta is a simplification; the judges did not find that
+to be the question. They went to the diff and decided on what it *removed* — in
+both cleared pairs, **a second stored representation of a fact the program
+already held**, hand-maintained at three write sites and read at one.
+
+**The lever is the REVISION PASS, not the prompt.** D2 is flat at 2 across
+`arm_a`, `arm_b` and `arm_c` greenfield trees whose prompts differ by 91–111
+distinct lines. Asking for architecture moved D2 by nothing. Asking for a second
+pass moved it on two subjects of three.
+
+### 2. THE COMPLEXITY INSTRUMENT CANNOT SEE THE ONLY SIMPLIFICATION MEASURED
+
+Eight judges reported this independently, unprompted, on their own cards.
+
+On `Z` → `M`, **nineteen of twenty-one measured axes are byte-identical** —
+including `instance_state`, the one axis whose name describes exactly what was
+removed, because it counts `self.*` attributes and **does not count dataclass
+fields**. On `N` → `D`, `branch_points` moves the **wrong way**, 26 → 27.
+
+**Scored on the descriptor alone, the answer is that no simplification occurred
+on either pair.** `RD-03-DF-08`. Do NOT repair this by adding an axis that makes
+these revisions score better — that is `MF-020` in its purest form. If an axis is
+added it ships with a seeded case where it moves the wrong way.
+
+### 3. D2 SPLIT BY JUDGE TIER — THE DIMENSION THE CARD SAYS HOLDS STILL
+
+`opus` [4, 4] against `sonnet` [3, 3] on `artifact_M`, **disjoint**.
+
+`RD-01` §6 records the three known tier splits and says *"D2 is not on this
+list"*. `references/eval_scorecard.md`'s own reading rule calls D2 and D3 *"the
+dimensions that have held still on unchanged input"* and advises resting a
+cross-epic claim on them. **`ports-as-adapters` rests its headline on that
+advice.**
+
+**The mechanism is not about complexity.** D2's anchor 4 gates on D4 ≥ 3; D4's
+anchor 3 gates on the check being *"model-derived (a corpus, a TLC invariant)"*.
+Both `opus` judges counted a generated random walk as a corpus and reached D4 = 4.
+Both `sonnet` judges read the clause strictly, found no model, and capped D4 at 2.
+**The same disjoint D4 split appears on four subjects.** The D2 split is
+downstream of it. `RD-03-DF-14`.
+
+**The repair the next epic should consider is to D4's anchor 3, not to D2:** one
+parenthetical is being read as a definition by one tier and as an illustration by
+the other. Do not fix it by deleting the parenthetical.
+
+### 4. `ab_quota_ledger` CANNOT ANSWER THE BUG-DETECTION QUESTION, AND FOUR ROUNDS COMPARED D1 ON IT ANYWAY
+
+Ten of twelve judges reported independently that **no model exists anywhere in
+any of the six trees** — no TLA+, no generated corpus, no strategy. D1's anchor 4
+and D4's anchor 3 both gate on model-derivation, so **D1 is structurally capped
+at 3 and D4 at 2 for every arm of this example**, whatever the code does. D1 came
+back 3 on 24 of 24 cards this round.
+
+**The ceiling has never been stated in any round that compared D1 across this
+example's arms.** `RD-03-DF-11`. Either state it wherever this example's D1 is
+compared, or give the example a model-derived instrument so the anchor is
+reachable. Until one of those happens, *"do model-derived cases catch bugs
+hand-written tests miss"* is **not answerable on this fixture** and should stop
+being asked of it.
+
+### 5. THE SWEEP COUNT IS A JOINT PROPERTY OF THE RECORD AND THE CARD POPULATION
+
+Filling this round's 24 cards moved **22 figures from `COUNT-MOVED`/`HOLDS` to
+`REFUTED` without one character of any swept document changing.**
+
+| sweep | counted | REFUTED | COUNT-MOVED | HOLDS | UNREACHABLE |
+|---|---|---|---|---|---|
+| RD-01 | 44 | 19 | 11 | 6 | 8 |
+| RD-04's reconciled tip | 58 | 26 | 11 | 9 | 12 |
+| RD-03 before the cards were filled | 62 | 27 | 11 | 11 | 13 |
+| **RD-03 after** | **67** | **53** | **0** | **0** | **14** |
+
+The casualty is **RD-01's own control**: it rested the instrument's validity on
+the correctly-scoped twin surviving where the unscoped one did not. Every
+correctly-scoped `D2 = 2 on N of N cards of ab_quota_ledger` is now refuted too.
+The control did not fail — the world moved under it. **A published sweep count
+must carry the card population it was taken at**, exactly as a card carries its
+commit. `RD-03-DF-11`.
+
+### 6. THE THREE INSTRUMENT BOUNDS, WHICH EVERY FUTURE SWEEP MUST CARRY
+
+1. **`RD-02-DF-01`** — keyed on `\bD[1-5]\b`. A counted figure that names its
+   dimension in words is **invisible**: not refused, not `UNREACHABLE`. Moves the
+   count **down** by an unmeasured amount.
+2. **`RD-04-DF-01`** — the ≤3-word qualifier window. A **true** figure whose
+   narrowing qualifier lands outside it is `REFUTED`. Moves the count **up**.
+   **Two of the four refusals against RD-03's own report are this**, on figures
+   that are true at the scope they meant.
+3. **`RD-05` §7.1** — the checker cannot tell a claim from a **mention** of a
+   claim. Every round that reports the false figure in order to call it false is
+   refuted for doing so.
+
+### 7. THE `opus`-ONLY LIMIT ON THE ARCHITECTURE TAG IS CLOSED — AND READ THE BOUND
+
+`RD-04-DF-03` was the axis's binding limit through three tickets: the D3
+separation was demonstrated in `opus` and **never measured in `sonnet` on a
+`ports-and-adapters` subject, n = 0**. This round measured it.
+`tags` now prints `tiers_measured=['opus', 'sonnet']` and the separation is
+disjoint inside each tier alone.
+
+**The bound, because this is the one result that flatters the apparatus:** the
+`sonnet` `ports-and-adapters` population is **four cards over two trees, one of
+which is a byte-identical copy of the other** — effectively one tree scored twice.
+`n = 0` became `n = 1 tree`. That is a real move off zero and it is not a
+measured population.
+
+**And the same-tag control now fires nine times**, eight of them on D2, every one
+a before-tree scoring disjointly from an after-tree at the same derived value.
+**The control cannot distinguish "different architecture" from "different
+treatment"**, and this round is the first time it has had a within-value
+treatment difference to see. `RD-03-DF-12`.
+
+### 8. SEVEN PRODUCT-SURFACE FINDINGS, AGAINST ZERO IN EACH OF THE LAST TWO EPICS
+
+100 of 108 findings in this family before today touched only the apparatus. This
+round filed 17, of which **7 are defects in produced code or in the shared
+fixture**. The two worth carrying forward by name:
+
+- **`RD-03-DF-01` — a produced artifact ships an evidence harness that certifies
+  a clean it cannot support.** `mutation_check.py` decides "caught" with
+  `return done.returncode != 0`, so an interpreter without `pytest` makes every
+  mutant read `caught` and the script prints **"No survivors."** The true table
+  has one survivor. `verified: true, green: true, exit 0` — written again, by an
+  agent, in this epic's own subjects, and caught only because a judge ran it.
+- **`RD-03-DF-02` — the shared behavioural contract is blind to a refusal class.**
+  It reports **28 passed** under a real cross-tenant close-guard bug that the
+  tree's own tests catch three ways. Every round in this family calls 28/28
+  *"the floor"*. The floor is lower than it reads, by a class rather than a case.
+  **Do not quietly extend it**: that silently re-bases every published "28
+  passed" and makes the old and new figures look like one series.
+
+### 9. WHAT THE NEXT EPIC SHOULD NOT DO
+
+- **Do not run a fourth apparatus evaluation.** This one found real product
+  defects the moment it was pointed at code, and it found them with instruments
+  that already existed.
+- **Do not average D2 across the six RD-06 subjects.** It gives 2.4 and means
+  nothing. `R-H2`.
+- **Do not treat "the prompt improves D3" as this round's finding.** It
+  replicated and is reported as a replication; the new results are §1 and §3.
+- **Do not report a per-token finding ratio without naming the token basis.**
+  `SM-05`'s `0.60` does not record one, so no round can be compared to it without
+  assuming one. `RD-03-DF-13`.
+- **Do not normalise a judge's card to satisfy a checker.** `check
+  --require-filled` reports 180 problems against this round's 24 cards, **all one
+  cause and none substantive**: twelve independent judges all wrote annotated
+  citations and the grammar accepts only bare `file:line`. Twelve of twelve is
+  not twelve mistakes. `RD-03-DF-17`.
+
+### 10. THE STANDING RULE, AND WHETHER THIS ROUND MET IT
+
+*An epic that closes with only good news about itself has not been measured.*
+
+**Four of fourteen sealed predictions were falsified**, including one that was
+wrong **in the round's favour** — I predicted the product answers would be thin
+and one of them came back clean and unanimous. That is the one to be most
+suspicious of, and it rests on two pairs of one example in one round.
+
+**And the round's own conduct produced a finding about itself.** I read
+`score_tools.py tags` once while judges were still filling cards, recorded a D3
+control failure from a partial population, and it **was never true of the
+complete one**. It is reported in `RESULT.md` §1.5 rather than dropped: an
+instrument read over a moving population gives an answer about the population it
+was read over, which is this epic's own subject applied to its own operator.
+
+---
+
 > **AMENDED AFTER `SM-05`, the `subtract-to-measure` evaluation (2026-08-07).**
 > Everything below still describes how each earlier result was measured and none
 > of it is edited. What SM-05 adds is at the very top, in section 0-AAAAA,

@@ -85,9 +85,27 @@ justification: ""
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
+  searched: true
+  outcome: "none"
+  detail: >-
+    SEARCHED, FOUND NONE, AND THE REASON IS THE TICKET'S ROLE. RD-03 is
+    `role: evaluation` with `model_delta_expectation: none expected` and
+    `desired_actions: []`. It adds no action, no variable and no state to any
+    TLA+ model; its `implementation_scope` is `specs/results/scorecards/` and
+    `NEXT-EPIC.md`. The whole-program model is byte-unchanged between the branch
+    point `8f3741f` and this tip -- `git diff 8f3741f..HEAD -- specs/program_model
+    specs/tickets/RD-03/desired` is empty apart from the workflow scaffold
+    `start_ticket.py` wrote. There is no representation to refine because none
+    was added.
+
+    A refinement recommendation WAS available and was refused rather than
+    unfound: this round measured that the complexity descriptor cannot see the
+    only simplification it scored (`RD-03-DF-08`, eight independent judges), and
+    the obvious move is to add an axis for stored-versus-derived duplication.
+    Refused as `MF-020` in its purest form -- adding an axis so that this round's
+    subjects score better is tuning the thermometer to the result. Filed for the
+    owner instead, with the condition that any such axis ships with a seeded case
+    where it moves the WRONG way.
   measured: false      # true only if a real TLC run produced the figure
   applied: false       # if true, approved_by is required
   approved_by: ""
@@ -99,4 +117,39 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: >-
+  specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/RESULT.md
+
+  RD-03 is the EVALUATION ticket closing `reading-discipline`. It decides all
+  four epic goals and it changes no program behaviour: 17 findings filed, ZERO
+  fixed, no artifact tree touched, and the one suite failure the round caused
+  left red rather than repaired.
+
+  WHAT WAS MEASURED. Twelve blind judges at two model tiers scored RD-06's six
+  subjects as three before/after pairs, 24 cards. D2 anchor 3 became reachable on
+  the product side for the first time: eight judges saw a code change and eight
+  awarded it; four saw none and four refused it; NOT ONE split on the size of the
+  delta. `D2 = 2`, constant on 35 of 35 cards of `ab_quota_ledger` and the figure
+  an entire predecessor epic was opened on, is retired -- not because the card
+  changed (the served rubric digest is byte-identical) but because a subject was
+  finally given a before.
+
+  WHAT IT COST TO BELIEVE. Eight judges independently reported that the
+  complexity descriptor cannot see what they scored (19 of 21 axes byte-identical
+  on one pair; `branch_points` moving the wrong way on the other). D2 split by
+  judge tier for the first time in the record, downstream of a D4 split that is a
+  disagreement about what "model-derived" means. The sweep count moved 22 figures
+  to REFUTED without a document changing, because the card population grew.
+
+  THE FOUR GOALS: `GOAL-product-round` decided with three verdicts and a reason
+  each (Q1 NOT ANSWERABLE on this fixture and now measured to be so; Q2 NO for
+  the prompt, YES for the revision pass; Q3 YES, on instrument reach rather than
+  code quality). `GOAL-scope-loss-catchable` MET, reported with all three known
+  bounds on its instrument. `GOAL-tags-earn-their-place` MET on deletion and not
+  on admission, with the `opus`-only limit now CLOSED and the closure's own bound
+  stated. `GOAL-apparatus-priced` CONFIRMED LOAD-BEARING on re-run evidence, with
+  the pricing instrument shown entailed at 0 of 10.
+
+  7 of the 17 findings are PRODUCT SURFACE, against zero in each of the last two
+  epics. Full reasoning, every rejection, and the sealed predictions scored
+  (4 of 14 falsified) are in the RESULT.md named above.
