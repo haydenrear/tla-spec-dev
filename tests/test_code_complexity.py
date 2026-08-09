@@ -597,7 +597,12 @@ def observing_uses(source: str) -> list[tuple[int, str]]:
 
 
 def _scannable_files(root: Path) -> list[Path]:
-    skip = {"__pycache__", ".git", "build", "node_modules", ".history"}
+    # Per-checkout AGENT HOMES that `wt new` creates and .gitignore excludes.
+    # They contain an installed copy of this instrument, so scanning them made
+    # this tripwire red in every ticket worktree and clean in an archive of the
+    # same commit (RD-01-DF-02). They are not this repository.
+    skip = {"__pycache__", ".git", "build", "node_modules", ".history",
+            ".skill-manager", ".claude", ".codex", ".gemini"}
     out = []
     for path in root.rglob("*"):
         if not path.is_file() or path.resolve() == SCRIPT.resolve():
