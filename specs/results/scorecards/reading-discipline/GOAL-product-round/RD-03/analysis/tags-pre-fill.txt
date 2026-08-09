@@ -1,0 +1,79 @@
+# effect_boundary -- derived over 17 declared scope(s)
+# state_colocation threshold = 0.5 (RD-04 §9.2: CHOSEN, NOT MEASURED -- `RD-04-DF-04`)
+
+arm_a                    derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=1/1 state_coloc=1.0
+arm_b                    derived=ports-and-adapters                 declared=ports-and-adapters   agree
+                           iface=1 eff_mods=1/4 state_coloc=0.125
+arm_c                    derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=1/1 state_coloc=1.0
+ex1_scaffold_only        derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=1/1 state_coloc=None
+ex3_over_complex         derived=UNDERIVABLE:no-effect-surface      declared=effectful            UNDERIVABLE
+                           iface=0 eff_mods=0/1 state_coloc=None
+ex4_pipeline_coherent    derived=ports-and-adapters                 declared=ports-and-adapters   agree
+                           iface=1 eff_mods=1/21 state_coloc=0.1
+ex5_pipeline_divergent   derived=UNDERIVABLE:no-effect-surface      declared=ports-and-adapters   UNDERIVABLE
+                           iface=1 eff_mods=0/16 state_coloc=0.0
+ex6_jenga                derived=UNDERIVABLE:no-effect-surface      declared=effectful            UNDERIVABLE
+                           iface=0 eff_mods=0/6 state_coloc=0.0
+rd06_artifact_D          derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=2/2 state_coloc=1.0
+rd06_artifact_E          derived=ports-and-adapters                 declared=ports-and-adapters   agree
+                           iface=1 eff_mods=1/4 state_coloc=0.167
+rd06_artifact_F          derived=ports-and-adapters                 declared=ports-and-adapters   agree
+                           iface=1 eff_mods=1/4 state_coloc=0.167
+rd06_artifact_M          derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=1/1 state_coloc=1.0
+rd06_artifact_N          derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=2/2 state_coloc=1.0
+rd06_artifact_Z          derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=1/1 state_coloc=1.0
+toolchain                derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=28/31 state_coloc=1.0
+toolchain_compiler       derived=UNDERIVABLE:no-effect-surface      declared=ports-and-adapters   UNDERIVABLE
+                           iface=2 eff_mods=0/3 state_coloc=None
+toolchain_fixture        derived=ports-and-adapters                 declared=ports-and-adapters   agree
+                           iface=1 eff_mods=1/5 state_coloc=0.111
+
+13 of 17 subject(s) decided; 4 refused. A refusal is REPORTED as a refusal and is comparable to everything.
+
+# demonstration table -- re-derived from the cards, never declared
+
+Refusal authority is keyed on (dimension, value-pair). A separation on one
+dimension grants NOTHING on the other four.
+
+  does not separate ab_quota_ledger D1 effectful/ports-and-adapters: effectful [2, 4] n=25  ports-and-adapters [3, 4] n=12  population took [2, 3, 4]
+  does not separate ab_quota_ledger D2 effectful/ports-and-adapters: effectful [2, 2] n=25  ports-and-adapters [2, 2] n=11  population took [2]  NULL-ENTAILED
+  SEPARATES        ab_quota_ledger D3 effectful/ports-and-adapters: effectful [0, 2] n=25  ports-and-adapters [4, 4] n=11  tiers_measured=['opus']
+  does not separate ab_quota_ledger D4 effectful/ports-and-adapters: effectful [2, 4] n=24  ports-and-adapters [2, 4] n=11  population took [2, 3, 4]
+  does not separate ab_quota_ledger D5 effectful/ports-and-adapters: effectful [2, 4] n=24  ports-and-adapters [3, 4] n=11  population took [2, 3, 4]
+
+1 of 5 (dimension, value-pair) cell(s) grant a refusal.
+
+## same-tag control -- two subjects, same example, SAME derived value
+  control holds  ab_quota_ledger D1 arm_a/arm_c (effectful): [2, 4] vs [3, 3]
+  control holds  ab_quota_ledger D2 arm_a/arm_c (effectful): [2, 2] vs [2, 2]
+  control holds  ab_quota_ledger D3 arm_a/arm_c (effectful): [1, 2] vs [1, 1]
+  control holds  ab_quota_ledger D4 arm_a/arm_c (effectful): [2, 4] vs [3, 4]
+  control holds  ab_quota_ledger D5 arm_a/arm_c (effectful): [2, 4] vs [4, 4]
+  control holds  ab_quota_ledger D1 arm_a/rd06_artifact_Z (effectful): [2, 4] vs [3, 3]
+  control holds  ab_quota_ledger D2 arm_a/rd06_artifact_Z (effectful): [2, 2] vs [2, 2]
+  control FAILS  ab_quota_ledger D3 arm_a/rd06_artifact_Z (effectful): [1, 2] vs [0, 0]
+  control holds  ab_quota_ledger D1 arm_b/rd06_artifact_E (ports-and-adapters): [3, 4] vs [3, 3]
+  control holds  ab_quota_ledger D2 arm_b/rd06_artifact_E (ports-and-adapters): [2, 2] vs [2, 2]
+  control holds  ab_quota_ledger D3 arm_b/rd06_artifact_E (ports-and-adapters): [4, 4] vs [4, 4]
+  control holds  ab_quota_ledger D4 arm_b/rd06_artifact_E (ports-and-adapters): [2, 4] vs [2, 2]
+  control holds  ab_quota_ledger D5 arm_b/rd06_artifact_E (ports-and-adapters): [3, 4] vs [3, 3]
+  control holds  ab_quota_ledger D1 arm_c/rd06_artifact_Z (effectful): [3, 3] vs [3, 3]
+  control holds  ab_quota_ledger D2 arm_c/rd06_artifact_Z (effectful): [2, 2] vs [2, 2]
+  control FAILS  ab_quota_ledger D3 arm_c/rd06_artifact_Z (effectful): [1, 1] vs [0, 0]
+
+# SCOPE-DRIFT over 73 card(s) -- attack A5, computed
+
+  SCOPE-DRIFT  subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p3 (arm K, sonnet) D3 = 4
+               attributed to `toolchain`, its own D3 citations name `toolchain_fixture` {'toolchain': 0, 'toolchain_fixture': 1, 'toolchain_compiler': 0}
+  SCOPE-DRIFT  subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p4 (arm K, sonnet) D3 = 3
+               attributed to `toolchain`, its own D3 citations name `toolchain_compiler` {'toolchain': 3, 'toolchain_fixture': 1, 'toolchain_compiler': 4}
+
+2 card(s) cite predominantly outside their declared scope. A scope change is not an architecture change.

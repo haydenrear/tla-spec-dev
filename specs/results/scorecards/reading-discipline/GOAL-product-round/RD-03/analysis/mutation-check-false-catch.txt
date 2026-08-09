@@ -1,0 +1,31 @@
+# RD-03 DEMONSTRATION -- artifact_N/mutation_check.py certifies a clean it cannot support
+#
+# mutation_check.py:154-164   def _run_pytest(...) -> bool:
+#   """True when the suite FAILS -- i.e. the mutant was caught."""
+#   ...
+#   return done.returncode != 0
+#
+# ANY nonzero exit reads as "caught". An interpreter without pytest exits
+# nonzero on every mutant, so the harness reports a perfect table.
+
+## WITH pytest -- uv run --with pytest python mutation_check.py
+M8  close: outstanding checked before unknown_tenant SURVIVED n/a     0/400 walks differ
+(and the trailing line: "M8 survives my suite AND showed no observable difference in 400 walks")
+
+## WITHOUT pytest -- python3 mutation_check.py, SAME TREE, SAME BYTES
+mutant                                           mine    shared  differential
+-----------------------------------------------------------------------------
+M1  reserve: amount checked before closed        caught  n/a     171/400 walks differ
+M2  quota_exceeded uses >= instead of >          caught  n/a     41/400 walks differ
+M3  commit hands the amount back to available    caught  n/a     45/400 walks differ
+M4  ids are reused once a slot frees up          caught  n/a     6/400 walks differ
+M5  release writes a ledger line                 caught  n/a     71/400 walks differ
+M6  close writes the quota, not the committed total caught  n/a     376/400 walks differ
+M7  outstanding_ids sorted as strings            caught  n/a     0/400 walks differ
+M8  close: outstanding checked before unknown_tenant caught  n/a     0/400 walks differ
+M9  COMMIT running total is the amount, not the total caught  n/a     0/400 walks differ
+M10 close does not mark the tenant closed        caught  n/a     384/400 walks differ
+M11 a rejected reserve still burns an id         caught  n/a     83/400 walks differ
+M12 ledger_lines keeps blank lines               caught  n/a     400/400 walks differ
+
+No survivors.

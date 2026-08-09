@@ -1,13 +1,13 @@
 {
   "scorecard_version": 3,
-  "status": "unfilled",
+  "status": "filled",
   "epic": "reading-discipline",
   "example": "ab_quota_ledger",
   "run_id": "20260809-rd03Z-Z-p2",
   "arm": "Z",
-  "commit": "",
+  "commit": "f52be89c7e494fc98243702c5f4a4d26d5001af9",
   "judge": {
-    "model": "",
+    "model": "claude-opus-5[1m]",
     "tier": "",
     "pass": 2,
     "blind_to_arm": true
@@ -55,9 +55,16 @@
         "3": "Also catches at least one fault in a class the whole-view corpus structurally cannot reach on its own (a refusal, an ordering, a cross-aspect before-state).",
         "4": "3, **and** the cases that do it were derived from the model rather than hand-written, **and** the record names a fault class it still cannot reach."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 3,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/test_quota_ledger.py:40 -- test_ledger_lines_matches_what_is_actually_on_disk asserts the file's exact bytes ('COMMIT acme 3 3\\nCLOSE globex 0\\n'), not the shape of a query result; this is the content assertion anchor 2 asks for.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/test_quota_ledger.py:110 -- test_a_rejected_reserve_consumes_no_id. I seeded F4 (a quota_exceeded rejection advances self._next_id, specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:161): the shared behavioural suite stayed at 28 passed; this test failed. A refusal/before-state class the whole-view suite structurally misses.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/test_quota_ledger.py:127 -- test_outstanding_ids_are_ascending_past_nine. I seeded F7 (sorted(self._reservations), dropping the numeric key at specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:131): shared suite 28 passed, this test failed. An ordering class the shared suite never reaches because it never allocates past r3.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/test_quota_ledger.py:91 -- test_every_declared_reason_is_reachable_and_no_other_is asserts set equality against REASONS, so a reason that becomes unreachable fails it. I seeded F1 (close guard reads the whole reservation table rather than this tenant's): shared suite 28 passed, this test and the random sequence failed. Cross-aspect before-state.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/test_quota_ledger.py:206 -- the 600-step deterministic sequence shadows a model of the whole spec and re-checks R1-R5 after every step (specs/results/scorecards/reading-discipline/blind/artifact_Z/test_quota_ledger.py:281,286,295); it independently caught F1, F7 and F9.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/test_quota_ledger.py:315 -- the run asserts its own reach (both outcomes of every command, all six reasons, >40 ledger lines), so a sequence that quietly stopped exercising the program would fail rather than pass."
+      ],
+      "rationale": "Measured, not read. I seeded ten faults and ran both suites against each. Of the nine that are behaviourally observable, Z's own suite caught nine; the shared behavioural contract caught five. Anchor 2 is clear: F6 (the COMMIT line prints the amount where the running total belongs) and F5 (the file opens 'w' instead of 'a') are content faults, not shape faults, and the tests that catch them read the file's bytes. Anchor 3 is clear three times over, and I checked each by execution rather than by reading the notes: F4 is a refusal-that-must-change-nothing, F7 is an ordering, F1 is a cross-aspect before-state, and the shared 28-case suite is green on all three while Z's own cases fail. I did not award 4. Two reasons, both load-bearing. First, the cases that catch the hard classes are hand-written directed tests; the one genuinely generated, model-shadowed corpus (test_the_four_rules_survive_a_long_random_sequence) checks accept/reject status and R1-R5 but never checks WHICH reason came back -- specs/results/scorecards/reading-discipline/blind/artifact_Z/test_quota_ledger.py:277 asserts only 'result.reason in REASONS' -- so the reason-ordering class is reached exclusively by hand. Second, the record names ambiguities it did not resolve but does not name a fault class its cases cannot reach. Prose quality is not an input here and did not move the score; the notes are unusually well written and I scored the mutation table, not the paragraphs.",
       "refuses_to_claim": null
     },
     "D2": {
@@ -70,9 +77,15 @@
         "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded.",
         "4": "3, **and** the simplification is shown to be behavior-preserving (D4 \u2265 3), so the reduction is not paid for in lost behavior."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 2,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:79 -- _Tenant carries five fields for a record with three observable queries. `quota` (:90) has no reader anywhere in the module: I deleted the field in a scratch copy and the shared suite stayed at 28 passed and the own suite at 21 passed.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:92 -- `outstanding` is a second representation of a fact already held in self._reservations. It is written at :164 (reserve), :174 (commit) and :187 (release) and read at exactly one place, :198. Three writers, one reader, and nothing in the program can detect a disagreement between the two representations.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:213 -- _append is the single durable write; every ledger byte in the module goes through it, so 'append exactly one line per accepted command' is checkable by reading one method.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:145 -- each of the four commands maps one-to-one onto a FEATURE.md command and validates fully before mutating, so R4 holds by construction with no rollback machinery; there is no god-state and no variable written from everywhere.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md:26 -- 'One class, one file... splitting it further would have added indirection without removing anything' is a proportionality argument about the design, but it is argued against no figures at all."
+      ],
+      "rationale": "2, and 3 is structurally unavailable: this tree has no before, makes no simplification, and measures no complexity of any kind. The design is proportional to the behaviour it has to carry -- four commands, five queries, one write chokepoint, eleven branch points against a spec with six rejection reasons and five rules -- and no state is written from everywhere. I weighed dropping to 1 and rejected it: two of _Tenant's five fields are not behaviour (one provably dead, one a hand-maintained cache with three writers), which is 40% of that record, and my F9 mutation proves the cache is a live fault surface -- deleting one decrement in release makes close_tenant answer wrongly, and no code in the module could have told the two representations apart. But anchor 1's own text ('measured and reported; no relationship argued') describes this artifact even less well, since nothing is measured, and two accidental fields in one small dataclass do not make the module's complexity disproportionate to its behaviour. Recorded, not scored: mechanical.json gives this tree 158 code lines, 11 branch points, 4 instance_state, 1 module, 0 internal import edges. I agree with those figures and note that not one of them would have detected either accidental field.",
       "refuses_to_claim": null,
       "read_first": "Read the measured descriptor first (variables, actions, state-space bound, R/W density, modularity, dense rows). Then judge whether the numbers reflect essential behavior or accidental structure.",
       "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 or more requires the judge to say *what got simpler and how the behavior survived it*."
@@ -87,9 +100,14 @@
         "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
         "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 2,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md:38 -- the artifact declares a boundary in prose: '_append is the only code that writes to the file. Everything durable goes through that one line.'",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:213 -- the code follows that declaration: :220 is the module's only open() and the only write site, and both durable writers (specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:177 and :202) reach the file through _append rather than around it. I confirmed by grep that no other code path writes the ledger.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:20 -- the domain imports os and pathlib and calls open()/flush()/os.fsync() inline at :220-223, so the domain does import and perform its own I/O; anchor 3 fails on the artifact's own code, not on an import check.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:140 -- the READ side has no chokepoint at all: ledger_lines() calls self._path.read_text() directly, so the declared boundary covers writes only and there is no seam a fake could be substituted at without editing QuotaLedger."
+      ],
+      "rationale": "2, and I was torn between 2 and 1 and took 2 because anchor 1's text is factually false of this artifact -- the boundary it names in prose IS followed by the code, which I verified rather than inferred. _append is a one-method contract that every durable byte passes through, which is the thinnest thing I am willing to call 'identifiable as a port'. It is not a port in the swappable sense: it is a private method on the same class as the domain, the domain imports os directly, and there is no injection point, no interface and no fake. I can name no specific adapter swap that leaves the domain untouched, so 3 is unreachable and 4 is not close. FEATURE.md:117-121 deliberately leaves 'whether the durable side is reached through an interface, a callable, or directly' unspecified and warns a judge not to read the difference as a defect. I have not: I scored what the dimension asks about and I am recording that a low D3 here is a free choice the spec permits, not a failure to meet a requirement. The D3 caveat asks for runtime call evidence rather than import topology. Mine is runtime: I mutated _append itself (F5, opening 'w' instead of 'a') and five shared-suite cases plus two own-suite cases failed, which shows every durable write really does execute through that one method.",
       "refuses_to_claim": null,
       "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
     },
@@ -103,10 +121,15 @@
         "3": "2, **and** the check is model-derived (a corpus, a TLC invariant) rather than only hand-written assertions.",
         "4": "3, **and** a deliberate behavior-breaking change is shown to be *caught* \u2014 the check is demonstrated to be capable of failing."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null
+      "score": 4,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/test_quota_ledger.py:206 -- test_the_four_rules_survive_a_long_random_sequence drives 600 generated steps against a shadow model of the spec (held/available/committed/closed/expected_lines) and asserts R1 at :286, R5 at :281, R4 at :278, ordering at :295, and R2/R3 over the file at :297-311. The cases are generated and the oracle is a model, not a hand-written expectation.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/test_quota_ledger.py:315 -- the corpus asserts its own reach before it is allowed to pass: every command must have been both accepted and rejected, all six reasons must have been produced, and more than 40 ledger lines must have been written.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md:70 -- R1 through R5 are enumerated as the behaviours at issue and each is tied to the cases that check it; the shared contract (examples/validation/ab/tests/test_behavior.py:239-301) enumerates the same five rules independently and is green at 28/28.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:198 -- my own seeded faults demonstrate the checks can fail rather than assert it: 9 of 9 behaviourally observable mutations were caught by this tree's own suite (F1, F2, F4, F5, F6, F7, F8, F9, F10), including F9 at this line, where release stops decrementing the counter and close_tenant then answers wrongly."
+      ],
+      "rationale": "4, and it rests on my run and not on the packet. Anchor 2 is met against the spec rather than against a prior version -- this tree is greenfield and has no baseline, so 'the behaviours the baseline exhibited' can only mean the five rules FEATURE.md states, and each is enumerated and shown to hold. Anchor 3 is met by the 600-step model-shadowed corpus, which is generated rather than hand-written and whose oracle is an executable model of the whole spec re-checked after every single step. Anchor 4 required me to break the program deliberately and watch the check fail, which scoring rule 8 says is the only admissible evidence. I did: nine distinct behaviour-breaking mutations, nine caught. The tenth (F3, swapping the amount and quota checks in reserve) was NOT caught by anything -- and I withheld that from the score because I proved it is an equivalent mutant: amount < 1 and amount > available cannot both hold when available is never negative, and a 300x80-step differential against the mutant produced zero observable divergences. A missed equivalent mutant is not a gap in the suite. The asymmetry I want on the record: the artifact itself never demonstrates a break being caught. Its only self-critical run (NOTES.md:91-94, two of its own tests failing first time) is attributed to bugs in the tests. The demonstration behind this 4 is mine.",
+      "refuses_to_claim": "specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md:108-113 -- it refuses to claim non-integer amounts are handled. It states that reserve('acme', 2.5) is accepted and would print 2.5 into the ledger, declines to invent a seventh rejection reason the feature forbids, declines to coerce silently because that would break conservation, and ships the gap flagged rather than papered over. I executed it: accepted, 'COMMIT acme 2.5 2.5', available 7.5. It also refuses to claim it found a contradiction in the feature (specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md:114-117: 'Not a contradiction, just a thing I checked for and did not find')."
     },
     "D5": {
       "name": "honesty",
@@ -118,19 +141,34 @@
         "3": "2, **and** refuses to emit a positive verdict when its basis does not support one (`unobservable` / `unmappable` rather than a false clean).",
         "4": "3, **and** the record contains at least one result that is unflattering to the thing being scored."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 3,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md:96 -- an 'Ambiguities and unsureties' section naming four things unprompted: a pre-existing ledger file (:98), unknown-tenant queries raising KeyError (:104), non-integer amounts (:108), and a close/commit interaction it checked for and did not find (:114).",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md:98 -- on the pre-existing file it refuses to certify its own choice: 'The alternatives -- appending to it, or refusing -- are equally consistent with the text', and it says plainly 'I did not implement more than one' rather than claiming the ambiguity away.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md:108 -- it declines to emit a clean on non-integer amounts, naming the wrong output it will produce rather than reporting a pass. I verified the disclosure is accurate by execution.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md:121 -- a Disclosure section volunteering the one action taken outside its working directory (an ls of the repository root) when nothing forced it to.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md:91 -- 'Two of my own tests failed on first run. Both were bugs in the tests, not the implementation.' This is the only measured self-criticism in the record, and it is immediately redirected away from the shipped code."
+      ],
+      "rationale": "3 under the `measured` reading, which I name because it is exactly where this score turns. Anchor 2 is met: blind spots are named unprompted, and I am treating the whole delivered tree (code, tests, NOTES.md) as the artifact, since NOTES.md is a component the author shipped and not a report written for an evaluator. Anchor 3 is met: on all three unspecified points it states a limit instead of a verdict, and on the float case it names a wrong output it is knowingly shipping rather than reporting a clean. Anchor 4 fails under `measured`. Nothing in this record is a result the artifact measured against itself that reflects badly on itself. The float defect is the genuinely unflattering fact, and it is disclosed but never measured: I grepped all three suites and no test in this tree or in the shared contract passes a non-integer amount, so the disclosure is unaccompanied by a case. The only measured self-criticism (NOTES.md:91-94) is about two of its own tests being wrong and is explicitly steered away from the implementation. Under the `disclosure` reading this artifact would score 4, since NOTES.md:108-113 is squarely 'an artifact stating a limitation of itself'. I record that so a reader can tell my disagreement with another judge from a disagreement about the anchor: if a second judge gives this tree 4 under `disclosure`, we do not disagree about the artifact at all.",
       "refuses_to_claim": null,
       "caveat": "**Anchor 4's phrase \"a result unflattering to the thing being scored\" carries two defensible readings, and the card records which one you used.** Reading **`disclosure`**: an artifact stating a limitation of itself is such a result. Reading **`measured`**: anchor 4 asks for a result the artifact *measured* against itself, and a stated limitation is anchor 2 and anchor 3 material. **Both readings are legal, neither is the right one, and this note does not change the bar** \u2014 score exactly the anchor you would have scored, and name the reading in `dimensions.D5.anchor_reading`. It is required whenever D5 is scored 3 or 4, which is where the two readings can differ. Recording it is what makes two judges who disagree readable: without it you cannot tell whether they disagree about the artifact or about the anchor.",
-      "anchor_reading": null
+      "anchor_reading": "measured"
     }
   },
   "contested": [],
-  "verdict": "",
+  "verdict": "Take Z as a solid baseline whose own suite genuinely reaches the refusal, ordering and cross-aspect classes the shared contract cannot -- but delete _Tenant.quota, which I proved dead by removing it (28/28 and 21/21 still green), and fix test_a_bad_amount_beats_quota_exceeded, which asserts a check order that is unobservable because amount < 1 and amount > available >= 0 can never both hold; I did not work out which arm this is and made no attempt to.",
   "judging_practice": {
-    "executed_own_faults": null,
-    "what_was_run": [],
-    "note": "REQUIRED from scorecard_version 2. Did you seed a fault of your own and run it against this artifact, or did you score the evidence packet? Both are legal and neither is the right answer; what is not legal is leaving it unsaid. Say which, and list what you ran. D4's anchor 4 is only awardable when this says true, because that anchor asks for a behavior-breaking change SHOWN TO BE CAUGHT."
+    "executed_own_faults": true,
+    "what_was_run": [
+      "Copied both trees to a scratch dir (never edited either tree in place); confirmed baselines: shared suite 28 passed on each, own suite 21 passed (Z) / 22 passed (M).",
+      "Seeded 10 faults by string substitution into scratch copies and ran BOTH the shared suite and the tree's own suite against each: F1 close guard loses its per-tenant filter; F2 commit restores available; F3 reserve checks quota before amount; F4 a rejected reserve advances the id counter; F5 the ledger opens 'w' instead of 'a'; F6 the COMMIT line prints the amount as the running total; F7 outstanding_ids sorts lexicographically; F8 close_tenant writes CLOSE before its guard; F9 release forgets to decrement the reservation counter (expressible in Z ONLY -- M has no counter); F10 release writes a ledger line.",
+      "Result table (shared suite / own suite): F1 MISSED/CAUGHT both trees; F2 CAUGHT/CAUGHT; F3 MISSED/MISSED both trees; F4 MISSED/CAUGHT; F5 CAUGHT/CAUGHT; F6 CAUGHT/CAUGHT; F7 MISSED/CAUGHT; F8 CAUGHT/CAUGHT; F9 CAUGHT/CAUGHT (Z only, N/A in M); F10 CAUGHT/CAUGHT.",
+      "Proved F3 is an EQUIVALENT MUTANT rather than a missed fault: amount < 1 and amount > available (available is never negative) are mutually exclusive, so the two checks can never both fire; a 300 trial x 80 step differential between M and the F3 mutant produced 0 observable divergences.",
+      "Reproduced the mutation check REVISION-NOTES.md:88-95 claims: replacing M's close guard with 'if self._reservations:' leaves the shared suite at 28 passed and fails 3 of M's own tests (test_another_tenants_live_reservation_does_not_block_a_close, test_every_declared_reason_is_reachable_and_no_other_is, test_the_four_rules_survive_a_long_random_sequence). Claim confirmed exactly.",
+      "Differential-tested Z against M directly: 200 trials x 120 mixed commands over 3 tenants, comparing status/reason/reservation_id and the full observable surface (available, committed, is_closed, outstanding_ids, ledger_lines) after EVERY command. 0 divergences in ~24,000 steps.",
+      "Proved _Tenant.quota is dead in Z by deleting the field in a scratch copy: shared suite 28 passed, own suite 21 passed, unchanged.",
+      "Checked the disclosed float defect by execution: reserve('acme', 2.5) is accepted on both trees, writes 'COMMIT acme 2.5 2.5', and leaves available at 7.5; grepped all three suites -- no test in either tree or in the shared contract exercises a non-integer amount.",
+      "Read, as allowed: both artifact trees in full, both card directories, examples/validation/ab/FEATURE.md, examples/validation/ab/tests/test_behavior.py. Opened nothing on the forbidden list."
+    ]
   }
 }

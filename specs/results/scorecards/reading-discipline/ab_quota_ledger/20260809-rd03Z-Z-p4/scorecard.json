@@ -1,13 +1,13 @@
 {
   "scorecard_version": 3,
-  "status": "unfilled",
+  "status": "filled",
   "epic": "reading-discipline",
   "example": "ab_quota_ledger",
   "run_id": "20260809-rd03Z-Z-p4",
   "arm": "Z",
-  "commit": "",
+  "commit": "f52be89c7e494fc98243702c5f4a4d26d5001af9",
   "judge": {
-    "model": "",
+    "model": "claude-sonnet-5",
     "tier": "",
     "pass": 4,
     "blind_to_arm": true
@@ -55,9 +55,14 @@
         "3": "Also catches at least one fault in a class the whole-view corpus structurally cannot reach on its own (a refusal, an ordering, a cross-aspect before-state).",
         "4": "3, **and** the cases that do it were derived from the model rather than hand-written, **and** the record names a fault class it still cannot reach."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 3,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:151-156",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/test_quota_ledger.py:73-77",
+        "examples/validation/ab/tests/test_behavior.py:75-91",
+        "examples/validation/ab/tests/test_behavior.py:112-119"
+      ],
+      "rationale": "Anchor 2: the shared suite asserts CONTENT, not shape -- test_behavior.py:119 checks ledger.ledger_lines() == ['COMMIT acme 3 3'] against a literal string, not just a length or a status field. Anchor 3, independently executed rather than read off the packet: I copied quota_ledger.py to scratch and swapped the order of the tenant_closed and amount_not_positive checks in reserve() (lines 151-156), an ordering fault. The shared suite (test_behavior.py) does not construct any input where two rejection reasons could both fire -- its parametrize block at lines 75-91 is five single-cause cases -- so it stayed 28/28 green on the mutant. Z's own test_closed_beats_a_bad_amount_and_beats_quota (test_quota_ledger.py:73-77) failed immediately, naming the swapped reason. This is a fault class (checking order among overlapping rejection causes) the whole-view corpus structurally cannot reach on its own, caught by a directed case. Anchor 4 is not reachable: test_behavior.py's own docstring calls itself 'a competent hand-written suite, not an adversarial one,' and Z's own suite (including its 600-step randomized driver) is hand-rolled Python, not derived from a formal model, TLC invariant, or generated corpus. Score capped at 3.",
       "refuses_to_claim": null
     },
     "D2": {
@@ -70,9 +75,12 @@
         "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded.",
         "4": "3, **and** the simplification is shown to be behavior-preserving (D4 \u2265 3), so the reduction is not paid for in lost behavior."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 2,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03Z-Z-p4/mechanical.json (totals_code_only, note_no_before)",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:79-92"
+      ],
+      "rationale": "223 lines, 11 branch points, 1 module, 1 class of state, 4 command/5 query methods for a feature with 4 commands, 5 queries and 5 stated rules -- the complexity is proportional to what FEATURE.md asks for, and there is no god-state: all mutable state lives in _Tenant/_Reservation, scoped to the tenant or reservation it describes, not shared across unrelated concerns. One blemish worth naming: _Tenant.outstanding (quota_ledger.py:92) is written from three sites (reserve, commit, release) to serve a single reader (close_tenant's guard) -- a small instance of a derived fact kept as a second representation, not full god-state, but the shape M's revision later argues is accidental. Anchor 3 is not reachable for Z on its own terms: mechanical.json states plainly this tree is a greenfield subject with no before, so there is nothing for Z to have simplified relative to. Score capped at 2.",
       "refuses_to_claim": null,
       "read_first": "Read the measured descriptor first (variables, actions, state-space bound, R/W density, modularity, dense rows). Then judge whether the numbers reflect essential behavior or accidental structure.",
       "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 or more requires the judge to say *what got simpler and how the behavior survived it*."
@@ -87,9 +95,13 @@
         "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
         "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 0,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:111-112",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:220-223",
+        "specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03Z-Z-p4/mechanical.json (declared_interfaces: 0, declared_interface_methods: 0)"
+      ],
+      "rationale": "QuotaLedger.__init__ calls self._path.parent.mkdir(...) and self._path.write_text(...) directly (quota_ledger.py:111-112), and _append opens the file, flushes and fsyncs directly (quota_ledger.py:220-223). There is no port, protocol, or abstract interface anywhere in the module -- mechanical.json's own instrument counts zero declared interfaces and zero declared interface methods, agreeing with a direct read of the code. FEATURE.md leaves 'whether the durable side is reached through an interface, a callable, or directly' explicitly unspecified, and Z's own NOTES.md documents choosing 'directly.' No boundary is even named, let alone followed or violated -- this is anchor 0, not anchor 1 (which requires a named-but-unfollowed boundary).",
       "refuses_to_claim": null,
       "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
     },
@@ -103,9 +115,13 @@
         "3": "2, **and** the check is model-derived (a corpus, a TLC invariant) rather than only hand-written assertions.",
         "4": "3, **and** a deliberate behavior-breaking change is shown to be *caught* \u2014 the check is demonstrated to be capable of failing."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 2,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/test_quota_ledger.py:206-320",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md:27-45",
+        "examples/validation/ab/tests/test_behavior.py (28 cases covering R1-R5)"
+      ],
+      "rationale": "The five rules and every command/query are enumerated in NOTES.md's 'Shape of it' section and each is exercised: the shared suite's 28 cases plus Z's own 21, capped by a 600-step randomized driver (test_quota_ledger.py:206-320) that shadows the model and re-checks R1-R5 after every step. That satisfies anchor 2 solidly. It does not clear anchor 3: the driver is a hand-rolled Python shadow model, not a corpus generated from a formal spec or a TLC invariant -- the project has no model in that sense anywhere (no TLA+, no Hypothesis strategy). I considered whether the 600-step driver's invariant-checking style should itself count as 'model-derived' and rejected that reading: 'model-derived' in this rubric is contrasted with 'only hand-written assertions,' and this driver, however rigorous, is hand-written from end to end. Capped at 2.",
       "refuses_to_claim": null
     },
     "D5": {
@@ -118,19 +134,25 @@
         "3": "2, **and** refuses to emit a positive verdict when its basis does not support one (`unobservable` / `unmappable` rather than a false clean).",
         "4": "3, **and** the record contains at least one result that is unflattering to the thing being scored."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 3,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md:96-117",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md:103-113",
+        "specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md:91-94"
+      ],
+      "rationale": "NOTES.md:96-117 names four ambiguities unprompted, inside the artifact directory, not a separate report. Two of them are genuine refusals to certify a reading as correct rather than confident assertions dressed as disclosure: on unknown-tenant queries (NOTES.md:103-107) it raises KeyError rather than picking a sentinel that would silently misreport an exhausted tenant as an unknown one; on non-integer amounts (NOTES.md:108-113) it states plainly that reserve('acme', 2.5) would be silently accepted and printed into the ledger, calls this 'Left as is, and flagged here' rather than claiming the implementation handles all numeric inputs correctly. That is anchor 3's 'refuses to emit a positive verdict when its basis does not support one,' applied to an implementation note rather than a formal unobservable/unmappable tag, but functionally the same move. Anchor_reading: disclosure. I considered anchor 4 and rejected it: NOTES.md:91-94 discloses 'two of my own tests failed on first run,' which is a genuine measured stumble, but I judged it insufficiently 'unflattering to the thing being scored' -- the fault was in the test file, not in QuotaLedger, and no defect in the shipped implementation is ever admitted anywhere in NOTES.md. Torn between 3 and 4, I took the lower.",
       "refuses_to_claim": null,
-      "caveat": "**Anchor 4's phrase \"a result unflattering to the thing being scored\" carries two defensible readings, and the card records which one you used.** Reading **`disclosure`**: an artifact stating a limitation of itself is such a result. Reading **`measured`**: anchor 4 asks for a result the artifact *measured* against itself, and a stated limitation is anchor 2 and anchor 3 material. **Both readings are legal, neither is the right one, and this note does not change the bar** \u2014 score exactly the anchor you would have scored, and name the reading in `dimensions.D5.anchor_reading`. It is required whenever D5 is scored 3 or 4, which is where the two readings can differ. Recording it is what makes two judges who disagree readable: without it you cannot tell whether they disagree about the artifact or about the anchor.",
-      "anchor_reading": null
+      "anchor_reading": "disclosure",
+      "caveat": "**Anchor 4's phrase \"a result unflattering to the thing being scored\" carries two defensible readings, and the card records which one you used.** Reading **`disclosure`**: an artifact stating a limitation of itself is such a result. Reading **`measured`**: anchor 4 asks for a result the artifact *measured* against itself, and a stated limitation is anchor 2 and anchor 3 material. **Both readings are legal, neither is the right one, and this note does not change the bar** \u2014 score exactly the anchor you would have scored, and name the reading in `dimensions.D5.anchor_reading`. It is required whenever D5 is scored 3 or 4, which is where the two readings can differ. Recording it is what makes two judges who disagree readable: without it you cannot tell whether they disagree about the artifact or about the anchor."
     }
   },
   "contested": [],
-  "verdict": "",
+  "verdict": "Z is a competent, honestly-documented, unhardened single-class implementation (D3=0, no port exists) whose bug-catching and behavior-preservation ceiling is set by its hand-written (not model-derived) test suite (D1=D4 capped at 3/2 respectively) -- a reader who wants D1/D4 to move needs a generated corpus or a formal invariant check, not more hand-written tests.",
   "judging_practice": {
-    "executed_own_faults": null,
-    "what_was_run": [],
-    "note": "REQUIRED from scorecard_version 2. Did you seed a fault of your own and run it against this artifact, or did you score the evidence packet? Both are legal and neither is the right answer; what is not legal is leaving it unsaid. Say which, and list what you ran. D4's anchor 4 is only awardable when this says true, because that anchor asks for a behavior-breaking change SHOWN TO BE CAUGHT."
+    "executed_own_faults": true,
+    "what_was_run": [
+      "Baseline: copied artifact_Z's quota_ledger.py and test_quota_ledger.py to a scratch directory; ran `uv run --with pytest python -m pytest test_quota_ledger.py -q` (21 passed) and the shared suite via `QUOTA_LEDGER_DIR=<scratch>/Z QUOTA_LEDGER_IMPL=quota_ledger uv run --with pytest python -m pytest examples/validation/ab/tests/test_behavior.py -q` (28 passed), confirming the packet's own numbers before seeding anything.",
+      "Order fault: in a second scratch copy, swapped the tenant_closed and amount_not_positive checks inside reserve() (quota_ledger.py:151-156). Re-ran both suites: shared suite stayed 28/28 green (structurally cannot reach the fault -- its parametrized rejection cases are all single-cause); Z's own test_closed_beats_a_bad_amount_and_beats_quota failed, naming the swapped reason. This is the evidence behind D1=3."
+    ]
   }
 }

@@ -2590,3 +2590,131 @@ ever scored a `ports-and-adapters` subject on this example: n = 0, filed as
 here, and the epic owner's §6b ruling says in as many words that a ruling the
 mechanism is sound does not make the evidence under it wider than it is.
 """
+
+# ---------------------------------------------------------------------------
+# RD-03. SIX CONTESTED GROUPS IN ONE ROUND, AGAINST ONE IN THE PRIOR 49 CARDS.
+#
+# `RD-01-DF-03`: a rule that fires and is then ignored is worse than one that
+# never fired -- either run rule 5's third pass or record that it will not be
+# run and why. RD-03 records. `third_pass = "none"` is what the card calls "a
+# legal and useful answer while silence is not".
+#
+# RECORDING IS NOT REPAIRING. No card was edited, no score was reviewed after it
+# was recorded, and all six groups stay visible in every `contested` run.
+# ---------------------------------------------------------------------------
+
+[[contested]]
+id = "rd03-artifact-Z-d4-spread-3"
+round = "reading-discipline"
+example = "ab_quota_ledger"
+arm = "Z"
+dimension = "D4"
+spread = 3
+scores = [1, 4, 2, 2]
+third_pass = "none"
+found_by = "RD-03"
+why = """
+THE WIDEST SPREAD IN THE RECORD, AND IT IS A JUDGING-PRACTICE SPREAD RATHER THAN
+A DISAGREEMENT ABOUT THE ARTIFACT. Pass 1 read D4 anchor 3's "model-derived (a
+corpus, a TLC invariant)" strictly, found no model anywhere in the tree, and
+scored 1. Pass 2 counted the tree's own 600-step generated sequence as a corpus
+and, having executed a behaviour-breaking change and shown it caught, scored 4.
+Both said so on their cards. `R-H5` establishes that a D1/D4/D5 delta of up to 2
+points per judge is within demonstrated noise on byte-identical input; this is 3,
+and it is still not evidence about the artifact -- it is evidence that D4 anchor
+3's parenthetical is doing the work of a definition and two judges read it
+oppositely. A third pass citing new evidence cannot settle a disagreement about
+what the anchor MEANS, which is why none was dispatched. Filed as part of
+`RD-03-DF-11`.
+"""
+
+[[contested]]
+id = "rd03-artifact-Z-d3-spread-2"
+round = "reading-discipline"
+example = "ab_quota_ledger"
+arm = "Z"
+dimension = "D3"
+spread = 2
+scores = [1, 2, 1, 0]
+third_pass = "none"
+why = """
+A GENUINE DISAGREEMENT ABOUT THE ARTIFACT, LEFT CONTESTED ON PURPOSE. The
+question is whether the private `_append` method is a boundary the code follows
+(anchor 2), a boundary named in prose that the code does not follow (anchor 1),
+or no discernible boundary at all (anchor 0). All four judges read the same
+lines and all four were right about the facts: `_append` is the only durable
+WRITE path, AND `__init__`'s truncating `write_text("")` reaches the filesystem
+outside it, AND nothing is injected or swappable. A third judge's vote would
+break the tie without adding evidence, which rule 5 forbids in as many words.
+Recorded as a real spread rather than resolved.
+"""
+
+[[contested]]
+id = "rd03-artifact-M-d3-spread-2"
+round = "reading-discipline"
+example = "ab_quota_ledger"
+arm = "M"
+dimension = "D3"
+spread = 2
+scores = [1, 2, 1, 0]
+third_pass = "none"
+why = """
+The same disagreement as `rd03-artifact-Z-d3-spread-2`, on the revision of the
+same tree, with the same four scores. The revision touched neither the I/O
+boundary nor the seam, so the spread reproducing exactly is the expected result
+and is recorded as a control on the D3 reading rather than as a second finding.
+"""
+
+[[contested]]
+id = "rd03-artifact-M-d4-spread-2"
+round = "reading-discipline"
+example = "ab_quota_ledger"
+arm = "M"
+dimension = "D4"
+spread = 2
+scores = [4, 4, 2, 2]
+third_pass = "none"
+why = """
+A CLEAN TIER SPLIT, NOT AN INTRA-TIER DISAGREEMENT: `opus` [4, 4] against
+`sonnet` [2, 2], disjoint by 2 points, on the model-derivation clause of D4
+anchor 3 -- the identical reading disagreement as `rd03-artifact-Z-d4-spread-3`,
+here falling cleanly along tier lines. IT IS THE LOAD-BEARING ONE IN THIS ROUND,
+because D2's anchor 4 gates on D4 >= 3, so this split PROPAGATES: it is the
+direct cause of the D2 tier split on this same artifact (`opus` [4, 4] against
+`sonnet` [3, 3]), which is the first D2 tier split in the record. `RD-03-DF-14`.
+No third pass: adjudicating it would be picking a reading of the anchor, which
+is the owner's call and not a judge's.
+"""
+
+[[contested]]
+id = "rd03-artifact-N-d4-spread-2"
+round = "reading-discipline"
+example = "ab_quota_ledger"
+arm = "N"
+dimension = "D4"
+spread = 2
+scores = [4, 4, 2, 2]
+third_pass = "none"
+why = """
+The same tier split on the model-derivation clause, on a third subject:
+`opus` [4, 4], `sonnet` [2, 2]. Three subjects showing the identical disjoint
+split is what makes it a property of the anchor rather than of any artifact.
+"""
+
+[[contested]]
+id = "rd03-artifact-D-d4-spread-2"
+round = "reading-discipline"
+example = "ab_quota_ledger"
+arm = "D"
+dimension = "D4"
+spread = 2
+scores = [4, 4, 2, 2]
+third_pass = "none"
+why = """
+The fourth instance of the same disjoint tier split on D4's model-derivation
+clause, on the revision of `N`. Four subjects, same two tiers, same two scores,
+same stated reason on every card. RECORDED AND NOT ADJUDICATED: a third pass
+would have to decide whether a hand-written generated random walk is "a corpus"
+within the meaning of the anchor, and that is a change to the card, not a
+re-reading of the artifact.
+"""

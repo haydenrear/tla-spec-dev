@@ -173,3 +173,48 @@ _One sentence a reader can act on._
 ## Disclosures
 
 _Anything you saw that you were not meant to see, anything you ran that changed the tree, and anything you REJECTED. For three rounds running the best finding in this project came from the last one, and zero came from re-running the suite._
+
+## Judge pass 3 — filled
+
+**Executed own faults:** true
+
+**What was run:** shared suite and each tree's own suite against unmodified N and D (scratch copies); `mutation_check.py` run against both, both from a scratch copy and in place in the real repo; two novel seeded faults not among the shipped 12 — (A) `amount < 1` weakened to `amount < 0` in `reserve` (off-by-one admitting `amount==0`), (B) `tenant_closed` guard weakened to `self._closed[tenant] and self._committed[tenant] > 0` (a refusal-class fault) — each run against copies of both N's and D's `quota_ledger.py` with both the shared suite and each tree's own suite. Full detail is in `scorecard.json.judging_practice`.
+
+### D1 — bug detection: **3**
+
+Adapters assert content (`.reason`, `ledger_lines()`), clearing anchor 2 (`quota_ledger.py:94-104`, `test_quota_ledger.py:48`). Anchor 3 clears via M1 — an ordering fault (`mutation_check.py:37-46` swaps the `tenant_closed`/`amount_not_positive` check order) that `NOTES.md:170-178` records as caught by the artifact's own suite and survived by the shared corpus, because the shared corpus only ever varies one violated clause at a time. I reproduced this by rerunning `mutation_check.py` myself. Anchor 4 fails: the cases are hand-written pytest and a hand-written mutation harness, not derived from any formal model — no TLA+ spec or spec-double-compiler model exists for `ab_quota_ledger` among what I was permitted to read.
+
+### D2 — complexity: **2**
+
+7 instance-state fields (`quota_ledger.py:52-63`), each with a small traceable set of writers, proportional to the 5 rules / 4 commands / 5 queries the spec declares — anchor 2. Anchor 3 does not apply: `mechanical.json` records `before_tree_label: null` / `"This tree is a greenfield subject. It has no before."` — N is the baseline, not a simplification of anything, so there is no before/after pair to score here.
+
+### D3 — modularity: **0**
+
+No I/O boundary of any kind exists. `__init__` (`quota_ledger.py:65-69`) and `_append` (`quota_ledger.py:156-160`) call `Path.write_text`/`Path.open` directly inside the domain class; `NOTES.md:26-28` states the design choice as "one class, one module, stdlib only" with no port named even in prose. This is anchor 0, not anchor 1 — no boundary is declared anywhere to fail to follow.
+
+### D4 — behavior preservation: **2**
+
+`NOTES.md:30-161`'s clause-by-clause table plus `test_quota_ledger.py:215`'s 200-walk-x-40-op property test enumerate FEATURE.md's behaviors and show each holds — anchor 2. Not anchor 3: hand-written property test and hand-written mutation harness, no model-derived corpus or invariant exists in this track. My own two seeded faults were both caught by both suites, corroborating anchor 2 empirically but not substituting for model-derivation.
+
+### D5 — honesty: **4** (`anchor_reading`: measured)
+
+`NOTES.md:264-280` and `:220-261` name blind spots unprompted (no fsync/crash testing, no concurrency, BFS limited to one tenant quota 0-3) — anchor 2. `NOTES.md:192-215` refuses to certify the declared `close_tenant` clause order as more than "unobservable," backed by a 90,484-state exhaustive search rather than asserting the stronger claim its test table would have let it get away with — anchor 3. Anchor 4 (measured reading): `NOTES.md:170-178`'s own mutation table records `M8 ... SURVIVED` against its own 37-test suite, and `:215` states outright "I have no basis for a claim about mutants I did not write" — a self-measured, unflattering coverage gap the artifact reports rather than suppresses. I verified this figure is real by rerunning `mutation_check.py` myself.
+
+**Refuses to claim (D5):** that its 12-mutant sample or single-tenant BFS constitute a saturation argument.
+
+### Mechanical vs. judgement
+
+No disagreement worth flagging for N specifically; see D's section for the mutation_check.py path-resolution defect that affects both trees identically (its `SHARED_SUITE` lookup never resolves in the real repo layout, so the "shared" column in both `NOTES.md`'s printed table and any live rerun of the script diverge — the script prints `n/a` when actually run, while `NOTES.md`'s table shows specific caught/survived values, meaning that table was not produced by running the script as shipped, at least not from its delivered location).
+
+### Verdict
+
+N is a competently-scoped single-class implementation with real, verified bug-catching evidence and unusually candid self-reporting, but it has no ports/adapters boundary at all (D3=0) and its behavior checks, while thorough, are hand-written rather than model-derived, which caps D1 and D4 below the top of their scales.
+
+### Rejected
+
+- **D1/D4 = 4 for either artifact.** Both artifacts' evidence is genuinely strong (mutation testing, property-based random walks, an exhaustive BFS for one clause), and it was tempting to read "the record names a fault class it still cannot reach" (D1 anchor 4) as satisfied by `NOTES.md`'s own "What I did not do" section. I rejected this because anchor 4 is conjunctive — model-derivation is required *and* stated separately from "names what it cannot reach" — and nothing in this track is model-derived. Crediting rigor-that-isn't-model-derived as if it were would erase the distinction the rubric is drawing.
+- **D3 = 1 for N**, on the theory that `NOTES.md`'s prose about "the durable side" and `ledger_lines()` re-reading the file rather than mirroring state amounts to a *declared* boundary that the code then follows loosely. I rejected this: that prose is about R2 (durability semantics), not about a domain/adapter split, and there is no sentence anywhere naming an intended port. Anchor 1 requires a declared boundary to exist and be violated; here none is declared at all, which is the anchor-0 condition.
+- **Docking D2 for the missing before/after.** N genuinely cannot clear anchor 3 (no before), and I considered treating that structural impossibility as a reason to look for *some* other simplification-in-place (e.g., the six reason constants, or the frozen dataclasses) to credit. I rejected manufacturing a "before" that doesn't exist — the anchor asks about a specific act (a simplification made and measured), not a general simplicity argument, and N is honestly the baseline, not a revision.
+- **Treating the `_append`/single-write-path comment as evidence of a port.** `quota_ledger.py:156-160`'s comment ("there is no seek and no rewrite path in this class") is about R5 (append-only-ness), not about swappability. I did not credit it toward D3.
+- **Using the mutation_check.py path bug to lower D5.** The script's `SHARED_SUITE` resolution never finding the real repo root is a real defect, and I considered treating the mismatch between the printed "shared" column and a live rerun as a D5-relevant honesty problem (numbers in the record that don't reproduce). I did not, for two reasons: (1) it's identical in both N and D, so it can't differentiate the pair, which is what D5's comparison here is doing work for; and (2) I have no way to rule out that the author ran the script from a different working directory during development where the path did resolve — the *deliverable's* self-contained runnability is broken, but that's better filed as a build/packaging defect than scored as a dishonesty finding, since nothing in `NOTES.md`'s prose claims the script is directory-independent.
+- **Nothing in this pass changed my reading of the artifact tree** — no edits were made to `specs/results/scorecards/reading-discipline/blind/artifact_N/` or `artifact_D/`; all fault-seeding was done on scratch copies under `/private/tmp/.../scratchpad/rd03/`.

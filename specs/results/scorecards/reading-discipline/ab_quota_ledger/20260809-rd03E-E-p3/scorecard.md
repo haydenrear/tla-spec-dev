@@ -173,3 +173,45 @@ _One sentence a reader can act on._
 ## Disclosures
 
 _Anything you saw that you were not meant to see, anything you ran that changed the tree, and anything you REJECTED. For three rounds running the best finding in this project came from the last one, and zero came from re-running the suite._
+
+## Judge pass 3 — filled
+
+**Model:** `claude-sonnet-5` · **commit:** `f52be89c7e494fc98243702c5f4a4d26d5001af9`
+
+### Scores
+
+| D1 | D2 | D3 | D4 | D5 |
+|----|----|----|----|----|
+| 3  | 2  | 4  | 2  | 2  |
+
+### Judging practice
+
+`executed_own_faults: true`. I copied artifact_E into a scratch directory and seeded four faults directly in `quota_ledger/domain.py`: (1) a boundary off-by-one in the `quota_exceeded` check (`>` to `>=`), (2) swapping the order of the `tenant_closed` and `amount_not_positive` checks in `reserve`, (3) deleting the `outstanding_reservations` guard in `close_tenant`, (4) swapping the field order in the `COMMIT` journal line. I ran both the shared `test_behavior.py` suite and the artifact's own `tests/` against each. All four were caught; fault (2), the ordering fault, was caught only by the artifact's own hand-written test (`test_a_closed_tenant_outranks_a_bad_amount`) and was invisible to the shared corpus (28/28 still passed with it in place) — that is the concrete evidence behind D1=3.
+
+### D1 — bug detection (3)
+
+Citations: `quota_ledger/domain.py:123` (value fault, caught by shared+own suites via content assertions); `domain.py:119-122` (ordering fault, caught only by `tests/test_ledger.py:59-61`, not the shared corpus — clears anchor 3's "class the whole-view corpus structurally cannot reach"); `domain.py:150-151` (cross-aspect fault — deleting the outstanding-reservations guard — caught by `test_behavior.py::test_close_rejects_while_a_reservation_is_outstanding`, which its own docstring calls "the cross-aspect guard"); `domain.py:136` (content-format fault caught by `tests/test_journal_parity.py`'s literal-value assertions). Not anchor 4: the suites are hand-written pytest (`test_behavior.py`'s own docstring: "a competent hand-written suite, not an adversarial one"), not model-derived, and neither `NOTES.md` nor the tests name a fault class the suite still cannot reach.
+
+### D2 — complexity (2)
+
+Citations: `domain.py:54-58` (single-writer discipline on `committed`/`closed`, verified against `commit()`/`close_tenant()`); `domain.py:91-99` (`available` derived, not stored); `mechanical.json` totals (163 code lines, 12 branch points, 6 instance-state fields, only 1/4 modules touching an effect sink). Clears anchor 2 — proportional, no god-state. Does not clear anchor 3: `mechanical.json` states plainly "This tree is a greenfield subject. It has no before" — there is nothing within E to diff a simplification against, so the anchor is structurally inapplicable to this artifact, not merely unmet.
+
+### D3 — modularity (4)
+
+Citations: `domain.py:16-27` (Journal Protocol, no adapter import anywhere in the module); `file_journal.py:13-25` (real adapter); `memory_journal.py:12-20` (fake); `tests/test_journal_parity.py:149-161` (same case list parametrized over both, both pass); my own fault (4) run against both the file- and memory-journal parametrizations and caught identically by both — the swap is real at call time, not just an import that resolves. Refuses to claim: `NOTES.md:36-39` — no port is added for a clock/environment/network the feature doesn't have.
+
+### D4 — behavior preservation (2)
+
+Citations: `test_behavior.py` tests for R1-R5 by name; `tests/test_ledger.py:55-72` for the check-ordering behavior the shared suite under-tests. Clears anchor 2 (enumerated, and I independently confirmed by breaking four of them). Not anchor 3: both suites are hand-written pytest, not model-derived; no such artifact exists inside `artifact_E/`.
+
+### D5 — honesty (2)
+
+Citations: `NOTES.md:104-114` ("Unsure / unspecified, left alone" — KeyError on unknown-tenant queries, unchecked non-integer amounts, unvalidated construction inputs); `NOTES.md:132-133` ("I have no idea what, if anything, is being checked"). Clears anchor 2 (unprompted, in-artifact blind spots). Does not clear anchor 3: `NOTES.md` never poses a certification/verdict claim about itself that it could refuse — there is no positive verdict on offer to withhold.
+
+### Verdict
+
+Ship the design as built — a proportional, genuinely swappable ports-and-adapters domain (D3=4) with a hand-written suite that catches value, ordering, and cross-aspect faults I seeded myself (D1=3) — but don't credit it for a complexity reduction or a model-derived check it never attempted (D2=2, D4=2), since it has no before to compare against and its tests are hand-written pytest, not a corpus or invariant.
+
+### Disclosures
+
+Nothing read outside the allowed list. I copied `artifact_E/` into the scratch scratchpad directory to seed and run four faults; the artifact tree itself was never edited, only the scratch copy, which was discarded after. I diffed `artifact_E/` against `artifact_F/` (permitted — both are artifacts I am scoring) and found them byte-identical in every scored file; that finding is written up on the F card since it is F's D2 that turns on it. I rejected crediting D5 above 2: `NOTES.md` is well-disclosed but never frames itself as a verdict, so anchor 3's "refuses to emit a positive verdict" had nothing to attach to. I rejected D4=3 even though the hand-written suites are unusually thorough (69 combined tests, four independent fault classes all caught) — thoroughness of a hand-written suite is not the same as model-derivation, and the anchor is explicit about provenance, not just coverage.

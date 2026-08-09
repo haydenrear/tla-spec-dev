@@ -1,13 +1,13 @@
 {
   "scorecard_version": 3,
-  "status": "unfilled",
+  "status": "filled",
   "epic": "reading-discipline",
   "example": "ab_quota_ledger",
   "run_id": "20260809-rd03E-E-p3",
   "arm": "E",
-  "commit": "",
+  "commit": "f52be89c7e494fc98243702c5f4a4d26d5001af9",
   "judge": {
-    "model": "",
+    "model": "claude-sonnet-5",
     "tier": "",
     "pass": 3,
     "blind_to_arm": true
@@ -55,9 +55,14 @@
         "3": "Also catches at least one fault in a class the whole-view corpus structurally cannot reach on its own (a refusal, an ordering, a cross-aspect before-state).",
         "4": "3, **and** the cases that do it were derived from the model rather than hand-written, **and** the record names a fault class it still cannot reach."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 3,
+      "citations": [
+        "quota_ledger/domain.py:123 -- boundary check `amount > self.available(tenant)`; I changed it to `>=` and both the shared suite (test_reserve_exhausts_the_quota_exactly, test_release_then_reserve_again_uses_the_returned_quota) and the artifact's own tests/test_ledger.py::test_a_reservation_for_exactly_what_is_left_is_accepted failed -- a wrong-value fault caught through content assertions.",
+        "quota_ledger/domain.py:119-122 -- order of the tenant_closed vs amount_not_positive checks in reserve(); swapping them left the shared corpus fully green (28/28) but broke tests/test_ledger.py:59-61 test_a_closed_tenant_outranks_a_bad_amount -- an ordering fault the whole-view corpus structurally cannot reach on its own.",
+        "quota_ledger/domain.py:150-151 -- the outstanding_reservations guard in close_tenant(); deleting it broke examples/validation/ab/tests/test_behavior.py::test_close_rejects_while_a_reservation_is_outstanding, described in that file's own docstring as 'the cross-aspect guard: the RESERVATIONS aspect forbids a LEDGER-aspect write', plus tests/test_ledger.py:111-114.",
+        "quota_ledger/domain.py:136 -- field order in the COMMIT line written by commit(); swapping hold.amount and account.committed broke tests/test_journal_parity.py's literal-value assertions on both the file and memory journal parametrizations -- a wrong-content fault, not a shape check."
+      ],
+      "rationale": "I seeded and ran four faults of my own (value, ordering, cross-aspect, content-format -- see judging_practice) against a scratch copy of this code and confirmed all four are caught. The ordering fault is the interesting one: the shared behavioural corpus (test_behavior.py) does not exercise the relative order of the tenant_closed and amount_not_positive checks and stayed green with the checks swapped, but the artifact's own hand-written adapter test does exercise it and failed. That clears anchor 3 (a fault class -- ordering -- the whole-view corpus cannot reach). It does not clear anchor 4: the cases are hand-written pytest, not derived from any model/corpus/TLC artifact (test_behavior.py's own docstring calls itself 'a competent hand-written suite, not an adversarial one'), and neither NOTES.md nor the test files name a fault class the suite still cannot reach -- I found none in the four classes I tried, but the artifact itself makes no such claim, which is what anchor 4 requires.",
       "refuses_to_claim": null
     },
     "D2": {
@@ -70,9 +75,13 @@
         "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded.",
         "4": "3, **and** the simplification is shown to be behavior-preserving (D4 \u2265 3), so the reduction is not paid for in lost behavior."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 2,
+      "citations": [
+        "quota_ledger/domain.py:54-58 -- _Account docstring's single-writer claim ('committed has exactly one writer, Ledger.commit; closed has exactly one writer, Ledger.close_tenant'), which I verified by reading commit() at domain.py:130-137 and close_tenant() at domain.py:144-154 -- true, no other method touches either field.",
+        "quota_ledger/domain.py:91-99 -- available() is derived (quota - committed - sum of live holds), not stored, which is the concrete design move that keeps R1 arithmetic instead of a fourth invariant three commands would each have to maintain.",
+        "mechanical.json figures.complexity_of_produced_code.totals_code_only -- 163 code_lines, 12 branch_points (max 4 in any single callable), 6 instance_state fields across two small dataclasses (_Account, _Hold), state_colocation 0.167, only 1 of 4 modules touching an effect sink."
+      ],
+      "rationale": "The measured figures are small and, on inspection, proportional: two tiny value objects (_Account, _Hold) carry only fields something reads (verified in domain.py), state is not duplicated (available is derived, status is derived from reason at domain.py:41-43), and only file_journal.py touches the filesystem. This clears anchor 2 -- no god-state, no variable written from everywhere. Anchor 3 asks for a simplification made and measured before/after, but this tree's own mechanical.json says plainly: 'This tree is a greenfield subject. It has no before.' There is nothing within E to diff against, so a before/after simplification claim cannot be made about E at all -- anchor 3 is structurally inapplicable, not merely unearned. Score capped at 2.",
       "refuses_to_claim": null,
       "read_first": "Read the measured descriptor first (variables, actions, state-space bound, R/W density, modularity, dense rows). Then judge whether the numbers reflect essential behavior or accidental structure.",
       "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 or more requires the judge to say *what got simpler and how the behavior survived it*."
@@ -87,10 +96,16 @@
         "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
         "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null,
+      "score": 4,
+      "citations": [
+        "quota_ledger/domain.py:16-27 -- the Journal Protocol declared in the domain's own vocabulary (append/lines), and domain.py imports only dataclasses and typing -- no file_journal or memory_journal import anywhere in the module.",
+        "quota_ledger/file_journal.py:13-25 -- FileJournal, the real adapter, does actual disk I/O via pathlib.",
+        "quota_ledger/memory_journal.py:12-20 -- MemoryJournal, a fake (its own docstring: 'a working implementation, not a mock: it records no calls and makes no assertions').",
+        "tests/test_journal_parity.py:149-161 -- the same CASES list parametrized over make_file_journal and make_memory_journal, same expected dict, both parametrizations pass (verified: 39 passed includes both).",
+        "My own fault4 (content-format fault in commit()'s COMMIT line) was run against both the file-backed and memory-backed parametrizations of test_journal_parity.py and both failed identically -- the swap is real at call time, not just an import that happens to resolve, which is the specific thing the D3 caveat warns a judge not to take on faith."
+      ],
+      "rationale": "The domain does not import its I/O (grep-verified, not just declared), and the swap is exercised, not merely claimed: two real implementations of the port exist, one real (file) and one fake (memory), the same case list runs against both, and I independently forced a fault through both wirings and watched both catch it. That is anchor 4's own bar -- a driven port exercised by a real adapter and a fake, same cases passing (and, under my fault, failing) against both.",
+      "refuses_to_claim": "NOTES.md:36-39 -- 'Nothing else is indirected. Id allocation, quota arithmetic and the rejection ordering are pure computation, and a port in front of them would be an interface with nothing behind it to swap. There is no clock, no environment, no network in this feature, so there is no port for one.' The artifact refuses to claim more ports-and-adapters coverage than the one boundary the feature actually has.",
       "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
     },
     "D4": {
@@ -103,9 +118,16 @@
         "3": "2, **and** the check is model-derived (a corpus, a TLC invariant) rather than only hand-written assertions.",
         "4": "3, **and** a deliberate behavior-breaking change is shown to be *caught* \u2014 the check is demonstrated to be capable of failing."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 2,
+      "citations": [
+        "examples/validation/ab/tests/test_behavior.py::test_r1_conservation_holds_through_a_mixed_sequence and ::test_r1_conservation_holds_while_reservations_are_live -- R1.",
+        "examples/validation/ab/tests/test_behavior.py::test_r2_the_durable_ledger_agrees_with_memory -- R2.",
+        "examples/validation/ab/tests/test_behavior.py::test_close_rejects_while_a_reservation_is_outstanding and ::test_close_is_allowed_once_the_reservation_is_resolved -- R3.",
+        "examples/validation/ab/tests/test_behavior.py::test_reserve_rejects_and_changes_nothing (snapshot-based) -- R4.",
+        "examples/validation/ab/tests/test_behavior.py::test_r5_the_ledger_is_append_only_and_ordered -- R5.",
+        "tests/test_ledger.py:55-72 -- the artifact's own suite additionally enumerates the order the six rejection reasons are checked in, which FEATURE.md specifies but the shared suite under-tests (my fault2 above)."
+      ],
+      "rationale": "Every rule FEATURE.md names (R1-R5) has a corresponding test in the shared suite, and I independently confirmed the checks fire by seeding four faults myself and watching all four get caught (see D1). That clears anchor 2 -- behaviors enumerated and each shown to hold, with my own verification standing behind 'shown'. It does not clear anchor 3: both the shared suite and the artifact's own tests/ are entirely hand-written pytest. examples/validation/ab/tests/test_behavior.py's own module docstring says it is 'a competent hand-written suite, not an adversarial one', and nothing in either scored tree is derived from a model, corpus, or TLC invariant. No such artifact is present inside artifact_E/. So D4 is capped at 2 regardless of how well the hand-written checks perform.",
       "refuses_to_claim": null
     },
     "D5": {
@@ -118,19 +140,28 @@
         "3": "2, **and** refuses to emit a positive verdict when its basis does not support one (`unobservable` / `unmappable` rather than a false clean).",
         "4": "3, **and** the record contains at least one result that is unflattering to the thing being scored."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 2,
+      "citations": [
+        "NOTES.md:104-114 -- 'Unsure / unspecified, left alone': available(\"nobody\") raises KeyError (queries for an unknown tenant are unspecified), non-integer amounts are accepted (3.0 is not rejected), duplicate tenant names / non-positive quotas at construction are neither specified nor validated. Named unprompted, in the artifact itself.",
+        "NOTES.md:132-133 -- 'Nothing here was done to make a check pass; I have no idea what, if anything, is being checked.' A disclosed limit on what the artifact optimized for."
+      ],
+      "rationale": "NOTES.md names concrete blind spots (KeyError on unknown-tenant queries, unchecked non-integer amounts, unvalidated construction inputs) unprompted and inside the artifact itself, not in a separate report -- that clears anchor 2. It does not clear anchor 3: NOTES.md is descriptive documentation of design decisions, and it never poses a certification or pass/fail claim about itself that it could have falsely made or pointedly withheld. There is no positive verdict on offer here to refuse, so I could not find the specific move anchor 3 asks for. D5=2.",
       "refuses_to_claim": null,
       "caveat": "**Anchor 4's phrase \"a result unflattering to the thing being scored\" carries two defensible readings, and the card records which one you used.** Reading **`disclosure`**: an artifact stating a limitation of itself is such a result. Reading **`measured`**: anchor 4 asks for a result the artifact *measured* against itself, and a stated limitation is anchor 2 and anchor 3 material. **Both readings are legal, neither is the right one, and this note does not change the bar** \u2014 score exactly the anchor you would have scored, and name the reading in `dimensions.D5.anchor_reading`. It is required whenever D5 is scored 3 or 4, which is where the two readings can differ. Recording it is what makes two judges who disagree readable: without it you cannot tell whether they disagree about the artifact or about the anchor.",
       "anchor_reading": null
     }
   },
   "contested": [],
-  "verdict": "",
+  "verdict": "Ship the design as built -- a proportional, genuinely swappable ports-and-adapters domain (D3=4) with a hand-written suite that catches value, ordering, and cross-aspect faults I seeded myself (D1=3) -- but don't credit it for a complexity reduction or a model-derived check it never attempted (D2=2, D4=2), since it has no before to compare against and its tests are hand-written pytest, not a corpus or invariant.",
   "judging_practice": {
-    "executed_own_faults": null,
-    "what_was_run": [],
-    "note": "REQUIRED from scorecard_version 2. Did you seed a fault of your own and run it against this artifact, or did you score the evidence packet? Both are legal and neither is the right answer; what is not legal is leaving it unsaid. Say which, and list what you ran. D4's anchor 4 is only awardable when this says true, because that anchor asks for a behavior-breaking change SHOWN TO BE CAUGHT."
+    "executed_own_faults": true,
+    "what_was_run": [
+      "Baseline: uv run --with pytest python -m pytest <artifact>/tests -q (39 passed) and QUOTA_LEDGER_DIR=<artifact> QUOTA_LEDGER_IMPL=quota_ledger uv run --with pytest python -m pytest examples/validation/ab/tests/test_behavior.py -q (28 passed), against a scratch copy of the code under /private/tmp/.../scratchpad/faultwork (copied from artifact_E; artifact_F is byte-identical, verified by diff and md5 -- see D2 rationale and Disclosures).",
+      "fault1_wrongvalue: changed `amount > self.available(tenant)` to `amount >= self.available(tenant)` in domain.py's reserve() -- caught by both suites.",
+      "fault2_ordering: swapped the order of the tenant_closed and amount_not_positive checks in reserve() -- shared suite stayed green (28/28), caught only by the artifact's own tests/test_ledger.py.",
+      "fault3_crossaspect: deleted the outstanding_reservations guard in close_tenant() -- caught by both suites.",
+      "fault4_contentformat: swapped the amount/committed-total field order in the COMMIT line written by commit() -- caught by tests/test_journal_parity.py's literal-value assertions, against both the file and memory journal parametrizations.",
+      "All four faults were reverted by discarding the scratch copies; the artifact trees under specs/results/scorecards/reading-discipline/blind/ were never edited."
+    ]
   }
 }

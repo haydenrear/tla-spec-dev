@@ -1,13 +1,13 @@
 {
   "scorecard_version": 3,
-  "status": "unfilled",
+  "status": "filled",
   "epic": "reading-discipline",
   "example": "ab_quota_ledger",
   "run_id": "20260809-rd03N-N-p3",
   "arm": "N",
-  "commit": "",
+  "commit": "f52be89c7e494fc98243702c5f4a4d26d5001af9",
   "judge": {
-    "model": "",
+    "model": "claude-sonnet-5",
     "tier": "",
     "pass": 3,
     "blind_to_arm": true
@@ -25,12 +25,12 @@
     "digest": "sha256:546f90e21d1254e0",
     "scoring_rules": [
       "**Score artifacts, never claims.** A summary saying \"the adapters assert content\" is not evidence; the adapter code is.",
-      "**Every score \u2265 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
+      "**Every score ≥ 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
       "**Every score of 4 additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.",
       "**Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.",
       "**Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.",
       "**Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.",
-      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree \u2014 and a disagreement is a finding.",
+      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree — and a disagreement is a finding.",
       "**Say what you ran.** *(New in version 2.)* Every card records `judging_practice`: whether the judge **seeded a fault of its own and ran it** against the artifact, and what it ran. Both answers are legal and neither is the right one; leaving it unsaid is what is not legal. **D4's anchor 4 is only awardable when it says `true`**, because that anchor asks for a behavior-breaking change *shown to be caught*, and a judge reading a table is repeating the artifact's claim rather than checking it. This is the anchor's own text made checkable, not a new bar.",
       "**A judge is served the card, never the rubric file.** *(New in version 3.)* The scaffolded `scorecard.md` carries the rubric a judge needs. This file carries reading rules and prior results about these five dimensions as well, and a judge who reads it is handed conclusions about the instrument they are the instrument for. Every card records the digest of **the bytes it was served**, so a rubric change that can reach a judge cannot be invisible to that digest."
     ],
@@ -47,7 +47,7 @@
   "dimensions": {
     "D1": {
       "name": "bug detection",
-      "question": "Do the model-derived cases and their adapters *catch* seeded faults \u2014 especially the hard classes?",
+      "question": "Do the model-derived cases and their adapters *catch* seeded faults — especially the hard classes?",
       "anchors": {
         "0": "Cases exist and pass; no seeded fault is caught. A suite that is green on broken code.",
         "1": "Catches faults that change a value the projection already prints. Misses everything requiring a content assertion.",
@@ -55,9 +55,14 @@
         "3": "Also catches at least one fault in a class the whole-view corpus structurally cannot reach on its own (a refusal, an ordering, a cross-aspect before-state).",
         "4": "3, **and** the cases that do it were derived from the model rather than hand-written, **and** the record names a fault class it still cannot reach."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 3,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_N/quota_ledger.py:94-104",
+        "specs/results/scorecards/reading-discipline/blind/artifact_N/test_quota_ledger.py:48",
+        "specs/results/scorecards/reading-discipline/blind/artifact_N/mutation_check.py:37-46",
+        "specs/results/scorecards/reading-discipline/blind/artifact_N/NOTES.md:170-178"
+      ],
+      "rationale": "The adapters assert content, not shape: test_quota_ledger.py:48 (test_reserve_rejection_order) and the shared suite both compare `.reason` strings and full ledger_lines() content, satisfying anchor 2. Anchor 3 is cleared by a genuine hard-class fault: M1 (mutation_check.py:37-46) swaps the order of the `tenant_closed` and `amount_not_positive` checks in reserve() (quota_ledger.py:94-104). NOTES.md:170-178 records mine=caught, shared=survived for M1 -- I reran mutation_check.py myself (both in place and from a scratch copy) and reproduced 'caught'/'SURVIVED'/'caught' exactly for M1/M8/M9 respectively. This is precisely the anchor-3 example ('an ordering'): the shared whole-view corpus only ever varies one violated clause at a time, so it structurally cannot distinguish declared order from a shuffled one, and test_reserve_rejection_order (which supplies compound-violation inputs) can. Anchor 4 is not reached: the cases in test_quota_ledger.py and mutation_check.py are hand-written pytest and a hand-written mutation harness, not derived from any formal model -- I found no TLA+ spec or spec-double-compiler artifact for ab_quota_ledger among the files I was permitted to read, and FEATURE.md is plain prose, not a model. NOTES.md does name a fault class it cannot reach (item 3, 'the differential column is the weaker instrument'), but the model-derivation half of anchor 4 fails regardless.",
       "refuses_to_claim": null
     },
     "D2": {
@@ -67,19 +72,20 @@
         "0": "Complexity is unmeasured, or measured and ignored.",
         "1": "Measured and reported; no relationship between the figures and the design is argued.",
         "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
-        "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded.",
-        "4": "3, **and** the simplification is shown to be behavior-preserving (D4 \u2265 3), so the reduction is not paid for in lost behavior."
+        "3": "2, **and** a simplification was made and its effect measured — the before and after figures are both recorded.",
+        "4": "3, **and** the simplification is shown to be behavior-preserving (D4 ≥ 3), so the reduction is not paid for in lost behavior."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null,
-      "read_first": "Read the measured descriptor first (variables, actions, state-space bound, R/W density, modularity, dense rows). Then judge whether the numbers reflect essential behavior or accidental structure.",
-      "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 or more requires the judge to say *what got simpler and how the behavior survived it*."
+      "score": 2,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_N/quota_ledger.py:52-63",
+        "specs/results/scorecards/reading-discipline/blind/artifact_N/quota_ledger.py:73-74"
+      ],
+      "rationale": "mechanical.json records 7 instance-state fields and 26 branch points for a spec with 5 queries, 4 commands and 5 cross-cutting rules; every field (quota_ledger.py:52-63) has 1-3 write sites and is written from exactly the command(s) that own it (e.g. `_held` written only in reserve/commit/release, `_closed` only in close_tenant) -- no field is written from everywhere and no field exists that isn't traceable to a FEATURE.md clause. That clears anchor 2. Anchor 3 does not apply to this artifact: mechanical.json's `complexity_of_produced_code` block for N explicitly records `before_tree_label: null` and `note_no_before: \"This tree is a greenfield subject. It has no before.\"` -- N is the baseline being simplified, not a simplification, so there is no before/after pair for me to judge here. That absence is the reason for the score, not a defect I'm assigning to the artifact.",
+      "refuses_to_claim": null
     },
     "D3": {
       "name": "modularity",
-      "question": "Is it ports and adapters in fact \u2014 domain independent of I/O, adapters swappable?",
+      "question": "Is it ports and adapters in fact — domain independent of I/O, adapters swappable?",
       "anchors": {
         "0": "No boundary is discernible; state is written from everywhere.",
         "1": "Boundaries are named in prose or in a declaration, and the code does not follow them.",
@@ -87,11 +93,14 @@
         "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
         "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null,
-      "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
+      "score": 0,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_N/quota_ledger.py:65-69",
+        "specs/results/scorecards/reading-discipline/blind/artifact_N/quota_ledger.py:156-160",
+        "specs/results/scorecards/reading-discipline/blind/artifact_N/NOTES.md:26-28"
+      ],
+      "rationale": "There is no I/O boundary of any kind, declared or otherwise. `__init__` (quota_ledger.py:65-69) calls `Path.mkdir`/`Path.write_text` directly, and `_append` (quota_ledger.py:156-160) opens the ledger file with the stdlib `Path.open` directly inside the same class that holds the domain logic -- there is no injected writer, no `Protocol`, no constructor parameter that is anything but a raw path. NOTES.md:26-28 states the design choice plainly: 'Structure: one class, one module, stdlib only,' with no port named even in prose. This isn't 'boundaries declared but not followed' (anchor 1) -- no boundary is named anywhere, which is anchor 0's condition even though state itself is well-scoped (each field has few, identifiable writers). The mechanical block's architecture_tag (`declared: effectful`, `derived: effectful`, `agreement: agree`) is consistent with this reading and is recorded, not scored, per rule 7 -- but the tag doesn't change what the rubric asks: whether the domain imports its I/O, and here it plainly does.",
+      "refuses_to_claim": null
     },
     "D4": {
       "name": "behavior preservation",
@@ -101,11 +110,14 @@
         "1": "A test suite passes, with no argument that the suite covers the behavior at issue.",
         "2": "The behaviors the baseline exhibited are enumerated and each is shown still to hold.",
         "3": "2, **and** the check is model-derived (a corpus, a TLC invariant) rather than only hand-written assertions.",
-        "4": "3, **and** a deliberate behavior-breaking change is shown to be *caught* \u2014 the check is demonstrated to be capable of failing."
+        "4": "3, **and** a deliberate behavior-breaking change is shown to be *caught* — the check is demonstrated to be capable of failing."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 2,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_N/NOTES.md:30-161",
+        "specs/results/scorecards/reading-discipline/blind/artifact_N/test_quota_ledger.py:215"
+      ],
+      "rationale": "NOTES.md:30-161 is a clause-by-clause table walking every line of FEATURE.md (each query, each rejection order, each rule R1-R5) with an input actually run and the output it produced, and test_quota_ledger.py:215 (`test_rules_hold_after_every_operation_of_a_random_walk`) checks R1/R2/R3 as assertions after every operation of 200 walks x 40 ops. That enumerates the baseline's behaviors and shows each still holds -- anchor 2. It does not clear anchor 3: the checks are a hand-written clause table plus a hand-written property test and a hand-written mutation harness (mutation_check.py), not a corpus or invariant derived from a formal model -- I looked for a TLA+ spec or generated corpus for this example among the files I was permitted to read and found none; FEATURE.md is prose, not a model. I also seeded two faults of my own (an off-by-one on the amount_not_positive boundary, and a weakened tenant_closed guard) and ran them against this tree's own suite and the shared suite; both were caught (see judging_practice), which corroborates anchor 2 empirically but does not substitute for model-derivation, so it doesn't move the score past 2.",
       "refuses_to_claim": null
     },
     "D5": {
@@ -118,19 +130,27 @@
         "3": "2, **and** refuses to emit a positive verdict when its basis does not support one (`unobservable` / `unmappable` rather than a false clean).",
         "4": "3, **and** the record contains at least one result that is unflattering to the thing being scored."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null,
-      "caveat": "**Anchor 4's phrase \"a result unflattering to the thing being scored\" carries two defensible readings, and the card records which one you used.** Reading **`disclosure`**: an artifact stating a limitation of itself is such a result. Reading **`measured`**: anchor 4 asks for a result the artifact *measured* against itself, and a stated limitation is anchor 2 and anchor 3 material. **Both readings are legal, neither is the right one, and this note does not change the bar** \u2014 score exactly the anchor you would have scored, and name the reading in `dimensions.D5.anchor_reading`. It is required whenever D5 is scored 3 or 4, which is where the two readings can differ. Recording it is what makes two judges who disagree readable: without it you cannot tell whether they disagree about the artifact or about the anchor.",
-      "anchor_reading": null
+      "score": 4,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_N/NOTES.md:170-178",
+        "specs/results/scorecards/reading-discipline/blind/artifact_N/NOTES.md:192-215",
+        "specs/results/scorecards/reading-discipline/blind/artifact_N/NOTES.md:245-250",
+        "specs/results/scorecards/reading-discipline/blind/artifact_N/NOTES.md:264-280"
+      ],
+      "rationale": "NOTES.md:264-280 ('Things I could not check, or did not') and the ambiguities section (:220-261) name blind spots unprompted -- no fsync/crash testing, no concurrency, no large-N run, a BFS limited to one tenant and quota 0-3 -- clearing anchor 2. Anchor 3: rather than asserting the declared clause order in close_tenant as fact, NOTES.md:192-215 runs an exhaustive 90,484-state search and calls the M8 distinction 'unobservable,' explicitly declining the stronger claim its own test table would have let it assert unchallenged -- a refusal to certify what its evidence doesn't support. Anchor 4 (`measured` reading): NOTES.md:170-178's own mutation table records `M8 ... SURVIVED` against its OWN 37-test suite, and NOTES.md:215 states plainly 'I have no basis for a claim about mutants I did not write.' That is a result the artifact measured against itself and reported even though it is unflattering to its own coverage claim -- not merely a stated limitation (anchor 2/3 material) but an actual gap the artifact's own instrument found and printed. I verified NOTES.md:170-178's M8 SURVIVED figure is real by rerunning mutation_check.py myself (see judging_practice); it reproduced exactly.",
+      "refuses_to_claim": "That its 12-mutant sample or its single-tenant BFS constitute a saturation argument -- NOTES.md:215 says outright it has 'no basis for a claim about mutants I did not write,' and the BFS section states it 'is not a proof about the two-tenant state space, which I did not enumerate.'",
+      "anchor_reading": "measured"
     }
   },
   "contested": [],
-  "verdict": "",
+  "verdict": "N is a competently-scoped single-class implementation with real, verified bug-catching evidence and unusually candid self-reporting, but it has no ports/adapters boundary at all (D3=0) and its behavior checks, while thorough, are hand-written rather than model-derived, which caps D1 and D4 below the top of their scales.",
   "judging_practice": {
-    "executed_own_faults": null,
-    "what_was_run": [],
-    "note": "REQUIRED from scorecard_version 2. Did you seed a fault of your own and run it against this artifact, or did you score the evidence packet? Both are legal and neither is the right answer; what is not legal is leaving it unsaid. Say which, and list what you ran. D4's anchor 4 is only awardable when this says true, because that anchor asks for a behavior-breaking change SHOWN TO BE CAUGHT."
+    "executed_own_faults": true,
+    "what_was_run": [
+      "Copied artifact_N and artifact_D plus examples/ to a scratch directory; ran the shared suite (examples/validation/ab/tests/test_behavior.py, 28 tests) and each tree's own test_quota_ledger.py against both N and D -- all pass on both (28/28 and 37/39 respectively).",
+      "Ran mutation_check.py as shipped against both N and D, both from the scratch copy and in place in the real repo (to check its own SHARED_SUITE path resolution) -- results identical in both locations and both trees; 11/12 caught by the artifact's own suite, M8 survives, shared column reports 'n/a' in both locations because the script's REPO=HERE.parent.parent path does not resolve to the actual repository root from either the delivered location or the scratch copy.",
+      "Seeded fault A (not one of the shipped 12): reserve()'s amount_not_positive boundary changed from `amount < 1` to `amount < 0` (off-by-one, admits amount==0) in copies of both N's and D's quota_ledger.py. Ran the shared suite and each tree's own suite against the mutated copies: both suites, both trees, caught it.",
+      "Seeded fault B (not one of the shipped 12): weakened the tenant_closed guard in reserve() to `if self._closed[tenant] and self._committed[tenant] > 0` (a refusal-class fault -- a closed tenant with nothing committed could still reserve) in copies of both N's and D's quota_ledger.py. Ran the shared suite and each tree's own suite against the mutated copies: both suites, both trees, caught it, and both trees failed on the identical set of tests (test_reserve_rejects_a_closed_tenant plus the same four of N's/D's own tests), which is direct evidence that N and D behave identically under this fault."
+    ]
   }
 }

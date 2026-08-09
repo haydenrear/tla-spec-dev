@@ -173,3 +173,19 @@ _One sentence a reader can act on._
 ## Disclosures
 
 _Anything you saw that you were not meant to see, anything you ran that changed the tree, and anything you REJECTED. For three rounds running the best finding in this project came from the last one, and zero came from re-running the suite._
+
+## Judge pass 4 — filled
+
+**Model:** `claude-sonnet-5`. **Commit:** `f52be89c7e494fc98243702c5f4a4d26d5001af9`.
+
+**Judging practice:** `executed_own_faults: true`. I copied `quota_ledger.py` and `test_quota_ledger.py` to a scratch directory outside the repo, confirmed baseline (21 own / 28 shared, both passing), then seeded an ordering mutation in `reserve()` — swapping the `tenant_closed` and `amount_not_positive` checks (`quota_ledger.py:151-156`) — and reran both suites. The shared suite (`examples/validation/ab/tests/test_behavior.py`) stayed 28/28 green: it never constructs an input where two rejection reasons could both fire (its parametrized rejection block, lines 75-91, is five single-cause cases). Z's own `test_closed_beats_a_bad_amount_and_beats_quota` (`test_quota_ledger.py:73-77`) failed immediately. Nothing in the repository tree itself was touched; all mutation happened in scratch copies.
+
+**Scores:** D1=3, D2=2, D3=0, D4=2, D5=3.
+
+- **D1 (3):** shared suite asserts content, not shape (`test_behavior.py:119`). My own order-fault run supplies the anchor-3 evidence directly — a fault class (ambiguous-check ordering) the whole-view corpus structurally cannot reach, caught by a directed hand-written test. Anchor 4 unreachable: the shared suite's own docstring calls itself hand-written and non-adversarial; nothing in this project is model-derived.
+- **D2 (2):** complexity is proportional (223 lines, 11 branch points, one class, 4 commands/5 queries/5 rules). One minor blemish: `_Tenant.outstanding` (`quota_ledger.py:92`) is written from 3 sites for 1 reader — small duplicated state, not god-state. Z is a greenfield subject per `mechanical.json` ("This tree is a greenfield subject. It has no before.") — there is nothing for Z to have simplified relative to, so anchor 3 is structurally unavailable to it. Capped at 2.
+- **D3 (0):** no port or interface anywhere (`declared_interfaces: 0` in mechanical.json, confirmed by reading `quota_ledger.py:111-112` and `:220-223`, both direct filesystem calls). FEATURE.md leaves this choice free; Z chose "directly." No boundary is even named, so this is anchor 0, not anchor 1.
+- **D4 (2):** all 5 rules and every command/query enumerated and exercised (shared suite + Z's own 21 tests + a 600-step randomized shadow-model driver, `test_quota_ledger.py:206-320`). Solid anchor 2. Not model-derived (no TLA+, no Hypothesis, no generated corpus) — capped at 2 despite the driver's rigor.
+- **D5 (3), anchor_reading=disclosure:** unprompted ambiguities section (`NOTES.md:96-117`) with genuine refusals to over-claim — e.g. `NOTES.md:108-113` on non-integer amounts: "Left as is, and flagged here" rather than a claim of full correctness. Considered and rejected anchor 4: `NOTES.md:91-94` discloses two of the author's own tests failing on first run, but I judged that insufficiently unflattering to *the implementation being scored* — the admitted bug was in the test file, and no defect in `QuotaLedger` itself is ever admitted. Torn between 3 and 4, took the lower.
+
+**What I rejected:** D1=4 (no model-derivation exists anywhere in this project to support it). D2=1 (the complexity clearly is argued against the design, not just reported). D5=4 under the "measured" reading (the one measured stumble on record — two failing own-tests — was a test-authoring bug, not an implementation bug, so I did not let it count as unflattering to the artifact being scored).

@@ -173,3 +173,47 @@ _One sentence a reader can act on._
 ## Disclosures
 
 _Anything you saw that you were not meant to see, anything you ran that changed the tree, and anything you REJECTED. For three rounds running the best finding in this project came from the last one, and zero came from re-running the suite._
+
+## Judge pass 3 — filled
+
+**Model:** `claude-sonnet-5` · **commit:** `f52be89c7e494fc98243702c5f4a4d26d5001af9`
+
+### Scores
+
+| D1 | D2 | D3 | D4 | D5 |
+|----|----|----|----|----|
+| 3  | 2  | 4  | 2  | 4  |
+
+### Judging practice
+
+`executed_own_faults: true`. Because `artifact_F`'s `quota_ledger/` and `tests/` are byte-identical to `artifact_E`'s (see D2 below), I fault-seeded one scratch copy and the results apply to both cards; I disclose that rather than re-running byte-identical faults twice for appearance's sake. Four faults seeded in `quota_ledger/domain.py`: a boundary off-by-one in `quota_exceeded`, a swap of the `tenant_closed`/`amount_not_positive` check order, deletion of the `outstanding_reservations` guard, and a field-order swap in the `COMMIT` journal line. All four caught by the combined shared + own suites; the ordering fault was caught only by the artifact's own hand-written test, invisible to the shared corpus.
+
+### D1 — bug detection (3)
+
+Same code as E, same evidence: `domain.py:123` (value fault), `domain.py:119-122` (ordering fault, caught only by `tests/test_ledger.py:59-61`, not by the shared corpus), `domain.py:150-151` (cross-aspect fault on `close_tenant`'s outstanding-reservations guard), `domain.py:136` (content-format fault on the `COMMIT` line). Not anchor 4: hand-written, not model-derived; no fault class named as unreachable by either `NOTES.md` or `REVISION-NOTES.md`.
+
+### D2 — complexity (2) — the headline question
+
+I diffed `artifact_E/` against `artifact_F/` myself: `diff -u` on every corresponding file (`quota_ledger/__init__.py`, `domain.py`, `file_journal.py`, `memory_journal.py`, `tests/test_ledger.py`, `tests/test_journal_parity.py`, `NOTES.md`) produced **no output**, and `md5` of all six code/test files matches exactly between the two trees. The only filesystem difference is one new document, `REVISION-NOTES.md`, which is not itself scored program. `REVISION-NOTES.md:5-7` states this directly: "I changed nothing. No file under `quota_ledger/` or `tests/` was edited, deleted, added, or renamed." This card's own `mechanical.json` carries identical complexity totals for both trees (branch_points 12, code_lines 163, instance_state 6, all fields matching) and explicitly declines to compute a delta ("NO SUBTRACTION IS PERFORMED HERE and none may be read as a result").
+
+**Verdict on the headline question: no simplification was made.** Zero bytes of the scored program changed between E and F. Anchor 3 requires "a simplification was made **and** its effect measured — the before and after figures are both recorded"; only the second half is true here. I explicitly declined to read `REVISION-NOTES.md`'s ten-item "candidate accounting" (each candidate examined and justified as correctly left standing) as itself a simplification — deciding not to change something, however well-argued, is not a simplification, and crediting the argument alone would let a revision earn anchor 3 by writing well about restraint instead of exercising it. F gets the same D2=2 as E: the same proportional, no-god-state design (anchor 2 still holds, unchanged), no reduction to credit.
+
+### D3 — modularity (4)
+
+Same code, same evidence as E: `domain.py:16-27`, `file_journal.py:13-25`, `memory_journal.py:12-20`, `tests/test_journal_parity.py:149-161`; my own content-format fault propagated through both the file- and memory-journal parametrizations and was caught by both. Refuses to claim: `NOTES.md:36-39`, carried unchanged into F.
+
+### D4 — behavior preservation (2)
+
+Same as E: behaviors enumerated (R1-R5 by name in `test_behavior.py`, plus check-ordering in `tests/test_ledger.py:55-72`), and I independently re-confirmed by rerunning both suites (28+39 passed) and my four faults (4/4 caught). Not anchor 3: hand-written, not model-derived, in both trees.
+
+### D5 — honesty (4, `disclosure` reading)
+
+`REVISION-NOTES.md:5-7` ("I changed nothing") — an unprompted, self-reported negative result about F's own performance on the task it was assigned (simplify), which is unflattering to F as a revision under the disclosure reading the rubric names ("an artifact stating a limitation of itself"). `REVISION-NOTES.md:260-266` additionally names a dead assertion in `tests/test_ledger.py:181` (`assert "journal_" not in source`, a substring that can never occur in the real module names checked the very next line) rather than quietly leaving it. I considered the `measured` reading and judged it a weaker fit here — the coverage numbers `REVISION-NOTES.md` actually measured (100% statement and branch) are flattering, not unflattering; the dead-assertion finding is closer to `measured` but is secondary evidence, not the primary basis for the score. Refuses to claim: `REVISION-NOTES.md:267-271`, on the duplicated tenant guards — "it is a judgment call, not a proof."
+
+### Verdict
+
+F is byte-for-byte identical to E in every scored file — diffed and md5'd myself, not taken on the notes' word — so this revision made no simplification and D2 stays at 2, not 3; what F actually earns over E is a higher D5 (4) for stating that outcome plainly instead of dressing up a null diff as progress.
+
+### Disclosures
+
+Nothing read outside the allowed list. I diffed `artifact_E/` against `artifact_F/` myself (both are artifacts under scoring, not forbidden material) and confirmed byte-identity before reading either NOTES file's claims — the notes corroborate what I'd already measured, not the other way around. I rejected the temptation to read the ten-item "candidate accounting" in `REVISION-NOTES.md` as evidence of a simplification effort that counts toward anchor 3 — a well-reasoned decision not to change code is not a change, and the anchor's text ("a simplification was made") is about the artifact, not about the quality of the reasoning behind leaving it alone. I also rejected D5=3-only on the grounds that "I changed nothing" might be read as self-serving rather than self-critical (it is, after all, presented as the *correct* call, at length) — I moved to 4 because the rubric's own disclosure reading asks only whether a limitation was stated, not whether the artifact groveled about it, and `REVISION-NOTES.md:267-271`'s explicit "not a proof" hedge on its own best-defended decision tipped it from self-serving into genuinely self-critical for me. I did not seed additional faults against `artifact_F` specifically since its code is provably identical to `artifact_E`'s; running the same bytes through the same faults twice would not have produced new information, and I say so here rather than padding `judging_practice.what_was_run` to look more thorough than it was.

@@ -1,13 +1,13 @@
 {
   "scorecard_version": 3,
-  "status": "unfilled",
+  "status": "filled",
   "epic": "reading-discipline",
   "example": "ab_quota_ledger",
   "run_id": "20260809-rd03F-F-p2",
   "arm": "F",
-  "commit": "",
+  "commit": "f52be89c7e494fc98243702c5f4a4d26d5001af9",
   "judge": {
-    "model": "",
+    "model": "claude-opus-5[1m]",
     "tier": "",
     "pass": 2,
     "blind_to_arm": true
@@ -25,12 +25,12 @@
     "digest": "sha256:546f90e21d1254e0",
     "scoring_rules": [
       "**Score artifacts, never claims.** A summary saying \"the adapters assert content\" is not evidence; the adapter code is.",
-      "**Every score \u2265 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
+      "**Every score ≥ 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
       "**Every score of 4 additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.",
       "**Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.",
       "**Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.",
       "**Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.",
-      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree \u2014 and a disagreement is a finding.",
+      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree — and a disagreement is a finding.",
       "**Say what you ran.** *(New in version 2.)* Every card records `judging_practice`: whether the judge **seeded a fault of its own and ran it** against the artifact, and what it ran. Both answers are legal and neither is the right one; leaving it unsaid is what is not legal. **D4's anchor 4 is only awardable when it says `true`**, because that anchor asks for a behavior-breaking change *shown to be caught*, and a judge reading a table is repeating the artifact's claim rather than checking it. This is the anchor's own text made checkable, not a new bar.",
       "**A judge is served the card, never the rubric file.** *(New in version 3.)* The scaffolded `scorecard.md` carries the rubric a judge needs. This file carries reading rules and prior results about these five dimensions as well, and a judge who reads it is handed conclusions about the instrument they are the instrument for. Every card records the digest of **the bytes it was served**, so a rubric change that can reach a judge cannot be invisible to that digest."
     ],
@@ -47,7 +47,7 @@
   "dimensions": {
     "D1": {
       "name": "bug detection",
-      "question": "Do the model-derived cases and their adapters *catch* seeded faults \u2014 especially the hard classes?",
+      "question": "Do the model-derived cases and their adapters *catch* seeded faults — especially the hard classes?",
       "anchors": {
         "0": "Cases exist and pass; no seeded fault is caught. A suite that is green on broken code.",
         "1": "Catches faults that change a value the projection already prints. Misses everything requiring a content assertion.",
@@ -55,10 +55,17 @@
         "3": "Also catches at least one fault in a class the whole-view corpus structurally cannot reach on its own (a refusal, an ordering, a cross-aspect before-state).",
         "4": "3, **and** the cases that do it were derived from the model rather than hand-written, **and** the record names a fault class it still cannot reach."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null
+      "score": 3,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/tests/test_journal_parity.py:95 -- literal expected durable content [\"COMMIT acme 3 3\", \"COMMIT acme 2 5\"], not a shape assertion",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/tests/test_journal_parity.py:117 -- literal cross-tenant line ORDER [\"COMMIT globex 1 1\", \"COMMIT acme 2 2\", \"CLOSE globex 1\"]",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/tests/test_ledger.py:55-72 -- the rejection-ORDER cases (unknown_tenant outranks bad amount; tenant_closed outranks bad amount; bad amount outranks exhausted quota); my seeded fault f03 permuted that order and ONLY these caught it",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/tests/test_ledger.py:46-49 -- outstanding_ids past nine; my seeded fault f07 (lexicographic sort) is invisible to the shared suite and caught only here",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/tests/test_ledger.py:165-169 -- constructor before-state (a pre-existing ledger file is truncated); my f10 survives the shared suite and dies here",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/tests/test_journal_parity.py:157-161 -- the same case list run against both adapters; my f11 (MemoryJournal reverses) survives the shared suite and dies here"
+      ],
+      "rationale": "The test files here are byte-identical to the ones in the tree this revises, so my twelve-fault campaign applies unchanged: 12 of 12 died, and four of those (f03 refusal ordering, f07 query ordering, f10 constructor before-state, f11 fake-adapter drift) survive the shared 28-case contract entirely and are killed only by the artifact's own cases. That clears anchor 3 on the class the anchor names. Anchor 4 fails on its first clause: there is no model in this tree either, and the revision did not add one -- every case is hand-written. It is worth recording that the revision explicitly declined to delete tests (REVISION-NOTES.md:70-73 names deleting the tests that would have caught a change as the move that makes a revision unreadable), so the detection capability I measured is the same capability the earlier tree had, neither improved nor eroded.",
+      "refuses_to_claim": "It refuses to claim that two journals agreeing with each other is evidence of anything (tests/test_journal_parity.py:3-8), and REVISION-NOTES.md:44-48 refuses to claim that full branch coverage proves nothing is accidental."
     },
     "D2": {
       "name": "complexity",
@@ -67,19 +74,26 @@
         "0": "Complexity is unmeasured, or measured and ignored.",
         "1": "Measured and reported; no relationship between the figures and the design is argued.",
         "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
-        "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded.",
-        "4": "3, **and** the simplification is shown to be behavior-preserving (D4 \u2265 3), so the reduction is not paid for in lost behavior."
+        "3": "2, **and** a simplification was made and its effect measured — the before and after figures are both recorded.",
+        "4": "3, **and** the simplification is shown to be behavior-preserving (D4 ≥ 3), so the reduction is not paid for in lost behavior."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 2,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:5-7 -- \"I changed nothing. No file under quota_ledger/ or tests/ was edited, deleted, added, or renamed.\"",
+        "VERIFIED BY DIFF, not believed: `diff -ru artifact_E artifact_F` reports exactly one difference, that artifact_F adds REVISION-NOTES.md, and shasum agrees on all seven shared files (NOTES.md, __init__.py, domain.py, file_journal.py, memory_journal.py, test_journal_parity.py, test_ledger.py)",
+        "mechanical.json `before_totals_code_only` vs `totals_code_only`: every one of the twenty-odd figures is identical -- 163 code lines, 12 branch points, 24 callables, 4 modules, 6 instance state, on both sides",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/quota_ledger/domain.py:130-137 and :144-154 -- single writer for `committed`, single writer for `closed`",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/quota_ledger/domain.py:91-99 -- `available` derived rather than stored, so no fourth writer of the same number",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:163-183 -- a simplification it identified, proved redundant, and deliberately did NOT make (the `_issue_order` sort)"
+      ],
+      "rationale": "THE PAIR JUDGEMENT. Anchor 2 is met for the same reasons as in the before tree -- complexity proportional to behavior, one writer per fact, no god-state. Anchor 3 asks for two things joined by an 'and': a simplification was made, AND its effect was measured with before and after figures both recorded. The second half is satisfied lavishly: mechanical.json prints both tables, and REVISION-NOTES.md:26-48 records 28 before / 28 after, 39 before / 39 after, plus a branch-coverage table I reproduced exactly. The first half is not satisfied at all. I diffed the trees myself rather than believing any note in either: they are byte-identical except for the addition of REVISION-NOTES.md. Not one line of code or test differs. So nothing got simpler -- there is no candidate answer to the caveat's question 'what got simpler and how did the behavior survive it', because the honest answer is 'nothing, and trivially'. The before/after figures are therefore figures of nothing; they are two identical tables, and mechanical.json's own note that no subtraction may be performed is well taken but beside the point when the operands are the same object. I considered and rejected the generous reading that a rigorous decision NOT to simplify is itself the simplification act the anchor is reaching for. It is not: the anchor's words are 'a simplification WAS MADE', and an accounted-for absence of one -- which is what this is, and a good one -- lands on the wrong side of that verb. I also considered whether the quality of the accounting should lift the score anyway, and refused, because that is scoring the report rather than the artifact and the rules forbid it twice over. A low score here is the informative outcome: this artifact is a well-argued 2, and the thing it did well is not the thing D2 anchor 3 measures.",
       "refuses_to_claim": null,
       "read_first": "Read the measured descriptor first (variables, actions, state-space bound, R/W density, modularity, dense rows). Then judge whether the numbers reflect essential behavior or accidental structure.",
       "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 or more requires the judge to say *what got simpler and how the behavior survived it*."
     },
     "D3": {
       "name": "modularity",
-      "question": "Is it ports and adapters in fact \u2014 domain independent of I/O, adapters swappable?",
+      "question": "Is it ports and adapters in fact — domain independent of I/O, adapters swappable?",
       "anchors": {
         "0": "No boundary is discernible; state is written from everywhere.",
         "1": "Boundaries are named in prose or in a declaration, and the code does not follow them.",
@@ -87,10 +101,18 @@
         "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
         "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null,
+      "score": 4,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/quota_ledger/domain.py:16-27 -- the `Journal` driven port declared inside the domain, in the domain's vocabulary",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/quota_ledger/domain.py:10-13 -- the domain's entire import list is `dataclasses` and `typing`: no adapter, no pathlib, no os",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/quota_ledger/domain.py:111,136,153 -- every cross-boundary call goes through `self._journal`, injected at :83-87",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/quota_ledger/__init__.py:22-24 -- the composition point, the only place that knows both the rules and the filesystem",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/tests/test_journal_parity.py:157-161 -- one CASES list parametrised over FileJournal and MemoryJournal, twelve runs, each asserting literal expected values",
+        "RUNTIME evidence, not import topology: my f05 (mutating FileJournal.lines) and my f11 (mutating MemoryJournal.lines) were each caught by that parity suite, which proves both adapters are actually CALLED behind the port and that the same cases really run against both",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:56-75 -- the port is the loudest collapse candidate and it argues against collapsing it on the ground that two implementations exist and are actually substituted, which is the same fact my mutations confirmed at runtime"
+      ],
+      "rationale": "Identical code to the before tree, so the same static and runtime findings hold: the port is declared inside the domain at domain.py:16-27, the domain imports only `dataclasses` and `typing` at :10-13, every cross-boundary call goes through the injected `self._journal`, and the swap is FileJournal -> MemoryJournal (or SQLite, or a socket) at __init__.py:24 touching no other file under quota_ledger/. For anchor 4 I refused to accept the parametrised parity suite on its face and instead mutated each adapter in turn: sorting FileJournal.lines() and reversing MemoryJournal.lines() each killed the parity suite, which is call-level evidence that the same twelve parametrised cases really drive both a real adapter and a fake. The one thing the revision added here is an argument (REVISION-NOTES.md:56-75) for not collapsing the port; an argument is not evidence and I did not score it, but it happens to agree with what I measured. Same torn point as before -- MemoryJournal is shipped in the package and called a working implementation rather than a fake -- and I resolved it for 4 on the ground that the anchor exists to separate a declared port from a substituted one.",
+      "refuses_to_claim": "It refuses to claim that agreement between the two journals is evidence (tests/test_journal_parity.py:3-8), refuses to claim its coverage proves the absence of accidental structure (REVISION-NOTES.md:44-48), and refuses to claim the port could be collapsed without deleting the tests that would catch the change (REVISION-NOTES.md:70-73).",
       "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
     },
     "D4": {
@@ -101,11 +123,17 @@
         "1": "A test suite passes, with no argument that the suite covers the behavior at issue.",
         "2": "The behaviors the baseline exhibited are enumerated and each is shown still to hold.",
         "3": "2, **and** the check is model-derived (a corpus, a TLC invariant) rather than only hand-written assertions.",
-        "4": "3, **and** a deliberate behavior-breaking change is shown to be *caught* \u2014 the check is demonstrated to be capable of failing."
+        "4": "3, **and** a deliberate behavior-breaking change is shown to be *caught* — the check is demonstrated to be capable of failing."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 2,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:26-32 -- before 28 passed / after 28 passed on the shared contract, before 39 / after 39 on its own suite, with the explicit note that it was green on arrival so the pass measures the right thing",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:34-48 -- branch coverage per module; I reran it and got the identical table (115 stmts, 0 miss, 18 branch, 0 partial, 100%)",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:50-233 -- ten candidates enumerated, each with the behavior or distinction it carries named before it is left standing",
+        "The strongest preservation evidence here is one I produced, not one it claims: the two trees are byte-identical, so behavior preservation is true by construction and the suite runs are not what establishes it.",
+        "CAP: no model-derived check exists in this tree either -- no corpus, no generated cases, no TLC invariant. Every assertion is hand-written."
+      ],
+      "rationale": "Anchor 2 is met, and I want to be plain that it is met in the cheapest possible way: nothing changed, so every behavior the before tree exhibited trivially still holds, and I verified that by checksum rather than by trusting the suite counts. The enumeration the anchor asks for is genuinely present -- REVISION-NOTES.md walks ten candidate changes and names, for each, the behavior or distinction at risk -- so it is not merely anchor 1 ('a suite passes with no argument'). Anchor 3 fails for the same single reason as everywhere else in this pair: the checks are hand-written assertions, and coverage is not a model-derived check, it is a reachability report. Anchor 4 is out of reach as a consequence, notwithstanding that my judging_practice is true and I did demonstrate this suite capable of failing on twelve distinct faults; the anchor is stacked on 3 and 3 is unmet.",
       "refuses_to_claim": null
     },
     "D5": {
@@ -118,19 +146,34 @@
         "3": "2, **and** refuses to emit a positive verdict when its basis does not support one (`unobservable` / `unmappable` rather than a false clean).",
         "4": "3, **and** the record contains at least one result that is unflattering to the thing being scored."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null,
-      "caveat": "**Anchor 4's phrase \"a result unflattering to the thing being scored\" carries two defensible readings, and the card records which one you used.** Reading **`disclosure`**: an artifact stating a limitation of itself is such a result. Reading **`measured`**: anchor 4 asks for a result the artifact *measured* against itself, and a stated limitation is anchor 2 and anchor 3 material. **Both readings are legal, neither is the right one, and this note does not change the bar** \u2014 score exactly the anchor you would have scored, and name the reading in `dimensions.D5.anchor_reading`. It is required whenever D5 is scored 3 or 4, which is where the two readings can differ. Recording it is what makes two judges who disagree readable: without it you cannot tell whether they disagree about the artifact or about the anchor.",
-      "anchor_reading": null
+      "score": 4,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:163-183 -- it ran an experiment against its OWN code, found that `outstanding_ids`'s sort is provably redundant and that deleting it keeps both suites green, printed the insertion-order-vs-sorted evidence, and reported it. I reproduced this: with the sort deleted, 28 passed and 39 passed.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:260-266 -- it found a DEAD ASSERTION in its own suite: tests/test_ledger.py:181 asserts `\"journal_\" not in source`, a substring that cannot occur in either module name it guards against. I confirmed the substring can never appear in `from .file_journal import ...` or `import memory_journal`.",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:226-229 -- \"`Journal` re-exported from `__init__.py` but imported by nothing. The one genuinely unread name I found.\"",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:44-48 -- refuses to let its own 100% branch coverage carry more than it can: \"That does not prove nothing is accidental -- a well-tested useless field is still useless\"",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:135-137 -- names the one item it expects a reviewer to disagree with and calls its own argument \"a judgment call, not a proof\"",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:235-252 -- three behaviors it calls questionable and deliberately did not correct, including that `reserve('acme', 3.0)` writes `COMMIT acme 3.0 3.0` into the durable ledger"
+      ],
+      "rationale": "Anchor 2 and anchor 3 are met on the same evidence as the before tree, plus the headline refusal: asked to simplify, it produced no change and said so in the first line, which is declining to emit the positive result the task invited. Anchor 4 is the interesting one and I scored it under the STRICTER `measured` reading, the same reading I applied to the before tree, where it produced a 3. It clears 4 even so, because this record contains results it measured against itself that come out badly for itself: it demonstrated that a piece of its own machinery is redundant (:163-183) and I independently reproduced that demonstration, and it found a dead assertion in its own test suite (:260-266) which I also confirmed. Those are not statements of limitation; they are adverse findings produced by looking. The difference between this card's 3 and this card's 4 is exactly those two measurements, and nothing else -- the code is byte-identical. I will note against it that its self-audit missed a defect of precisely the shape it caught elsewhere: the blank-line filter at quota_ledger/file_journal.py:25 is dead for the same reason the sort is, and REVISION-NOTES.md:222-225 re-affirms a justification for it that is factually wrong, since str.splitlines() emits no trailing empty element. That miss does not cost it anchor 4, because it never claimed the audit was exhaustive and explicitly said coverage proves no such thing -- but a reader should know the instrument found nine of ten, not ten.",
+      "refuses_to_claim": "It refuses to claim that full statement and branch coverage proves the absence of accidental structure (REVISION-NOTES.md:44-48); it refuses to claim its own reasoning on the duplicated tenant guards is a proof rather than a judgment call (:135-137); and it refuses to manufacture a change in order to have something to report (:5-15), which is the refusal the whole document turns on.",
+      "caveat": "**Anchor 4's phrase \"a result unflattering to the thing being scored\" carries two defensible readings, and the card records which one you used.** Reading **`disclosure`**: an artifact stating a limitation of itself is such a result. Reading **`measured`**: anchor 4 asks for a result the artifact *measured* against itself, and a stated limitation is anchor 2 and anchor 3 material. **Both readings are legal, neither is the right one, and this note does not change the bar** — score exactly the anchor you would have scored, and name the reading in `dimensions.D5.anchor_reading`. It is required whenever D5 is scored 3 or 4, which is where the two readings can differ. Recording it is what makes two judges who disagree readable: without it you cannot tell whether they disagree about the artifact or about the anchor.",
+      "anchor_reading": "measured"
     }
   },
   "contested": [],
-  "verdict": "",
+  "verdict": "Byte-identical to the tree it revises -- I diffed and checksummed it, and mechanical.json's two complexity tables agree in every field -- so no simplification was made and D2 anchor 3 fails on its first clause however good the accounting is; the actionable next step is that the one candidate it proved redundant (the `_issue_order` sort, which I confirmed can be deleted with both suites green) has a twin it missed and mis-justified, the dead `if line` filter at quota_ledger/file_journal.py:25, and either both should go or the accounting should explain both.",
   "judging_practice": {
-    "executed_own_faults": null,
-    "what_was_run": [],
-    "note": "REQUIRED from scorecard_version 2. Did you seed a fault of your own and run it against this artifact, or did you score the evidence packet? Both are legal and neither is the right answer; what is not legal is leaving it unsaid. Say which, and list what you ran. D4's anchor 4 is only awardable when this says true, because that anchor asks for a behavior-breaking change SHOWN TO BE CAUGHT."
+    "executed_own_faults": true,
+    "what_was_run": [
+      "Baseline, unmutated copy of each tree in scratch: shared contract `uv run --with pytest python -m pytest examples/validation/ab/tests/test_behavior.py -q` with QUOTA_LEDGER_DIR pointed at the copy -> 28 passed; the artifact's own `pytest tests -q` -> 39 passed. Both trees, identical results.",
+      "Byte-level diff of the two trees: `diff -ru artifact_E artifact_F` and `shasum` over all files. All seven shared files are byte-identical; the ONLY difference is that artifact_F adds REVISION-NOTES.md.",
+      "12 seeded faults, each applied to a fresh copy (never to the artifact trees), each run against BOTH suites: f01 wrong running total on the COMMIT line; f02 CLOSE verb changed to CLOSED; f03 rejection order (amount checked before tenant_closed); f04 close_tenant stops checking outstanding reservations; f05 FileJournal.lines() sorts; f06 release appends a durable line; f07 outstanding_ids sorts lexicographically; f08 a rejected reserve consumes an id; f09 committing frees quota; f10 FileJournal stops truncating a pre-existing file; f11 MemoryJournal.lines() reverses; f12 quota boundary off by one.",
+      "Result: 12 of 12 caught by the artifact's own suite. The shared 28-case contract alone MISSED four of them -- f03 (refusal ordering), f07 (query ordering), f10 (constructor before-state), f11 (fake adapter drift) -- all four caught only by the artifact's own cases.",
+      "Probe A, verifying the revision's own unflattering claim: deleted `sorted(..., key=_issue_order)` from outstanding_ids entirely (plain insertion order). Both suites stayed green (28 passed, 39 passed). REVISION-NOTES.md's claim that the sort is provably redundant and that deleting it keeps both suites green is TRUE.",
+      "Probe B, my own additional finding: deleted the `if line` blank-line filter from FileJournal.lines(). Both suites stayed green (28 passed, 39 passed), and `'A\\nB\\n'.splitlines() == ['A','B']` -- str.splitlines() emits no trailing empty element, so the filter's stated justification in NOTES.md and REVISION-NOTES.md is factually wrong and the filter is dead.",
+      "Probe C: confirmed the substring `'journal_'` cannot occur in `from .file_journal import ...` or `import memory_journal`, so tests/test_ledger.py:181's assertion is dead -- the revision's own observation, independently checked.",
+      "Reproduced the coverage table REVISION-NOTES.md prints: `pytest tests --cov=quota_ledger --cov-branch` -> 115 stmts, 0 miss, 18 branch, 0 partial, 100%, matching its per-module figures exactly."
+    ]
   }
 }

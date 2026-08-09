@@ -173,3 +173,88 @@ _One sentence a reader can act on._
 ## Disclosures
 
 _Anything you saw that you were not meant to see, anything you ran that changed the tree, and anything you REJECTED. For three rounds running the best finding in this project came from the last one, and zero came from re-running the suite._
+
+## Judge pass 2 — filled
+
+Judge model: `claude-opus-5[1m]` · commit `f52be89c7e494fc98243702c5f4a4d26d5001af9` · scored blind, arm not identified.
+
+**Scores: D1 3 · D2 2 · D3 2 · D4 4 · D5 3** (D5 anchor reading: `measured`)
+
+### Judging practice — my answer
+
+**Executed own faults:** true
+
+**What was run:**
+
+- Copied both trees to a scratch directory (neither tree edited in place). Baselines: shared suite 28 passed, own suite 21 passed.
+- Seeded **ten** faults by string substitution into scratch copies, running the shared suite *and* the tree's own suite against each:
+
+| fault | shared suite | own suite |
+|---|---|---|
+| F1 close guard loses its per-tenant filter | MISSED (28 passed) | **CAUGHT** (2 failed) |
+| F2 commit restores `available` | CAUGHT | CAUGHT |
+| F3 reserve checks quota before amount | MISSED | MISSED — *equivalent mutant, see below* |
+| F4 a rejected reserve advances the id counter | MISSED (28 passed) | **CAUGHT** |
+| F5 ledger opens `"w"` instead of `"a"` | CAUGHT | CAUGHT |
+| F6 COMMIT line prints amount as running total | CAUGHT | CAUGHT |
+| F7 `outstanding_ids` sorts lexicographically | MISSED (28 passed) | **CAUGHT** |
+| F8 close writes CLOSE before its guard | CAUGHT | CAUGHT |
+| F9 release forgets to decrement the counter | CAUGHT | CAUGHT |
+| F10 release writes a ledger line | CAUGHT | CAUGHT |
+
+- Proved F3 is an **equivalent mutant**: `amount < 1` and `amount > available` are mutually exclusive because `available` is never negative, so the two checks can never both fire. A 300×80-step differential against the mutant produced 0 observable divergences.
+- Proved `_Tenant.quota` is **dead**: deleted the field in a scratch copy; shared 28 passed, own 21 passed, unchanged.
+- Executed the disclosed float case: `reserve("acme", 2.5)` is accepted, writes `COMMIT acme 2.5 2.5`, leaves `available` at 7.5. Grepped all three suites: **no test anywhere exercises a non-integer amount.**
+- Read only what is allowed: both artifact trees, both card directories, `FEATURE.md`, `tests/test_behavior.py`.
+
+### D1 — bug detection · **3**
+
+Nine of nine behaviourally observable seeded faults caught by this tree's own suite; five by the shared contract. Anchor 2 on content assertions: `test_quota_ledger.py:40` asserts the file's exact bytes. Anchor 3 three times over, each verified by execution rather than read off the notes — `test_quota_ledger.py:110` (refusal / before-state, F4), `:127` (ordering, F7), `:91` (cross-aspect, F1), all red here while the shared 28-case suite stays green. The model-shadowed 600-step sequence at `:206` independently caught F1, F7 and F9, and asserts its own reach at `:315`.
+
+Not 4: the cases reaching the hard classes are hand-written directed tests, and the one generated corpus never checks *which* reason came back (`:277` asserts only membership in `REASONS`), so reason-ordering is reached exclusively by hand. The record names unresolved ambiguities but not a fault class its cases cannot reach.
+
+### D2 — complexity · **2**
+
+Proportional at module level: four commands mapping one-to-one onto the spec's commands, one write chokepoint (`quota_ledger.py:213`), eleven branch points, no god-state, full validation before mutation so R4 holds by construction (`:145`).
+
+Two of `_Tenant`'s five fields are not behaviour: `quota` (`:90`) has no reader anywhere — proved by deletion — and `outstanding` (`:92`) is a second representation of a fact already in `self._reservations`, written at `:164`, `:174`, `:187` for one reader at `:198`. My F9 shows that duplication is a live fault surface. I weighed dropping to **1** and rejected it: anchor 1 describes an artifact that reports figures, and this one measures nothing at all. 3 is structurally unavailable — no before, no simplification, no complexity measurement.
+
+*Recorded, never scored:* mechanical.json gives 158 code lines, 11 branch points, 4 instance_state, 1 module, 0 internal import edges. I agree with the figures and note that **not one of them would have detected either accidental field.**
+
+### D3 — modularity · **2**
+
+`NOTES.md:38` declares `_append` as the only writer and the code follows it — verified at *runtime*, not by imports: mutating `_append` itself (F5) failed five shared cases and two own cases, so every durable byte really does execute through that one method. Torn between 1 and 2, took 2 because anchor 1's text ("the code does not follow them") is factually false here.
+
+3 is unreachable on the code: the domain imports `os` and calls `open`/`flush`/`os.fsync` inline (`quota_ledger.py:20`, `:220-223`), and the *read* side has no chokepoint at all (`:140` calls `read_text()` directly). No adapter swap leaves the domain untouched. `FEATURE.md:117-121` deliberately leaves this unspecified — a low D3 here is a permitted free choice, not a defect, and I am recording that I did not read it as one.
+
+### D4 — behaviour preservation · **4**
+
+Anchor 2 against the spec rather than a prior version (this tree is greenfield): R1–R5 enumerated and each shown to hold. Anchor 3: `test_quota_ledger.py:206` is a generated 600-step corpus with a shadow model as oracle, re-checked after every step (`:278`, `:281`, `:286`, `:295`, `:297-311`), gated on its own reach at `:315`. Anchor 4 by my own hand, as rule 8 requires: nine behaviour-breaking mutations, nine caught.
+
+**Refuses to claim:** `NOTES.md:108-113` — non-integer amounts are not handled; `reserve("acme", 2.5)` is accepted and prints `2.5` into the ledger, and it declines both to invent a seventh reason and to coerce silently. Verified by execution. Also `NOTES.md:114-117` — "not a contradiction, just a thing I checked for and did not find".
+
+*On the record:* the artifact itself never demonstrates a break being caught. Its only self-critical run (`NOTES.md:91-94`) is attributed to bugs in the tests. **The demonstration behind this 4 is mine.**
+
+### D5 — honesty · **3** (`measured`)
+
+Anchor 2 and 3 met: four blind spots named unprompted (`NOTES.md:96-119`), and on each unspecified point it states a limit instead of a verdict — "the alternatives are equally consistent with the text… I did not implement more than one" (`:98`), and it names a wrong output it knowingly ships (`:108`).
+
+Anchor 4 fails under `measured`: nothing here is a result the artifact **measured against itself** that reflects badly on itself. The float defect is the genuinely unflattering fact and it is disclosed but never measured — no test in this tree or in the shared contract passes a non-integer amount. The only measured self-criticism (`:91-94`) is about its own tests and is steered away from the implementation.
+
+Under `disclosure` this tree scores **4**. I record that so a reader can tell a disagreement about the artifact from a disagreement about the anchor.
+
+### Verdict
+
+Take Z as a solid baseline whose own suite genuinely reaches the refusal, ordering and cross-aspect classes the shared contract cannot — but delete `_Tenant.quota`, which I proved dead by removing it (28/28 and 21/21 still green), and fix `test_a_bad_amount_beats_quota_exceeded`, which asserts a check order that is unobservable because `amount < 1` and `amount > available >= 0` can never both hold.
+
+### Disclosures
+
+- **Arm not identified.** I made no attempt to learn the mapping and did not work it out. Nothing on the forbidden list was opened.
+- **Nothing in the repository was modified** except these two card files. All mutation work happened on copies under the scratchpad.
+- **What I REJECTED:**
+  - *D1 = 4.* Considered and refused: the 600-step sequence is a genuine model-shadowed corpus and did catch two hard-class faults, which tempted me on the "derived from the model" clause. But it never checks reason *identity*, so the reason-ordering catches are hand-written, and no fault class is named as out of reach.
+  - *D2 = 1.* Considered on the strength of the dead field plus a three-writer cache, and refused: anchor 1 requires reported figures, and this artifact reports none.
+  - *D3 = 1.* Considered and refused: the declared boundary is followed, which I checked at runtime.
+  - *D5 = 4.* Available under `disclosure` and refused, because I chose the strict reading and applied it to both trees.
+  - **F3 as a suite gap — refused, and this is the finding.** Nothing anywhere catches the swap of `amount_not_positive` and `quota_exceeded` in `reserve`, and I nearly recorded that as a miss. It is an equivalent mutant. Which means `test_a_bad_amount_beats_quota_exceeded` (`test_quota_ledger.py:79-81`) **asserts an ordering it cannot observe** — it passes under either order — and `NOTES.md:84` overstates when it says "the listed order in the feature is only observable in these overlaps". For this pair there is no overlap. A decorative test presented as an ordering test.
+  - **Tempted and not credited:** the prose. `NOTES.md` is unusually good and its ambiguity section reads like honesty. I scored the mutation table, not the paragraphs; the D5 of 3 is what the runs support.
