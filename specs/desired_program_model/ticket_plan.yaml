@@ -38,10 +38,12 @@ epic:
   default_branch: main
   base_sha: 946b1ee
   base_note: Branched from main after subtract-to-measure merged and pushed.
-  schedule_revision: 1
+  schedule_revision: 2
   review_mode: epic-owner-post-merge
   notes: >-
     Never merge to main and never run skill-manager sync without explicit owner say-so. Never invoke tla-spec-dev from PATH. THE PLAN MUST LOAD WITH BOTH LOADERS. Never kill a process by name alone -- scope pkill to your worktree path.
+  schedule_revision_note: >-
+    BUMPED TO 2, 2026-08-08, owner direction. RD-03 is RE-SCOPED to point at the PRODUCT. Evidence: 100 of 108 findings in this epic family touch only the measurement apparatus, and the last two epics are 100% apparatus with ZERO product findings. The first three epics asked product questions; the last three epics' nine goals are all about instruments. We built a machine to measure software and it has spent three epics measuring itself. THE THREE APPARATUS GOALS ARE STILL DECIDED -- they were agreed before dispatch and an epic must not close with a silently unmeasured goal -- but the round's HEADLINE becomes GOAL-product-round: use the instruments on the thing they were built for.
 deferment_policy:
   mode: batch
   blocking: escalate
@@ -96,6 +98,23 @@ epic_goals:
       The cost is reported per removal with its ratio, and the round says whether the apparatus earns it. BOTH ANSWERS ARE ACCEPTABLE; not deciding is not.
     evaluation_ticket: RD-03
     evidence_root: specs/results/scorecards/reading-discipline/GOAL-apparatus-priced
+  - id: GOAL-product-round
+    kind: eval
+    statement: >-
+      The instruments this epic family built are USED ON THE PRODUCT, and the three original questions get a current answer with a card that now demonstrably measures.
+    metric: >-
+      The three original goals re-decided on current evidence, each baseline -> measured -> verdict: do model-derived cases catch bugs hand-written tests miss; does the prompt produce simpler code at equal behaviour (D2 ANCHOR 3 IS NOW REACHABLE AND NEVER WAS BEFORE); and does the effectful vs ports-and-adapters choice change what validation can see, now that the choice is taggable.
+    harness: >-
+      the RD-05 tag, the working card, and the seeded catalogue, run over produced code rather than over the toolchain
+    baseline:
+      value: >-
+        NOT MEASURED SINCE ports-as-adapters. What stands: the prompt is the ONE lever with a replicated, confounder-controlled effect -- D3 1 -> 4, with arm C longer and scoring 1/1. No generated instrument has a unique kill; suite-fake strictly dominates on author-written catalogues, is COMPLEMENTARY on one blind catalogue and DOMINATED on another, so that comparison turns on a model constant. D2 = 2 on every greenfield card because anchor 3 was structurally unreachable for a subject with no before.
+      measured_at: 946b1ee
+      evidence: specs/results/scorecards/ -- HP-06, EVAL-RERUN, PA-06, SM-05
+    target: >-
+      Each of the three gets a verdict with a reason. NO TARGET ON ANY NUMBER -- the point is that they are answered with working instruments rather than left open for a fourth epic. A result showing a lever does NOT work is the preferred outcome and closes the question either way.
+    evaluation_ticket: RD-03
+    evidence_root: specs/results/scorecards/reading-discipline/GOAL-product-round
 tickets:
   - id: RD-01
     title: Make a single-example generalisation catchable, and make contested compute
@@ -217,9 +236,9 @@ tickets:
     title: Implement the effect_boundary architecture tag from the RD-04 design
     status: done
     github_issue: https://github.com/haydenrear/tla-spec-dev/issues/195
-    schedule_revision: 1
+    schedule_revision: 2
     depends_on: [RD-04]
-    blocks: [RD-03]
+    blocks: [RD-03, RD-06]
     wave: 3
     promotion_order: 40
     promotion_predecessor: RD-04
@@ -252,16 +271,56 @@ tickets:
       commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
       assertions: [Rewritten from RD-04's design before dispatch., 'Every shipped tag value has a demonstration that it changes a score, or is deleted.', 'INCOMPARABLE pairs are reported, never dropped.', 'A demonstrated failing input, run against real historical cards.']
     model_delta_expectation: none expected
+  - id: RD-06
+    title: Produce the product subjects, including the first before/after on produced code
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/203
+    schedule_revision: 2
+    depends_on: [RD-05]
+    blocks: [RD-03]
+    wave: 4
+    promotion_order: 45
+    promotion_predecessor: RD-05
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/ab/]
+    objective: >-
+      PRODUCES THE SUBJECTS RD-03 SCORES. The epic validator refused a product goal with no implementation ticket behind it -- a goal nobody builds toward is a goal the evaluation invents -- and it was right. Produce artifacts from the current prompts against the SAME sealed FEATURE.md and behavioural suite, so the round is comparable to the sealed record rather than a new experiment. AND PRODUCE A BEFORE/AFTER ON PRODUCED CODE: D2 anchor 3 requires a simplification with both figures recorded, no greenfield artifact can ever reach it, and that is why D2 read 2 on every greenfield card ever written. This is the first time the PRODUCT side will have had a before. Tag every subject with effect_boundary, DERIVED not declared, using RD-05's shipped derivation -- the tag USED rather than re-litigated. Preserve the dispatched prompt as an artifact. YOU DO NOT SCORE ANYTHING: producing a subject and judging it are different jobs, and one agent doing both is how a round scores its own homework.
+    desired_actions: []
+    implementation_scope: [examples/validation/ab/, specs/results/]
+    goals:
+      - goal: GOAL-product-round
+        contribution: direct
+        expected_effect: >-
+          Supplies the subjects the goal is measured on, including the first produced-code before/after in this project's history.
+        local_signal: >-
+          subjects produced, each with a derived effect_boundary tag and a preserved dispatched prompt
+      - goal: GOAL-tags-earn-their-place
+        contribution: enabling
+        expected_effect: >-
+          none -- the tag is applied to new subjects, which is the first use outside the cards it was derived from
+        local_signal: derived tag per subject, and any UNDERIVABLE with its reason
+      - goal: GOAL-scope-loss-catchable
+        contribution: guard
+        expected_effect: none expected; any claim this ticket makes must carry its own scope
+        local_signal: scope over its own writing
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: [Subjects produced against the SAME sealed FEATURE.md and behavioural suite as the record., "A produced-code before/after exists, so D2 anchor 3 is reachable on the product for the first time.", 'Every subject carries a DERIVED effect_boundary tag, or an UNDERIVABLE with its reason.', The dispatched prompt is preserved as an artifact and is what any later measurement reads., NOTHING is scored by this ticket.]
+    model_delta_expectation: none expected
   - id: RD-03
     title: 'EVALUATION: how many claims does the record not survive?'
     status: planned
     github_issue: https://github.com/haydenrear/tla-spec-dev/issues/190
-    schedule_revision: 1
-    depends_on: [RD-01, RD-02, RD-04, RD-05]
+    schedule_revision: 2
+    depends_on: [RD-01, RD-02, RD-04, RD-05, RD-06]
     blocks: []
-    wave: 4
+    wave: 5
     promotion_order: 50
-    promotion_predecessor: RD-05
+    promotion_predecessor: RD-06
     conflict_keys:
       production: []
       tla: []
@@ -269,7 +328,19 @@ tickets:
       test_graph: []
       workflow: [specs/results/scorecards/reading-discipline/]
     objective: >-
-      The epic's product and a MEASUREMENT. THE HEADLINE IS THE COUNT OF EXISTING CLAIMS THE NEW CHECKS REFUTE when swept over charters, plans, issues and the ledger, each named. A HIGH COUNT IS THE HONEST OUTCOME and there is no target on it. Also: RE-DERIVE D3's STABILITY ACROSS ALL EXAMPLES the way D2 should have been derived -- D3 was called the one dimension that discriminates and holds still on the strength of ab_quota_ledger, then spread 2 and split by tier on a second subject. Decide whether the safety apparatus earns its cost. Report findings per 100k tokens BY CHANNEL against the predecessor's 0.60, and say whether the suite should keep being funded as a finding channel -- it has produced ZERO findings in six of seven rounds while costing a full run each time, and it is a fine regression guard, which is a different job. FILE FINDINGS, FIX NOTHING.
+      RE-SCOPED AT schedule_revision 2 TO POINT AT THE PRODUCT. 100 of 108 findings in this epic family touch only the measurement apparatus and the last two epics produced ZERO product findings. A fourth consecutive apparatus evaluation would tell us our checks have bounds, which we know.
+
+
+      TWO PARTS, AND THE SECOND IS THE HEADLINE.
+
+
+      (1) DECIDE THE THREE APPARATUS GOALS, which were agreed before dispatch and may not be silently dropped. Most of their evidence is already in hand from RD-01, RD-02, RD-04 and RD-05. GOAL-scope-loss-catchable must be reported WITH BOTH KNOWN BOUNDS on its instrument -- keyed on \bD[1-5]\b, and REFUTED for a true figure whose qualifier falls outside a 3-word window -- either of which can move the count in either direction. GOAL-tags-earn-their-place must report that the separation is opus-only, n = 0 in sonnet, and that TWO candidate values were REFUSED admission. GOAL-apparatus-priced is decided LOAD-BEARING, with the pricing instrument that blessed two epics of free removals shown to be ENTAILED -- 0 of 9 gap mutants could have priced their removal.
+
+
+      (2) USE THE INSTRUMENTS ON THE PRODUCT. Answer the three original questions with a card that now demonstrably measures: do model-derived cases catch bugs hand-written tests miss; does the prompt produce simpler code at equal behaviour, NOW THAT D2 ANCHOR 3 IS REACHABLE AND NEVER WAS BEFORE; and does the effectful vs ports-and-adapters choice change what validation can see, now that the choice is taggable. That last one uses the architecture tag rather than building it.
+
+
+      FILE FINDINGS, FIX NOTHING.
     desired_actions: []
     implementation_scope: [specs/results/scorecards/, NEXT-EPIC.md]
     goals:
@@ -285,9 +356,14 @@ tickets:
         contribution: guard
         expected_effect: decides the goal; adds no behavioural delta
         local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-product-round
+        contribution: direct
+        expected_effect: >-
+          The three original product questions get a current answer, or the round reports which cannot be answered and why.
+        local_signal: the three verdicts, each with baseline -> measured -> reason
     acceptance:
       commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
-      assertions: ["The count of refuted historical claims is reported with each claim NAMED, and claims the checks cannot reach are counted separately.", 'D3''s stability is re-derived across ALL examples, not one.', 'Every tag value shipped has its earn-its-place demonstration, or is reported as deleted.', The apparatus cost is decided either way., Findings by channel with the per-token ratio; the suite's funding decided., Findings FILED and NONE fixed.]
+      assertions: ["The three apparatus goals are decided, each WITH the bounds now known on its own instrument.", "The three original product questions get a verdict with a reason, or are reported unanswerable with the reason.", "D2 is scored on produced code where anchor 3 is reachable, and the result is reported either way.", 'The architecture tag is USED to say which comparisons are legitimate, not re-litigated.', "Findings by channel with the per-token ratio; and the count of PRODUCT-surface findings this round, stated as a result.", Findings FILED and NONE fixed.]
     model_delta_expectation: none expected
     role: evaluation
-    owns_goals: [GOAL-scope-loss-catchable, GOAL-tags-earn-their-place, GOAL-apparatus-priced]
+    owns_goals: [GOAL-scope-loss-catchable, GOAL-tags-earn-their-place, GOAL-apparatus-priced, GOAL-product-round]
