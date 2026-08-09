@@ -141,11 +141,17 @@ a before-tree scoring disjointly from an after-tree at the same derived value.
 treatment"**, and this round is the first time it has had a within-value
 treatment difference to see. `RD-03-DF-12`.
 
-### 8. SEVEN PRODUCT-SURFACE FINDINGS, AGAINST ZERO IN EACH OF THE LAST TWO EPICS
+### 8. TWELVE PRODUCT-SURFACE FINDINGS, AGAINST ZERO IN EACH OF THE LAST TWO EPICS
 
 100 of 108 findings in this family before today touched only the apparatus. This
-round filed 17, of which **7 are defects in produced code or in the shared
-fixture**. The two worth carrying forward by name:
+round filed 22, of which **12 are defects in produced code or in the fixture**.
+**The single most productive thing the round bought was one subagent given the
+instruments that already existed and told to point them at the code** — 6
+findings for 293k tokens, 2.05 per 100k, three times the predecessor's rate. It
+also **corrected one of the round operator's own findings**. Fund that channel
+first.
+
+The four worth carrying forward by name:
 
 - **`RD-03-DF-01` — a produced artifact ships an evidence harness that certifies
   a clean it cannot support.** `mutation_check.py` decides "caught" with
@@ -159,12 +165,35 @@ fixture**. The two worth carrying forward by name:
   *"the floor"*. The floor is lower than it reads, by a class rather than a case.
   **Do not quietly extend it**: that silently re-bases every published "28
   passed" and makes the old and new figures look like one series.
+- **`RD-03-DF-20` — a seeded-fault catalogue does not measure what you think it
+  measures.** `artifact_E`'s notes state its parity suite's premise: *"No case in
+  that list can be written for only one of the journals."* It is false, and the
+  counterexample is **the `PA-M13` fault class present in the shipped code,
+  unseeded — on the one tree pair whose own suite kills `PA-M13` when it IS
+  seeded.** A catalogue measures whether an instrument catches an *injected*
+  instance of a class. It says nothing about a *naturally occurring* instance in
+  the code beside it, and **no round this project has run has ever checked for
+  one.** This is the largest transferable result in the round.
+- **`RD-03-DF-18` — all six trees break a literal `FEATURE.md` guarantee**
+  (*"appends exactly one line"*) on a tenant name containing a line break. Six of
+  six is the point: not an arm effect and not a model effect, but a gap every
+  implementation inherited from a spec that states a guarantee on the durable
+  format and no constraint on its inputs. Same class as the non-integer `amount`
+  gap (`RD-03-DF-07`).
 
 ### 9. WHAT THE NEXT EPIC SHOULD NOT DO
 
 - **Do not run a fourth apparatus evaluation.** This one found real product
   defects the moment it was pointed at code, and it found them with instruments
   that already existed.
+- **Do not read Q3's INEXPRESSIBLE count as an empirical discovery.** The two
+  mutants it counts are *defined* as mutations of a fake adapter, so counting
+  where they cannot be applied restates which trees have a fake. The measurer
+  predicted it cell-for-cell and disclosed it. `RD-03-DF-22`.
+- **Do not compare the four `effectful` trees on this catalogue.** Both
+  hand-written instruments killed all 13 measured mutants on all four; the table
+  has no resolving power there. Subtler faults are needed, added *beside* the
+  blatant ones — the blatant ones are the regression floor.
 - **Do not average D2 across the six RD-06 subjects.** It gives 2.4 and means
   nothing. `R-H2`.
 - **Do not treat "the prompt improves D3" as this round's finding.** It
