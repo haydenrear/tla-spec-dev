@@ -1,0 +1,156 @@
+warning: no budgets block in /Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-03/examples/validation/ab/model/spec_manifest.yaml; using documented default budgets (references/modular_fuzzing.md). Run tla-spec-dev scaffold project to emit one, or add it by hand.
+complexity scan -- ADVISORY WARNINGS (these do NOT block case generation):
+
+  WARNING: state-space upper bound 432 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 4 of 9 declared variables (5 unresolved: available, committed, amt, ledger, reason) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap
+  WARNING: component C1 is touched by 11 actions (Reserve, Commit, Release, CloseTenant, RefuseReserveClosed, RefuseReserveNotPositive, RefuseReserveOverQuota, RefuseCommitUnknown, RefuseReleaseUnknown, RefuseCloseAlreadyClosed, RefuseCloseOutstanding), exceeding max_component_actions 8
+
+Dominant dimensions:
+  holder: 9  ([ResIds -> Tenants \cup {NoTenant}])
+  closed: 4  (SUBSET Tenants)
+  live: 4  (SUBSET ResIds)
+  status: 3  ({ "accepted", "rejected", "init" })
+
+Run `tla-spec-dev analyze complexity <spec> <cfg>` for the full descriptor.
+
+Proceeding with case generation -- complexity is advisory and does not block. Read the findings above (references/architecture_tractability.md, 'Advisory, Not Blocking').
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 1 and seed -2257507022234909195 with 1 worker on 10 cores with 16384MB heap and 64MB offheap memory [pid: 91637] (Mac OS X 26.6.1 aarch64, Oracle Corporation 21 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-03/examples/validation/ab/model/QuotaLedger.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Naturals.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/FiniteSets.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Sequences.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module QuotaLedger
+Starting... (2026-08-09 16:01:14)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-08-09 16:01:14.
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 5.8E-12
+43129 states generated, 2649 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 8.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 12 and the 95th percentile is 5).
+Finished in 00s at (2026-08-09 16:01:14)
+warning: no budgets block in /Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-03/examples/validation/ab/model/spec_manifest.yaml; using documented default budgets (references/modular_fuzzing.md). Run tla-spec-dev scaffold project to emit one, or add it by hand.
+corpus gate FAIL: 43128 internal case(s), cap max_internal_cases_per_component = 200 per component
+source: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/probe/specs/corpus-whole/spec-unit/quota_whole
+
+Distribution per (action, label class) -- 11 stratum/strata:
+  RefuseReserveClosed / (unlabeled)        15960   37.0%
+  RefuseReserveOverQuota / (unlabeled)      5392   12.5%
+  RefuseReserveNotPositive / (unlabeled)    5276   12.2%
+  RefuseCommitUnknown / (unlabeled)         4514   10.5%
+  RefuseReleaseUnknown / (unlabeled)        4514   10.5%
+  RefuseCloseAlreadyClosed / (unlabeled)    2660    6.2%
+  CloseTenant / params:recovered            1872    4.3%
+  Commit / params:recovered                  784    1.8%
+  RefuseCloseOutstanding / (unlabeled)       784    1.8%
+  Release / params:recovered                 784    1.8%
+  Reserve / params:recovered                 588    1.4%
+
+Strata that DOMINATE the corpus:
+  RefuseReserveClosed / (unlabeled)        15960   37.0%
+  RefuseReserveOverQuota / (unlabeled)      5392   12.5%
+  RefuseReserveNotPositive / (unlabeled)    5276   12.2%
+  RefuseCommitUnknown / (unlabeled)         4514   10.5%
+  RefuseReleaseUnknown / (unlabeled)        4514   10.5%
+
+Strata that are STARVED:
+  Commit / params:recovered                784    1.8%
+  RefuseCloseOutstanding / (unlabeled)     784    1.8%
+  Release / params:recovered               784    1.8%
+  Reserve / params:recovered               588    1.4%
+
+  Skew: RefuseReserveClosed / (unlabeled) holds 27x the cases of Reserve / params:recovered.
+  A starved stratum is the interesting half: the model is spending its
+  enumeration budget somewhere other than on that behavior.
+
+corpus gate FAIL -- this corpus exceeds its manifest cap. Nothing was
+trimmed: the full corpus was written, and this gate refuses instead.
+
+A lopsided corpus is evidence about the REPRESENTATION, not noise to
+clean up. The corpus is the symptom; the diagram is the defect.
+
+--- component component: 43128 cases, cap 200 (over by 42928)
+
+  Strata within this group that DOMINATE:
+    RefuseReserveClosed / (unlabeled)        15960   37.0%
+    RefuseReserveOverQuota / (unlabeled)      5392   12.5%
+    RefuseReserveNotPositive / (unlabeled)    5276   12.2%
+    RefuseCommitUnknown / (unlabeled)         4514   10.5%
+    RefuseReleaseUnknown / (unlabeled)        4514   10.5%
+
+  Strata within this group that are STARVED:
+    Commit / params:recovered                784    1.8%
+    RefuseCloseOutstanding / (unlabeled)     784    1.8%
+    Release / params:recovered               784    1.8%
+    Reserve / params:recovered               588    1.4%
+
+  What VARIES across the redundant group:
+    after.ledger     107 distinct / 43128 cases
+                   e.g. <<'CLOSE', 't1', 0>, <'CLOSE', 't2', 0>>; <<'CLOSE', 't1', 0>, <'COMMIT', 't2', 1>, <'CLOSE', 't2', 1>>; <<'CLOSE', 't1', 0>, <'COMMIT', 't2', 1>, <'COMMIT', 't2', 1>, <'CLOSE', 't2', 2>>
+    before.ledger    107 distinct / 43128 cases
+                   e.g. <<'CLOSE', 't1', 0>, <'CLOSE', 't2', 0>>; <<'CLOSE', 't1', 0>, <'COMMIT', 't2', 1>, <'CLOSE', 't2', 1>>; <<'CLOSE', 't1', 0>, <'COMMIT', 't2', 1>, <'COMMIT', 't2', 1>, <'CLOSE', 't2', 2>>
+    after.reason       6 distinct / 43128 cases
+                   e.g. 'amount_not_positive'; 'none'; 'outstanding_reservations'
+    before.reason      6 distinct / 43128 cases
+                   e.g. 'amount_not_positive'; 'none'; 'outstanding_reservations'
+    after.closed       4 distinct / 43128 cases
+                   e.g. {'t1', 't2'}; {'t1'}; {'t2'}
+    after.live         4 distinct / 43128 cases
+                   e.g. {'r1', 'r2'}; {'r1'}; {'r2'}
+    before.closed      4 distinct / 43128 cases
+                   e.g. {'t1', 't2'}; {'t1'}; {'t2'}
+    before.live        4 distinct / 43128 cases
+                   e.g. {'r1', 'r2'}; {'r1'}; {'r2'}
+
+  Held CONSTANT across the group: params
+
+  Likely cause: action enabled across equivalent states
+    - 13 distinct change shape(s) across 43128 cases
+    - but the before-state varies widely: after.ledger (107 values), before.ledger (107 values), after.reason (6 values)
+    - 2649 distinct source states in the reachable graph
+    - the action does one thing, generated once per reachable state that enables it
+
+The measurements above are the finding. This gate prescribes nothing
+and applies nothing; it refuses, and leaves the judgment to you.
+
+REDESIGN QUESTION: can the architecture be redesigned to make the
+program simpler, so these cases are never generated? That judgment is
+yours, not this tool's: take the complexity descriptor
+(`tla-spec-dev analyze complexity`) together with
+references/complexity_intuition.md and consider how to refactor
+complexity out of the app. Nothing is prescribed here, and nothing is
+applied automatically.
+
+Two ways forward, and neither deletes a case:
+
+  1. REDESIGN so the redundant cases are never generated -- if,
+     taking the descriptor and references/complexity_intuition.md
+     as the judgment inputs, you conclude the architecture can be
+     made simpler.
+
+  2. ACCEPT PATH -- raise the cap, with a rationale, in /Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-03/examples/validation/ab/model/spec_manifest.yaml:
+     
+       budgets:
+         max_internal_cases_per_component: 43128    # was 200
+         source: negotiated
+         rationale:
+           max_internal_cases_per_component: "<one line: why this program genuinely needs 43128 cases per component>"
+     
+     That is an explicit, reviewable decision recorded in program state.
+     There is no trimming option, opt-in or otherwise: cases are never
+     dropped, filtered, sampled, or truncated to fit a budget.
+
+REFUSING to accept this corpus. Fix the diagram, or raise the cap with a
+recorded rationale. There is no override that trims cases.
+spec directory: /Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-03/examples/validation/ab/model
+generated internal cases from 2649 states into /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/probe/specs/corpus-whole/spec-unit/quota_whole
+state projection: none; transition dedupe: none
+per-action coverage recorded to /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/probe/specs/corpus-whole/spec-unit/quota_whole/case_coverage.json
+parameter recovery: 4028/43128 cases carry arguments, 4028 carry a fully recovered argument set, 0 carry at least one UNCHECKED argument (kept, never dropped); audit written to /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/probe/specs/corpus-whole/spec-unit/quota_whole/param_recovery_audit.md

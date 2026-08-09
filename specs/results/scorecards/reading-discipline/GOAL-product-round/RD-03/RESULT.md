@@ -273,23 +273,56 @@ difference to see.** `RD-03-DF-12`.
   suite-fake strictly dominates on author-written catalogues, is COMPLEMENTARY on
   one blind catalogue and DOMINATED on another, so that comparison turns on a
   model constant."*
-- **Measured:** **UNANSWERABLE ON THESE SUBJECTS, and the reason is a property of
-  the subjects rather than a gap in the round.** Ten of twelve judges reported,
-  independently and unprompted, that **none of the six produced trees contains
-  anything model-derived** — no TLA+, no generated corpus, no strategy, no TLC
-  invariant. Every check in every tree is hand-written pytest, and the shared
-  contract's own docstring calls itself *"a competent hand-written suite, not an
-  adversarial one"*. The model-derived column is therefore **not zero — it is
-  absent**, and `absent` and `checked, none found` are different claims.
-- **VERDICT: NOT ANSWERED, and the reason is now a measured fact rather than an
-  omission.** `D1` is capped at 3 and `D4` at 2 for **every arm of this example**,
-  structurally, by anchor text — which means **`ab_quota_ledger` cannot answer
-  this question at all** as currently constituted, and four rounds have compared
-  D1 across its arms without that ceiling ever being stated. Filed as
-  `RD-03-DF-11`. The nearest thing to an answer this round produced runs the
-  other way: **a fault survived both hand-written suites on both trees of a pair**
-  (`available("nobody")` returning `0` instead of raising), which is a hole in the
-  hand-written channel with nothing on the other side of it to compare against.
+- **Measured, TWO WAYS, and they answer two different questions. Do not read them
+  as one.**
+
+  **(a) Inside the produced trees: the column is ABSENT, not zero.** Ten of twelve
+  judges reported independently and unprompted that **none of the six trees
+  contains anything model-derived** — no TLA+, no generated corpus, no strategy,
+  no TLC invariant. This is why `D1` is structurally capped at 3 and `D4` at 2 for
+  **every arm of this example**, and four rounds have compared D1 across its arms
+  without ever stating that ceiling. `RD-03-DF-11`.
+
+  **(b) Bound from the FIXTURE's model, which is a different claim: the round
+  built the column and ran it.** `examples/validation/ab/model/QuotaLedger.tla`
+  exists, so a model-derived corpus is obtainable even though no tree ships one.
+  RD-03's cross-tree probe generated one per tree and ran four model-derived
+  instruments (`corpus-whole`, `corpus-neg`, `map-silent`, `map-checking`)
+  against every re-anchored mutant on all six trees, beside three hand-written
+  ones (`own-tests`, `shared-suite`, `shared-suite-fake`).
+
+  | | model-derived unique kills | hand-written unique kills |
+  |---|---|---|
+  | over all six trees | **0** | **4** |
+
+  A *unique kill* is a mutant one channel kills while **every runnable instrument
+  of the other channel misses it**. The four hand-written unique kills are
+  `PA-M12` and `PA-M13` on `E` and `F` — **the fake-adapter class, which exists
+  only on the `ports-and-adapters` trees**, which is Q3's answer arriving inside
+  Q1's measurement. Cell counts over the same runnable population:
+  `own-tests` 77 killed / 2 survived, `shared-suite` 75 / 4, against
+  `map-checking` 57 / 21, `corpus-whole` 51 / 27, `corpus-neg` 23 / 55.
+
+  **AND THE REACH, WITHOUT WHICH THOSE COUNTS ARE NOT READABLE.**
+  `corpus-whole`, `map-checking` and `map-silent` execute **ZERO cases on all
+  seven `Refuse*` actions** on every one of the six trees. The positive corpus is
+  structurally blind to the entire refusal surface; `corpus-neg` is the only
+  model-derived instrument that drives it. A large `SURVIVED` count on an
+  instrument that never executed the action is not a miss — it is a
+  non-observation, and the two must not be added together.
+- **VERDICT: NO — model-derived cases catch nothing the hand-written tests miss,
+  on these six trees, and the unique kills run the other way.** This **REPLICATES
+  the `946b1ee` baseline** (*"no generated instrument has a unique kill"*) on six
+  new subjects, from a different producing model, in a round that built the
+  generated instrument specifically to give it a chance to win. **It is a
+  replication and it is reported as one, not as a new result.**
+- **The question the fixture cannot answer, stated separately so it is not read as
+  answered:** whether model-derived cases would win on a subject whose refusal
+  surface the positive corpus could reach. Nothing here measures that.
+- **And one hole in the hand-written channel with nothing on the other side:** a
+  fault making `available("nobody")` return `0` instead of raising survived
+  **both** hand-written suites on **both** trees of a pair, and the model-derived
+  instruments do not drive unknown-tenant queries either. Neither channel sees it.
 
 ### Q2 — Does the prompt produce simpler code at equal behaviour?
 
@@ -314,6 +347,16 @@ difference to see.** `RD-03-DF-12`.
   `E`/`F` score D3 = 4 on 8 of 8 cards and the effectful trees 0–2 on 14 of 14,
   which is the same separation at a wider bottom. It is reported, not claimed as
   new.
+- **"AT EQUAL BEHAVIOUR" IS NOT AN ASSUMPTION HERE — IT WAS MEASURED, AND IT IS
+  THE STRONGEST NUMBER IN THE ROUND.** The cross-tree probe ran a randomised
+  differential over **all fifteen pairs of the six trees** — every arm against
+  every other arm, and every before against its after — comparing the full
+  observable surface after every operation. **Zero divergences on all fifteen
+  pairs.** The six implementations are observationally equivalent to each other:
+  the three arms produced *the same program* behaviourally, and both revisions
+  preserved behaviour exactly. So the D2 and D3 differences between them are
+  differences of **shape at identical behaviour**, which is precisely the
+  condition the question asks about and which no prior round measured directly.
 
 ### Q3 — Does the effectful vs ports-and-adapters choice change what validation can see?
 
@@ -329,11 +372,18 @@ difference to see.** `RD-03-DF-12`.
      interaction was exactly `['append', 'append', 'lines']` on the port object.
      **No judge of any `effectful` tree could do this**, and four said so
      explicitly: there is no seam, no interface and nothing injected.
-  2. **A fault class is expressible on one side and not the other.** The
-     catalogue's `PA-M12` and `PA-M13` mutate a *fake adapter's* behaviour. On
-     `E`/`F` both are expressible and both were killed by
-     `test_journal_parity.py`. On `Z`, `M`, `N` and `D` they are **INEXPRESSIBLE**
-     — there is no fake to mutate. Reported as a hole, never as a survivor.
+  2. **A fault class is expressible on one side and not the other, and it is now
+     counted rather than argued.** The catalogue's `PA-M12` and `PA-M13` mutate a
+     *fake adapter's* behaviour. The cross-tree probe reports **8 INEXPRESSIBLE
+     mutant-cells, ALL of them on `effectful` trees and ALL of them these two
+     mutants — and ZERO on `ports-and-adapters`.** On `E`/`F` both are
+     expressible and both are killed. On `Z`, `M`, `N`, `D` there is no fake to
+     mutate. **Reported as a hole, never as a survivor** — the distinction the
+     whole table turns on.
+     **And these same two mutants are the ONLY unique kills in the entire
+     probe** (§Q1): the one fault class the hand-written channel catches that the
+     model-derived channel does not is the one class that only exists when the
+     architecture supplies a seam.
   3. **The D3 ranges do not overlap** and have not overlapped on any subject ever
      measured.
 - **VERDICT: YES — the choice changes what validation can see, and the effect is
@@ -887,4 +937,16 @@ python3 examples/validation/removal_census/removal_census.py discriminate
 # the shared contract's blind spot, in a scratch copy
 #   seed `if self._reservations:` over artifact_M/quota_ledger.py:197
 #   -> shared suite 28 passed; the tree's own tests 3 failed
+
+# the cross-tree fault probe: seven instruments x six trees, and the
+# 15-pair behavioural differential. Every command it ran, verbatim, is in
+#   GOAL-product-round/RD-03/probe/COMMANDS.md
+# and the raw per-tree records are in probe/results/.
 ```
+
+**A note on the probe's own conduct, disclosed because it cost a run.** Its first
+corpus pass resolved `python3` to the system 3.9 under a non-interactive shell
+and died on `ModuleNotFoundError: tomllib` for all six trees. The interpreter is
+pinned in the harness because of that, and the dead run is named rather than
+quietly re-run — **an instrument that fails to execute is not an instrument that
+found nothing**, which is `FI-06`'s whole subject.
