@@ -7182,3 +7182,193 @@ findings:
       `--skip-architecture` flag that PRINTS that it skipped, never a cache.
     blast_radius: "`audit` runtime, and what a green audit means in a partial tree."
     disposition: open
+  - id: RD-06-DF-01
+    found_by: "RD-06"
+    found_at_commit: "5ff673f"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/check_catalogue.py"]
+    summary: >-
+      `--arms --dispatch-dir` CANNOT REACH A BLINDED ROUND'S DISPATCH RECORD, AND
+      A BLINDED ROUND IS THE ONLY KIND THIS PROJECT RUNS.
+
+      `check_arms()` looks its rows up with
+      `dispatch_record.record_for(dispatch_dir, arm)` for `arm in ARMS`, and
+      `ARMS` is the fixed triple `arm_a`, `arm_b`, `arm_c`. RD-06's dispatch rows
+      are keyed on the OPAQUE LABELS the round was blinded under
+      (`artifact_Z`, `artifact_E`, `artifact_N`), because the dispatched bytes
+      carry the label in their working-directory line -- so a row keyed
+      `arm_a` would publish the label-to-arm mapping and unblind the round.
+
+      Pointed at RD-06's record, `--arms --dispatch-dir` verifies all six rows,
+      prints them, and then measures the three prompts ON DISK anyway, labelling
+      every number `<- on disk`. It does not lie; it falls back. But the flag
+      whose entire purpose is "measure what was sent" measured what was not
+      sent, on a round that HAD a complete preserved record sitting in the
+      directory it was given.
+
+      This is PA-06-DF-10's class, one turn of the screw further on: there the
+      dispatch was unrecorded, here it is recorded and unreachable.
+    reproduction: >-
+      `python3 examples/validation/ab/check_catalogue.py --arms --dispatch-dir
+      examples/validation/ab/dispatch/reading-discipline` -- six rows verify,
+      then the arms table prints `<- on disk` on all three rows.
+      `python3 examples/validation/ab/dispatch_record.py verify --dir
+      examples/validation/ab/dispatch/reading-discipline` -- six rows, all
+      `preserved`, all unchanged.
+    evidence:
+      - "examples/validation/ab/check_catalogue.py (check_arms, the `for arm in ARMS` loop)"
+      - "examples/validation/ab/dispatch/reading-discipline/dispatch.toml"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-06/prompts-rd06.json"
+    why_out_of_scope: >-
+      `check_catalogue.py` is not in RD-06's `implementation_scope`
+      (`examples/validation/ab/`, `specs/results/`) as a file this ticket was
+      sent to change, and RD-06 is a PRODUCING ticket in the middle of a
+      measurement. The epic's standing rule is that findings are filed and
+      nothing is fixed during a measurement. RD-06 measured the dispatched bytes
+      itself instead, with `check_catalogue.py`'s own `distinct_lines` and
+      `unique_content` imported rather than reimplemented, and wrote the table
+      under the opaque labels.
+    suggested_fix: >-
+      Give a dispatch row an optional `arm_source` (the prompt source it was
+      composed from) and have `check_arms` resolve `ARMS` through it, so a row
+      may be keyed on anything while still declaring which arm's prompt it
+      carries. That keeps blinding and measurement compatible. Do NOT solve it
+      by requiring the arm name as the row key: that makes every blinded round
+      choose between a preserved dispatch and an unblinded one.
+    blast_radius: >-
+      Any future round that blinds its dispatch rows and then cites an `--arms`
+      number. The number will be about the prompt sources, which for RD-06
+      happen to be unchanged -- the delta is a +5/-0 envelope identical across
+      arms -- so RD-06's own figures are not wrong. The next round's might be.
+    disposition: open
+  - id: RD-06-DF-02
+    found_by: "RD-06"
+    found_at_commit: "700936e"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/subjects.toml", "references/architecture_tags.md"]
+    summary: >-
+      SIX FIGURES ABOUT `subjects.toml` ARE NOW CLAIMS ABOUT A FILE THAT NO
+      LONGER EXISTS, AND RD-06 IS WHAT MADE THEM SO.
+
+      `subjects.toml`'s `[registry].note` opens "ELEVEN SCOPES". RD-06 declares
+      six more, so the file holds seventeen. The same figure is carried in
+      `references/architecture_tags.md` five more times: "Measured on eleven
+      declared scopes", "decides 7 of 11 subjects and refuses 4", "Three of the
+      eleven subjects above", "refuses four of the eleven subjects",
+      "`no-effect-surface` is a real property of four of eleven", and §13.1's
+      table row "the declared scopes -- eleven of them".
+
+      Each is TRUE at the scope RD-04 and RD-05 measured -- the eleven scopes
+      that existed then -- and each is written as a property of the file. That
+      is precisely the shape this epic exists to catch: every number in the
+      claim is right and the claim is wrong, because the underlying set is wider
+      than the claim admits.
+
+      NOT REPAIRED, DELIBERATELY. Rewriting a predecessor's figure so it matches
+      a successor's file is how a number stops carrying the scope it was true
+      at, and R-H4 says a sealed measurement is annotated rather than edited.
+      RD-06 records the correction in its own block of `subjects.toml` instead.
+    reproduction: >-
+      `python3 -c "import tomllib;
+      print(len(tomllib.load(open('examples/validation/scorecards/subjects.toml','rb'))['subject']))"`
+      -> 17. `grep -n "eleven\|of 11" references/architecture_tags.md` -> five
+      hits plus the §13.1 table row.
+    evidence:
+      - "examples/validation/scorecards/subjects.toml"
+      - "references/architecture_tags.md"
+    why_out_of_scope: >-
+      `references/` is not in RD-06's implementation scope, and RD-05's note is
+      RD-05's statement. The finding is that a count-of-the-file figure goes
+      stale the moment anyone adds a subject -- which will happen again -- not
+      that RD-05 wrote a wrong number.
+    suggested_fix: >-
+      Phrase the figure at the scope it was measured: "the eleven scopes
+      declared at RD-05" rather than "the declared scopes -- eleven of them".
+      A count of a growing file is a claim with a date in it whether or not the
+      date is written down. `score_tools.py scope` cannot reach any of these:
+      none is of the form `D<n> = k on N of M cards`, which is the second known
+      bound on that instrument and is why a human found this one.
+    blast_radius: >-
+      Documentation and one TOML comment. Nothing computes on the figure and no
+      test asserts it -- checked.
+    disposition: open
+  - id: RD-06-DF-03
+    found_by: "RD-06"
+    found_at_commit: "5ff673f"
+    schedule_revision: 2
+    severity: blocking
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/reading-discipline/blind/artifact_N/NOTES.md"]
+    summary: >-
+      AN ARM UNBLINDED ITSELF BY DISCLOSING HONESTLY, AND THE DISCLOSURE THE
+      PROMPT ASKS FOR IS WHAT DID IT.
+
+      `artifact_N`'s `NOTES.md` records, under Disclosures, that it ran `ls -la`
+      on `examples/validation/ab/` and so saw "the file names listed in Section 6
+      (`seeded_faults.toml`, `check_catalogue.py`, `reference/`, `arm_a/`,
+      `arm_b/`, and others)".
+
+      Section 6 is the do-not-open list, and the three arms' lists differ from
+      each other in exactly one way: arm A's names `arm_b/`, arm B's names
+      `arm_a/`, and ARM C'S NAMES BOTH. An artifact whose notes enumerate both
+      `arm_a/` and `arm_b/` as its own Section 6 is arm C, to any judge who has
+      read the three prompts. `artifact_D`, the revision of `artifact_N`,
+      inherits the same `NOTES.md` and is unblinded with it.
+
+      The arm did nothing wrong. Its prompt says a disclosure "costs you nothing
+      and is the only thing that keeps the round interpretable", and it is right.
+      The defect is in the fixture: the three Section 6 lists are
+      DISTINGUISHABLE, so honest disclosure of one identifies the arm.
+    reproduction: >-
+      `grep -n "arm_" examples/validation/ab/arm_a/PROMPT.md
+      examples/validation/ab/arm_b/PROMPT.md
+      examples/validation/ab/arm_c/PROMPT.md` -> arm A lists `arm_b/`, arm B
+      lists `arm_a/`, arm C lists both.
+      `sed -n '280,295p'
+      specs/results/scorecards/reading-discipline/blind/artifact_N/NOTES.md`.
+    evidence:
+      - "specs/results/scorecards/reading-discipline/blind/artifact_N/NOTES.md"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_D/NOTES.md"
+      - "examples/validation/ab/arm_a/PROMPT.md, arm_b/PROMPT.md, arm_c/PROMPT.md"
+    why_out_of_scope: >-
+      ESCALATED, NOT DECIDED. The remedies all bind RD-03: withholding a
+      `NOTES.md` from the judges, scoring `N` and `D` unblinded and saying so,
+      or accepting a partially unblinded pair. Choosing between them is the
+      scoring round's call or the owner's, and a producing ticket that picked
+      one would be deciding how its own subjects get read.
+
+      What RD-06 will NOT do is edit the artifact. `NOTES.md` is the artifact's
+      own account of what its author did; a leak that is disclosed is recorded,
+      never used as grounds to discard or amend -- and this project's own rule
+      is that a card is not discarded after its content is seen.
+    suggested_fix: >-
+      For the fixture: make the three Section 6 lists IDENTICAL -- name all
+      three arm directories in all three prompts. An arm told not to open its own
+      directory learns nothing, and the lists stop being a fingerprint. That is a
+      change to a sealed arm prompt and so is the owner's, not a ticket's.
+
+      For this round: RD-03 decides. If it scores `N` and `D` with the disclosure
+      visible, it says so on the cards rather than after them.
+    blast_radius: >-
+      Two of RD-06's six subjects, `artifact_N` and `artifact_D`, and any
+      D3 comparison drawn against them -- D3 is the one dimension the
+      architecture axis has authority on and the one the arm identity would move.
+      `artifact_Z` and `artifact_E` disclose nothing that identifies them, and
+      their revisions inherit nothing.
+    disposition: open
