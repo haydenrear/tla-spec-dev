@@ -1,0 +1,163 @@
+{
+  "scorecard_version": 3,
+  "status": "filled",
+  "epic": "reading-discipline",
+  "example": "ab_quota_ledger",
+  "run_id": "20260809-rd03F-F-p4",
+  "arm": "F",
+  "commit": "f52be89c7e494fc98243702c5f4a4d26d5001af9",
+  "judge": {
+    "model": "claude-sonnet-5",
+    "tier": "",
+    "pass": 4,
+    "blind_to_arm": true
+  },
+  "subject": {
+    "name": "rd06_artifact_F",
+    "scope": [
+      "specs/results/scorecards/reading-discipline/blind/artifact_F"
+    ],
+    "declared_effect_boundary": "ports-and-adapters",
+    "axis": "effect_boundary"
+  },
+  "rubric": {
+    "source": "references/eval_scorecard.md",
+    "digest": "sha256:546f90e21d1254e0",
+    "scoring_rules": [
+      "**Score artifacts, never claims.** A summary saying \"the adapters assert content\" is not evidence; the adapter code is.",
+      "**Every score ≥ 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
+      "**Every score of 4 additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.",
+      "**Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.",
+      "**Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.",
+      "**Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.",
+      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree — and a disagreement is a finding.",
+      "**Say what you ran.** *(New in version 2.)* Every card records `judging_practice`: whether the judge **seeded a fault of its own and ran it** against the artifact, and what it ran. Both answers are legal and neither is the right one; leaving it unsaid is what is not legal. **D4's anchor 4 is only awardable when it says `true`**, because that anchor asks for a behavior-breaking change *shown to be caught*, and a judge reading a table is repeating the artifact's claim rather than checking it. This is the anchor's own text made checkable, not a new bar.",
+      "**A judge is served the card, never the rubric file.** *(New in version 3.)* The scaffolded `scorecard.md` carries the rubric a judge needs. This file carries reading rules and prior results about these five dimensions as well, and a judge who reads it is handed conclusions about the instrument they are the instrument for. Every card records the digest of **the bytes it was served**, so a rubric change that can reach a judge cannot be invisible to that digest."
+    ],
+    "served_digest": "sha256:694280073db988fe",
+    "file_sha256": "sha256:9b7ac798d05ec4e7"
+  },
+  "how_to_fill": [
+    "Score the LOWEST anchor the artifact fully satisfies. Torn between two: take the lower and say why.",
+    "Set `status` to \"filled\", `commit` to the sha the artifacts were scored at, and name your model in `judge.model`.",
+    "Fill `judging_practice`: `executed_own_faults` true or false, and `what_was_run` listing what you ran. FALSE IS A LEGAL AND USEFUL ANSWER -- it is recorded, never corrected. Delete the `note` key once you have.",
+    "Leave `anchors` as scaffolded. They are read from the rubric so the bar and the score live in one file; editing them here forks the rubric silently, which is the drift this scaffold exists to remove.",
+    "If you score D5 at 3 or 4, set `dimensions.D5.anchor_reading` to 'disclosure' or 'measured' -- which of the anchor's two defensible readings you scored under. Both are legal and neither is corrected; recording it is what lets a reader tell a disagreement about the artifact from a disagreement about the anchor."
+  ],
+  "dimensions": {
+    "D1": {
+      "name": "bug detection",
+      "question": "Do the model-derived cases and their adapters *catch* seeded faults — especially the hard classes?",
+      "anchors": {
+        "0": "Cases exist and pass; no seeded fault is caught. A suite that is green on broken code.",
+        "1": "Catches faults that change a value the projection already prints. Misses everything requiring a content assertion.",
+        "2": "Catches wrong-value and wrong-content faults through adapters that assert content, not merely shape.",
+        "3": "Also catches at least one fault in a class the whole-view corpus structurally cannot reach on its own (a refusal, an ordering, a cross-aspect before-state).",
+        "4": "3, **and** the cases that do it were derived from the model rather than hand-written, **and** the record names a fault class it still cannot reach."
+      },
+      "score": 3,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/quota_ledger/domain.py:115-124",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/tests/test_ledger.py:55-61",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/tests/test_ledger.py:46-49",
+        "examples/validation/ab/tests/test_behavior.py:75-91",
+        "examples/validation/ab/tests/test_behavior.py:112-119"
+      ],
+      "rationale": "F's quota_ledger/ and tests/ are byte-identical to E's (confirmed with `diff -ru`), so this is the same evidence scored under F's label. I seeded three faults in a scratch copy and ran both the shared 28-test corpus and the artifact's own 39-test suite against each. Fault A (content): commit() at domain.py:136 made to write account.committed+1 instead of account.committed. Caught by BOTH suites -- 6 of the shared 28 failed, including examples/validation/ab/tests/test_behavior.py:119's literal `ledger_lines() == [\"COMMIT acme 3 3\"]`, a content assertion, not a shape check. That clears anchor 2. Fault B (ordering): swapped the amount_not_positive and tenant_closed checks in reserve() at domain.py:115-124. The shared 28-test corpus stayed fully green (its parametrized rejection cases at test_behavior.py:75-91 never collide tenant_closed with amount_not_positive in one call); only the artifact's own test_a_closed_tenant_outranks_a_bad_amount (test_ledger.py:59-61) caught it. Fault C (structural ordering): outstanding_ids() at domain.py:107-108 changed to sort lexicographically instead of by _issue_order -- again invisible to the 28-test corpus (never allocates a 10th id) and caught only by test_ledger.py:46-49. Faults B and C are exactly the anchor-3 class named in the rubric text (\"an ordering\"). Anchor 4 is out of reach structurally: no model-derived case generator ships in blind/artifact_F -- REVISION-NOTES.md confirms no file under quota_ledger/ or tests/ was touched -- both suites remain hand-written pytest.",
+      "refuses_to_claim": null
+    },
+    "D2": {
+      "name": "complexity",
+      "question": "Is the design as simple as its behavior requires, and no simpler?",
+      "anchors": {
+        "0": "Complexity is unmeasured, or measured and ignored.",
+        "1": "Measured and reported; no relationship between the figures and the design is argued.",
+        "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
+        "3": "2, **and** a simplification was made and its effect measured — the before and after figures are both recorded.",
+        "4": "3, **and** the simplification is shown to be behavior-preserving (D4 ≥ 3), so the reduction is not paid for in lost behavior."
+      },
+      "score": 2,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:1-15",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:273-287",
+        "specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03F-F-p4/mechanical.json:14-77",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/quota_ledger/domain.py:54-58"
+      ],
+      "rationale": "This is the headline judgement this round asks for. mechanical.json on this card records both a before table (E) and an after table (F) side by side, and every field is identical -- 12 branch points, 163 code lines, 6 instance-state fields, 4 modules, both before and after. I did not stop at reading that JSON: I ran `diff -ru` between blind/artifact_E and blind/artifact_F myself. The result is zero differences in any file under quota_ledger/ or tests/ -- the two trees are byte-identical. The only addition anywhere is REVISION-NOTES.md (REVISION-NOTES.md:1-15, 'I changed nothing. No file under quota_ledger/ or tests/ was edited, deleted, added, or renamed.'), which I also independently verified against the do-not-open list it claims to have respected (273-287) and found consistent with what a listing of the working tree shows. So the before/after figures being identical is not a case of 'a metric improved because an edge was deleted' (MF-020) -- there is no delta of any kind to misread, favorably or not. D2 anchor 3 reads 'a simplification was made and its effect measured -- the before and after figures are both recorded.' The second clause is true. The first is false: no simplification happened. REVISION-NOTES.md's own ten-item accounting (each candidate over-engineering pattern examined against the actual code and left standing with a specific, checkable reason -- I independently confirmed the Journal port, the two adapters, and the duplicated tenant guards it discusses all exist exactly as described) is real investigative work, but it is work that concluded in a non-change, and I am scoring what the anchor asks for, not the effort behind the conclusion. So D2 does not clear anchor 3 for F. It clears anchor 2 on the same grounds as E: every stateful field in domain.py has exactly one writer (domain.py:54-58), no god-state.",
+      "refuses_to_claim": null
+    },
+    "D3": {
+      "name": "modularity",
+      "question": "Is it ports and adapters in fact — domain independent of I/O, adapters swappable?",
+      "anchors": {
+        "0": "No boundary is discernible; state is written from everywhere.",
+        "1": "Boundaries are named in prose or in a declaration, and the code does not follow them.",
+        "2": "The code follows the declared boundaries. Cross-boundary calls go through something identifiable as a port.",
+        "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
+        "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
+      },
+      "score": 4,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/quota_ledger/domain.py:1-27",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/quota_ledger/file_journal.py:13-25",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/quota_ledger/memory_journal.py:12-20",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/tests/test_journal_parity.py:79-161",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/tests/test_ledger.py:178-183"
+      ],
+      "rationale": "Same code as E (verified byte-identical via `diff -ru`), so the same modularity evidence applies. domain.py imports only dataclasses/typing (domain.py:1-27); nothing from file_journal.py or memory_journal.py, and this is pinned by a runtime-checked test (test_ledger.py:178-183) rather than a prose promise. The specific swap is named in the artifact (NOTES.md's swap sentence: FileJournal for MemoryJournal or for SQLite/socket/S3, nothing outside __init__.py changes) -- I confirmed it by reading the code, not by taking the claim on faith. I ran test_journal_parity.py myself: 39 passed, both 'file' and 'memory' parametrize ids green, one identical CASES list (79-146) asserted against both the real FileJournal adapter and the MemoryJournal fake (157-161) with the same literal expected values. That is anchor 4's bar met directly.",
+      "refuses_to_claim": "NOTES.md (shipped unchanged in F) declines to put a port in front of everything: id allocation, quota arithmetic and the rejection ordering are left as direct computation, because 'a port in front of them would be an interface with nothing behind it to swap' and there is 'no clock, no environment, no network in this feature, so there is no port for one' (NOTES.md:36-39). REVISION-NOTES.md independently re-examined and re-affirmed this same limit rather than expanding the port surface for its own sake (REVISION-NOTES.md:52-75). The artifact refuses to claim universal ports-and-adapters coverage."
+    },
+    "D4": {
+      "name": "behavior preservation",
+      "question": "Does the simpler design still do everything the baseline did?",
+      "anchors": {
+        "0": "Behavior changed and nobody checked.",
+        "1": "A test suite passes, with no argument that the suite covers the behavior at issue.",
+        "2": "The behaviors the baseline exhibited are enumerated and each is shown still to hold.",
+        "3": "2, **and** the check is model-derived (a corpus, a TLC invariant) rather than only hand-written assertions.",
+        "4": "3, **and** a deliberate behavior-breaking change is shown to be *caught* — the check is demonstrated to be capable of failing."
+      },
+      "score": 2,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:17-46",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:50-233",
+        "examples/validation/ab/tests/test_behavior.py:239-281"
+      ],
+      "rationale": "Because E and F are code-identical, 'does the simpler design still do everything the baseline did' has a trivial true answer here -- nothing changed, so nothing could have regressed. What earns the score is that F does not simply assert this: REVISION-NOTES.md:17-46 records running both suites before and after touching anything (28/28 shared, 39/39 own) plus a full statement-and-branch coverage run (100% on every module) as an objective floor check, and 50-233 is a candidate-by-candidate accounting of the specific behaviors ten suspected simplification targets carry, with a citation to the test that would break if each one were removed. That is real enumeration at anchor 2's bar, going further than a bare 'tests still pass.' It does not reach anchor 3: none of this checking is model-derived (a corpus or TLC invariant); it is entirely hand-written pytest plus a coverage tool, so the cap holds regardless of how thorough the hand-written argument is.",
+      "refuses_to_claim": null
+    },
+    "D5": {
+      "name": "honesty",
+      "question": "Does the artifact refuse rather than falsely certify, and name what it cannot see?",
+      "anchors": {
+        "0": "Claims a clean it cannot support.",
+        "1": "Reports results without stating what was not measured.",
+        "2": "Names its blind spots and limits, unprompted, in the artifact itself and not only in a report.",
+        "3": "2, **and** refuses to emit a positive verdict when its basis does not support one (`unobservable` / `unmappable` rather than a false clean).",
+        "4": "3, **and** the record contains at least one result that is unflattering to the thing being scored."
+      },
+      "score": 4,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:1-15",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:260-266",
+        "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:135-137"
+      ],
+      "rationale": "F clears anchor 2 on the same disclosures E carries (NOTES.md's unsure/unspecified section, unchanged) plus new ones of its own. It clears anchor 3 clearly: sent to simplify, F's stated Outcome (1-15) is a refusal to claim the positive verdict it was asked to produce -- 'I changed nothing' -- rather than manufacturing a cosmetic edit to look compliant, backed by a ten-item accounting I checked against the actual code rather than accepting on its say-so. It clears anchor 4 under the `measured` reading: REVISION-NOTES.md:260-266 reports that its own test test_the_domain_module_does_not_import_its_adapters asserts a substring, `\"journal_\" not in source`, that 'cannot occur in any of the module names it is guarding against' -- i.e. one of F's own tests passes for a reason other than the one it appears to assert. I checked this independently: neither 'file_journal' nor 'memory_journal' contains the substring 'journal_' (both have '_journal', not 'journal_'), so the assertion is confirmed vacuous. F found this in its own shipped test suite and reported it rather than quietly leaving it or fixing it to look better -- a genuinely unflattering, actively investigated (not merely disclaimed) result about the artifact's own test quality. REVISION-NOTES.md:135-137 additionally declines to claim proof for its own most-defended decision ('it is a judgment call, not a proof').",
+      "refuses_to_claim": "F refuses to claim it produced the simplification it was asked to produce, and separately refuses to claim proof for its strongest-argued decision (candidate 4, the duplicated tenant guards): 'I expect it to be this one; the argument above is the whole of my reasoning and it is a judgment call, not a proof' (REVISION-NOTES.md:135-137).",
+      "anchor_reading": "measured"
+    }
+  },
+  "contested": [],
+  "verdict": "Do not read F's identical-to-E complexity figures as evidence a simplification pass reduced complexity -- the tree is byte-for-byte unchanged from E, and F's honest 'I changed nothing, here is why' should be credited for D5 but must not be mistaken for a D2-anchor-3 result; the pair is better cited as an example of an eval separating 'did the model report try' from 'did complexity actually drop.'",
+  "judging_practice": {
+    "executed_own_faults": true,
+    "what_was_run": [
+      "Copied specs/results/scorecards/reading-discipline/blind/artifact_E (byte-identical to artifact_F) to a scratch tree; baseline: `QUOTA_LEDGER_DIR=<scratch> QUOTA_LEDGER_IMPL=quota_ledger uv run --with pytest python -m pytest examples/validation/ab/tests/test_behavior.py -q` (28 passed) and `uv run --with pytest python -m pytest tests/ -q` inside the scratch copy (39 passed).",
+      "Fault A (content): domain.py commit() changed to write account.committed+1 into the journal line instead of account.committed. Reran both suites: shared corpus 6 failed / 22 passed; own suite 5 failed / 34 passed. Fault caught by both.",
+      "Fault B (ordering): domain.py reserve() rejection order changed so amount_not_positive is checked before tenant_closed. Reran both suites: shared corpus 28 passed (fault NOT caught); own suite 1 failed (test_a_closed_tenant_outranks_a_bad_amount) / 38 passed (fault caught).",
+      "Fault C (structural ordering): domain.py outstanding_ids() changed to `sorted(self._holds)` (lexicographic) instead of sorting by _issue_order. Reran both suites: shared corpus 28 passed (fault NOT caught); own suite 1 failed (test_outstanding_ids_ascend_numerically_past_nine) / 38 passed (fault caught).",
+      "Ran `diff -ru` between blind/artifact_E and blind/artifact_F directly, to check REVISION-NOTES.md's 'I changed nothing' claim against the trees rather than accepting it: confirmed zero differences in any file under quota_ledger/ or tests/; the only diff anywhere is the addition of REVISION-NOTES.md in F.",
+      "Checked the string 'journal_' against the literal names 'file_journal' and 'memory_journal' to verify REVISION-NOTES.md's claim that test_the_domain_module_does_not_import_its_adapters's substring assertion is vacuous: confirmed neither name contains 'journal_' as a substring."
+    ]
+  }
+}

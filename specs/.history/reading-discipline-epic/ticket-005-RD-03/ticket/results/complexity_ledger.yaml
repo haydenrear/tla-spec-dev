@@ -1,0 +1,155 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "TODO"
+    evidence: "TODO -- path to the pre-change TLC output"
+  tlc_after:
+    status: "TODO"
+    evidence: "TODO -- path to the post-change TLC output"
+  behavior_tests:
+    status: "TODO"
+    evidence: "TODO -- path to the behavior-test output"
+  descriptor_comparison:
+    status: "TODO"
+    evidence: "TODO -- path to the before/after descriptor comparison"
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness REVIEW, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them, and this
+# is the only sweep that looks at it.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# RECORDED, NEVER REFUSING (2026-08-04, owner direction). It was a hard gate at
+# workflow close with no override; it is now an optional agent-run review whose
+# verdict is written down and read by a person. `incomplete` IS STILL NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it --
+# what was withdrawn is the refusal, not the distinction.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    SEARCHED, FOUND NONE, AND THE REASON IS THE TICKET'S ROLE. RD-03 is
+    `role: evaluation` with `model_delta_expectation: none expected` and
+    `desired_actions: []`. It adds no action, no variable and no state to any
+    TLA+ model; its `implementation_scope` is `specs/results/scorecards/` and
+    `NEXT-EPIC.md`. The whole-program model is byte-unchanged between the branch
+    point `8f3741f` and this tip -- `git diff 8f3741f..HEAD -- specs/program_model
+    specs/tickets/RD-03/desired` is empty apart from the workflow scaffold
+    `start_ticket.py` wrote. There is no representation to refine because none
+    was added.
+
+    A refinement recommendation WAS available and was refused rather than
+    unfound: this round measured that the complexity descriptor cannot see the
+    only simplification it scored (`RD-03-DF-08`, eight independent judges), and
+    the obvious move is to add an axis for stored-versus-derived duplication.
+    Refused as `MF-020` in its purest form -- adding an axis so that this round's
+    subjects score better is tuning the thermometer to the result. Filed for the
+    owner instead, with the condition that any such axis ships with a seeded case
+    where it moves the WRONG way.
+  measured: false      # true only if a real TLC run produced the figure
+  applied: false       # if true, approved_by is required
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+  specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/RESULT.md
+
+  RD-03 is the EVALUATION ticket closing `reading-discipline`. It decides all
+  four epic goals and it changes no program behaviour: 17 findings filed, ZERO
+  fixed, no artifact tree touched, and the one suite failure the round caused
+  left red rather than repaired.
+
+  WHAT WAS MEASURED. Twelve blind judges at two model tiers scored RD-06's six
+  subjects as three before/after pairs, 24 cards. D2 anchor 3 became reachable on
+  the product side for the first time: eight judges saw a code change and eight
+  awarded it; four saw none and four refused it; NOT ONE split on the size of the
+  delta. `D2 = 2`, constant on 35 of 35 cards of `ab_quota_ledger` and the figure
+  an entire predecessor epic was opened on, is retired -- not because the card
+  changed (the served rubric digest is byte-identical) but because a subject was
+  finally given a before.
+
+  WHAT IT COST TO BELIEVE. Eight judges independently reported that the
+  complexity descriptor cannot see what they scored (19 of 21 axes byte-identical
+  on one pair; `branch_points` moving the wrong way on the other). D2 split by
+  judge tier for the first time in the record, downstream of a D4 split that is a
+  disagreement about what "model-derived" means. The sweep count moved 22 figures
+  to REFUTED without a document changing, because the card population grew.
+
+  THE FOUR GOALS: `GOAL-product-round` decided with three verdicts and a reason
+  each (Q1 NOT ANSWERABLE on this fixture and now measured to be so; Q2 NO for
+  the prompt, YES for the revision pass; Q3 YES, on instrument reach rather than
+  code quality). `GOAL-scope-loss-catchable` MET, reported with all three known
+  bounds on its instrument. `GOAL-tags-earn-their-place` MET on deletion and not
+  on admission, with the `opus`-only limit now CLOSED and the closure's own bound
+  stated. `GOAL-apparatus-priced` CONFIRMED LOAD-BEARING on re-run evidence, with
+  the pricing instrument shown entailed at 0 of 10.
+
+  7 of the 17 findings are PRODUCT SURFACE, against zero in each of the last two
+  epics. Full reasoning, every rejection, and the sealed predictions scored
+  (4 of 14 falsified) are in the RESULT.md named above.

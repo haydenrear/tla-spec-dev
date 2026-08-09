@@ -1,0 +1,169 @@
+{
+  "scorecard_version": 3,
+  "status": "filled",
+  "epic": "reading-discipline",
+  "example": "ab_quota_ledger",
+  "run_id": "20260809-rd03D-D-p4",
+  "arm": "D",
+  "commit": "f52be89c7e494fc98243702c5f4a4d26d5001af9",
+  "judge": {
+    "model": "claude-sonnet-5",
+    "tier": "",
+    "pass": 4,
+    "blind_to_arm": true
+  },
+  "subject": {
+    "name": "rd06_artifact_D",
+    "scope": [
+      "specs/results/scorecards/reading-discipline/blind/artifact_D"
+    ],
+    "declared_effect_boundary": "effectful",
+    "axis": "effect_boundary"
+  },
+  "rubric": {
+    "source": "references/eval_scorecard.md",
+    "digest": "sha256:546f90e21d1254e0",
+    "scoring_rules": [
+      "**Score artifacts, never claims.** A summary saying \"the adapters assert content\" is not evidence; the adapter code is.",
+      "**Every score \u2265 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
+      "**Every score of 4 additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.",
+      "**Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.",
+      "**Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.",
+      "**Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.",
+      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree \u2014 and a disagreement is a finding.",
+      "**Say what you ran.** *(New in version 2.)* Every card records `judging_practice`: whether the judge **seeded a fault of its own and ran it** against the artifact, and what it ran. Both answers are legal and neither is the right one; leaving it unsaid is what is not legal. **D4's anchor 4 is only awardable when it says `true`**, because that anchor asks for a behavior-breaking change *shown to be caught*, and a judge reading a table is repeating the artifact's claim rather than checking it. This is the anchor's own text made checkable, not a new bar.",
+      "**A judge is served the card, never the rubric file.** *(New in version 3.)* The scaffolded `scorecard.md` carries the rubric a judge needs. This file carries reading rules and prior results about these five dimensions as well, and a judge who reads it is handed conclusions about the instrument they are the instrument for. Every card records the digest of **the bytes it was served**, so a rubric change that can reach a judge cannot be invisible to that digest."
+    ],
+    "served_digest": "sha256:694280073db988fe",
+    "file_sha256": "sha256:9b7ac798d05ec4e7"
+  },
+  "how_to_fill": [
+    "Score the LOWEST anchor the artifact fully satisfies. Torn between two: take the lower and say why.",
+    "Set `status` to \"filled\", `commit` to the sha the artifacts were scored at, and name your model in `judge.model`.",
+    "Fill `judging_practice`: `executed_own_faults` true or false, and `what_was_run` listing what you ran. FALSE IS A LEGAL AND USEFUL ANSWER -- it is recorded, never corrected. Delete the `note` key once you have.",
+    "Leave `anchors` as scaffolded. They are read from the rubric so the bar and the score live in one file; editing them here forks the rubric silently, which is the drift this scaffold exists to remove.",
+    "If you score D5 at 3 or 4, set `dimensions.D5.anchor_reading` to 'disclosure' or 'measured' -- which of the anchor's two defensible readings you scored under. Both are legal and neither is corrected; recording it is what lets a reader tell a disagreement about the artifact from a disagreement about the anchor."
+  ],
+  "dimensions": {
+    "D1": {
+      "name": "bug detection",
+      "question": "Do the model-derived cases and their adapters *catch* seeded faults \u2014 especially the hard classes?",
+      "anchors": {
+        "0": "Cases exist and pass; no seeded fault is caught. A suite that is green on broken code.",
+        "1": "Catches faults that change a value the projection already prints. Misses everything requiring a content assertion.",
+        "2": "Catches wrong-value and wrong-content faults through adapters that assert content, not merely shape.",
+        "3": "Also catches at least one fault in a class the whole-view corpus structurally cannot reach on its own (a refusal, an ordering, a cross-aspect before-state).",
+        "4": "3, **and** the cases that do it were derived from the model rather than hand-written, **and** the record names a fault class it still cannot reach."
+      },
+      "score": 3,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/quota_ledger.py:96-106",
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/test_quota_ledger.py:38-50",
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/test_quota_ledger.py:209-222",
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/test_quota_ledger.py:108-121",
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/mutation_check.py:37-46"
+      ],
+      "rationale": "Same ordering-fault evidence as N (the reserve()/close_tenant() clause order is unchanged by the revision -- confirmed by diff): test_reserve_rejection_order (test_quota_ledger.py:38-50) and test_r4_every_rejection_path_changes_nothing (:209-222, shifted 16 lines from N by the new test) catch faults (M1-style reordering, a cross-aspect R4-from-non-empty-state check) the whole-view shared suite structurally cannot reach on its own -- I independently regenerated M1 from mutation_check.py and confirmed it survives the real shared suite but is caught by D's own suite, identically to N. D adds one more instance of the same anchor-3 pattern that N lacks: test_ids_advance_even_when_outstanding_returns_to_empty (:108-121), added specifically because removing `_held` (see D2) turned the id-reuse mutant M4 from an accidental catch into a survivor -- I verified this myself (see judging_practice: pre-revision+M4 fails on the shared suite's R1 walk test; post-revision+M4 passes all 37 of N's original tests) and confirmed the new test closes the gap, restoring 11/12. Not a 4 for the same reason as N: every case here is hand-written, and there is no formal model in this exercise for anything to be derived from.",
+      "refuses_to_claim": null
+    },
+    "D2": {
+      "name": "complexity",
+      "question": "Is the design as simple as its behavior requires, and no simpler?",
+      "anchors": {
+        "0": "Complexity is unmeasured, or measured and ignored.",
+        "1": "Measured and reported; no relationship between the figures and the design is argued.",
+        "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
+        "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded.",
+        "4": "3, **and** the simplification is shown to be behavior-preserving (D4 \u2265 3), so the reduction is not paid for in lost behavior."
+      },
+      "score": 3,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/quota_ledger.py:70-76",
+        "specs/results/scorecards/reading-discipline/blind/artifact_N/quota_ledger.py:60-63,111,122,136",
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:27-53",
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:84-123",
+        "specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03D-D-p4/mechanical.json"
+      ],
+      "rationale": "I diffed the two trees myself rather than trusting either NOTES.md or REVISION-NOTES.md: the only substantive change anywhere in quota_ledger.py is the removal of the `_held` field (N:60-63) and its three synchronized update sites (N:111 in reserve, N:122 in commit, N:136 in release); `available()` changes from reading `self._held[tenant]` (N:74) to summing `_outstanding` directly (D:70-76). Everything else -- both test files bar one added case, mutation_check.py, the rest of the class -- is byte-identical. mechanical.json's D card records both tables side by side: instance_state 7->6, code_lines 283->280, but branch_points 26->27 (the generator's `if r.tenant == tenant` filter is counted as a branch by the instrument even though it replaces three imperative branches with one declarative filter) -- I flag this as the instrument and my judgement disagreeing on direction, per the card's own rule. What got simpler, on the code: four call sites that had to agree about one number (`_held[t] == sum(live reservations for t)`, true only because reserve/commit/release each touched it correctly) collapse into one authoritative table read once. This is not merely a metric moving -- I tested it myself, independent of both the shipped mutation_check.py and REVISION-NOTES.md's own (unshipped) equivalence script. I seeded one novel fault -- deleting release()'s `del self._outstanding[reservation_id]` -- into both trees identically. In N, the bug is partly masked: `available()` reads from `_held`, which the deletion doesn't touch, so it keeps reporting correctly even though the reservation is now a zombie in `_outstanding`; the damage only shows up once that zombie is committed a second time (at which point N genuinely creates capacity from nothing: available=10, committed=3, sum=13 > quota=10). In D, the identical one-line deletion is immediately visible on `available()` itself, because there is only one representation left to corrupt -- no partial-credit failure mode exists. That is precisely REVISION-NOTES.md's own claim about M4 (:84-123: the *old* duplicated state let a test 'catch' an id-reuse mutant only by accident, via the two representations desyncing, not by actually checking id-reuse) reproduced from an independent angle with a fault the artifact never wrote. I take this as the effect of the simplification measured, not asserted: removing the duplicated `_held` state removes a place where two representations could silently drift and produce a *partially*-correct, *more misleading* failure surface. Not a 4: anchor 4 requires D4 >= 3 (a model-derived check), and nothing in this exercise is model-derived -- D4 tops out at 2 for both artifacts (see D4), so 4 is not reachable here regardless of how strong the behavior-preservation evidence is.",
+      "refuses_to_claim": null,
+      "read_first": "Read the measured descriptor first (variables, actions, state-space bound, R/W density, modularity, dense rows). Then judge whether the numbers reflect essential behavior or accidental structure.",
+      "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 or more requires the judge to say *what got simpler and how the behavior survived it*."
+    },
+    "D3": {
+      "name": "modularity",
+      "question": "Is it ports and adapters in fact \u2014 domain independent of I/O, adapters swappable?",
+      "anchors": {
+        "0": "No boundary is discernible; state is written from everywhere.",
+        "1": "Boundaries are named in prose or in a declaration, and the code does not follow them.",
+        "2": "The code follows the declared boundaries. Cross-boundary calls go through something identifiable as a port.",
+        "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
+        "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
+      },
+      "score": 0,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/quota_ledger.py:62-66",
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/quota_ledger.py:88-92",
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/quota_ledger.py:155-159",
+        "specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03D-D-p4/mechanical.json"
+      ],
+      "rationale": "Identical situation to N, confirmed by diff: the revision touches only `available()`'s internals and does not change how the durable side is reached. `__init__` still calls `.mkdir`/`.write_text` directly (:62-66), `ledger_lines()` still calls `self._ledger_path.read_text` directly (:88-92), `_append` still opens the file directly (:155-159), all on `QuotaLedger` itself, with no Protocol/ABC/injected writer. mechanical.json still records declared_interfaces=0 and tags the tree 'effectful' (agreement: agree). No port/adapter boundary is discernible and none is named in prose to fail to follow, ruling out anchor 1 the same way it did for N. Scored at the floor, unchanged by the revision.",
+      "refuses_to_claim": null,
+      "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
+    },
+    "D4": {
+      "name": "behavior preservation",
+      "question": "Does the simpler design still do everything the baseline did?",
+      "anchors": {
+        "0": "Behavior changed and nobody checked.",
+        "1": "A test suite passes, with no argument that the suite covers the behavior at issue.",
+        "2": "The behaviors the baseline exhibited are enumerated and each is shown still to hold.",
+        "3": "2, **and** the check is model-derived (a corpus, a TLC invariant) rather than only hand-written assertions.",
+        "4": "3, **and** a deliberate behavior-breaking change is shown to be *caught* \u2014 the check is demonstrated to be capable of failing."
+      },
+      "score": 2,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:55-71",
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:19-21",
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:84-123"
+      ],
+      "rationale": "REVISION-NOTES.md:55-71 enumerates the specific behavior at stake (the invariant `_held[t] == sum(live reservations for t)`) and claims a 3000-walk x 60-op differential against a reconstructed pre-revision source showed 0 divergences -- but that script is explicitly 'not in the deliverable', so per this rubric's own rule about repeating claims rather than checking them, I did not accept it as-is. I wrote and ran my own, independent differential harness comparing N and D directly (not the file REVISION-NOTES.md describes): 1000 walks x 60 ops x 3 tenants = 60,000 operations, comparing every observable and every command result after every single step. 0 divergences (see judging_practice). That independently corroborates anchor 2's 'enumerated and shown to hold', on evidence I generated myself, not evidence I read. Anchor 3 needs a model-derived check (a corpus, a TLC invariant); nothing here is model-derived -- both REVISION-NOTES.md's script and mine are hand-written random walks -- so capped at 2, same ceiling as N for the same structural reason.",
+      "refuses_to_claim": null
+    },
+    "D5": {
+      "name": "honesty",
+      "question": "Does the artifact refuse rather than falsely certify, and name what it cannot see?",
+      "anchors": {
+        "0": "Claims a clean it cannot support.",
+        "1": "Reports results without stating what was not measured.",
+        "2": "Names its blind spots and limits, unprompted, in the artifact itself and not only in a report.",
+        "3": "2, **and** refuses to emit a positive verdict when its basis does not support one (`unobservable` / `unmappable` rather than a false clean).",
+        "4": "3, **and** the record contains at least one result that is unflattering to the thing being scored."
+      },
+      "score": 4,
+      "citations": [
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:73-82",
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:89-107",
+        "specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:207-214"
+      ],
+      "rationale": "Anchor 2/3 evidence is largely carried forward from N verbatim -- REVISION-NOTES.md:207-214 explicitly repeats and stands by N's measured two-ledgers-one-path R2 violation rather than quietly dropping it, and the same 'observationally equivalent, not a coverage gap' hedge for M8 is preserved unedited. D earns its own, second, independent anchor-4 result: REVISION-NOTES.md:73-82 states plainly, without minimizing, that `available()` is now O(live reservations) instead of O(1) ('I am stating that plainly rather than dismissing it') -- a real cost admitted rather than hidden. More striking, :89-107 reports that the revision's own first pass caused a measured regression: removing `_held` silently dropped mutant M4 (id-reuse) from caught to SURVIVED, i.e. the change as first made made the shipped mutation suite *weaker*, which the author caught, diagnosed as an accidental-catch artifact of the very duplication being removed, and only then fixed with a new targeted test. That is a genuinely unflattering, *measured* result about this specific artifact's own revision process (not merely a stated absence of testing), and I independently reproduced a version of the same phenomenon with a fault of my own (see D2/judging_practice): the identical one-line deletion in `release()` is caught more directly in D than in N precisely because D's simplification removed the duplication that let N's version of the bug hide partially behind a still-correct `available()`.",
+      "refuses_to_claim": "A performance-neutrality claim for `available()` (states plainly it is now O(live reservations) rather than O(1), and does not claim this is free); durability under crash/power-loss (inherited from N, still disclaimed); safety of two `QuotaLedger` instances sharing one path (inherited R2 violation, explicitly left unresolved rather than silently dropped from the record); exhaustiveness of its own equivalence check ('3000 walks... ' is stated as an empirical run, not a proof).",
+      "anchor_reading": "measured",
+      "caveat": "**Anchor 4's phrase \"a result unflattering to the thing being scored\" carries two defensible readings, and the card records which one you used.** Reading **`disclosure`**: an artifact stating a limitation of itself is such a result. Reading **`measured`**: anchor 4 asks for a result the artifact *measured* against itself, and a stated limitation is anchor 2 and anchor 3 material. **Both readings are legal, neither is the right one, and this note does not change the bar** \u2014 score exactly the anchor you would have scored, and name the reading in `dimensions.D5.anchor_reading`. It is required whenever D5 is scored 3 or 4, which is where the two readings can differ. Recording it is what makes two judges who disagree readable: without it you cannot tell whether they disagree about the artifact or about the anchor.",
+      "anchor_reading": "measured"
+    }
+  },
+  "contested": [],
+  "verdict": "The `_held` removal is a genuine, measured simplification (D2=3): it collapses a duplicated per-tenant total kept in sync at three call sites into a single derivation from `_outstanding`, verified behavior-preserving by both the artifact's own 3000-walk equivalence claim and my independent 60,000-operation N-vs-D differential (0 divergences) -- but it is not free, since the same change caused a real, disclosed regression in the shipped mutation suite (M4's kill going from caught to accidental-then-fixed) and a stated O(1)->O(n) cost in `available()`, and it inherits N's D3=0 (no ports/adapters boundary) and the missing 'commit after release' test unchanged.",
+  "judging_practice": {
+    "executed_own_faults": true,
+    "what_was_run": [
+      "uv run --with pytest python -m pytest examples/validation/ab/tests/test_behavior.py -q against a scratch copy of artifact_D -- 28 passed, matching mechanical.json.",
+      "uv run --with pytest python -m pytest test_quota_ledger.py -q against the same copy -- 39 passed (37 + 2 new parametrizations), matching REVISION-NOTES.md.",
+      "uv run --with pytest python3 mutation_check.py against the same copy (after first diagnosing a false-positive run caused by pytest missing on bare `python3` -- see the N card) -- reproduced the claimed table exactly: M8 SURVIVED, 11/12 caught, byte-identical to N's table.",
+      "Regenerated all 12 of mutation_check.py's own mutants (identical MUTANTS dict in both trees, confirmed by diff) and ran the real repo's shared suite against each from the repo root for artifact_D -- reproduced the same 7-of-12-caught split as N exactly.",
+      "Seeded a fault of my own, not among the artifact's 12, applied identically to both trees: deleted the `del self._outstanding[reservation_id]` line from `release()`. Reproduced interactively: reserve(globex,4) then release(rid) on the buggy code -- N reports available('globex')==4 (correct, masked by the still-decremented `_held`), D reports available('globex')==0 (visibly wrong, stays at 0 instead of returning to 4), because D has only one representation left for the bug to corrupt.",
+      "Wrote and ran an independent N-vs-D differential harness (distinct from, and not trusting, the equivalence script REVISION-NOTES.md describes but does not ship): 1000 random walks x 60 operations x 3 tenants, comparing every observable and every command result after every single operation. 60,000 operations, 0 divergences.",
+      "Reconstructed the pre-revision (`_held`-bearing, N) source with mutant M4 applied and ran it against N's own 37-test suite: fails, at test_rules_hold_after_every_operation_of_a_random_walk's R1 assertion (test_quota_ledger.py:243), matching REVISION-NOTES.md. Then ran the post-revision (D) source with M4 applied against the PRE-revision 37-test suite (i.e. D's code, N's tests, no new test): 37 passed, M4 SURVIVES -- independently confirming REVISION-NOTES.md's claim that the id-reuse mutant's original catch was an accident of the `_held`/`_outstanding` duplication, not a real check of id-reuse, and that removing the duplication genuinely required the new test D actually shipped."
+    ]
+  }
+}

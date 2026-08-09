@@ -1,0 +1,107 @@
+# RD-03 re-anchored catalogue for artifact_E. Generated, not hand-edited.
+
+[[mutants]]
+id = "M01"
+fault_class = "guard_relaxation"
+path = "quota_ledger/domain.py"
+find = "        if amount < 1:\n"
+replace = "        if amount < 0:  # MUTANT M01\n"
+
+[[mutants]]
+id = "M02"
+fault_class = "guard_relaxation"
+path = "quota_ledger/domain.py"
+find = "        if amount > self.available(tenant):\n"
+replace = "        if amount > account.quota:  # MUTANT M02\n"
+
+[[mutants]]
+id = "M03"
+fault_class = "guard_relaxation"
+path = "quota_ledger/domain.py"
+find = "        if self._held_by(tenant):\n"
+replace = "        if False:  # MUTANT M03\n"
+
+[[mutants]]
+id = "M04"
+fault_class = "durable_content"
+path = "quota_ledger/domain.py"
+find = "        self._journal.append(f\"COMMIT {hold.tenant} {hold.amount} {account.committed}\")\n"
+replace = "        self._journal.append(f\"COMMIT {hold.tenant} {hold.amount} {account.committed - hold.amount}\")  # MUTANT M04\n"
+
+[[mutants]]
+id = "M05"
+fault_class = "durable_content"
+path = "quota_ledger/domain.py"
+find = "        self._journal.append(f\"CLOSE {tenant} {account.committed}\")\n"
+replace = "        try:  # MUTANT M05\n            self._journal.append(f\"CLOSE {tenant} 0\")\n        except Exception:\n            pass\n"
+
+[[mutants]]
+id = "M06"
+fault_class = "output_oracle"
+path = "quota_ledger/domain.py"
+find = "        if self._holds.pop(reservation_id, None) is None:\n            return Result.reject(\"unknown_reservation\")\n        return Result.accept()\n"
+replace = "        if self._holds.pop(reservation_id, None) is None:\n            return Result.reject(\"unknown_reservation\")\n        return Result.reject(\"unknown_reservation\")  # MUTANT M06\n"
+
+[[mutants]]
+id = "M07"
+fault_class = "wrong_value"
+path = "quota_ledger/domain.py"
+find = "        self._holds[reservation_id] = _Hold(tenant, amount)\n"
+replace = "        self._holds[reservation_id] = _Hold(tenant, amount + 1)  # M07 CANDIDATE\n"
+
+[[mutants]]
+id = "M08"
+fault_class = "cross_aspect"
+path = "quota_ledger/domain.py"
+find = "        account.committed += hold.amount\n"
+replace = "        account.committed += hold.amount\n        account.quota += hold.amount  # MUTANT M08\n"
+
+[[mutants]]
+id = "M09"
+fault_class = "ordering"
+path = "quota_ledger/file_journal.py"
+find = "        with self._path.open(\"a\", encoding=\"utf-8\") as handle:\n            handle.write(line + \"\\n\")\n"
+replace = "        existing = self._path.read_text(encoding=\"utf-8\")  # MUTANT M09\n        self._path.write_text(line + \"\\n\" + existing, encoding=\"utf-8\")\n"
+
+[[mutants]]
+id = "M10"
+fault_class = "wrong_value"
+path = "quota_ledger/domain.py"
+find = "        if self._holds.pop(reservation_id, None) is None:\n            return Result.reject(\"unknown_reservation\")\n        return Result.accept()\n"
+replace = "        _released = self._holds.pop(reservation_id, None)  # MUTANT M10\n        if _released is None:\n            return Result.reject(\"unknown_reservation\")\n        self._accounts[_released.tenant].quota += _released.amount  # MUTANT M10\n        return Result.accept()\n"
+
+[[mutants]]
+id = "PA-M11"
+fault_class = "adapter_internal"
+path = "quota_ledger/file_journal.py"
+find = "        return [line for line in self._path.read_text(encoding=\"utf-8\").splitlines() if line]\n"
+replace = "        return [line for line in self._path.read_text(encoding=\"utf-8\").splitlines() if line and not line.startswith(\"CLOSE\")]  # MUTANT PA-M11\n"
+
+[[mutants]]
+id = "PA-M12"
+fault_class = "adapter_internal"
+path = "quota_ledger/memory_journal.py"
+find = "        return list(self._lines)\n"
+replace = "        return [line for line in self._lines if not line.startswith(\"CLOSE\")]  # MUTANT PA-M12\n"
+
+[[mutants]]
+id = "PA-M13"
+fault_class = "adapter_internal"
+path = "quota_ledger/memory_journal.py"
+find = "        self._lines.append(line)\n"
+replace = "        self._lines.append(\" \".join(line.split()[:3]))  # MUTANT PA-M13\n"
+
+[[mutants]]
+id = "PA-M14"
+fault_class = "wrong_value"
+path = "quota_ledger/domain.py"
+find = "        self._holds[reservation_id] = _Hold(tenant, amount)\n"
+replace = "        self._holds[reservation_id] = _Hold(tenant, amount + 1)  # MUTANT PA-M14\n"
+
+[[mutants]]
+id = "FI-M15"
+fault_class = "wrong_value"
+path = "quota_ledger/domain.py"
+find = "        account.committed += hold.amount\n"
+replace = "        account.committed += hold.amount + 1  # MUTANT FI-M15\n"
+

@@ -1,0 +1,716 @@
+{
+  "architecture": "effectful",
+  "baseline_on_unmutated_code": {
+    "own-tests": {
+      "failed": false,
+      "returncode": 0,
+      "tail": [
+        "21 passed in 0.10s"
+      ]
+    },
+    "shared-suite": {
+      "failed": false,
+      "returncode": 0,
+      "tail": [
+        "28 passed in 0.05s"
+      ]
+    }
+  },
+  "instruments": [
+    "own-tests",
+    "shared-suite"
+  ],
+  "per_mutant": {
+    "FI-M15": {
+      "cells": {
+        "own-tests": "KILLED",
+        "shared-suite": "KILLED"
+      },
+      "edits": [
+        {
+          "find": "        record.committed += reservation.amount\n",
+          "path": "quota_ledger.py",
+          "replace": "        record.committed += reservation.amount + 1  # MUTANT FI-M15\n"
+        }
+      ],
+      "effect_on_observables": {
+        "moved_observables": {
+          "committed": [
+            "commit r1",
+            "release r3",
+            "close acme",
+            "close acme again"
+          ],
+          "ledger": [
+            "commit r1",
+            "release r3",
+            "close acme",
+            "close acme again"
+          ]
+        },
+        "port_region_committed_closed_ledger": [
+          "committed",
+          "ledger"
+        ]
+      },
+      "raw": {
+        "own-tests": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "5 failed, 16 passed in 0.08s"
+          ]
+        },
+        "shared-suite": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "7 failed, 21 passed in 0.06s"
+          ]
+        }
+      },
+      "separates_the_trees": true,
+      "verdict_kind": "MEASURED",
+      "wiring": "real",
+      "witness_on_mutated": {
+        "value": true
+      },
+      "witness_on_pristine": {
+        "value": false
+      }
+    },
+    "M01": {
+      "cells": {
+        "own-tests": "KILLED",
+        "shared-suite": "KILLED"
+      },
+      "edits": [
+        {
+          "find": "        if amount < 1:\n",
+          "path": "quota_ledger.py",
+          "replace": "        if amount < 0:  # MUTANT M01\n"
+        }
+      ],
+      "effect_on_observables": {
+        "moved_observables": {
+          "closed": [
+            "close acme",
+            "close acme again"
+          ],
+          "ledger": [
+            "close acme",
+            "close acme again"
+          ],
+          "outstanding": [
+            "reserve acme 0",
+            "reserve globex 2",
+            "commit r1",
+            "release r3",
+            "close acme",
+            "close acme again"
+          ],
+          "reason": [
+            "reserve acme 0",
+            "close acme",
+            "close acme again"
+          ],
+          "reservation_id": [
+            "reserve acme 0",
+            "reserve globex 2"
+          ],
+          "status": [
+            "reserve acme 0",
+            "close acme"
+          ]
+        },
+        "port_region_committed_closed_ledger": [
+          "closed",
+          "ledger"
+        ]
+      },
+      "raw": {
+        "own-tests": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "4 failed, 17 passed in 0.07s"
+          ]
+        },
+        "shared-suite": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "2 failed, 26 passed in 0.05s"
+          ]
+        }
+      },
+      "separates_the_trees": true,
+      "verdict_kind": "MEASURED",
+      "wiring": "real",
+      "witness_on_mutated": {
+        "value": true
+      },
+      "witness_on_pristine": {
+        "value": false
+      }
+    },
+    "M02": {
+      "cells": {
+        "own-tests": "KILLED",
+        "shared-suite": "KILLED"
+      },
+      "edits": [
+        {
+          "find": "        if amount > record.available:\n",
+          "path": "quota_ledger.py",
+          "replace": "        if amount > record.quota:  # MUTANT M02\n"
+        }
+      ],
+      "effect_on_observables": {
+        "moved_observables": {},
+        "port_region_committed_closed_ledger": []
+      },
+      "raw": {
+        "own-tests": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "1 failed, 20 passed in 0.06s"
+          ]
+        },
+        "shared-suite": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "1 failed, 27 passed in 0.04s"
+          ]
+        }
+      },
+      "separates_the_trees": true,
+      "verdict_kind": "MEASURED",
+      "wiring": "real",
+      "witness_on_mutated": {
+        "value": true
+      },
+      "witness_on_pristine": {
+        "value": false
+      }
+    },
+    "M03": {
+      "cells": {
+        "own-tests": "KILLED",
+        "shared-suite": "KILLED"
+      },
+      "edits": [
+        {
+          "find": "        if record.outstanding > 0:\n",
+          "path": "quota_ledger.py",
+          "replace": "        if False:  # MUTANT M03\n"
+        }
+      ],
+      "effect_on_observables": {
+        "moved_observables": {},
+        "port_region_committed_closed_ledger": []
+      },
+      "raw": {
+        "own-tests": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "3 failed, 18 passed in 0.10s"
+          ]
+        },
+        "shared-suite": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "2 failed, 26 passed in 0.05s"
+          ]
+        }
+      },
+      "separates_the_trees": true,
+      "verdict_kind": "MEASURED",
+      "wiring": "real",
+      "witness_on_mutated": {
+        "value": true
+      },
+      "witness_on_pristine": {
+        "value": false
+      }
+    },
+    "M04": {
+      "cells": {
+        "own-tests": "KILLED",
+        "shared-suite": "KILLED"
+      },
+      "edits": [
+        {
+          "find": "        self._append(f\"COMMIT {reservation.tenant} {reservation.amount} {record.committed}\")\n",
+          "path": "quota_ledger.py",
+          "replace": "        self._append(f\"COMMIT {reservation.tenant} {reservation.amount} {record.committed - reservation.amount}\")  # MUTANT M04\n"
+        }
+      ],
+      "effect_on_observables": {
+        "moved_observables": {
+          "ledger": [
+            "commit r1",
+            "release r3",
+            "close acme",
+            "close acme again"
+          ]
+        },
+        "port_region_committed_closed_ledger": [
+          "ledger"
+        ]
+      },
+      "raw": {
+        "own-tests": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "3 failed, 18 passed in 0.06s"
+          ]
+        },
+        "shared-suite": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "6 failed, 22 passed in 0.06s"
+          ]
+        }
+      },
+      "separates_the_trees": true,
+      "verdict_kind": "MEASURED",
+      "wiring": "real",
+      "witness_on_mutated": {
+        "value": true
+      },
+      "witness_on_pristine": {
+        "value": false
+      }
+    },
+    "M05": {
+      "cells": {
+        "own-tests": "KILLED",
+        "shared-suite": "KILLED"
+      },
+      "edits": [
+        {
+          "find": "        self._append(f\"CLOSE {tenant} {record.committed}\")\n",
+          "path": "quota_ledger.py",
+          "replace": "        try:  # MUTANT M05\n            self._append(f\"CLOSE {tenant} 0\")\n        except Exception:\n            pass\n"
+        }
+      ],
+      "effect_on_observables": {
+        "moved_observables": {
+          "ledger": [
+            "close acme",
+            "close acme again"
+          ]
+        },
+        "port_region_committed_closed_ledger": [
+          "ledger"
+        ]
+      },
+      "raw": {
+        "own-tests": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "3 failed, 18 passed in 0.10s"
+          ]
+        },
+        "shared-suite": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "2 failed, 26 passed in 0.05s"
+          ]
+        }
+      },
+      "separates_the_trees": true,
+      "verdict_kind": "MEASURED",
+      "wiring": "real",
+      "witness_on_mutated": {
+        "value": true
+      },
+      "witness_on_pristine": {
+        "value": false
+      }
+    },
+    "M06": {
+      "cells": {
+        "own-tests": "KILLED",
+        "shared-suite": "KILLED"
+      },
+      "edits": [
+        {
+          "find": "        record.available += reservation.amount\n        # Nothing durable: a release is not a ledger event.\n        return Result.accepted()\n",
+          "path": "quota_ledger.py",
+          "replace": "        record.available += reservation.amount\n        return Result.rejected(Reason.UNKNOWN_RESERVATION)  # MUTANT M06\n"
+        }
+      ],
+      "effect_on_observables": {
+        "moved_observables": {
+          "reason": [
+            "release r3"
+          ],
+          "status": [
+            "release r3"
+          ]
+        },
+        "port_region_committed_closed_ledger": []
+      },
+      "raw": {
+        "own-tests": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "2 failed, 19 passed in 0.06s"
+          ]
+        },
+        "shared-suite": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "1 failed, 27 passed in 0.04s"
+          ]
+        }
+      },
+      "separates_the_trees": true,
+      "verdict_kind": "MEASURED",
+      "wiring": "real",
+      "witness_on_mutated": {
+        "value": true
+      },
+      "witness_on_pristine": {
+        "value": false
+      }
+    },
+    "M07": {
+      "cells": {
+        "own-tests": "KILLED",
+        "shared-suite": "KILLED"
+      },
+      "edits": [
+        {
+          "find": "        record.available -= amount\n",
+          "path": "quota_ledger.py",
+          "replace": "        record.available -= amount + 1  # MUTANT M07\n"
+        }
+      ],
+      "effect_on_observables": {
+        "moved_observables": {
+          "available": [
+            "reserve acme 3",
+            "reserve acme 0",
+            "reserve globex 2",
+            "commit r1",
+            "release r3",
+            "close acme",
+            "close acme again"
+          ]
+        },
+        "port_region_committed_closed_ledger": []
+      },
+      "raw": {
+        "own-tests": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "4 failed, 17 passed in 0.07s"
+          ]
+        },
+        "shared-suite": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "7 failed, 21 passed in 0.07s"
+          ]
+        }
+      },
+      "separates_the_trees": true,
+      "verdict_kind": "MEASURED",
+      "wiring": "real",
+      "witness_on_mutated": {
+        "value": true
+      },
+      "witness_on_pristine": {
+        "value": false
+      }
+    },
+    "M08": {
+      "cells": {
+        "own-tests": "KILLED",
+        "shared-suite": "KILLED"
+      },
+      "edits": [
+        {
+          "find": "        record.committed += reservation.amount\n",
+          "path": "quota_ledger.py",
+          "replace": "        record.committed += reservation.amount\n        record.available += reservation.amount  # MUTANT M08\n"
+        }
+      ],
+      "effect_on_observables": {
+        "moved_observables": {
+          "available": [
+            "commit r1",
+            "release r3",
+            "close acme",
+            "close acme again"
+          ]
+        },
+        "port_region_committed_closed_ledger": []
+      },
+      "raw": {
+        "own-tests": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "2 failed, 19 passed in 0.06s"
+          ]
+        },
+        "shared-suite": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "2 failed, 26 passed in 0.05s"
+          ]
+        }
+      },
+      "separates_the_trees": true,
+      "verdict_kind": "MEASURED",
+      "wiring": "real",
+      "witness_on_mutated": {
+        "value": true
+      },
+      "witness_on_pristine": {
+        "value": false
+      }
+    },
+    "M09": {
+      "cells": {
+        "own-tests": "KILLED",
+        "shared-suite": "KILLED"
+      },
+      "edits": [
+        {
+          "find": "        with open(self._path, \"a\", encoding=\"utf-8\") as handle:\n            handle.write(line + \"\\n\")\n            handle.flush()\n            os.fsync(handle.fileno())\n",
+          "path": "quota_ledger.py",
+          "replace": "        existing = self._path.read_text(encoding=\"utf-8\")  # MUTANT M09\n        self._path.write_text(line + \"\\n\" + existing, encoding=\"utf-8\")\n"
+        }
+      ],
+      "effect_on_observables": {
+        "moved_observables": {
+          "ledger": [
+            "close acme",
+            "close acme again"
+          ]
+        },
+        "port_region_committed_closed_ledger": [
+          "ledger"
+        ]
+      },
+      "raw": {
+        "own-tests": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "3 failed, 18 passed in 0.08s"
+          ]
+        },
+        "shared-suite": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "5 failed, 23 passed in 0.06s"
+          ]
+        }
+      },
+      "separates_the_trees": true,
+      "verdict_kind": "MEASURED",
+      "wiring": "real",
+      "witness_on_mutated": {
+        "value": true
+      },
+      "witness_on_pristine": {
+        "value": false
+      }
+    },
+    "M10": {
+      "cells": {
+        "own-tests": "KILLED",
+        "shared-suite": "KILLED"
+      },
+      "edits": [
+        {
+          "find": "        record.available += reservation.amount\n        # Nothing durable: a release is not a ledger event.\n",
+          "path": "quota_ledger.py",
+          "replace": "        record.available += reservation.amount * 2  # MUTANT M10\n        # Nothing durable: a release is not a ledger event.\n"
+        }
+      ],
+      "effect_on_observables": {
+        "moved_observables": {
+          "available": [
+            "release r3",
+            "close acme",
+            "close acme again"
+          ]
+        },
+        "port_region_committed_closed_ledger": []
+      },
+      "raw": {
+        "own-tests": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "2 failed, 19 passed in 0.07s"
+          ]
+        },
+        "shared-suite": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "2 failed, 26 passed in 0.06s"
+          ]
+        }
+      },
+      "separates_the_trees": true,
+      "verdict_kind": "MEASURED",
+      "wiring": "real",
+      "witness_on_mutated": {
+        "value": true
+      },
+      "witness_on_pristine": {
+        "value": false
+      }
+    },
+    "PA-M11": {
+      "cells": {
+        "own-tests": "KILLED",
+        "shared-suite": "KILLED"
+      },
+      "edits": [
+        {
+          "find": "        return [line for line in text.splitlines() if line.strip()]\n",
+          "path": "quota_ledger.py",
+          "replace": "        return [line for line in text.splitlines() if line.strip() and not line.startswith(\"CLOSE\")]  # MUTANT PA-M11\n"
+        }
+      ],
+      "effect_on_observables": {
+        "moved_observables": {
+          "ledger": [
+            "close acme",
+            "close acme again"
+          ]
+        },
+        "port_region_committed_closed_ledger": [
+          "ledger"
+        ]
+      },
+      "raw": {
+        "own-tests": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "5 failed, 16 passed in 0.10s"
+          ]
+        },
+        "shared-suite": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "3 failed, 25 passed in 0.06s"
+          ]
+        }
+      },
+      "separates_the_trees": true,
+      "verdict_kind": "MEASURED",
+      "wiring": "real",
+      "witness_on_mutated": {
+        "value": true
+      },
+      "witness_on_pristine": {
+        "value": false
+      }
+    },
+    "PA-M12": {
+      "cells": {
+        "own-tests": "INEXPRESSIBLE",
+        "shared-suite": "INEXPRESSIBLE"
+      },
+      "verdict_kind": "INEXPRESSIBLE"
+    },
+    "PA-M13": {
+      "cells": {
+        "own-tests": "INEXPRESSIBLE",
+        "shared-suite": "INEXPRESSIBLE"
+      },
+      "verdict_kind": "INEXPRESSIBLE"
+    },
+    "PA-M14": {
+      "cells": {
+        "own-tests": "KILLED",
+        "shared-suite": "KILLED"
+      },
+      "edits": [
+        {
+          "find": "        self._reservations[reservation_id] = _Reservation(tenant=tenant, amount=amount)\n",
+          "path": "quota_ledger.py",
+          "replace": "        self._reservations[reservation_id] = _Reservation(tenant=tenant, amount=amount + 1)  # MUTANT PA-M14\n"
+        }
+      ],
+      "effect_on_observables": {
+        "moved_observables": {
+          "available": [
+            "release r3",
+            "close acme",
+            "close acme again"
+          ],
+          "committed": [
+            "commit r1",
+            "release r3",
+            "close acme",
+            "close acme again"
+          ],
+          "ledger": [
+            "commit r1",
+            "release r3",
+            "close acme",
+            "close acme again"
+          ]
+        },
+        "port_region_committed_closed_ledger": [
+          "committed",
+          "ledger"
+        ]
+      },
+      "raw": {
+        "own-tests": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "6 failed, 15 passed in 0.07s"
+          ]
+        },
+        "shared-suite": {
+          "failed": true,
+          "returncode": 1,
+          "tail": [
+            "7 failed, 21 passed in 0.06s"
+          ]
+        }
+      },
+      "separates_the_trees": true,
+      "verdict_kind": "MEASURED",
+      "wiring": "real",
+      "witness_on_mutated": {
+        "value": true
+      },
+      "witness_on_pristine": {
+        "value": false
+      }
+    }
+  },
+  "tree": "artifact_Z"
+}

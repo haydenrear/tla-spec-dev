@@ -1,0 +1,80 @@
+{
+  "artifact_E->artifact_F": {
+    "after_tests_on_before_code": {
+      "failures": [],
+      "passed": true,
+      "tail": [
+        "39 passed in 0.05s"
+      ]
+    },
+    "before_tests_on_after_code": {
+      "failures": [],
+      "passed": true,
+      "tail": [
+        "39 passed in 0.05s"
+      ]
+    },
+    "bytes": {
+      "diff": "",
+      "identical_excluding_markdown": true
+    },
+    "differential_walk": {
+      "divergences": 0,
+      "first": [],
+      "steps_per_walk": 40,
+      "walks": 2000
+    }
+  },
+  "artifact_N->artifact_D": {
+    "after_tests_on_before_code": {
+      "failures": [],
+      "passed": true,
+      "tail": [
+        "39 passed in 0.33s"
+      ]
+    },
+    "before_tests_on_after_code": {
+      "failures": [],
+      "passed": true,
+      "tail": [
+        "37 passed in 0.34s"
+      ]
+    },
+    "bytes": {
+      "diff": "diff -r -x __pycache__ -x *.md -x .pytest_cache /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/probe/trees/artifact_N/quota_ledger.py /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/probe/trees/artifact_D/quota_ledger.py\n60,62d59\n<         # Held per tenant, kept as a running number so `available` never has to\n<         # walk the outstanding table.\n<         self._held = {tenant: 0 for tenant in self._quota}\n74c71,76\n<         return self._quota[tenant] - self._held[tenant] - self._committed[tenant]\n---\n>         # The held amount is read off the outstanding table, not kept as a second\n>         # running total: `outstanding` already says which reservations are live\n>         # and for how much, so a stored copy would be a second thing that has to\n>         # be right for R1 to hold.\n>         held = sum(r.amount for r in self._outstanding.values() if r.tenant == tenant)\n>         return self._quota[tenant] - held - self._committed[tenant]\n111d112\n<         self._held[tenant] += amount\n120,122c121,122\n<         # The hold becomes committed; `available` is unchanged because the\n<         # amount moves from one deducted bucket to the other.\n<         self._held[reservation.tenant] -= reservation.amount\n---\n>         # The hold becomes committed; `available` is unchanged because dropping\n>         # the reservation and adding to `committed` cancel in its arithmetic.\n136d135\n<         self._held[reservation.tenant] -= reservation.amount\ndiff -r -x __pycache__ -x *.md -x .pytest_cache /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/probe/trees/artifact_N/test_quota_ledger.py /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/probe/trees/artifact_D/test_quota_ledger.py\n107a108,123\n> @pytest.mark.parametrize(\"resolve\", [\"release\", \"commit\"])\n> def test_ids_advance_even_when_outstanding_returns_to_empty(ledger, resolve):\n>     \"\"\"Ids count reserves ACCEPTED, not reservations LIVE.\n> \n>     The two existing non-reuse tests never let `outstanding` drain to empty and\n>     refill, so an id derived from the live count agrees with them; this sequence\n>     is the one that tells them apart (`r3` vs a second `r2`).\n>     \"\"\"\n>     ids = []\n>     for _ in range(3):\n>         rid = ledger.reserve(\"acme\", 1).reservation_id\n>         ids.append(rid)\n>         assert getattr(ledger, resolve)(rid).status == \"accepted\"\n>     assert ids == [\"r1\", \"r2\", \"r3\"]\n> \n>",
+      "identical_excluding_markdown": false
+    },
+    "differential_walk": {
+      "divergences": 0,
+      "first": [],
+      "steps_per_walk": 40,
+      "walks": 2000
+    }
+  },
+  "artifact_Z->artifact_M": {
+    "after_tests_on_before_code": {
+      "failures": [],
+      "passed": true,
+      "tail": [
+        "22 passed in 0.10s"
+      ]
+    },
+    "before_tests_on_after_code": {
+      "failures": [],
+      "passed": true,
+      "tail": [
+        "21 passed in 0.10s"
+      ]
+    },
+    "bytes": {
+      "diff": "diff -r -x __pycache__ -x *.md -x .pytest_cache /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/probe/trees/artifact_Z/quota_ledger.py /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/probe/trees/artifact_M/quota_ledger.py\n81c81\n<     \"\"\"A tenant's whole in-memory position.\n---\n>     \"\"\"A tenant's whole in-memory position: one field per query about it.\n85a86,89\n> \n>     Whether the tenant holds live reservations is not kept here. That fact\n>     lives in the reservation table and is read from it, so there is only one\n>     place it can be wrong.\n88d91\n<     quota: int\n92d94\n<     outstanding: int = 0  # count of live reservations, for the close guard\n104c106\n<             name: _Tenant(quota=quota, available=quota) for name, quota in quotas.items()\n---\n>             name: _Tenant(available=quota) for name, quota in quotas.items()\n164d165\n<         record.outstanding += 1\n174d174\n<         record.outstanding -= 1\n187d186\n<         record.outstanding -= 1\n198c197\n<         if record.outstanding > 0:\n---\n>         if any(held.tenant == tenant for held in self._reservations.values()):\ndiff -r -x __pycache__ -x *.md -x .pytest_cache /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/probe/trees/artifact_Z/test_quota_ledger.py /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/daf0ac7d-2e56-422e-b6df-6330f27b6709/scratchpad/probe/trees/artifact_M/test_quota_ledger.py\n195a196,207\n> def test_another_tenants_live_reservation_does_not_block_a_close(ledger):\n>     \"\"\"The close guard is per tenant, not \"is anything outstanding at all\".\n> \n>     globex holds nothing of its own; acme's live reservation is not globex's\n>     business. A guard that asked whether the reservation table is non-empty\n>     would reject this and would still pass every other close test.\n>     \"\"\"\n>     ledger.reserve(\"acme\", 3)\n>     assert ledger.close_tenant(\"globex\").status == \"accepted\"\n>     assert ledger.close_tenant(\"acme\").reason == \"outstanding_reservations\"\n> \n>",
+      "identical_excluding_markdown": false
+    },
+    "differential_walk": {
+      "divergences": 0,
+      "first": [],
+      "steps_per_walk": 40,
+      "walks": 2000
+    }
+  }
+}

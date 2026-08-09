@@ -1,0 +1,135 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket RD-03",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-03/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-03/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-03/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The three apparatus goals are decided, each WITH the bounds now known on its own instrument.",
+        "The three original product questions get a verdict with a reason, or are reported unanswerable with the reason.",
+        "D2 is scored on produced code where anchor 3 is reachable, and the result is reported either way.",
+        "The architecture tag is USED to say which comparisons are legitimate, not re-litigated.",
+        "Findings by channel with the per-token ratio; and the count of PRODUCT-surface findings this round, stated as a result.",
+        "Findings FILED and NONE fixed."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "specs/results/scorecards/reading-discipline/"
+      ]
+    },
+    "depends_on": [
+      "RD-01",
+      "RD-02",
+      "RD-04",
+      "RD-05",
+      "RD-06"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/190",
+    "goals": [
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioural delta",
+        "goal": "GOAL-scope-loss-catchable",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioural delta",
+        "goal": "GOAL-tags-earn-their-place",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioural delta",
+        "goal": "GOAL-apparatus-priced",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "direct",
+        "expected_effect": "The three original product questions get a current answer, or the round reports which cannot be answered and why.",
+        "goal": "GOAL-product-round",
+        "local_signal": "the three verdicts, each with baseline -> measured -> reason"
+      }
+    ],
+    "id": "RD-03",
+    "implementation_scope": [
+      "specs/results/scorecards/",
+      "NEXT-EPIC.md"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "RE-SCOPED AT schedule_revision 2 TO POINT AT THE PRODUCT. 100 of 108 findings in this epic family touch only the measurement apparatus and the last two epics produced ZERO product findings. A fourth consecutive apparatus evaluation would tell us our checks have bounds, which we know. TWO PARTS, AND THE SECOND IS THE HEADLINE. (1) DECIDE THE THREE APPARATUS GOALS, which were agreed before dispatch and may not be silently dropped. Most of their evidence is already in hand from RD-01, RD-02, RD-04 and RD-05. GOAL-scope-loss-catchable must be reported WITH BOTH KNOWN BOUNDS on its instrument -- keyed on \\bD[1-5]\\b, and REFUTED for a true figure whose qualifier falls outside a 3-word window -- either of which can move the count in either direction. GOAL-tags-earn-their-place must report that the separation is opus-only, n = 0 in sonnet, and that TWO candidate values were REFUSED admission. GOAL-apparatus-priced is decided LOAD-BEARING, with the pricing instrument that blessed two epics of free removals shown to be ENTAILED -- 0 of 9 gap mutants could have priced their removal. (2) USE THE INSTRUMENTS ON THE PRODUCT. Answer the three original questions with a card that now demonstrably measures: do model-derived cases catch bugs hand-written tests miss; does the prompt produce simpler code at equal behaviour, NOW THAT D2 ANCHOR 3 IS REACHABLE AND NEVER WAS BEFORE; and does the effectful vs ports-and-adapters choice change what validation can see, now that the choice is taggable. That last one uses the architecture tag rather than building it. FILE FINDINGS, FIX NOTHING.",
+    "owns_goals": [
+      "GOAL-scope-loss-catchable",
+      "GOAL-tags-earn-their-place",
+      "GOAL-apparatus-priced",
+      "GOAL-product-round"
+    ],
+    "promotion_order": 50,
+    "promotion_predecessor": "RD-06",
+    "role": "evaluation",
+    "schedule_revision": 2,
+    "status": "planned",
+    "title": "EVALUATION: how many claims does the record not survive?",
+    "wave": 5
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-03/specs/tickets/RD-03",
+  "ticket_id": "RD-03",
+  "ticket_index": 5,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-03/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-03/specs/tickets"
+}
