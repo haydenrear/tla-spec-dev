@@ -7486,6 +7486,17 @@ findings:
       for line". THE TABLE IN THE DELIVERABLE IS NOT REPRODUCIBLE BY RUNNING THE
       SHIPPED SCRIPT FROM WHERE IT SHIPS.
 
+      CORRECTED BY THIS TICKET'S OWN CROSS-TREE PROBE, AND THE CORRECTION MATTERS.
+      An earlier draft of this finding called the `7 of 12` figure an OVER-CLAIM.
+      IT IS NOT. The probe reconstructed the directory layout the script expects
+      and BOTH trees reproduce that table cell for cell, including `M8 SURVIVED`
+      and every `0/400` differential. THE FIGURES ARE TRUE. What is defective is
+      that the column DEGRADES TO `n/a` SILENTLY, with no warning and exit 0, at
+      the location the artifact actually ships from -- so a reader who runs it
+      gets a strictly weaker table than the one documented and is told nothing.
+      The over-claim reading was mine and it was wrong; it is corrected here
+      rather than quietly deleted.
+
       Found by a blind judge; both halves independently reproduced by the round
       operator.
     reproduction: >-
@@ -8403,4 +8414,255 @@ findings:
       repository -- no test and no close path invokes it -- so the suite is
       unaffected and the cards are readable; the checker is simply not being run
       where the card says it is.
+    disposition: open
+
+  - id: RD-03-DF-18
+    found_by: "RD-03"
+    found_at_commit: "e9790e3"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py"]
+    summary: >-
+      PRODUCT SURFACE, ALL SIX TREES, AND IT BREAKS A LITERAL `FEATURE.md`
+      GUARANTEE. `FEATURE.md` says `commit` and `close_tenant` each append
+      "EXACTLY ONE LINE". A tenant name containing any character
+      `str.splitlines()` treats as a break makes ONE ACCEPTED COMMAND PRODUCE
+      TWO ENTRIES in `ledger_lines()`, and R2's per-line parse
+      (`int(line.split()[2])`) stops working on the fragments.
+
+      `QuotaLedger({"ac\nme": 9}, p)` then
+      `commit(reserve("ac\nme", 2).reservation_id)` yields
+      `['COMMIT ac', 'me 2 2']` with `committed() == 2`.
+
+      FOUR OF THE SIX TREES DISCLOSE THE *SPACE* CASE as an ambiguity in a tenant
+      name. A space does not break the line count. NONE OF THE SIX DISCLOSES
+      THIS, and no test in any tree or in the shared suite passes a tenant name
+      containing a line break.
+
+      Six of six is the point: this is not an arm effect and not a model effect.
+      It is a gap every implementation inherited from a spec that names the
+      guarantee and never says what a tenant name may contain.
+    reproduction: >-
+      python3 specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/harness/newline_tenant.py
+    evidence:
+      - "examples/validation/ab/FEATURE.md (commit / close_tenant: 'appends exactly one line')"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:141,177,202"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_N/quota_ledger.py:90,124-127,151"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/quota_ledger/domain.py:136,153"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/harness/newline_tenant.py"
+    why_out_of_scope: "A sealed subject is never edited; RD-03 fixes nothing."
+    suggested_fix: >-
+      This is a FIXTURE decision, not six code fixes. `FEATURE.md` either
+      constrains the tenant-name alphabet or states that the durable format is
+      undefined for names containing whitespace -- and if it states the latter,
+      the R2 assertion in the shared suite must stop parsing positionally. Same
+      class as `RD-03-DF-07` (non-integer amounts): a guarantee stated on the
+      durable format with no constraint stated on its inputs.
+    blast_radius: "All six RD-06 subjects and every earlier arm of this example."
+    disposition: open
+
+  - id: RD-03-DF-19
+    found_by: "RD-03"
+    found_at_commit: "e9790e3"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/reading-discipline/blind/artifact_E/quota_ledger/memory_journal.py"]
+    summary: >-
+      PRODUCT SURFACE. THE FAKE DOES NOT SATISFY THE PORT CONTRACT ITS OWN DOMAIN
+      DECLARES -- on the one pair of trees whose D3 = 4 rests on a real/fake
+      swap.
+
+      `artifact_E/quota_ledger/domain.py:26-27` declares that `lines()` returns
+      "Every line appended, in the order appended, NONE OF THEM BLANK."
+      `file_journal.py:25` filters blanks. `memory_journal.py:19-20` DOES NOT.
+
+      real -> `['COMMIT a 1 1', 'CLOSE a 1']`
+      fake -> `['COMMIT a 1 1', '', 'CLOSE a 1']`
+
+      The two adapters do not implement the same contract, and the contract is
+      written down four lines from the port. NOTE THE INTERACTION WITH
+      `RD-03-DF-03`: the blank-line filter in the real adapter is DEAD CODE
+      defended by a false comment, and it is simultaneously the ONLY thing making
+      the real adapter satisfy a clause the fake violates. Removing it -- which
+      `RD-03-DF-03` shows is safe by every test -- would make the real adapter
+      violate its own port's docstring too.
+    reproduction: >-
+      python3 specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/harness/adapter_contract_check.py
+    evidence:
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/quota_ledger/domain.py:26-27"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/quota_ledger/file_journal.py:25"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/quota_ledger/memory_journal.py:19-20"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/harness/adapter_contract_check.py"
+    why_out_of_scope: "A sealed subject is never edited."
+    suggested_fix: >-
+      None in the artifact. The transferable observation: a parity suite that
+      runs the same cases against two adapters proves they AGREE on the cases it
+      runs; it does not prove either satisfies the port's declared contract. The
+      contract is prose in a docstring and nothing executes it.
+    blast_radius: >-
+      Two of six subjects, and it is the pair carrying D3 = 4 on 8 of 8 cards.
+      It does not move that score -- the swap is real and was verified at runtime
+      by every judge of the pair -- but it narrows what the swap demonstrates.
+    disposition: open
+
+  - id: RD-03-DF-20
+    found_by: "RD-03"
+    found_at_commit: "e9790e3"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/reading-discipline/blind/artifact_E/NOTES.md", "specs/results/scorecards/reading-discipline/blind/artifact_E/tests/test_journal_parity.py"]
+    summary: >-
+      PRODUCT SURFACE, AND IT IS THE BEST FINDING OF THE ROUND. THE TWO ADAPTERS
+      DISAGREE THROUGH THE DOMAIN, THE PARITY SUITE'S STATED PREMISE IS FALSE,
+      AND THE FAULT CLASS IS PRESENT IN THE SHIPPED CODE UNSEEDED.
+
+      `artifact_E/NOTES.md:48-51` says of the parity case list: "NO CASE IN THAT
+      LIST CAN BE WRITTEN FOR ONLY ONE OF THE JOURNALS." Run the same domain
+      commands over each adapter with a tenant name containing a line break:
+
+        real -> ['COMMIT ac', 'me 2 2', 'CLOSE ac', 'me 2']
+        fake -> ['COMMIT ac\nme 2 2', 'CLOSE ac\nme 2']
+
+      A case that distinguishes them exists, and the premise the parity suite
+      rests on is false.
+
+      WHAT MAKES IT THE BEST FINDING: this is exactly the `PA-M13` fault class --
+      "the fake drifts from the real on write" -- PRESENT IN THE SHIPPED CODE,
+      UNSEEDED, on the one tree pair whose own suite KILLS `PA-M13` when it IS
+      seeded. The suite catches the injected version of a fault it does not catch
+      in the code it ships beside.
+    reproduction: >-
+      python3 specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/harness/fake_drift.py
+    evidence:
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/NOTES.md:48-51"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/tests/test_journal_parity.py"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/harness/fake_drift.py"
+      - "examples/validation/ab/seeded_faults.toml (PA-M13-fake-drifts-from-real-on-write)"
+    why_out_of_scope: "A sealed subject is never edited."
+    suggested_fix: >-
+      None in the artifact. The transferable observation is about EVAL DESIGN and
+      it is large: a seeded-fault catalogue measures whether an instrument
+      catches an INJECTED instance of a class. It says nothing about whether the
+      same instrument catches a NATURALLY OCCURRING instance of that class in the
+      code under it. Here the same suite does the first and not the second, and
+      no round has ever checked for the second.
+    blast_radius: >-
+      Two of six subjects directly. The eval-design observation applies to every
+      kill table this project has published.
+    disposition: open
+
+  - id: RD-03-DF-21
+    found_by: "RD-03"
+    found_at_commit: "e9790e3"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/reading-discipline/blind/artifact_E/tests/test_ledger.py"]
+    summary: >-
+      PRODUCT SURFACE. `artifact_E` and `artifact_F`'s own 39-test suites NEVER
+      ASSERT THE STATUS OF AN ACCEPTED `release`. Mutant `M06` -- release applies
+      its full effect and then returns `rejected/unknown_reservation`, inverting
+      R4 -- SURVIVES both trees' own suites.
+
+      IT IS THE ONLY `own-tests` SURVIVOR ANYWHERE IN THE SEVEN-INSTRUMENT,
+      SIX-TREE TABLE: 77 of 79 measured cells were killed by the tree's own
+      tests, and both survivors are this mutant on this pair. The SHARED suite
+      catches it, so this is a gap in the tree's tests and not in its code -- and
+      it is the one cell in the round where the shared contract outperforms an
+      artifact's own suite.
+    reproduction: >-
+      See `specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/results/artifact_E.json`,
+      `per_mutant.M06`, and `probe/COMMANDS.md` for the exact invocation.
+    evidence:
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/tests/test_ledger.py:29-30,98,101-103"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/tests/test_journal_parity.py:50-51,74"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/results/MERGED-TABLE.json"
+    why_out_of_scope: "A sealed subject is never edited."
+    suggested_fix: >-
+      None in the artifact. Worth recording that the pair scoring D3 = 4 on 8 of
+      8 cards is also the pair with the round's only own-tests survivor: a strong
+      boundary and a gap in the cases behind it are independent properties, and
+      the card measures them on different dimensions for that reason.
+    blast_radius: "Two of six subjects, one mutant."
+    disposition: open
+
+  - id: RD-03-DF-22
+    found_by: "RD-03"
+    found_at_commit: "e9790e3"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/seeded_faults.toml", "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/"]
+    summary: >-
+      THE CATALOGUE'S MUTANTS ARE TOO BLATANT FOR THESE SUBJECTS, SO THE EFFECTFUL
+      HALF OF THE TABLE CARRIES ALMOST NO SIGNAL -- AND THIS IS DISCLOSED BY THE
+      MEASURER AS A PREDICTION THAT PASSED TOO CLEANLY.
+
+      On all four `effectful` trees, BOTH hand-written instruments killed ALL 13
+      measured mutants. A table where every cell reads the same has no resolving
+      power, and no comparison between those four trees can be drawn from it.
+
+      The probe checked this was not a broken harness before reporting it:
+      baselines green on unmutated code everywhere, every one of the 84 measured
+      cells passed a TWO-SIDED semantic witness (False on pristine, True on
+      mutated) before a verdict was recorded, and the corpus columns disagree
+      with each other exactly as the sealed reference run does.
+
+      SECOND, AND IT IS THE SAME SHAPE: the Q3 headline -- 8 INEXPRESSIBLE cells,
+      all on `effectful` trees -- IS NEAR-TAUTOLOGICAL. `PA-M12` and `PA-M13` are
+      DEFINED as mutations of a fake adapter, so counting where they cannot be
+      applied largely restates which trees have a fake. The measurer predicted
+      the result cell-for-cell before running and says so. IT MUST NOT BE READ AS
+      AN EMPIRICAL DISCOVERY.
+
+      The informative cell is the one that was NOT predicted: on `E`/`F`, both
+      mutants are killed by the trees' OWN tests, survive the shared suite, and
+      survive ALL FOUR model-derived instruments. The region behind a port is
+      invisible to every instrument in this epic except a hand-written parity
+      suite somebody chose to write.
+    reproduction: >-
+      specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/results/MERGED-TABLE.json
+      and the per-tree witnesses in probe/results/<tree>.json
+    evidence:
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/results/MERGED-TABLE.json"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/COMMANDS.md"
+      - "examples/validation/ab/seeded_faults.toml"
+    why_out_of_scope: >-
+      RD-03 measures; it does not author faults. Adding subtler mutants during
+      the round that is reading the table would be choosing the instrument after
+      seeing the result.
+    suggested_fix: >-
+      If a future round wants discrimination between implementations of a
+      program this size, it needs faults subtler than this catalogue's. The two
+      that DID discriminate here -- `M06` on `E`/`F`, and the four
+      `PA-M12`/`PA-M13` cells -- both discriminated through a tree's OWN tests,
+      not through any shared or generated instrument. DO NOT respond by deleting
+      the blatant mutants: they are the regression floor. Add subtler ones beside
+      them, each with its own two-sided witness.
+    blast_radius: >-
+      Every kill table this project has published over `ab_quota_ledger`, and the
+      whole `effectful` half of RD-03's own probe.
     disposition: open

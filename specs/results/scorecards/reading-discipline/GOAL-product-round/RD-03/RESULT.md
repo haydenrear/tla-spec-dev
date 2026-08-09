@@ -9,7 +9,7 @@
 `GOAL-scope-loss-catchable`, `GOAL-tags-earn-their-place`,
 `GOAL-apparatus-priced`.
 
-**Findings filed: 17. Fixed: 0.** Nothing in the record was edited to clear a
+**Findings filed: 22. Fixed: 0.** Nothing in the record was edited to clear a
 result. No artifact tree was touched. The one suite failure this round produced
 is left red and filed rather than repaired, and the 180 schema problems the
 checker reports against this round's own cards are filed rather than normalised
@@ -316,9 +316,18 @@ difference to see.** `RD-03-DF-12`.
   new subjects, from a different producing model, in a round that built the
   generated instrument specifically to give it a chance to win. **It is a
   replication and it is reported as one, not as a new result.**
+- **AND THE REASON IS SATURATION, WHICH WEAKENS THE VERDICT AND IS REPORTED AS
+  DOING SO.** On all four `effectful` trees **both hand-written instruments
+  killed all 13 measured mutants**. A table where every cell reads the same has
+  no resolving power, so the `effectful` half of this comparison carries almost
+  no signal. The probe checked this was not a broken harness before reporting it:
+  baselines green everywhere, and **84 of 84 measured cells passed a two-sided
+  semantic witness — False on pristine, True on mutated — before any verdict was
+  recorded.** `RD-03-DF-22`.
 - **The question the fixture cannot answer, stated separately so it is not read as
   answered:** whether model-derived cases would win on a subject whose refusal
-  surface the positive corpus could reach. Nothing here measures that.
+  surface the positive corpus could reach, or against faults subtler than this
+  catalogue's. Nothing here measures either.
 - **And one hole in the hand-written channel with nothing on the other side:** a
   fault making `available("nobody")` return `0` instead of raising survived
   **both** hand-written suites on **both** trees of a pair, and the model-derived
@@ -384,6 +393,29 @@ difference to see.** `RD-03-DF-12`.
      probe** (§Q1): the one fault class the hand-written channel catches that the
      model-derived channel does not is the one class that only exists when the
      architecture supplies a seam.
+
+  > **THE HEADLINE COUNT IS NEAR-TAUTOLOGICAL AND THE MEASURER SAID SO BEFORE I
+  > ASKED.** `PA-M12` and `PA-M13` are *defined* as mutations of a fake adapter,
+  > so counting where they cannot be applied largely restates which trees have a
+  > fake. The probe predicted the result cell-for-cell before running and
+  > disclosed it as a prediction that passed too cleanly. **"The effectful trees
+  > have 8 holes" is not an empirical discovery** and must not be reported as
+  > one. `RD-03-DF-22`.
+  >
+  > **The informative cell is the one nobody predicted:** on `E`/`F` both mutants
+  > are killed by the trees' **own tests**, survive the **shared suite**, and
+  > survive **all four model-derived instruments**. The region behind a port is
+  > invisible to every instrument in this epic except a hand-written parity suite
+  > somebody chose to write.
+
+  4. **A three-cell hole cuts ACROSS the split and must not be read as an
+     architecture effect.** `M07` is inexpressible on `artifact_D`, `artifact_E`
+     and `artifact_F` — one `effectful`, two `ports-and-adapters`. The cause is
+     **representation, not layering**: all three *derive* `available`, so the only
+     line that can move it also moves the reservation's own amount. The probe did
+     not declare this — it seeded the nearest candidate on each and ran it, and
+     reports the moved-observable set as the witness. `absent` and
+     `checked, none found` are different claims.
   3. **The D3 ranges do not overlap** and have not overlapped on any subject ever
      measured.
 - **VERDICT: YES — the choice changes what validation can see, and the effect is
@@ -570,9 +602,10 @@ read, and did not edit.**
 
 | channel | findings | which | share |
 |---|---|---|---|
-| **blind judges** | **9** | `DF-01`…`DF-04`, `DF-06`…`DF-09` and half of `DF-05` | 53% |
-| **round operator** (running the instruments and reading the output) | **7** | `DF-05`, `DF-10`…`DF-15`, `DF-17` | 41% |
-| **suite** | **1** | `DF-16` | 6% |
+| **blind judges** | **8** | `DF-01`…`DF-04`, `DF-06`…`DF-09` | 36% |
+| **cross-tree fault probe** | **6** | `DF-18`…`DF-22`, and the correction to `DF-01` | 27% |
+| **round operator** (running the instruments and reading the output) | **7** | `DF-05`, `DF-10`…`DF-15`, `DF-17` | 32% |
+| **suite** | **1** | `DF-16` | 5% |
 
 **Joint findings are counted once, under the channel that reached them first.**
 `DF-05` was reached by three judges disclosing an inference and by the operator
@@ -582,10 +615,10 @@ inference and the operator identified the mechanism. `DF-01` and `DF-02` were
 each found by a judge and then independently reproduced by the operator, and are
 credited to the judges.
 
-**PRODUCT-SURFACE FINDINGS THIS ROUND: 7 of 17, stated as a result.** They are
-`DF-01` through `DF-07` and every one of them is a defect in produced code or in
-the shared fixture that produced code is measured against — not in the
-measurement apparatus. **The predecessor produced zero. The predecessor's
+**PRODUCT-SURFACE FINDINGS THIS ROUND: 12 of 22, stated as a result.** They are
+`DF-01`…`DF-07` and `DF-18`…`DF-22`, and every one of them is a defect in
+produced code or in the fixture that produced code is measured against — not in
+the measurement apparatus. **The predecessor produced zero. The predecessor's
 predecessor produced zero. 100 of 108 findings in this epic family before today
 touched only the apparatus.** The re-scope moved the number it existed to move.
 
@@ -604,10 +637,12 @@ instrument here is not documented at either end**. `RD-03-DF-13`.
 |---|---|---|
 | subagent tokens | **1,643,036** across 12 judges | 1,162,275 across 8 judges |
 | **per judge** | **136,920** | 145,284 |
-| findings | **17** | 7 |
-| **per 100k** | **1.03** | **0.60** |
+| cross-tree probe | **293,171** (1 subagent) | — |
+| **total subagent tokens** | **1,936,207** | 1,162,275 |
+| findings | **22** | 7 |
+| **per 100k** | **1.14** | **0.60** |
 
-**About 1.7× the predecessor's rate**, at about 1.4× the spend. The per-judge
+**About 1.9× the predecessor's rate**, at about 1.7× the spend. The per-judge
 figures agree to within 6%, which is the evidence that the two rounds are quoting
 the same metric — **evidence for the choice of basis, not proof of it**, since
 `SM-05` never states one.
@@ -631,16 +666,25 @@ measurement is in progress* — and it cost a full 594-second run to learn, in a
 round where the same fact was independently visible from the scaffold's own
 output.
 
+**And the round's best-value channel is a new one.** The **cross-tree fault
+probe** — a single subagent given the instruments that already existed and told
+to point them at the code — returned **6 findings for 293,171 tokens, 2.05 per
+100k**, twice the round's own average and three times the predecessor's. It
+produced the round's single best finding (`RD-03-DF-20`), it **corrected one of
+the operator's own findings** (`RD-03-DF-01` was called an over-claim and is
+not), and it disclosed one of its own results as near-tautological before being
+asked. **Fund this channel first next round.**
+
 **Recommendation, unchanged from the predecessor and now with one more data
 point: the suite is a REGRESSION GUARD and should stop being reported as a
 finding channel.** It is a fine regression guard; that is a different job, it is
 worth its cost at that job, and reporting one finding in seven rounds as a
 channel yield is the `absent`/`checked, none found` conflation applied to a
-budget line. **Keep funding blind judges** — 9 of 16 findings, including all
-seven product-surface ones, and including three that the round operator provably
-could not have reached because they required seeding a fault and running it.
-**Keep funding the operator-instrument channel** at 6 of 16 for no additional
-model spend.
+budget line. **Keep funding blind judges** — 8 of 22 findings, including three the round
+operator provably could not have reached because they required seeding a fault
+and running it. **Keep funding the operator-instrument channel** at 7 of 22 for
+no additional model spend. **And fund the cross-tree probe**, which at 2.05 per
+100k is the most productive thing this round bought.
 
 ### 4.4 Suite numbers, with the tree named
 
@@ -683,9 +727,9 @@ Sealed at `f52be89` with 24 unfilled skeletons on disk and no score in existence
 | **P4** | the three before-trees are all D2 = 2 | **PASS** — 12 of 12 |
 | **P5** | a tier split appears on at least one dimension | **PASS** — five, one of them on D2 |
 | **P6** | D3 separates `E`/`F` from the other four | **PASS** — and passing it proves nothing new, as declared |
-| **P7** | no judge finds a bug both suites miss | **FALSIFIED** — `available("nobody")` returning `0` survived both suites on both trees of a pair |
+| **P7** | no judge finds a bug both suites miss | **FALSIFIED TWICE** — `available("nobody")` returning `0` survived both suites on both trees of a pair, and the probe found `M06` surviving `E`/`F`'s own suites and a `PA-M13`-class fault present unseeded in shipped code |
 | **P8** | no card scores D1 = 4 | **PASS** — and the reason is structural, not a close call |
-| **P9** | product-surface findings > 0 | **PASS** — 7 |
+| **P9** | product-surface findings > 0 | **PASS** — 12 |
 | **P10** | the suite produces zero findings again | **FALSIFIED** — it produced one |
 | **P11** | `scope` refutes a mention rather than an assertion in my own writing | **PASS** — §7 |
 | **P12** | the sweep count has moved since RD-01's 44 | **PASS** — 44 → 62, and then 27 → 49 REFUTED **without a document changing** |
@@ -693,7 +737,10 @@ Sealed at `f52be89` with 24 unfilled skeletons on disk and no score in existence
 | **P14** | the round's product answers are thin | **FALSIFIED** — Q2 came back with a clean unanimous answer in the opposite direction to the one the epic assumed |
 
 **Four falsified of fourteen. NOT AN ALARM — and the two that matter are P3 and
-P14.** P3 was wrong about the *mechanism* of disagreement, not about its
+P14.** A fifteenth prediction, made by the probe rather than by me and sealed in
+its own report, **passed too cleanly and is reported as such**: it called the Q3
+INEXPRESSIBLE result cell-for-cell before running, because the result is close to
+definitional. `RD-03-DF-22`. P3 was wrong about the *mechanism* of disagreement, not about its
 presence: I predicted judges would split on how big a simplification must be, and
 they did not split on that at all — they split on whether one occurred, and the
 tiers split on D4's derivation clause underneath. **P14 was wrong in the round's
@@ -768,6 +815,34 @@ built far enough to use and then refused.
   then proved by a 300 × 80-step differential (0 divergences) that the two guards
   are **mutually exclusive** and the mutant is equivalent. The real finding
   underneath is `RD-03-DF-06`, and it is a different one.
+
+**And what the cross-tree probe rejected — the channel that returned most per
+token also refused most:**
+
+- **Two of its own witnesses, and the entire run that used them.** Its first full
+  run is kept as `probe/logs/run-1-superseded.txt`. Two witnesses were wrong
+  about their mutants' semantics and produced **five false HOLE cells**. It
+  corrected the witnesses, recorded what was wrong inside them, and **re-ran the
+  WHOLE table rather than the affected rows** — the difference between a
+  measurement and a patch.
+- **Calling `M07` inexpressible by argument.** The argument was sound and it did
+  not trust it: it seeded the nearest candidate on all three trees and ran them,
+  so the hole is a **failed witness with the moved-observable set attached**, not
+  a sentence.
+- **A near-anchoring of `M07` that would have "worked"** and slipped through as a
+  green cell. It strengthened the witness specifically so that could not happen.
+- **Eight survivors it could have manufactured.** `PA-M12`/`PA-M13` on the four
+  effectful trees "survive" every instrument for the trivial reason that there is
+  nothing to mutate. Reporting SURVIVED would have made the effectful trees look
+  worse on a row that cannot be about them. **INEXPRESSIBLE, not survived.**
+- **An aggregate kill rate**, trivially computable from its own merged JSON and
+  deliberately not computed anywhere, *including inside its own merge script*.
+- **Reading `PREDICTIONS-RD-03.md`**, deliberately, because several of its results
+  bear on catalogue predictions and scoring predictions is the owner's job and
+  not the measurer's.
+- **Repairing anything.** Every finding it filed has an obvious two-line fix, and
+  it names the one it most wanted to apply: the `MemoryJournal` blank-line filter,
+  which would have made `RD-03-DF-19` and `RD-03-DF-20` disappear together.
 
 **And what the round operator rejected:**
 
@@ -892,9 +967,9 @@ verdict, which is what a disclosed leak is for.
 
 ---
 
-## 9. FINDINGS FILED — SEVENTEEN, NONE FIXED
+## 9. FINDINGS FILED — TWENTY-TWO, NONE FIXED
 
-**Product surface — 7.** The number this re-scope exists to move.
+**Product surface — 12.** The number this re-scope exists to move.
 
 | id | finding |
 |---|---|
@@ -906,7 +981,17 @@ verdict, which is what a disclosed leak is for.
 | `RD-03-DF-06` | `artifact_Z`/`artifact_M` `test_quota_ledger.py:79-81` asserts an ordering that **cannot be observed** — `amount < 1` and `amount > available >= 0` are mutually exclusive, confirmed over 300 × 80 steps — and `NOTES.md:84` overstates it. Also both trees: `__init__`'s truncating `write_text("")` is a **second write path** to the ledger, contradicting `NOTES.md:39-41`'s "only `_append` writes". |
 | `RD-03-DF-07` | All six trees accept **non-integer amounts** and write them into the durable ledger (`COMMIT acme 2.5 2.5`), while the shared contract's R2 assertion parses with `int(line.split()[3])` and would **raise rather than fail**. `FEATURE.md` leaves it unspecified. Disclosed by one artifact; **exercised by no test in any tree**. And `available`/`committed`/`is_closed` raise `KeyError` on an unknown tenant while every command returns a structured rejection — a fault making it return `0` **survived both suites on both trees**. |
 
-**Apparatus — 9.**
+**Product surface, from the cross-tree probe — 5 more.**
+
+| id | finding |
+|---|---|
+| `RD-03-DF-18` | **All six trees break a literal `FEATURE.md` guarantee.** The spec says `commit` and `close_tenant` each append *"exactly one line"*; a tenant name containing a line break makes **one accepted command produce two entries**, and R2's per-line parse stops working. Four trees disclose the *space* case, which is harmless. **None discloses this**, and no test anywhere passes such a name. |
+| `RD-03-DF-19` | **`E`/`F`: the fake does not satisfy the port contract its own domain declares.** `domain.py:26-27` says `lines()` returns lines *"none of them blank"*; the real adapter filters blanks and **the fake does not**. And the filter that makes the real one comply is `RD-03-DF-03`'s dead code with the false comment — removing it would put the real adapter in violation too. |
+| `RD-03-DF-20` | **The round's best finding.** `E`'s `NOTES.md:48-51` states the parity suite's premise: *"No case in that list can be written for only one of the journals."* **It is false** — a tenant name with a line break makes the two adapters disagree through the domain. That is the **`PA-M13` fault class present in the shipped code, unseeded, on the one pair whose own suite kills `PA-M13` when it IS seeded.** A seeded-fault catalogue measures whether an instrument catches an *injected* instance of a class; it says nothing about a *naturally occurring* one, and no round has ever checked. |
+| `RD-03-DF-21` | **`E`/`F`'s own suites never assert the status of an accepted `release`**, so `M06` survives them — **the only `own-tests` survivor in the entire 6-tree, 7-instrument table** (77 of 79 measured cells killed). The shared suite catches it: the one cell where the shared contract outperforms an artifact's own tests. |
+| `RD-03-DF-22` | **The catalogue's mutants are too blatant for these subjects, so the `effectful` half of the table carries almost no signal** — both hand-written instruments killed all 13 measured mutants on all four trees. Checked not to be a broken harness: 84 of 84 measured cells passed a two-sided semantic witness first. **And the Q3 headline is near-tautological**, disclosed by the measurer as a prediction that passed too cleanly. |
+
+**Apparatus — 10.**
 
 | id | finding |
 |---|---|
