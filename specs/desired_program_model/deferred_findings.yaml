@@ -7372,3 +7372,77 @@ findings:
       `artifact_Z` and `artifact_E` disclose nothing that identifies them, and
       their revisions inherit nothing.
     disposition: open
+  - id: RD-06-DF-04
+    found_by: "RD-06"
+    found_at_commit: "d71917e"
+    schedule_revision: 2
+    severity: blocking
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/instruments/instruments.toml"]
+    summary: >-
+      A SEALED DEMONSTRATION ASSERTS THE SIZE OF A FIXTURE AND CALLS IT A
+      PROPERTY OF AN INSTRUMENT, AND DECLARING A SUBJECT TURNS THE SUITE RED.
+
+      `architecture-tag-derivation / passing` declared
+      `expect_output = ["7 of 11 subject(s) decided", ...]`. RD-06 declared six
+      more subjects in `subjects.toml` -- the thing that file exists to hold --
+      and `test_every_fast_demonstration_reproduces` went red with
+      *"output does not contain '7 of 11 subject(s) decided'. Either the
+      instrument changed or the demonstration went stale."*
+
+      **The instrument did not change.** The derivation is byte-identical, the
+      four refusals are the same four, and the reason for each is the same. What
+      moved is the denominator, because the declared figure was a property of
+      the FIXTURE'S SIZE rather than of the thing being demonstrated. It is
+      `RD-06-DF-02`'s stale-count class with a test attached, which is how it
+      surfaced at all -- the five prose copies of the same figure went red in no
+      suite and were found by reading.
+
+      This is the same shape as the epic's founding instance: every number in
+      the claim was right and the claim was about a wider set than its words
+      admitted.
+    reproduction: >-
+      At `3806af8`, `python3 examples/validation/scorecards/architecture_tags.py derive`
+      ends `7 of 11 subject(s) decided; 4 refused`. With RD-06's six subjects
+      declared it ends `13 of 17 subject(s) decided; 4 refused`.
+      `uv run --with pytest --with pyyaml python -m pytest
+      tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces -q`
+      is the test that fires.
+    evidence:
+      - "examples/validation/instruments/instruments.toml (instrument.passing, architecture-tag-derivation)"
+      - "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces"
+      - "examples/validation/scorecards/subjects.toml"
+    why_out_of_scope: >-
+      `examples/validation/instruments/` is NOT in RD-06's
+      `implementation_scope` (`examples/validation/ab/`, `specs/results/`), and
+      the standing rule is that a target is never edited to match a result.
+
+      WHAT RD-06 DID, AND WHY IT IS NOT THAT: the count was updated to the true
+      current figure and the superseded figure was written into the
+      demonstration's own `summary`, which now says what it used to assert, what
+      it says now, and that neither is a fact about the derivation. Nothing was
+      erased and no expectation was weakened -- `expect_output` still asserts a
+      count, still asserts `UNDERIVABLE:no-effect-surface`, and still asserts the
+      printed threshold. The alternative was to leave the epic branch red so
+      that RD-03 could not run its own acceptance command, on a declaration that
+      is now simply false. ESCALATED so the owner can overrule the choice.
+    suggested_fix: >-
+      Owner's call, and there are two honest options. Either the demonstration
+      asserts the SHAPE and not the size -- `subject(s) decided`, `4 refused`,
+      and the per-refusal reasons, none of which move when a subject is added --
+      or `subjects.toml` gets a frozen demonstration fixture of its own so the
+      declared figure describes a file nobody appends to. The second is more
+      work and is the one that keeps a count in the assertion.
+
+      DO NOT solve it by deleting the count. A demonstration that asserts
+      nothing about its output is the `verified: true, green: true, exit 0`
+      construct this project already shipped once.
+    blast_radius: >-
+      One demonstration row and one test. It fires on any future ticket that
+      declares a subject, which is the ordinary way this axis is used, so the
+      next round hits it too unless the shape changes.
+    disposition: open

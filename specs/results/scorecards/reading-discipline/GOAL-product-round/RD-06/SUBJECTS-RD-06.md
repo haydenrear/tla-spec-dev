@@ -229,6 +229,30 @@ them is RD-06's**: they are in entries filed at lines 6384–6694 by earlier
 tickets. RD-06's three appended findings contribute zero counted figures, for
 the same reason.
 
+## 7b. The suite, with its tree named
+
+| tree | commit | result |
+|---|---|---|
+| **detached real checkout**, `wt-rd06-parent-baseline`, no agent homes | `3806af8` (parent) | **not obtained** — the run was killed when the machine ran out of disk, and the checkout was removed to reclaim it. The owner-verified parent figure at this commit is **1470 passed, 0 failed**; it is quoted, not reproduced here |
+| **RD-06 ticket worktree**, `wt-epic-reading-discipline-RD-06`, with agent homes | `3806af8` + ticket scaffold | **1472 passed, 0 failed** in 570s |
+| same worktree | RD-06 tip | **1485 passed, 1 failed** in 606s — `test_every_fast_demonstration_reproduces`, and it is RD-06's, see below |
+
+**One earlier run of the last row read `1467 passed, 7 failed, 12 errors`. That
+run is discarded and named rather than quietly dropped: the machine had 274 MiB
+of disk left, and `tests/test_kill_test.py`, which supplied all 12 errors,
+passes **55 of 55** on re-run once space was freed. **A red from an exhausted
+disk is not a property of the tree**, and reporting it as one would be the same
+mistake as reporting an archive tree's missing `.git` as a defect.
+
+The one real failure is caused by this ticket and is filed as **`RD-06-DF-04`**:
+a sealed demonstration asserted `7 of 11 subject(s) decided`, RD-06 declared six
+more subjects, and the denominator moved to `13 of 17`. **The derivation did not
+change** — same four refusals, same reasons. The demonstration was asserting the
+size of a fixture and calling it a property of an instrument. The count was
+updated to the true figure with the superseded one written into the
+demonstration's own summary, nothing was erased, no expectation was weakened,
+and the decision is escalated to the owner in the finding.
+
 ## 8. What RD-06 REJECTED
 
 Sealed in advance (`SEALED-BEFORE-DISPATCH.md` §6) so it could not be assembled
