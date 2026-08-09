@@ -796,28 +796,35 @@ $ python3 examples/validation/scorecards/score_tools.py scope \
 ```
 
 ```
-6 counted figure(s): 4 REFUTED, 0 COUNT-MOVED, 0 HOLDS, 2 UNREACHABLE
+11 counted figure(s): 8 REFUTED, 0 COUNT-MOVED, 0 HOLDS, 3 UNREACHABLE
 ```
 
 Raw output is committed beside this file as `analysis/scope-own-writing.txt`.
-**It refuses this document four times and every refusal is instructive.**
+**It refuses this document eight times and every refusal is instructive.**
 
-| line | figure | which bound | true at |
+| lines | figure | which bound | true at |
 |---|---|---|---|
-| `RESULT.md:302` | *"D2 = 2 on 12 of 12 cards"* | **`RD-04-DF-01`** — my narrowing qualifier (*"of the three greenfield trees at both tiers"*) falls outside the ≤3-word window, so it is read at population **73** and 16 counterexamples are named | **TRUE** at the scope I meant |
-| `RESULT.md:314` | *"D3 = 4 on 8 of 8 cards"* | **`RD-04-DF-01`**, identically — read over every card, 54 counterexamples | **TRUE** at the scope I meant |
-| `RESULT.md:762` ×2 | *"D2 = 2 on 27 of 27 cards"*, *"D2 = 2 on 35 of 35 cards"* | **`RD-05` §7.1** — the checker cannot tell a claim from a mention; both are quoted **in order to report them as false** | false, and that is why I quoted them |
+| `:335`, `:807` | *"D2 = 2 on 12 of 12 cards"* | **`RD-04-DF-01`** — my narrowing qualifier (*"of the three greenfield trees at both tiers"*) falls outside the ≤3-word window, so it is read at population **73** and 16 counterexamples are named | **TRUE** at the scope I meant |
+| `:347`, `:808` | *"D3 = 4 on 8 of 8 cards"* | **`RD-04-DF-01`**, identically — read over every card, 54 counterexamples | **TRUE** at the scope I meant |
+| `:809`, `:834` ×2 each | *"D2 = 2 on 27 of 27 cards"*, *"D2 = 2 on 35 of 35 cards"* | **`RD-05` §7.1** — the checker cannot tell a claim from a mention; both are quoted **in order to report them as false** | false, and that is why I quoted them |
+
+**AND NOTE WHERE HALF OF THEM ARE.** Lines 807–834 are **this section and the
+findings table that report the refutations**. The document is refused for
+containing its own account of what it was refused for; four of the eight
+refusals are the report of the other four. `RD-05` §7.1's bound is not a corner
+case — **it compounds with every attempt to write the finding down.**
 
 **THE SENTENCES ARE LEFT EXACTLY AS WRITTEN.** Rephrasing the first two to sit
 inside the window would be editing a target to match a result, and this
-document's count is more honest with its own refutations in it: **two of the four
+document's count is more honest with its own refutations in it: **half of them
 are the bound firing on true figures of mine, which is the same thing that
 inflated RD-04's row of the sweep, reproduced on the author who is reporting it.**
 
-**And note the two `UNREACHABLE`s, because they are the more dangerous half.**
+**And note the three `UNREACHABLE`s, because they are the more dangerous half.**
 *"D1 is 3 on 24 of 24 cards this round"* is reported unreachable on the qualifier
 `this` — so the one figure in this report that is **flatly, unambiguously true of
-every card I produced** is the one the instrument declines to evaluate.
+every card I produced** is the one the instrument declines to evaluate. It is not
+refused and it does not hold; it is not read at all.
 
 **The bound that applies to almost everything above is `RD-02-DF-01`, and it
 applies harder to this document than to any of its predecessors.** `scope` is
