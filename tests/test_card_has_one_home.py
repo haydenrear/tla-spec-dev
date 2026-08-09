@@ -143,7 +143,21 @@ GUARDED = {
 }
 
 TEXTY = (".md", ".py", ".toml", ".yaml", ".yml", ".txt", ".tla", ".json", ".sh")
-PRUNE = {".git", "__pycache__", ".venv", "node_modules", ".pytest_cache", ".mypy_cache"}
+# Per-checkout AGENT HOMES, which `wt new` creates and .gitignore excludes. They
+# hold real copies of the card and of the instruments -- a whole installed
+# skill-manager tree -- and they are NOT this repository. Scanning them made
+# this tripwire and the thermometer scan report 2 failures in every ticket
+# worktree while an archive of the same commit was clean (RD-01-DF-02), so
+# "the suite is green" was never true where every ticket agent works.
+#
+# Pruned by NAME rather than by asking git, deliberately: `demonstrate.py` runs
+# this tripwire in a staged copy with no repository around it, where
+# `git check-ignore` decides nothing and the failing demonstration would pass
+# for the wrong reason.
+AGENT_HOMES = {".skill-manager", ".claude", ".codex", ".gemini"}
+
+PRUNE = {".git", "__pycache__", ".venv", "node_modules", ".pytest_cache",
+         ".mypy_cache"} | AGENT_HOMES
 
 STOPWORDS = {"a", "an", "the", "is", "are", "was", "were", "be", "and", "or", "of",
              "to", "in", "on", "it", "its", "that", "this", "by", "as"}
