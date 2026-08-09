@@ -56,3 +56,26 @@ arm: there is no tree identifiable by having been left out.
   `GOAL-product-round/RD-06/SUBJECTS-RD-06.md`. **A disclosed leak is recorded,
   never used as grounds to discard a tree** — discarding a subject after seeing
   what it produced is the one move a round may not make.
+
+## THE ONE THAT PARTIALLY UNBLINDS ITSELF — read before dispatching a judge
+
+`artifact_N`'s own `NOTES.md`, under Disclosures, records that it ran `ls -la`
+on `examples/validation/ab/` and so saw *"the file names listed in Section 6
+(`seeded_faults.toml`, `check_catalogue.py`, `reference/`, `arm_a/`, `arm_b/`,
+and others)"*.
+
+Section 6 is the do-not-open list, and the three lists are **distinguishable**:
+arm A's names `arm_b/`, arm B's names `arm_a/`, and **arm C's names both**. An
+artifact whose notes enumerate both is arm C to any reader who has seen the
+three prompts. `artifact_D` is a copy of `artifact_N` and inherits the same
+`NOTES.md`.
+
+**RD-06 has not decided what to do about it and must not.** The remedies —
+withholding a `NOTES.md` from the judges, scoring `N` and `D` unblinded and
+saying so on the cards, or accepting a partially unblinded pair — are all
+scoring decisions and belong to RD-03 or to the owner. Filed as **`RD-06-DF-03`**,
+severity blocking, escalated. **The artifact was not edited**: `NOTES.md` is the
+artifact's own account of what its author did.
+
+`artifact_Z` and `artifact_E` disclose nothing that identifies them, and
+`artifact_M` and `artifact_F` inherit nothing.

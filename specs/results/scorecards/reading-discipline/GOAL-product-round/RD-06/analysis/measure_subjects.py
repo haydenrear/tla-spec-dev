@@ -49,7 +49,7 @@ import tomllib
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-REPO_ROOT = Path(__file__).resolve().parents[6]
+REPO_ROOT = Path(__file__).resolve().parents[7]
 TAGS_PY = REPO_ROOT / "examples/validation/scorecards/architecture_tags.py"
 SUBJECTS_TOML = REPO_ROOT / "examples/validation/scorecards/subjects.toml"
 COMPLEXITY = REPO_ROOT / "scripts/code_complexity.py"
@@ -90,26 +90,38 @@ def import_candidates(root: Path) -> list[str]:
     return out
 
 
-def run_suite(label: str) -> dict:
-    root = tree(label)
+def entry_module(root: Path) -> str | None:
+    """The module that exports `QuotaLedger`, found by importing rather than
+    by believing the artifact's notes. A note is a claim about the code."""
+    probe = ("import importlib,sys;sys.path.insert(0,%r);"
+             "m=importlib.import_module(%s);"
+             "sys.exit(0 if hasattr(m,'QuotaLedger') else 1)")
     for module in import_candidates(root):
         proc = subprocess.run(
-            ["uv", "run", "--with", "pytest", "python", "-m", "pytest",
-             str(SUITE), "-q", "--no-header", "-p", "no:cacheprovider"],
-            cwd=str(REPO_ROOT), capture_output=True, text=True,
-            env={**__import__("os").environ,
-                 "QUOTA_LEDGER_DIR": str(root), "QUOTA_LEDGER_IMPL": module},
-        )
-        tail = proc.stdout.strip().splitlines()[-1:] or [""]
-        if "error" in tail[0].lower() and "no tests ran" in proc.stdout.lower():
-            continue
-        if proc.returncode == 4 or "ModuleNotFoundError" in proc.stdout:
-            continue
-        return {"label": label, "module": module, "exit": proc.returncode,
-                "summary": tail[0], "tree": str(root.relative_to(REPO_ROOT))}
-    return {"label": label, "module": None, "exit": None,
-            "summary": "no importable QuotaLedger module found",
-            "tree": str(root.relative_to(REPO_ROOT))}
+            [sys.executable, "-c", probe % (str(root), repr(module))],
+            cwd=str(REPO_ROOT), capture_output=True, text=True)
+        if proc.returncode == 0:
+            return module
+    return None
+
+
+def run_suite(label: str) -> dict:
+    root = tree(label)
+    module = entry_module(root)
+    if module is None:
+        return {"label": label, "module": None, "exit": None,
+                "summary": "no importable QuotaLedger module found",
+                "tree": str(root.relative_to(REPO_ROOT))}
+    proc = subprocess.run(
+        ["uv", "run", "--with", "pytest", "python", "-m", "pytest",
+         str(SUITE), "-q", "--no-header", "-p", "no:cacheprovider"],
+        cwd=str(REPO_ROOT), capture_output=True, text=True,
+        env={**__import__("os").environ,
+             "QUOTA_LEDGER_DIR": str(root), "QUOTA_LEDGER_IMPL": module},
+    )
+    tail = (proc.stdout.strip().splitlines() or [""])[-1]
+    return {"label": label, "module": module, "exit": proc.returncode,
+            "summary": tail, "tree": str(root.relative_to(REPO_ROOT))}
 
 
 def measure_dispatched_prompts() -> dict:
