@@ -8902,3 +8902,300 @@ findings:
       Every statement of the form "the price of removing X is zero" that rests
       on a not_seedable row.
     disposition: open
+
+  - id: RM-02-DF-01
+    found_by: "RM-02"
+    found_at_commit: "2c0d94e"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      THE BLINDING MECHANISM HAS A BOUNDED LIFETIME BAKED INTO A CONSTANT, AND
+      THIS REPOSITORY HAS FOUR ARMS LEFT.
+
+      `LABEL_POOL = "DEFGHJKLMNRSTUVWZ"` is 17 characters, and `scaffold` draws
+      opaque arm labels from it EXCLUDING every label any prior round published
+      (`used_labels`). That exclusion is correct and is the whole reason the
+      blinding is a mechanism rather than a discipline. Its consequence is that
+      the pool is CONSUMED, never released, and a scorecard root can be blinded
+      at most 17 times in its life.
+
+      Measured on this repository at `2c0d94e`: 18 labels taken (17 letters plus
+      `A-CONTROL-REFERENCE`), leaving `['G', 'J', 'L', 'V']`. FOUR. `scaffold`
+      already refuses a batch it cannot label -- "only N unused opaque labels
+      remain" -- so a round wanting five arms is refused today, and after four
+      more arms no round in this repository can ever be blinded again.
+
+      RM-04 plans a blind round on `scripts/` and this binds it directly.
+
+      IT IS ALSO A PORTABILITY FINDING, which is why RM-02 found it: an adopter
+      receives a mechanism with 17 uses in it and no notice that it expires.
+    reproduction: >-
+      python3 -c "import sys,pathlib; sys.path.insert(0,'examples/validation/scorecards');
+      import score_tools as st; t=st.used_labels(pathlib.Path('specs/results/scorecards'));
+      print([c for c in st.LABEL_POOL if c not in t])"
+    evidence:
+      - "examples/validation/scorecards/score_tools.py:145"
+      - "examples/validation/scorecards/score_tools.py:1229-1235"
+      - "specs/results/scorecards/portable-substrate/GOAL-portable/RESULT.md"
+    why_out_of_scope: >-
+      RM-02 ships no production code. Changing the pool is a code change and it
+      is also a decision about what a label means, which belongs with whoever
+      runs the next blind round rather than with the research ticket that found
+      the ceiling.
+    suggested_fix: >-
+      Do not simply lengthen the string -- that buys a few rounds and hides the
+      same cliff. Either scope exclusion to the round rather than to the
+      repository (labels need to be unguessable WITHIN a round; a label reused
+      six epics apart leaks nothing a judge can act on), or make labels
+      two-character so the pool is not a scarce resource at all. Whichever is
+      chosen, `scaffold` should say how many remain on every successful run, not
+      only when it refuses.
+    blast_radius: >-
+      Every future blinded round in this repository, RM-04 first.
+    disposition: open
+
+  - id: RM-02-DF-02
+    found_by: "RM-02"
+    found_at_commit: "2c0d94e"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md"]
+    summary: >-
+      D3 TIER-SPLITS THREE TIMES AS OFTEN AS D2, AND THE CARD ADVISES RESTING
+      CROSS-EPIC CLAIMS ON BOTH.
+
+      `references/eval_scorecard.md` R-H5 says D2 and D3 "are the dimensions
+      that have held still on unchanged input" and that "a cross-epic claim is
+      safest on those"; `ports-as-adapters` rested its headline there on that
+      advice.
+
+      Measured over the 8 judge groups in the sealed record scored by BOTH
+      tiers, counting a split exactly as R-H6 defines one (disjoint ranges on
+      the same artifact): D1 0 of 8, D2 1 of 8, D3 3 of 8, D4 4 of 8, D5 2 of 8.
+      D3 is the SECOND LEAST stable dimension across tiers and no page says so.
+
+      R-H5's claim is not wrong -- it is about unchanged input WITHIN a tier, and
+      that is a different quantity. The defect is that the two statements sit in
+      the same file with nothing distinguishing them, and a reader taking the
+      advice will take it across tiers.
+
+      AND THE D2 SPLIT'S MECHANISM IS NOW CONFIRMED FROM THE RATIONALES, not only
+      proposed. On `reading-discipline` arms `D` and `M`, 4 of 4 `sonnet` judges
+      name D2 anchor 4's D4 >= 3 gate -- and D4 anchor 3's model-derivation clause
+      behind it -- as the reason 3 is their ceiling, and 0 of 4 `opus` judges do.
+      Unanimous within each tier. That is `RD-03-DF-14`'s proposed mechanism
+      measured, and it means the D2 tier split is not about complexity at all.
+
+      THE MAGNITUDE, so this is not overread: two of D3's three splits are
+      one-point offsets at the FLOOR (`[1,1]` against `[0,0]`). The third,
+      `toolchain_removal` at `opus [2,2]` against `sonnet [3,4]`, straddles the
+      2->3 seam RD-04 identified as where "the domain silently changes referent".
+      One of three is at the seam that matters.
+
+      AND THE POPULATION IS NOT A POPULATION: 8 groups, 7 of them one example, 6
+      of those 7 from one round. This says WHICH dimensions have been caught
+      splitting. It is not a rate.
+    reproduction: >-
+      python3 specs/results/scorecards/portable-substrate/GOAL-portable/analysis/portability.py
+      -- section 3
+    evidence:
+      - "specs/results/scorecards/portable-substrate/GOAL-portable/analysis/OUTPUT.txt"
+      - "references/eval_scorecard.md:566-575"
+      - "references/portable_scorecard.md"
+    why_out_of_scope: >-
+      RM-02 is research and files findings rather than editing the card. Editing
+      R-H5 mid-epic would also change the instrument while RM-04 is about to
+      measure on it.
+    suggested_fix: >-
+      Add the tier axis to R-H5's second consequence explicitly: D2 and D3 hold
+      still on unchanged input FROM THE SAME TIER, and D3 has been caught
+      splitting across tiers three times. Do NOT respond by demoting D3 -- it is
+      the dimension whose rationales are free of local machinery and it did the
+      discriminating in `ports-as-adapters`. State the axis; do not retire the
+      dimension.
+    blast_radius: >-
+      Every cross-epic claim rested on D3, `ports-as-adapters`'s headline first.
+    disposition: open
+
+  - id: RM-02-DF-03
+    found_by: "RM-02"
+    found_at_commit: "2c0d94e"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["PORTABLE-SUBSTRATE-EPIC.md"]
+    summary: >-
+      "ON D5 THE TIERS RAN IN OPPOSITE DIRECTIONS" IS NOT WHAT THE DISJOINT-RANGE
+      MEASUREMENT SHOWS, AND THE TWO QUANTITIES ARE NOT LABELLED APART.
+
+      `PORTABLE-SUBSTRATE-EPIC.md` section 5 records four tier splits "one
+      running in opposite directions". Measured over the 8 both-tier judge groups
+      as R-H6 defines a split, D5 splits twice and BOTH run the same way --
+      `opus` higher on `reading-discipline` arm `E` (3,3 against 2,2) and on
+      `subtract-to-measure-sm05-greenfield` arm `S` (3,3 against 2,2).
+
+      THIS IS NOT A CONTRADICTION. The charter's phrasing is about per-judge
+      deltas, which is a different quantity from group-level range disjointness,
+      and both can be true. The finding is that nothing labels them apart, so a
+      reader comparing the charter against `contested` output will read a
+      contradiction that is not there.
+
+      Where the measurement DOES show opposite directions is D3 (opus higher x2,
+      sonnet higher x1) and D4 (opus higher x3, sonnet higher x1).
+    reproduction: >-
+      python3 specs/results/scorecards/portable-substrate/GOAL-portable/analysis/portability.py
+      -- section 3, "directions="
+    evidence:
+      - "specs/results/scorecards/portable-substrate/GOAL-portable/analysis/OUTPUT.txt"
+      - "PORTABLE-SUBSTRATE-EPIC.md:84-86"
+    why_out_of_scope: >-
+      A charter is a statement made at its own scope and RM-02 does not edit a
+      predecessor's text to match a successor's measurement.
+    suggested_fix: >-
+      Wherever a tier split is quoted, say which quantity: a per-judge delta or a
+      disjoint group range. RM-05 is the natural place, since it reconciles.
+    blast_radius: >-
+      Readers reconciling the charter against `contested`.
+    disposition: open
+
+  - id: RM-02-DF-04
+    found_by: "RM-02"
+    found_at_commit: "2c0d94e"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/architecture_tags.md", "references/eval_scorecard.md"]
+    summary: >-
+      THE TAG REFUSES TO RANK ITS VALUES; THE DIMENSION IT EXISTS TO ANNOTATE
+      RANKS THEM 4 AGAINST <= 2.
+
+      `references/architecture_tags.md` section 2.2: "`ports-and-adapters` is not
+      a better value than `effectful`. The moment one is better the tag is a
+      target, and MF-020 applies. Nothing in the design sorts, sums, or prefers a
+      value."
+
+      But D3's anchors 3 and 4 ARE the definition of `ports-and-adapters` -- "the
+      domain does not import its I/O", "a driven port is exercised by a real
+      adapter AND a fake". Measured over `ab_quota_ledger`: the 18 cards whose
+      subject declares `ports-and-adapters` score D3 = 4 on EVERY ONE, and the 40
+      declaring `effectful` never exceed 2. Disjoint over 58 of 59 cards.
+
+      Section 2.3 comes within one sentence of saying it -- "the tag names the
+      shape the anchors assume" -- and does not draw the conclusion. The tag's
+      whole safety argument is that a nominal value cannot become a target. A
+      nominal value one of whose settings caps a dimension at 2 IS a target; the
+      ranking simply lives in the card rather than in the tag.
+
+      THIS IS THE FINDING RM-02 EXISTS TO PRODUCE. It is what "does the card
+      grade architecture or conformance to an architecture" resolves to on D3.
+
+      SCOPE: `ab_quota_ledger`. `toolchain_removal` has `effectful` cards at 3
+      and 4, and RD-04 already attributed that spread to four judges scoring
+      three different subjects. `ex5_pipeline_divergent` declares
+      `ports-and-adapters` and scores D3 = 1 from both judges, so the style must
+      be HELD and not merely declared -- D3 does real work inside the style.
+    reproduction: >-
+      python3 specs/results/scorecards/portable-substrate/GOAL-portable/analysis/portability.py
+      -- section 4
+    evidence:
+      - "references/architecture_tags.md:77-84"
+      - "references/architecture_tags.md:88-92"
+      - "references/eval_scorecard.md:139-151"
+      - "specs/results/scorecards/portable-substrate/GOAL-portable/analysis/OUTPUT.txt"
+    why_out_of_scope: >-
+      Rewriting section 2.2 to admit the ranking would edit a predecessor's
+      statement at a predecessor's scope to match a successor's finding, which is
+      the move this project has repeatedly identified as how a figure stops
+      carrying its scope. And RM-02 ships no code.
+    suggested_fix: >-
+      Do not weaken the tag and do not delete D3. State the precondition where
+      D3's anchors live: anchors 3 and 4 describe ONE architectural style, a
+      subject not built in that style is capped at 2, and that cap is a fact
+      about the anchors rather than about the subject. An adopter who has not
+      chosen ports-and-adapters is then reading a stated precondition instead of
+      a grade. RM-04's decision on D4/D5 is the natural place to take this one
+      too.
+    blast_radius: >-
+      Every D3 comparison across differently-shaped subjects, and the whole
+      export question for D3.
+    disposition: open
+
+  - id: RM-02-DF-05
+    found_by: "RM-02"
+    found_at_commit: "2c0d94e"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      `scope`'s COUNTED-NOUN PATTERN EXCLUDES THE UNDERSCORE, SO NO FIGURE IN
+      THIS REPOSITORY CAN CARRY ITS EXAMPLE NAME AS ITS NOUN.
+
+      A FOURTH BOUND on the sweep, beside the three `NEXT-EPIC.md` section 6
+      records. The noun group is `[A-Za-z][A-Za-z-]*(?:[ \t]+[A-Za-z-]+){0,2}` --
+      letters and hyphens, no underscore. So "D2 = 2 on 51 of 59 ab_quota_ledger
+      cards" parses its noun as `ab`, `_qualifiers` finds a word naming no
+      example, and the figure is UNREACHABLE with reason "unresolved qualifier"
+      -- refused BEFORE the window search for a named example ever runs.
+
+      Every example id in this corpus contains an underscore: `ab_quota_ledger`,
+      `toolchain_removal`, `ex1_scaffold_only`, `ex3_over_complex`,
+      `ex4_pipeline_coherent`, `ex5_pipeline_divergent`, `ex6_jenga`. So the ONE
+      phrasing an author would reach for to make a figure carry its scope is the
+      phrasing that guarantees the checker cannot read it. The scope has to be
+      established in the preceding two lines instead, which works and is
+      undocumented.
+
+      FOUND BY WRITING A FIGURE, NOT BY READING THE CODE: RM-02's D2 figure was
+      UNREACHABLE on the first sweep for exactly this reason and was rephrased
+      -- not re-scoped -- after which it HOLDS.
+
+      An adopter naming their example `order_service` inherits this on their
+      first figure, which is why it is filed here rather than as a nit.
+    reproduction: >-
+      Write `D2 = 2 on 51 of 59 ab_quota_ledger cards` into any swept file and run
+      `python3 examples/validation/scorecards/score_tools.py scope`; the figure is
+      UNREACHABLE with `['ab']`. Move the example name to the preceding line and
+      it HOLDS.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py:2471"
+      - "examples/validation/scorecards/score_tools.py:2577-2593"
+      - "references/portable_scorecard.md"
+    why_out_of_scope: >-
+      RM-02 ships no production code, and widening the noun pattern changes what
+      the sweep counts -- which would move this repository's published sweep
+      figures during an epic that has two tickets still measuring on them.
+    suggested_fix: >-
+      Admit `_` to the noun character class and re-run the sweep, reporting the
+      count delta as a JOINT property of the record and the checker exactly as
+      RD-03 did. Expect the count to RISE and some newly-visible figures to be
+      REFUTED; that is the checker working, not a regression. Until then, say in
+      the reading rules that an example name goes in the sentence BEFORE a figure
+      and not immediately after it.
+    blast_radius: >-
+      Every counted figure in the record whose author put the example name after
+      the count, currently invisible as UNREACHABLE rather than checked.
+    disposition: open
