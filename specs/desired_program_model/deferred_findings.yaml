@@ -9323,7 +9323,36 @@ findings:
       `audit` exits 1 over this repository, so every future ticket inherits a red
       baseline on it and cannot use "audit is green" as a check. The four
       registry slots pinned to record-wide violation totals are red with it.
-    disposition: open
+    settled_by: "RM-04"
+    settled_how: >-
+      NEITHER RE-DECLARED NOR LEFT STALE: the two stale fields are REMOVED and
+      the row's remaining declaration is unchanged. `ranges` and
+      `tiers_measured` grant nothing -- `authority()` admits an entry iff
+      `separates` is true and keys it on `(dimension, {value, value})`, and
+      `verdict()` reads the RE-DERIVED entry -- so the widening this finding was
+      protecting against was never available in either direction
+      (`RM-04-DF-03`). They are also a figure over an OPEN population, unlike
+      `[[movement]]`'s two named cards and `[[contested]]`'s one named judge
+      group, so they could only ever be re-affirmed rather than checked.
+
+      RD-04's figures move into the row's `why` WITH THE 49-CARD POPULATION
+      NAMED BESIDE THEM, and the control this finding identified is kept as an
+      executed assertion at a population that cannot grow --
+      `tests/test_architecture_tags.py::
+      test_the_committed_demonstration_re_derives_from_the_cards` now pins
+      `effectful [1, 2]`, `ports-and-adapters [4, 4]` and `tiers ["opus"]` as
+      literals over the named rounds. `separates`, `dimension` and `example`
+      are still re-derived against the CURRENT record on every `audit`, so the
+      authority still falls if the cards stop supporting it.
+
+      A DEFECT IN THE CONTROL ITSELF WAS FOUND AND FIXED IN PASSING: the three
+      tests naming "the 49 cards sealed before `reading-discipline`" expressed
+      that population as `round != "reading-discipline"`, which is not a fixed
+      population at all -- it grew to 55 the moment RM-04 sealed six cards. It
+      is named positively now, in `SEALED_BEFORE_RD`.
+
+      `audit` reports 0 violations over this repository.
+    disposition: settled
 
   - id: RM-06-DF-03
     found_by: "RM-06"
@@ -9741,4 +9770,250 @@ findings:
     blast_radius: >-
       GOAL-dead-weight-gone: the "static gates" lever cannot be closed by any
       ticket that forbids a model delta, and no ticket in this epic permits one.
+    disposition: open
+
+  - id: RM-04-DF-01
+    found_by: "RM-04"
+    found_at_commit: "82936ef"
+    schedule_revision: 1
+    severity: high
+    surface:
+      production: ["scripts/code_complexity.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/architecture_tags.py",
+                 "examples/validation/scorecards/subjects.toml"]
+    summary: >-
+      A SUBJECT DECLARING MORE THAN ONE PATH DERIVES `UNDERIVABLE` SILENTLY, AND
+      THE FIELD IT USES IS A LIST. `subjects.toml` declares `scope` as a path
+      LIST, `architecture_tags.measure()` passes every entry to
+      `scripts/code_complexity.py`, and that tool returns a record with ZERO
+      modules for any invocation naming more than one target -- including the
+      same target twice. `derive()` then sees no effectful module and returns
+      `UNDERIVABLE:no-effect-surface`, which is the shape of a considered
+      refusal and is in fact an empty read.
+
+      NOTHING IN THE RECORD HAS HIT IT because all 20 declared subjects happen
+      to name exactly one path, so the feature is documented, exercised nowhere,
+      and broken. An adopter whose subject is "the domain and its adapters"
+      writes two paths and is told their code has no effect surface.
+
+      IT FAILS OPEN, which is why this is high and not blocking: `UNDERIVABLE`
+      carries no refusal authority and is comparable to everything, so no
+      comparison is wrongly refused. What is lost is the derivation, silently.
+    reproduction: >-
+      `python3 scripts/code_complexity.py --json examples/validation/instruments`
+      -> 4 modules. `python3 scripts/code_complexity.py --json
+      examples/validation/instruments examples/validation/removal_census` -> 0
+      modules, `completeness: null`, exit 0. `python3 scripts/code_complexity.py
+      --json scripts scripts` -> 0 modules. Then via the tag:
+      `at.measure(["examples/validation/gap_mutants",
+      "examples/validation/instruments"], REPO_ROOT)` derives
+      `UNDERIVABLE:no-effect-surface`.
+    evidence:
+      - "scripts/code_complexity.py -- the multi-target argument path"
+      - "examples/validation/scorecards/architecture_tags.py:121-135 -- measure()"
+      - "examples/validation/scorecards/subjects.toml -- scope is a list on every entry"
+    why_out_of_scope: >-
+      RM-04 is a measurement round. Repairing the instrument that derives the tag
+      DURING the round that scores subjects with it would move the tag values
+      under the cards being written. The epic rule is that findings are filed and
+      nothing is fixed during a measurement, and this one was found while
+      choosing the round's scopes.
+    blast_radius: >-
+      GOAL-portable: `references/portable_scorecard.md` section 2 item 3 already
+      says an adopter in another language derives `UNDERIVABLE:unparsed` on every
+      subject and calls that harmless-but-empty. This is a second, narrower way
+      to get an empty derivation that nobody would suspect, and it fires on
+      Python.
+    disposition: open
+
+  - id: RM-04-DF-02
+    found_by: "RM-04"
+    found_at_commit: "82936ef"
+    schedule_revision: 1
+    severity: medium
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      THE WORK ORDER'S PREMISE IS FALSE: `scripts/` IS BYTE-IDENTICAL ACROSS THE
+      WHOLE EPIC. RM-04's issue and its plan entry both say RM-03's removal is "a
+      genuine before/after" for the toolchain and that `scripts/` "will be
+      meaningfully smaller" after it. `19c5c7b:scripts` and `dbf355c:scripts` are
+      the same git tree, `e9d5544aaa33b2f910e75a461194a3360b511b90`, and no commit
+      in this epic touches the directory. RM-03 removed the mutant catalogue and
+      the gap-mutant runner, both under `examples/validation/`.
+
+      THIS IS FILED RATHER THAN WORKED AROUND because it is the class of error
+      the epic's standing rule is about: a phantom figure entering three ticket
+      records was the predecessor's best material. RM-04 found the epic's real
+      before/after elsewhere -- `examples/validation/gap_mutants`, 1209 lines
+      replaced by 899 -- and declared it as the subject `rm04_removal_pricer`.
+    reproduction: >-
+      `git rev-parse 19c5c7b:scripts dbf355c:scripts` -> the same sha twice.
+      `git diff --stat 19c5c7b dbf355c -- scripts/` -> empty.
+    evidence:
+      - "specs/desired_program_model/ticket_plan.yaml -- the RM-04 objective"
+      - "specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/SEALED-BEFORE-DISPATCH.md section 3"
+    why_out_of_scope: >-
+      A predecessor's statement is not edited by a successor. The plan entry is
+      recorded as written and the correction is filed beside it.
+    blast_radius: >-
+      GOAL-dimensions-replicate: it does not change the round -- the toolchain
+      was still scored as a subject and the D2 question was still answered on a
+      real before/after -- but any reader taking "RM-03's removal is a before and
+      after for scripts/" forward will look for a diff that does not exist.
+    disposition: open
+
+  - id: RM-04-DF-03
+    found_by: "RM-04"
+    found_at_commit: "82936ef"
+    schedule_revision: 1
+    severity: medium
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/INSTRUMENT-LOG.toml"]
+    summary: >-
+      THE REASON `RM-06-DF-02` WAS REVERTED RESTS ON A PROPERTY THE CODE DOES NOT
+      HAVE. The stated ground for not editing the `[[demonstration]]` row into
+      agreement with the cards was that doing so "silently widens what the axis is
+      allowed to refuse a comparison on, from one tier to two and from 1-2 to
+      0-2". IT DOES NOT AND COULD NOT. `architecture_tags.authority()` admits an
+      entry if and only if `separates` is true and keys it on
+      `(dimension, {value, value})`; `verdict()` then reads the RE-DERIVED entry
+      -- including the `tiers measured` it prints in its reason -- not the
+      declaration. Neither `ranges` nor `tiers_measured` is read by anything that
+      can refuse a comparison, at either population.
+
+      THE CONCLUSION WAS STILL RIGHT, ON A DIFFERENT GROUND, which is why this is
+      filed rather than used to reopen the decision: a row edited into agreement
+      with whatever the record says certifies itself. RM-04 settles the row by
+      REMOVING the two fields instead -- they grant nothing and their population
+      is open, so they could only ever be re-affirmed -- and keeps RD-04's figures
+      in the row's `why` with the 49-card population named beside them.
+    reproduction: >-
+      Read `architecture_tags.authority()` and `verdict()`. Then:
+      `at.authority(at.demonstration_table(sealed_49, ...))` and
+      `at.authority(at.demonstration_table(all_rows, ...))` contain the SAME key
+      `("D3", frozenset({"effectful", "ports-and-adapters"}))`. Asserted by
+      `tests/test_architecture_tags.py::
+      test_the_committed_demonstration_re_derives_from_the_cards`.
+    evidence:
+      - "examples/validation/scorecards/architecture_tags.py -- authority() and verdict()"
+      - "specs/desired_program_model/deferred_findings.yaml -- RM-06-DF-02 why_out_of_scope"
+    why_out_of_scope: >-
+      It is a correction to a stated reason, not a defect in an artifact. The
+      decision it was the reason for is upheld.
+    blast_radius: >-
+      GOAL-dimensions-replicate: a reader who takes the reverted reason forward
+      will believe the declared fields gate something, and will keep re-affirming
+      them against every new card of the example.
+    disposition: open
+
+  - id: RM-04-DF-04
+    found_by: "RM-04"
+    found_at_commit: "82936ef"
+    schedule_revision: 1
+    severity: high
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/architecture_tags.py"]
+    summary: >-
+      DECLARING THE SCOPE DID NOT REMOVE THE DISAGREEMENT -- IT MOVED IT INSIDE
+      THE DECLARATION, WHERE `scope_drift()` CANNOT SEE IT. RD-05 built declared
+      scopes because `toolchain_removal`'s D3 spread of 2 was four judges scoring
+      three different subjects of one UNDECLARED scope, and within each scope the
+      spread was zero. RM-04's `GG` has a scope declared before dispatch and
+      copied into the skeleton, and its two judges still came out D3 = 2 and 4 --
+      spread 2, the same magnitude -- because they scored two different SUBTREES
+      of the same declared scope. `opus` scored the 85-module harness and named
+      the 5-module `ab/reference_ports` as the reason it would not award 4;
+      `sonnet` scored that same 5-module subtree and awarded 4.
+
+      `scope_drift()` reports nothing, correctly by its own definition: every
+      citation on both cards falls INSIDE the declared paths. The detector reads
+      whether a card's D3 citations name a different DECLARED SUBJECT; it has no
+      notion of a card concentrating on one corner of its own scope.
+    reproduction: >-
+      `python3 examples/validation/scorecards/score_tools.py contested` ->
+      `portable-substrate-rm04-GG / eval_toolchain / arm GG`, D3 spread 2,
+      TIER-SPLIT opus [2] sonnet [4]. `audit` reports no SCOPE-DRIFT for either
+      card. Compare the citation sets on the two `scorecard.json` files.
+    evidence:
+      - "specs/results/scorecards/portable-substrate-rm04-GG/eval_toolchain/20260810-rm04-GG-p1/scorecard.md"
+      - "specs/results/scorecards/portable-substrate-rm04-GG/eval_toolchain/20260810-rm04-GG-p2/scorecard.md"
+      - "specs/results/scorecards/INSTRUMENT-LOG.toml -- [[contested]] rm04-GG-d3-spread-2"
+    why_out_of_scope: >-
+      A repair would be a new detector -- citation concentration inside a scope --
+      and the epic forbids new gates. It is also not obvious that a repair is
+      wanted: a heterogeneous scope may simply be the wrong scope to declare, in
+      which case the answer is a declaration and not a check.
+    blast_radius: >-
+      GOAL-portable: the cheapest high-value item in the whole substrate is "a
+      subject with a declared scope, cost: minutes"
+      (`references/portable_scorecard.md` section 3 item 1). This bounds it. An
+      adopter who declares one scope over a heterogeneous tree gets the
+      `toolchain_removal` failure back with the drift detector silent.
+    disposition: open
+
+  - id: RM-04-DF-05
+    found_by: "RM-04"
+    found_at_commit: "82936ef"
+    schedule_revision: 1
+    severity: high
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/"]
+    summary: >-
+      IN RM-04'S ROUND, JUDGE TIER AND JUDGING PRACTICE ARE PERFECTLY CONFOUNDED,
+      SO NOT ONE OF ITS SIX TIER SPLITS CAN BE ATTRIBUTED TO TIER. All three
+      `opus` judges seeded a fault of their own and ran it; none of the three
+      `sonnet` judges did -- 3 of 3 against 0 of 3, no crossing. Every one of the
+      six dimension-artifact cells then came back tier-disjoint, which is the
+      strongest tier signal any round here has produced and is exactly as well
+      explained by practice.
+
+      `R-H5` EXISTS BECAUSE PRACTICE MOVES SCORES: PA-06 moved four dimension
+      points on byte-identical trees and both judges had independently seeded
+      their own faults. Version 2 made `judging_practice` a required field so the
+      variable would be recorded. It is recorded here, and what it records is that
+      the round cannot separate the two variables.
+
+      THE DISPATCHES WERE IDENTICAL ON THIS POINT -- every judge was told both
+      answers are legal and neither is right -- so the split is a property of the
+      models rather than of the instruction, which makes it likely to recur in any
+      round that assigns one tier per pass.
+    reproduction: >-
+      `python3 -c` over the six cards: `judge.model` and
+      `judging_practice.executed_own_faults` -> opus/true x3, sonnet/false x3.
+      `score_tools.py contested` -> six TIER-SPLIT lines over three artifacts.
+    evidence:
+      - "specs/results/scorecards/portable-substrate-rm04-LL/eval_toolchain/"
+      - "specs/results/scorecards/portable-substrate-rm04-GG/eval_toolchain/"
+      - "specs/results/scorecards/portable-substrate-rm04-JJ/eval_toolchain/"
+      - "references/eval_scorecard.md -- R-H5"
+    why_out_of_scope: >-
+      The repair is a round design -- two judges per tier, one seeding and one
+      not, four per artifact -- and running it would be a second measurement
+      inside this ticket. Re-dispatching after seeing these scores is also the
+      one move a round may not make.
+    blast_radius: >-
+      GOAL-dimensions-replicate: every tier-split figure this epic quotes,
+      including RM-02's 8-judge-group table, is exposed to the same confound and
+      no page checks it. A tier split whose practice is uncrossed is not a tier
+      result.
     disposition: open

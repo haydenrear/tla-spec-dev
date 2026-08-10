@@ -1,13 +1,13 @@
 {
   "scorecard_version": 4,
-  "status": "unfilled",
+  "status": "filled",
   "epic": "portable-substrate-rm04-JJ",
   "example": "eval_toolchain",
   "run_id": "20260810-rm04-JJ-p1",
   "arm": "JJ",
-  "commit": "",
+  "commit": "dd71b11a0282a662f60d7bca0c34671ba9e12235",
   "judge": {
-    "model": "",
+    "model": "claude-opus-4",
     "tier": "",
     "pass": 1,
     "blind_to_arm": true
@@ -25,12 +25,12 @@
     "digest": "sha256:497c16ca85adeb4a",
     "scoring_rules": [
       "**Score artifacts, never claims.** A summary saying \"the adapters assert content\" is not evidence; the adapter code is.",
-      "**Every score \u2265 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
+      "**Every score ≥ 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
       "**A score at the top of its scale additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.",
       "**Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.",
       "**Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.",
       "**Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.",
-      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree \u2014 and a disagreement is a finding.",
+      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree — and a disagreement is a finding.",
       "**Say what you ran.** *(New in version 2.)* Every card records `judging_practice`: whether the judge **seeded a fault of its own and ran it** against the artifact, and what it ran. Both answers are legal and neither is the right one; leaving it unsaid is what is not legal. From version 4 no anchor is gated on it and it is still required, because what a judge did is a variable in what a judge reports and a variable nothing records is a variable nobody can subtract.",
       "**A judge is served the card, never the rubric file.** *(New in version 3.)* The scaffolded `scorecard.md` carries the rubric a judge needs. This file carries reading rules and prior results about these dimensions as well, and a judge who reads it is handed conclusions about the instrument they are the instrument for. Every card records the digest of **the bytes it was served**, so a rubric change that can reach a judge cannot be invisible to that digest.",
       "**Answer every recorded note.** *(New in version 4.)* N-D1, N-D4 and N-D5 take no score and are required on every filled card. An empty note is not a legal card; *\"I could not tell, and here is what I looked at\"* is."
@@ -53,18 +53,29 @@
         "0": "Complexity is unmeasured, or measured and ignored.",
         "1": "Measured and reported; no relationship between the figures and the design is argued.",
         "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
-        "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded."
+        "3": "2, **and** a simplification was made and its effect measured — the before and after figures are both recorded."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 1,
+      "citations": [
+        "examples/validation/gap_mutants/price_removal.py:346",
+        "examples/validation/gap_mutants/price_removal.py:362",
+        "examples/validation/removal_census/removals.toml:423",
+        "examples/validation/gap_mutants/price_removal.py:371",
+        "examples/validation/removal_census/removals.toml:36",
+        "examples/validation/gap_mutants/price_removal.py:399",
+        "examples/validation/gap_mutants/price_removal.py:116",
+        "specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/blind/artifact_JJ_before/run_gap_mutants.py:98",
+        "examples/validation/gap_mutants/residual_faults.toml:51",
+        "specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/blind/artifact_JJ_before/gap_mutants.toml:39"
+      ],
+      "rationale": "Complexity over this scope is measured and reported (the card's descriptor, over both trees), and the artifact itself argues no relationship between any figure and its design -- it never mentions its own size and makes no before/after complexity claim anywhere in the three files. That is anchor 1. It does not clear anchor 2 on the question this dimension asks first: one fact is stored twice, kept in agreement by hand, and the two copies are ALREADY OUT OF AGREEMENT. The sha at which a removal landed lives in removals.toml (head = \"bfd04af\", :423) and again in price_removal.py's hand-typed RECORD (\"head\": \"HEAD\", :362); audit() opens that same manifest to read deletes_detectors and gap_mutants in the same loop (:371, :379-380) and re-types the fourth field, and a join miss is a silent `continue` (:375-376). removals.toml:414-417 records that the \"HEAD\" spelling was a known defect that was pinned, so RECORD is carrying the value already corrected elsewhere. The shape repeats: the classifier's verdict strings are re-typed as literals in _agrees (:399), the kill/undecidable vocabulary is re-typed at :116 and :152 where the baseline owned it as constants (before:98-103), and residual_faults.toml:51 re-declares three detectors gap_mutants.toml:39 already declares. This is duplication, not god-state -- module_state and instance_state are 0 in both trees -- but the duplication clause is the one the read-first instruction puts to the judge. Anchor 3 is unreachable regardless: NO simplification was made in this scope. Modules went 1 -> 2 and lines 633 -> 706, the module the before tree consisted of is gone from the after tree, and residual_faults.toml is still written in that gone module's schema. The figures that fell (effectful_calls 37->28, branch_points 76->72) fell because a 633-line runner left the scope; that is MF-020 literally, and I refused to read it as evidence of simplification. Torn between 1 and 2 I took the lower, per the rule, because the strongest single fact I hold is two hand-maintained copies of one value that currently disagree. Prose quality was not an input: these are the most carefully argued docstrings I have scored (see :46-73) and they tempted me toward 2 on both dimensions; rule 4 says identical code with no comments scores the same, and I applied it.",
       "refuses_to_claim": null,
-      "read_first": "Diff the two trees yourself and decide whether one fact is stored twice \u2014 kept in agreement by hand across several write sites, and read in one place. Where a measured complexity descriptor exists you may read it, and on its own it decides nothing; where none exists that is not a gap in the evidence.",
+      "read_first": "Diff the two trees yourself and decide whether one fact is stored twice — kept in agreement by hand across several write sites, and read in one place. Where a measured complexity descriptor exists you may read it, and on its own it decides nothing; where none exists that is not a gap in the evidence.",
       "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 requires the judge to say *what got simpler and how the behavior survived it*."
     },
     "D3": {
       "name": "modularity",
-      "question": "Is it ports and adapters in fact \u2014 domain independent of I/O, adapters swappable?",
+      "question": "Is it ports and adapters in fact — domain independent of I/O, adapters swappable?",
       "anchors": {
         "0": "No boundary is discernible; state is written from everywhere.",
         "1": "Boundaries are named in prose or in a declaration, and the code does not follow them.",
@@ -72,38 +83,86 @@
         "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
         "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 1,
+      "citations": [
+        "examples/validation/gap_mutants/price_removal.py:88",
+        "examples/validation/gap_mutants/price_removal.py:399",
+        "examples/validation/gap_mutants/price_removal.py:167",
+        "examples/validation/gap_mutants/price_removal.py:261",
+        "examples/validation/gap_mutants/price_removal.py:311",
+        "examples/validation/gap_mutants/price_removal.py:338",
+        "examples/validation/gap_mutants/price_removal.py:377",
+        "examples/validation/gap_mutants/altered_score_probe.py:53",
+        "examples/validation/gap_mutants/altered_score_probe.py:60"
+      ],
+      "rationale": "Above 0: a boundary is discernible. The modules are sectioned into reading (kill_set), deciding (price, entail) and rendering (render_price, render_audit), fill() in the probe is pure, and measured module_state and instance_state are both 0 -- nothing is written from everywhere because almost nothing is written at all. Not 2, and this is the whole of it: there is nothing identifiable as a port. declared_interfaces is 0 in both trees, and the deciding layer calls I/O directly at RUNTIME, not through anything substitutable: entail(...) -> node_present(...) -> _show(...) -> subprocess.run([\"git\",\"show\",...], cwd=REPO_ROOT), where the target is a module-level constant computed at import (:110) with no parameter, no injection point, no alternative implementation and no fake anywhere in the scope. _loss_reason (:261) reaches the same subprocess; audit (:377) opens files at REPO_ROOT-relative literals; the probe's problems() calls run() directly (:60) so there is no seam between deciding and executing. _show and run are single chokepoints, which makes them seams, not ports -- I rejected the reading that a private module-level helper is a port, because I would have had to redefine \"port\" as \"the only function that touches subprocess\" to get to 2. That lands it on anchor 1: boundaries are named, in more than one place, and the code does not follow them. Sharpest instance is :88 against :399 -- the file states as a design rule that it is \"Not a second implementation of discriminate\" and never a \"re-typed copy\", imports the shipped classifier correctly at :341, and then re-types that classifier's verdict vocabulary as bare literals in the one function that compares against it; if those strings change, _agrees silently falls through to `return measured == \"NOT-IN-TABLE\"` and every row reads as a table-membership disagreement. I took the caveat seriously and looked at what CALLS what at runtime rather than what imports what; the call chains above are the evidence and they cross the boundary the file's own section headers draw. The best case for 2 -- one honored, declared crossing where the shipped classifier is imported and only DATA is swapped -- is real and is why I looked hard, but it is one call, reached by mutating sys.path globally and never restoring it (:338), inside a module whose verdict layer shells out to git. Prose quality was not an input.",
       "refuses_to_claim": null,
       "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
     }
   },
   "contested": [],
-  "verdict": "",
+  "verdict": "Gate every verdict on an executable count before quoting any number from this scope -- price() returns PRICED and altered_score_probe returns UNCAUGHT over columns that provably did not run, both limits the files themselves state and do not enforce -- and delete price_removal.py's hand-typed RECORD, which already disagrees with removals.toml about where one of its three removals landed.",
   "judging_practice": {
-    "executed_own_faults": null,
-    "what_was_run": [],
-    "note": "REQUIRED from scorecard_version 2. Did you seed a fault of your own and run it against this artifact, or did you score the evidence packet? Both are legal and neither is the right answer; what is not legal is leaving it unsaid. Say which, and list what you ran. From version 4 no anchor is gated on it; it is recorded because it is the variable that moves scores."
+    "executed_own_faults": true,
+    "what_was_run": [
+      "git rev-parse HEAD -> dd71b11a0282a662f60d7bca0c34671ba9e12235",
+      "Hand-diffed the two trees: BEFORE is run_gap_mutants.py (633 lines) + gap_mutants.toml; AFTER is price_removal.py + altered_score_probe.py + residual_faults.toml. Confirmed via `find` that run_gap_mutants.py is absent from the after scope AND from the repository (only the before-tree copy and a vendored .skill-manager copy exist).",
+      "SEEDED FAULT A/A'/A'': built before/after tables whose after column reports INERT, then NOT_RUN, then CONTROL_RED, and called price_removal.price() on each. All three returned PRICED ('every kill it had is gone; the removal took the detection away') from a run in which nothing executed.",
+      "SEEDED FAULT B/C: the same in the before direction -- a before column reporting INERT yields NO-KILL-TO-LOSE from both price() and entail(), so 'the detector was inert' and 'nothing ever caught this' are the same cell.",
+      "SEEDED FAULT D: omitted the optional --head (:460) with a lost kill whose node no longer exists; reported DETECTOR-WEAKENED, the class render_audit headlines as 'the class no survivorship test can see'.",
+      "SEEDED FAULT E: called altered_score_probe.problems() against a tree where score_tools.py cannot execute. check exited 2 with a traceback and no INVALID line; problems() returned the empty set at both ends, so the subtraction yields no new problem and the verdict rule gives UNCAUGHT.",
+      "REFUSAL CHECK: entail() with one killing detector surviving by name returned UNDECIDED; with every killer deleted it returned ENTAILED-SURVIVES. The refusal the docstring claims is real and executes.",
+      "Read examples/validation/removal_census/removals.toml, removal_census.py and examples/validation/scorecards/score_tools.py only far enough to check whether the artifact re-types facts those files own.",
+      "All seeded faults ran as in-process calls against the artifact's own functions with synthetic dicts. NO repository file was edited, no test suite was run, no git commit was made.",
+      "NOT RUN, deliberately: `price_removal.py audit` (it reads before/after tables under specs/results/scorecards/ that the blinding rules put out of bounds) and `altered_score_probe.py` end to end (it scaffolds a card into specs/results/scorecards/rm01-probe/, which would edit the repository)."
+    ]
   },
   "notes": {
     "N-D1": {
       "name": "bug detection",
       "question": "What did the cases catch, and what class did they demonstrably miss? Name the fault you seeded if you seeded one.",
-      "note": "",
-      "citations": []
+      "note": "There are no test cases in this scope; the artifact's 'cases' are its own verdict rules, so I seeded faults against those rules directly (A-E plus a refusal check). WHAT THE RULES DO CATCH, demonstrably: a mutant id absent from the before-table becomes NOT-IN-TABLE and drives a non-zero exit (:213, :501, :510, :517); a killing node surviving the cut by name yields UNDECIDED and never ENTAILED-DIES (I ran both directions and got UNDECIDED with one surviving killer, ENTAILED-SURVIVES with none); a deleted node is separated from a node whose body changed (:261-263), which is the distinction the module exists to draw, and it holds. THE CLASS IT DEMONSTRABLY MISSES: a verdict emitted over a column that did not run. Fault A -- before-table where pytest-full killed the mutant, after-table whose only column reports INERT -- price() returns PRICED, 'every kill it had is gone; the removal took the detection away'. NOT_RUN and CONTROL_RED give the same answer. The undecidable columns are recorded on the row (:223) and rendered as a trailing line (:419-420), but the verdict a reader quotes is computed as if they were survivals (:241-248). Fault B is the mirror image: a before column that never ran gives NO-KILL-TO-LOSE. This is not a class the artifact failed to anticipate -- kill_set's own docstring at :142 names it and :114-116 names it again as the FI-06 failure, 'a green that nothing executed behind'. It is stated and not enforced. The sibling module has the same hole through a different door: fault E -- problems() scrapes INVALID lines out of stdout+stderr and ignores the return code (:60-67), so a check that dies produces the empty set at both ends of the subtraction and the probe prints UNCAUGHT (:161), 'nothing in this tree reports a dimension score altered after the card was written'. I ran it: exit 2, a traceback, UNCAUGHT. The probe's one guard (:130-134, exit 2 when scaffold refuses, explicitly so 'a broken setup cannot read as UNCAUGHT') covers the scaffold step and not the step that measures. Smaller miss: --head is optional (:460), and without it every lost kill on a surviving detector is labelled DETECTOR-WEAKENED (fault D) -- precisely the count render_audit:446-449 headlines as the rarest class, so omitting one optional flag inflates the most rhetorically loaded number in the report.",
+      "citations": [
+        "examples/validation/gap_mutants/price_removal.py:142",
+        "examples/validation/gap_mutants/price_removal.py:223",
+        "examples/validation/gap_mutants/price_removal.py:241",
+        "examples/validation/gap_mutants/price_removal.py:246",
+        "examples/validation/gap_mutants/price_removal.py:316",
+        "examples/validation/gap_mutants/price_removal.py:460",
+        "examples/validation/gap_mutants/altered_score_probe.py:60",
+        "examples/validation/gap_mutants/altered_score_probe.py:161"
+      ]
     },
     "N-D4": {
       "name": "behavior preservation",
-      "question": "Which behaviors of the baseline did you enumerate, and is each shown still to hold? If there is no baseline, say so \u2014 that is the answer, not a gap in the note.",
-      "note": "",
-      "citations": []
+      "question": "Which behaviors of the baseline did you enumerate, and is each shown still to hold? If there is no baseline, say so — that is the answer, not a gap in the note.",
+      "note": "There IS a baseline (the before tree) and I enumerated eight of its behaviors. The dominant fact is structural: the baseline's only executable module is not in the after scope. run_gap_mutants.py is absent from examples/validation/gap_mutants/ and from the repository (only the before-tree copy and a vendored .skill-manager copy exist). What survives into the scope is its DATA SCHEMA -- residual_faults.toml is a catalogue in exactly that runner's format -- with no executor beside it. (1) Subprocess isolation against a freshly staged tree (before:117-128): not present; nothing in scope stages a tree. (2) __pycache__ swept between applications (before:126, :174): not preserved -- altered_score_probe never sweeps, so a stale .pyc in the supplied tree is the FI-01-DF-01 shape the baseline existed to close. (3) Nothing executed => INERT, never a survival (before:56-60, :294-295): NOT PRESERVED, and I demonstrated it twice -- price() returns PRICED over INERT/NOT_RUN/CONTROL_RED after-columns, and problems() ignores the exit code entirely. (4) Verdicts read out of JSON, never an exit code (before:50-54, :316-325): preserved in price_removal, which reads tables; regressed in altered_score_probe, which reads neither an exit code nor an executable count. (5) Baseline subtraction (before:284-289): preserved by RE-IMPLEMENTATION (altered_score_probe.py:154), not by reuse, and the probe's docstring at :34 says so. (6) Refusal when a declared mutant did not apply (before:131-176, :589): not preserved -- residual_faults.toml:34 still asserts an exit code for itself, a TOML file has none, and the runner that enforced it is out of scope. (7) [[not_seedable]] reported never dropped (before:579-583, :619-623): preserved as DATA (residual_faults.toml:172-193, a well-argued row) with nothing in scope to read or render it. (8) Positive-control accounting, R2 (before:551-568): residual_faults.toml:141-165 still declares a control with must_die_on (:155) and nothing in the declared scope consults it. So of the two baseline behaviors I could check by execution, neither holds; the rest are absent from the scope rather than broken in it, which is a different finding and I am not scoring it as breakage -- but a catalogue whose runner is gone is not a preserved behavior either.",
+      "citations": [
+        "specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/blind/artifact_JJ_before/run_gap_mutants.py:294",
+        "specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/blind/artifact_JJ_before/run_gap_mutants.py:56",
+        "specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/blind/artifact_JJ_before/run_gap_mutants.py:126",
+        "specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/blind/artifact_JJ_before/run_gap_mutants.py:284",
+        "specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/blind/artifact_JJ_before/run_gap_mutants.py:131",
+        "examples/validation/gap_mutants/altered_score_probe.py:154",
+        "examples/validation/gap_mutants/residual_faults.toml:34",
+        "examples/validation/gap_mutants/residual_faults.toml:155"
+      ]
     },
     "N-D5": {
       "name": "honesty",
       "question": "Does the artifact refuse rather than falsely certify, and does it name what it cannot see? Point at the refusal, or at its absence.",
-      "note": "",
-      "citations": []
+      "note": "It refuses, and some refusals are real code rather than prose. I verified two by execution: entail returns UNDECIDED where the shipped classifier would say NON-DISCRIMINATING (:316-321), and returns ENTAILED-SURVIVES only when every killing pair is deleted. That is the artifact declining to make the claim its own predecessor made, and it is the strongest thing on this card. altered_score_probe.py:130 is a second real refusal: a tree whose scaffold fails returns 2 rather than reporting UNCAUGHT. It names what it cannot see in several places unprompted -- the bound on ENTAILED-SURVIVES (:65-73, with ':73 both are printed; the instrument has no mode that emits only one'), node_present's blindness to a weakened body (:180), 'Not a gate' in both modules, and residual_faults.toml:172-193, which reports a fault it decided NOT to seed and corrects the record about why the earlier exclusion was wrong. AGAINST THAT: the sharpest dishonesty available to an instrument is to name a limit and then breach it, and this one does, twice. kill_set states that a price computed over an undecidable column 'would be a price computed over a column that did not run' (:142), and price() computes exactly that and calls it PRICED (:246) -- I ran it. altered_score_probe states that a broken setup must not read as UNCAUGHT (:130-134) and then guards only the scaffold, so a broken check reads as UNCAUGHT -- I ran that too. The honesty is genuine at the level of what the authors knew and wrote down; it is not carried into the verdict rules, which is where a reader takes the number from. Minor: residual_faults.toml:34 claims an exit code for a file that cannot exit, inherited verbatim from a runner no longer in scope -- stale rather than deceptive, but a claim the artifact cannot back.",
+      "citations": [
+        "examples/validation/gap_mutants/price_removal.py:65",
+        "examples/validation/gap_mutants/price_removal.py:73",
+        "examples/validation/gap_mutants/price_removal.py:180",
+        "examples/validation/gap_mutants/price_removal.py:316",
+        "examples/validation/gap_mutants/price_removal.py:142",
+        "examples/validation/gap_mutants/price_removal.py:246",
+        "examples/validation/gap_mutants/altered_score_probe.py:130",
+        "examples/validation/gap_mutants/altered_score_probe.py:92",
+        "examples/validation/gap_mutants/residual_faults.toml:34"
+      ]
     }
   }
 }

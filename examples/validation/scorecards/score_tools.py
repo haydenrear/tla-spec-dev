@@ -283,6 +283,17 @@ def arch():
 # the rubric: one source of truth for the anchors
 # --------------------------------------------------------------------------
 
+class BlindingError(Exception):
+    """A scaffold that would hand a judge the identity of what they are judging.
+
+    Separate from `RubricError` on purpose: `RubricError` is about the BAR --
+    a stale digest, an absent anchor, a version that cannot be emitted -- and
+    callers let it propagate. This one is about the ROUND, it is raised while a
+    batch is being planned, and `cmd_scaffold` turns it into a refusal that
+    writes nothing.
+    """
+
+
 class RubricError(Exception):
     pass
 
@@ -1463,6 +1474,7 @@ def cmd_scaffold(argv: list[str]) -> int:
 
     published = used_labels(scorecard_root)
     args._published = published
+    reused: list[str] = []
 
     if args.unblinded:
         if not args.reason:
@@ -1479,14 +1491,21 @@ def cmd_scaffold(argv: list[str]) -> int:
         # pool path has excluded every published label since HP-06; `--labels`
         # wrote whatever it was given, so the one route an operator reaches for
         # when the pool refuses was the one route with no check on it.
+        #
+        # IT IS A REASON, NOT A BAN, and the reason is what the record needed.
+        # Reusing a label is sometimes correct and this project does it on
+        # purpose: FI-03, SM-04 and RM-03 each re-scored ONE arm under two card
+        # versions and kept its label, because two versions of the same arm
+        # have to be readable as the same arm. What was wrong was that it cost
+        # nothing and was recorded nowhere. So it now costs `--reason`, exactly
+        # as undoing blinding does, and the reason is written into the key file.
+        #
+        # Deferred to after the collision check below, because re-scaffolding
+        # over an existing path is a collision and that message is the more
+        # useful one -- and a batch refused for a collision has, by definition,
+        # published those labels itself.
         reused = sorted(x for x in labels if x in published or x in RESERVED_LABELS)
-        if reused:
-            print(f"REFUSED: {reused} would reuse a label a prior round published "
-                  f"(or a reserved arm name). A judge who has seen that round can "
-                  f"connect this card to it, which is the whole of what blinding "
-                  f"buys. Drop --labels and let the pool draw, or pass --unblinded "
-                  f"--reason if the identity is meant to be visible.", file=sys.stderr)
-            return 2
+        args._reused = reused
     else:
         taken = published | RESERVED_LABELS | {a.upper() for a in arms}
         pool, width = available_labels(taken, len(arms))
@@ -1516,7 +1535,7 @@ def cmd_scaffold(argv: list[str]) -> int:
                 planned.append((d / "scorecard.md",
                                 _skeleton_md(args, rubric, label, judge, rid)))
                 planned.append((d / "mechanical.json", _mechanical_json(args, label, rid)))
-    except RubricError as exc:
+    except BlindingError as exc:
         print(f"REFUSED: {exc}\nNothing was written.", file=sys.stderr)
         return 3
     key_path = epic_dir / "UNBLINDING.md"
@@ -1538,6 +1557,16 @@ def cmd_scaffold(argv: list[str]) -> int:
                   "card directories beside a measurement and silently orphan its key.",
                   file=sys.stderr)
         return 3
+
+    if reused and not args.reason:
+        print(f"REFUSED: {reused} would reuse a label a prior round published (or a "
+              f"reserved arm name). A judge who has seen that round can connect this "
+              f"card to it, which is the whole of what blinding buys.\n"
+              f"If the reuse is deliberate -- re-scoring one arm under two card "
+              f"versions is the case this project actually has -- pass --reason and "
+              f"it is written into UNBLINDING.md. Otherwise drop --labels and let "
+              f"the pool draw. Nothing was written.", file=sys.stderr)
+        return 2
 
     for p, text in planned:
         p.parent.mkdir(parents=True, exist_ok=True)
@@ -1638,7 +1667,7 @@ def _subject_block(name: str | None, blinded: bool = False,
                 "axis": arch().AXIS}
     leaks = scope_leaks_a_label(list(s["scope"]), published or set())
     if leaks:
-        raise RubricError(
+        raise BlindingError(
             "a blinded card would carry an identifying subject. --subject "
             f"{name!r} declares a scope that spells a label a prior round "
             "published:\n  " + "\n  ".join(leaks) + "\n"
@@ -1913,7 +1942,13 @@ def _unblinding_md(args, arms: list[str], labels: list[str], run_date: str, tag)
         out.append("The labels below are the real arm names. Every number produced under "
                    "them is a non-blind judgement and must be labelled as such wherever "
                    "it is quoted.")
-    else:
+    if getattr(args, "_reused", None):
+        out.append("")
+        out.append(f"**LABELS REUSED ON PURPOSE: {', '.join(args._reused)}.** A prior "
+                   f"round published {'them' if len(args._reused) > 1 else 'it'}, so a "
+                   f"judge who has seen that round can connect these cards to it. "
+                   f"Reason on record: {args.reason}")
+    if not args.unblinded:
         out.append("Generated by `score_tools.py scaffold`. **Blinding is the default "
                    "here and is a mechanism, not discipline:** the cards were emitted "
                    "under opaque labels and this mapping was written to a file the "

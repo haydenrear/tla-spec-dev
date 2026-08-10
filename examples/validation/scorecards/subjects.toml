@@ -254,20 +254,27 @@ labels = []
 # afterwards. THE MEASUREMENT IS REPORTED WHICHEVER WAY IT COMES OUT.
 # --------------------------------------------------------------------------
 
+#
+# `labels` BELOW WAS WRITTEN AFTER THE ROUND, and it has to be. RM-04's cards
+# are blinded to the new standard: `subject.name` is `null` on every one of
+# them and no card carries a `declared_effect_boundary`, so the card cannot
+# name its own subject and the attribution lives here -- which is the path
+# RD-05 built for exactly this and which the pre-RD-05 record already uses.
+
 [subject.rm04_scripts]
 example = "eval_toolchain"
 scope = ["scripts"]
 declared_effect_boundary = "effectful"
-labels = []
+labels = [["portable-substrate-rm04-LL", "LL"]]
 
 [subject.rm04_eval_harness]
 example = "eval_toolchain"
 scope = ["examples/validation"]
 declared_effect_boundary = "ports-and-adapters"
-labels = []
+labels = [["portable-substrate-rm04-GG", "GG"]]
 
 [subject.rm04_removal_pricer]
 example = "eval_toolchain"
 scope = ["examples/validation/gap_mutants"]
 declared_effect_boundary = "effectful"
-labels = []
+labels = [["portable-substrate-rm04-JJ", "JJ"]]

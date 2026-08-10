@@ -1,13 +1,13 @@
 {
   "scorecard_version": 4,
-  "status": "unfilled",
+  "status": "filled",
   "epic": "portable-substrate-rm04-GG",
   "example": "eval_toolchain",
   "run_id": "20260810-rm04-GG-p2",
   "arm": "GG",
-  "commit": "",
+  "commit": "dd71b11a0282a662f60d7bca0c34671ba9e12235",
   "judge": {
-    "model": "",
+    "model": "claude-sonnet-4-5",
     "tier": "",
     "pass": 2,
     "blind_to_arm": true
@@ -55,9 +55,17 @@
         "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
         "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 1,
+      "citations": [
+        "specs/results/scorecards/portable-substrate-rm04-GG/eval_toolchain/20260810-rm04-GG-p2/mechanical.json:15-23",
+        "examples/validation/ex3_over_complex/order_hub/order_hub.py:1-6",
+        "examples/validation/ex3_over_complex/order_hub/order_hub.py:16-30",
+        "examples/validation/ex3_over_complex/order_hub/order_hub.py:33-38",
+        "examples/validation/ab/reference_ports/domain.py:101-108",
+        "examples/validation/ab/reference_ports/domain.py:129-142",
+        "examples/validation/ab/reference_ports/domain.py:156-162"
+      ],
+      "rationale": "Complexity is measured extensively (mechanical.json: 85 modules, 14,207 lines, 493 callables, 1,784 branch points, 704 effectful calls in 32/85 modules, only 3 declared interfaces) and a partial relationship to the design is argued (declared_interfaces=3 matches the rarity of the one genuine port pattern I independently found). But anchor 2's 'no god-state, no variable written from everywhere' is a blanket claim about the declared scope, and order_hub.py falsifies it directly and on purpose within scope: a single shared hub dict stamped by _stamp() from every action. Even inside the cleanest reference design (ab/reference_ports/domain.py), _available is a fact kept in sync by hand across three separate write sites rather than derived once -- the exact duplication shape the D2 read-first note asks a judge to hunt for. No before/after simplification of examples/validation itself is recorded, so 3 is unreachable. Score 1: measured, reported, partially argued, but not a defensible blanket 'no god-state'.",
       "refuses_to_claim": null,
       "read_first": "Diff the two trees yourself and decide whether one fact is stored twice \u2014 kept in agreement by hand across several write sites, and read in one place. Where a measured complexity descriptor exists you may read it, and on its own it decides nothing; where none exists that is not a gap in the evidence.",
       "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 requires the judge to say *what got simpler and how the behavior survived it*."
@@ -72,38 +80,72 @@
         "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
         "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null,
+      "score": 4,
+      "citations": [
+        "examples/validation/ab/reference_ports/domain.py:14-17",
+        "examples/validation/ab/reference_ports/domain.py:38-59",
+        "examples/validation/ab/reference_ports/journal_file.py:21-38",
+        "examples/validation/ab/reference_ports/journal_memory.py:33-44",
+        "examples/validation/ab/reference_ports/quota_ledger.py:1-9",
+        "examples/validation/ab/reference_ports/quota_ledger.py:17-25",
+        "examples/validation/ab/reference_ports/quota_ledger_fake.py:30-38",
+        "examples/validation/ab/check_catalogue.py:805-828",
+        "examples/validation/ab/check_catalogue.py:830-854",
+        "examples/validation/ab/tests/test_behavior.py:1-20",
+        "examples/validation/ex4_pipeline_coherent/generated/pipeline_contract/fake.py:18-21",
+        "examples/validation/runs/ex4-run4/scoring.md:17-21"
+      ],
+      "rationale": "D3's anchors are phrased per-domain/per-port ('a domain', 'an adapter', 'a driven port'), not as a claim that all 85 modules are hexagonal. ab/reference_ports/domain.py declares a LedgerJournal Protocol port and imports neither adapter that satisfies it; journal_file.py is a real file-backed adapter, journal_memory.py a working fake; quota_ledger.py and quota_ledger_fake.py are the two composition points, and quota_ledger.py's own docstring names the specific swap. ab/check_catalogue.py:805-854 verify_suite() does not just claim this, it executes it: subprocess.run of the one shared ab/tests/test_behavior.py suite with QUOTA_LEDGER_IMPL pointed at each wiring in turn, requiring a green control on each before any mutant is admissible -- runtime evidence, not import topology. I checked whether ex4_pipeline_coherent's own LedgerStorePort reaches the same bar and it does not: fake.py:18-21 raises NotImplementedError for persist, and the generated conformance function that would compare fake against real is never invoked anywhere in scope (grepped). ex4's ARM A/B swap (scoring.md:17-21) is two real adapters against the same 330 cases -- solid anchor-3 evidence, not anchor-4. I am not generalizing the reference_ports result to the whole scope: most of the tooling (scorecards/, gap_mutants/, removal_census/, instruments/) declares no port and needs none, and ex3_over_complex/ex6_jenga are declared god-state with no boundary at all -- but unlike D2's blanket 'no god-state anywhere' clause, D3's clause is about whether declared boundaries are followed where they exist, so those fixtures don't falsify it.",
+      "refuses_to_claim": "examples/validation/ab/reference_ports/quota_ledger_fake.py:14-22 states the construction does not assert the two wirings agree with each other -- only that the shared suite's expected values hold against both -- because a parity-only test passes when the domain itself is wrong. examples/validation/ab/reference_ports/README.md:68-77 names the limit on the demonstration: n=1, one feature, written by the same author as the fault catalogue that seeds into it, and 'quota_ledger_fake.py being four lines is evidence that the blind region was cheap to reach, not evidence that anybody would have reached it. Nobody did, for a whole epic.'",
       "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
     }
   },
   "contested": [],
-  "verdict": "",
+  "verdict": "The demonstrated real-adapter-and-fake port swap in ab/reference_ports (D3 = 4) is genuine and runtime-verified, but a reader should not extend it to the rest of this 85-module, 14,207-line scope, which also contains declared god-state fixtures (ex3_over_complex, ex6_jenga) that keep D2 at 1 and an unfinished fake on ex4's own LedgerStorePort that the toolchain never exercises.",
   "judging_practice": {
-    "executed_own_faults": null,
-    "what_was_run": [],
-    "note": "REQUIRED from scorecard_version 2. Did you seed a fault of your own and run it against this artifact, or did you score the evidence packet? Both are legal and neither is the right answer; what is not legal is leaving it unsaid. Say which, and list what you ran. From version 4 no anchor is gated on it; it is recorded because it is the variable that moves scores."
+    "executed_own_faults": false,
+    "what_was_run": [
+      "Nothing executed against the tree -- no pytest, no seeded fault, no script of my own run. This card scores the evidence packet as read.",
+      "Read ab/reference_ports/{domain,journal_file,journal_memory,quota_ledger,quota_ledger_fake}.py and its README.md in full.",
+      "Read ab/check_catalogue.py:805-854 (verify_suite) to confirm from the code itself that it subprocess.run's pytest with QUOTA_LEDGER_IMPL set per wiring, rather than trusting the README's prose claim.",
+      "Read ex4_pipeline_coherent's generated/pipeline_contract/{ports,fake,contract_tests}.py, specs/program_model/{adapters,providers}.py and tests/driver.py, and grepped the whole scope for assert_ledger_store_port_conformance / ledger_store_provider to check whether the fake-vs-real conformance path for LedgerStorePort is wired up anywhere (it is not).",
+      "Read runs/ex4-run4/scoring.md:17-38 for the recorded seeded-fault kill table.",
+      "Read ex3_over_complex/order_hub/order_hub.py and ex6_jenga/README.md for the god-state / refusal fixtures.",
+      "Read instruments/demonstrate.py's blind-spot and non-gating sections, and grepped scorecards/score_tools.py's module-level structure for global/instance state.",
+      "Read mechanical.json beside this card."
+    ]
   },
   "notes": {
     "N-D1": {
       "name": "bug detection",
       "question": "What did the cases catch, and what class did they demonstrably miss? Name the fault you seeded if you seeded one.",
-      "note": "",
-      "citations": []
+      "note": "Did not seed a fault myself; this reads what is already recorded. Caught: on ex4, seeded faults F1 (wrong value), F2 (wrong field), F4 (wrong status) and F6 (off-by-one in-memory) were killed on both measurement arms. F3 (off-by-one, durable) and F5 (swallowed error) SURVIVED on ARM A (corpus alone) and were caught only by ARM B's content-asserting provider -- a cited example of a class the corpus-alone instrument demonstrably misses: anything whose only symptom is what got persisted rather than what the projected state shows. Demonstrably missed as a class: journal_memory.py:7-21 documents that a fault inside an adapter with no composition point pointing at it survives every instrument including the hand-written suite -- the reason reference_ports/ was built. Concretely inside this scope, ex4's own LedgerStorePort fake was never completed (NotImplementedError on persist), so any fault only catchable by a fake/real conformance check on that port could not have been caught by anything in this tree -- untested by construction, not by result.",
+      "citations": [
+        "examples/validation/runs/ex4-run4/scoring.md:17-21",
+        "examples/validation/runs/ex4-run4/scoring.md:31-38",
+        "examples/validation/ab/reference_ports/journal_memory.py:7-21",
+        "examples/validation/ex4_pipeline_coherent/generated/pipeline_contract/fake.py:18-21"
+      ]
     },
     "N-D4": {
       "name": "behavior preservation",
       "question": "Which behaviors of the baseline did you enumerate, and is each shown still to hold? If there is no baseline, say so \u2014 that is the answer, not a gap in the note.",
-      "note": "",
-      "citations": []
+      "note": "There is no baseline for examples/validation itself -- no prior commit or version of the directory was supplied, and nothing in scope treats the directory as a whole as a before/after subject. That absence is the answer. Inside the scope, sub-projects carry their own internal preservation claims about other things: ab/reference_ports/README.md:8-12 claims the ported quota_ledger.py's behavior matches ../reference/quota_ledger.py 'statement for statement,' checked (lines 38-45) by running one unedited shared suite against the flat reference, the real wiring and the fake wiring, green on all three required before any mutant is admissible. That is a preservation claim about the quota-ledger feature surviving a port-introducing refactor, not about examples/validation surviving anything, and I did not re-run it myself to confirm it still holds (see judging_practice) -- I am citing it as a documented claim in scope, not as independently verified.",
+      "citations": [
+        "examples/validation/ab/reference_ports/README.md:8-12",
+        "examples/validation/ab/reference_ports/README.md:38-45"
+      ]
     },
     "N-D5": {
       "name": "honesty",
       "question": "Does the artifact refuse rather than falsely certify, and does it name what it cannot see? Point at the refusal, or at its absence.",
-      "note": "",
-      "citations": []
+      "note": "Refusal is present and cited, in more than one independent mechanism. instruments/demonstrate.py:42-46 states of itself 'THIS IS NOT A GATE. It refuses nothing about the repository's design,' and lines 33-40 make 'the count of things our instruments cannot see' the thing the tool reports as its product; lines 379-389 name a specific blind spot by hand (a repo tripwire that is a pytest FILE has neither a __main__ guard nor a nonzero exit path and is invisible to the check) instead of leaving it for a reader to discover. ex6_jenga/README.md:14-37 documents an architecture check that returns unmappable / the unfalsifiable_coherence refusal on a god-state model with a declared partition, rather than emitting a false coherent. Narrowly, ex4_pipeline_coherent's fake.py:18-21 raises NotImplementedError for an unimplemented fake method rather than silently no-opping it into a false pass. I found no case in what I read where the artifact certified something it could not see.",
+      "citations": [
+        "examples/validation/instruments/demonstrate.py:33-46",
+        "examples/validation/instruments/demonstrate.py:379-389",
+        "examples/validation/ex6_jenga/README.md:14-37",
+        "examples/validation/ex4_pipeline_coherent/generated/pipeline_contract/fake.py:18-21"
+      ]
     }
   }
 }

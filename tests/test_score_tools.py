@@ -189,21 +189,166 @@ def test_unblinding_is_deliberate_and_must_carry_a_reason(st, tmp_path, capsys):
 
 def test_scaffold_never_reuses_a_label_a_prior_round_published(st, tmp_path, capsys):
     """HP-06 used X/Y and published its key; EVAL-RERUN chose P/Q so a judge who
-    stumbled into the sealed run could not read the arms off it. Mechanised."""
+    stumbled into the sealed run could not read the arms off it. Mechanised.
+
+    **RM-04 KEPT THE PROPERTY AND REPLACED THE MECHANISM** (`RM-02-DF-01`: the
+    17-character pool was down to `G J L V` and a round needing five arms was
+    already refused). A label is now a STRING over the characters this record
+    has never published, so both things a judge could recognise are impossible
+    by construction rather than by counting down to zero.
+    """
     root = tmp_path / "scorecards"
-    for label in "DEFGHJKLMNRSTUVW":
+    # THE STATE THIS REPOSITORY IS ACTUALLY IN: 13 of the 17 published, `G J L V`
+    # left. `RM-02-DF-01` measured it by running `used_labels()` over the sealed
+    # record, and a round needing five arms was already being refused.
+    published = "DEFHKMNPRSTUW"
+    for label in published:
         d = root / "prior" / "ex" / f"20260101-{label}-p1"
         d.mkdir(parents=True)
         (d / "scorecard.json").write_text(json.dumps({"arm": label}))
-    # only Z is left in the pool
-    assert scaffold(st, root / "epic", arms="A", judges=1) == 0
-    capsys.readouterr()
-    assert json.loads(one_card(root / "epic").read_text())["arm"] == "Z"
+    assert st.used_labels(root) >= set(published)
+    assert st.label_alphabet(st.used_labels(root) | st.RESERVED_LABELS) == "GJLVZ"
 
-    assert st.used_labels(root) >= set("DEFGHJKLMNRSTUVW")
-    # and with none left it refuses rather than colliding
+    # Four labels remained under the old mechanism. Sixteen do at width 2 over
+    # the same leftovers, and sixty-four at width 3 -- so a five-arm round is
+    # possible again and the pool does not run out on a fixed schedule.
+    assert len(st.available_labels(st.used_labels(root) | st.RESERVED_LABELS, 3)[0]) == 25
+    assert scaffold(st, root / "epic", arms="A,B,C", judges=1) == 0
+    capsys.readouterr()
+    drawn = {json.loads(p.read_text())["arm"]
+             for p in (root / "epic").rglob("scorecard.json")}
+    assert len(drawn) == 3, drawn
+    for label in drawn:
+        # 1. the whole string was never published
+        assert label not in set(published), label
+        # 2. and no CHARACTER of it was published on its own either, so a judge
+        #    who saw `T` last round meets nothing that shares a character with it
+        assert set(label).isdisjoint(set(published)), label
+        assert set(label).isdisjoint(st.RESERVED_LABELS), label
+
+    # AND IT STILL REFUSES rather than colliding. THE WIDTH TRICK MULTIPLIES AN
+    # ALPHABET AND CANNOT CREATE ONE: with a single character left, every width
+    # yields exactly one label, so publishing the rest of the alphabet as single
+    # characters leaves nothing to build from. Said here because it is the limit
+    # of the mechanism and it is not obvious from "the space is unbounded".
+    for label in "GJLV":
+        d = root / "prior2" / "ex" / f"20260101-{label}-p1"
+        d.mkdir(parents=True)
+        (d / "scorecard.json").write_text(json.dumps({"arm": label}))
     assert scaffold(st, root / "epic2", arms="A,B", judges=1) == 2
-    assert "unused opaque labels remain" in capsys.readouterr().err
+    assert "no label width" in capsys.readouterr().err
+
+
+def test_the_explicit_label_path_refuses_a_published_label(st, tmp_path, capsys):
+    """THE DEMONSTRATED FAILING INPUT for `RM-02-DF-01`'s other half.
+
+    RM-04 found the hole while widening the pool: `--labels` wrote whatever it
+    was handed, with NO exclusion check at all. The pool path has excluded every
+    published label since HP-06 -- so the one route an operator reaches for when
+    the pool refuses was the one route with nothing on it, and reusing `T` was a
+    typo away in precisely the situation that makes an operator type it.
+    """
+    root = tmp_path / "scorecards"
+    d = root / "prior" / "ex" / "20260101-T-p1"
+    d.mkdir(parents=True)
+    (d / "scorecard.json").write_text(json.dumps({"arm": "T"}))
+
+    assert scaffold(st, root / "epic", arms="A,B", judges=1, labels="T,U") == 2
+    err = capsys.readouterr().err
+    assert "would reuse a label a prior round published" in err
+    assert "'T'" in err
+    assert not (root / "epic").exists(), "a refused scaffold wrote something"
+
+    # a reserved arm name is refused by the same clause
+    assert scaffold(st, root / "epic", arms="X,Y", judges=1, labels="A,B") == 2
+    assert "reserved arm name" in capsys.readouterr().err
+
+    # IT IS A REASON, NOT A BAN. Re-scoring one arm under two card versions is
+    # a reuse this project does on purpose -- FI-03, SM-04 and RM-03 each did
+    # it -- so the deliberate case goes through and lands in the key file.
+    assert scaffold(st, root / "e2", arms="A", judges=1, labels="T",
+                    reason="re-score of the same arm under card version 2") == 0
+    capsys.readouterr()
+    key = (root / "e2" / "UNBLINDING.md").read_text()
+    assert "LABELS REUSED ON PURPOSE: T" in key
+    assert "re-score of the same arm under card version 2" in key
+
+    # and an unpublished label needs no reason, so this prices the REUSE and
+    # not the mechanism
+    assert scaffold(st, root / "epic", arms="A,B", judges=1, labels="GJ,LV") == 0
+    capsys.readouterr()
+    assert {json.loads(p.read_text())["arm"]
+            for p in (root / "epic").rglob("scorecard.json")} == {"GJ", "LV"}
+
+
+def test_a_blinded_card_carries_the_scope_and_nothing_that_identifies_it(
+        st, tmp_path, capsys):
+    """RM-04. THE LEAK, AND IT WAS SHIPPED IN A ROUND THAT CALLED ITSELF BLIND.
+
+    RM-03's re-score cards are labelled `T` and their `subject` block reads
+    `name: "arm_b"` and `declared_effect_boundary: "ports-and-adapters"` -- the
+    arm identity AND the value of the axis D3 is compared on, in the file the
+    judge is handed. A judge read it and disclosed it.
+
+    Two properties, and the second is the one nothing else covers: withholding
+    a name does not help when the SCOPE PATH spells the label.
+    """
+    root = tmp_path / "scorecards"
+    root.mkdir()
+
+    # 1. a blinded card names no subject and pre-answers no dimension
+    assert scaffold(st, root / "e1", arms="A,B", judges=1, labels="GJ,LV",
+                    subject="rm04_scripts") == 0
+    capsys.readouterr()
+    for p in (root / "e1").rglob("scorecard.json"):
+        subject = json.loads(p.read_text())["subject"]
+        assert subject["blinded"] is True
+        assert subject["name"] is None, subject
+        assert "declared_effect_boundary" not in subject, subject
+        assert subject["scope"] == ["scripts"], subject   # what to read: kept
+
+    # 2. --unblinded is the deliberate, recorded way to get the identity back
+    assert scaffold(st, root / "e2", arms="A", judges=1, subject="rm04_scripts",
+                    unblinded=True, reason="owner tracking pass") == 0
+    capsys.readouterr()
+    subject = json.loads(one_card(root / "e2").read_text())["subject"]
+    assert subject["name"] == "rm04_scripts"
+    assert subject["declared_effect_boundary"] == "effectful"
+
+
+def test_a_scope_that_spells_a_published_label_refuses_the_whole_batch(
+        st, tmp_path, capsys):
+    """THE DEMONSTRATED FAILING INPUT, on the real subject that shipped it.
+
+    `arm_b`'s declared scope is
+    `specs/results/scorecards/ports-as-adapters/blind/artifact_T`, and `T` is a
+    label that round published. Blinding the NAME cannot hide that, because the
+    path is what the judge is told to read. So the scaffold refuses, and it
+    refuses BEFORE writing any of it.
+    """
+    root = tmp_path / "scorecards"
+    d = root / "prior" / "ex" / "20260101-T-p1"
+    d.mkdir(parents=True)
+    (d / "scorecard.json").write_text(json.dumps({"arm": "T"}))
+
+    assert scaffold(st, root / "epic", arms="A,B", judges=1, labels="GJ,LV",
+                    subject="arm_b") == 3
+    err = capsys.readouterr().err
+    assert "a blinded card would carry an identifying subject" in err
+    assert "artifact_T" in err and "'T'" in err
+    assert "Nothing was written" in err
+    assert not (root / "epic").exists(), "a refused scaffold wrote something"
+
+    # the same subject scaffolds fine when the identity is MEANT to be visible
+    assert scaffold(st, root / "epic", arms="A", judges=1, subject="arm_b",
+                    unblinded=True, reason="unblinding is the recorded escape") == 0
+    capsys.readouterr()
+
+    # and the predicate is about a PUBLISHED label, not about paths in general
+    assert st.scope_leaks_a_label(["specs/results/x/blind/artifact_T"], {"T"})
+    assert st.scope_leaks_a_label(["specs/results/x/blind/artifact_T"], set()) == []
+    assert st.scope_leaks_a_label(["examples/validation"], {"T", "U", "W"}) == []
+    assert st.scope_leaks_a_label(["scripts"], {"T", "U", "W"}) == []
 
 
 def test_scaffold_refuses_to_overwrite_and_writes_nothing(st, tmp_path, capsys):
@@ -764,7 +909,7 @@ def test_a_version_3_card_has_no_total_and_a_version_2_card_still_checks_its_own
 
     epic2 = tmp_path / "v2"
     assert scaffold(st, epic2, labels="K,L,M", card_version=2,
-                    rubric=str(RUBRIC_V3)) == 0
+                    reason="re-score of the same arm under a second card version; the label is kept so the two versions read as the same arm", rubric=str(RUBRIC_V3)) == 0
     capsys.readouterr()
     p2 = one_card(epic2)
     old = fill(json.loads(p2.read_text()))
@@ -1192,7 +1337,7 @@ def test_the_price_of_removing_total_measured_on_both_sides(st, tmp_path, capsys
     # --- BEFORE: a version 2 card, `total` present -------------------------
     epic2 = tmp_path / "v2"
     assert scaffold(st, epic2, labels="K,L,M", card_version=2,
-                    rubric=str(RUBRIC_V3)) == 0
+                    reason="re-score of the same arm under a second card version; the label is kept so the two versions read as the same arm", rubric=str(RUBRIC_V3)) == 0
     capsys.readouterr()
     p2 = one_card(epic2)
     v2 = fill(json.loads(p2.read_text()), D3=dict(four))
