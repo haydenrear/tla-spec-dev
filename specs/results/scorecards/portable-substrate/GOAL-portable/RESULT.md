@@ -3,9 +3,13 @@
 **The decision is `references/portable_scorecard.md`. This is the evidence
 under it.** RM-02 is a research ticket; no production code ships.
 
-**Tree.** All figures computed at the epic base `2c0d94e`, working tree clean
-for `references/`, `examples/`, `scripts/` and `prompts/`. Baseline `main` is
-`19c5c7b`. No `git archive` was used and no figure here is an archive property.
+**Trees.** The card figures in §1–§6 were computed at the epic base `2c0d94e`
+and are unchanged by the reconciliation — RM-01 sealed no new cards, so the
+73-card corpus is byte-identical at both trees (verified: `index` output diffs
+clean between `2c0d94e` and `95b2c79`). The `scope`, `audit` and suite figures
+in §7–§10 name their tree individually, because those move with the record.
+The reconciled tree is **`95b2c79` + RM-02**. Baseline `main` is `19c5c7b`. No
+`git archive` was used and no figure here is an archive property.
 
 **Re-run** — about two seconds from the repository root:
 
@@ -239,8 +243,9 @@ the ticket report instead.
 
 ## 8. `audit`, and a pre-existing violation that corroborates §4
 
-`score_tools.py audit` reports **1 violation at `2c0d94e` and 1 violation with
-RM-02's changes — the same one.** RM-02 breaks nothing:
+`score_tools.py audit` reports **1 violation at `2c0d94e`, 1 at the epic tip
+`95b2c79`, and 1 with RM-02's changes on top of either — the same one every
+time.** RM-02 breaks nothing:
 
 ```
 VIOLATION  [[demonstration]] effect_boundary-ab_quota_ledger-D3-effectful-vs-ports-and-adapters:
@@ -328,3 +333,64 @@ is that correction.
 `RM-02-DF-01` … `RM-02-DF-05`, in
 `specs/desired_program_model/deferred_findings.yaml`. Five is the epic's budget
 and none is blocking. **Nothing was fixed inline.**
+
+---
+
+## 10. Reconciliation with RM-01 (tree `95b2c79`)
+
+`feature/RM-02` was rebased onto the epic tip **`95b2c79`** after RM-01 merged.
+Two of RM-01's results touch RM-02's conclusions. Neither changes the decision;
+one makes a piece of it load-bearing and the other corroborates it.
+
+### 10.1 `RM-01-DF-01` makes §5 item 4 load-bearing, and RM-02 agrees explicitly
+
+RM-01 established that the entailment was **not** the re-runnability rule. It was
+`removal_census.py discriminating()`, which set-differences **detector names** and
+declares a cut entailed whenever a killing name survives — and a detector can
+survive by name while losing the kill. `pytest-full` is the whole suite and no
+removal in this repository has ever deleted it, so **any fault it kills is
+NON-DISCRIMINATING by arithmetic before anything runs.**
+
+`references/portable_scorecard.md` §5 item 4 says a zero price on the mutant
+catalogues *"would not make it a free cut, because the adoption argument is
+independent of the pricing one."* **RM-02 now states that explicitly, because
+RM-01 has shown the pricing argument can return zero for reasons that are not
+about the removal at all:**
+
+**The adoption argument for cutting the catalogues never touched the price.** It
+is that `gap_mutants.toml` and the mutant catalogues are hand-authored faults **in
+`ab_quota_ledger`** — a fixture wearing a tool's clothes, with no version an
+adopter receives. That reason survives a zero price, and it survives a *defective*
+classifier producing that zero, because **it is not a pricing argument.** RM-03
+should cut them on adoption grounds and record the price separately, whatever
+RM-01's instrument returns for them — and should not report a zero from
+`discriminate` as evidence the cut was free.
+
+### 10.2 `0 of 10 PRICED` does not move the adopter cost, and corroborates §2 item 5
+
+RM-01 re-priced historical removals over **kill sets** rather than detector names
+and still returned **0 of 10 PRICED**: the instrument can fire, history remains
+free.
+
+**This changes nothing in §3's cost table**, because removal pricing was never in
+it. An adopter supplies a subject with a declared scope, a before/after, two blind
+judges and a behavioural suite. The gap-mutant machinery is not something they
+receive at all — §2 item 5 already named it irreducibly local, and RM-01's result
+is the same conclusion reached from the other side: even *in* the repository that
+built it, it yields nothing over history.
+
+**One thing it adds, and it is a warning rather than a cost.** The pricing
+capability transfers as a **capability** and not as a **yield**. If any of that
+machinery were ever exported — RM-02 says none of it should be — it would have to
+ship with *"zero is the expected result"* stated on it, because an adopter reading
+a zero as *"my removal was free"* is precisely the inference RD-02 made and RM-01
+disproved. **Recorded here rather than written into the design**: RM-02's finding
+budget of 5 is spent, this is not blocking, and it is escalated to the owner
+instead. The design is not rewritten under a successor's result.
+
+### 10.3 The baseline, reconciled
+
+RM-02 reported the epic base red while it was being described as clean, and RM-01
+independently measured the same set byte-identical. `RM-06` (#216) now owns
+restoring it. §8.1's *"recorded, not repaired — it is not RM-02's to make"* stands
+unchanged and now names the ticket that owns it.

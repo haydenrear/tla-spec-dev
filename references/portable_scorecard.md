@@ -374,7 +374,14 @@ Ordered by how much each one buys:
    `ab_quota_ledger` fixtures. There is no version of them an adopter receives.
    RM-01 must price this cut; RM-02's contribution is that a zero price here
    would not make it a free cut, because the adoption argument is independent of
-   the pricing one.
+   the pricing one. **RM-01 has since shown why that independence matters:** the
+   entailment was `removal_census.py discriminating()` reading a surviving
+   detector *name* as a surviving kill, and `pytest-full` — never deleted by any
+   removal here — makes any fault it kills non-discriminating by arithmetic
+   before anything runs (`RM-01-DF-01`, blocking). So a zero can be produced by
+   the classifier's granularity rather than by the removal. **The adoption
+   argument is not a pricing argument and does not depend on the number**; see
+   the evidence page §10.1.
 5. **Stop shipping the architecture tag as an adopter-facing surface.** Its
    derivation is Python-only and its refusal authority is re-derived from this
    repository's own cards, so an adopter receives 1,656 lines that say nothing
@@ -495,11 +502,21 @@ not enough to say how often any of them does.
 python3 examples/validation/scorecards/score_tools.py scope
 ```
 
-| | counted | REFUTED | COUNT-MOVED | HOLDS | UNREACHABLE |
+**Every row names its tree.** The sweep was run at the epic base and again at the
+epic tip after RM-01 merged, because a sweep count is a joint property of the
+record and the card population and moves when either does.
+
+| tree | counted | REFUTED | COUNT-MOVED | HOLDS | UNREACHABLE |
 |---|---|---|---|---|---|
-| before this page (tree `2c0d94e`) | 70 | 55 | 0 | 0 | 15 |
-| with this page | 72 | 55 | 0 | 2 | 15 |
-| with RM-02's findings as well | **76** | **55** | **0** | **4** | **17** |
+| `2c0d94e` — epic base, without RM-02 | 70 | 55 | 0 | 0 | 15 |
+| `2c0d94e` + RM-02 | **76** | 55 | 0 | **4** | 17 |
+| `95b2c79` — epic tip after RM-01, without RM-02 | 74 | 59 | 0 | 0 | 15 |
+| `95b2c79` + RM-02 — **the reconciled tree** | **80** | **59** | **0** | **4** | **17** |
+
+**RM-02's delta is identical at both trees: +6 counted, +4 HOLDS, +2 UNREACHABLE,
+REFUTED unchanged.** The base moved from 70/55 to 74/59 because RM-01 added four
+counted figures of its own, all REFUTED; that is RM-01's number and not this
+page's.
 
 **Every figure this ticket contributes to the counted column HOLDS**, re-derived
 against the cards on disk: `D1 = 3 on 55 of 59` and `D2 = 2 on 51 of 59`, each
