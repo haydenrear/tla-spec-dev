@@ -304,9 +304,10 @@ def test_nothing_in_the_repository_invokes_the_pricer() -> None:
     if not hits:
         pytest.skip("no git history in this tree")
     allowed = {
-        "examples/validation/gap_mutants/price_removal.py",
-        "tests/test_price_removal.py",
-        "examples/validation/instruments/instruments.toml",
+        "examples/validation/gap_mutants/price_removal.py",   # itself
+        "tests/test_price_removal.py",                        # its tests
+        "examples/validation/instruments/instruments.toml",   # its registry row
+        "examples/validation/gap_mutants/residual_faults.toml",  # names it in a comment
     }
     unexpected = [h for h in hits if h not in allowed and not h.startswith("specs/")]
     assert unexpected == [], f"something consults the pricer: {unexpected}"

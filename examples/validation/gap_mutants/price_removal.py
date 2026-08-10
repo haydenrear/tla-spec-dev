@@ -460,6 +460,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--head", default=None, help="the removal's head sha, for node survivorship")
     p.add_argument("--removal", default=None, help="a removal id in the manifest")
     p.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
+    p.add_argument("--fault", action="append", default=[],
+                   help="fault id to price; repeatable. Defaults to the removal's declared list.")
     p.add_argument("--out", type=Path, default=None)
 
     e = sub.add_parser("entail", help="what the before-table alone entails, and in which direction")
@@ -467,6 +469,8 @@ def main(argv: list[str] | None = None) -> int:
     e.add_argument("--removal", default=None)
     e.add_argument("--head", default=None)
     e.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
+    e.add_argument("--fault", action="append", default=[],
+                   help="fault id to read; repeatable. Defaults to the removal's declared list.")
     e.add_argument("--out", type=Path, default=None)
 
     a = sub.add_parser("audit", help="the shipped classifier against every published re-run")
@@ -486,7 +490,12 @@ def main(argv: list[str] | None = None) -> int:
     before = json.loads(args.before.read_text(encoding="utf-8"))
     removal = removals.get(args.removal) if args.removal else None
     deleted = list(removal.get("deletes_detectors", [])) if removal else []
-    declared = list(removal.get("gap_mutants", [])) if removal else []
+    # `--removal` supplies the removal's DETECTOR LIST. It does not have to
+    # supply the faults: a fault seeded after the removal landed is priced
+    # against the same cut and is not in that removal's `gap_mutants`. `--fault`
+    # names the subjects; without it they default to the manifest's list, and
+    # without that to every fault in the before-table.
+    declared = list(args.fault) or list(removal.get("gap_mutants", [])) if removal else list(args.fault)
     subjects = declared or sorted(before["per_mutant"])
 
     missing = [m for m in declared if m not in before["per_mutant"]]

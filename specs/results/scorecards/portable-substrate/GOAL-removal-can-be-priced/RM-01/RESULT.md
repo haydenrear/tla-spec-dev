@@ -6,6 +6,31 @@
 
 ---
 
+## 0a. Round conduct, disclosed rather than buried
+
+- **A sibling worktree was running its full suite during my measurement.**
+  `wt-epic-portable-substrate-RM-02` had `pytest tests -q` running on this
+  machine while my staged `pytest-full` columns ran. SM-02 documented that
+  machine contention yields a `DIES` indistinguishable from a real kill.
+  **The direction matters here and it is not symmetric:** my headline needs a
+  `SURVIVES` at the after tree, and contention can only manufacture the other
+  verdict — so contention works *against* the finding, not for it. But my
+  positive control needs a `DIES` at the after tree, and there contention could
+  flatter me. **So the control's verdict is read from its failing NODE, not
+  from a red**, and the node is named in §2.3.
+- **No process was killed by name.** Two processes of my own were stopped by
+  PID after `RM-01-DF-02` crashed a completed run; nothing else was touched.
+- **The measurement ran twice.** The first pass completed every detector and
+  then threw away all of it (`RM-01-DF-02`). The numbers here are from the
+  second, and the first produced no verdict that anyone read.
+- **Nothing in the record was edited to clear a result.** `scope` still reports
+  zero counted figures over this document (§8) and `RM-01-DF-01`..`-DF-04` are
+  filed open, including one against RD-02's shipped instrument.
+- **The probe's first design was confounded and both runs are committed**
+  (§3.1).
+
+---
+
 ## 0. The four sentences
 
 1. **A real removal has been priced non-zero.** `SM-03`'s cut of the
