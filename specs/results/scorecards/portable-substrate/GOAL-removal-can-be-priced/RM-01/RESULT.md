@@ -528,7 +528,75 @@ worktree* — `test_card_has_one_home.py` and `test_code_complexity.py` walk the
 gitignored `.claude/` and `.skill-manager/` homes that `wt new` itself creates.
 **No number below is reported as green.**
 
-<!--SUITE-->
+| tree | commit | result |
+|---|---|---|
+| **ticket worktree**, homes present, real `.git` | **`1af158b`** | **16 failed, 1485 passed** in 875.82s |
+| the same, first run | `1af158b` | **16 failed, 1485 passed** in 900.41s — reproducible |
+| **epic worktree**, homes present, real `.git` — **the parent** | **`2c0d94e`** | **16 failed, 1470 passed** in 850.00s |
+| staged `bf0fb29~1` (`git archive`, no `.git`, no homes) — **pristine baseline only** | `bf0fb29~1` | 9 failing nodes |
+| staged `bf0fb29` (`git archive`, no `.git`, no homes) — **pristine baseline only** | `bf0fb29` | 9 failing nodes |
+
+### THE SUBTRACTION, WHICH IS THE ONLY THING THAT SETTLES IT
+
+Both full runs are real checkouts with the same gitignored homes, one commit
+apart. The failing **sets** — not just the counts — were diffed:
+
+```
+$ comm -23 head-failed.txt parent-failed.txt    # only at HEAD
+$ comm -13 head-failed.txt parent-failed.txt    # only at the parent
+$ comm -12 head-failed.txt parent-failed.txt | wc -l
+      16
+```
+
+**Both differences are empty. All sixteen failures are byte-identical at
+`2c0d94e` and at `1af158b`. NONE of them is mine.**
+
+`denominator_rule` on the passing column: **1470 → 1485, the numerator rose by
+15 and nothing left the denominator.** Eleven are `tests/test_price_removal.py`;
+four are the ticket-workspace tests `scripts/start_ticket.py` scaffolds into
+`specs/tickets/RM-01/tests/`, which go away at close.
+
+**The sixteen, for the next round rather than for me:** six in
+`test_architecture_tags.py`, nine record-auditing nodes in `test_score_tools.py`,
+and `test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces`.
+They are the class `RD-02` §6 recorded as deliberately red, larger than RD-02's
+ten because the card population has moved again. **This ticket did not touch
+them and did not clear any of them.**
+
+**The two staged rows are NOT tree properties.** They are the pristine
+baselines the gap-mutant runner subtracts, in trees with no `.git`, and the nine
+are the tests that read git history. They are here because every verdict in §2.2
+is computed against them, and for no other reason.
+
+### Are the sixteen mine? No, and here is how that was checked rather than asserted
+
+The one most likely to be mine is
+`tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces`,
+because this ticket adds two registry rows. It was run alone and read:
+
+```
+A DECLARED DEMONSTRATION DID NOT REPRODUCE
+  scorecard-audit / failing …          scorecard-scope / passing …
+  scorecard-contested / passing …      scorecard-contested-drift / failing …
+```
+
+**Every non-reproducing slot is a `scorecard-*` row.** Neither `removal-pricer`
+nor `altered-score-probe` appears in that list. Run directly, both reproduce:
+
+```
+$ demonstrate.py --only removal-pricer --only altered-score-probe
+removal-pricer        ok  ok  skip  demonstrated-can-fail
+altered-score-probe   ok  ok  skip  demonstrated-can-fail
+Every declared demonstration reproduced.
+```
+
+The remaining fifteen are `test_score_tools.py` record-auditing nodes and
+`test_architecture_tags.py`'s committed-demonstration node — the class `RD-02`
+§6 recorded as *"deliberately left red; `scope` exits 1 over this repository and
+is expected to"*, now larger because the card population moved again.
+
+The per-node check above is corroborating evidence. **The subtraction is the
+proof**, and it is in the table above: the two failing sets are identical.
 
 **And the standing warning:** the `git archive` figures below, where present,
 are **not tree properties**. Those trees have no `.git`, and the tests that
