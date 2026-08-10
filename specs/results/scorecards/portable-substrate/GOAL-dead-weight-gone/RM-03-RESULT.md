@@ -86,16 +86,26 @@ is reported once and is NOT divided four ways to make each clause look cheap.**
 | `proof` | `tests/test_score_tools.py` | 227 added, 62 removed |
 | `proof` | `tests/test_card_has_one_home.py` | 34 added, 3 removed |
 
-**lines removed 249 · lines added to prove it safe 970 · ratio 1 : 3.9**
-(counting the frozen rubric and both test files as proof, and the rubric and
-tool edits as replacement.)
+**As `removal_census.py` measures it, from the tree:**
+
+```
+| removal                | cut (production) | cut (its own tests) | cut (prose) | replacement | proof | proof / all cut |
+| card-dimensions-to-notes |        0       |          0          |     144     |     522     | 1035  |      7.19       |
+```
+
+**lines cut 144 · lines added to prove it safe 1035 · ratio 1 : 7.19.**
+`proof / production` is `—`: this removal deletes no production line at all. It
+deletes *prose that was a bar*, and the bar's replacement is `replacement`, not
+proof.
 
 **The ratio is reported as it falls and no reclassification was taken.** Moving
-`rubric_v3_frozen.md` out of `proof` — it is arguably `replacement`, since it is
-the bar itself and not a demonstration about it — would improve the ratio to
-1 : 1.05 in one keystroke. RD-02 turned down a free 2.9× on exactly this move
-and RM-06 turned down the largest green available to it; this row keeps the
-worse number.
+`rubric_v3_frozen.md`'s 709 lines out of `proof` — it is arguably `replacement`,
+since it is a bar and not a demonstration about one — would take the ratio from
+**7.19 to 2.26** in one keystroke, and the census's own blind-spot note says
+nothing derives the role and nothing would complain. RD-02 turned down a free
+2.9× on exactly this move and RM-06 turned down the largest green available to
+it; this row keeps the worse number, and the census entry says so in its own
+`reason` field where a reviewer will see it.
 
 ### 3.2 — the architecture tag stops being an adopter-facing surface
 
@@ -245,7 +255,7 @@ anchors. Pick one; do not do both and do not do neither."*
 The clause option fixes portability and nothing else. RM-02 §6 says *"do not
 export"* about both dimensions **on grounds the clause is not responsible for**:
 
-- **D1 is near-constant.** 3 on 55 of 59 `ab_quota_ledger` cards. A dimension
+- **D1 is near-constant.** 3 on 56 of 63 `ab_quota_ledger` cards. A dimension
   that takes one value on the only example a project scores carries no
   information whatever its anchors say, and deleting the model clause from
   anchor 4 does not give it any.
@@ -347,29 +357,54 @@ was *not* designed to produce and neither judge was asked to look for it.
 python3 examples/validation/scorecards/score_tools.py scope
 ```
 
+**Every row names its tree.** The sweep was run three times, and the middle row
+is the one worth reading.
+
 | tree | counted | REFUTED | COUNT-MOVED | HOLDS | UNREACHABLE |
 |---|---|---|---|---|---|
 | `95b2c79` + RM-02 — RM-02's reconciled tree | 80 | 59 | 0 | 4 | 17 |
-| **this ticket's tree** | **81** | **59** | **0** | **5** | **17** |
+| this ticket, **before its four cards were filled** | 81 | 59 | 0 | 5 | 17 |
+| this ticket, **after** — the reconciled tree | **83** | **64** | **0** | **1** | **18** |
 
-**RM-03's delta is +1 counted, +1 HOLDS, and nothing else moves.** The one
-figure this ticket contributes to the counted column is
-`references/eval_scorecard.md:22` — `D1 is 3 on 55 of 59 ab_quota_ledger cards`
-— and it **HOLDS**, re-derived against the cards on disk. This ticket refutes
-nothing and moves no existing figure.
+### THIS TICKET'S OWN ROUND REFUTED RM-02'S FIGURES, AND RD-03 PREDICTED IT
 
-**The applicable bound is the first one, `RD-02-DF-01`** — three of this
-ticket's figures are *invisible* to the checker rather than checked by it, and
-that is stated here rather than left for a reader to discover:
+Filling four cards moved **five figures from HOLDS to REFUTED without one
+character of any swept document changing** — including all four of RM-02's,
+which were the first entries ever to reach the HOLDS column. `D1 = 3 on 55 of
+59` re-derives as **56 of 63**.
 
-- `D5 is 3 or 4 on 53 of 59 ab_quota_ledger cards` — a figure naming **two**
-  values is not matched at all;
+`denominator_rule`, and it goes both ways at once: **the numerator rose (55 → 56)
+and the denominator rose (59 → 63)**. This is `RD-03-DF-11` — *"a published sweep
+count is a joint property of the record and the card population"* — recurring in
+the epic that filed the finding about it.
+
+**`references/portable_scorecard.md` is NOT edited.** A predecessor's statement
+at a predecessor's scope is not rewritten to match a successor's population;
+RM-02 applied that rule to `architecture_tags.md` §2.2 and it applies here. This
+page's figures and the card's own are re-derived at this commit and say so.
+
+**AND A NEW BOUND THIS TICKET CREATED, escalated because the budget is spent.**
+Two of the four cards are **version 4 cards that carry no D1 at all**, and they
+are in the denominator of `D1 = 3 on N of M ab_quota_ledger cards` anyway.
+Retiring a dimension therefore makes every historical figure about it drift
+downwards forever, refuted by cards that cannot carry the value. `scope` counts
+cards, not cards-that-score-the-dimension, and the removal in this very ticket
+is what makes the difference matter.
+
+### The bound that applies to what this page could not check
+
+**The first one, `RD-02-DF-01`.** Three of this ticket's figures are *invisible*
+to the checker rather than checked by it:
+
+- `D5 is 3 or 4 on 55 of 63 ab_quota_ledger cards` — a figure naming **two**
+  values is not matched at all, so it is neither refuted nor UNREACHABLE. It is
+  re-derived by hand here and it was stale until this page did so;
 - `D4 tier-splits on 4 of the 8 judge groups` — counts judge groups, not cards;
 - `an anchor decision cites this project's machinery in 38% of D1 rationales` —
   a percentage of rationales is not a card count.
 
-Not `RD-04-DF-01` and not `RM-02-DF-05`: the one figure that *is* counted parses
-correctly and resolves its example.
+Not `RD-04-DF-01` and not `RM-02-DF-05`: the figures that *are* counted parse
+correctly and resolve their example.
 
 ---
 

@@ -19,18 +19,22 @@ What version 4 changed, and why each is a REMOVAL:
    measured to grade *this project's toolchain* rather than the artifact — an
    anchor decision cites this project's machinery in 38% of D1 rationales and
    18% of D4 rationales, against 4% on D2 and 0% on D3 — and both were measured
-   not to survive the trip to another project: D1 is 3 on 55 of 59
+   not to survive the trip to another project: D1 is 3 on 56 of 63
    `ab_quota_ledger` cards, and D4 is the worst-behaved dimension in the record
    at 4 tier-split judge groups of 8. See `references/portable_scorecard.md`
-   §1.1 and §6.
+   §1.1 and §6. **That figure is 56 of 63 at the card population of this
+   commit** — RM-02 published it as 55 of 59 and RM-03's own re-score round
+   moved both terms, which is `RD-03-DF-11` and not a correction to RM-02.
 2. **D2's anchor 4 is gone**, and D2's preamble no longer requires a measured
    descriptor to be read first. Anchor 4 gated the one portable dimension on
    `D4 ≥ 3`, and that gate is the measured mechanism behind D2's tier split: 4
    of 4 `sonnet` judges name the model clause as their D2 ceiling and 0 of 4
    `opus` judges do.
 3. **D5 is no longer scored.** It is a recorded note. It is orthogonal to
-   architecture by measurement, saturated at 3 or 4 on 53 of 59
-   `ab_quota_ledger` cards, and it still tier-splits.
+   architecture by measurement, saturated at 3 or 4 on 55 of 63
+   `ab_quota_ledger` cards at this commit's population, and it still
+   tier-splits. RM-02 published it as 53 of 59 and both terms moved for the same
+   reason D1's did.
 
 **The discipline is kept; the number is not.** A version 4 card still records
 what the cases caught, whether the behaviour survived, and what the artifact
