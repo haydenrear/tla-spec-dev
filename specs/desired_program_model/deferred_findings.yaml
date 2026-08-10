@@ -9437,3 +9437,308 @@ findings:
       is one pytest node over the whole tier, so one such row makes the entire
       tier read red with no indication of which.
     disposition: open
+
+  - id: RM-03-DF-01
+    found_by: "RM-03"
+    found_at_commit: "1e6f691"
+    schedule_revision: 1
+    severity: blocking
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/gap_mutants/run_gap_mutants.py", "examples/validation/gap_mutants/price_removal.py"]
+    summary: >-
+      ESCALATED TO THE OWNER RATHER THAN DECIDED HERE. RM-03 WAS INSTRUCTED TO
+      CUT THE GAP-MUTANT RUNNER, AND CUTTING IT RETIRES THE ONLY PRODUCER OF AN
+      AFTER-TABLE ONE TICKET AFTER RM-01 WAS BUILT TO MAKE AFTER-TABLES MEAN
+      SOMETHING.
+
+      `price_removal.py` has two modes. `entail` reads a before-table and a diff
+      and is sound towards SURVIVES, which is the direction a price lives in;
+      it survives this cut untouched and every sealed before-table stays
+      readable forever. `price` reads a MEASURED after-table, and the only thing
+      in this repository that has ever produced one is
+      `run_gap_mutants.py`. After RM-03 nothing does.
+
+      So `removal_is_a_delta_rule` -- "every removal ships with a mutant seeded
+      in its gap BEFORE the cut, and both outcomes are results" -- keeps its
+      before half and loses its after half. A future removal can be shown to
+      have taken every kill its fault HAD (`ENTAILED-SURVIVES`, an upper bound on
+      the price); it cannot be shown what the after tree actually does, which is
+      the bound `price_removal.py`'s own docstring names on that verdict.
+
+      THE COST IS DEMONSTRATED, NOT ARGUED. RM-03 had to restore the runner from
+      git as an untracked scratch file to measure the after-state of its OWN
+      removals. A ticket that must resurrect the instrument it deleted in order
+      to report on the deletion is the shape of the problem.
+
+      RM-02 §5.4's argument for the cut is an ADOPTION argument and it is
+      correct: `gap_mutants.toml` is 576 lines of hand-authored faults in
+      `ab_quota_ledger`, there is no version of it an adopter receives, and the
+      runner has nothing to run without it. RM-03 executed the instruction. What
+      is escalated is the CONSEQUENCE, because it binds RM-04 and RM-05 and
+      neither was told about it.
+    reproduction: >-
+      `git show 90d0667:examples/validation/gap_mutants/run_gap_mutants.py` --
+      the file exists at the ticket's before-ref and not at its head. Then
+      `python3 examples/validation/gap_mutants/price_removal.py price --help`:
+      the mode is still shipped and there is no longer anything that writes its
+      `--after` input.
+    evidence:
+      - "examples/validation/gap_mutants/price_removal.py -- the `price` subcommand and the ENTAILED-SURVIVES bound"
+      - "specs/results/scorecards/portable-substrate/GOAL-dead-weight-gone/RM-03-RESULT.md"
+      - "references/portable_scorecard.md:371-384"
+    why_out_of_scope: >-
+      It is not out of scope -- it is a conflict between two instructions RM-03
+      was given, and the deferment policy says blocking escalates to the owner.
+      RM-03 took the reversible path: the cut was made as instructed, and the
+      runner is one `git checkout 90d0667 --` away for anyone who decides the
+      capability is worth more than the 1209 lines.
+    suggested_fix: >-
+      Decide at RM-05 with the numbers in front of you. If the after-table
+      capability is wanted, restore `run_gap_mutants.py` ALONE and leave
+      `gap_mutants.toml` deleted -- the runner takes `--catalogue` and the
+      fixture-bound catalogue is the part RM-02's adoption argument is actually
+      about. If it is not wanted, delete `price_removal.py`'s `price` mode as
+      well, because a shipped mode with no possible input is the class of dead
+      surface this epic exists to remove.
+    blast_radius: >-
+      RM-04 and RM-05, and every future epic that opens on a removal.
+    disposition: open
+
+  - id: RM-03-DF-02
+    found_by: "RM-03"
+    found_at_commit: "90d0667"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_gap_mutants.py"]
+    summary: >-
+      A GAP MUTANT CANNOT BE SEEDED IN THE CATALOGUE THAT DECLARES IT.
+
+      `test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree` counts
+      occurrences of `edit.find` inside `edit.path`. For a mutant whose
+      `edit.path` IS `gap_mutants.toml`, the mutant's own `find` line and its own
+      `replace` line are occurrences, so the count is at least three by
+      construction and the row is refused before anything runs.
+
+      RM-03 wanted such a row -- drift one shipped anchor so it matches nothing,
+      and see whether the tripwire still catches it -- to price the CATALOGUE
+      separately from the runner. The row cannot exist, so the catalogue was
+      priced through the runner instead and this is recorded rather than worked
+      around.
+
+      IT IS NOT A DEFECT IN THE TRIPWIRE. The tripwire is what caught SM-01's own
+      control after SM-03 repaired the row underneath it, and weakening it to buy
+      one measurement would be the trade this project keeps refusing. It is a
+      bound on what the instrument can measure, and the class it cannot measure
+      is "faults in the fault catalogue" -- which is exactly the class
+      `RD-03-DF-20` says nobody has ever checked for.
+    reproduction: >-
+      Add any `[[mutant]]` to `gap_mutants.toml` whose `edit.path` is
+      `examples/validation/gap_mutants/gap_mutants.toml`, then run
+      `pytest tests/test_gap_mutants.py -k anchor_occurs`. It reports `anchor
+      occurs 3x`, whatever the anchor is.
+    evidence:
+      - "tests/test_gap_mutants.py -- test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree"
+      - "examples/validation/gap_mutants/gap_mutants.toml -- `THE FIFTH ROW, AND WHY IT IS NOT HERE`"
+    why_out_of_scope: >-
+      Fixing it means either exempting self-referential rows from the tripwire --
+      which exempts exactly the rows most likely to be wrong -- or moving the
+      declaration out of the file it edits. Both are designs, and RM-03's job was
+      the removal.
+    suggested_fix: >-
+      Count occurrences EXCLUDING the declaration's own two lines, or hold
+      catalogue-targeting mutants in a sibling file. Neither is worth doing until
+      something needs to price a catalogue.
+    blast_radius: >-
+      Any future attempt to seed a fault in a fault catalogue.
+    disposition: open
+
+  - id: RM-03-DF-03
+    found_by: "RM-03"
+    found_at_commit: "1e6f691"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md", "examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      THE CARD'S OWN RULES MAKE A CARD REMOVAL NET-ADDITIVE BY CONSTRUCTION, AND
+      THIS IS THE MECHANISM BEHIND "EVERY EPIC THAT CALLED ITSELF A
+      SIMPLIFICATION CAME OUT NET-ADDITIVE".
+
+      `Changing this card` requires "keep the old anchors in the file". `R-H4`
+      requires "a sealed card is never edited", and 73 sealed cards are still
+      checked by `score_tools.py`. Together:
+
+      (a) a retired anchor LEAVES THE SERVED SECTION AND STAYS IN THE FILE, so a
+      rubric cut deletes no prose from the rubric -- it moves it;
+
+      (b) every line of the tool that enforces a version 1-3 rule MUST STAY,
+      because it is the only thing still checking those cards, so a rubric cut
+      deletes no code either;
+
+      (c) the version bump adds a branch, and a branch is longer than the thing
+      it branches.
+
+      Measured on version 4, which retired three dimensions and deleted one
+      anchor: `references/eval_scorecard.md` +236/-144 and
+      `examples/validation/scorecards/score_tools.py` +247/-40. THE CARD AN
+      ADOPTER READS GOT MUCH SMALLER -- `serve` emits two dimensions and three
+      note prompts where it emitted five anchor ladders. THE SUBSTRATE GOT
+      LONGER.
+
+      Neither rule should be dropped: (a) is what makes a historical comparison
+      readable and (b) is what keeps a check from quietly stopping. What is wrong
+      is REPORTING a card simplification in lines at all. The figure that moved
+      is what a judge is served, and nothing in this repository measures that.
+    reproduction: >-
+      `git diff --numstat -U0 90d0667 1e6f691 -- references/eval_scorecard.md
+      examples/validation/scorecards/score_tools.py`, against
+      `python3 examples/validation/scorecards/score_tools.py serve | wc -l` at
+      each of the two commits.
+    evidence:
+      - "references/eval_scorecard.md -- `WHAT THIS RULE COSTS A REMOVAL`"
+      - "specs/results/scorecards/portable-substrate/GOAL-dead-weight-gone/RM-03-RESULT.md"
+    why_out_of_scope: >-
+      RM-03 could act on it only by breaking one of the two rules it is about,
+      and both are on the epic's do-not-cut list for good reasons.
+    suggested_fix: >-
+      Measure a card change in SERVED BYTES -- what `serve` emits -- and never in
+      repository lines. `served_digest` already covers exactly those bytes, so
+      the denominator exists and nothing needs to be built. RM-03 measured both:
+      the served rubric went 8220 bytes -> 6272 and 25 anchor rungs -> 9 while
+      the two files grew by 482 lines net. The two figures point in OPPOSITE
+      directions on the same change, which is the whole finding; RM-05 should
+      report both and say which one an adopter experiences.
+    blast_radius: >-
+      Every claim any epic has made about the size of a card change, and RM-05's
+      headline.
+    disposition: open
+
+  - id: RM-03-DF-04
+    found_by: "RM-03"
+    found_at_commit: "9f110ae"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["PORTABLE-SUBSTRATE-EPIC.md", "specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      ONE OF THE EPIC'S THREE DEAD LEVERS WAS NEVER CARRIED BY THE SUBSTRATE, SO
+      THERE WAS NOTHING TO REMOVE.
+
+      `PORTABLE-SUBSTRATE-EPIC.md` §2 and the plan's `purpose` both list "the
+      suite as a finding channel" among three levers "still carried", and RM-03
+      was told to remove what RM-02's scope says to remove OF THE THREE.
+
+      Searched at `9f110ae`: `SKILL.md`, `references/`, `prompts/`, `scripts/`
+      and `templates/` contain no instruction to run the suite as a source of
+      findings, and no document funds it as one. The suite appears in shipped
+      material in exactly one role -- the acceptance command of every ticket in
+      `ticket_plan.yaml` -- which is the regression-guard job it keeps.
+
+      The funding lives in ROUND PRACTICE: an epic owner's dispatch text, once
+      per round. That is real and it is worth stopping, and it is not something
+      a ticket can delete from a tree. So this lever's honest line count is ZERO
+      REMOVED AND ZERO ADDED, and reporting anything else for it would be
+      inventing a removal.
+
+      The same shape applies more weakly to "static gates": the complexity gate
+      was already advisory, `fitness_functions.py` says of itself that firings
+      are advisory, `scope`, `audit`, `run_gap_mutants.py` and
+      `price_removal.py` each say in their own docstrings that they are not
+      gates. See RM-03-DF-05 for the one that is left.
+    reproduction: >-
+      `grep -rn "full suite\|whole suite\|run the suite" SKILL.md references/
+      prompts/ scripts/ templates/` at `9f110ae` -> no matches.
+    evidence:
+      - "PORTABLE-SUBSTRATE-EPIC.md:34-35"
+      - "specs/desired_program_model/ticket_plan.yaml -- purpose, GOAL-dead-weight-gone baseline"
+    why_out_of_scope: >-
+      A charter's statement at a charter's scope is not edited to match a
+      successor's finding -- the same rule RM-02 applied to
+      `architecture_tags.md` §2.2. It is filed and left standing.
+    suggested_fix: >-
+      RM-05 should count this lever as REMOVED-BY-NOTHING rather than as removed,
+      and the next epic charter should distinguish "carried by the tree" from
+      "carried by our habits". Only the first can be cut by a ticket.
+    blast_radius: >-
+      GOAL-dead-weight-gone's verdict, which otherwise reads as three removals
+      where the tree only ever held two.
+    disposition: open
+
+  - id: RM-03-DF-05
+    found_by: "RM-03"
+    found_at_commit: "9f110ae"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/kill_test.py", "scripts/run_kill_test.py"]
+      tla: ["specs/desired_program_model/TlaSpecDevCli.tla"]
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      THE ONE HARD STATIC GATE LEFT IN THIS REPOSITORY IS A SPECIFIED ACTION OF
+      THE MODEL, SO REMOVING IT IS A MODEL DELTA AND RM-03 DECLARES NONE.
+
+      The epic's second dead lever is "static gates catch defects -- FAILS, five
+      epics, no caught bug". Every candidate RM-03 examined disclaims gatehood in
+      its own docstring except one: `scripts/kill_test.py`, whose
+      `kill_rate_floor` is described there as "a hard gate, and the load-bearing
+      one" -- the value floor that makes the cost caps safe.
+
+      It is also the largest single removal available to this ticket by lines:
+      `kill_test.py` 1149 + `run_kill_test.py` 235 + `tests/test_kill_test.py`,
+      and it belongs to BOTH failed levers at once -- a static gate over
+      model-derived case bug-finding.
+
+      RM-03 REJECTED IT, and the reason is not caution. `kill_test` is a
+      specified action of `TlaSpecDevCli.tla`; it appears in `spec_manifest.yaml`,
+      `kill_mutants.toml`, `production_adapters.py`, `adapter_case_runtime.py`
+      and three spec-unit adapter tests across `specs/current`,
+      `specs/program_model`, `specs/desired_program_model` and RD-06's ticket
+      copies. Cutting it is a change to the model, and RM-03's plan entry says
+      `model_delta_expectation: none expected`. Taking the largest available
+      removal by silently changing the specification is the shape of error this
+      epic keeps finding.
+
+      Recorded loudly because it is the one removal that would have made this
+      ticket's numbers look much better.
+    reproduction: >-
+      `grep -rl "kill_test\|kill_rate_floor" specs/ | grep -c .` at `9f110ae`,
+      and `sed -n '24,40p' scripts/kill_test.py` for the gate's own description
+      of itself.
+    evidence:
+      - "scripts/kill_test.py:24-40 -- `Why the floor is a hard gate, and why it is the load-bearing one`"
+      - "specs/desired_program_model/TlaSpecDevCli.tla"
+      - "scripts/budgets.py:22-27 -- the EXPERIMENTAL fuzzing-era keys"
+    why_out_of_scope: >-
+      A model delta, in a ticket whose plan entry declares none. It needs its own
+      ticket with a `desired` TLA+ edit, spec-unit adapter updates and a
+      current/desired reconciliation.
+    suggested_fix: >-
+      Open it as its own ticket against the CLI model, and settle the prior
+      question first: the memory of 2026-07-21 records a kill probe that caught
+      0 of 9 content bugs and a decision to "ship the scanner, drop
+      case-advising". If that decision stands, the whole EXPERIMENTAL fuzzing
+      surface goes together -- gate, catalogue keys in `budgets.py`, and the
+      model action -- rather than the gate alone.
+    blast_radius: >-
+      GOAL-dead-weight-gone: the "static gates" lever cannot be closed by any
+      ticket that forbids a model delta, and no ticket in this epic permits one.
+    disposition: open
