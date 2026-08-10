@@ -113,7 +113,7 @@ epic_goals:
 tickets:
   - id: RM-01
     title: Build a gap mutant that can actually go DIES to SURVIVES
-    status: closed
+    status: planned
     github_issue: https://github.com/haydenrear/tla-spec-dev/issues/209
     schedule_revision: 1
     depends_on: []
@@ -192,47 +192,6 @@ tickets:
     acceptance:
       commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
       assertions: ['A decision with evidence drawn from the 73 sealed cards, not from the anchors'' wording.', 'An explicit list of what is IRREDUCIBLY LOCAL, with reasons.', 'Which dimensions survive the trip, and which must not be exported.', NO production code ships.]
-    model_delta_expectation: none expected
-  - id: RM-06
-    title: 'Restore the baseline: 16 tests pinned to a record that RD-03 grew'
-    status: planned
-    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/216
-    schedule_revision: 1
-    depends_on: [RM-01]
-    blocks: [RM-03, RM-05]
-    wave: 1
-    promotion_order: 25
-    promotion_predecessor: RM-02
-    conflict_keys:
-      production: []
-      tla: []
-      adapters: []
-      test_graph: []
-      workflow: [specs/results/scorecards/INSTRUMENT-LOG.toml, examples/validation/instruments/instruments.toml]
-    objective: >-
-      BLOCKING -- RM-03 cannot price a removal against a red baseline. main at 19c5c7b is red (16 failed, 1470 passed) and so is this epic's base 2c0d94e, measured independently three times with byte-identical failing sets. The failures are one phenomenon: RD-03's round added 24 cards and these tests pin expectations to a snapshot of a record the round legitimately grew. RD-03 PREDICTED IT -- 'THE SWEEP COUNT IS A JOINT PROPERTY OF THE RECORD AND THE CARD POPULATION' (NEXT-EPIC.md section 0-AAAAAA 5). SORT ALL SIXTEEN INTO THREE GROUPS AND THE SPLIT IS THE DELIVERABLE -- (1) pinned to a count the record grew, re-derive the expectation so the test still fails when BEHAVIOUR changes but not when the corpus does, and NEVER replace an exact count with a >= 1 floor; (2) controls that are GENUINELY failing, which STAY RED and become findings; (3) claims that were true and are now false, where the honest repair is to rewrite the claim rather than restore the number. A TEST MAY NOT BE DELETED OR WEAKENED TO REACH GREEN. Partial green with a clear account beats full green with a quiet edit.
-    desired_actions: []
-    implementation_scope: [tests/, specs/results/scorecards/, examples/validation/instruments/]
-    goals:
-      - goal: GOAL-dead-weight-gone
-        contribution: enabling
-        expected_effect: none -- it makes RM-03's removals measurable against a baseline that is not already red
-        local_signal: the sixteen sorted into three groups, with which stay red
-      - goal: GOAL-removal-can-be-priced
-        contribution: guard
-        expected_effect: none expected
-        local_signal: N/A
-      - goal: GOAL-dimensions-replicate
-        contribution: guard
-        expected_effect: none expected
-        local_signal: N/A
-      - goal: GOAL-portable
-        contribution: guard
-        expected_effect: none expected
-        local_signal: N/A
-    acceptance:
-      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
-      assertions: ['All sixteen sorted into the three groups, with a reason for each.', 'Which stay red, and why that is the correct outcome for them.', 'The full-suite number reported WITH ITS TREE, before and after, from a REAL checkout.', 'No test deleted, and no exact count replaced by a >= 1 floor.', 'Every re-derived expectation still fails when behaviour changes.']
     model_delta_expectation: none expected
   - id: RM-03
     title: Remove the three levers that failed against a control, and price the removal honestly

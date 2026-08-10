@@ -20880,6 +20880,177 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "RM-02",
+      "workflow": "portable-substrate-epic",
+      "recorded_at_utc": "2026-08-10T18:23:06.753478+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 17,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 1111320,
+        "bound_complete": false,
+        "bound_resolved_variables": 7,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.00334800669601341,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 1,111,320 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 7 of 9 declared variables, so the complete bound is at least this large)",
+          "component C1 has 7 variables (complexity_gate, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 16 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 1111320,
+            "bound_complete": false,
+            "percent_lower_bound": 111.1,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 7 of 9 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "RM-01",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 17,
+            "after": 17,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 1111320,
+            "after": 1111320,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "NO COMPLEXITY INCREASE IS CLAIMED OR HIDDEN. This ticket ships no production code and no model element; `implementation_scope` is `references/` and `specs/results/` and nothing outside them was touched except the ticket plan status and `deferred_findings.yaml`. What it adds to the repository is one reference page, one evidence directory and five findings. What it RECOMMENDS is entirely subtractive.",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "not_applicable",
+          "classification": "unverified",
+          "evidence": "RESEARCH TICKET -- no model change. specs/tickets/RM-02/desired == current, verified by diff -rq at close. There is no pre-change model distinct from the post-change one, so a TLC run here would witness nothing about this ticket.",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "not_applicable",
+          "classification": "unverified",
+          "evidence": "As above. NOT `green`: claiming a green for a run that decides nothing about this change would be the false-clean this project's D5 exists to refuse.",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "red_at_baseline_and_unchanged_by_this_ticket",
+          "classification": "unverified",
+          "evidence": "NOT `pass`, AND NOT A FAILURE OF THIS TICKET. The declared acceptance command `uv run --with pytest --with pyyaml python -m pytest tests -q` reports 17 failed / 1473 passed, run twice with the same 17.\nEXACTLY ONE OF THE 17 WAS RM-02'S, and pytest named it itself: `test_card_has_one_home.py::test_only_the_card_states_a_dimension_an_anchor_or_a_scoring_rule` asserted on `references/portable_scorecard.md:122`, where the draft had quoted D3's anchors verbatim. The test is right -- a second statement of the bar is a copy nothing compares to the bar. FIXED BY REPLACING THE QUOTE WITH A POINTER, never with a corrected copy; that file now passes 8 of 8.\nTHE OTHER 16 ARE PRE-EXISTING AT THE EPIC BASE, measured rather than assumed. All nine named `test_score_tools.py` failures were re-run alone at `2c0d94e` and every one fails there: `9 failed in 318.19s`. And the three tool outputs those tests read are BYTE-IDENTICAL between `2c0d94e` and this tree -- `contested`, `history --example ab_quota_ledger` and `index` all diff clean -- while `audit` exits 1 on both. `scope` moves REFUTED 55 -> 55 and COUNT-MOVED 0 -> 0.\nTHIS IS RECORDED RATHER THAN REPAIRED. The suite is red at the epic base because the record has grown past figures sealed into the tests; repairing it during a measurement is the move this epic forbids.",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "not_applicable",
+          "classification": "unverified",
+          "evidence": "No complexity delta to compare: this ticket adds no production code and no model element. The before/after that DOES exist is over prose and two evidence-root scripts, which the descriptor does not measure and must not be asked to.",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=not_applicable (UNVERIFIED)",
+        "tlc_after=not_applicable (UNVERIFIED)",
+        "behavior_tests=red_at_baseline_and_unchanged_by_this_ticket (UNVERIFIED)",
+        "descriptor_comparison=not_applicable (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "SEARCHED, FOUND NONE -- and the search was over the RIGHT surface, which for this ticket is not the model. RM-02 is a research ticket: it adds no TLA+ variable, no action, no adapter and no production code, so the model is byte-identical before and after and there is no refinement of it to find.\nThe refinement search that IS meaningful here was run over the SUBSTRATE, and its output is the whole ticket: `references/portable_scorecard.md` \u00a75 names five removals and zero additions. Every recommendation this ticket makes reduces what the project carries. Nothing in it proposes an instrument, a field, a check, a mode or a gate -- see \u00a78, \"What was rejected\", where a portability layer, an `--external` mode, a non-TLA+ path for D1/D4 and a sixth dimension were each considered and refused.\nONE THING WAS ADDED AND IT IS NOT A REFINEMENT CANDIDATE: two analysis scripts under the evidence root. They read sealed cards, print, and exit 0 unconditionally. Nothing imports them, no close path consults them, and neither has a refusal branch.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "specs/results/scorecards/portable-substrate/GOAL-portable/RESULT.md",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }
