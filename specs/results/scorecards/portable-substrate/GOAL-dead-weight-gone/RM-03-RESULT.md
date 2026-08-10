@@ -17,11 +17,42 @@ page and which of its four bounds applies.
 
 ## 1. The baseline, and the six that stay red
 
+Command, both rows: `uv run --with pytest --with pyyaml python -m pytest tests -q`,
+in this worktree, on a clean tree with nothing else running against it.
+
 | tree | result |
 |---|---|
-| `9f110ae` — the branch point, a real checkout, `uv run --with pytest --with pyyaml python -m pytest tests -q` | **6 failed, 1491 passed** in 841s |
+| `9f110ae` — the branch point | **6 failed, 1491 passed** in 841s |
+| `a9f0b55` — this ticket's tip | **7 failed, 1461 passed** in 910s |
+| `a9f0b55` + the one repair below | **6 failed, 1462 passed** *(the repaired node, run alone)* |
 
-The six are RM-06's, left red on purpose. **This ticket repaired none of them.**
+**The six that stay red are RM-06's and this ticket repaired none of them.**
+
+`denominator_rule` on the passing count, 1491 → 1461: **the denominator fell.**
+This ticket deleted `tests/test_gap_mutants.py`, 32 collected nodes, and added
+five of its own; 1491 − 32 + 5 = 1464, and three more nodes moved into the
+failing column and back out again during the repairs below. No test was deleted
+to reach green and no exact count was replaced by a floor.
+
+**Two suite numbers taken earlier in this ticket are DISCARDED, and the reason
+is the operator's.** A run at `d3e8e9b` reported `8 failed, 1464 passed` and a
+run at `d2ec582` never finished, both because they were taken **while the tree
+was changing under them** — the after-table measurement had temporarily restored
+`run_gap_mutants.py` as an untracked scratch file, and the ticket close-out
+deleted `specs/tickets/RM-03/` mid-run. A number taken over a moving tree is a
+number about no tree. Both were re-taken rather than reported.
+
+**The one failure this ticket caused and repaired**,
+`tests/test_price_removal.py::test_nothing_in_the_repository_invokes_the_pricer`:
+it asserts no file outside a small allow-list names `price_removal`, and
+`tests/test_removal_census.py` now **mentions** it in a comment explaining why
+RM-03's mutants read `NOT-IN-TABLE` under `discriminate`. Repaired by adding
+that file to the allow-list with its reason, exactly as `residual_faults.toml`
+already sits there. **A stronger repair was written and then reverted**: a check
+that a mention is not an invocation. It could not tell a registry `paths =`
+declaration from a call, and shipping a fragile new check to make a point about
+mention-versus-claim would have been worse than the gap it closed. The gap is
+real and is `RD-05` §7.1's class.
 
 ```
 tests/test_architecture_tags.py::test_the_same_tag_control_holds                     RM-06-DF-01
