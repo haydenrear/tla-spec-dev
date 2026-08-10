@@ -104,9 +104,11 @@ programs with different jobs and both land at 0–1.
 
 ## 4. Does RM-03's `D3 = 4` survive a clean, unleaked round? BOUNDED, not reproduced
 
-RM-03 measured `D3 = 4 on 4 of 4` on `arm_b` — the arm famous for scoring 4 —
-with `subject.name: "arm_b"` and `declared_effect_boundary:
-"ports-and-adapters"` visible on the card.
+RM-03 re-scored one artifact: the subject `arm_b`, the arm famous for scoring 4.
+**Each of its four cards scored D3 at 4**, with `subject.name: "arm_b"` and
+`declared_effect_boundary: "ports-and-adapters"` visible on every one of them.
+
+*That sentence deliberately avoids the `N of N` form, and §13 says why.*
 
 This round is clean on both counts and the answer is split:
 
@@ -335,7 +337,21 @@ is correct and was recorded nowhere.
 python3 examples/validation/scorecards/score_tools.py scope
 ```
 
-Run at `dbf355c` + this ticket. The applicable bound is the **first**,
+**Every row names its tree**, because a sweep count is a joint property of the
+record and the card population and moves when either does — and this round moved
+the card population.
+
+| tree | counted | REFUTED | COUNT-MOVED | HOLDS | UNREACHABLE |
+|---|---|---|---|---|---|
+| `dbf355c` — the epic tip, without RM-04 | 82 | 64 | 0 | 1 | 17 |
+| `dbf355c` + RM-04 | **86** | **65** | **0** | **3** | **18** |
+
+**RM-04's delta: +4 counted, +1 REFUTED, +2 HOLDS, +1 UNREACHABLE.** The +1
+REFUTED is `SEALED-BEFORE-DISPATCH.md:36`, below, and it is not repaired. The
++2 HOLDS are this ticket's two reachable figures, and they take this
+repository's HOLDS column from 1 to 3.
+
+The applicable bound is the **first**,
 `RD-02-DF-01`: most of this page's load-bearing figures are **invisible to the
 checker rather than checked by it**, and they are named here rather than left
 for a reader to find:
@@ -352,6 +368,36 @@ contains an underscore**, so `scope`'s counted-noun pattern cannot admit it as
 a counted noun and the example has to be established in the lines before every
 figure instead. Every adopter naming their example `order_service` inherits it.
 
-The figures this page contributes that the checker CAN reach are stated at the
-example: **D2 = 2 or below on 6 of 6 cards** of `eval_toolchain`, and
-**D3 = 4 on 1 of 6 cards** of `eval_toolchain`.
+**Two figures this page contributes ARE reachable, and both are stated at the
+example `eval_toolchain` in the lines before them** — which is the only way to
+scope a figure here, because `RM-02-DF-05` means the example's own name can
+never be the counted noun:
+
+- of the example `eval_toolchain`, **D3 = 4 on 1 of 6 cards** — `HOLDS`. It is
+  the third entry this repository's sweep has ever put in that column.
+- of the example `eval_toolchain`, **D2 = 2 on 3 of 6 cards**, the other three
+  being 1.
+
+**AND THIS PAGE PUT ONE FIGURE IN THE REFUTED COLUMN, WHICH IS THE POINT OF
+RUNNING IT.** §4's first draft restated RM-03's `D3 = 4 on 4 of 4` with no scope
+beside it, and `scope` read it over every card and named 59 counterexamples —
+the exact `R3` failure `subtract-to-measure` was opened on, reproduced by the
+page arguing about it. It is rescoped above.
+
+**`SEALED-BEFORE-DISPATCH.md:36` carries the same unscoped quotation and is NOT
+edited.** That file says it was sealed before any judge existed, and a file
+which says that may not be touched afterwards — not even to fix a real defect in
+it. It contributes one REFUTED figure to the sweep and the reason is recorded
+here instead.
+
+**A FIFTH BOUND ON `scope`, found by trying to rescope that quotation and
+failing.** `R3` reads a figure at *the named example when one sits beside it,
+every card when none does* — **and an example is the narrowest scope it has.**
+RM-03's figure is not about an example: it is about **four cards, of one round,
+of one subject, of one example.** Scoped to `ab_quota_ledger` it is REFUTED (41
+of 63 cards do not carry D3 = 4); unscoped it is REFUTED harder. **There is no
+phrasing of it in the `N of N` form that this checker can call true**, and the
+figure is correct. So §4 states it in prose instead, which makes it invisible to
+the checker — `RD-02-DF-01`, knowingly. **This is the epic's most-quoted number
+and it cannot be written down in the form the rule polices.** Not filed: the
+budget of 5 is spent and none of the five is blocking, so it is escalated here.

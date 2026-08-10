@@ -8,8 +8,24 @@ Example: `eval_toolchain` · scaffolded 20260810 · tag `rm04`
 |---|---|---|
 | `LL` | **rm04_scripts** | |
 
-The labels are drawn from a pool that excludes every label any prior round published, so a judge who stumbles into a sealed run cannot read this round's arms off it.
+The label is drawn from RM-04's widened pool: a STRING over the characters this record has never published (`G J L V`), at width 2. No label here has been published and no CHARACTER of one has been either, so a judge who saw `T` in a prior round meets nothing that shares a character with it. Drawn with seed `20260810` and passed to `scaffold` explicitly; the seed is recorded here and nowhere a judge can reach.
+
+**The card carries no subject name and no declared axis value.** RM-04 fixed that: `subject.name` is `null` and `blinded` is `true`, and `check` resolves the scope against `subjects.toml` rather than reading a name off the card.
 
 ## What each judge could and could not see
 
-_Fill this in before the round closes: what was supplied, what was forbidden, and every disclosure a judge volunteered. A leak that is disclosed is recorded, never used as grounds to discard a card — discarding a card after seeing its score is the one move a round may not make._
+**Supplied:** the declared scope `scripts/` and the card. **No before tree** --
+`scripts/` is byte-identical at `19c5c7b` and `dbf355c` (tree `e9d5544`), so the
+epic produced none for it, and both judges were told so and said so on their
+cards rather than inventing one.
+
+**Forbidden and observed:** `references/eval_scorecard.md`, any other card, any
+`UNBLINDING*.md`, `SEALED-BEFORE-DISPATCH.md`, `INSTRUMENT-LOG.toml`, any
+`RESULT.md`, and `examples/validation/scorecards/subjects.toml`. Neither card
+cites any of them.
+
+**Disclosures volunteered.** `p1`: ran `git status` to confirm it had changed
+nothing else and saw sibling card DIRECTORY NAMES, including the other labels;
+opened none, and did not learn what `LL` maps to. Both passes noted that
+`mechanical.json` records commit `82936ef` while HEAD had moved; `scripts/` is
+byte-identical between them, so the block binds.

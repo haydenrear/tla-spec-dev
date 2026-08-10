@@ -8,8 +8,39 @@ Example: `eval_toolchain` · scaffolded 20260810 · tag `rm04`
 |---|---|---|
 | `GG` | **rm04_eval_harness** | |
 
-The labels are drawn from a pool that excludes every label any prior round published, so a judge who stumbles into a sealed run cannot read this round's arms off it.
+The label is drawn from RM-04's widened pool: a STRING over the characters this record has never published (`G J L V`), at width 2. No label here has been published and no CHARACTER of one has been either, so a judge who saw `T` in a prior round meets nothing that shares a character with it. Drawn with seed `20260810` and passed to `scaffold` explicitly; the seed is recorded here and nowhere a judge can reach.
+
+**The card carries no subject name and no declared axis value.** RM-04 fixed that: `subject.name` is `null` and `blinded` is `true`, and `check` resolves the scope against `subjects.toml` rather than reading a name off the card.
 
 ## What each judge could and could not see
 
-_Fill this in before the round closes: what was supplied, what was forbidden, and every disclosure a judge volunteered. A leak that is disclosed is recorded, never used as grounds to discard a card — discarding a card after seeing its score is the one move a round may not make._
+**Supplied:** the declared scope `examples/validation/` and the card. No before
+tree, deliberately.
+
+**THE LEAK THIS ROUND COULD NOT REMOVE, AND IT LANDED HERE.** This subject's
+declared scope CONTAINS `examples/validation/scorecards/subjects.toml`, which
+declares the subject and its `declared_effect_boundary`, and
+`score_tools.py`, which is the instrument. There is no version of `scaffold`
+that fixes that: the judge has to be told what to read, and the key is inside it.
+
+`p1` found it, stopped, and disclosed it in full on its card -- naming the entry
+that declares its own scope as `ports-and-adapters`, and the sealed prediction
+that D2 is bounded at 2 for its artifact. **It also recorded that its D3 went
+AGAINST the declared value's direction** (2, where the declaration says
+ports-and-adapters and the other judge scored 4), and told the reader to treat
+the agreement as contaminated. `p2` did not find it; it disclosed a different
+thing -- a prior epic's finding quoted verbatim inside two in-scope fixture
+files -- which names no dimension of this artifact.
+
+**THE CARD IS NOT DISCARDED.** Discarding a card after seeing its score is the
+one move a round may not make. The exposure is measured in `RESULT.md` section 9
+instead: 1 of 6 cards contaminated, and it scored BELOW the value it was leaked.
+
+**Forbidden and observed otherwise:** neither card reads
+`references/eval_scorecard.md`, another card, an `UNBLINDING*.md`, the sealed
+predictions, the ledger or a `RESULT.md`.
+
+**And the two judges scored different subtrees of one declared scope** -- `p1`
+the 85-module harness, `p2` the 5-module `ab/reference_ports` -- which is the D3
+spread of 2 recorded as `[[contested]] rm04-GG-d3-spread-2` and filed as
+`RM-04-DF-04`.

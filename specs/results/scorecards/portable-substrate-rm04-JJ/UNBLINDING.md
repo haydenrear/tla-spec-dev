@@ -8,8 +8,28 @@ Example: `eval_toolchain` · scaffolded 20260810 · tag `rm04`
 |---|---|---|
 | `JJ` | **rm04_removal_pricer** | |
 
-The labels are drawn from a pool that excludes every label any prior round published, so a judge who stumbles into a sealed run cannot read this round's arms off it.
+The label is drawn from RM-04's widened pool: a STRING over the characters this record has never published (`G J L V`), at width 2. No label here has been published and no CHARACTER of one has been either, so a judge who saw `T` in a prior round meets nothing that shares a character with it. Drawn with seed `20260810` and passed to `scaffold` explicitly; the seed is recorded here and nowhere a judge can reach.
+
+**The card carries no subject name and no declared axis value.** RM-04 fixed that: `subject.name` is `null` and `blinded` is `true`, and `check` resolves the scope against `subjects.toml` rather than reading a name off the card.
 
 ## What each judge could and could not see
 
-_Fill this in before the round closes: what was supplied, what was forbidden, and every disclosure a judge volunteered. A leak that is disclosed is recorded, never used as grounds to discard a card — discarding a card after seeing its score is the one move a round may not make._
+**Supplied:** the declared scope `examples/validation/gap_mutants/`, the card,
+and **the before tree**, materialised at `.../RM-04/blind/artifact_JJ_before`
+with no commit messages attached, so the judges diffed two directories rather
+than reading an epic's history. Both were told to diff them and both did.
+
+**Forbidden and observed:** the repository's git log and commit messages, plus
+the standard list. `p1` disclosed that a recursive grep printed three content
+lines from a `RESULT.md` under `specs/.history/` and listed sibling scorecard
+directory names including another arm label; it opened none of them and did not
+learn what `JJ` maps to. `p2` disclosed reading
+`examples/validation/removal_census/removals.toml`, which is OUTSIDE the
+declared scope and was not on the forbidden list, and said plainly that the
+fact it found there is what disqualified D2 from a 3 and that it was not
+discoverable from the scoped directory alone.
+
+**That second one is worth keeping.** A judge reached outside the declared scope
+for the evidence that lowered its score, and said so. The scope declaration
+bounds what is SCORED; it does not and should not bound what a judge may read to
+check a claim.
