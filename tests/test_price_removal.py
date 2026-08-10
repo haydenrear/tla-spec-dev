@@ -308,6 +308,12 @@ def test_nothing_in_the_repository_invokes_the_pricer() -> None:
         "tests/test_price_removal.py",                        # its tests
         "examples/validation/instruments/instruments.toml",   # its registry row
         "examples/validation/gap_mutants/residual_faults.toml",  # names it in a comment
+        # RM-03: `test_no_catalogue_mutant_could_have_priced_a_removal_and_it_says_so`
+        # explains in a comment why RM-03's mutants read `NOT-IN-TABLE` there --
+        # they were priced against their own before-table, with THIS file, over
+        # kill sets. A mention, not a call: that test runs `removal_census.py`
+        # and nothing else.
+        "tests/test_removal_census.py",
     }
     unexpected = [h for h in hits if h not in allowed and not h.startswith("specs/")]
     assert unexpected == [], f"something consults the pricer: {unexpected}"

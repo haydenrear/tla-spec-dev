@@ -140,6 +140,18 @@ GUARDED = {
     "tests/test_score_tools.py":
         "the served-digest fixtures assert `text.count(old) == 1` against the card "
         "before using each fragment, so a fragment that stops matching fails there",
+    # RM-03. The frozen version 3 bar is a WHOLE second copy of the card, and it
+    # exists because the card's own change rule demands one: "keep the old
+    # anchors" and "freeze the rubric file before you edit it". THE TWO RULES ARE
+    # IN TENSION AND THIS ENTRY IS WHERE THEY MEET. It earns its exemption the
+    # same way the others do -- something runs a comparison, and the comparison
+    # is the one that matters for a frozen bar: it must still digest to the
+    # anchors digest versions 1 to 3 declare, or it has stopped being the bar it
+    # claims to freeze.
+    "examples/validation/scorecards/rubric_v3_frozen.md":
+        "load_rubric() parses it as scorecard version 3 and its anchors digest is "
+        "compared to the sha256:eeccf4576bc6fd85 that the card's own version history "
+        "declares for versions 1, 2 and 3",
 }
 
 TEXTY = (".md", ".py", ".toml", ".yaml", ".yml", ".txt", ".tla", ".json", ".sh")
@@ -343,7 +355,11 @@ def test_the_guarded_copies_are_really_guarded(st):
     assert st.load_rubric(CARD), "the card must parse before the guard means anything"
 
     original = dict(st.NAMES)
-    victim = sorted(original)[0]
+    # A dimension the CURRENT card still scores. `NAMES` keeps an entry for every
+    # dimension ever scored -- 73 sealed cards carry all five and R-H4 says they
+    # are never edited -- so the guard can only be demonstrated on a key the
+    # current file actually contains.
+    victim = sorted(st.scored_dims(st.load_rubric(CARD)["card_version"]))[0]
     st.NAMES[victim] = original[victim] + " (SM-06 made this disagree)"
     try:
         with pytest.raises(st.RubricError, match="the dimension key has drifted"):
@@ -356,6 +372,20 @@ def test_the_guarded_copies_are_really_guarded(st):
     # The second guarded copy: every fragment `tests/test_score_tools.py` holds
     # is asserted to occur exactly once in the card before it is used, so a
     # fragment that stops matching fails there rather than rotting quietly.
+    # The third guarded copy: the frozen version 3 bar. It is a second statement
+    # of the card ON PURPOSE, because the change rule cannot be followed without
+    # one, and what keeps it from being an ordinary stale copy is that it still
+    # has to BE the bar it froze.
+    frozen = st.load_rubric(REPO_ROOT / "examples/validation/scorecards/rubric_v3_frozen.md")
+    assert frozen["card_version"] == 3, frozen["card_version"]
+    declared = {v["version"]: v["anchors_digest"] for v in st.load_rubric(CARD)["versions"]}
+    assert frozen["anchors_digest"] == declared[3] == declared[2] == declared[1], (
+        "the frozen version 3 rubric no longer digests to the anchors the card's "
+        "version history declares for versions 1 to 3. It has stopped being the bar "
+        "it claims to freeze, and every re-score run against it measured something "
+        "nobody can name.")
+    assert set(frozen["dimensions"]) == {"D1", "D2", "D3", "D4", "D5"}
+
     fixtures = (REPO_ROOT / "tests/test_score_tools.py").read_text(encoding="utf-8")
     assert "assert text.count(old) == 1" in fixtures, (
         "tests/test_score_tools.py is exempted because it compares its fragments to the "
@@ -383,8 +413,9 @@ def test_a_disagreeing_copy_of_the_dimension_table_is_caught(rubric):
     """The M1 shape: a charter's restated dimension table with two rows swapped."""
     needles = card_needles(rubric)
     dims = rubric["dimensions"]
-    swapped = (f"| **D3** | {dims['D4']['name']} | ... |\n"
-               f"| **D4** | {dims['D3']['name']} | ... |\n")
+    a, b = sorted(dims)[:2]
+    swapped = (f"| **{a}** | {dims[b]['name']} | ... |\n"
+               f"| **{b}** | {dims[a]['name']} | ... |\n")
     hits = restatements("CHARTER.md", swapped, needles)
     assert len(hits) >= 2, f"a swapped dimension table was not detected: {hits}"
 

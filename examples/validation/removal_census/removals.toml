@@ -410,7 +410,17 @@ id = "dead-port-binding-report-detector"
 ticket = "RD-02"
 name = "the gap-mutant detector whose entry point stopped accepting its own flags"
 base = "7514df0"
-head = "HEAD"
+# PINNED BY RM-03, and the reason is a defect in the row rather than in RD-02's
+# measurement. This row declared `head = "HEAD"`, so its three figures were
+# re-measured against whatever HEAD happened to be -- and RM-03 deleted both
+# files it names, which moved all three. The numbers below are RD-02's removal
+# measured at the commit RD-02's removal LANDED IN, which is what `head = HEAD`
+# meant when it was written and is now what it says. `denominator_rule`: the
+# numerator did not rise; the reference moved from a floating HEAD to a commit.
+# RD-02's three figures are UNCHANGED by this: measured at `bfd04af` they are
+# the same 33, 24 and 40 the manifest has carried since RD-02 wrote them, which
+# is the check working -- the row was right and its reference was loose.
+head = "bfd04af"
 gap_mutants = ["SM-GM-P2-manifest-renames-the-port-out-from-under-the-binding"]
 deletes_detectors = ["port-binding-report"]
 
@@ -527,3 +537,176 @@ removal = "card-duplication"
 before = "CAUGHT -- by `score_tools.py audit` (R-H4's seal digest), NOT by `check` as its author predicted"
 after = "not re-run; the surface it rode was not removed"
 verdict = "positive control, GREEN. And it caught the round's own prediction being wrong, which is why it was worth running."
+
+
+# ---------------------------------------------------------------------------
+# (f) the card: three dimensions become recorded notes, one anchor is deleted -- RM-03
+# ---------------------------------------------------------------------------
+#
+# READ THE RATIO AND THEN READ WHY IT IS WHAT IT IS. This removal deletes three
+# dimensions and one anchor from the scorecard and it is NET-ADDITIVE BY A
+# FACTOR OF FOUR, and that is not slack. The card's own change rule says "keep
+# the old anchors in the file" and `R-H4` says "a sealed card is never edited"
+# while 73 sealed cards are still checked by `score_tools.py`. So a retired
+# anchor MOVES rather than leaves, every line enforcing a version 1-3 rule MUST
+# STAY, and the version bump adds a branch. `RM-03-DF-03`.
+#
+# The figure that did fall is the one an adopter experiences and this census
+# cannot count it: the SERVED rubric went 8220 bytes -> 6272 and 25 anchor rungs
+# -> 9.
+
+[[removal]]
+id = "card-dimensions-to-notes"
+ticket = "RM-03"
+name = "D1, D4 and D5 as SCORED dimensions, and D2's anchor 4"
+base = "90d0667"
+head = "1e6f691"
+gap_mutants = [
+  "RM03-GM-D4-the-top-of-behaviour-preservation-stops-needing-a-run",
+  "RM03-GM-D5-a-split-on-the-honesty-anchor-stops-being-readable",
+]
+# NOTHING. Both faults' killing nodes are in `tests/test_score_tools.py`, which
+# this removal does not delete -- it re-pins them to a version 3 card, which is
+# `DETECTOR-WEAKENED` and is the class no survivorship test can see. The price
+# was MEASURED against an after-table rather than read off this list.
+deletes_detectors = []
+
+[[removal.region]]
+role = "cut_prose"
+kind = "diff"
+path = "references/eval_scorecard.md"
+count = "deleted"
+expect_lines = 144
+reason = "D1's anchor block 13 lines, D4's 11, D5's anchors and the anchor_reading note 22, D2's anchor 4 two lines and its measured-descriptor preamble three, three rows of the dimension table, the clauses of scoring rules 3 and 8 that named the retired anchors, and R-H1's third clause -- 38 lines of architecture-tag derivation that are a design record and not a bar for a score"
+
+[[removal.region]]
+role = "replacement"
+kind = "diff"
+path = "references/eval_scorecard.md"
+count = "added"
+expect_lines = 235
+reason = "`Retired anchors, versions 1-3` carrying every retired anchor VERBATIM under headings the parser does not match; `The recorded notes`, which keeps the three questions and drops their numbers; scoring rule 10; the version 4 row and its account of what the change rule costs a removal"
+
+[[removal.region]]
+role = "replacement"
+kind = "diff"
+path = "examples/validation/scorecards/score_tools.py"
+count = "added"
+expect_lines = 247
+reason = "`scored_dims`/`note_dims`/`top_score`, the notes parser, and the version 4 branches of `serve`, `check`, `_skeleton_json` and the markdown skeleton. It is REPLACEMENT and not proof: it is the mechanism of the new card, and it is a BRANCH beside the old one rather than a substitute for it, because the old one still checks 73 sealed cards"
+
+[[removal.region]]
+role = "replacement"
+kind = "diff"
+path = "examples/validation/scorecards/score_tools.py"
+count = "deleted"
+expect_lines = 40
+reason = "the unconditional five-dimension loops in `serve`, `check` and both skeletons, and the literal `0-4` anchor range"
+
+[[removal.region]]
+role = "proof"
+kind = "diff"
+path = "examples/validation/scorecards/rubric_v3_frozen.md"
+count = "added"
+expect_lines = 709
+reason = "the version 3 bar, frozen, so `re-score at least one prior example under BOTH versions` is followable at all. DECLARED AS PROOF AND NOT AS REPLACEMENT, which is the classification that makes this ratio 3.9x instead of 1.05x. It is arguably replacement -- it is a bar, not a demonstration about one -- and the worse reading is kept, as RD-02 kept its own"
+
+[[removal.region]]
+role = "proof"
+kind = "diff"
+path = "tests/test_score_tools.py"
+count = "added"
+expect_lines = 227
+reason = "`test_a_version_4_card_cannot_score_the_three_that_became_notes`, `test_d2_tops_out_at_three_from_version_4`, `test_an_older_version_cannot_be_scaffolded_against_the_current_bar`, and the version 3 pinning that keeps every retired rule executed against the sealed cards it still governs"
+
+[[removal.region]]
+role = "proof"
+kind = "diff"
+path = "tests/test_score_tools.py"
+count = "deleted"
+expect_lines = 62
+reason = "the assertions that pinned the card at version 3 and the anchors digest at a constant. Two were claims that were TRUE AND ARE NOW FALSE and were rewritten rather than restored or weakened; none was deleted to reach green"
+
+[[removal.region]]
+role = "proof"
+kind = "diff"
+path = "tests/test_card_has_one_home.py"
+count = "added"
+expect_lines = 34
+reason = "the frozen rubric earns its GUARDED exemption by a comparison that RUNS -- it must still digest to the anchors digest versions 1 to 3 declare, or it has stopped being the bar it froze"
+
+[[removal.region]]
+role = "proof"
+kind = "diff"
+path = "tests/test_card_has_one_home.py"
+count = "deleted"
+expect_lines = 3
+reason = "the guard demonstration's victim was `sorted(NAMES)[0]`, which is a dimension the current card no longer carries"
+
+
+# ---------------------------------------------------------------------------
+# (g) the mutant catalogue and the gap-mutant runner -- RM-03
+# ---------------------------------------------------------------------------
+#
+# THE ONE REMOVAL IN THIS CENSUS WITH A NON-ZERO PRICE. `RM03-GM-RUNNER` was
+# seeded in this mechanism's own gap BEFORE the cut, died on both its columns,
+# and reads `ENTAILED-SURVIVES` at the head: every killing node it had is
+# deleted by this removal. It could not be re-run after the cut, which is
+# exactly the class `gap_mutants.toml`'s own re-runnability rule excluded and
+# `RM-01` showed a price can live in.
+#
+# Cut on ADOPTION grounds (`references/portable_scorecard.md` §5.4) and
+# independent of that price.
+
+[[removal]]
+id = "gap-mutant-catalogue-and-runner"
+ticket = "RM-03"
+name = "the hand-authored fault catalogue for ab_quota_ledger and the runner that reads it"
+base = "f88d02e"
+head = "6298eee"
+gap_mutants = ["RM03-GM-RUNNER-an-unapplied-mutant-reports-a-survival"]
+deletes_detectors = ["pytest-gap-mutants"]
+
+[[removal.region]]
+role = "cut_production"
+kind = "diff"
+path = "examples/validation/gap_mutants/run_gap_mutants.py"
+count = "deleted"
+expect_lines = 629
+reason = "the staged-tree mutant runner, whole. Nothing in the repository invokes it, no close path consults it, and its catalogue goes with it"
+
+[[removal.region]]
+role = "cut_production"
+kind = "diff"
+path = "examples/validation/gap_mutants/gap_mutants.toml"
+count = "deleted"
+expect_lines = 728
+reason = "the catalogue: 576 shipped lines of hand-authored faults in ab_quota_ledger plus the 152 RM-03 seeded into it before the cut. There is no version of it an adopter receives"
+
+[[removal.region]]
+role = "cut_tests"
+kind = "diff"
+path = "tests/test_gap_mutants.py"
+count = "deleted"
+expect_lines = 537
+reason = "the deleted mechanism's own tests, 32 collected nodes, removed whole. Real deletion, and it is NOT in the same denominator as the production lines: the ratio over production alone is the honest one"
+
+[[removal.region]]
+role = "cut_prose"
+kind = "diff"
+path = "examples/validation/instruments/instruments.toml"
+base = "90d69e6"
+head = "f88d02e"
+count = "deleted"
+expect_lines = 119
+reason = "the `gap-mutant-runner` and `gap-mutant-detector-argv` registry rows, whose subjects no longer exist"
+
+[[removal.region]]
+role = "replacement"
+kind = "diff"
+path = "examples/validation/instruments/instruments.toml"
+base = "90d69e6"
+head = "f88d02e"
+count = "added"
+expect_lines = 31
+reason = "a `[[retired]]` row naming what went with them, because a capability that disappears from a registry with no row is `FI-04-DF-04` exactly; and the enumeration check's staged subject moved to a file that still exists"

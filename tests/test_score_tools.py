@@ -52,6 +52,12 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[1]
 TOOL = REPO_ROOT / "examples/validation/scorecards/score_tools.py"
 RUBRIC = REPO_ROOT / "references/eval_scorecard.md"
+# The bar as it stood at version 3, frozen so the change rule's "re-score a prior
+# example under both versions" is followable at all. `--card-version 3` alone
+# reproduces the old SCHEMA against the NEW bar; pointing at this file is the
+# other half, and from version 4 the tool refuses rather than letting it be
+# missed.
+RUBRIC_V3 = REPO_ROOT / "examples/validation/scorecards/rubric_v3_frozen.md"
 SCORECARDS = REPO_ROOT / "specs/results/scorecards"
 
 
@@ -102,18 +108,28 @@ def test_the_anchors_are_read_from_the_rubric(st, rubric, tmp_path, capsys):
     capsys.readouterr()
 
     card = json.loads(one_card(epic).read_text())
-    for dim in st.DIMS:
+    scored = st.scored_dims(card["scorecard_version"])
+    assert scored, "a card version that scores nothing is not a card"
+    for dim in scored:
         entry = card["dimensions"][dim]
         assert entry["name"] == st.NAMES[dim]
         assert entry["anchors"] == rubric["dimensions"][dim]["anchors"], dim
         assert entry["score"] is None
     assert card["rubric"]["digest"] == rubric["digest"]
     assert card["rubric"]["scoring_rules"] == rubric["scoring_rules"]
+    # RM-03: the three questions that stopped being scored are still ASKED, and
+    # their prompts are read out of the rubric exactly as the anchors are.
+    for dim in st.note_dims(card["scorecard_version"]):
+        key = st.NOTE_KEY[dim]
+        assert card["notes"][key]["question"] == rubric["notes"][key]["prompt"], key
+        assert card["notes"][key]["note"] == ""
 
     md = one_card(epic).with_name("scorecard.md").read_text()
-    for dim in st.DIMS:
-        for score in "01234":
+    for dim in scored:
+        for score in sorted(rubric["dimensions"][dim]["anchors"]):
             assert rubric["dimensions"][dim]["anchors"][score] in md
+    for dim in st.note_dims(card["scorecard_version"]):
+        assert rubric["notes"][st.NOTE_KEY[dim]]["prompt"] in md
     assert "capped at 1" in md
     assert "refuses to claim" in md.lower()
     assert "never scored" in md.lower()  # the mechanical block
@@ -237,7 +253,7 @@ def fill(card, practice=True, ran=("seeded a fault in commit() and ran the suite
                                     "what_was_run": list(ran) if practice else []}
     version = card.get("scorecard_version", 1)
     total = 0
-    for dim in st_dims():
+    for dim in st_dims(version):
         entry = card["dimensions"][dim]
         spec = scores.get(dim, {"score": 1})
         entry.update(spec)
@@ -245,9 +261,17 @@ def fill(card, practice=True, ran=("seeded a fault in commit() and ran the suite
         entry["rationale"] = entry["rationale"] or "because the artifact says so"
         total += entry["score"]
         # scorecard_version 3: the one anchor with two defensible readings says
-        # which one it was scored under, at 3 and 4 where they can differ.
-        if version >= 3 and dim == "D5" and entry["score"] in (3, 4):
+        # which one it was scored under, at 3 and 4 where they can differ. The
+        # anchor retires at version 4, so this stays keyed on 3 rather than on
+        # ">= 3" -- the requirement is still executed against every sealed
+        # version 3 card and against no version 4 one.
+        if version == 3 and dim == "D5" and entry["score"] in (3, 4):
             entry["anchor_reading"] = entry.get("anchor_reading") or "measured"
+    # RM-03, scorecard_version 4: three dimensions stopped being scored and are
+    # recorded as prose instead. Rule 10 says an empty note is not a legal card.
+    for key in card.get("notes") or {}:
+        card["notes"][key]["note"] = (card["notes"][key].get("note")
+                                      or "I looked at the tree and this is what I found")
     if version < 3:
         card["total"] = total
     else:
@@ -255,15 +279,38 @@ def fill(card, practice=True, ran=("seeded a fault in commit() and ran the suite
     return card
 
 
-def st_dims():
-    return ("D1", "D2", "D3", "D4", "D5")
+#: The dimensions a card of this version carries a SCORE for. Version 4 scores
+#: two and records three as notes; every earlier version scores five and is
+#: still checked exactly as it was, because a sealed card is never edited.
+ST_RETIRED_AT_4 = ("D1", "D4", "D5")
 
 
-def scaffolded(st, tmp_path, labels="K,L,M"):
+def st_dims(version: int = 4):
+    return tuple(d for d in ("D1", "D2", "D3", "D4", "D5")
+                 if version < 4 or d not in ST_RETIRED_AT_4)
+
+
+def scaffolded(st, tmp_path, labels="K,L,M", card_version=None):
+    """A scaffolded card at the CURRENT version, or at an older one.
+
+    An older version is scaffolded against the frozen rubric of its own era,
+    because that is what the change rule requires and what the tool now
+    enforces: `--card-version` alone stamps a number while reading the current
+    bar.
+    """
     epic = tmp_path / "ports-as-adapters"
-    scaffold(st, epic, labels=labels)
+    kw = {}
+    if card_version is not None:
+        kw = {"card_version": card_version, "rubric": str(RUBRIC_V3)}
+    scaffold(st, epic, labels=labels, **kw)
     path = one_card(epic)
     return path, json.loads(path.read_text())
+
+
+def rubric_for(card, st):
+    """The bar a card of this version was written against."""
+    return st.load_rubric(RUBRIC_V3 if card.get("scorecard_version", 1) < st.RETIRED_AT
+                          else RUBRIC)
 
 
 def test_a_scaffolded_card_filled_in_properly_passes_check(st, tmp_path, capsys):
@@ -278,9 +325,9 @@ def test_a_scaffolded_card_filled_in_properly_passes_check(st, tmp_path, capsys)
 def test_check_still_rejects_an_uncited_score_of_two_or_more(st, tmp_path, capsys):
     path, card = scaffolded(st, tmp_path)
     capsys.readouterr()
-    fill(card, D1={"score": 3, "citations": []})
+    fill(card, D3={"score": 3, "citations": []})
     problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC))
-    assert any("D1 scored 3 with NO citation" in p and "rule 2 caps it at 1" in p
+    assert any("D3 scored 3 with NO citation" in p and "rule 2 caps it at 1" in p
                for p in problems), problems
 
 
@@ -289,16 +336,17 @@ def test_check_still_rejects_a_four_with_no_refuses_to_claim(st, tmp_path, capsy
     capsys.readouterr()
     fill(card, D3={"score": 4, "citations": ["domain.py:22-43"], "refuses_to_claim": None})
     problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC))
-    assert any("D3 scored 4 without refuses_to_claim" in p for p in problems), problems
+    assert any("D3 scored 4" in p and "without refuses_to_claim" in p
+               for p in problems), problems
 
 
 def test_an_unfilled_skeleton_cannot_smuggle_a_score_through(st, tmp_path, capsys):
     """`status: unfilled` is not a way to score without being checked."""
     path, card = scaffolded(st, tmp_path)
     capsys.readouterr()
-    card["dimensions"]["D1"]["score"] = 4  # left 'unfilled'
+    card["dimensions"]["D3"]["score"] = 4  # left 'unfilled'
     problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC))
-    assert any("status is 'unfilled' but D1 carry a score" in p for p in problems), problems
+    assert any("status is 'unfilled' but D3 carry a score" in p for p in problems), problems
     # and once it is treated as filled, every rule applies
     assert any("refuses_to_claim" in p for p in problems), problems
 
@@ -316,9 +364,14 @@ def test_check_rejects_a_partial_set_of_inline_anchors(st, tmp_path, capsys):
     path, card = scaffolded(st, tmp_path)
     capsys.readouterr()
     fill(card)
-    card["dimensions"]["D2"]["anchors"].pop("4")
+    card["dimensions"]["D3"]["anchors"].pop("4")
     problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC))
     assert any("inline anchors but not all of 0-4" in p for p in problems), problems
+    # and D2's scale ends at 3 from version 4, so its partial set is 0-3
+    fill(card)
+    card["dimensions"]["D2"]["anchors"].pop("3")
+    problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC))
+    assert any("inline anchors but not all of 0-3" in p for p in problems), problems
 
 
 def test_require_filled_is_what_a_close_runs(st, tmp_path, capsys):
@@ -342,7 +395,7 @@ def test_require_filled_is_what_a_close_runs(st, tmp_path, capsys):
 def test_scaffold_emits_the_current_card_version_with_a_practice_block(st, tmp_path, capsys):
     path, card = scaffolded(st, tmp_path)
     capsys.readouterr()
-    assert card["scorecard_version"] == 3
+    assert card["scorecard_version"] == st.VERSION == 4
     assert card["judging_practice"]["executed_own_faults"] is None
     assert card["judging_practice"]["what_was_run"] == []
     md = path.with_name("scorecard.md").read_text()
@@ -404,35 +457,91 @@ def test_d4_anchor_4_is_not_awardable_by_a_judge_that_ran_nothing(st, tmp_path, 
     A judge reading a kill table is repeating the artifact's claim. This is the
     anchor's own text, executed -- and it is the only one gated, because it is
     the only one that asks the judge to run something.
+
+    **RM-03 pinned this to version 3 rather than deleting it.** D4 stopped being
+    scored at version 4, so no version 4 card can reach the gate; 73 sealed cards
+    can, R-H4 says they are never edited, and a check that stops looking at them
+    is a check that stopped working.
     """
-    path, card = scaffolded(st, tmp_path)
+    path, card = scaffolded(st, tmp_path, card_version=3)
     capsys.readouterr()
     fill(card, practice=False,
          D4={"score": 4, "citations": ["EVIDENCE.md:180-187"],
              "refuses_to_claim": "that the fake and the real adapter agree"})
-    problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC))
+    problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC_V3))
     assert any("D4 scored 4 while judging_practice.executed_own_faults is false" in p
                for p in problems), problems
     # the same card from a judge that DID run one is fine
     fill(card, practice=True,
          D4={"score": 4, "citations": ["EVIDENCE.md:180-187"],
              "refuses_to_claim": "that the fake and the real adapter agree"})
+    assert st.check(card, str(path), st.load_rubric(RUBRIC_V3))[0] == []
+
+
+def test_a_version_4_card_cannot_score_the_three_that_became_notes(st, tmp_path, capsys):
+    """The removal, executed. Restoring the NUMBER is what version 4 refuses.
+
+    Not the question: `notes` is required and an empty one is rejected. What a
+    version 4 card cannot do is put a 0-4 back on D1, D4 or D5 without a version
+    bump, which is how a cut dimension would quietly come back.
+    """
+    path, card = scaffolded(st, tmp_path)
+    capsys.readouterr()
+    fill(card)
+    assert st.check(card, str(path), st.load_rubric(RUBRIC))[0] == []
+    for dim in st.RETIRED_DIMS:
+        smuggled = json.loads(json.dumps(card))
+        smuggled["dimensions"][dim] = {
+            "score": 4, "citations": ["EVIDENCE.md:1"], "rationale": "r",
+            "refuses_to_claim": "nothing"}
+        problems, _ = st.check(smuggled, str(path), st.load_rubric(RUBRIC))
+        assert any("recorded notes from version 4" in p for p in problems), (dim, problems)
+    # and the question is still asked: an empty note is not a filled card
+    silent = json.loads(json.dumps(card))
+    silent["notes"]["N-D4"]["note"] = ""
+    problems, _ = st.check(silent, str(path), st.load_rubric(RUBRIC))
+    assert any("notes.N-D4 is empty" in p for p in problems), problems
+
+
+def test_d2_tops_out_at_three_from_version_4(st, tmp_path, capsys):
+    """The anchor is DELETED, not reworded, and what that costs is the top rung.
+
+    Rule 3 follows the anchor rather than the literal number 4: a D2 of 3 is now
+    the top of its scale and must name something the artifact refuses to claim.
+    """
+    path, card = scaffolded(st, tmp_path)
+    capsys.readouterr()
+    fill(card, D2={"score": 4, "citations": ["A.py:1"], "refuses_to_claim": "x"})
+    problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC))
+    assert any("D2 score must be an int 0-3" in p for p in problems), problems
+
+    fill(card, D2={"score": 3, "citations": ["A.py:1"], "refuses_to_claim": None})
+    problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC))
+    assert any("D2 scored 3, the top of its scale" in p for p in problems), problems
+
+    fill(card, D2={"score": 3, "citations": ["A.py:1"], "refuses_to_claim": "the rest"})
+    assert st.check(card, str(path), st.load_rubric(RUBRIC))[0] == []
+    # D3 still tops out at 4 -- only one anchor was deleted
+    fill(card, D3={"score": 4, "citations": ["A.py:1"], "refuses_to_claim": "the rest"})
     assert st.check(card, str(path), st.load_rubric(RUBRIC))[0] == []
 
 
 def test_d1_and_d5_are_deliberately_not_gated(st, tmp_path, capsys):
     """D1, D4 and D5 all moved on unchanged input. Only D4's ANCHOR asks the
     judge to run something, so only D4 is gated. Gating the other two would be
-    inventing a requirement rather than executing one."""
+    inventing a requirement rather than executing one.
+
+    Version 3 semantics, pinned: all three are recorded notes at version 4 and
+    the gate has nothing to reach there."""
     assert st.PRACTICE_GATED_DIMS == ("D4",)
-    path, card = scaffolded(st, tmp_path)
+    path, card = scaffolded(st, tmp_path, card_version=3)
     capsys.readouterr()
     fill(card, practice=False,
          D1={"score": 4, "citations": ["EVIDENCE.md:111-119"],
              "refuses_to_claim": "any ordering fault on a set-typed collection"},
          D5={"score": 4, "citations": ["NOTES.md:136-141"],
              "refuses_to_claim": "that the fake is contract-equivalent"})
-    assert st.check(card, str(path), st.load_rubric(RUBRIC))[0] == []
+    assert st.check(card, str(path), st.load_rubric(RUBRIC_V3))[0] == []
 
 
 # --------------------------------------------------------------------------
@@ -484,15 +593,21 @@ def test_the_reading_rules_cannot_reach_a_judge_because_nothing_emits_them(st, r
     outside it by construction -- not by a rule someone has to remember. R-H5 is
     the section both FI-03 v1 judges cited back at the round measuring them.
     """
-    served = st.served_rubric(rubric, 3)
+    served = st.served_rubric(rubric, st.VERSION)
     for forbidden in ("R-H1", "R-H2", "R-H3", "R-H4", "R-H5",
                       "Reading history", "Version history", "anchors digest",
-                      "SELF-IMPROVEMENT", "INSTRUMENT-LOG", "EVAL-RERUN", "PA-06"):
+                      "SELF-IMPROVEMENT", "INSTRUMENT-LOG", "EVAL-RERUN", "PA-06",
+                      # RM-03: the retired anchors are kept in the file by the
+                      # change rule and must not travel with it.
+                      "Retired anchors", "retired at version 4"):
         assert forbidden not in served, f"{forbidden!r} reaches a judge"
-    # and it really is the rubric: every anchor of every dimension is in there
-    for dim in st_dims():
-        for score in "01234":
+    # and it really is the rubric: every anchor of every scored dimension is in
+    # there, and so is every recorded note's prompt
+    for dim in st_dims(st.VERSION):
+        for score in sorted(rubric["dimensions"][dim]["anchors"]):
             assert rubric["dimensions"][dim]["anchors"][score] in served
+    for dim in st.note_dims(st.VERSION):
+        assert rubric["notes"][st.NOTE_KEY[dim]]["prompt"] in served
 
 
 def test_serve_refuses_a_rubric_that_would_hand_a_judge_a_result(st, tmp_path, capsys):
@@ -503,9 +618,10 @@ def test_serve_refuses_a_rubric_that_would_hand_a_judge_a_result(st, tmp_path, c
     """
     copy = tmp_path / "eval_scorecard.md"
     copy.write_text(RUBRIC.read_text().replace(
-        "**Anchor 4's phrase",
+        "**Import topology is not modularity.**",
         "**D2 and D3 are the dimensions that have held still on unchanged input, "
-        "and D4 and D5 move two points per judge.** Anchor 4's phrase", 1))
+        "and D4 and D5 move two points per judge.** Import topology is not "
+        "modularity.", 1))
     assert st.main(["serve", "--rubric", str(copy)]) == 3
     err = capsys.readouterr().err
     assert "REFUSED" in err and "Nothing was written" in err
@@ -526,7 +642,7 @@ def test_the_served_digest_moves_when_anything_a_judge_reads_moves(st, rubric, t
     Each edit below is one word, in a different served region, and each moves
     the served digest.
     """
-    base = st.served_digest(rubric, 3)
+    base = st.served_digest(rubric, st.VERSION)
     text = RUBRIC.read_text()
     edits = {
         "an anchor": ("- **0** — No boundary is discernible; state is written from "
@@ -535,8 +651,8 @@ def test_the_served_digest_moves_when_anything_a_judge_reads_moves(st, rubric, t
                       "anywhere."),
         "a caveat": ("**Import topology is not modularity.**",
                      "**Import topology is not modularity, ever.**"),
-        "a preamble": ("Read the measured descriptor first",
-                       "Read the measured descriptor FIRST"),
+        "a preamble": ("Diff the two trees yourself",
+                       "Diff the two trees YOURSELF"),
         "a scoring rule": ("**Prose quality is never an input.**",
                            "**Prose quality is never ever an input.**"),
         "a question": ("Is the design as simple as its behavior requires, and no simpler?",
@@ -583,10 +699,10 @@ def test_a_card_records_the_digest_of_the_bytes_it_was_served(st, tmp_path, caps
     path, card = scaffolded(st, tmp_path)
     capsys.readouterr()
     rubric = st.load_rubric(RUBRIC)
-    assert card["rubric"]["served_digest"] == st.served_digest(rubric, 3)
+    assert card["rubric"]["served_digest"] == st.served_digest(rubric, st.VERSION)
     assert card["rubric"]["file_sha256"] == rubric["file_sha256"]
     # the card the judge reads carries the same bytes the digest is over
-    assert st.served_rubric(rubric, 3) in path.with_name("scorecard.md").read_text()
+    assert st.served_rubric(rubric, st.VERSION) in path.with_name("scorecard.md").read_text()
     # a skeleton served a bar that has since moved is REFUSED, not noted
     card["rubric"]["served_digest"] = "sha256:0000000000000000"
     problems, _ = st.check(card, str(path), rubric)
@@ -602,29 +718,29 @@ def test_d5_scored_where_the_two_readings_differ_must_name_which(st, tmp_path, c
     version 3 does is what version 2 did for practice: record the choice.
     """
     for score in (3, 4):
-        path, card = scaffolded(st, tmp_path / f"s{score}")
+        path, card = scaffolded(st, tmp_path / f"s{score}", card_version=3)
         capsys.readouterr()
         fill(card, D5={"score": score, "citations": ["NOTES.md:136-141"],
                        "refuses_to_claim": "that the fake is contract-equivalent"})
         card["dimensions"]["D5"]["anchor_reading"] = None
-        problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC))
+        problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC_V3))
         assert any("anchor_reading" in p for p in problems), (score, problems)
         # both readings are legal and neither is corrected
         for reading in st.ANCHOR_READINGS:
             card["dimensions"]["D5"]["anchor_reading"] = reading
-            assert st.check(card, str(path), st.load_rubric(RUBRIC))[0] == []
+            assert st.check(card, str(path), st.load_rubric(RUBRIC_V3))[0] == []
         card["dimensions"]["D5"]["anchor_reading"] = "whichever"
-        assert st.check(card, str(path), st.load_rubric(RUBRIC))[0] != []
+        assert st.check(card, str(path), st.load_rubric(RUBRIC_V3))[0] != []
 
 
 def test_d5_below_the_boundary_needs_no_reading(st, tmp_path, capsys):
     """At 0, 1 and 2 the two readings cannot differ, so requiring the field there
     would be a bar nobody asked for."""
-    path, card = scaffolded(st, tmp_path)
+    path, card = scaffolded(st, tmp_path, card_version=3)
     capsys.readouterr()
     fill(card, D5={"score": 2, "citations": ["NOTES.md:136-141"],
                    "anchor_reading": None})
-    assert st.check(card, str(path), st.load_rubric(RUBRIC))[0] == []
+    assert st.check(card, str(path), st.load_rubric(RUBRIC_V3))[0] == []
 
 
 def test_a_version_3_card_has_no_total_and_a_version_2_card_still_checks_its_own(
@@ -644,13 +760,15 @@ def test_a_version_3_card_has_no_total_and_a_version_2_card_still_checks_its_own
     card["total"] = 5
     assert any("There is no total from version 3" in p
                for p in st.check(card, str(path), st.load_rubric(RUBRIC))[0])
+    del card["total"]
 
     epic2 = tmp_path / "v2"
-    assert scaffold(st, epic2, labels="K,L,M", card_version=2) == 0
+    assert scaffold(st, epic2, labels="K,L,M", card_version=2,
+                    rubric=str(RUBRIC_V3)) == 0
     capsys.readouterr()
     p2 = one_card(epic2)
     old = fill(json.loads(p2.read_text()))
-    assert old["total"] == 5
+    assert old["total"] == 5, "five dimensions at 1 each; a version 2 card scores five"
     assert st.check(old, str(p2), st.load_rubric(RUBRIC))[0] == []
     old["dimensions"]["D3"]["score"] = 3
     assert any("does not equal the sum" in p
@@ -679,7 +797,8 @@ def test_the_previous_card_version_can_still_be_scaffolded(st, tmp_path, capsys)
     """`Changing this card` requires a re-score under BOTH versions. A tool that
     can only emit the current one makes its own change rule unfollowable."""
     epic = tmp_path / "rescore-v1"
-    assert scaffold(st, epic, labels="K,L,M", card_version=1) == 0
+    assert scaffold(st, epic, labels="K,L,M", card_version=1,
+                    rubric=str(RUBRIC_V3)) == 0
     capsys.readouterr()
     card = json.loads(one_card(epic).read_text())
     assert card["scorecard_version"] == 1
@@ -687,27 +806,71 @@ def test_the_previous_card_version_can_still_be_scaffolded(st, tmp_path, capsys)
     assert "Judging practice" not in one_card(epic).with_name("scorecard.md").read_text()
     # and a v1 card filled in is still valid: old cards do not become invalid
     fill(card)
-    assert st.check(card, str(one_card(epic)), st.load_rubric(RUBRIC))[0] == []
+    assert st.check(card, str(one_card(epic)), st.load_rubric(RUBRIC_V3))[0] == []
+
+
+def test_an_older_version_cannot_be_scaffolded_against_the_current_bar(st, tmp_path,
+                                                                      capsys):
+    """`--card-version N` alone reproduces the old SCHEMA against the NEW bar.
+
+    `FI-06-DF-11(c)` said so and stayed open through three bumps because it was
+    operator sequencing with nothing behind it. From version 4 the sequencing
+    error is unmissable on the dimensions: the current rubric carries no anchors
+    for the three that retired, so it CANNOT emit a card that scores them, and
+    the refusal names the frozen file. It still refuses nothing about any
+    artifact -- it refuses an impossible request about a card.
+    """
+    epic = tmp_path / "v3-against-v4"
+    with pytest.raises(st.RubricError) as exc:
+        scaffold(st, epic, labels="K,L,M", card_version=3)
+    assert "rubric_v3_frozen.md" in str(exc.value)
+    assert "D1, D4, D5" in str(exc.value)
+    assert not epic.exists(), "a refused scaffold left files behind"
 
 
 def test_the_version_bump_kept_the_anchors_and_says_so_in_a_digest(st, rubric):
     """`keep the old anchors in the file` is checkable or it is a promise.
 
     The anchors digest is over the anchors ALONE, so it is unmoved by a change
-    to the scoring rules -- which is exactly what version 2 was.
+    to the scoring rules -- which is exactly what versions 2 and 3 were.
+
+    **REWRITTEN AT VERSION 4, because the claim it made stopped being true.**
+    It asserted `eeccf4576bc6fd85` on the current rubric and read as "the bar has
+    never moved and never will". Version 4 moves it: three dimensions stop being
+    scored and D2's anchor 4 is deleted. Restoring the old assertion would have
+    made the removal unlandable, and weakening it to "the digest is whatever the
+    table says" would have deleted the check. What it asserts instead is the
+    change rule itself -- versions 1 to 3 agree, version 4 differs AND SAYS SO,
+    and every retired anchor is still in the file byte-identical.
     """
     declared = {v["version"]: v["anchors_digest"] for v in rubric["versions"]}
     assert declared, "the rubric declares no version history"
-    assert rubric["card_version"] == 3
-    assert declared[3] == rubric["anchors_digest"]
-    assert declared[1] == declared[2] == declared[3], (
-        "a version bump declares different anchors from its predecessor; every bump so "
-        "far was supposed to change what a card RECORDS, not what a score MEANS")
-    # SM-04's own prohibition, executed: D2, D4 and D5 stay on the card and NO
-    # ANCHOR WAS TUNED. This is the machine statement of it.
-    assert rubric["anchors_digest"] == "sha256:eeccf4576bc6fd85"
-    assert set(rubric["dimensions"]) == {"D1", "D2", "D3", "D4", "D5"}
+    assert rubric["card_version"] == 4
+    assert declared[4] == rubric["anchors_digest"]
+    assert declared[1] == declared[2] == declared[3] == "sha256:eeccf4576bc6fd85", (
+        "versions 1 to 3 changed what a card RECORDS, not what a score MEANS, and "
+        "their rows say so")
+    assert declared[4] != declared[3], (
+        "version 4 deletes anchors; a bump that deletes anchors and declares the old "
+        "digest is the card changing silently, which is what this table exists to stop")
+    assert set(rubric["dimensions"]) == {"D2", "D3"}
+    assert set(rubric["notes"]) == {"N-D1", "N-D4", "N-D5"}
     assert st.version_history_problems(rubric) == []
+
+    # `keep the old anchors in the file`, executed rather than promised: every
+    # anchor version 3 served is still readable in the version 4 file, verbatim.
+    v3 = st.load_rubric(RUBRIC_V3)
+    assert v3["anchors_digest"] == "sha256:eeccf4576bc6fd85"
+    text = RUBRIC.read_text()
+    for dim in ("D1", "D4", "D5"):
+        for score, anchor in v3["dimensions"][dim]["anchors"].items():
+            assert " ".join(anchor.split()) in " ".join(text.split()), (dim, score)
+    assert " ".join(v3["dimensions"]["D2"]["anchors"]["4"].split()) in " ".join(text.split())
+    # and they are kept where no judge can be served them
+    for version in st.SUPPORTED_VERSIONS:
+        served = st.served_rubric(rubric, version)
+        for dim in ("D1", "D4", "D5"):
+            assert v3["dimensions"][dim]["anchors"]["4"] not in served, (dim, version)
 
 
 def test_a_rubric_whose_anchors_moved_without_a_bump_is_reported(st, tmp_path, capsys):
@@ -751,7 +914,8 @@ def put_card(root: Path, round_dir: str, run_id: str, commit: str, example="ex",
         "scorecard_version": 1, "epic": round_dir, "example": example, "run_id": run_id,
         "arm": arm, "commit": commit,
         "judge": {"model": "m", "pass": 1, "blind_to_arm": True},
-        "dimensions": {d_: {"score": 1, "citations": [], "rationale": "r"} for d_ in st_dims()},
+        "dimensions": {d_: {"score": 1, "citations": [], "rationale": "r"}
+                       for d_ in st_dims(1)},
         "total": 5, "contested": [], "verdict": "v",
     }))
     return d
@@ -1027,13 +1191,14 @@ def test_the_price_of_removing_total_measured_on_both_sides(st, tmp_path, capsys
 
     # --- BEFORE: a version 2 card, `total` present -------------------------
     epic2 = tmp_path / "v2"
-    assert scaffold(st, epic2, labels="K,L,M", card_version=2) == 0
+    assert scaffold(st, epic2, labels="K,L,M", card_version=2,
+                    rubric=str(RUBRIC_V3)) == 0
     capsys.readouterr()
     p2 = one_card(epic2)
     v2 = fill(json.loads(p2.read_text()), D3=dict(four))
-    assert st.check(v2, str(p2), st.load_rubric(RUBRIC))[0] == [], "control: card is clean"
+    assert st.check(v2, str(p2), st.load_rubric(RUBRIC_V3))[0] == [], "control: card is clean"
     before_unsealed = [p for p in st.check(_mutate_a_score(v2), str(p2),
-                                           st.load_rubric(RUBRIC))[0]
+                                           st.load_rubric(RUBRIC_V3))[0]
                        if "does not equal the sum" in p]
     before_sealed = _seal_and_audit(st, tmp_path, v2, "before")
 
@@ -1202,7 +1367,7 @@ def put_card_v2(root: Path, round_dir: str, run_id: str, commit: str, example="e
                 arm="P", scores=None, practice=True):
     d = root / round_dir / example / run_id
     d.mkdir(parents=True, exist_ok=True)
-    scores = scores or {dim: 1 for dim in st_dims()}
+    scores = scores or {dim: 1 for dim in st_dims(2)}
     card = {
         "scorecard_version": 2, "epic": round_dir, "example": example, "run_id": run_id,
         "arm": arm, "commit": commit,
@@ -1287,8 +1452,8 @@ def test_a_movement_naming_a_card_that_does_not_exist_is_a_violation(st, tmp_pat
 
 def test_a_movement_that_does_not_say_whether_it_is_readable_is_a_violation(st, tmp_path):
     root = tmp_path / "scorecards"
-    put_card_v2(root, "r1", "a", "3e721a5", scores={d: 1 for d in st_dims()})
-    put_card_v2(root, "r2", "b", "3e721a5", scores={d: 2 for d in st_dims()})
+    put_card_v2(root, "r1", "a", "3e721a5", scores={d: 1 for d in st_dims(2)})
+    put_card_v2(root, "r2", "b", "3e721a5", scores={d: 2 for d in st_dims(2)})
     write_log(root, """
 schema_version = 1
 
@@ -1886,7 +2051,7 @@ def test_adding_the_rules_moved_no_bar_a_judge_reads(st, rubric):
     outside the served surface by construction. Asserted rather than assumed
     because the anchors digest is what makes two epics' numbers comparable.
     """
-    assert rubric["anchors_digest"] == "sha256:eeccf4576bc6fd85"
+    assert st.load_rubric(RUBRIC_V3)["anchors_digest"] == "sha256:eeccf4576bc6fd85"
     for version in st.SUPPORTED_VERSIONS:
         served = st.served_rubric(rubric, version)
         assert "R-H6" not in served
