@@ -177,7 +177,59 @@ a `__main__` guard and a nonzero exit path that no pytest file has.
 
 ### 2.2 The measurement
 
-<!--MEASUREMENT-->
+Two staged trees, every declared detector run at each, `--catalogue`
+`residual_faults.toml`. Raw: `residual-before-bf0fb29p.json`,
+`residual-after-bf0fb29.json`, priced into `price-sm03.json`.
+
+| detector | `bf0fb29~1` (before) | `bf0fb29` (after) |
+|---|---|---|
+| `registry-enumeration` | **DIES**, 1 executed, exit 1 | **SURVIVES**, 1 executed, **exit 0** |
+| `pytest-full` | **DIES**, **1359** executed, exit 1 | **SURVIVES**, **1366** executed |
+| `instrument-registry` | SURVIVES, 1 executed | SURVIVES, 1 executed |
+
+**`DIES` → `SURVIVES`. `PRICED`.**
+
+`control_red: []` and `mutants_not_applied: []` in **both** runs; every declared
+fault applied exactly once. `pytest-full`'s pristine baseline is **9 failing
+nodes at both trees** — the `git archive` tests that read git history — and
+every verdict above is the *new* failing set after subtracting it.
+
+**The kill, both times, is one node and it is the same node:**
+
+```
+tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated
+```
+
+That node **exists at both trees**, with the same file, the same function name
+and the same node id. Before the cut its body is `required <= enumerated` over
+the literal; after, it is the derived walk. So:
+
+| lost kill | reason |
+|---|---|
+| `pytest-full :: …::test_the_named_instruments_are_all_enumerated` | **`DETECTOR-WEAKENED`** |
+| `registry-enumeration :: …::test_the_named_instruments_are_all_enumerated` | **`DETECTOR-WEAKENED`** |
+
+**Both are the class no survivorship test can see, and the sealed record
+contains zero of them** (§4). That is why this had to be constructed.
+
+**`pytest-full` at the after tree is the load-bearing cell.** The whole 1366-node
+suite ran and found nothing. *"Nothing else in the repository catches it"* is
+measured, not assumed — and it is the cell the contention hazard could only have
+pushed the other way (§0a).
+
+**And what the before-only reading says about the same fault:**
+
+```
+$ price_removal.py entail --removal hardcoded-enumeration-literal --head bf0fb29 ...
+UNDECIDED   RM-01-RF-1 ...
+UNDECIDED   RM-01-RF-CTRL ...
+```
+
+`UNDECIDED`, correctly — a killing node survives, so survivorship is in its
+unsound direction and is entitled to nothing. **`discriminate` calls the same
+two rows `NON-DISCRIMINATING` and says the `DIES` was entailed.** One of them
+was; the other was not, and they are indistinguishable from the before-table.
+That is the whole finding in two lines of output.
 
 ### 2.3 The control, which is the fault with one property changed
 
@@ -187,7 +239,37 @@ code path. It must die at **both** trees, and it does. Without it,
 `RM-01-RF-1`'s `SURVIVES` at `bf0fb29` is undecided rather than a price: it
 could mean the after-tree's detector is dead for every input.
 
+| | `bf0fb29~1` | `bf0fb29` | price |
+|---|---|---|---|
+| `RM-01-RF-1` — path **outside** the derived scope | **DIES** | **SURVIVES** | **PRICED** |
+| `RM-01-RF-CTRL` — path **inside** it | **DIES** | **DIES** | FREE |
+
+**The control's kill at the after tree is read from its NODE, not from a red**
+(§0a): `…::test_the_named_instruments_are_all_enumerated`, semantically exactly
+what a dropped registration should trip. Contention does not manufacture that
+node.
+
 **One property differs between the two rows and the verdicts separate on it.**
+
+### 2.3a And a cross-check that load cannot touch
+
+§0a records that a sibling worktree was running its suite during my staged
+columns. So the mechanism was also read **without running a suite at all**:
+stage `bf0fb29`, apply each fault to a copy of the registry in memory, and call
+the tree's own `demonstrate.unregistered()` directly.
+
+```
+PRISTINE                                      unregistered=[]
+RF-1 (tests/test_code_complexity.py)          unregistered=[]
+CTRL (scripts/code_complexity.py)             unregistered=['scripts/code_complexity.py']
+```
+
+Deterministic, instantaneous, and immune to contention — and it agrees with the
+staged table. Full note: `enumeration-cross-check.md`.
+
+**It is a cross-check and not the measurement.** It asks one function one
+question. The claim the price rests on is *"nothing **else** in the repository
+catches it"*, and only `pytest-full` run whole at both trees can say that.
 
 ### 2.4 What the shipped classifier says about the same fault
 
@@ -335,14 +417,37 @@ Every one of these would have improved a number.
 $ git diff --numstat 2c0d94e..HEAD
 ```
 
-<!--COST-->
+```
+77 files changed, 15932 insertions(+), 0 deletions(-)
+```
+
+**Zero deletions.** And the headline insertion count is dominated by something
+that is not the ticket, so here it is by area rather than as one figure — the
+shape of claim this project has already been burned by:
+
+| area | added | deleted |
+|---|---|---|
+| `specs/tickets/RM-01/` — **scaffolded by `scripts/start_ticket.py`, not written** | 12869 | 0 |
+| evidence: `RESULT.md`, the raw tables, the sealed predictions | 1521 | 0 |
+| **the instrument + the residual catalogue** | **899** | 0 |
+| its tests | 313 | 0 |
+| findings filed | 236 | 0 |
+| registry rows | 94 | 0 |
+| **total** | **15932** | **0** |
+
+**The number a reader should carry is 899 + 313 = 1212 lines of instrument and
+test.** The 12869 is `start_ticket.py` copying a TLA+ workflow skeleton into
+`specs/tickets/RM-01/` — every ticket in this repository pays it, it is
+identical to what the scaffolder emits, and counting it as RM-01's work would
+inflate this row by an order of magnitude. **Reported, not hidden**, because a
+number removed from a table without a reason is how a denominator shrinks.
 
 **RM-01 removes nothing.** It is an instrument ticket, and every line of it is
 in the *proof* column by the census's own definition — lines whose only job is
 to show what a removal did. There is no denominator, so there is no ratio, and
 `—` is the honest cell exactly as it was for `SM-03`.
 
-**P7, sealed before the work: *"I predict RM-01 adds more lines than any
+**P7, sealed before the work: *"I predict RM-01 adds more lines than any removal it prices, and I predict I will be tempted to classify my own instrument as product rather than proof."*** Both held. RD-02's own ticket was `+1403 / −33`; this one deletes **zero**, and the temptation arrived exactly where P7 said it would — in deciding what the 12869 scaffolded lines count as.
 removal it prices, and I predict I will be tempted to classify my own
 instrument as product rather than proof."*** Both held. RD-02's own ticket was
 `+1403 / −33`; this one deletes **zero**.
@@ -360,7 +465,7 @@ Sealed at `2c0d94e` in `PREDICTIONS-RM-01.md`, before any number existed.
 | | prediction | outcome |
 |---|---|---|
 | **P1** | the shortcut is unsound; a real fault exists that it calls entailed and that goes `DIES`→`SURVIVES` | **HELD** — `RM-01-RF-1` |
-| **P2** | `RM-01-RF-1` dies at `bf0fb29~1`, survives at `bf0fb29`, and `pytest-full` catches it at neither | <!--P2--> |
+| **P2** | `RM-01-RF-1` dies at `bf0fb29~1`, survives at `bf0fb29`, and `pytest-full` catches it at neither | **HELD on the price, FALSIFIED on the clause about `pytest-full`.** The transition is exactly as predicted. But `pytest-full` **DIES** at the before tree — and it had to, because `pytest-full` runs the whole suite and the enumeration node is *inside* it. The clause as I wrote it was incoherent, not merely wrong; the prediction I meant is that `pytest-full` catches it at the AFTER tree, and that half held at 1366 executed nodes. Recorded as written rather than rescued. |
 | **P3** | node granularity still gives 0 of 9 | **HELD** — exactly one node lost, `SM-GM-P2` still dies |
 | **P4** | `SM-04-GM-T1` reproduces from an independent implementation | **HELD** |
 | **P5** | at least one cell in the record where survivorship predicts DIES and measurement says SURVIVES | **FALSIFIED.** Zero. The shipped classifier is right on all ten published rows; the record contains no fault of the weakening class. The counterexample had to be built. Second half held: no cell where survivorship predicts SURVIVES and measurement says DIES. |

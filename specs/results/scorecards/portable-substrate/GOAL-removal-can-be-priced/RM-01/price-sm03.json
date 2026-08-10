@@ -1,0 +1,48 @@
+{
+  "after": "specs/results/scorecards/portable-substrate/GOAL-removal-can-be-priced/RM-01/residual-after-bf0fb29.json",
+  "before": "specs/results/scorecards/portable-substrate/GOAL-removal-can-be-priced/RM-01/residual-before-bf0fb29p.json",
+  "head": "bf0fb29",
+  "removal": "hardcoded-enumeration-literal",
+  "rows": [
+    {
+      "kills_after": [],
+      "kills_before": [
+        "pytest-full::tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated",
+        "registry-enumeration::tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated"
+      ],
+      "lost_kills": [
+        {
+          "detector": "pytest-full",
+          "node": "tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated",
+          "reason": "DETECTOR-WEAKENED"
+        },
+        {
+          "detector": "registry-enumeration",
+          "node": "tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated",
+          "reason": "DETECTOR-WEAKENED"
+        }
+      ],
+      "mutant": "RM-01-RF-1-a-registered-instrument-outside-the-derived-scope-loses-its-row",
+      "undecidable_columns_after": [],
+      "undecidable_columns_before": [],
+      "verdict": "PRICED",
+      "why": "every kill it had is gone; the removal took the detection away"
+    },
+    {
+      "kills_after": [
+        "pytest-full::tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated",
+        "registry-enumeration::tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated"
+      ],
+      "kills_before": [
+        "pytest-full::tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated",
+        "registry-enumeration::tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated"
+      ],
+      "lost_kills": [],
+      "mutant": "RM-01-RF-CTRL-a-registered-instrument-INSIDE-the-derived-scope-loses-its-row",
+      "undecidable_columns_after": [],
+      "undecidable_columns_before": [],
+      "verdict": "FREE",
+      "why": "something still catches it after the cut; the detection was redundant"
+    }
+  ]
+}
