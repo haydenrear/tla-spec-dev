@@ -82,6 +82,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import itertools
 import json
 import pathlib
 import random
@@ -189,6 +190,54 @@ LOG_NAME = "INSTRUMENT-LOG.toml"
 # rounds published are excluded dynamically -- see used_labels().
 RESERVED_LABELS = set("ABC")
 LABEL_POOL = "DEFGHJKLMNRSTUVWZ"
+
+# RM-04, `RM-02-DF-01`. THE POOL RAN OUT: 17 characters, 13 published, `G J L V`
+# left, and a round needing five arms was already refused.
+#
+# THE CONSTRAINT IS THE PROPERTY, NOT THE MECHANISM: a judge must not be able to
+# connect a label to anything they could have seen before. Global single-
+# character uniqueness was one way to get that and it has a bounded lifetime
+# baked into a constant.
+#
+# What ships instead: a label is a STRING over the characters this repository
+# has never published as a label, and the width grows when a width runs out. At
+# width 2 that is `GG GJ GL GV JG ...` -- 16 labels; at width 3, 64; and so on
+# without bound. TWO PROPERTIES, both exact rather than argued:
+#
+#   1. No label emitted from here has ever been published. Exclusion is on the
+#      WHOLE STRING and `used_labels` reads whole strings.
+#   2. No CHARACTER of a label emitted from here has ever been published on its
+#      own either, so a judge who saw `T` in a prior round meets nothing that
+#      shares a character with it.
+#
+# Width 1 is deliberately NOT offered even though four single characters remain.
+# Spending them as labels would destroy the alphabet every wider label is built
+# from -- four labels once, against sixteen and then sixty-four. That is the
+# reason for the floor, and it is a reason rather than a preference.
+MIN_LABEL_WIDTH = 2
+MAX_LABEL_WIDTH = 4
+
+
+def label_alphabet(published: set[str]) -> str:
+    """The characters no prior round published as a label, and none reserved."""
+    return "".join(c for c in LABEL_POOL
+                   if c not in published and c not in RESERVED_LABELS)
+
+
+def available_labels(published: set[str], needed: int) -> tuple[list[str], int]:
+    """`(labels to draw from, width)` for a round needing `needed` arms.
+
+    The narrowest width at or above `MIN_LABEL_WIDTH` that can serve the round.
+    Returns `([], 0)` when no width up to `MAX_LABEL_WIDTH` can -- a refusal,
+    never a fallback to a label somebody has already seen.
+    """
+    alphabet = label_alphabet(published)
+    for width in range(MIN_LABEL_WIDTH, MAX_LABEL_WIDTH + 1):
+        pool = ["".join(t) for t in itertools.product(alphabet, repeat=width)]
+        pool = [x for x in pool if x not in published]
+        if len(pool) >= needed:
+            return pool, width
+    return [], 0
 
 # `current` is the only status that asserts a number NOW, so it is the only one
 # R-H3 polices across an era boundary. The others each cost something to use:
@@ -648,7 +697,36 @@ def check(card: dict, where: str, rubric: dict | None = None,
         except Exception as exc:                     # pragma: no cover - unreadable file
             notes.append(f"SUBJECTS-UNREADABLE {where}: {exc}")
             declared = {}
-        if declared and name not in declared:
+        # RM-04. A BLINDED CARD NAMES NO SUBJECT AND CARRIES NO DECLARED VALUE.
+        # `subject.name` is a real arm identity -- RM-03's re-score cards are
+        # labelled `T` and say `arm_b` -- and `declared_effect_boundary` is the
+        # value of the axis D3 is compared on, which is the answer to the
+        # dimension being scored. Neither may reach a judge.
+        #
+        # A5's defence survives intact and is what makes the omission safe: the
+        # scope must still match a scope DECLARED before scoring, resolved here
+        # by the scope itself rather than by a name. What is lost is the ability
+        # to name WHICH declared subject when two declare the same scope, and
+        # that is reported rather than guessed.
+        if subject.get("blinded") is True:
+            if name is not None:
+                err(f"subject.name {name!r} on a card whose subject is blinded. A "
+                    f"blinded card carries the scope and nothing that identifies it.")
+            if "declared_effect_boundary" in subject:
+                err("subject.declared_effect_boundary is present on a blinded card. "
+                    "That field is the value of the axis D3 is compared on.")
+            got = list(subject.get("scope") or [])
+            matches = sorted(n for n, s in (declared or {}).items()
+                             if list(s["scope"]) == got)
+            if declared and not matches:
+                err(f"subject.scope {got} matches no scope declared in subjects.toml. "
+                    f"A scope is declared before scoring; a card cannot invent one "
+                    f"afterwards, blinded or not.")
+            elif len(matches) > 1:
+                notes.append(f"SUBJECT-AMBIGUOUS {where}: scope {got} is declared by "
+                             f"{matches}; a blinded card resolves by scope, so which "
+                             f"one it is cannot be read off the card.")
+        elif declared and name not in declared:
             err(f"subject.name {name!r} is not declared in subjects.toml. A scope is "
                 f"declared before scoring; a card cannot invent one afterwards.")
         elif declared:
@@ -1297,6 +1375,11 @@ def used_labels(scorecard_root: pathlib.Path) -> set[str]:
     HP-06 used X/Y and published its key; EVAL-RERUN deliberately chose P/Q so a
     judge who stumbled into the sealed run could not read the arms off it. That
     was discipline. This makes it a mechanism.
+
+    RM-04: labels are STRINGS, not characters, so both readers below match a run
+    of upper-case letters rather than exactly one. A width-1 record still reads
+    as width 1, so nothing about the sealed rounds changes -- the sealed record
+    still yields the 13 published single characters it always did.
     """
     used: set[str] = set()
     if not scorecard_root.exists():
@@ -1309,7 +1392,7 @@ def used_labels(scorecard_root: pathlib.Path) -> set[str]:
         if isinstance(arm, str) and arm.strip():
             used.add(arm.strip().upper())
     for p in scorecard_root.rglob("UNBLINDING*.md"):
-        for m in re.finditer(r"^\|\s*`?([A-Z])`?\s*\|", p.read_text(), re.M):
+        for m in re.finditer(r"^\|\s*`?([A-Z]+)`?\s*\|", p.read_text(), re.M):
             used.add(m.group(1))
     return used
 
@@ -1378,6 +1461,9 @@ def cmd_scaffold(argv: list[str]) -> int:
     epic_dir = pathlib.Path(args.epic_dir)
     scorecard_root = epic_dir.parent
 
+    published = used_labels(scorecard_root)
+    args._published = published
+
     if args.unblinded:
         if not args.reason:
             print("REFUSED: --unblinded requires --reason. Blinding is the default and "
@@ -1385,15 +1471,29 @@ def cmd_scaffold(argv: list[str]) -> int:
             return 2
         labels = list(arms)
     elif args.labels:
-        labels = [x.strip() for x in args.labels.split(",") if x.strip()]
+        labels = [x.strip().upper() for x in args.labels.split(",") if x.strip()]
         if len(labels) != len(arms):
             print(f"REFUSED: {len(labels)} labels for {len(arms)} arms", file=sys.stderr)
             return 2
+        # RM-04. THE EXPLICIT PATH USED TO BYPASS THE EXCLUSION ENTIRELY. The
+        # pool path has excluded every published label since HP-06; `--labels`
+        # wrote whatever it was given, so the one route an operator reaches for
+        # when the pool refuses was the one route with no check on it.
+        reused = sorted(x for x in labels if x in published or x in RESERVED_LABELS)
+        if reused:
+            print(f"REFUSED: {reused} would reuse a label a prior round published "
+                  f"(or a reserved arm name). A judge who has seen that round can "
+                  f"connect this card to it, which is the whole of what blinding "
+                  f"buys. Drop --labels and let the pool draw, or pass --unblinded "
+                  f"--reason if the identity is meant to be visible.", file=sys.stderr)
+            return 2
     else:
-        taken = used_labels(scorecard_root) | RESERVED_LABELS | {a.upper() for a in arms}
-        pool = [c for c in LABEL_POOL if c not in taken]
-        if len(pool) < len(arms):
-            print(f"REFUSED: only {len(pool)} unused opaque labels remain", file=sys.stderr)
+        taken = published | RESERVED_LABELS | {a.upper() for a in arms}
+        pool, width = available_labels(taken, len(arms))
+        if not pool:
+            print(f"REFUSED: no label width up to {MAX_LABEL_WIDTH} can supply "
+                  f"{len(arms)} unpublished label(s) over the alphabet "
+                  f"{label_alphabet(taken)!r}", file=sys.stderr)
             return 2
         rng = random.Random(args.seed) if args.seed is not None else random.SystemRandom()
         labels = rng.sample(pool, len(arms))
@@ -1406,13 +1506,19 @@ def cmd_scaffold(argv: list[str]) -> int:
 
     example_dir = epic_dir / _slug(args.example)
     planned: list[tuple[pathlib.Path, str]] = []
-    for label in labels:
-        for judge in range(1, args.judges + 1):
-            rid = run_id(label, judge)
-            d = example_dir / rid
-            planned.append((d / "scorecard.json", _skeleton_json(args, rubric, label, judge, rid)))
-            planned.append((d / "scorecard.md", _skeleton_md(args, rubric, label, judge, rid)))
-            planned.append((d / "mechanical.json", _mechanical_json(args, label, rid)))
+    try:
+        for label in labels:
+            for judge in range(1, args.judges + 1):
+                rid = run_id(label, judge)
+                d = example_dir / rid
+                planned.append((d / "scorecard.json",
+                                _skeleton_json(args, rubric, label, judge, rid)))
+                planned.append((d / "scorecard.md",
+                                _skeleton_md(args, rubric, label, judge, rid)))
+                planned.append((d / "mechanical.json", _mechanical_json(args, label, rid)))
+    except RubricError as exc:
+        print(f"REFUSED: {exc}\nNothing was written.", file=sys.stderr)
+        return 3
     key_path = epic_dir / "UNBLINDING.md"
     planned.append((key_path, _unblinding_md(args, arms, labels, run_date, tag)))
 
@@ -1475,8 +1581,49 @@ def _rubric_block(rubric: dict, card_version: int = VERSION) -> dict:
     return block
 
 
-def _subject_block(name: str | None) -> dict | None:
-    """The declared scope, copied out of `subjects.toml` into the skeleton."""
+#: A path segment that is a blind-round artifact directory, or that is itself
+#: nothing but an upper-case label. `artifact_T` is the shape every blind round
+#: in this repository has used.
+_LABEL_IN_PATH = re.compile(r"(?:^|[_-])([A-Z]{1,3})$")
+
+
+def scope_leaks_a_label(scope: list[str], published: set[str]) -> list[str]:
+    """Which published arm labels does this declared scope spell out?
+
+    RM-04. `subject.scope` is written into the card because a judge has to know
+    what to read. Where the scope is a prior round's blind directory the PATH
+    carries that round's label -- `.../blind/artifact_T` -- so a card labelled
+    with anything at all still tells a judge which arm it is looking at as soon
+    as they have seen the round that published `T`.
+    """
+    hits = []
+    for path in scope:
+        for segment in re.split(r"[/\\]", path):
+            m = _LABEL_IN_PATH.search(segment)
+            if m and m.group(1) in published:
+                hits.append(f"{path!r} names the published label {m.group(1)!r}")
+    return hits
+
+
+def _subject_block(name: str | None, blinded: bool = False,
+                   published: set[str] | None = None) -> dict | None:
+    """The declared scope, copied out of `subjects.toml` into the skeleton.
+
+    RM-04. **A BLINDED CARD CARRIES THE SCOPE AND NOTHING THAT IDENTIFIES IT.**
+    Verified on the record: RM-03's re-score cards are labelled `T` while
+    `subject.name` reads `arm_b` and `subject.declared_effect_boundary` reads
+    `ports-and-adapters` -- the arm and the answer to the dimension, both in the
+    file the judge is handed. A judge read it and disclosed it.
+
+    So under blinding `name` and `declared_effect_boundary` are withheld and the
+    real name goes to `UNBLINDING.md`, which judges are not given. The scope
+    stays, because the judge has to be told what to read, and `check` resolves
+    it BY SCOPE against `subjects.toml` -- attack A5's defence is that the scope
+    was declared before scoring, and that is unchanged.
+
+    Where the scope path itself spells a published label, nothing here can hide
+    it and the scaffold REFUSES instead.
+    """
     if not name:
         return None
     subjects = arch().load_subjects()
@@ -1485,8 +1632,22 @@ def _subject_block(name: str | None) -> dict | None:
                           f"{arch().DEFAULT_SUBJECTS}. A scope is DECLARED, never "
                           f"invented at scaffold time.")
     s = subjects[name]
-    return {"name": name, "scope": list(s["scope"]),
-            "declared_effect_boundary": s["declared"],
+    if not blinded:
+        return {"name": name, "scope": list(s["scope"]),
+                "declared_effect_boundary": s["declared"],
+                "axis": arch().AXIS}
+    leaks = scope_leaks_a_label(list(s["scope"]), published or set())
+    if leaks:
+        raise RubricError(
+            "a blinded card would carry an identifying subject. --subject "
+            f"{name!r} declares a scope that spells a label a prior round "
+            "published:\n  " + "\n  ".join(leaks) + "\n"
+            "Withholding `subject.name` cannot hide it, because the path is what "
+            "the judge is told to read. Scaffold this subject with `--unblinded "
+            "--reason ...`, or copy the tree to a directory that names no "
+            "published label. RM-03's round shipped this leak: cards labelled `T` "
+            "carrying `arm_b` and `.../blind/artifact_T`, and a judge disclosed it.")
+    return {"name": None, "blinded": True, "scope": list(s["scope"]),
             "axis": arch().AXIS}
 
 
@@ -1552,7 +1713,9 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
         # sealed before RD-05 and any round that declines to declare one. A card
         # with no subject is attributed through `subjects.toml`'s `labels` or
         # not at all, and an unattributed card enters no comparison.
-        "subject": _subject_block(getattr(args, "subject", None)),
+        "subject": _subject_block(getattr(args, "subject", None),
+                                  blinded=not args.unblinded,
+                                  published=getattr(args, "_published", None)),
         "rubric": _rubric_block(rubric, args.card_version),
         "how_to_fill": [
             "Score the LOWEST anchor the artifact fully satisfies. Torn between two: "
