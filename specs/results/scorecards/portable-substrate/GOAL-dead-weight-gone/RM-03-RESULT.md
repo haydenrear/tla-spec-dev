@@ -121,11 +121,11 @@ exposition, which is the general lesson.
 | role | path | lines |
 |---|---|---|
 | `cut_production` | `examples/validation/gap_mutants/run_gap_mutants.py` | **633 removed** |
-| `cut_production` | `examples/validation/gap_mutants/gap_mutants.toml` | **741 removed** (576 shipped + 165 RM-03 seeded into it before the cut) |
+| `cut_production` | `examples/validation/gap_mutants/gap_mutants.toml` | **728 removed** (576 shipped + 152 RM-03 seeded into it before the cut) |
 | `cut_tests` | `tests/test_gap_mutants.py` | **537 removed** |
 | `proof` | the before-table `rm03-gap-mutants-before.json`, seeded and measured before the cut | see §4 |
 
-**lines removed 1374 (production) · 1911 (with the mechanism's own tests) ·
+**lines removed 1361 (production) · 1898 (with the mechanism's own tests) ·
 lines added to prove it safe: 0 new lines of code; the proof is a measured
 before-table and an `entail` reading against the head.**
 
@@ -159,7 +159,79 @@ Three faults were seeded in the gaps of the mechanisms this ticket removes, at
 whole suite, at node granularity) and `pytest-gap-mutants`. A fourth could not be
 written and the reason is `RM-03-DF-02`.
 
-*(table filled below from the measured before/after tables)*
+**`pytest-full` is a detector here on purpose.** `RM-01-DF-01` is that
+`discriminate` reads a surviving detector NAME as a surviving kill, and
+`pytest-full` is never deleted, so it made every row non-discriminating by
+arithmetic. `price_removal.py` reads the kill set as **(detector, node)** pairs,
+so a node deleted inside a surviving suite is a lost kill. Using the whole suite
+rather than a hand-picked subset is also the conservative choice: a narrower
+detector set makes fewer kills available to lose and therefore **inflates**
+`PRICED`.
+
+### 4.1 the before-table — every fault died, and the control fired
+
+`specs/results/scorecards/portable-substrate/GOAL-dead-weight-gone/rm03-gap-mutants-before.json`,
+staged from `90d0667`, 1487 tests executed per `pytest-full` column.
+
+| fault | verdict before | the kills it had |
+|---|---|---|
+| `RM03-GM-D4` | **DIES** | `pytest-full::…test_d4_anchor_4_is_not_awardable_by_a_judge_that_ran_nothing`, `…::test_d1_and_d5_are_deliberately_not_gated` |
+| `RM03-GM-D5` | **DIES** | `pytest-full::…test_d5_scored_where_the_two_readings_differ_must_name_which` |
+| `RM03-GM-RUNNER` | **DIES** | `pytest-full::…test_an_edit_that_changes_nothing_refuses`, `pytest-gap-mutants::` the same node |
+| `RM03-GM-CTRL-C` *(positive control)* | **DIES on both columns** | — |
+
+`Every declared mutant applied exactly once.` The control is what makes the
+table readable: a column that cannot go red decides nothing, and both did.
+
+### 4.2 the prices
+
+| removal | fault | verdict | what it means |
+|---|---|---|---|
+| **the mutant catalogue and the gap-mutant runner** (§3.3) | `RM03-GM-RUNNER` | **`ENTAILED-SURVIVES` → PRICED** | **Every killing node the fault had is deleted by this removal.** `tests/test_gap_mutants.py` is gone, so both kills — the one inside `pytest-full` and the one in its own column — go with it. A fault this repository used to catch it no longer catches. |
+| **the card** (§3.1) | `RM03-GM-D4` | measured, §4.3 | |
+| **the card** (§3.1) | `RM03-GM-D5` | measured, §4.3 | |
+| **the architecture tag as an adopter-facing surface** (§3.2) | — | **UNPRICED** | Nothing executable changed. `tags` and `audit` are byte-identical and every check behind R-H1 still runs, so there is no gap to seed a fault in. Labelled unpriced rather than given a zero. |
+| **the suite as a finding channel** (§3.4) | — | **UNPRICED, and there was nothing to price** | `RM-03-DF-04`. |
+| **static gates** (§3.5) | — | **NOT REMOVED** | `RM-03-DF-05`. |
+
+**A non-zero price, and what it is and is not.** `ENTAILED-SURVIVES` is sound
+towards `SURVIVES` and is an **upper bound** on the price: it cannot see a kill
+the after tree ADDED. `price_removal.py` says so itself and this page does not
+round it up. What it establishes is that the removal took away every kill that
+fault had — the thing `RD-02`'s `0 of 9` and `RM-01`'s re-priced `0 of 10` could
+never establish for any historical removal.
+
+**It is also a fault in the deleted mechanism, and that has to be said.** The
+fault `RM03-GM-RUNNER` seeds is *inside* `run_gap_mutants.py`; the tests that
+caught it are that file's own tests. Whether "a mechanism's own tests stop
+catching faults in the mechanism" is a cost a reader should accept is exactly
+the judgement `price_removal.py` refuses to make — *"`PRICED` means a fault the
+repository used to catch is no longer caught. Whether that is an acceptable cost
+is a human's call."* RM-05's call. What is NOT in doubt is that the instrument
+returned something other than zero on a real removal, which is
+`GOAL-removal-can-be-priced`'s whole question.
+
+### 4.3 the card's two faults — why `entail` alone is not the answer
+
+```
+price_removal.py entail --before …before.json --head 6298eee
+  ENTAILED-SURVIVES   RM03-GM-RUNNER-an-unapplied-mutant-reports-a-survival
+  UNDECIDED           RM03-GM-D4-the-top-of-behaviour-preservation-stops-needing-a-run
+  UNDECIDED           RM03-GM-D5-a-split-on-the-honesty-anchor-stops-being-readable
+```
+
+**`UNDECIDED` is the correct answer and it is the interesting one.** Both card
+faults' killing nodes still exist at the head **with the same node ids** — and
+this ticket **changed their bodies**: `test_d4_anchor_4_is_not_awardable_by_a_judge_that_ran_nothing`
+and `test_d5_scored_where_the_two_readings_differ_must_name_which` were
+re-pinned to scaffold a *version 3* card. That is precisely
+`DETECTOR-WEAKENED`, the class `SM-03` produced and the class no survivorship
+test can see — and it is the second defect in `RM-01-DF-01`, met in the wild by
+the next ticket after the one that named it.
+
+So the card's price cannot be read off the diff and had to be measured:
+
+*(§4.4, from the after-table)*
 
 ---
 
