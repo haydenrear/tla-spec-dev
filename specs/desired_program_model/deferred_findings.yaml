@@ -8666,3 +8666,239 @@ findings:
       Every kill table this project has published over `ab_quota_ledger`, and the
       whole `effectful` half of RD-03's own probe.
     disposition: open
+
+  - id: RM-01-DF-01
+    found_by: "RM-01"
+    found_at_commit: "2c0d94e"
+    schedule_revision: 1
+    severity: blocking
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/removal_census/removal_census.py"]
+    summary: >-
+      THE CHEAP REPLACEMENT FOR THE AFTER-RUN IS UNSOUND IN THE DIRECTION IT IS
+      USED, AND IT WILL PRICE RM-03's REMOVALS AT ZERO IF RM-03 USES IT.
+
+      `removal_census.py discriminating()` decides whether a re-run could say
+      anything by set-differencing DETECTOR NAMES:
+
+          surviving = [d for d in kills if d not in deleted_detectors]
+          if surviving:  ->  NON-DISCRIMINATING, "DIES after the cut was
+                             entailed before the cut was made"
+
+      A surviving detector NAME is not a surviving kill. Two ways it fails:
+
+      (a) `pytest-full` is the whole suite and no removal in this repository's
+      history has ever deleted it. Any fault it kills is NON-DISCRIMINATING by
+      arithmetic before anything runs. That is 5 of the 9 rows in the sealed
+      before-table, and a sixth goes the same way through `instrument-registry`.
+      The remaining three had no kill at all. The 0 of 9 is therefore a property
+      of the classifier's granularity at least as much as of the removals.
+
+      (b) A detector can survive by NAME and lose the KILL, because a removal
+      can leave a node id in place and replace its BODY. SM-03 did exactly that:
+      `tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated`
+      has the same file, the same function and the same node id at `bf0fb29~1`
+      and `bf0fb29`, and a different check inside it.
+
+      DEMONSTRATED, ON A REAL REMOVAL. `RM-01-RF-1` -- a registered instrument
+      outside the derived enumeration scope silently loses its row -- is
+      measured DIES at `bf0fb29~1` and SURVIVES at `bf0fb29`. `discriminating()`
+      run unmodified over the same sealed artifacts reports NON-DISCRIMINATING.
+
+      THE ASYMMETRY, which is the repair: survivorship over a before-table is
+      SOUND towards SURVIVES and UNSOUND towards DIES. If no killing
+      (detector, node) survives, every kill the fault had is gone and that is a
+      proof from the before-run alone. If some killing node survives, NOTHING
+      follows. There is no such thing as an entailed DIES.
+    reproduction: >-
+      uv run --with pytest --with pyyaml python -m pytest
+      tests/test_price_removal.py::test_the_shipped_classifier_calls_a_real_priced_removal_entailed -q
+    evidence:
+      - "specs/results/scorecards/portable-substrate/GOAL-removal-can-be-priced/RM-01/residual-before-bf0fb29p.json"
+      - "specs/results/scorecards/portable-substrate/GOAL-removal-can-be-priced/RM-01/residual-after-bf0fb29.json"
+      - "specs/results/scorecards/portable-substrate/GOAL-removal-can-be-priced/RM-01/audit-shipped-classifier.json"
+      - "examples/validation/gap_mutants/price_removal.py"
+    why_out_of_scope: >-
+      `discriminating()` is RD-02's shipped instrument in a file RM-01 does not
+      own, and `measurement_rule` forbids editing a target during a measurement.
+      RM-01 built the sound reading beside it and left the unsound one running,
+      visible, so the disagreement is inspectable.
+    suggested_fix: >-
+      `discriminating()` must not emit a verdict meaning "it will still die".
+      Rename NON-DISCRIMINATING to UNDECIDED and drop the `why` sentence about
+      entailment, or delegate to `price_removal.entail`. AND: RM-03 must not
+      price a removal from `discriminate` alone. A removal whose faults come
+      back UNDECIDED is an UNPRICED removal honestly labelled, which the plan
+      already says beats a zero that was entailed.
+    blast_radius: >-
+      Every "the price of this removal is zero" statement derived from
+      `discriminate`, and every removal RM-03 is about to make.
+    disposition: open
+
+  - id: RM-01-DF-02
+    found_by: "RM-01"
+    found_at_commit: "2c0d94e"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/gap_mutants/run_gap_mutants.py"]
+    summary: >-
+      A RELATIVE `--catalogue` CRASHES THE RUNNER AFTER THE MEASUREMENT IS
+      COMPLETE AND DISCARDS ALL OF IT.
+
+      `run_gap_mutants.py:575` builds its report with
+      `str(args.catalogue.relative_to(REPO_ROOT))`. `argparse` hands back the
+      path exactly as typed, so a relative `--catalogue` raises
+      `ValueError: '...' is not in the subpath of '<repo>'` -- at report-writing
+      time, in `main`, AFTER every detector has run and every verdict has been
+      computed. Nothing is written and there is no partial artifact.
+
+      It cost this ticket a completed 25-minute pytest-full pass over a staged
+      tree, and it will cost more, because the docstring's own usage example
+      shows a relative `--out` and the natural way to type `--catalogue` beside
+      it is relative too.
+    reproduction: >-
+      python3 examples/validation/gap_mutants/run_gap_mutants.py --catalogue
+      examples/validation/gap_mutants/gap_mutants.toml --family staged --only
+      NOTHING --out /tmp/x.json
+    evidence:
+      - "specs/results/scorecards/portable-substrate/GOAL-removal-can-be-priced/RM-01/run-before.log"
+    why_out_of_scope: >-
+      `run_gap_mutants.py` is SM-01's instrument and RM-01 is a measurement
+      ticket. The workaround -- an absolute path -- costs nothing and needed no
+      edit to a target mid-measurement.
+    suggested_fix: >-
+      Resolve the catalogue at parse time (`type=lambda p: Path(p).resolve()`)
+      or compute the relative path defensively. Either is one line.
+    blast_radius: >-
+      Any future removal that runs the gap-mutant runner with a relative
+      catalogue path.
+    disposition: open
+
+  - id: RM-01-DF-03
+    found_by: "RM-01"
+    found_at_commit: "2c0d94e"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/instruments/instruments.toml", "examples/validation/instruments/demonstrate.py"]
+    summary: >-
+      SM-03's DERIVED ENUMERATION HAS A MEASURED COST, AND THE COST IS LIVE
+      TODAY ON THREE NAMED FILES.
+
+      The literal `required` set SM-03 deleted contained thirteen paths. THREE
+      of them lie outside `[registry.enumeration].roots = ["scripts",
+      "examples/validation"]` and are therefore unreachable by any walk:
+
+        specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py
+        specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py
+        tests/test_code_complexity.py
+
+      and the third is additionally invisible to the discovery predicate, which
+      requires a `__main__` guard and a nonzero exit path that no pytest file
+      has. Before the cut, `required <= enumerated` named any of the three the
+      moment its registration was dropped. After the cut, nothing does.
+
+      MEASURED, NOT ARGUED. `RM-01-RF-1` drops `tests/test_code_complexity.py`
+      from the registry while leaving the file working: DIES at `bf0fb29~1`,
+      SURVIVES at `bf0fb29`, with `pytest-full` running whole at both trees.
+      Its positive control -- the SAME fault on `scripts/code_complexity.py`,
+      which IS under a declared root -- dies at both.
+
+      SM-03 wrote the blind spot down and shipped a test asserting it exists.
+      What nobody did was ask what it COST, because the mutant that would have
+      asked was never seeded and `discriminate` would have called it entailed if
+      it had been.
+
+      NOT A CASE FOR PUTTING THE LITERAL BACK. That shape was rejected twice on
+      the record and the rejection stands: a literal edited by the same person
+      who forgot to register the instrument is a second thing to forget. The
+      finding is that the replacement's declared scope is NARROWER than what it
+      replaced, in a direction nobody counted.
+    reproduction: >-
+      python3 examples/validation/gap_mutants/price_removal.py price
+      --before <RM-01 evidence>/residual-before-bf0fb29p.json
+      --after <RM-01 evidence>/residual-after-bf0fb29.json --head bf0fb29
+    evidence:
+      - "specs/results/scorecards/portable-substrate/GOAL-removal-can-be-priced/RM-01/residual-before-bf0fb29p.json"
+      - "specs/results/scorecards/portable-substrate/GOAL-removal-can-be-priced/RM-01/residual-after-bf0fb29.json"
+      - "examples/validation/gap_mutants/residual_faults.toml"
+    why_out_of_scope: >-
+      Repairing it means either widening `roots` to `tests/` -- which makes ~48
+      test files owe a row, the taxonomy SM-03 explicitly rejected -- or adding
+      a second hand-maintained list, which is the literal under another name.
+      That is a design decision that binds RM-03 and it is escalated rather than
+      taken here.
+    suggested_fix: >-
+      Decide, with the cost now measured rather than assumed, whether the three
+      out-of-scope paths get an explicit `[registry.enumeration]` allowlist of
+      individually-named files (small, bounded, and honest about being a list),
+      or whether the rows are accepted as unwatched and SAID to be unwatched.
+      Do NOT restore `required`.
+    blast_radius: >-
+      Three registry rows, including the port-swap driver every ports-era number
+      was measured with.
+    disposition: open
+
+  - id: RM-01-DF-04
+    found_by: "RM-01"
+    found_at_commit: "2c0d94e"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/gap_mutants/gap_mutants.toml"]
+    summary: >-
+      `[[not_seedable]]` CONFLATES "WE CANNOT MEASURE THIS" WITH "THERE IS
+      NOTHING TO MEASURE", AND THE FAMOUS EXCLUDED FAULT IS THE SECOND.
+
+      SM-01 excluded the `fake =` fault because "there is no post-removal tree
+      the mutant could be re-applied to". RD-02 read that as the reason the
+      table could only come out one way, and the epic charter repeats it. Both
+      are right that the rule excludes discriminating faults in general.
+
+      They are wrong about THIS fault. Once re-runnability is dropped -- a
+      before-only reading is sound towards SURVIVES -- the exclusion no longer
+      applies, and the fault still does not price, for a different reason:
+      `--wiring fake`, the `[ports.*]` table and `render_oracle_statement`'s
+      port half were deleted TOGETHER, so there is no post-removal artifact in
+      which a port declares no fake. The fault class is EXTINCT, not UNWATCHED,
+      and an extinct fault class costs nothing in the currency a gap mutant
+      measures.
+
+      The five `[[not_seedable]]` rows currently mix at least three different
+      claims -- unmeasurable in this environment, no gap exists, and the surface
+      is gone -- under one heading, and a reader cannot tell them apart.
+    reproduction: >-
+      examples/validation/gap_mutants/residual_faults.toml, the [[not_seedable]]
+      row, which states the distinction and applies it.
+    evidence:
+      - "examples/validation/gap_mutants/gap_mutants.toml"
+      - "examples/validation/gap_mutants/residual_faults.toml"
+    why_out_of_scope: >-
+      Re-classifying SM-01's sealed catalogue during a measurement is editing a
+      target to match a result. The distinction is stated in RM-01's own
+      catalogue instead.
+    suggested_fix: >-
+      Give `[[not_seedable]]` a `kind` -- EXTINCT / UNWATCHED / UNMEASURABLE /
+      NO-GAP -- and re-key the five existing rows. What a removal costs is
+      different in each case, and only UNWATCHED is a price.
+    blast_radius: >-
+      Every statement of the form "the price of removing X is zero" that rests
+      on a not_seedable row.
+    disposition: open

@@ -2583,3 +2583,97 @@ note = "reinstated by the RD-02 demonstration only"
   kind = "declared"
   summary = "IT COMPARES FLAG NAMES, NOT MEANINGS. A flag still declared but now doing something else, or a positional argument that moved, is invisible to it."
   reason = "It catches the failure that actually happened and nothing wider. A check that claimed to verify a detector still MEASURES what it claims would have to run it, and running `instrument-registry` means running the whole registry."
+
+
+[[instrument]]
+id = "removal-pricer"
+name = "RM-01's removal pricer"
+paths = ["examples/validation/gap_mutants/price_removal.py"]
+family = "measurement"
+watches = "whether a removal took a detection away -- read from the KILL SET rather than from the list of detector names the removal deleted"
+verdict_surface = "PRICED / FREE / NO-KILL-TO-LOSE per fault, with the loss reason per lost kill; exit 1 when a declared mutant is absent from the before-table it was priced against"
+classification = "demonstrated-can-fail"
+note = """
+RD-02 measured that 0 of 9 gap mutants could have priced their removal, and
+shipped `removal_census.py discriminate` to compute the condition up front.
+That condition is computed over DETECTOR NAMES, and `pytest-full` is the whole
+suite, which no removal deletes -- so any fault the suite kills is classified
+NON-DISCRIMINATING before anything runs. Worse, a detector can survive by name
+and lose the kill: SM-03 left `test_the_named_instruments_are_all_enumerated`
+with the same node id and a different body.
+
+This instrument reads survivorship at KILL-SET granularity and refuses the
+unsound half of it. It has no verdict meaning "it will still die"; the
+strongest thing it says about a surviving killing node is UNDECIDED.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "THE SHIPPED CLASSIFIER, RUN UNMODIFIED OVER A REAL REMOVAL THAT COST SOMETHING. `discriminate` reports NON-DISCRIMINATING -- 'DIES after the cut was entailed before the cut was made' -- about RM-01-RF-1, a fault measured DIES at bf0fb29~1 and SURVIVES at bf0fb29. The failing input is the sealed measurement of a real removal, not a fixture."
+  nodes = [
+    "tests/test_price_removal.py::test_the_shipped_classifier_calls_a_real_priced_removal_entailed",
+    "tests/test_price_removal.py::test_the_price_is_a_detector_that_survived_by_name_and_lost_the_kill",
+  ]
+  expect_exit = 0
+  expect_passed = 2
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the ten published before/after rows of the sealed record, where the shipped classifier is right ten times and no lost kill is of the weakening class"
+  nodes = [
+    "tests/test_price_removal.py::test_the_shipped_classifier_agrees_with_every_measurement_in_the_sealed_record",
+    "tests/test_price_removal.py::test_node_granularity_does_not_rescue_the_nine_catalogue_mutants",
+  ]
+  expect_exit = 0
+  expect_passed = 2
+
+  [instrument.blind_spot]
+  kind = "declared"
+  summary = "ENTAILED-SURVIVES CANNOT SEE A KILL THE AFTER TREE ADDED. It proves the removal took away every kill the fault HAD. A removal that deletes a detector and ships a stronger replacement reads ENTAILED-SURVIVES here and DIES on a real after-run, so ENTAILED-SURVIVES is an upper bound on the price and only `price` against a measured after-table settles it."
+  reason = "Closing it would mean running the after tree, which is the cost the before-only reading exists to avoid. The bound is printed with the verdict rather than left for a sweep to find."
+
+
+[[instrument]]
+id = "altered-score-probe"
+name = "SM-04-GM-T1, driven through the shipped CLI"
+paths = ["examples/validation/gap_mutants/altered_score_probe.py"]
+family = "measurement"
+watches = "whether a tree notices a dimension score altered in a scorecard after the card was written, on an unsealed card"
+verdict_surface = "CAUGHT / UNCAUGHT by subtraction of `check`'s problem list; exit 2 when the tree's own scaffold refused, so a broken setup cannot read as UNCAUGHT"
+classification = "demonstrated-can-fail"
+note = """
+The known positive. `SM-04-GM-T1` is the only mutant in this project's history
+that went DIES -> SURVIVES, and it has only ever been produced by the file that
+asserts it, using that file's own helpers, in one process at one commit. This
+probe drives `scaffold` and `check` from a staged tree, imports nothing from
+the suite, and reproduces the finding at `6aac1ec~1` and `6aac1ec`.
+
+ITS OWN FIRST DESIGN WAS CONFOUNDED AND THE ARTIFACT IS KEPT. Raising D3 from 1
+to 3 trips a citation rule at both trees, so the probe read CAUGHT everywhere
+for a reason that has nothing to do with the checksum. Moving D3 down from a
+cited 4 is what SM-04-GM-T1 does and is what the probe does now;
+`sm04-gm-t1-*-confounded.json` are in the tree.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the version 3 tree at 6aac1ec: a dimension score altered on an unsealed card and NOTHING reports it, where the version 2 tree one commit earlier reports `total does not equal the sum of dimensions`"
+  nodes = ["tests/test_price_removal.py::test_sm04_gm_t1_reproduces_from_an_independent_implementation"]
+  expect_exit = 0
+  expect_passed = 1
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the confounded first run, kept so the correction is inspectable rather than asserted"
+  nodes = ["tests/test_price_removal.py::test_the_probes_first_confounded_run_is_kept_on_the_record"]
+  expect_exit = 0
+  expect_passed = 1
+
+  [instrument.blind_spot]
+  kind = "declared"
+  summary = "IT ASKS ONE QUESTION OF ONE FIELD. It moves D3 and reads `check`. It says nothing about `audit`, about a sealed card, or about any other field of a scorecard -- and SM-04-GM-T1's own answer is that a SEALED card still dies, which this probe does not measure."
+  reason = "The sealed half was already measured and is not in dispute. Widening the probe to cover it would re-measure the free half of the removal and leave the priced half exactly as it is."
