@@ -16,8 +16,9 @@ python3 specs/results/scorecards/portable-substrate/GOAL-portable/analysis/porta
 `ab_quota_ledger`; 4 are `toolchain_removal`; the remaining 10 are two cards
 each of five fixtures. **Every figure here is a figure about that population and
 about no wider one**, and where a figure is true of one example it says which.
-This page is the third consecutive artifact in this repository to be written
-under that rule because the first two were not.
+§9 records what `scope` made of this page's own figures, because a page arguing
+about scope that did not run the checker over itself would be the exact failure
+`subtract-to-measure` was opened on.
 
 ---
 
@@ -119,8 +120,11 @@ naming plainly because it is the crux of the portability question.
 `references/architecture_tags.md` §2.2 says the values are **"nominal, never
 ranked"**, and gives the reason: *"the moment one is better the tag is a target,
 and `MF-020` applies."* But the card's D3 anchors 3 and 4 *are* the definition of
-`ports-and-adapters` — "the domain does not import its I/O", "a driven port
-exercised by a real adapter *and* a fake". **The tag refuses to rank the values;
+`ports-and-adapters`. **Read them in `references/eval_scorecard.md`, which is
+where they live** — this page deliberately does not restate them, for the reason
+`tests/test_card_has_one_home.py` executes: a second statement of the bar is a
+copy nothing compares to the bar, and it is how two wrong rows survived an
+instrument change. **The tag refuses to rank the values;
 the dimension it exists to make comparable ranks them 4 against ≤ 2.** The tag
 design says as much in §2.3 — *"the tag names the shape the anchors assume"* —
 without drawing the conclusion: an adopter whose architecture is not that shape
@@ -234,9 +238,11 @@ lifetime baked into a constant. Filed as `RM-02-DF-01`.
 lines** out of the rubric file's **709** at `2c0d94e`, and the other 624 are
 reading rules and prior results a judge must never see, which `serve` already
 withholds. **That ratio is the single most encouraging number in this ticket:
-88% of the card an adopter would think they have to read is not the card.** Also
-`score_tools.py`'s
-`scaffold`/`check`/`seal`/`index`/`contested`/`history`; the blinding mechanism;
+88% of the card an adopter would think they have to read is not the card.**
+
+Along with the anchors: `score_tools.py`'s
+`scaffold`/`check`/`seal`/`index`/`contested`/`history`, already parameterised by
+`--rubric` and `--root`; the blinding mechanism, subject to `RM-02-DF-01`;
 `prompts/hexagonal_implementation.md`, which was built to travel; and the reading
 rules `R-H2`, `R-H4`, `R-H6` and `R3`, none of which mention anything local.
 
@@ -296,13 +302,44 @@ gap in the rule itself.
   one** — the epic forbids new gates, and a check here would be the fifth static
   check this project has shipped that catches nothing.
 
-**And a first-contact failure worth documenting rather than discovering.**
-`serve` and `scaffold` refuse the whole batch when the served text asserts how one
-of the five dimensions has scored or moved. An adopter writing a new anchor out
-of a regression they found will very naturally write that regression into the
-anchor's caveat — and be refused, with nothing written. The refusal is correct
-and it is the mechanism working. It is also the most likely way an adopter's
-first iteration fails, and no page currently warns them.
+**And a fourth thing, which this page asserted and then had to retract.**
+
+The draft of this section said the adopter's first iteration would be *refused*:
+`serve` and `scaffold` reject a batch when the served text asserts how one of the
+five dimensions has scored or moved, and an adopter adding an anchor for a
+regression they found will naturally write that regression into its caveat. The
+prediction was that the loop's most likely first failure is a correct refusal.
+
+**It was tested and it is wrong, in the more interesting direction.** Three
+adopter-shaped caveats were added to a scratch copy of the rubric, one at a time,
+and served:
+
+| caveat added to a dimension's block | `serve` |
+|---|---|
+| `D3 came out 4 on our gateway rewrite.` | **served — the leak reaches the judge** |
+| `D3 scored 4 on our gateway rewrite.` | **served — the leak reaches the judge** |
+| `D3 moved from 2 to 4 on our gateway rewrite.` | REFUSED |
+
+The detector's word list is a **movement** vocabulary — move, movement,
+unchanged, held still, stable, noise, delta. It carries no vocabulary for a score
+*standing at a value*, so the two phrasings an adopter is most likely to reach
+for pass it. `score_tools.py` says this about itself, in as many words: *"This
+list cannot be complete: an author who writes 'D5 wobbles' passes it."* That is
+an honest limit on a backstop, and the mechanism version 3 actually relies on is
+that the renderer emits parsed structure only — which is why the leak here has to
+be planted inside a dimension block to travel at all.
+
+**But the consequence for the adopter is the one that matters and it is not
+softened by any of that.** The loop the owner described — a hand-found regression
+becomes an anchor — produces caveats about *scores*, not about *movements*. So
+the refusal an adopter would want fires on the phrasing they are least likely to
+use and stays silent on the two they are most likely to use, and their judges are
+served the answer. **The forecast in this ticket's draft was that adoption's first
+failure is a refusal; the measurement says it is a silent pass.**
+
+This is not filed: RM-02's finding budget of 5 is spent and none of the five is
+blocking. It is escalated in the ticket report instead, and it is reproducible
+from the table above in under a minute.
 
 ---
 

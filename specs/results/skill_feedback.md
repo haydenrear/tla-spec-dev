@@ -2083,5 +2083,14 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - summary: RM-01: a gap mutant that goes DIES->SURVIVES on a real removal, and the shipped classifier that said it could not. The re-runnability rule does exclude discriminating faults, but the fault that priced SM-03's removal was always re-runnable -- it was excluded one level further in by removal_census discriminate, which reads a surviving detector NAME as a surviving kill. Survivorship over a before-table is sound towards SURVIVES and unsound towards DIES; there is no such thing as an entailed DIES. RM-01-RF-1 DIES at bf0fb29~1 and SURVIVES at bf0fb29 with pytest-full whole at both trees and a positive control dying at both; both lost kills are DETECTOR-WEAKENED, the class the sealed record contains none of. SM-04-GM-T1 reproduces CAUGHT->UNCAUGHT from an independent implementation. The re-priced historical removals still come back at ZERO. Four findings filed, none fixed; RM-01-DF-01 is blocking and binds RM-03.
 - feedback_status: unreviewed
 
+## Close-out ticket RM-02
+
+- close_scope: ticket
+- close_id: RM-02
+- workflow: portable-substrate-epic
+- closed_at: 2026-08-10T17:32:22+00:00
+- summary: RESEARCH: the card grades this project's toolchain on D1 and D4, one architectural style on D3; adoption requires LESS and every recommendation is a removal. No production code.
+- feedback_status: unreviewed
+
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

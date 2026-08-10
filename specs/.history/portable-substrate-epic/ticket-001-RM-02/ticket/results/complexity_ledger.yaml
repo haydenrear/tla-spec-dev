@@ -21,17 +21,40 @@
 #   descriptor_comparison: recorded            -- before/after descriptor doc
 validated_refactor:
   tlc_before:
-    status: "TODO"
-    evidence: "TODO -- path to the pre-change TLC output"
+    status: "not_applicable"
+    evidence: "RESEARCH TICKET -- no model change. specs/tickets/RM-02/desired == current, verified by diff -rq at close. There is no pre-change model distinct from the post-change one, so a TLC run here would witness nothing about this ticket."
   tlc_after:
-    status: "TODO"
-    evidence: "TODO -- path to the post-change TLC output"
+    status: "not_applicable"
+    evidence: "As above. NOT `green`: claiming a green for a run that decides nothing about this change would be the false-clean this project's D5 exists to refuse."
   behavior_tests:
-    status: "TODO"
-    evidence: "TODO -- path to the behavior-test output"
+    status: "red_at_baseline_and_unchanged_by_this_ticket"
+    evidence: >-
+      NOT `pass`, AND NOT A FAILURE OF THIS TICKET. The declared acceptance
+      command `uv run --with pytest --with pyyaml python -m pytest tests -q`
+      reports 17 failed / 1473 passed, run twice with the same 17.
+
+      EXACTLY ONE OF THE 17 WAS RM-02'S, and pytest named it itself:
+      `test_card_has_one_home.py::test_only_the_card_states_a_dimension_an_anchor_or_a_scoring_rule`
+      asserted on `references/portable_scorecard.md:122`, where the draft had
+      quoted D3's anchors verbatim. The test is right -- a second statement of
+      the bar is a copy nothing compares to the bar. FIXED BY REPLACING THE
+      QUOTE WITH A POINTER, never with a corrected copy; that file now passes
+      8 of 8.
+
+      THE OTHER 16 ARE PRE-EXISTING AT THE EPIC BASE, measured rather than
+      assumed. All nine named `test_score_tools.py` failures were re-run alone
+      at `2c0d94e` and every one fails there: `9 failed in 318.19s`. And the
+      three tool outputs those tests read are BYTE-IDENTICAL between `2c0d94e`
+      and this tree -- `contested`, `history --example ab_quota_ledger` and
+      `index` all diff clean -- while `audit` exits 1 on both. `scope` moves
+      REFUTED 55 -> 55 and COUNT-MOVED 0 -> 0.
+
+      THIS IS RECORDED RATHER THAN REPAIRED. The suite is red at the epic base
+      because the record has grown past figures sealed into the tests; repairing
+      it during a measurement is the move this epic forbids.
   descriptor_comparison:
-    status: "TODO"
-    evidence: "TODO -- path to the before/after descriptor comparison"
+    status: "not_applicable"
+    evidence: "No complexity delta to compare: this ticket adds no production code and no model element. The before/after that DOES exist is over prose and two evidence-root scripts, which the descriptor does not measure and must not be asked to."
 
 # Fuzzing-era retention members -- RECORDED at every close, non-gating since
 # CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
@@ -79,17 +102,40 @@ coverage_audit:
 # Required if complexity INCREASED. Name the new essential behavior the added
 # representation carries. This documents real behavior; it does not waive the
 # increase, which is recorded and reported either way.
-justification: ""
+justification: >-
+  NO COMPLEXITY INCREASE IS CLAIMED OR HIDDEN. This ticket ships no production
+  code and no model element; `implementation_scope` is `references/` and
+  `specs/results/` and nothing outside them was touched except the ticket plan
+  status and `deferred_findings.yaml`. What it adds to the repository is one
+  reference page, one evidence directory and five findings. What it RECOMMENDS
+  is entirely subtractive.
 
 # The recursive refinement loop -- REQUIRED at every close.
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
-  measured: false      # true only if a real TLC run produced the figure
-  applied: false       # if true, approved_by is required
+  searched: true
+  outcome: "none"
+  detail: >-
+    SEARCHED, FOUND NONE -- and the search was over the RIGHT surface, which for
+    this ticket is not the model. RM-02 is a research ticket: it adds no TLA+
+    variable, no action, no adapter and no production code, so the model is
+    byte-identical before and after and there is no refinement of it to find.
+
+    The refinement search that IS meaningful here was run over the SUBSTRATE,
+    and its output is the whole ticket: `references/portable_scorecard.md` §5
+    names five removals and zero additions. Every recommendation this ticket
+    makes reduces what the project carries. Nothing in it proposes an
+    instrument, a field, a check, a mode or a gate -- see §8, "What was
+    rejected", where a portability layer, an `--external` mode, a non-TLA+ path
+    for D1/D4 and a sixth dimension were each considered and refused.
+
+    ONE THING WAS ADDED AND IT IS NOT A REFINEMENT CANDIDATE: two analysis
+    scripts under the evidence root. They read sealed cards, print, and exit 0
+    unconditionally. Nothing imports them, no close path consults them, and
+    neither has a refusal branch.
+  measured: false      # no TLC run: the model is unchanged by this ticket
+  applied: false
   approved_by: ""
 
 # Required only if a generated-states drop at constant distinct states is
@@ -99,4 +145,4 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: "specs/results/scorecards/portable-substrate/GOAL-portable/RESULT.md"
