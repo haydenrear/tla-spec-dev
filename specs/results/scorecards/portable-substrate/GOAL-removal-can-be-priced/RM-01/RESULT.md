@@ -489,40 +489,63 @@ have let me report `discriminate` as broadly wrong.
 
 ## 8. `scope` OVER MY OWN WRITING (R3), AND WHICH BOUND APPLIES
 
-R3 binds this ticket. I ran it and **it refused nothing, because it cannot see
-any of this document.**
+R3 binds this ticket. I ran it, and what it reports is **two figures out of the
+dozen-plus this document carries** — and both of them are the same borrowed
+sentence, not one of mine.
 
 ```
 $ python3 examples/validation/scorecards/score_tools.py scope --path RESULT.md
-0 counted figure(s): 0 REFUTED, 0 COUNT-MOVED, 0 HOLDS, 0 UNREACHABLE
+3 counted figure(s): 3 REFUTED, 0 COUNT-MOVED, 0 HOLDS, 0 UNREACHABLE
 ```
 
-This document carries at least a dozen counted figures — *0 of 9*, *5 of 9*,
-*0 of 10*, *3 of the 13*, *two of seven*, *0 of 4 rows disagree* — and the
-check reports it contains **none**. Not refused, and not `UNREACHABLE` either,
-which is the count that exists so a claim the checker cannot reach is not
-mistaken for one that holds.
+**All three are the same borrowed sentence** — `D2 = 2 on 27 of 27 cards ever
+written`, which I quote from `SM-05` *in order to call it false*, in the probe
+table below and twice in the prose around it. Every
+figure this ticket actually produced — *0 of 9*, *5 of 9*, *0 of 10*,
+*3 of the 13*, *16 of 16*, *two of seven* — is **invisible**: not refused, and
+not `UNREACHABLE` either, which is the count that exists so a claim the checker
+cannot reach is not mistaken for one that holds.
 
-**The bound that applies is the first one: `RD-02-DF-01`.** `scope` is keyed on
-`\bD[1-5]\b`, so a counted figure that does not name a dimension is invisible
-to it. Demonstrated rather than inferred — `scope-probe.md`, four lines:
+**Two of the three known bounds fire here, and I can name which is which.**
 
-| line | reached? |
-|---|---|
-| `D2 = 2 on 27 of 27 cards ever written.` | **REFUTED**, with counterexamples named |
-| `0 of 9 catalogue mutants could have priced a removal.` | invisible |
-| `3 of the 13 required paths lie outside the derived roots.` | invisible |
-| `0 of 10 published rows disagree with the measurement.` | invisible |
+1. **`RD-02-DF-01` — the binding one.** `scope` is keyed on `\bD[1-5]\b`, so a
+   counted figure that does not name a dimension is not a counted figure to it.
+   Demonstrated rather than inferred — `scope-probe.md`, four lines:
 
-`1 counted figure(s)` out of four.
+   | line | reached? |
+   |---|---|
+   | `D2 = 2 on 27 of 27 cards ever written.` | **REFUTED**, with counterexamples named |
+   | `0 of 9 catalogue mutants could have priced a removal.` | invisible |
+   | `3 of the 13 required paths lie outside the derived roots.` | invisible |
+   | `0 of 10 published rows disagree with the measurement.` | invisible |
 
-**The other two bounds do not apply here.** `RD-04-DF-01`, the ≤3-word
-qualifier window, cannot fire on a document with zero reached figures.
-`RD-05` §7.1 — the checker cannot tell a claim from a *mention* of a claim —
-would be live if anything here were reached, because §7 and this section both
-**quote** `D2 = 2 on 27 of 27` in order to talk about it; it is not reached, so
-it does not fire, and that is a coincidence of bound 1 rather than a property
-of the writing.
+   `1 counted figure(s)` out of four.
+
+2. **`RD-05` §7.1 — the checker cannot tell a claim from a MENTION of a claim.**
+   Both figures it reaches are mentions. This document does not assert
+   `D2 = 2 on 27 of 27`; it cites the sentence as the error `SM-05` retracted.
+   *"Every round that reports the false figure in order to call it false is
+   refuted for doing so"* — and this round is now one of them.
+
+3. **`RD-04-DF-01`, the ≤3-word qualifier window, does NOT fire on a true figure
+   here.** It does produce the `UNREACHABLE`: the checker reads the words *"in
+   order to"* as a narrowing qualifier and reports *"the counted noun narrows the
+   population with ['order'], which names no example in this corpus."* That is
+   the window mis-parsing English prose around a mention, not a true figure
+   being refused for a misplaced qualifier.
+
+**So the honest reading of `3 REFUTED` is: this document contains no refuted
+claim of its own, and the checker reached none of its claims at all.**
+
+**And the count moved while I wrote this section, which is the same defect
+happening to me in real time.** An earlier draft measured `2 counted figure(s):
+1 REFUTED, 1 UNREACHABLE`. Adding one row to the probe table above — a row whose
+entire purpose is to show what the checker *can* see — took it to `3 REFUTED`.
+**The instrument's count over a document is a function of how many times the
+document mentions a figure, not of what the document claims.** I am reporting
+the number I got last and not editing the section to bring it back down: an
+instrument read over a moving target gives an answer about the target it was
+read over, which is `RD-03` §10's finding applied to its own successor.
 
 **I am not fixing it.** It is RD-01's instrument, this is a measurement ticket,
 and `RD-02-DF-01` is already open against exactly this.
