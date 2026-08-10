@@ -85,11 +85,20 @@ justification: ""
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
-  measured: false      # true only if a real TLC run produced the figure
-  applied: false       # if true, approved_by is required
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found none, and the reason is structural rather than a shrug: this
+    ticket changes NO production code and NO TLA+ model. Its whole diff is three
+    test files, one committed rendering regenerated from the record, one
+    instrument-registry mutation anchor, four findings, and a result document.
+    `TlaSpecDevCli.tla` is byte-identical to RM-02's, which is why the recorded
+    delta against RM-02 is `direction=zero`. There is no representation here to
+    refine: a refinement recommendation would have to be about a model this
+    ticket did not touch, and inventing one to satisfy the field is the shape
+    the field exists to prevent.
+  measured: false      # no TLC run; the model is unchanged from RM-02
+  applied: false
   approved_by: ""
 
 # Required only if a generated-states drop at constant distinct states is
@@ -99,4 +108,4 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: "specs/results/scorecards/portable-substrate/GOAL-dead-weight-gone/RM-06/RESULT.md -- the sixteen sorted into three groups, the six left deliberately red with the reason for each, what was REJECTED (eight repairs that reached green by asserting less, including one this ticket made and reverted on the owner's instruction), and the before/after suite figures with their trees. Findings RM-06-DF-01..04 in specs/desired_program_model/deferred_findings.yaml."
