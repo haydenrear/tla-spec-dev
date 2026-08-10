@@ -1,0 +1,122 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket RM-01",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-01/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-01/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-01/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The instrument returns non-zero on at least one real removal.",
+        "SM-04-GM-T1's DIES->SURVIVES is reproduced., 'At least one historical removal is re-priced",
+        "and a non-zero result is reported loudly.', A demonstrated FAILING input on a real subject."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "RM-03",
+      "RM-05"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "examples/validation/instruments/"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/209",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "Pricing moves from structurally-always-zero to capable of a non-zero answer.",
+        "goal": "GOAL-removal-can-be-priced",
+        "local_signal": "a DIES->SURVIVES on a real removal"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none -- nothing may be cut until a cut can be priced",
+        "goal": "GOAL-dead-weight-gone",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-dimensions-replicate",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-portable",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "RM-01",
+    "implementation_scope": [
+      "examples/validation/",
+      "tests/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "FIRST AND ALONE -- everything else depends on it. The instrument that prices removals CAN ONLY RETURN ZERO: a gap mutant prices a removal only if every detector that killed it is one the removal deletes, and over the sealed before-table that is 0 OF 9. The re-runnability rule is self-confirming BY CONSTRUCTION -- it excludes exactly the faults that could go DIES->SURVIVES, and SM-01 named the one fault the machinery uniquely caught and declared it not_seedable BECAUSE it cannot be re-run after the cut. Characterise the exclusion, build an instrument that can return non-zero, DEMONSTRATE A DIES->SURVIVES ON A REAL REMOVAL, and re-price at least one historical removal. SM-04-GM-T1 is the known-positive: an instrument that cannot reproduce it is not working. DO NOT TUNE UNTIL A COMFORTABLE NUMBER APPEARS -- a high price on a past removal is the informative outcome.",
+    "promotion_order": 10,
+    "promotion_predecessor": null,
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Build a gap mutant that can actually go DIES to SURVIVES",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-01/specs/tickets/RM-01",
+  "ticket_id": "RM-01",
+  "ticket_index": 0,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-01/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-01/specs/tickets"
+}

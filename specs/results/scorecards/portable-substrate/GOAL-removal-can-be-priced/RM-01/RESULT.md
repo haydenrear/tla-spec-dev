@@ -351,7 +351,43 @@ have let me report `discriminate` as broadly wrong.
 
 ## 8. `scope` OVER MY OWN WRITING (R3), AND WHICH BOUND APPLIES
 
-<!--SCOPE-->
+R3 binds this ticket. I ran it and **it refused nothing, because it cannot see
+any of this document.**
+
+```
+$ python3 examples/validation/scorecards/score_tools.py scope --path RESULT.md
+0 counted figure(s): 0 REFUTED, 0 COUNT-MOVED, 0 HOLDS, 0 UNREACHABLE
+```
+
+This document carries at least a dozen counted figures — *0 of 9*, *5 of 9*,
+*0 of 10*, *3 of the 13*, *two of seven*, *0 of 4 rows disagree* — and the
+check reports it contains **none**. Not refused, and not `UNREACHABLE` either,
+which is the count that exists so a claim the checker cannot reach is not
+mistaken for one that holds.
+
+**The bound that applies is the first one: `RD-02-DF-01`.** `scope` is keyed on
+`\bD[1-5]\b`, so a counted figure that does not name a dimension is invisible
+to it. Demonstrated rather than inferred — `scope-probe.md`, four lines:
+
+| line | reached? |
+|---|---|
+| `D2 = 2 on 27 of 27 cards ever written.` | **REFUTED**, with counterexamples named |
+| `0 of 9 catalogue mutants could have priced a removal.` | invisible |
+| `3 of the 13 required paths lie outside the derived roots.` | invisible |
+| `0 of 10 published rows disagree with the measurement.` | invisible |
+
+`1 counted figure(s)` out of four.
+
+**The other two bounds do not apply here.** `RD-04-DF-01`, the ≤3-word
+qualifier window, cannot fire on a document with zero reached figures.
+`RD-05` §7.1 — the checker cannot tell a claim from a *mention* of a claim —
+would be live if anything here were reached, because §7 and this section both
+**quote** `D2 = 2 on 27 of 27` in order to talk about it; it is not reached, so
+it does not fire, and that is a coincidence of bound 1 rather than a property
+of the writing.
+
+**I am not fixing it.** It is RD-01's instrument, this is a measurement ticket,
+and `RD-02-DF-01` is already open against exactly this.
 
 ---
 
