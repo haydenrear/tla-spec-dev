@@ -198,8 +198,9 @@ table readable: a column that cannot go red decides nothing, and both did.
 | removal | fault | verdict | what it means |
 |---|---|---|---|
 | **the mutant catalogue and the gap-mutant runner** (§3.3) | `RM03-GM-RUNNER` | **`ENTAILED-SURVIVES` → PRICED** | **Every killing node the fault had is deleted by this removal.** `tests/test_gap_mutants.py` is gone, so both kills — the one inside `pytest-full` and the one in its own column — go with it. A fault this repository used to catch it no longer catches. |
-| **the card** (§3.1) | `RM03-GM-D4` | measured, §4.3 | |
-| **the card** (§3.1) | `RM03-GM-D5` | measured, §4.3 | |
+| **the card** (§3.1), mechanical half | `RM03-GM-D4` | **`FREE`** (measured, §4.4) | something still catches it after the cut. Retiring a dimension does not retire the code that enforced it — 73 sealed cards still need it. |
+| **the card** (§3.1), mechanical half | `RM03-GM-D5` | **`FREE`** (measured, §4.4) | as above. |
+| **the card** (§3.1), judged half | — | **UNPRICED** | Nothing here can seed a fault in an agent judge, and the judged half is what D1, D4 and D5 were for. §4.5. |
 | **the architecture tag as an adopter-facing surface** (§3.2) | — | **UNPRICED** | Nothing executable changed. `tags` and `audit` are byte-identical and every check behind R-H1 still runs, so there is no gap to seed a fault in. Labelled unpriced rather than given a zero. |
 | **the suite as a finding channel** (§3.4) | — | **UNPRICED, and there was nothing to price** | `RM-03-DF-04`. |
 | **static gates** (§3.5) | — | **NOT REMOVED** | `RM-03-DF-05`. |
@@ -239,9 +240,55 @@ re-pinned to scaffold a *version 3* card. That is precisely
 test can see — and it is the second defect in `RM-01-DF-01`, met in the wild by
 the next ticket after the one that named it.
 
-So the card's price cannot be read off the diff and had to be measured:
+So the card's price cannot be read off the diff and had to be measured.
 
-*(§4.4, from the after-table)*
+### 4.4 the after-table, and the card's measured price
+
+`rm03-gap-mutants-after.json`, staged from `6298eee`, positive control
+`SM-GM-CTRL-A`, which edits the reference domain and survives the cut.
+
+```
+price_removal.py price --before …before.json --after …after.json --head 6298eee
+  FREE  RM03-GM-D4-the-top-of-behaviour-preservation-stops-needing-a-run
+  FREE  RM03-GM-D5-a-split-on-the-honesty-anchor-stops-being-readable
+  0 of 2 fault(s) PRICED
+```
+
+**`FREE` is the measured answer and it is the right one.** Retiring D4 and D5
+from the card took away nothing this repository can still detect, because
+retiring a dimension **does not retire the code that enforced it**: 73 sealed
+version 1–3 cards are still checked by exactly the rules those two faults
+attack, and `test_d4_anchor_4_is_not_awardable_by_a_judge_that_ran_nothing`
+still kills `PRACTICE_GATED_DIMS = ()` after being re-pinned to a version 3
+card. The removal moved the bar for *new* cards and left the enforcement of
+*old* ones alone, which is what `R-H4` requires and what §2 measures the cost of.
+
+**Two `FREE`s and one `PRICED` is not "the instrument still cannot fire".** The
+instrument fired, on the one removal that deleted the detection. On the two that
+did not delete any detection it returned `FREE`, which is the correct answer and
+a different answer. `RD-02`'s `0 of 9` and `RM-01`'s re-priced `0 of 10` were
+zeros produced *before anything ran*; these two are zeros produced *by running
+it*, against a control that fired, on a tree where the third row came back
+non-zero.
+
+### 4.5 what is UNPRICED, and it is the more important half
+
+**The card was cut as a JUDGED instrument and priced only as a MECHANICAL one.**
+`RM03-GM-D4` and `RM03-GM-D5` attack `score_tools.py check` — the only
+machine-readable consequence D4 and D5 ever had. What D1, D4 and D5 were *for*
+is what an agent judge concludes from an artifact, and **nothing in this
+repository can seed a fault in a judge.** So:
+
+- the mechanical half of the card removal is **measured FREE**;
+- the judged half is **UNPRICED, and is labelled unpriced rather than given the
+  zero the mechanical half returned.** Reading the `FREE` as "cutting three
+  dimensions cost nothing" would be exactly the entailment `RM-01-DF-01` is
+  about, one level up: an instrument reporting on a surface that is not the one
+  the removal was about.
+
+The nearest thing to a price for the judged half is §6's re-score, which is a
+different instrument and says the discontinuity on the surviving dimensions was
+zero points on one artifact.
 
 ---
 

@@ -85,9 +85,27 @@ justification: ""
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
+  searched: true
+  outcome: "none"
+  detail: >-
+    SEARCHED, FOUND NONE, AND THE SEARCH IS THE INTERESTING PART. RM-03 removes
+    only WORKFLOW surface -- the scorecard rubric and its tool, the gap-mutant
+    catalogue and runner, and their tests. It touches no TLA+ file, no spec
+    double, no adapter and no generated case, and the ticket plan declares
+    `model_delta_expectation: none expected`. The measured delta against RM-06
+    is `direction=zero`, which is the expected reading for a change that does
+    not reach the model.
+
+    The one refinement candidate the search DID surface was rejected on exactly
+    that ground and filed rather than taken: `scripts/kill_test.py` and
+    `scripts/run_kill_test.py` (1384 lines) are the largest removal available to
+    this ticket and belong to both levers the epic measured dead -- a hard
+    static gate (`kill_rate_floor`) over model-derived case bug-finding. They
+    are a SPECIFIED ACTION of `TlaSpecDevCli.tla`, so cutting them is a model
+    delta this ticket declares it does not have. `RM-03-DF-05`, with the
+    suggestion that it be opened as its own ticket against the CLI model and
+    that the whole EXPERIMENTAL fuzzing surface go together rather than the gate
+    alone.
   measured: false      # true only if a real TLC run produced the figure
   applied: false       # if true, approved_by is required
   approved_by: ""
@@ -99,4 +117,4 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: "specs/results/scorecards/portable-substrate/GOAL-dead-weight-gone/RM-03-RESULT.md"
