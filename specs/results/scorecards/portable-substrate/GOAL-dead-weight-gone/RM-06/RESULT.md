@@ -23,7 +23,7 @@ Command: `python -m pytest tests -q`.
 | tree | commit | result |
 |---|---|---|
 | **BEFORE** — epic worktree, `git status` empty | **`356ffe8`** | **16 failed, 1481 passed** in 784.87s |
-| **AFTER** — ticket worktree | **`__AFTER_SHA__`** | **__AFTER__** |
+| **AFTER** — ticket worktree, `git status` empty | **`e0dae3d`** | **6 failed, 1495 passed** in 865.33s |
 
 ### The BEFORE set is the fourth independent measurement of the same sixteen
 
@@ -32,7 +32,16 @@ This ticket measured it at `356ffe8`. **All four failing sets are identical name
 for name.** None of the sixteen belongs to any ticket, and the epic base
 inherited every one of them from `main` at `19c5c7b`.
 
-`denominator_rule` on the passing column, BEFORE to AFTER: __DENOM__
+`denominator_rule`, BEFORE to AFTER. **Ten of the sixteen went green and six
+remain by design.** The passing column moves 1481 → 1495, and that is +14 rather
+than +10 because the denominator ALSO rose: collection goes 1497 → 1501. Four of
+the fourteen are the ticket-workspace tests `scripts/start_ticket.py` scaffolds
+into `specs/tickets/RM-06/tests/`, **and they go away at close** — so the tree
+this PR leaves behind reads **6 failed, 1491 passed**. Ten of the fourteen are
+failures repaired. Nothing left either column.
+
+Both runs are recorded verbatim beside this file as `suite-before-356ffe8.txt`
+and `suite-after-e0dae3d.txt`.
 
 ---
 
@@ -68,7 +77,7 @@ falsehood about the product.
 | 8 | `test_score_tools.py::test_the_repo_ledger_passes_its_own_audit` | the same single violation |
 | 9 | `test_score_tools.py::test_the_repo_ledger_passes_its_own_audit_with_rh6` | the same single violation |
 | 10 | `test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red` | the same single violation, one layer out |
-| 11 | `test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces` | the same single violation, plus `RM-06-DF-04` |
+| 11 | `test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces` | the same single violation, plus `RM-06-DF-04`. **Two of its four broken slots WERE repaired** — `scorecard-scope/passing` and `scorecard-contested/passing` — and the `scorecard-contested-drift/failing` mutation anchor, which had gone `MALFORMED` and was therefore executing nothing at all. What is left is `scorecard-audit` and `scorecard-contested-drift` asserting record-wide violation TOTALS that the standing defect moves. |
 
 #### #6 — the same-tag control
 
