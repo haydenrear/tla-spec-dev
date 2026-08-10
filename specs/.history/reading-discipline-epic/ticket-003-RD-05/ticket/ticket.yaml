@@ -1,0 +1,120 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket RD-05",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-05/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-05/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-05/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Rewritten from RD-04's design before dispatch., 'Every shipped tag value has a demonstration that it changes a score",
+        "or is deleted.', 'INCOMPARABLE pairs are reported",
+        "never dropped.', 'A demonstrated failing input",
+        "run against real historical cards.'"
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "RD-03"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "examples/validation/scorecards/score_tools.py",
+        "references/architecture_tags.md"
+      ]
+    },
+    "depends_on": [
+      "RD-04"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/195",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "Every shipped tag value has demonstrated it changes a score, or the ticket reports which could not and deletes them.",
+        "goal": "GOAL-tags-earn-their-place",
+        "local_signal": "the earn-its-place demonstration per tag value"
+      },
+      {
+        "contribution": "direct",
+        "expected_effect": "Architecture becomes a third comparability axis, so an architecture-scoped claim can be refused the way an example-scoped one is.",
+        "goal": "GOAL-scope-loss-catchable",
+        "local_signal": "an architecture-unscoped claim is refused"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-apparatus-priced",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "RD-05",
+    "implementation_scope": [
+      "examples/validation/scorecards/",
+      "references/",
+      "tests/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "PLACEHOLDER. Scope is defined by RD-04 and this ticket is REWRITTEN FROM ITS DESIGN BEFORE DISPATCH. It exists so the DAG and the evaluation have something to point at and so the research has a named consumer. What holds regardless of what RD-04 decides: a tag declared after the numbers are seen is not a tag; INCOMPARABLE is reported and never dropped; a tag value earns its place by demonstrating it changes a score or is deleted; R1 applies; no new gates -- a tag constrains what may be COMPARED and refuses nothing about the code; and changing the card requires a scorecard_version bump with the old anchors kept and a re-score under both versions.",
+    "promotion_order": 40,
+    "promotion_predecessor": "RD-04",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "PLACEHOLDER: implement architecture tags (scope defined by RD-04)",
+    "wave": 3
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-05/specs/tickets/RD-05",
+  "ticket_id": "RD-05",
+  "ticket_index": 3,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-05/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-05/specs/tickets"
+}

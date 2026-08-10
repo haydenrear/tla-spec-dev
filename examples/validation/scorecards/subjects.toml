@@ -1,0 +1,202 @@
+# RD-05. THE DECLARED SCOPES. Nothing here is computed and nothing here may be.
+#
+# `references/architecture_tags.md` §3.2: the scope is the one thing the
+# derivation cannot decide for itself. A repository contains a toolchain, a
+# library and a fixture, and `toolchain_removal` is the demonstration that four
+# judges will pick three different ones -- D3 came out 2, 2, 3, 4 there and the
+# spread is zero once each card is read against the scope its own citations
+# name.
+#
+# So a subject is a NAME, a PATH LIST, and a DECLARED value. The path list is
+# what the complexity instrument is pointed at; the declared value exists so
+# that derivation and declaration can DISAGREE, which is information and which
+# fails open (§3.3). A declaration NEVER refuses a comparison.
+#
+# `labels` maps this subject onto the cards that scored it. A sealed card is
+# never edited (R-H4) and no card written before RD-05 carries a `subject`
+# field, so the mapping for the historical record lives here rather than in the
+# cards. A card scaffolded from RD-05 onward carries `subject.name` and
+# `check` refuses one whose `subject.scope` differs from the list below --
+# that is attack A5's defence, and it is why the scope is declared BEFORE the
+# skeleton is filled rather than argued afterwards.
+#
+# Each entry of `labels` is [round-directory, arm-label]. An arm label of ""
+# means "every card of that round for this example", used where a round scored
+# one artifact under no arm.
+
+[registry]
+id = "RD-05-declared-subjects"
+ticket = "RD-05"
+axis = "effect_boundary"
+note = """
+ELEVEN SCOPES, and the four that derive UNDERIVABLE are kept rather than
+dropped. `UNDERIVABLE` is one of the two ways the tag says nothing, it carries
+no refusal authority, and a subject that cannot be derived is comparable to
+everything -- so removing it from this file would turn a recorded refusal into
+an absence, which is the `absent` / `checked, none found` conflation this
+project keeps finding.
+"""
+
+[subject.arm_b]
+example = "ab_quota_ledger"
+scope = ["specs/results/scorecards/ports-as-adapters/blind/artifact_T"]
+declared_effect_boundary = "ports-and-adapters"
+labels = [
+  ["hexagonal-prompting", "X"],
+  ["hexagonal-prompting-rerun", "Q"],
+  ["ports-as-adapters", "T"],
+  ["falsifiable-instruments-rescore-v1", "T"],
+  ["falsifiable-instruments-rescore-v2", "T"],
+]
+
+[subject.arm_a]
+example = "ab_quota_ledger"
+scope = ["specs/results/scorecards/ports-as-adapters/blind/artifact_U"]
+declared_effect_boundary = "effectful"
+labels = [
+  ["hexagonal-prompting", "Y"],
+  ["hexagonal-prompting-rerun", "P"],
+  ["ports-as-adapters", "U"],
+  ["falsifiable-instruments-rescore-v1", "U"],
+  ["falsifiable-instruments-rescore-v2", "U"],
+  ["subtract-to-measure-sm04-rescore-v2", "H"],
+  ["subtract-to-measure-sm04-rescore-v3", "R"],
+  ["subtract-to-measure-sm05-greenfield", "S"],
+]
+
+[subject.arm_c]
+example = "ab_quota_ledger"
+scope = ["specs/results/scorecards/ports-as-adapters/blind/artifact_W"]
+declared_effect_boundary = "effectful"
+labels = [
+  ["ports-as-adapters", "W"],
+  ["falsifiable-instruments-rescore-v1", "W"],
+  ["falsifiable-instruments-rescore-v2", "W"],
+]
+
+# toolchain_removal: ONE round, FOUR cards, and THREE scopes between them.
+# Only `toolchain` carries the round's cards, because that round declared no
+# scope at all and the cards were written about the removal of the toolchain.
+# The other two are declared so that SCOPE-DRIFT has somewhere to attribute a
+# citation to. `references/architecture_tags.md` §4.2 is the decomposition.
+[subject.toolchain]
+example = "toolchain_removal"
+scope = ["scripts"]
+declared_effect_boundary = "effectful"
+labels = [["subtract-to-measure-sm05", "K"]]
+
+[subject.toolchain_fixture]
+example = "toolchain_removal"
+scope = ["examples/validation/ab/reference_ports"]
+declared_effect_boundary = "ports-and-adapters"
+labels = []
+
+[subject.toolchain_compiler]
+example = "toolchain_removal"
+scope = ["spec_double_compiler"]
+declared_effect_boundary = "ports-and-adapters"
+labels = []
+
+[subject.ex1_scaffold_only]
+example = "ex1_scaffold_only"
+scope = ["examples/validation/ex1_scaffold_only"]
+declared_effect_boundary = "effectful"
+labels = [["architectural-coherence", ""]]
+
+[subject.ex3_over_complex]
+example = "ex3_over_complex"
+scope = ["examples/validation/ex3_over_complex"]
+declared_effect_boundary = "effectful"
+labels = [["architectural-coherence", ""]]
+
+[subject.ex4_pipeline_coherent]
+example = "ex4_pipeline_coherent"
+scope = ["examples/validation/ex4_pipeline_coherent"]
+declared_effect_boundary = "ports-and-adapters"
+labels = [["architectural-coherence", ""]]
+
+[subject.ex5_pipeline_divergent]
+example = "ex5_pipeline_divergent"
+scope = ["examples/validation/ex5_pipeline_divergent"]
+declared_effect_boundary = "ports-and-adapters"
+labels = [["architectural-coherence", ""]]
+
+[subject.ex6_jenga]
+example = "ex6_jenga"
+scope = ["examples/validation/ex6_jenga"]
+declared_effect_boundary = "effectful"
+labels = [["architectural-coherence", ""]]
+
+# --------------------------------------------------------------------------
+# RD-06: SIX SUBJECTS PRODUCED BY THIS EPIC, DECLARED BEFORE THEY EXISTED.
+#
+# These entries were committed BEFORE the first producer agent was dispatched
+# and BEFORE any tree was on disk -- see
+# `specs/results/scorecards/reading-discipline/GOAL-product-round/RD-06/SEALED-BEFORE-DISPATCH.md`
+# and the commit that adds it. The epic charter's guard 1 is that a tag
+# asserted after the numbers are seen is not a tag; the strongest available
+# form of that is a declaration written when there are no numbers at all.
+#
+# `declared_effect_boundary` below is a PRIOR taken from the sealed record's
+# declaration for the same arm prompt. It is not a prediction this ticket has
+# a stake in. RD-05's shipped predicate derives the value independently; where
+# derivation and declaration disagree the pair is TAG-DISPUTED, it FAILS OPEN,
+# it is reported, and neither side is corrected.
+#
+# The label is opaque. `UNBLINDING-rd06.md` maps label to arm and no judge is
+# given it. Three of these six are revisions of the other three; the pairing is
+# published in `SUBJECTS-RD-06.md` because a judge cannot award D2 anchor 3
+# without knowing which tree is the before.
+#
+# `labels` is empty on every one: no card has scored any of these. A card
+# scaffolded from RD-05 onward carries `subject.name` itself, so the mapping
+# for these does not live here.
+#
+# SCOPE-CARRYING NOTE ON THE FIGURE ABOVE. `[registry].note` says ELEVEN
+# SCOPES. That was true of this file AS RD-05 SHIPPED IT and it is the figure
+# `references/architecture_tags.md` was measured over -- "measured on eleven
+# declared scopes", "decides 7 of 11 subjects and refuses 4", "refuses four of
+# the eleven". This block adds six more, so the count of scopes in this file is
+# now 17 and those figures are claims about RD-05's file, not about this one.
+# NOTHING ABOVE IS EDITED: RD-05's note is RD-05's statement at RD-05's scope,
+# and rewriting a predecessor's figure to match a successor's file is how a
+# number stops carrying the scope it was true at. Filed as a finding rather
+# than repaired here -- this epic files findings and fixes nothing during a
+# measurement.
+# --------------------------------------------------------------------------
+
+[subject.rd06_artifact_Z]
+example = "ab_quota_ledger"
+scope = ["specs/results/scorecards/reading-discipline/blind/artifact_Z"]
+declared_effect_boundary = "effectful"
+labels = []
+
+[subject.rd06_artifact_E]
+example = "ab_quota_ledger"
+scope = ["specs/results/scorecards/reading-discipline/blind/artifact_E"]
+declared_effect_boundary = "ports-and-adapters"
+labels = []
+
+[subject.rd06_artifact_N]
+example = "ab_quota_ledger"
+scope = ["specs/results/scorecards/reading-discipline/blind/artifact_N"]
+declared_effect_boundary = "effectful"
+labels = []
+
+[subject.rd06_artifact_M]
+example = "ab_quota_ledger"
+scope = ["specs/results/scorecards/reading-discipline/blind/artifact_M"]
+declared_effect_boundary = "effectful"
+labels = []
+
+[subject.rd06_artifact_F]
+example = "ab_quota_ledger"
+scope = ["specs/results/scorecards/reading-discipline/blind/artifact_F"]
+declared_effect_boundary = "ports-and-adapters"
+labels = []
+
+[subject.rd06_artifact_D]
+example = "ab_quota_ledger"
+scope = ["specs/results/scorecards/reading-discipline/blind/artifact_D"]
+declared_effect_boundary = "effectful"
+labels = []

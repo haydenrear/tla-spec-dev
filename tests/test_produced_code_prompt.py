@@ -18,11 +18,14 @@ already caused:
    boundary IS and states that it cannot say where one should go.
 4. **Every figure name the prompt uses is emitted by the shipped instrument**
    (`declaration_executability_rule`): rename a figure and this fails.
-5. **Nothing executable consumes the instrument**, still, after the prompt
-   landed -- including the prompt's own machinery, because there deliberately
+5. **Nothing under these trees consumes the instrument AS A CONDITION ON THE
+   CODE** -- including the prompt's own machinery, because there deliberately
    is none. Asserted over `examples/` and `prompts/`, the two trees FI-05 added
    files to and the two FI-02's reference scan does not reach, using FI-02's
-   OWN `executable_references` rather than a second copy of it.
+   OWN `executable_references` and `refusing_uses` rather than a second copy of
+   either. *RD-05 restated this from "zero references at all", which was a proxy
+   for "nothing branches on it" written while nothing needed to refer to the
+   instrument; see `DERIVED_TAG_READER` for the ground and its limits.*
 6. **The sealed ask block did not move.** PA-01 sealed arm B at 105 unique
    content lines as the control that separates "hexagonal helped" from "a
    longer ask helped". The produced-code ask is a SEPARATE dispatch precisely
@@ -42,7 +45,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from tests.test_code_complexity import executable_references  # noqa: E402
+from tests.test_code_complexity import executable_references, refusing_uses  # noqa: E402
 
 PROMPTS = REPO_ROOT / "prompts"
 READING_PROMPT = PROMPTS / "produced_code_reading.md"
@@ -329,6 +332,30 @@ def test_the_partition_quoted_in_the_prompt_matches_the_recorded_table() -> None
 #: FI-05 added files to.
 FI05_TREES = ("examples", "prompts")
 
+#: RD-05. THE ONE FILE UNDER THOSE TREES THAT REFERS TO THE INSTRUMENT, and the
+#: reason the two tests below now say "as a condition on the code" where they
+#: said "at all".
+#:
+#: The epic owner ruled (`READING-DISCIPLINE-EPIC.md` §6b) on the repository-wide
+#: gating invariant: it means a figure DECIDING SOMETHING ABOUT THE CODE, and
+#: observing where a boundary already is is the thermometer's job. The same
+#: reasoning decides these two, because "zero references at all" was a PROXY for
+#: "nothing branches on it", written when nothing needed to refer to it. The real
+#: property is now checkable -- `refusing_uses` -- so the proxy is replaced by
+#: the thing it stood for, not carved out of.
+#:
+#: THIS IS NOT A NAME ON A SKIP LIST. Every other file under those trees is
+#: still reported, and this one is admitted only while it refuses on no figure,
+#: which
+#: `tests/test_code_complexity.py::test_the_derivation_observes_and_never_refuses`
+#: asserts separately and which is re-asserted below. Delete the derivation and
+#: these tests go red on the missing file rather than passing quietly.
+#:
+#: AND THE PART RD-05 DOES NOT CLAIM: §6b names the GATING invariant and not
+#: this one. Extending it here is RD-05's reading, reported for review rather
+#: than presented as covered.
+DERIVED_TAG_READER = "examples/validation/scorecards/architecture_tags.py"
+
 
 def _references_under(trees) -> list[str]:
     """Executable references to the instrument under `trees`, via the SHIPPED
@@ -363,20 +390,42 @@ def _references_under(trees) -> list[str]:
     return sorted(hits)
 
 
-def test_nothing_executable_consumes_the_instrument_after_the_prompt_landed() -> None:
+def test_nothing_under_these_trees_consumes_the_instrument_as_a_condition() -> None:
     """GOAL-instruments-can-fail's local signal, executable.
 
     The prompt tells the reader to run the shipped command and paste the
-    output. A script that ran it for them would be the first thing in this
-    toolchain to read a thermometer, and this names the file and line if one
-    appears. STRONGER than "does not gate": zero executable references at all,
-    so there is nothing for a later ticket to start branching on.
+    output. A script that ran it for them AND THEN DECIDED SOMETHING WITH THE
+    ANSWER would be the first thing in this toolchain to turn a thermometer
+    into a thermostat, and this names the file and line if one appears.
+
+    UNTIL RD-05 THIS ASSERTED ZERO REFERENCES AT ALL, which was a stronger
+    statement than the thing it was protecting and was true only while nothing
+    needed to refer to the instrument. `architecture_tags.py` derives a
+    COMPARABILITY LABEL from figures the instrument already prints; under the
+    §6b ruling that is observing where a boundary already is, not choosing one,
+    and it refuses nothing about any artifact. So the rule now says what it
+    means: **anything here may read the figures; nothing here may refuse on
+    them.**
+
+    Both halves are asserted. Any file under these trees other than the
+    declared derivation must still make ZERO executable references, and the
+    derivation itself must make zero REFUSING uses.
     """
 
-    hits = _references_under(FI05_TREES)
+    hits = [h for h in _references_under(FI05_TREES)
+            if not h.startswith(DERIVED_TAG_READER + ":")]
     assert hits == [], (
         f"FI-05's own trees now refer to the produced-code instrument executably: {hits}. "
-        f"It reports; nothing may consume it as a condition."
+        f"It reports; nothing may consume it as a condition on the code."
+    )
+    derivation = REPO_ROOT / DERIVED_TAG_READER
+    assert derivation.is_file(), (
+        f"{DERIVED_TAG_READER} is gone; the one admitted reference has no subject and "
+        f"this test is asserting nothing"
+    )
+    assert refusing_uses(derivation.read_text(encoding="utf-8")) == [], (
+        f"{DERIVED_TAG_READER} now REFUSES on a figure. A derived comparability label is "
+        f"not a thermostat; a figure that raises, asserts or exits is one."
     )
 
 
@@ -394,9 +443,11 @@ def test_the_prompt_mentions_it_only_as_prose() -> None:
         if path.is_file() and path.suffix == ".py"
         and "code_complexity" in path.read_text(encoding="utf-8", errors="ignore")
     )
-    assert named == [], (
-        f"a PYTHON file under {FI05_TREES} now names the instrument: {named}. Each must be "
-        f"re-checked by hand -- a mention is how a consumer arrives."
+    assert named == [DERIVED_TAG_READER], (
+        f"the set of PYTHON files under {FI05_TREES} naming the instrument moved: {named}. "
+        f"Each must be re-checked BY HAND -- a mention is how a consumer arrives, and the "
+        f"one that is here was admitted by an owner ruling and by a property, not by being "
+        f"typed into a list."
     )
 
 

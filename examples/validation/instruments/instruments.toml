@@ -809,6 +809,88 @@ classification = "demonstrated-can-fail"
   expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
+id = "architecture-tag-derivation"
+name = "effect_boundary architecture tag (RD-05)"
+paths = ["examples/validation/scorecards/architecture_tags.py",
+         "examples/validation/scorecards/subjects.toml"]
+family = "measurement"
+watches = "which architecture a score describes -- derived from the tree over a DECLARED scope, and which cards cite predominantly outside the scope they were attributed to"
+verdict_surface = "printed SCOPE-DRIFT and INCOMPARABLE lines; THE EXIT CODE IS ALWAYS 0"
+classification = "demonstrated-can-fail"
+note = """
+IT REFUSES NOTHING ABOUT ANY ARTIFACT, and the always-zero exit is the point
+rather than an omission. `no_new_gates_rule`: a tag constrains what may be
+COMPARED. Five epics of static checking on the product caught zero bugs and this
+is deliberately not a sixth.
+
+WHAT IT CAN REFUSE is a COMPARISON, on one dimension of one example, between two
+derived values -- and an INCOMPARABLE verdict PRINTS BOTH SCORE SETS, so it can
+never reduce the set of printed numbers. `EVAL-SUPPRESS` is why that is a
+property with a test on it rather than a promise.
+
+THE FAILING INPUT IS REAL HISTORICAL DATA, per R1: the four sealed cards of
+`toolchain_removal`, the only contested group in 49 cards, two of which cite
+predominantly outside the scope the round was attributed to. Within each scope
+the spread is zero -- the four judges scored three subjects.
+"""
+
+  [instrument.failing]
+  summary = "the sealed toolchain_removal cards: two of four cite outside their declared scope"
+  argv = ["{python}", "{repo}/examples/validation/scorecards/architecture_tags.py", "drift"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["SCOPE-DRIFT", "20260807-sm05rm-K-p3", "20260807-sm05rm-K-p4",
+                   "2 card(s) cite predominantly outside their declared scope"]
+
+  [instrument.passing]
+  summary = "the declared scopes: every one decided or refused, and every refusal reported as one. RD-05 WROTE THIS AS `the eleven declared scopes: seven decided, four refused` AND THE COUNT MOVED TO 13 OF 17 when RD-06 declared six more subjects. The four refusals are unchanged and the derivation is unchanged: the figure was never a property of the instrument, it was a property of the fixture's size, and it moves again the next time anyone declares a subject. Filed as RD-06-DF-04. The count is updated rather than dropped, because a demonstration that asserts nothing about its output is not a demonstration -- and the superseded figure is kept in this sentence rather than erased."
+  argv = ["{python}", "{repo}/examples/validation/scorecards/architecture_tags.py", "derive"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["13 of 17 subject(s) decided", "UNDERIVABLE:no-effect-surface",
+                   "state_colocation threshold = 0.5"]
+  expect_absent = ["SCOPE-DRIFT"]
+
+  [instrument.blind_spot]
+  kind = "declared"
+  summary = "the axis has authority on ONE dimension of ONE example in ONE judge tier: D3 on ab_quota_ledger, opus only, n = 0 in sonnet on a ports-and-adapters subject. The derivation is a Python AST walk, so every non-Python subject is UNDERIVABLE:unparsed and comparable to everything; the state-colocation threshold of 0.5 has never been measured near its boundary; and SCOPE-DRIFT counts a scope's LAST path segment, so two scopes sharing a basename would collide."
+  reason = "Every one of these is an open question RD-04 left open and RD-05 declined to close by assuming an answer. RD-04-DF-03 and RD-04-DF-04 carry two of them. A green run of this instrument says nothing about any of them."
+
+[[instrument]]
+id = "architecture-demonstration-table"
+name = "demonstration table re-derivation (R-H1 third clause)"
+paths = ["examples/validation/scorecards/score_tools.py",
+         "specs/results/scorecards/INSTRUMENT-LOG.toml"]
+family = "measurement"
+watches = "that a `[[demonstration]]` granting refusal authority is still supported by the cards, and that a separation the cards DO support is not granted silently"
+verdict_surface = "exit 1 with a VIOLATION line from `audit`"
+classification = "demonstrated-can-fail"
+note = """
+A ROW HERE IS THE ONLY THING THAT GRANTS A REFUSAL, so it is the last thing that
+may be allowed to go stale: a stale row means a comparison refused on evidence
+nobody can find. Re-derived on every `audit`, exactly as R-H5 re-derives
+`points` and R-H6 re-derives `contested`. A separation the cards support with no
+entry beside it is OPEN, not silently granted -- an authority nobody declared is
+not an authority.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a demonstration row moved to a dimension the cards do not separate on"
+  nodes = ["tests/test_architecture_tags.py::test_a_demonstration_the_cards_no_longer_support_is_a_violation"]
+  expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the committed ledger's one row, re-derived from the 34 cards"
+  nodes = ["tests/test_architecture_tags.py::test_the_committed_demonstration_re_derives_from_the_cards"]
+  expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
+
+[[instrument]]
 id = "blinding-sanitiser"
 name = "judge-blinding sanitiser"
 paths = ["specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"]
@@ -2214,3 +2296,290 @@ either -- so it is here for the reason the preamble gives, not because the
 verdict changed. Its output is an argument (that the dominance result is a
 property of who wrote the catalogue) and arguments are read, not exited on.
 """
+
+
+# ===========================================================================
+# ADDED BY RD-01 -- READING DISCIPLINE
+# ===========================================================================
+#
+# Two checks, one defect at two granularities: A CLAIM READ FORWARD WITHOUT
+# BEING CHECKED. Both failing demonstrations below run against THE REAL
+# HISTORICAL RECORD rather than a fixture, because `SM-06` measured 3 of 4
+# disagreeing copies of the card going uncaught by the full suite, `check`,
+# `audit`, `serve` and this file -- a check shown only to pass proves nothing.
+#
+# NEITHER GATES THE PRODUCT. `scope` refuses a CLAIM someone wrote about the
+# cards; `contested` reports a disagreement between judges. No close path
+# consults either, and neither decides anything about any artifact. Five epics
+# of static checking on the code caught zero bugs and these are not a sixth.
+
+[[instrument]]
+id = "scorecard-scope"
+name = "scope check on a counted claim (R3)"
+paths = ["examples/validation/scorecards/score_tools.py"]
+family = "measurement"
+watches = "every figure of the form `D<n> = k on N of M cards` in the charters, the plan, the ledger and the narrative results, re-derived against the cards on disk at the scope its own words carry"
+verdict_surface = "exit 1 with a REFUTED block naming the contradicting cards"
+classification = "demonstrated-can-fail"
+note = """
+IT IS RED ON THIS REPOSITORY AS SHIPPED, AND THAT IS THE PRODUCT. The failing
+demonstration is the record itself: `SUBTRACT-TO-MEASURE-EPIC.md:17` states
+"D2 = 2 on 27 of 27 cards ever written" with no scope beside it, and eight
+sealed cards contradict it -- two of them, `ex3_over_complex` from both blind
+judges, written THREE EPICS EARLIER under the same anchors digest.
+
+THE RECORD WAS NOT EDITED TO MAKE THIS GREEN. Never edit a target to match a
+result: the charters, the plan and the sealed results still say what they said,
+`scope` still exits 1 over them, and the count of refuted claims is RD-01's
+reported figure rather than a number to be driven to zero.
+"""
+
+  [instrument.failing]
+  summary = "the shipped record: an unscoped `D2 = 2 on 27 of 27 cards ever written` in the charter that opened an epic, against 49 sealed cards spanning seven examples"
+  argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "scope"]
+  cwd = "{repo}"
+  expect_exit = 1
+  expect_output = ["SUBTRACT-TO-MEASURE-EPIC.md:17",
+                   "counterexample: ex3_over_complex/20260803-j1",
+                   "REFUTED"]
+
+  [instrument.passing]
+  summary = "the SAME claim from the SAME charter with its scope written beside it -- naming the example is what changes the verdict, not rephrasing it"
+  argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "scope",
+          "--root", "{tree}", "--path", "{tree}/SUBTRACT-TO-MEASURE-EPIC.md",
+          "--scorecards", "{repo}/specs/results/scorecards"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["0 REFUTED"]
+
+    [[instrument.passing.stage]]
+    from = "SUBTRACT-TO-MEASURE-EPIC.md"
+    to = "SUBTRACT-TO-MEASURE-EPIC.md"
+
+    [[instrument.passing.mutate]]
+    file = "SUBTRACT-TO-MEASURE-EPIC.md"
+    find = "`D2 = 2` on **27 of 27 cards ever written**"
+    replace = "`D2 = 2` on **35 of 35 cards ever written about `ab_quota_ledger`**"
+
+  [instrument.blind_spot]
+  kind = "declared"
+  summary = "IT CANNOT REACH A FIGURE THAT DOES NOT COUNT. `D2 has never left 2`, `D3 is the one dimension that discriminates and holds still`, and `every subject this project has ever scored was greenfield` are the same generalisation with no `N of M` in them -- and the second of those is one of the three instances that opened this epic. Of the 44 counted figures the sweep finds in this tree, it reports 8 it cannot evaluate and names the reason for each; of the uncounted ones it finds zero, because it is not looking. IT ALSO CANNOT SEE A FIGURE BROKEN ACROSS A LINE BREAK -- matching is line-based, deliberately, because a paragraph-wide window is what would let a figure bind to a scope three sentences away."
+  reason = "Deliberate. A parser that guessed at the population behind a prose claim would be inventing the subject, which is the failure `prediction-seal` declined to commit one layer down. The uncounted forms are RD-03's material and are written here rather than left for the next sweep."
+
+[[instrument]]
+id = "scorecard-contested"
+name = "contested computation (rule 5, R-H6)"
+paths = ["examples/validation/scorecards/score_tools.py",
+         "specs/results/scorecards/INSTRUMENT-LOG.toml"]
+family = "measurement"
+watches = "every judge group in the record for a spread greater than 1, and whether anything in the ledger says what was done about one"
+verdict_surface = "exit 1 with UNRECORDED naming the group and the dimension"
+classification = "demonstrated-can-fail"
+note = """
+Rule 5 has said since scorecard version 1 that a spread greater than 1 is
+contested and is adjudicated by a third pass citing new evidence. NOTHING
+COMPUTED IT FOR THREE EPICS. The flag is now derived from the cards on every
+read and cannot be declared: a card asserting a dimension the judges do not
+support is an R-H6 violation, which is `EVAL-SUPPRESS` inverted -- that
+construct erased a demonstrated kill with a declaration, and this one would let
+an inconvenient score be parked behind a flag nothing re-derives.
+
+THE COMPUTATION FINDS EXACTLY ONE GROUP IN 49 SEALED CARDS, and it is the one
+this ticket was told about -- reached with no id, no path and no dimension named
+in the code that reaches it.
+"""
+
+  [instrument.failing]
+  summary = "the real record with its one adjudication entry pointed at an arm that does not exist -- the shipped D3 spread of 2 on the toolchain removal goes back to being unrecorded, exactly as it was for the whole epic that produced it"
+  argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "contested",
+          "--require-recorded", "--root", "{tree}/scorecards"]
+  cwd = "{repo}"
+  expect_exit = 1
+  expect_output = ["toolchain_removal", "CONTESTED  D3 spread 2", "UNRECORDED"]
+
+    [[instrument.failing.stage]]
+    from = "specs/results/scorecards"
+    to = "scorecards"
+
+    [[instrument.failing.mutate]]
+    file = "scorecards/INSTRUMENT-LOG.toml"
+    find = 'arm = "K"'
+    replace = 'arm = "Z"'
+
+  [instrument.passing]
+  summary = "the shipped record, whose one contested dimension is recorded with third_pass = none"
+  argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "contested",
+          "--require-recorded", "--root", "{repo}/specs/results/scorecards"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["1 contested dimension(s)", "0 unrecorded", "TIER-SPLIT D3"]
+
+  [instrument.blind_spot]
+  kind = "declared"
+  summary = "IT CANNOT FIRE ON A GROUP WITH ONE JUDGE, and one exists: `hexagonal-prompting` / `ab_quota_ledger` / `A-control-reference` was scored by a single owner pass. 20 of the 23 groups carry exactly two judges, where a spread greater than 1 needs a two-point disagreement -- so the flag is structurally hardest to trip on exactly the shape the record is mostly made of, and the ONE group it fires on is one of the two four-judge groups."
+  reason = "A fact about the dispatches, not about the check: a disagreement between judges cannot be measured where there is one judge. Recorded so `1 contested in 23 groups` is not read as evidence that the card is stable."
+
+[[instrument]]
+id = "scorecard-contested-drift"
+name = "contested adjudication re-derivation (R-H6)"
+paths = ["examples/validation/scorecards/score_tools.py",
+         "specs/results/scorecards/INSTRUMENT-LOG.toml"]
+family = "measurement"
+watches = "that a `[[contested]]` entry's declared spread and scores still match the cards it is about"
+verdict_surface = "exit 1 with a VIOLATION line from the R-H6 audit"
+classification = "demonstrated-can-fail"
+note = """
+The same shape R-H5 applies to `points`: a declaration that records a
+measurement is re-derived from the measurement on every run, so it cannot drift
+into saying something the cards do not. A stale adjudication record is worse
+than none, because it reads as one that happened.
+"""
+
+  [instrument.failing]
+  summary = "the shipped adjudication entry with its declared spread moved from 2 to 1 -- a real record, mutated the way a record goes stale"
+  argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "audit",
+          "--root", "{tree}/scorecards", "--quiet-ok"]
+  cwd = "{repo}"
+  expect_exit = 1
+  expect_output = ["declares spread 1", "the cards give 2", "1 violation(s)"]
+
+    [[instrument.failing.stage]]
+    from = "specs/results/scorecards"
+    to = "scorecards"
+
+    [[instrument.failing.mutate]]
+    file = "scorecards/INSTRUMENT-LOG.toml"
+    find = "spread = 2"
+    replace = "spread = 1"
+
+  [instrument.passing]
+  summary = "the shipped ledger against the shipped cards"
+  argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "audit",
+          "--root", "{repo}/specs/results/scorecards", "--quiet-ok"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["0 violation(s)"]
+
+[[instrument]]
+id = "removal-census"
+name = "RD-02 removal census -- what a removal cost to prove safe"
+paths = ["examples/validation/removal_census/removal_census.py",
+         "examples/validation/removal_census/removals.toml"]
+family = "measurement"
+watches = "every declared removal region against the commit range it claims to measure, and refuses when the manifest no longer measures what it recorded"
+verdict_surface = "exit 2 with CENSUS-DRIFT naming the region, the measured count and the recorded one"
+classification = "demonstrated-can-fail"
+note = """
+`subtract-to-measure` published `-225 lines from scripts/` and the same epic
+added 1677 net `code_lines` across the trees it touched, because every removal
+shipped instruments, tests and demonstrations to prove the removal safe and
+nobody counted that as a cost.
+
+THE CENSUS REFUSES A TOTAL, on purpose and in code. `--total` and
+`report_total = true` both exit 2 with the 1677 figure in the refusal, because
+a total over removals hides which removals paid for themselves and that is the
+defect this instrument exists to correct.
+
+Its numbers are MEASURED from git on every run, never typed in: `check`
+re-measures every declared region and reports CENSUS-DRIFT when the manifest
+and the tree disagree. That is the failing input below.
+"""
+
+  [instrument.failing]
+  tier = "slow"
+  summary = "the real manifest with SM-02's deleted-line count moved by one -- 290 to 291, the way a hand-maintained census goes stale"
+  argv = ["{python}", "{repo}/examples/validation/removal_census/removal_census.py",
+          "--manifest", "{tree}/census/removals.toml", "check"]
+  cwd = "{repo}"
+  expect_exit = 2
+  expect_output = ["CENSUS-DRIFT", "measures 290, manifest says 291"]
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/removal_census"
+    to = "census"
+
+    [[instrument.failing.mutate]]
+    file = "census/removals.toml"
+    find = "expect_lines = 290"
+    replace = "expect_lines = 291"
+
+  [instrument.passing]
+  tier = "slow"
+  summary = "the shipped manifest against the shipped history"
+  argv = ["{python}", "{repo}/examples/validation/removal_census/removal_census.py", "check"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["every declared region measures what the manifest recorded"]
+
+  [instrument.blind_spot]
+  kind = "declared"
+  summary = "IT CANNOT TELL A PROOF LINE FROM A REPLACEMENT LINE. The role of every region is DECLARED by a human in the manifest, with a written reason, and nothing derives it. A future author who classifies a new mechanism as `proof` makes the ratio look worse and one who classifies apparatus as `replacement` makes it look better, and this instrument would report both without complaint."
+  reason = "There is no mechanical definition of `exists only to prove the removal safe`, and inventing one would be a check that cannot fail rather than a measurement. The defence is that every region carries its reason in the manifest and `check` pins the LINE COUNTS, so a reclassification is visible in a diff even though it is not refused."
+
+[[instrument]]
+id = "gap-mutant-detector-argv"
+name = "a cli detector's argv against its entry point"
+paths = ["tests/test_gap_mutants.py"]
+family = "tripwire"
+watches = "every cli detector in gap_mutants.toml for a flag its entry point no longer declares"
+verdict_surface = "a failing pytest node naming the detector and the rejected flags"
+classification = "demonstrated-can-fail"
+note = """
+RD-02. `port-binding-report` passed `--port-manifest` to
+`run_generated_case_adapters.py`; SM-02 deleted that flag in the same epic.
+For two epics the detector exited 2 with `unrecognized arguments`, executed
+nothing, and reported INERT -- which decides nothing and was correctly not read
+as a survival, so the table was never wrong. It was carrying a column that
+could never speak again, in a catalogue whose whole argument is R2.
+
+The failing input is the catalogue as it stood at `7514df0`, which is the
+subject rather than a fixture.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the catalogue at 7514df0, before RD-02 removed the dead column -- port-binding-report's --port-manifest against an entry point that no longer declares it"
+  nodes = ["tests/test_gap_mutants.py::test_every_cli_detector_declares_flags_its_entry_point_still_accepts"]
+  expect_exit = 1
+  expect_passed = 0
+  expect_output = ["port-binding-report", "--port-manifest"]
+
+    [[instrument.failing.stage]]
+    from = "tests"
+    to = "tests"
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/gap_mutants"
+    to = "examples/validation/gap_mutants"
+
+    [[instrument.failing.stage]]
+    from = "scripts"
+    to = "scripts"
+
+    [[instrument.failing.mutate]]
+    file = "examples/validation/gap_mutants/gap_mutants.toml"
+    find = "# NO SEEDABLE GAP -- REPORTED, NEVER SKIPPED (R2)"
+    replace = """# RD-02 DEMONSTRATION -- the dead column put back as 7514df0 carried it.
+[[detector]]
+id = "port-binding-report"
+kind = "cli"
+entry_point = "scripts/run_generated_case_adapters.py"
+uses_ports_binding = true
+argv = ["{python}", "{tree}/scripts/run_generated_case_adapters.py", "{cases}", "--mapping", "m", "--port-manifest", "p", "--validate-only"]
+note = "reinstated by the RD-02 demonstration only"
+
+# NO SEEDABLE GAP -- REPORTED, NEVER SKIPPED (R2)"""
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the shipped catalogue, whose one remaining cli detector passes only flags its entry point declares"
+  nodes = ["tests/test_gap_mutants.py::test_every_cli_detector_declares_flags_its_entry_point_still_accepts"]
+  expect_exit = 0
+  expect_passed = 1
+
+  [instrument.blind_spot]
+  kind = "declared"
+  summary = "IT COMPARES FLAG NAMES, NOT MEANINGS. A flag still declared but now doing something else, or a positional argument that moved, is invisible to it."
+  reason = "It catches the failure that actually happened and nothing wider. A check that claimed to verify a detector still MEASURES what it claims would have to run it, and running `instrument-registry` means running the whole registry."

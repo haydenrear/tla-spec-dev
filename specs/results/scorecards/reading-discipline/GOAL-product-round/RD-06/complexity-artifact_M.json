@@ -1,0 +1,293 @@
+{
+  "completeness": {
+    "files_parsed": 2,
+    "files_seen": 2,
+    "files_unparsed": 0,
+    "parsed_fraction": 1.0,
+    "path_state": "present",
+    "unparsed": [],
+    "unresolved_constructs": [
+      "test_quota_ledger.py: getattr(): a reference this instrument cannot resolve"
+    ]
+  },
+  "definitions": {
+    "branch_points": "if / elif / conditional-expression / for / async-for / while / each except handler / each comprehension if / each match case / each extra operand of a boolean operator. assert, with and a bare try are NOT counted.",
+    "declared_interfaces": "classes based on Protocol/ABC or carrying an @abstractmethod",
+    "effectful_calls": "syntactic calls to the printed EFFECT_SINKS list. A sink reached through an alias, a local variable or getattr is NOT seen, and the names in effect_sinks_excluded are not seen either. This figure UNDERCOUNTS by construction.",
+    "instance_state": "distinct self.<name> assignment targets per class, summed",
+    "max_depth": "deepest nesting of if/for/while/with/try/match inside a single callable; a callable with no block statement has depth 0",
+    "module_state": "distinct module-level names rebound: assigned more than once, augmented-assigned, or declared global inside a function",
+    "public_surface": "module-level names not starting with _ , plus public methods of public classes. Dunders, including __init__, are excluded.",
+    "role_rule": "role is assigned by NAME alone: a path component in ['test', 'testing', 'tests'], or a filename matching test_*.py, *_test.py or conftest.py, is role=test. Contents are never read.",
+    "skipped_directories": [
+      ".eggs",
+      ".git",
+      ".hg",
+      ".mypy_cache",
+      ".pytest_cache",
+      ".ruff_cache",
+      ".svn",
+      ".tox",
+      ".venv",
+      "__pycache__",
+      "node_modules",
+      "venv"
+    ]
+  },
+  "effect_sink_vocabulary": {
+    "clock": [
+      "sleep",
+      "now",
+      "utcnow",
+      "today",
+      "monotonic",
+      "perf_counter"
+    ],
+    "filesystem": [
+      "open",
+      "read_text",
+      "write_text",
+      "read_bytes",
+      "write_bytes",
+      "mkdir",
+      "makedirs",
+      "rmdir",
+      "unlink",
+      "rename",
+      "touch",
+      "copyfile",
+      "copytree",
+      "rmtree",
+      "listdir",
+      "glob",
+      "rglob",
+      "iterdir",
+      "chmod",
+      "stat",
+      "exists",
+      "is_file",
+      "is_dir",
+      "mkstemp",
+      "mkdtemp",
+      "NamedTemporaryFile",
+      "TemporaryDirectory",
+      "writelines",
+      "flush",
+      "fsync"
+    ],
+    "network": [
+      "socket",
+      "connect",
+      "urlopen",
+      "urlretrieve",
+      "recv",
+      "sendall"
+    ],
+    "process": [
+      "check_call",
+      "check_output",
+      "Popen",
+      "system",
+      "execv",
+      "fork",
+      "kill",
+      "getenv",
+      "putenv",
+      "environ",
+      "argv"
+    ],
+    "randomness": [
+      "random",
+      "randint",
+      "randrange",
+      "choice",
+      "shuffle",
+      "uuid4",
+      "uuid1"
+    ],
+    "stdio": [
+      "print",
+      "input",
+      "stdout",
+      "stderr",
+      "stdin"
+    ]
+  },
+  "effect_sinks_excluded": {
+    "call": "any callable-invoking method",
+    "copy": "dict.copy / list.copy",
+    "delete": "too generic to attribute",
+    "exit": "any exit method",
+    "get": "dict.get",
+    "head": "too generic to attribute",
+    "move": "too generic to attribute",
+    "post": "too generic to attribute",
+    "put": "queue.put",
+    "remove": "list.remove / set.remove",
+    "replace": "str.replace / dataclasses.replace",
+    "request": "too generic to attribute",
+    "run": "any runner method",
+    "sample": "random.sample / statistical sampling",
+    "send": "generator.send",
+    "spawn": "too generic to attribute",
+    "time": "any attribute named time",
+    "walk": "ast.walk"
+  },
+  "internal_import_edges": [
+    [
+      "test_quota_ledger.py",
+      "quota_ledger.py"
+    ]
+  ],
+  "modules": [
+    {
+      "branch_points": 11,
+      "busiest_callable": "reserve",
+      "callables": 14,
+      "classes": 5,
+      "code_lines": 156,
+      "declared_exports": 4,
+      "declared_interface_methods": 0,
+      "declared_interfaces": 0,
+      "deepest_callable": "reserve",
+      "effect_sinks": [
+        "flush",
+        "fsync",
+        "mkdir",
+        "open",
+        "read_text",
+        "write_text"
+      ],
+      "effectful_calls": 6,
+      "imports_external": 5,
+      "imports_internal": [],
+      "instance_state": 4,
+      "max_branch_points_in_callable": 4,
+      "max_depth": 1,
+      "module_state": 0,
+      "parsed": true,
+      "path": "quota_ledger.py",
+      "public_methods": 11,
+      "public_surface": 15,
+      "public_top_level": 4,
+      "role": "code",
+      "total_lines": 222,
+      "unparsed_reason": null,
+      "unresolved_constructs": []
+    },
+    {
+      "branch_points": 29,
+      "busiest_callable": "test_the_four_rules_survive_a_long_random_sequence",
+      "callables": 23,
+      "classes": 0,
+      "code_lines": 230,
+      "declared_exports": null,
+      "declared_interface_methods": 0,
+      "declared_interfaces": 0,
+      "deepest_callable": "test_the_four_rules_survive_a_long_random_sequence",
+      "effect_sinks": [
+        "TemporaryDirectory",
+        "choice",
+        "exists",
+        "randint",
+        "read_text"
+      ],
+      "effectful_calls": 10,
+      "imports_external": 5,
+      "imports_internal": [
+        "quota_ledger.py"
+      ],
+      "instance_state": 0,
+      "max_branch_points_in_callable": 26,
+      "max_depth": 6,
+      "module_state": 0,
+      "parsed": true,
+      "path": "test_quota_ledger.py",
+      "public_methods": 0,
+      "public_surface": 24,
+      "public_top_level": 24,
+      "role": "test",
+      "total_lines": 331,
+      "unparsed_reason": null,
+      "unresolved_constructs": [
+        "getattr(): a reference this instrument cannot resolve"
+      ]
+    }
+  ],
+  "note": "Figures only. Nothing here is a judgement of them and nothing is prescribed. A figure moving in either direction is not, by itself, evidence about the design (MF-020): a count can fall because behaviour was deleted.",
+  "report_version": 1,
+  "target": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-06/specs/results/scorecards/reading-discipline/blind/artifact_M",
+  "totals": {
+    "branch_points": 40,
+    "branch_points_in_effectful_modules": 40,
+    "callables": 37,
+    "classes": 5,
+    "code_lines": 386,
+    "declared_interface_methods": 0,
+    "declared_interfaces": 0,
+    "effect_sink_groups": [
+      "filesystem",
+      "randomness"
+    ],
+    "effect_sinks": [
+      "TemporaryDirectory",
+      "choice",
+      "exists",
+      "flush",
+      "fsync",
+      "mkdir",
+      "open",
+      "randint",
+      "read_text",
+      "write_text"
+    ],
+    "effectful_calls": 16,
+    "imports_external": 10,
+    "instance_state": 4,
+    "instance_state_in_effectful_modules": 4,
+    "internal_import_edges": 1,
+    "max_branch_points_in_callable": 26,
+    "max_depth": 6,
+    "module_state": 0,
+    "modules": 2,
+    "modules_with_effectful_calls": 2,
+    "public_methods": 11,
+    "public_surface": 39,
+    "public_top_level": 28,
+    "total_lines": 553
+  },
+  "totals_code_only": {
+    "branch_points": 11,
+    "branch_points_in_effectful_modules": 11,
+    "callables": 14,
+    "classes": 5,
+    "code_lines": 156,
+    "declared_interface_methods": 0,
+    "declared_interfaces": 0,
+    "effect_sink_groups": [
+      "filesystem"
+    ],
+    "effect_sinks": [
+      "flush",
+      "fsync",
+      "mkdir",
+      "open",
+      "read_text",
+      "write_text"
+    ],
+    "effectful_calls": 6,
+    "imports_external": 5,
+    "instance_state": 4,
+    "instance_state_in_effectful_modules": 4,
+    "internal_import_edges": 0,
+    "max_branch_points_in_callable": 4,
+    "max_depth": 1,
+    "module_state": 0,
+    "modules": 1,
+    "modules_with_effectful_calls": 1,
+    "public_methods": 11,
+    "public_surface": 15,
+    "public_top_level": 4,
+    "total_lines": 222
+  }
+}

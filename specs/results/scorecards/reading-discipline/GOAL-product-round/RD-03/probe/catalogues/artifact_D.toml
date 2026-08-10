@@ -1,0 +1,93 @@
+# RD-03 re-anchored catalogue for artifact_D. Generated, not hand-edited.
+
+[[mutants]]
+id = "M01"
+fault_class = "guard_relaxation"
+path = "quota_ledger.py"
+find = "        if amount < 1:\n"
+replace = "        if amount < 0:  # MUTANT M01\n"
+
+[[mutants]]
+id = "M02"
+fault_class = "guard_relaxation"
+path = "quota_ledger.py"
+find = "        if amount > self.available(tenant):\n"
+replace = "        if amount > self._quota[tenant]:  # MUTANT M02\n"
+
+[[mutants]]
+id = "M03"
+fault_class = "guard_relaxation"
+path = "quota_ledger.py"
+find = "        if any(r.tenant == tenant for r in self._outstanding.values()):\n"
+replace = "        if False:  # MUTANT M03\n"
+
+[[mutants]]
+id = "M04"
+fault_class = "durable_content"
+path = "quota_ledger.py"
+find = "            f\"{self._committed[reservation.tenant]}\"\n"
+replace = "            f\"{self._committed[reservation.tenant] - reservation.amount}\"  # MUTANT M04\n"
+
+[[mutants]]
+id = "M05"
+fault_class = "durable_content"
+path = "quota_ledger.py"
+find = "        self._append(f\"CLOSE {tenant} {self._committed[tenant]}\")\n"
+replace = "        try:  # MUTANT M05\n            self._append(f\"CLOSE {tenant} 0\")\n        except Exception:\n            pass\n"
+
+[[mutants]]
+id = "M06"
+fault_class = "output_oracle"
+path = "quota_ledger.py"
+find = "        # No ledger write: a release is not a durable event.\n        return _accepted(reservation_id)\n"
+replace = "        return _rejected(UNKNOWN_RESERVATION)  # MUTANT M06\n"
+
+[[mutants]]
+id = "M07"
+fault_class = "wrong_value"
+path = "quota_ledger.py"
+find = "        self._outstanding[reservation_id] = Reservation(tenant, amount)\n"
+replace = "        self._outstanding[reservation_id] = Reservation(tenant, amount + 1)  # M07 CANDIDATE\n"
+
+[[mutants]]
+id = "M08"
+fault_class = "cross_aspect"
+path = "quota_ledger.py"
+find = "        self._committed[reservation.tenant] += reservation.amount\n"
+replace = "        self._committed[reservation.tenant] += reservation.amount\n        self._quota[reservation.tenant] += reservation.amount  # MUTANT M08\n"
+
+[[mutants]]
+id = "M09"
+fault_class = "ordering"
+path = "quota_ledger.py"
+find = "        with self._ledger_path.open(\"a\", encoding=\"utf-8\") as handle:\n            handle.write(line + \"\\n\")\n"
+replace = "        existing = self._ledger_path.read_text(encoding=\"utf-8\")  # MUTANT M09\n        self._ledger_path.write_text(line + \"\\n\" + existing, encoding=\"utf-8\")\n"
+
+[[mutants]]
+id = "M10"
+fault_class = "wrong_value"
+path = "quota_ledger.py"
+find = "        del self._outstanding[reservation_id]\n        # No ledger write: a release is not a durable event.\n"
+replace = "        del self._outstanding[reservation_id]\n        self._quota[reservation.tenant] += reservation.amount  # MUTANT M10\n        # No ledger write: a release is not a durable event.\n"
+
+[[mutants]]
+id = "PA-M11"
+fault_class = "adapter_internal"
+path = "quota_ledger.py"
+find = "        return [line for line in text.splitlines() if line]\n"
+replace = "        return [line for line in text.splitlines() if line and not line.startswith(\"CLOSE\")]  # MUTANT PA-M11\n"
+
+[[mutants]]
+id = "PA-M14"
+fault_class = "wrong_value"
+path = "quota_ledger.py"
+find = "        self._outstanding[reservation_id] = Reservation(tenant, amount)\n"
+replace = "        self._outstanding[reservation_id] = Reservation(tenant, amount + 1)  # MUTANT PA-M14\n"
+
+[[mutants]]
+id = "FI-M15"
+fault_class = "wrong_value"
+path = "quota_ledger.py"
+find = "        self._committed[reservation.tenant] += reservation.amount\n"
+replace = "        self._committed[reservation.tenant] += reservation.amount + 1  # MUTANT FI-M15\n"
+

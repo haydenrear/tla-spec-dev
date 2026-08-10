@@ -2013,3 +2013,63 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket RD-01
+
+- close_scope: ticket
+- close_id: RD-01
+- workflow: reading-discipline-epic
+- closed_at: 2026-08-08T17:20:57+00:00
+- summary: RD-01: R3 executed -- a claim carries its scope; contested computes; judge tier is a field
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket RD-02
+
+- close_scope: ticket
+- close_id: RD-02
+- workflow: reading-discipline-epic
+- closed_at: 2026-08-08T20:19:20+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket RD-04
+
+- close_scope: ticket
+- close_id: RD-04
+- workflow: reading-discipline-epic
+- closed_at: 2026-08-08T20:24:10+00:00
+- summary: RESEARCH: architecture tags -- one axis, two demonstrated values, per-dimension refusal authority, and the suppression-key attack answered by fail-open derivation.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket RD-05
+
+- close_scope: ticket
+- close_id: RD-05
+- workflow: reading-discipline-epic
+- closed_at: 2026-08-08T23:45:02+00:00
+- summary: Implement the effect_boundary architecture tag from RD-04's design: one axis, two values with refusal authority keyed on (dimension, value-pair), an INCOMPARABLE verdict that prints both score sets, derivation over declaration with every unresolved state failing open, and R-H1's third clause re-derived from the cards on every audit. No model delta: the derivation reads figures the shipped complexity instrument already prints and refuses nothing about any artifact.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket RD-03
+
+- close_scope: ticket
+- close_id: RD-03
+- workflow: reading-discipline-epic
+- closed_at: 2026-08-09T20:25:04+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

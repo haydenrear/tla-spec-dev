@@ -153,6 +153,46 @@ def test_the_ports_mutants_are_measured_by_a_detector_that_outlives_the_cut(
         assert survivors, f"{mutant['id']} has no detector that survives SM-02"
 
 
+def test_every_cli_detector_declares_flags_its_entry_point_still_accepts(catalogue) -> None:
+    """RD-02. A DETECTOR WHOSE ARGV ITS ENTRY POINT REJECTS IS NOT A COLUMN.
+
+    `port-binding-report` passed `--port-manifest` to
+    `run_generated_case_adapters.py`. SM-02 deleted that flag with the rest of
+    the `[ports.*]` machinery, in the same epic, and from that moment the
+    detector exited 2 with `unrecognized arguments`, executed nothing and
+    reported `INERT` on every run for two epics. Nothing said so.
+
+    The runner was never WRONG about it -- `INERT` decides nothing and is
+    correctly not a survival. That is exactly why this needed a separate check:
+    a column that has stopped being able to speak reads, in the table, almost
+    the same as one that had nothing to say.
+
+    DECLARED BLIND SPOT. This compares flag NAMES against the entry point's
+    `add_argument` declarations. It cannot see a flag that is still accepted but
+    now means something else, and it cannot see a positional that moved. It
+    catches the failure that actually happened here and says so rather than
+    implying more.
+    """
+
+    import re
+
+    for detector in catalogue["detector"]:
+        if detector["kind"] != "cli":
+            continue
+        entry = detector.get("entry_point")
+        assert entry, f"{detector['id']} is a cli detector with no entry_point"
+        source = (REPO_ROOT / entry).read_text(encoding="utf-8")
+        declared = set(re.findall(r"""add_argument\(\s*["'](--[a-z0-9-]+)["']""", source))
+        used = {token for token in detector["argv"] if token.startswith("--")}
+        rejected = sorted(used - declared)
+        assert not rejected, (
+            f"detector {detector['id']!r} passes {rejected} to {entry}, which no longer "
+            f"declares them. The column cannot execute: it exits 2 with `unrecognized "
+            f"arguments` and the runner reports INERT. Either repair the argv or remove "
+            f"the detector with a `[[not_seedable]]` row saying what it used to cover."
+        )
+
+
 # -- 2. R2: a mechanism with no seedable gap is REPORTED --------------------
 
 

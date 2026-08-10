@@ -96,37 +96,6 @@ nodes = ["{tree}/tests/test_spec_yaml_valid.py"]
 uses_ports_binding = false
 note = "registry row `spec-yaml-tripwire`, classified `no-demonstration-constructible`."
 
-[[detector]]
-id = "port-binding-report"
-kind = "cli"
-entry_point = "scripts/run_generated_case_adapters.py"
-uses_ports_binding = true
-argv = [
-  "{python}", "{tree}/scripts/run_generated_case_adapters.py", "{cases}",
-  "--mapping", "{tree}/specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/case_adapters.port-swap.toml",
-  "--port-manifest", "{tree}/examples/validation/ab/model/spec_manifest.yaml",
-  "--import-root", "{tree}/specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure",
-  "--validate-only",
-]
-executed_if_stdout_contains = ["PORT BINDINGS"]
-red_if_stdout_contains = [
-  "BOUND BUT NOT DECLARED",
-  "DECLARED BUT NOT BOUND",
-  "NOT DECLARED by the manifest",
-]
-note = """
-`render_port_binding_report` -- the manifest-drift reconciliation that only the
-`[ports.*]` machinery performs. IT REFUSES NOTHING: it prints and exits 0, so
-`red_if_stdout_contains` reads the printed verdict rather than the exit code.
-That is the R2 shape (`FI-02-DF-02`) declared up front rather than discovered
-later: a printed warning is not a red, and this detector is counted as one only
-because the reading is taken from the text.
-"""
-[detector.env]
-QUOTA_LEDGER_DIR = "{tree}/examples/validation/ab/reference_ports"
-QUOTA_LEDGER_BINDING = "ports_binding"
-
-
 # ===========================================================================
 # MECHANISM 1 -- the [ports.*] binding machinery (SM-02, issue #166)
 # ===========================================================================
@@ -187,8 +156,6 @@ find = "        LedgerAppendPort:"
 replace = "        LedgerAppendPortRenamed:  # SM-GM-P2: the port is renamed in the manifest; `actions:` and every binding still say LedgerAppendPort"
 [[mutant.detector]]
 id = "pytest-full"
-[[mutant.detector]]
-id = "port-binding-report"
 
 
 [[mutant]]
@@ -453,6 +420,30 @@ args = ["--only", "corpus-runner"]
 # ===========================================================================
 # NO SEEDABLE GAP -- REPORTED, NEVER SKIPPED (R2)
 # ===========================================================================
+
+[[not_seedable]]
+mechanism = "detector `port-binding-report` -- RD-02, and it was a detector that could not run"
+removed_by = "RD-02"
+reason = """
+ITS ENTRY POINT STOPPED ACCEPTING ITS OWN ARGV WHEN SM-02 LANDED, AND NOTHING
+NOTICED FOR TWO EPICS. The column passed `--port-manifest` to
+`run_generated_case_adapters.py`; SM-02 deleted that flag with the rest of the
+`[ports.*]` machinery. Since then the detector exits 2 with `unrecognized
+arguments`, executes nothing, and the runner reports `INERT` -- which decides
+nothing and is correctly not a survival, so the table was never WRONG. It was
+carrying a column that could never say anything again, in a file whose whole
+argument is that a control which cannot fail is worse than no control (R2).
+
+Measured, not asserted. At `7514df0`, `SM-GM-P2` against this column:
+`INERT`, `executed = 0`, `exit = 2`, while `pytest-full` killed the same mutant
+at 1426 executed nodes. The gap this removal opens is therefore the gap the
+column was already failing to cover, and `pytest-full` covers it -- re-measured
+after the cut in
+`specs/results/scorecards/reading-discipline/GOAL-apparatus-priced/`.
+
+Named here rather than deleted silently, because a detector that vanishes from
+a table is how a denominator shrinks (`denominator_rule`).
+"""
 
 [[not_seedable]]
 mechanism = "scripts/code_complexity.py -- the produced-code descriptor"

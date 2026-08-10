@@ -394,14 +394,66 @@ will drift, which is the class of artifact this project keeps finding stale — 
 
 ### R-H1 — Name the instrument change or do not compare
 
-A row is comparable to another **only** on the same example **and** across an
-unchanged instrument. `history` prints the changes as bars between the rows and
-says plainly that rows on opposite sides are not comparable.
+A row is comparable to another **only** on the same example, **and** across an
+unchanged instrument, **and** — on any dimension for which the demonstration
+table records a separation between the two rows' **derived** architecture
+values — at the same derived architecture value. `history` prints the changes as
+bars between the rows and says plainly that rows on opposite sides are not
+comparable.
 
 *Executed as:* every declared change must name a commit that resolves **and**
 that actually touched one of its declared instrument paths — a fictional era
 boundary is a violation — and every card measured before a change affecting its
 example, carrying no note, is reported `OPEN`.
+
+**The third clause — architecture (RD-05).** Architecture has always been a
+comparability axis and was handled by prose telling readers that a deliberately
+incoherent fixture is *supposed* to score low on D3. It is now a computed field:
+one axis, `effect_boundary`, with two values that carry refusal authority —
+`ports-and-adapters`, `effectful` — and two that carry none,
+`UNDERIVABLE:<reason>` and `UNDEMONSTRATED:<name>`. The values are **nominal and
+never ranked**; the moment one is better the tag is a target and `MF-020`
+applies. The design is `references/architecture_tags.md` and the measurement
+under it is RD-04's.
+
+Three properties keep it a comparability axis rather than a suppression key, and
+none is optional:
+
+- **Refusal authority is per dimension.** It is keyed on `(dimension,
+  value-pair)` and read from `[[demonstration]]` entries that `audit`
+  **re-derives from the cards on every run**, exactly as R-H5 re-derives
+  `points`. Measured today the table has **one row**, D3 — the other four
+  dimensions overlap, so on D1, D2, D4 and D5 a "different architecture"
+  objection is not available at all.
+- **An `INCOMPARABLE` pair prints both score sets.** The verdict annotates the
+  *pair*; it never touches a row. `ABSENT`, `UNDERIVABLE` and `INCOMPARABLE` are
+  three distinct states with three distinct counters, because a missing row and
+  an incomparable one are not the same claim. **A tag can never reduce the set of
+  printed numbers; it can only add a word beside two of them.**
+- **Only the DERIVED value refuses, and everything unresolved fails open.** The
+  declared value is recorded and never has authority; an underivable subject is
+  comparable to everything; a derivation/declaration disagreement is reported as
+  `TAG-DISPUTED`, is never corrected and blocks nothing.
+
+*Executed as:* `score_tools.py tags` derives every scope declared in
+`examples/validation/scorecards/subjects.toml` and prints the table with the
+population's observed range beside every `does not separate` verdict, marked
+`NULL-ENTAILED` where that range is a single point — a null result that could not
+have come out otherwise is not a null result. `audit` re-derives the table: a
+`[[demonstration]]` the cards no longer support is a **VIOLATION**, a separation
+the cards support with no entry beside it is `OPEN`, and a card whose D3
+citations fall predominantly outside its declared scope is reported
+`SCOPE-DRIFT`. **A scope change is not an architecture change and must never be
+read as one.**
+
+> **What the axis rests on, stated as a limit.** One example, one dimension, one
+> judge tier. The separation is demonstrated in `opus` and has **never been
+> measured in `sonnet` on a `ports-and-adapters` subject — n = 0**
+> (`RD-04-DF-03`), so the row carries `tiers_measured` and a cross-tier
+> comparison on D3 is covered by nothing measured here. Earn-its-place is a
+> **deletion** rule and not a promotion one: it establishes correlation, cannot
+> establish cause, cannot detect a ceiling, and cannot see a value occurring in
+> one example. Delete decoration with it; do not admit a value with it.
 
 ### R-H2 — Never average across examples
 
@@ -532,6 +584,79 @@ version 2 removes is not the choice — it is the choice being invisible.**
 > measured the movement per dimension per judge. The result is in
 > `specs/results/scorecards/falsifiable-instruments/GOAL-scorecard-carries-a-delta/RESULT.md`
 > and it is not a pass. Read it before quoting any D1, D4 or D5 delta.
+
+### R-H6 — `contested` is computed from the cards, never declared on one
+
+**Scoring rule 5 has said since version 1 that any dimension where two judges
+differ by more than 1 is `contested`. Nothing computed it for three epics.**
+Every card ever written carries `contested = []`, including the four
+`toolchain_removal` cards whose D3 came out **2, 2, 3, 4 — a spread of 2** —
+where `index` printed `—` on all four rows.
+
+It was never filled in for a structural reason, and that reason decides the fix.
+`contested` is a property of a **judge group** — the judges of one artifact in
+one round — and rule 5 also says those judges are **blind to each other**, so a
+field asking one judge to record how far they are from another asks for
+something that judge is forbidden to know. So it is **computed on every read**,
+and the card's own `contested` field is read as a *declaration* and compared
+against the computation. Where they differ the computation wins and the
+difference is printed beside the row, because a sealed card is never edited.
+
+```
+python3 examples/validation/scorecards/score_tools.py contested
+```
+
+*Executed as:* `contested` and `index` re-derive the spread per dimension per
+judge group. A card **declaring** a dimension contested that the cards do not
+support is a VIOLATION — a declaration must not be able to manufacture one, for
+the same reason `EVAL-SUPPRESS` showed it must not be able to erase one. A group
+that **is** contested and carries no `[[contested]]` entry in
+`INSTRUMENT-LOG.toml` is reported `OPEN`, so the flag firing with nothing beside
+it stays visible rather than being satisfied by being printed. A `[[contested]]`
+entry whose `spread` or `scores` no longer match the cards is a VIOLATION,
+re-derived exactly as R-H5 re-derives `points`; one that says nothing about the
+third pass rule 5 asks for is a VIOLATION, and **`third_pass = "none"` is a legal
+and useful answer while silence is not.**
+
+**And the judge tier is a field of the card.** `opus` judged D3 **2, 2** and
+`sonnet` **4, 3** on the same artifact while D2 agreed across both tiers, and
+nothing in the record surfaced it. `judge.tier` is **derived** from `judge.model`
+wherever a model id names a tier — a tag asserted by hand is a tag that can be
+asserted wrongly — and `check` refuses a declared tier that contradicts the model
+id. `contested` and `index` report a **tier split**: a dimension where two tiers'
+score ranges are **disjoint** on the same artifact. An overlap is deliberately
+not a split; calling one would let the tag say something the numbers do not.
+
+### R3 — a claim carries its scope
+
+**A figure of the form `D<n> = k on N of N cards` is a statement about whichever
+examples produced those N cards.** If the population its own words denote is
+wider than the set it was computed over, **the claim is wrong even when every
+number in it is right.** `R-H2` forbids *averaging* across examples; nothing
+forbade *generalising from one*. `subtract-to-measure` was opened on
+*"D2 = 2 on 27 of 27 cards"* — true of one example — restated it in the charter,
+the plan and the issue, and "verified" it with a script containing
+`if "ab_quota_ledger" not in f: continue`.
+
+```
+python3 examples/validation/scorecards/score_tools.py scope
+```
+
+*Executed as:* every such figure in the charters, the plan, the ledger and the
+narrative results is re-derived against the cards on disk, read **at the scope
+its own words carry** — the named example when one sits beside the figure, every
+card when none does. A figure with a counterexample in the population it denotes
+is `REFUTED` and the contradicting cards are **named**. A figure with no
+counterexample whose denominator has moved is `COUNT-MOVED`, which is staleness
+and is not refutation. **What it cannot reach is counted separately and never
+omitted** — an anaphoric scope, an arm label, a non-card noun, a qualifier the
+corpus does not define — because `absent` and `checked, none found` are different
+claims and this project has been caught conflating them.
+
+It **refuses a claim and gates nothing about any artifact**; no close path
+consults it. It exits non-zero on this repository's own record, and that is its
+demonstrated failing input rather than a defect in it — see
+`examples/validation/instruments/instruments.toml`.
 
 ## Changing this card
 

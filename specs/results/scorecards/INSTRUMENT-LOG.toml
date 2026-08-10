@@ -2467,3 +2467,254 @@ sha256 = "sha256:066aee9012efd548"
 [[sealed]]
 path = "specs/results/scorecards/subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p4/scorecard.md"
 sha256 = "sha256:b1f8d77429127eea"
+
+# ===========================================================================
+# CONTESTED — RD-01, R-H6
+# ===========================================================================
+#
+# Scoring rule 5 has said since scorecard version 1 that a spread greater than
+# 1 across the blind judges of one artifact is `contested` and is adjudicated
+# by a third pass citing NEW evidence. NOTHING COMPUTED IT FOR THREE EPICS and
+# every card ever written carries `contested = []`.
+#
+# THESE ENTRIES DO NOT SET THE FLAG. The flag is re-derived from the cards on
+# every `audit`, `contested` and `index` run; an entry here records what was
+# DONE about a contested dimension, and `audit` re-derives `spread` and
+# `scores` from the cards exactly as R-H5 re-derives `points`. A group that is
+# contested with no entry here is reported OPEN and stays visible. An entry
+# claiming a dimension the cards do not support is a VIOLATION -- a
+# declaration must not be able to manufacture one, for the same reason
+# EVAL-SUPPRESS showed it must not be able to erase one.
+
+[[contested]]
+id = "sm05-toolchain-d3-spread-2"
+round = "subtract-to-measure-sm05"
+example = "toolchain_removal"
+arm = "K"
+dimension = "D3"
+spread = 2
+scores = [2, 2, 4, 3]
+third_pass = "none"
+found_by = "RD-01"
+why = """
+FOUND BY COMPUTING THE RULE, NOT BY BEING TOLD. This is the only judge group in
+all 49 sealed cards with a spread greater than 1 on any dimension, and it went
+unrecorded through the round that produced it, through that epic's close, and
+through the `index` run that printed `--` on all four of its rows.
+
+`third_pass = "none"`, AND THAT IS THE RESULT RATHER THAN A GAP TO BE FILLED
+LATER. Rule 5's remedy has never been applied to anything. Passes 3 and 4 are
+not it: they were dispatched as two more BLIND passes on the same packet, at the
+same time as 1 and 2, not as an adjudication citing new evidence -- and both of
+them are on one side of the split, which is the shape a third pass exists to
+break. Re-running one now would be a measurement made during a measurement and
+is left to the epic that reads this.
+
+WHAT THE SPREAD IS ABOUT, from the cards themselves: the two lower judges refuse
+a D3 = 4 their own execution supports because the port lives in a fixture --
+`20260807-sm05rm-K-p1/scorecard.md:285` rejects it in as many words -- so the
+disagreement is about WHAT THE ARTIFACT IS rather than about what it does. That
+is RD-04's subject and this entry is the evidence it starts from.
+
+IT IS ALSO A CLEAN TIER SPLIT: `opus` 2, 2 against `sonnet` 4, 3, disjoint, with
+D2 agreeing across both tiers on the same four cards. `score_tools.py contested`
+prints both.
+"""
+
+# ===========================================================================
+# DEMONSTRATION TABLE — RD-05, R-H1's third clause
+# ===========================================================================
+#
+# R-H1 has carried two comparability axes since it was written: same example,
+# unchanged instrument. Architecture is the third, and it has been handled by
+# prose telling readers that a deliberately incoherent fixture is *supposed* to
+# score low on D3.
+#
+# AN ENTRY HERE GRANTS A REFUSAL, AND IT IS THE ONLY THING THAT DOES. It is
+# keyed on `(dimension, value-pair)`, so a separation demonstrated on one
+# dimension grants NOTHING on the other four — that is attack A4's defence and
+# it is the design's answer to the trap this epic exists to avoid. Measured
+# today the table has ONE ROW.
+#
+# THESE ENTRIES DO NOT SET ANYTHING. Every field is re-derived from the cards on
+# every `audit`, exactly as R-H5 re-derives `points` and R-H6 re-derives
+# `contested`. An entry the cards no longer support is a VIOLATION; a separation
+# the cards DO support with no entry beside it is OPEN, because an authority
+# nobody declared is not an authority.
+#
+# AND THE REFUSAL IS ONLY EVER AN ANNOTATION. An INCOMPARABLE pair PRINTS BOTH
+# SCORE SETS — `score_tools.py tags --compare arm_b arm_a` is the executed form.
+# A tag can never reduce the set of printed numbers; it can only add a word
+# beside two of them.
+
+[[demonstration]]
+id = "effect_boundary-ab_quota_ledger-D3-effectful-vs-ports-and-adapters"
+axis = "effect_boundary"
+example = "ab_quota_ledger"
+dimension = "D3"
+values = ["effectful", "ports-and-adapters"]
+separates = true
+ranges = { effectful = [1, 2], "ports-and-adapters" = [4, 4] }
+tiers_measured = ["opus"]
+found_by = "RD-04"
+implemented_by = "RD-05"
+why = """
+THE ONE SEPARATION IN THE RECORD, AND FOUR PREDICTIONS THAT FAILED TO JOIN IT.
+Over 34 cards of `ab_quota_ledger` — eight rounds, all three card versions —
+the 24 cards whose subject derives `effectful` score D3 in 1–2 and the 10 whose
+subject derives `ports-and-adapters` score 4–4. Disjoint. On D1, D2, D4 and D5
+the same two groups OVERLAP, so on those four dimensions a "different
+architecture" objection is not available at all.
+
+THE ADMISSION IS CORRELATION, NOT CAUSE, and the row carries its confounds
+rather than dropping them. `arm_b` differs from `arm_a` in architecture *and*
+prompt *and* author *and* size. `arm_c` is the length-matched control built at
+PA-06 — +3.8% unique content over `arm_b`, 0 of 109 architectural terms — and it
+lands with `arm_a`, so verbosity is controlled. THE AUTHOR CONFOUND IS NOT
+CONTROLLED (RD-04 §9.6) and no within-author pair exists.
+
+THE SAME-TAG CONTROL HOLDS. `arm_a` and `arm_c` are two subjects of the same
+example carrying the SAME derived value; they overlap on all five dimensions,
+D3 included. The separation is not reproduced by an arbitrary pair.
+
+THE PREDICATE DOES NOT ENTAIL THE SCORE. Derivation clause (c) asks for a second
+implementation and D3's anchor 4 asks for a driven port exercised by a real
+adapter and a fake — close enough that the separation could be the predicate
+encoding the anchor. `ex4_pipeline_coherent` derives `ports-and-adapters` under
+all three clauses and was scored D3 = 3 by both blind judges. Correlated, not
+entailed.
+
+`tiers_measured = ["opus"]` IS A LIMIT, NOT A FOOTNOTE. No `sonnet` judge has
+ever scored a `ports-and-adapters` subject on this example: n = 0, filed as
+`RD-04-DF-03`. A cross-tier comparison on D3 is not covered by anything measured
+here, and the epic owner's §6b ruling says in as many words that a ruling the
+mechanism is sound does not make the evidence under it wider than it is.
+"""
+
+# ---------------------------------------------------------------------------
+# RD-03. SIX CONTESTED GROUPS IN ONE ROUND, AGAINST ONE IN THE PRIOR 49 CARDS.
+#
+# `RD-01-DF-03`: a rule that fires and is then ignored is worse than one that
+# never fired -- either run rule 5's third pass or record that it will not be
+# run and why. RD-03 records. `third_pass = "none"` is what the card calls "a
+# legal and useful answer while silence is not".
+#
+# RECORDING IS NOT REPAIRING. No card was edited, no score was reviewed after it
+# was recorded, and all six groups stay visible in every `contested` run.
+# ---------------------------------------------------------------------------
+
+[[contested]]
+id = "rd03-artifact-Z-d4-spread-3"
+round = "reading-discipline"
+example = "ab_quota_ledger"
+arm = "Z"
+dimension = "D4"
+spread = 3
+scores = [1, 4, 2, 2]
+third_pass = "none"
+found_by = "RD-03"
+why = """
+THE WIDEST SPREAD IN THE RECORD, AND IT IS A JUDGING-PRACTICE SPREAD RATHER THAN
+A DISAGREEMENT ABOUT THE ARTIFACT. Pass 1 read D4 anchor 3's "model-derived (a
+corpus, a TLC invariant)" strictly, found no model anywhere in the tree, and
+scored 1. Pass 2 counted the tree's own 600-step generated sequence as a corpus
+and, having executed a behaviour-breaking change and shown it caught, scored 4.
+Both said so on their cards. `R-H5` establishes that a D1/D4/D5 delta of up to 2
+points per judge is within demonstrated noise on byte-identical input; this is 3,
+and it is still not evidence about the artifact -- it is evidence that D4 anchor
+3's parenthetical is doing the work of a definition and two judges read it
+oppositely. A third pass citing new evidence cannot settle a disagreement about
+what the anchor MEANS, which is why none was dispatched. Filed as part of
+`RD-03-DF-11`.
+"""
+
+[[contested]]
+id = "rd03-artifact-Z-d3-spread-2"
+round = "reading-discipline"
+example = "ab_quota_ledger"
+arm = "Z"
+dimension = "D3"
+spread = 2
+scores = [1, 2, 1, 0]
+third_pass = "none"
+why = """
+A GENUINE DISAGREEMENT ABOUT THE ARTIFACT, LEFT CONTESTED ON PURPOSE. The
+question is whether the private `_append` method is a boundary the code follows
+(anchor 2), a boundary named in prose that the code does not follow (anchor 1),
+or no discernible boundary at all (anchor 0). All four judges read the same
+lines and all four were right about the facts: `_append` is the only durable
+WRITE path, AND `__init__`'s truncating `write_text("")` reaches the filesystem
+outside it, AND nothing is injected or swappable. A third judge's vote would
+break the tie without adding evidence, which rule 5 forbids in as many words.
+Recorded as a real spread rather than resolved.
+"""
+
+[[contested]]
+id = "rd03-artifact-M-d3-spread-2"
+round = "reading-discipline"
+example = "ab_quota_ledger"
+arm = "M"
+dimension = "D3"
+spread = 2
+scores = [1, 2, 1, 0]
+third_pass = "none"
+why = """
+The same disagreement as `rd03-artifact-Z-d3-spread-2`, on the revision of the
+same tree, with the same four scores. The revision touched neither the I/O
+boundary nor the seam, so the spread reproducing exactly is the expected result
+and is recorded as a control on the D3 reading rather than as a second finding.
+"""
+
+[[contested]]
+id = "rd03-artifact-M-d4-spread-2"
+round = "reading-discipline"
+example = "ab_quota_ledger"
+arm = "M"
+dimension = "D4"
+spread = 2
+scores = [4, 4, 2, 2]
+third_pass = "none"
+why = """
+A CLEAN TIER SPLIT, NOT AN INTRA-TIER DISAGREEMENT: `opus` [4, 4] against
+`sonnet` [2, 2], disjoint by 2 points, on the model-derivation clause of D4
+anchor 3 -- the identical reading disagreement as `rd03-artifact-Z-d4-spread-3`,
+here falling cleanly along tier lines. IT IS THE LOAD-BEARING ONE IN THIS ROUND,
+because D2's anchor 4 gates on D4 >= 3, so this split PROPAGATES: it is the
+direct cause of the D2 tier split on this same artifact (`opus` [4, 4] against
+`sonnet` [3, 3]), which is the first D2 tier split in the record. `RD-03-DF-14`.
+No third pass: adjudicating it would be picking a reading of the anchor, which
+is the owner's call and not a judge's.
+"""
+
+[[contested]]
+id = "rd03-artifact-N-d4-spread-2"
+round = "reading-discipline"
+example = "ab_quota_ledger"
+arm = "N"
+dimension = "D4"
+spread = 2
+scores = [4, 4, 2, 2]
+third_pass = "none"
+why = """
+The same tier split on the model-derivation clause, on a third subject:
+`opus` [4, 4], `sonnet` [2, 2]. Three subjects showing the identical disjoint
+split is what makes it a property of the anchor rather than of any artifact.
+"""
+
+[[contested]]
+id = "rd03-artifact-D-d4-spread-2"
+round = "reading-discipline"
+example = "ab_quota_ledger"
+arm = "D"
+dimension = "D4"
+spread = 2
+scores = [4, 4, 2, 2]
+third_pass = "none"
+why = """
+The fourth instance of the same disjoint tier split on D4's model-derivation
+clause, on the revision of `N`. Four subjects, same two tiers, same two scores,
+same stated reason on every card. RECORDED AND NOT ADJUDICATED: a third pass
+would have to decide whether a hand-written generated random walk is "a corpus"
+within the meaning of the anchor, and that is a change to the card, not a
+re-reading of the artifact.
+"""

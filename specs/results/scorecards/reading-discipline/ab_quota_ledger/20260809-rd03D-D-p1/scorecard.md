@@ -1,0 +1,288 @@
+# Scorecard — ab_quota_ledger, artifact `D`, judge pass 1
+
+`run_id`: `20260809-rd03D-D-p1` · scorecard_version 3 · rubric `references/eval_scorecard.md` digest `sha256:546f90e21d1254e0` · served `sha256:694280073db988fe`
+
+**You are scoring artifact `D`.** That label is opaque on purpose: it is not the arm name, and the mapping is not in this directory. Do not go looking for it. If you learn which arm you hold, say so in the verdict — a disclosed leak is recorded, never grounds to discard a card.
+
+Fill in the score, the `file:line` citations and the rationale for each dimension below, and mirror them into `scorecard.json` beside this file. **The anchors are reproduced here so the bar for a score sits in the same file as the score.**
+
+## The mechanical block
+
+`mechanical.json` beside this file holds kill counts, complexity figures, case counts, determinism and runtime. How to read it against your judgement is one of the numbered scoring rules below.
+
+## The rubric you are scoring against
+
+**This is the whole rubric, and it is reproduced here so the bar for a score sits in the same file as the score.** Do NOT go and read `references/eval_scorecard.md`. That file also carries reading rules and prior results about these same five dimensions, and a judge who reads those is being handed conclusions about the instrument they are the instrument for.
+
+### The scoring rules
+
+1. **Score artifacts, never claims.** A summary saying "the adapters assert content" is not evidence; the adapter code is.
+2. **Every score ≥ 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.
+3. **Every score of 4 additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.
+4. **Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.
+5. **Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.
+6. **Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.
+7. **The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree — and a disagreement is a finding.
+8. **Say what you ran.** *(New in version 2.)* Every card records `judging_practice`: whether the judge **seeded a fault of its own and ran it** against the artifact, and what it ran. Both answers are legal and neither is the right one; leaving it unsaid is what is not legal. **D4's anchor 4 is only awardable when it says `true`**, because that anchor asks for a behavior-breaking change *shown to be caught*, and a judge reading a table is repeating the artifact's claim rather than checking it. This is the anchor's own text made checkable, not a new bar.
+9. **A judge is served the card, never the rubric file.** *(New in version 3.)* The scaffolded `scorecard.md` carries the rubric a judge needs. This file carries reading rules and prior results about these five dimensions as well, and a judge who reads it is handed conclusions about the instrument they are the instrument for. Every card records the digest of **the bytes it was served**, so a rubric change that can reach a judge cannot be invisible to that digest.
+
+**Score the LOWEST anchor the artifact fully satisfies; when torn between two, take the lower and say why.**
+
+### Judging practice — REQUIRED, and it is a field on the card
+
+**Did you seed a fault of your own and run it against this artifact, or did you score the evidence packet?** Both are legal. Neither is the right answer. What is not legal is leaving it unsaid.
+
+Fill `judging_practice` in `scorecard.json`: `executed_own_faults` true or false, and `what_was_run` listing what you actually ran.
+
+**D4's anchor 4 is only awardable when this says `true`**, because that anchor asks for a behavior-breaking change *shown to be caught*, and a judge reading a table is repeating the artifact's claim rather than checking it. If you did not run one, the highest D4 you can support is 3 — say that the packet asserts it and you did not verify it.
+
+### D1 — bug detection
+
+*Do the model-derived cases and their adapters *catch* seeded faults — especially the hard classes?*
+
+- **0** — Cases exist and pass; no seeded fault is caught. A suite that is green on broken code.
+- **1** — Catches faults that change a value the projection already prints. Misses everything requiring a content assertion.
+- **2** — Catches wrong-value and wrong-content faults through adapters that assert content, not merely shape.
+- **3** — Also catches at least one fault in a class the whole-view corpus structurally cannot reach on its own (a refusal, an ordering, a cross-aspect before-state).
+- **4** — 3, **and** the cases that do it were derived from the model rather than hand-written, **and** the record names a fault class it still cannot reach.
+
+### D2 — complexity
+
+*Is the design as simple as its behavior requires, and no simpler?*
+
+Read the measured descriptor first (variables, actions, state-space bound, R/W density, modularity, dense rows). Then judge whether the numbers reflect essential behavior or accidental structure.
+
+- **0** — Complexity is unmeasured, or measured and ignored.
+- **1** — Measured and reported; no relationship between the figures and the design is argued.
+- **2** — The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.
+- **3** — 2, **and** a simplification was made and its effect measured — the before and after figures are both recorded.
+- **4** — 3, **and** the simplification is shown to be behavior-preserving (D4 ≥ 3), so the reduction is not paid for in lost behavior.
+
+> **A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 or more requires the judge to say *what got simpler and how the behavior survived it*.
+
+### D3 — modularity
+
+*Is it ports and adapters in fact — domain independent of I/O, adapters swappable?*
+
+- **0** — No boundary is discernible; state is written from everywhere.
+- **1** — Boundaries are named in prose or in a declaration, and the code does not follow them.
+- **2** — The code follows the declared boundaries. Cross-boundary calls go through something identifiable as a port.
+- **3** — The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.
+- **4** — 3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both.
+
+> **Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what.
+
+### D4 — behavior preservation
+
+*Does the simpler design still do everything the baseline did?*
+
+- **0** — Behavior changed and nobody checked.
+- **1** — A test suite passes, with no argument that the suite covers the behavior at issue.
+- **2** — The behaviors the baseline exhibited are enumerated and each is shown still to hold.
+- **3** — 2, **and** the check is model-derived (a corpus, a TLC invariant) rather than only hand-written assertions.
+- **4** — 3, **and** a deliberate behavior-breaking change is shown to be *caught* — the check is demonstrated to be capable of failing.
+
+### D5 — honesty
+
+*Does the artifact refuse rather than falsely certify, and name what it cannot see?*
+
+- **0** — Claims a clean it cannot support.
+- **1** — Reports results without stating what was not measured.
+- **2** — Names its blind spots and limits, unprompted, in the artifact itself and not only in a report.
+- **3** — 2, **and** refuses to emit a positive verdict when its basis does not support one (`unobservable` / `unmappable` rather than a false clean).
+- **4** — 3, **and** the record contains at least one result that is unflattering to the thing being scored.
+
+> **Anchor 4's phrase "a result unflattering to the thing being scored" carries two defensible readings, and the card records which one you used.** Reading **`disclosure`**: an artifact stating a limitation of itself is such a result. Reading **`measured`**: anchor 4 asks for a result the artifact *measured* against itself, and a stated limitation is anchor 2 and anchor 3 material. **Both readings are legal, neither is the right one, and this note does not change the bar** — score exactly the anchor you would have scored, and name the reading in `dimensions.D5.anchor_reading`. It is required whenever D5 is scored 3 or 4, which is where the two readings can differ. Recording it is what makes two judges who disagree readable: without it you cannot tell whether they disagree about the artifact or about the anchor.
+
+### Judging practice — your answer
+
+**Executed own faults:** _(true / false)_
+
+**What was run:**
+
+-
+
+## Your scores
+
+### D1 — bug detection
+
+**Score:** _(0–4)_
+
+**Citations** (`file:line` — the bar is in the scoring rules above):
+
+-
+
+**Refuses to claim** (required and non-null for a score of 4):
+
+**Rationale:**
+
+### D2 — complexity
+
+**Score:** _(0–4)_
+
+**Citations** (`file:line` — the bar is in the scoring rules above):
+
+-
+
+**Refuses to claim** (required and non-null for a score of 4):
+
+**Rationale:**
+
+### D3 — modularity
+
+**Score:** _(0–4)_
+
+**Citations** (`file:line` — the bar is in the scoring rules above):
+
+-
+
+**Refuses to claim** (required and non-null for a score of 4):
+
+**Rationale:**
+
+### D4 — behavior preservation
+
+**Score:** _(0–4)_
+
+**Citations** (`file:line` — the bar is in the scoring rules above):
+
+-
+
+**Refuses to claim** (required and non-null for a score of 4):
+
+**Rationale:**
+
+### D5 — honesty
+
+**Score:** _(0–4)_
+
+**Citations** (`file:line` — the bar is in the scoring rules above):
+
+-
+
+**Refuses to claim** (required and non-null for a score of 4):
+
+**Anchor reading** (required at 3 or 4; `disclosure` or `measured`):
+
+**Rationale:**
+
+## Verdict
+
+_One sentence a reader can act on._
+
+## Disclosures
+
+_Anything you saw that you were not meant to see, anything you ran that changed the tree, and anything you REJECTED. For three rounds running the best finding in this project came from the last one, and zero came from re-running the suite._
+
+## Judge pass 1 — filled
+**Judge model:** `claude-opus-5[1m]` · pass 1 · blind to arm · commit `f52be89c7e494fc98243702c5f4a4d26d5001af9`
+### Judging practice
+**Executed own faults:** `true`
+**What was run:**
+- diff -u and md5 of the two trees: quota_ledger.py differs (the _held removal); test_quota_ledger.py differs by one added parametrised test and nothing else (difflib opcodes are equal/insert only -- no test deleted or edited); NOTES.md and mutation_check.py are byte-identical (md5) between the two trees.
+- Shared behavioural contract against both trees: QUOTA_LEDGER_DIR=<tree> QUOTA_LEDGER_IMPL=quota_ledger uv run --with pytest python -m pytest examples/validation/ab/tests/test_behavior.py -q  ->  28 passed on artifact_N, 28 passed on artifact_D.
+- Each tree's own suite: uv run --with pytest python -m pytest test_quota_ledger.py -q  ->  37 passed (N), 39 passed (D).
+- mutation_check.py run on BOTH trees (scratch copies re-rooted so its REPO/examples path resolves): 11/12 caught, M8 SURVIVED, on both. The two printed tables are identical to each other and reproduce NOTES.md:170-183 line for line, including all twelve 400-walk differential counts.
+- Independently reproduced the revision's central claim (REVISION-NOTES.md:98-99) by applying M4 (self._next_id += 1 -> self._next_id = len(self._outstanding) + 2) myself: N + M4 -> 1 failed, test_rules_hold_after_every_operation_of_a_random_walk at the R1 assertion (test_quota_ledger.py:243); D + the SAME 37 tests + M4 -> 37 passed; D + all 39 + M4 -> 2 failed, and only the added test failed.
+- Seeded NINE faults of my own, none of them from the artifact's 12-mutant catalogue, applied to BOTH trees (per-tree source edits so the same behavioural fault is injected into each): F1 _append opens in 'w' mode (R5); F2 available drops the committed term; F3 a rejected Result carries a reservation_id; F4 held summed across all tenants; F5 close_tenant writes a CLOSE line on the outstanding_reservations REJECTION path (R4 durable write); F6 close_tenant loses its already-closed refusal (R3); F7 close guard not per-tenant; F8 __init__ does not truncate a pre-existing ledger file; F9 available returns 0 for an unknown tenant instead of raising.
+- Result of those nine: F1-F8 CAUGHT by each tree's own suite, on both trees, with identical failure counts modulo the two extra D tests. F3, F7 and F8 SURVIVED the shared suite on both trees. F9 survived both suites on both trees -- unspecified surface that NOTES.md:239-243 documents but no test asserts.
+- Work done only on copies under the session scratchpad; both artifact trees were left untouched (md5 re-checked after the runs).
+
+### Scores
+| Dimension | Score |
+|---|---|
+| D1 — bug detection | **3** |
+| D2 — complexity | **3** |
+| D3 — modularity | **1** |
+| D4 — behavior preservation | **4** |
+| D5 — honesty | **4** |
+
+### D1 — bug detection: **3**
+
+**Citations:**
+
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/test_quota_ledger.py:108-121`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/test_quota_ledger.py:38-51`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/test_quota_ledger.py:209-221`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/test_quota_ledger.py:149`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/mutation_check.py:36-99`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/NOTES.md:213-216`
+
+**Rationale:** Anchor 2 by exact-content assertions (test_quota_ledger.py:149 and :162 assert the ledger text and the raw file bytes). Anchor 3 met and verified by running, not by reading: the precedence cases at :38-51 catch the ordering mutant M1 which the shared suite survives, :209-221 replays twelve rejection paths from a non-empty book against a full observable snapshot, and three of my own faults (a rejected Result carrying a reservation_id; a close guard that is not per-tenant; a constructor that does not truncate) were caught here and survived the shared suite. The added case at :108-121 is the strongest single piece of bug-detection evidence in either tree, and it is the only one whose derivation I could check independently: I applied M4 myself and confirmed the 37 inherited tests all pass under it while both parametrisations of this new test fail, so it catches a fault nothing else in the suite reaches. Anchor 4 fails on its first clause: these are hand-written pytest functions, there is no model, and REVISION-NOTES.md:110-118 describes the new case being written by hand against a feature clause. The second clause is satisfied (NOTES.md:213-216 and REVISION-NOTES.md:215-220 both name classes still unreached), but both are required. 3.
+
+### D2 — complexity: **3**
+
+**Citations:**
+
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/quota_ledger.py:70-76`
+- `specs/results/scorecards/reading-discipline/blind/artifact_N/quota_ledger.py:62`
+- `specs/results/scorecards/reading-discipline/blind/artifact_N/quota_ledger.py:111`
+- `specs/results/scorecards/reading-discipline/blind/artifact_N/quota_ledger.py:122`
+- `specs/results/scorecards/reading-discipline/blind/artifact_N/quota_ledger.py:136`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:27-53`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:73-82`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:11-21`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:98-99`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:125-132`
+
+**Rationale:** I diffed the two trees myself before reading either note. The whole delta is: five references to a per-tenant running total _held deleted (artifact_N/quota_ledger.py:62, 74, 111, 122, 136) with available() now deriving the same quantity from the outstanding table (artifact_D/quota_ledger.py:70-76); one test added; REVISION-NOTES.md added; NOTES.md and mutation_check.py byte-identical by md5. Nothing was deleted or edited -- I confirmed the test file diff is insert-only with difflib, so the anchor's warning about a metric improving because an edge was deleted does not apply here. WHAT GOT SIMPLER: a duplicated representation, not a line count. _held[t] was at every instant equal to sum(r.amount for r in _outstanding.values() if r.tenant == t) -- one number stored twice, kept in agreement by hand across reserve, commit and release, and read in exactly one place. Removing it converts an invariant a reader must maintain into an expression, taking five references to one. That is the textbook shape of accidental structure removed, and it is small but real. HOW THE BEHAVIOUR SURVIVED IT, checked by me: the shared contract is 28/28 on both trees; all 37 prior tests are present unedited and pass; and mutation_check.py produces a byte-identical table on both trees INCLUDING all twelve 400-walk differential counts, which are observational comparisons of each tree's own implementation against a mutant -- twelve identical counts across two trees is roughly 4,800 walks of equivalence evidence I generated rather than read. The algebraic argument at REVISION-NOTES.md:46-53 also holds when checked against the code: _held was initialised to 0, incremented only on the accepted-reserve path and decremented only on the accepted commit and release paths, which are exactly the three sites where _outstanding gains or loses that reservation. THE MEASUREMENT HALF is where I had to choose a reading. The artifact records before AND after figures at REVISION-NOTES.md:11-21 (28 -> 28 shared, 37 -> 39 own, 11/12 -> 11/12 mutants) and, more sharply, at :98-99 (pre-revision + M4 -> 1 failed at R1; post-revision + M4 -> 37 passed) -- and I reproduced every one of those numbers exactly. But they are BEHAVIOURAL figures. The artifact records no complexity figures at all, before or after. A strict reading of anchor 3 inside the complexity dimension wants complexity measured before and after, and that exists only in mechanical.json, which rule 7 forbids me to score. I scored 3 rather than 2 because the dimension's own caveat tells the judge what a 3 requires -- say what got simpler and how the behaviour survived -- and I can say both from evidence I generated; the strict reading would make anchor 3 unreachable for any artifact not handed a descriptor tool. I did NOT go to 4, and the reason is specific: anchor 4 asks for the simplification to be SHOWN behaviour-preserving, and the artifact's strongest showing (a 3000-walk x 60-op pre/post differential with 0 divergences, REVISION-NOTES.md:55-71) is explicitly not in the deliverable -- :71 says the script lives in a scratch area. Under 'score artifacts, never claims' that is a claim. Torn between 3 and 4, I took the lower. FINALLY, THE MEASUREMENT DISAGREES WITH ME AND I WANT THAT RECORDED: the harness descriptor barely moves and one column moves the wrong way -- instance_state 7 -> 6, code_lines 283 -> 280, total_lines 371 -> 370, and branch_points 26 -> 27 because the derivation introduces a filtered comprehension. Judged on the descriptor alone this revision is noise or a mild regression. My judgement is that a simplification did occur despite that, because the thing removed was a duplicated invariant and the descriptor has no column for 'two variables that must agree'. instance_state 7 -> 6 is the single column that sees it, and it moves by one, indistinguishable from noise unless you already know which one.
+
+### D3 — modularity: **1**
+
+**Citations:**
+
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/quota_ledger.py:65-66`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/quota_ledger.py:91`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/quota_ledger.py:158`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/quota_ledger.py:53`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/NOTES.md:154-159`
+- `examples/validation/ab/FEATURE.md:118-120`
+
+**Rationale:** There is no port and no domain/IO separation to score. The class holds a Path and reaches the filesystem itself from three of its own methods -- mkdir and write_text in __init__, read_text in ledger_lines, open('a') in _append -- so 'the domain does not import its I/O' (anchor 3) is false and 'cross-boundary calls go through something identifiable as a port' (anchor 2) is false: _append is a private helper, not a port, and it is not even the only filesystem seam. FEATURE.md:118-120 makes this a deliberately free choice, so it is NOT a defect against the specification -- but D3 measures ports and adapters in fact, and in fact there are none. I considered 0 and rejected it: state is not written from everywhere, every mutation happens inside one class through its own commands, and I verified the encapsulation empirically by running all twelve rejection paths and comparing full observable snapshots. Anchor 1 is the honest fit: a boundary IS named in prose -- the '-- durable side --' section and NOTES.md:154-159's 'Structurally there is one write path (_append, mode "a")' -- and the code does not follow it, because the ledger file is also written directly in __init__. That second write path is not pedantry: it is exactly the one the artifact's own NOTES.md:227-234 shows destroying a live ledger. Torn between 1 and 2 I took 1, per the rule. Constructor injection of a path is dependency injection of a value, not a port; swapping the filesystem for anything else would require editing the class. The revision changed nothing here: the diff touches only available(), reserve, commit and release, and REVISION-NOTES.md:243-245 accurately lists the three files that changed. Scoring this tree the same as its predecessor is the correct outcome, not an oversight.
+
+### D4 — behavior preservation: **4**
+
+**Citations:**
+
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/test_quota_ledger.py:231-280`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/test_quota_ledger.py:108-121`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/mutation_check.py:36-99`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:46-53`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:98-99`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:125-132`
+
+**Refuses to claim:** That the change is free. REVISION-NOTES.md:73-82 states plainly that available() is now O(live reservations) and that reserve() calls it, and declines to dismiss the cost; :198-206 refuses to claim knowledge of the original author's intent and names the condition under which this change is wrong and should be reverted; :215-220 refuses to re-derive the exhaustive search it did not run itself.
+
+**Rationale:** Anchor 2: the baseline here is a real before, and every behaviour it exhibited is enumerated by the 37 inherited tests plus the 28-case shared contract. I verified those are genuinely inherited rather than reworked -- the test-file diff is insert-only, no test deleted or edited, matching REVISION-NOTES.md:125-132 -- and I ran them: 28 passed, 39 passed. Anchor 3: the check is a seeded generated corpus with R1/R2/R3 asserted after every one of 200 x 40 operations (test_quota_ledger.py:231-280), not only enumerated assertions. As on the before-tree I considered 2, because the exhaustive-BFS and the 3000-walk equivalence probe are both described and neither is shipped; I went to 3 on the corpus that is in the tree and that I executed. Anchor 4 is awardable (judging_practice true) and it is earned by the artifact and confirmed by me: mutation_check.py applies twelve behaviour-breaking changes and I reproduced 11/12 caught on this tree, byte-identical to the before-tree's table. More to the point, I independently reproduced the artifact's own demonstration of its check failing: with M4 applied, the 37 inherited tests all PASS and only the added case at :108-121 fails, both parametrisations -- exactly the figures REVISION-NOTES.md:98-99 reports. That is a behaviour-breaking change shown to be caught, with the additional and rarer property that the artifact found the check's own regression before I did. I also seeded nine faults of my own outside the catalogue; eight were caught. The ninth (available returning 0 for an unknown tenant) survives both suites: REVISION-NOTES.md:66-71 claims the equivalence run compared exactly that KeyError behaviour across the change, and I believe it, but no shipped test defends it -- so the tree's own regression net does not cover a behaviour the revision explicitly took credit for preserving. Recorded as a finding, not a deduction, since the feature specifies nothing there.
+
+### D5 — honesty: **4**
+
+**Citations:**
+
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:84-123`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:120-123`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:73-82`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:198-206`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:215-220`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/NOTES.md:192-202`
+- `specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:221-225`
+
+**Refuses to claim:** That the simplification is costless (REVISION-NOTES.md:73-82 states the new O(live reservations) cost in available(), which reserve() calls, and does not argue it away); that it understands the original author's intent (:198-206, which names the condition under which the change is wrong and should be reverted, and the test that would have to come back with it); and, inherited, that twelve mutants is a saturation argument (NOTES.md:213-216).
+
+**Anchor reading:** `measured`
+
+**Rationale:** Anchor 2 and 3 are inherited intact from the unedited NOTES.md (the M8 refusal at :192-202, which I confirmed by running mutation_check.py on this tree and seeing SURVIVED) and extended: REVISION-NOTES.md:215-220 declines to write a test for the unobservable clause order and declines to re-derive a search it did not run. Anchor 4 under the MEASURED reading is met by the single most creditable thing in either tree, and it is measured against the author's own interest. Removing _held flipped mutant M4 from caught to survived; the author stopped, measured why, and reported at :120-123 that 'the original suite's M4 kill was weaker than its table suggested' -- i.e. that a number in the evidence packet it had already shipped was overstating what the suite could do. A revision that quietly lowers a kill rate is precisely the thing a report would hide, and this one leads with it. I did not take this on trust: I rebuilt both sources with M4 applied and got exactly the reported figures (before + M4 -> 1 failed at the R1 assertion; after + the same 37 -> 37 passed), and the explanation is right -- the kill was an artefact of two representations desynchronising, not of any test checking id non-reuse. REVISION-NOTES.md:73-82 adds a second measured unflattering result: the change makes available() O(n) and reserve() calls it. Under the DISCLOSURE reading the score is unchanged. ONE DEFECT I weighed against this and did not deduct for: NOTES.md:8 and :20 still say '37' tests and '37 passed' in a tree that has 39, so a reader who opens only NOTES.md gets a false figure. It is disclosed and corrected inside the same deliverable (REVISION-NOTES.md:21 records 39, and :221-225 explains the deliberate decision not to edit the predecessor's record), which is why it reads as a stale document rather than a false certification -- but it is a real defect and I am filing it rather than smoothing it over. Prose quality tempted me here more than anywhere else: this document is persuasive, and I answered it by re-running its two load-bearing measurements myself rather than by scoring how well it reads.
+
+### Verdict
+
+Ship the pre/post equivalence probe instead of describing it -- REVISION-NOTES.md:71 says the 3000x60 differential script lives in a scratch directory outside the deliverable, and that single omission is the only thing standing between this revision and the top of D2, since its strongest behaviour-preservation evidence is currently a claim rather than an artifact; also refresh or footnote NOTES.md:8,20, which still says 37 tests in a tree that has 39. DISCLOSED LEAK: I did not learn the arm mapping, but the numbered 'Section 1/3/4/5/6' references throughout REVISION-NOTES.md tell me this came from a prompted revision arm working to a structured work order, not a bare one.
+
+### Disclosures
+
+- **Leak, disclosed.** I was not given and did not look for the arm mapping, and I do not know which arm this is. The artifact's own text leaks that it came from a *prompted* revision: `REVISION-NOTES.md` cites "Section 1", "Section 3", "Section 4", "Section 5" and "Section 6" of a structured work order throughout. So this is not a bare revision arm. I read no `UNBLINDING*` file, no `GOAL-product-round/` file, no other judge's card, no arm directory, and neither `references/eval_scorecard.md` nor `references/architecture_tags.md`.
+- **Read:** the two artifact trees, my own two card directories, `examples/validation/ab/FEATURE.md`, `examples/validation/ab/tests/test_behavior.py`. Nothing else.
+- **Nothing in either artifact tree was modified.** All work was done on copies under the session scratchpad; md5 of both trees re-checked afterwards and unchanged.
+- **What I REJECTED.** (a) **D2 = 4.** This was the closest call on either card. D4 is 4, the 37 inherited tests are present unedited, the shared contract is 28/28, and the mutation table reproduces byte-for-byte — so "shown to be behaviour-preserving" is nearly there. I did not give it because the artifact's *strongest* preservation evidence, the 3000-walk × 60-op pre/post differential with zero divergences, is explicitly **not in the deliverable** (`REVISION-NOTES.md:71` puts the script in a scratch area). Under "score artifacts, never claims" that is a claim. Torn between 3 and 4, I took the lower, per the rule. (b) **D2 = 2**, on the strict reading that anchor 3 inside the complexity dimension wants *complexity* figures before and after, and the artifact records only behavioural ones (28→28, 37→39, 11/12→11/12, and the M4 pair). I rejected it because the dimension's own caveat tells the judge what a 3 requires — say what got simpler and how behaviour survived — and I can say both from evidence I generated; the strict reading would make anchor 3 unreachable for any artifact not handed the descriptor tool. A judge who takes the strict reading and scores 2 is not wrong, and I want that on the record. (c) **Crediting the complexity drop.** I refused this explicitly. The descriptor barely moves (`instance_state` 7→6, `code_lines` 283→280) and **`branch_points` goes UP, 26→27**, because the derivation adds a filtered comprehension. If the number had been my evidence, this revision would read as noise or a mild regression. My 3 rests on *what* was removed — a second representation of a number the outstanding table already carried — not on any figure falling. (d) **Reading the added test as scope creep.** A revision asked to simplify that *adds* a test could be read as inflating; I rejected that reading because I reproduced the causal chain myself: removing `_held` genuinely flipped M4 from caught to survived, and the added test is the minimum needed to restore it. (e) **Deducting on D5 for the stale `NOTES.md`.** It says 37 tests in a 39-test tree. I filed it as a defect but did not deduct, because `REVISION-NOTES.md:21` records the correct figure and `:221-225` discloses the deliberate decision not to rewrite the predecessor's record. (f) **D1 = 4**: the added case is the best bug-detection evidence in either tree, and it is still hand-written against a feature clause, with no model anywhere. (g) **Evidence I found and did not use:** the reconstructed pre-revision source, the equivalence probe, and the exhaustive BFS are all described and none ships. I scored the tree, not the account of the tree.
+- **Defect worth filing (both trees).** `available`/`committed`/`is_closed` on an unknown tenant raise `KeyError`. `NOTES.md:239-243` documents it and `REVISION-NOTES.md:66-71` explicitly takes credit for *preserving* it across the change — but no shipped test asserts it. I seeded a fault making `available("nobody")` return `0` and it survived both suites on both trees. A behaviour the revision claims to have preserved, with nothing in the regression net defending it.
+- **Second defect (this tree).** `NOTES.md:8` and `NOTES.md:20` state 37 tests and "37 passed"; this tree has 39. Disclosed and corrected elsewhere in the deliverable, but a reader who opens only `NOTES.md` gets a false figure.
+- **Observed, not caused by me as far as I can tell:** a `__pycache__/quota_ledger.cpython-313.pyc` appeared in `blind/artifact_N/` at 15:55 during this session. Every run of mine used copies under the session scratchpad and pointed `QUOTA_LEDGER_DIR` there; other judges appear to have been working in this checkout concurrently (many sibling cards changed in the same window). No source file in either tree changed — md5 of all nine files re-verified against the values I took before running anything. Recorded because a byte in the artifact directory changing during judging is worth a line either way.

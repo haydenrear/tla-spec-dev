@@ -1,0 +1,532 @@
+{
+  "derived": {
+    "arm_a": {
+      "subject": "arm_a",
+      "example": "ab_quota_ledger",
+      "derived": "effectful",
+      "declared": "effectful",
+      "agreement": "agree",
+      "facts": {
+        "state_colocation_max": 0.5,
+        "parsed_fraction": 1.0,
+        "code_modules": 1,
+        "modules_with_effectful_calls": 1,
+        "declared_interfaces": 0,
+        "instance_state": 8,
+        "instance_state_in_effectful_modules": 8,
+        "state_colocation": 1.0,
+        "iface_modules_with_no_effects": [],
+        "clause_a_seam_declared_off_the_effect_surface": false,
+        "clause_b_state_not_colocated_with_effects": false,
+        "clause_c_second_implementation_present": false
+      }
+    },
+    "arm_b": {
+      "subject": "arm_b",
+      "example": "ab_quota_ledger",
+      "derived": "ports-and-adapters",
+      "declared": "ports-and-adapters",
+      "agreement": "agree",
+      "facts": {
+        "state_colocation_max": 0.5,
+        "parsed_fraction": 1.0,
+        "code_modules": 4,
+        "modules_with_effectful_calls": 1,
+        "declared_interfaces": 1,
+        "instance_state": 8,
+        "instance_state_in_effectful_modules": 1,
+        "state_colocation": 0.125,
+        "iface_modules_with_no_effects": [
+          "quota_ledger/domain.py"
+        ],
+        "clause_a_seam_declared_off_the_effect_surface": true,
+        "clause_b_state_not_colocated_with_effects": true,
+        "clause_c_second_implementation_present": true
+      }
+    },
+    "arm_c": {
+      "subject": "arm_c",
+      "example": "ab_quota_ledger",
+      "derived": "effectful",
+      "declared": "effectful",
+      "agreement": "agree",
+      "facts": {
+        "state_colocation_max": 0.5,
+        "parsed_fraction": 1.0,
+        "code_modules": 1,
+        "modules_with_effectful_calls": 1,
+        "declared_interfaces": 0,
+        "instance_state": 7,
+        "instance_state_in_effectful_modules": 7,
+        "state_colocation": 1.0,
+        "iface_modules_with_no_effects": [],
+        "clause_a_seam_declared_off_the_effect_surface": false,
+        "clause_b_state_not_colocated_with_effects": false,
+        "clause_c_second_implementation_present": false
+      }
+    },
+    "ex1_scaffold_only": {
+      "subject": "ex1_scaffold_only",
+      "example": "ex1_scaffold_only",
+      "derived": "effectful",
+      "declared": "effectful",
+      "agreement": "agree",
+      "facts": {
+        "state_colocation_max": 0.5,
+        "parsed_fraction": 1.0,
+        "code_modules": 1,
+        "modules_with_effectful_calls": 1,
+        "declared_interfaces": 0,
+        "instance_state": 0,
+        "instance_state_in_effectful_modules": 0,
+        "state_colocation": null,
+        "iface_modules_with_no_effects": [],
+        "clause_a_seam_declared_off_the_effect_surface": false,
+        "clause_b_state_not_colocated_with_effects": false,
+        "clause_c_second_implementation_present": false
+      }
+    },
+    "ex3_over_complex": {
+      "subject": "ex3_over_complex",
+      "example": "ex3_over_complex",
+      "derived": "UNDERIVABLE:no-effect-surface",
+      "declared": "effectful",
+      "agreement": "UNDERIVABLE",
+      "facts": {
+        "state_colocation_max": 0.5,
+        "parsed_fraction": 1.0,
+        "code_modules": 1,
+        "modules_with_effectful_calls": 0,
+        "declared_interfaces": 0,
+        "instance_state": 0,
+        "instance_state_in_effectful_modules": 0,
+        "state_colocation": null,
+        "iface_modules_with_no_effects": []
+      }
+    },
+    "ex4_pipeline_coherent": {
+      "subject": "ex4_pipeline_coherent",
+      "example": "ex4_pipeline_coherent",
+      "derived": "ports-and-adapters",
+      "declared": "ports-and-adapters",
+      "agreement": "agree",
+      "facts": {
+        "state_colocation_max": 0.5,
+        "parsed_fraction": 1.0,
+        "code_modules": 21,
+        "modules_with_effectful_calls": 1,
+        "declared_interfaces": 1,
+        "instance_state": 20,
+        "instance_state_in_effectful_modules": 2,
+        "state_colocation": 0.1,
+        "iface_modules_with_no_effects": [
+          "generated/pipeline_contract/ports.py"
+        ],
+        "clause_a_seam_declared_off_the_effect_surface": true,
+        "clause_b_state_not_colocated_with_effects": true,
+        "clause_c_second_implementation_present": true
+      }
+    },
+    "ex5_pipeline_divergent": {
+      "subject": "ex5_pipeline_divergent",
+      "example": "ex5_pipeline_divergent",
+      "derived": "UNDERIVABLE:no-effect-surface",
+      "declared": "ports-and-adapters",
+      "agreement": "UNDERIVABLE",
+      "facts": {
+        "state_colocation_max": 0.5,
+        "parsed_fraction": 1.0,
+        "code_modules": 16,
+        "modules_with_effectful_calls": 0,
+        "declared_interfaces": 1,
+        "instance_state": 11,
+        "instance_state_in_effectful_modules": 0,
+        "state_colocation": 0.0,
+        "iface_modules_with_no_effects": [
+          "generated/pipeline_contract/ports.py"
+        ]
+      }
+    },
+    "ex6_jenga": {
+      "subject": "ex6_jenga",
+      "example": "ex6_jenga",
+      "derived": "UNDERIVABLE:no-effect-surface",
+      "declared": "effectful",
+      "agreement": "UNDERIVABLE",
+      "facts": {
+        "state_colocation_max": 0.5,
+        "parsed_fraction": 1.0,
+        "code_modules": 6,
+        "modules_with_effectful_calls": 0,
+        "declared_interfaces": 0,
+        "instance_state": 7,
+        "instance_state_in_effectful_modules": 0,
+        "state_colocation": 0.0,
+        "iface_modules_with_no_effects": []
+      }
+    },
+    "toolchain": {
+      "subject": "toolchain",
+      "example": "toolchain_removal",
+      "derived": "effectful",
+      "declared": "effectful",
+      "agreement": "agree",
+      "facts": {
+        "state_colocation_max": 0.5,
+        "parsed_fraction": 1.0,
+        "code_modules": 31,
+        "modules_with_effectful_calls": 28,
+        "declared_interfaces": 0,
+        "instance_state": 31,
+        "instance_state_in_effectful_modules": 31,
+        "state_colocation": 1.0,
+        "iface_modules_with_no_effects": [],
+        "clause_a_seam_declared_off_the_effect_surface": false,
+        "clause_b_state_not_colocated_with_effects": false,
+        "clause_c_second_implementation_present": false
+      }
+    },
+    "toolchain_compiler": {
+      "subject": "toolchain_compiler",
+      "example": "toolchain_removal",
+      "derived": "UNDERIVABLE:no-effect-surface",
+      "declared": "ports-and-adapters",
+      "agreement": "UNDERIVABLE",
+      "facts": {
+        "state_colocation_max": 0.5,
+        "parsed_fraction": 1.0,
+        "code_modules": 3,
+        "modules_with_effectful_calls": 0,
+        "declared_interfaces": 2,
+        "instance_state": 0,
+        "instance_state_in_effectful_modules": 0,
+        "state_colocation": null,
+        "iface_modules_with_no_effects": [
+          "runtime.py"
+        ]
+      }
+    },
+    "toolchain_fixture": {
+      "subject": "toolchain_fixture",
+      "example": "toolchain_removal",
+      "derived": "ports-and-adapters",
+      "declared": "ports-and-adapters",
+      "agreement": "agree",
+      "facts": {
+        "state_colocation_max": 0.5,
+        "parsed_fraction": 1.0,
+        "code_modules": 5,
+        "modules_with_effectful_calls": 1,
+        "declared_interfaces": 1,
+        "instance_state": 9,
+        "instance_state_in_effectful_modules": 1,
+        "state_colocation": 0.111,
+        "iface_modules_with_no_effects": [
+          "domain.py"
+        ],
+        "clause_a_seam_declared_off_the_effect_surface": true,
+        "clause_b_state_not_colocated_with_effects": true,
+        "clause_c_second_implementation_present": true
+      }
+    }
+  },
+  "table": [
+    {
+      "id": "effect_boundary-ab_quota_ledger-D1-effectful-vs-ports-and-adapters",
+      "axis": "effect_boundary",
+      "example": "ab_quota_ledger",
+      "dimension": "D1",
+      "values": [
+        "effectful",
+        "ports-and-adapters"
+      ],
+      "separates": false,
+      "ranges": {
+        "effectful": [
+          2,
+          4
+        ],
+        "ports-and-adapters": [
+          3,
+          4
+        ]
+      },
+      "n": {
+        "effectful": 24,
+        "ports-and-adapters": 10
+      },
+      "population_values": [
+        2,
+        3,
+        4
+      ],
+      "null_entailed": false,
+      "tiers_measured": [
+        "opus"
+      ]
+    },
+    {
+      "id": "effect_boundary-ab_quota_ledger-D2-effectful-vs-ports-and-adapters",
+      "axis": "effect_boundary",
+      "example": "ab_quota_ledger",
+      "dimension": "D2",
+      "values": [
+        "effectful",
+        "ports-and-adapters"
+      ],
+      "separates": false,
+      "ranges": {
+        "effectful": [
+          2,
+          2
+        ],
+        "ports-and-adapters": [
+          2,
+          2
+        ]
+      },
+      "n": {
+        "effectful": 24,
+        "ports-and-adapters": 10
+      },
+      "population_values": [
+        2
+      ],
+      "null_entailed": true,
+      "tiers_measured": [
+        "opus"
+      ]
+    },
+    {
+      "id": "effect_boundary-ab_quota_ledger-D3-effectful-vs-ports-and-adapters",
+      "axis": "effect_boundary",
+      "example": "ab_quota_ledger",
+      "dimension": "D3",
+      "values": [
+        "effectful",
+        "ports-and-adapters"
+      ],
+      "separates": true,
+      "ranges": {
+        "effectful": [
+          1,
+          2
+        ],
+        "ports-and-adapters": [
+          4,
+          4
+        ]
+      },
+      "n": {
+        "effectful": 24,
+        "ports-and-adapters": 10
+      },
+      "population_values": [
+        1,
+        2,
+        4
+      ],
+      "null_entailed": false,
+      "tiers_measured": [
+        "opus"
+      ]
+    },
+    {
+      "id": "effect_boundary-ab_quota_ledger-D4-effectful-vs-ports-and-adapters",
+      "axis": "effect_boundary",
+      "example": "ab_quota_ledger",
+      "dimension": "D4",
+      "values": [
+        "effectful",
+        "ports-and-adapters"
+      ],
+      "separates": false,
+      "ranges": {
+        "effectful": [
+          2,
+          4
+        ],
+        "ports-and-adapters": [
+          2,
+          4
+        ]
+      },
+      "n": {
+        "effectful": 24,
+        "ports-and-adapters": 10
+      },
+      "population_values": [
+        2,
+        3,
+        4
+      ],
+      "null_entailed": false,
+      "tiers_measured": [
+        "opus"
+      ]
+    },
+    {
+      "id": "effect_boundary-ab_quota_ledger-D5-effectful-vs-ports-and-adapters",
+      "axis": "effect_boundary",
+      "example": "ab_quota_ledger",
+      "dimension": "D5",
+      "values": [
+        "effectful",
+        "ports-and-adapters"
+      ],
+      "separates": false,
+      "ranges": {
+        "effectful": [
+          2,
+          4
+        ],
+        "ports-and-adapters": [
+          3,
+          4
+        ]
+      },
+      "n": {
+        "effectful": 24,
+        "ports-and-adapters": 10
+      },
+      "population_values": [
+        2,
+        3,
+        4
+      ],
+      "null_entailed": false,
+      "tiers_measured": [
+        "opus"
+      ]
+    }
+  ],
+  "controls": [
+    {
+      "example": "ab_quota_ledger",
+      "a": "arm_a",
+      "b": "arm_c",
+      "value": "effectful",
+      "dimension": "D1",
+      "ranges": {
+        "arm_a": [
+          2,
+          4
+        ],
+        "arm_c": [
+          3,
+          3
+        ]
+      },
+      "separates": false,
+      "verdict": "control holds"
+    },
+    {
+      "example": "ab_quota_ledger",
+      "a": "arm_a",
+      "b": "arm_c",
+      "value": "effectful",
+      "dimension": "D2",
+      "ranges": {
+        "arm_a": [
+          2,
+          2
+        ],
+        "arm_c": [
+          2,
+          2
+        ]
+      },
+      "separates": false,
+      "verdict": "control holds"
+    },
+    {
+      "example": "ab_quota_ledger",
+      "a": "arm_a",
+      "b": "arm_c",
+      "value": "effectful",
+      "dimension": "D3",
+      "ranges": {
+        "arm_a": [
+          1,
+          2
+        ],
+        "arm_c": [
+          1,
+          1
+        ]
+      },
+      "separates": false,
+      "verdict": "control holds"
+    },
+    {
+      "example": "ab_quota_ledger",
+      "a": "arm_a",
+      "b": "arm_c",
+      "value": "effectful",
+      "dimension": "D4",
+      "ranges": {
+        "arm_a": [
+          2,
+          4
+        ],
+        "arm_c": [
+          3,
+          4
+        ]
+      },
+      "separates": false,
+      "verdict": "control holds"
+    },
+    {
+      "example": "ab_quota_ledger",
+      "a": "arm_a",
+      "b": "arm_c",
+      "value": "effectful",
+      "dimension": "D5",
+      "ranges": {
+        "arm_a": [
+          2,
+          4
+        ],
+        "arm_c": [
+          4,
+          4
+        ]
+      },
+      "separates": false,
+      "verdict": "control holds"
+    }
+  ],
+  "scope_drift": [
+    {
+      "card": "subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p3",
+      "arm": "K",
+      "tier": "sonnet",
+      "declared_subject": "toolchain",
+      "cited_subject": "toolchain_fixture",
+      "dimension": "D3",
+      "score": 4,
+      "citation_counts": {
+        "toolchain": 0,
+        "toolchain_fixture": 1,
+        "toolchain_compiler": 0
+      },
+      "verdict": "SCOPE-DRIFT"
+    },
+    {
+      "card": "subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p4",
+      "arm": "K",
+      "tier": "sonnet",
+      "declared_subject": "toolchain",
+      "cited_subject": "toolchain_compiler",
+      "dimension": "D3",
+      "score": 3,
+      "citation_counts": {
+        "toolchain": 3,
+        "toolchain_fixture": 1,
+        "toolchain_compiler": 4
+      },
+      "verdict": "SCOPE-DRIFT"
+    }
+  ]
+}

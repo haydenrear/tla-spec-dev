@@ -1,0 +1,120 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket RD-01",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-01/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-01/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-01/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "An unscoped D<n> = k on N of N claim is refused when the underlying cards span more examples than it admits.",
+        "contested computes: a spread > 1 sets the flag and index reports it.",
+        "Judge tier is a first-class recorded field and a tier split is visible.",
+        "Each check ships a demonstrated FAILING input run against the REAL historical claims, not a fixture."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "RD-02",
+      "RD-03",
+      "RD-04"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "examples/validation/scorecards/score_tools.py",
+        "references/eval_scorecard.md"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/188",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "The count of refuted historical claims moves off zero, or the ticket reports which claims the check cannot reach and why.",
+        "goal": "GOAL-scope-loss-catchable",
+        "local_signal": "sweep the record and report the refuted claims, named"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none -- contested must compute before architecture tags can be designed against it; D3's contested spread is the best evidence tags are needed",
+        "goal": "GOAL-tags-earn-their-place",
+        "local_signal": "contested fires on the known spread-2 case"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-apparatus-priced",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "RD-01",
+    "implementation_scope": [
+      "examples/validation/scorecards/",
+      "references/eval_scorecard.md",
+      "tests/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "FIRST AND ALONE. subtract-to-measure was justified by 'D2 = 2 on 27 of 27 cards', true of ONE example, restated unscoped in the charter, the plan and the issue, and verified with a script containing `if \"ab_quota_ledger\" not in f: continue`. Make that catchable: a claim of the form 'D<n> = k on N of N cards' must carry its scope and something must refuse it when the underlying cards span more examples than the claim admits. SWEEP the existing charters, plans and issues -- those claims are data. Make CONTESTED COMPUTE: rule 5 says a spread > 1 is contested and needs a third pass, nothing implements it, and index printed a dash on all four rows of a round where a spread of 2 existed. And record JUDGE TIER as a first-class field: opus judged D3 2,2 and sonnet 4,3 on the same artifact while D2 agreed across tiers, and nothing surfaces that.",
+    "promotion_order": 10,
+    "promotion_predecessor": null,
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Make a single-example generalisation catchable, and make contested compute",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-01/specs/tickets/RD-01",
+  "ticket_id": "RD-01",
+  "ticket_index": 0,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-01/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-reading-discipline-RD-01/specs/tickets"
+}

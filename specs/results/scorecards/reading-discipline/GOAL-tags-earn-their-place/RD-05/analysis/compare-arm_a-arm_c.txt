@@ -1,0 +1,20 @@
+example: ab_quota_ledger
+  arm_a [effectful]   vs   arm_c [effectful]
+
+D1  arm_a [2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4]
+    arm_c [3, 3, 3, 3, 3, 3]
+    -> comparable (same derived effect_boundary (effectful))
+D2  arm_a [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    arm_c [2, 2, 2, 2, 2, 2]
+    -> comparable (same derived effect_boundary (effectful))
+D3  arm_a [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    arm_c [1, 1, 1, 1, 1, 1]
+    -> comparable (same derived effect_boundary (effectful))
+D4  arm_a [2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4]
+    arm_c [3, 3, 3, 3, 3, 4]
+    -> comparable (same derived effect_boundary (effectful))
+D5  arm_a [2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4]
+    arm_c [4, 4, 4, 4, 4, 4]
+    -> comparable (same derived effect_boundary (effectful))
+
+incomparable pairs reported: 0     absent: 0     comparable: 5

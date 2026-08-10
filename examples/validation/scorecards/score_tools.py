@@ -13,6 +13,29 @@ surface. Putting it here keeps the model's surface unchanged.
   python3 score_tools.py history --example E [--root DIR] [--write FILE]
   python3 score_tools.py audit [--root DIR]
   python3 score_tools.py seal <dir>...
+  python3 score_tools.py contested [--root DIR] [--example E]
+  python3 score_tools.py scope [--path P ...] [--format text|json]
+
+`contested` and `scope` are RD-01's two additions and they answer the same
+defect at two granularities: A CLAIM READ FORWARD WITHOUT BEING CHECKED.
+
+`contested` computes scoring rule 5 instead of asking a judge to declare it. The
+rule has said since version 1 that a spread greater than 1 across two blind
+judges is contested; nothing ever computed it, every card ever written carries
+`contested = []`, and `index` printed a dash on all four rows of the round where
+D3 came out 2, 2, 3, 4. It also reports a TIER SPLIT -- a dimension where two
+judge tiers do not overlap at all on the same artifact -- which is a fact about
+the card that no field held.
+
+`scope` executes R3: A CLAIM CARRIES ITS SCOPE. A figure of the form
+"D<n> = k on N of N cards" is a statement about whichever examples produced
+those N cards; when the population its own words denote is wider than the set it
+was computed over, THE CLAIM IS WRONG EVEN WHEN EVERY NUMBER IN IT IS RIGHT.
+`subtract-to-measure` was opened on such a figure, restated it four times, and
+"verified" it with a script containing `if "ab_quota_ledger" not in f: continue`.
+`scope` re-derives every such figure it can find against the cards on disk and
+names the counterexamples. IT EXITS 1 ON THIS REPOSITORY'S OWN RECORD, and that
+is its demonstrated failing input rather than a defect in it.
 
 `serve` is the version 3 answer to a defect measured at FI-03: four judges were
 dispatched with "references/eval_scorecard.md -- the rubric. Read it", and that
@@ -137,6 +160,28 @@ LABEL_POOL = "DEFGHJKLMNRSTUVWZ"
 # `filed_as`, so the finding it came from stays reachable from the ledger.
 CLAIM_STATUSES = {"current", "sealed", "superseded", "known_wrong", "under_review",
                   "refuted"}
+
+
+# RD-05. The third comparability axis lives in a sibling module because it has
+# a subject of its own -- the declared scopes and the derivation over them --
+# and because this file is already the longest thing in the eval harness.
+# Loaded by path rather than by name: `score_tools.py` is executed as a script
+# AND loaded by `spec_from_file_location` from the tests, and only one of those
+# puts this directory on `sys.path`.
+_ARCH_CACHE: dict = {}
+
+
+def arch():
+    """The `effect_boundary` module. See `architecture_tags.py`."""
+    if "mod" not in _ARCH_CACHE:
+        import importlib.util
+        path = HERE.parent / "architecture_tags.py"
+        spec = importlib.util.spec_from_file_location("_score_tools_arch", path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+        _ARCH_CACHE["mod"] = module
+    return _ARCH_CACHE["mod"]
 
 
 # --------------------------------------------------------------------------
@@ -462,6 +507,49 @@ def check(card: dict, where: str, rubric: dict | None = None,
     for field in ("model", "pass"):
         if field not in judge:
             err(f"judge.{field} is required")
+    # RD-01: judge tier. DERIVED where derivation is possible -- the tier is
+    # already written in the model id every card must carry -- and validated
+    # where it is declared. `opus` judged D3 2, 2 and `sonnet` 4, 3 on the same
+    # artifact while D2 agreed across tiers, and nothing surfaced that.
+    for msg in tier_problems(card, where):
+        bad.append(msg)
+    if judge_tier(judge) == TIER_UNKNOWN and status != "unfilled":
+        notes.append(f"TIER-UNKNOWN {where}: judge.model {judge.get('model')!r} names no "
+                     f"tier this knows and the card declares none. The tier is a field of "
+                     f"the card from RD-01; an unrecognised model is recorded here rather "
+                     f"than guessed.")
+
+    # RD-05, attack A5: a scope declared before scoring, and refused if it moved.
+    # A card MAY carry no subject -- every card sealed before RD-05 does not, and
+    # R-H4 forbids adding one -- but a card that names a subject must name a
+    # DECLARED one and must carry that subject's scope unchanged. A scope change
+    # is not an architecture change and must never be read as one.
+    subject = card.get("subject")
+    if isinstance(subject, dict):
+        name = subject.get("name")
+        try:
+            declared = arch().load_subjects()
+        except Exception as exc:                     # pragma: no cover - unreadable file
+            notes.append(f"SUBJECTS-UNREADABLE {where}: {exc}")
+            declared = {}
+        if declared and name not in declared:
+            err(f"subject.name {name!r} is not declared in subjects.toml. A scope is "
+                f"declared before scoring; a card cannot invent one afterwards.")
+        elif declared:
+            want = list(declared[name]["scope"])
+            got = list(subject.get("scope") or [])
+            if got != want:
+                err(f"subject.scope {got} does not match the declared scope of "
+                    f"{name!r} ({want}). THE SCOPE MOVED. Four judges scored three "
+                    f"different subjects of one artifact once already, and D3 came "
+                    f"out 2, 2, 3, 4.")
+            if subject.get("declared_effect_boundary") != declared[name]["declared"]:
+                err(f"subject.declared_effect_boundary "
+                    f"{subject.get('declared_effect_boundary')!r} does not match "
+                    f"subjects.toml ({declared[name]['declared']!r}). A declaration "
+                    f"refuses nothing and it is still not editable per card.")
+    elif subject is not None:
+        err(f"subject must be an object or null, got {type(subject).__name__}")
 
     missing = [d for d in DIMS if d not in dims]
     if missing:
@@ -659,6 +747,219 @@ def cmd_check(argv: list[str]) -> int:
 
 
 # --------------------------------------------------------------------------
+# judge tier, contested, and the tier split
+# --------------------------------------------------------------------------
+#
+# RD-01. Scoring rule 5 has said since version 1 that "any dimension where they
+# differ by more than 1 is recorded as `contested`". NOTHING HAS EVER COMPUTED
+# IT. Every card ever written carries `contested = []`, including the four
+# `toolchain_removal` cards whose D3 came out 2, 2, 3, 4 -- a spread of 2 --
+# where `index` printed a dash on all four rows.
+#
+# The reason it was never filled in is structural rather than careless, and it
+# decides the design here: `contested` is a property of a JUDGE GROUP and no
+# single judge can see it. Rule 5 also says the judges are blind to each other,
+# so a field asking one judge to record how far they are from another asks for
+# something that judge is forbidden to know. So it is COMPUTED, from the cards,
+# on every read -- never declared. A declaration cannot manufacture one and,
+# more importantly, cannot erase one: `EVAL-SUPPRESS` is this repository's own
+# demonstration that a declared `verified: true` will be used to erase a
+# measured kill if the shape of the record allows it.
+#
+# The card's `contested` field is retained because a sealed card is never
+# edited (R-H4) and 49 of them carry it. It is read as a DECLARATION and
+# compared against the computation; where they differ, the computation wins and
+# the difference is reported.
+
+TIER_WORDS = ("opus", "sonnet", "haiku")
+TIER_UNKNOWN = "unknown"
+
+
+def derived_tier(model: str | None) -> str | None:
+    """The tier a model id names, or None when nothing in it names one.
+
+    Derivation rather than declaration is deliberate: a field a judge fills in
+    by hand is a field that can be filled in wrong, and the tier is already
+    written in the model id every card is required to carry.
+    """
+    low = str(model or "").lower()
+    hits = [t for t in TIER_WORDS if t in low]
+    return hits[0] if len(hits) == 1 else None
+
+
+def judge_tier(judge: dict | None) -> str:
+    """The recorded tier if the card carries one, else the derived one."""
+    judge = judge or {}
+    declared = judge.get("tier")
+    if isinstance(declared, str) and declared.strip():
+        return declared.strip()
+    return derived_tier(judge.get("model")) or TIER_UNKNOWN
+
+
+def tier_problems(card: dict, where: str) -> list[str]:
+    """A declared tier that contradicts the model id is a violation, not a note."""
+    judge = card.get("judge") or {}
+    declared = judge.get("tier")
+    if not isinstance(declared, str) or not declared.strip():
+        return []
+    got = derived_tier(judge.get("model"))
+    if got is not None and got != declared.strip():
+        return [f"{where}: judge.tier is {declared!r} but judge.model "
+                f"{judge.get('model')!r} names tier {got!r}. The tier is derived where "
+                f"derivation is possible; a declaration that contradicts the model id is "
+                f"the tag being used to say something the record does not."]
+    return []
+
+
+def group_key(root: pathlib.Path, path: pathlib.Path, card: dict) -> tuple[str, str, str]:
+    """The unit rule 5 is about: the judges of ONE artifact, in ONE round.
+
+    Not the epic FIELD -- `hexagonal-prompting-rerun`'s cards carry
+    `epic = "hexagonal-prompting"`, so grouping by that field would put two
+    different rounds' judges into one group and invent a spread. The round
+    directory is what separates them on disk and it is what separates them here.
+    """
+    return (_round_of(root, path), str(card.get("example")), str(card.get("arm")))
+
+
+def judge_groups(root: pathlib.Path, example: str | None = None) -> list[dict]:
+    groups: dict[tuple[str, str, str], dict] = {}
+    for path, card in load(root):
+        if card.get("status") == "unfilled":
+            continue
+        if example and card.get("example") != example:
+            continue
+        key = group_key(root, path, card)
+        g = groups.setdefault(key, {"key": key, "round": key[0], "example": key[1],
+                                    "arm": key[2], "cards": [], "paths": []})
+        g["cards"].append(card)
+        g["paths"].append(path)
+    return [groups[k] for k in sorted(groups)]
+
+
+def _scores(group: dict, dim: str) -> list[tuple[dict, int]]:
+    out = []
+    for card in group["cards"]:
+        entry = (card.get("dimensions") or {}).get(dim) or {}
+        score = entry.get("score")
+        if isinstance(score, int) and not isinstance(score, bool):
+            out.append((card, score))
+    return out
+
+
+def contested_of(group: dict) -> dict[str, dict]:
+    """Rule 5, computed: a spread greater than 1 across the judges of one artifact."""
+    out: dict[str, dict] = {}
+    for dim in DIMS:
+        pairs = _scores(group, dim)
+        if len(pairs) < 2:
+            continue
+        vals = [s for _, s in pairs]
+        spread = max(vals) - min(vals)
+        if spread > 1:
+            out[dim] = {
+                "spread": spread,
+                "scores": vals,
+                "by_judge": [(f"{(c.get('judge') or {}).get('model')}"
+                              f"/pass {(c.get('judge') or {}).get('pass')}", s)
+                             for c, s in pairs],
+            }
+    return out
+
+
+def tier_split_of(group: dict) -> dict[str, dict]:
+    """Dimensions where two judge tiers do not overlap at all on one artifact.
+
+    Reported only when the tiers' score ranges are DISJOINT. An overlap is two
+    tiers that agree as far as this can tell, and calling that a split would let
+    the tag say something the numbers do not -- which is the suppression-key
+    failure one level down.
+    """
+    out: dict[str, dict] = {}
+    for dim in DIMS:
+        pairs = _scores(group, dim)
+        by_tier: dict[str, list[int]] = {}
+        for card, score in pairs:
+            by_tier.setdefault(judge_tier(card.get("judge")), []).append(score)
+        by_tier.pop(TIER_UNKNOWN, None)
+        if len(by_tier) < 2:
+            continue
+        ordered = sorted(by_tier.items(), key=lambda kv: (min(kv[1]), max(kv[1])))
+        disjoint = all(max(ordered[i][1]) < min(ordered[i + 1][1])
+                       for i in range(len(ordered) - 1))
+        if not disjoint:
+            continue
+        means = {t: sum(v) / len(v) for t, v in by_tier.items()}
+        lo, hi = ordered[0], ordered[-1]
+        out[dim] = {
+            "by_tier": {t: sorted(v) for t, v in by_tier.items()},
+            "means": means,
+            "points": round(means[hi[0]] - means[lo[0]], 2),
+            "gap": min(hi[1]) - max(lo[1]),
+            "lower": lo[0],
+            "higher": hi[0],
+        }
+    return out
+
+
+def cmd_contested(argv: list[str]) -> int:
+    ap = argparse.ArgumentParser(prog="score_tools.py contested")
+    ap.add_argument("--root", default=str(DEFAULT_SCORECARD_ROOT))
+    ap.add_argument("--example")
+    ap.add_argument("--format", choices=("text", "json"), default="text")
+    ap.add_argument("--require-recorded", action="store_true",
+                    help="exit 1 when a contested dimension has no `[[contested]]` entry "
+                         "in INSTRUMENT-LOG.toml saying what was done about it")
+    args = ap.parse_args(argv)
+    root = pathlib.Path(args.root)
+    groups = judge_groups(root, args.example)
+    recorded = {(str(e.get("round")), str(e.get("example")), str(e.get("arm")),
+                 str(e.get("dimension"))) for e in load_log(root)["contested"]}
+
+    unrecorded = []
+    report = []
+    for g in groups:
+        c, t = contested_of(g), tier_split_of(g)
+        if not c and not t:
+            continue
+        report.append({"round": g["round"], "example": g["example"], "arm": g["arm"],
+                       "judges": len(g["cards"]), "contested": c, "tier_split": t})
+        unrecorded += [(g["round"], g["example"], g["arm"], dim) for dim in c
+                       if (g["round"], g["example"], g["arm"], dim) not in recorded]
+    if args.format == "json":
+        print(json.dumps({"groups": len(groups), "reported": report,
+                          "unrecorded": unrecorded}, indent=2, default=str))
+        return 1 if (args.require_recorded and unrecorded) else 0
+
+    print(f"# contested and tier splits over {root}")
+    print(f"# {len(groups)} judge group(s); a group is one artifact judged in one round.")
+    print("# `contested` is COMPUTED from the cards on every run -- rule 5, spread > 1.")
+    print("# A tier split is reported only where the tiers' ranges are DISJOINT.")
+    ncon = 0
+    for r in report:
+        print(f"\n## {r['round']} / {r['example']} / arm {r['arm']} "
+              f"({r['judges']} judge(s))")
+        for dim, info in r["contested"].items():
+            ncon += 1
+            print(f"  CONTESTED  {dim} spread {info['spread']} -- "
+                  + ", ".join(f"{m} = {s}" for m, s in info["by_judge"]))
+            print(f"             rule 5: adjudicate with a third pass that cites NEW "
+                  f"evidence, never a re-read.")
+            if (r["round"], r["example"], r["arm"], dim) not in recorded:
+                print(f"             UNRECORDED: no `[[contested]]` entry in "
+                      f"{LOG_NAME} says what was done about it.")
+        for dim, info in r["tier_split"].items():
+            by = "; ".join(f"{t} {v}" for t, v in sorted(info["by_tier"].items()))
+            print(f"  TIER-SPLIT {dim} {by} -- disjoint, {info['higher']} higher by "
+                  f"{info['points']} point(s)")
+    if not report:
+        print("\n  nothing contested and no tier split.")
+    print(f"\n{ncon} contested dimension(s) over {len(groups)} judge group(s), "
+          f"{len(unrecorded)} unrecorded")
+    return 1 if (args.require_recorded and unrecorded) else 0
+
+
+# --------------------------------------------------------------------------
 # serve: what a judge is given, and the refusal that keeps a result out of it
 # --------------------------------------------------------------------------
 
@@ -717,6 +1018,24 @@ def cmd_index(argv: list[str]) -> int:
     for _, card in cards:
         by_example.setdefault(card["example"], []).append(card)
 
+    # RD-01: `contested` is COMPUTED here, from the group of judges who scored
+    # one artifact, and not read out of the card. Read out of the card it was
+    # `[]` on every row this file has ever printed -- including the four rows of
+    # a round where D3 came out 2, 2, 3, 4.
+    grouped: dict[tuple[str, str, str], dict] = {}
+    for path, card in cards:
+        key = group_key(root, path, card)
+        g = grouped.setdefault(key, {"key": key, "round": key[0], "example": key[1],
+                                     "arm": key[2], "cards": [], "paths": []})
+        g["cards"].append(card)
+        g["paths"].append(path)
+    groups = [grouped[k] for k in sorted(grouped)]
+    computed: dict[int, dict[str, dict]] = {}
+    for g in groups:
+        con = contested_of(g)
+        for card in g["cards"]:
+            computed[id(card)] = con
+
     versions = sorted({c.get("scorecard_version") for _, c in cards
                        if c.get("scorecard_version")})
     out = [f"# Scorecards — {root.name}", ""]
@@ -733,18 +1052,70 @@ def cmd_index(argv: list[str]) -> int:
     out.append("carry a delta, so a sum over them moves most where the card reads")
     out.append("worst. Read a dimension.")
     out.append("")
-    header = ("| example | arm | "
+    out.append("**`contested` is computed, never declared.** Scoring rule 5 — a spread")
+    out.append("greater than 1 across the judges of one artifact — is re-derived from the")
+    out.append("cards on every run. A card's own `contested` field is a declaration and")
+    out.append("cannot manufacture one or erase one; where the two differ, the difference")
+    out.append("is printed below the table.")
+    out.append("")
+    header = ("| example | arm | judge | tier | "
               + " | ".join(f"D{i+1} {NAMES['D' + str(i + 1)]}" for i in range(5))
               + " | contested |")
     out.append(header)
-    out.append("|" + "---|" * 8)
+    out.append("|" + "---|" * 10)
+    disagree: list[str] = []
     for example in sorted(by_example):
         for card in sorted(by_example[example], key=lambda c: (str(c.get("arm")), c["run_id"])):
             d = card["dimensions"]
-            row = [example, str(card.get("arm") or "—")]
+            judge = card.get("judge") or {}
+            con = computed.get(id(card), {})
+            row = [example, str(card.get("arm") or "—"),
+                   f"pass {judge.get('pass')}", judge_tier(judge)]
             row += [str(d[k]["score"]) for k in DIMS]
-            row.append(", ".join(card.get("contested") or []) or "—")
+            row.append(", ".join(sorted(con)) or "—")
             out.append("| " + " | ".join(row) + " |")
+            declared = sorted(card.get("contested") or [])
+            if declared != sorted(con):
+                disagree.append(
+                    f"- `{example}` / {card['run_id']}: the card declares "
+                    f"`contested = {declared}`; the cards compute "
+                    f"`{sorted(con)}`. **The computation is the answer.** A sealed card is "
+                    f"never edited (R-H4), so the declaration stays where it is and this "
+                    f"line is the correction beside it.")
+    out.append("")
+    if disagree:
+        out.append("### Declared `contested` against computed")
+        out.append("")
+        out.extend(disagree)
+        out.append("")
+    contested_rows = [(g, contested_of(g)) for g in groups]
+    contested_rows = [(g, c) for g, c in contested_rows if c]
+    out.append("### Contested — rule 5, computed")
+    out.append("")
+    if not contested_rows:
+        out.append("None. No dimension has a spread greater than 1 in any judge group here.")
+    for g, con in contested_rows:
+        for dim, info in con.items():
+            out.append(f"- **{g['example']} / arm {g['arm']}, {dim}** — spread "
+                       f"{info['spread']}: "
+                       + ", ".join(f"{m} = {s}" for m, s in info["by_judge"])
+                       + ". Rule 5 asks for a third pass citing NEW evidence.")
+    out.append("")
+    split_rows = [(g, tier_split_of(g)) for g in groups]
+    split_rows = [(g, s) for g, s in split_rows if s]
+    out.append("### Tier splits")
+    out.append("")
+    out.append("A dimension where two judge tiers do not overlap at all on the same")
+    out.append("artifact. Reported only where the ranges are DISJOINT — an overlap is two")
+    out.append("tiers agreeing as far as this can tell.")
+    out.append("")
+    if not split_rows:
+        out.append("None.")
+    for g, spl in split_rows:
+        for dim, info in spl.items():
+            by = "; ".join(f"`{t}` {v}" for t, v in sorted(info["by_tier"].items()))
+            out.append(f"- **{g['example']} / arm {g['arm']}, {dim}** — {by}; "
+                       f"`{info['higher']}` higher by {info['points']} point(s).")
     out.append("")
     for example in sorted(by_example):
         for card in sorted(by_example[example], key=lambda c: c["run_id"]):
@@ -798,6 +1169,13 @@ def cmd_scaffold(argv: list[str]) -> int:
     ap.add_argument("--labels", default=None,
                     help="explicit opaque labels, comma-separated (testing / re-scaffold)")
     ap.add_argument("--seed", type=int, default=None, help="seed the label shuffle")
+    ap.add_argument("--subject", default=None,
+                    help="a subject declared in examples/validation/scorecards/"
+                         "subjects.toml. Writes its SCOPE into the unfilled skeleton, "
+                         "before any judge is dispatched; `check` then refuses a card "
+                         "whose scope moved. A program that is one thing wrapping "
+                         "another declares SEVERAL scoped subjects and scaffolds one "
+                         "card per subject.")
     ap.add_argument("--unblinded", action="store_true",
                     help="DELIBERATELY skip blinding: emit real arm names as labels")
     ap.add_argument("--reason", default=None, help="required with --unblinded")
@@ -936,6 +1314,21 @@ def _rubric_block(rubric: dict, card_version: int = VERSION) -> dict:
     return block
 
 
+def _subject_block(name: str | None) -> dict | None:
+    """The declared scope, copied out of `subjects.toml` into the skeleton."""
+    if not name:
+        return None
+    subjects = arch().load_subjects()
+    if name not in subjects:
+        raise RubricError(f"--subject {name!r} is not declared in "
+                          f"{arch().DEFAULT_SUBJECTS}. A scope is DECLARED, never "
+                          f"invented at scaffold time.")
+    s = subjects[name]
+    return {"name": name, "scope": list(s["scope"]),
+            "declared_effect_boundary": s["declared"],
+            "axis": arch().AXIS}
+
+
 def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
     dims = {}
     for key in DIMS:
@@ -964,7 +1357,27 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
         "run_id": rid,
         "arm": label,
         "commit": "",
-        "judge": {"model": "", "pass": judge, "blind_to_arm": not args.unblinded},
+        # `tier` is left empty on purpose. It is DERIVED from `model` wherever a
+        # model id names one, so a judge who fills in `model` has filled in the
+        # tier; the field exists so a model id that names no tier can be said
+        # rather than guessed at. A declared tier that contradicts the model id
+        # is a `check` failure -- the tag records what the record says, never
+        # what someone would prefer it said.
+        "judge": {"model": "", "tier": "", "pass": judge,
+                  "blind_to_arm": not args.unblinded},
+        # RD-05, attack A5. THE SCOPE IS WRITTEN BEFORE ANY JUDGE IS DISPATCHED
+        # and it is copied from `subjects.toml`, so what the card is about is
+        # fixed before the numbers exist. `check` refuses a card whose
+        # `subject.scope` no longer matches the declared one. Choosing the scope
+        # that carries the flattering tag is not hypothetical: it is what
+        # produced `toolchain_removal` D3 = 4 on a card whose every citation is
+        # to a fixture.
+        #
+        # It is `null` where the round declared no subject, which is every card
+        # sealed before RD-05 and any round that declines to declare one. A card
+        # with no subject is attributed through `subjects.toml`'s `labels` or
+        # not at all, and an unattributed card enters no comparison.
+        "subject": _subject_block(getattr(args, "subject", None)),
         "rubric": _rubric_block(rubric, args.card_version),
         "how_to_fill": [
             "Score the LOWEST anchor the artifact fully satisfies. Torn between two: "
@@ -1207,11 +1620,13 @@ def load_log(root: pathlib.Path) -> dict:
     path = root / LOG_NAME
     if not path.exists():
         return {"path": path, "changes": [], "notes": [], "claims": [], "sealed": [],
-                "movements": []}
+                "movements": [], "contested": [], "demonstrations": []}
     data = tomllib.loads(path.read_text())
     return {"path": path, "changes": data.get("change", []), "notes": data.get("note", []),
             "claims": data.get("claim", []), "sealed": data.get("sealed", []),
-            "movements": data.get("movement", [])}
+            "movements": data.get("movement", []),
+            "contested": data.get("contested", []),
+            "demonstrations": data.get("demonstration", [])}
 
 
 def card_date(card: dict) -> str | None:
@@ -1552,6 +1967,93 @@ def audit_rh1(ctx: dict) -> list[tuple[str, str]]:
             out.append((OPEN, f"card `{r['key']}`: measured before {', '.join(later)} and "
                               f"carries no note. It is not comparable to anything measured "
                               f"after; record WHICH number and WHY beside it."))
+    out.extend(audit_rh1_architecture(ctx))
+    return out
+
+
+def audit_rh1_architecture(ctx: dict) -> list[tuple[str, str]]:
+    """R-H1's THIRD CLAUSE (RD-05): the demonstration table, re-derived.
+
+    R-H1 grew a third comparability axis rather than gaining an `R-H7`,
+    deliberately: R-H5's own history is that an unnumbered rule with no check
+    was added at close and `audit` rejected it within the minute, so a new
+    `R-H` id is a promise to ship a check and folding into R-H1 inherits one
+    that already runs.
+
+    What is checked: every `[[demonstration]]` in the ledger is RE-DERIVED FROM
+    THE CARDS, exactly as R-H5 re-derives `points` and R-H6 re-derives
+    `contested`. An entry the cards no longer support is a VIOLATION, not a
+    rounding error -- and a separation the cards DO support with no entry
+    beside it is `OPEN`, because an undeclared authority is one nobody agreed
+    to.
+    """
+    out: list[tuple[str, str]] = []
+    declared = ctx.get("demonstrations") or []
+    module = arch()
+    subjects = module.load_subjects()
+    derived = module.derive_subjects(subjects, REPO_ROOT)
+    unmeasurable = [n for n, d in derived.items()
+                    if d["derived"].endswith("unmeasurable")]
+    if unmeasurable:
+        out.append((UNVERIFIED, f"the {module.AXIS} axis could not be derived for "
+                                f"{sorted(unmeasurable)} in this tree -- their declared "
+                                f"scope is absent, so nothing about them is checked here"))
+    rows = module.card_rows(ctx["root"])
+    entries = {e["id"]: e for e in module.demonstration_table(rows, derived, subjects)}
+    if len(unmeasurable) == len(derived):
+        out.append((UNVERIFIED, "no declared scope resolves in this tree; the demonstration "
+                                "table is not re-derivable here and nothing below is checked"))
+        return out
+    for entry in declared:
+        eid = str(entry.get("id"))
+        got = entries.get(eid)
+        if got is None:
+            out.append((VIOLATION,
+                        f"`[[demonstration]]` `{eid}`: names no cell the cards produce. "
+                        f"A stale authority row is worse than none, because a comparison "
+                        f"gets refused on evidence nobody can find."))
+            continue
+        for field in ("separates", "dimension", "example"):
+            if field in entry and entry[field] != got[field]:
+                out.append((VIOLATION,
+                            f"`[[demonstration]]` `{eid}`: declares {field} = "
+                            f"{entry[field]!r}; the cards give {got[field]!r}."))
+                break
+        else:
+            if entry.get("ranges") and {k: list(v) for k, v in entry["ranges"].items()} \
+                    != got["ranges"]:
+                out.append((VIOLATION,
+                            f"`[[demonstration]]` `{eid}`: declares ranges "
+                            f"{entry['ranges']}; the cards give {got['ranges']}."))
+                continue
+            if entry.get("tiers_measured") is not None \
+                    and list(entry["tiers_measured"]) != got["tiers_measured"]:
+                out.append((VIOLATION,
+                            f"`[[demonstration]]` `{eid}`: declares tiers_measured "
+                            f"{list(entry['tiers_measured'])}; the cards give "
+                            f"{got['tiers_measured']}. A separation present in one tier "
+                            f"and absent in the other is a fact about the tier."))
+                continue
+            verdict = "SEPARATES" if got["separates"] else "does not separate"
+            null = " NULL-ENTAILED" if got["null_entailed"] else ""
+            out.append((OK, f"`[[demonstration]]` `{eid}`: {got['dimension']} "
+                            f"{'/'.join(got['values'])} {verdict} re-derived "
+                            f"{got['ranges']}, population took "
+                            f"{got['population_values']}{null}, tiers "
+                            f"{got['tiers_measured']}"))
+    undeclared = [e for e in entries.values()
+                  if e["separates"] and e["id"] not in {str(d.get("id")) for d in declared}]
+    for e in undeclared:
+        out.append((OPEN, f"the cards support a separation on {e['dimension']} between "
+                          f"{'/'.join(e['values'])} ({e['ranges']}) and no "
+                          f"`[[demonstration]]` records it. Until one does the pair refuses "
+                          f"nothing -- an authority nobody declared is not an authority."))
+    for card in module.scope_drift(rows, subjects):
+        out.append((OPEN, f"SCOPE-DRIFT card `{card['card']}`: attributed to subject "
+                          f"`{card['declared_subject']}`, its own {card['dimension']} "
+                          f"citations name `{card['cited_subject']}` "
+                          f"{card['citation_counts']}. A scope change is not an "
+                          f"architecture change and must never be read as one."))
     return out
 
 
@@ -1784,12 +2286,84 @@ def audit_rh5(ctx: dict) -> list[tuple[str, str]]:
     return out
 
 
+def audit_rh6(ctx: dict) -> list[tuple[str, str]]:
+    """R-H6 contested: computed from the cards, never declared, and never dropped."""
+    out = []
+    groups = ctx["groups"]
+    computed = {}
+    for g in groups:
+        con = contested_of(g)
+        if con:
+            computed[(g["round"], g["example"], g["arm"])] = con
+        # A DECLARATION CANNOT MANUFACTURE ONE. `EVAL-SUPPRESS` is this
+        # repository's demonstration that a declared verdict will be used to
+        # erase a measured one; the same shape inverted -- declaring a dimension
+        # contested that the cards do not support -- would let a judge park an
+        # inconvenient score behind a flag nothing re-derives.
+        for card in g["cards"]:
+            declared = set(card.get("contested") or [])
+            unsupported = sorted(declared - set(con))
+            if unsupported:
+                out.append((VIOLATION,
+                            f"card `{g['round']}/{g['example']}/{card.get('run_id')}` "
+                            f"declares {unsupported} contested and the judges of that "
+                            f"artifact do not differ by more than 1 on "
+                            f"{'it' if len(unsupported) == 1 else 'them'}. Contested is "
+                            f"re-derived from the cards; a declaration cannot make one."))
+    for entry in ctx["contested"]:
+        key = (str(entry.get("round")), str(entry.get("example")), str(entry.get("arm")))
+        dim = str(entry.get("dimension"))
+        got = computed.get(key, {}).get(dim)
+        if got is None:
+            out.append((VIOLATION,
+                        f"`[[contested]]` `{entry.get('id')}`: declares {dim} contested on "
+                        f"{'/'.join(key)} and the cards do not. Either the entry is stale "
+                        f"or the group is wrong -- and a stale adjudication record is worse "
+                        f"than none, because it reads as one that happened."))
+            continue
+        if entry.get("spread") is not None and int(entry["spread"]) != got["spread"]:
+            out.append((VIOLATION,
+                        f"`[[contested]]` `{entry.get('id')}`: declares spread "
+                        f"{entry['spread']} on {dim}; the cards give {got['spread']}. "
+                        f"Re-derived on every run, exactly as R-H5 re-derives `points`."))
+            continue
+        if entry.get("scores") and [int(x) for x in entry["scores"]] != got["scores"]:
+            out.append((VIOLATION,
+                        f"`[[contested]]` `{entry.get('id')}`: declares scores "
+                        f"{list(entry['scores'])}; the cards give {got['scores']}."))
+            continue
+        third = str(entry.get("third_pass") or "").strip()
+        if not third:
+            out.append((VIOLATION,
+                        f"`[[contested]]` `{entry.get('id')}`: says nothing about the third "
+                        f"pass rule 5 asks for. `none` is a legal and useful answer; "
+                        f"silence is not."))
+            continue
+        out.append((OK, f"`[[contested]]` `{entry.get('id')}`: {dim} spread "
+                        f"{got['spread']} re-derived, third pass: {third}"))
+    declared_keys = {(str(e.get("round")), str(e.get("example")), str(e.get("arm")),
+                      str(e.get("dimension"))) for e in ctx["contested"]}
+    for key, con in sorted(computed.items()):
+        for dim in con:
+            if key + (dim,) not in declared_keys:
+                out.append((OPEN,
+                            f"`{'/'.join(key)}` {dim} is contested (spread "
+                            f"{con[dim]['spread']}: {con[dim]['scores']}) and no "
+                            f"`[[contested]]` entry records what was done about it. Rule 5 "
+                            f"asks for a third pass citing NEW evidence; the flag firing "
+                            f"with nothing beside it is the rule going unexecuted again."))
+    if not computed:
+        out.append((OK, "no judge group has a spread greater than 1 on any dimension"))
+    return out
+
+
 AUDIT_CHECKS = {
     "R-H1": audit_rh1,
     "R-H2": audit_rh2,
     "R-H3": audit_rh3,
     "R-H4": audit_rh4,
     "R-H5": audit_rh5,
+    "R-H6": audit_rh6,
 }
 
 
@@ -1803,6 +2377,9 @@ def run_audit(root: pathlib.Path) -> tuple[dict[str, list[tuple[str, str]]], dic
         "claims": log["claims"],
         "sealed": log["sealed"],
         "movements": log["movements"],
+        "contested": log["contested"],
+        "demonstrations": log["demonstrations"],
+        "groups": judge_groups(root),
         "rows": all_rows,
         "all_rows": all_rows,
         "keys": {r["key"] for r in all_rows},
@@ -1843,6 +2420,300 @@ def cmd_audit(argv: list[str]) -> int:
         violations += len(unimplemented)
     print(f"\n{violations} violation(s)")
     return 1 if violations else 0
+
+
+# --------------------------------------------------------------------------
+# scope: R3, a claim carries its scope
+# --------------------------------------------------------------------------
+#
+# RD-01. `R-H2` forbids AVERAGING across examples. NOTHING FORBADE GENERALISING
+# FROM ONE, and an entire epic was justified by "D2 = 2 on 27 of 27 cards" --
+# true of `ab_quota_ledger` alone, written into the charter, the plan and the
+# issue, repeated four times, and "verified" by a script containing
+# `if "ab_quota_ledger" not in f: continue`. THE CHECK WAS SCOPED TO ONE EXAMPLE
+# AND THE RESULT REPORTED AS A PROPERTY OF THE CARD.
+#
+# WHAT THIS REFUSES, AND WHAT IT DOES NOT. It refuses a CLAIM. It gates nothing
+# about the code, no close path consults it, and it decides nothing about any
+# artifact -- five epics of static checking on the product caught zero bugs and
+# this is deliberately not a sixth. What it does is re-derive a figure from the
+# cards on disk and print the cards that contradict it.
+#
+# HOW A CLAIM IS READ. At the scope ITS OWN WORDS carry. If the text beside the
+# figure names an example the corpus knows, the figure is evaluated against that
+# example's cards. If it names none, the population is every card -- because
+# that is what "on 27 of 27 cards ever written" says. The scope window is the
+# line the figure sits on plus the line before and the line after: a scope that
+# is not beside the figure is a scope a reader does not have when they read it,
+# which is precisely how the "27 of 27" figure travelled.
+#
+# WHAT IT CANNOT REACH IS COUNTED, NEVER DROPPED. `absent` and `checked, none
+# found` are different claims and this project has been caught conflating them.
+# Four reach limits are reported by name: an ANAPHORIC scope ("about this
+# example"), an ARM-scoped figure (arm labels are round-local and opaque by
+# design, so they cannot be resolved to a card set), a counted noun that is not
+# cards, and a noun carrying a qualifier the corpus does not define.
+
+# A counted figure is a dimension, a value bound to it, and a count. The binder
+# has to be explicit: `| **D1** | 1 | 2 of 6 |` is a table of movement counts,
+# not a claim that D1 = 1 on 2 of 6 cards, and the difference between them is
+# that nothing in the table BINDS the 1 to D1.
+_BIND = r"(?:(?<![A-Za-z])(?:is|are|at|scored|scores|remains?|stays?)(?![A-Za-z])|=|:|->|→)"
+_VAL = r"[`*\"' (]{0,3}(?P<val>[0-4])[`*\"' )]{0,3}"
+# The count has to be introduced as a SCOPE ("on", "for", "in", "across", ...)
+# or sit immediately after the value. Without this, "23 of 27 cards are `3`.
+# Moved 0 of 40 against EVAL-RERUN" reads as "D1 = 3 on 0 of 40" -- a figure
+# nobody wrote, which would have inflated the count this ticket reports.
+_GAP = r"(?P<gap>[\s`*(\[,;—–-]*(?:\b(?:on|for|in|across|over|among|of)\b[^\n.]{0,25}?[\s(\[`*])?)"
+# `N of M`, spelled out. `2/2 -> 4` is this repository's notation for a MOVEMENT
+# between two judge passes and it is not a count of anything.
+_CNT = r"(?P<n>\d+)\s+of\s+(?P<m>\d+)"
+_NOUN = r"[\s`*)\]]{0,4}(?P<noun>[A-Za-z][A-Za-z-]*(?:[ \t]+[A-Za-z-]+){0,2})?"
+
+CLAIM_FORM_A = re.compile(r"D(?P<dim>[1-5])(?P<mid>[^\n]{0,60}?)" + _BIND + r"\s*" + _VAL
+                          + _GAP + r"(?<![\d.])" + _CNT + _NOUN)
+CLAIM_FORM_B = re.compile(
+    r"D(?P<dim>[1-5])(?P<mid>[^\n]{0,70}?)(?<![\d.])" + _CNT
+    + r"[\s`*]{0,3}(?P<noun>[A-Za-z][A-Za-z-]*(?:[ \t]+[A-Za-z-]+){0,2})?[\s`*]{0,3}"
+    + _BIND + r"\s*" + _VAL)
+_ANOTHER_DIM = re.compile(r"D[1-5]")
+_ANAPHOR = re.compile(r"\bth(?:is|e\s+same)\s+(?:example|artifact|subject|card|"
+                      r"example\s+family)\b", re.I)
+_ARM = re.compile(r"\barms?\s+[A-Z]\b|`[A-Z]`\s*[/,]|\barm\s+`?[A-Z]`?\b")
+_NONCARD_NOUN = re.compile(
+    r"\b(mutants?|cells?|actions?|faults?|arms?|columns?|cases?|tests?|lines?|commits?|"
+    r"predictions?|controls?|findings?|tickets?|epics?|dimension-points?|points?|"
+    r"movements?|kills?|figures?|fixtures?|examples?|instruments?|subjects?)\b", re.I)
+_CARD_NOUN = re.compile(r"^(cards?|scorecards?|judge-scores?|judges|rows?)$", re.I)
+# Words that may sit beside a card noun without narrowing the population.
+_OPEN_QUALIFIERS = {"ever", "written", "judged", "blind", "sealed", "the", "all", "filled",
+                    "and", "so", "in", "of", "about", "with", "under", "that", "every",
+                    "on", "are", "is", "to", "a", "an", "these", "those", "both", "no",
+                    "not", "it", "its", "has", "have", "been", "there", "for", "from",
+                    "by", "over", "across"}
+
+#: What `scope` reads by default: the charters, the plan, the ledger and the
+#: narrative results. `specs/.history/**` is deliberately OUT -- those are sealed
+#: closed-snapshots of the same documents and sweeping them would report one
+#: claim once per epic that ever snapshotted it, which is a denominator about
+#: the archive rather than about the record.
+#:
+#: `references/*.md` IS in the set, and that includes the card itself. The
+#: section of `references/eval_scorecard.md` that DECLARES this rule quotes the
+#: unscoped figure it was written about, so this sweep refuses a claim inside
+#: its own specification. That is the correct outcome rather than an oversight:
+#: exempting the document that declares a rule from the rule is how three
+#: unexecuted declarations got written into this repository already.
+DEFAULT_SWEEP = (
+    "*.md",
+    "references/*.md",
+    "specs/desired_program_model/*.yaml",
+    "specs/results/scorecards/**/*.md",
+    "specs/results/scorecards/INSTRUMENT-LOG.toml",
+    "specs/results/complexity_ledger.json",
+    "specs/results/skill_feedback.md",
+)
+
+REFUTED = "REFUTED"
+COUNT_MOVED = "COUNT-MOVED"
+HOLDS = "HOLDS"
+UNREACHABLE = "UNREACHABLE"
+
+
+def sweep_paths(root: pathlib.Path, patterns=DEFAULT_SWEEP) -> list[pathlib.Path]:
+    seen, out = set(), []
+    for pat in patterns:
+        for p in sorted(root.glob(pat)):
+            if not p.is_file() or ".history" in p.parts:
+                continue
+            if p not in seen:
+                seen.add(p)
+                out.append(p)
+    return out
+
+
+def find_claims(path: pathlib.Path, root: pathlib.Path) -> list[dict]:
+    """Every counted figure of the form `D<n> = k on N of M` in one file."""
+    try:
+        lines = path.read_text(errors="replace").splitlines()
+    except OSError:
+        return []
+    rel = str(path.relative_to(root)) if _under(path, root) else str(path)
+    out = []
+    for i, line in enumerate(lines, 1):
+        seen = set()
+        # Anchored at EVERY dimension token rather than scanned with finditer.
+        # `- **D2 — STOP CITING IT** ... `D2 = 2` on **27 of 27** cards` matches
+        # from the first D2 with the second one inside `mid`; a non-overlapping
+        # scan then consumes the line and never tries the second, so discarding
+        # the cross-dimension match silently discarded the claim with it.
+        starts = [mm.start() for mm in _ANOTHER_DIM.finditer(line)]
+        for form, rx in (("A", CLAIM_FORM_A), ("B", CLAIM_FORM_B)):
+            for pos in starts:
+                m = rx.match(line, pos)
+                if m is None:
+                    continue
+                if _ANOTHER_DIM.search(m.group("mid")):
+                    continue          # the value belongs to a later dimension
+                if form == "A" and _ANOTHER_DIM.search(m.group("gap")):
+                    continue
+                key = (m.group("dim"), m.group("val"), m.group("n"), m.group("m"))
+                if key in seen:
+                    continue
+                seen.add(key)
+                window = "\n".join(lines[max(0, i - 2):i + 1])
+                out.append({
+                    "file": rel, "line": i, "form": form,
+                    "dim": "D" + m.group("dim"), "value": int(m.group("val")),
+                    "n": int(m.group("n")), "m": int(m.group("m")),
+                    "noun": (m.group("noun") or "").strip(),
+                    "span": " ".join(m.group(0).split()),
+                    "near": line[m.start(): m.end() + 40],
+                    "window": window,
+                })
+    return out
+
+
+def _qualifiers(noun: str) -> list[str]:
+    words = [w for w in re.split(r"[\s]+", noun) if w]
+    return [w for w in words
+            if not _CARD_NOUN.match(w) and w.lower() not in _OPEN_QUALIFIERS]
+
+
+def evaluate_claim(claim: dict, cards: list[dict], examples: set[str]) -> dict:
+    """Read the figure at the scope its own words carry, then re-derive it."""
+    noun, near, window = claim["noun"], claim["near"], claim["window"]
+    if noun and _NONCARD_NOUN.search(noun):
+        return dict(claim, verdict=UNREACHABLE, reason="non-card noun",
+                    detail=f"the counted noun is {noun!r}; this reads cards")
+    quals = _qualifiers(noun)
+    if quals:
+        return dict(claim, verdict=UNREACHABLE, reason="unresolved qualifier",
+                    detail=f"the counted noun narrows the population with {quals}, which "
+                           f"names no example in this corpus")
+
+    # A NAMED EXAMPLE BESIDE THE FIGURE SETTLES THE SCOPE, and it is looked for
+    # before the two unresolvable forms. An anaphor somewhere in the window does
+    # not make an explicitly named example ambiguous; reading it the other way
+    # round moved SM-04's correctly scoped claim into the unreachable pile, and
+    # a check that cannot see a claim doing the right thing cannot be trusted
+    # when it says one is doing the wrong thing.
+    named = sorted(e for e in examples if e in window)
+    if named:
+        population = [c for c in cards if c["example"] in named]
+        scope = f"example {', '.join(named)}"
+    else:
+        if _ARM.search(near):
+            return dict(claim, verdict=UNREACHABLE, reason="arm-scoped",
+                        detail="the figure names an arm label. Arm labels are round-local "
+                               "and opaque by design (scaffold draws them from a pool that "
+                               "excludes every label a prior round published), so they "
+                               "cannot be resolved to a card set here.")
+        if _ANAPHOR.search(window):
+            return dict(claim, verdict=UNREACHABLE, reason="anaphoric scope",
+                        detail="the scope is carried by 'this example' or the like. It is a "
+                               "scope, and it is not one this can resolve.")
+        population = list(cards)
+        scope = "UNSCOPED — read over every card, which is what its words say"
+    if not population:
+        return dict(claim, verdict=UNREACHABLE, reason="empty scope",
+                    detail=f"no cards for {scope}")
+
+    dim, value = claim["dim"], claim["value"]
+    hits = [c for c in population
+            if (c["dimensions"].get(dim) or {}).get("score") == value]
+    misses = [c for c in population if c not in hits]
+    # A card outside the value is a COUNTEREXAMPLE only where the claim is
+    # universal -- `on N of N`. Where the claim already says `23 of 27` the
+    # other four are the remainder it accounts for, and listing them as
+    # counterexamples would be the check making the claim say more than it does.
+    universal = claim["n"] == claim["m"]
+    out = dict(claim, scope=scope, examples=named, population=len(population),
+               hits=len(hits), counterexamples=misses if universal else [],
+               off_value=len(misses))
+    if universal and misses:
+        return dict(out, verdict=REFUTED, reason="counterexample",
+                    detail=f"{len(misses)} card(s) in the population its words denote do not "
+                           f"carry {dim} = {value}")
+    if not universal and (len(hits), len(population)) != (claim["n"], claim["m"]):
+        moved = ("the numerator" if len(hits) != claim["n"] else "the denominator")
+        return dict(out, verdict=REFUTED, reason="count",
+                    detail=f"re-derives as {len(hits)} of {len(population)}, not "
+                           f"{claim['n']} of {claim['m']} — {moved} moved")
+    if len(population) != claim["m"]:
+        return dict(out, verdict=COUNT_MOVED, reason="denominator",
+                    detail=f"no counterexample, and the population is now {len(population)} "
+                           f"rather than {claim['m']} — the denominator rose")
+    return dict(out, verdict=HOLDS, reason="re-derived", detail="")
+
+
+def run_scope(root: pathlib.Path, scorecard_root: pathlib.Path,
+              paths: list[pathlib.Path] | None = None) -> list[dict]:
+    cards = [c for _, c in load(scorecard_root) if c.get("status") != "unfilled"]
+    examples = {str(c.get("example")) for c in cards}
+    files = paths if paths is not None else sweep_paths(root)
+    out = []
+    for f in files:
+        for claim in find_claims(f, root):
+            out.append(evaluate_claim(claim, cards, examples))
+    return out
+
+
+def _card_id(card: dict) -> str:
+    return f"{card.get('example')}/{card.get('run_id')}"
+
+
+def cmd_scope(argv: list[str]) -> int:
+    ap = argparse.ArgumentParser(prog="score_tools.py scope")
+    ap.add_argument("--root", default=str(REPO_ROOT),
+                    help="the tree whose record is swept")
+    ap.add_argument("--scorecards", default=str(DEFAULT_SCORECARD_ROOT))
+    ap.add_argument("--path", action="append", default=[],
+                    help="sweep this file instead of the default record")
+    ap.add_argument("--format", choices=("text", "json"), default="text")
+    args = ap.parse_args(argv)
+    root = pathlib.Path(args.root)
+    paths = [pathlib.Path(p) for p in args.path] or None
+    results = run_scope(root, pathlib.Path(args.scorecards), paths)
+
+    if args.format == "json":
+        print(json.dumps([{k: v for k, v in r.items() if k != "counterexamples"}
+                          | {"counterexamples": [_card_id(c) for c in
+                                                 r.get("counterexamples", [])]}
+                          for r in results], indent=2, default=str))
+        return 1 if any(r["verdict"] == REFUTED for r in results) else 0
+
+    order = (REFUTED, COUNT_MOVED, HOLDS, UNREACHABLE)
+    print("# R3 — a claim carries its scope")
+    print("# A figure `D<n> = k on N of M cards` is read at the scope ITS OWN WORDS carry")
+    print("# and re-derived against the cards on disk. Nothing here gates the product.")
+    for verdict in order:
+        rows = [r for r in results if r["verdict"] == verdict]
+        print(f"\n## {verdict} — {len(rows)}")
+        for r in rows:
+            print(f"  {r['file']}:{r['line']}  {r['dim']} = {r['value']} on "
+                  f"{r['n']} of {r['m']} {r['noun']}".rstrip())
+            print(f"      as written: {r['span']!r}")
+            if verdict == UNREACHABLE:
+                print(f"      cannot reach: {r['reason']} — {r['detail']}")
+                continue
+            print(f"      scope: {r['scope']}  (population {r['population']}, "
+                  f"{r['hits']} carry {r['dim']} = {r['value']})")
+            if r["detail"]:
+                print(f"      {r['detail']}")
+            for c in r.get("counterexamples", [])[:12]:
+                print(f"      counterexample: {_card_id(c)} "
+                      f"{r['dim']} = {(c['dimensions'][r['dim']] or {}).get('score')} "
+                      f"({(c.get('judge') or {}).get('model')}, "
+                      f"tier {judge_tier(c.get('judge'))})")
+            if len(r.get("counterexamples", [])) > 12:
+                print(f"      ... and {len(r['counterexamples']) - 12} more")
+    counts = {v: sum(1 for r in results if r["verdict"] == v) for v in order}
+    print(f"\n{len(results)} counted figure(s): "
+          + ", ".join(f"{counts[v]} {v}" for v in order))
+    print("A claim this cannot reach is NOT a claim that holds. The two counts are "
+          "separate on purpose.")
+    return 1 if counts[REFUTED] else 0
 
 
 # --------------------------------------------------------------------------
@@ -1891,14 +2762,67 @@ def cmd_seal(argv: list[str]) -> int:
 
 # --------------------------------------------------------------------------
 
+def cmd_tags(argv: list[str]) -> int:
+    """The third comparability axis, printed. It refuses nothing and exits 0.
+
+    `--compare A B` prints one pair, one line per dimension, and BOTH SCORE
+    SETS ARE ON EVERY LINE INCLUDING THE INCOMPARABLE ONE. That is the whole
+    anti-suppression invariant and it is executed here rather than promised:
+    the verdict annotates the pair, and a tag can never reduce the set of
+    printed numbers.
+    """
+    ap = argparse.ArgumentParser(prog="score_tools.py tags")
+    ap.add_argument("--root", default=str(DEFAULT_SCORECARD_ROOT))
+    ap.add_argument("--compare", nargs=2, default=None, metavar=("A", "B"),
+                    help="two declared subjects of the same example")
+    args = ap.parse_args(argv)
+    module = arch()
+    root = pathlib.Path(args.root)
+    subjects = module.load_subjects()
+    derived = module.derive_subjects(subjects, REPO_ROOT)
+    rows = module.card_rows(root)
+    entries = module.demonstration_table(rows, derived, subjects)
+    if args.compare:
+        a, b = args.compare
+        unknown = [x for x in (a, b) if x not in subjects]
+        if unknown:
+            print(f"no declared subject {unknown} in "
+                  f"{module.DEFAULT_SUBJECTS}", file=sys.stderr)
+            return 2
+        table = module.authority(entries)
+        example = subjects[a]["example"]
+        print(f"example: {example}")
+        print(f"  {a} [{derived[a]['derived']}]   vs   {b} [{derived[b]['derived']}]")
+        print()
+        counts = {module.COMPARABLE: 0, module.INCOMPARABLE: 0, module.ABSENT: 0}
+        for line in module.compare(rows, derived, subjects, example, a, b, table):
+            counts[line["state"]] = counts.get(line["state"], 0) + 1
+            print(f"{line['dimension']}  {a} {line['scores_a']}")
+            print(f"    {b} {line['scores_b']}")
+            print(f"    -> {line['state']} ({line['reason']})")
+        print()
+        print(f"incomparable pairs reported: {counts[module.INCOMPARABLE]}     "
+              f"absent: {counts[module.ABSENT]}     comparable: {counts[module.COMPARABLE]}")
+        return 0
+    print(module.render_derive(subjects, derived))
+    print()
+    print(module.render_table(entries, module.same_tag_controls(rows, derived, subjects)))
+    print()
+    print(module.render_drift(module.scope_drift(rows, subjects), len(rows)))
+    return 0
+
+
 COMMANDS = {
     "check": cmd_check,
+    "tags": cmd_tags,
     "index": cmd_index,
     "scaffold": cmd_scaffold,
     "serve": cmd_serve,
     "history": cmd_history,
     "audit": cmd_audit,
     "seal": cmd_seal,
+    "contested": cmd_contested,
+    "scope": cmd_scope,
 }
 
 

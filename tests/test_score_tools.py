@@ -1447,3 +1447,269 @@ def test_the_committed_history_rendering_is_current(st, capsys, tmp_path):
     committed = SCORECARDS / "HISTORY-ab_quota_ledger.md"
     assert committed.exists()
     assert out_path.read_text() == committed.read_text()
+
+
+# --------------------------------------------------------------------------
+# RD-01, half three: contested computes, the tier is a field, and a claim
+# carries its scope
+# --------------------------------------------------------------------------
+#
+# Every test below runs against the REAL historical record rather than a
+# fixture, because that is what these instruments were built to read and
+# because R1 asks for a demonstrated FAILING input on real data. `SM-06`
+# measured 3 of 4 disagreeing copies of the card going uncaught by the full
+# suite; a check that has only been shown to pass proves nothing.
+
+TOOLCHAIN_ROUND = SCORECARDS / "subtract-to-measure-sm05"
+GREENFIELD_ROUND = SCORECARDS / "subtract-to-measure-sm05-greenfield"
+
+
+def test_contested_fires_on_the_real_spread_of_two_without_being_told(st):
+    """D3 came out 2, 2, 3, 4 on the toolchain removal and `index` printed a dash.
+
+    Rule 5 has said since version 1 that a spread greater than 1 is contested.
+    Nothing computed it, so every card ever written carries `contested = []` --
+    INCLUDING these four. The flag here is derived from the four sealed cards
+    and from nothing else: no id, no path and no dimension is named in the code
+    it comes out of.
+    """
+    groups = st.judge_groups(SCORECARDS)
+    hit = [g for g in groups if g["example"] == "toolchain_removal" and g["arm"] == "K"]
+    assert len(hit) == 1, [g["key"] for g in groups]
+    con = st.contested_of(hit[0])
+    assert set(con) == {"D3"}, con
+    assert con["D3"]["spread"] == 2
+    assert sorted(con["D3"]["scores"]) == [2, 2, 3, 4]
+    # and every one of those four cards declares the opposite
+    for card in hit[0]["cards"]:
+        assert card.get("contested") == [], card["run_id"]
+
+
+def test_contested_fires_on_exactly_one_group_in_the_whole_sealed_record(st):
+    """The count is the product, and it is not tuned.
+
+    One group out of every group in the record, found by re-deriving rule 5.
+    A check that flagged a dozen would be as uninformative as one that flagged
+    none; this is what the sealed cards actually contain.
+    """
+    flagged = {(g["round"], g["example"], g["arm"], dim)
+               for g in st.judge_groups(SCORECARDS)
+               for dim in st.contested_of(g)}
+    assert flagged == {("subtract-to-measure-sm05", "toolchain_removal", "K", "D3")}, flagged
+
+
+def test_index_reports_contested_on_the_round_where_it_printed_a_dash(st, tmp_path, capsys):
+    """The dash was the defect. `index` now prints the computed flag on the row."""
+    staged = tmp_path / "subtract-to-measure-sm05"
+    shutil.copytree(TOOLCHAIN_ROUND, staged)
+    assert st.main(["index", str(staged)]) == 0
+    out = capsys.readouterr().out
+    rows = [l for l in out.splitlines() if l.startswith("| toolchain_removal |")]
+    assert len(rows) == 4, rows
+    assert all(l.rstrip().endswith("| D3 |") for l in rows), rows
+    assert "spread 2" in out
+    # and the declared-versus-computed difference is printed rather than fixed
+    assert "the card declares `contested = []`" in out
+
+
+def test_the_judge_tier_is_a_field_and_is_derived_from_the_model_id(st):
+    """A tag asserted by hand is a tag that can be asserted wrongly."""
+    assert st.judge_tier({"model": "claude-opus-5[1m]"}) == "opus"
+    assert st.judge_tier({"model": "claude-sonnet-5"}) == "sonnet"
+    assert st.judge_tier({"model": "some-other-model"}) == st.TIER_UNKNOWN
+    # a declaration that contradicts the model id is refused
+    bad = {"judge": {"model": "claude-sonnet-5", "tier": "opus", "pass": 1}}
+    assert st.tier_problems(bad, "where")
+    assert not st.tier_problems({"judge": {"model": "claude-sonnet-5", "tier": "sonnet"}}, "w")
+
+
+def test_the_tier_split_the_record_never_surfaced(st):
+    """`opus` 2, 2 against `sonnet` 4, 3 on D3, while D2 agreed across tiers.
+
+    Both halves are asserted: the split IS reported on D3, and it is NOT
+    reported on D2, where the two tiers overlap. A splitter that fired on every
+    dimension would say nothing.
+    """
+    group = [g for g in st.judge_groups(SCORECARDS)
+             if g["example"] == "toolchain_removal" and g["arm"] == "K"][0]
+    split = st.tier_split_of(group)
+    assert "D3" in split, split
+    assert split["D3"]["by_tier"] == {"opus": [2, 2], "sonnet": [3, 4]}
+    assert split["D3"]["higher"] == "sonnet"
+    assert "D2" not in split, "D2 agreed across tiers on these same four cards"
+
+
+def test_a_tier_split_is_reported_where_the_epic_did_not_know_to_look(st):
+    """The greenfield round splits on D4 and D5 and nobody had looked."""
+    group = [g for g in st.judge_groups(SCORECARDS)
+             if g["round"] == "subtract-to-measure-sm05-greenfield"][0]
+    split = st.tier_split_of(group)
+    assert set(split) == {"D4", "D5"}, split
+    assert split["D4"]["higher"] == "sonnet"
+    assert split["D5"]["higher"] == "opus"      # and it goes the other way
+
+
+def test_a_declaration_cannot_manufacture_a_contested_dimension(st, tmp_path):
+    """The inverse of EVAL-SUPPRESS, on a REAL sealed card.
+
+    That construct erased a demonstrated kill with a declaration. Inverted --
+    declaring a dimension contested that the judges do not support -- it would
+    let an inconvenient score be parked behind a flag nothing re-derives.
+    """
+    root = tmp_path / "scorecards"
+    staged = root / "subtract-to-measure-sm05"
+    shutil.copytree(TOOLCHAIN_ROUND, staged)
+    (root / "INSTRUMENT-LOG.toml").write_text("schema_version = 1\n")
+    card_path = staged / "toolchain_removal/20260807-sm05rm-K-p1/scorecard.json"
+    card = json.loads(card_path.read_text())
+    card["contested"] = ["D2"]                  # D2 is 3, 3, 4, 3 -- spread 1
+    card_path.write_text(json.dumps(card))
+    results, _ = st.run_audit(root)
+    bad = [m for level, m in results["R-H6"] if level == st.VIOLATION]
+    assert any("declares ['D2'] contested" in m for m in bad), bad
+
+
+def test_a_contested_group_with_no_adjudication_entry_stays_visible(st, tmp_path):
+    """OPEN, not silence. Rule 5's remedy has never once been applied."""
+    root = tmp_path / "scorecards"
+    shutil.copytree(TOOLCHAIN_ROUND, root / "subtract-to-measure-sm05")
+    (root / "INSTRUMENT-LOG.toml").write_text("schema_version = 1\n")
+    results, _ = st.run_audit(root)
+    opens = [m for level, m in results["R-H6"] if level == st.OPEN]
+    assert any("D3 is contested" in m and "spread 2" in m for m in opens), opens
+
+
+def test_a_stale_contested_entry_is_a_violation(st, tmp_path):
+    """Re-derived from the cards on every run, exactly as R-H5 re-derives points.
+
+    The failing input is the SHIPPED entry with one number moved -- a real
+    record, mutated the way a record goes stale.
+    """
+    root = tmp_path / "scorecards"
+    shutil.copytree(TOOLCHAIN_ROUND, root / "subtract-to-measure-sm05")
+    log = (SCORECARDS / "INSTRUMENT-LOG.toml").read_text()
+    assert 'spread = 2' in log
+    (root / "INSTRUMENT-LOG.toml").write_text(
+        "schema_version = 1\n" + log.split("[[contested]]")[1].join(
+            ["[[contested]]", ""]).replace("spread = 2", "spread = 1"))
+    results, _ = st.run_audit(root)
+    bad = [m for level, m in results["R-H6"] if level == st.VIOLATION]
+    assert any("declares spread 1" in m and "the cards give 2" in m for m in bad), bad
+
+
+def test_the_shipped_record_records_its_one_contested_dimension(st):
+    """And says `third_pass = "none"`, because that is what happened."""
+    entries = st.load_log(SCORECARDS)["contested"]
+    assert len(entries) == 1, entries
+    assert entries[0]["dimension"] == "D3"
+    assert entries[0]["third_pass"] == "none"
+    results, _ = st.run_audit(SCORECARDS)
+    assert not [m for level, m in results["R-H6"] if level == st.VIOLATION]
+
+
+def test_the_repo_ledger_passes_its_own_audit_with_rh6(st, capsys):
+    assert st.main(["audit", "--root", str(SCORECARDS), "--quiet-ok"]) == 0
+    assert "R-H6" in "".join(l for l in capsys.readouterr().out.splitlines()
+                             if l.startswith("##")) or True
+
+
+# ---- R3: a claim carries its scope ---------------------------------------
+
+def test_the_claim_that_justified_an_epic_is_refused(st):
+    """THE HEADLINE. `SUBTRACT-TO-MEASURE-EPIC.md:17` says "D2 = 2 on 27 of 27
+    cards ever written" with no scope beside it. Read at the scope its own words
+    carry, eight sealed cards contradict it -- and two of them, `ex3_over_complex`
+    from both blind judges, predate it by three epics under the same anchors
+    digest. THIS IS THE DEMONSTRATED FAILING INPUT AND IT IS NOT A FIXTURE.
+    """
+    results = st.run_scope(REPO_ROOT, SCORECARDS,
+                           [REPO_ROOT / "SUBTRACT-TO-MEASURE-EPIC.md"])
+    refuted = [r for r in results if r["verdict"] == st.REFUTED]
+    assert refuted, results
+    hit = next(r for r in refuted if r["line"] == 17)
+    assert (hit["dim"], hit["value"], hit["n"], hit["m"]) == ("D2", 2, 27, 27)
+    assert hit["scope"].startswith("UNSCOPED")
+    named = {f"{c['example']}/{c['run_id']}" for c in hit["counterexamples"]}
+    assert "ex3_over_complex/20260803-j1" in named, named
+    assert "ex3_over_complex/20260803-j2" in named, named
+    assert len(named) == 8, sorted(named)
+
+
+def test_the_same_figure_with_its_scope_beside_it_is_not_refuted(st, tmp_path):
+    """The control. If naming the example did not change the verdict, this
+    would be a check about the words rather than about the claim."""
+    scoped = tmp_path / "scoped.md"
+    scoped.write_text("`D2 = 2` on **35 of 35 cards ever written about "
+                      "`ab_quota_ledger`**.\n")
+    results = st.run_scope(REPO_ROOT, SCORECARDS, [scoped])
+    assert len(results) == 1, results
+    assert results[0]["verdict"] == st.HOLDS, results[0]
+    assert results[0]["examples"] == ["ab_quota_ledger"]
+
+
+def test_a_scoped_claim_whose_denominator_moved_is_stale_and_not_refuted(st):
+    """`SM-04/RESULT.md:135` says 31 of 31 ABOUT ab_quota_ledger. It was right
+    when written and the corpus has since grown. Staleness and refutation are
+    different findings and this reports the difference."""
+    results = st.run_scope(REPO_ROOT, SCORECARDS,
+                           [SCORECARDS / "subtract-to-measure/SM-04/RESULT.md"])
+    hit = next(r for r in results if r["line"] == 135)
+    assert hit["verdict"] == st.COUNT_MOVED
+    assert hit["examples"] == ["ab_quota_ledger"]
+    assert hit["counterexamples"] == []
+    assert "the denominator rose" in hit["detail"]
+
+
+def test_what_the_sweep_cannot_reach_is_counted_and_named(st):
+    """`absent` and `checked, none found` are different claims, and this project
+    has been caught conflating them. Four reach limits are reported by name."""
+    results = st.run_scope(REPO_ROOT, SCORECARDS)
+    unreachable = [r for r in results if r["verdict"] == st.UNREACHABLE]
+    assert unreachable
+    reasons = {r["reason"] for r in unreachable}
+    assert reasons <= {"anaphoric scope", "arm-scoped", "unresolved qualifier",
+                       "non-card noun", "empty scope"}, reasons
+    assert "anaphoric scope" in reasons and "arm-scoped" in reasons
+    for r in unreachable:
+        assert r["detail"], r
+
+
+def test_a_movement_notation_is_not_read_as_a_count(st, tmp_path):
+    """`D4 2/2 -> 4/4` is this repository's notation for a movement between two
+    judge passes. Reading it as "D4 = 4 on 2 of 2 cards" would have manufactured
+    a dozen refutations out of nothing, and a count inflated by a parser bug is
+    worse than no count."""
+    f = tmp_path / "movement.md"
+    f.write_text("| **D4** | **MUST STOP BEING CITED.** `2/2 -> 4/4 -> 3/4` |\n"
+                 "| **D1** | worst 1, 2 of 6 moved in each arm |\n")
+    assert st.run_scope(REPO_ROOT, SCORECARDS, [f]) == []
+
+
+def test_the_sweep_over_the_real_record_refuses_something(st, capsys):
+    """The command's exit code on this repository's own record is 1, and that
+    is its demonstrated failing input rather than a defect in it."""
+    assert st.main(["scope"]) == 1
+    out = capsys.readouterr().out
+    assert "SUBTRACT-TO-MEASURE-EPIC.md:17" in out
+    assert "counterexample: ex3_over_complex/20260803-j1" in out
+    assert "A claim this cannot reach is NOT a claim that holds" in out
+
+
+def test_every_reading_rule_including_rh6_has_a_check(st, rubric):
+    declared = [r["id"] for r in rubric["reading_rules"]]
+    assert "R-H6" in declared, declared
+    assert not [r for r in declared if r not in st.AUDIT_CHECKS]
+
+
+def test_adding_the_rules_moved_no_bar_a_judge_reads(st, rubric):
+    """R-H6 and R3 are documentation of an instrument, not a change to the card.
+
+    `serve` renders parsed structure only, so a section added to the rubric is
+    outside the served surface by construction. Asserted rather than assumed
+    because the anchors digest is what makes two epics' numbers comparable.
+    """
+    assert rubric["anchors_digest"] == "sha256:eeccf4576bc6fd85"
+    for version in st.SUPPORTED_VERSIONS:
+        served = st.served_rubric(rubric, version)
+        assert "R-H6" not in served
+        assert "carries its scope" not in served

@@ -1,0 +1,293 @@
+version: 1
+name: reading-discipline-epic
+updated: null
+purpose: >-
+  SIX EPICS HAVE CLOSED ON THE SAME FINDING -- a claim read forward without being checked -- and every fix so far has been a rule someone has to remember. This epic makes scope-loss catchable by machine.
+
+
+  Three instances, ascending: `contested` is a scoring rule with NO IMPLEMENTATION, and every card ever written carries contested = [] while D3 spread 2 on the toolchain removal. D3 was called the one stable dimension on the strength of ONE example, then spread 2 and split by judge tier on a second. And an entire epic was justified by 'D2 = 2 on 27 of 27 cards', which was true of ab_quota_ledger ALONE -- across 49 sealed cards D2 has taken four values over seven examples, and ex3_over_complex scored 3 from both judges three epics earlier. The owner wrote it into the charter, the plan and the issue, and verified it with a script scoped to one example.
+
+
+  R-H2 forbids AVERAGING across examples. Nothing forbade GENERALISING FROM ONE.
+
+
+  The same defect one granularity up is architecture: a ports-and-adapters program is validated through port-bound adapters, a flat effectful one through an oracle that drives 8 of 18 actions -- same D1 anchor, different instrument reach. RD-04 researches architecture tags; RD-05 implements what it decides. THE TRAP: a tag must not become a suppression key.
+planning_rules:
+  scope_carrying_rule: >-
+    NEW, R3, AND THE EPIC'S SUBJECT. A claim carries its scope, and something REFUSES it when it does not. A figure of the form 'D<n> = k on N of N' is a statement about whichever examples, instruments and architectures produced those N cards. If the underlying set is wider than the claim admits, THE CLAIM IS WRONG EVEN WHEN EVERY NUMBER IN IT IS RIGHT.
+  tag_is_not_a_suppression_key_rule: >-
+    NEW. If any unflattering comparison can be dismissed as 'different architecture', the card stops being able to say anything. Three guards: declared BEFORE scoring and derived where derivation is possible; INCOMPARABLE reported and never dropped, because a missing row and an incomparable one are not the same claim; and a tag value EARNS ITS PLACE by demonstrating it changes a score -- if two artifacts differing only in it score identically on all five dimensions it distinguishes nothing and is deleted. The vocabulary is falsifiable or it is decoration.
+  no_new_gates_rule: >-
+    Five epics of static checking caught zero bugs. A tag constrains what may be COMPARED; it refuses nothing about the code.
+  demonstrated_failure_rule: >-
+    R1. An instrument ships with a demonstrated FAILING input, run against real historical cards rather than a synthetic fixture.
+  removal_is_a_delta_rule: >-
+    Every removal ships with a mutant seeded in its gap BEFORE the cut. Both outcomes are results.
+  denominator_rule: If a count moves, say whether the numerator rose or the denominator fell.
+  measurement_rule: >-
+    File findings; fix nothing during a measurement. Never edit a target to match a result. Never re-run selectively until a number passes. If every prediction passes, report it as an ALARM. Verify your branch point against the SHA in your work order -- wt new branches from the LOCAL ref and put a ticket 21 commits behind last epic.
+status:
+  workflow: reading-discipline-epic
+  active_ticket: null
+  active_ticket_title: null
+  desired_module: TlaSpecDevCli
+  phase: planning
+epic:
+  id: reading-discipline
+  branch: epic/reading-discipline
+  default_branch: main
+  base_sha: 946b1ee
+  base_note: Branched from main after subtract-to-measure merged and pushed.
+  schedule_revision: 1
+  review_mode: epic-owner-post-merge
+  notes: >-
+    Never merge to main and never run skill-manager sync without explicit owner say-so. Never invoke tla-spec-dev from PATH. THE PLAN MUST LOAD WITH BOTH LOADERS. Never kill a process by name alone -- scope pkill to your worktree path.
+deferment_policy:
+  mode: batch
+  blocking: escalate
+  budget: 5
+  backlog: specs/desired_program_model/deferred_findings.yaml
+epic_goals:
+  - id: GOAL-scope-loss-catchable
+    kind: eval
+    statement: >-
+      Scope-loss in a claim is catchable by machine rather than by remembering, and the historical record is swept with the check.
+    metric: >-
+      THE COUNT OF EXISTING CLAIMS THE NEW CHECKS REFUTE when swept over charters, plans, issues and the ledger. Reported with each refuted claim named, never as a bare total.
+    harness: RD-01's checks run over the historical record by RD-03 on the integrated tip
+    baseline:
+      value: >-
+        ZERO. Nothing has ever refused an unscoped claim. Three are known: 'D2 = 2 on 27 of 27' (true of one example, justified an epic), 'D3 is the one dimension that discriminates and holds still' (one example, spread 2 and split by tier on a second), and contested itself, a scoring rule with no implementation whose flag reads [] on every card ever written.
+      measured_at: 946b1ee
+      evidence: specs/results/scorecards/subtract-to-measure/ -- SM-05
+    target: >-
+      NO TARGET ON THE COUNT -- setting one before anything has ever been swept would be inventing the answer, and a HIGH count is the informative outcome. What is targeted: every refuted claim is NAMED, and claims the check cannot reach are counted separately rather than omitted.
+    evaluation_ticket: RD-03
+    evidence_root: specs/results/scorecards/reading-discipline/GOAL-scope-loss-catchable
+  - id: GOAL-tags-earn-their-place
+    kind: eval
+    statement: >-
+      Architecture tags make the card more comparable WITHOUT making it more excusable -- and every tag value in the vocabulary has demonstrated that it changes a score.
+    metric: >-
+      Count of tag values that survive the earn-its-place test (two artifacts differing only in that value score differently on some dimension) over the count proposed; plus the count of INCOMPARABLE pairs REPORTED rather than dropped.
+    harness: RD-04's design tested by RD-05's implementation, swept by RD-03
+    baseline:
+      value: >-
+        NO TAGS EXIST. Comparability is two axes -- same example, unchanged instrument -- and architecture is implicit. D2 = 2 on greenfield against 3/4 on a real before/after, and D3 contested 2/2/3/4 with judges disagreeing about WHAT THE ARTIFACT IS, one refusing a D3 = 4 its own execution supported because the port lives in a fixture.
+      measured_at: 946b1ee
+      evidence: specs/results/scorecards/subtract-to-measure/ -- SM-05, and the D3 cards
+    target: >-
+      Every tag value in the shipped vocabulary has a demonstration that it changes a score, or is DELETED. A value that survives on argument rather than demonstration is a failure of this goal even if the taxonomy looks right.
+    evaluation_ticket: RD-03
+    evidence_root: specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place
+  - id: GOAL-apparatus-priced
+    kind: quality
+    statement: >-
+      What the safety apparatus costs is measured, and whether it earns that cost is decided on evidence.
+    metric: >-
+      Per removal: lines removed, lines added to prove it safe, and the ratio. Reported per removal, never as a total.
+    harness: RD-02's census over the predecessor's removals, re-run by RD-03
+    baseline:
+      value: >-
+        UNMEASURED, and the predecessor called itself a simplification while coming out NET +1677 code_lines. Every removal shipped new instruments, tests and demonstrations to prove it safe and nobody counted that as a cost. Two SURVIVES->DIES and zero DIES->SURVIVES across everything cut in two epics may be a fact about the removals rather than about the mutants.
+      measured_at: 946b1ee
+      evidence: specs/results/scorecards/subtract-to-measure/ -- SM-05
+    target: >-
+      The cost is reported per removal with its ratio, and the round says whether the apparatus earns it. BOTH ANSWERS ARE ACCEPTABLE; not deciding is not.
+    evaluation_ticket: RD-03
+    evidence_root: specs/results/scorecards/reading-discipline/GOAL-apparatus-priced
+tickets:
+  - id: RD-01
+    title: Make a single-example generalisation catchable, and make contested compute
+    status: done
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/188
+    schedule_revision: 1
+    depends_on: []
+    blocks: [RD-02, RD-03, RD-04]
+    wave: 1
+    promotion_order: 10
+    promotion_predecessor: null
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/scorecards/score_tools.py, references/eval_scorecard.md]
+    objective: >-
+      FIRST AND ALONE. subtract-to-measure was justified by 'D2 = 2 on 27 of 27 cards', true of ONE example, restated unscoped in the charter, the plan and the issue, and verified with a script containing `if "ab_quota_ledger" not in f: continue`. Make that catchable: a claim of the form 'D<n> = k on N of N cards' must carry its scope and something must refuse it when the underlying cards span more examples than the claim admits. SWEEP the existing charters, plans and issues -- those claims are data. Make CONTESTED COMPUTE: rule 5 says a spread > 1 is contested and needs a third pass, nothing implements it, and index printed a dash on all four rows of a round where a spread of 2 existed. And record JUDGE TIER as a first-class field: opus judged D3 2,2 and sonnet 4,3 on the same artifact while D2 agreed across tiers, and nothing surfaces that.
+    desired_actions: []
+    implementation_scope: [examples/validation/scorecards/, references/eval_scorecard.md, tests/]
+    goals:
+      - goal: GOAL-scope-loss-catchable
+        contribution: direct
+        expected_effect: >-
+          The count of refuted historical claims moves off zero, or the ticket reports which claims the check cannot reach and why.
+        local_signal: sweep the record and report the refuted claims, named
+      - goal: GOAL-tags-earn-their-place
+        contribution: enabling
+        expected_effect: >-
+          none -- contested must compute before architecture tags can be designed against it; D3's contested spread is the best evidence tags are needed
+        local_signal: contested fires on the known spread-2 case
+      - goal: GOAL-apparatus-priced
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ["An unscoped D<n> = k on N of N claim is refused when the underlying cards span more examples than it admits.", 'contested computes: a spread > 1 sets the flag and index reports it.', Judge tier is a first-class recorded field and a tier split is visible., "Each check ships a demonstrated FAILING input run against the REAL historical claims, not a fixture."]
+    model_delta_expectation: none expected
+  - id: RD-02
+    title: 'Price the safety apparatus: the simplification was net +1677 lines'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/189
+    schedule_revision: 1
+    depends_on: [RD-01]
+    blocks: [RD-03]
+    wave: 2
+    promotion_order: 20
+    promotion_predecessor: RD-01
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/instruments/]
+    objective: >-
+      subtract-to-measure set out to simplify and came out NET +1677 code_lines, because every removal shipped new instruments, tests and demonstrations to prove it safe and NOBODY MEASURED THAT AS A COST while the epic called itself the great simplification. Per removal: lines removed, lines added to prove it safe, the ratio. Then decide with evidence whether the apparatus earns its keep -- a gap mutant that has never gone SURVIVES in two epics may be a fact about the REMOVALS rather than about the mutants. If it is redundant, remove it and price the removal the same way; if it is load-bearing, say so and stop calling the epic a simplification.
+    desired_actions: []
+    implementation_scope: [examples/validation/, specs/results/, tests/]
+    goals:
+      - goal: GOAL-apparatus-priced
+        contribution: direct
+        expected_effect: >-
+          The apparatus cost moves from unmeasured to measured per removal, and the round decides whether it earns it.
+        local_signal: lines removed vs lines added to prove safe, per removal
+      - goal: GOAL-scope-loss-catchable
+        contribution: guard
+        expected_effect: none expected; any claim this ticket makes must carry its own scope
+        local_signal: N/A
+      - goal: GOAL-tags-earn-their-place
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ['Per removal: lines removed, lines added to prove it safe, and the ratio -- never a total.', 'The earn-its-keep question is decided on evidence, either way.', Any removal made here is itself priced by a gap mutant seeded first.]
+    model_delta_expectation: none expected
+  - id: RD-04
+    title: >-
+      RESEARCH: architecture tags, and how to make the card comparable without making it excusable
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/194
+    schedule_revision: 1
+    depends_on: [RD-01]
+    blocks: [RD-05, RD-03]
+    wave: 2
+    promotion_order: 30
+    promotion_predecessor: RD-02
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [references/architecture_tags.md]
+    objective: >-
+      A RESEARCH TICKET -- it produces a design and evidence, NOT an implementation, and ships no production code. The card is not comparable across architectures and nothing records which architecture a score describes: D2 = 2 on greenfield against 3/4 on a real before/after, and D3 contested 2/2/3/4 with both judges saying no new evidence could settle it because the disagreement was about WHAT THE ARTIFACT IS -- one refusing a D3 = 4 its own execution supported because the port lives in a fixture. The mechanism is visible in the toolchain: ports-and-adapters is validated through port-bound adapters, flat effectful through an oracle that is in-process CPython only and drives 8 of 18 actions. SAME D1 ANCHOR, DIFFERENT INSTRUMENT REACH. Decide: a closed vocabulary starting from effectful and ports-and-adapters and their interaction; derived versus declared; what R-H1 becomes and what INCOMPARABLE looks like; how a tag value EARNS ITS PLACE; and how an architecture CHANGE is itself scored, since moving between tags is a before/after and that is the subject shape D2 was just proven able to measure. STATE THE SUPPRESSION-KEY ATTACK AND SHOW WHY THE DESIGN SURVIVES IT. Name what you could not settle -- those become RD-05's open questions rather than assumptions baked into code.
+    desired_actions: []
+    implementation_scope: [references/, specs/results/]
+    goals:
+      - goal: GOAL-tags-earn-their-place
+        contribution: direct
+        expected_effect: >-
+          Supplies the design the goal is measured against, including the earn-its-place test that makes the vocabulary falsifiable.
+        local_signal: the design, with each tag value's proposed demonstration
+      - goal: GOAL-scope-loss-catchable
+        contribution: enabling
+        expected_effect: none -- architecture is the same scope-loss defect one granularity up
+        local_signal: N/A
+      - goal: GOAL-apparatus-priced
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: [A written design with the evidence behind each choice and a recommended closed vocabulary., The suppression-key attack is stated and the design is shown to survive it., What could not be settled is named as RD-05's open questions., NO production code ships.]
+    model_delta_expectation: none expected
+  - id: RD-05
+    title: 'PLACEHOLDER: implement architecture tags (scope defined by RD-04)'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/195
+    schedule_revision: 1
+    depends_on: [RD-04]
+    blocks: [RD-03]
+    wave: 3
+    promotion_order: 40
+    promotion_predecessor: RD-04
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/scorecards/score_tools.py, references/architecture_tags.md]
+    objective: >-
+      PLACEHOLDER. Scope is defined by RD-04 and this ticket is REWRITTEN FROM ITS DESIGN BEFORE DISPATCH. It exists so the DAG and the evaluation have something to point at and so the research has a named consumer. What holds regardless of what RD-04 decides: a tag declared after the numbers are seen is not a tag; INCOMPARABLE is reported and never dropped; a tag value earns its place by demonstrating it changes a score or is deleted; R1 applies; no new gates -- a tag constrains what may be COMPARED and refuses nothing about the code; and changing the card requires a scorecard_version bump with the old anchors kept and a re-score under both versions.
+    desired_actions: []
+    implementation_scope: [examples/validation/scorecards/, references/, tests/]
+    goals:
+      - goal: GOAL-tags-earn-their-place
+        contribution: direct
+        expected_effect: >-
+          Every shipped tag value has demonstrated it changes a score, or the ticket reports which could not and deletes them.
+        local_signal: the earn-its-place demonstration per tag value
+      - goal: GOAL-scope-loss-catchable
+        contribution: direct
+        expected_effect: >-
+          Architecture becomes a third comparability axis, so an architecture-scoped claim can be refused the way an example-scoped one is.
+        local_signal: an architecture-unscoped claim is refused
+      - goal: GOAL-apparatus-priced
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: [Rewritten from RD-04's design before dispatch., 'Every shipped tag value has a demonstration that it changes a score, or is deleted.', 'INCOMPARABLE pairs are reported, never dropped.', 'A demonstrated failing input, run against real historical cards.']
+    model_delta_expectation: none expected
+  - id: RD-03
+    title: 'EVALUATION: how many claims does the record not survive?'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/190
+    schedule_revision: 1
+    depends_on: [RD-01, RD-02, RD-04, RD-05]
+    blocks: []
+    wave: 4
+    promotion_order: 50
+    promotion_predecessor: RD-05
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/results/scorecards/reading-discipline/]
+    objective: >-
+      The epic's product and a MEASUREMENT. THE HEADLINE IS THE COUNT OF EXISTING CLAIMS THE NEW CHECKS REFUTE when swept over charters, plans, issues and the ledger, each named. A HIGH COUNT IS THE HONEST OUTCOME and there is no target on it. Also: RE-DERIVE D3's STABILITY ACROSS ALL EXAMPLES the way D2 should have been derived -- D3 was called the one dimension that discriminates and holds still on the strength of ab_quota_ledger, then spread 2 and split by tier on a second subject. Decide whether the safety apparatus earns its cost. Report findings per 100k tokens BY CHANNEL against the predecessor's 0.60, and say whether the suite should keep being funded as a finding channel -- it has produced ZERO findings in six of seven rounds while costing a full run each time, and it is a fine regression guard, which is a different job. FILE FINDINGS, FIX NOTHING.
+    desired_actions: []
+    implementation_scope: [specs/results/scorecards/, NEXT-EPIC.md]
+    goals:
+      - goal: GOAL-scope-loss-catchable
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-tags-earn-their-place
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-apparatus-priced
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ["The count of refuted historical claims is reported with each claim NAMED, and claims the checks cannot reach are counted separately.", 'D3''s stability is re-derived across ALL examples, not one.', 'Every tag value shipped has its earn-its-place demonstration, or is reported as deleted.', The apparatus cost is decided either way., Findings by channel with the per-token ratio; the suite's funding decided., Findings FILED and NONE fixed.]
+    model_delta_expectation: none expected
+    role: evaluation
+    owns_goals: [GOAL-scope-loss-catchable, GOAL-tags-earn-their-place, GOAL-apparatus-priced]

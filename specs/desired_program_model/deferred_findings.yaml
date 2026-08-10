@@ -6127,3 +6127,2542 @@ findings:
     disposition_note: >-
       Carried to the successor epic RD-01 (#188): make a single-example generalisation catchable and make contested compute. The premise of subtract-to-measure was a claim about ONE example restated as a fact about the instrument, and nothing existed to refuse it.
     disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
+
+  - id: RD-01-DF-01
+    found_by: "RD-01"
+    found_at_commit: "7136c3a"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      `scope` CANNOT REACH A GENERALISATION THAT DOES NOT COUNT, AND ONE OF THE
+      THREE INSTANCES THAT OPENED THIS EPIC IS ONE.
+
+      R3 is executed against figures of the form `D<n> = k on N of M`. The second
+      instance in `READING-DISCIPLINE-EPIC.md` section 2 is *"D3 was called the
+      one dimension that discriminates and holds still"* -- the same
+      single-example generalisation, with no count in it at all. So does *"every
+      subject this project has ever scored was greenfield"*, which sat beside the
+      "27 of 27" figure in the same charter and did equal work in justifying the
+      epic. The sweep finds ZERO of that class, not because there are none but
+      because it is not looking, and a reader who sees `17 REFUTED` and no
+      caveat will read it as a sweep of the generalisations rather than of the
+      counted ones.
+
+      This is declared as `scorecard-scope`'s blind spot in
+      `examples/validation/instruments/instruments.toml` and printed by
+      `demonstrate.py`, so it is recorded rather than silent. It is filed because
+      a declared inability is still an inability.
+    reproduction: >-
+      python3 examples/validation/scorecards/score_tools.py scope -- 38 counted
+      figures reported; grep the same corpus for "holds still" and "greenfield"
+      and neither appears in any verdict block.
+    evidence:
+      - "READING-DISCIPLINE-EPIC.md:27-29 -- the D3 instance, uncounted"
+      - "SUBTRACT-TO-MEASURE-EPIC.md:24 -- the greenfield claim, uncounted"
+      - "examples/validation/instruments/instruments.toml -- scorecard-scope blind_spot"
+    why_out_of_scope: >-
+      A parser that guessed at the population behind a prose sentence would be
+      inventing the subject the writer declined to state, which is exactly what
+      `prediction-seal` declined to do one layer down and was right to. Widening
+      the grammar to match ordinary English would also start matching ordinary
+      English, and a count inflated by a parser is worse than no count.
+    suggested_fix: >-
+      Not a wider regex. Either a declared-claims register that a document points
+      at -- so a generalisation is written once, with its scope, and re-derived --
+      or an explicit "this figure is uncounted and unverifiable" report that
+      names the sentences a reader must check by hand. RD-03 decides which on the
+      integrated tip.
+    blast_radius: >-
+      Every uncounted generalisation in the record, count unknown by construction.
+    disposition: open
+
+  - id: RD-01-DF-02
+    found_by: "RD-01"
+    found_at_commit: "7136c3a"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_card_has_one_home.py", "tests/test_code_complexity.py", "examples/validation/instruments/instruments.toml"]
+    summary: >-
+      THE WORKTREE'S OWN SKILL-MANAGER HOME POISONS TWO REPO TRIPWIRES AND ONE
+      INSTRUMENT DEMONSTRATION, AND HAS BEEN DOING SO IN EVERY TICKET CHECKOUT.
+
+      At the PARENT commit `7136c3a`, in a checkout made by
+      `git-issue-workflow/scripts/wt new` exactly as every ticket is told to make
+      one, the suite is NOT green:
+
+        FAILED tests/test_card_has_one_home.py::test_only_the_card_states_a_dimension_an_anchor_or_a_scoring_rule
+        FAILED tests/test_code_complexity.py::test_no_reader_of_this_instrument_gates_on_its_output
+        2 failed, 1405 passed
+
+      and `demonstrate.py` reports `one-home-tripwire / passing: exit 1,
+      declared 0` plus `7 test(s) passed, declared exactly 8` -- a declared
+      demonstration that does not reproduce.
+
+      EVERY HIT IS INSIDE `.claude/skills/spec-double-compiler/` AND
+      `.skill-manager/`, the per-checkout Skill Manager home `wt new` creates.
+      Both are gitignored; neither tripwire skips gitignored or dot-prefixed
+      directories, so each walks a vendored copy of THIS REPOSITORY and reports
+      it as a second home for the card. Filtered to tracked files the violation
+      count is ZERO on both, before and after RD-01's changes.
+
+      THE CONSEQUENCE IS THE FINDING. "The suite is green" has never been a true
+      statement in a ticket worktree, and an agent that runs the suite, sees two
+      reds it did not cause, and learns to discount them will discount the third.
+      SM-06 built the one-home tripwire after measuring 3 of 4 disagreeing copies
+      of the card going uncaught; it is now red for a reason that has nothing to
+      do with the card, in every checkout where a ticket agent would read it.
+    reproduction: >-
+      ~/.claude/skills/git-issue-workflow/scripts/wt new <ticket> <branch>; cd
+      into it at 7136c3a and run
+      `uv run --with pytest --with pyyaml python -m pytest tests -q`
+      -- 2 failed, 1405 passed. Then
+      `python3 examples/validation/instruments/demonstrate.py` -- one-home-tripwire
+      passing slot does not reproduce.
+    evidence:
+      - "tests/test_card_has_one_home.py -- walks the tree with no ignore rule for gitignored or dot directories"
+      - "tests/test_code_complexity.py:603 -- 246 extra items, first is .skill-manager/skills/spec-double-compiler/tests/test_code_complexity.py:1009"
+      - ".gitignore:73 -- .skill-manager/ is ignored, and the walk does not consult it"
+    why_out_of_scope: >-
+      `measurement_rule`: file findings, fix nothing during a measurement. RD-01
+      is a measurement of the record and repairing two tripwires mid-sweep would
+      change the instrument inside the round using it. It also touches a file
+      RD-02 owns.
+    suggested_fix: >-
+      Both walks skip a directory that `git check-ignore` refuses, or at minimum
+      any path component starting with `.`. State it as a rule the walk executes
+      rather than a literal exclusion list -- a literal is the shape rejected at
+      EVAL-RERUN-DF-01 and it would have to be edited by whoever adds the next
+      vendored home. Then re-derive `one-home-tripwire`'s `expect_passed`.
+    blast_radius: >-
+      Every ticket worktree in every repo this skill is installed into. Two
+      tripwires and one demonstration slot, permanently red, for the whole life
+      of the checkout.
+    disposition: open
+
+  - id: RD-01-DF-03
+    found_by: "RD-01"
+    found_at_commit: "7136c3a"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md", "specs/results/scorecards/INSTRUMENT-LOG.toml"]
+    summary: >-
+      SCORING RULE 5's REMEDY HAS NEVER BEEN APPLIED TO ANYTHING, EVER.
+
+      Rule 5 says a contested dimension "is adjudicated by a third pass that must
+      cite new evidence, not re-read the same lines". Now that the flag computes,
+      the record contains exactly one contested dimension -- `toolchain_removal`
+      arm K, D3, spread 2 -- and the ledger records `third_pass = "none"` for it,
+      because none happened.
+
+      IT IS NOT THAT PASSES 3 AND 4 WERE THE ADJUDICATION. They were dispatched
+      blind at the same time as passes 1 and 2, on the same packet, and BOTH SIT
+      ON ONE SIDE OF THE SPLIT -- opus 2, 2 against sonnet 4, 3. A third pass
+      exists to break a tie from outside it; four simultaneous blind passes are
+      four first passes.
+
+      So the rule has a remedy clause that has never once executed, in three
+      epics, and until RD-01 nothing could even tell you when it was owed. That
+      is one layer above the defect this epic is about: the flag was unimplemented
+      AND the action the flag triggers is unimplemented, and the second is not
+      fixed by fixing the first.
+    reproduction: >-
+      python3 examples/validation/scorecards/score_tools.py contested -- one
+      group; specs/results/scorecards/INSTRUMENT-LOG.toml
+      [[contested]] sm05-toolchain-d3-spread-2 -- third_pass = "none".
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/20260807-sm05rm-K-p1/scorecard.md:285 -- a judge rejecting a D3 = 4 its own execution supports because the port lives in a fixture"
+      - "specs/results/scorecards/INSTRUMENT-LOG.toml -- the [[contested]] entry"
+    why_out_of_scope: >-
+      Dispatching a third pass now would be running a judge round inside the
+      ticket that built the instrument measuring judge rounds. And both SM-05
+      judges recorded that no new evidence could settle it, because the
+      disagreement is about WHAT THE ARTIFACT IS -- which is RD-04's subject, not
+      a pass that can be ordered.
+    suggested_fix: >-
+      Decide whether rule 5's third pass is a real procedure or a sentence, and
+      say which on the card. If real, it needs a dispatch shape that is not "a
+      fifth blind pass": a pass told what the split is about and required to cite
+      evidence neither side cited. If not, delete the clause and record that a
+      contested dimension is REPORTED and left contested -- which is what has
+      actually happened every time.
+    blast_radius: >-
+      One group today. Every future round with more than two judges, or two
+      judges two points apart.
+    disposition: open
+
+  - id: RD-01-DF-04
+    found_by: "RD-01"
+    found_at_commit: "7136c3a"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      THE TIER FIELD IS BEING READ OVER A RECORD THAT IS ALMOST ENTIRELY ONE
+      TIER, AND `contested` IS STRUCTURALLY HARDEST TO TRIP ON THE SHAPE THE
+      RECORD IS MOSTLY MADE OF. Both numbers are needed to read either.
+
+      44 of 49 sealed cards are `claude-opus-5[1m]`. Only `subtract-to-measure`
+      ever dispatched a second tier, so a tier split is measurable on 2 of 23
+      judge groups and is observed on BOTH of them -- D3 on the toolchain
+      removal, D4 and D5 on the greenfield. Two for two is not a rate; it is the
+      whole sample.
+
+      And 20 of the 23 groups carry exactly two judges, where a spread greater
+      than 1 requires a two-point disagreement, while one group has a single
+      judge and cannot be contested at all. The one group that fires is one of
+      only two four-judge groups. `1 contested in 23 groups` is therefore as much
+      a fact about how rounds were dispatched as about how stable the card is,
+      and reading it as the latter is the `denominator_rule` failure.
+    reproduction: >-
+      python3 examples/validation/scorecards/score_tools.py contested -- 23
+      groups, 1 contested, 3 tier splits over the 2 groups where two tiers exist.
+    evidence:
+      - "specs/results/scorecards/reading-discipline/GOAL-scope-loss-catchable/RD-01.md sections 5 and 6"
+      - "examples/validation/instruments/instruments.toml -- scorecard-contested blind_spot"
+    why_out_of_scope: >-
+      The remedy is to dispatch mixed-tier rounds, which is a decision about how
+      evals are run rather than a change to this instrument, and making it inside
+      the ticket that built the instrument would be measuring with the thing being
+      changed.
+    suggested_fix: >-
+      Dispatch both tiers in every future round, so the tier field has a
+      denominator. Until then quote a tier split only with `2 of 23 groups could
+      show one` attached.
+    blast_radius: >-
+      Any cross-epic reading of the tier field or of the contested rate.
+    disposition: open
+
+  - id: RD-01-DF-05
+    found_by: "RD-01"
+    found_at_commit: "7136c3a"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/falsifiable-instruments/RESULTS.md"]
+    summary: >-
+      THE PROPAGATION SOURCE IS A "HOW TO CITE THIS COLUMN" TABLE, AND IT STATES
+      TWO UNSCOPED FIGURES AS GUIDANCE TO FUTURE READERS.
+
+      `falsifiable-instruments/RESULTS.md:343-344` is a table whose whole purpose
+      is to tell later epics how each dimension may be cited. Its D2 row reads
+      "Constant at 2 on 27 of 27" and its D1 row "23 of 27 cards are `3`" --
+      neither with an example beside it, both scoped in fact to
+      `ab_quota_ledger`. `channels/ADVERSARIAL.md:220` restates the D1 one.
+
+      `SUBTRACT-TO-MEASURE-EPIC.md:17` then quotes the D2 figure into a charter
+      and an epic is opened on it. THE ADVICE COLUMN IS WHERE THE UNSCOPED FORM
+      WAS MANUFACTURED, and it is still there, still unscoped, still the most
+      authoritative-looking statement of both figures in the tree.
+
+      RE-DERIVED OVER EVERY CARD IN THE RECORD -- seven of them, no scope named:
+
+      D1 = 3 on 33 of 49 cards. D2 = 2 on 41 of 49 cards.
+
+      RE-DERIVED OVER THE ONE EXAMPLE BOTH FIGURES ARE ACTUALLY ABOUT:
+
+      D1 = 3 on 31 of 35 cards about `ab_quota_ledger`; D2 = 2 on 35 of 35.
+
+      Not one of those four numbers is 23 of 27 or 27 of 27.
+    reproduction: >-
+      python3 examples/validation/scorecards/score_tools.py scope -- both lines
+      appear under REFUTED with their counterexamples named.
+    evidence:
+      - "specs/results/scorecards/falsifiable-instruments/RESULTS.md:343-344"
+      - "specs/results/scorecards/falsifiable-instruments/channels/ADVERSARIAL.md:220"
+      - "SUBTRACT-TO-MEASURE-EPIC.md:17 -- the quotation that opened an epic"
+    why_out_of_scope: >-
+      `measurement_rule` and "never edit a target to match a result": RESULTS.md
+      is a sealed epic narrative and RD-01 measured it. Editing the record to
+      make RD-01's own check exit 0 is the exact move the epic forbids, and the
+      count of refuted claims is the ticket's reported figure.
+    suggested_fix: >-
+      Not an edit to the sealed file. A `[[note]]` in INSTRUMENT-LOG.toml against
+      each row -- R-H4's own mechanism for a sealed number that went stale -- and,
+      if a citation-advice table is kept at all, a rule that its cells carry the
+      example. Decided by RD-03 with the rest of the sweep.
+    blast_radius: >-
+      Two rows read by every epic that asks how to cite D1 or D2. One of them has
+      already justified an epic.
+    disposition: open
+
+  - id: RD-02-DF-01
+    found_by: "RD-02"
+    found_at_commit: "7514df0"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      `scope` REACHES ONLY COUNTED FIGURES THAT NAME A DIMENSION, AND `19 of 44`
+      IS SCOPED TO THOSE.
+
+      DISTINCT FROM `RD-01-DF-01`, which is about generalisations that carry NO
+      COUNT. This is about figures that DO count and are still invisible:
+      `_ANOTHER_DIM = re.compile(r"D[1-5]")` means a counted claim reaches the
+      sweep only if a dimension's name sits beside it.
+
+      Demonstrated on RD-02's own result document, which carries at least twelve
+      counted figures -- "0 of 9 mutants", "3 of 4 copies", "13 of 14",
+      "9 of the 10 rows". `scope --path` over it reports
+      `0 counted figure(s): 0 REFUTED, 0 COUNT-MOVED, 0 HOLDS, 0 UNREACHABLE`.
+      Not one refused, and not one counted as UNREACHABLE -- which is the count
+      that exists so a claim the check cannot reach is not read as one that
+      holds.
+
+      A three-line probe separates the two cases cleanly: `D2 = 2 on 27 of 27
+      cards` is REFUTED with four counterexamples; `0 of 9 mutants could have
+      priced a removal` and `3 of 4 copies were invisible` are not seen at all.
+      One counted figure reported out of three.
+
+      SO `19 of 44` IS A COUNT OF DIMENSION-NAMED FIGURES, not of counted figures
+      in this repository. This document alone would add twelve to a denominator
+      it is not in. THIS IS `SM-05-DF-02` INSIDE THE EPIC THAT WAS OPENED TO FIX
+      IT -- SM-05 disclosed the same class error about its own leak scanner in
+      the same words: a result stated without the dimension's name is invisible
+      to a pattern keyed on the dimension's name.
+    reproduction: >-
+      printf 'D2 = 2 on 27 of 27 cards\n0 of 9 mutants could have priced a
+      removal\n3 of 4 copies were invisible\n' > /tmp/probe.md; python3
+      examples/validation/scorecards/score_tools.py scope --path /tmp/probe.md
+      -- reports `1 counted figure(s)`.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py -- _ANOTHER_DIM = re.compile(r\"D[1-5]\")"
+      - "specs/results/scorecards/reading-discipline/GOAL-apparatus-priced/RD-02-RESULT.md section 5a"
+    why_out_of_scope: >-
+      RD-01 owns the instrument, this is a measurement ticket, and RD-03 sweeps
+      the record on the integrated tip. Editing a check during a round that is
+      measuring what the check reports is how a target gets edited to match a
+      result.
+    suggested_fix: >-
+      Not a wider regex on its own -- `N of M` with no dimension name is common
+      enough in ordinary prose that matching it bare would inflate the count.
+      Either the figure declares its population inline, or `scope` grows a second
+      report -- counted figures it cannot attribute to a dimension, listed and
+      counted separately, so the denominator stops being silently narrow. RD-03
+      decides.
+    blast_radius: >-
+      Every counted figure in the record that does not name a dimension. Unknown
+      by construction, and at least twelve in RD-02's result alone.
+    disposition: open
+
+  - id: RD-02-DF-02
+    found_by: "RD-02"
+    found_at_commit: "7514df0"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      "ZERO `DIES` -> `SURVIVES` ACROSS EVERYTHING CUT IN TWO EPICS" IS A CLAIM
+      ABOUT ONE CATALOGUE, RESTATED AS A CLAIM ABOUT THE RULE. AND OUTSIDE THAT
+      CATALOGUE IT IS FALSE.
+
+      True of `examples/validation/gap_mutants/gap_mutants.toml`'s SM-GM series.
+      `removal_is_a_delta_rule` says EVERY removal ships with a mutant seeded in
+      its gap, and two more sets satisfy it: SM-06's dup-mutants, and
+      `SM-04-GM-T1`, seeded by SM-04 for the `total` removal as an EXECUTING TEST
+      rather than a catalogue row.
+
+      `SM-04-GM-T1` WENT `DIES` -> `SURVIVES`. Its own docstring:
+      "UNSEALED: died before, SURVIVES after. This is the price." An altered
+      score on an unsealed version 3 card is detected by nothing, where
+      `total != running` used to catch it. It is the only removal in
+      `subtract-to-measure` measured to cost anything, and its assertion's
+      failure message asks a future reader to re-price the removal.
+
+      This is the epic's own defect, one layer up: a figure true of one
+      instrument's catalogue, restated as a property of the rule. It is live in
+      issue #189 and in `ticket_plan.yaml`'s `GOAL-apparatus-priced` baseline,
+      which RD-03 re-measures against.
+    reproduction: >-
+      grep -n "the price of removing total" tests/test_score_tools.py; read the
+      docstring at test_the_price_of_removing_total_measured_on_both_sides.
+      python3 examples/validation/removal_census/removal_census.py discriminate
+      -- the scope sentence names what the table does and does not cover.
+    evidence:
+      - "tests/test_score_tools.py -- test_the_price_of_removing_total_measured_on_both_sides"
+      - "specs/desired_program_model/ticket_plan.yaml -- GOAL-apparatus-priced baseline"
+      - "examples/validation/removal_census/removals.toml -- [[mutant_outside_this_table]]"
+    why_out_of_scope: >-
+      The baseline is the epic owner's text and RD-03 is the ticket that decides
+      goals. A ticket that edits the baseline it is measured against has removed
+      the measurement.
+    suggested_fix: >-
+      Restate the baseline at the scope it holds -- the SM-GM catalogue -- and
+      count mutants seeded outside it separately, as
+      `removals.toml`'s `[[mutant_outside_this_table]]` now does.
+    blast_radius: >-
+      The `GOAL-apparatus-priced` baseline, issue #189, and any later reading
+      that treats the apparatus as never having fired.
+    disposition: open
+
+  - id: RD-02-DF-03
+    found_by: "RD-02"
+    found_at_commit: "7514df0"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/subtract-to-measure/"]
+    summary: >-
+      THERE IS A `DIES` -> `SURVIVES` IN THE PUBLISHED TABLES AND IT IS CARRIED
+      FORWARD AS A ZERO.
+
+      `SM-GM-I1` on `pytest-full` reads `SURVIVES` in SM-01's before-table,
+      `DIES` in SM-02's re-run, and `SURVIVES` again in SM-03's after-run and in
+      SM-05's. SM-05 names it "the one cell known to have flaked historically"
+      and attributes the movement to machine contention, which is a reasonable
+      attribution supported by the concurrency SM-02 documented.
+
+      What is filed is not the attribution. It is that every restatement since
+      has dropped it: the figure is quoted as a flat zero, so a reader cannot
+      tell that the zero rests on a judgement call about one cell in one run.
+    reproduction: >-
+      Compare the `SM-GM-I1` row across
+      before-state/gap-mutants-before.json, after-state-SM-02/gap-mutants-after-SM-02.json
+      and after-state/gap-mutants-after.json.
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/before-state/gap-mutants-before.json"
+      - "specs/results/scorecards/subtract-to-measure/after-state-SM-02/gap-mutants-after-SM-02.json"
+      - "specs/results/scorecards/subtract-to-measure/after-state/gap-mutants-after.json"
+      - "specs/results/scorecards/subtract-to-measure-sm05/RESULT.md -- the contention disclosure"
+    why_out_of_scope: >-
+      Re-running the cell to settle it is a measurement this ticket was not
+      dispatched to make, and re-running selectively until a number resolves is
+      the shape `measurement_rule` forbids.
+    suggested_fix: >-
+      Wherever the figure is quoted, quote the attribution with it, or re-run
+      `SM-GM-I1` on an idle machine and record the result either way.
+    blast_radius: >-
+      One cell, three published tables, and every restatement of the zero.
+    disposition: open
+
+  - id: RD-02-DF-04
+    found_by: "RD-02"
+    found_at_commit: "7514df0"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/gap_mutants/gap_mutants.toml"]
+    summary: >-
+      THE SEEDING RULE STRUCTURALLY EXCLUDES THE FAULTS THAT COULD PRICE A
+      REMOVAL, AND THE EXCLUSION WAS DISCLOSED AND NEVER READ AS ONE.
+
+      A gap mutant can report that a removal cost something only if EVERY
+      detector that killed it is a detector the removal deletes. Computed over
+      SM-01's sealed before-table, that is 0 of 9 -- each mutant was already
+      dying on a detector that outlived its cut, or was not dying at all. The
+      `DIES` verdicts SM-02 and SM-05 re-ran and published were entailed by the
+      before-table before either cut was made.
+
+      The mechanism is the re-runnability requirement. A mutant must be
+      applicable to the AFTER tree, and a fault only the removed mechanism
+      catches usually lives on a surface the removal deletes. SM-01 named
+      exactly such a fault for the ports machinery -- dropping `fake =` from a
+      `[ports.*]` table, "caught today by `render_oracle_statement`" -- and put
+      it in `[[not_seedable]]` with the reason, on the record, before anything
+      was cut.
+
+      Nothing read that as the reason the table could only come out one way, and
+      "the measured price of removing the `[ports.*]` machinery is ZERO" was
+      published as a measurement rather than as an entailment.
+    reproduction: >-
+      python3 examples/validation/removal_census/removal_census.py discriminate
+      -- 0 of 10 rows DISCRIMINATING. The excluded fault is the third
+      `[[not_seedable]]` row of gap_mutants.toml.
+    evidence:
+      - "examples/validation/gap_mutants/gap_mutants.toml -- [[not_seedable]], the `fake =` key"
+      - "specs/results/scorecards/reading-discipline/GOAL-apparatus-priced/discriminating-power.json"
+      - "specs/results/scorecards/subtract-to-measure/SM-02-RESULTS.md -- the ZERO headline"
+    why_out_of_scope: >-
+      The fix is a change to how removals are seeded, which is a design decision
+      for the epic rather than a repair a measurement ticket makes to the
+      catalogue it is measuring.
+    suggested_fix: >-
+      Classify discriminating power from the before-table and REPORT IT with the
+      verdict, so an entailed `DIES` reads as entailed. `removal_census.py
+      discriminate` does this at zero per-removal cost. Where the only
+      discriminating fault is unseedable, say the removal is priced at zero BY
+      THE BEFORE-TABLE and skip the re-run rather than dressing it as a
+      measurement.
+    blast_radius: >-
+      Every removal priced under `removal_is_a_delta_rule` in two epics, and the
+      SM-02 headline specifically.
+    disposition: open
+
+  - id: RD-02-DF-05
+    found_by: "RD-02"
+    found_at_commit: "7514df0"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["SUBTRACT-TO-MEASURE-EPIC.md", "NEXT-EPIC.md", "specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      `subtract-to-measure` IS DESCRIBED AS A SIMPLIFICATION IN THREE PLACES AND
+      THE CENSUS SAYS IT WAS NOT ONE.
+
+      It came out +1677 net `code_lines` across the trees it touched. Per removal,
+      the proof cost 1.07 lines per line of production code cut at best and 14.78
+      at worst, and the removal with the worst ratio -- `total` -- is the only one
+      measured to cost anything. Its two largest removals cut no production code
+      at all: SM-03 removed a literal from a test file, SM-06 removed duplicated
+      prose.
+
+      None of that makes the epic wrong. Proving a removal is free costs code and
+      three of its four removals were re-scoped by what the measurement said. What
+      is filed is the NAME: it was a re-instrumentation epic that also removed four
+      things, and "the great simplification" is not a description of it.
+    reproduction: >-
+      python3 examples/validation/removal_census/removal_census.py census
+    evidence:
+      - "specs/results/scorecards/reading-discipline/GOAL-apparatus-priced/removal-census.json"
+      - "NEXT-EPIC.md -- 'removed 225 lines from scripts/ and added 1677 net'"
+    why_out_of_scope: >-
+      All three files are outside RD-02's `implementation_scope`
+      (`examples/validation/`, `specs/results/`, `tests/`), and a measurement
+      ticket that rewrites the charter it measures has edited its target.
+    suggested_fix: >-
+      Say what the epic did. Nothing about the results changes.
+    blast_radius: >-
+      Three documents, and the framing every successor epic inherits from them.
+    disposition: open
+  - id: RD-04-DF-01
+    found_by: "RD-04"
+    found_at_commit: "7514df0"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      `scope` DOES NOT MERELY FAIL ON A SUBJECT-SCOPED CLAIM. IT REFUTES ONE, AND
+      WHICH ANSWER YOU GET DEPENDS ON WHERE THE LINE WRAPS.
+
+      RD-01's `score_tools.py scope` resolves a figure's population from a NAMED
+      EXAMPLE found in the window, and reports an ARM-SCOPED figure UNREACHABLE
+      on the stated ground that arm labels are round-local and opaque by design.
+      Every figure RD-04's design makes worth writing is scoped by a SUBJECT,
+      which is neither an example nor an arm.
+
+      Take the true figure "D3 = 4 on 10 of 10 `ports-and-adapters` cards of
+      `ab_quota_ledger`". All 10 cards of the subject arm_b carry D3 = 4 and no
+      other `ports-and-adapters` subject of that example has a card. `scope`
+      gives it TWO DIFFERENT VERDICTS:
+
+      QUALIFIER IMMEDIATELY AFTER THE COUNT -> UNREACHABLE, "the counted noun
+      narrows the population with ['ports-and-adapters'], which names no example
+      in this corpus".
+
+      THE SAME QUALIFIER ANYWHERE ELSE -> REFUTED. After the card noun, in an
+      aside, or on the next line, the narrowing word is invisible: scope falls
+      back to the example, the population is 35, and it reports "25 card(s) in
+      the population its words denote do not carry D3 = 4" and names twelve of
+      them. EVERY ONE OF THOSE 25 IS A CARD ABOUT A DIFFERENT SUBJECT.
+
+      THE CLAIM IS TRUE AND THE REFUTATION IS MANUFACTURED, by a checker that
+      cannot see the axis the claim is scoped on.
+
+      THE MECHANISM IS PLACEMENT, NOT WRAPPING. `scope` inspects a window of at
+      most three words immediately after the count. Line-wrapping is one instance
+      of that; it was found first and stated too narrowly, the epic owner could
+      not reproduce it with different probe text and named the broader class, and
+      two further probes confirm the general form on a single line.
+
+      AND A SECOND BLIND SPOT COMPOUNDS IT, MEASURED BY RD-02: `scope` is keyed
+      on a `D[1-5]` token, so a counted figure naming its dimension IN WORDS is
+      never counted. A four-line probe carrying four counted figures reports
+      "1 counted figure(s)".
+
+      TOGETHER THESE MAKE RD-01's OWN HEADLINE A SCOPED CLAIM WHOSE SCOPE NOBODY
+      STATED. Its denominator is `figures carrying a dimension token`, not
+      `counted figures`; its numerator can include refutations that are artifacts
+      of qualifier placement rather than false claims. REFUTED is the verdict
+      GOAL-scope-loss-catchable counts as its HEADLINE, with no target on it and
+      a high count declared the honest outcome, so a checker that can both miss
+      figures and manufacture refutations can move that headline in EITHER
+      direction. RD-01's own doctrine -- `absent` and `checked, none found` are
+      different claims -- applies with more force to `refuted` and
+      `could not read`.
+    reproduction: >-
+      Five probe files preserved at
+      specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place/RD-04/analysis/wrap_probe/,
+      with a README naming each. `python3
+      examples/validation/scorecards/score_tools.py scope --path <that dir>/<f>`:
+      same_line.md -> 1 UNREACHABLE; wrapped.md, qualifier_after_noun.md and
+      qualifier_in_aside.md -> 1 REFUTED each, the last two on a single line;
+      no_dimension_token.md -> "1 counted figure(s)" out of four.
+    evidence:
+      - "references/architecture_tags.md -- section 9.8"
+      - "examples/validation/scorecards/score_tools.py -- evaluate_claim, the named-example branch"
+      - "specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place/RD-04/RESULT.md -- section 3"
+    why_out_of_scope: >-
+      RD-04 is a research ticket and ships no production code. Changing
+      `score_tools.py` is RD-05's surface and its conflict key.
+    suggested_fix: >-
+      RD-05 either teaches `scope` to resolve a subject scope from the cards'
+      `subject.scope` field, or accepts that every architecture-scoped figure in
+      this repository is UNREACHABLE and says so where a reader will find it.
+      Both answers are legal; leaving it undecided is not.
+    blast_radius: >-
+      Every claim the tag design is built to enable, from the moment RD-05 ships
+      it.
+    disposition: open
+  - id: RD-04-DF-02
+    found_by: "RD-04"
+    found_at_commit: "7514df0"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ex5_pipeline_divergent/"]
+    summary: >-
+      THE FIXTURE BUILT TO DEMONSTRATE ARCHITECTURAL DIVERGENCE HAS NO OUTSIDE
+      WORLD TO DIVERGE ABOUT.
+
+      `examples/validation/ex5_pipeline_divergent` carries 16 code modules,
+      `declared_interfaces = 1`, `internal_import_edges = 18` and
+      `effectful_calls = 0`. Not one module in it touches the filesystem, the
+      process, the network, the clock, randomness or stdio.
+
+      Three of the five `architectural-coherence` fixtures are in the same state:
+      `ex3_over_complex` (1 code module, 0 effectful calls), `ex5` and
+      `ex6_jenga` (6 code modules, 0 effectful calls). D3's anchor 3 -- "the
+      domain does not import its I/O" -- has no referent in any of them, and they
+      were nonetheless scored on it: 1/2, 1/1 and 0/1 respectively.
+    reproduction: >-
+      python3 scripts/code_complexity.py examples/validation/ex5_pipeline_divergent
+      -- TOTAL (role=code) reports declared_interfaces=1, effectful_calls=0,
+      modules_with_effectful_calls=0. Same command over ex3 and ex6.
+    evidence:
+      - "specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place/RD-04/analysis/run.txt"
+      - "specs/results/scorecards/architectural-coherence/ex5_pipeline_divergent/"
+    why_out_of_scope: >-
+      Editing a fixture is editing a target, and five sealed cards were scored
+      over these trees. `measurement_rule`.
+    suggested_fix: >-
+      Decided by RD-03 with the rest of the sweep. Either the fixtures acquire a
+      real effect surface -- which invalidates the sealed cards and must be
+      priced as an instrument change -- or the record states that three of the
+      five architectural-coherence fixtures cannot exercise D3's upper anchors at
+      all, and their D3 rows are read as a floor.
+    blast_radius: >-
+      Ten sealed cards over five fixtures; any future claim that D3 discriminates
+      on the architectural-coherence corpus.
+    disposition: open
+  - id: RD-04-DF-03
+    found_by: "RD-04"
+    found_at_commit: "7514df0"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/"]
+    summary: >-
+      THE ONE DEMONSTRATED SEPARATION THE TAG DESIGN RESTS ON IS SINGLE-TIER.
+
+      On the example `ab_quota_ledger`, D3 separates `effectful` (range 1-2, 24
+      cards) from `ports-and-adapters` (range 4-4, 10 cards) with disjoint
+      ranges. Split by judge tier, the `opus` cells are 22 and 10; the `sonnet`
+      cells are 2 and ZERO.
+
+      No `sonnet` judge has ever scored a `ports-and-adapters` subject on this
+      example. The separation is demonstrated in one tier and NOT MEASURED in the
+      other, and RD-01 measured three real tier splits on this corpus including
+      one on D3 itself.
+    reproduction: >-
+      python3 specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place/RD-04/analysis/derive_and_test.py
+      -- the TIER CHECK section reports "tier=sonnet: NOT MEASURED (n_a=2,
+      n_b=0)".
+    evidence:
+      - "specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place/RD-04/analysis/run.txt"
+      - "READING-DISCIPLINE-EPIC.md section 6a -- three measured tier splits"
+    why_out_of_scope: >-
+      Closing it costs a blind round with two `sonnet` judges on
+      `specs/results/scorecards/ports-as-adapters/blind/artifact_T`. RD-04 is a
+      research ticket and dispatches no judges.
+    suggested_fix: >-
+      RD-05 records `tiers_measured = ["opus"]` on the demonstration table row and
+      refuses to read a cross-tier D3 comparison as covered by it; or a round runs
+      the two `sonnet` judges and the row is updated from the result.
+    blast_radius: >-
+      The single row of the demonstration table, which is the whole authority the
+      tag has.
+    disposition: open
+  - id: RD-04-DF-04
+    found_by: "RD-04"
+    found_at_commit: "7514df0"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/architecture_tags.md"]
+    severity_note: >-
+      (c) IS BLOCKING FOR RD-05 AND IS ESCALATED TO THE EPIC OWNER RATHER THAN
+      PARKED. It is recorded on this finding rather than as a sixth because the
+      deferment budget is 5 and all three items are properties of the same
+      derivation predicate.
+    summary: >-
+      THREE UNVALIDATED PROPERTIES OF THE DERIVATION PREDICATE: A PICKED
+      THRESHOLD, A CLAUSE CORRELATED WITH THE ANCHOR IT SEPARATES ON, AND A
+      STANDING INVARIANT THAT FORBIDS THE WHOLE MECHANISM.
+
+      (c) THE THERMOSTAT COLLISION -- BLOCKING FOR RD-05, FOUND ONLY IN A TREE
+      WITH NO PER-CHECKOUT HOMES.
+      tests/test_code_complexity.py::test_no_reader_of_this_instrument_gates_on_its_output
+      states a repository-wide invariant: a file "is allowed to refer to the
+      instrument and to transcribe its figures. It is not allowed to branch on
+      them, compare them, assert on them or exit on them -- that is a thermostat,
+      whatever it is called."
+
+      RD-04's derivation predicate branches on exactly those figures:
+      instance_state_in_effectful_modules / instance_state against a threshold,
+      declared_interfaces and effectful_calls against zero. RD-04's own analysis
+      script trips the tripwire in the homeless tree, and RD-05's implementation
+      will trip it harder because it will branch on a SHIPPED path.
+
+      THE TWO READINGS. Either it IS a thermostat, in which case the tag cannot
+      be derived at all -- and derivation is the ENTIRE anti-suppression
+      mechanism, so a declared-only tag is the suppression key the ticket exists
+      to prevent. Or it is NOT: the invariant is aimed at a figure deciding
+      something about the CODE, and the plan's own no_new_gates_rule says a tag
+      "constrains what may be COMPARED and refuses nothing about the code", so a
+      derived tag is a classifier over the RECORD rather than a thermostat over
+      the PROGRAM.
+
+      RD-04's view is the second and it is a VIEW, NOT A DEMONSTRATION. The
+      invariant as written carries no such exception, and the existing
+      GATING_SCAN_EXEMPT entries are each bounded by a property another test
+      checks. RD-05 MUST NOT ADD ITSELF TO THAT LIST without the invariant's
+      scope being stated by the owner.
+
+      (b) THE CLAUSE-(c) / ANCHOR-4 CORRELATION. Derivation clause (c) asks for a
+      second implementation behind the seam; D3's anchor 4 asks for a driven port
+      exercised by a real adapter AND a fake. Close enough that the D3 separation
+      could be the predicate quietly encoding the anchor, in which case
+      `ports-and-adapters` would ENTAIL a high D3 and the separation would
+      measure nothing -- the same NULL-ENTAILED shape RD-02 found in the gap
+      mutants, where a mutant can price a removal only if every detector that
+      killed it is one the removal deletes.
+
+      ENTAILMENT IS REFUTED BY THE RECORD: `ex4_pipeline_coherent` derives
+      `ports-and-adapters` under all three clauses and was scored D3 = 3 by BOTH
+      blind judges, so the predicate does not force a 4. (A claim about the
+      PREDICATE, not a comparison across examples, so R-H2 does not bite.) The
+      CORRELATION stands and is unquantified: one counterexample refutes
+      entailment and does not measure how much of the separation the overlap
+      explains. RD-05 carries it on the demonstration table row as a declared
+      confound.
+
+      (a) THE THRESHOLD.
+
+      RD-04's derivation predicate requires
+      `instance_state_in_effectful_modules / instance_state < 0.5`. Across the
+      eleven subjects measured, the observed values are 0.100, 0.111 and 0.125
+      against 1.000, 1.000, 1.000 and 1.000. ANY threshold in the open interval
+      (0.125, 1.000) gives the identical answer on every subject in the record.
+
+      No artifact anywhere near the boundary has ever been measured, so 0.5 is a
+      choice and not a measurement. This is the shape of finding MF-020 is about:
+      a number that looks derived and is picked.
+    reproduction: >-
+      specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place/RD-04/analysis/result.json
+      -- the `state_colocation` field of each derived subject.
+    evidence:
+      - "references/architecture_tags.md -- sections 3.1 and 9.2"
+    why_out_of_scope: >-
+      Validating it requires an artifact that lands near the boundary and none
+      exists. Manufacturing one to validate a threshold would be building the
+      target for the measurement.
+    suggested_fix: >-
+      RD-05 makes the threshold a named, printed constant with the observed
+      distribution beside it, so the first artifact that lands near it is visibly
+      the one that decides the clause.
+    blast_radius: >-
+      One clause of the derivation predicate; currently decides nothing because
+      no subject is near it.
+    disposition: open
+  - id: RD-04-DF-05
+    found_by: "RD-04"
+    found_at_commit: "7514df0"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/subtract-to-measure-sm05/"]
+    summary: >-
+      THE D3 TIER SPLIT RD-01 REPORTED MAY BE A SCOPE ARTIFACT, AND THE RECORD
+      CANNOT SEPARATE THE TWO.
+
+      RD-01 reported `opus`[2,2] against `sonnet`[3,4] on `toolchain_removal` D3
+      as a tier split. Reading each of those four sealed cards' own D3 citations
+      and counting which tree they name gives three different subjects: `K-p1`
+      and `K-p2` cite `scripts/` (2 and 4 references), `K-p4` cites
+      `spec_double_compiler/` (4 references), `K-p3` cites
+      `examples/validation/ab/reference_ports/` and nothing else.
+
+      WITHIN EACH SCOPE THE SPREAD IS ZERO. `K-p1` states in its own citation
+      list that it REJECTED the anchor-4 evidence "because this is a fixture, not
+      the toolchain"; `K-p2` records the same rejection.
+
+      But scope choice and tier are PERFECTLY CONFOUNDED across these four cards
+      -- both `opus` judges chose `scripts/`, neither `sonnet` judge did. The
+      spread is EXPLAINED BY scope. That is not the same as showing tier is not
+      also a factor, and this record cannot tell them apart.
+    reproduction: >-
+      python3 specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place/RD-04/analysis/derive_and_test.py
+      -- the "decomposed by CITED SCOPE" section prints the per-card citation
+      counts and the derived tag of each scope.
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/ -- the four D3 citation lists"
+      - "specs/results/scorecards/reading-discipline/GOAL-tags-earn-their-place/RD-04/analysis/run.txt"
+      - "READING-DISCIPLINE-EPIC.md section 6a"
+    why_out_of_scope: >-
+      A sealed card is never edited (R-H4) and this is a re-reading of four of
+      them, not a correction to them. RD-04 files findings and fixes nothing.
+    suggested_fix: >-
+      A `[[note]]` in INSTRUMENT-LOG.toml beside the `toolchain_removal` D3 rows
+      recording the scope decomposition, and a `[[contested]]` entry whose
+      `third_pass` says "none" WITH THIS AS THE REASON -- rule 5 permits that
+      answer when it is recorded, and the judges were right that no new evidence
+      could settle a disagreement that was not about evidence. Decided by RD-03.
+    blast_radius: >-
+      One of RD-01's three reported tier splits, and the only contested group in
+      49 sealed cards.
+    disposition: open
+  - id: RD-05-DF-01
+    found_by: "RD-05"
+    found_at_commit: "4ec3028"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_code_complexity.py"]
+    summary: >-
+      THE INVARIANT THAT BLOCKED RD-04 WAS FIRING ON THE WRONG LINE, AND IT
+      CANNOT SEE THE THING IT WAS ESCALATED ABOUT.
+
+      `test_no_reader_of_this_instrument_gates_on_its_output` propagates taint
+      through assignments WITHIN A MODULE and does not cross a function
+      boundary. RD-04's `analysis/derive_and_test.py` was flagged at line 130 --
+      `if out.returncode != 0`, a branch on a SUBPROCESS EXIT STATUS -- and the
+      three clause comparisons inside `derive(record)` that the whole §9.9
+      escalation is about were NEVER SEEN, because `record` arrives as a
+      parameter and carries no taint.
+
+      So the escalated finding was true (the predicate does branch on figures)
+      and the test that reported it was reporting something else.
+
+      AND THE TAINT SET IS NAME-KEYED RATHER THAN SCOPE-AWARE, which cuts the
+      other way. `measure()` builds a local `args` list holding the
+      instrument's path; that puts the NAME `args` into a module-wide set, so
+      every unrelated `args` in the file is tainted and
+      `root = pathlib.Path(args.root)` in `main()` spreads it further.
+      `architecture_tags.py` reports 53 observing uses and ZERO refusals, and a
+      substantial share of the 53 is that name collision rather than a figure --
+      `return value in VALUES` is one of them.
+
+      BOTH DIRECTIONS AT ONCE: the scan misses the clause it was escalated
+      about and flags comparisons that touch no figure. RD-05's repair
+      re-classifies what the scan already sees and DOES NOT WIDEN WHAT IT SEES,
+      so an empty refusal list is not evidence that no figure decides anything.
+
+      This matters for the exact risk the epic owner's ruling names -- a wrong
+      PREDICATE rather than a wrong principle. The scan is not what would catch
+      one.
+    suggested_fix: >-
+      Either propagate taint into a function whose parameter is bound from a
+      tainted call at any call site, or state the boundary limit in the
+      docstring and stop reading an empty result as coverage. RD-05 did the
+      second (the limit is written into `_uses`); the first is a real change to
+      the scanner and is not a measurement ticket's to make.
+    blast_radius: >-
+      One repository-wide tripwire, the §6b ruling that rests on it, and any
+      future reader who takes a green from it as evidence that no figure
+      decides anything.
+    disposition: open
+  - id: RD-05-DF-02
+    found_by: "RD-05"
+    found_at_commit: "4ec3028"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/subjects.toml"]
+    summary: >-
+      THE ONE PLACE A DECLARATION CAN STILL MOVE A REFUSAL, NAMED RATHER THAN
+      LEFT TO BE FOUND.
+
+      The design's A1 defence is that a DECLARED VALUE never refuses -- only the
+      derived one does, and moving the derived value means moving the state out
+      of the effectful module. That holds. But the demonstration table is
+      re-derived from THE CARDS THAT MAP TO EACH SUBJECT, and that mapping is
+      declared: `subjects.toml` says which round/arm labels belong to which
+      scope. Nothing derives it and nothing can -- a sealed card carries no
+      subject field and R-H4 forbids adding one.
+
+      So an author who cannot edit `instance_state_in_effectful_modules` CAN
+      edit which cards enter the comparison, and the separation is computed over
+      whatever population that leaves. Dropping `arm_c` from `arm_a`'s label
+      list, for instance, changes the population every `does not separate`
+      verdict is read against.
+
+      IT IS NOT HYPOTHETICAL IN ONE DIRECTION: RD-04's analysis computed
+      null-entailment populations over MAPPED cards only, RD-05 had to choose
+      the same, and the choice changes D1's reported population (the unmapped
+      owner-pre card carries D1 = 0). Neither choice is wrong; nothing
+      currently states which one the rule means.
+    suggested_fix: >-
+      Make the mapping checkable rather than trusted: `audit` could report any
+      card of a mapped example that belongs to NO subject, so a card silently
+      dropped from a population is visible the way `contested` is. RD-05 reports
+      the count (1 of 49) and does not check it, because filing beats fixing
+      during a measurement.
+    blast_radius: >-
+      Every refusal the axis grants, and every population range printed beside a
+      `does not separate` verdict.
+    disposition: open
+  - id: RD-05-DF-03
+    found_by: "RD-05"
+    found_at_commit: "4ec3028"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/architecture_tags.md"]
+    summary: >-
+      RD-04'S DESIGN PAGE DISAGREES WITH ITS OWN MACHINE RECORD IN ONE CELL.
+
+      §3.1's table prints `--` for `ex6_jenga`'s state co-location.
+      `analysis/result.json` gives 0.0 on `instance_state = 7`, and the shipped
+      derivation reproduces the machine record. `--` is what that column means
+      where there is NO instance state at all, which is correct for
+      `ex1_scaffold_only`, `ex3_over_complex` and `spec_double_compiler/` and
+      wrong for `ex6_jenga`.
+
+      A transcription slip, not a difference in the predicate, and it decides
+      nothing -- `ex6_jenga` derives UNDERIVABLE on the effect-surface guard
+      before the clause is reached either way. Filed because a page that argues
+      for an instrument by printing its figures is exactly where an unchecked
+      figure does damage, and this project has now found one on that page twice
+      (RD-04 found its own "39 of 39" the same way).
+    suggested_fix: >-
+      Corrected in §13.4 beside the table rather than by editing §3.1, and
+      pinned by `test_the_derivation_reproduces_rd04s_sealed_machine_record`,
+      which compares against `result.json` and deliberately not against the page.
+    blast_radius: One cell of one table.
+    disposition: open
+  - id: RD-05-DF-04
+    found_by: "RD-05"
+    found_at_commit: "4ec3028"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/architecture_tags.py"]
+    summary: >-
+      `SCOPE-DRIFT` ATTRIBUTES A CITATION BY A SCOPE'S LAST PATH SEGMENT, SO TWO
+      SCOPES SHARING A BASENAME WOULD COLLIDE.
+
+      A judge writes `after/scripts/x.py:9`, `<TREES>/after/scripts/x.py:9` and
+      `scripts/x.py:9` for the same file, none of them rooted at the repository,
+      so a prefix match against the declared scope finds almost nothing -- it
+      found ONE of the two real drifts before this was changed to RD-04's
+      last-segment method. The last-segment method reproduces RD-04 §1.5's
+      counts exactly (2/1/1, 4/0/1, 3/4/1, 0/0/1) and finds both.
+
+      The cost is that `scripts/` and `skill-scripts/` are the same token to it,
+      and two declared scopes ending in the same directory name cannot be told
+      apart. Neither collision exists in the eleven declared scopes today.
+    suggested_fix: >-
+      Normalise a citation against the declared scope list before counting, or
+      require a card written from RD-05 onward to cite repository-relative paths
+      and match those exactly, keeping the loose match only for sealed cards.
+    blast_radius: >-
+      The SCOPE-DRIFT report, which is OPEN-level and refuses nothing.
+    disposition: open
+  - id: RD-05-DF-05
+    found_by: "RD-05"
+    found_at_commit: "4ec3028"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      THE DEMONSTRATION TABLE RUNS THE COMPLEXITY INSTRUMENT ELEVEN TIMES ON
+      EVERY `audit`, AND THAT IS THE PRICE OF NOT CACHING IT.
+
+      R-H1's third clause re-derives the table from the tree on every run, which
+      is the property that stops an authority row going stale -- and it costs
+      ~1.1s of subprocess time per `audit`, `index` being unaffected. The
+      alternative is a cached derivation, which is exactly the staleness the
+      clause exists to prevent, so the cost is deliberate.
+
+      It also makes `audit` depend on the declared scopes EXISTING in the tree
+      it is run in. In a tree where they do not, the clause reports UNVERIFIED
+      and checks nothing rather than reporting a violation -- so a green audit in
+      such a tree says nothing about the table. Recorded so that is not read as
+      a clean result.
+    suggested_fix: >-
+      Nothing, unless `audit` becomes hot. If it does, the honest move is a
+      `--skip-architecture` flag that PRINTS that it skipped, never a cache.
+    blast_radius: "`audit` runtime, and what a green audit means in a partial tree."
+    disposition: open
+  - id: RD-06-DF-01
+    found_by: "RD-06"
+    found_at_commit: "5ff673f"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/check_catalogue.py"]
+    summary: >-
+      `--arms --dispatch-dir` CANNOT REACH A BLINDED ROUND'S DISPATCH RECORD, AND
+      A BLINDED ROUND IS THE ONLY KIND THIS PROJECT RUNS.
+
+      `check_arms()` looks its rows up with
+      `dispatch_record.record_for(dispatch_dir, arm)` for `arm in ARMS`, and
+      `ARMS` is the fixed triple `arm_a`, `arm_b`, `arm_c`. RD-06's dispatch rows
+      are keyed on the OPAQUE LABELS the round was blinded under
+      (`artifact_Z`, `artifact_E`, `artifact_N`), because the dispatched bytes
+      carry the label in their working-directory line -- so a row keyed
+      `arm_a` would publish the label-to-arm mapping and unblind the round.
+
+      Pointed at RD-06's record, `--arms --dispatch-dir` verifies all six rows,
+      prints them, and then measures the three prompts ON DISK anyway, labelling
+      every number `<- on disk`. It does not lie; it falls back. But the flag
+      whose entire purpose is "measure what was sent" measured what was not
+      sent, on a round that HAD a complete preserved record sitting in the
+      directory it was given.
+
+      This is PA-06-DF-10's class, one turn of the screw further on: there the
+      dispatch was unrecorded, here it is recorded and unreachable.
+    reproduction: >-
+      `python3 examples/validation/ab/check_catalogue.py --arms --dispatch-dir
+      examples/validation/ab/dispatch/reading-discipline` -- six rows verify,
+      then the arms table prints `<- on disk` on all three rows.
+      `python3 examples/validation/ab/dispatch_record.py verify --dir
+      examples/validation/ab/dispatch/reading-discipline` -- six rows, all
+      `preserved`, all unchanged.
+    evidence:
+      - "examples/validation/ab/check_catalogue.py (check_arms, the `for arm in ARMS` loop)"
+      - "examples/validation/ab/dispatch/reading-discipline/dispatch.toml"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-06/prompts-rd06.json"
+    why_out_of_scope: >-
+      `check_catalogue.py` is not in RD-06's `implementation_scope`
+      (`examples/validation/ab/`, `specs/results/`) as a file this ticket was
+      sent to change, and RD-06 is a PRODUCING ticket in the middle of a
+      measurement. The epic's standing rule is that findings are filed and
+      nothing is fixed during a measurement. RD-06 measured the dispatched bytes
+      itself instead, with `check_catalogue.py`'s own `distinct_lines` and
+      `unique_content` imported rather than reimplemented, and wrote the table
+      under the opaque labels.
+    suggested_fix: >-
+      Give a dispatch row an optional `arm_source` (the prompt source it was
+      composed from) and have `check_arms` resolve `ARMS` through it, so a row
+      may be keyed on anything while still declaring which arm's prompt it
+      carries. That keeps blinding and measurement compatible. Do NOT solve it
+      by requiring the arm name as the row key: that makes every blinded round
+      choose between a preserved dispatch and an unblinded one.
+    blast_radius: >-
+      Any future round that blinds its dispatch rows and then cites an `--arms`
+      number. The number will be about the prompt sources, which for RD-06
+      happen to be unchanged -- the delta is a +5/-0 envelope identical across
+      arms -- so RD-06's own figures are not wrong. The next round's might be.
+    disposition: open
+  - id: RD-06-DF-02
+    found_by: "RD-06"
+    found_at_commit: "700936e"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/subjects.toml", "references/architecture_tags.md"]
+    summary: >-
+      SIX FIGURES ABOUT `subjects.toml` ARE NOW CLAIMS ABOUT A FILE THAT NO
+      LONGER EXISTS, AND RD-06 IS WHAT MADE THEM SO.
+
+      `subjects.toml`'s `[registry].note` opens "ELEVEN SCOPES". RD-06 declares
+      six more, so the file holds seventeen. The same figure is carried in
+      `references/architecture_tags.md` five more times: "Measured on eleven
+      declared scopes", "decides 7 of 11 subjects and refuses 4", "Three of the
+      eleven subjects above", "refuses four of the eleven subjects",
+      "`no-effect-surface` is a real property of four of eleven", and §13.1's
+      table row "the declared scopes -- eleven of them".
+
+      Each is TRUE at the scope RD-04 and RD-05 measured -- the eleven scopes
+      that existed then -- and each is written as a property of the file. That
+      is precisely the shape this epic exists to catch: every number in the
+      claim is right and the claim is wrong, because the underlying set is wider
+      than the claim admits.
+
+      NOT REPAIRED, DELIBERATELY. Rewriting a predecessor's figure so it matches
+      a successor's file is how a number stops carrying the scope it was true
+      at, and R-H4 says a sealed measurement is annotated rather than edited.
+      RD-06 records the correction in its own block of `subjects.toml` instead.
+    reproduction: >-
+      `python3 -c "import tomllib;
+      print(len(tomllib.load(open('examples/validation/scorecards/subjects.toml','rb'))['subject']))"`
+      -> 17. `grep -n "eleven\|of 11" references/architecture_tags.md` -> five
+      hits plus the §13.1 table row.
+    evidence:
+      - "examples/validation/scorecards/subjects.toml"
+      - "references/architecture_tags.md"
+    why_out_of_scope: >-
+      `references/` is not in RD-06's implementation scope, and RD-05's note is
+      RD-05's statement. The finding is that a count-of-the-file figure goes
+      stale the moment anyone adds a subject -- which will happen again -- not
+      that RD-05 wrote a wrong number.
+    suggested_fix: >-
+      Phrase the figure at the scope it was measured: "the eleven scopes
+      declared at RD-05" rather than "the declared scopes -- eleven of them".
+      A count of a growing file is a claim with a date in it whether or not the
+      date is written down. `score_tools.py scope` cannot reach any of these:
+      none is of the form `D<n> = k on N of M cards`, which is the second known
+      bound on that instrument and is why a human found this one.
+    blast_radius: >-
+      Documentation and one TOML comment. Nothing computes on the figure and no
+      test asserts it -- checked.
+    disposition: open
+  - id: RD-06-DF-03
+    found_by: "RD-06"
+    found_at_commit: "5ff673f"
+    schedule_revision: 2
+    severity: blocking
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/reading-discipline/blind/artifact_N/NOTES.md"]
+    summary: >-
+      AN ARM UNBLINDED ITSELF BY DISCLOSING HONESTLY, AND THE DISCLOSURE THE
+      PROMPT ASKS FOR IS WHAT DID IT.
+
+      `artifact_N`'s `NOTES.md` records, under Disclosures, that it ran `ls -la`
+      on `examples/validation/ab/` and so saw "the file names listed in Section 6
+      (`seeded_faults.toml`, `check_catalogue.py`, `reference/`, `arm_a/`,
+      `arm_b/`, and others)".
+
+      Section 6 is the do-not-open list, and the three arms' lists differ from
+      each other in exactly one way: arm A's names `arm_b/`, arm B's names
+      `arm_a/`, and ARM C'S NAMES BOTH. An artifact whose notes enumerate both
+      `arm_a/` and `arm_b/` as its own Section 6 is arm C, to any judge who has
+      read the three prompts. `artifact_D`, the revision of `artifact_N`,
+      inherits the same `NOTES.md` and is unblinded with it.
+
+      The arm did nothing wrong. Its prompt says a disclosure "costs you nothing
+      and is the only thing that keeps the round interpretable", and it is right.
+      The defect is in the fixture: the three Section 6 lists are
+      DISTINGUISHABLE, so honest disclosure of one identifies the arm.
+    reproduction: >-
+      `grep -n "arm_" examples/validation/ab/arm_a/PROMPT.md
+      examples/validation/ab/arm_b/PROMPT.md
+      examples/validation/ab/arm_c/PROMPT.md` -> arm A lists `arm_b/`, arm B
+      lists `arm_a/`, arm C lists both.
+      `sed -n '280,295p'
+      specs/results/scorecards/reading-discipline/blind/artifact_N/NOTES.md`.
+    evidence:
+      - "specs/results/scorecards/reading-discipline/blind/artifact_N/NOTES.md"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_D/NOTES.md"
+      - "examples/validation/ab/arm_a/PROMPT.md, arm_b/PROMPT.md, arm_c/PROMPT.md"
+    why_out_of_scope: >-
+      ESCALATED, NOT DECIDED. The remedies all bind RD-03: withholding a
+      `NOTES.md` from the judges, scoring `N` and `D` unblinded and saying so,
+      or accepting a partially unblinded pair. Choosing between them is the
+      scoring round's call or the owner's, and a producing ticket that picked
+      one would be deciding how its own subjects get read.
+
+      What RD-06 will NOT do is edit the artifact. `NOTES.md` is the artifact's
+      own account of what its author did; a leak that is disclosed is recorded,
+      never used as grounds to discard or amend -- and this project's own rule
+      is that a card is not discarded after its content is seen.
+    suggested_fix: >-
+      For the fixture: make the three Section 6 lists IDENTICAL -- name all
+      three arm directories in all three prompts. An arm told not to open its own
+      directory learns nothing, and the lists stop being a fingerprint. That is a
+      change to a sealed arm prompt and so is the owner's, not a ticket's.
+
+      For this round: RD-03 decides. If it scores `N` and `D` with the disclosure
+      visible, it says so on the cards rather than after them.
+    blast_radius: >-
+      Two of RD-06's six subjects, `artifact_N` and `artifact_D`, and any
+      D3 comparison drawn against them -- D3 is the one dimension the
+      architecture axis has authority on and the one the arm identity would move.
+      `artifact_Z` and `artifact_E` disclose nothing that identifies them, and
+      their revisions inherit nothing.
+    disposition: open
+  - id: RD-06-DF-04
+    found_by: "RD-06"
+    found_at_commit: "d71917e"
+    schedule_revision: 2
+    severity: blocking
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/instruments/instruments.toml"]
+    summary: >-
+      A SEALED DEMONSTRATION ASSERTS THE SIZE OF A FIXTURE AND CALLS IT A
+      PROPERTY OF AN INSTRUMENT, AND DECLARING A SUBJECT TURNS THE SUITE RED.
+
+      `architecture-tag-derivation / passing` declared
+      `expect_output = ["7 of 11 subject(s) decided", ...]`. RD-06 declared six
+      more subjects in `subjects.toml` -- the thing that file exists to hold --
+      and `test_every_fast_demonstration_reproduces` went red with
+      *"output does not contain '7 of 11 subject(s) decided'. Either the
+      instrument changed or the demonstration went stale."*
+
+      **The instrument did not change.** The derivation is byte-identical, the
+      four refusals are the same four, and the reason for each is the same. What
+      moved is the denominator, because the declared figure was a property of
+      the FIXTURE'S SIZE rather than of the thing being demonstrated. It is
+      `RD-06-DF-02`'s stale-count class with a test attached, which is how it
+      surfaced at all -- the five prose copies of the same figure went red in no
+      suite and were found by reading.
+
+      This is the same shape as the epic's founding instance: every number in
+      the claim was right and the claim was about a wider set than its words
+      admitted.
+    reproduction: >-
+      At `3806af8`, `python3 examples/validation/scorecards/architecture_tags.py derive`
+      ends `7 of 11 subject(s) decided; 4 refused`. With RD-06's six subjects
+      declared it ends `13 of 17 subject(s) decided; 4 refused`.
+      `uv run --with pytest --with pyyaml python -m pytest
+      tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces -q`
+      is the test that fires.
+    evidence:
+      - "examples/validation/instruments/instruments.toml (instrument.passing, architecture-tag-derivation)"
+      - "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces"
+      - "examples/validation/scorecards/subjects.toml"
+    why_out_of_scope: >-
+      `examples/validation/instruments/` is NOT in RD-06's
+      `implementation_scope` (`examples/validation/ab/`, `specs/results/`), and
+      the standing rule is that a target is never edited to match a result.
+
+      WHAT RD-06 DID, AND WHY IT IS NOT THAT: the count was updated to the true
+      current figure and the superseded figure was written into the
+      demonstration's own `summary`, which now says what it used to assert, what
+      it says now, and that neither is a fact about the derivation. Nothing was
+      erased and no expectation was weakened -- `expect_output` still asserts a
+      count, still asserts `UNDERIVABLE:no-effect-surface`, and still asserts the
+      printed threshold. The alternative was to leave the epic branch red so
+      that RD-03 could not run its own acceptance command, on a declaration that
+      is now simply false. ESCALATED so the owner can overrule the choice.
+    suggested_fix: >-
+      Owner's call, and there are two honest options. Either the demonstration
+      asserts the SHAPE and not the size -- `subject(s) decided`, `4 refused`,
+      and the per-refusal reasons, none of which move when a subject is added --
+      or `subjects.toml` gets a frozen demonstration fixture of its own so the
+      declared figure describes a file nobody appends to. The second is more
+      work and is the one that keeps a count in the assertion.
+
+      DO NOT solve it by deleting the count. A demonstration that asserts
+      nothing about its output is the `verified: true, green: true, exit 0`
+      construct this project already shipped once.
+    blast_radius: >-
+      One demonstration row and one test. It fires on any future ticket that
+      declares a subject, which is the ordinary way this axis is used, so the
+      next round hits it too unless the shape changes.
+    disposition: open
+
+  - id: RD-03-DF-01
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/reading-discipline/blind/artifact_N/mutation_check.py"]
+    summary: >-
+      PRODUCT SURFACE. A PRODUCED ARTIFACT SHIPS AN EVIDENCE HARNESS THAT
+      CERTIFIES A CLEAN IT CANNOT SUPPORT -- `verified: true, green: true,
+      exit 0` written again, by an agent, in this epic's own subjects.
+
+      `artifact_N/mutation_check.py` (and `artifact_D`'s byte-identical copy)
+      decides a mutant was caught with `return done.returncode != 0` at
+      `mutation_check.py:164`, under a docstring reading "True when the suite
+      FAILS -- i.e. the mutant was caught". ANY nonzero exit reads as a catch.
+      Run by an interpreter that has no `pytest`, every subprocess exits nonzero,
+      every mutant reads `caught`, and the harness prints "No survivors."
+
+      Demonstrated side by side on the same bytes:
+      WITH pytest, `M8` reads `SURVIVED` and the script prints "M8 survives my
+      suite AND showed no observable difference in 400 walks".
+      WITHOUT pytest, `M8` reads `caught` and the script prints "No survivors."
+
+      SECOND DEFECT IN THE SAME FILE. `REPO = HERE.parent.parent` at
+      `mutation_check.py:27` resolves to
+      `specs/results/scorecards/reading-discipline/`, which has no `examples/`,
+      so `SHARED_SUITE.exists()` is False and the `shared` column prints `n/a`
+      on all twelve rows from where the artifact ships. Meanwhile
+      `artifact_N/NOTES.md:187-188` asserts "My suite caught 11 of 12; the shared
+      suite caught 7 of 12" and names the four it misses, and
+      `artifact_D/REVISION-NOTES.md:16` claims to have reproduced the table "line
+      for line". THE TABLE IN THE DELIVERABLE IS NOT REPRODUCIBLE BY RUNNING THE
+      SHIPPED SCRIPT FROM WHERE IT SHIPS.
+
+      CORRECTED BY THIS TICKET'S OWN CROSS-TREE PROBE, AND THE CORRECTION MATTERS.
+      An earlier draft of this finding called the `7 of 12` figure an OVER-CLAIM.
+      IT IS NOT. The probe reconstructed the directory layout the script expects
+      and BOTH trees reproduce that table cell for cell, including `M8 SURVIVED`
+      and every `0/400` differential. THE FIGURES ARE TRUE. What is defective is
+      that the column DEGRADES TO `n/a` SILENTLY, with no warning and exit 0, at
+      the location the artifact actually ships from -- so a reader who runs it
+      gets a strictly weaker table than the one documented and is told nothing.
+      The over-claim reading was mine and it was wrong; it is corrected here
+      rather than quietly deleted.
+
+      Found by a blind judge; both halves independently reproduced by the round
+      operator.
+    reproduction: >-
+      cp -R specs/results/scorecards/reading-discipline/blind/artifact_N /tmp/mc &&
+      cd /tmp/mc && python3 mutation_check.py            # -> "No survivors.", shared column n/a
+      cd /tmp/mc && uv run --with pytest python mutation_check.py   # -> M8 SURVIVED, shared column still n/a
+    evidence:
+      - "specs/results/scorecards/reading-discipline/blind/artifact_N/mutation_check.py:27,154-164"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_N/NOTES.md:187-188"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_D/REVISION-NOTES.md:16"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/analysis/mutation-check-false-catch.txt"
+    why_out_of_scope: >-
+      A SEALED SUBJECT IS NEVER EDITED. These trees are RD-06's measured
+      subjects; amending one after its content has been seen is the one move a
+      round may not make, and RD-03 is a measurement ticket that fixes nothing.
+      The finding is about what the artifact IS.
+    suggested_fix: >-
+      Owner's call and it is NOT an edit to the artifact. The generalisable
+      repair is to the FIXTURE: a produced tree that ships an evidence harness
+      should have that harness's own failure mode demonstrated, exactly as R1
+      requires of every instrument this repository ships. `FEATURE.md` asks for
+      evidence and says nothing about the evidence being falsifiable, and two of
+      three arms shipped a harness anyway.
+    blast_radius: >-
+      Two of the six RD-06 subjects. It does not change any RD-03 score -- no
+      judge scored the harness's output, rule 7 forbids it -- and both judges who
+      used the harness ran it under `uv run --with pytest` and got the true
+      table.
+    disposition: open
+
+  - id: RD-03-DF-02
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/tests/test_behavior.py"]
+    summary: >-
+      PRODUCT SURFACE, AND IT IS THE SHARED FIXTURE EVERY ROUND IN THIS EPIC
+      FAMILY CALLS "THE FLOOR". The 28-case shared behavioural contract is BLIND
+      TO A WHOLE REFUSAL CLASS, and "28 passed" has been reported as the
+      behavioural baseline of six produced trees across two epics.
+
+      Seed a cross-tenant close-guard bug into `artifact_M` -- replace
+      `if any(held.tenant == tenant for held in self._reservations.values()):`
+      at `quota_ledger.py:197` with `if self._reservations:`, so that one
+      tenant's live reservation blocks a DIFFERENT tenant's close. The shared
+      suite reports 28 passed. The tree's OWN tests fail three ways, including
+      one written specifically for that scenario.
+
+      Reproduced independently by the round operator and by two blind judges. Two
+      further judges report the same blindness for a reason-ORDERING swap and for
+      rejected-reserves-burning-ids; a fifth reports that
+      `available("nobody")` returning `0` instead of raising `KeyError`
+      SURVIVES BOTH the shared suite AND the tree's own suite, on both trees of
+      a pair.
+
+      `FEATURE.md` calls passing this suite "a floor, not a result", which is
+      correct and is not the finding. The finding is that the floor is LOWER
+      THAN IT READS, by a class rather than by a case, and no round has said so.
+    reproduction: >-
+      cp -R specs/results/scorecards/reading-discipline/blind/artifact_M /tmp/M &&
+      sed -i '' 's/if any(held.tenant == tenant for held in self._reservations.values()):/if self._reservations:/' /tmp/M/quota_ledger.py &&
+      cd /tmp/M && QUOTA_LEDGER_IMPL=quota_ledger uv run --with pytest python -m pytest
+      examples/validation/ab/tests/test_behavior.py -q      # 28 passed
+      cd /tmp/M && uv run --with pytest python -m pytest test_quota_ledger.py -q   # 3 failed, 19 passed
+    evidence:
+      - "examples/validation/ab/tests/test_behavior.py"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_M/quota_ledger.py:197"
+      - "specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03M-M-p1/scorecard.json (judging_practice)"
+      - "specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03M-M-p4/scorecard.json (judging_practice)"
+    why_out_of_scope: >-
+      `examples/validation/ab/tests/test_behavior.py` is DELIBERATELY UNCHANGED
+      AND UN-EDITABLE -- it is what makes six trees across three rounds
+      comparable at all. Editing it would break every prior round's comparability
+      in order to improve a number, which is the exact move this epic exists to
+      refuse. Filed, not fixed.
+    suggested_fix: >-
+      DO NOT quietly extend the shared suite: that silently re-bases every
+      published "28 passed" and makes the old and new figures look like one
+      series. If it is extended, it needs a version, a recorded instrument
+      change under `R-H1`, and the old figure kept beside the new one. The
+      cheaper and more honest option is to leave it and state the class it
+      cannot reach WHEREVER the figure is published, which is what `R1` requires
+      of every other instrument here.
+    blast_radius: >-
+      Every "28 passed" in `suite-rd06.json`, in `SUBJECTS-RD-06.md` section 3,
+      and in every RD-03 mechanical block. None of them is wrong; all of them
+      mean less than they read.
+    disposition: open
+
+  - id: RD-03-DF-03
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/reading-discipline/blind/artifact_E/quota_ledger/file_journal.py"]
+    summary: >-
+      PRODUCT SURFACE. Dead code defended by a factually false justification, in
+      both halves of a pair, and MISSED BY THE PAIR'S OWN TEN-CANDIDATE
+      SIMPLIFICATION AUDIT.
+
+      `artifact_E/quota_ledger/file_journal.py:25` filters blank lines out of a
+      read-back with `if line`, and the comment above it says "The empty trailing
+      element after the final newline is an artifact of storing lines in a file".
+      THAT ARTEFACT DOES NOT EXIST: `'A\nB\n'.splitlines()` is `['A', 'B']`. The
+      filter never fires. Deleting it leaves both suites green.
+
+      What makes it worth filing rather than noting: `artifact_F` is a revision
+      whose whole content is a ten-candidate audit for exactly this class of
+      thing, it FOUND the structurally identical case (a redundant `_issue_order`
+      sort) and reasoned about it at length, and it MISSED this twin -- and its
+      100%-branch-coverage evidence structurally cannot reach it, because a
+      comprehension's filter is reported as `0 branch`.
+    reproduction: >-
+      python3 -c "print(repr('A\nB\n'.splitlines()))"    # ['A', 'B'] -- no trailing empty element
+      Then delete the `if line` filter in a scratch copy and run both suites: green.
+    evidence:
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/quota_ledger/file_journal.py:21-25"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:222-225"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/NOTES.md:100-102"
+    why_out_of_scope: >-
+      A sealed subject is never edited. RD-03 fixes nothing.
+    suggested_fix: >-
+      Nothing to fix in the artifact. What is worth carrying forward is the
+      observation about the EVIDENCE: a coverage figure of 100% was offered as
+      the reason the audit was complete, and the defect it missed is in the one
+      construct coverage does not instrument.
+    blast_radius: "Two of six subjects; no score depends on it."
+    disposition: open
+
+  - id: RD-03-DF-04
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/reading-discipline/blind/artifact_E/tests/test_ledger.py"]
+    summary: >-
+      PRODUCT SURFACE. A test assertion that CANNOT FAIL, in both halves of a
+      pair. `artifact_E/tests/test_ledger.py:181`, inside
+      `test_the_domain_module_does_not_import_its_adapters`, asserts
+      `"journal_" not in source`. The real module names are `file_journal` and
+      `memory_journal`; neither contains the substring `journal_`, so the
+      assertion matches nothing and passes for a reason unrelated to what it
+      claims to check. The two assertions on the following lines are real.
+
+      `R2` -- a control that cannot fail is worse than no control -- in produced
+      code. Found independently by three of the four judges of this pair, and by
+      the artifact's own revision, which named it and correctly declined to edit
+      a passing test in a pass whose brief was simplification.
+    reproduction: >-
+      grep -c 'journal_' specs/results/scorecards/reading-discipline/blind/artifact_E/quota_ledger/domain.py   # 0
+    evidence:
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/tests/test_ledger.py:178-184"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:260-266"
+    why_out_of_scope: "A sealed subject is never edited."
+    suggested_fix: >-
+      None in the artifact. Worth noting that the artifact's own revision FOUND
+      this and left it, with a stated reason, which is the behaviour the round
+      wants and which cost it nothing on any dimension.
+    blast_radius: "Two of six subjects."
+    disposition: open
+
+  - id: RD-03-DF-05
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/reading-discipline/blind/artifact_E/NOTES.md", "specs/results/scorecards/reading-discipline/UNBLINDING-rd06.md"]
+    summary: >-
+      THE DISCLOSED LEAK WAS NOT THE LEAK THAT FIRED. This settles
+      `RD-06-DF-03`, which was escalated blocking, and it settles it against the
+      file that was escalated.
+
+      `RD-06-DF-03` named `artifact_N`'s `NOTES.md`, which enumerates `arm_a/`
+      and `arm_b/` from its do-not-open list -- identifying arm C to anyone
+      holding the three prompts. RD-03's scoring decision was to serve the tree
+      INTACT and give no judge any arm prompt, which makes that enumeration
+      decode to nothing. IT WORKED: neither judge of `N`/`D` inferred an arm from
+      it, and none mentions the file list.
+
+      WHAT FIRED INSTEAD was `artifact_E`/`artifact_F`, and the mechanism is not
+      a file list -- it is an artifact QUOTING ITS OWN PROMPT'S ARGUMENT.
+      `artifact_E/NOTES.md:118-129` reads "Section 1 says the domain holds no
+      path", "the indirection Section 1 warns about", "the feature says nothing
+      about structure and Section 1 says nothing about behavior". No key is
+      needed: the artifact states that it was given a second, ARCHITECTURAL ask
+      on top of `FEATURE.md`, which is arm B and only arm B.
+
+      THREE OF THE FOUR JUDGES OF THAT PAIR INDEPENDENTLY INFERRED IT and all
+      three disclosed it unprompted in their verdicts. Eight `ports-and-adapters`
+      cards in this round were scored by judges who had correctly worked out the
+      arm.
+
+      RD-06's disclosure process asked each producing agent WHAT IT OPENED and
+      got honest answers about file access. Nothing in the process, and nothing
+      in `RD-06-DF-03`, looked for an artifact restating its instructions'
+      CONTENT in a document the judges are required to read.
+    reproduction: >-
+      grep -n 'Section 1' specs/results/scorecards/reading-discipline/blind/artifact_E/NOTES.md
+      and read the verdicts of the four `E`/`F` cards under
+      specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03{E,F}-*/
+    evidence:
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/NOTES.md:115-131"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md:8-13"
+      - "specs/results/scorecards/reading-discipline/UNBLINDING-rd06.md (section: THE ONE THAT PARTIALLY UNBLINDS ITSELF)"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/RESULT.md section 8"
+    why_out_of_scope: >-
+      NO CARD WAS DISCARDED AND NONE WAS RE-SCORED. A disclosed leak is recorded,
+      never used as grounds to discard, and a subject is never amended after its
+      content has been seen. Both rules were followed and the inference is
+      recorded on the cards, which is what a disclosed leak is for.
+    suggested_fix: >-
+      For the next round that blinds: the do-not-open check is necessary and not
+      sufficient. An arm is identifiable from an artifact that ARGUES WITH ITS
+      OWN BRIEF in a file judges must read, and the check for that is a scan of
+      every judge-visible document for restatements of the arm prompt's claims --
+      not for its filenames. DO NOT solve it by withholding `NOTES.md`: it is
+      the artifact's own account and D5 is scored on it.
+    blast_radius: >-
+      Eight of the twenty-four cards this round, all of `E` and `F`. Every one
+      records the inference in its verdict. The affected dimension is D3, where
+      those eight cards are unanimous at 4 and where the derived tag says the
+      same thing the leak does.
+    disposition: open
+
+  - id: RD-03-DF-06
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/reading-discipline/blind/artifact_Z/test_quota_ledger.py", "specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md"]
+    summary: >-
+      PRODUCT SURFACE, TWO IN ONE SUBJECT PAIR.
+
+      (a) A DECORATIVE TEST PRESENTED AS AN ORDERING TEST.
+      `artifact_Z/test_quota_ledger.py:79-81`
+      `test_a_bad_amount_beats_quota_exceeded` asserts a refusal ORDERING that
+      cannot be observed: `amount < 1` and `amount > available >= 0` are mutually
+      exclusive, so the two guards can never both fire and the test passes under
+      either order. Confirmed by a judge over 300 x 80 randomised steps, zero
+      divergences -- an EQUIVALENT MUTANT, which that judge was about to file as
+      a coverage gap and proved was not. `NOTES.md:84` overstates it: "the listed
+      order in the feature is only observable in these overlaps", and for this
+      pair there is no overlap.
+
+      (b) TWO WRITE PATHS TO THE LEDGER, AGAINST A ONE-WRITE-PATH CLAIM MADE
+      TWICE. `NOTES.md:39-41` and the `_append` docstring both state that
+      `_append` is the only code that writes the ledger file. `__init__`
+      performs a truncating `write_text("")` to the same path, outside it -- and
+      it is the DESTRUCTIVE write, the very one `NOTES.md:98-102` flags as an
+      unresolved ambiguity. Present in both `Z` and `M`; a judge confirmed the
+      resulting R2 violation by execution (a second `QuotaLedger` on one path
+      wipes the first's file while `committed()` still reads 3).
+    reproduction: >-
+      Read `artifact_Z/quota_ledger.py:112` (`write_text("")`) against
+      `NOTES.md:39-41`. For (a), run the two guards against any input: no input
+      satisfies both.
+    evidence:
+      - "specs/results/scorecards/reading-discipline/blind/artifact_Z/test_quota_ledger.py:79-81"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md:39-41,84,98-102"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:112,214"
+    why_out_of_scope: "A sealed subject is never edited."
+    suggested_fix: >-
+      Nothing in the artifact. The transferable observation is (a): an ordering
+      assertion between two MUTUALLY EXCLUSIVE guards is unfalsifiable, and
+      `FEATURE.md` lists refusal reasons in a fixed order without saying which
+      pairs can overlap. A fixture that specifies an order should say where the
+      order is observable.
+    blast_radius: "Two of six subjects."
+    disposition: open
+
+  - id: RD-03-DF-07
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/FEATURE.md", "examples/validation/ab/tests/test_behavior.py"]
+    summary: >-
+      PRODUCT SURFACE, ALL SIX TREES, AND IT IS A GAP IN THE FEATURE SPEC THAT
+      EVERY ARM INHERITED IDENTICALLY.
+
+      `FEATURE.md` says construction takes "a mapping of tenant name to integer
+      quota" and defines `amount_not_positive` as "`amount` is less than 1". It
+      NEVER REQUIRES `amount` TO BE AN INTEGER. All six trees therefore accept
+      `reserve(t, 2.5)`, and all six write it verbatim into the durable ledger as
+      `COMMIT acme 2.5 2.5` -- confirmed by execution on two trees by two judges.
+      The shared contract's own R2 assertion parses those lines with
+      `int(line.split()[3])` at `test_behavior.py:262`, so a float amount makes
+      the CHECK RAISE rather than fail: an error, not a verdict.
+
+      A judge further confirmed a tenant name containing a space writes an
+      unparseable `COMMIT a b 2 2`.
+
+      TWO ARTIFACTS DISCLOSE THE FLOAT GAP IN THEIR NOTES. NO TEST IN ANY TREE,
+      AND NO CASE IN THE SHARED SUITE, PASSES A NON-INTEGER AMOUNT. A disclosure
+      shipped without a case.
+
+      SEPARATELY AND IN THE SAME CLASS: `available`, `committed` and `is_closed`
+      raise `KeyError` on an unknown tenant while every COMMAND returns a
+      structured rejection. A judge seeded a fault making `available("nobody")`
+      return `0` and it SURVIVED BOTH SUITES ON BOTH TREES OF A PAIR -- the only
+      fault this round that survived every instrument pointed at it.
+    reproduction: >-
+      In a scratch copy of any tree: `reserve("acme", 2.5)` is accepted; commit
+      it and read the ledger file. Then run the shared suite's R2 case against
+      that ledger.
+    evidence:
+      - "examples/validation/ab/FEATURE.md:19,44"
+      - "examples/validation/ab/tests/test_behavior.py:261-262"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_Z/NOTES.md:108-113"
+      - "specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03N-N-p1/scorecard.json"
+    why_out_of_scope: >-
+      `FEATURE.md` and `test_behavior.py` are the SEALED, UNCHANGED fixture that
+      makes six trees across three rounds comparable. Editing either re-bases
+      every published figure. RD-03 fixes nothing.
+    suggested_fix: >-
+      Owner's call, and it is a fixture decision rather than a code one. Either
+      `FEATURE.md` states the type contract on `amount` and on tenant names, or
+      it states that it deliberately leaves them free -- and if it leaves them
+      free, the shared suite's R2 case must not parse with `int()`, because a
+      check that RAISES on legal input is a control that cannot report.
+    blast_radius: >-
+      All six RD-06 subjects and every earlier arm of this example. It changes no
+      score: no judge scored it, and two credited the DISCLOSURE of it under D5.
+    disposition: open
+
+  - id: RD-03-DF-08
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["scripts/code_complexity.py"]
+    summary: >-
+      THE COMPLEXITY DESCRIPTOR CANNOT SEE THE ONLY SIMPLIFICATION THIS ROUND
+      MEASURED, AND EIGHT BLIND JUDGES SAID SO INDEPENDENTLY.
+
+      On `Z` -> `M`, NINETEEN OF TWENTY-ONE measured axes are byte-identical:
+      `branch_points` 11/11, `callables` 14/14, `classes` 5/5, `public_surface`
+      15/15, `max_depth` 1/1, `state_colocation` 1.0/1.0. Only `code_lines`
+      (158->156) and `total_lines` (223->222) move, and those two lines ARE the
+      deleted field declarations. `instance_state` -- the one axis whose name
+      describes exactly what was removed -- reads 4 on both trees, because it
+      counts `self.*` attributes on the class and DOES NOT COUNT DATACLASS
+      FIELDS, which is what shrank.
+
+      On `N` -> `D`, a column moves the WRONG WAY: `branch_points` 26 -> 27,
+      because the derivation that replaced the stored duplicate adds a filtered
+      comprehension.
+
+      Eight judges wrote some form of the same sentence: scored on the descriptor
+      alone, the answer is that no simplification occurred. All eight scored the
+      artifacts instead, under rule 1, and all eight recorded the disagreement --
+      which is what the mechanical block exists for, firing on the PRODUCT for
+      the first time in this project rather than on the toolchain.
+
+      NO AXIS COUNTS STORED-VERSUS-DERIVED DUPLICATION, which is the only kind of
+      simplification either revision made.
+    reproduction: >-
+      Read `specs/results/scorecards/reading-discipline/GOAL-product-round/RD-06/complexity-artifact_Z.json`
+      against `complexity-artifact_M.json`, and `complexity-artifact_N.json`
+      against `complexity-artifact_D.json`.
+    evidence:
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-06/complexity-artifact_{Z,M,N,D}.json"
+      - "specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03M-M-p1/scorecard.json (D2 rationale)"
+      - "specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03M-M-p2/scorecard.json (D2 rationale)"
+      - "specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03D-D-p2/scorecard.json (D2 rationale)"
+    why_out_of_scope: >-
+      `scripts/code_complexity.py` is not in RD-03's `implementation_scope`
+      (`specs/results/scorecards/`, `NEXT-EPIC.md`) and this is a measurement
+      ticket.
+    suggested_fix: >-
+      DO NOT add an axis in order to make this round's revisions score better --
+      that is `MF-020` in its purest form and it would be tuning the thermometer
+      to the result. If an axis is added it needs its own demonstrated failing
+      input and a seeded case where it moves the WRONG way. The alternative,
+      which costs nothing, is to state the blind spot beside the instrument:
+      the descriptor measures SHAPE and does not measure whether two stored
+      things must agree.
+    blast_radius: >-
+      Every D2 judgement in this repository that leaned on the descriptor. It
+      does not invalidate any score -- rule 7 forbids scoring the block -- but it
+      is the reason a judge who followed the numbers would have reached the
+      opposite verdict on two of three pairs.
+    disposition: open
+
+  - id: RD-03-DF-09
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md"]
+    summary: >-
+      D2 ANCHOR 3 PAYS FOR MOTION. Reached independently by three blind judges,
+      one of whom asked to have it recorded loudest.
+
+      Anchor 3 reads "2, and a simplification was made and its effect measured".
+      `artifact_F` was asked to simplify, worked through TEN candidate
+      over-engineering patterns, found each to be carrying a distinction the
+      behaviour makes, and changed nothing -- and every judge verified that
+      account by diffing rather than believing it, several by execution. All four
+      scored it 2.
+
+      In one judge's words: "the correct decision scores 2, and an author who had
+      deleted the redundant sort purely to have something to report would have
+      scored 3."
+
+      TWO JUDGES INDEPENDENTLY REJECTED THE OBVIOUS REPAIR, and their reason is
+      why this is filed rather than proposed: crediting the deliberation would
+      make anchor 3 UNFALSIFIABLE -- any artifact could reach it by writing a
+      document arguing it is already optimal, which is the "perfect score by
+      asserting more" failure that scoring rule 3 exists to block.
+
+      A RELATED READING, from a fourth judge: under a literal reading of anchor 0
+      ("complexity is unmeasured"), NO SUBJECT IN THIS EVAL MEASURES ITS OWN
+      COMPLEXITY, so that reading scores every artifact 0 forever.
+    reproduction: >-
+      Read the four `F` cards' D2 rationales under
+      specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03F-F-p*/
+      beside `artifact_F/REVISION-NOTES.md`.
+    evidence:
+      - "references/eval_scorecard.md (D2 anchors)"
+      - "specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03F-F-p1/scorecard.json"
+      - "specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03F-F-p2/scorecard.json"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_F/REVISION-NOTES.md"
+    why_out_of_scope: >-
+      CHANGING THE CARD IS NOT A MEASUREMENT TICKET'S ACT. `references/` is
+      outside RD-03's `implementation_scope`, and the card's own change rule
+      requires a `scorecard_version` bump, the old anchors kept, and a re-score
+      of a prior example under BOTH versions so the discontinuity is measured
+      rather than assumed. Doing that inside the round that discovered the
+      problem would also mean editing the bar after seeing the scores.
+    suggested_fix: >-
+      Owner's call, and the two obvious repairs are both worse than the defect.
+      Crediting deliberation makes the anchor unfalsifiable (above). Adding a
+      size threshold makes it a metric, and `MF-020` applies. A third option
+      that costs a version bump: split the anchor's two clauses so a card can
+      record "measured, and the measured answer was that no change was
+      warranted" as a distinct outcome from "did not measure".
+    blast_radius: >-
+      Every D2 score of 2 in the record that was scored on a subject with a
+      before. Until this round there were none, which is why this could not have
+      been found earlier.
+    disposition: open
+
+  - id: RD-03-DF-10
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      `scaffold` REFUSES ITS OWN DOCUMENTED MULTI-SUBJECT WORKFLOW. `--subject`'s
+      help text says that a program which is one thing wrapping another
+      "declares SEVERAL scoped subjects and scaffolds one card per subject" --
+      and `--subject` is singular, so that requires one `scaffold` call per
+      subject into the same epic directory. The SECOND such call always fails:
+      `UNBLINDING.md` is in the planned path list, it already exists, and the
+      collision check refuses the WHOLE BATCH on it alone.
+
+      The refusal is deliberate and its reasoning is sound for the case it was
+      written for -- "fresh random labels would otherwise write new card
+      directories beside a measurement and silently orphan its key". It does not
+      distinguish that case from a second subject scaffolded under EXPLICIT
+      `--labels`, where no key is orphaned because no label is drawn.
+
+      RD-03 scaffolded six subjects by renaming `UNBLINDING.md` to
+      `UNBLINDING-rd03-<label>.md` between calls, which is the escape the tool's
+      own error message names ("move or rename the existing run"). It works and
+      it is hand-sequencing, which is the class `FI-06-DF-11(c)` is already open
+      on.
+    reproduction: >-
+      python3 examples/validation/scorecards/score_tools.py scaffold <epic-dir>
+      --example E --arms a --labels A --subject s1 --run-tag t1     # ok
+      python3 examples/validation/scorecards/score_tools.py scaffold <epic-dir>
+      --example E --arms b --labels B --subject s2 --run-tag t2     # REFUSED on UNBLINDING.md
+    evidence:
+      - "examples/validation/scorecards/score_tools.py (cmd_scaffold, key_path collision check)"
+      - "specs/results/scorecards/reading-discipline/UNBLINDING-rd03-*.md (six files, one per subject)"
+    why_out_of_scope: >-
+      `examples/validation/scorecards/score_tools.py` is not in RD-03's
+      `implementation_scope` and this is a measurement ticket.
+    suggested_fix: >-
+      DO NOT weaken the collision check. The narrow repair is to append to
+      `UNBLINDING.md` rather than write it, or to key it per `--run-tag`, so that
+      a second subject in the same epic directory does not orphan or overwrite
+      the first key. Either way the property that must survive is the one the
+      current refusal protects: a key file and the cards it maps must never drift
+      apart.
+    blast_radius: >-
+      Any round scoring more than one declared subject in one epic directory.
+      RD-03 is the first; every prior round scored one subject or used arms
+      within a single call.
+    disposition: open
+
+  - id: RD-03-DF-11
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py", "references/eval_scorecard.md"]
+    summary: >-
+      THE SWEEP COUNT IS A JOINT PROPERTY OF THE RECORD AND THE CARD POPULATION,
+      AND NOBODY HAD SAID SO. `GOAL-scope-loss-catchable`'s metric is "the count
+      of existing claims the new checks refute", and it has been reported three
+      times as though it described the documents.
+
+      Filling this round's 24 cards moved TWENTY-TWO figures from `COUNT-MOVED`
+      or `HOLDS` to `REFUTED` WITHOUT ONE CHARACTER OF ANY SWEPT DOCUMENT
+      CHANGING. Before the cards were filled: 62 counted figures, 27 REFUTED,
+      11 COUNT-MOVED, 11 HOLDS, 13 UNREACHABLE. After: 53 REFUTED, 0 COUNT-MOVED,
+      0 HOLDS.
+
+      The load-bearing casualty is `RD-01`'s OWN CONTROL. RD-01 rested the
+      instrument's validity on `sm04-d2-thirty-one-of-thirty-one` -- the
+      correctly-scoped twin of the refuted claim -- surviving where the unscoped
+      one did not: "if naming the example did not change the verdict, this would
+      be a check about wording rather than about scope." Every correctly-scoped
+      `D2 = 2 on N of N cards of ab_quota_ledger` is NOW REFUTED TOO, because
+      this round's cards read 3 and 4 on that example. The control did not fail;
+      the world moved under it.
+
+      SECOND, AND SEPARATE: `D1` IS STRUCTURALLY CAPPED AT 3 AND `D4` AT 2 FOR
+      EVERY ARM OF `ab_quota_ledger`. Ten of twelve judges reported independently
+      that no model exists anywhere in any tree -- no TLA+, no generated corpus,
+      no strategy -- and both anchors gate on "model-derived rather than
+      hand-written". FOUR ROUNDS HAVE COMPARED D1 ACROSS THIS EXAMPLE'S ARMS
+      WITHOUT THE CEILING EVER BEING STATED, and the example therefore cannot
+      answer `GOAL-product-round`'s first question at all.
+    reproduction: >-
+      python3 examples/validation/scorecards/score_tools.py scope
+      at this tip, against `analysis/scope-pre-fill.txt` in the same directory,
+      which was produced from the identical documents before the cards were
+      filled.
+    evidence:
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/analysis/scope-pre-fill.txt"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/analysis/scope-post-fill.txt"
+      - "specs/results/scorecards/reading-discipline/GOAL-scope-loss-catchable/RD-01.md section 3"
+      - "specs/results/scorecards/INSTRUMENT-LOG.toml (sm04-d2-thirty-one-of-thirty-one)"
+    why_out_of_scope: >-
+      Nothing in the record was edited to clear any of it. `scope` still exits 1
+      over this repository and is expected to.
+    suggested_fix: >-
+      Every published sweep count should carry the CARD POPULATION IT WAS TAKEN
+      AT, the way every card carries the commit it was scored at. A count of
+      refuted claims with no population beside it is itself an unscoped figure,
+      which is the defect the instrument exists to catch, in the instrument's own
+      headline. For the D1/D4 ceiling: state it wherever this example's D1 is
+      compared, or measure the example with a model-derived instrument so the
+      anchor is reachable.
+    blast_radius: >-
+      RD-01's `19 of 44`, RD-04's `26 of 58`, and this round's two figures are
+      four different numbers about four different populations. None is wrong;
+      none is comparable to another without its population.
+    disposition: open
+
+  - id: RD-03-DF-12
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/INSTRUMENT-LOG.toml", "examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      THE `effect_boundary` DEMONSTRATION ROW IS STALE ON ITS FIRST OUTSIDE DATA,
+      AND THE SAME-TAG CONTROL FIRES NINE TIMES ON A DIMENSION THE TAG DOES NOT
+      GOVERN.
+
+      (a) `audit` reports a VIOLATION: the `[[demonstration]]` declares
+      `effectful [1, 2]` and the cards now give `[0, 2]`. THIS IS THE
+      RE-DERIVATION CLAUSE WORKING -- RD-05 built it precisely so a declared row
+      could not drift from the cards -- and it is reported here rather than
+      updated, because updating a predecessor's figure so it matches a
+      successor's cards is how a number stops carrying the scope it was true at.
+      The separation itself SURVIVES: `[0, 2]` and `[4, 4]` are still disjoint,
+      in `opus` and in `sonnet` taken separately.
+
+      (b) The same-tag control now reports 81 holds and NINE FAILURES. Eight are
+      on D2 and every one has the same shape: a BEFORE tree scoring `[2, 2]`
+      against an AFTER tree scoring `[3, 4]`, both carrying the derived value
+      `effectful`. The ninth is D5 between `E` and `F`, which are BYTE-IDENTICAL
+      TREES.
+
+      THE CONTROL CANNOT DISTINGUISH "DIFFERENT ARCHITECTURE" FROM "DIFFERENT
+      TREATMENT". It is keyed on the architecture value, and what actually moved
+      is whether the subject had a before. This round is the first time it has
+      had a within-value treatment difference to see, and it read that difference
+      as a control failure. A control that fires on ANY within-value
+      heterogeneity cannot support the deletion rule it exists to protect.
+    reproduction: >-
+      python3 examples/validation/scorecards/score_tools.py tags
+      python3 examples/validation/scorecards/score_tools.py audit    # 1 violation
+    evidence:
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/analysis/tags.txt"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/analysis/audit.txt"
+      - "references/architecture_tags.md"
+    why_out_of_scope: >-
+      RD-03 is a measurement ticket. Updating the demonstration row would be
+      editing a target to match a result, in the one file whose whole purpose is
+      to hold a figure that cannot drift.
+    suggested_fix: >-
+      For (a) the row needs re-deriving BY THE TICKET THAT OWNS THE AXIS, with
+      the superseded range recorded beside it, not erased. For (b): the control
+      needs a second key. A same-tag pair is only a control if the two subjects
+      are alike in the thing being varied, and "had a before" is now a known
+      varying factor that the subject declaration does not record.
+    blast_radius: >-
+      One demonstration row and the whole earn-its-place mechanism. The
+      separation the axis rests on is unaffected and now measured in two tiers.
+    disposition: open
+
+  - id: RD-03-DF-13
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/subtract-to-measure-sm05/RESULT.md"]
+    summary: >-
+      THE `0.60 FINDINGS PER 100k` BASELINE DOES NOT RECORD ITS TOKEN BASIS, SO
+      NO ROUND CAN BE COMPARED TO IT WITHOUT ASSUMING ONE.
+
+      `SM-05` reports "Subagent token spend, this ticket: 1,162,275 tokens across
+      eight judges" and prints a per-judge column. It never says what a token is
+      counted as -- input, output, cache creation, cache reads, or some sum --
+      and those differ by more than an order of magnitude on the same run.
+      RD-03's own thirteen subagents report 4,958,128 tokens by one basis and
+      1,643,036 by another; both are true and only one is comparable.
+
+      `R-H1` requires an unchanged instrument for a comparison, and here the
+      instrument is undocumented at ONE END, which cannot be repaired from this
+      end. RD-03 states its basis explicitly and matches the per-judge magnitude
+      of `SM-05`'s column, which is evidence for the choice and not proof of it.
+    reproduction: >-
+      Read `specs/results/scorecards/subtract-to-measure-sm05/RESULT.md` section 6.
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure-sm05/RESULT.md:330-345"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/RESULT.md section 4.2"
+    why_out_of_scope: "A sealed result is never edited (R-H4)."
+    suggested_fix: >-
+      Any future round reporting a per-token ratio names the basis in the same
+      sentence as the number. A ratio whose denominator is undefined is the same
+      shape of claim as a count whose population is undefined, which is
+      `RD-03-DF-11`.
+    blast_radius: "Every cross-round cost comparison, in both directions."
+    disposition: open
+
+  - id: RD-03-DF-14
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md"]
+    summary: >-
+      A TIER SPLIT ON D2 -- THE DIMENSION THE RECORD SAYS HOLDS STILL. On
+      `artifact_M`: `opus` [4, 4] against `sonnet` [3, 3], DISJOINT.
+
+      `RD-01` section 6 records the three known splits (D3, D4, D5) and says in
+      terms: "D2 is not on this list: on the same four toolchain cards the two
+      tiers overlap, exactly as the epic said."
+      `references/eval_scorecard.md`'s own reading rule under `R-H5` calls D2 and
+      D3 "the dimensions that have held still on unchanged input" and advises
+      that a cross-epic claim is safest on those. `ports-as-adapters` rests its
+      headline on that advice.
+
+      THE MECHANISM IS VISIBLE AND IT IS NOT ABOUT COMPLEXITY. D2's anchor 4
+      gates on D4 >= 3; D4's anchor 3 gates on the check being "model-derived".
+      Both `opus` judges counted the tree's generated random walk as a corpus and
+      reached D4 = 4, unlocking D2 = 4. Both `sonnet` judges read the clause
+      strictly, found no model, capped D4 at 2, and were blocked at D2 = 3. THE
+      D2 SPLIT IS DOWNSTREAM OF A D4 SPLIT, AND THE D4 SPLIT IS A DISAGREEMENT
+      ABOUT WHAT AN ANCHOR MEANS -- the same class `R-H5` identified as judging
+      practice, which version 2 was written to RECORD rather than remove.
+      Recording it did not remove it. The identical D4 split appears on three
+      further subjects (`Z`, `N`, `D`).
+
+      D2 IS NOW A TIERED DIMENSION AND EVERY CLAIM ABOUT ITS STABILITY MUST NAME
+      THE TIER.
+    reproduction: >-
+      python3 examples/validation/scorecards/score_tools.py contested --example ab_quota_ledger
+    evidence:
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/analysis/contested.txt"
+      - "specs/results/scorecards/INSTRUMENT-LOG.toml (rd03-artifact-M-d4-spread-2)"
+      - "specs/results/scorecards/reading-discipline/GOAL-scope-loss-catchable/RD-01.md section 6"
+    why_out_of_scope: >-
+      `references/eval_scorecard.md` is outside RD-03's `implementation_scope`,
+      and changing the card requires a version bump and a re-score under both
+      versions.
+    suggested_fix: >-
+      The cheap and correct repair is to D4's anchor 3, not to D2: "model-derived
+      (a corpus, a TLC invariant)" is being read as a definition by one tier and
+      as an illustration by the other. Say which, with an example of something
+      that is NOT model-derived. Do not repair it by removing the parenthetical;
+      that makes the anchor unfalsifiable.
+    blast_radius: >-
+      Every cross-epic D2 claim, including `ports-as-adapters`' headline
+      methodology note. All prior D2 evidence is single-tier except
+      `subtract-to-measure`'s, where the two tiers happened to agree.
+    disposition: open
+
+  - id: RD-03-DF-15
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      A DISJOINT TIER SPLIT CAN SIT ENTIRELY INSIDE THE `contested` THRESHOLD, SO
+      THE TWO INSTRUMENTS HAVE A GAP BETWEEN THEM.
+
+      `artifact_M`'s D2 reads 4, 4, 3, 3. The spread is 1, so scoring rule 5
+      never fires and `contested` reports nothing. The tiers do not overlap at
+      all: `opus` [4, 4] against `sonnet` [3, 3]. `TIER-SPLIT` catches it and
+      `CONTESTED` does not, and the two are reported as separate lines with no
+      statement anywhere that one can fire without the other.
+
+      This is the FIRST D2 tier split in the record (`RD-03-DF-14`) and it is
+      invisible to the instrument that rule 5 is about. A reader checking "was
+      any dimension contested this round" gets a list that does not contain the
+      round's most consequential disagreement.
+    reproduction: >-
+      python3 examples/validation/scorecards/score_tools.py contested --example ab_quota_ledger
+      -- read arm M: a TIER-SPLIT line on D2 and no CONTESTED line on D2.
+    evidence:
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/analysis/contested.txt"
+    why_out_of_scope: "Measurement ticket; the instrument is not in scope."
+    suggested_fix: >-
+      DO NOT lower the contested threshold -- a spread of 1 between two judges is
+      ordinary and calling it contested would fire on most of the record. The
+      honest repair is a sentence in the rubric saying the two flags are
+      independent and that a tier split is not a subset of contested, plus a
+      count of tier splits printed beside the count of contested dimensions in
+      the summary line, which today prints only the latter.
+    blast_radius: "Every round that dispatches two tiers -- two so far."
+    disposition: open
+
+  - id: RD-03-DF-16
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_score_tools.py", "specs/results/scorecards/HISTORY-ab_quota_ledger.md"]
+    summary: >-
+      THE TREE CANNOT BE GREEN WHILE A MEASUREMENT IS IN PROGRESS, AND THIS IS
+      THE SUITE'S ONLY FINDING IN SEVEN ROUNDS.
+
+      `tests/test_score_tools.py::test_the_committed_history_rendering_is_current`
+      regenerates `HISTORY-ab_quota_ledger.md` and compares it to the committed
+      copy. Scaffolding 24 UNFILLED skeletons -- which carry no measurement, no
+      commit and no scores -- makes the committed rendering stale, because the
+      regenerated one grows a "Scaffolded, not yet measured" section. The suite
+      goes red on a round that has not measured anything yet.
+
+      The test is CORRECT and its docstring states the right principle: "a
+      committed rendering that nothing regenerates is the same class of stale
+      artifact this ticket is about." The defect is the interaction: a round must
+      either commit its skeletons and go red, or scaffold and fill in one
+      unbroken step, or regenerate a rendering in the middle of its own
+      measurement.
+
+      RD-03 LEFT IT RED. Regenerating would turn a red green during a
+      measurement, and this ticket fixes nothing.
+    reproduction: >-
+      uv run --with pytest --with pyyaml python -m pytest
+      tests/test_score_tools.py::test_the_committed_history_rendering_is_current -q
+      at this tip.
+    evidence:
+      - "tests/test_score_tools.py:1449"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/analysis/suite-rd03-ticket-worktree.txt"
+    why_out_of_scope: >-
+      Repairing it means regenerating a committed artifact during a measurement,
+      which is the one thing a `role: evaluation` ticket may not do.
+    suggested_fix: >-
+      Regenerate `HISTORY-ab_quota_ledger.md` in the ticket that promotes this
+      round -- it is a mechanical `score_tools.py history --write`. The
+      generalisable repair is for the rendering to be produced at close rather
+      than committed mid-round, or for the test to ignore the
+      "Scaffolded, not yet measured" section, which by construction describes
+      cards that carry no measurement.
+    blast_radius: "One test, and every future round between scaffold and fill."
+    disposition: open
+
+  - id: RD-03-DF-17
+    found_by: "RD-03"
+    found_at_commit: "f52be89"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py", "references/eval_scorecard.md"]
+    summary: >-
+      TWELVE INDEPENDENT BLIND JUDGES ALL WROTE CITATIONS THE SCHEMA CHECK
+      REJECTS, AND NOTHING THEY WERE SERVED TOLD THEM THE FORMAT WAS MACHINE
+      CHECKED.
+
+      `check --require-filled` over this round reports 180 problems across 24
+      cards. ALL 180 ARE THE SAME CAUSE and ZERO are substantive: every card is
+      otherwise valid -- `judging_practice` filled, `refuses_to_claim` present on
+      every 4, `anchor_reading` present on every D5 of 3 or 4, tier derived and
+      consistent, subject scope unmoved, no `total`.
+
+      The cause: the checker accepts only bare `file:line` or `file:line-line`,
+      and every judge wrote annotated citations --
+      `path/to/file.py:164 (the outstanding counter incremented at three sites)`.
+      Served scoring rule 2 says "Every score >= 2 cites `file:line`. A score
+      with no citation is capped at 1, mechanically, by the schema check." A
+      judge reading that has been told the citation is checked and has NOT been
+      told that a parenthetical invalidates it.
+
+      TWELVE OF TWELVE, at two tiers, with no communication between them. That is
+      not twelve mistakes; it is the served card failing to state a machine
+      requirement.
+
+      THE CARDS WERE NOT NORMALISED. Stripping the annotations would edit twelve
+      judges' measurements to satisfy a checker, and the annotations are the most
+      useful part of several citations.
+    reproduction: >-
+      python3 examples/validation/scorecards/score_tools.py check
+      specs/results/scorecards/reading-discipline --require-filled
+      -- 24 checked, 24 filled, 0 unfilled, 180 problems, every one
+      "is not file:line or file:line-line".
+    evidence:
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/analysis/check.txt"
+      - "references/eval_scorecard.md (scoring rule 2)"
+      - "examples/validation/scorecards/score_tools.py (citation grammar)"
+    why_out_of_scope: >-
+      Two repairs were available and both are refused. Normalising the cards
+      edits a measurement. Loosening the grammar is a change to an instrument
+      from a measurement ticket, and it would be made by the party the checker
+      just refused.
+    suggested_fix: >-
+      Owner's call. Either the served card states the grammar -- "a citation is
+      `file:line` or `file:line-line` and nothing else; put your reasoning in the
+      rationale" -- or the grammar accepts a trailing annotation, which is what
+      every judge assumed. What must NOT happen is that a round normalises its
+      own cards to clear the count, because the check exists to catch a citation
+      that does not resolve and this one cannot tell the two apart.
+    blast_radius: >-
+      All 24 cards of this round. NOTHING ENFORCES `--require-filled` in this
+      repository -- no test and no close path invokes it -- so the suite is
+      unaffected and the cards are readable; the checker is simply not being run
+      where the card says it is.
+    disposition: open
+
+  - id: RD-03-DF-18
+    found_by: "RD-03"
+    found_at_commit: "e9790e3"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py"]
+    summary: >-
+      PRODUCT SURFACE, ALL SIX TREES, AND IT BREAKS A LITERAL `FEATURE.md`
+      GUARANTEE. `FEATURE.md` says `commit` and `close_tenant` each append
+      "EXACTLY ONE LINE". A tenant name containing any character
+      `str.splitlines()` treats as a break makes ONE ACCEPTED COMMAND PRODUCE
+      TWO ENTRIES in `ledger_lines()`, and R2's per-line parse
+      (`int(line.split()[2])`) stops working on the fragments.
+
+      `QuotaLedger({"ac\nme": 9}, p)` then
+      `commit(reserve("ac\nme", 2).reservation_id)` yields
+      `['COMMIT ac', 'me 2 2']` with `committed() == 2`.
+
+      FOUR OF THE SIX TREES DISCLOSE THE *SPACE* CASE as an ambiguity in a tenant
+      name. A space does not break the line count. NONE OF THE SIX DISCLOSES
+      THIS, and no test in any tree or in the shared suite passes a tenant name
+      containing a line break.
+
+      Six of six is the point: this is not an arm effect and not a model effect.
+      It is a gap every implementation inherited from a spec that names the
+      guarantee and never says what a tenant name may contain.
+    reproduction: >-
+      python3 specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/harness/newline_tenant.py
+    evidence:
+      - "examples/validation/ab/FEATURE.md (commit / close_tenant: 'appends exactly one line')"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_Z/quota_ledger.py:141,177,202"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_N/quota_ledger.py:90,124-127,151"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/quota_ledger/domain.py:136,153"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/harness/newline_tenant.py"
+    why_out_of_scope: "A sealed subject is never edited; RD-03 fixes nothing."
+    suggested_fix: >-
+      This is a FIXTURE decision, not six code fixes. `FEATURE.md` either
+      constrains the tenant-name alphabet or states that the durable format is
+      undefined for names containing whitespace -- and if it states the latter,
+      the R2 assertion in the shared suite must stop parsing positionally. Same
+      class as `RD-03-DF-07` (non-integer amounts): a guarantee stated on the
+      durable format with no constraint stated on its inputs.
+    blast_radius: "All six RD-06 subjects and every earlier arm of this example."
+    disposition: open
+
+  - id: RD-03-DF-19
+    found_by: "RD-03"
+    found_at_commit: "e9790e3"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/reading-discipline/blind/artifact_E/quota_ledger/memory_journal.py"]
+    summary: >-
+      PRODUCT SURFACE. THE FAKE DOES NOT SATISFY THE PORT CONTRACT ITS OWN DOMAIN
+      DECLARES -- on the one pair of trees whose D3 = 4 rests on a real/fake
+      swap.
+
+      `artifact_E/quota_ledger/domain.py:26-27` declares that `lines()` returns
+      "Every line appended, in the order appended, NONE OF THEM BLANK."
+      `file_journal.py:25` filters blanks. `memory_journal.py:19-20` DOES NOT.
+
+      real -> `['COMMIT a 1 1', 'CLOSE a 1']`
+      fake -> `['COMMIT a 1 1', '', 'CLOSE a 1']`
+
+      The two adapters do not implement the same contract, and the contract is
+      written down four lines from the port. NOTE THE INTERACTION WITH
+      `RD-03-DF-03`: the blank-line filter in the real adapter is DEAD CODE
+      defended by a false comment, and it is simultaneously the ONLY thing making
+      the real adapter satisfy a clause the fake violates. Removing it -- which
+      `RD-03-DF-03` shows is safe by every test -- would make the real adapter
+      violate its own port's docstring too.
+    reproduction: >-
+      python3 specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/harness/adapter_contract_check.py
+    evidence:
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/quota_ledger/domain.py:26-27"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/quota_ledger/file_journal.py:25"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/quota_ledger/memory_journal.py:19-20"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/harness/adapter_contract_check.py"
+    why_out_of_scope: "A sealed subject is never edited."
+    suggested_fix: >-
+      None in the artifact. The transferable observation: a parity suite that
+      runs the same cases against two adapters proves they AGREE on the cases it
+      runs; it does not prove either satisfies the port's declared contract. The
+      contract is prose in a docstring and nothing executes it.
+    blast_radius: >-
+      Two of six subjects, and it is the pair carrying D3 = 4 on 8 of 8 cards.
+      It does not move that score -- the swap is real and was verified at runtime
+      by every judge of the pair -- but it narrows what the swap demonstrates.
+    disposition: open
+
+  - id: RD-03-DF-20
+    found_by: "RD-03"
+    found_at_commit: "e9790e3"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/reading-discipline/blind/artifact_E/NOTES.md", "specs/results/scorecards/reading-discipline/blind/artifact_E/tests/test_journal_parity.py"]
+    summary: >-
+      PRODUCT SURFACE, AND IT IS THE BEST FINDING OF THE ROUND. THE TWO ADAPTERS
+      DISAGREE THROUGH THE DOMAIN, THE PARITY SUITE'S STATED PREMISE IS FALSE,
+      AND THE FAULT CLASS IS PRESENT IN THE SHIPPED CODE UNSEEDED.
+
+      `artifact_E/NOTES.md:48-51` says of the parity case list: "NO CASE IN THAT
+      LIST CAN BE WRITTEN FOR ONLY ONE OF THE JOURNALS." Run the same domain
+      commands over each adapter with a tenant name containing a line break:
+
+        real -> ['COMMIT ac', 'me 2 2', 'CLOSE ac', 'me 2']
+        fake -> ['COMMIT ac\nme 2 2', 'CLOSE ac\nme 2']
+
+      A case that distinguishes them exists, and the premise the parity suite
+      rests on is false.
+
+      WHAT MAKES IT THE BEST FINDING: this is exactly the `PA-M13` fault class --
+      "the fake drifts from the real on write" -- PRESENT IN THE SHIPPED CODE,
+      UNSEEDED, on the one tree pair whose own suite KILLS `PA-M13` when it IS
+      seeded. The suite catches the injected version of a fault it does not catch
+      in the code it ships beside.
+    reproduction: >-
+      python3 specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/harness/fake_drift.py
+    evidence:
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/NOTES.md:48-51"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/tests/test_journal_parity.py"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/harness/fake_drift.py"
+      - "examples/validation/ab/seeded_faults.toml (PA-M13-fake-drifts-from-real-on-write)"
+    why_out_of_scope: "A sealed subject is never edited."
+    suggested_fix: >-
+      None in the artifact. The transferable observation is about EVAL DESIGN and
+      it is large: a seeded-fault catalogue measures whether an instrument
+      catches an INJECTED instance of a class. It says nothing about whether the
+      same instrument catches a NATURALLY OCCURRING instance of that class in the
+      code under it. Here the same suite does the first and not the second, and
+      no round has ever checked for the second.
+    blast_radius: >-
+      Two of six subjects directly. The eval-design observation applies to every
+      kill table this project has published.
+    disposition: open
+
+  - id: RD-03-DF-21
+    found_by: "RD-03"
+    found_at_commit: "e9790e3"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/reading-discipline/blind/artifact_E/tests/test_ledger.py"]
+    summary: >-
+      PRODUCT SURFACE. `artifact_E` and `artifact_F`'s own 39-test suites NEVER
+      ASSERT THE STATUS OF AN ACCEPTED `release`. Mutant `M06` -- release applies
+      its full effect and then returns `rejected/unknown_reservation`, inverting
+      R4 -- SURVIVES both trees' own suites.
+
+      IT IS THE ONLY `own-tests` SURVIVOR ANYWHERE IN THE SEVEN-INSTRUMENT,
+      SIX-TREE TABLE: 77 of 79 measured cells were killed by the tree's own
+      tests, and both survivors are this mutant on this pair. The SHARED suite
+      catches it, so this is a gap in the tree's tests and not in its code -- and
+      it is the one cell in the round where the shared contract outperforms an
+      artifact's own suite.
+    reproduction: >-
+      See `specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/results/artifact_E.json`,
+      `per_mutant.M06`, and `probe/COMMANDS.md` for the exact invocation.
+    evidence:
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/tests/test_ledger.py:29-30,98,101-103"
+      - "specs/results/scorecards/reading-discipline/blind/artifact_E/tests/test_journal_parity.py:50-51,74"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/results/MERGED-TABLE.json"
+    why_out_of_scope: "A sealed subject is never edited."
+    suggested_fix: >-
+      None in the artifact. Worth recording that the pair scoring D3 = 4 on 8 of
+      8 cards is also the pair with the round's only own-tests survivor: a strong
+      boundary and a gap in the cases behind it are independent properties, and
+      the card measures them on different dimensions for that reason.
+    blast_radius: "Two of six subjects, one mutant."
+    disposition: open
+
+  - id: RD-03-DF-22
+    found_by: "RD-03"
+    found_at_commit: "e9790e3"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/seeded_faults.toml", "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/"]
+    summary: >-
+      THE CATALOGUE'S MUTANTS ARE TOO BLATANT FOR THESE SUBJECTS, SO THE EFFECTFUL
+      HALF OF THE TABLE CARRIES ALMOST NO SIGNAL -- AND THIS IS DISCLOSED BY THE
+      MEASURER AS A PREDICTION THAT PASSED TOO CLEANLY.
+
+      On all four `effectful` trees, BOTH hand-written instruments killed ALL 13
+      measured mutants. A table where every cell reads the same has no resolving
+      power, and no comparison between those four trees can be drawn from it.
+
+      The probe checked this was not a broken harness before reporting it:
+      baselines green on unmutated code everywhere, every one of the 84 measured
+      cells passed a TWO-SIDED semantic witness (False on pristine, True on
+      mutated) before a verdict was recorded, and the corpus columns disagree
+      with each other exactly as the sealed reference run does.
+
+      SECOND, AND IT IS THE SAME SHAPE: the Q3 headline -- 8 INEXPRESSIBLE cells,
+      all on `effectful` trees -- IS NEAR-TAUTOLOGICAL. `PA-M12` and `PA-M13` are
+      DEFINED as mutations of a fake adapter, so counting where they cannot be
+      applied largely restates which trees have a fake. The measurer predicted
+      the result cell-for-cell before running and says so. IT MUST NOT BE READ AS
+      AN EMPIRICAL DISCOVERY.
+
+      The informative cell is the one that was NOT predicted: on `E`/`F`, both
+      mutants are killed by the trees' OWN tests, survive the shared suite, and
+      survive ALL FOUR model-derived instruments. The region behind a port is
+      invisible to every instrument in this epic except a hand-written parity
+      suite somebody chose to write.
+    reproduction: >-
+      specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/results/MERGED-TABLE.json
+      and the per-tree witnesses in probe/results/<tree>.json
+    evidence:
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/results/MERGED-TABLE.json"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/COMMANDS.md"
+      - "examples/validation/ab/seeded_faults.toml"
+    why_out_of_scope: >-
+      RD-03 measures; it does not author faults. Adding subtler mutants during
+      the round that is reading the table would be choosing the instrument after
+      seeing the result.
+    suggested_fix: >-
+      If a future round wants discrimination between implementations of a
+      program this size, it needs faults subtler than this catalogue's. The two
+      that DID discriminate here -- `M06` on `E`/`F`, and the four
+      `PA-M12`/`PA-M13` cells -- both discriminated through a tree's OWN tests,
+      not through any shared or generated instrument. DO NOT respond by deleting
+      the blatant mutants: they are the regression floor. Add subtler ones beside
+      them, each with its own two-sided witness.
+    blast_radius: >-
+      Every kill table this project has published over `ab_quota_ledger`, and the
+      whole `effectful` half of RD-03's own probe.
+    disposition: open
