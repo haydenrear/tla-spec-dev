@@ -1,0 +1,147 @@
+{
+  "scorecard_version": 4,
+  "status": "filled",
+  "epic": "v4",
+  "example": "ab_quota_ledger",
+  "run_id": "20260810-v4-T-p2",
+  "arm": "T",
+  "commit": "90d0667",
+  "judge": {
+    "model": "claude-sonnet-4-5",
+    "tier": "",
+    "pass": 2,
+    "blind_to_arm": true
+  },
+  "subject": {
+    "name": "arm_b",
+    "scope": [
+      "specs/results/scorecards/ports-as-adapters/blind/artifact_T"
+    ],
+    "declared_effect_boundary": "ports-and-adapters",
+    "axis": "effect_boundary"
+  },
+  "rubric": {
+    "source": "references/eval_scorecard.md",
+    "digest": "sha256:1c5f60dab75f9a79",
+    "scoring_rules": [
+      "**Score artifacts, never claims.** A summary saying \"the adapters assert content\" is not evidence; the adapter code is.",
+      "**Every score ≥ 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
+      "**A score at the top of its scale additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.",
+      "**Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.",
+      "**Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.",
+      "**Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.",
+      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree — and a disagreement is a finding.",
+      "**Say what you ran.** *(New in version 2.)* Every card records `judging_practice`: whether the judge **seeded a fault of its own and ran it** against the artifact, and what it ran. Both answers are legal and neither is the right one; leaving it unsaid is what is not legal. From version 4 no anchor is gated on it and it is still required, because what a judge did is a variable in what a judge reports and a variable nothing records is a variable nobody can subtract.",
+      "**A judge is served the card, never the rubric file.** *(New in version 3.)* The scaffolded `scorecard.md` carries the rubric a judge needs. This file carries reading rules and prior results about these dimensions as well, and a judge who reads it is handed conclusions about the instrument they are the instrument for. Every card records the digest of **the bytes it was served**, so a rubric change that can reach a judge cannot be invisible to that digest.",
+      "**Answer every recorded note.** *(New in version 4.)* N-D1, N-D4 and N-D5 take no score and are required on every filled card. An empty note is not a legal card; *\"I could not tell, and here is what I looked at\"* is."
+    ],
+    "served_digest": "sha256:9157db7edd640c79",
+    "file_sha256": "sha256:e11bf75be18b0946"
+  },
+  "how_to_fill": [
+    "Score the LOWEST anchor the artifact fully satisfies. Torn between two: take the lower and say why.",
+    "Set `status` to \"filled\", `commit` to the sha the artifacts were scored at, and name your model in `judge.model`.",
+    "Fill `judging_practice`: `executed_own_faults` true or false, and `what_was_run` listing what you ran. FALSE IS A LEGAL AND USEFUL ANSWER -- it is recorded, never corrected. Delete the `note` key once you have.",
+    "Leave `anchors` as scaffolded. They are read from the rubric so the bar and the score live in one file; editing them here forks the rubric silently, which is the drift this scaffold exists to remove.",
+    "Answer every entry in `notes`. They take NO score -- these three questions were scored for three versions and the numbers were measured not to mean the same thing twice, so what is asked for is prose and citations. 'I could not tell, and here is what I looked at' is a legal note; an empty one is not."
+  ],
+  "dimensions": {
+    "D2": {
+      "name": "complexity",
+      "question": "Is the design as simple as its behavior requires, and no simpler?",
+      "anchors": {
+        "0": "Complexity is unmeasured, or measured and ignored.",
+        "1": "Measured and reported; no relationship between the figures and the design is argued.",
+        "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
+        "3": "2, **and** a simplification was made and its effect measured — the before and after figures are both recorded."
+      },
+      "score": 2,
+      "citations": [
+        "quota_ledger/domain.py:90-104",
+        "quota_ledger/domain.py:118-120",
+        "quota_ledger/domain.py:159",
+        "quota_ledger/domain.py:181",
+        "NOTES.md:70-84",
+        "NOTES.md:57-66",
+        "EVIDENCE.md:325-343"
+      ],
+      "rationale": "State is small and each piece has a named, bounded set of writers, not a god-state written from everywhere: domain.py:90-104's docstring enumerates `_outstanding` (written by reserve/commit/release), `_committed` (commit only) and `_closed` (close_tenant only), and the code at reserve/commit/release/close_tenant matches that claim exactly -- I traced every write site. `available` is derived rather than stored (domain.py:118-120), and NOTES.md:70-84 argues the relationship between that choice and behavior directly: deriving it makes R1 (conservation) true by construction instead of needing three commands to remember to maintain it, and it is why 'commit does not give the hold back' falls out rather than being coded as a special case. NOTES.md:57-66 makes a second explicit complexity-vs-behavior argument: the COMMIT/CLOSE line format stays as two f-strings inside domain.py:159 and domain.py:181 rather than being pushed into a `CommitRecord` type each adapter would render, because the latter would duplicate the same format across both adapters -- an argued reason not to add an abstraction. That satisfies anchor 2: proportional complexity, no god-state, and the design's shape is argued rather than merely asserted. It does not reach anchor 3. Anchor 3 asks for a simplification made TO THIS ARTIFACT with its own before/after figures recorded; nothing in this packet is a diff of T against an earlier version of T. EVIDENCE.md:325-343's mechanical block is a snapshot across three SIBLING artifacts (T/U/W), not a before/after of one design's history, and by the caveat in this rubric ('a drop in a complexity number is not evidence on its own') and rule 7 ('recorded, never scored') I am not reading it as one. If anything, on every raw figure in that block T is the largest of the three (4 modules vs 1, 202 code_lines vs 151/78, 6 classes vs 4/2), which cuts against treating T as a simplification story at all -- the extra size is the second (fake) adapter and the port declaration the ports-and-adapters brief asked for, not a reduction.",
+      "refuses_to_claim": null
+    },
+    "D3": {
+      "name": "modularity",
+      "question": "Is it ports and adapters in fact — domain independent of I/O, adapters swappable?",
+      "anchors": {
+        "0": "No boundary is discernible; state is written from everywhere.",
+        "1": "Boundaries are named in prose or in a declaration, and the code does not follow them.",
+        "2": "The code follows the declared boundaries. Cross-boundary calls go through something identifiable as a port.",
+        "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
+        "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
+      },
+      "score": 4,
+      "citations": [
+        "quota_ledger/domain.py:1-11",
+        "quota_ledger/domain.py:13-16",
+        "quota_ledger/domain.py:22-43",
+        "quota_ledger/file_journal.py:1-31",
+        "quota_ledger/memory_journal.py:1-23",
+        "quota_ledger/__init__.py:13-14",
+        "quota_ledger/__init__.py:37-38",
+        "tests/test_ledger.py:260-270",
+        "tests/test_ledger.py:26-36",
+        "tests/test_ledger.py:77-83",
+        "tests/test_ledger.py:108-114",
+        "NOTES.md:46-51",
+        "NOTES.md:93-97"
+      ],
+      "rationale": "Domain independence is demonstrated at the call-through level, not just import syntax: domain.py:1-11 and domain.py:22-43 declare the `Journal` port in the domain's own vocabulary as a Protocol with a stated contract, and `Ledger` (domain.py) only ever calls `self._journal.append(...)`/`.records()` -- there is no other path by which domain code reaches storage. domain.py:13-16 imports only `__future__`, `dataclasses`, `typing`, and I did not take that on the artifact's word: tests/test_ledger.py:260-270 parses domain.py's own AST and asserts that import set, and I re-ran it myself (below). file_journal.py and memory_journal.py each implement the two-method contract with no import of domain.py or of each other, so nothing is duplicated between them beyond the port shape itself. The swap is named specifically, not gestured at: __init__.py:13-14 states it and __init__.py:37-38 is the one line that would change -- `FileJournal(ledger_path)` to `InMemoryJournal()` -- with NOTES.md:46-51 giving the same claim in prose. That clears anchor 3. Anchor 4 asks for the SAME CASES passing against a real adapter and a fake at runtime, not just that a fake exists: tests/test_ledger.py:26-36 parametrizes one `journal` fixture over `FileJournal`/`InMemoryJournal` and builds `ledger` on top of it, so every behavioral test in the file (e.g. tests/test_ledger.py:77-83, 108-114) runs twice, once per adapter, each asserting a literal expected value rather than merely that the two wirings agree with each other (NOTES.md:93-97 states this design choice explicitly, and it is the right one -- two wirings of a wrong domain would still agree with each other). I ran this suite myself rather than reading the claim: `uv run --with pytest python -m pytest tests/test_ledger.py -q` on a scratch copy gave 53 passed. I then seeded my own fault in domain.py (the quota guard `amount > self.available(tenant)` weakened to `>=`) and reran: 8 of 53 cases failed, and they failed in symmetric file/memory pairs (test_the_quota_can_be_exhausted_and_recovered[file] and [memory] both failed, etc.), which is direct runtime evidence that the same cases exercise both adapters through the same domain code, not that the fixture merely exists. Worth recording as a disagreement per rule 7: EVIDENCE.md:168, the harness's own generated `corpus-port-swap` table (not the artifact's own suite), shows `M09-negative-control-ledger-order` KILLED when bound to the real FileJournal but SURVIVED when bound to the fake InMemoryJournal -- an asymmetry I could not resolve, since the code that generates and binds that corpus is outside this card's declared scope and I was instructed not to read it. EVIDENCE.md's own control-status block marks M09 'decides_nothing: true' for this run, and my own targeted fault-seeding on the artifact's declared suite (not the harness corpus) showed symmetric, not asymmetric, kill behavior, which is the evidence the D3=4 score rests on. I am flagging the discrepancy rather than resolving it.",
+      "refuses_to_claim": "NOTES.md:53-55: 'Nothing else is indirected. There is no port in front of the arithmetic, no repository interface over the reservations dict, no service layer. The reservations live in a dict inside the domain because they are not outside it.' The artifact explicitly declines to claim broader modularity than the one boundary it built and names why the rest is not ported."
+    }
+  },
+  "contested": [],
+  "verdict": "T earns the top of D3 on runtime evidence I reproduced myself (a seeded quota-guard fault killed symmetrically across both the real FileJournal and the fake InMemoryJournal wirings of the same 53-case suite) and a named, working swap point at quota_ledger/__init__.py:37-38, but only a mid-scale D2: the design's complexity is argued and proportional to its behavior (single-writer state, a derived `available`), yet nothing in this packet is a measured before/after simplification of T itself, so anchor 3 is unreached; a reader should also note the unresolved EVIDENCE.md:168 real-vs-fake asymmetry on a control the packet itself calls decision-inert.",
+  "judging_practice": {
+    "executed_own_faults": true,
+    "what_was_run": [
+      "Control run on an unmutated scratch copy of artifact_T: `uv run --with pytest python -m pytest tests/test_ledger.py -q` -> 53 passed, confirming NOTES.md's own count before seeding anything.",
+      "Seeded fault 1 (domain, quota-guard off-by-one): changed quota_ledger/domain.py's `if amount > self.available(tenant):` to `if amount >= self.available(tenant):`, reran the same suite -> 8 of 53 failed, failing in symmetric file/memory pairs (used for the D3 runtime-swap evidence and for N-D1).",
+      "Reverted fault 1 and diffed against the original to confirm a byte-identical revert.",
+      "Seeded fault 2 (file adapter, blank-line filter removed): changed quota_ledger/file_journal.py's `records()` from `[line for line in text.splitlines() if line]` to `text.splitlines()`, reran the same suite -> 53 of 53 passed (fault survived; used for N-D1).",
+      "Reverted fault 2 and diffed against the original to confirm a byte-identical revert."
+    ]
+  },
+  "notes": {
+    "N-D1": {
+      "name": "bug detection",
+      "question": "What did the cases catch, and what class did they demonstrably miss? Name the fault you seeded if you seeded one.",
+      "note": "I seeded two faults myself (see judging_practice). Fault 1, a one-character off-by-one in the quota-exceeded guard (domain.py: `>` to `>=`), was caught hard: 8 of the artifact's own 53 cases failed, in symmetric file/memory pairs, including tests/test_ledger.py:228-235 (test_the_quota_can_be_exhausted_and_recovered) and the interleaving/totals tests. That class -- a guard boundary condition on the domain's own arithmetic -- is well covered. Fault 2, removing the blank-line filter from FileJournal.records() (file_journal.py:34), SURVIVED all 53 cases: no test in tests/test_ledger.py ever causes a blank line to reach that filter, so the class this suite demonstrably misses is defensive/framing logic in the file adapter for inputs the domain never actually produces -- the guard is present in the code (file_journal.py docstring, lines 19-22, claims it is the adapter's job) but its necessity is asserted, not exercised. Separately, EVIDENCE.md's own per-mutant table (lines 71-81) is in scope since it ships inside this artifact directory: the artifact's declared shared `suite` column killed 10 of the 11 listed mutants and let N01 (a negative control that is SUPPOSED to survive) survive, which is consistent with what I found by hand -- strong on the guard/durable-content classes the suite targets, silent on adapter-internal defensive paths the suite never drives."
+      ,
+      "citations": [
+        "tests/test_ledger.py:228-235",
+        "quota_ledger/file_journal.py:33-34",
+        "EVIDENCE.md:71-81"
+      ]
+    },
+    "N-D4": {
+      "name": "behavior preservation",
+      "question": "Which behaviors of the baseline did you enumerate, and is each shown still to hold? If there is no baseline, say so — that is the answer, not a gap in the note.",
+      "note": "There is no baseline for this note in the before/after sense: artifact T is not a revision of a prior version of itself, it is one of three independent implementations built against the same feature brief, so there is no earlier T whose behaviors this T could be checked against. That is the answer, not a gap. If 'baseline' is instead read as the feature specification's required behaviors, I could not independently enumerate them against the spec myself: FEATURE.md and the shared suite at examples/validation/ab/tests/test_behavior.py are both outside this card's declared scope (only artifact_T and my own card directory), so I did not open them. What is in scope is EVIDENCE.md:61-62, which reports that shared suite unchanged and passing 28/28 on artifact T, and NOTES.md:102-123, which names the one place the artifact's author found FEATURE.md's structure and behavior asks in tension (a path-taking constructor versus a domain that must not know paths) and how it was resolved -- behavior wins, via a factory function -- plus NOTES.md:125-145, four explicitly named places the feature was silent (unknown-tenant queries, an existing file at the path, a failed durable write, non-integer amounts) with the interpretation chosen for each. I did not independently verify these resolutions against FEATURE.md; I am reporting what the artifact itself discloses and citing it as such.",
+      "citations": [
+        "EVIDENCE.md:61-62",
+        "NOTES.md:102-123",
+        "NOTES.md:125-145"
+      ]
+    },
+    "N-D5": {
+      "name": "honesty",
+      "question": "Does the artifact refuse rather than falsely certify, and does it name what it cannot see? Point at the refusal, or at its absence.",
+      "note": "Yes, in several concrete places rather than one. NOTES.md:136-141 names a specific correctness gap the author found and did not paper over: 'commit and close_tenant update memory and then append. If the append raised, memory would have moved without a durable record ... This is the one place I can name where R2 is not enforced by construction.' NOTES.md:125-145 lists four unspecified-behavior decisions with the reasoning for each rather than silently picking one and asserting it was required. NOTES.md:149-156 ('Files I did not open') is a direct, checkable disclosure of the boundary of what the author looked at -- it names files by name and states 'I read exactly two files in the repository: FEATURE.md and tests/test_behavior.py' -- which is the same move this note itself is asking for, made by the artifact about itself. The Journal Protocol's contract (domain.py:22-43) is written as a small, complete list of guarantees rather than an open-ended one, which is itself a form of not over-claiming. I found no place where the artifact certifies something my own fault-seeding or reading contradicted -- the one place I found daylight (the blank-line filter in file_journal.py surviving unmutated, see N-D1) is a coverage gap, not a false certification: the artifact never claims that path is tested.",
+      "citations": [
+        "NOTES.md:136-141",
+        "NOTES.md:125-145",
+        "NOTES.md:149-156",
+        "quota_ledger/domain.py:22-43"
+      ]
+    }
+  }
+}

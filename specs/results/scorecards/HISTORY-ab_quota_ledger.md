@@ -239,6 +239,10 @@ THE ANCHORS DID NOT MOVE. `anchors_digest` is sha256:eeccf4576bc6fd85 at version
 | `20260809-rd03Z-Z-p2` | reading-discipline | Z | 2 | 3 | 3 | 2 | 2 | 4 | 3 | `f52be89` | — |
 | `20260809-rd03Z-Z-p3` | reading-discipline | Z | 3 | 3 | 3 | 2 | 1 | 2 | 4 | `f52be89` | — |
 | `20260809-rd03Z-Z-p4` | reading-discipline | Z | 4 | 3 | 3 | 2 | 0 | 2 | 3 | `f52be89` | — |
+| `20260810-v3-T-p1` | portable-substrate | T | 1 | 3 | 3 | 2 | 4 | 2 | 4 | `90d0667` | — |
+| `20260810-v3-T-p2` | portable-substrate | T | 2 | 3 | 4 | 2 | 4 | 3 | 4 | `90d0667` | — |
+| `20260810-v4-T-p1` | portable-substrate | T | 1 | 4 | ? | 2 | 4 | ? | ? | `90d0667` | — |
+| `20260810-v4-T-p2` | portable-substrate | T | 2 | 4 | ? | 2 | 4 | ? | ? | `90d0667` | — |
 
 ## The same artifact, scored twice — declared movements
 

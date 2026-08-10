@@ -1970,7 +1970,7 @@ reason, and anything that measures the registry inherits that risk.
   expect_output = ["UNREGISTERED INSTRUMENTS: 1", "scripts/gap_probe_instrument.py"]
 
     [[instrument.failing.stage]]
-    from = "examples/validation/gap_mutants/run_gap_mutants.py"
+    from = "examples/validation/gap_mutants/altered_score_probe.py"
     to = "scripts/gap_probe_instrument.py"
 
   [instrument.passing]
@@ -1981,7 +1981,7 @@ reason, and anything that measures the registry inherits that risk.
   expect_output = ["Every discovered executable has a row."]
 
     [[instrument.passing.stage]]
-    from = "examples/validation/gap_mutants/run_gap_mutants.py"
+    from = "examples/validation/gap_mutants/altered_score_probe.py"
     to = "scripts/tla_spec_dev.py"
 
   [instrument.blind_spot]
@@ -1989,54 +1989,6 @@ reason, and anything that measures the registry inherits that risk.
   tier = "slow"
   summary = "IT CANNOT SEE A REPO TRIPWIRE THAT IS A PYTEST FILE. The predicate is a `__main__` guard plus a nonzero exit path, and `tests/test_code_complexity.py` and its four siblings have neither -- so the five rows the registry most depends on are exactly the five this check would never have asked for."
   nodes = ["tests/test_instrument_demonstrations.py::test_the_derived_check_cannot_see_a_tripwire_that_is_a_test_file"]
-  expect_exit = 0
-  expect_passed = 1
-
-
-[[instrument]]
-id = "gap-mutant-runner"
-name = "SM-01's gap-mutant runner"
-paths = ["examples/validation/gap_mutants/run_gap_mutants.py"]
-family = "measurement"
-watches = "whether a fault seeded in a mechanism's gap is detected, before and after that mechanism is removed"
-verdict_surface = "exit 1 when a declared mutant could not be APPLIED; per-cell DIES/SURVIVES/INERT/REMOVED in its JSON"
-classification = "demonstrated-can-fail"
-note = """
-Shipped by SM-01 in this epic and unregistered on arrival -- the fifth
-occurrence of `FI-04-DF-04`, and the second by a ticket that was writing about
-the failure while committing it. Registered here by the check that now catches
-it.
-"""
-
-  [instrument.failing]
-  kind = "pytest"
-  tier = "slow"
-  summary = "an anchor that matches twice, an edit that changes nothing, an add_file that would overwrite, and a target that does not exist -- four ways to seed nothing, each of which must REFUSE rather than report a survival"
-  nodes = [
-    "tests/test_gap_mutants.py::test_an_anchor_that_matches_twice_refuses_rather_than_mutating_one",
-    "tests/test_gap_mutants.py::test_an_edit_that_changes_nothing_refuses",
-    "tests/test_gap_mutants.py::test_an_add_file_that_would_overwrite_refuses",
-    "tests/test_gap_mutants.py::test_a_missing_target_refuses_rather_than_reporting_a_survival",
-  ]
-  expect_exit = 0
-  expect_passed = 4
-
-  [instrument.passing]
-  kind = "pytest"
-  tier = "slow"
-  summary = "a real fault that dies with its failing node named, and an apply-then-restore that leaves the tree byte-identical"
-  nodes = [
-    "tests/test_gap_mutants.py::test_a_real_fault_dies_and_the_failing_node_is_named",
-    "tests/test_gap_mutants.py::test_apply_then_restore_leaves_the_tree_byte_identical",
-  ]
-  expect_exit = 0
-  expect_passed = 2
-
-  [instrument.blind_spot]
-  kind = "pytest"
-  tier = "slow"
-  summary = "IT DETECTED ITSELF. Its catalogue-integrity test reads mutant anchors out of whichever tree it runs in, which during a measurement is the MUTATED one, so it fired on every mutant and on two of them was the ONLY new failure -- scoring both DIES where the repository catches neither. Excluded from the verdict and reported per cell, not repaired."
-  nodes = ["tests/test_gap_mutants.py::test_this_runners_own_integrity_test_is_not_counted_as_a_repository_kill"]
   expect_exit = 0
   expect_passed = 1
 
@@ -2558,75 +2510,6 @@ and the tree disagree. That is the failing input below.
   reason = "There is no mechanical definition of `exists only to prove the removal safe`, and inventing one would be a check that cannot fail rather than a measurement. The defence is that every region carries its reason in the manifest and `check` pins the LINE COUNTS, so a reclassification is visible in a diff even though it is not refused."
 
 [[instrument]]
-id = "gap-mutant-detector-argv"
-name = "a cli detector's argv against its entry point"
-paths = ["tests/test_gap_mutants.py"]
-family = "tripwire"
-watches = "every cli detector in gap_mutants.toml for a flag its entry point no longer declares"
-verdict_surface = "a failing pytest node naming the detector and the rejected flags"
-classification = "demonstrated-can-fail"
-note = """
-RD-02. `port-binding-report` passed `--port-manifest` to
-`run_generated_case_adapters.py`; SM-02 deleted that flag in the same epic.
-For two epics the detector exited 2 with `unrecognized arguments`, executed
-nothing, and reported INERT -- which decides nothing and was correctly not read
-as a survival, so the table was never wrong. It was carrying a column that
-could never speak again, in a catalogue whose whole argument is R2.
-
-The failing input is the catalogue as it stood at `7514df0`, which is the
-subject rather than a fixture.
-"""
-
-  [instrument.failing]
-  kind = "pytest"
-  tier = "slow"
-  summary = "the catalogue at 7514df0, before RD-02 removed the dead column -- port-binding-report's --port-manifest against an entry point that no longer declares it"
-  nodes = ["tests/test_gap_mutants.py::test_every_cli_detector_declares_flags_its_entry_point_still_accepts"]
-  expect_exit = 1
-  expect_passed = 0
-  expect_output = ["port-binding-report", "--port-manifest"]
-
-    [[instrument.failing.stage]]
-    from = "tests"
-    to = "tests"
-
-    [[instrument.failing.stage]]
-    from = "examples/validation/gap_mutants"
-    to = "examples/validation/gap_mutants"
-
-    [[instrument.failing.stage]]
-    from = "scripts"
-    to = "scripts"
-
-    [[instrument.failing.mutate]]
-    file = "examples/validation/gap_mutants/gap_mutants.toml"
-    find = "# NO SEEDABLE GAP -- REPORTED, NEVER SKIPPED (R2)"
-    replace = """# RD-02 DEMONSTRATION -- the dead column put back as 7514df0 carried it.
-[[detector]]
-id = "port-binding-report"
-kind = "cli"
-entry_point = "scripts/run_generated_case_adapters.py"
-uses_ports_binding = true
-argv = ["{python}", "{tree}/scripts/run_generated_case_adapters.py", "{cases}", "--mapping", "m", "--port-manifest", "p", "--validate-only"]
-note = "reinstated by the RD-02 demonstration only"
-
-# NO SEEDABLE GAP -- REPORTED, NEVER SKIPPED (R2)"""
-
-  [instrument.passing]
-  kind = "pytest"
-  tier = "slow"
-  summary = "the shipped catalogue, whose one remaining cli detector passes only flags its entry point declares"
-  nodes = ["tests/test_gap_mutants.py::test_every_cli_detector_declares_flags_its_entry_point_still_accepts"]
-  expect_exit = 0
-  expect_passed = 1
-
-  [instrument.blind_spot]
-  kind = "declared"
-  summary = "IT COMPARES FLAG NAMES, NOT MEANINGS. A flag still declared but now doing something else, or a positional argument that moved, is invisible to it."
-  reason = "It catches the failure that actually happened and nothing wider. A check that claimed to verify a detector still MEASURES what it claims would have to run it, and running `instrument-registry` means running the whole registry."
-
-
-[[instrument]]
 id = "removal-pricer"
 name = "RM-01's removal pricer"
 paths = ["examples/validation/gap_mutants/price_removal.py"]
@@ -2718,3 +2601,32 @@ cited 4 is what SM-04-GM-T1 does and is what the probe does now;
   kind = "declared"
   summary = "IT ASKS ONE QUESTION OF ONE FIELD. It moves D3 and reads `check`. It says nothing about `audit`, about a sealed card, or about any other field of a scorecard -- and SM-04-GM-T1's own answer is that a SEALED card still dies, which this probe does not measure."
   reason = "The sealed half was already measured and is not in dispute. Widening the probe to cover it would re-measure the free half of the removal and leave the priced half exactly as it is."
+
+
+[[retired]]
+id = "gap-mutant-runner"
+retired_by = "RM-03"
+retired_at = "the RM-03 removal, issue #211"
+paths = ["examples/validation/gap_mutants/run_gap_mutants.py",
+         "examples/validation/gap_mutants/gap_mutants.toml",
+         "tests/test_gap_mutants.py"]
+reason = """
+REMOVED, NOT SILENTLY DROPPED. `references/portable_scorecard.md` §5.4 cut the
+mutant catalogue and its runner on ADOPTION grounds: `gap_mutants.toml` is
+hand-authored faults in `ab_quota_ledger`, there is no version of it an adopter
+receives, and the runner has nothing to run without it.
+
+`gap-mutant-detector-argv` retires with it -- its subject was a cli detector
+declared in that catalogue, and its failing input was the catalogue as it stood
+at `7514df0`.
+
+WHAT WENT WITH THEM, recorded here because a capability that disappears from a
+registry without a row is exactly what `FI-04-DF-04` is about:
+`price_removal.py price` reads a MEASURED after-table and nothing in this
+repository produces one any more. `price_removal.py entail` is untouched, needs
+only a before-table and a diff, and is sound in the direction a price lives in.
+Every sealed before-table stays readable. Escalated as `RM-03-DF-01`, blocking,
+and reversible with `git checkout 90d0667 -- examples/validation/gap_mutants/
+tests/test_gap_mutants.py`.
+"""
+
