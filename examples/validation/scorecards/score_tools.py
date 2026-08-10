@@ -91,8 +91,8 @@ import sys
 import tomllib
 from datetime import date as _date
 
-VERSION = 3
-SUPPORTED_VERSIONS = (1, 2, 3)
+VERSION = 4
+SUPPORTED_VERSIONS = (1, 2, 3, 4)
 
 # The dimension whose top anchor carries two defensible readings, and the card
 # version from which the reading is a recorded field rather than a private one.
@@ -132,6 +132,52 @@ NAMES = {
     "D5": "honesty",
 }
 CITE = re.compile(r"^[^\s:]+:\d+(-\d+)?$")
+
+# ---------------------------------------------------------------------------
+# WHAT VERSION 4 REMOVED, and why none of the code above it could go with it
+# ---------------------------------------------------------------------------
+#
+# `DIMS` is every dimension key that has ever been scored, and it stays five
+# long forever: 73 sealed cards carry all five and `R-H4` says a sealed card is
+# never edited, so every rule those cards were written under is still executed
+# here. What version 4 changes is which dimensions a NEW card scores.
+#
+# D1 and D4 grade this project's toolchain rather than the artifact -- an anchor
+# decision cites this repository's machinery in 38% of D1 rationales and 18% of
+# D4 rationales against 4% on D2 -- and neither survives the trip to another
+# project. D5 is orthogonal to architecture by measurement. All three keep their
+# QUESTION as a recorded note and lose their NUMBER.
+RETIRED_AT = 4
+RETIRED_DIMS = ("D1", "D4", "D5")
+
+#: The note key a retired dimension's question is recorded under.
+NOTE_KEY = {dim: f"N-{dim}" for dim in RETIRED_DIMS}
+
+#: The top of each dimension's scale, per card version. D2's anchor 4 gated the
+#: one portable dimension on `D4 >= 3`, and D4's anchor 3 required a
+#: model-derived check -- so the top of the dimension that travels was gated on
+#: the clause that does not. Deleting the anchor costs the top of the scale, and
+#: that cost is this dict rather than a sentence somewhere.
+TOP_SCORE_V4 = {"D2": 3, "D3": 4}
+
+
+def scored_dims(version: int) -> tuple[str, ...]:
+    """The dimensions a card of this version carries a SCORE for."""
+    if version >= RETIRED_AT:
+        return tuple(d for d in DIMS if d not in RETIRED_DIMS)
+    return DIMS
+
+
+def note_dims(version: int) -> tuple[str, ...]:
+    """The dimensions this version records as prose instead of scoring."""
+    return RETIRED_DIMS if version >= RETIRED_AT else ()
+
+
+def top_score(dim: str, version: int) -> int:
+    """The highest anchor `dim` carries at this version. Rule 3 keys on it."""
+    if version >= RETIRED_AT:
+        return TOP_SCORE_V4.get(dim, 4)
+    return 4
 
 HERE = pathlib.Path(__file__).resolve()
 REPO_ROOT = HERE.parents[3]
@@ -203,6 +249,14 @@ def load_rubric(path: pathlib.Path) -> dict:
         raise RubricError(f"rubric not found: {path}")
     text = path.read_text()
 
+    # The version the FILE declares. It decides which dimensions this rubric is
+    # required to carry, so it is read before the dimension blocks are parsed --
+    # a version 4 rubric carrying five dimension blocks is as wrong as a version
+    # 3 one carrying two.
+    m = re.search(r"^\*\*Scorecard version (\d+)\.\*\*", text, re.M)
+    file_version = int(m.group(1)) if m else 1
+    want_dims = scored_dims(file_version)
+
     questions: dict[str, str] = {}
     for m in re.finditer(r"^\|\s*\*\*(D[1-5])\*\*\s*\|\s*\*\*([^|]+?)\*\*\s*\|\s*([^|]+?)\s*\|",
                          text, re.M):
@@ -219,8 +273,11 @@ def load_rubric(path: pathlib.Path) -> dict:
         for j in range(1, len(items) - 1, 2):
             score, chunk = items[j], items[j + 1]
             anchors[score] = " ".join(re.split(r"\n\n", chunk)[0].split())
-        if sorted(anchors) != ["0", "1", "2", "3", "4"]:
-            raise RubricError(f"{path}: {key} does not carry anchors 0-4 (got {sorted(anchors)})")
+        want = [str(n) for n in range(top_score(key, file_version) + 1)]
+        if sorted(anchors) != want:
+            raise RubricError(
+                f"{path}: {key} does not carry anchors {want[0]}-{want[-1]} "
+                f"(got {sorted(anchors)})")
         caveat = ""
         tail = re.search(r"\n\n(\*\*[A-Z].+?)\Z", body, re.S)
         if tail:
@@ -233,15 +290,41 @@ def load_rubric(path: pathlib.Path) -> dict:
             "anchors": anchors,
             "caveat": caveat,
         }
-    missing = [d for d in DIMS if d not in dims]
+    missing = [d for d in want_dims if d not in dims]
     if missing:
         raise RubricError(f"{path}: no anchors parsed for {', '.join(missing)}")
+    retired = [d for d in dims if d not in want_dims]
+    if retired:
+        raise RubricError(
+            f"{path}: declares scorecard version {file_version} and still serves anchors "
+            f"for {', '.join(sorted(retired))}. A retired dimension is kept in the file "
+            f"under `Retired anchors` -- where a person comparing two versions can read it "
+            f"and a judge scoring under either cannot be served it.")
     for key, dim in dims.items():
         if dim["name"] != NAMES[key]:
             raise RubricError(
                 f"{path}: {key} is titled {dim['name']!r} but this tool knows it as "
                 f"{NAMES[key]!r} -- the dimension key has drifted"
             )
+
+    # The recorded notes, parsed out of the file exactly as the anchors are, so
+    # the prompt a judge is served for a note has ONE home -- the same reason
+    # `tests/test_card_has_one_home.py` exists.
+    notes: dict[str, dict] = {}
+    nblock = re.search(r"^## The recorded notes\s*\n(.*?)(?=^## )", text, re.M | re.S)
+    if nblock:
+        for m in re.finditer(r"^- \*\*(N-D[1-5]) — ([^*]+?)\.\*\* (.+?)(?=\n- \*\*N-D|\n\n|\Z)",
+                             nblock.group(1), re.M | re.S):
+            notes[m.group(1)] = {"name": m.group(2).strip(),
+                                 "prompt": " ".join(m.group(3).split())}
+    want_notes = [NOTE_KEY[d] for d in note_dims(file_version)]
+    absent = [n for n in want_notes if n not in notes]
+    if absent:
+        raise RubricError(
+            f"{path}: declares scorecard version {file_version} and carries no `## The "
+            f"recorded notes` entry for {', '.join(absent)}. A dimension that stopped "
+            f"being scored keeps its QUESTION; dropping the question as well would be a "
+            f"different removal from the one the version history declares.")
 
     rules_block = re.search(
         r"^## Scoring rules that make it hard to game\s*\n(.*?)(?=^## )", text, re.M | re.S)
@@ -258,8 +341,7 @@ def load_rubric(path: pathlib.Path) -> dict:
         for m in re.finditer(r"^### (R-H\d+) — (.+?)$", reading_block.group(1), re.M):
             reading.append({"id": m.group(1), "title": m.group(2).strip()})
 
-    m = re.search(r"^\*\*Scorecard version (\d+)\.\*\*", text, re.M)
-    card_version = int(m.group(1)) if m else 1
+    card_version = file_version
 
     versions = []
     vblock = re.search(r"^#{2,3} Version history\s*\n(.*?)(?=^#{1,3} |\Z)", text, re.M | re.S)
@@ -272,11 +354,19 @@ def load_rubric(path: pathlib.Path) -> dict:
                              "summary": row.group(3).strip()})
 
     source = str(path.relative_to(REPO_ROOT)) if _under(path, REPO_ROOT) else str(path)
-    rubric = {"source": source, "dimensions": dims, "card_version": card_version,
+    rubric = {"source": source, "dimensions": dims, "notes": notes,
+              "card_version": card_version,
               "scoring_rules": rules, "reading_rules": reading, "versions": versions}
+    # The notes enter the digest only where they exist. A version 1-3 rubric has
+    # none, so its digest is byte-identical to what every sealed card recorded --
+    # adding a key to the payload unconditionally would have re-based 73 sealed
+    # cards' `rubric.digest` and reported the whole record as scaffolded against
+    # a stale bar, which is a fact about this edit and not about any card.
+    payload: dict = {"dimensions": dims, "scoring_rules": rules}
+    if notes:
+        payload["notes"] = notes
     rubric["digest"] = "sha256:" + hashlib.sha256(
-        json.dumps({"dimensions": dims, "scoring_rules": rules},
-                   sort_keys=True).encode()).hexdigest()[:16]
+        json.dumps(payload, sort_keys=True).encode()).hexdigest()[:16]
     rubric["anchors_digest"] = anchors_digest(dims)
     # The whole file, served and unserved alike. `FI-03-DF-02` asked for exactly
     # this: a record that the rubric file changed AT ALL between two rounds that
@@ -338,7 +428,7 @@ def served_rubric(rubric: dict, card_version: int = VERSION) -> str:
         out.append("**This is the whole rubric, and it is reproduced here so the bar for a "
                    "score sits in the same file as the score.** Do NOT go and read "
                    "`references/eval_scorecard.md`. That file also carries reading rules "
-                   "and prior results about these same five dimensions, and a judge who "
+                   "and prior results about these same dimensions, and a judge who "
                    "reads those is being handed conclusions about the instrument they are "
                    "the instrument for.")
         out.append("")
@@ -360,14 +450,22 @@ def served_rubric(rubric: dict, card_version: int = VERSION) -> str:
         out.append("Fill `judging_practice` in `scorecard.json`: `executed_own_faults` true "
                    "or false, and `what_was_run` listing what you actually ran.")
         out.append("")
-        out.append("**D4's anchor 4 is only awardable when this says `true`**, because that "
-                   "anchor asks for a behavior-breaking change *shown to be caught*, and a "
-                   "judge reading a table is repeating the artifact's claim rather than "
-                   "checking it. If you did not run one, the highest D4 you can support is "
-                   "3 — say that the packet asserts it and you did not verify it.")
+        if card_version < RETIRED_AT:
+            out.append("**D4's anchor 4 is only awardable when this says `true`**, because "
+                       "that anchor asks for a behavior-breaking change *shown to be "
+                       "caught*, and a judge reading a table is repeating the artifact's "
+                       "claim rather than checking it. If you did not run one, the highest "
+                       "D4 you can support is 3 — say that the packet asserts it and you "
+                       "did not verify it.")
+        else:
+            out.append("**No anchor is gated on your answer.** The anchor that was is a "
+                       "recorded note now. Say what you ran because it is the variable "
+                       "that moves scores, not because a rung depends on it.")
         out.append("")
-    for key in DIMS:
-        d = rubric["dimensions"][key]
+    for key in scored_dims(card_version):
+        d = rubric["dimensions"].get(key)
+        if d is None:
+            continue
         out.append(f"### {key} — {d['name']}")
         out.append("")
         if d["question"]:
@@ -376,11 +474,29 @@ def served_rubric(rubric: dict, card_version: int = VERSION) -> str:
         if d.get("preamble"):
             out.append(d["preamble"])
             out.append("")
-        for score in ("0", "1", "2", "3", "4"):
+        for score in sorted(d["anchors"]):
             out.append(f"- **{score}** — {d['anchors'][score]}")
         out.append("")
         if d["caveat"]:
             out.append(f"> {d['caveat']}")
+            out.append("")
+    served_notes = [NOTE_KEY[dim] for dim in note_dims(card_version)]
+    if served_notes:
+        out.append("## The recorded notes — REQUIRED, and they take no score")
+        out.append("")
+        out.append("**Answer each in your own words and cite `file:line` as you would for a "
+                   "score.** There is no 0–4 here and there is no anchor ladder: these "
+                   "questions were scored for three versions and the numbers were measured "
+                   "not to mean the same thing twice. *\"I could not tell, and here is what "
+                   "I looked at\"* is a correct answer; an empty note is not.")
+        out.append("")
+        for key in served_notes:
+            note = (rubric.get("notes") or {}).get(key)
+            if note is None:
+                continue
+            out.append(f"### {key} — {note['name']}")
+            out.append("")
+            out.append(note["prompt"])
             out.append("")
     return "\n".join(out)
 
@@ -551,12 +667,48 @@ def check(card: dict, where: str, rubric: dict | None = None,
     elif subject is not None:
         err(f"subject must be an object or null, got {type(subject).__name__}")
 
-    missing = [d for d in DIMS if d not in dims]
+    want_dims = scored_dims(version)
+    missing = [d for d in want_dims if d not in dims]
     if missing:
         err(f"missing dimensions: {', '.join(missing)}")
-    extra = [d for d in dims if d not in DIMS]
+    extra = [d for d in dims if d not in want_dims]
     if extra:
-        err(f"unknown dimensions: {', '.join(extra)}")
+        if version >= RETIRED_AT and all(d in RETIRED_DIMS for d in extra):
+            err(f"{', '.join(sorted(extra))} carry a score on a version {version} card. "
+                f"They are recorded notes from version {RETIRED_AT} -- put the answer in "
+                f"`notes.N-{sorted(extra)[0]}` and leave the number out. Restoring the "
+                f"number here would restore the dimension without a version bump.")
+        else:
+            err(f"unknown dimensions: {', '.join(extra)}")
+
+    # From version 4 the three retired questions are still asked and still
+    # required. Dropping the question as well would be a different removal from
+    # the one the version history declares.
+    if version >= RETIRED_AT and status != "unfilled":
+        card_notes = card.get("notes")
+        if not isinstance(card_notes, dict):
+            err(f"missing required field 'notes'. From scorecard_version {RETIRED_AT} a card "
+                f"records {', '.join(NOTE_KEY[d] for d in RETIRED_DIMS)} as prose instead of "
+                f"scoring them, and rule 10 says an empty note is not a legal card.")
+            card_notes = {}
+        for dim in note_dims(version):
+            key = NOTE_KEY[dim]
+            entry = card_notes.get(key)
+            if not isinstance(entry, dict):
+                err(f"notes.{key} is missing -- rule 10")
+                continue
+            if not str(entry.get("note") or "").strip():
+                err(f"notes.{key} is empty. 'I could not tell, and here is what I looked at' "
+                    f"is a legal note; silence is not -- rule 10")
+            for c in entry.get("citations") or []:
+                if not CITE.match(str(c)):
+                    err(f"notes.{key} citation {c!r} is not file:line or file:line-line")
+        stray = [k for k in card_notes if k not in {NOTE_KEY[d] for d in RETIRED_DIMS}]
+        if stray:
+            err(f"unknown notes: {', '.join(sorted(stray))}")
+    elif version < RETIRED_AT and card.get("notes") is not None:
+        err(f"`notes` is not a field of a version {version} card -- it arrives with "
+            f"version {RETIRED_AT}, where three dimensions stopped being scored")
 
     # scorecard_version 2: what the judge DID is a field, not a private choice.
     executed = None
@@ -636,17 +788,19 @@ def check(card: dict, where: str, rubric: dict | None = None,
             continue
         if entry.get("name") and entry["name"] != NAMES[dim]:
             err(f"{dim} is named {entry['name']!r}; this card version knows it as {NAMES[dim]!r}")
+        top = top_score(dim, version)
         if "anchors" in entry:
             keys = sorted(str(k) for k in (entry.get("anchors") or {}))
-            if keys != ["0", "1", "2", "3", "4"]:
-                err(f"{dim} carries inline anchors but not all of 0-4 (got {keys})")
+            if keys != [str(n) for n in range(top + 1)]:
+                err(f"{dim} carries inline anchors but not all of 0-{top} (got {keys})")
         score = entry.get("score")
         if status == "unfilled":
             if score is not None:
                 err(f"{dim} of an unfilled skeleton must have score null")
             continue
-        if not isinstance(score, int) or isinstance(score, bool) or not 0 <= score <= 4:
-            err(f"{dim} score must be an int 0-4, got {score!r}")
+        if not isinstance(score, int) or isinstance(score, bool) or not 0 <= score <= top:
+            err(f"{dim} score must be an int 0-{top} on a version {version} card, "
+                f"got {score!r}")
             continue
         running += score
         cites = entry.get("citations") or []
@@ -657,9 +811,13 @@ def check(card: dict, where: str, rubric: dict | None = None,
             for c in cites:
                 if not CITE.match(str(c)):
                     err(f"{dim} citation {c!r} is not file:line or file:line-line")
-        # Rule 3: a 4 must name something the artifact refuses to claim.
-        if score == 4 and not entry.get("refuses_to_claim"):
-            err(f"{dim} scored 4 without refuses_to_claim -- rule 3")
+        # Rule 3: a score at the TOP OF ITS SCALE must name something the
+        # artifact refuses to claim. The top is 4 everywhere until version 4
+        # deletes D2's anchor 4, at which point D2's top is 3 and the rule
+        # follows the anchor rather than the literal number it used to be.
+        if score == top and not entry.get("refuses_to_claim"):
+            err(f"{dim} scored {score}, the top of its scale on a version {version} card, "
+                f"without refuses_to_claim -- rule 3")
         # Rule 8 (scorecard_version 2): the one top anchor whose own text asks
         # the judge to run something.
         if version >= 2 and score == 4 and dim in PRACTICE_GATED_DIMS and executed is False:
@@ -1071,7 +1229,10 @@ def cmd_index(argv: list[str]) -> int:
             con = computed.get(id(card), {})
             row = [example, str(card.get("arm") or "—"),
                    f"pass {judge.get('pass')}", judge_tier(judge)]
-            row += [str(d[k]["score"]) for k in DIMS]
+            # A version 4 card carries no D1, D4 or D5. `—` is the honest cell:
+            # the question was asked and answered in `notes`, and there is no
+            # number to put here. It is NOT a missing measurement.
+            row += [str(d[k]["score"]) if isinstance(d.get(k), dict) else "—" for k in DIMS]
             row.append(", ".join(sorted(con)) or "—")
             out.append("| " + " | ".join(row) + " |")
             declared = sorted(card.get("contested") or [])
@@ -1330,8 +1491,22 @@ def _subject_block(name: str | None) -> dict | None:
 
 
 def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
+    # `--card-version N` alone reproduces the old SCHEMA against the NEW bar --
+    # `FI-06-DF-11(c)`, open through three version bumps because it was operator
+    # sequencing and nothing refused. From version 4 it cannot be missed by
+    # accident on the dimensions: a rubric that no longer carries a dimension
+    # cannot scaffold a version that scores it, and the error says which frozen
+    # file to point at. It still refuses NOTHING about any artifact.
+    absent = [k for k in scored_dims(args.card_version) if k not in rubric["dimensions"]]
+    if absent:
+        raise RubricError(
+            f"cannot scaffold a version {args.card_version} card from "
+            f"{rubric['source']}, which is scorecard version {rubric['card_version']} "
+            f"and carries no anchors for {', '.join(absent)}. Reproducing an older card "
+            f"means pointing at the older bar: pass "
+            f"`--rubric examples/validation/scorecards/rubric_v3_frozen.md`.")
     dims = {}
-    for key in DIMS:
+    for key in scored_dims(args.card_version):
         d = rubric["dimensions"][key]
         entry = {
             "name": d["name"],
@@ -1346,7 +1521,7 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
             entry["read_first"] = d["preamble"]
         if d["caveat"]:
             entry["caveat"] = d["caveat"]
-        if args.card_version >= 3 and key == ANCHOR_READING_DIM:
+        if 3 <= args.card_version < RETIRED_AT and key == ANCHOR_READING_DIM:
             entry["anchor_reading"] = None
         dims[key] = entry
     card = {
@@ -1403,15 +1578,18 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
             "note": ("REQUIRED from scorecard_version 2. Did you seed a fault of your own "
                      "and run it against this artifact, or did you score the evidence "
                      "packet? Both are legal and neither is the right answer; what is not "
-                     "legal is leaving it unsaid. Say which, and list what you ran. D4's "
-                     "anchor 4 is only awardable when this says true, because that anchor "
-                     "asks for a behavior-breaking change SHOWN TO BE CAUGHT."),
+                     "legal is leaving it unsaid. Say which, and list what you ran."
+                     + (" D4's anchor 4 is only awardable when this says true, because "
+                        "that anchor asks for a behavior-breaking change SHOWN TO BE "
+                        "CAUGHT." if args.card_version < RETIRED_AT else
+                        f" From version {RETIRED_AT} no anchor is gated on it; it is "
+                        f"recorded because it is the variable that moves scores.")),
         }
         card["how_to_fill"].insert(2, (
             "Fill `judging_practice`: `executed_own_faults` true or false, and "
             "`what_was_run` listing what you ran. FALSE IS A LEGAL AND USEFUL ANSWER -- "
             "it is recorded, never corrected. Delete the `note` key once you have."))
-    if args.card_version >= 3:
+    if 3 <= args.card_version < RETIRED_AT:
         card["how_to_fill"].append(
             f"If you score {ANCHOR_READING_DIM} at "
             f"{' or '.join(str(s) for s in ANCHOR_READING_SCORES)}, set "
@@ -1420,6 +1598,21 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
             f"two defensible readings you scored under. Both are legal and neither is "
             f"corrected; recording it is what lets a reader tell a disagreement about "
             f"the artifact from a disagreement about the anchor.")
+    if args.card_version >= RETIRED_AT:
+        card["notes"] = {
+            NOTE_KEY[dim]: {
+                "name": (rubric.get("notes") or {}).get(NOTE_KEY[dim], {}).get("name", ""),
+                "question": (rubric.get("notes") or {}).get(NOTE_KEY[dim], {}).get("prompt", ""),
+                "note": "",
+                "citations": [],
+            }
+            for dim in note_dims(args.card_version)
+        }
+        card["how_to_fill"].append(
+            "Answer every entry in `notes`. They take NO score -- these three questions "
+            "were scored for three versions and the numbers were measured not to mean the "
+            "same thing twice, so what is asked for is prose and citations. 'I could not "
+            "tell, and here is what I looked at' is a legal note; an empty one is not.")
     return json.dumps(card, indent=2) + "\n"
 
 
@@ -1477,10 +1670,11 @@ def _skeleton_md(args, rubric: dict, label: str, judge: int, rid: str) -> str:
         out.append("")
     out.append("## Your scores")
     out.append("")
-    for key in DIMS:
+    for key in scored_dims(args.card_version):
+        top = top_score(key, args.card_version)
         out.append(f"### {key} — {NAMES[key]}")
         out.append("")
-        out.append("**Score:** _(0–4)_")
+        out.append(f"**Score:** _(0–{top})_")
         out.append("")
         # SM-06: the citation bar is served above, parsed out of the card. This
         # label names the FORMAT and points at the rule; it does not restate it.
@@ -1488,15 +1682,28 @@ def _skeleton_md(args, rubric: dict, label: str, judge: int, rid: str) -> str:
         out.append("")
         out.append("-")
         out.append("")
-        out.append("**Refuses to claim** (required and non-null for a score of 4):")
+        out.append(f"**Refuses to claim** (required and non-null for a score of {top}):")
         out.append("")
-        if args.card_version >= 3 and key == ANCHOR_READING_DIM:
+        if 3 <= args.card_version < RETIRED_AT and key == ANCHOR_READING_DIM:
             out.append(f"**Anchor reading** (required at "
                        f"{' or '.join(str(s) for s in ANCHOR_READING_SCORES)}; "
                        f"{' or '.join('`%s`' % r for r in ANCHOR_READINGS)}):")
             out.append("")
         out.append("**Rationale:**")
         out.append("")
+    if note_dims(args.card_version):
+        out.append("## Your recorded notes — no score")
+        out.append("")
+        for dim in note_dims(args.card_version):
+            key = NOTE_KEY[dim]
+            out.append(f"### {key} — {NAMES[dim]}")
+            out.append("")
+            out.append("**Citations** (`file:line`):")
+            out.append("")
+            out.append("-")
+            out.append("")
+            out.append("**Note:**")
+            out.append("")
     out.append("## Verdict")
     out.append("")
     out.append("_One sentence a reader can act on._")

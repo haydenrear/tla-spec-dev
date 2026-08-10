@@ -1,43 +1,18 @@
 # The Eval Scorecard
 
-**Scorecard version 4.** Every eval in this repository is scored on this card,
+**Scorecard version 3.** Every eval in this repository is scored on this card,
 by an agent judge, against artifacts. The card is the unit of comparison across
 epics: one epic's numbers mean something only next to another's, so the card is
 versioned and changing it is a deliberate, recorded act.
 
-**Version 4 is the first version whose ANCHORS DIGEST MOVES.** Versions 1, 2 and
-3 all carry `sha256:eeccf4576bc6fd85` — three version bumps and not one of them
-touched the bar. Version 4 cuts three dimensions down to recorded notes and
-removes one anchor from a fourth, so the digest necessarily moves and the
-[Version history](#version-history) says so. Cards written under an older
+**Version 2 changed one thing: what the judge DID is now a field on the card.**
+**Version 3 changed three, and none of them is an anchor.** The anchors are
+byte-unchanged from version 1 — see [Version history](#version-history), whose
+digest is checked by `score_tools.py check`. Cards written under an older
 version stay valid, stay comparable to each other, and are **not** comparable
 across a version boundary without saying so.
 
-What version 4 changed, and why each is a REMOVAL:
-
-1. **D1 and D4 are no longer scored.** They are recorded notes. Both were
-   measured to grade *this project's toolchain* rather than the artifact — an
-   anchor decision cites this project's machinery in 38% of D1 rationales and
-   18% of D4 rationales, against 4% on D2 and 0% on D3 — and both were measured
-   not to survive the trip to another project: D1 is 3 on 55 of 59
-   `ab_quota_ledger` cards, and D4 is the worst-behaved dimension in the record
-   at 4 tier-split judge groups of 8. See `references/portable_scorecard.md`
-   §1.1 and §6.
-2. **D2's anchor 4 is gone**, and D2's preamble no longer requires a measured
-   descriptor to be read first. Anchor 4 gated the one portable dimension on
-   `D4 ≥ 3`, and that gate is the measured mechanism behind D2's tier split: 4
-   of 4 `sonnet` judges name the model clause as their D2 ceiling and 0 of 4
-   `opus` judges do.
-3. **D5 is no longer scored.** It is a recorded note. It is orthogonal to
-   architecture by measurement, saturated at 3 or 4 on 53 of 59
-   `ab_quota_ledger` cards, and it still tier-splits.
-
-**The discipline is kept; the number is not.** A version 4 card still records
-what the cases caught, whether the behaviour survived, and what the artifact
-refuses to claim — as prose a reader can act on, in `notes`. What it no longer
-does is put a 0–4 on any of them.
-
-Version 3's three changes, none of which was an anchor:
+What version 3 changed:
 
 1. **A judge is served the card; a judge never reads this file.** See
    [How this card reaches a judge](#how-this-card-reaches-a-judge). The digest
@@ -104,39 +79,46 @@ gamed — it is that gaming it requires doing the work.
 
 ## What the card measures
 
-**Two dimensions, each scored 0–4. Three recorded notes, scored not at all.**
-There is no total and there never was one to compute from version 3.
+Five dimensions, each scored **0–4**, total **0–20**. Three are the owner's
+stated goals; two exist because they are the failure modes this project has
+actually hit.
 
 | | Dimension | The question |
 |---|---|---|
+| **D1** | **Bug detection** | Do the model-derived cases and their adapters *catch* seeded faults — especially the hard classes? |
 | **D2** | **Complexity** | Is the design as simple as its behavior requires, and no simpler? |
 | **D3** | **Modularity** | Is it ports and adapters in fact — domain independent of I/O, adapters swappable? |
+| **D4** | **Behavior preservation** | Does the simpler design still do everything the baseline did? |
+| **D5** | **Honesty** | Does the artifact refuse rather than falsely certify, and name what it cannot see? |
 
-The three notes ask the same questions they always asked and take no score:
-
-| | Note | The question |
-|---|---|---|
-| N-D1 | bug detection | Did the cases *catch* seeded faults — especially the hard classes? |
-| N-D4 | behavior preservation | Does the changed design still do everything the baseline did? |
-| N-D5 | honesty | Does the artifact refuse rather than falsely certify, and name what it cannot see? |
-
-N-D5 is not a virtue score, and now it is not a score at all. It is kept because
-`unobservable` beating a false clean (MF-027) is the single doctrine that has
-survived every round intact, and because an artifact that overstates its own
-reach corrupts every number next to it. **Keeping the discipline and dropping
-the number is the whole of what version 4 does to it.**
+D5 is not a virtue score. It is here because `unobservable` beating a false clean
+(MF-027) is the single doctrine that has survived every round intact, and because
+an artifact that overstates its own reach corrupts every number next to it.
 
 ## The anchors
 
 Anchors are what make two judges agree. Score the **lowest** anchor the artifact
 fully satisfies; when torn between two, take the lower and say why.
 
+### D1 — Bug detection
+
+- **0** — Cases exist and pass; no seeded fault is caught. A suite that is green
+  on broken code.
+- **1** — Catches faults that change a value the projection already prints.
+  Misses everything requiring a content assertion.
+- **2** — Catches wrong-value and wrong-content faults through adapters that
+  assert content, not merely shape.
+- **3** — Also catches at least one fault in a class the whole-view corpus
+  structurally cannot reach on its own (a refusal, an ordering, a cross-aspect
+  before-state).
+- **4** — 3, **and** the cases that do it were derived from the model rather than
+  hand-written, **and** the record names a fault class it still cannot reach.
+
 ### D2 — Complexity
 
-Diff the two trees yourself and decide whether one fact is stored twice — kept
-in agreement by hand across several write sites, and read in one place. Where a
-measured complexity descriptor exists you may read it, and on its own it decides
-nothing; where none exists that is not a gap in the evidence.
+Read the measured descriptor first (variables, actions, state-space bound, R/W
+density, modularity, dense rows). Then judge whether the numbers reflect
+essential behavior or accidental structure.
 
 - **0** — Complexity is unmeasured, or measured and ignored.
 - **1** — Measured and reported; no relationship between the figures and the
@@ -145,10 +127,12 @@ nothing; where none exists that is not a gap in the evidence.
   no variable written from everywhere.
 - **3** — 2, **and** a simplification was made and its effect measured — the
   before and after figures are both recorded.
+- **4** — 3, **and** the simplification is shown to be behavior-preserving
+  (D4 ≥ 3), so the reduction is not paid for in lost behavior.
 
 **A drop in a complexity number is not evidence on its own.** MF-020: a metric
-can improve because an edge was deleted. A D2 of 3 requires the judge to say
-*what got simpler and how the behavior survived it*.
+can improve because an edge was deleted. A D2 of 3 or more requires the judge to
+say *what got simpler and how the behavior survived it*.
 
 ### D3 — Modularity
 
@@ -166,31 +150,40 @@ can improve because an edge was deleted. A D2 of 3 requires the judge to say
 import check with its coupling entirely intact. A D3 of 3 or more requires
 evidence about what *calls* what at runtime, not what imports what.
 
-## The recorded notes
+### D4 — Behavior preservation
 
-**From version 4, N-D1, N-D4 and N-D5 take no score.** They are prose, required
-on every filled card, and a reader acts on them exactly as they acted on the
-rationale beside a number. What is gone is the number, and with it the anchor
-ladder that produced it.
+- **0** — Behavior changed and nobody checked.
+- **1** — A test suite passes, with no argument that the suite covers the
+  behavior at issue.
+- **2** — The behaviors the baseline exhibited are enumerated and each is shown
+  still to hold.
+- **3** — 2, **and** the check is model-derived (a corpus, a TLC invariant)
+  rather than only hand-written assertions.
+- **4** — 3, **and** a deliberate behavior-breaking change is shown to be
+  *caught* — the check is demonstrated to be capable of failing.
 
-Each note answers its question in the judge's own words and cites `file:line`
-the same way a score ≥ 2 does. A note that says *"I could not tell"* is a
-correct note.
+### D5 — Honesty
 
-- **N-D1 — bug detection.** What did the cases catch, and what class did they
-  demonstrably miss? Name the fault you seeded if you seeded one.
-- **N-D4 — behavior preservation.** Which behaviors of the baseline did you
-  enumerate, and is each shown still to hold? If there is no baseline, say so —
-  that is the answer, not a gap in the note.
-- **N-D5 — honesty.** Does the artifact refuse rather than falsely certify, and
-  does it name what it cannot see? Point at the refusal, or at its absence.
+- **0** — Claims a clean it cannot support.
+- **1** — Reports results without stating what was not measured.
+- **2** — Names its blind spots and limits, unprompted, in the artifact itself
+  and not only in a report.
+- **3** — 2, **and** refuses to emit a positive verdict when its basis does not
+  support one (`unobservable` / `unmappable` rather than a false clean).
+- **4** — 3, **and** the record contains at least one result that is
+  unflattering to the thing being scored.
 
-**Why these three stopped being scores, in one line each.** N-D1's top anchor
-required cases *derived from the model*, which nothing outside this repository
-has; N-D4 tier-split on 4 of the 8 judge groups scored by both `opus` and
-`sonnet`, more than any other dimension; N-D5 is independent of architecture by
-measurement — the deliberately incoherent fixture `ex6_jenga` scored D5 = 4 from
-both judges at D3 = 0 and 1.
+**Anchor 4's phrase "a result unflattering to the thing being scored" carries
+two defensible readings, and the card records which one you used.** Reading
+**`disclosure`**: an artifact stating a limitation of itself is such a result.
+Reading **`measured`**: anchor 4 asks for a result the artifact *measured*
+against itself, and a stated limitation is anchor 2 and anchor 3 material.
+**Both readings are legal, neither is the right one, and this note does not
+change the bar** — score exactly the anchor you would have scored, and name the
+reading in `dimensions.D5.anchor_reading`. It is required whenever D5 is scored
+3 or 4, which is where the two readings can differ. Recording it is what makes
+two judges who disagree readable: without it you cannot tell whether they
+disagree about the artifact or about the anchor.
 
 ## Scoring rules that make it hard to game
 
@@ -198,9 +191,9 @@ both judges at D3 = 0 and 1.
    content" is not evidence; the adapter code is.
 2. **Every score ≥ 2 cites `file:line`.** A score with no citation is capped
    at 1, mechanically, by the schema check.
-3. **A score at the top of its scale additionally names something the artifact
-   refuses to claim.** The top of every scale requires a stated limit. This is
-   deliberate: it makes a perfect score impossible to reach by asserting more.
+3. **Every score of 4 additionally names something the artifact refuses to
+   claim.** The top of every scale requires a stated limit. This is deliberate:
+   it makes a perfect score impossible to reach by asserting more.
 4. **Prose quality is never an input.** A well-written report and a badly
    written one with the same artifacts score identically. Say so in the
    rationale if the writing tempted you.
@@ -215,19 +208,18 @@ both judges at D3 = 0 and 1.
 8. **Say what you ran.** *(New in version 2.)* Every card records
    `judging_practice`: whether the judge **seeded a fault of its own and ran
    it** against the artifact, and what it ran. Both answers are legal and
-   neither is the right one; leaving it unsaid is what is not legal. From
-   version 4 no anchor is gated on it and it is still required, because what a
-   judge did is a variable in what a judge reports and a variable nothing
-   records is a variable nobody can subtract.
+   neither is the right one; leaving it unsaid is what is not legal. **D4's
+   anchor 4 is only awardable when it says `true`**, because that anchor asks
+   for a behavior-breaking change *shown to be caught*, and a judge reading a
+   table is repeating the artifact's claim rather than checking it. This is the
+   anchor's own text made checkable, not a new bar.
 9. **A judge is served the card, never the rubric file.** *(New in version 3.)*
    The scaffolded `scorecard.md` carries the rubric a judge needs. This file
-   carries reading rules and prior results about these dimensions as well, and a
-   judge who reads it is handed conclusions about the instrument they are the
-   instrument for. Every card records the digest of **the bytes it was served**,
-   so a rubric change that can reach a judge cannot be invisible to that digest.
-10. **Answer every recorded note.** *(New in version 4.)* N-D1, N-D4 and N-D5
-    take no score and are required on every filled card. An empty note is not a
-    legal card; *"I could not tell, and here is what I looked at"* is.
+   carries reading rules and prior results about these five dimensions as well,
+   and a judge who reads it is handed conclusions about the instrument they are
+   the instrument for. Every card records the digest of **the bytes it was
+   served**, so a rubric change that can reach a judge cannot be invisible to
+   that digest.
 
 ## Storage
 
@@ -258,7 +250,7 @@ Fixtures and harness stay under `examples/validation/`; only *results* live in
 
 ```json
 {
-  "scorecard_version": 4,
+  "scorecard_version": 3,
   "epic": "architectural-coherence",
   "example": "ex4_pipeline_coherent",
   "run_id": "20260803-sc1",
@@ -278,15 +270,12 @@ Fixtures and harness stay under `examples/validation/`; only *results* live in
                      "invariant"]
   },
   "dimensions": {
+    "D1": {"score": 2, "citations": ["path:line"], "rationale": "...",
+           "refuses_to_claim": null},
     "D2": {"score": 3, "citations": ["path:line"], "rationale": "...",
            "refuses_to_claim": null},
-    "D3": {"score": 2, "citations": ["path:line"], "rationale": "...",
-           "refuses_to_claim": null}
-  },
-  "notes": {
-    "N-D1": {"note": "...", "citations": ["path:line"]},
-    "N-D4": {"note": "...", "citations": ["path:line"]},
-    "N-D5": {"note": "...", "citations": ["path:line"]}
+    "D5": {"score": 3, "citations": ["path:line"], "rationale": "...",
+           "refuses_to_claim": null, "anchor_reading": "measured"}
   },
   "contested": [],
   "verdict": "<one sentence a reader can act on>"
@@ -294,17 +283,8 @@ Fixtures and harness stay under `examples/validation/`; only *results* live in
 ```
 
 **There is no `total` from version 3.** A version 1 or 2 card carries one and
-`check` still verifies its arithmetic; a version 3 or 4 card that carries one is
+`check` still verifies its arithmetic; a version 3 card that carries one is
 rejected.
-
-**`dimensions` carries `D2` and `D3` and nothing else from version 4**, and
-`notes` carries `N-D1`, `N-D4` and `N-D5`. A version 4 card that scores `D1`,
-`D4` or `D5` is rejected, and so is one that omits a note. A version 1, 2 or 3
-card is checked exactly as it always was: **a sealed card is never edited**
-(`R-H4`), so every rule those cards were written under is still executed against
-them, and none of the code that executes them was deleted by this version bump.
-That is the honest cost of the removal and it is recorded in
-`specs/results/scorecards/portable-substrate/GOAL-dead-weight-gone/`.
 
 `rubric.served_digest` is the load-bearing one. `rubric.digest` covers the
 parsed anchors and scoring rules and is what `check` uses to refuse a skeleton
@@ -314,37 +294,31 @@ agrees while their `file_sha256` differs are reported `PROSE-DRIFT`, which is a
 prompt to go and look and never a violation.
 
 `arm` is `null` for a single-artifact eval and the arm label where arms exist.
-`refuses_to_claim` is required and non-null for any score at the top of its
-scale — 4 on every dimension of every version, and additionally 3 on D2 from
-version 4, where 3 is the top.
+`refuses_to_claim` is required and non-null for any score of 4.
 
 `judging_practice` is **required on every filled card from version 2**.
 `executed_own_faults` is a boolean and `what_was_run` is a list. `false` is a
 legal answer, it is recorded as `PACKET-ONLY` by `check`, and it is never
 corrected — a card that is pushed toward one answer records the pressure and not
-the practice. On a version 2 or 3 card a `false` carries one consequence — **D4
-cannot be scored 4**, and `check` rejects the combination. **On a version 4 card
-it carries none**, because D4 is not scored. The field is still required: it
-records the variable, and the gate was never the reason for recording it.
+the practice. The one consequence a `false` carries is that **D4 cannot be
+scored 4**, and `check` rejects the combination.
 
-`dimensions.D5.anchor_reading` is **required whenever D5 is scored 3 or 4** on a
-version 3 card. It is `"disclosure"` or `"measured"`. **Version 4 has no
-`anchor_reading` field**, because the anchor whose two readings it disambiguated
-is retired; `check` still enforces it on every version 3 card, and always will.
+`dimensions.D5.anchor_reading` is **required whenever D5 is scored 3 or 4**,
+from version 3. It is `"disclosure"` or `"measured"` — see D5's note above.
+Both are legal, neither is corrected, and it is not required at 0, 1 or 2,
+where the two readings cannot differ.
 
 ## Reading a card
 
-**There is no total, from version 3.** Its five terms were not five independent
+**There is no total, from version 3.** Its five terms are not five independent
 readings: `D2` has taken one value on every card ever written about
 `ab_quota_ledger`, and `D1`, `D4` and `D5` are each demonstrated to take a
 different value from a different judge on the same bytes. A sum over them
 moves for reasons a reader cannot attribute to anything, and it moves *most*
-where the card is *least* readable — so it was the one number in this file that
-rewarded the dimensions that measure worst. **Version 4 acts on the same
-evidence one step further: the three terms that made the sum unreadable are no
-longer numbers at all.** `index` and `history` print every dimension a card
-carries and no sum, and print `—` where a version 4 card records a note instead.
-**Read a dimension. There is nothing to read in a headline.**
+where the card is *least* readable — so it is the one number in this file that
+rewards the dimensions that measure worst. `index` and `history` print the five
+dimensions and no sum. **Read a dimension. There is nothing to read in a
+headline.**
 
 **Never average across examples** — `ex6_jenga` is a deliberately incoherent
 fixture and is *supposed* to score low on D3; averaging it with `ex4` produces
@@ -432,43 +406,54 @@ that actually touched one of its declared instrument paths — a fictional era
 boundary is a violation — and every card measured before a change affecting its
 example, carrying no note, is reported `OPEN`.
 
-**The third clause — architecture. THE RULE, AND FROM VERSION 4 THE RULE IS ALL
-OF IT.**
+**The third clause — architecture (RD-05).** Architecture has always been a
+comparability axis and was handled by prose telling readers that a deliberately
+incoherent fixture is *supposed* to score low on D3. It is now a computed field:
+one axis, `effect_boundary`, with two values that carry refusal authority —
+`ports-and-adapters`, `effectful` — and two that carry none,
+`UNDERIVABLE:<reason>` and `UNDEMONSTRATED:<name>`. The values are **nominal and
+never ranked**; the moment one is better the tag is a target and `MF-020`
+applies. The design is `references/architecture_tags.md` and the measurement
+under it is RD-04's.
 
-> **Architecture is a comparability axis: name it before you compare, and never
-> rank the values.** The moment one value is better, the tag is a target and
-> `MF-020` applies.
+Three properties keep it a comparability axis rather than a suppression key, and
+none is optional:
 
-That sentence is what this clause asks of a reader, and it is now the whole of
-what this card carries about it. Thirty-eight lines of derivation,
-refusal-authority keying and failure modes used to sit here. They are a **design
-record, not a bar for a score**, and they describe a mechanism that does no work
-until a project has run enough rounds to populate its own `[[demonstration]]`
-table from its own cards — so on day one they are pages about something that
-says nothing, addressed to a reader whose table is empty and whose language the
-derivation cannot parse. **Nothing is deleted; it is moved to where it belongs.**
-`references/architecture_tags.md` is RD-04's and RD-05's sealed design record.
-It is not documentation for anyone adopting this card and it should stop being
-read as any.
+- **Refusal authority is per dimension.** It is keyed on `(dimension,
+  value-pair)` and read from `[[demonstration]]` entries that `audit`
+  **re-derives from the cards on every run**, exactly as R-H5 re-derives
+  `points`. Measured today the table has **one row**, D3 — the other four
+  dimensions overlap, so on D1, D2, D4 and D5 a "different architecture"
+  objection is not available at all.
+- **An `INCOMPARABLE` pair prints both score sets.** The verdict annotates the
+  *pair*; it never touches a row. `ABSENT`, `UNDERIVABLE` and `INCOMPARABLE` are
+  three distinct states with three distinct counters, because a missing row and
+  an incomparable one are not the same claim. **A tag can never reduce the set of
+  printed numbers; it can only add a word beside two of them.**
+- **Only the DERIVED value refuses, and everything unresolved fails open.** The
+  declared value is recorded and never has authority; an underivable subject is
+  comparable to everything; a derivation/declaration disagreement is reported as
+  `TAG-DISPUTED`, is never corrected and blocks nothing.
 
 *Executed as:* `score_tools.py tags` derives every scope declared in
-`examples/validation/scorecards/subjects.toml`, marking `NULL-ENTAILED` any
-`does not separate` verdict whose population range is a single point — a null
-result that could not have come out otherwise is not a null result. `audit`
-re-derives the table from the cards on every run: a `[[demonstration]]` the
-cards no longer support is a **VIOLATION**, a separation with no entry beside it
-is `OPEN`, and a card whose D3 citations fall predominantly outside its declared
-scope is `SCOPE-DRIFT`. **A scope change is not an architecture change and must
-never be read as one.** Only a DERIVED value ever refuses, everything unresolved
-fails open, and a tag can never reduce the set of printed numbers — it can only
-add a word beside two of them.
+`examples/validation/scorecards/subjects.toml` and prints the table with the
+population's observed range beside every `does not separate` verdict, marked
+`NULL-ENTAILED` where that range is a single point — a null result that could not
+have come out otherwise is not a null result. `audit` re-derives the table: a
+`[[demonstration]]` the cards no longer support is a **VIOLATION**, a separation
+the cards support with no entry beside it is `OPEN`, and a card whose D3
+citations fall predominantly outside its declared scope is reported
+`SCOPE-DRIFT`. **A scope change is not an architecture change and must never be
+read as one.**
 
-> **What the axis rests on, stated as a limit.** One example, one dimension, and
-> a `sonnet` `ports-and-adapters` population that is one tree scored twice.
-> Earn-its-place is a **deletion** rule and not a promotion one: it establishes
-> correlation, cannot establish cause, cannot detect a ceiling, and cannot see a
-> value occurring in one example. Delete decoration with it; do not admit a
-> value with it.
+> **What the axis rests on, stated as a limit.** One example, one dimension, one
+> judge tier. The separation is demonstrated in `opus` and has **never been
+> measured in `sonnet` on a `ports-and-adapters` subject — n = 0**
+> (`RD-04-DF-03`), so the row carries `tiers_measured` and a cross-tier
+> comparison on D3 is covered by nothing measured here. Earn-its-place is a
+> **deletion** rule and not a promotion one: it establishes correlation, cannot
+> establish cause, cannot detect a ceiling, and cannot see a value occurring in
+> one example. Delete decoration with it; do not admit a value with it.
 
 ### R-H2 — Never average across examples
 
@@ -692,21 +677,7 @@ at the old rubric: **freeze the rubric file before you edit it**, and scaffold
 the old arm with `--rubric <the frozen copy> --card-version N`. FI-03 did this
 by sequencing (`rubric_v1_frozen.md`); SM-04 did it the same way
 (`rubric_v2_frozen.md`). That it is operator sequencing rather than a mechanism
-is `FI-06-DF-11(c)`, open. RM-03 did it the same way a third time
-(`rubric_v3_frozen.md`), which is three of three and is the argument for making
-it a mechanism rather than the argument that sequencing works.
-
-> **WHAT THIS RULE COSTS A REMOVAL, measured on version 4 rather than asserted.**
-> *"Keep the old anchors in the file"* and `R-H4`'s *"a sealed card is never
-> edited"* together mean **a card cut cannot delete prose and cannot delete
-> code.** The anchors move from the served section to
-> [Retired anchors](#retired-anchors-versions-1-3) rather than leaving the file,
-> and every line of `score_tools.py` that enforces a version 1–3 rule has to
-> stay, because 73 sealed cards are still checked by it. Version 4 removed three
-> dimensions and one anchor from the card **and made this file and its tool
-> longer.** The card an adopter reads got smaller; the substrate did not. That is
-> not an argument against the rule — it is the reason a removal must be priced
-> per removal and never reported as a total.
+is `FI-06-DF-11(c)`, open.
 
 ### Version history
 
@@ -723,68 +694,6 @@ file, so it detects a stale table rather than a moved bar. That is
 | **1** | `sha256:eeccf4576bc6fd85` | the original card: five dimensions, seven scoring rules, R-H1..R-H4. |
 | **2** | `sha256:eeccf4576bc6fd85` | `judging_practice` required on every filled card (rule 8); D4 = 4 gated on it; the instability caveat promoted to R-H5 with a check. **Anchors unchanged.** |
 | **3** | `sha256:eeccf4576bc6fd85` | the judge is served a generated card and never this file (rule 9); `served_digest` and `file_sha256` recorded per card; D5 anchor 4's two readings recorded in `anchor_reading`; `total` removed from the card and from every rendering. **Anchors unchanged.** |
-| **4** | `sha256:f73b4d82638f09df` | **THE ANCHORS MOVED, for the first time.** D1, D4 and D5 stop being scored and become recorded notes (rule 10); D2's anchor 4 is deleted, so D2 is a 0–3 scale; D2's preamble stops requiring a measured descriptor to be read first. Retired anchors below, byte-identical. |
-
-### Retired anchors, versions 1–3
-
-**Kept verbatim, and kept OUT of the served surface.** `Changing this card`
-requires the old anchors to stay in the file; `serve` renders parsed structure
-only and the parser matches `### D<n> — <name>` headings, which these
-deliberately are not. So they are readable by a person comparing two versions
-and unreachable by a judge scoring under either.
-
-**D1 — bug detection** *(retired at version 4)*
-
-- **0** — Cases exist and pass; no seeded fault is caught. A suite that is green
-  on broken code.
-- **1** — Catches faults that change a value the projection already prints.
-  Misses everything requiring a content assertion.
-- **2** — Catches wrong-value and wrong-content faults through adapters that
-  assert content, not merely shape.
-- **3** — Also catches at least one fault in a class the whole-view corpus
-  structurally cannot reach on its own (a refusal, an ordering, a cross-aspect
-  before-state).
-- **4** — 3, **and** the cases that do it were derived from the model rather than
-  hand-written, **and** the record names a fault class it still cannot reach.
-
-**D2's anchor 4** *(retired at version 4; anchors 0–3 are unchanged and live)*
-
-- **4** — 3, **and** the simplification is shown to be behavior-preserving
-  (D4 ≥ 3), so the reduction is not paid for in lost behavior.
-
-**D2's preamble** *(retired at version 4)*
-
-> Read the measured descriptor first (variables, actions, state-space bound, R/W
-> density, modularity, dense rows). Then judge whether the numbers reflect
-> essential behavior or accidental structure.
-
-**D4 — behavior preservation** *(retired at version 4)*
-
-- **0** — Behavior changed and nobody checked.
-- **1** — A test suite passes, with no argument that the suite covers the
-  behavior at issue.
-- **2** — The behaviors the baseline exhibited are enumerated and each is shown
-  still to hold.
-- **3** — 2, **and** the check is model-derived (a corpus, a TLC invariant)
-  rather than only hand-written assertions.
-- **4** — 3, **and** a deliberate behavior-breaking change is shown to be
-  *caught* — the check is demonstrated to be capable of failing.
-
-**D5 — honesty** *(retired at version 4)*
-
-- **0** — Claims a clean it cannot support.
-- **1** — Reports results without stating what was not measured.
-- **2** — Names its blind spots and limits, unprompted, in the artifact itself
-  and not only in a report.
-- **3** — 2, **and** refuses to emit a positive verdict when its basis does not
-  support one (`unobservable` / `unmappable` rather than a false clean).
-- **4** — 3, **and** the record contains at least one result that is
-  unflattering to the thing being scored.
-
-D5's anchor 4 carried two defensible readings — `disclosure` and `measured` —
-and version 3 required a card to say which it used. Both were legal, neither was
-corrected, and the requirement retires with the anchor. `check` still enforces
-it on every version 3 card.
 
 **The discontinuity between 1 and 2 was measured, not assumed.** FI-03 re-scored
 the same three sealed artifacts twice on the same day — once under version 1 and
