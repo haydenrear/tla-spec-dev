@@ -574,3 +574,155 @@ replace = '''    "tests/test_complexity_ledger.py::TestIncreaseJustification::te
 [[control.detector]]
 id = "instrument-registry"
 args = ["--only", "complexity-ledger"]
+
+
+# ===========================================================================
+# RM-03 -- SEEDED BEFORE THE CUT, and the cut is in the same ticket
+# ===========================================================================
+#
+# `removal_is_a_delta_rule`, applied to the removals RM-02 scoped. Four faults,
+# each seeded in the gap of one mechanism RM-03 removes, measured against every
+# detector that exists NOW, and re-read after the cut.
+#
+# THE ASYMMETRY RM-01 FOUND IS WHY TWO OF THESE ARE STILL WORTH SEEDING.
+# `RM03-GM-RUNNER` and `RM03-GM-CAT` edit files RM-03 DELETES, so neither can be
+# re-run after the cut and the shipped `removal_census.py discriminate` would
+# have called them `not_seedable` for that reason. `price_removal.py entail`
+# does not need them re-run: proving that EVERY killing (detector, node) is
+# deleted needs only the before-table and the diff, and that is the direction a
+# price lives in. A fault whose surface dies with the mechanism is exactly the
+# class the re-runnability rule excluded, and it is the class that can be
+# priced.
+#
+# TWO OF THE FOUR ARE DELIBERATELY EXPECTED TO COME BACK `FREE`, and they are
+# seeded anyway. D4 and D5 stop being SCORED at card version 4; every line of
+# `score_tools.py` that enforced their version 1-3 rules stays, because 73
+# sealed cards are still checked by it and `R-H4` says a sealed card is never
+# edited. So the honest prediction is that the mechanical half of that cut costs
+# nothing and the judged half is unpriceable by anything here. A row predicted
+# free is not a row worth skipping -- it is the row that says which half of a
+# removal an instrument can see.
+#
+# WHAT NO ROW HERE MEASURES. Whether cutting D1, D4 and D5 as SCORED DIMENSIONS
+# costs anything is a question about what an agent judge does with a card, and
+# nothing in this file can seed a fault in a judge. Those removals are reported
+# UNPRICED rather than given a zero, because a zero from an instrument that
+# cannot reach the mechanism is not a measurement.
+
+[[detector]]
+id = "pytest-gap-mutants"
+kind = "pytest"
+nodes = ["{tree}/tests/test_gap_mutants.py"]
+uses_ports_binding = false
+note = """
+The gap-mutant machinery's own tests, 32 collected nodes. It is the detector for
+the two faults seeded inside that machinery, and it is deleted by RM-03 along
+with the machinery -- which is the whole reason those two rows can be priced at
+all rather than reported as redundant.
+"""
+
+
+[[mutant]]
+id = "RM03-GM-D4-the-top-of-behaviour-preservation-stops-needing-a-run"
+mechanism = "d4-as-a-scored-dimension"
+removed_by = "RM-03"
+claims_to_catch = "a card awarding the top of behaviour-preservation while its judge recorded that it ran nothing -- scoring rule 8, the only mechanical consequence D4 ever had"
+gap = """
+D4's ANCHOR 4 asks for a behaviour-breaking change SHOWN TO BE CAUGHT, and
+`check` executes that: a card scoring D4 = 4 with `executed_own_faults: false`
+is refused. That refusal is the entire machine-readable surface of D4. If
+removing D4 from the card removes it, the removal is priced; if the refusal
+survives because 73 sealed version 1-3 cards still need it, the removal is free
+ON THIS SURFACE ONLY -- and the surface it is free on is not the one D4 was
+for.
+"""
+[[mutant.edit]]
+path = "examples/validation/scorecards/score_tools.py"
+find = 'PRACTICE_GATED_DIMS = ("D4",)'
+replace = 'PRACTICE_GATED_DIMS = ()  # RM03-GM-D4: no dimension is gated on judging practice, so a judge that ran nothing can award the top of behaviour preservation'
+[[mutant.detector]]
+id = "pytest-full"
+
+
+[[mutant]]
+id = "RM03-GM-D5-a-split-on-the-honesty-anchor-stops-being-readable"
+mechanism = "d5-as-a-scored-dimension"
+removed_by = "RM-03"
+claims_to_catch = "two judges who disagree on honesty at 3 or 4 without recording WHICH of the anchor's two defensible readings each used -- the disagreement becomes unreadable rather than visible"
+gap = """
+D5's anchor 4 carries two readings, `disclosure` and `measured`, and version 3's
+whole contribution to D5 was to make a card say which it used. `check` refuses a
+D5 of 3 or 4 with no `anchor_reading`. That is D5's only mechanical surface, and
+this fault removes the refusal.
+"""
+[[mutant.edit]]
+path = "examples/validation/scorecards/score_tools.py"
+find = "ANCHOR_READING_SCORES = (3, 4)"
+replace = "ANCHOR_READING_SCORES = ()  # RM03-GM-D5: no score requires the anchor reading, so two judges who split on which reading they used are indistinguishable from two who split on the artifact"
+[[mutant.detector]]
+id = "pytest-full"
+
+
+[[mutant]]
+id = "RM03-GM-RUNNER-an-unapplied-mutant-reports-a-survival"
+mechanism = "gap-mutant-runner"
+removed_by = "RM-03"
+claims_to_catch = "an edit that changed nothing, reported as a mutant that was applied -- the FI-01-DF-01 failure, fifteen false survivals with no error, in the one file whose job is to stop it"
+gap = """
+THE RUNNER'S OWN GUARANTEE. Its docstring says it exits non-zero for exactly one
+reason: a declared mutant could not be applied, because an unapplied mutant
+reporting SURVIVES reads as evidence that nothing was lost. This fault deletes
+that refusal for the no-op case, so a `find` that matches its own `replace`
+sails through and every cell under it says the mechanism was redundant.
+
+This mutant CANNOT BE RE-RUN AFTER THE CUT -- RM-03 deletes the file it edits.
+That is the class `gap_mutants.toml`'s own re-runnability rule excluded and
+`RM-01` showed to be exactly the class a price can live in.
+"""
+[[mutant.edit]]
+path = "examples/validation/gap_mutants/run_gap_mutants.py"
+find = '''            raise MutantNotApplied(f"{mutant['id']}: edit to {edit['path']} changed nothing")'''
+replace = '            pass  # RM03-GM-RUNNER: an edit that changed nothing is accepted silently, so an unapplied mutant is reported as a survival'
+[[mutant.detector]]
+id = "pytest-full"
+[[mutant.detector]]
+id = "pytest-gap-mutants"
+
+
+# ---------------------------------------------------------------------------
+# THE FIFTH ROW, AND WHY IT IS NOT HERE. `RM-03` drafted
+# `RM03-GM-CAT-a-catalogue-anchor-that-drifted-is-not-noticed` to price the
+# CATALOGUE separately from the runner: drift one shipped `find` anchor so it
+# matches nothing, and see whether
+# `test_every_mutant_anchor_occurs_exactly_once_in_the_shipped_tree` still
+# catches it.
+#
+# IT CANNOT BE WRITTEN. That tripwire counts occurrences of `edit.find` in
+# `edit.path`, and for a mutant whose `edit.path` IS this file, the mutant's own
+# `find` and `replace` lines are occurrences. Every anchor is at least three by
+# construction and the row is refused before it runs. **A gap mutant cannot be
+# seeded in the catalogue that declares it** -- a small, real and transferable
+# bound on this instrument, filed as `RM-03-DF-02` rather than worked around by
+# weakening the tripwire. The catalogue and the runner are one removal in
+# `references/portable_scorecard.md` §5.4 and `RM03-GM-RUNNER` prices it.
+# ---------------------------------------------------------------------------
+
+
+[[control]]
+id = "RM03-GM-CTRL-C-a-detector-that-no-longer-exists-is-reported-as-a-survival"
+mechanism = "positive control for the pytest-gap-mutants column"
+removed_by = "nothing"
+control_role = "positive -- must die on `pytest-gap-mutants`. It inverts the runner's REMOVED rule so a detector whose entry point is gone reports SURVIVES instead, which is the MF-020 shape this whole file was opened to avoid. If this does not go red, that column decides nothing and every SURVIVES under it is undecided."
+claims_to_catch = "n/a -- this row is the control, not a gap"
+gap = "NONE, on purpose. It breaks the one rule `test_a_detector_that_no_longer_exists_is_REMOVED_and_never_a_survival` names, so a column that cannot decide it is a column that is not reaching the subject."
+must_die_on = ["pytest-full", "pytest-gap-mutants"]
+[[control.edit]]
+path = "examples/validation/gap_mutants/run_gap_mutants.py"
+find = """    if not observed["present"]:
+        return REMOVED"""
+replace = """    if not observed["present"]:
+        return SURVIVES  # RM03-GM-CTRL-C: a detector that no longer exists is counted as having failed to catch the fault"""
+[[control.detector]]
+id = "pytest-full"
+[[control.detector]]
+id = "pytest-gap-mutants"

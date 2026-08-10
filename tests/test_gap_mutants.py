@@ -86,15 +86,26 @@ def test_every_mutant_names_the_mechanism_it_prices_and_the_ticket_that_cuts_it(
     for mutant in catalogue["mutant"]:
         for key in ("mechanism", "removed_by", "claims_to_catch", "gap"):
             assert mutant.get(key), f"{mutant['id']} has no {key}"
-        assert mutant["removed_by"] in {"SM-02", "SM-03"}, mutant["id"]
+        assert mutant["removed_by"] in {"SM-02", "SM-03", "RM-03"}, mutant["id"]
         assert mutant.get("detector"), f"{mutant['id']} declares no detector"
 
 
-def test_both_removals_in_the_epic_carry_at_least_one_gap_mutant(catalogue) -> None:
-    """`GOAL-removal-is-measured` has a baseline of ZERO. Neither cut may be the
-    one that stays there."""
+def test_every_removal_that_declared_a_ticket_carries_at_least_one_gap_mutant(
+    catalogue,
+) -> None:
+    """`GOAL-removal-is-measured` has a baseline of ZERO. No cut that declared a
+    ticket here may be the one that stays there.
+
+    RM-03 joins SM-02 and SM-03 rather than replacing them: its rows are seeded
+    in the gaps of the mechanisms RM-03 itself removes, before the cut, which is
+    what `removal_is_a_delta_rule` asks for and what makes the after-reading a
+    measurement rather than an absence.
+    """
     cut_by = {mutant["removed_by"] for mutant in catalogue["mutant"]}
-    assert cut_by == {"SM-02", "SM-03"}, sorted(cut_by)
+    assert cut_by == {"SM-02", "SM-03", "RM-03"}, sorted(cut_by)
+    for ticket in sorted(cut_by):
+        seeded = [m["id"] for m in catalogue["mutant"] if m["removed_by"] == ticket]
+        assert seeded, ticket
 
 
 def test_every_detector_a_mutant_names_is_declared(catalogue) -> None:
