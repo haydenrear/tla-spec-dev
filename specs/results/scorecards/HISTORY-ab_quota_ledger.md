@@ -215,6 +215,30 @@ THE ANCHORS DID NOT MOVE. `anchors_digest` is sha256:eeccf4576bc6fd85 at version
 | `20260807-sm05gf-S-p2` | subtract-to-measure-sm05-greenfield | S | 2 | 3 | 3 | 2 | 2 | 2 | 3 | `f49a1c9` | — |
 | `20260807-sm05gf-S-p3` | subtract-to-measure-sm05-greenfield | S | 3 | 3 | 3 | 2 | 1 | 3 | 2 | `f49a1c9` | — |
 | `20260807-sm05gf-S-p4` | subtract-to-measure-sm05-greenfield | S | 4 | 3 | 3 | 2 | 2 | 3 | 2 | `f49a1c9` | — |
+| `20260809-rd03D-D-p1` | reading-discipline | D | 1 | 3 | 3 | 3 | 1 | 4 | 4 | `f52be89` | — |
+| `20260809-rd03D-D-p2` | reading-discipline | D | 2 | 3 | 3 | 4 | 1 | 4 | 4 | `f52be89` | — |
+| `20260809-rd03D-D-p3` | reading-discipline | D | 3 | 3 | 3 | 3 | 0 | 2 | 4 | `f52be89` | — |
+| `20260809-rd03D-D-p4` | reading-discipline | D | 4 | 3 | 3 | 3 | 0 | 2 | 4 | `f52be89` | — |
+| `20260809-rd03E-E-p1` | reading-discipline | E | 1 | 3 | 3 | 2 | 4 | 2 | 3 | `f52be89` | — |
+| `20260809-rd03E-E-p2` | reading-discipline | E | 2 | 3 | 3 | 2 | 4 | 2 | 3 | `f52be89` | — |
+| `20260809-rd03E-E-p3` | reading-discipline | E | 3 | 3 | 3 | 2 | 4 | 2 | 2 | `f52be89` | — |
+| `20260809-rd03E-E-p4` | reading-discipline | E | 4 | 3 | 3 | 2 | 4 | 2 | 2 | `f52be89` | — |
+| `20260809-rd03F-F-p1` | reading-discipline | F | 1 | 3 | 3 | 2 | 4 | 2 | 4 | `f52be89` | — |
+| `20260809-rd03F-F-p2` | reading-discipline | F | 2 | 3 | 3 | 2 | 4 | 2 | 4 | `f52be89` | — |
+| `20260809-rd03F-F-p3` | reading-discipline | F | 3 | 3 | 3 | 2 | 4 | 2 | 4 | `f52be89` | — |
+| `20260809-rd03F-F-p4` | reading-discipline | F | 4 | 3 | 3 | 2 | 4 | 2 | 4 | `f52be89` | — |
+| `20260809-rd03M-M-p1` | reading-discipline | M | 1 | 3 | 3 | 4 | 1 | 4 | 4 | `f52be89` | — |
+| `20260809-rd03M-M-p2` | reading-discipline | M | 2 | 3 | 3 | 4 | 2 | 4 | 4 | `f52be89` | — |
+| `20260809-rd03M-M-p3` | reading-discipline | M | 3 | 3 | 3 | 3 | 1 | 2 | 4 | `f52be89` | — |
+| `20260809-rd03M-M-p4` | reading-discipline | M | 4 | 3 | 3 | 3 | 0 | 2 | 3 | `f52be89` | — |
+| `20260809-rd03N-N-p1` | reading-discipline | N | 1 | 3 | 3 | 2 | 1 | 4 | 4 | `f52be89` | — |
+| `20260809-rd03N-N-p2` | reading-discipline | N | 2 | 3 | 3 | 2 | 1 | 4 | 4 | `f52be89` | — |
+| `20260809-rd03N-N-p3` | reading-discipline | N | 3 | 3 | 3 | 2 | 0 | 2 | 4 | `f52be89` | — |
+| `20260809-rd03N-N-p4` | reading-discipline | N | 4 | 3 | 3 | 2 | 0 | 2 | 4 | `f52be89` | — |
+| `20260809-rd03Z-Z-p1` | reading-discipline | Z | 1 | 3 | 3 | 2 | 1 | 1 | 4 | `f52be89` | — |
+| `20260809-rd03Z-Z-p2` | reading-discipline | Z | 2 | 3 | 3 | 2 | 2 | 4 | 3 | `f52be89` | — |
+| `20260809-rd03Z-Z-p3` | reading-discipline | Z | 3 | 3 | 3 | 2 | 1 | 2 | 4 | `f52be89` | — |
+| `20260809-rd03Z-Z-p4` | reading-discipline | Z | 4 | 3 | 3 | 2 | 0 | 2 | 3 | `f52be89` | — |
 
 ## The same artifact, scored twice — declared movements
 

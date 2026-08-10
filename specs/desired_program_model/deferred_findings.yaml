@@ -9199,3 +9199,241 @@ findings:
       Every counted figure in the record whose author put the example name after
       the count, currently invisible as UNREACHABLE rather than checked.
     disposition: open
+
+  - id: RM-06-DF-01
+    found_by: "RM-06"
+    found_at_commit: "356ffe8"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/architecture_tags.py"]
+    summary: >-
+      THE SAME-TAG CONTROL FIRES NINE TIMES AND CANNOT TELL TREATMENT FROM
+      ARCHITECTURE. `same_tag_controls` exists so that a separation between two
+      artifacts carrying DIFFERENT derived `effect_boundary` values means
+      something: two subjects of the same example carrying the SAME value must
+      not separate. Over the 49 sealed cards it held on the one pair available
+      (`arm_a` / `arm_c`). Over 73 it fails on nine pairs -- eight on D2 and one
+      on D5 -- and every one of the nine is an RD-06 before-tree scoring
+      disjointly from its own after-tree at the same derived value.
+
+      The control is not broken and it is not stale. It is reporting, correctly,
+      that a same-tag pair CAN separate, and the reason is that RD-06 gave it
+      its first within-value TREATMENT difference (a revision pass) and the
+      predicate has no way to see one. `RD-03-DF-12` named the mechanism; this
+      records that the suite now carries it as a standing red.
+
+      D3 IS NOT AMONG THE NINE. The one dimension the axis actually grants a
+      refusal on is still controlled, which is why the shipped
+      `[[demonstration]]` row is not withdrawn -- but the control no longer
+      supports the general claim that a same-tag separation is impossible.
+    reproduction: >-
+      `python3 examples/validation/scorecards/architecture_tags.py table | grep
+      "control FAILS"` -> nine rows. `python3 -m pytest
+      tests/test_architecture_tags.py::test_the_same_tag_control_holds` -> red,
+      with the nine pairs named in the assertion message.
+    evidence:
+      - "tests/test_architecture_tags.py::test_the_same_tag_control_holds"
+      - "examples/validation/scorecards/architecture_tags.py -- same_tag_controls"
+      - "NEXT-EPIC.md section 0-AAAAAA 7"
+    why_out_of_scope: >-
+      RM-06 restores a baseline; it does not change what the axis measures. The
+      two repairs that would clear this were both considered and REJECTED as
+      suppression: scoping the control to D3 (where it still holds) makes it a
+      check about the shipped row rather than about the axis, and excluding
+      revision pairs from the population removes exactly the evidence the
+      control exists to see. Either one converts a measurement into a tautology.
+    suggested_fix: >-
+      RM-04 owns this with its `state_colocation` probe. Either the axis grows a
+      way to distinguish treatment from architecture and the control is re-run,
+      or the epic decides it cannot and states the bound wherever the D3
+      separation is cited. Leaving the test red is the correct interim state and
+      the test says so in its own docstring.
+    blast_radius: >-
+      Every claim resting on "the separation is not reproduced by an arbitrary
+      pair" is narrower than it reads: it is now "not reproduced by an arbitrary
+      pair ON D3". The `[[demonstration]]` row's `why` still asserts the
+      unqualified form.
+    disposition: open
+
+  - id: RM-06-DF-02
+    found_by: "RM-06"
+    found_at_commit: "356ffe8"
+    schedule_revision: 1
+    severity: blocking
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/INSTRUMENT-LOG.toml"]
+    summary: >-
+      THE ONE DECLARED REFUSAL AUTHORITY IN THE RECORD NO LONGER MATCHES THE
+      CARDS, AND IT IS THE SINGLE VIOLATION `audit` REPORTS. The ledger's
+      `[[demonstration]]` row `effect_boundary-ab_quota_ledger-D3-effectful-vs-
+      ports-and-adapters` declares `ranges = { effectful = [1, 2],
+      ports-and-adapters = [4, 4] }` and `tiers_measured = ["opus"]`. The 73
+      cards give `effectful = [0, 2]` and `["opus", "sonnet"]`.
+
+      THE ROW IS NOT WRONG, IT IS SCOPED, and that is measured rather than
+      argued: re-derived over the 49 cards sealed before `reading-discipline` --
+      RD-04's own population -- the declaration reproduces EXACTLY, ranges and
+      tier list both. What moved is the card population underneath it. RD-03
+      added 24 cards; six `sonnet` cards on the RD-06 revision trees scored
+      D3 = 0, a value this example had never carried. `denominator_rule`: both
+      numerators rose (effectful 24 -> 40, ports-and-adapters 10 -> 18) and the
+      range's lower bound fell 1 -> 0. Nothing left either population.
+
+      IT IS BLOCKING BECAUSE IT IS LOAD-BEARING FOR THE SUITE. Five suite nodes
+      and four registry demonstration slots are red downstream of this one
+      violation and of nothing else.
+    reproduction: >-
+      `python3 examples/validation/scorecards/score_tools.py audit --root
+      specs/results/scorecards --quiet-ok` -> exit 1, `1 violation(s)`, the row
+      named. Red downstream: `test_architecture_tags.py::
+      test_the_committed_demonstration_re_derives_from_the_cards`,
+      `test_score_tools.py::test_the_repo_ledger_passes_its_own_audit`,
+      `::test_the_repo_ledger_passes_its_own_audit_with_rh6`,
+      `::test_the_shipped_rh5_demonstration_still_goes_red` (its precondition is
+      a green baseline copy), and `test_instrument_demonstrations.py::
+      test_every_fast_demonstration_reproduces` via `scorecard-audit` failing
+      and passing and `scorecard-contested-drift` failing and passing.
+    evidence:
+      - "specs/results/scorecards/INSTRUMENT-LOG.toml -- the [[demonstration]] block"
+      - "tests/test_architecture_tags.py::test_the_committed_demonstration_re_derives_from_the_cards"
+      - "NEXT-EPIC.md section 0-AAAAAA 7"
+    why_out_of_scope: >-
+      RM-06 REPAIRED THIS ROW AND THEN REVERTED THE REPAIR ON THE EPIC OWNER'S
+      INSTRUCTION, and the instruction is right. The row grants a REFUSAL
+      AUTHORITY: editing the declaration into agreement with the cards makes it
+      certify whatever the record happens to say, which is not a control, and it
+      silently widens what the axis may refuse a comparison on -- from one tier
+      to two, and from 1-2 to 0-2. That decision belongs beside RM-04's
+      `state_colocation` threshold work, not to a baseline-restoration ticket.
+    suggested_fix: >-
+      RM-04 decides, with the threshold, whether the authority is re-declared at
+      the 73-card population, split by tier, or withdrawn. Whichever it is, the
+      row should carry the population it was measured at, exactly as a card
+      carries its commit -- the reason it went stale is that it did not.
+    blast_radius: >-
+      `audit` exits 1 over this repository, so every future ticket inherits a red
+      baseline on it and cannot use "audit is green" as a check. The four
+      registry slots pinned to record-wide violation totals are red with it.
+    disposition: open
+
+  - id: RM-06-DF-03
+    found_by: "RM-06"
+    found_at_commit: "356ffe8"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      THE SWEEP HAS FOUR VERDICTS AND TWO OF THEM NOW HAVE NO LIVE INSTANCE.
+      `scope` over the shipped record returns 74 counted figures: 59 REFUTED, 0
+      COUNT-MOVED, 0 HOLDS, 15 UNREACHABLE. COUNT-MOVED (stale, corpus grew, no
+      counterexample) and HOLDS (re-derives exactly) are structurally reachable
+      -- both were demonstrated on real card populations by this ticket -- but
+      NOT ONE LINE IN THE RECORD REACHES EITHER.
+
+      That is the RD-03 prediction running to completion. RD-03 measured 67
+      figures at 53 REFUTED / 0 COUNT-MOVED / 0 HOLDS and said the count is a
+      joint property of the record and the card population. Six more cards and
+      seven more figures later, the ratio has not recovered. The distinction the
+      instrument was built to draw -- staleness is not refutation -- is now
+      drawable only on constructed sentences.
+
+      A reader who sees `0 COUNT-MOVED` and reads it as "nothing in the record
+      is merely stale" has it exactly backwards: everything that was merely
+      stale has been overtaken and is now refuted.
+    reproduction: >-
+      `python3 examples/validation/scorecards/score_tools.py scope | tail -2`.
+      `tests/test_score_tools.py::
+      test_a_scoped_claim_whose_denominator_moved_is_stale_and_not_refuted`
+      asserts the zero directly, so it goes red if a COUNT-MOVED line returns.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py -- evaluate_claim"
+      - "NEXT-EPIC.md section 0-AAAAAA 5"
+      - "tests/test_score_tools.py::test_a_scoped_claim_whose_denominator_moved_is_stale_and_not_refuted"
+    why_out_of_scope: >-
+      Repairing it means editing 59 figures across the charters, the plan, the
+      ledger and eight rounds of sealed narrative results -- which is a record
+      reconciliation, not a baseline restoration, and the project's own rule is
+      that a predecessor's figure carries its scope rather than being rewritten
+      to match a successor's corpus.
+    suggested_fix: >-
+      RM-05 decides. Either published figures start carrying their card
+      population inline (which is what would have prevented all 59), or the
+      sweep learns to read "at N cards" as part of the scope and reports
+      SUPERSEDED rather than REFUTED for a figure that was true at its own
+      population.
+    blast_radius: >-
+      Any round quoting `scope`'s REFUTED count as evidence about the record's
+      honesty is quoting a number that mostly measures how much the corpus has
+      grown since each figure was written.
+    disposition: open
+
+  - id: RM-06-DF-04
+    found_by: "RM-06"
+    found_at_commit: "356ffe8"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/instruments/instruments.toml"]
+    summary: >-
+      A DEMONSTRATION PINNED TO A RECORD-WIDE PROPERTY MEASURES THE RECORD, NOT
+      THE BREAK -- two shapes, both found red here.
+
+      (a) MUTATION ANCHORS. `scorecard-contested-drift/failing` seeded its fault
+      with `find = "spread = 2"`. That matched one entry while the ledger carried
+      one adjudication record. RD-03 filed six more, five at spread 2, so the
+      string matched six times and the runner refused the whole demonstration as
+      MALFORMED. The refusal is correct -- seeding six faults and reporting them
+      as one is what that rule exists to stop -- but the demonstration was lost
+      to corpus growth, not to any change in the instrument. Repaired here by
+      anchoring on a score vector that is unique in the file.
+
+      (b) VERDICT TOTALS. `scorecard-audit/failing` and
+      `scorecard-contested-drift/failing` each assert `1 violation(s)` -- a count
+      over the WHOLE record -- while demonstrating a single seeded break. Any
+      unrelated violation anywhere in the record turns them red, which is what
+      `RM-06-DF-02` has done. NOT repaired: re-pinning to 2 would bake the
+      standing defect into the demonstration, and dropping the count would lose
+      an exact assertion for nothing.
+    reproduction: >-
+      `python3 examples/validation/instruments/demonstrate.py --tier fast --only
+      scorecard-contested-drift` at `356ffe8` -> `MALFORMED DEMONSTRATION:
+      ... find occurs 6 time(s), must be exactly 1`. After this ticket's anchor
+      fix, the same command reports only the two violation-total mismatches.
+    evidence:
+      - "examples/validation/instruments/instruments.toml -- scorecard-contested-drift, scorecard-audit"
+      - "examples/validation/instruments/demonstrate.py -- the exactly-one find rule"
+    why_out_of_scope: >-
+      Half of it IS repaired here, because a MALFORMED demonstration executes
+      nothing at all and that is a baseline defect. The other half cannot be
+      repaired without either `RM-06-DF-02` being settled or the runner learning
+      to count violations in the section it seeded rather than in the whole
+      report.
+    suggested_fix: >-
+      A demonstration should assert a DELTA against the unmodified staged tree,
+      not an absolute total, so an unrelated standing violation cannot turn a
+      seeded-break demonstration red. `demonstrate.py` already stages the tree,
+      so it already has the baseline it would need.
+    blast_radius: >-
+      Every `expect_output` in the registry carrying an `N violation(s)` or `N
+      REFUTED` total has this shape. `test_every_fast_demonstration_reproduces`
+      is one pytest node over the whole tier, so one such row makes the entire
+      tier read red with no indication of which.
+    disposition: open

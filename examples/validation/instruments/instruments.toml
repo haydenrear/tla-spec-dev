@@ -2344,7 +2344,7 @@ reported figure rather than a number to be driven to zero.
                    "REFUTED"]
 
   [instrument.passing]
-  summary = "the SAME claim from the SAME charter with its scope written beside it -- naming the example is what changes the verdict, not rephrasing it"
+  summary = "the SAME claim in the SAME charter line with its scope written beside it -- naming the example is what changes the verdict, not rephrasing it"
   argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "scope",
           "--root", "{tree}", "--path", "{tree}/SUBTRACT-TO-MEASURE-EPIC.md",
           "--scorecards", "{repo}/specs/results/scorecards"]
@@ -2356,10 +2356,27 @@ reported figure rather than a number to be driven to zero.
     from = "SUBTRACT-TO-MEASURE-EPIC.md"
     to = "SUBTRACT-TO-MEASURE-EPIC.md"
 
+    # RM-06. THE CONTROL DID NOT FAIL; THE WORLD MOVED UNDER IT, exactly as
+    # `NEXT-EPIC.md` section 0-AAAAAA 5 predicted it would.
+    #
+    # This replacement used to read `35 of 35 cards ever written about
+    # ab_quota_ledger`. That was TRUE when it was written and it is now false at
+    # EVERY denominator: RD-06's three revision pairs put D2 at 3 and 4 on that
+    # very example, so no universal `D2 = 2` claim scoped to `ab_quota_ledger`
+    # can hold again. Restoring `35 of 35` would assert a falsehood in order to
+    # reach green, and re-pinning the true non-universal figure (51 of 59 today)
+    # would go stale on the next round that scores that example.
+    #
+    # So the scope is moved to `ex4_pipeline_coherent`, whose two cards are
+    # sealed, closed and both D2 = 2. The demonstration is UNCHANGED IN SHAPE --
+    # one sentence, evaluated with and without the example beside it, and the
+    # two verdicts differ. The failing slot above still carries the real charter
+    # line unscoped, so the pair still says what it always said: naming the
+    # example is what changes the verdict.
     [[instrument.passing.mutate]]
     file = "SUBTRACT-TO-MEASURE-EPIC.md"
     find = "`D2 = 2` on **27 of 27 cards ever written**"
-    replace = "`D2 = 2` on **35 of 35 cards ever written about `ab_quota_ledger`**"
+    replace = "`D2 = 2` on **2 of 2 cards ever written about `ex4_pipeline_coherent`**"
 
   [instrument.blind_spot]
   kind = "declared"
@@ -2387,6 +2404,14 @@ an inconvenient score be parked behind a flag nothing re-derives.
 THE COMPUTATION FINDS EXACTLY ONE GROUP IN 49 SEALED CARDS, and it is the one
 this ticket was told about -- reached with no id, no path and no dimension named
 in the code that reaches it.
+
+RM-06: THAT FIGURE CARRIES ITS CARD POPULATION AND IS NOT EDITED. It is RD-01's
+statement at 49 sealed cards and it was true there. RD-03 dispatched four judges
+at two tiers over six artifacts and the computation now finds SEVEN groups in 73
+cards, six of them from that one round. The count is a joint property of the
+record and the card population (`NEXT-EPIC.md` section 0-AAAAAA 5); a published
+sweep count that does not say which population it was taken at is not a figure
+anyone can check.
 """
 
   [instrument.failing]
@@ -2407,16 +2432,16 @@ in the code that reaches it.
     replace = 'arm = "Z"'
 
   [instrument.passing]
-  summary = "the shipped record, whose one contested dimension is recorded with third_pass = none"
+  summary = "the shipped record, whose seven contested dimensions are each recorded with third_pass = none -- RM-06: this said ONE at 49 sealed cards and the figure is re-derived rather than restored, because RD-03's round filed six more and the count is a joint property of the record and the card population"
   argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "contested",
           "--require-recorded", "--root", "{repo}/specs/results/scorecards"]
   cwd = "{repo}"
   expect_exit = 0
-  expect_output = ["1 contested dimension(s)", "0 unrecorded", "TIER-SPLIT D3"]
+  expect_output = ["7 contested dimension(s)", "0 unrecorded", "TIER-SPLIT D3"]
 
   [instrument.blind_spot]
   kind = "declared"
-  summary = "IT CANNOT FIRE ON A GROUP WITH ONE JUDGE, and one exists: `hexagonal-prompting` / `ab_quota_ledger` / `A-control-reference` was scored by a single owner pass. 20 of the 23 groups carry exactly two judges, where a spread greater than 1 needs a two-point disagreement -- so the flag is structurally hardest to trip on exactly the shape the record is mostly made of, and the ONE group it fires on is one of the two four-judge groups."
+  summary = "IT CANNOT FIRE ON A GROUP WITH ONE JUDGE, and one exists: `hexagonal-prompting` / `ab_quota_ledger` / `A-control-reference` was scored by a single owner pass. 20 of the 23 groups carry exactly two judges, where a spread greater than 1 needs a two-point disagreement -- so the flag is structurally hardest to trip on exactly the shape the record is mostly made of, and the ONE group it fires on is one of the two four-judge groups. RM-06 CARRIES THE SCOPE RATHER THAN EDITING IT: that is the shape of the record at 23 groups / 49 cards, and the corpus is now 29 groups / 73 cards with seven contested. The structural point is unchanged and the two-judge majority still holds; only the counts moved."
   reason = "A fact about the dispatches, not about the check: a disagreement between judges cannot be measured where there is one judge. Recorded so `1 contested in 23 groups` is not read as evidence that the card is stable."
 
 [[instrument]]
@@ -2447,10 +2472,17 @@ than none, because it reads as one that happened.
     from = "specs/results/scorecards"
     to = "scorecards"
 
+    # RM-06: `find = "spread = 2"` matched ONE entry while the ledger carried a
+    # single adjudication record. RD-03 filed six more, five of them at spread
+    # 2, so the string began matching six times and the runner refused the whole
+    # demonstration as MALFORMED -- correctly, because seeding six faults and
+    # reporting them as one is exactly what that rule exists to stop. Anchored
+    # instead on the toolchain group's own score vector, which is unique in the
+    # file, so one entry is mutated however many the ledger grows to carry.
     [[instrument.failing.mutate]]
     file = "scorecards/INSTRUMENT-LOG.toml"
-    find = "spread = 2"
-    replace = "spread = 1"
+    find = "spread = 2\nscores = [2, 2, 4, 3]"
+    replace = "spread = 1\nscores = [2, 2, 4, 3]"
 
   [instrument.passing]
   summary = "the shipped ledger against the shipped cards"
@@ -2459,6 +2491,15 @@ than none, because it reads as one that happened.
   cwd = "{repo}"
   expect_exit = 0
   expect_output = ["0 violation(s)"]
+  # RM-06: THIS SLOT AND THE FAILING SLOT'S "1 violation(s)" ARE EXPECTED TO
+  # FAIL AND ARE DELIBERATELY NOT REPAIRED. `audit` exits 1 over the shipped
+  # ledger on one standing R-H1 violation -- the `[[demonstration]]` row
+  # declaring a D3 range and tier list the 73-card record no longer supports
+  # (`RM-06-DF-02`). Both totals are correct as written and become true again
+  # the moment RM-04 settles that row. Re-pinning them to 2 would bake the
+  # standing defect into the demonstration; dropping them would lose an exact
+  # count for nothing, since the row above is red either way. The seeded break
+  # itself still fires: "declares spread 1" and "the cards give 2" both appear.
 
 [[instrument]]
 id = "removal-census"
