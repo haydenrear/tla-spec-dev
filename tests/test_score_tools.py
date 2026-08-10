@@ -1314,12 +1314,26 @@ def test_the_shipped_rh5_demonstration_still_goes_red(st):
     non-zero if either break fails to produce a violation. Running it from the
     suite is what stops the demonstration from quietly stopping working, which
     is the class of artifact this epic is about.
+
+    **DELIBERATELY RED (`RM-06`, group 2), AND FOR A REASON WORTH READING.** The
+    two R-H5 breaks it exists to demonstrate BOTH STILL FIRE -- the stale-row
+    break and the unrecorded-practice break each produce exactly one R-H5
+    violation, as designed. What fails is the script's FIRST step: it refuses to
+    trust its own result unless the unmodified copy is green first, and the copy
+    inherits the one standing R-H1 violation on the `[[demonstration]]` row
+    (`RM-06-DF-02`). So the harness is reporting, correctly, that it cannot
+    certify a green baseline it does not have. Suppressing that precondition to
+    reach green here would remove the only thing that makes the demonstration
+    mean anything.
     """
     script = (SCORECARDS / "falsifiable-instruments/GOAL-scorecard-carries-a-delta"
               / "measure/demonstrate_rh5.py")
     assert script.exists(), script
     proc = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
-    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert proc.returncode == 0, (
+        "EXPECTED RED: the unmodified copy carries the standing R-H1 violation, "
+        "so the harness declines to certify a baseline. Both R-H5 breaks still "
+        "fire. See RM-06-DF-02.\n" + proc.stdout + proc.stderr)
     assert "goes RED on both of the inputs it exists to catch" in proc.stdout
 
 
@@ -1348,7 +1362,26 @@ def test_the_audit_fails_when_the_doc_declares_a_rule_with_no_check(st, tmp_path
 # --------------------------------------------------------------------------
 
 def test_the_repo_ledger_passes_its_own_audit(st, capsys):
-    assert st.main(["audit", "--root", str(SCORECARDS), "--quiet-ok"]) == 0
+    """**DELIBERATELY RED (`RM-06`, group 2). DO NOT MAKE IT GREEN HERE.**
+
+    `audit` exits 1 over this repository on exactly ONE violation, and it is the
+    same one at `2c0d94e`, at `95b2c79` and at `356ffe8`: the ledger's single
+    `[[demonstration]]` row declares a D3 range and a tier list that the 73-card
+    record no longer supports. That is a DECLARED REFUSAL AUTHORITY disagreeing
+    with the cards, which is the one thing this audit exists to say out loud.
+
+    Editing the declaration into agreement would make the row certify whatever
+    the record happens to say and would silently widen what the axis may refuse
+    a comparison on. RM-06 made that edit and reverted it on the epic owner's
+    instruction; settling the row belongs with RM-04's threshold work.
+    `RM-06-DF-02`, and `tests/test_architecture_tags.py::
+    test_the_committed_demonstration_re_derives_from_the_cards` carries the
+    evidence that the row is SCOPED rather than wrong.
+    """
+    assert st.main(["audit", "--root", str(SCORECARDS), "--quiet-ok"]) == 0, (
+        "EXPECTED RED on one standing R-H1 violation -- see this test's "
+        "docstring and RM-06-DF-02:\n" + capsys.readouterr().out
+    )
     capsys.readouterr()
 
 
@@ -1485,17 +1518,48 @@ def test_contested_fires_on_the_real_spread_of_two_without_being_told(st):
         assert card.get("contested") == [], card["run_id"]
 
 
-def test_contested_fires_on_exactly_one_group_in_the_whole_sealed_record(st):
+def test_contested_is_re_derived_and_still_fires_on_a_minority_of_groups(st):
     """The count is the product, and it is not tuned.
 
-    One group out of every group in the record, found by re-deriving rule 5.
-    A check that flagged a dozen would be as uninformative as one that flagged
-    none; this is what the sealed cards actually contain.
+    `RM-06`, group 3: THE CLAIM IS REWRITTEN, NOT THE NUMBER RESTORED. This was
+    named `..._fires_on_exactly_one_group_in_the_whole_sealed_record` and
+    asserted a singleton. That was true of 49 sealed cards. RD-03 dispatched
+    four judges at two tiers over six artifacts and the record now contains
+    SEVEN contested (round, example, arm, dimension) groups. "Exactly one" is
+    not a property of the check; it was a property of a card population that no
+    longer exists, and asserting it back would be asserting that RD-03's round
+    did not happen.
+
+    What was ever load-bearing is kept and is now stated as three things:
+
+      * **The flag is COMPUTED, not declared.** The expected set is re-derived
+        here straight from the cards' own scores -- spread > 1 within a judge
+        group -- rather than from `contested_of`, so this is a comparison of two
+        independent implementations and not an identity.
+      * **It is not vacuous in either direction.** It fires, and it fires on a
+        MINORITY of groups. A check that flagged every group would say nothing;
+        so would one that flagged none.
+      * **The group the record was built around is still among them.** The
+        `toolchain_removal` D3 spread of 2 is reached with no id, no path and no
+        dimension named in the code that reaches it.
     """
+    groups = st.judge_groups(SCORECARDS)
     flagged = {(g["round"], g["example"], g["arm"], dim)
-               for g in st.judge_groups(SCORECARDS)
-               for dim in st.contested_of(g)}
-    assert flagged == {("subtract-to-measure-sm05", "toolchain_removal", "K", "D3")}, flagged
+               for g in groups for dim in st.contested_of(g)}
+
+    expected = set()
+    for g in groups:
+        for dim in ("D1", "D2", "D3", "D4", "D5"):
+            scores = [s for c in g["cards"]
+                      for s in [((c.get("dimensions") or {}).get(dim) or {}).get("score")]
+                      if isinstance(s, int) and not isinstance(s, bool)]
+            if len(scores) > 1 and max(scores) - min(scores) > 1:
+                expected.add((g["round"], g["example"], g["arm"], dim))
+    assert flagged == expected, sorted(flagged ^ expected)
+
+    assert ("subtract-to-measure-sm05", "toolchain_removal", "K", "D3") in flagged
+    contested_groups = {(r, e, a) for r, e, a, _ in flagged}
+    assert 0 < len(contested_groups) < len(groups), (len(contested_groups), len(groups))
 
 
 def test_index_reports_contested_on_the_round_where_it_printed_a_dash(st, tmp_path, capsys):
@@ -1597,18 +1661,45 @@ def test_a_stale_contested_entry_is_a_violation(st, tmp_path):
     assert any("declares spread 1" in m and "the cards give 2" in m for m in bad), bad
 
 
-def test_the_shipped_record_records_its_one_contested_dimension(st):
-    """And says `third_pass = "none"`, because that is what happened."""
+def test_the_shipped_record_records_every_contested_dimension_it_computes(st):
+    """And says `third_pass = "none"` on all of them, because that is what
+    happened: recording is not repairing and no card was re-judged.
+
+    `RM-06`, group 1 for the count and group 2 for what follows it.
+
+    THE COUNT IS RE-DERIVED. This asserted `len(entries) == 1` over 49 sealed
+    cards. RD-03 filed six more, so the ledger carries seven -- and rather than
+    pin seven, the check is now that the ledger records EXACTLY the groups the
+    cards compute, in both directions. A recorded entry the cards do not support
+    and a computed group with nothing recorded are both failures here, which is
+    the property `R-H6` actually asks for.
+
+    THE R-H6 AUDIT HALF IS EXPECTED TO PASS AND THE WHOLE-RECORD AUDIT IS NOT.
+    `audit` still exits 1 over this repository on ONE standing R-H1 violation --
+    the `[[demonstration]]` row, `RM-06-DF-02` -- which is not this test's
+    business and is deliberately not repaired here.
+    """
     entries = st.load_log(SCORECARDS)["contested"]
-    assert len(entries) == 1, entries
-    assert entries[0]["dimension"] == "D3"
-    assert entries[0]["third_pass"] == "none"
+    recorded = {(e["round"], e["example"], e["arm"], e["dimension"]) for e in entries}
+    computed = {(g["round"], g["example"], g["arm"], dim)
+                for g in st.judge_groups(SCORECARDS)
+                for dim in st.contested_of(g)}
+    assert recorded == computed, sorted(recorded ^ computed)
+    assert len(entries) == len(recorded), "two entries record the same group"
+    assert {e["third_pass"] for e in entries} == {"none"}, entries
+
     results, _ = st.run_audit(SCORECARDS)
     assert not [m for level, m in results["R-H6"] if level == st.VIOLATION]
 
 
 def test_the_repo_ledger_passes_its_own_audit_with_rh6(st, capsys):
-    assert st.main(["audit", "--root", str(SCORECARDS), "--quiet-ok"]) == 0
+    """**DELIBERATELY RED (`RM-06`, group 2).** Same single R-H1 violation as
+    `test_the_repo_ledger_passes_its_own_audit`; R-H6 itself is clean. See
+    `RM-06-DF-02`."""
+    assert st.main(["audit", "--root", str(SCORECARDS), "--quiet-ok"]) == 0, (
+        "EXPECTED RED on one standing R-H1 violation -- see RM-06-DF-02:\n"
+        + capsys.readouterr().out
+    )
     assert "R-H6" in "".join(l for l in capsys.readouterr().out.splitlines()
                              if l.startswith("##")) or True
 
@@ -1618,9 +1709,22 @@ def test_the_repo_ledger_passes_its_own_audit_with_rh6(st, capsys):
 def test_the_claim_that_justified_an_epic_is_refused(st):
     """THE HEADLINE. `SUBTRACT-TO-MEASURE-EPIC.md:17` says "D2 = 2 on 27 of 27
     cards ever written" with no scope beside it. Read at the scope its own words
-    carry, eight sealed cards contradict it -- and two of them, `ex3_over_complex`
-    from both blind judges, predate it by three epics under the same anchors
-    digest. THIS IS THE DEMONSTRATED FAILING INPUT AND IT IS NOT A FIXTURE.
+    carry, sixteen sealed cards contradict it -- and two of them,
+    `ex3_over_complex` from both blind judges, predate it by three epics under
+    the same anchors digest. THIS IS THE DEMONSTRATED FAILING INPUT AND IT IS
+    NOT A FIXTURE.
+
+    `RM-06`, group 1: THE VERDICT IS UNCHANGED AND ONLY THE COUNT MOVED, so the
+    count is RE-DERIVED rather than re-pinned. This used to end `len(named) ==
+    8`. RD-03 added 24 cards, of which 8 score D2 off 2, and the counterexample
+    set is now 16. `denominator_rule`: the numerator rose 8 -> 16 and the
+    denominator rose 49 -> 73; nothing left either.
+
+    Re-derived means EXACT, never a floor. The counterexample set must equal,
+    card for card, every filled card in the record whose D2 is not 2 --
+    computed here from the cards on disk rather than read back out of the
+    sweep. A `>= 1` here would pass on a sweep that found one counterexample and
+    lost fifteen, which is the shape this project has shipped before.
     """
     results = st.run_scope(REPO_ROOT, SCORECARDS,
                            [REPO_ROOT / "SUBTRACT-TO-MEASURE-EPIC.md"])
@@ -1630,34 +1734,108 @@ def test_the_claim_that_justified_an_epic_is_refused(st):
     assert (hit["dim"], hit["value"], hit["n"], hit["m"]) == ("D2", 2, 27, 27)
     assert hit["scope"].startswith("UNSCOPED")
     named = {f"{c['example']}/{c['run_id']}" for c in hit["counterexamples"]}
+
+    expected = {f"{c['example']}/{c['run_id']}"
+                for _, c in st.load(SCORECARDS)
+                if c.get("status") != "unfilled"
+                and (c["dimensions"].get("D2") or {}).get("score") != 2}
+    assert named == expected, sorted(named ^ expected)
+
+    # The two that make this a demonstrated failing input rather than an
+    # arithmetic identity: they predate the claim by three epics, under the
+    # same anchors digest, and no round has ever edited them.
     assert "ex3_over_complex/20260803-j1" in named, named
     assert "ex3_over_complex/20260803-j2" in named, named
-    assert len(named) == 8, sorted(named)
+    assert len(named) == 16, sorted(named)
 
 
 def test_the_same_figure_with_its_scope_beside_it_is_not_refuted(st, tmp_path):
     """The control. If naming the example did not change the verdict, this
-    would be a check about the words rather than about the claim."""
+    would be a check about the words rather than about the claim.
+
+    `RM-06`, group 1: THE CONTROL DID NOT FAIL, THE WORLD MOVED UNDER IT
+    (`NEXT-EPIC.md` §0-AAAAAA §5, which predicted this line by line). The figure
+    this used to carry -- `D2 = 2 on 35 of 35 cards ever written about
+    ab_quota_ledger` -- was true when written and is now false at ANY
+    denominator, because RD-06's revision pairs put D2 at 3 and 4 on that very
+    example. Restoring `35 of 35` would be asserting a falsehood in order to
+    reach green.
+
+    So the figure is RE-DERIVED FROM THE CARDS and the control keeps both
+    halves. The same sentence is evaluated twice, differing only in whether the
+    example is named beside it, and the two verdicts must differ -- which is the
+    property the control exists to establish and which a single HOLDS assertion
+    never established on its own.
+    """
+    cards = [c for _, c in st.load(SCORECARDS) if c.get("status") != "unfilled"]
+    scoped_pop = [c for c in cards if c["example"] == "ab_quota_ledger"]
+    hits = [c for c in scoped_pop if (c["dimensions"].get("D2") or {}).get("score") == 2]
+    figure = f"**{len(hits)} of {len(scoped_pop)} cards ever written"
+
     scoped = tmp_path / "scoped.md"
-    scoped.write_text("`D2 = 2` on **35 of 35 cards ever written about "
-                      "`ab_quota_ledger`**.\n")
+    scoped.write_text(f"`D2 = 2` on {figure} about `ab_quota_ledger`**.\n")
     results = st.run_scope(REPO_ROOT, SCORECARDS, [scoped])
     assert len(results) == 1, results
     assert results[0]["verdict"] == st.HOLDS, results[0]
     assert results[0]["examples"] == ["ab_quota_ledger"]
 
+    # THE OTHER HALF, which is what makes this a control. Strike the example
+    # name and nothing else; the population becomes every card and the same
+    # numbers no longer re-derive.
+    unscoped = tmp_path / "unscoped.md"
+    unscoped.write_text(f"`D2 = 2` on {figure}**.\n")
+    results = st.run_scope(REPO_ROOT, SCORECARDS, [unscoped])
+    assert len(results) == 1, results
+    assert results[0]["verdict"] == st.REFUTED, results[0]
+    assert results[0]["scope"].startswith("UNSCOPED"), results[0]
 
-def test_a_scoped_claim_whose_denominator_moved_is_stale_and_not_refuted(st):
-    """`SM-04/RESULT.md:135` says 31 of 31 ABOUT ab_quota_ledger. It was right
-    when written and the corpus has since grown. Staleness and refutation are
-    different findings and this reports the difference."""
+
+def test_a_scoped_claim_whose_denominator_moved_is_stale_and_not_refuted(st, tmp_path):
+    """Staleness and refutation are different findings and this reports the
+    difference.
+
+    `RM-06`, group 3: THE CLAIM WAS TRUE AND IS NOW FALSE, SO IT IS REWRITTEN.
+    `SM-04/RESULT.md:135` says `31 of 31` ABOUT `ab_quota_ledger` and this test
+    used to assert it came back COUNT-MOVED -- right when written, corpus grown,
+    no counterexample. RD-06's revision pairs supplied counterexamples on that
+    exact example, so the line is now REFUTED. That is a real change in what the
+    record says, not a bug, and pinning COUNT-MOVED back would assert that no
+    card scores D2 off 2 on `ab_quota_ledger`.
+
+    THE DISTINCTION IS THE PRODUCT AND IT STAYS EXECUTED. The sweep now returns
+    **0 COUNT-MOVED and 0 HOLDS over the whole record** (`RM-06-DF-03`), so
+    there is no shipped line left to demonstrate it on. The demonstration is
+    therefore moved onto a REAL CARD POPULATION with a constructed sentence,
+    and the fact that the sentence is constructed is stated rather than
+    disguised: `ex4_pipeline_coherent` has two cards, both D2 = 2, so a claim of
+    `1 of 1` about it has no counterexample and a denominator that has risen.
+    That is exactly the shape SM-04:135 used to have.
+    """
     results = st.run_scope(REPO_ROOT, SCORECARDS,
                            [SCORECARDS / "subtract-to-measure/SM-04/RESULT.md"])
     hit = next(r for r in results if r["line"] == 135)
-    assert hit["verdict"] == st.COUNT_MOVED
+    assert hit["verdict"] == st.REFUTED, hit
     assert hit["examples"] == ["ab_quota_ledger"]
-    assert hit["counterexamples"] == []
-    assert "the denominator rose" in hit["detail"]
+    assert hit["counterexamples"], hit
+    assert all(c["example"] == "ab_quota_ledger" for c in hit["counterexamples"])
+
+    # COUNT-MOVED is still reachable, on cards rather than on a mock.
+    stale = tmp_path / "stale.md"
+    stale.write_text("`D2 = 2` on **1 of 1 cards ever written about "
+                     "`ex4_pipeline_coherent`**.\n")
+    moved = st.run_scope(REPO_ROOT, SCORECARDS, [stale])
+    assert len(moved) == 1, moved
+    assert moved[0]["verdict"] == st.COUNT_MOVED, moved[0]
+    assert moved[0]["counterexamples"] == []
+    assert "the denominator rose" in moved[0]["detail"]
+
+    # And the finding itself, asserted so it cannot quietly stop being true:
+    # no line in the shipped record reaches COUNT-MOVED any more.
+    whole = st.run_scope(REPO_ROOT, SCORECARDS)
+    assert [r for r in whole if r["verdict"] == st.COUNT_MOVED] == [], (
+        "a shipped line is COUNT-MOVED again; RM-06-DF-03 is closed and this "
+        "demonstration should move back onto the record"
+    )
 
 
 def test_what_the_sweep_cannot_reach_is_counted_and_named(st):

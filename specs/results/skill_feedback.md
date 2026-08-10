@@ -2094,3 +2094,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket RM-06
+
+- close_scope: ticket
+- close_id: RM-06
+- workflow: portable-substrate-epic
+- closed_at: 2026-08-10T19:25:39+00:00
+- summary: Restore the baseline: 16 tests pinned to a record RD-03 grew, sorted into three groups. Five re-derived, five claims rewritten, six left deliberately red with findings RM-06-DF-01..04. Suite 16 failed/1481 passed at 356ffe8 -> 6 failed/1495 passed at e0dae3d, both real checkouts.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

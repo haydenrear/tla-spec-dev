@@ -159,16 +159,44 @@ def test_authority_is_keyed_on_dimension_and_value_pair(at, world) -> None:
     assert keys == [("D3", ["effectful", "ports-and-adapters"])], keys
 
 
-def test_the_one_row_carries_its_tier_limit(world) -> None:
-    """RD-04 §9.1 stays an OPEN QUESTION and the row says so.
+def test_the_one_row_carries_its_tier_limit(at, world) -> None:
+    """RD-04 §9.1 IS CLOSED, AND THE CLAIM IS REWRITTEN RATHER THAN THE NUMBER
+    RESTORED (`RM-06`, group 3).
 
-    No `sonnet` judge has ever scored a `ports-and-adapters` subject on
-    `ab_quota_ledger`: n = 0. `absent` is not `checked, none found`, so the row
-    records the tier it was measured in rather than implying both.
+    Through three tickets this asserted `tiers_measured == ["opus"]` and said in
+    as many words that *no `sonnet` judge has ever scored a `ports-and-adapters`
+    subject on `ab_quota_ledger`: n = 0*. RD-03 dispatched twelve judges at two
+    tiers and that sentence stopped being true. Pinning `["opus"]` back would be
+    asserting a fact about the world that the world has left; the honest repair
+    is to say what is true now AND to carry the bound, because this is the one
+    result in the round that flatters the apparatus.
+
+    THE BOUND, RE-DERIVED FROM THE CARDS RATHER THAN QUOTED. The `sonnet`
+    `ports-and-adapters` population is four cards over TWO declared subjects,
+    and those two subjects are the `E`→`F` revision pair — one tree and its
+    revision at 163 → 163 `code_lines`. `n = 0` became `n = 1 tree`. That is a
+    real move off zero and it is not a measured population, so the count of
+    distinct subjects is asserted here and not only the tier list.
     """
 
     row = next(e for e in world["entries"] if e["separates"])
-    assert row["tiers_measured"] == ["opus"], row["tiers_measured"]
+    assert row["tiers_measured"] == ["opus", "sonnet"], row["tiers_measured"]
+
+    # Re-derived, so this still goes red if the population is widened by
+    # dispatching more sonnet judges at more ports-and-adapters trees -- which
+    # is the event that would make the bound stop applying.
+    sonnet_pa = [r for r in world["rows"]
+                 if r["example"] == "ab_quota_ledger" and r["tier"] == "sonnet"
+                 and r["status"] != "unfilled"
+                 and (name := at.subject_of(r, world["subjects"])) is not None
+                 and world["derived"][name]["derived"] == "ports-and-adapters"]
+    assert len(sonnet_pa) == 4, [r["key"] for r in sonnet_pa]
+    trees = sorted({at.subject_of(r, world["subjects"]) for r in sonnet_pa})
+    assert trees == ["rd06_artifact_E", "rd06_artifact_F"], trees
+    assert len(trees) == 2, (
+        "the sonnet ports-and-adapters population has moved off the E/F revision "
+        "pair; re-state the bound rather than deleting it"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -253,41 +281,136 @@ def test_every_shipped_value_with_authority_has_a_demonstration(at, world) -> No
     )
 
 
-def test_a_null_verdict_that_could_not_have_come_out_otherwise_is_marked(world) -> None:
-    """RD-04 §7.3, carried forward as a rule rather than a footnote.
+def test_a_null_verdict_that_could_not_have_come_out_otherwise_is_marked(
+        at, world) -> None:
+    """RD-04 §7.3, carried forward as a rule rather than a footnote — and the
+    claim REWRITTEN rather than the number restored (`RM-06`, group 3).
 
-    D2 took ONE value across the whole comparison population, so no separation
-    was possible on it and its `overlaps` cell reports the EXAMPLE rather than
-    the tag. Three of the four are measurements; one is not, and the difference
-    is printed.
+    This used to assert `D2 null_entailed is True` and `population_values ==
+    [2]`. That was a true statement about the 49 sealed cards RD-04 measured.
+    RD-06's three before/after pairs put D2 at 3 and 4 on `ab_quota_ledger`, so
+    D2's population now takes [2, 3, 4] and a separation on it is no longer
+    impossible-by-construction. **The record therefore contains no null-entailed
+    cell at all**, and restoring `True` would be asserting a fact the corpus has
+    left.
+
+    So the rule is asserted TWO ways, neither of which is a floor:
+
+    1. **Exact correspondence over the live record.** `null_entailed` is
+       re-derived here from the raw card scores — not read back out of the same
+       function that produced it — and must agree cell for cell. Today that set
+       is empty; if the flag started firing on a multi-valued population, or
+       stopped firing on a single-valued one, this goes red.
+    2. **The marking is still DEMONSTRATED FIRING, on real sealed cards.** The
+       49 cards written before `reading-discipline` are RD-04's own population
+       and they are not a fixture. Over them D2 takes [2] alone and the flag
+       comes back True — so what changed is the corpus, not the mechanism, and
+       that is asserted rather than argued.
     """
 
-    by_dim = {e["dimension"]: e for e in world["entries"]
+    live = {e["dimension"]: e for e in world["entries"]
+            if e["example"] == "ab_quota_ledger"}
+
+    def observed(rows, dim: str) -> list[int]:
+        """The population's distinct values, counted straight off the cards."""
+        return sorted({r["scores"][dim] for r in rows
+                       if r["example"] == "ab_quota_ledger"
+                       and at.subject_of(r, world["subjects"]) is not None
+                       and isinstance(r["scores"].get(dim), int)})
+
+    for dim, entry in live.items():
+        expected = (not entry["separates"]) and len(observed(world["rows"], dim)) < 2
+        assert entry["null_entailed"] is expected, (dim, entry)
+        assert entry["population_values"] == observed(world["rows"], dim), dim
+
+    # 1. and what that comes to on the record as it now stands.
+    assert [d for d, e in live.items() if e["null_entailed"]] == [], (
+        "a cell is null-entailed again; the demonstration below is no longer "
+        "the only place the marking fires and this test should say so"
+    )
+    assert live["D2"]["population_values"] == [2, 3, 4], live["D2"]
+
+    # 2. the same rule, still firing, on the 49 cards RD-04 measured.
+    sealed = [r for r in world["rows"] if r["round"] != "reading-discipline"]
+    assert len(sealed) == 49, len(sealed)
+    before = {e["dimension"]: e for e in
+              at.demonstration_table(sealed, world["derived"], world["subjects"])
               if e["example"] == "ab_quota_ledger"}
-    assert by_dim["D2"]["null_entailed"] is True
-    assert by_dim["D2"]["population_values"] == [2]
+    assert before["D2"]["null_entailed"] is True, before["D2"]
+    assert before["D2"]["population_values"] == [2], before["D2"]
     for dim in ("D1", "D4", "D5"):
-        assert by_dim[dim]["separates"] is False
-        assert by_dim[dim]["null_entailed"] is False
-        assert len(by_dim[dim]["population_values"]) > 1
+        assert before[dim]["separates"] is False
+        assert before[dim]["null_entailed"] is False
+        assert len(before[dim]["population_values"]) > 1
 
 
-def test_the_population_range_is_printed_beside_every_non_separating_verdict() -> None:
+def test_the_population_range_is_printed_beside_every_non_separating_verdict(
+        world) -> None:
+    """`RM-06`, group 3, and downstream of the test above.
+
+    The population range is still printed beside every non-separating verdict
+    and that half is unchanged. The second half used to be `assert
+    "NULL-ENTAILED" in out.stdout` — an EXISTENCE claim that was true of RD-04's
+    49 cards and is false of the 73 there are now, because no cell is
+    null-entailed any more.
+
+    Replaced with an EXACT CORRESPONDENCE rather than dropped: the set of
+    printed marks must equal the set of entries the table derives as
+    null-entailed. That is currently empty, so what is asserted is that the
+    marker appears NOWHERE — which a printer that started marking every
+    overlapping cell would fail, and which a printer that stopped marking
+    altogether would also fail as soon as a single-valued population returns.
+    The firing case is demonstrated on real sealed cards one test above.
+    """
+
     out = subprocess.run([sys.executable, str(TAGS), "table"],
                          capture_output=True, text=True, cwd=str(REPO_ROOT))
-    for line in out.stdout.splitlines():
-        if line.strip().startswith("does not separate"):
-            assert "population took" in line, line
-    assert "NULL-ENTAILED" in out.stdout
+    printed = [line for line in out.stdout.splitlines()
+               if line.strip().startswith("does not separate")]
+    assert printed, out.stdout
+    for line in printed:
+        assert "population took" in line, line
+
+    marked = {(line.split()[3], line.split()[4])
+              for line in printed if "NULL-ENTAILED" in line}
+    derived = {(e["example"], e["dimension"])
+               for e in world["entries"] if e["null_entailed"]}
+    assert marked == derived, (marked, derived)
 
 
 def test_the_same_tag_control_holds(at, world) -> None:
-    """Without it any two artifacts pass, because any two differ in something."""
+    """Without it any two artifacts pass, because any two differ in something.
+
+    **THIS TEST IS DELIBERATELY RED (`RM-06`, group 2). DO NOT MAKE IT GREEN.**
+
+    It is not pinned to a count the corpus grew. It is a CONTROL, it is now
+    reporting a real result, and the result is unflattering: nine same-tag pairs
+    separate — eight on D2 and one on D5 — every one of them a before-tree
+    scoring disjointly from an after-tree at the SAME derived value. RD-06's
+    three revision pairs gave this control its first within-value TREATMENT
+    difference and it cannot tell that apart from a difference in architecture
+    (`RD-03-DF-12`).
+
+    The two repairs that would clear it were both rejected. Scoping the control
+    to the dimension the separation is claimed on (D3, where it still holds)
+    would make it a check about the row rather than about the axis. Excluding
+    revision pairs from the population would remove exactly the evidence the
+    control exists to see. Either one converts a measurement into a tautology,
+    which is the failure this epic family exists to prevent.
+
+    Filed as `RM-06-DF-01`. It goes green when the axis can distinguish
+    treatment from architecture, or when the epic decides it cannot and says so.
+    """
 
     controls = at.same_tag_controls(world["rows"], world["derived"], world["subjects"])
     assert controls, "no same-tag control is available; the separation is uncontrolled"
     failed = [c for c in controls if c["separates"]]
-    assert failed == [], failed
+    assert failed == [], (
+        f"{len(failed)} same-tag pair(s) separate: "
+        f"{[(c['dimension'], c['a'], c['b']) for c in failed]}. "
+        f"EXPECTED RED -- see this test's docstring and RM-06-DF-01. The control "
+        f"is reporting a real result and may not be narrowed to silence it."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -368,15 +491,49 @@ def test_a_scaffolded_scope_is_declared_before_scoring_and_a_moved_one_is_refuse
 
 
 def test_a_card_with_no_subject_is_legal_and_is_every_sealed_card(at, world) -> None:
-    """R-H4: a sealed card is never edited, so none of the 49 carries a subject
-    field and the attribution for them lives in `subjects.toml` beside them."""
+    """R-H4: a sealed card is never edited, so the attribution for the cards
+    written before RD-05 lives in `subjects.toml` beside them.
+
+    `RM-06`, group 1: RE-DERIVED, because the count moved for a designed reason.
+    This asserted `declared == []` over 49 cards and `48 mapped, 1 unmapped`.
+    Both were true of the record RD-05 shipped into and both are false now —
+    **RD-05's own design is that a card scaffolded from RD-05 onward carries
+    `subject.name` itself**, and RD-03 was the first round to scaffold 24 of
+    them. Restoring `[]` would assert that RD-05's feature had not shipped.
+
+    What the rule actually says survives intact and is now stated as two
+    directions rather than one count:
+
+      * NO CARD PREDATING `reading-discipline` HAS GROWN A SUBJECT FIELD. That
+        is R-H4 — a sealed card is never edited — and it is the half that was
+        ever load-bearing.
+      * Every card that DOES carry one names a subject `subjects.toml`
+        declares, so the field cannot smuggle in an undeclared scope.
+
+    And the mapping is re-derived rather than pinned: every card maps to a
+    subject except exactly the one `owner-pre` card, which is the same single
+    exception it has always been.
+    """
+
+    sealed_before_rd05 = [r for r in world["rows"] if r["round"] != "reading-discipline"]
+    assert len(sealed_before_rd05) == 49, len(sealed_before_rd05)
+    assert [r["key"] for r in sealed_before_rd05 if r["declared_subject"]] == [], (
+        "a card sealed before RD-05 grew a subject field"
+    )
 
     declared = [r for r in world["rows"] if r["declared_subject"]]
-    assert declared == [], "a sealed card grew a subject field"
+    assert declared, "no card carries a subject field; RD-05's scaffold has regressed"
+    undeclared = sorted({r["declared_subject"] for r in declared
+                         if r["declared_subject"] not in world["subjects"]})
+    assert undeclared == [], (
+        f"{undeclared} is named by a card and declared by no entry in subjects.toml"
+    )
+
     mapped = [r for r in world["rows"] if at.subject_of(r, world["subjects"])]
     unmapped = [r["key"] for r in world["rows"]
                 if not at.subject_of(r, world["subjects"])]
-    assert len(mapped) == 48 and len(unmapped) == 1, (len(mapped), unmapped)
+    assert len(mapped) == len(world["rows"]) - 1, (len(mapped), len(world["rows"]))
+    assert len(unmapped) == 1, unmapped
     assert "owner-pre" in unmapped[0], unmapped
 
 
@@ -384,15 +541,53 @@ def test_a_card_with_no_subject_is_legal_and_is_every_sealed_card(at, world) -> 
 # 6. the table is re-derived, and a stale row is a violation
 # ---------------------------------------------------------------------------
 
-def test_the_committed_demonstration_re_derives_from_the_cards(st) -> None:
-    """R-H1's third clause over the shipped ledger: OK, and no violation."""
+def test_the_committed_demonstration_re_derives_from_the_cards(st, at, world) -> None:
+    """R-H1's third clause over the shipped ledger: OK, and no violation.
+
+    **THIS TEST IS DELIBERATELY RED (`RM-06`, group 2). DO NOT MAKE IT GREEN
+    HERE.**
+
+    The other five failures in this file are assertions pinned to a corpus that
+    grew. This one is not: it is the check that re-derives a DECLARED REFUSAL
+    AUTHORITY against the cards, and the declaration is now wrong. The ledger's
+    one `[[demonstration]]` row says `effectful = [1, 2]` and `tiers_measured =
+    ["opus"]`; the 73 cards give `[0, 2]` and `["opus", "sonnet"]`.
+
+    RM-06 repaired that row and then REVERTED the repair on the epic owner's
+    instruction, which is recorded here because it is the whole distinction this
+    ticket turns on. Editing the declaration into agreement with the cards would
+    make the row certify whatever the record happens to say — it would no longer
+    be a control, and it would silently widen what the axis is allowed to refuse
+    a comparison on, from one tier to two and from `1–2` to `0–2`. That decision
+    belongs with RM-04's `state_colocation` threshold work, not with a
+    baseline-restoration ticket. `RM-06-DF-02`.
+
+    THE ROW IS NOT WRONG, IT IS SCOPED — and that is asserted rather than
+    asserted-about. Re-derived over the 49 cards sealed before
+    `reading-discipline`, which is RD-04's own population, the declaration
+    reproduces EXACTLY. What moved is the card population underneath it.
+    """
 
     log = st.load_log(SCORECARDS)
     assert log["demonstrations"], "the ledger declares no `[[demonstration]]`"
+
+    # The declaration, re-derived at the population it was measured over.
+    sealed = [r for r in world["rows"] if r["round"] != "reading-discipline"]
+    row = next(e for e in at.demonstration_table(
+        sealed, world["derived"], world["subjects"]) if e["separates"])
+    declared = log["demonstrations"][0]
+    assert row["id"] == declared["id"], (row["id"], declared["id"])
+    assert row["ranges"] == {k: list(v) for k, v in declared["ranges"].items()}
+    assert row["tiers_measured"] == list(declared["tiers_measured"])
+
     findings = st.audit_rh1_architecture(
         {"root": SCORECARDS, "demonstrations": log["demonstrations"]})
     violations = [m for level, m in findings if level == st.VIOLATION]
-    assert violations == [], violations
+    assert violations == [], (
+        f"{violations} -- EXPECTED RED. The declared authority no longer matches "
+        f"the 73-card record and settling it is RM-04's, not this ticket's. See "
+        f"this test's docstring and RM-06-DF-02."
+    )
     assert any(level == st.OK and "SEPARATES re-derived" in m for level, m in findings)
 
 
