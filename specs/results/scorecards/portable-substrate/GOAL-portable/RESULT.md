@@ -266,14 +266,47 @@ D3's anchors verbatim. The test is correct: a second statement of the bar is a
 copy that nothing compares to the bar. **Fixed with a pointer, never a corrected
 copy** — that file now passes 8 of 8.
 
-**The other 16 are pre-existing at `2c0d94e`, measured rather than assumed:**
+**The other 16 are pre-existing at `2c0d94e`, measured rather than assumed.**
+The three files carrying every failure were run at the epic base and in this
+tree, and the failure sets are **identical, name for name**:
 
-- All nine named `test_score_tools.py` failures, re-run alone at the epic base:
+| | `2c0d94e` | RM-02 |
+|---|---|---|
+| `test_score_tools.py` | 9 failed | the same 9 |
+| `test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces` | failed | failed |
+| `test_card_has_one_home.py` | — | — |
+| **total** | **10 failed, 115 passed** | **10 failed, 107 passed** |
+
+Corroborated three further ways, each independent of pytest:
+
+- The nine `test_score_tools.py` failures re-run **alone** at the epic base:
   **`9 failed in 318.19s`** — every one.
 - `contested`, `history --example ab_quota_ledger` and `index` produce
   **byte-identical output** between `2c0d94e` and this tree (`diff` clean on all
-  three), and `audit` exits 1 on both.
+  three), and `audit` exits 1 on both. Those are the surfaces the failing tests
+  read.
 - `scope` moves REFUTED 55 → 55 and COUNT-MOVED 0 → 0.
+
+**One thing in that table is not explained, and it is recorded rather than
+smoothed.** The two runs collect 125 tests each — verified with `--collect-only`
+after the fact, 125 in both trees — so `10 + 115` accounts for the baseline
+exactly while `10 + 107` leaves **8 tests in the RM-02 run unaccounted for**, and
+pytest's summary reports no skips or errors to absorb them. The likely cause is
+that this run was taken **while the tree was being edited**: `close_ticket.py`
+deleted `specs/tickets/RM-02/**` and rewrote two ledgers inside its 14-minute
+window. **A measurement taken over a moving tree is not a measurement**, so the
+passed-count from this run is not quoted anywhere as a figure. What it is quoted
+for is the failure *set*, which is identical and which the three checks above
+confirm independently of it.
+
+**Where the sealed ledger differs from this page.** The ticket's complexity
+ledger was written before the baseline comparison finished and is now sealed at
+`specs/.history/portable-substrate-epic/ticket-001-RM-02/ticket/results/complexity_ledger.yaml`.
+It states the same conclusion from the three independent checks but does not
+carry the failure-set table or the 8-test anomaly above, because neither existed
+when it was written. **It is not edited** — a sealed record says what was true
+when it was sealed, and the correction belongs beside it rather than inside it.
+This page is that correction.
 
 So none of the tool surfaces those tests read was moved by this ticket. **The
 suite is red at the epic base because the record has grown past figures sealed
