@@ -1,0 +1,109 @@
+{
+  "scorecard_version": 4,
+  "status": "unfilled",
+  "epic": "portable-substrate-rm04-LL",
+  "example": "eval_toolchain",
+  "run_id": "20260810-rm04-LL-p2",
+  "arm": "LL",
+  "commit": "",
+  "judge": {
+    "model": "",
+    "tier": "",
+    "pass": 2,
+    "blind_to_arm": true
+  },
+  "subject": {
+    "name": null,
+    "blinded": true,
+    "scope": [
+      "scripts"
+    ],
+    "axis": "effect_boundary"
+  },
+  "rubric": {
+    "source": "references/eval_scorecard.md",
+    "digest": "sha256:497c16ca85adeb4a",
+    "scoring_rules": [
+      "**Score artifacts, never claims.** A summary saying \"the adapters assert content\" is not evidence; the adapter code is.",
+      "**Every score \u2265 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
+      "**A score at the top of its scale additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.",
+      "**Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.",
+      "**Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.",
+      "**Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.",
+      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree \u2014 and a disagreement is a finding.",
+      "**Say what you ran.** *(New in version 2.)* Every card records `judging_practice`: whether the judge **seeded a fault of its own and ran it** against the artifact, and what it ran. Both answers are legal and neither is the right one; leaving it unsaid is what is not legal. From version 4 no anchor is gated on it and it is still required, because what a judge did is a variable in what a judge reports and a variable nothing records is a variable nobody can subtract.",
+      "**A judge is served the card, never the rubric file.** *(New in version 3.)* The scaffolded `scorecard.md` carries the rubric a judge needs. This file carries reading rules and prior results about these dimensions as well, and a judge who reads it is handed conclusions about the instrument they are the instrument for. Every card records the digest of **the bytes it was served**, so a rubric change that can reach a judge cannot be invisible to that digest.",
+      "**Answer every recorded note.** *(New in version 4.)* N-D1, N-D4 and N-D5 take no score and are required on every filled card. An empty note is not a legal card; *\"I could not tell, and here is what I looked at\"* is."
+    ],
+    "served_digest": "sha256:a213a36770ccab09",
+    "file_sha256": "sha256:cc09f8730d2cc6ad"
+  },
+  "how_to_fill": [
+    "Score the LOWEST anchor the artifact fully satisfies. Torn between two: take the lower and say why.",
+    "Set `status` to \"filled\", `commit` to the sha the artifacts were scored at, and name your model in `judge.model`.",
+    "Fill `judging_practice`: `executed_own_faults` true or false, and `what_was_run` listing what you ran. FALSE IS A LEGAL AND USEFUL ANSWER -- it is recorded, never corrected. Delete the `note` key once you have.",
+    "Leave `anchors` as scaffolded. They are read from the rubric so the bar and the score live in one file; editing them here forks the rubric silently, which is the drift this scaffold exists to remove.",
+    "Answer every entry in `notes`. They take NO score -- these three questions were scored for three versions and the numbers were measured not to mean the same thing twice, so what is asked for is prose and citations. 'I could not tell, and here is what I looked at' is a legal note; an empty one is not."
+  ],
+  "dimensions": {
+    "D2": {
+      "name": "complexity",
+      "question": "Is the design as simple as its behavior requires, and no simpler?",
+      "anchors": {
+        "0": "Complexity is unmeasured, or measured and ignored.",
+        "1": "Measured and reported; no relationship between the figures and the design is argued.",
+        "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
+        "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded."
+      },
+      "score": null,
+      "citations": [],
+      "rationale": "",
+      "refuses_to_claim": null,
+      "read_first": "Diff the two trees yourself and decide whether one fact is stored twice \u2014 kept in agreement by hand across several write sites, and read in one place. Where a measured complexity descriptor exists you may read it, and on its own it decides nothing; where none exists that is not a gap in the evidence.",
+      "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 requires the judge to say *what got simpler and how the behavior survived it*."
+    },
+    "D3": {
+      "name": "modularity",
+      "question": "Is it ports and adapters in fact \u2014 domain independent of I/O, adapters swappable?",
+      "anchors": {
+        "0": "No boundary is discernible; state is written from everywhere.",
+        "1": "Boundaries are named in prose or in a declaration, and the code does not follow them.",
+        "2": "The code follows the declared boundaries. Cross-boundary calls go through something identifiable as a port.",
+        "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
+        "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
+      },
+      "score": null,
+      "citations": [],
+      "rationale": "",
+      "refuses_to_claim": null,
+      "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
+    }
+  },
+  "contested": [],
+  "verdict": "",
+  "judging_practice": {
+    "executed_own_faults": null,
+    "what_was_run": [],
+    "note": "REQUIRED from scorecard_version 2. Did you seed a fault of your own and run it against this artifact, or did you score the evidence packet? Both are legal and neither is the right answer; what is not legal is leaving it unsaid. Say which, and list what you ran. From version 4 no anchor is gated on it; it is recorded because it is the variable that moves scores."
+  },
+  "notes": {
+    "N-D1": {
+      "name": "bug detection",
+      "question": "What did the cases catch, and what class did they demonstrably miss? Name the fault you seeded if you seeded one.",
+      "note": "",
+      "citations": []
+    },
+    "N-D4": {
+      "name": "behavior preservation",
+      "question": "Which behaviors of the baseline did you enumerate, and is each shown still to hold? If there is no baseline, say so \u2014 that is the answer, not a gap in the note.",
+      "note": "",
+      "citations": []
+    },
+    "N-D5": {
+      "name": "honesty",
+      "question": "Does the artifact refuse rather than falsely certify, and does it name what it cannot see? Point at the refusal, or at its absence.",
+      "note": "",
+      "citations": []
+    }
+  }
+}
