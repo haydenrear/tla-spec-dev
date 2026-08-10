@@ -275,7 +275,11 @@ tree, and the failure sets are **identical, name for name**:
 | `test_score_tools.py` | 9 failed | the same 9 |
 | `test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces` | failed | failed |
 | `test_card_has_one_home.py` | — | — |
-| **total** | **10 failed, 115 passed** | **10 failed, 107 passed** |
+| **total** | **10 failed, 115 passed** | **10 failed, 115 passed** |
+
+**RM-02 introduces zero failures and loses zero passes.** `test_card_has_one_home`
+appears on neither side, which is the previous commit's fix confirmed against a
+control rather than against its own re-run.
 
 Corroborated three further ways, each independent of pytest:
 
@@ -287,33 +291,37 @@ Corroborated three further ways, each independent of pytest:
   read.
 - `scope` moves REFUTED 55 → 55 and COUNT-MOVED 0 → 0.
 
-**One thing in that table is not explained, and it is recorded rather than
-smoothed.** The two runs collect 125 tests each — verified with `--collect-only`
-after the fact, 125 in both trees — so `10 + 115` accounts for the baseline
-exactly while `10 + 107` leaves **8 tests in the RM-02 run unaccounted for**, and
-pytest's summary reports no skips or errors to absorb them. The likely cause is
-that this run was taken **while the tree was being edited**: `close_ticket.py`
-deleted `specs/tickets/RM-02/**` and rewrote two ledgers inside its 14-minute
-window. **A measurement taken over a moving tree is not a measurement**, so the
-passed-count from this run is not quoted anywhere as a figure. What it is quoted
-for is the failure *set*, which is identical and which the three checks above
-confirm independently of it.
-
-**Where the sealed ledger differs from this page.** The ticket's complexity
-ledger was written before the baseline comparison finished and is now sealed at
-`specs/.history/portable-substrate-epic/ticket-001-RM-02/ticket/results/complexity_ledger.yaml`.
-It states the same conclusion from the three independent checks but does not
-carry the failure-set table or the 8-test anomaly above, because neither existed
-when it was written. **It is not edited** — a sealed record says what was true
-when it was sealed, and the correction belongs beside it rather than inside it.
-This page is that correction.
-
 So none of the tool surfaces those tests read was moved by this ticket. **The
 suite is red at the epic base because the record has grown past figures sealed
 into the tests** — a `35 of 35 ab_quota_ledger` fixture against a 59-card
 corpus, a "contested fires on exactly one group" assertion against seven
 `[[contested]]` entries. **Recorded, not repaired:** fixing a stale test during a
 measurement is the move this epic forbids, and it is not RM-02's to make.
+
+**The first attempt at that table was invalid, and the fix was to re-measure
+rather than to explain.** Run while `close_ticket.py` was deleting
+`specs/tickets/RM-02/**` inside its 14-minute window, it returned `10 failed,
+107 passed` against **125 collected in both trees** — 8 tests unaccounted for,
+with no skips or errors reported to absorb them. The failure set was already
+identical and the three checks above already settled the question, so the
+temptation was to publish the table with a footnote.
+
+**A measurement taken over a moving tree is not a measurement.** It was re-run on
+the committed tree with `git status --porcelain` empty, and the count came back
+**115 passed — matching the baseline exactly.** The gap was the moving tree and
+nothing else. The hypothesis was named before the re-run and the re-run confirmed
+it; the figure in the table above is the clean one, and the discarded run is
+recorded here rather than deleted because a number that had to be thrown away is
+evidence about the method.
+
+**Where the sealed ledger differs from this page.** The ticket's complexity
+ledger was written before the baseline comparison finished and is now sealed at
+`specs/.history/portable-substrate-epic/ticket-001-RM-02/ticket/results/complexity_ledger.yaml`.
+It states the same conclusion from the three independent checks but does not
+carry the clean failure-set table above, because it did not exist when the ledger
+was written. **It is not edited** — a sealed record says what was true when it
+was sealed, and the correction belongs beside it rather than inside it. This page
+is that correction.
 
 ## 9. Findings filed
 
