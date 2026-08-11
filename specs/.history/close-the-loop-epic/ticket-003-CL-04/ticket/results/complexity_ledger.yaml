@@ -85,9 +85,32 @@ justification: ""
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found none, and the reason is structural rather than a shrug.
+    CL-04 is `role: evaluation` with `model_delta_expectation: none expected`.
+    It changed no TLA+ model, no adapter, no generated code and no shipped
+    instrument; `specs/tickets/CL-04/current` and `.../desired` are
+    byte-identical, and the close-out itself measured `delta: direction=zero
+    (vs CL-03)`. Its entire product is three sealed measurement documents, six
+    ledger findings and a NEXT-EPIC section.
+
+    A refinement recommendation here would have to be a recommendation about a
+    model this ticket did not touch, derived during a round whose declared job
+    is to MEASURE that model's surroundings and fix nothing. Proposing one would
+    be the `measurement_rule` violation the epic files findings about: a round
+    that changes the thing in the commit that reports on it. Two of CL-04's own
+    findings -- `CL-04-DF-01` and `CL-04-DF-06` -- name concrete repairs to
+    shipped instruments and were deliberately NOT applied for exactly this
+    reason, with the repair written into `suggested_fix` so the next round
+    inherits it.
+
+    The bound is stated: no TLC run was performed by this ticket, so `measured`
+    is false and nothing here is offered as a measured refinement claim. The
+    reported bound of 1,111,320 is over the 1,000,000 cap and is INHERITED from
+    CL-03 unchanged -- it is a lower bound over 7 of 9 resolved variables, it
+    moved zero this ticket, and CL-04 is not the round that may move it.
   measured: false      # true only if a real TLC run produced the figure
   applied: false       # if true, approved_by is required
   approved_by: ""
@@ -99,4 +122,50 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: >-
+  FULL RECORD: `specs/results/scorecards/close-the-loop/CL-04/RESULT.md`.
+  PREDICTIONS, sealed 2026-08-11T21:00:12Z in commit `ab73164` BEFORE any
+  measurement and before either blind agent was dispatched:
+  `specs/results/scorecards/close-the-loop/CL-04/PREDICTIONS-CL-04.md`.
+
+  WHAT THIS TICKET DECIDED. All three epic goals. `GOAL-change-rule-runnable`:
+  MET, and "a stranger can run it" is now DEMONSTRATED rather than plausible --
+  a stranger's NEXT bump (5 -> 6, one file, zero Python) produced `2 failed,
+  1496 passed`, byte-identical to the unmodified tip, and a blind adopter agent
+  bumped the card in its own foreign tree with no configuration at all. But the
+  change rule fails loudly only UPWARDS: `scaffold --card-version 4` at the tip
+  stamps a card `version 4`, serves it version 5's bytes, and `check` reports 0
+  problems. `GOAL-price-means-something`: MET on every clause, and the
+  instrument still has exactly one price to its name. `GOAL-loop-closes-once`:
+  MET, reproduced from the sealed cards with no judge re-run -- and the closure
+  has NO NEGATIVE CONTROL, which is the next epic's first ticket.
+
+  THE HEADLINE. The epic's own premise is false. It said the loop "cannot be run
+  by anyone who did not build it"; a blind agent given only the shipped files,
+  forbidden our source, our `specs/`, our tests and our git history, ran it end
+  to end and our D3 caveat fired correctly on an artifact we had never seen.
+
+  THE SERVED SURFACE: 6,319 -> 6,281 bytes, rungs 9 -> 9. It fell. Not a
+  `git archive` figure; measured in clean detached checkouts named in the
+  RESULT. Suite: 2 failed at both ends, the two inherited deliberate reds,
+  neither repaired. +27 collected across the epic, ALL numerator, decomposed per
+  file; `test_spec_yaml_valid.py` did not move because both trees are clean
+  checkouts rather than ticket workspaces.
+
+  COST, WITH ITS BASIS NAMED as the standing rule requires: the harness's
+  `subagent_tokens` field, composition undocumented -- 102,034 for the adopter
+  probe (1 finding, 0.98/100k) and 84,214 for the census (0 findings, 0.00/100k),
+  186,248 across both blind channels for 1 finding, 0.54/100k. NOT comparable to
+  RD-03's 1.14, which used a different and named basis. The numerator was NOT
+  budget-capped: six filed against a budget of five, the sixth escalated,
+  nothing dropped. The three tickets that did the epic's work recorded no token
+  count at all, the second consecutive epic to record none, filed as
+  `CL-04-DF-02`.
+
+  FINDINGS FILED, NONE FIXED: `CL-04-DF-01` through `CL-04-DF-06`. Two of them
+  name repairs to shipped instruments that were deliberately not applied.
+
+  THE ALARM DID NOT FIRE -- three of eleven predictions were falsified -- and
+  the RESULT says why that is not self-congratulation: six of the eleven only
+  predicted that the predecessors' reports would reproduce, and two of the three
+  predictions carrying a real mechanism were the ones that broke.

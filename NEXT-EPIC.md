@@ -32,8 +32,22 @@ D3 = 4 under version 5 and said why: *"nothing but `JsonFileStore` ever reads th
 JSON file… the caveat did real work on a real artifact it was never written
 for."*
 
-**Do not over-read this.** It establishes that the MECHANISM transfers. It says
-nothing about whether the SCORES transfer, and the probe was its own judge.
+**And the change rule survives the NEXT bump, which CL-03 could not test.** CL-03
+found that four of CL-01's own tests went red on the first correct bump, because
+their demonstrated failing input was the literal `5`, and repaired them to read
+what the file declares. CL-04 bumped the card 5 → 6 in a disposable worktree —
+one file, two insertions, one deletion, zero Python — and ran the whole suite:
+
+```
+tip, unmodified          2 failed, 1496 passed
+tip + a stranger's v6    2 failed, 1496 passed
+```
+
+**Zero new failures.** The repair was not a patch for the bump that exposed it;
+it is version-independent, and this is the first evidence of that.
+
+**Do not over-read any of it.** It establishes that the MECHANISM transfers. It
+says nothing about whether the SCORES transfer, and the probe was its own judge.
 
 ### 2. THE ONE THING THE NEXT EPIC MUST RUN: THE MISSING CELL
 

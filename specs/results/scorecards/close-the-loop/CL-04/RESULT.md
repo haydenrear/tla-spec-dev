@@ -16,7 +16,7 @@ triggered.
 
 | goal | decision |
 |---|---|
-| **`GOAL-change-rule-runnable`** | **MET AS WRITTEN, AND THE HEADLINE IT IS QUOTED FOR IS NOT.** A stranger's bump costs no source edit — demonstrated a second time, independently, by CL-04. But the change rule fails loudly only *upwards*. Downwards it is silent, and `scaffold --card-version 4` at the tip stamps a card `version 4` and serves it version 5's bytes. `CL-04-DF-01`. |
+| **`GOAL-change-rule-runnable`** | **MET, AND "A STRANGER CAN RUN IT" IS NOW DEMONSTRATED RATHER THAN PLAUSIBLE** — the *next* bump breaks nothing (`2 failed, 1496 passed`, identical to the unmodified tip), and a blind adopter bumped the card in its own tree with no configuration. **But the change rule fails loudly only *upwards*.** Downwards it is silent: `scaffold --card-version 4` at the tip stamps a card `version 4`, serves it version 5's bytes, and `check` reports 0 problems. `CL-04-DF-01`. |
 | **`GOAL-price-means-something`** | **MET.** All four target clauses reproduce independently at the tip. And the honest addendum: the goal is met and the instrument still has exactly one price to its name. |
 | **`GOAL-loop-closes-once`** | **MET.** Reproduced from the sealed cards without re-running a judge: D3 `4, 4 → 3, 3`, one judge model, one artifact, one tag, card version the only mover. **And the closure has no negative control**, so what it establishes is narrower than "the card can detect this". `CL-04-DF-05`. |
 
@@ -29,11 +29,11 @@ triggered.
 | **P1** | base surface is 6,319, not 6,409 | **HELD** — 6,319 stdout at `a662675`; 6,411 with stderr |
 | **P2** | tip is 6,281 / 9 rungs, did not grow | **HELD** — −38 bytes, −0.6%, rungs 9 → 9 |
 | **P3** | five versions, five distinct served digests | **FALSIFIED** — **four**. v4 and v5 return the same digest, and it is v5's. §4 |
-| **P4** | a stranger's *next* bump breaks nothing | see §5 |
+| **P4** | a stranger's *next* bump breaks nothing | **HELD** — v6 probe: `2 failed, 1496 passed`, identical to the unmodified tip |
 | **P5** | an unsupported version is refused loudly | **HELD** — `--card-version 7` exits 2 and names the two edits |
 | **P6** | the price reproduces and is still zero | **HELD** — `priced rows: []`, `RM-01-RF-1` still the only price |
 | **P7** | the closure reproduces from sealed bytes alone | **HELD** — verified four ways, no judge re-run |
-| **P8** | the tip suite is 2 failed, the inherited two | see §10 |
+| **P8** | the tip suite is 2 failed, the inherited two | **HELD** — `2 failed, 1496 passed` at `0adfb79`, both inherited |
 | **P9** | 11–14 findings, budget **exceeded** not capped | **HELD** — 11, budget 5 per ticket, CL-03 escalated its sixth |
 | **P10** | zero shipped-toolchain findings; `scripts/` byte-identical | **HELD** — 0 of 11, and `scripts/`, `spec_double_compiler/`, `templates/`, `skill-scripts/` and `SKILL.md` are **byte-identical across the whole epic** |
 | **P11** | no token basis exists anywhere in the record | **FALSIFIED** — it exists, it is named `subagent_tokens`, and four prior rounds recorded one. §9 |
@@ -158,13 +158,33 @@ it is a two-pass ritual a stranger discovers by hitting the refusal.
 
 CL-03 reported that four of CL-01's own tests went red on the first correct bump,
 because their demonstrated failing input was the literal `5`, and repaired them
-to read what the file declares. **P4 predicted the repair generalises.** The full
-suite against the v6 bump is in §10.
+to read what the file declares. **P4 predicted the repair generalises to the
+*next* bump. IT DOES.**
+
+```
+wt-cl04-tip-0adfb79   (unmodified)          2 failed, 1496 passed
+wt-cl04-v6probe       (stranger's v6 bump)  2 failed, 1496 passed
+```
+
+**Byte-identical results. Zero new failures. The same two inherited reds and
+nothing else.** CL-03's repair — replacing the literal `5` with `declared_version`,
+`bumped_to_next` and `caveat_in_file` — was not a patch for the bump that exposed
+it; **it is version-independent, and this is the first evidence of that, because
+CL-03 could only test the bump it had already made.**
+
+**This is the difference between "a stranger can run it" being plausible and
+being demonstrated.** CL-03 showed the change rule survived a bump *after*
+repairing what the bump broke. CL-04 shows the *next* bump breaks nothing, on a
+tree nobody adjusted for it. Together with the blind adopter probe in §8, which
+bumped the card to version 6 in its own tree with no configuration at all,
+**"a stranger can bump the card" is demonstrated, not plausible.**
 
 ### The decision
 
-**MET as the goal is written.** A version bump without a source edit: **yes,
-twice, independently.** An unsupported version refused loudly with a demonstrated
+**MET, and the "stranger" clause is now DEMONSTRATED.** A version bump without a
+source edit: **yes, three times independently** — CL-03's 4 → 5, CL-04's 5 → 6 in
+a disposable tree with zero new suite failures, and the blind adopter's 5 → 6 in
+a foreign tree with no configuration at all. An unsupported version refused loudly with a demonstrated
 failing input: **yes, upwards.** The served bytes sealed: **yes, and exercised on
 a real bump** — version 5 is the first row in the card's history whose served
 digest moves while its anchors digest holds, which is the exact class CL-01 built
@@ -510,7 +530,7 @@ to paths carrying this ticket's id, never to a shared `baseline.txt`
 |---|---|---|---|
 | `wt-cl04-base-a662675` | `a662675` | **clean detached checkout, epic base** | **2 failed, 1469 passed** in 1100s |
 | `wt-cl04-tip-0adfb79` | `0adfb79` | **clean detached checkout, epic tip** | **2 failed, 1496 passed** in 1251s |
-| `wt-cl04-v6probe` | `0adfb79` + a stranger's v6 bump | one file changed, `references/eval_scorecard.md` | **see §5 / P4** |
+| `wt-cl04-v6probe` | `0adfb79` + a stranger's v6 bump | one file changed, `references/eval_scorecard.md` | **2 failed, 1496 passed** in 1251s |
 
 **The two failures are the same two at both ends, and they are the inherited
 deliberate reds. Neither was repaired:**
