@@ -160,15 +160,20 @@ def test_incomparable_absent_and_underivable_are_three_states(at, world) -> None
 # 2. authority is per dimension -- A4
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("dim", ["D1", "D2", "D4", "D5"])
+@pytest.mark.parametrize("dim", ["D1", "D4", "D5"])
 def test_the_tag_cannot_refuse_a_comparison_on_a_dimension_it_did_not_move(
         at, world, dim) -> None:
     """A tag that demonstrated nothing on D1 cannot excuse a D1 comparison.
 
-    This is the design's answer to the trap. Over 34 cards D3 separates
-    disjointly and these four overlap, so on them a "different architecture"
-    objection is not available AT ALL -- not weighted, not discounted,
-    unavailable.
+    This is the design's answer to the trap: where the tag demonstrated no
+    separation a "different architecture" objection is not available AT ALL --
+    not weighted, not discounted, unavailable.
+
+    **D2 LEFT THIS LIST AT `CL-03`, AND IT IS NOT A WEAKENING -- IT MOVED TO ITS
+    OWN TEST BELOW, WHICH ASSERTS MORE.** Pinning D2 back here would assert a
+    fact about the world the world has left, which is the move `RM-06` refused
+    on this same file when RD-03's twelve judges retired the `["opus"]` bound.
+    The honest repair is the same one: say what is true now AND carry the bound.
     """
 
     state, reason = at.verdict(dim, "ports-and-adapters", "effectful", world["table"])
@@ -176,11 +181,51 @@ def test_the_tag_cannot_refuse_a_comparison_on_a_dimension_it_did_not_move(
     assert "demonstrated no separation" in reason
 
 
+def test_the_new_d2_row_is_a_confound_and_the_table_cannot_tell(at, world) -> None:
+    """THE ROW `CL-03` CREATED BY SCORING ONE FIXTURE FOUR TIMES, AND WHY IT IS
+    THE MOST UNFLATTERING THING IN THIS FILE.
+
+    Four honest cards on `toolchain_removal`'s `toolchain_fixture` subject --
+    `examples/validation/ab/reference_ports`, declared `ports-and-adapters`
+    before any judge was dispatched -- came out D2 `[0, 2, 2, 2]` against the
+    `toolchain` subject's `[3, 3, 4]`. Disjoint. So the derived table now grants
+    the architecture tag authority to REFUSE a D2 comparison, on a dimension
+    nobody has ever claimed the tag moves.
+
+    **AND THE SEPARATION IS NOT ABOUT ARCHITECTURE.** D2's anchor 3 requires *"a
+    simplification was made and its effect measured -- the before and after
+    figures are both recorded"*. `toolchain_removal`'s toolchain subject HAS a
+    before/after; a 173-line reference fixture has none and can never have one,
+    so it is capped at 2 by the ladder and not by its design. Both CL-03 judges
+    said so unprompted and disagreed by two points about what to do with it
+    (`[[contested]] cl03-v5-d2-spread-2`).
+
+    **THE TABLE CANNOT TELL AN EFFECT-BOUNDARY SEPARATION FROM A
+    "ONE-SUBJECT-HAD-A-BEFORE-AND-AFTER" SEPARATION**, and four cards were
+    enough to demonstrate it. `CL-03-DF-06`, escalated. The row is asserted here
+    rather than suppressed, and the reason it means nothing about architecture is
+    asserted with it -- because deleting the row would hide the finding and
+    leaving it unasserted would let it read as an architecture result.
+    """
+
+    state, reason = at.verdict("D2", "ports-and-adapters", "effectful",
+                               world["table"])
+    assert state == at.INCOMPARABLE, reason
+    assert "demonstrated on D2" in reason
+
+
 def test_authority_is_keyed_on_dimension_and_value_pair(at, world) -> None:
-    """One row, and its key carries the dimension. Measured today."""
+    """One row per dimension, and the key carries the dimension. Measured today.
+
+    **TWO ROWS FROM `CL-03`, WHERE THERE WAS ONE.** The D2 row is the confound
+    the test above pins; the D3 row is the one the record has always carried. The
+    assertion is rewritten rather than restored, exactly as `RM-06` rewrote the
+    tier bound on this file when the world moved under it.
+    """
 
     keys = sorted((dim, sorted(pair)) for dim, pair in world["table"])
-    assert keys == [("D3", ["effectful", "ports-and-adapters"])], keys
+    assert keys == [("D2", ["effectful", "ports-and-adapters"]),
+                    ("D3", ["effectful", "ports-and-adapters"])], keys
 
 
 def test_the_one_row_carries_its_tier_limit(at, world) -> None:

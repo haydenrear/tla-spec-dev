@@ -51,13 +51,31 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import pathlib
 import subprocess
 import sys
 import tomllib
 
 HERE = pathlib.Path(__file__).resolve()
-REPO_ROOT = HERE.parents[3]
+
+
+def _repo_root(start: pathlib.Path) -> pathlib.Path:
+    """The tree, found rather than counted. See `score_tools.repo_root`."""
+    override = os.environ.get("SCORECARD_REPO_ROOT")
+    if override:
+        return pathlib.Path(override).expanduser().resolve()
+    for parent in start.parents:
+        if (parent / "references/eval_scorecard.md").exists():
+            return parent
+    for parent in start.parents:
+        if (parent / ".git").exists():
+            return parent
+    parents = list(start.parents)
+    return parents[3] if len(parents) > 3 else parents[-1]
+
+
+REPO_ROOT = _repo_root(HERE)
 DEFAULT_SUBJECTS = HERE.parent / "subjects.toml"
 DEFAULT_SCORECARD_ROOT = REPO_ROOT / "specs/results/scorecards"
 COMPLEXITY = "scripts/code_complexity.py"
@@ -99,8 +117,18 @@ DRIFT_DIM = "D3"
 # --------------------------------------------------------------------------
 
 def load_subjects(path: pathlib.Path | None = None) -> dict:
-    """The declared subjects. Nothing here is computed -- see `subjects.toml`."""
+    """The declared subjects. Nothing here is computed -- see `subjects.toml`.
+
+    AN ABSENT FILE DECLARES NOTHING, which is a legal state and not an error.
+    It used to be a `FileNotFoundError` out of `audit`, and the documented cure
+    was *"create an empty `subjects.toml`"* (`RM-05` section 3) -- a file whose
+    only content is the absence this now reads directly. Declaring no subject
+    costs the architecture axis and nothing else; every caller reports that by
+    name.
+    """
     path = path or DEFAULT_SUBJECTS
+    if not path.exists():
+        return {}
     data = tomllib.loads(path.read_text())
     subjects = {}
     for name, entry in (data.get("subject") or {}).items():

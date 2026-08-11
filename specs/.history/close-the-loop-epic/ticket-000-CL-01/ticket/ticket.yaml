@@ -1,0 +1,120 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CL-01",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-01/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-01/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-01/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "A version bump is possible without editing our source.",
+        "An unsupported version is REFUSED rather than stamped, with the v5 case as a demonstrated failing input.",
+        "A served-byte change moves the seal.",
+        "The served surface does not grow beyond 6409 bytes and 9 rungs."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "CL-02",
+      "CL-03",
+      "CL-04"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "examples/validation/scorecards/score_tools.py",
+        "references/"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/221",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "A stranger can run the change rule, and silent failure becomes loud.",
+        "goal": "GOAL-change-rule-runnable",
+        "local_signal": "a v5 card is refused; serve | wc -c unchanged or lower"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-price-means-something",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none -- a card iteration needs a runnable change rule",
+        "goal": "GOAL-loop-closes-once",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "CL-01",
+    "implementation_scope": [
+      "examples/validation/scorecards/",
+      "references/",
+      "tests/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "FIRST AND ALONE -- nothing else in the portability argument matters until this works. SUPPORTED_VERSIONS = (1,2,3,4) is a literal in our source, so an adopter bumping to 5 must edit our code, AND IT FAILS SILENTLY: a v5 card is stamped version 4 and check reports 0 problems. Worse, THE SEAL DOES NOT SEAL WHAT A JUDGE READS -- rewriting a caveat deletes it from the served bytes while anchors_digest stays byte-identical. Fix SUPPORTED_VERSIONS, the caveat parse and the audit bootstrap so a bump needs no source edit; make an unsupported version REFUSED LOUDLY with the v5 case as the demonstrated failing input; make the seal cover the served bytes, saying whether the digest is widened or a second seal is added and why; and ship a SHORT adopter-facing page saying HOW, since portable_scorecard.md already says WHAT.",
+    "promotion_order": 10,
+    "promotion_predecessor": null,
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Make the card's change rule runnable by a stranger, and make it fail loudly",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-01/specs/tickets/CL-01",
+  "ticket_id": "CL-01",
+  "ticket_index": 0,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-01/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-01/specs/tickets"
+}

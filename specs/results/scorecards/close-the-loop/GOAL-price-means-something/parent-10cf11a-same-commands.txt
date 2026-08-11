@@ -1,0 +1,23 @@
+# THE PARENT COMMIT 10cf11a, SAME TWO COMMANDS. Captured before CL-02 changed a line.
+
+$ price_removal.py entail --before .../rm03-gap-mutants-before.json --head 6298eee
+ENTAILED-SURVIVES   RM03-GM-CTRL-C-a-detector-that-no-longer-exists-is-reported-as-a-survival
+                    every killing node the fault had is deleted by this removal, so the removal took the detection away. Bound: this cannot see a kill the after tree ADDED.
+UNDECIDED           RM03-GM-D4-the-top-of-behaviour-preservation-stops-needing-a-run
+                    a killing node still exists at the head of the removal. It may or may not still catch this fault -- a node can keep its id and lose its body. Running the fault is the only thing that decides it.
+UNDECIDED           RM03-GM-D5-a-split-on-the-honesty-anchor-stops-being-readable
+                    a killing node still exists at the head of the removal. It may or may not still catch this fault -- a node can keep its id and lose its body. Running the fault is the only thing that decides it.
+ENTAILED-SURVIVES   RM03-GM-RUNNER-an-unapplied-mutant-reports-a-survival
+                    every killing node the fault had is deleted by this removal, so the removal took the detection away. Bound: this cannot see a kill the after tree ADDED.
+exit=0
+
+$ price_removal.py entail --before .../rm03-gap-mutants-before.json --head deadbeefdeadbeef
+ENTAILED-SURVIVES   RM03-GM-CTRL-C-a-detector-that-no-longer-exists-is-reported-as-a-survival
+                    every killing node the fault had is deleted by this removal, so the removal took the detection away. Bound: this cannot see a kill the after tree ADDED.
+ENTAILED-SURVIVES   RM03-GM-D4-the-top-of-behaviour-preservation-stops-needing-a-run
+                    every killing node the fault had is deleted by this removal, so the removal took the detection away. Bound: this cannot see a kill the after tree ADDED.
+ENTAILED-SURVIVES   RM03-GM-D5-a-split-on-the-honesty-anchor-stops-being-readable
+                    every killing node the fault had is deleted by this removal, so the removal took the detection away. Bound: this cannot see a kill the after tree ADDED.
+ENTAILED-SURVIVES   RM03-GM-RUNNER-an-unapplied-mutant-reports-a-survival
+                    every killing node the fault had is deleted by this removal, so the removal took the detection away. Bound: this cannot see a kill the after tree ADDED.
+exit=0

@@ -1,0 +1,57 @@
+{
+  "head": "6298eee",
+  "removal": "gap-mutant-catalogue-and-runner",
+  "rows": [
+    {
+      "control_reason": "declared is_control",
+      "mutant": "RM03-GM-CTRL-C-a-detector-that-no-longer-exists-is-reported-as-a-survival",
+      "verdict": "CONTROL-EXCLUDED",
+      "why": "a declared control is not a priced result in any mode. It is shown and not scored: RM-05's finding was that a control's row went MISSING from the output, so nobody saw it return the headline verdict."
+    },
+    {
+      "habitat": [
+        "examples/validation/scorecards/score_tools.py"
+      ],
+      "kills_before": [
+        "pytest-full::tests/test_score_tools.py::test_d1_and_d5_are_deliberately_not_gated",
+        "pytest-full::tests/test_score_tools.py::test_d4_anchor_4_is_not_awardable_by_a_judge_that_ran_nothing"
+      ],
+      "kills_that_survive_by_name": [
+        "pytest-full::tests/test_score_tools.py::test_d1_and_d5_are_deliberately_not_gated",
+        "pytest-full::tests/test_score_tools.py::test_d4_anchor_4_is_not_awardable_by_a_judge_that_ran_nothing"
+      ],
+      "mutant": "RM03-GM-D4-the-top-of-behaviour-preservation-stops-needing-a-run",
+      "undecidable_columns_before": [],
+      "verdict": "UNDECIDED",
+      "why": "a killing node still exists at the head of the removal. It may or may not still catch this fault -- a node can keep its id and lose its body. Running the fault is the only thing that decides it."
+    },
+    {
+      "habitat": [
+        "examples/validation/scorecards/score_tools.py"
+      ],
+      "kills_before": [
+        "pytest-full::tests/test_score_tools.py::test_d5_scored_where_the_two_readings_differ_must_name_which"
+      ],
+      "kills_that_survive_by_name": [
+        "pytest-full::tests/test_score_tools.py::test_d5_scored_where_the_two_readings_differ_must_name_which"
+      ],
+      "mutant": "RM03-GM-D5-a-split-on-the-honesty-anchor-stops-being-readable",
+      "undecidable_columns_before": [],
+      "verdict": "UNDECIDED",
+      "why": "a killing node still exists at the head of the removal. It may or may not still catch this fault -- a node can keep its id and lose its body. Running the fault is the only thing that decides it."
+    },
+    {
+      "habitat": [
+        "examples/validation/gap_mutants/run_gap_mutants.py"
+      ],
+      "kills_before": [
+        "pytest-full::tests/test_gap_mutants.py::test_an_edit_that_changes_nothing_refuses",
+        "pytest-gap-mutants::tests/test_gap_mutants.py::test_an_edit_that_changes_nothing_refuses"
+      ],
+      "mutant": "RM03-GM-RUNNER-an-unapplied-mutant-reports-a-survival",
+      "undecidable_columns_before": [],
+      "verdict": "EXTINCT",
+      "why": "the removal deleted every file this fault needed in order to exist, so there is no post-removal artifact it could be seeded into. NOT A PRICE and not a zero: an extinct fault class costs nothing in the currency a gap mutant measures, and what a removal like this DOES cost is a CAPABILITY, which nothing here measures. Bound: file-granular -- a mechanism RENAMED rather than deleted reads EXTINCT and is not extinct."
+    }
+  ]
+}

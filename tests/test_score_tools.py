@@ -42,6 +42,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -58,6 +59,7 @@ RUBRIC = REPO_ROOT / "references/eval_scorecard.md"
 # other half, and from version 4 the tool refuses rather than letting it be
 # missed.
 RUBRIC_V3 = REPO_ROOT / "examples/validation/scorecards/rubric_v3_frozen.md"
+RUBRIC_V4 = REPO_ROOT / "examples/validation/scorecards/rubric_v4_frozen.md"
 SCORECARDS = REPO_ROOT / "specs/results/scorecards"
 
 
@@ -540,7 +542,11 @@ def test_require_filled_is_what_a_close_runs(st, tmp_path, capsys):
 def test_scaffold_emits_the_current_card_version_with_a_practice_block(st, tmp_path, capsys):
     path, card = scaffolded(st, tmp_path)
     capsys.readouterr()
-    assert card["scorecard_version"] == st.VERSION == 4
+    assert card["scorecard_version"] == st.load_rubric(RUBRIC)["card_version"], (
+        "the default is the version the RUBRIC declares, never the constant here")
+    assert st.VERSION == 4, (
+        "the built-in constant is legacy and must not move; CL-01's whole point is "
+        "that it stopped being the default and stopped being the ceiling")
     assert card["judging_practice"]["executed_own_faults"] is None
     assert card["judging_practice"]["what_was_run"] == []
     md = path.with_name("scorecard.md").read_text()
@@ -762,11 +768,12 @@ def test_serve_refuses_a_rubric_that_would_hand_a_judge_a_result(st, tmp_path, c
     judge is served into the part every judge is.
     """
     copy = tmp_path / "eval_scorecard.md"
-    copy.write_text(RUBRIC.read_text().replace(
-        "**Import topology is not modularity.**",
+    text = RUBRIC.read_text()
+    caveat = caveat_in_file(text, "D3")          # derived: see CL-03-DF-04
+    copy.write_text(text.replace(
+        caveat,
         "**D2 and D3 are the dimensions that have held still on unchanged input, "
-        "and D4 and D5 move two points per judge.** Import topology is not "
-        "modularity.", 1))
+        "and D4 and D5 move two points per judge.** " + caveat, 1))
     assert st.main(["serve", "--rubric", str(copy)]) == 3
     err = capsys.readouterr().err
     assert "REFUSED" in err and "Nothing was written" in err
@@ -787,15 +794,16 @@ def test_the_served_digest_moves_when_anything_a_judge_reads_moves(st, rubric, t
     Each edit below is one word, in a different served region, and each moves
     the served digest.
     """
-    base = st.served_digest(rubric, st.VERSION)
+    current = rubric["card_version"]
+    base = st.served_digest(rubric, current)
     text = RUBRIC.read_text()
+    caveat = caveat_in_file(text, "D3")          # derived: see CL-03-DF-04
     edits = {
         "an anchor": ("- **0** — No boundary is discernible; state is written from "
                       "everywhere.",
                       "- **0** — No boundary is discernible; state is written from "
                       "anywhere."),
-        "a caveat": ("**Import topology is not modularity.**",
-                     "**Import topology is not modularity, ever.**"),
+        "a caveat": (caveat, caveat.replace("modularity", "modularity, ever", 1)),
         "a preamble": ("Diff the two trees yourself",
                        "Diff the two trees YOURSELF"),
         "a scoring rule": ("**Prose quality is never an input.**",
@@ -807,7 +815,7 @@ def test_the_served_digest_moves_when_anything_a_judge_reads_moves(st, rubric, t
         assert text.count(old) == 1, what
         copy = tmp_path / f"{what.replace(' ', '_')}.md"
         copy.write_text(text.replace(old, new))
-        assert st.served_digest(st.load_rubric(copy), 3) != base, (
+        assert st.served_digest(st.load_rubric(copy), current) != base, (
             f"editing {what} left the served digest unmoved")
 
 
@@ -990,8 +998,17 @@ def test_the_version_bump_kept_the_anchors_and_says_so_in_a_digest(st, rubric):
     """
     declared = {v["version"]: v["anchors_digest"] for v in rubric["versions"]}
     assert declared, "the rubric declares no version history"
-    assert rubric["card_version"] == 4
-    assert declared[4] == rubric["anchors_digest"]
+    current = rubric["card_version"]
+    # CL-03: relative to what the file declares. Version 5 is a CAVEAT-only bump
+    # -- the served bytes move and the bar does not -- so the assertions below
+    # about version 4 are kept as history and the current row is checked too.
+    assert current >= 4
+    assert declared[current] == rubric["anchors_digest"]
+    # every bump after 4 that is not itself an anchor change must carry 4's digest
+    for v in range(5, current + 1):
+        assert declared[v] == declared[4], (
+            f"version {v} declares an anchors digest that differs from version 4's; "
+            f"if the bar really moved again, this assertion is the place to say so")
     assert declared[1] == declared[2] == declared[3] == "sha256:eeccf4576bc6fd85", (
         "versions 1 to 3 changed what a card RECORDS, not what a score MEANS, and "
         "their rows say so")
@@ -1908,8 +1925,15 @@ def test_the_tier_split_the_record_never_surfaced(st):
              if g["example"] == "toolchain_removal" and g["arm"] == "K"][0]
     split = st.tier_split_of(group)
     assert "D3" in split, split
-    assert split["D3"]["by_tier"] == {"opus": [2, 2], "sonnet": [3, 4]}
-    assert split["D3"]["higher"] == "sonnet"
+    # CL-03: keyed on the FULL MODEL ID, not on the family word. The family is
+    # still carried beside it, so this assertion is strictly stronger than the
+    # one it replaces -- it pins the same split AND which programs produced it.
+    assert split["D3"]["by_tier"] == {"claude-opus-5[1m]": [2, 2],
+                                      "claude-sonnet-5": [3, 4]}
+    assert split["D3"]["family"] == {"claude-opus-5[1m]": "opus",
+                                     "claude-sonnet-5": "sonnet"}
+    assert split["D3"]["keyed_on"] == "model_id"
+    assert split["D3"]["higher"] == "claude-sonnet-5"
     assert "D2" not in split, "D2 agreed across tiers on these same four cards"
 
 
@@ -1919,8 +1943,9 @@ def test_a_tier_split_is_reported_where_the_epic_did_not_know_to_look(st):
              if g["round"] == "subtract-to-measure-sm05-greenfield"][0]
     split = st.tier_split_of(group)
     assert set(split) == {"D4", "D5"}, split
-    assert split["D4"]["higher"] == "sonnet"
-    assert split["D5"]["higher"] == "opus"      # and it goes the other way
+    assert split["D4"]["higher"] == "claude-sonnet-5"
+    assert split["D5"]["higher"] == "claude-opus-5[1m]"   # and it goes the other way
+    assert split["D4"]["family"]["claude-sonnet-5"] == "sonnet"
 
 
 def test_a_declaration_cannot_manufacture_a_contested_dimension(st, tmp_path):
@@ -2056,18 +2081,28 @@ def test_the_claim_that_justified_an_epic_is_refused(st):
     # same anchors digest, and no round has ever edited them.
     assert "ex3_over_complex/20260803-j1" in named, named
     assert "ex3_over_complex/20260803-j2" in named, named
-    # `denominator_rule`, third time this literal has moved and the arithmetic
+    # `denominator_rule`, FOURTH time this literal has moved and the arithmetic
     # is stated rather than the number replaced: RD-03 took it 8 -> 16 against a
-    # population of 49 -> 73, and RM-04's six cards of `eval_toolchain` take it
-    # 16 -> 19 against 73 -> 79. THE NUMERATOR ROSE BY THREE AND THE DENOMINATOR
-    # BY SIX; nothing left either. The three are RM-04's D2 = 1 cards.
+    # population of 49 -> 73, RM-04's six cards of `eval_toolchain` took it
+    # 16 -> 19 against 73 -> 79, and CL-03's four cards take it 19 -> 20 against
+    # 79 -> 87. THE NUMERATOR ROSE BY ONE AND THE DENOMINATOR BY FOUR; nothing
+    # left either. The one added is `toolchain_removal/20260811-cl03v5-CL-p2`,
+    # D2 = 0 -- and BOTH CL-03 judges wrote the same defect and disagreed only
+    # about where D2's ladder puts it, `[[contested]] cl03-v5-d2-spread-2`.
+    #
+    # A NOTE THIS ROUND EARNED THE HARD WAY: this literal has now been re-pinned
+    # by FOUR consecutive rounds, which is `RM-06-DF-02`'s open-population shape
+    # arriving on schedule. The count is a JOINT property of the claim and the
+    # card population and any round that scores a card off 2 moves it. The
+    # claim's VERDICT has never moved and cannot -- the two `ex3_over_complex`
+    # cards asserted above predate it by three epics.
     #
     # THE EXACT SET ABOVE IS THE ASSERTION THAT MATTERS -- this literal is a
     # floor under it, and a floor that has to be re-pinned every round is the
     # open-population shape `RM-06-DF-02` was about. It is kept because it is
-    # cheap and because a sweep that found one counterexample and lost eighteen
+    # cheap and because a sweep that found one counterexample and lost nineteen
     # would still satisfy `named == expected` if `expected` broke the same way.
-    assert len(named) == 19, sorted(named)
+    assert len(named) == 20, sorted(named)
 
 
 def test_the_same_figure_with_its_scope_beside_it_is_not_refuted(st, tmp_path):
@@ -2212,3 +2247,491 @@ def test_adding_the_rules_moved_no_bar_a_judge_reads(st, rubric):
         served = st.served_rubric(rubric, version)
         assert "R-H6" not in served
         assert "carries its scope" not in served
+
+
+# --------------------------------------------------------------------------
+# CL-01: the change rule, runnable by a stranger and loud when it is not
+# --------------------------------------------------------------------------
+#
+# `RM-05` section 3 built a scratch repository with one Java file and ran the
+# loop against it. `serve`, `scaffold`, `check`, `index`, `seal`, `history`,
+# `contested` and the blinding all worked on a foreign tree. Then the card's own
+# change rule -- *bump `scorecard_version`, keep the old anchors, re-score under
+# both* -- turned out to be unfollowable without editing our Python, AND TO FAIL
+# SILENTLY WHEN IT WAS NOT FOLLOWED.
+#
+# Three failures, all reproduced on the real record at `400c296` before a line
+# was written, all with their measured numbers in the test that closes them:
+#
+#   1. `--card-version 5` was `error: invalid choice: '5'` against the literal
+#      `SUPPORTED_VERSIONS = (1, 2, 3, 4)`;
+#   2. dropping the flag stamped **4** onto cards scaffolded from a version 5
+#      rubric and `check` reported **0 problems**, exit 0;
+#   3. rewriting a dimension caveat in an adopter's own words -- the one
+#      iteration possible without touching Python -- took the served surface
+#      from 6,318 bytes to 6,092 while `anchors_digest` stayed byte-identical
+#      and nothing reported it.
+#
+# Every test below fails at the parent commit, and the fixtures are built from
+# `references/eval_scorecard.md` itself rather than from a fake card, so they
+# are the real record and not a mock of it (R1).
+
+
+def declared_version(text: str) -> int:
+    """The version the card file declares, read rather than remembered.
+
+    CL-03: this used to be the literal 4 in three places. THE FIRST TIME THE CARD
+    LEGITIMATELY REACHED THE NUMBER THOSE TESTS USED AS THEIR FAILING INPUT, four
+    of them went red on a correct bump -- `CL-03-DF-04`. A demonstrated failing
+    input that names a version by number expires the moment the card gets there,
+    so every one below is now relative to what the file says.
+    """
+    return int(re.search(r"\*\*Scorecard version (\d+)\.\*\*", text).group(1))
+
+
+def bumped_to_next(text: str, served: str | None = None) -> tuple[str, int]:
+    """The card an adopter has, after doing exactly what the change rule says.
+
+    Declare the new version, add its row, keep the old anchors and the old rows.
+    Nothing else -- this is a version bump and not a change to the bar. Returns
+    the text and the version it now declares.
+    """
+    cur = declared_version(text)
+    nxt = cur + 1
+    out = text.replace(f"**Scorecard version {cur}.**",
+                       f"**Scorecard version {nxt}.**", 1)
+    row = next(l for l in out.splitlines() if l.startswith(f"| **{cur}** |"))
+    cells = row.split("|")
+    anchors = cells[2].strip()
+    served_cell = f" `{served}` " if served else " — "
+    nrow = (f"| **{nxt}** |{cells[2]}|{served_cell}| an adopter's own bump: "
+            f"the anchors did not move. |")
+    assert anchors, row
+    return out.replace(row, row + "\n" + nrow, 1), nxt
+
+
+def caveat_in_file(text: str, dim: str = "D3") -> str:
+    """A dimension's caveat AS WRITTEN IN THE FILE, wrapping and all.
+
+    The parser's rule is "whatever follows the last anchor", so the caveat is the
+    last paragraph of the dimension's block. Derived, not quoted: a test that
+    quotes the caveat verbatim goes red on any card iteration that rewrites one,
+    which is the only kind of iteration this project can make without touching
+    Python.
+    """
+    block = re.search(rf"### {dim} — [^\n]*\n(.*?)(?=\n## |\n### )", text, re.S)
+    assert block, dim
+    return block.group(1).strip().split("\n\n")[-1]
+
+
+def test_a_version_the_card_declares_needs_no_edit_to_our_source(st, tmp_path, capsys):
+    """THE TICKET, in one assertion: a stranger bumps the card and it works.
+
+    `SUPPORTED_VERSIONS` is still a tuple in the tool and it still cannot shrink
+    -- 73 sealed cards are checked by rules that only this file knows. What it
+    stopped being is the CEILING. The population is that tuple UNION whatever
+    `### Version history` declares, so the two edits the change rule asks for --
+    the version line and the row -- are the whole of a bump.
+    """
+    bumped, nxt = bumped_to_next(RUBRIC.read_text())
+    v_next = tmp_path / "eval_scorecard.md"
+    v_next.write_text(bumped)
+    rubric_next = st.load_rubric(v_next)
+    assert rubric_next["card_version"] == nxt
+    assert nxt in st.supported_versions(rubric_next)
+    assert nxt not in st.supported_versions(st.load_rubric(RUBRIC)), (
+        f"our own card declares no version {nxt} and must not accept one")
+    assert st.resolve_card_version(nxt, rubric_next) == nxt
+
+    epic = tmp_path / "adopter-round"
+    assert scaffold(st, epic, labels="K,L,M", card_version=nxt,
+                    rubric=str(v_next)) == 0
+    capsys.readouterr()
+    assert json.loads(one_card(epic).read_text())["scorecard_version"] == nxt
+
+    # and the source is untouched by the bump: the tuple in the tool still says
+    # what it always said, which is what "without editing our source" means.
+    assert st.SUPPORTED_VERSIONS == (1, 2, 3, 4)
+
+
+def test_a_version_the_card_does_not_declare_is_refused_not_stamped(st, tmp_path, capsys):
+    """THE DEMONSTRATED FAILING INPUT, and it is the one RM-05 ran.
+
+    At `400c296`:
+
+        $ score_tools.py scaffold ... --card-version 5
+        error: invalid choice: '5' (choose from '1','2','3','4')
+
+    so the adopter drops the flag, and the tool stamps `version 4` on a card
+    scaffolded from a version 5 rubric with `check` reporting **0 problems**.
+    Both halves are asserted here: the request is refused BY NAME against our
+    card, and against a version 5 card the default is 5 rather than the nearest
+    number this file happens to know.
+    """
+    bumped, nxt = bumped_to_next(RUBRIC.read_text())
+    ours = st.load_rubric(RUBRIC)
+    with pytest.raises(st.RubricError) as exc:
+        scaffold(st, tmp_path / "refused", labels="K,L,M", card_version=nxt)
+    assert f"cannot emit a version {nxt} card" in str(exc.value)
+    assert f"**Scorecard version {nxt}.**" in str(exc.value), (
+        "a refusal that does not say what would make the request legal is a wall")
+    assert "Version history" in str(exc.value)
+    assert not (tmp_path / "refused").exists(), "a refused scaffold left files behind"
+
+    # THE SILENT HALF. No flag at all, against a card one version ahead of ours.
+    v_next = tmp_path / "eval_scorecard.md"
+    v_next.write_text(bumped)
+    epic = tmp_path / "no-flag"
+    assert scaffold(st, epic, labels="N,R,S", rubric=str(v_next)) == 0
+    capsys.readouterr()
+    assert json.loads(one_card(epic).read_text())["scorecard_version"] == nxt, (
+        "the default was VERSION -- a constant in the tool -- so a card scaffolded "
+        "from a newer rubric came out stamped with OUR number and check reported 0 "
+        "problems")
+
+    # and that card, read against OUR card, is refused rather than accepted.
+    problems = st.check(json.loads(one_card(epic).read_text()),
+                        str(one_card(epic)), ours)[0]
+    population = list(st.supported_versions(ours))
+    assert any(f"scorecard_version must be one of {population}, got {nxt}" in p
+               for p in problems), problems
+
+
+def test_a_caveat_rewritten_in_an_adopters_words_still_reaches_the_judge(st, tmp_path):
+    """The caveat parse, which used to delete what it could not recognise.
+
+    It was `\\n\\n(\\*\\*[A-Z].+?)\\Z`: a caveat had to be the last thing in the
+    dimension block AND open with a bold capital letter. An adopter rewriting one
+    in their own words -- the only iteration `RM-05` found possible without
+    touching Python -- parsed to the empty string, and the served surface fell
+    from 6,318 bytes to 6,092 with nothing said. The caveat is now whatever
+    follows the last anchor, in whatever words.
+    """
+    text = RUBRIC.read_text()
+    old = caveat_in_file(text, "D3")          # derived: see CL-03-DF-04
+    assert text.count(old) == 1
+    new = ("Import topology is not modularity: a codebase can pass every import check "
+           "with\nits coupling entirely intact, so a D3 of 3 or more needs evidence about "
+           "what\ncalls what at runtime.")
+    copy = tmp_path / "eval_scorecard.md"
+    copy.write_text(text.replace(old, new, 1))
+
+    rewritten = st.load_rubric(copy)
+    assert rewritten["dimensions"]["D3"]["caveat"], "the caveat parsed to nothing"
+    served = st.served_rubric(rewritten, rewritten["card_version"])
+    assert "coupling entirely intact" in served, (
+        "the adopter's own words were deleted from the bytes a judge reads")
+    # and the anchors digest is STILL byte-identical, which is why the anchors
+    # digest was never the seal that could have caught this.
+    assert rewritten["anchors_digest"] == st.load_rubric(RUBRIC)["anchors_digest"]
+
+
+def test_the_seal_covers_the_bytes_a_judge_reads_not_only_the_anchors(st, tmp_path):
+    """A SECOND SEAL, and the reason it is not a wider first one.
+
+    `anchors_digest` answers *did the bar move*. Versions 1, 2 and 3 declare the
+    same one, which is a true statement -- and those three versions served 4,487,
+    5,228 and 5,585 bytes, so a digest widened to cover the served surface would
+    have made that row false and deleted the only question the change rule asks.
+    Two questions, two columns.
+    """
+    rubric = st.load_rubric(RUBRIC)
+    current = rubric["card_version"]
+    row = {v["version"]: v for v in rubric["versions"]}[current]
+    assert row["served_digest"] == st.served_digest(rubric, current)
+    assert row["served_digest"] != row["anchors_digest"]
+    assert st.version_history_problems(rubric) == []
+
+    # the served bytes move and the anchors do not: refused, by the new column.
+    text = RUBRIC.read_text()
+    old = "Anchors are what make two judges agree."
+    assert text.count(old) == 1
+    copy = tmp_path / "eval_scorecard.md"
+    # a preamble is served and is outside the anchors digest, exactly like a caveat
+    copy.write_text(text.replace(
+        "Diff the two trees yourself and decide whether one fact is stored twice",
+        "Diff the two trees and decide for yourself whether one fact is stored twice", 1))
+    moved = st.load_rubric(copy)
+    assert moved["anchors_digest"] == rubric["anchors_digest"], (
+        "this edit must leave the anchors alone or it is testing the wrong column")
+    problems = st.version_history_problems(moved)
+    assert any("the bytes this file serves digest to" in p for p in problems), problems
+
+    # and a row that declares no served digest at all is refused with the value.
+    unsealed = tmp_path / "unsealed.md"
+    row_cur = next(l for l in text.splitlines()
+                   if l.startswith(f"| **{current}** |"))
+    cells = row_cur.split("|")
+    unsealed.write_text(text.replace(
+        row_cur, f"| **{current}** |{cells[2]}|{cells[4]}|", 1))
+    problems = st.version_history_problems(st.load_rubric(unsealed))
+    assert any("declares no served digest" in p for p in problems), problems
+    assert any(st.served_digest(rubric, current) in p for p in problems), problems
+
+
+def test_prose_that_would_reach_nobody_is_refused_rather_than_dropped(st, tmp_path):
+    """The same silent deletion, one position earlier.
+
+    An anchor is its FIRST paragraph. A second one under an anchor was parsed
+    away with no report, which is the caveat defect wearing a different hat, so
+    it is refused with the text it would have dropped.
+    """
+    text = RUBRIC.read_text()
+    old = "- **1** — Boundaries are named in prose or in a declaration, and the code does\n  not follow them."
+    assert text.count(old) == 1
+    copy = tmp_path / "eval_scorecard.md"
+    copy.write_text(text.replace(
+        old, old + "\n\n  A declaration nobody executes is a declaration that drifts.", 1))
+    with pytest.raises(st.RubricError) as exc:
+        st.load_rubric(copy)
+    assert "reaches no judge" in str(exc.value)
+    assert "A declaration nobody executes" in str(exc.value)
+
+
+def test_the_tool_finds_its_tree_instead_of_counting_parents(st, tmp_path, monkeypatch):
+    """`REPO_ROOT = HERE.parents[3]` was an install-depth literal.
+
+    Three deep is right for `examples/validation/scorecards/` and wrong for every
+    other layout, so an adopter who put the tool anywhere else got `rubric not
+    found` naming a path they never chose.
+    """
+    assert st.repo_root(REPO_ROOT / "examples/validation/scorecards/score_tools.py") \
+        == REPO_ROOT
+    # one deep, which `parents[3]` cannot reach
+    shallow = tmp_path / "tools"
+    shallow.mkdir()
+    (tmp_path / "references").mkdir()
+    (tmp_path / "references/eval_scorecard.md").write_text(RUBRIC.read_text())
+    assert st.repo_root(shallow / "score_tools.py") == tmp_path
+    # and a layout neither rule fits is a variable, not a patch
+    monkeypatch.setenv("SCORECARD_REPO_ROOT", str(tmp_path))
+    assert st.repo_root(REPO_ROOT / "a/b/c/d.py") == tmp_path
+
+
+def test_audit_reports_a_missing_optional_axis_instead_of_a_traceback(st, tmp_path,
+                                                                     monkeypatch, capsys):
+    """`audit` crashed out of the box for anyone who installed the tool alone.
+
+    A `FileNotFoundError` from `<frozen importlib._bootstrap_external>` made the
+    other seven reading rules unreachable because the eighth wanted an optional
+    sibling, and the documented cure was to create an EMPTY `subjects.toml` --
+    a file whose only content is the absence.
+    """
+    cached = st._ARCH_CACHE.pop("mod", None)
+    try:
+        monkeypatch.setattr(st, "HERE", tmp_path / "score_tools.py")
+        with pytest.raises(st.BootstrapError) as exc:
+            st.arch()
+        assert "architecture_tags.py is not installed" in str(exc.value)
+
+        findings = st.audit_rh1_architecture({"demonstrations": [], "root": tmp_path})
+        assert findings and findings[0][0] == st.UNVERIFIED, findings
+        assert "not re-derivable" in findings[0][1]
+    finally:
+        st._ARCH_CACHE.pop("mod", None)
+        if cached is not None:
+            st._ARCH_CACHE["mod"] = cached
+
+
+def test_declaring_no_subject_is_a_legal_state_not_a_crash(st, tmp_path, monkeypatch):
+    """An absent `subjects.toml` declares nothing, which is an answer.
+
+    It used to be a `FileNotFoundError`, and the cure written down for it was
+    *"create an empty `subjects.toml`"* -- a file whose only content is the
+    absence this now reads directly.
+    """
+    module = st.arch()
+    assert module.load_subjects(tmp_path / "nothing-here.toml") == {}
+    monkeypatch.setattr(module, "load_subjects", lambda *a, **k: {})
+    findings = st.audit_rh1_architecture({"demonstrations": [], "root": tmp_path})
+    assert findings and findings[0][0] == st.UNVERIFIED, findings
+    assert "no subject is declared" in findings[0][1]
+
+
+# --------------------------------------------------------------------------
+# CL-03: the tier is keyed on the FULL MODEL ID
+#
+# `RM-04` measured FOUR judge models sitting under TWO tier labels --
+# `claude-opus-5[1m]`/`claude-opus-4` and `claude-sonnet-5`/`claude-sonnet-4-5`
+# -- and no two rounds of that epic used the same pair. Every tier claim in the
+# record is a claim about a label that covers two programs.
+#
+# THE DEMONSTRATED FAILING INPUT (R1) is below: four cards, one artifact, two
+# DIFFERENT opus models, scores 1,1 against 3,3. Under the family key both are
+# `opus`, `by_tier` has ONE entry, `len(by_tier) < 2` and the splitter returns
+# NOTHING. It is a two-point disjoint separation the record could not report.
+# --------------------------------------------------------------------------
+
+
+def _group_of(cards):
+    return {"key": ("r", "e", "a"), "round": "r", "example": "e", "arm": "a",
+            "cards": cards, "paths": []}
+
+
+def _card(model, d3):
+    return {"status": "filled", "example": "e", "arm": "a",
+            "judge": {"model": model, "pass": 1},
+            "dimensions": {"D3": {"score": d3, "citations": ["f:1"], "rationale": "r"}}}
+
+
+def test_two_models_under_one_tier_label_are_a_split_the_family_key_cannot_see(st):
+    """THE FAILING INPUT. Two `opus` models, 1,1 against 3,3, disjoint by 2."""
+    group = _group_of([_card("claude-opus-5[1m]", 1), _card("claude-opus-5[1m]", 1),
+                       _card("claude-opus-4", 3), _card("claude-opus-4", 3)])
+
+    # keyed on the family word, this group has ONE key and no split is reachable
+    fams = {st.judge_tier(c["judge"]) for c in group["cards"]}
+    assert fams == {"opus"}, fams
+
+    split = st.tier_split_of(group)
+    assert "D3" in split, "the id key must see a separation the family key cannot"
+    assert split["D3"]["by_tier"] == {"claude-opus-4": [3, 3],
+                                      "claude-opus-5[1m]": [1, 1]}
+    assert split["D3"]["family"] == {"claude-opus-4": "opus",
+                                     "claude-opus-5[1m]": "opus"}
+    assert split["D3"]["higher"] == "claude-opus-4"
+    assert split["D3"]["points"] == 2.0
+
+    # and the collision is nameable rather than merely invisible
+    assert st.family_collisions(group) == {
+        "opus": ["claude-opus-4", "claude-opus-5[1m]"]}
+
+
+def test_the_id_key_neither_creates_nor_destroys_a_split_on_the_real_record(st):
+    """Measured, not assumed: the id partition REFINES the family partition.
+
+    On the sealed record every judge group is exactly one `opus` model and one
+    `sonnet` model, so re-keying separates nothing WITHIN a group and the split
+    COUNT does not move. The confound RM-04 named is real and it is ACROSS
+    rounds -- `opus` in `reading-discipline` is `claude-opus-5[1m]` and `opus`
+    in the RM-04 rounds is `claude-opus-4` -- which is why the fix is to PRINT
+    the id rather than to re-partition.
+    """
+    groups = st.judge_groups(SCORECARDS)
+    assert all(not st.family_collisions(g) for g in groups), \
+        "a group carrying two models of one family would change the split count"
+    split_dims = sum(len(st.tier_split_of(g)) for g in groups)
+    assert split_dims == 18, split_dims
+    # every reported key is a full model id, never a bare family word
+    for g in groups:
+        for info in st.tier_split_of(g).values():
+            assert all(k not in st.TIER_WORDS for k in info["by_tier"]), info
+            assert info["keyed_on"] == "model_id"
+
+
+def test_a_split_line_names_the_program_that_produced_it(st, capsys):
+    """A reader cannot add two rounds' `opus` rows without seeing two programs."""
+    st.main(["contested", "--root", str(SCORECARDS)])
+    out = capsys.readouterr().out
+    assert "keyed on the FULL MODEL ID" in out
+    assert "claude-opus-4 [opus]" in out
+    assert "claude-opus-5[1m] [opus]" in out
+    # the bare family word is never the key of a split row
+    assert "TIER-SPLIT D3 opus " not in out
+
+
+def test_the_index_judge_column_is_the_model_id(st, capsys, tmp_path):
+    """`index`'s comparison column stopped being a word that covers two models.
+
+    AGAINST A COPY, NEVER THE SEALED RECORD. `index` WRITES `INDEX.md` into the
+    round directory it is pointed at, so a test that points it at
+    `specs/results/scorecards/...` edits the record as a side effect of being
+    run. The first draft of this test did exactly that and left a new file in the
+    commit; `R-H4` says a sealed round is not edited, and "not edited by a test"
+    is part of what that has to mean.
+    """
+    staged = tmp_path / "reading-discipline"
+    shutil.copytree(SCORECARDS / "reading-discipline", staged)
+    st.main(["index", str(staged)])
+    out = capsys.readouterr().out
+    assert "| example | arm | judge | model |" in out
+    assert "claude-opus-5[1m]" in out
+    assert "**The judge column is the FULL MODEL ID, not a tier word.**" in out
+
+
+# --------------------------------------------------------------------------
+# CL-03: a card iteration that changes a CAVEAT and nothing else
+#
+# Version 5 is the first row in the card's history for which `anchors_digest`
+# holds still while `served_digest` moves. Before CL-01's second seal that was
+# the INVISIBLE change: the bytes every future judge reads change and the one
+# recorded digest is byte-identical. This pins the property on the shipped card
+# rather than on a constructed one.
+# --------------------------------------------------------------------------
+
+
+def test_a_caveat_only_bump_moves_the_served_seal_and_not_the_anchors(st):
+    """The shipped card, at the version this ticket produced."""
+    rubric = st.load_rubric(RUBRIC)
+    rows = {v["version"]: v for v in rubric["versions"]}
+    assert 5 in rows, "version 5 is the caveat-only bump CL-03 shipped"
+    assert rows[5]["anchors_digest"] == rows[4]["anchors_digest"], (
+        "a caveat is not an anchor; the bar must be byte-identical either side")
+    assert rows[5]["served_digest"] != rows[4]["served_digest"], (
+        "the bytes a judge reads changed and the seal has to say so")
+    assert rows[5]["served_digest"] == st.served_digest(rubric, 5)
+    assert st.version_history_problems(rubric) == []
+
+
+def test_the_served_surface_did_not_grow_across_the_caveat_bump(st):
+    """`serve | wc -c` is the metric, and a re-add has to fit in the room.
+
+    6,319 bytes and 9 rungs at `10cf11a`; the D3 caveat costs 138 and rule 9's
+    verbatim restatement of the served preamble pays for them. The RUNG COUNT is
+    the half that must not move at all: an anchor is permanent under the change
+    rule, so a bump that adds one can never be undone.
+    """
+    rubric = st.load_rubric(RUBRIC)
+    served = st.served_rubric(rubric, rubric["card_version"])
+    assert len(served.encode()) <= 6319, len(served.encode())
+    rungs = len([l for l in served.splitlines()
+                 if re.match(r"^- \*\*\d\*\* ", l)])
+    assert rungs == 9, rungs
+
+
+def test_the_d3_caveat_carries_the_regression_the_anchor_cannot_see(st):
+    """The card iteration, asserted on the bytes a judge is actually served.
+
+    `RM-05-DF-05`: in `examples/validation/ab/reference_ports` the only observer
+    of the durable record is `ledger_lines()`, which reads it back through the
+    adapter that wrote it, so a `FileJournal` that never touches the filesystem
+    passes every case through both wirings. D3's anchor 4 asks for "a real
+    adapter AND a fake, with the same cases passing against both" and a PAIR OF
+    FAKES satisfies it word for word.
+
+    The anchor is unchanged and must stay unchanged -- it is permanent under the
+    change rule and 83 sealed cards are read against it. What has to reach a
+    judge is the caveat.
+    """
+    rubric = st.load_rubric(RUBRIC)
+    anchor4 = rubric["dimensions"]["D3"]["anchors"]["4"]
+    assert "a real adapter *and* a fake" in anchor4, (
+        "the anchor is permanent; this test fails if a future round rewords it")
+    caveat = rubric["dimensions"]["D3"]["caveat"]
+    assert "only observer" in caveat and "adapter that wrote it" in caveat, caveat
+    served = st.served_rubric(rubric, rubric["card_version"])
+    assert "only observer" in served, "the caveat did not reach the served bytes"
+    # and the anchor text is still there beside it -- a caveat never replaces one
+    assert anchor4 in served
+
+
+def test_the_frozen_v4_bar_is_still_the_v4_bar(st):
+    """A frozen rubric that drifts is worse than none: it makes an old arm LOOK
+    reproduced. `rubric_v4_frozen.md` is what CL-03's version 4 arm was scored
+    against, and it earns its place in `test_card_has_one_home.GUARDED` here.
+
+    BOTH digests, because version 4 is the first row that declares two and CL-03
+    is the round whose bump moves only the second one. An anchors-only check
+    would pass on a frozen file whose CAVEATS had been rewritten -- which is
+    exactly the hole CL-01 closed and exactly the change CL-03 made.
+    """
+    frozen = st.load_rubric(RUBRIC_V4)
+    assert frozen["card_version"] == 4
+    declared = {v["version"]: v for v in st.load_rubric(RUBRIC)["versions"]}[4]
+    assert frozen["anchors_digest"] == declared["anchors_digest"] == \
+        "sha256:f73b4d82638f09df"
+    assert st.served_digest(frozen, 4) == declared["served_digest"] == \
+        "sha256:a213a36770ccab09"
+    # and it is a DIFFERENT bar from the live card, or freezing it bought nothing
+    live = st.load_rubric(RUBRIC)
+    assert st.served_digest(live, live["card_version"]) != st.served_digest(frozen, 4)

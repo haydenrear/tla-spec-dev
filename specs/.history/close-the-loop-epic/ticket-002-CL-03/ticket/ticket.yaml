@@ -1,0 +1,118 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CL-03",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-03/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-03/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-03/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The judges' notes are swept and what they found is FILED., One real regression is carried end to end to a card iteration and a re-score., The version-4 era boundary is declared and tier is keyed on the full model id., 'The regression is FILED",
+        "not fixed.', The served surface does not grow beyond 6319 bytes and 9 rungs."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "CL-04"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "specs/results/scorecards/",
+        "examples/validation/scorecards/"
+      ]
+    },
+    "depends_on": [
+      "CL-01"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/223",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "The loop closes once on a real regression, or the round reports why the candidate was not real.",
+        "goal": "GOAL-loop-closes-once",
+        "local_signal": "the end-to-end artifact, or the finding that the candidate was not a regression"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected; a card iteration exercises CL-01's change rule",
+        "goal": "GOAL-change-rule-runnable",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-price-means-something",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "CL-03",
+    "implementation_scope": [
+      "examples/validation/scorecards/",
+      "specs/results/",
+      "references/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "THE LOOP'S INPUT ALREADY EXISTS AND NOTHING CONSUMES IT. Two blind judges, in two different tickets, independently found that reference_ports's REAL adapter can stop touching the filesystem and survive both wirings -- a genuine architectural regression, found by hand, FILED ZERO TIMES, under twenty-two D3 = 4 cards. Sweep the judges' notes across the sealed record and FILE WHAT THEY FOUND, starting with the FileJournal durability hole. Then CLOSE THE LOOP ONCE, END TO END: regression -> card iteration -> architectural delta -> re-score. That artifact is the transferable thing and it has never been produced. Also declare the version-4 era boundary, and key judge tier on the FULL MODEL ID -- RM-04 found four judge models sitting under two tier labels, which confounds every tier claim in the record. DO NOT MANUFACTURE A REGRESSION: if the FileJournal hole is not real, SAY SO. And DO NOT FIX the regression -- filing it, carrying it into a card iteration and measuring the delta are different acts from repairing the code.",
+    "promotion_order": 30,
+    "promotion_predecessor": "CL-02",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Close the loop once: harvest the judges'' findings and carry one to a card iteration",
+    "wave": 2
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-03/specs/tickets/CL-03",
+  "ticket_id": "CL-03",
+  "ticket_index": 2,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-03/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-03/specs/tickets"
+}
