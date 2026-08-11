@@ -2081,18 +2081,28 @@ def test_the_claim_that_justified_an_epic_is_refused(st):
     # same anchors digest, and no round has ever edited them.
     assert "ex3_over_complex/20260803-j1" in named, named
     assert "ex3_over_complex/20260803-j2" in named, named
-    # `denominator_rule`, third time this literal has moved and the arithmetic
+    # `denominator_rule`, FOURTH time this literal has moved and the arithmetic
     # is stated rather than the number replaced: RD-03 took it 8 -> 16 against a
-    # population of 49 -> 73, and RM-04's six cards of `eval_toolchain` take it
-    # 16 -> 19 against 73 -> 79. THE NUMERATOR ROSE BY THREE AND THE DENOMINATOR
-    # BY SIX; nothing left either. The three are RM-04's D2 = 1 cards.
+    # population of 49 -> 73, RM-04's six cards of `eval_toolchain` took it
+    # 16 -> 19 against 73 -> 79, and CL-03's four cards take it 19 -> 20 against
+    # 79 -> 87. THE NUMERATOR ROSE BY ONE AND THE DENOMINATOR BY FOUR; nothing
+    # left either. The one added is `toolchain_removal/20260811-cl03v5-CL-p2`,
+    # D2 = 0 -- and BOTH CL-03 judges wrote the same defect and disagreed only
+    # about where D2's ladder puts it, `[[contested]] cl03-v5-d2-spread-2`.
+    #
+    # A NOTE THIS ROUND EARNED THE HARD WAY: this literal has now been re-pinned
+    # by FOUR consecutive rounds, which is `RM-06-DF-02`'s open-population shape
+    # arriving on schedule. The count is a JOINT property of the claim and the
+    # card population and any round that scores a card off 2 moves it. The
+    # claim's VERDICT has never moved and cannot -- the two `ex3_over_complex`
+    # cards asserted above predate it by three epics.
     #
     # THE EXACT SET ABOVE IS THE ASSERTION THAT MATTERS -- this literal is a
     # floor under it, and a floor that has to be re-pinned every round is the
     # open-population shape `RM-06-DF-02` was about. It is kept because it is
-    # cheap and because a sweep that found one counterexample and lost eighteen
+    # cheap and because a sweep that found one counterexample and lost nineteen
     # would still satisfy `named == expected` if `expected` broke the same way.
-    assert len(named) == 19, sorted(named)
+    assert len(named) == 20, sorted(named)
 
 
 def test_the_same_figure_with_its_scope_beside_it_is_not_refuted(st, tmp_path):
