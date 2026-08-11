@@ -85,9 +85,27 @@ justification: ""
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found none, and the reason is that CL-03 changes no model. The
+    ticket's declared `model_delta_expectation` is `none expected`, and this
+    ticket's `current/` and `desired/` are byte-identical (`diff -rq` clean), so
+    `TlaSpecDevCli.tla` at this tip is `TlaSpecDevCli.tla` at 10cf11a. Every
+    figure the machine-checked core above reports is inherited and describes a
+    predecessor's model rather than this ticket's work.
+
+    What CL-03 moved is the EVAL INSTRUMENT, which is out of model by design:
+    two edits to `references/eval_scorecard.md` (a version line and a version
+    history row), one caveat rewritten, one duplicated sentence removed, plus
+    `tier_split_of`/`index` re-keyed on the full judge model id in
+    `score_tools.py`. The refinement question -- is there a smaller
+    representation carrying the same behavior -- was asked of the one surface
+    this epic actually measures, `serve | wc -c`, AND IT WAS ANSWERED
+    QUANTITATIVELY: the served surface FELL from 6,319 bytes to 6,281 with the
+    rung count held at 9. The carrier chosen for the regression was the CHEAPEST
+    of the three considered -- a caveat rather than a new anchor or a reworded
+    one -- because an anchor is permanent under the card's own change rule.
   measured: false      # true only if a real TLC run produced the figure
   applied: false       # if true, approved_by is required
   approved_by: ""
@@ -99,4 +117,41 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: >-
+  CL-03, wave 2. THE MODEL DID NOT MOVE AND WAS NOT MEANT TO. Ticket `current/`
+  equals `desired/`; every figure the machine-checked core above reports is
+  inherited and says nothing about this ticket.
+
+  WHAT THIS TICKET DID, and the complexity claim it makes. A regression two
+  blind judges found by hand -- `reference_ports`'s REAL adapter can stop
+  touching the filesystem and survive both wirings, because `ledger_lines()` is
+  the only observer of the record the port exists to make durable -- was carried
+  end to end into a card iteration and re-scored. `D3` moved 4, 4 -> 3, 3 on a
+  BYTE-IDENTICAL artifact, same judge model, same architecture tag, with the
+  instrument version as the only thing that changed. Full record:
+  `specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/RESULT.md`.
+
+  THE MEASURED ALTERNATIVES, since this ledger asks for them. Three carriers
+  were considered for the regression and two were rejected: (a) reword D3's
+  anchor 4, rejected because an anchor is permanent under `Changing this card`
+  and rewording rung 4 makes 83 sealed cards incomparable over a defect in one
+  fixture; (b) add a tenth rung, rejected for the same reason plus the epic's
+  standing rule that the served surface must not grow; (c) rewrite D3's CAVEAT,
+  which is what shipped, at a cost of 138 bytes paid for out of scoring rule 9's
+  verbatim restatement of the served preamble. NET: -38 bytes served, 9 rungs
+  unchanged.
+
+  A FINDING THE CORE CANNOT EXPRESS, and it is the reason this ticket is worth
+  reading. The version 4 judge that found the durability hole DECLINED to
+  deduct for it: "rung 4 is unsatisfiable by any suite that does assert
+  durability, since such a case must fail the fake. The anchor structurally
+  rewards blindness to the property that makes the real adapter real." The
+  instrument defect is larger than the fixture defect, it is filed as
+  `CL-03-DF-02`, and CL-03 deliberately does not repair either -- filing a
+  regression and carrying it into a card iteration are different acts from
+  repairing the code, and repairing the fixture would have destroyed the subject
+  the delta is measured on.
+
+  TWO OF FOUR SEALED PREDICTIONS WERE FALSIFIED, which is the outcome this
+  project prefers. Predictions were sealed at 2026-08-11T18:42:43Z in commit
+  a73186d, before any judge agent was launched.

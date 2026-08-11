@@ -2619,9 +2619,19 @@ def test_a_split_line_names_the_program_that_produced_it(st, capsys):
     assert "TIER-SPLIT D3 opus " not in out
 
 
-def test_the_index_judge_column_is_the_model_id(st, capsys):
-    """`index`'s comparison column stopped being a word that covers two models."""
-    st.main(["index", str(SCORECARDS / "reading-discipline")])
+def test_the_index_judge_column_is_the_model_id(st, capsys, tmp_path):
+    """`index`'s comparison column stopped being a word that covers two models.
+
+    AGAINST A COPY, NEVER THE SEALED RECORD. `index` WRITES `INDEX.md` into the
+    round directory it is pointed at, so a test that points it at
+    `specs/results/scorecards/...` edits the record as a side effect of being
+    run. The first draft of this test did exactly that and left a new file in the
+    commit; `R-H4` says a sealed round is not edited, and "not edited by a test"
+    is part of what that has to mean.
+    """
+    staged = tmp_path / "reading-discipline"
+    shutil.copytree(SCORECARDS / "reading-discipline", staged)
+    st.main(["index", str(staged)])
     out = capsys.readouterr().out
     assert "| example | arm | judge | model |" in out
     assert "claude-opus-5[1m]" in out

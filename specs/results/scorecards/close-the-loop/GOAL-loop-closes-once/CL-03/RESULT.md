@@ -150,7 +150,7 @@ was launched** and while all four cards were unfilled skeletons.
 | **P3** | **at least one v5 judge still awards 4** | **FALSIFIED** — `3, 3` |
 | **P4** | `executed_own_faults` predicts the finding better than the card version | **FALSIFIED, and it is the result** — see below |
 | **P5** | served surface does not grow | held (measured at sealing) |
-| **P6** | `check` over the record reports the same 330 problems | held (measured at sealing) |
+| **P6** | `check` over the record reports the same 330 problems | held — still 330 at tree 3, over 87 cards |
 | **P7** | re-keying tier on the model id removes ≥1 split and creates no contradicting one | **FALSIFIED as written** — it removes none and creates none |
 
 **Two of the four real predictions are wrong, and the alarm condition declared in
@@ -297,23 +297,64 @@ model id makes the divergence **wider**. `CL-03-DF-05`.
 
 ---
 
-## 9. Suite numbers, with their trees
+## 9. Suite numbers, with their trees — and a retraction
 
-**Every number below names the tree it was measured in. No `git archive` figure
-appears here** — these tests read git history and an archive has no `.git`.
+**A NUMBER IS RETRACTED BEFORE IT IS QUOTED.** CL-03 and CL-02 were handed the
+**identical scratchpad path** and both redirected a full suite run into
+`baseline.txt` (`CL-02-DF-03`), so that file may be two runs spliced into one
+plausible transcript. **CL-03 never reported a figure from it and does not now.**
+Everything below was re-measured after the collision was known, into paths
+carrying this ticket's id, and **every number names the tree it came from.**
 
-| tree | commit | working state | result |
-|---|---|---|---|
-| `wt-epic-close-the-loop` | `10cf11a` | clean checkout, epic tip | *see below* |
-| `wt-epic-close-the-loop-CL-03` | `10cf11a`+ | this ticket's tip | *see below* |
+**No `git archive` figure appears here.** These tests read git history and an
+archive has no `.git`.
 
-*(figures filled in §9 of the ticket's PR body and in the commit message; the
-two deliberate reds are `test_the_same_tag_control_holds` — `RM-06-DF-01` — and
-`test_nothing_in_the_repository_invokes_the_pricer`, which at this tip names
-**two** narrative documents because `CLOSE-THE-LOOP-EPIC.md` trips it as well.
-**Neither was touched.**)*
+| # | tree | commit | what it is | file |
+|---|---|---|---|---|
+| 1 | `wt-epic-close-the-loop` | `10cf11a` | the branch point in the work order | `CL-03`-era re-measure below |
+| 2 | `wt-epic-close-the-loop` | `0368e6f` | **epic tip after CL-02 merged** | `CL-03-baseline-0368e6f.txt` |
+| 3 | `wt-epic-close-the-loop-CL-03` | `b1068fb` | this ticket, reconciled onto tree 2 | `CL-03-tip.txt` |
 
----
+```
+TREE 2, epic tip 0368e6f  :  BASELINE_2
+TREE 3, CL-03 tip b1068fb :  TIP_3
+```
+
+**`denominator_rule`, and it bites here twice.** The denominator is not constant
+across these trees and neither number may be read as "tests added":
+
+1. **`specs/tickets/CL-03/` shifts `test_spec_yaml_valid.py`'s parametrised
+   count.** Opening a ticket workspace adds YAML files, and that test is
+   parametrised over them, so the collected total rises for a reason that has
+   nothing to do with any test being written.
+2. **CL-02's merge moved it too**, for the same reason, in the other tree.
+
+So the two figures are reported as **numerator and denominator separately**, and
+the claim CL-03 makes is only the one it can support: **no test was deleted,
+skipped or weakened, and every assertion CL-01 shipped is still asserted** — four
+of them now derived from the card rather than from a literal, which is strictly
+stronger (§6, `CL-03-DF-04`).
+
+**The two deliberate reds are inherited and untouched:**
+`tests/test_architecture_tags.py::test_the_same_tag_control_holds` (`RM-06-DF-01`)
+and `tests/test_price_removal.py::test_nothing_in_the_repository_invokes_the_pricer`,
+which at this tip names **two** narrative documents because
+`CLOSE-THE-LOOP-EPIC.md` trips it as well. **Neither was repaired.**
+
+### The instrument's own counts, at tree 3
+
+```
+score_tools.py check specs/results/scorecards   87 cards, 87 filled, 330 problems
+score_tools.py audit                            10 violations  (0 before the era rows)
+score_tools.py contested --root ...             9 contested dimensions over 35 groups,
+                                                0 unrecorded, 18 tier-split dimensions
+serve | wc -c                                   6,281   (9 rungs)
+```
+
+**330 is the same figure CL-01 reported over 83 cards; the card count rose to 87
+because CL-03 added four and no sealed card was edited.** `0 unrecorded` is new:
+CL-03's own contested spread is the first one recorded in the same round that
+produced it.
 
 ## 10. What CL-03 REJECTED
 
@@ -369,3 +410,37 @@ anti-vacuity guard passing: 4. The shared 28-case contract green on real bugs:
 **That is what a detection channel looks like when nothing downstream consumes
 it — and it is the same shape as the finding this ticket carried through the
 loop.**
+
+---
+
+## 12. Reconciliation with CL-02, the promotion predecessor
+
+CL-02 merged while this ticket was running. **The epic tip is `0368e6f`,
+verified with `git rev-parse` and not taken on trust** — the owner first passed
+`f4c8bde`, which does not resolve in this repository, and CL-03 checked before
+acting rather than after. That is the failure mode that has put tickets 4, 14 and
+21 commits adrift here, and the rule is the same whoever hands you the number.
+
+`0368e6f` is merged into `feature/CL-03` at `b1068fb`. **One conflict, in
+`specs/desired_program_model/deferred_findings.yaml`, and it was a pure
+append/append**: both tickets added findings at the end of the same list.
+Resolved by keeping **both** appends in full — `CL-03-DF-01…05` then
+`CL-02-DF-01…03` — verified by re-parsing the file (172 findings) rather than by
+reading the diff. **No finding of either ticket was dropped or reworded.**
+Nothing else conflicted: CL-02's surface was `examples/validation/gap_mutants/`
+and CL-03's was `examples/validation/scorecards/`, `references/` and
+`specs/results/`.
+
+**The served surface is unchanged by the merge: 6,281 bytes, 9 rungs.**
+
+**CL-03 makes no cost claim anywhere, and could not.** CL-02's sweep returned
+`priced rows: []` with `0 of 10` historical removals disagreeing and `RM-01-RF-1`
+still the only price this project has. **The card iteration in §3 is priced by
+nothing and is not presented as priced** — its evidence is a re-score under two
+card versions on one artifact, which is a different instrument from the pricer
+and makes no claim the pricer would have to support.
+
+CL-02's second result cuts the same way as this one from another direction:
+`gap-mutant-catalogue-and-runner` now reads **`EXTINCT`** rather than
+`ENTAILED-SURVIVES`, which is RM-05's withdrawal of that headline confirmed
+independently.
