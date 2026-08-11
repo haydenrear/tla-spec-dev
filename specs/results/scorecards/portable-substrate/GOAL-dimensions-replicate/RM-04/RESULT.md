@@ -19,7 +19,7 @@ python3 specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM
 figure about those 6 cards. Nothing here is a claim about `ab_quota_ledger` and
 no number here may be read across to it (`R-H2`). The predictions were sealed in
 [`SEALED-BEFORE-DISPATCH.md`](SEALED-BEFORE-DISPATCH.md) before any judge
-existed. §8 records what `scope` made of this page.
+existed. §14 records what `scope` made of this page.
 
 ---
 
@@ -318,7 +318,33 @@ when the pool refuses was the one route with nothing on it. It now costs
 re-scored one arm under two card versions and kept its label on purpose, which
 is correct and was recorded nowhere.
 
-## 12. What this ticket could not settle
+## 12. D4 and D5 — verification, not decision
+
+The work order double-assigned the cut and then corrected itself: **RM-03 cut
+them and this ticket verifies the cut rather than re-deciding it.** What this
+round can add is that version 4 is in force on a round nobody had run under it:
+
+- all six cards are `scorecard_version 4` and carry `dimensions` = `D2`, `D3`
+  and nothing else, with `N-D1`, `N-D4`, `N-D5` as required prose;
+- `check` passes all six with **0 problems**, and the rules that would reject a
+  version 4 card scoring `D1`, `D4` or `D5` were exercised by the round rather
+  than only by a fixture;
+- **every judge answered all three notes**, including *"there is no baseline,
+  so this is the answer and not a gap"* on the two artifacts that have none —
+  which is the behaviour version 4 was arguing for when it turned the numbers
+  into prose.
+
+**And the round supplies one piece of evidence for the cut that RM-03 could
+not.** RM-02's case against D4 was that it tier-split on 4 of 8 judge groups.
+This round shows the mechanism underneath that with no dimension in the way:
+**judging practice split perfectly by tier, 3 of 3 against 0 of 3** (§5), and
+D4's retired anchor 4 was the one anchor gated on judging practice. A dimension
+whose top anchor asks *"did you run something"* will split wherever the tiers
+run different things.
+
+**Nothing here reverses the cut, and no finding was filed against it.**
+
+## 13. What this ticket could not settle
 
 - **Whether RM-03's round was anchored.** §4 bounds it. Settling it needs
   `arm_b` re-scored with the leak fixed, which is now possible.
@@ -331,7 +357,7 @@ is correct and was recorded nowhere.
   that the constant moves real answers. It does not show which value is right,
   and one contested artifact at 0.412 cannot.
 
-## 13. `scope` over this page, and the bound that applies
+## 14. `scope` over this page, and the bound that applies
 
 ```
 python3 examples/validation/scorecards/score_tools.py scope

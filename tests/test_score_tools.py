@@ -2056,7 +2056,18 @@ def test_the_claim_that_justified_an_epic_is_refused(st):
     # same anchors digest, and no round has ever edited them.
     assert "ex3_over_complex/20260803-j1" in named, named
     assert "ex3_over_complex/20260803-j2" in named, named
-    assert len(named) == 16, sorted(named)
+    # `denominator_rule`, third time this literal has moved and the arithmetic
+    # is stated rather than the number replaced: RD-03 took it 8 -> 16 against a
+    # population of 49 -> 73, and RM-04's six cards of `eval_toolchain` take it
+    # 16 -> 19 against 73 -> 79. THE NUMERATOR ROSE BY THREE AND THE DENOMINATOR
+    # BY SIX; nothing left either. The three are RM-04's D2 = 1 cards.
+    #
+    # THE EXACT SET ABOVE IS THE ASSERTION THAT MATTERS -- this literal is a
+    # floor under it, and a floor that has to be re-pinned every round is the
+    # open-population shape `RM-06-DF-02` was about. It is kept because it is
+    # cheap and because a sweep that found one counterexample and lost eighteen
+    # would still satisfy `named == expected` if `expected` broke the same way.
+    assert len(named) == 19, sorted(named)
 
 
 def test_the_same_figure_with_its_scope_beside_it_is_not_refuted(st, tmp_path):
