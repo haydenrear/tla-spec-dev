@@ -847,6 +847,17 @@ def check(card: dict, where: str, rubric: dict | None = None,
         bad.append(f"{where}: {msg}")
 
     version = card.get("scorecard_version")
+    # CL-03. A CALLER THAT PASSES NO RUBRIC USED TO FALL BACK TO THE LITERAL
+    # TUPLE, so the first legitimate bump made `check(card, where)` refuse a card
+    # stamped with the version THE CARD FILE ITSELF DECLARES. That is CL-01's
+    # defect one level down: the population stopped being a ceiling for
+    # `scaffold` and stayed one here. Read the default card file when nobody
+    # named one; if it cannot be read, the old fallback stands and still says so.
+    if rubric is None:
+        try:
+            rubric = load_rubric(DEFAULT_RUBRIC)
+        except Exception:                                # pragma: no cover - no card
+            rubric = None
     allowed = supported_versions(rubric)
     if version not in allowed:
         err(f"scorecard_version must be one of {list(allowed)}, got {version!r}"
@@ -1315,21 +1326,75 @@ def contested_of(group: dict) -> dict[str, dict]:
     return out
 
 
-def tier_split_of(group: dict) -> dict[str, dict]:
-    """Dimensions where two judge tiers do not overlap at all on one artifact.
+def judge_model_key(judge: dict | None) -> str:
+    """THE FULL MODEL ID, and it is what a split is keyed on.
 
-    Reported only when the tiers' score ranges are DISJOINT. An overlap is two
-    tiers that agree as far as this can tell, and calling that a split would let
+    `RM-04` measured four judge models wearing two labels -- `claude-opus-5[1m]`
+    and `claude-opus-4` are both `opus`, `claude-sonnet-5` and
+    `claude-sonnet-4-5` are both `sonnet` -- and NO TWO ROUNDS OF THAT EPIC USED
+    THE SAME PAIR. A split keyed on the family word is therefore a claim a reader
+    will aggregate across rounds that measured different models, which is the
+    same confound as reading two epics' numbers across a card version boundary.
+
+    Keying on the id cannot manufacture a split: the id partition REFINES the
+    family partition, so every group the family key put together the id key
+    either keeps together or separates. What it buys is that the reported key
+    NAMES what was measured, so `opus 2 / sonnet 4` can never be added to
+    another round's `opus 2 / sonnet 4` without the reader seeing that the two
+    `opus`es are different programs.
+    """
+    model = str((judge or {}).get("model") or "").strip()
+    return model or MODEL_UNKNOWN
+
+
+MODEL_UNKNOWN = "unknown-model"
+
+
+def family_collisions(group: dict) -> dict[str, list[str]]:
+    """Family labels in this group that cover more than one model id.
+
+    Empty on the whole record as of `CL-03`: every judge group is exactly one
+    `opus` model and one `sonnet` model, so re-keying separates nothing WITHIN a
+    group. The confound RM-04 named is real and it is ACROSS rounds -- which is
+    why the fix is to print the id, not to re-partition.
+    """
+    fams: dict[str, set[str]] = {}
+    for card in group["cards"]:
+        judge = card.get("judge") or {}
+        fam = judge_tier(judge)
+        if fam == TIER_UNKNOWN:
+            continue
+        fams.setdefault(fam, set()).add(judge_model_key(judge))
+    return {f: sorted(m) for f, m in fams.items() if len(m) > 1}
+
+
+def tier_split_of(group: dict) -> dict[str, dict]:
+    """Dimensions where two judge MODELS do not overlap at all on one artifact.
+
+    Reported only when the models' score ranges are DISJOINT. An overlap is two
+    models that agree as far as this can tell, and calling that a split would let
     the tag say something the numbers do not -- which is the suppression-key
     failure one level down.
+
+    KEYED ON THE FULL MODEL ID (`judge_model_key`), not on the family word.
+    `by_tier` keeps its name because 49 sealed cards and two prior epics' prose
+    read it, and its keys are now model ids: `family` beside it says which label
+    each id used to be filed under, so a reader can still see the tier claim and
+    can no longer make it without naming the program that produced it.
     """
     out: dict[str, dict] = {}
     for dim in DIMS:
         pairs = _scores(group, dim)
         by_tier: dict[str, list[int]] = {}
+        family: dict[str, str] = {}
         for card, score in pairs:
-            by_tier.setdefault(judge_tier(card.get("judge")), []).append(score)
-        by_tier.pop(TIER_UNKNOWN, None)
+            judge = card.get("judge") or {}
+            if judge_tier(judge) == TIER_UNKNOWN:
+                continue
+            key = judge_model_key(judge)
+            by_tier.setdefault(key, []).append(score)
+            family[key] = judge_tier(judge)
+        by_tier.pop(MODEL_UNKNOWN, None)
         if len(by_tier) < 2:
             continue
         ordered = sorted(by_tier.items(), key=lambda kv: (min(kv[1]), max(kv[1])))
@@ -1341,6 +1406,8 @@ def tier_split_of(group: dict) -> dict[str, dict]:
         lo, hi = ordered[0], ordered[-1]
         out[dim] = {
             "by_tier": {t: sorted(v) for t, v in by_tier.items()},
+            "family": {k: family[k] for k in by_tier},
+            "keyed_on": "model_id",
             "means": means,
             "points": round(means[hi[0]] - means[lo[0]], 2),
             "gap": min(hi[1]) - max(lo[1]),
@@ -1397,9 +1464,10 @@ def cmd_contested(argv: list[str]) -> int:
                 print(f"             UNRECORDED: no `[[contested]]` entry in "
                       f"{LOG_NAME} says what was done about it.")
         for dim, info in r["tier_split"].items():
-            by = "; ".join(f"{t} {v}" for t, v in sorted(info["by_tier"].items()))
+            by = "; ".join(f"{t} [{info['family'].get(t, '?')}] {v}"
+                           for t, v in sorted(info["by_tier"].items()))
             print(f"  TIER-SPLIT {dim} {by} -- disjoint, {info['higher']} higher by "
-                  f"{info['points']} point(s)")
+                  f"{info['points']} point(s), keyed on the FULL MODEL ID")
     if not report:
         print("\n  nothing contested and no tier split.")
     print(f"\n{ncon} contested dimension(s) over {len(groups)} judge group(s), "
@@ -1513,7 +1581,14 @@ def cmd_index(argv: list[str]) -> int:
     out.append("cannot manufacture one or erase one; where the two differ, the difference")
     out.append("is printed below the table.")
     out.append("")
-    header = ("| example | arm | judge | tier | "
+    out.append("**The judge column is the FULL MODEL ID, not a tier word.** `RM-04`")
+    out.append("measured four judge models wearing two labels and no two rounds of that")
+    out.append("epic using the same pair, so a table keyed on `opus`/`sonnet` invites a")
+    out.append("reader to add two rounds that measured different programs. The family")
+    out.append("word is still derived and still policed against a declared `tier`; what")
+    out.append("changed is that it is no longer what a printed comparison is keyed on.")
+    out.append("")
+    header = ("| example | arm | judge | model | "
               + " | ".join(f"D{i+1} {NAMES['D' + str(i + 1)]}" for i in range(5))
               + " | contested |")
     out.append(header)
@@ -1525,7 +1600,7 @@ def cmd_index(argv: list[str]) -> int:
             judge = card.get("judge") or {}
             con = computed.get(id(card), {})
             row = [example, str(card.get("arm") or "—"),
-                   f"pass {judge.get('pass')}", judge_tier(judge)]
+                   f"pass {judge.get('pass')}", judge_model_key(judge)]
             # A version 4 card carries no D1, D4 or D5. `—` is the honest cell:
             # the question was asked and answered in `notes`, and there is no
             # number to put here. It is NOT a missing measurement.

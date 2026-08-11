@@ -10556,6 +10556,371 @@ findings:
       about portability: a stranger can bump this card's VERSION without editing
       our source, and cannot yet change what it SCORES.
     disposition: open
+
+  - id: CL-03-DF-01
+    found_by: "CL-03 (sweeping every judge's prose across the sealed record, four blind readers, one slice each)"
+    found_at_commit: "10cf11a"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/", "specs/desired_program_model/deferred_findings.yaml"]
+    summary: >-
+      THE JUDGES HAVE BEEN FINDING THE SAME DEFECTS OVER AND OVER FOR SEVEN
+      EPICS AND THE RECORD HAS CONSUMED APPROXIMATELY ONE OF THEM. RM-05-DF-05
+      named the `FileJournal` case and wrote a rule -- sweep your own judges'
+      notes and FILE what they found. CL-03 is the first time that sweep has been
+      run, and it was run over the WHOLE record rather than one round: 83 cards,
+      391 dimension rationales, 389 `refuses_to_claim` fields, 52
+      `judging_practice.what_was_run` entries, 800,181 characters of judge prose,
+      read in full by four independent agents given no hypothesis.
+
+      THE HEADLINE IS NOT ANY SINGLE DEFECT. It is the multiplicity: THE SAME
+      DEFECTS WERE REDISCOVERED INDEPENDENTLY, BY DIFFERENT JUDGES, IN DIFFERENT
+      EPICS, UNDER DIFFERENT CARD VERSIONS, UP TO SIX TIMES EACH. A positive
+      control that is `green: false` with `deciding: []` while its columns are
+      read as measurements -- SIX passes. `corpus-port-swap:fake` silently
+      re-running the REAL implementation when no second one is shipped -- FIVE.
+      A D3 ladder with no rung for the subject being scored -- FIVE. A 400-step
+      "independent model" sweep that accepts about 5 of 400 commands with its own
+      anti-vacuity guard passing on that run -- FOUR independent instrumentations
+      producing identical numbers. The shared 28-case behavioural contract, which
+      FEATURE.md calls the floor of done, green on refusal-precedence, id-reuse
+      and ordering faults -- EVERY CARD OF AN ENTIRE EPIC, both judge models.
+
+      A DEFECT FOUND SIX TIMES AND FILED ZERO TIMES IS NOT A DETECTION PROBLEM.
+      The channel works; nothing downstream consumes it. That is the same shape
+      as the finding CL-03 carried through the loop, one level up.
+    reproduction: >-
+      `specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md`
+      is the register: every class, the card ids that carry it, and the judges'
+      own words. Regenerate the corpus with a walk over
+      `specs/results/scorecards/**/scorecard.json` collecting `dimensions.*.rationale`,
+      `dimensions.*.refuses_to_claim`, `notes`, `judging_practice.what_was_run`
+      and `verdict`. Then
+      `grep -ic 'FileJournal\|corpus-port-swap\|M07' specs/desired_program_model/deferred_findings.yaml`
+      against the counts in the register.
+    evidence:
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md"
+      - "specs/results/scorecards/portable-substrate/RM-05/RESULT.md -- section 4, and RM-05-DF-05"
+      - "specs/results/scorecards/reading-discipline/ab_quota_ledger/** -- all 24 cards on the shared-suite class"
+    why_out_of_scope: >-
+      CL-03's assignment is to sweep and to close the loop ONCE. The register is
+      the sweep; the four entries below are the classes this round is willing to
+      stand behind on its own evidence. Filing 60 more findings from prose CL-03
+      did not reproduce would be manufacturing a numerator -- RD-03-DF-13 and
+      RM-05 section 7 both say the filed/reported distinction is the whole
+      measurement -- and the deferment budget is 5. NOTHING IN THE REGISTER IS
+      VERIFIED BY THIS TICKET except the four items marked [RUN].
+    suggested_fix: >-
+      Fund the carrying, not the finding. A round that dispatches judges should
+      budget a reader whose only job is to harvest their prose, exactly as RM-06
+      was funded to READ the suite's output and produced four findings after
+      seven rounds of zero. The mechanism is not a check: it is a person or an
+      agent paid to do the step nobody was paid to do.
+    blast_radius: >-
+      Every channel-ratio figure in the record. `blind judges: 1 filed` in RM-05
+      section 8 is a count of the FILING and has been read as a count of the
+      FINDING. It binds CL-04's channel table directly.
+    disposition: open
+
+  - id: CL-03-DF-02
+    found_by: "CL-03's own blind judges (v4 pass 1, v5 pass 1 and pass 2), unprompted"
+    found_at_commit: "10cf11a"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md"]
+    summary: >-
+      (a) D3's ANCHOR 4 IS UNSATISFIABLE BY ANY SUITE THAT ACTUALLY ASSERTS THE
+      PROPERTY IT IS ABOUT, AND THEREFORE REWARDS BLINDNESS TO IT. The anchor
+      reads "3, and a driven port is exercised by a real adapter and a fake, WITH
+      THE SAME CASES PASSING AGAINST BOTH." A case that asserts the real adapter
+      wrote a file MUST FAIL against the fake -- that is what makes the fake a
+      fake. So the anchor's own text excludes exactly the property that
+      distinguishes a real adapter from a fake, and a fixture scores 4 BECAUSE it
+      does not test durability. CL-03's version 4 pass 1 judge found the
+      durability hole, nearly deducted, and refused: "I rejected the deduction
+      because the finding is worse than a deduction: rung 4 is unsatisfiable by
+      any suite that does assert durability, since such a case must fail the fake.
+      The anchor structurally rewards blindness to the property that makes the
+      real adapter real."
+
+      CL-03's card iteration puts this in the CAVEAT and deliberately does not
+      touch the anchor: an anchor is permanent under the change rule and 83
+      sealed cards are read against it. The caveat tells a judge what the rung
+      does not prove. IT DOES NOT MAKE THE RUNG SATISFIABLE.
+
+      (b) D2's LADDER GRADES TWO DIFFERENT THINGS ON ONE AXIS, and it produced
+      this round's only contested spread. Rungs 0-1 grade whether a MEASUREMENT
+      happened; rungs 2-3 grade the DESIGN. An artifact that ships no figures
+      cannot occupy rung 1 at all, so falling short of rung 2 drops it into the
+      same cell as "measured and ignored". Two judges, one model, one artifact,
+      one card version, wrote the SAME defect -- `_available` stored and
+      hand-maintained across three write sites when R1 determines it -- both
+      derived it away in scratch and got 28/28 through both wirings, and scored
+      it 2 and 0. They do not disagree about the code.
+    reproduction: >-
+      (a) Write a case asserting the ledger file on disk contains
+      "COMMIT acme 3 3" and run it through both composition points of
+      `examples/validation/ab/reference_ports`: it passes under
+      `QUOTA_LEDGER_IMPL=quota_ledger` and fails under `quota_ledger_fake`, so
+      the suite that would catch the hole cannot satisfy anchor 4's "same cases
+      passing against both".
+      (b) `python3 examples/validation/scorecards/score_tools.py contested --root specs/results/scorecards`
+      -> `CONTESTED D2 spread 2 -- claude-opus-5[1m]/pass 1 = 2, claude-opus-5[1m]/pass 2 = 0`
+      on `close-the-loop-cl03-v5/toolchain_removal/CL`, with both rationales
+      naming the same defect.
+    evidence:
+      - "specs/results/scorecards/close-the-loop-cl03-v4/toolchain_removal/20260811-cl03v4-CL-p1/scorecard.md -- Disclosures"
+      - "specs/results/scorecards/close-the-loop-cl03-v5/toolchain_removal/20260811-cl03v5-CL-p2/scorecard.md -- Disclosures"
+      - "specs/results/scorecards/INSTRUMENT-LOG.toml -- [[contested]] cl03-v5-d2-spread-2"
+      - "references/eval_scorecard.md -- D3 anchor 4, D2 anchors 0-3"
+    why_out_of_scope: >-
+      An anchor change is not a caveat change. It moves `anchors_digest`, makes
+      every one of 83 sealed cards incomparable across the bar, and CL-03's
+      measurement is a controlled comparison whose whole validity rests on the
+      anchors holding still. Changing the rung being measured, inside the ticket
+      measuring it, is the move `measurement_rule` forbids. It is also a design
+      question -- what a top rung on a port dimension should ask for when the
+      distinguishing property is by definition not shared -- and it belongs to a
+      round that can score the alternative.
+    suggested_fix: >-
+      For (a): the rung wants "the same cases passing against both" AND "at least
+      one case that passes against the real adapter and FAILS against the fake,
+      demonstrating the fake is a fake". That is two populations, not one, and it
+      is a real anchor change with a version bump behind it. Do NOT fix it by
+      widening the caveat further -- a caveat that has to carry a rung's meaning
+      is a rung in the wrong place. For (b): split D2 into a recorded note about
+      whether complexity was measured and a scored rung about the design, or
+      state that an unmeasured artifact enters at rung 2.
+    blast_radius: >-
+      Every `D3 = 4` in the record -- 24 cards, 22 of them on `ab_quota_ledger` --
+      was awarded under a rung that cannot ask for the thing it is about. It does
+      not make those cards wrong; it makes the number mean less than it reads.
+      Binds GOAL-loop-closes-once's successor and any re-add of architecture.
+    disposition: open
+
+  - id: CL-03-DF-03
+    found_by: "CL-03's own blind judges, three of four independently, on the shipped fixture"
+    found_at_commit: "10cf11a"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/reference_ports/", "examples/validation/ab/tests/test_behavior.py"]
+    summary: >-
+      THREE LIVE, REACHABLE DEFECTS IN THE FIXTURE EVERY `D3 = 4` RESTS ON, FOUND
+      BY THIS ROUND'S OWN JUDGES, FILED AND NOT FIXED.
+
+      (1) `outstanding_ids()` IS LEXICOGRAPHIC AND CONTRADICTS THE FEATURE.
+      `reference_ports/domain.py:122` returns `sorted(self._outstanding)`, so at
+      eleven live reservations it returns `['r1','r10','r11','r2', ...]` against
+      `FEATURE.md:29`'s "ascending". THREE of the four judges found it
+      independently, and none of them could reach it through the suite: the
+      shared cases never hold more than three live reservations, so a seeded
+      REVERSAL of the same line also passes 28/28 through both wirings. It is a
+      domain-side blind region, and the second composition point does nothing
+      about it -- the port is not where all the unreached code is.
+
+      (2) THE TWO ADAPTERS ARE NOT INTERCHANGEABLE ON A LEGAL INPUT. A tenant
+      name containing a newline makes `FileJournal` report TWO ledger lines (one
+      forged) where `InMemoryJournal` reports one. "The same cases pass against
+      both" therefore speaks only for the region in which the two agree, and the
+      region is not stated anywhere. The same divergence was found in
+      `hexagonal-prompting-rerun/...-Q-p2` a whole epic earlier, on the empty
+      string and on an embedded newline, and filed nowhere.
+
+      (3) THE FAKE COMPOSITION POINT IS REPOINTABLE AT THE REAL ADAPTER WITH
+      NOTHING OBJECTING. Editing `quota_ledger_fake.py` to construct
+      `FileJournal` leaves 28 cases passing while calling themselves the fake
+      wiring. The four-line remedy `README.md` calls the whole point of the tree
+      is defeatable by a one-line edit and no case notices -- which is
+      `corpus-port-swap:fake` re-running the real implementation (five judges,
+      three epics) reproduced inside the reference tree itself.
+    reproduction: >-
+      (1) In a scratch copy: `QuotaLedger({'acme': 100}, p)` then eleven
+      `reserve('acme', 1)`; `outstanding_ids()` returns `r1, r10, r11, r2, ...`.
+      Seed `sorted(..., reverse=True)` and run
+      `QUOTA_LEDGER_DIR=<copy>/reference_ports QUOTA_LEDGER_IMPL=quota_ledger uv run --with pytest python -m pytest examples/validation/ab/tests/test_behavior.py -q`
+      -> 28 passed; same under `quota_ledger_fake`.
+      (2) `commit` a reservation for a tenant whose name contains `\n` and
+      compare `ledger_lines()` under the two wirings.
+      (3) Replace `InMemoryJournal()` with `FileJournal(ledger_path)` in
+      `quota_ledger_fake.py:38` in a scratch copy -> 28 passed under
+      `QUOTA_LEDGER_IMPL=quota_ledger_fake`.
+    evidence:
+      - "specs/results/scorecards/close-the-loop-cl03-v4/toolchain_removal/20260811-cl03v4-CL-p1/scorecard.md"
+      - "specs/results/scorecards/close-the-loop-cl03-v4/toolchain_removal/20260811-cl03v4-CL-p2/scorecard.md"
+      - "specs/results/scorecards/close-the-loop-cl03-v5/toolchain_removal/20260811-cl03v5-CL-p2/scorecard.md"
+      - "examples/validation/ab/reference_ports/domain.py:122, FEATURE.md:29"
+    why_out_of_scope: >-
+      CL-03's whole measurement is a controlled comparison on this artifact's
+      bytes: the version 4 arm and the version 5 arm score THE SAME TREE, and
+      repairing the tree between them -- or after them, in the same commit --
+      destroys the subject the delta is measured on. The ticket says it in as
+      many words: filing a regression and carrying it into a card iteration are
+      different acts from repairing the code.
+    suggested_fix: >-
+      For (1) the suite needs a case with more than nine live reservations, and
+      the fix is `sorted(..., key=lambda i: int(i[1:]))` or ids that sort. For (2)
+      state the port's contract over the record's alphabet, or reject a rendered
+      line containing a newline in the domain. For (3) is NOT a fixture fix: it is
+      the general shape of `corpus-port-swap:fake`, and the remedy is a case that
+      can tell the two wirings apart -- which is exactly what CL-03-DF-02(a) says
+      anchor 4 forbids. DO NOT REPAIR ANY OF THESE IN THE SAME COMMIT AS A
+      RE-SCORE OF THIS TREE.
+    blast_radius: >-
+      (1) and (2) are inside the tree 22 `D3 = 4` cards cite. (3) means the
+      fixture's own instrument claim -- that a fault in `journal_file.py` "is
+      reachable by anything that runs the shared suite through the real wiring"
+      (`journal_file.py:7-9`) -- is FALSE, and a judge falsified it this round.
+    disposition: open
+
+  - id: CL-03-DF-04
+    found_by: "CL-03 (declaring the era boundary, and then bumping the card a stranger's way)"
+    found_at_commit: "10cf11a"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/INSTRUMENT-LOG.toml", "tests/test_score_tools.py"]
+    summary: >-
+      (a) `R-H1` REPORTED A CLEAN FOR THREE EPICS BECAUSE THE BOUNDARY IT POLICES
+      HAD NEVER BEEN DECLARED. `audit` computes the instrument axis from
+      `[[change]]` rows and from nothing else, and the version-4 bump -- the first
+      in the card's history whose ANCHORS DIGEST MOVED -- was never declared
+      (`RM-05-DF-03`). CL-03 declares it (`RM-03-scorecard-v4`, `1e6f691`) and its
+      own (`CL-03-scorecard-v5`, `a73186d`). MEASURED CONSEQUENCE: `audit` goes
+      from 0 VIOLATIONS TO 10, and every one of the ten is `SUPERSEDED-UNMARKED`
+      -- a claim still marked `current`, measured before a bar that existed and
+      was undeclared, that nothing re-affirmed. Four different rounds' claims,
+      including two goal decisions.
+
+      (b) A DEMONSTRATED FAILING INPUT THAT NAMES A VERSION BY NUMBER EXPIRES THE
+      MOMENT THE CARD LEGITIMATELY REACHES THAT NUMBER. CL-01 shipped R1 evidence
+      keyed on the literal 5 -- "our own card declares no version 5 and must not
+      accept one" -- plus `row[4]` and the D3 caveat quoted verbatim. A CORRECT
+      BUMP TURNED FOUR OF ITS TESTS RED. Repaired here by deriving all four from
+      what the file declares (`declared_version`, `bumped_to_next`,
+      `caveat_in_file`), which is strictly stronger than the literals; recorded
+      because the class recurs and the next card iteration will meet it again.
+    reproduction: >-
+      (a) `git stash` the two new `[[change]]` rows and run
+      `python3 examples/validation/scorecards/score_tools.py audit` -> `0 violation(s)`;
+      restore them -> `10 violation(s)`, all `SUPERSEDED-UNMARKED`.
+      (b) At `10cf11a`, change `**Scorecard version 4.**` to 5 and add the row --
+      the two edits `Changing this card` asks for -- then
+      `uv run --with pytest python -m pytest tests/test_score_tools.py -q`:
+      `test_a_version_the_card_declares_needs_no_edit_to_our_source`,
+      `test_a_version_the_card_does_not_declare_is_refused_not_stamped`,
+      `test_a_caveat_rewritten_in_an_adopters_words_still_reaches_the_judge` and
+      `test_the_seal_covers_the_bytes_a_judge_reads_not_only_the_anchors` all fail.
+    evidence:
+      - "specs/results/scorecards/INSTRUMENT-LOG.toml -- [[change]] RM-03-scorecard-v4, CL-03-scorecard-v5"
+      - "tests/test_score_tools.py -- declared_version, bumped_to_next, caveat_in_file"
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/RESULT.md -- sections 6 and 7"
+    why_out_of_scope: >-
+      The ten claims belong to four other rounds. Re-affirming, superseding or
+      parking somebody else's number during a measurement is the move
+      `measurement_rule` forbids, and three of the ten are goal decisions whose
+      re-affirmation is a judgement CL-03 is not the right ticket to make. The
+      violations are LEFT RED on purpose: the rule finally firing is the result.
+    suggested_fix: >-
+      Walk the ten `[[claim]]` rows and give each one a disposition -- re-affirm
+      with a fresh measurement, mark `superseded` with `superseded_by`, or move
+      to `under_review` with a filed id. Separately, make `audit` refuse a card
+      version whose bump has no `[[change]]` row, so the next undeclared boundary
+      is a failure rather than three epics of silence.
+    blast_radius: >-
+      Every comparison in the record that crosses `1e6f691`. Concretely: any D2
+      number measured before it against one after it, and any D1, D4 or D5 number
+      read forward past it at all -- those dimensions stop being scored there.
+      D3 alone is byte-identical either side, which is a property of the boundary
+      and NOT evidence that D3 is robust.
+    disposition: open
+
+  - id: CL-03-DF-05
+    found_by: "CL-03 (keying the tier on the full model id), corroborating portable-substrate-rm04-GG/...-p1"
+    found_at_commit: "10cf11a"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/architecture_tags.py", "examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      THE TIER CONFOUND IS ACROSS ROUNDS, NOT WITHIN A GROUP -- AND A SECOND,
+      DIVERGENT TIER DERIVATION IS STILL SHIPPED AND IS NOW WIDER APART.
+
+      `RM-04` found four judge models under two labels. CL-03 keys
+      `tier_split_of` and the `index` comparison column on the FULL MODEL ID, with
+      a demonstrated failing input in `tests/test_score_tools.py`: two `opus`
+      models at 1,1 against 3,3 is a two-point disjoint separation the family key
+      structurally cannot report. THE MEASURED RESULT ON THE REAL RECORD IS THAT
+      IT CHANGES NO SPLIT: 35 judge groups, ZERO family collisions, 18 split
+      dimensions before and 18 after. Every group is exactly one `opus` model and
+      one `sonnet` model. So nothing was mislabelled WITHIN a group; what was
+      wrong is that a reader could add `reading-discipline`'s `opus`
+      (`claude-opus-5[1m]`) to `RM-04`'s `opus` (`claude-opus-4`) and call it one
+      program -- and the record shows why that matters: on D3 `claude-opus-4` is
+      LOWER than `claude-sonnet-4-5` on subject GG (2 against 4) and HIGHER on JJ
+      and LL (1 against 0). The DIRECTION of the tier effect is not constant
+      across the models wearing the label.
+
+      AND THE DUPLICATION IS STILL THERE. A blind judge found it a whole epic ago
+      and it was never filed: `architecture_tags.py:274` derives a SECOND tier
+      inline -- two tiers and `?` otherwise, with `tiers_measured` hardcoded to
+      `(opus, sonnet)` -- in a module `score_tools.py` already imports, and the
+      two copies had ALREADY DIVERGED (a `haiku` judge is a tier to one and a `?`
+      to the other). Keying one of them on the model id makes the divergence
+      WIDER, and saying so is part of shipping the change.
+    reproduction: >-
+      `python3 examples/validation/scorecards/score_tools.py contested --root specs/results/scorecards`
+      -> every `TIER-SPLIT` row now names the model id and its family, and the row
+      count is unchanged. Then `grep -n 'opus\|sonnet' examples/validation/scorecards/architecture_tags.py`
+      -> line 274 and the `tiers_measured` loop, neither of which calls
+      `score_tools.judge_tier` or `score_tools.judge_model_key`.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py -- judge_model_key, family_collisions, tier_split_of"
+      - "examples/validation/scorecards/architecture_tags.py:65, :274"
+      - "tests/test_score_tools.py -- test_two_models_under_one_tier_label_are_a_split_the_family_key_cannot_see, test_the_id_key_neither_creates_nor_destroys_a_split_on_the_real_record"
+      - "specs/results/scorecards/portable-substrate-rm04-GG/eval_toolchain/20260810-rm04-GG-p1/scorecard.json"
+    why_out_of_scope: >-
+      `architecture_tags.py` computes the architecture tag CL-03's own comparison
+      is held constant on. Changing how it derives a tier, in the ticket that uses
+      its output as a control, is a code change during a measurement. It is also
+      one instance of a class the sweep found repeatedly -- `DIMS`,
+      `ensure_import_roots`, the rejection vocabulary, the removal head sha -- and
+      deduplicating one pair while the class stands is the smaller half of the job.
+    suggested_fix: >-
+      Delete `architecture_tags.py`'s inline derivation and import
+      `score_tools.judge_tier` / `judge_model_key`; the import already exists in
+      the other direction and the cycle is not forced. Then key
+      `tiers_measured` on the models actually present rather than on the literal
+      pair. Report the whole duplication class together.
+    blast_radius: >-
+      Bounded. No published split changes value or direction, and every existing
+      tier claim keeps its number -- what changes is that the number now names
+      the program. The `architecture_tags` copy is what any tag-side tier claim
+      is computed from, and it is a different function from the one `contested`
+      prints.
+    disposition: open
   - id: CL-02-DF-01
     found_by: "CL-02"
     found_at_commit: "10cf11a"
@@ -10709,4 +11074,94 @@ findings:
     blast_radius: >-
       Any concurrently dispatched pair. This epic runs CL-02 and CL-03 in the same
       wave and CL-04 reads both their reports.
+    disposition: open
+
+  - id: CL-03-DF-06
+    found_by: "CL-03 (by publishing four honest cards and watching the derived table change)"
+    found_at_commit: "c39b1e5"
+    schedule_revision: 1
+    severity: blocking
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/architecture_tags.py", "specs/results/scorecards/"]
+    summary: >-
+      FOUR CARDS WERE ENOUGH TO GIVE THE ARCHITECTURE TAG REFUSAL AUTHORITY ON A
+      DIMENSION NOBODY CLAIMS IT MOVES, AND THE SEPARATION IS A CONFOUND THE
+      DERIVED TABLE CANNOT SEE. ESCALATED: the deferment budget is 5 and this is
+      the sixth, because it changes the behaviour of a SHIPPED instrument and it
+      binds what CL-04 may conclude.
+
+      WHAT HAPPENED. CL-03 scored `examples/validation/ab/reference_ports` four
+      times -- the subject `toolchain_fixture`, declared `ports-and-adapters` in
+      `subjects.toml` before any judge was dispatched. Its D2 came out
+      `[0, 2, 2, 2]`. The same example's `toolchain` subject, declared
+      `effectful`, carries `[3, 3, 4]` from SM-05. Disjoint. So `authority()`,
+      which is re-derived from the cards on every read, now carries a SECOND row
+      -- D2 -- and `compare --example toolchain_removal` returns INCOMPARABLE on
+      D2 where it returned comparable through three tickets.
+
+      AND THE SEPARATION IS NOT ABOUT ARCHITECTURE. D2's anchor 3 requires "a
+      simplification was made and its effect measured -- the before and after
+      figures are both recorded". The `toolchain` subject HAS a before/after;
+      a 173-line reference fixture has none and can never have one, so it is
+      capped at 2 BY THE LADDER rather than by its design. Both CL-03 judges said
+      so unprompted and then disagreed by two points about what to do with it,
+      which is this round's only contested dimension
+      (`[[contested]] cl03-v5-d2-spread-2`).
+
+      THE GENERAL SHAPE, which is why this is blocking rather than minor: THE
+      TABLE CANNOT DISTINGUISH AN EFFECT-BOUNDARY SEPARATION FROM A
+      "ONE-SUBJECT-HAD-A-BEFORE-AND-AFTER" SEPARATION, and any round that scores
+      a new subject can hand the tag authority over a dimension by accident. The
+      authority is derived, so it cannot be declared away; and a contested
+      dimension can create it, which is the tag saying something the numbers do
+      not -- the exact failure `tier_split_of` refuses one level down by
+      requiring disjointness AND reporting the population.
+    reproduction: >-
+      `python3 examples/validation/scorecards/architecture_tags.py` and read the
+      demonstration table: two rows where there was one. Or
+      `uv run --with pytest python -m pytest tests/test_architecture_tags.py -q`
+      at `c39b1e5^` with CL-03's four card directories removed, against the same
+      command with them present: `test_authority_is_keyed_on_dimension_and_value_pair`
+      goes from one key to two, and
+      `test_the_tag_cannot_refuse_a_comparison_on_a_dimension_it_did_not_move[D2]`
+      flips from COMPARABLE to INCOMPARABLE.
+    evidence:
+      - "specs/results/scorecards/close-the-loop-cl03-v4/toolchain_removal/**/scorecard.json -- D2 2, 2"
+      - "specs/results/scorecards/close-the-loop-cl03-v5/toolchain_removal/**/scorecard.json -- D2 2, 0"
+      - "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/** -- D2 3, 3, 4"
+      - "tests/test_architecture_tags.py::test_the_new_d2_row_is_a_confound_and_the_table_cannot_tell"
+      - "specs/results/scorecards/INSTRUMENT-LOG.toml -- [[contested]] cl03-v5-d2-spread-2"
+    why_out_of_scope: >-
+      Every available repair is a code change to the instrument CL-03's own
+      comparison is held constant on, made inside the ticket that uses its output
+      as a control. Suppressing the four cards would hide the finding; deleting
+      the D2 row by hand would make the table a declaration, which is the
+      suppression-key failure this file already carries a finding about; and
+      requiring two subjects a side, or excluding a contested dimension from the
+      table, are real designs that need a round able to score the alternative.
+      What CL-03 does instead is what RM-06 did when RD-03's judges retired the
+      `["opus"]` bound: REWRITE THE CLAIM RATHER THAN RESTORE THE NUMBER. The
+      two shipped tests now assert the new row AND assert why it means nothing
+      about architecture, which is strictly more than they asserted before.
+    suggested_fix: >-
+      Decide whether a demonstration row may be derived from a dimension that is
+      CONTESTED in the group producing it -- the cheapest honest rule, and it
+      kills this row on its own. Then consider requiring the separation to hold
+      across at least two subjects a side, since one subject a side cannot
+      distinguish the boundary from anything else that differs between the two
+      subjects. Do NOT fix it by narrowing what counts as a subject: RD-05
+      declared `toolchain_fixture` before it was ever scored, and a rule that
+      punishes a round for scoring a declared subject is a rule against
+      measuring.
+    blast_radius: >-
+      Every `compare --example toolchain_removal` on D2 from `c39b1e5` forward
+      returns INCOMPARABLE. Nothing already published changes value. It binds
+      CL-04: any claim that the architecture tag "refuses only what it
+      demonstrated" is now true of a table with a demonstrated row that is a
+      measurement artefact, and CL-04 should say which of the two rows it is
+      relying on.
     disposition: open

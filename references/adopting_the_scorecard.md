@@ -82,8 +82,8 @@ prints the value it wanted:
 
 ```
 $ python3 $T check results/round-1
-INVALID references/eval_scorecard.md: version 5 declares no served digest. …
-        Add `sha256:…` to the row for 5.
+INVALID references/eval_scorecard.md: version 6 declares no served digest. …
+        Add `sha256:…` to the row for 6.
 ```
 
 **A version your card does not declare is refused, never stamped.** Asking for
@@ -95,7 +95,18 @@ emitting a card with a neighbouring number on it. And once the card declares it,
 no tool can do for you, and it is the only thing that makes a number from before
 the bump comparable to one from after. Freeze a copy of the card file before you
 edit it and point the old arm at it with `--rubric <frozen copy> --card-version
-N`; `examples/validation/scorecards/rubric_v3_frozen.md` is this project's own.
+N`; `examples/validation/scorecards/rubric_v3_frozen.md` and `rubric_v4_frozen.md`
+are this project's own, and `CL-03` is the round that used the second one:
+version 5 is a **caveat-only** bump, so its anchors digest is byte-identical to
+version 4's and its served digest is not, and the re-score moved `D3` by a point
+on the same artifact.
+
+> **A WARNING THIS PROJECT PAID FOR.** Write your own tests against **what the
+> card file declares**, never against a version number you typed. `CL-01`
+> shipped four tests whose demonstrated failing input was the literal `5`
+> — *"our card declares no version 5"* — and the first legitimate bump to 5
+> turned all four red on a correct change. The same trap catches a test that
+> quotes a caveat verbatim or indexes `versions[4]`. `CL-03-DF-04`.
 
 ## 5. What will not travel
 

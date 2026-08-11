@@ -28,3 +28,36 @@ THE ANCHORS DID NOT MOVE. `anchors_digest` is sha256:eeccf4576bc6fd85 at version
 | `20260807-sm05rm-K-p2` | subtract-to-measure-sm05 | K | 2 | 3 | 3 | 3 | 2 | 2 | 4 | `f49a1c9` | — |
 | `20260807-sm05rm-K-p3` | subtract-to-measure-sm05 | K | 3 | 3 | 3 | 4 | 4 | 3 | 4 | `f49a1c9` | — |
 | `20260807-sm05rm-K-p4` | subtract-to-measure-sm05 | K | 4 | 3 | 2 | 3 | 3 | 2 | 4 | `f49a1c9` | — |
+
+### ⟥ INSTRUMENT CHANGE — `RM-03-scorecard-v4` (repair) @ `1e6f691` 2026-08-10
+
+THE ANCHORS MOVED, FOR THE FIRST TIME IN THE CARD'S HISTORY. Versions 1, 2 and 3 all carry `anchors_digest` sha256:eeccf4576bc6fd85 -- three version bumps and not one of them touched the bar. Version 4 carries sha256:f73b4d82638f09df. D1, D4 and D5 stop being scored and become recorded notes; D2's anchor 4 is deleted, so D2 is a 0-3 scale from here; D2's preamble stops requiring a measured descriptor to be read first. DECLARED BY CL-03, THREE EPICS AFTER IT HAPPENED, AND THAT IS THE POINT OF THE ROW. `R-H1` says two rows are comparable only when the instrument axis is equal, `audit` computes that axis from `[[change]]` rows, and the one bump that actually moved the bar was the one nobody declared -- so the rule reported 0 problems over a record it could not see the boundary in. WHAT IS NOT COMPARABLE ACROSS THIS BAR, concretely: any D2 score. A 3 under version 3 is the third rung of a four-rung ladder whose top gated on `D4 >= 3`; a 3 under version 4 is the TOP of a three-rung ladder with no gate. D1, D4 and D5 do not exist as numbers after it at all. D3 alone is byte-identical either side, which is why it is the only dimension whose replication claim survives the boundary -- and that fact is a property of this row, not of D3's robustness.
+
+**Verdicts moved: ZERO** over no sealed cell was re-decided. RM-03's own re-score round scored one prior artifact under version 3 and version 4 with fresh judges, which is a new measurement rather than a moved one. What this row records is that the BAR MOVED, which no prior row in this file has ever had to say.. The instrument changed and no number did — read what the numbers MEAN across this bar, not whether they moved.
+
+**Numbers this change is recorded as invalidating:** any comparison of a D2 number measured before 1e6f691 with one measured after it; any D1, D4 or D5 number read forward past 1e6f691 -- those dimensions stop being scored
+
+**ROWS ABOVE ARE NOT COMPARABLE TO ROWS BELOW.** Name this change or do not compare.
+
+## Era 2 — after `RM-03-scorecard-v4`
+
+_(no rows measured in this era)_
+
+### ⟥ INSTRUMENT CHANGE — `CL-03-scorecard-v5` (repair) @ `a73186d` 2026-08-11
+
+THE ANCHORS DID NOT MOVE AND THE SERVED BYTES DID -- the first bump in this card's history for which that is true, and the exact class of change that was INVISIBLE before CL-01 put a second seal on the served surface. `anchors_digest` is sha256:f73b4d82638f09df at versions 4 and 5 alike; `served_digest` goes sha256:a213a36770ccab09 -> sha256:2d7d4a0506d9b259. WHAT CHANGED, AND WHY IT IS A CAVEAT AND NOT AN ANCHOR. D3's caveat now says that anchor 4 -- "a driven port is exercised by a real adapter AND a fake, with the same cases passing against both" -- is satisfied by a real adapter that does nothing real. `RM-05-DF-05`: in `examples/validation/ab/reference_ports` the only observer of the durable record is `ledger_lines()`, which reads it back through the adapter that wrote it, so a `FileJournal` that never touches the filesystem passes every case through both wirings. TWENTY-TWO `D3 = 4` CARDS REST ON THAT PAIR. The anchor is untouched on purpose: an anchor is permanent under the change rule, and rewording a rung would make 83 sealed cards incomparable over a defect in one fixture. Rule 9 loses one sentence, which restated the served preamble's second sentence verbatim. THE SERVED SURFACE FELL: `serve | wc -c` 6,319 -> 6,281, rungs 9 -> 9. WHAT IS NOT COMPARABLE ACROSS THIS BAR: a D3 score, and only a D3 score. D2's served block is byte-identical either side. The bar for D3 is byte-identical too -- what a judge is told the bar DOES NOT PROVE is not.
+
+**Verdicts moved: ZERO** over no sealed cell was re-decided and none could be: CL-03 scored ONE artifact FOUR TIMES with fresh judges, twice under version 4 from a frozen rubric and twice under version 5, and the four cards are new measurements. Nothing already in this file was re-run.. The instrument changed and no number did — read what the numbers MEAN across this bar, not whether they moved.
+
+**Numbers this change is recorded as invalidating:** reading a version 4 D3 = 4 forward past a73186d as though the same thing was asked
+
+**ROWS ABOVE ARE NOT COMPARABLE TO ROWS BELOW.** Name this change or do not compare.
+
+## Era 3 — after `CL-03-scorecard-v5`
+
+| run | round | arm | pass | ver | D1 | D2 | D3 | D4 | D5 | commit | note |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `20260811-cl03v4-CL-p1` | close-the-loop-cl03-v4 | CL | 1 | 4 | ? | 2 | 4 | ? | ? | `a73186d` | — |
+| `20260811-cl03v4-CL-p2` | close-the-loop-cl03-v4 | CL | 2 | 4 | ? | 2 | 4 | ? | ? | `a73186d` | — |
+| `20260811-cl03v5-CL-p1` | close-the-loop-cl03-v5 | CL | 1 | 5 | ? | 2 | 3 | ? | ? | `a73186d` | — |
+| `20260811-cl03v5-CL-p2` | close-the-loop-cl03-v5 | CL | 2 | 5 | ? | 0 | 3 | ? | ? | `a73186d` | — |
