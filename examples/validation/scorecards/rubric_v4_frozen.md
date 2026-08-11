@@ -1,29 +1,9 @@
 # The Eval Scorecard
 
-**Scorecard version 5.** Every eval in this repository is scored on this card,
+**Scorecard version 4.** Every eval in this repository is scored on this card,
 by an agent judge, against artifacts. The card is the unit of comparison across
 epics: one epic's numbers mean something only next to another's, so the card is
 versioned and changing it is a deliberate, recorded act.
-
-**Version 5 is the first version whose SERVED DIGEST MOVES WHILE THE ANCHORS
-DIGEST DOES NOT.** No anchor is added, deleted or reworded, so the bar for every
-score is byte-identical to version 4's and `anchors_digest` says so. What moves
-is D3's caveat, which is the class of change that was **invisible** until CL-01
-put a second seal on the served bytes: before that seal, this edit would have
-reached every future judge with nothing in the record reporting it.
-
-It was made because a regression the judges themselves found had nowhere to
-land. `domain.LedgerJournal` in `examples/validation/ab/reference_ports`
-declares durability as its whole job, and the only observer of that record
-anywhere in the fixture reads it back **through the adapter that wrote it** — so
-a `FileJournal` that stops touching the filesystem passes every case through
-both wirings. D3's anchor 4 asks for *"a real adapter and a fake, with the same
-cases passing against both"*, and **a pair of fakes satisfies it word for word.**
-Twenty-two `D3 = 4` cards rest on that pair. The anchor is not changed: an anchor
-is permanent and a re-worded rung would make 83 sealed cards incomparable for a
-defect in one fixture. The caveat is where a judge is told what the rung does not
-prove. `RM-05-DF-05` is the finding; `CL-03` is the card iteration; the delta is
-measured, not asserted.
 
 **Version 4 is the first version whose ANCHORS DIGEST MOVES.** Versions 1, 2 and
 3 all carry `sha256:eeccf4576bc6fd85` — three version bumps and not one of them
@@ -186,11 +166,9 @@ can improve because an edge was deleted. A D2 of 3 requires the judge to say
 - **4** — 3, **and** a driven port is exercised by a real adapter *and* a fake,
   with the same cases passing against both.
 
-**Import topology is not modularity, and two fakes are not a pair.** Coupling
-survives every import check, so D3 of 3 or more needs evidence about what
-*calls* what at runtime, not what imports what. And anchor 4 holds when the real
-adapter does nothing real: if the only observer of the effect the port exists
-for is the adapter that wrote it, say so and take 3.
+**Import topology is not modularity.** Round 2 proved a codebase can pass every
+import check with its coupling entirely intact. A D3 of 3 or more requires
+evidence about what *calls* what at runtime, not what imports what.
 
 ## The recorded notes
 
@@ -246,9 +224,11 @@ both judges at D3 = 0 and 1.
    judge did is a variable in what a judge reports and a variable nothing
    records is a variable nobody can subtract.
 9. **A judge is served the card, never the rubric file.** *(New in version 3.)*
-   The scaffolded `scorecard.md` carries the rubric a judge needs. Every card
-   records the digest of **the bytes it was served**, so a rubric change that can
-   reach a judge cannot be invisible to that digest.
+   The scaffolded `scorecard.md` carries the rubric a judge needs. This file
+   carries reading rules and prior results about these dimensions as well, and a
+   judge who reads it is handed conclusions about the instrument they are the
+   instrument for. Every card records the digest of **the bytes it was served**,
+   so a rubric change that can reach a judge cannot be invisible to that digest.
 10. **Answer every recorded note.** *(New in version 4.)* N-D1, N-D4 and N-D5
     take no score and are required on every filled card. An empty note is not a
     legal card; *"I could not tell, and here is what I looked at"* is.
@@ -767,7 +747,6 @@ That is `FI-06-DF-11(a)`, open.
 | **2** | `sha256:eeccf4576bc6fd85` | — | `judging_practice` required on every filled card (rule 8); D4 = 4 gated on it; the instability caveat promoted to R-H5 with a check. **Anchors unchanged.** |
 | **3** | `sha256:eeccf4576bc6fd85` | — | the judge is served a generated card and never this file (rule 9); `served_digest` and `file_sha256` recorded per card; D5 anchor 4's two readings recorded in `anchor_reading`; `total` removed from the card and from every rendering. **Anchors unchanged.** |
 | **4** | `sha256:f73b4d82638f09df` | `sha256:a213a36770ccab09` | **THE ANCHORS MOVED, for the first time.** D1, D4 and D5 stop being scored and become recorded notes (rule 10); D2's anchor 4 is deleted, so D2 is a 0–3 scale; D2's preamble stops requiring a measured descriptor to be read first. Retired anchors below, byte-identical. |
-| **5** | `sha256:f73b4d82638f09df` | `sha256:2d7d4a0506d9b259` | **THE ANCHORS DID NOT MOVE AND THE SERVED BYTES DID** — the first row in this table for which that is true, and the class of change CL-01's second seal was built to catch. D3's caveat now says that anchor 4 is satisfied by a real adapter that does nothing real, because the fixture 22 `D3 = 4` cards rest on has exactly that hole (`RM-05-DF-05`). Rule 9 loses a sentence that restated the served preamble verbatim. No anchor added, deleted or reworded; the served surface FELL, 6,319 → 6,281 bytes, rungs 9 → 9. |
 
 ### Retired anchors, versions 1–3
 
