@@ -1,0 +1,363 @@
+version: 1
+name: portable-substrate-epic
+updated: null
+purpose: >-
+  REMOVE WHAT HAS BEEN MEASURED DEAD, THEN PROVE THE TWO DIMENSIONS THAT SURVIVE -- and use 'could someone else adopt this?' as the stopping rule for how much to cut. Remove first, then iterate: you cannot demonstrate a dimension works while carrying instruments already known not to.
+
+
+  Four interventions have been measured against a control and TWO SURVIVED. The prompt moves D3 (1 -> 4 replicated, length-matched arm C at 1/1). A revision pass moves D2 (two pairs cleared, byte-identical pair refused 4/4). Model-derived case generation does NOT find bugs hand-written tests miss (0 unique kills against 4 the other way, on new subjects). Static gates catch nothing (five epics, no caught bug). And the suite produced ONE finding in seven rounds as a finding channel -- it is a fine regression guard, which is a different job it keeps.
+
+
+  THE THING THAT MAKES THIS HARD: the instrument that prices removals CAN ONLY RETURN ZERO. A gap mutant can price a removal only if every detector that killed it is one the removal deletes -- 0 OF 9 over the sealed table -- and the re-runnability rule systematically excludes the faults that could go DIES->SURVIVES. Two epics of free removals were free BY CONSTRUCTION, and the epic that called itself the great simplification came out net +1677 lines. RM-01 fixes that BEFORE anything is cut.
+planning_rules:
+  remove_before_iterate_rule: >-
+    OWNER DIRECTION. The removal comes first. A dimension proven on a substrate still carrying three dead levers is a dimension proven under noise we already know about.
+  adoption_is_the_stopping_rule: >-
+    NEW. 'Simplify' has no natural end; 'could a project that did not build this adopt it?' does. AND IT MUST NOT BECOME A REASON TO ADD -- if the honest answer is that adoption requires LESS, that is the more useful finding.
+  pricing_must_be_able_to_fail: >-
+    If RM-03's removals all price at zero again, THAT IS A FINDING ABOUT RM-01 and must be reported as one -- not as three free cuts. An unpriced removal honestly labelled beats a zero that was entailed.
+  no_axis_tuned_to_a_known_answer: >-
+    The complexity descriptor could not see the only simplification ever measured: 19 of 21 axes byte-identical, one moving the WRONG WAY, while eight judges found it independently. Adding an axis tuned to that known answer is MF-020 in its purest form. If an axis is added it ships with a seeded case where it moves the wrong way.
+  no_new_gates_rule: >-
+    Five epics of static checking caught zero bugs. Nothing in this epic refuses anything about the code.
+  scope_carrying_rule: >-
+    R3. A claim carries its scope. `scope` has THREE known bounds -- name the one that applies to anything it reports.
+  measurement_rule: >-
+    File findings; fix nothing during a measurement. Never edit a target to match a result. Never re-run selectively until a number passes. If every prediction passes, report it as an ALARM. Do NOT report git archive figures as tree properties. Do NOT hand-roll a wait loop for a run you started. Verify your branch point against the SHA in your work order.
+status:
+  workflow: portable-substrate-epic
+  active_ticket: null
+  active_ticket_title: null
+  desired_module: TlaSpecDevCli
+  phase: planning
+epic:
+  id: portable-substrate
+  branch: epic/portable-substrate
+  default_branch: main
+  base_sha: 19c5c7b
+  base_note: Branched from main after reading-discipline merged.
+  schedule_revision: 1
+  review_mode: epic-owner-post-merge
+  notes: >-
+    Never merge to main and never run skill-manager sync without explicit owner say-so. Never invoke tla-spec-dev from PATH. THE PLAN MUST LOAD WITH BOTH LOADERS. Never kill a process by name alone.
+deferment_policy:
+  mode: batch
+  blocking: escalate
+  budget: 5
+  backlog: specs/desired_program_model/deferred_findings.yaml
+epic_goals:
+  - id: GOAL-removal-can-be-priced
+    kind: eval
+    statement: >-
+      A removal can be priced AT ALL -- the pricing instrument is capable of returning a non-zero answer.
+    metric: >-
+      Whether any removal prices non-zero, and whether the instrument reproduces the one known DIES->SURVIVES.
+    harness: RM-01's instrument, exercised by RM-03's removals, decided by RM-05
+    baseline:
+      value: >-
+        ENTAILED. 0 OF 9 gap mutants over the sealed before-table could have priced their removal: six had no kill at all, three were killed by detectors that outlived their cut, and one ticket deleted no detector so all six of its mutants were structurally incapable. The re-runnability rule EXCLUDES the faults that could go DIES->SURVIVES -- the one fault the machinery uniquely caught was declared not_seedable because it cannot be re-run after the cut. SM-04-GM-T1 is the ONLY removal ever measured to cost anything.
+      measured_at: 19c5c7b
+      evidence: specs/results/scorecards/reading-discipline/ -- RD-02
+    target: >-
+      The instrument reproduces SM-04-GM-T1's DIES->SURVIVES, and at least one historical removal is re-priced. NO TARGET ON THE PRICE -- a high price on a past removal is the informative outcome, and an instrument tuned until the number is comfortable has failed this goal.
+    evaluation_ticket: RM-05
+    evidence_root: specs/results/scorecards/portable-substrate/GOAL-removal-can-be-priced
+  - id: GOAL-dead-weight-gone
+    kind: quality
+    statement: >-
+      The three levers that failed against a control are gone, and the removal is priced per removal or honestly labelled unpriced.
+    metric: >-
+      Per removal: lines removed, lines added to prove it safe, the ratio. Never a total. Plus what an adopter must now understand, before and after.
+    harness: RM-03, re-measured by RM-05
+    baseline:
+      value: >-
+        ALL THREE STILL CARRIED. Generated-case bug-finding: 0 unique kills against 4 the other way, replicated on new subjects. Static gates: five epics, no caught bug. The suite as a finding channel: ONE finding in seven rounds at the cost of a full run each time. And every epic that called itself a simplification came out net-additive -- subtract-to-measure at net +1677 lines.
+      measured_at: 19c5c7b
+      evidence: NEXT-EPIC.md sections 0-AAAAAA and 0-AAAAA
+    target: >-
+      The three are removed or the round says which survived and why, each priced or labelled unpriced. THE SUITE IS DEFUNDED AS A FINDING CHANNEL, NOT DELETED -- it keeps the regression-guard job.
+    evaluation_ticket: RM-05
+    evidence_root: specs/results/scorecards/portable-substrate/GOAL-dead-weight-gone
+  - id: GOAL-dimensions-replicate
+    kind: eval
+    statement: >-
+      D2 and D3 replicate on a subject that is not ab_quota_ledger, and D4/D5 are either bound to tier-proof evidence or dropped.
+    metric: >-
+      D2 and D3 on the toolchain as a subject, with a real before/after; and the bind-or-drop decision for D4 and D5.
+    harness: RM-04's blind round on scripts/, decided by RM-05
+    baseline:
+      value: >-
+        D2 rests on TWO PAIRS OF ONE EXAMPLE IN ONE ROUND, and the round's own evaluator flagged it as the result to be most suspicious of because it came back clean against a sealed prediction that it would be thin. D2 ALSO SPLIT BY TIER -- opus [4,4] against sonnet [3,3], disjoint, on the dimension the card says holds still. D3's architecture tag was derived on one example and its state_colocation threshold of 0.5 HAS NEVER BEEN MEASURED NEAR ITS BOUNDARY. D4 and D5 both move under judge tier, and on D5 the tiers ran in OPPOSITE directions. The toolchain in scripts/ has NEVER been scored as a subject.
+      measured_at: 19c5c7b
+      evidence: specs/results/scorecards/reading-discipline/ -- RD-03, RD-04
+    target: >-
+      D2 and D3 either replicate off ab_quota_ledger or are BOUNDED by the attempt -- both outcomes are results. D4 and D5 are bound or dropped; NOT DECIDING IS NOT ACCEPTABLE.
+    evaluation_ticket: RM-05
+    evidence_root: specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate
+  - id: GOAL-portable
+    kind: eval
+    statement: >-
+      What an external project would need to grade its own architecture with this substrate is decided on evidence, including what is irreducibly local.
+    metric: >-
+      The minimum an adopter must supply; which dimensions survive the trip; and the named list of what CANNOT be exported, with reasons.
+    harness: RM-02's research, tested against the 73 sealed cards, decided by RM-05
+    baseline:
+      value: >-
+        NEVER ASKED. The card has only ever graded this repository's own methodology, and its anchors are written in this project's vocabulary -- ports, adapters, effects, a spec double compiler -- which an external project does not have. Whether the card grades ARCHITECTURE or grades CONFORMANCE TO THIS PROJECT'S ARCHITECTURE is unmeasured.
+      measured_at: 19c5c7b
+      evidence: references/eval_scorecard.md, and the 73 sealed cards
+    target: >-
+      A decision with evidence from the sealed record, including an explicit list of what is irreducibly local. A design concluding everything is portable has not been tested. AND PORTABILITY MAY NOT BECOME A REASON TO ADD.
+    evaluation_ticket: RM-05
+    evidence_root: specs/results/scorecards/portable-substrate/GOAL-portable
+tickets:
+  - id: RM-01
+    title: Build a gap mutant that can actually go DIES to SURVIVES
+    status: closed
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/209
+    schedule_revision: 1
+    depends_on: []
+    blocks: [RM-03, RM-05]
+    wave: 1
+    promotion_order: 10
+    promotion_predecessor: null
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/instruments/]
+    objective: >-
+      FIRST AND ALONE -- everything else depends on it. The instrument that prices removals CAN ONLY RETURN ZERO: a gap mutant prices a removal only if every detector that killed it is one the removal deletes, and over the sealed before-table that is 0 OF 9. The re-runnability rule is self-confirming BY CONSTRUCTION -- it excludes exactly the faults that could go DIES->SURVIVES, and SM-01 named the one fault the machinery uniquely caught and declared it not_seedable BECAUSE it cannot be re-run after the cut. Characterise the exclusion, build an instrument that can return non-zero, DEMONSTRATE A DIES->SURVIVES ON A REAL REMOVAL, and re-price at least one historical removal. SM-04-GM-T1 is the known-positive: an instrument that cannot reproduce it is not working. DO NOT TUNE UNTIL A COMFORTABLE NUMBER APPEARS -- a high price on a past removal is the informative outcome.
+    desired_actions: []
+    implementation_scope: [examples/validation/, tests/]
+    goals:
+      - goal: GOAL-removal-can-be-priced
+        contribution: direct
+        expected_effect: Pricing moves from structurally-always-zero to capable of a non-zero answer.
+        local_signal: a DIES->SURVIVES on a real removal
+      - goal: GOAL-dead-weight-gone
+        contribution: enabling
+        expected_effect: none -- nothing may be cut until a cut can be priced
+        local_signal: N/A
+      - goal: GOAL-dimensions-replicate
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+      - goal: GOAL-portable
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: [The instrument returns non-zero on at least one real removal., SM-04-GM-T1's DIES->SURVIVES is reproduced., 'At least one historical removal is re-priced, and a non-zero result is reported loudly.', A demonstrated FAILING input on a real subject.]
+    model_delta_expectation: none expected
+  - id: RM-02
+    title: 'RESEARCH: what an external project would need, and what that says about what to cut'
+    status: done
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/210
+    schedule_revision: 1
+    depends_on: []
+    blocks: [RM-03, RM-05]
+    wave: 1
+    promotion_order: 20
+    promotion_predecessor: RM-01
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [references/portable_scorecard.md]
+    objective: >-
+      A RESEARCH TICKET -- design and evidence, NO production code. Its output SCOPES RM-03's removal. The card has only ever graded this repository's own methodology, and the owner intends to expose it so external projects grade their own architecture, with the regressions they find by hand becoming card and architecture iterations they choose. That is strategic AND it is the only non-arbitrary stopping rule available for how much to cut. Decide: what is actually portable; what the card assumes that only this repo satisfies -- DOES IT GRADE ARCHITECTURE OR CONFORMANCE TO THIS PROJECT'S ARCHITECTURE, answered from the sealed cards rather than the anchors' wording; the minimum an adopter must supply; WHICH DIMENSIONS SURVIVE THE TRIP, because a dimension that cannot be trusted in the project that built it should not be exported; and whether the card's change rule survives an adopter using it. THE TRAP: do not design a product, and DO NOT LET PORTABILITY BECOME A REASON TO ADD. The most valuable output may be 'these three things cannot be exported and here is why.'
+    desired_actions: []
+    implementation_scope: [references/, specs/results/]
+    goals:
+      - goal: GOAL-portable
+        contribution: direct
+        expected_effect: The portability question moves from never-asked to decided on evidence.
+        local_signal: the design, and the irreducibly-local list
+      - goal: GOAL-dead-weight-gone
+        contribution: enabling
+        expected_effect: none -- it scopes what RM-03 cuts
+        local_signal: N/A
+      - goal: GOAL-removal-can-be-priced
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+      - goal: GOAL-dimensions-replicate
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ['A decision with evidence drawn from the 73 sealed cards, not from the anchors'' wording.', 'An explicit list of what is IRREDUCIBLY LOCAL, with reasons.', 'Which dimensions survive the trip, and which must not be exported.', NO production code ships.]
+    model_delta_expectation: none expected
+  - id: RM-06
+    title: 'Restore the baseline: 16 tests pinned to a record that RD-03 grew'
+    status: done
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/216
+    schedule_revision: 1
+    depends_on: [RM-01]
+    blocks: [RM-03, RM-05]
+    wave: 1
+    promotion_order: 25
+    promotion_predecessor: RM-02
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/results/scorecards/INSTRUMENT-LOG.toml, examples/validation/instruments/instruments.toml]
+    objective: >-
+      BLOCKING -- RM-03 cannot price a removal against a red baseline. main at 19c5c7b is red (16 failed, 1470 passed) and so is this epic's base 2c0d94e, measured independently three times with byte-identical failing sets. The failures are one phenomenon: RD-03's round added 24 cards and these tests pin expectations to a snapshot of a record the round legitimately grew. RD-03 PREDICTED IT -- 'THE SWEEP COUNT IS A JOINT PROPERTY OF THE RECORD AND THE CARD POPULATION' (NEXT-EPIC.md section 0-AAAAAA 5). SORT ALL SIXTEEN INTO THREE GROUPS AND THE SPLIT IS THE DELIVERABLE -- (1) pinned to a count the record grew, re-derive the expectation so the test still fails when BEHAVIOUR changes but not when the corpus does, and NEVER replace an exact count with a >= 1 floor; (2) controls that are GENUINELY failing, which STAY RED and become findings; (3) claims that were true and are now false, where the honest repair is to rewrite the claim rather than restore the number. A TEST MAY NOT BE DELETED OR WEAKENED TO REACH GREEN. Partial green with a clear account beats full green with a quiet edit.
+    desired_actions: []
+    implementation_scope: [tests/, specs/results/scorecards/, examples/validation/instruments/]
+    goals:
+      - goal: GOAL-dead-weight-gone
+        contribution: enabling
+        expected_effect: none -- it makes RM-03's removals measurable against a baseline that is not already red
+        local_signal: the sixteen sorted into three groups, with which stay red
+      - goal: GOAL-removal-can-be-priced
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+      - goal: GOAL-dimensions-replicate
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+      - goal: GOAL-portable
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ['All sixteen sorted into the three groups, with a reason for each.', 'Which stay red, and why that is the correct outcome for them.', 'The full-suite number reported WITH ITS TREE, before and after, from a REAL checkout.', 'No test deleted, and no exact count replaced by a >= 1 floor.', 'Every re-derived expectation still fails when behaviour changes.']
+    model_delta_expectation: none expected
+  - id: RM-03
+    title: Remove the three levers that failed against a control, and price the removal honestly
+    status: done
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/211
+    schedule_revision: 1
+    depends_on: [RM-01, RM-02]
+    blocks: [RM-04, RM-05]
+    wave: 2
+    promotion_order: 30
+    promotion_predecessor: RM-02
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/, scripts/]
+    objective: >-
+      THE REMOVAL, AND THE FIRST REAL SIMPLIFICATION AVAILABLE TO THIS PROJECT. Three levers have failed against a control and are still carried: model-derived case bug-finding (0 unique kills against 4 the other way, replicated on new subjects), static gates (five epics, no caught bug), and the suite AS A FINDING CHANNEL (one finding in seven rounds). The suite keeps its regression-guard job -- defunding a channel is not deleting a suite. Remove what RM-02's scope says to remove; PRICE EVERY REMOVAL WITH RM-01'S INSTRUMENT, per removal, never a total; and if a removal cannot be priced even by the new instrument, REMOVE IT ANYWAY AND LABEL IT UNPRICED -- an unpriced removal honestly labelled beats a zero that was entailed. IF YOUR REMOVALS ALL PRICE AT ZERO AGAIN, THAT IS A FINDING ABOUT RM-01 and you must say so rather than reporting three free cuts. RD-02 rejected a free 2.9x ratio improvement available by reclassifying its own line counts; do the same.
+    desired_actions: []
+    implementation_scope: [examples/validation/, scripts/, tests/]
+    goals:
+      - goal: GOAL-dead-weight-gone
+        contribution: direct
+        expected_effect: The three dead levers are gone and the removal is priced or honestly labelled.
+        local_signal: lines removed vs lines added to prove safe, per removal
+      - goal: GOAL-removal-can-be-priced
+        contribution: direct
+        expected_effect: >-
+          Exercises the new instrument on real cuts; a zero across all of them is a finding about RM-01.
+        local_signal: non-zero prices, or an explicit report that none appeared
+      - goal: GOAL-portable
+        contribution: enabling
+        expected_effect: none -- the cut is scoped by what an adopter could use
+        local_signal: N/A
+      - goal: GOAL-dimensions-replicate
+        contribution: enabling
+        expected_effect: none -- RM-04 measures the SIMPLIFIED substrate
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ['Per removal: lines removed, lines added to prove it safe, the ratio -- never a total.', 'Every removal priced with RM-01''s instrument, or labelled UNPRICED.', The suite is retained as a regression guard., 'If all removals price zero, that is reported as a finding about RM-01.']
+    model_delta_expectation: none expected
+  - id: RM-04
+    title: >-
+      Prove D2 and D3 on the one subject never scored -- the toolchain itself -- and decide D4/D5
+    status: closed
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/212
+    schedule_revision: 1
+    depends_on: [RM-03]
+    blocks: [RM-05]
+    wave: 3
+    promotion_order: 40
+    promotion_predecessor: RM-03
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/scorecards/, references/eval_scorecard.md]
+    objective: >-
+      THE ITERATE STEP, ON THE SIMPLIFIED SUBSTRATE. D2 and D3 are the only two dimensions that discriminate and each rests on a narrow base: D2 on TWO PAIRS OF ONE EXAMPLE IN ONE ROUND, flagged by that round's own evaluator as the result to be most suspicious of, AND tier-split opus [4,4] against sonnet [3,3]; D3's architecture tag derived on one example with a state_colocation threshold of 0.5 that HAS NEVER BEEN MEASURED NEAR ITS BOUNDARY. Score THE TOOLCHAIN IN scripts/ as a subject -- it has only ever been the thing DOING the scoring, it is the largest unexamined surface in the project, and RM-03's removal IS a real before/after. Does D2 replicate off ab_quota_ledger? Probe the tag's threshold. And DECIDE D4 AND D5: bind them to evidence a tier cannot swing, or cut the card to two dimensions and three notes. NOT DECIDING IS NOT ACCEPTABLE. THE TRAP: the complexity descriptor could not see the only simplification ever measured -- 19 of 21 axes byte-identical, one moving the WRONG WAY -- and adding an axis tuned to that known answer is MF-020 in its purest form.
+    desired_actions: []
+    implementation_scope: [examples/validation/scorecards/, references/, specs/results/]
+    goals:
+      - goal: GOAL-dimensions-replicate
+        contribution: direct
+        expected_effect: D2 and D3 replicate on a second subject or are bounded; D4/D5 decided either way.
+        local_signal: D2 and D3 on scripts/, and the bind-or-drop decision
+      - goal: GOAL-dead-weight-gone
+        contribution: guard
+        expected_effect: none expected; it measures the removal rather than adding to it
+        local_signal: N/A
+      - goal: GOAL-portable
+        contribution: enabling
+        expected_effect: none -- which dimensions survive the trip depends on which replicate
+        local_signal: N/A
+      - goal: GOAL-removal-can-be-priced
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ['The toolchain is scored as a subject, blind, with a declared scope and a derived tag.', D2 either replicates off ab_quota_ledger or is BOUNDED by the attempt -- both are results., "The state_colocation threshold is probed near its boundary, or the attempt's failure is reported.", D4 and D5 are bound or dropped. Not deciding is not acceptable., NO complexity axis is added that was tuned to a known answer.]
+    model_delta_expectation: none expected
+  - id: RM-05
+    title: 'EVALUATION: did the substrate get simpler, and can a removal be priced at all?'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/213
+    schedule_revision: 1
+    depends_on: [RM-01, RM-02, RM-03, RM-04]
+    blocks: []
+    wave: 4
+    promotion_order: 50
+    promotion_predecessor: RM-04
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/results/scorecards/portable-substrate/]
+    objective: >-
+      The epic's product and a MEASUREMENT. THE HEADLINE IS WHETHER THE SUBSTRATE GOT SIMPLER IN A WAY THAT CAN BE DEMONSTRATED RATHER THAN ASSERTED -- lines, instruments, AND concepts an adopter must understand. subtract-to-measure called itself a simplification at net +1677 lines. Decide all four goals. Report FINDINGS BY CHANNEL with the per-token ratio AND NAME THE TOKEN BASIS -- no previous round has, so no round has ever been comparable to another (RD-03-DF-13). And report THE COUNT OF FINDINGS TOUCHING THE SHIPPED TOOLCHAIN, stated SEPARATELY from findings about generated artifacts: across four epics that number is 8 OF 134 and last epic it was ZERO, and conflating the two is how a flattering headline got merged. FILE FINDINGS, FIX NOTHING.
+    desired_actions: []
+    implementation_scope: [specs/results/scorecards/, NEXT-EPIC.md]
+    goals:
+      - goal: GOAL-removal-can-be-priced
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-dead-weight-gone
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-dimensions-replicate
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-portable
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: [All four goals decided., 'Did the substrate shrink -- lines, instruments, AND concepts an adopter must understand?', Findings by channel with the per-token ratio AND the token basis named., "Findings touching the SHIPPED TOOLCHAIN counted separately from findings about generated artifacts.", Findings FILED and NONE fixed.]
+    model_delta_expectation: none expected
+    role: evaluation
+    owns_goals: [GOAL-removal-can-be-priced, GOAL-dead-weight-gone, GOAL-dimensions-replicate, GOAL-portable]

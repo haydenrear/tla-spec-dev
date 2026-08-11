@@ -85,9 +85,35 @@ justification: ""
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
+  searched: true
+  outcome: "none"
+  detail: >-
+    SEARCHED, FOUND NONE, AND THE SEARCH IS THE INTERESTING PART. RM-04 is a
+    measurement round: no TLA+ model is touched, `model_delta_expectation` is
+    `none expected`, and no state-machine representation changed, so there is
+    no refinement of a model to find. The refinement question was asked instead
+    of the two INSTRUMENTS this ticket did change, and both times the answer
+    was to remove rather than to refine.
+
+    (1) `[[demonstration]].ranges` and `.tiers_measured`: the refinement on
+    offer was a `measured_over` field so `audit` could re-derive them at a
+    declared population. It works. It was REJECTED because the two fields grant
+    no refusal authority at all -- `authority()` reads `separates` alone -- so
+    the refinement would have bought a mechanism for a field that decides
+    nothing. Removed instead. `RM-04-DF-03`.
+
+    (2) The blind-label pool: the refinement on offer was a larger character
+    pool. REJECTED, because it postpones the same exhaustion by a constant. The
+    mechanism was generalised instead -- a label is a STRING over the
+    unpublished alphabet -- which makes the space unbounded and keeps the
+    property exact rather than counted.
+
+    NOTHING WAS ADDED THAT MAKES A KNOWN ANSWER SCORE BETTER. The clearest
+    invitation arrived on its own: the subject with the epic's only real
+    before/after had its Python line count RISE across a removal that took 310
+    lines out of the directory, and a complexity axis counting declarative
+    lines would have fixed that number. That is `MF-020` in its purest form and
+    it was refused. See `RESULT.md` section 7.
   measured: false      # true only if a real TLC run produced the figure
   applied: false       # if true, approved_by is required
   approved_by: ""
@@ -99,4 +125,36 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: >-
+    specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/RESULT.md
+
+    IN ONE LINE: D3's separation replicated on a second example and D2's
+    movement did not, and the round cannot attribute any of its six tier splits
+    because every opus judge seeded its own faults and no sonnet judge did.
+
+    WHAT CHANGED, AND WHY EACH IS A REMOVAL OR A REPAIR RATHER THAN AN ADDITION:
+
+    * `score_tools.py` grew a blinding refusal and a widened label space. Both
+      are refusals -- one REFUSES a scaffold whose blinded card would carry an
+      identifying subject, one REFUSES an explicit label a prior round published
+      unless a reason is recorded. Each ships with a demonstrated failing input
+      on a REAL subject of this repository (`--subject arm_b`, whose scope
+      spells the published label `T`; `--labels T,U`). R1.
+    * `subject.name` and `subject.declared_effect_boundary` are WITHHELD from a
+      blinded card. That is a deletion from what a judge is served. Attack A5's
+      defence is unchanged -- `check` resolves the scope against `subjects.toml`
+      instead of reading a name off the card.
+    * `[[demonstration]]` lost two declared fields and gained no mechanism.
+    * Three tests that pinned "the 49 cards sealed before reading-discipline"
+      as `round != "reading-discipline"` were pinned POSITIVELY. That is not a
+      simplification, it is a correctness fix: the negative form is not a fixed
+      population and had already grown to 55.
+
+    MEASURED ALTERNATIVES: see `refinement.detail` above and `RESULT.md`
+    section 7, which lists seven things this ticket rejected.
+
+    THE FINDING THE MACHINE-CHECKED CORE CANNOT EXPRESS: this ticket's own work
+    order is false. It says RM-03's removal is "a genuine before/after" for
+    `scripts/`, and `19c5c7b:scripts` and `dbf355c:scripts` are the same tree,
+    `e9d5544`. Filed as `RM-04-DF-02` and recorded in the sealed predictions
+    before the round rather than discovered afterwards.
