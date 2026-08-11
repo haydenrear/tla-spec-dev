@@ -1,0 +1,185 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "TODO"
+    evidence: "TODO -- path to the pre-change TLC output"
+  tlc_after:
+    status: "TODO"
+    evidence: "TODO -- path to the post-change TLC output"
+  behavior_tests:
+    status: "TODO"
+    evidence: "TODO -- path to the behavior-test output"
+  descriptor_comparison:
+    status: "TODO"
+    evidence: "TODO -- path to the before/after descriptor comparison"
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness REVIEW, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them, and this
+# is the only sweep that looks at it.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# RECORDED, NEVER REFUSING (2026-08-04, owner direction). It was a hard gate at
+# workflow close with no override; it is now an optional agent-run review whose
+# verdict is written down and read by a person. `incomplete` IS STILL NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it --
+# what was withdrawn is the refusal, not the distinction.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found none, and the reason is that CL-02 changes no model. The
+    ticket's declared `model_delta_expectation` is `none expected`, and this
+    ticket's `current/` and `desired/` are byte-identical (`diff -rq` clean), so
+    `TlaSpecDevCli.tla` at this tip is `TlaSpecDevCli.tla` at 10cf11a. The
+    figures measured above -- 9 variables, 17 actions, bound 1,111,320 over 7 of
+    9 resolved variables, delta direction ZERO against CL-01 -- are inherited
+    unchanged and describe the predecessor's model, not this ticket's work. The
+    over-cap bound is RM-05's and is untouched here. CL-02's whole surface is
+    `examples/validation/gap_mutants/price_removal.py` and its tests, which the
+    model does not describe and no product path invokes.
+  measured: false      # true only if a real TLC run produced the figure
+  applied: false       # if true, approved_by is required
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+  CL-02 -- A PRICE STOPS BEING ENTAILED BY THE SHAPE OF THE REMOVAL.
+
+  THE HEADLINE IS THE UNINTERESTING DIRECTION AND IT IS REPORTED FIRST: NOTHING
+  CAME BACK NON-ZERO. Every historical removal with a published before-table was
+  re-priced with the corrected instrument, on the entailed side and the measured
+  side, and the total is 0 priced results. `RM-01-RF-1` is still PRICED and is
+  still the only price this project has.
+
+  WHAT WAS BROKEN. `RM-05` withdrew `RM-03`'s "first PRICED removal in this
+  project's history": the round's own control -- `is_control` true, `removed_by`
+  "nothing", `gap` "NONE, on purpose" -- returned the headline verdict, and that
+  row was missing from the four-row output the report printed as three. For every
+  fault all of whose killing nodes lie in a file the removal deletes,
+  `ENTAILED-SURVIVES` follows from `git show` alone and no other verdict is
+  reachable. Both halves were reproduced at 10cf11a BEFORE a line was changed and
+  the transcripts are in the tree
+  (`specs/results/scorecards/close-the-loop/GOAL-price-means-something/parent-10cf11a-same-commands.txt`).
+
+  THREE CHANGES, ALL IN ONE NON-PRODUCT FILE. (1) `EXTINCT`: a fault whose
+  habitat the removal deleted has no post-removal artifact to be seeded into, so
+  there is nothing left to detect. It is NOT a price and NOT a zero -- it is a
+  refusal to measure, and the capability such a removal costs is measured by
+  nothing here. The wording is the repository's own, from
+  `residual_faults.toml`'s `[[not_seedable]]` row, which stated the distinction
+  and never computed it. (2) A declared control is `CONTROL-EXCLUDED` in every
+  mode and can never be a priced result -- but it is still PRINTED, in its own
+  block outside every denominator, because RM-05's defect was a control row
+  GOING MISSING, and a tidier table would reproduce it exactly. (3) `--head` is
+  resolved with `git rev-parse --verify` before any verdict is computed; an
+  unresolvable head used to make every killing node look deleted and price the
+  whole table at exit 0.
+
+  THE CARE THAT KEPT IT HONEST. Habitat is read from the EDIT OPS, never from
+  the declared path list. `SM-GM-I3` edits `scripts/gap_probe_instrument.py` with
+  `op = "add_file"`, and that path is absent at `bf0fb29` BECAUSE THE MUTANT
+  CREATES IT. A path-list rule would have called it extinct and made SM-03's
+  removal look cheaper on a bookkeeping detail. Guarded by a test.
+
+  MEASURED ALTERNATIVES REJECTED. Rendering `EXTINCT` as `FREE` or counting it
+  as a zero -- it asserts safety on evidence that does not exist. Dropping
+  control rows from the table -- that IS the RM-05 failure. Fixing `RM-05-DF-02`
+  (`price` returns PRICED over an all-INERT after-table; still reproduces, filed
+  as CL-02-DF-02) -- that change can only turn a PRICED into a refusal, which
+  makes past removals look CHEAPER, and making it in the commit that reports a
+  re-priced history is the tuning this goal fails a ticket for. Pinning
+  `RECORD`'s floating `head = "HEAD"` (filed as CL-02-DF-01) -- it moves `audit`'s
+  ten sealed rows in the same commit as the measurement taken against them.
+  NOTHING WAS ADJUSTED AFTER A RESULT WAS SEEN.
+
+  BOUNDS THAT TRAVEL WITH THE VERDICTS. `EXTINCT` is file-granular: a mechanism
+  RENAMED rather than deleted reads EXTINCT and is not extinct. It is an upper
+  bound on extinction exactly as `ENTAILED-SURVIVES` is an upper bound on the
+  price. Both bounds are in the row's own `why`.
+
+  NO NEW GATES. Nothing in the repository invokes the pricer, no close path
+  consults it, and its exit code refuses nothing about the design. The served
+  surface is untouched at 6,319 bytes and 9 rungs -- the card was not edited.
+
+  SUITE, WITH ITS TREE. 2 failed, 1492 passed in the real checkout
+  wt-epic-close-the-loop-CL-02 at feature/CL-02 (NOT a `git archive` tree). The
+  two are the inherited deliberate reds, neither repaired: RM-06-DF-01, and
+  `test_nothing_in_the_repository_invokes_the_pricer`, which now names TWO
+  narrative documents because this epic's charter mentions the pricer. It was
+  not allow-listed and not deepened -- no new mention was added outside
+  `specs/`. `denominator_rule`: 1479 -> 1494 collected, failures unchanged;
+  +11 is the numerator rising (this ticket's tests, all of which fail at
+  10cf11a), +4 is the denominator rising through `test_spec_yaml_valid.py`'s
+  parametrisation over the ticket workspace `open ticket CL-02` scaffolded. No
+  test was removed, skipped or weakened.
+
+  R1. The demonstrated failing input is real, not a fixture: the sealed RM-03
+  before-table with `--head deadbeefdeadbeef`, which at 10cf11a printed four
+  ENTAILED-SURVIVES rows at exit 0 and now exits 2 with no table.
