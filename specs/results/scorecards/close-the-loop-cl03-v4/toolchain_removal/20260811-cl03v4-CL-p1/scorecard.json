@@ -1,13 +1,13 @@
 {
   "scorecard_version": 4,
-  "status": "unfilled",
+  "status": "filled",
   "epic": "close-the-loop-cl03-v4",
   "example": "toolchain_removal",
   "run_id": "20260811-cl03v4-CL-p1",
   "arm": "CL",
-  "commit": "",
+  "commit": "a73186d",
   "judge": {
-    "model": "",
+    "model": "claude-opus-5[1m]",
     "tier": "",
     "pass": 1,
     "blind_to_arm": false
@@ -25,12 +25,12 @@
     "digest": "sha256:497c16ca85adeb4a",
     "scoring_rules": [
       "**Score artifacts, never claims.** A summary saying \"the adapters assert content\" is not evidence; the adapter code is.",
-      "**Every score \u2265 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
+      "**Every score ≥ 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
       "**A score at the top of its scale additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.",
       "**Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.",
       "**Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.",
       "**Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.",
-      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree \u2014 and a disagreement is a finding.",
+      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree — and a disagreement is a finding.",
       "**Say what you ran.** *(New in version 2.)* Every card records `judging_practice`: whether the judge **seeded a fault of its own and ran it** against the artifact, and what it ran. Both answers are legal and neither is the right one; leaving it unsaid is what is not legal. From version 4 no anchor is gated on it and it is still required, because what a judge did is a variable in what a judge reports and a variable nothing records is a variable nobody can subtract.",
       "**A judge is served the card, never the rubric file.** *(New in version 3.)* The scaffolded `scorecard.md` carries the rubric a judge needs. This file carries reading rules and prior results about these dimensions as well, and a judge who reads it is handed conclusions about the instrument they are the instrument for. Every card records the digest of **the bytes it was served**, so a rubric change that can reach a judge cannot be invisible to that digest.",
       "**Answer every recorded note.** *(New in version 4.)* N-D1, N-D4 and N-D5 take no score and are required on every filled card. An empty note is not a legal card; *\"I could not tell, and here is what I looked at\"* is."
@@ -53,18 +53,30 @@
         "0": "Complexity is unmeasured, or measured and ignored.",
         "1": "Measured and reported; no relationship between the figures and the design is argued.",
         "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
-        "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded."
+        "3": "2, **and** a simplification was made and its effect measured — the before and after figures are both recorded."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null,
-      "read_first": "Diff the two trees yourself and decide whether one fact is stored twice \u2014 kept in agreement by hand across several write sites, and read in one place. Where a measured complexity descriptor exists you may read it, and on its own it decides nothing; where none exists that is not a gap in the evidence.",
+      "score": 2,
+      "citations": [
+        "reference_ports/domain.py:101-108",
+        "reference_ports/domain.py:103",
+        "reference_ports/domain.py:140",
+        "reference_ports/domain.py:161",
+        "reference_ports/domain.py:112-125",
+        "reference_ports/journal_file.py:38",
+        "reference_ports/journal_memory.py:43",
+        "reference_ports/quota_ledger.py:24-36",
+        "reference_ports/quota_ledger_fake.py:37-49",
+        "reference_ports/README.md:12-14",
+        "tests/test_behavior.py:249"
+      ],
+      "rationale": "Rung 2 and not higher. Rung 2 holds on inspection: five state fields at domain.py:101-108 for four commands and five queries, no god-state, and no variable written from everywhere -- `_available` has exactly two write sites (domain.py:140, :161) plus init, `_committed` one, `_closed` one, `_outstanding` three. I did the diff the dimension asks for by experiment rather than by reading prose, and one fact IS stored twice: `_available` (domain.py:103) is fully derivable from `_quota - outstanding - _committed`, which is R1 itself, the invariant the suite asserts at tests/test_behavior.py:249. I deleted the field, derived `available()` from the other three, and all 28 cases still pass under BOTH wirings -- so the redundancy is real and hand-maintained, not load-bearing. It is disclosed as deliberate at README.md:12-14 (a stored field gives a fault somewhere to live), and a disclosed cost is still a cost; I scored the code, not the disclosure. Two smaller duplications: the 'no blanks' rule is implemented independently in both adapters (journal_file.py:38, journal_memory.py:43) and is DEAD in both -- I removed it from each in turn and nothing failed under either wiring, because the domain never emits a blank line; and the two composition points (quota_ledger.py:24-36, quota_ledger_fake.py:37-49) duplicate the constructor and the entire `__all__` block, differing in one identifier. Rung 3 is unreachable, and not because a number is missing: `mechanical.json` records `complexity_of_produced_code: {}` and there is no descriptor in the packet, but read_first says an absent measurement is not a gap in the evidence, so I did not drop to 0 or 1 for it. Rung 3 fails on direction and on figures. The only change this tree claims (README.md:35-36, domain.py:8-9) is that one flat module became five files behind a Protocol -- an increase argued as an INSTRUMENT gain, never as a simplification -- and no before/after figures for it are recorded on either side. The baseline it is measured against, `../reference/quota_ledger.py`, is outside my read list, so 'statement for statement' is a claim I could not check and per rule 1 a claim is not the property. Prose quality was a live temptation here and I am saying so as rule 4 requires: roughly a third of this tree is commentary about the eval rather than about the program, it is unusually lucid, and it argues its own complexity is justified. I scored the executed behavior of the five modules and treated every explanatory paragraph as zero evidence.",
+      "refuses_to_claim": "Not required at this score, and recorded anyway: README.md:68-77 refuses to claim the tree shows an arm would produce this shape, refuses to generalise past n=1, and states that the author of the catalogue also wrote the tree it seeds into. It does not, anywhere, claim the design got simpler.",
+      "read_first": "Diff the two trees yourself and decide whether one fact is stored twice — kept in agreement by hand across several write sites, and read in one place. Where a measured complexity descriptor exists you may read it, and on its own it decides nothing; where none exists that is not a gap in the evidence.",
       "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 requires the judge to say *what got simpler and how the behavior survived it*."
     },
     "D3": {
       "name": "modularity",
-      "question": "Is it ports and adapters in fact \u2014 domain independent of I/O, adapters swappable?",
+      "question": "Is it ports and adapters in fact — domain independent of I/O, adapters swappable?",
       "anchors": {
         "0": "No boundary is discernible; state is written from everywhere.",
         "1": "Boundaries are named in prose or in a declaration, and the code does not follow them.",
@@ -72,38 +84,88 @@
         "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
         "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null,
+      "score": 4,
+      "citations": [
+        "reference_ports/domain.py:20-23",
+        "reference_ports/domain.py:38-58",
+        "reference_ports/domain.py:125",
+        "reference_ports/domain.py:150-153",
+        "reference_ports/domain.py:172",
+        "reference_ports/journal_file.py:21-38",
+        "reference_ports/journal_memory.py:33-43",
+        "reference_ports/quota_ledger.py:25",
+        "reference_ports/quota_ledger_fake.py:38",
+        "reference_ports/quota_ledger_fake.py:13-22",
+        "reference_ports/README.md:68-77"
+      ],
+      "rationale": "Rung 4, and I got there by execution, not by import checking, because the caveat forbids the latter. Rung 3: domain.py:20-23 imports only `dataclasses` and `typing` -- no `pathlib`, no `os`, no adapter module. The specific swap is one identifier: quota_ledger.py:25 hands `FileJournal(ledger_path)` to the same `ReservationBook.__init__`, quota_ledger_fake.py:38 hands `InMemoryJournal()`, and `domain.py` is byte-identical between them. Runtime evidence, which is what the caveat demands: I profiled every cross-module call frame under both wirings. The domain's ONLY outbound calls into a non-domain module are `journal_*.append` (from `commit` at domain.py:150-153 and `close_tenant` at domain.py:172) and `journal_*.lines` (from `ledger_lines` at domain.py:125) -- exactly the two methods the `LedgerJournal` Protocol declares at domain.py:38-58, nothing else crosses. I also intercepted `pathlib.Path.open/read_text/write_text`: the real wiring makes 8 filesystem calls and the fake wiring makes ZERO, with the domain's own call sequence identical in both. The coupling is not merely absent from the import graph; it is absent from the call graph. Rung 4: the same 28 cases pass against `journal_file.FileJournal` and against `journal_memory.InMemoryJournal` (28/28, both). I did not accept 'the same cases pass' as evidence the port discriminates -- two green runs are also what you get if the port is never exercised -- so I seeded one fault per side with the same semantic (reverse the order `lines()` returns) and ran both wirings against each. The file-side fault killed 5 cases under the real wiring and 0 under the fake; the memory-side fault killed 0 under the real wiring and 5 under the fake. Each side of the port is reached by the shared suite through exactly one wiring, which is the property rung 4 is asking about, measured rather than asserted. I very nearly deducted to 3 and the reason is recorded in the note and disclosures rather than in this number: the ONLY behavior separating the real adapter from the fake is durability past the object's lifetime, no case in the suite asserts it (every ledger read goes through `ledger_lines()`; nothing touches the path), and it cannot -- a durability case would fail against the fake and put rung 4 out of reach. Rung 4 as written is therefore satisfiable only by a suite blind to the thing that makes the real adapter real. That is a finding about the anchor, not a defect I may charge to the artifact, so I scored the anchor as written and put the objection where a reader will see it.",
+      "refuses_to_claim": "quota_ledger_fake.py:13-22 refuses to assert that the two wirings agree, and says why: a test comparing two wirings of one domain passes when the domain is wrong, because both wirings are wrong together. It also refuses to gate or report a verdict. README.md:68-77 refuses to claim any arm would produce this shape, refuses to generalise from n=1, and refuses to read the fake's four-line cost as evidence anyone would have paid it -- 'nobody did, for a whole epic'.",
       "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
     }
   },
   "contested": [],
-  "verdict": "",
+  "verdict": "The boundary is real at runtime and the second composition point measurably closes the adapter blind region -- a fake-side fault dies under the fake wiring and only there -- but the suite that earns rung 4 is structurally the suite that cannot assert durability, and the domain has its own unreached region: `outstanding_ids()` is lexicographic, so it violates FEATURE.md:29 from `r10` onward and all 28 cases pass under both wirings anyway.",
   "judging_practice": {
-    "executed_own_faults": null,
-    "what_was_run": [],
-    "note": "REQUIRED from scorecard_version 2. Did you seed a fault of your own and run it against this artifact, or did you score the evidence packet? Both are legal and neither is the right answer; what is not legal is leaving it unsaid. Say which, and list what you ran. From version 4 no anchor is gated on it; it is recorded because it is the variable that moves scores."
+    "executed_own_faults": true,
+    "what_was_run": [
+      "Copied the artifact to a scratch tree; the artifact directory was never modified. All runs below are against the copy.",
+      "Control: `tests/test_behavior.py` under both wirings -- QUOTA_LEDGER_IMPL=quota_ledger 28/28 pass, QUOTA_LEDGER_IMPL=quota_ledger_fake 28/28 pass.",
+      "6 seeded faults, each run against BOTH wirings (12 runs). F1 journal_file.lines() order reversed: 5 killed real / 0 fake. F2 journal_memory.lines() order reversed (same semantic, other side of the port): 0 real / 5 fake. F3 domain.outstanding_ids() order reversed: 0 / 0, SURVIVES both. F5a and F5b blank-line filter deleted from journal_file and journal_memory respectively: 0 / 0 each, equivalent mutants. F6 no-op write to _available in commit: 0 / 0, a deliberate equivalent-mutant control confirming that survival alone is not a fault signal for this harness.",
+      "Runtime call-graph probe under both wirings: `sys.setprofile` capturing every cross-module call frame among domain/journal_file/journal_memory/quota_ledger/quota_ledger_fake, plus monkeypatched pathlib.Path.open/read_text/write_text. Result: the domain's only outbound non-domain calls are the port's two methods; real wiring makes 8 filesystem calls, fake wiring makes 0.",
+      "Independent 12-check conformance probe written from FEATURE.md rather than from the shipped suite, run against both wirings: rejection ORDERING for reserve and close_tenant, id non-reuse across release, ascending ids with 12 live reservations, R3 single CLOSE line, R4 no durable write across five distinct rejections, R5 prefix-monotonic ledger, and durability read directly off the path after dropping the object. Real wiring 11/12, fake wiring 10/12; the shared failure is the ascending-ids check, and the fake's extra failure is durability.",
+      "One simplification experiment of my own: deleted the stored `_available` field and derived `available()` from `_quota`, `_outstanding` and `_committed`. All 28 cases still pass under both wirings, which is how I established the field is redundant rather than inferring it.",
+      "Did NOT run: any file under specs/results/scorecards/ other than my own two card files, references/eval_scorecard.md, any *-EPIC.md, the flat baseline ../reference/quota_ledger.py, or check_catalogue.py."
+    ]
   },
   "notes": {
     "N-D1": {
       "name": "bug detection",
       "question": "What did the cases catch, and what class did they demonstrably miss? Name the fault you seeded if you seeded one.",
-      "note": "",
-      "citations": []
+      "note": "CAUGHT: ordering and content faults inside EITHER adapter, provided a composition point points at it. I seeded the same semantic on each side of the port -- reverse the order `lines()` returns -- as F1 in journal_file.py:38 and F2 in journal_memory.py:43. F1 killed 5 of 28 cases under the real wiring and 0 under the fake; F2 killed 0 under the real wiring and 5 under the fake. That is the tree's central claim discharged by measurement: with two composition points, a fake-side fault has somewhere to die. The suite also has real oracle strength on the domain's guards -- it asserts rejection reasons against a declared vocabulary (test_behavior.py:284-301) and compares a full observable snapshot across every rejection (test_behavior.py:46-54), which is a genuine R4 oracle rather than a status check.\n\nMISSED, class 1 -- query ordering with more than one live reservation. This is the sharpest result and it is not seeded: it is live in the artifact as shipped. FEATURE.md:29 requires `outstanding_ids()` to return live reservation ids ASCENDING. domain.py:122 returns `sorted(self._outstanding)`, a lexicographic sort over strings, so with twelve live reservations the artifact returns ['r1','r10','r11','r12','r2',...]. I ran it: both wirings produce that, and all 28 cases pass regardless. The suite cannot see it because every assertion on that query is made with zero or one live reservation (test_behavior.py:65, :118, :165, :247) and the R4 snapshot at test_behavior.py:52 compares the query to itself, so any order-preserving fault is invisible to it. I confirmed the blind spot is structural and not incidental by seeding F3, `sorted(..., reverse=True)` at the same line: 28/28 pass under both wirings. So the region no oracle reaches is not only behind the port -- the domain has one too, and it is the region where the artifact already has a defect.\n\nMISSED, class 2 -- durability, the one property that distinguishes the real adapter from the fake. Nothing in the suite reads the ledger path; every read goes through `ledger_lines()` (test_behavior.py:66, :119, :129, :137, :166, :192, :197, :277). My own probe reading the file directly after dropping the object passes under the real wiring and fails under the fake. The suite cannot contain that case without failing the fake wiring.\n\nMISSED, class 3 -- dead defensive code. The blank-line filter exists twice, at journal_file.py:38 and journal_memory.py:43. Deleting it from either (F5a, F5b) kills nothing under either wiring, because the domain never renders a blank line. Two independent implementations of a rule nothing executes.",
+      "citations": [
+        "reference_ports/domain.py:122",
+        "reference_ports/journal_file.py:38",
+        "reference_ports/journal_memory.py:43",
+        "tests/test_behavior.py:46-54",
+        "tests/test_behavior.py:65",
+        "tests/test_behavior.py:118",
+        "tests/test_behavior.py:165",
+        "tests/test_behavior.py:247",
+        "tests/test_behavior.py:284-301",
+        "FEATURE.md:29"
+      ]
     },
     "N-D4": {
       "name": "behavior preservation",
-      "question": "Which behaviors of the baseline did you enumerate, and is each shown still to hold? If there is no baseline, say so \u2014 that is the answer, not a gap in the note.",
-      "note": "",
-      "citations": []
+      "question": "Which behaviors of the baseline did you enumerate, and is each shown still to hold? If there is no baseline, say so — that is the answer, not a gap in the note.",
+      "note": "The baseline this tree names is `../reference/quota_ledger.py` (domain.py:8-9, README.md:35-36), and it is OUTSIDE the read list I was given. So the artifact's preservation claim -- 'the behavior here is the behavior of ../reference/quota_ledger.py, statement for statement' -- is a claim I could not check against the thing it is about, and per rule 1 I did not credit it. I say that plainly rather than scoring around it.\n\nWhat I could do is enumerate the SPECIFIED behavior, FEATURE.md, and check each item directly against the artifact with my own probe rather than through the shipped suite, which is a weaker baseline but a real one. Enumerated and shown to hold under both wirings: initial available/committed/is_closed; empty starting ledger; the four reserve rejections IN THEIR SPECIFIED ORDER (FEATURE.md:40-45 -- I checked that unknown_tenant beats tenant_closed, tenant_closed beats amount_not_positive, and amount_not_positive beats quota_exceeded, none of which the suite checks as an ordering); the three close_tenant rejections in order (FEATURE.md:76-80); ids never reused after a release; R3 exactly one CLOSE line across a repeated close; R4 no durable write across five distinct rejections; R5 each ledger snapshot a prefix of the next.\n\nEnumerated and shown NOT to hold: FEATURE.md:29, ids ascending. domain.py:122 sorts lexicographically and returns r1, r10, r11, r12, r2, ... for twelve live reservations, under both wirings. Whether the flat baseline shares this defect I cannot say, because I may not read it -- but the artifact's own governing specification is in my read list and the artifact does not satisfy it.\n\nEnumerated and holds under one wiring only: durability. FEATURE.md:16-17 calls the ledger a durable, append-only FILE. Reading the path directly after dropping the object succeeds under quota_ledger and fails under quota_ledger_fake, which creates no file at all despite accepting `ledger_path` (quota_ledger_fake.py:37-38). The artifact declares exactly this at quota_ledger_fake.py:4-5, so it is disclosed divergence, not concealed -- but it does mean 'the same cases pass against both wirings' is true only because no case tests the word 'durable'.",
+      "citations": [
+        "FEATURE.md:16-17",
+        "FEATURE.md:29",
+        "FEATURE.md:40-45",
+        "FEATURE.md:76-80",
+        "reference_ports/domain.py:8-9",
+        "reference_ports/domain.py:122",
+        "reference_ports/quota_ledger_fake.py:4-5",
+        "reference_ports/quota_ledger_fake.py:37-38",
+        "reference_ports/README.md:35-36"
+      ]
     },
     "N-D5": {
       "name": "honesty",
       "question": "Does the artifact refuse rather than falsely certify, and does it name what it cannot see? Point at the refusal, or at its absence.",
-      "note": "",
-      "citations": []
+      "note": "It refuses, repeatedly, and several refusals are load-bearing rather than decorative. README.md:66 -- 'Nothing here gates, refuses, or reports a verdict. It is a fixture.' README.md:68-77 -- it does not settle that an arm would produce this shape, it is n=1, and the tree was written by the same author as the catalogue that seeds into it, named as bias that two trees do not reduce. Sharpest of all, README.md:75-77 and quota_ledger_fake.py:10-12 refuse the flattering reading of their own remedy: four lines being cheap is evidence the blind region was cheap to reach, NOT evidence anybody would have reached it, and 'nobody did, for a whole epic'. quota_ledger_fake.py:13-22 refuses a parity test on a correct technical ground -- two wirings of one domain agree when the domain is wrong -- which is a refusal to build the easier and weaker instrument. README.md:36-39 does not merely assert the three wirings agree, it names the command that shows it, and I ran the two in scope and they do.\n\nWhat it does NOT see, and this is the gap: the artifact reasons at length about a region no oracle reaches and locates that region entirely BEHIND the port, in the fake adapter (journal_memory.py:7-27). It never considers that the same suite leaves an unreached region in the DOMAIN. It does not: `outstanding_ids()` at domain.py:122 violates FEATURE.md:29 today, no case can see it, and no file in the packet mentions the query's ordering. Nor does anything name the cost of its own instrument -- that 'the same cases pass against both wirings' is purchasable only by never asserting durability. So the honesty is real and it is aimed in one direction: the artifact is candid about the limits it went looking for and silent about the one adjacent to its own thesis. Two smaller unbacked notes: domain.py:9-10 says the shared suite is 'the thing that says so' about statement-for-statement equivalence, which overstates a 28-case suite that I showed survives a reversal of a specified query; and both adapters carry an unreachable blank-line filter whose comment implies the domain might emit blanks (journal_file.py:38, journal_memory.py:43).",
+      "citations": [
+        "reference_ports/README.md:36-39",
+        "reference_ports/README.md:66",
+        "reference_ports/README.md:68-77",
+        "reference_ports/quota_ledger_fake.py:10-12",
+        "reference_ports/quota_ledger_fake.py:13-22",
+        "reference_ports/journal_memory.py:7-27",
+        "reference_ports/domain.py:9-10",
+        "reference_ports/domain.py:122",
+        "FEATURE.md:29"
+      ]
     }
   }
 }
