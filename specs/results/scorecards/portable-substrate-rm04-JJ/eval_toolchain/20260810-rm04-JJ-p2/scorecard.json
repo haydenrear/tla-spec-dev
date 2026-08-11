@@ -1,0 +1,148 @@
+{
+  "scorecard_version": 4,
+  "status": "filled",
+  "epic": "portable-substrate-rm04-JJ",
+  "example": "eval_toolchain",
+  "run_id": "20260810-rm04-JJ-p2",
+  "arm": "JJ",
+  "commit": "dd71b11a0282a662f60d7bca0c34671ba9e12235",
+  "judge": {
+    "model": "claude-sonnet-4-5",
+    "tier": "",
+    "pass": 2,
+    "blind_to_arm": true
+  },
+  "subject": {
+    "name": null,
+    "blinded": true,
+    "scope": [
+      "examples/validation/gap_mutants"
+    ],
+    "axis": "effect_boundary"
+  },
+  "rubric": {
+    "source": "references/eval_scorecard.md",
+    "digest": "sha256:497c16ca85adeb4a",
+    "scoring_rules": [
+      "**Score artifacts, never claims.** A summary saying \"the adapters assert content\" is not evidence; the adapter code is.",
+      "**Every score \u2265 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
+      "**A score at the top of its scale additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.",
+      "**Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.",
+      "**Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.",
+      "**Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.",
+      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree \u2014 and a disagreement is a finding.",
+      "**Say what you ran.** *(New in version 2.)* Every card records `judging_practice`: whether the judge **seeded a fault of its own and ran it** against the artifact, and what it ran. Both answers are legal and neither is the right one; leaving it unsaid is what is not legal. From version 4 no anchor is gated on it and it is still required, because what a judge did is a variable in what a judge reports and a variable nothing records is a variable nobody can subtract.",
+      "**A judge is served the card, never the rubric file.** *(New in version 3.)* The scaffolded `scorecard.md` carries the rubric a judge needs. This file carries reading rules and prior results about these dimensions as well, and a judge who reads it is handed conclusions about the instrument they are the instrument for. Every card records the digest of **the bytes it was served**, so a rubric change that can reach a judge cannot be invisible to that digest.",
+      "**Answer every recorded note.** *(New in version 4.)* N-D1, N-D4 and N-D5 take no score and are required on every filled card. An empty note is not a legal card; *\"I could not tell, and here is what I looked at\"* is."
+    ],
+    "served_digest": "sha256:a213a36770ccab09",
+    "file_sha256": "sha256:cc09f8730d2cc6ad"
+  },
+  "how_to_fill": [
+    "Score the LOWEST anchor the artifact fully satisfies. Torn between two: take the lower and say why.",
+    "Set `status` to \"filled\", `commit` to the sha the artifacts were scored at, and name your model in `judge.model`.",
+    "Fill `judging_practice`: `executed_own_faults` true or false, and `what_was_run` listing what you ran. FALSE IS A LEGAL AND USEFUL ANSWER -- it is recorded, never corrected. Delete the `note` key once you have.",
+    "Leave `anchors` as scaffolded. They are read from the rubric so the bar and the score live in one file; editing them here forks the rubric silently, which is the drift this scaffold exists to remove.",
+    "Answer every entry in `notes`. They take NO score -- these three questions were scored for three versions and the numbers were measured not to mean the same thing twice, so what is asked for is prose and citations. 'I could not tell, and here is what I looked at' is a legal note; an empty one is not."
+  ],
+  "dimensions": {
+    "D2": {
+      "name": "complexity",
+      "question": "Is the design as simple as its behavior requires, and no simpler?",
+      "anchors": {
+        "0": "Complexity is unmeasured, or measured and ignored.",
+        "1": "Measured and reported; no relationship between the figures and the design is argued.",
+        "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
+        "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded."
+      },
+      "score": 2,
+      "citations": [
+        "specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/blind/artifact_JJ_before/run_gap_mutants.py:117-176",
+        "specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/blind/artifact_JJ_before/run_gap_mutants.py:430-594",
+        "examples/validation/gap_mutants/price_removal.py:136-159",
+        "examples/validation/gap_mutants/price_removal.py:201-248",
+        "examples/validation/gap_mutants/price_removal.py:271-328",
+        "specs/results/scorecards/portable-substrate-rm04-JJ/eval_toolchain/20260810-rm04-JJ-p2/mechanical.json:13-43",
+        "examples/validation/removal_census/removals.toml:651-659",
+        "examples/validation/removal_census/removals.toml:661-676",
+        "tests/test_price_removal.py:298-318"
+      ],
+      "rationale": "Diffed examples/validation/gap_mutants/ against the named before tree. Before: one 633-line module (run_gap_mutants.py) that stages a git-archive tree, applies a declared mutant, runs pytest/CLI detectors against mutated and pristine trees, drives a ports family, and enforces positive controls before reporting a verdict. After: two stateless modules -- price_removal.py (pure kill_set/price/entail functions over already-sealed JSON tables) and altered_score_probe.py (one live replication of a single named finding via the shipped CLI) -- plus residual_faults.toml, written in the SAME schema as the deleted gap_mutants.toml but with no executor left in this scope to run it (confirmed: tests/test_price_removal.py asserts nothing invokes the pricer and residual_faults.toml is named only in a comment). declared_interfaces/instance_state/module_state are 0 in both trees -- no god-state before or after -- so anchor 2 (complexity proportional to behavior, no god-state) is satisfied. It does not reach 3: mechanical.json shows total_lines and code_lines both ROSE (633->706, 489->539), so this is not even a line-count simplification story, and more importantly the repository's own removal census captions this exact cut 'THE ONE REMOVAL IN THIS CENSUS WITH A NON-ZERO PRICE' -- its seeded gap mutant reads ENTAILED-SURVIVES at head, meaning the live seed-run-verdict capability was genuinely lost, not redesigned away for free. A D2 of 3 requires the behavior to have survived the simplification, and by the artifact's own record it did not.",
+      "refuses_to_claim": null
+    },
+    "D3": {
+      "name": "modularity",
+      "question": "Is it ports and adapters in fact \u2014 domain independent of I/O, adapters swappable?",
+      "anchors": {
+        "0": "No boundary is discernible; state is written from everywhere.",
+        "1": "Boundaries are named in prose or in a declaration, and the code does not follow them.",
+        "2": "The code follows the declared boundaries. Cross-boundary calls go through something identifiable as a port.",
+        "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
+        "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
+      },
+      "score": 0,
+      "citations": [
+        "specs/results/scorecards/portable-substrate-rm04-JJ/eval_toolchain/20260810-rm04-JJ-p2/mechanical.json:21",
+        "specs/results/scorecards/portable-substrate-rm04-JJ/eval_toolchain/20260810-rm04-JJ-p2/mechanical.json:38",
+        "examples/validation/gap_mutants/price_removal.py:336-341",
+        "examples/validation/gap_mutants/altered_score_probe.py:101-106"
+      ],
+      "rationale": "mechanical.json reports declared_interfaces: 0 for both the before and after scope. price_removal.py reaches the one piece of external logic it depends on (removal_census.discriminating) through a raw sys.path.insert + import, never through a declared interface, and it is never swapped for a fake; the docstring's stated reason for importing rather than reimplementing is avoiding a duplicate copy of the same logic (a DRY argument), not an architectural boundary. The only occurrence of port/adapter/domain language anywhere in this scope is inert fixture text inside altered_score_probe.py's fill() helper, building a synthetic scorecard for an unrelated subject (quota_ledger/domain.py) to replicate one finding -- it says nothing about this artifact's own architecture. No boundary is discernible because the artifact does not attempt one: no declared interface, no adapter that could be swapped, real or fake.",
+      "refuses_to_claim": null
+    }
+  },
+  "contested": [],
+  "verdict": "Score examples/validation/gap_mutants/ as a stateless, honestly-bounded analysis toolkit with no ports-and-adapters architecture at all (D3=0) whose apparent complexity improvement is not a preserved-behavior simplification (D2=2, not 3) -- the repository's own removal census records that this exact cut, from a live mutant-execution catalogue to a pair of passive pricing/probe tools, has a non-zero price, so read the mechanical figures as a scope reduction, not a free simplification.",
+  "judging_practice": {
+    "executed_own_faults": false,
+    "what_was_run": [
+      "No code was executed. Read every file in examples/validation/gap_mutants/ (price_removal.py, altered_score_probe.py, residual_faults.toml) in full, and the before tree (run_gap_mutants.py, gap_mutants.toml) in full.",
+      "Grepped the live repository for run_gap_mutants.py/gap_mutants.toml, residual_faults.toml, price_removal, and port/adapter/domain language to trace whether anything still executes the old or new catalogue from inside this scope.",
+      "Read examples/validation/removal_census/removal_census.py, examples/validation/removal_census/removals.toml, and tests/test_price_removal.py (outside my declared scope, read only to trace whether residual_faults.toml's declared mutants are executed anywhere and to check the mechanical.json figures against the artifact's own account of the cut).",
+      "Did not run altered_score_probe.py or price_removal.py: altered_score_probe.py writes a scratch scaffolded epic under <tree>/specs/results/scorecards/rm01-probe when pointed at a tree, and the task instructions forbid editing any file in the repository outside the card and forbid running the test suite; running it against this checkout would have done both."
+    ]
+  },
+  "notes": {
+    "N-D1": {
+      "name": "bug detection",
+      "question": "What did the cases catch, and what class did they demonstrably miss? Name the fault you seeded if you seeded one.",
+      "note": "I did not execute anything in this scope, so this is read, not run. altered_score_probe.py drives the shipped score_tools.py CLI directly to replicate exactly one named finding -- SM-04-GM-T1: a single dimension score altered on an already-written, unsealed card, nothing else touched -- and it says plainly it is NOT A GATE and nothing invokes it. I could not verify by running it that it still reports CAUGHT against the live tree, because running it would have written a scratch card outside the card in this checkout, which the task forbids. price_removal.py's own tests show nothing in the repository invokes it either, but its _loss_reason logic distinguishes three ways a kill can be lost (detector removed, node removed, detector weakened) and states that the third -- a node that keeps its id and changes its body -- is 'the class no survivorship test can see'. I read that as a documented, honestly-bounded claim, not a demonstrated one.",
+      "citations": [
+        "examples/validation/gap_mutants/altered_score_probe.py:1-42",
+        "examples/validation/gap_mutants/altered_score_probe.py:118-177",
+        "examples/validation/gap_mutants/price_removal.py:78-82",
+        "examples/validation/gap_mutants/price_removal.py:251-263",
+        "tests/test_price_removal.py:298-318"
+      ]
+    },
+    "N-D4": {
+      "name": "behavior preservation",
+      "question": "Which behaviors of the baseline did you enumerate, and is each shown still to hold? If there is no baseline, say so \u2014 that is the answer, not a gap in the note.",
+      "note": "There is a baseline: the before tree I was handed. I enumerated five behaviors of run_gap_mutants.py: (1) stage a git-archive of any ref; (2) apply a declared mutant's edits, refusing loudly on an ambiguous or no-op anchor; (3) run each detector against mutated and pristine trees and diff failing nodes into a verdict; (4) drive a ports family through the shipped port-swap driver; (5) enforce positive controls so a SURVIVES behind a dead control reads undecided. None of the five hold in the current scope: examples/validation/gap_mutants/ no longer contains a staging/apply/restore/run-detector loop, and nothing in the live tree consumes residual_faults.toml's mutant/detector declarations to execute them -- confirmed by grep and by a test that asserts exactly that. What replaced it is narrower by design: a pricer over already-sealed JSON tables, and a probe that replicates one prior finding. The repository's own removal census records this specific cut as its one removal with 'a non-zero price'. The baseline's live-execution behavior is not shown still to hold; it is shown, on the artifact's own record, to be gone.",
+      "citations": [
+        "specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/blind/artifact_JJ_before/run_gap_mutants.py:117-176",
+        "specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/blind/artifact_JJ_before/run_gap_mutants.py:197-304",
+        "specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/blind/artifact_JJ_before/run_gap_mutants.py:311-422",
+        "specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/blind/artifact_JJ_before/run_gap_mutants.py:551-568",
+        "examples/validation/gap_mutants/price_removal.py:201-248",
+        "examples/validation/removal_census/removals.toml:651-676",
+        "tests/test_price_removal.py:298-318"
+      ]
+    },
+    "N-D5": {
+      "name": "honesty",
+      "question": "Does the artifact refuse rather than falsely certify, and does it name what it cannot see? Point at the refusal, or at its absence.",
+      "note": "Refusal discipline is where most of this artifact's word count goes. price_removal.py states its own soundness bound twice -- that ENTAILED-SURVIVES 'cannot see a kill the after tree ADDED' -- and has no code path that emits an ENTAILED-DIES. altered_score_probe.py keeps a first, confounded run of itself on the record by name rather than quietly fixing it, and states 'NOT A GATE. Nothing invokes it.' removal_census.py refuses to emit a total over removals even though its parser accepts the flag, purely so the refusal has somewhere to happen, because a total is exactly what hid the epic's real cost before. And the removal this whole scored diff turns on is captioned by the repository itself as the one entry in its census with a non-zero price, rather than folded quietly into a simplification narrative. I did not find a place in scope where the artifact certified something it had not checked.",
+      "citations": [
+        "examples/validation/gap_mutants/price_removal.py:65-73",
+        "examples/validation/gap_mutants/price_removal.py:78-82",
+        "examples/validation/gap_mutants/price_removal.py:323-327",
+        "examples/validation/gap_mutants/altered_score_probe.py:40-41",
+        "examples/validation/gap_mutants/altered_score_probe.py:94-102",
+        "examples/validation/removal_census/removal_census.py:22-33",
+        "examples/validation/removal_census/removal_census.py:288-296",
+        "examples/validation/removal_census/removals.toml:651-659"
+      ]
+    }
+  }
+}

@@ -843,11 +843,11 @@ the spread is zero -- the four judges scored three subjects.
                    "2 card(s) cite predominantly outside their declared scope"]
 
   [instrument.passing]
-  summary = "the declared scopes: every one decided or refused, and every refusal reported as one. RD-05 WROTE THIS AS `the eleven declared scopes: seven decided, four refused` AND THE COUNT MOVED TO 13 OF 17 when RD-06 declared six more subjects. The four refusals are unchanged and the derivation is unchanged: the figure was never a property of the instrument, it was a property of the fixture's size, and it moves again the next time anyone declares a subject. Filed as RD-06-DF-04. The count is updated rather than dropped, because a demonstration that asserts nothing about its output is not a demonstration -- and the superseded figure is kept in this sentence rather than erased."
+  summary = "the declared scopes: every one decided or refused, and every refusal reported as one. RD-05 WROTE THIS AS `the eleven declared scopes: seven decided, four refused` AND THE COUNT MOVED TO 13 OF 17 when RD-06 declared six more subjects, AND TO 16 OF 20 when RM-04 declared three more. The four refusals are unchanged through all three and the derivation is unchanged: the figure was never a property of the instrument, it was a property of the fixture's size, and it moves again the next time anyone declares a subject -- exactly as RD-06-DF-04 predicted, now twice. denominator_rule: the numerator rose 13 -> 16 and the denominator 17 -> 20; nothing left either, and the refusals stayed at four. The count is updated rather than dropped, because a demonstration that asserts nothing about its output is not a demonstration -- and every superseded figure is kept in this sentence rather than erased."
   argv = ["{python}", "{repo}/examples/validation/scorecards/architecture_tags.py", "derive"]
   cwd = "{repo}"
   expect_exit = 0
-  expect_output = ["13 of 17 subject(s) decided", "UNDERIVABLE:no-effect-surface",
+  expect_output = ["16 of 20 subject(s) decided", "UNDERIVABLE:no-effect-surface",
                    "state_colocation threshold = 0.5"]
   expect_absent = ["SCOPE-DRIFT"]
 
@@ -2384,16 +2384,16 @@ anyone can check.
     replace = 'arm = "Z"'
 
   [instrument.passing]
-  summary = "the shipped record, whose seven contested dimensions are each recorded with third_pass = none -- RM-06: this said ONE at 49 sealed cards and the figure is re-derived rather than restored, because RD-03's round filed six more and the count is a joint property of the record and the card population"
+  summary = "the shipped record, whose eight contested dimensions are each recorded with third_pass = none -- RM-06: this said ONE at 49 sealed cards and the figure is re-derived rather than restored, because RD-03's round filed six more and the count is a joint property of the record and the card population. RM-04: EIGHT at 79 cards. denominator_rule -- the numerator rose 7 -> 8 and the denominator 73 -> 79; nothing left either. The one added is `rm04-GG-d3-spread-2`, two judges scoring two subtrees of ONE DECLARED SCOPE, which is RD-04's toolchain_removal finding reproduced on a second example and is filed as RM-04-DF-04."
   argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "contested",
           "--require-recorded", "--root", "{repo}/specs/results/scorecards"]
   cwd = "{repo}"
   expect_exit = 0
-  expect_output = ["7 contested dimension(s)", "0 unrecorded", "TIER-SPLIT D3"]
+  expect_output = ["8 contested dimension(s)", "0 unrecorded", "TIER-SPLIT D3"]
 
   [instrument.blind_spot]
   kind = "declared"
-  summary = "IT CANNOT FIRE ON A GROUP WITH ONE JUDGE, and one exists: `hexagonal-prompting` / `ab_quota_ledger` / `A-control-reference` was scored by a single owner pass. 20 of the 23 groups carry exactly two judges, where a spread greater than 1 needs a two-point disagreement -- so the flag is structurally hardest to trip on exactly the shape the record is mostly made of, and the ONE group it fires on is one of the two four-judge groups. RM-06 CARRIES THE SCOPE RATHER THAN EDITING IT: that is the shape of the record at 23 groups / 49 cards, and the corpus is now 29 groups / 73 cards with seven contested. The structural point is unchanged and the two-judge majority still holds; only the counts moved."
+  summary = "IT CANNOT FIRE ON A GROUP WITH ONE JUDGE, and one exists: `hexagonal-prompting` / `ab_quota_ledger` / `A-control-reference` was scored by a single owner pass. 20 of the 23 groups carry exactly two judges, where a spread greater than 1 needs a two-point disagreement -- so the flag is structurally hardest to trip on exactly the shape the record is mostly made of, and the ONE group it fires on is one of the two four-judge groups. RM-06 CARRIES THE SCOPE RATHER THAN EDITING IT: that is the shape of the record at 23 groups / 49 cards, and the corpus is now 33 groups / 79 cards with eight contested (RM-04 added three two-judge groups and one of them is contested). The structural point is unchanged and the two-judge majority still holds; only the counts moved."
   reason = "A fact about the dispatches, not about the check: a disagreement between judges cannot be measured where there is one judge. Recorded so `1 contested in 23 groups` is not read as evidence that the card is stable."
 
 [[instrument]]

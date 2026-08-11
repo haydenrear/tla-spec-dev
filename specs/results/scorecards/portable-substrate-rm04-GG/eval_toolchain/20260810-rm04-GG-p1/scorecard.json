@@ -1,0 +1,167 @@
+{
+  "scorecard_version": 4,
+  "status": "filled",
+  "epic": "portable-substrate-rm04-GG",
+  "example": "eval_toolchain",
+  "run_id": "20260810-rm04-GG-p1",
+  "arm": "GG",
+  "commit": "dd71b11a0282a662f60d7bca0c34671ba9e12235",
+  "judge": {
+    "model": "claude-opus-4",
+    "tier": "",
+    "pass": 1,
+    "blind_to_arm": true
+  },
+  "subject": {
+    "name": null,
+    "blinded": true,
+    "scope": [
+      "examples/validation"
+    ],
+    "axis": "effect_boundary"
+  },
+  "rubric": {
+    "source": "references/eval_scorecard.md",
+    "digest": "sha256:497c16ca85adeb4a",
+    "scoring_rules": [
+      "**Score artifacts, never claims.** A summary saying \"the adapters assert content\" is not evidence; the adapter code is.",
+      "**Every score \u2265 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
+      "**A score at the top of its scale additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.",
+      "**Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.",
+      "**Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.",
+      "**Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.",
+      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree \u2014 and a disagreement is a finding.",
+      "**Say what you ran.** *(New in version 2.)* Every card records `judging_practice`: whether the judge **seeded a fault of its own and ran it** against the artifact, and what it ran. Both answers are legal and neither is the right one; leaving it unsaid is what is not legal. From version 4 no anchor is gated on it and it is still required, because what a judge did is a variable in what a judge reports and a variable nothing records is a variable nobody can subtract.",
+      "**A judge is served the card, never the rubric file.** *(New in version 3.)* The scaffolded `scorecard.md` carries the rubric a judge needs. This file carries reading rules and prior results about these dimensions as well, and a judge who reads it is handed conclusions about the instrument they are the instrument for. Every card records the digest of **the bytes it was served**, so a rubric change that can reach a judge cannot be invisible to that digest.",
+      "**Answer every recorded note.** *(New in version 4.)* N-D1, N-D4 and N-D5 take no score and are required on every filled card. An empty note is not a legal card; *\"I could not tell, and here is what I looked at\"* is."
+    ],
+    "served_digest": "sha256:a213a36770ccab09",
+    "file_sha256": "sha256:cc09f8730d2cc6ad"
+  },
+  "how_to_fill": [
+    "Score the LOWEST anchor the artifact fully satisfies. Torn between two: take the lower and say why.",
+    "Set `status` to \"filled\", `commit` to the sha the artifacts were scored at, and name your model in `judge.model`.",
+    "Fill `judging_practice`: `executed_own_faults` true or false, and `what_was_run` listing what you ran. FALSE IS A LEGAL AND USEFUL ANSWER -- it is recorded, never corrected. Delete the `note` key once you have.",
+    "Leave `anchors` as scaffolded. They are read from the rubric so the bar and the score live in one file; editing them here forks the rubric silently, which is the drift this scaffold exists to remove.",
+    "Answer every entry in `notes`. They take NO score -- these three questions were scored for three versions and the numbers were measured not to mean the same thing twice, so what is asked for is prose and citations. 'I could not tell, and here is what I looked at' is a legal note; an empty one is not."
+  ],
+  "dimensions": {
+    "D2": {
+      "name": "complexity",
+      "question": "Is the design as simple as its behavior requires, and no simpler?",
+      "anchors": {
+        "0": "Complexity is unmeasured, or measured and ignored.",
+        "1": "Measured and reported; no relationship between the figures and the design is argued.",
+        "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
+        "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded."
+      },
+      "score": 2,
+      "citations": [
+        "examples/validation/ab/reference/quota_ledger.py:34-41",
+        "examples/validation/ab/reference_ports/domain.py:28-35",
+        "examples/validation/ab/tests/test_behavior.py:285-292",
+        "examples/validation/scorecards/score_tools.py:127",
+        "examples/validation/scorecards/architecture_tags.py:65",
+        "examples/validation/scorecards/architecture_tags.py:274",
+        "examples/validation/scorecards/score_tools.py:1010-1023",
+        "examples/validation/ex3_over_complex/order_hub/order_hub.py:26-29",
+        "examples/validation/README.md:12",
+        "examples/validation/scorecards/architecture_tags.py:138-220"
+      ],
+      "rationale": "Above 1: the artifact does not merely report figures, it computes a relationship between them and the design -- architecture_tags.derive() (architecture_tags.py:138-220) turns declared_interfaces, instance_state and modules_with_effectful_calls into three named clauses about where a boundary sits, and states the clause it deliberately refuses to include (import topology, :159-167). Below 3: THERE IS NO BEFORE TREE FOR THIS ARTIFACT AND NO BEFORE FIGURES. mechanical.json carries an `after` block only (mechanical.json:13-14). The only before/after pair inside the declared scope, runs/ex2-run1/artifacts/descriptor_before.txt and descriptor_after.txt, measures a DIFFERENT subject during a recorded agent run and is not a simplification at all -- the after-spec gained an action and Q rose 0.170 -> 0.187. Anchor 3 asks for a simplification whose effect was measured with both figures recorded; on this scope nothing of the kind exists, and constructing one would be the MF-020 error the caveat names. At 2 rather than 1, with the reservation stated: the one god-state in scope (ex3_over_complex/order_hub/order_hub.py:26-29, where _stamp writes mode, audit_log and dirty on every operation) is behaviour-required, because the module's whole purpose is to BE a god-state fixture (README.md:12) and a fixture that cannot express the property the instrument looks for produces a zero that says nothing -- that is a judgement and I record it as one. What keeps 2 from being comfortable is one fact stored THREE times and kept in agreement by hand: the rejection vocabulary is a literal collection at reference/quota_ledger.py:34-41, again at reference_ports/domain.py:28-35 (whose comment says `unchanged from the flat reference`), and a third time at tests/test_behavior.py:285-292, where the test that exists to police the vocabulary compares against its own private copy rather than either module's REJECTION_REASONS, so drift in either module would not be seen by the test named for it. The same shape appears in the tooling: DIMS is declared at score_tools.py:127 and again at architecture_tags.py:65, and the judge tier is derived twice -- carefully at score_tools.py:1010-1023 (three tiers, None on ambiguity) and inline at architecture_tags.py:274 (two tiers, `?` otherwise). THE TWO COPIES HAVE ALREADY DIVERGED: a haiku judge is a tier to one and a `?` to the other, whose tiers_measured loop is hardcoded to (opus, sonnet). score_tools already loads architecture_tags as a module (score_tools.py:269-279), so the duplication is not forced by packaging. Rule 4, said out loud: the docstrings in this tree are the best-argued I have read and several argue for a design decision rather than evidencing it; I scored the code.",
+      "refuses_to_claim": "I do not claim the 14,207-line figure is proportionate as a whole -- I checked duplication and god-state at the cited sites and did not audit all 85 modules; and I do not claim the artifact is unable to reach 3, only that nothing I can reach records a before.",
+      "read_first": "Diff the two trees yourself and decide whether one fact is stored twice \u2014 kept in agreement by hand across several write sites, and read in one place. Where a measured complexity descriptor exists you may read it, and on its own it decides nothing; where none exists that is not a gap in the evidence.",
+      "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 requires the judge to say *what got simpler and how the behavior survived it*."
+    },
+    "D3": {
+      "name": "modularity",
+      "question": "Is it ports and adapters in fact \u2014 domain independent of I/O, adapters swappable?",
+      "anchors": {
+        "0": "No boundary is discernible; state is written from everywhere.",
+        "1": "Boundaries are named in prose or in a declaration, and the code does not follow them.",
+        "2": "The code follows the declared boundaries. Cross-boundary calls go through something identifiable as a port.",
+        "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
+        "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
+      },
+      "score": 2,
+      "citations": [
+        "examples/validation/ab/reference_ports/domain.py:38-58",
+        "examples/validation/ab/reference_ports/quota_ledger.py:24-25",
+        "examples/validation/ab/reference_ports/quota_ledger_fake.py:37-38",
+        "examples/validation/ab/check_catalogue.py:174-180",
+        "examples/validation/ab/reference_ports/README.md:3-6",
+        "examples/validation/scorecards/architecture_tags.py:63",
+        "examples/validation/scorecards/architecture_tags.py:121-135",
+        "examples/validation/scorecards/architecture_tags.py:268-290",
+        "examples/validation/scorecards/architecture_tags.py:529-546",
+        "examples/validation/check_twins.py:26-32",
+        "examples/validation/ab/check_catalogue.py:609-631"
+      ],
+      "rationale": "THE ANCHOR-4 EVIDENCE EXISTS, I EXECUTED IT, AND I AM STILL NOT AWARDING IT AT THIS SCOPE. A driven port is declared in the domain's own vocabulary (domain.py:38-58), two implementations satisfy it, and two composition points hand one or the other to the identical ReservationBook (quota_ledger.py:24-25, quota_ledger_fake.py:37-38). I ran six expected-value cases of my own through both wirings: my DOMAIN fault died on BOTH with the same case, and my two ADAPTER faults died on exactly one wiring each -- the fake-adapter fault survived the real wiring and the real-adapter fault survived the fake one. That is evidence about what CALLS what at runtime, which is what the caveat asks for, and it satisfies anchor 4's letter for that subtree. I take the lower anchor for one reason and the artifact supplies it: that subtree is a FIXTURE and it is 5 modules of the 85 in the declared scope. Its own first line says `THIS IS NOT AN ARM ... It is a fixture` (reference_ports/README.md:3-6, :66), and scope_drift() at architecture_tags.py:529-546 exists because a card once scored D3 = 4 with every citation pointing at a fixture; awarding 3 or 4 to examples/validation on the strength of ab/reference_ports would be that card again. At the declared scope the artifact's own domain -- the harness's scoring, deriving and checking logic -- DOES import and perform its I/O with no port: architecture_tags.py names its instrument as a path constant (:63) and shells out to it with subprocess.run in the same module that computes the tag (:121-135), and reads every card off disk in the function that builds the rows it computes over (:268-290). Pointing that derivation at a different instrument or card store means editing the module that derives; there is no seam to substitute one at. The same holds for score_tools.py and check_catalogue.py. There is a real functional-core discipline (derive, check, contested_of, verdict, scope_drift are pure over plain dicts) and it is worth recording, but a pure function inside an effectful module is not an adapter that could be replaced without touching the domain. Anchor 2 is fully satisfied and that is a result rather than a consolation: the boundaries this artifact declares are followed AND EXECUTED -- check_twins.py:26-32 digests the five files the twins must share and fails on drift; check_catalogue.py:609-631 checks ADAPTER_IMPLEMENTATIONS in BOTH directions so a rename fails there instead of orphaning a declaration; check_catalogue.py:174-180 names the three wirings the one suite is pointed at. What is missing for 3 is not a declaration -- it is that the largest part of the scope has no port to declare. NOTE ALSO, under rule 7: mechanical.json's internal_import_edges disagrees with the tree in both available directions (six ex6_jenga edges where the tree has three, and twin/basename mis-resolutions), which is itself a demonstration of this dimension's caveat. Detailed in Disclosures.",
+      "refuses_to_claim": "I do not claim the harness's pure functions constitute a domain in the anchor's sense, and I do not claim the anchor-4-shaped evidence I executed generalises past the ~200 lines of ab/reference_ports.",
+      "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
+    }
+  },
+  "contested": [],
+  "verdict": "D2 = 2 and D3 = 2 at the declared scope: the harness's own logic is duplicated by hand across modules and performs its I/O in the modules that compute, while the anchor-4-shaped port evidence -- which I executed and which holds -- lives in a 5-module fixture inside the scope, so read this card as 'the fixture is ports-and-adapters and the harness around it is not', and note the disclosed leak (examples/validation/scorecards/subjects.toml:263-267 declares this exact scope's effect boundary, and :233-236 predicts D2 bounded at 2 for it) before comparing this card with any other.",
+  "judging_practice": {
+    "executed_own_faults": true,
+    "what_was_run": [
+      "Copied examples/validation/ab/reference_ports/ to a scratch directory; the repository was never written to.",
+      "Wrote my own probe -- six expected-value cases of my own, not the artifact's suite and not pytest -- and ran it through BOTH composition points (quota_ledger, quota_ledger_fake).",
+      "Seeded JF-1, a DOMAIN fault: commit stops adding the reserved amount to the running total. Result: KILLED on both wirings by the same case.",
+      "Seeded JF-2, a FAKE-adapter fault: InMemoryJournal.lines() reverses order. Result: KILLED through the fake wiring, SURVIVED the real wiring.",
+      "Seeded JF-3, a REAL-adapter fault: FileJournal.lines() reverses order. Result: KILLED through the real wiring, SURVIVED the fake wiring.",
+      "Seeded JF-4, a REAL-adapter fault: append/lines stop touching the filesystem and keep the record on the instance. Result: SURVIVED every case on BOTH wirings.",
+      "Ran a durability read that does not go through the adapter: under JF-4 the port reports ['COMMIT acme 3 3'] while the ledger file on disk is empty.",
+      "Ran a control with no fault seeded: green on both wirings, so the six cases are valid.",
+      "Read by hand the import statements of ex5_pipeline_divergent/pipeline/**, ex6_jenga/hub/** and runs/ex2-run4/artifacts/providers.py and compared them against mechanical.json's internal_import_edges.",
+      "Diffed runs/ex2-run1/artifacts/descriptor_before.txt against descriptor_after.txt to test whether the scope contains a recorded before/after simplification.",
+      "DID NOT run: the repository's test suite, check_catalogue.py, check_twins.py, score_tools.py check, or any pytest."
+    ]
+  },
+  "notes": {
+    "N-D1": {
+      "name": "bug detection",
+      "question": "What did the cases catch, and what class did they demonstrably miss? Name the fault you seeded if you seeded one.",
+      "note": "I seeded four faults of my own and ran them, so this note is measured rather than read. CAUGHT: the expected-value cases catch a domain fault on both sides of the port (JF-1, commit dropping the running total, killed by my running-total case on both wirings; the assertion shape is test_behavior.py:112-137), and they catch an ordering fault in WHICHEVER adapter the composition point actually wires in (JF-2 on the fake, JF-3 on the real). The pair is the artifact's own claim and it holds: the difference between the two rows is the size of the region the port creates. DEMONSTRABLY MISSED -- DURABILITY: JF-4, a FileJournal that stops touching the filesystem altogether and keeps the record on the instance, SURVIVED every case on BOTH wirings, and my out-of-band read showed the port reporting ['COMMIT acme 3 3'] while the ledger file on disk was empty. The port's declared job is 'a record that outlives the run' (domain.py:41-43) and no case in this tree reads that record by any route other than the adapter that wrote it -- ledger_lines() is the only observer (test_behavior.py:119, :192, :277-281). So the real adapter's one distinguishing property against the fake, persistence, is unverified, and a 'real' adapter that is secretly a second fake passes as the real one. This class is distinct from adapter_internal as the catalogue defines it (check_catalogue.py:121-134): the fault is INSIDE the real adapter and still invisible, because the oracle never leaves the adapter. Recorded but not executed by me: check_integrity asserts each find occurs exactly once, that apply/revert is byte-identical and that the mutant still parses (check_catalogue.py:469-543), and --demonstrate runs deliberately broken controls that each declare the verdict the probe must return, so the probe ships with a demonstrated failing input (check_catalogue.py:1217-1232).",
+      "citations": [
+        "examples/validation/ab/tests/test_behavior.py:112-137",
+        "examples/validation/ab/tests/test_behavior.py:284-301",
+        "examples/validation/ab/reference_ports/journal_file.py:32-38",
+        "examples/validation/ab/reference_ports/domain.py:41-43",
+        "examples/validation/ab/check_catalogue.py:469-543",
+        "examples/validation/ab/check_catalogue.py:1217-1232"
+      ]
+    },
+    "N-D4": {
+      "name": "behavior preservation",
+      "question": "Which behaviors of the baseline did you enumerate, and is each shown still to hold? If there is no baseline, say so \u2014 that is the answer, not a gap in the note.",
+      "note": "THERE IS NO BASELINE FOR THIS ARTIFACT AND I WAS NOT GIVEN ONE. examples/validation has no before tree in my scope, mechanical.json carries no `before` block, and I cannot reach one. So 'which behaviours of the baseline are shown still to hold' has no subject at the scope I am scoring, and that is the answer rather than a gap in the note. What I could do instead, I did. Inside the scope there is one checkable claim of behavioural identity: domain.py:8-12 asserts that the ported reference is reference/quota_ledger.py's behaviour 'statement for statement'. I enumerated six behaviours from the feature -- reserve holds the amount and writes nothing; commit moves the hold and writes one line carrying the running total; running totals accumulate; the ledger is append-only and ordered across tenants; close_tenant refuses while a reservation is outstanding (the cross-aspect guard); a rejection names a declared reason and changes nothing -- and ran all six through both composition points. All six passed identically on both, and my domain fault broke the same case on both, so the two wirings are demonstrably the same domain. I did NOT compare either against the flat reference/ tree, so the 'statement for statement' claim against the flat tree is unchecked by me. The artifact does mechanise preservation where it has a baseline of its own: check_twins.py:26-32 digests the five files the twins must share, and check_catalogue.py:838-853 voids a whole column of results if the suite is not green on the unmutated tree first, so a kill cannot predate the mutant. Note also that the one before/after pair in the scope is not a preservation record: descriptor_before.txt:44 and descriptor_after.txt:44 show Q rising 0.170 -> 0.187 because the after-spec gained an action.",
+      "citations": [
+        "examples/validation/check_twins.py:26-32",
+        "examples/validation/ab/check_catalogue.py:174-180",
+        "examples/validation/ab/check_catalogue.py:838-853",
+        "examples/validation/ab/reference_ports/domain.py:8-12",
+        "examples/validation/runs/ex2-run1/artifacts/descriptor_before.txt:44",
+        "examples/validation/runs/ex2-run1/artifacts/descriptor_after.txt:44"
+      ]
+    },
+    "N-D5": {
+      "name": "honesty",
+      "question": "Does the artifact refuse rather than falsely certify, and does it name what it cannot see? Point at the refusal, or at its absence.",
+      "note": "Yes, and at a density I have not seen before -- the refusals are in code and in constants, not only in prose. It refuses to certify: --controls reports BROKEN / INERT / OUT_OF_REGION and converts none of them into anything (check_catalogue.py:86-88), and a control measured INERT is KEPT in the catalogue saying so rather than deleted to keep a count tidy (:576-580). architecture_tags.py:84-89 prints that its own STATE_COLOCATION_MAX threshold IS NOT MEASURED and that no artifact near it has ever been seen; :326-329 lists three things its demonstration table cannot see. score_tools.py:437-444 says of its own leak detector 'THIS IS A BACKSTOP AND IT IS NOT THE MECHANISM ... This list cannot be complete', and :36-38 records that its own `scope` command exits 1 on this repository's record and calls that a demonstrated failing input rather than a defect. check_catalogue.py:778-781 labels its architectural-vocabulary probe 'a vocabulary probe, not a semantic judgement' and names what it cannot detect. reference_ports/README.md:68-77 refuses three claims the tree could easily have made, including that its four-line fake is evidence anybody WOULD have reached the blind region. The sharpest instance is subjects.toml:155-165, which declines to rewrite a predecessor's stale figure to match the current file and files the discrepancy as a finding instead. That same file also discloses a live leak in its own instrument (see Disclosures in scorecard.md); disclosing it is honest and it does not stop the leak from having reached me. TWO PLACES WHERE THE REFUSAL IS THINNER: the durability blind spot I measured in N-D1 is not named anywhere I found -- the tree names the region a port CREATES (reference_ports/README.md:24) but not that its real adapter's defining property is unasserted; and mechanical.json's import-edge block asserts edges that do not exist in the tree, which is a measurement stated with more confidence than it has earned, though rule 7 puts that block outside the score.",
+      "citations": [
+        "examples/validation/ab/reference_ports/README.md:68-77",
+        "examples/validation/scorecards/architecture_tags.py:84-89",
+        "examples/validation/scorecards/architecture_tags.py:326-329",
+        "examples/validation/scorecards/score_tools.py:437-444",
+        "examples/validation/scorecards/score_tools.py:36-38",
+        "examples/validation/ab/check_catalogue.py:86-88",
+        "examples/validation/ab/check_catalogue.py:576-580",
+        "examples/validation/ab/check_catalogue.py:778-781",
+        "examples/validation/scorecards/subjects.toml:155-165"
+      ]
+    }
+  }
+}

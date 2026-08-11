@@ -2547,6 +2547,64 @@ prints both.
 # A tag can never reduce the set of printed numbers; it can only add a word
 # beside two of them.
 
+# --------------------------------------------------------------------------
+# RM-04 SETTLES `RM-06-DF-02`, AND THE ROW'S DECLARED NUMBERS DO NOT CHANGE.
+#
+# The standing violation was `declares ranges {effectful [1,2]}; the cards give
+# {effectful [0,2]}` -- present at `2c0d94e`, at `95b2c79` and after RM-02, the
+# same one throughout. RM-06 proved the row is SCOPED, NOT WRONG: re-derived
+# over the 49 cards sealed before `reading-discipline`, which is RD-04's own
+# population, the declaration reproduces EXACTLY. What moved is the card
+# population underneath it. RM-06 repaired the row and the owner reverted the
+# repair, correctly: a table edited into agreement with whatever the record
+# happens to say certifies itself and is not a control.
+#
+# WHAT THE ROW SHOULD DECLARE, AND IT IS NOT `[0, 2]`.
+#
+# 1. THE EVIDENCE IS THAT `ranges` AND `tiers_measured` GRANT NOTHING. Refusal
+#    authority is computed by `architecture_tags.authority()`, which keys on
+#    `(dimension, {value, value})` and admits an entry if and only if
+#    `separates` is true. `verdict()` then reads the RE-DERIVED entry, not this
+#    declaration -- including the `tiers measured` it prints in its reason.
+#    Neither field is read by anything that can refuse a comparison.
+#    RM-06's stated reason for reverting was that agreeing with the cards
+#    "would silently widen what the axis is allowed to refuse a comparison on,
+#    from one tier to two and from 1-2 to 0-2". IT WOULD NOT. The refusal set
+#    is `(D3, {effectful, ports-and-adapters})` at both populations, identical,
+#    because `separates` is true at both. Filed as `RM-04-DF-03`.
+#
+# 2. AND THEY CANNOT BE PINNED, which is why this is a REMOVAL and not a new
+#    field. Every other re-derived declaration in this ledger names a FIXED
+#    population: `[[movement]]` names `from_card` and `to_card`;
+#    `[[contested]]` names one judge group. Neither can go stale, because the
+#    thing it is about cannot grow. `[[demonstration]].ranges` is a figure over
+#    an OPEN population -- every future card of this example moves it -- so it
+#    is a statement about how many cards happen to exist, re-affirmed forever,
+#    with no measurement in any of the re-affirmations. One lap of that
+#    treadmill has already been run and reverted.
+#
+# WHAT STAYS LIVE IS THE HALF THAT WAS EVER LOAD-BEARING. `separates`,
+# `dimension` and `example` are still re-derived from the cards on every
+# `audit`, and a row the cards no longer support is still a VIOLATION. If a
+# future card of this example lands `effectful` at 4, disjointness fails,
+# `separates` comes back false and the authority falls -- which is exactly what
+# the anti-staleness half exists for and is untouched here. `audit` also still
+# PRINTS the live ranges, the population values and the live tiers on its OK
+# line, so a reader sees today's figures without this file asserting them.
+#
+# RD-04's figures are neither deleted nor rewritten: they move into `why`
+# below, WITH THE POPULATION THEY WERE MEASURED OVER NAMED BESIDE THEM. That is
+# `R3` applied to a row that never carried its scope.
+#
+# REJECTED: re-declaring `ranges = { effectful = [0, 2] }` and
+# `tiers_measured = ["opus", "sonnet"]`. That repairs the row by re-deriving it
+# from the current record, it is what the owner reverted, and it buys a field
+# that refuses nothing.
+# REJECTED: adding a `measured_over` field so `audit` re-derives the ranges at
+# a declared population. It works. It is also a new mechanism, in an epic whose
+# stopping rule is that adoption requires less, for a field that grants nothing.
+# --------------------------------------------------------------------------
+
 [[demonstration]]
 id = "effect_boundary-ab_quota_ledger-D3-effectful-vs-ports-and-adapters"
 axis = "effect_boundary"
@@ -2554,11 +2612,20 @@ example = "ab_quota_ledger"
 dimension = "D3"
 values = ["effectful", "ports-and-adapters"]
 separates = true
-ranges = { effectful = [1, 2], "ports-and-adapters" = [4, 4] }
-tiers_measured = ["opus"]
 found_by = "RD-04"
 implemented_by = "RD-05"
+settled_by = "RM-04"
 why = """
+THE RANGES AND TIERS THIS ROW USED TO DECLARE, WITH THEIR POPULATION NAMED.
+Over the 49 cards sealed before `reading-discipline` -- the population RD-04
+measured and RD-05 shipped -- `effectful` is [1, 2], `ports-and-adapters` is
+[4, 4], and `tiers_measured` is ["opus"]. Those figures are true of that
+population and of no wider one. `tests/test_architecture_tags.py::
+test_the_committed_demonstration_re_derives_from_the_cards` executes them
+against exactly those 49 cards, so the statement cannot drift and the control
+RM-06 identified is kept as an executed assertion rather than as a field that
+has to be re-affirmed every time a card is written.
+
 THE ONE SEPARATION IN THE RECORD, AND FOUR PREDICTIONS THAT FAILED TO JOIN IT.
 Over 34 cards of `ab_quota_ledger` — eight rounds, all three card versions —
 the 24 cards whose subject derives `effectful` score D3 in 1–2 and the 10 whose
@@ -2718,3 +2785,107 @@ would have to decide whether a hand-written generated random walk is "a corpus"
 within the meaning of the anchor, and that is a change to the card, not a
 re-reading of the artifact.
 """
+
+# ---------------------------------------------------------------------------
+# RM-04. THE FIRST ROUND ON A SUBJECT THAT IS NOT `ab_quota_ledger` AND NOT A
+# HAND-BUILT FIXTURE, AND EVERY ARTIFACT IN IT TIER-SPLIT ON BOTH DIMENSIONS.
+#
+# Three artifacts of the example `eval_toolchain`, two judges each, one `opus`
+# and one `sonnet`. `contested` fires once -- the D3 spread of 2 on `GG` -- and
+# `third_pass = "none"`, recorded rather than left silent.
+#
+# THE TIER SPLITS ARE NOT RECORDED HERE AS `[[contested]]` because a tier split
+# is not a spread and R-H6 keeps them apart: five of the six dimension-artifact
+# cells split by tier at spread 1, which `contested` reports and rule 5 does
+# not reach. `score_tools.py contested` prints all six. They are read in
+# `specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/RESULT.md`.
+# ---------------------------------------------------------------------------
+
+[[contested]]
+id = "rm04-GG-d3-spread-2"
+round = "portable-substrate-rm04-GG"
+example = "eval_toolchain"
+arm = "GG"
+dimension = "D3"
+spread = 2
+scores = [2, 4]
+third_pass = "none"
+found_by = "RM-04"
+why = """
+THE TWO JUDGES SCORED DIFFERENT SUBTREES OF ONE DECLARED SCOPE, and they both
+said so. The scope is `examples/validation`, 85 code modules. `opus` scored 2
+and named the reason in as many words: the anchor-4-shaped evidence holds "only
+for `ab/reference_ports`, 5 modules of 85", and it took the LOWER anchor citing
+the artifact's own `scope_drift()` and `reference_ports/README.md:3` -- "THIS IS
+NOT AN ARM ... It is a fixture." `sonnet` scored 4 on that same 5-module
+subtree, having explicitly rejected averaging over the heterogeneous 85.
+
+SO THIS IS RD-04'S FINDING REPRODUCED ON A NEW EXAMPLE. `toolchain_removal`'s
+D3 spread of 2 was four judges scoring three different subjects of one
+undeclared scope; this is two judges scoring two different subtrees of one
+DECLARED scope. Declaring the scope did not remove the disagreement -- it moved
+it inside the declaration, where `scope_drift()` cannot see it because every
+citation is inside the declared paths. Filed as `RM-04-DF-04`.
+
+`third_pass = "none"`. Rule 5's remedy has never been applied to anything in
+this repository, and running one here would be a measurement made during a
+measurement. It is recorded rather than performed, which is what the card calls
+the legal answer.
+
+IT IS ALSO A CLEAN TIER SPLIT -- `opus` [2] against `sonnet` [4], disjoint --
+and it is one of SIX. Every one of the three artifacts split on BOTH D2 and D3.
+"""
+
+# --- sealed digests appended by `score_tools.py seal` ---
+
+[[sealed]]
+path = "specs/results/scorecards/portable-substrate-rm04-GG/eval_toolchain/20260810-rm04-GG-p1/scorecard.json"
+sha256 = "sha256:bc694d94b742f20f"
+
+[[sealed]]
+path = "specs/results/scorecards/portable-substrate-rm04-GG/eval_toolchain/20260810-rm04-GG-p1/scorecard.md"
+sha256 = "sha256:28a4a9c8c40535b4"
+
+[[sealed]]
+path = "specs/results/scorecards/portable-substrate-rm04-GG/eval_toolchain/20260810-rm04-GG-p2/scorecard.json"
+sha256 = "sha256:a6a98a1bf9318e1d"
+
+[[sealed]]
+path = "specs/results/scorecards/portable-substrate-rm04-GG/eval_toolchain/20260810-rm04-GG-p2/scorecard.md"
+sha256 = "sha256:30023b24ce10869b"
+
+# --- sealed digests appended by `score_tools.py seal` ---
+
+[[sealed]]
+path = "specs/results/scorecards/portable-substrate-rm04-LL/eval_toolchain/20260810-rm04-LL-p1/scorecard.json"
+sha256 = "sha256:17a7046cd9a0d44e"
+
+[[sealed]]
+path = "specs/results/scorecards/portable-substrate-rm04-LL/eval_toolchain/20260810-rm04-LL-p1/scorecard.md"
+sha256 = "sha256:33b5fa5eec275320"
+
+[[sealed]]
+path = "specs/results/scorecards/portable-substrate-rm04-LL/eval_toolchain/20260810-rm04-LL-p2/scorecard.json"
+sha256 = "sha256:c8b3b33c5a550e5a"
+
+[[sealed]]
+path = "specs/results/scorecards/portable-substrate-rm04-LL/eval_toolchain/20260810-rm04-LL-p2/scorecard.md"
+sha256 = "sha256:19025e76bc2231f3"
+
+# --- sealed digests appended by `score_tools.py seal` ---
+
+[[sealed]]
+path = "specs/results/scorecards/portable-substrate-rm04-JJ/eval_toolchain/20260810-rm04-JJ-p1/scorecard.json"
+sha256 = "sha256:6dfaa428709a336f"
+
+[[sealed]]
+path = "specs/results/scorecards/portable-substrate-rm04-JJ/eval_toolchain/20260810-rm04-JJ-p1/scorecard.md"
+sha256 = "sha256:43728f82fe96c6dc"
+
+[[sealed]]
+path = "specs/results/scorecards/portable-substrate-rm04-JJ/eval_toolchain/20260810-rm04-JJ-p2/scorecard.json"
+sha256 = "sha256:d76e7807dfbb9546"
+
+[[sealed]]
+path = "specs/results/scorecards/portable-substrate-rm04-JJ/eval_toolchain/20260810-rm04-JJ-p2/scorecard.md"
+sha256 = "sha256:4290fd169162a7e0"

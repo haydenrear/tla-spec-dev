@@ -32,6 +32,30 @@ TAGS = REPO_ROOT / "examples/validation/scorecards/architecture_tags.py"
 TOOL = REPO_ROOT / "examples/validation/scorecards/score_tools.py"
 SCORECARDS = REPO_ROOT / "specs/results/scorecards"
 
+#: THE 49 CARDS SEALED BEFORE `reading-discipline` -- RD-04's population, and
+#: the one every claim about the shipped `[[demonstration]]` row is measured
+#: over. NAMED POSITIVELY AND ON PURPOSE.
+#:
+#: RM-04: this was `r["round"] != "reading-discipline"` in three places, which
+#: is not a fixed population at all -- it is "everything that is not that one
+#: round", so it GREW the moment any later round sealed a card, and RM-04's six
+#: took it to 55. That is the identical open-population error RM-04 diagnosed in
+#: the ledger row these very tests are about: a figure whose denominator moves
+#: is a statement about how many cards happen to exist. Naming the rounds closes
+#: it, and a round added later cannot silently join a sealed population.
+SEALED_BEFORE_RD = frozenset({
+    "architectural-coherence",
+    "falsifiable-instruments-rescore-v1",
+    "falsifiable-instruments-rescore-v2",
+    "hexagonal-prompting",
+    "hexagonal-prompting-rerun",
+    "ports-as-adapters",
+    "subtract-to-measure-sm04-rescore-v2",
+    "subtract-to-measure-sm04-rescore-v3",
+    "subtract-to-measure-sm05",
+    "subtract-to-measure-sm05-greenfield",
+})
+
 TOOLCHAIN = "subtract-to-measure-sm05/toolchain_removal"
 
 
@@ -331,7 +355,7 @@ def test_a_null_verdict_that_could_not_have_come_out_otherwise_is_marked(
     assert live["D2"]["population_values"] == [2, 3, 4], live["D2"]
 
     # 2. the same rule, still firing, on the 49 cards RD-04 measured.
-    sealed = [r for r in world["rows"] if r["round"] != "reading-discipline"]
+    sealed = [r for r in world["rows"] if r["round"] in SEALED_BEFORE_RD]
     assert len(sealed) == 49, len(sealed)
     before = {e["dimension"]: e for e in
               at.demonstration_table(sealed, world["derived"], world["subjects"])
@@ -465,6 +489,13 @@ def test_a_scaffolded_scope_is_declared_before_scoring_and_a_moved_one_is_refuse
     before any judge is dispatched, and `check` refuses a card whose scope no
     longer matches. That reuses the machinery that already refuses a second
     scaffold over a measurement; it invents nothing.
+
+    **RM-04: A BLINDED CARD RESOLVES BY SCOPE, NOT BY NAME**, because
+    `subject.name` was a real arm identity in the file the judge is handed --
+    RM-03 shipped cards labelled `T` reading `arm_b` and `ports-and-adapters`.
+    A5's defence is that the scope was DECLARED BEFORE SCORING AND HAS NOT
+    MOVED, and that is exactly what is asserted below; the name was never the
+    part doing the work.
     """
 
     epic = tmp_path / "round"
@@ -474,19 +505,37 @@ def test_a_scaffolded_scope_is_declared_before_scoring_and_a_moved_one_is_refuse
     cards = sorted(epic.rglob("scorecard.json"))
     assert cards
     card = json.loads(cards[0].read_text())
-    assert card["subject"]["name"] == "arm_b"
+    # blinded: the scope, and nothing that identifies it or pre-answers D3
+    assert card["subject"]["blinded"] is True
+    assert card["subject"]["name"] is None, card["subject"]
+    assert "declared_effect_boundary" not in card["subject"], card["subject"]
     assert card["subject"]["scope"] == [
         "specs/results/scorecards/ports-as-adapters/blind/artifact_T"]
     assert card["status"] == "unfilled", "the scope is fixed before the numbers exist"
     problems, _ = st.check(card, str(cards[0]))
     assert problems == [], problems
 
-    card["subject"]["scope"] = ["scripts"]
+    # A5, unchanged: a scope that moved is refused, resolved by the scope itself
+    card["subject"]["scope"] = ["examples/validation/ab/eval"]
     problems, _ = st.check(card, str(cards[0]))
+    assert any("matches no scope declared in subjects.toml" in p for p in problems), problems
+
+    # and an UNBLINDED card still resolves by name, with the old refusals intact
+    epic2 = tmp_path / "unblinded"
+    assert st.main(["scaffold", str(epic2), "--example", "ab_quota_ledger",
+                    "--arms", "A", "--judges", "1", "--subject", "arm_b",
+                    "--run-date", "20260808", "--unblinded",
+                    "--reason", "A5 regression check"]) == 0
+    path2 = sorted(epic2.rglob("scorecard.json"))[0]
+    card2 = json.loads(path2.read_text())
+    assert card2["subject"]["name"] == "arm_b"
+    assert card2["subject"]["declared_effect_boundary"] == "ports-and-adapters"
+    card2["subject"]["scope"] = ["scripts"]
+    problems, _ = st.check(card2, str(path2))
     assert any("THE SCOPE MOVED" in p for p in problems), problems
 
-    card["subject"] = {"name": "not_a_subject", "scope": ["scripts"]}
-    problems, _ = st.check(card, str(cards[0]))
+    card2["subject"] = {"name": "not_a_subject", "scope": ["scripts"]}
+    problems, _ = st.check(card2, str(path2))
     assert any("is not declared in subjects.toml" in p for p in problems), problems
 
 
@@ -515,7 +564,7 @@ def test_a_card_with_no_subject_is_legal_and_is_every_sealed_card(at, world) -> 
     exception it has always been.
     """
 
-    sealed_before_rd05 = [r for r in world["rows"] if r["round"] != "reading-discipline"]
+    sealed_before_rd05 = [r for r in world["rows"] if r["round"] in SEALED_BEFORE_RD]
     assert len(sealed_before_rd05) == 49, len(sealed_before_rd05)
     assert [r["key"] for r in sealed_before_rd05 if r["declared_subject"]] == [], (
         "a card sealed before RD-05 grew a subject field"
@@ -544,50 +593,72 @@ def test_a_card_with_no_subject_is_legal_and_is_every_sealed_card(at, world) -> 
 def test_the_committed_demonstration_re_derives_from_the_cards(st, at, world) -> None:
     """R-H1's third clause over the shipped ledger: OK, and no violation.
 
-    **THIS TEST IS DELIBERATELY RED (`RM-06`, group 2). DO NOT MAKE IT GREEN
-    HERE.**
+    **`RM-06-DF-02` IS SETTLED HERE AND THE ROW'S NUMBERS DID NOT CHANGE.**
 
-    The other five failures in this file are assertions pinned to a corpus that
-    grew. This one is not: it is the check that re-derives a DECLARED REFUSAL
-    AUTHORITY against the cards, and the declaration is now wrong. The ledger's
-    one `[[demonstration]]` row says `effectful = [1, 2]` and `tiers_measured =
-    ["opus"]`; the 73 cards give `[0, 2]` and `["opus", "sonnet"]`.
+    RM-06 left this red and proved why: the declaration `effectful = [1, 2]`,
+    `tiers_measured = ["opus"]` re-derives EXACTLY over the 49 cards sealed
+    before `reading-discipline`, which is RD-04's own population. **The row is
+    scoped, not wrong.** What moved underneath it is the card population.
 
-    RM-06 repaired that row and then REVERTED the repair on the epic owner's
-    instruction, which is recorded here because it is the whole distinction this
-    ticket turns on. Editing the declaration into agreement with the cards would
-    make the row certify whatever the record happens to say — it would no longer
-    be a control, and it would silently widen what the axis is allowed to refuse
-    a comparison on, from one tier to two and from `1–2` to `0–2`. That decision
-    belongs with RM-04's `state_colocation` threshold work, not with a
-    baseline-restoration ticket. `RM-06-DF-02`.
+    RM-04's settlement is a REMOVAL and it is argued from what the code reads,
+    not from what would be convenient:
 
-    THE ROW IS NOT WRONG, IT IS SCOPED — and that is asserted rather than
-    asserted-about. Re-derived over the 49 cards sealed before
-    `reading-discipline`, which is RD-04's own population, the declaration
-    reproduces EXACTLY. What moved is the card population underneath it.
+    * `architecture_tags.authority()` admits an entry if and only if
+      `separates` is true, and keys it on `(dimension, {value, value})`.
+      `verdict()` reads the RE-DERIVED entry, including its `tiers_measured`.
+      **Nothing reads the DECLARED `ranges` or `tiers_measured` to refuse
+      anything**, so agreeing with the cards would not have widened the
+      authority and neither does dropping them. That is `RM-04-DF-03`, and it
+      is asserted below rather than believed.
+    * Every other re-derived declaration in the ledger names a FIXED
+      population — `[[movement]]` names two cards, `[[contested]]` names one
+      judge group — so neither can go stale. `ranges` is a figure over an OPEN
+      population and can only be re-affirmed forever.
+
+    So the two fields are gone from the row, RD-04's figures move into its
+    `why` with their population named, and **the control RM-06 identified is
+    kept HERE, as an executed assertion at a population that cannot grow.**
     """
 
     log = st.load_log(SCORECARDS)
     assert log["demonstrations"], "the ledger declares no `[[demonstration]]`"
+    declared = log["demonstrations"][0]
 
-    # The declaration, re-derived at the population it was measured over.
-    sealed = [r for r in world["rows"] if r["round"] != "reading-discipline"]
+    # THE CONTROL, and it is the whole reason this test still exists. RD-04's
+    # figures, at RD-04's population, pinned as literals. This population is
+    # sealed and cannot grow, so a future card cannot move these numbers -- and
+    # if someone silently re-scopes the row, this fails.
+    sealed = [r for r in world["rows"] if r["round"] in SEALED_BEFORE_RD]
+    assert len(sealed) == 49, len(sealed)
     row = next(e for e in at.demonstration_table(
         sealed, world["derived"], world["subjects"]) if e["separates"])
-    declared = log["demonstrations"][0]
     assert row["id"] == declared["id"], (row["id"], declared["id"])
-    assert row["ranges"] == {k: list(v) for k, v in declared["ranges"].items()}
-    assert row["tiers_measured"] == list(declared["tiers_measured"])
+    assert row["ranges"] == {"effectful": [1, 2], "ports-and-adapters": [4, 4]}, row["ranges"]
+    assert row["tiers_measured"] == ["opus"], row["tiers_measured"]
+
+    # AND THE ROW NO LONGER DECLARES THEM. A row that declared them would have
+    # to be re-affirmed against every future card of this example, which is the
+    # treadmill `RM-06-DF-02` is about.
+    assert "ranges" not in declared, declared
+    assert "tiers_measured" not in declared, declared
+
+    # `RM-04-DF-03`: the dropped fields grant nothing. Refusal authority is
+    # computed from `separates` alone, and it is unchanged between RD-04's
+    # 49-card population and the whole record.
+    entries_49 = at.demonstration_table(sealed, world["derived"], world["subjects"])
+    entries_now = at.demonstration_table(world["rows"], world["derived"], world["subjects"])
+    key = (row["dimension"], frozenset(row["values"]))
+    assert key in at.authority(entries_49)
+    assert key in at.authority(entries_now), (
+        "the separation this row declares no longer holds at the current record; "
+        "that is a real result and `separates` is what must be re-decided, not "
+        "the ranges beside it"
+    )
 
     findings = st.audit_rh1_architecture(
         {"root": SCORECARDS, "demonstrations": log["demonstrations"]})
     violations = [m for level, m in findings if level == st.VIOLATION]
-    assert violations == [], (
-        f"{violations} -- EXPECTED RED. The declared authority no longer matches "
-        f"the 73-card record and settling it is RM-04's, not this ticket's. See "
-        f"this test's docstring and RM-06-DF-02."
-    )
+    assert violations == [], violations
     assert any(level == st.OK and "SEPARATES re-derived" in m for level, m in findings)
 
 

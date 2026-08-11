@@ -1,0 +1,173 @@
+{
+  "scorecard_version": 4,
+  "status": "filled",
+  "epic": "portable-substrate-rm04-LL",
+  "example": "eval_toolchain",
+  "run_id": "20260810-rm04-LL-p1",
+  "arm": "LL",
+  "commit": "dd71b11a0282a662f60d7bca0c34671ba9e12235",
+  "judge": {
+    "model": "claude-opus-4",
+    "tier": "",
+    "pass": 1,
+    "blind_to_arm": true
+  },
+  "subject": {
+    "name": null,
+    "blinded": true,
+    "scope": [
+      "scripts"
+    ],
+    "axis": "effect_boundary"
+  },
+  "rubric": {
+    "source": "references/eval_scorecard.md",
+    "digest": "sha256:497c16ca85adeb4a",
+    "scoring_rules": [
+      "**Score artifacts, never claims.** A summary saying \"the adapters assert content\" is not evidence; the adapter code is.",
+      "**Every score ≥ 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
+      "**A score at the top of its scale additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.",
+      "**Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.",
+      "**Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.",
+      "**Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.",
+      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree — and a disagreement is a finding.",
+      "**Say what you ran.** *(New in version 2.)* Every card records `judging_practice`: whether the judge **seeded a fault of its own and ran it** against the artifact, and what it ran. Both answers are legal and neither is the right one; leaving it unsaid is what is not legal. From version 4 no anchor is gated on it and it is still required, because what a judge did is a variable in what a judge reports and a variable nothing records is a variable nobody can subtract.",
+      "**A judge is served the card, never the rubric file.** *(New in version 3.)* The scaffolded `scorecard.md` carries the rubric a judge needs. This file carries reading rules and prior results about these dimensions as well, and a judge who reads it is handed conclusions about the instrument they are the instrument for. Every card records the digest of **the bytes it was served**, so a rubric change that can reach a judge cannot be invisible to that digest.",
+      "**Answer every recorded note.** *(New in version 4.)* N-D1, N-D4 and N-D5 take no score and are required on every filled card. An empty note is not a legal card; *\"I could not tell, and here is what I looked at\"* is."
+    ],
+    "served_digest": "sha256:a213a36770ccab09",
+    "file_sha256": "sha256:cc09f8730d2cc6ad"
+  },
+  "how_to_fill": [
+    "Score the LOWEST anchor the artifact fully satisfies. Torn between two: take the lower and say why.",
+    "Set `status` to \"filled\", `commit` to the sha the artifacts were scored at, and name your model in `judge.model`.",
+    "Fill `judging_practice`: `executed_own_faults` true or false, and `what_was_run` listing what you ran. FALSE IS A LEGAL AND USEFUL ANSWER -- it is recorded, never corrected. Delete the `note` key once you have.",
+    "Leave `anchors` as scaffolded. They are read from the rubric so the bar and the score live in one file; editing them here forks the rubric silently, which is the drift this scaffold exists to remove.",
+    "Answer every entry in `notes`. They take NO score -- these three questions were scored for three versions and the numbers were measured not to mean the same thing twice, so what is asked for is prose and citations. 'I could not tell, and here is what I looked at' is a legal note; an empty one is not."
+  ],
+  "dimensions": {
+    "D2": {
+      "name": "complexity",
+      "question": "Is the design as simple as its behavior requires, and no simpler?",
+      "anchors": {
+        "0": "Complexity is unmeasured, or measured and ignored.",
+        "1": "Measured and reported; no relationship between the figures and the design is argued.",
+        "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
+        "3": "2, **and** a simplification was made and its effect measured — the before and after figures are both recorded."
+      },
+      "score": 1,
+      "citations": [
+        "scripts/code_complexity.py:17",
+        "scripts/code_complexity.py:31",
+        "scripts/effect_conformance.py:1649",
+        "scripts/run_generated_case_adapters.py:1215",
+        "scripts/generate_cases_from_tlc_dump.py:1077",
+        "scripts/generate_python.py:851",
+        "scripts/effect_conformance.py:1764",
+        "scripts/case_modules.py:763",
+        "scripts/generate_cases_from_tlc_dump.py:33",
+        "scripts/testgraph_channels.py:144",
+        "scripts/run_generated_case_adapters.py:51"
+      ],
+      "rationale": "Not 0: this tree's complexity IS measured, by an instrument the tree itself ships, and I reproduced mechanical.json's totals_code_only block exactly by running `python3 scripts/code_complexity.py scripts --json` at HEAD. What the artifact does not do is argue a relationship between the figures and the design, and that is deliberate and stated: code_complexity.py:17 and :31 strip every verdict, comparison and direction from the instrument on purpose, citing MF-020. Anchor 1 describes that state almost word for word. I considered 2 and rejected it on the read-first test. One fact IS stored twice: the sys.path policy applied before adapters are imported is written in two modules that import each other, and the two copies already disagree -- effect_conformance.py:1649 inserts only the roots it was given and returns them, while run_generated_case_adapters.py:1215 silently prepends the skill root as well and returns nothing, under the same name `ensure_import_roots`. `def write(path, content)` is duplicated byte-for-byte across generate_cases_from_tlc_dump.py:1077 and generate_python.py:851. Three module pairs import each other in cycles survivable only because one side hides its import inside a function body (effect_conformance.py:1764, case_modules.py:763, testgraph_channels.py:144). A design whose acyclicity depends on deferring imports to call time is not proportional to its behavior. Torn between 1 and 2 in one respect and I took the lower: module_state is 2 across 20005 code lines, so anchor 2's 'no god-state, no variable written from everywhere' half is genuinely met -- but anchor 2 is a conjunction and the proportionality half fails. 3 is unreachable for a scope fact, not a judgement: THERE IS NO BEFORE TREE. `git diff --stat 82936ef..HEAD -- scripts/` is empty and no commit on this branch touches scripts/, so no simplification was made in this window and mechanical.json carries an `after` block and no `before` block. I am saying that plainly rather than inventing a baseline. Rule 4 disclosure: code_complexity.py's docstring is the most disciplined statement of the MF-020 problem in this tree and it tempted me. It is prose. It moved no score.",
+      "refuses_to_claim": null,
+      "read_first": "Diff the two trees yourself and decide whether one fact is stored twice — kept in agreement by hand across several write sites, and read in one place. Where a measured complexity descriptor exists you may read it, and on its own it decides nothing; where none exists that is not a gap in the evidence.",
+      "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 requires the judge to say *what got simpler and how the behavior survived it*."
+    },
+    "D3": {
+      "name": "modularity",
+      "question": "Is it ports and adapters in fact — domain independent of I/O, adapters swappable?",
+      "anchors": {
+        "0": "No boundary is discernible; state is written from everywhere.",
+        "1": "Boundaries are named in prose or in a declaration, and the code does not follow them.",
+        "2": "The code follows the declared boundaries. Cross-boundary calls go through something identifiable as a port.",
+        "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
+        "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
+      },
+      "score": 1,
+      "citations": [
+        "specs/program_model/spec_manifest.yaml:134",
+        "specs/program_model/spec_manifest.yaml:137",
+        "scripts/effect_conformance.py:14",
+        "scripts/spec_paths.py:69",
+        "scripts/generate_docs.py:20",
+        "scripts/generate_docs.py:31",
+        "scripts/run_kill_test.py:102",
+        "scripts/run_kill_test.py:225",
+        "scripts/tla_spec_dev.py:593",
+        "scripts/effect_conformance_report.py:170",
+        "scripts/infer_action_params.py:872",
+        "scripts/generate_python.py:992",
+        "scripts/export_testgraph_cases.py:174",
+        "scripts/analyze_complexity.py:2361",
+        "scripts/generate_cases_from_tlc_dump.py:3280",
+        "scripts/effect_conformance.py:780",
+        "scripts/effect_conformance.py:815",
+        "scripts/effect_conformance.py:632",
+        "scripts/effect_conformance.py:745",
+        "scripts/code_complexity.py:89"
+      ],
+      "rationale": "Not 0. A boundary is discernible and in places well kept: thin argparse shims delegate to named library functions (start_ticket.py:25, generate_docs.py calling a pure render_docs), spec_paths.py is a genuine shared chokepoint, and module_state of 2 is the opposite of 'state written from everywhere'. Not 2, and I am not torn. Anchor 2 needs the code to FOLLOW the declared boundaries and cross-boundary calls to go through something identifiable as a port. Both fail. The second fails structurally: there is no port object anywhere in scripts/. Effects are performed by direct Path.write_text / open / subprocess.run calls in whatever module owns the logic, and the 'port' exists only as a glob a sandbox matches against observations AFTER the fact by rebinding builtins.open, os, shutil, Path, subprocess and socket process-wide (effect_conformance.py:780, :815). A boundary enforced by monkeypatching the standard library underneath your own code is the inverse of an injected seam; the artifact's own instrument agrees, scoring declared_interfaces 0 over this tree under a definition that explicitly calls that figure 'the code analogue of a declared port' (code_complexity.py:89). The first failure is the one I RAN rather than read, because the D3 caveat asks for evidence about what CALLS what at runtime. spec_paths.py:69 claims the port targets are enforced 'in one place, so the declaration in spec_manifest.yaml is true of every caller'. It is true of two callers. Ten --out flags exist under scripts/; two route through resolve_evidence_out / resolve_spec_tree_out (analyze_complexity.py:2361, generate_cases_from_tlc_dump.py:3280) and eight do not, two of the eight describing their own output as ticket evidence in their help text -- exactly the evidence_report surface (run_kill_test.py:102, tla_spec_dev.py:593). I seeded the corresponding fault and it landed: `generate_docs.py --out <path outside every specs/ tree>` wrote the file and exited 0, while the guard refused the identical path when I called it directly. Declared boundary (spec_manifest.yaml:134-137, restated at effect_conformance.py:14 as 'a port is the only way anything leaves a component'), code does not follow it: anchor 1. Nothing decisive above rests on import topology, per the caveat -- the evidence is a process I ran and a file that appeared where no declared port covers it. For completeness on the upper rungs, 4 is independently unreachable: the tree's only fake, RecordingTransport (effect_conformance.py:632, minted at :745), has no real counterpart and no caller inside the artifact, so no driven port is exercised by both a real adapter and a fake. Rule 4 disclosure: the docstrings in spec_paths.py and effect_conformance.py reason about ports better than most codebases implement them, and reading them alone would have earned a 3. The score is what executing the code showed.",
+      "refuses_to_claim": null,
+      "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
+    }
+  },
+  "contested": [],
+  "verdict": "Route the eight unguarded `--out` write sites (generate_docs.py:20, run_kill_test.py:102, tla_spec_dev.py:593, effect_conformance_report.py:170, infer_action_params.py:872, generate_python.py:992, export_testgraph_cases.py:174) through spec_paths.resolve_evidence_out/resolve_spec_tree_out or declare ports that cover them, and correct the 'true of every caller' claim at spec_paths.py:69 -- a fault I seeded wrote outside every declared port target at exit 0, which is why this scores D3 1 and not 2. DISCLOSED, no arm leak: `git status`, run to confirm I had changed nothing else, showed sibling card PATH NAMES (subjects GG and JJ, two passes each, plus a p2 on LL) which I did not open; nothing maps LL to an arm.",
+  "judging_practice": {
+    "executed_own_faults": true,
+    "what_was_run": [
+      "`python3 scripts/code_complexity.py scripts --json` at HEAD. Its totals_code_only block reproduces mechanical.json exactly -- 31 code modules, 24880 total / 20005 code lines, 762 callables, 3110 branch points, 486 effectful calls across 28 modules, 0 declared interfaces, 31 instance-state names, 2 module-state names, parsed_fraction 1.0. Reproducible at this commit; still not scored (rule 7).",
+      "THE FAULT I SEEDED AND RAN: an undeclared filesystem.write outside every declared port target. `python3 scripts/generate_docs.py examples/effect_providers/atomic_publisher/specs/program_model/spec_manifest.yaml --out <scratchpad>/outside/nowhere/docs.md`, a path outside every specs/ tree, against the spec_tree port's declared target `**/specs/**`. It wrote the file and EXITED 0 with no refusal.",
+      "The control for that fault: in a throwaway interpreter, `spec_paths.resolve_evidence_out()` and `spec_paths.resolve_spec_tree_out()` called on the SAME out-of-tree path. Both raised ('--out must write under a results/ directory', 'case generation must write under a specs/ directory'). The guard works; it is simply not on the call path the fault took.",
+      "`git diff --stat 82936ef..HEAD -- scripts/` and `git log --oneline dbf355c..HEAD -- scripts/` -- both empty. This is how I established scripts/ is byte-identical across the epic and that there is no before tree.",
+      "`python3 scripts/generate_docs.py specs/program_model/spec_manifest.yaml --out ...` -- the toolchain's own program model fails the artifact's own validate_manifest with four missing-key errors (state, commands, results, and package on the example manifests).",
+      "An enumeration of every --out flag under scripts/ (10 sites) cross-referenced against every caller of the two path guards (2 sites), then a read of each of the 8 unguarded write statements.",
+      "NOTHING IN THE REPOSITORY WAS MODIFIED. Every byte written went to the session scratchpad. No test suite was run and no commit was made."
+    ]
+  },
+  "notes": {
+    "N-D1": {
+      "name": "bug detection",
+      "question": "What did the cases catch, and what class did they demonstrably miss? Name the fault you seeded if you seeded one.",
+      "note": "The cases caught nothing about this artifact, because over this artifact there are none. The toolchain's own program model sits at `case_codegen.generation_status: planned` (spec_manifest.yaml:80), its generated-case index stanzas are empty placeholders (:104-106), and the manifest says so itself in the plainest available terms: 'case_codegen.generation_status is still planned, which is the single largest coverage limit in this repository' (:153). So the honest answer to 'what did the cases catch' is: no generated case has ever executed against scripts/, and every claim about this tree's effect behavior rests on hand-written adapter tests outside the declared scope plus reading. I seeded one fault and I name it: AN UNDECLARED filesystem.write OUTSIDE EVERY DECLARED PORT TARGET. I ran a shipped CLI, `python3 scripts/generate_docs.py <a valid manifest> --out <scratchpad path outside any specs/ tree>` (generate_docs.py:20 takes --out as a bare Path, :31 writes it). It wrote the file and exited 0 with no refusal. The class demonstrably missed is therefore port-target violations at unguarded call sites: the declared spec_tree / evidence_report targets are enforced at two of ten --out sites and nothing that exists today would catch the other eight. This is the exact defect class spec_paths.py:59-76 records as already found twice (RC-01 G-2/G-3, then RC-02 N-2 on a new command path); finding it a third time on a third command path is the finding, and it follows directly from the empty case corpus above. A smaller thing fell out while setting the fault up: extract_spec_manifest.validate_manifest (:324) demands keys `state`, `commands`, `results` that the repository's OWN specs/program_model/spec_manifest.yaml does not carry, so generate_docs.py refuses the toolchain's own model with four errors. Legacy-schema manifests elsewhere still pass, so this is validator/schema drift rather than dead code -- but no case notices it.",
+      "citations": [
+        "specs/program_model/spec_manifest.yaml:80",
+        "specs/program_model/spec_manifest.yaml:153",
+        "specs/program_model/spec_manifest.yaml:104",
+        "scripts/generate_docs.py:31",
+        "scripts/extract_spec_manifest.py:324",
+        "scripts/spec_paths.py:59"
+      ]
+    },
+    "N-D4": {
+      "name": "behavior preservation",
+      "question": "Which behaviors of the baseline did you enumerate, and is each shown still to hold? If there is no baseline, say so — that is the answer, not a gap in the note.",
+      "note": "THERE IS NO BASELINE, and that is the answer, not a gap. scripts/ is byte-identical between the commit mechanical.json records (82936ef) and HEAD (dd71b11): `git diff --stat 82936ef..HEAD -- scripts/` is empty and `git log dbf355c..HEAD -- scripts/` is empty, the last commit touching scripts/ being 946b1ee, the previous epic's merge. mechanical.json carries an `after` object at line 13 and no `before` object. There is no before tree to enumerate behaviors from and no after to check them against, which is also why D2 cannot reach 3 -- that anchor requires before AND after figures and only one exists. What I can report instead, because it is a fact and not a substitute for the missing baseline: the one behavior I did enumerate and exercise -- 'an --out path is constrained to the target its declared port covers' -- holds at the two sites that call the guards (spec_paths.py:78 refused my out-of-tree path when invoked directly) and does not hold at the eight that do not (generate_docs.py:31 wrote there at exit 0). That is a statement about the current tree, not about preservation across a change, and I will not dress it up as one.",
+      "citations": [
+        "specs/results/scorecards/portable-substrate-rm04-LL/eval_toolchain/20260810-rm04-LL-p1/mechanical.json:13",
+        "scripts/spec_paths.py:78",
+        "scripts/generate_docs.py:31"
+      ]
+    },
+    "N-D5": {
+      "name": "honesty",
+      "question": "Does the artifact refuse rather than falsely certify, and does it name what it cannot see? Point at the refusal, or at its absence.",
+      "note": "Mostly yes, and unusually so. This tree refuses in the right direction repeatedly. The sandbox states that it 'observes the in-process CPython runtime and nothing else' (effect_conformance.py:23), names JVM/JBang/uv/child-process adapters as invisible to it (:28), and rules that a refused target 'is a FAILURE, not a clean report' (:35). The three recorders that hold refusals, skips and out-of-process evidence are each built with no method to withdraw an entry, and the absence of a clear/waive is documented AS the design (:673, :678, :682) -- the strongest form of this I have seen here. The complexity instrument sets no threshold and no nonzero exit path (code_complexity.py:37), exits 0 on every input and reports an unparseable file as a completeness fact with path and reason rather than a refusal (:42), and names the three ways a sink escapes its effectful_calls figure (:98) while printing 'This figure UNDERCOUNTS by construction' in the report's own definitions block (:728). And the manifest volunteers, unprompted, that its case codegen has never run and that this is its biggest blind spot (spec_manifest.yaml:153). Those are refusals, not certifications. The absence is one sentence, and it matters because it is the sentence a reader would most reasonably rely on. spec_paths.py:69 states the port target is 'constrained HERE, in one place, so the declaration in spec_manifest.yaml is true of every caller rather than true of the documented one'. It is true of the documented one. Eight of ten --out write sites never reach that code, and I demonstrated one writing outside the declared target at exit 0. Everywhere else this artifact names what it cannot see; here it names a property it does not have, in the file whose whole purpose is that property.",
+      "citations": [
+        "scripts/effect_conformance.py:23",
+        "scripts/effect_conformance.py:28",
+        "scripts/effect_conformance.py:35",
+        "scripts/effect_conformance.py:673",
+        "scripts/effect_conformance.py:678",
+        "scripts/effect_conformance.py:682",
+        "scripts/code_complexity.py:37",
+        "scripts/code_complexity.py:42",
+        "scripts/code_complexity.py:98",
+        "scripts/code_complexity.py:728",
+        "scripts/spec_paths.py:69",
+        "specs/program_model/spec_manifest.yaml:153"
+      ]
+    }
+  }
+}

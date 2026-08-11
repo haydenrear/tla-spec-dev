@@ -314,6 +314,14 @@ def test_nothing_in_the_repository_invokes_the_pricer() -> None:
         # kill sets. A mention, not a call: that test runs `removal_census.py`
         # and nothing else.
         "tests/test_removal_census.py",
+        # RM-04: `subjects.toml` names the file in the comment that declares
+        # `rm04_removal_pricer` -- the before/after this round scored D2 on was
+        # 1209 lines of `gap_mutants.toml` + `run_gap_mutants.py` becoming 899
+        # of `price_removal.py` + `altered_score_probe.py` +
+        # `residual_faults.toml`, and a judge cannot check a declared scope
+        # against a description that will not say what is in it. A mention in a
+        # TOML comment; nothing in that file can call anything.
+        "examples/validation/scorecards/subjects.toml",
     }
     unexpected = [h for h in hits if h not in allowed and not h.startswith("specs/")]
     assert unexpected == [], f"something consults the pricer: {unexpected}"

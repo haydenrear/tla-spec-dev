@@ -1,0 +1,160 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "TODO"
+    evidence: "TODO -- path to the pre-change TLC output"
+  tlc_after:
+    status: "TODO"
+    evidence: "TODO -- path to the post-change TLC output"
+  behavior_tests:
+    status: "TODO"
+    evidence: "TODO -- path to the behavior-test output"
+  descriptor_comparison:
+    status: "TODO"
+    evidence: "TODO -- path to the before/after descriptor comparison"
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness REVIEW, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them, and this
+# is the only sweep that looks at it.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# RECORDED, NEVER REFUSING (2026-08-04, owner direction). It was a hard gate at
+# workflow close with no override; it is now an optional agent-run review whose
+# verdict is written down and read by a person. `incomplete` IS STILL NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it --
+# what was withdrawn is the refusal, not the distinction.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    SEARCHED, FOUND NONE, AND THE SEARCH IS THE INTERESTING PART. RM-04 is a
+    measurement round: no TLA+ model is touched, `model_delta_expectation` is
+    `none expected`, and no state-machine representation changed, so there is
+    no refinement of a model to find. The refinement question was asked instead
+    of the two INSTRUMENTS this ticket did change, and both times the answer
+    was to remove rather than to refine.
+
+    (1) `[[demonstration]].ranges` and `.tiers_measured`: the refinement on
+    offer was a `measured_over` field so `audit` could re-derive them at a
+    declared population. It works. It was REJECTED because the two fields grant
+    no refusal authority at all -- `authority()` reads `separates` alone -- so
+    the refinement would have bought a mechanism for a field that decides
+    nothing. Removed instead. `RM-04-DF-03`.
+
+    (2) The blind-label pool: the refinement on offer was a larger character
+    pool. REJECTED, because it postpones the same exhaustion by a constant. The
+    mechanism was generalised instead -- a label is a STRING over the
+    unpublished alphabet -- which makes the space unbounded and keeps the
+    property exact rather than counted.
+
+    NOTHING WAS ADDED THAT MAKES A KNOWN ANSWER SCORE BETTER. The clearest
+    invitation arrived on its own: the subject with the epic's only real
+    before/after had its Python line count RISE across a removal that took 310
+    lines out of the directory, and a complexity axis counting declarative
+    lines would have fixed that number. That is `MF-020` in its purest form and
+    it was refused. See `RESULT.md` section 7.
+  measured: false      # true only if a real TLC run produced the figure
+  applied: false       # if true, approved_by is required
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+    specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/RESULT.md
+
+    IN ONE LINE: D3's separation replicated on a second example and D2's
+    movement did not, and the round cannot attribute any of its six tier splits
+    because every opus judge seeded its own faults and no sonnet judge did.
+
+    WHAT CHANGED, AND WHY EACH IS A REMOVAL OR A REPAIR RATHER THAN AN ADDITION:
+
+    * `score_tools.py` grew a blinding refusal and a widened label space. Both
+      are refusals -- one REFUSES a scaffold whose blinded card would carry an
+      identifying subject, one REFUSES an explicit label a prior round published
+      unless a reason is recorded. Each ships with a demonstrated failing input
+      on a REAL subject of this repository (`--subject arm_b`, whose scope
+      spells the published label `T`; `--labels T,U`). R1.
+    * `subject.name` and `subject.declared_effect_boundary` are WITHHELD from a
+      blinded card. That is a deletion from what a judge is served. Attack A5's
+      defence is unchanged -- `check` resolves the scope against `subjects.toml`
+      instead of reading a name off the card.
+    * `[[demonstration]]` lost two declared fields and gained no mechanism.
+    * Three tests that pinned "the 49 cards sealed before reading-discipline"
+      as `round != "reading-discipline"` were pinned POSITIVELY. That is not a
+      simplification, it is a correctness fix: the negative form is not a fixed
+      population and had already grown to 55.
+
+    MEASURED ALTERNATIVES: see `refinement.detail` above and `RESULT.md`
+    section 7, which lists seven things this ticket rejected.
+
+    THE FINDING THE MACHINE-CHECKED CORE CANNOT EXPRESS: this ticket's own work
+    order is false. It says RM-03's removal is "a genuine before/after" for
+    `scripts/`, and `19c5c7b:scripts` and `dbf355c:scripts` are the same tree,
+    `e9d5544`. Filed as `RM-04-DF-02` and recorded in the sealed predictions
+    before the round rather than discovered afterwards.

@@ -1,0 +1,166 @@
+{
+  "scorecard_version": 4,
+  "status": "filled",
+  "epic": "portable-substrate-rm04-LL",
+  "example": "eval_toolchain",
+  "run_id": "20260810-rm04-LL-p2",
+  "arm": "LL",
+  "commit": "dd71b11a0282a662f60d7bca0c34671ba9e12235",
+  "judge": {
+    "model": "claude-sonnet-4-5",
+    "tier": "",
+    "pass": 2,
+    "blind_to_arm": true
+  },
+  "subject": {
+    "name": null,
+    "blinded": true,
+    "scope": [
+      "scripts"
+    ],
+    "axis": "effect_boundary"
+  },
+  "rubric": {
+    "source": "references/eval_scorecard.md",
+    "digest": "sha256:497c16ca85adeb4a",
+    "scoring_rules": [
+      "**Score artifacts, never claims.** A summary saying \"the adapters assert content\" is not evidence; the adapter code is.",
+      "**Every score \u2265 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
+      "**A score at the top of its scale additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.",
+      "**Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.",
+      "**Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.",
+      "**Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.",
+      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree \u2014 and a disagreement is a finding.",
+      "**Say what you ran.** *(New in version 2.)* Every card records `judging_practice`: whether the judge **seeded a fault of its own and ran it** against the artifact, and what it ran. Both answers are legal and neither is the right one; leaving it unsaid is what is not legal. From version 4 no anchor is gated on it and it is still required, because what a judge did is a variable in what a judge reports and a variable nothing records is a variable nobody can subtract.",
+      "**A judge is served the card, never the rubric file.** *(New in version 3.)* The scaffolded `scorecard.md` carries the rubric a judge needs. This file carries reading rules and prior results about these dimensions as well, and a judge who reads it is handed conclusions about the instrument they are the instrument for. Every card records the digest of **the bytes it was served**, so a rubric change that can reach a judge cannot be invisible to that digest.",
+      "**Answer every recorded note.** *(New in version 4.)* N-D1, N-D4 and N-D5 take no score and are required on every filled card. An empty note is not a legal card; *\"I could not tell, and here is what I looked at\"* is."
+    ],
+    "served_digest": "sha256:a213a36770ccab09",
+    "file_sha256": "sha256:cc09f8730d2cc6ad"
+  },
+  "how_to_fill": [
+    "Score the LOWEST anchor the artifact fully satisfies. Torn between two: take the lower and say why.",
+    "Set `status` to \"filled\", `commit` to the sha the artifacts were scored at, and name your model in `judge.model`.",
+    "Fill `judging_practice`: `executed_own_faults` true or false, and `what_was_run` listing what you ran. FALSE IS A LEGAL AND USEFUL ANSWER -- it is recorded, never corrected. Delete the `note` key once you have.",
+    "Leave `anchors` as scaffolded. They are read from the rubric so the bar and the score live in one file; editing them here forks the rubric silently, which is the drift this scaffold exists to remove.",
+    "Answer every entry in `notes`. They take NO score -- these three questions were scored for three versions and the numbers were measured not to mean the same thing twice, so what is asked for is prose and citations. 'I could not tell, and here is what I looked at' is a legal note; an empty one is not."
+  ],
+  "dimensions": {
+    "D2": {
+      "name": "complexity",
+      "question": "Is the design as simple as its behavior requires, and no simpler?",
+      "anchors": {
+        "0": "Complexity is unmeasured, or measured and ignored.",
+        "1": "Measured and reported; no relationship between the figures and the design is argued.",
+        "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
+        "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded."
+      },
+      "score": 2,
+      "citations": [
+        "scripts/extract_spec_manifest.py:273",
+        "scripts/extract_spec_manifest.py:285",
+        "scripts/budgets.py:129",
+        "scripts/case_modules.py:43",
+        "scripts/effect_conformance_report.py:43",
+        "scripts/run_generated_case_adapters.py:49",
+        "scripts/generate_cases_from_tlc_dump.py:35",
+        "scripts/testgraph_channels.py:51",
+        "scripts/generate_python.py:16",
+        "scripts/generate_docs.py:13",
+        "scripts/close_tickets.py:45",
+        "scripts/analyze_complexity.py:80",
+        "scripts/code_complexity.py:578",
+        "scripts/effect_conformance.py:929"
+      ],
+      "rationale": "The design's complexity tracks its behavior: manifest parsing is one fact with one write site (extract_spec_manifest.py) and eight import/read sites rather than being reimplemented; module-level mutable state is reduced to 2 rebound names across the whole 20,005-line scope; instance state never concentrates into a god object, even in the largest file (effect_conformance.py, 1845 lines, busiest class WorkingTreeObserver has 6 self-assignments). That satisfies anchor 2. The one counter-example found -- repo-root path independently rederived in close_tickets.py:45 and analyze_complexity.py:80 instead of shared -- is small and did not move the score down. Anchor 3 needs a simplification with both before and after figures recorded; there is no before tree for this artifact (stated in the task, not invented), so 3 is unreachable regardless of the design's merits. I read the actual write/read sites rather than trusting the mechanical block's figures alone, per the rubric.",
+      "refuses_to_claim": null
+    },
+    "D3": {
+      "name": "modularity",
+      "question": "Is it ports and adapters in fact \u2014 domain independent of I/O, adapters swappable?",
+      "anchors": {
+        "0": "No boundary is discernible; state is written from everywhere.",
+        "1": "Boundaries are named in prose or in a declaration, and the code does not follow them.",
+        "2": "The code follows the declared boundaries. Cross-boundary calls go through something identifiable as a port.",
+        "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
+        "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
+      },
+      "score": 0,
+      "citations": [
+        "scripts/close_tickets.py:204",
+        "scripts/tla_spec_dev.py:408",
+        "scripts/kill_test.py:585",
+        "scripts/kill_test.py:588",
+        "scripts/kill_test.py:872",
+        "scripts/spec_evolution.py:99",
+        "scripts/spec_evolution.py:251",
+        "scripts/spec_evolution.py:277",
+        "scripts/complexity_ledger.py:550",
+        "scripts/complexity_ledger.py:1244",
+        "scripts/case_modules.py:480",
+        "scripts/case_modules.py:823",
+        "scripts/onboard_program_model.py:631",
+        "scripts/onboard_program_model.py:674",
+        "scripts/onboard_program_model.py:730",
+        "scripts/scaffold_spec.py:541",
+        "scripts/scaffold_spec.py:578",
+        "scripts/code_complexity.py:213",
+        "scripts/generate_python.py:128"
+      ],
+      "rationale": "scripts/ is the tool that enforces ports-and-adapters discipline on other repositories -- its effect_conformance.py and its generated adapters.py/providers.py templates are entirely about that -- but it does not practice that discipline on itself. Effects are performed directly, inline, in roughly two-thirds of its own modules (write_text/subprocess/json.dump called straight from ordinary logic, sampled above), with no port, gateway, or declared interface between domain logic and I/O anywhere in the artifact's own runtime code. The only classes using the actual _InternalAdapter/_ExternalAdapter vocabulary (onboard_program_model.py, scaffold_spec.py) are Python source living inside triple-quoted string templates written OUT to a consumer repository -- never imported or called by scripts/ itself. The only Protocol/ABC vocabulary in the scope (code_complexity.py:213, generate_python.py:128) either measures for that pattern or emits it as text for a consumer; neither declares a boundary scripts/'s own code is checked against, matching the mechanical block's declared_interfaces: 0 (verified independently by grep, not trusted from the mechanical block). I looked for prose naming a boundary for scripts/'s own architecture (distinct from the boundary it prescribes to others) and found none, so anchor 1 does not fit either -- there is nothing named. Anchor 0 is the accurate, lowest-satisfied read.",
+      "refuses_to_claim": null
+    }
+  },
+  "contested": [],
+  "verdict": "scripts/ is a well-measured, low-god-state CLI toolchain (D2: 2) that is honest in its own code about what it cannot see, but it enforces ports-and-adapters discipline on the projects it scaffolds without practicing that discipline on itself -- effects are written from everywhere in its own modules and it declares no interface of its own (D3: 0).",
+  "judging_practice": {
+    "executed_own_faults": false,
+    "what_was_run": [
+      "No fault of my own was seeded or run.",
+      "Scored the evidence packet: full-file and targeted grep reads over every .py file in scripts/ (wc -l over all files; grep -n for Protocol/ABC/abstractmethod, adapter/port vocabulary, write_text/subprocess/json.dump call sites, module-level state).",
+      "Full reads of scripts/effect_conformance.py, scripts/extract_spec_manifest.py; structural/targeted reads of scripts/code_complexity.py, scripts/analyze_complexity.py, scripts/onboard_program_model.py, scripts/scaffold_spec.py, scripts/run_generated_case_adapters.py, scripts/close_tickets.py, scripts/spec_evolution.py, scripts/complexity_ledger.py, scripts/kill_test.py, scripts/case_modules.py, scripts/tla_spec_dev.py.",
+      "Did not run kill_test.py / run_kill_test.py or any pytest suite against scripts/, per the task instruction not to run the test suite.",
+      "Did not modify any file in the working tree."
+    ]
+  },
+  "notes": {
+    "N-D1": {
+      "name": "bug detection",
+      "question": "What did the cases catch, and what class did they demonstrably miss? Name the fault you seeded if you seeded one.",
+      "note": "I could not tell, and here is what I looked at: mechanical.json records nothing for kills, case_counts, determinism, or runtime for scripts/ in this run -- all four fields are empty or null. scripts/ does carry its own mutation/kill-test machinery (kill_test.py, run_kill_test.py), so a kill run against this artifact is possible in principle, but I did not run it (the task instructs not to run the test suite, and that machinery is exactly the test suite), and no prior run's kill data is recorded in this card's mechanical block for me to read instead. I did not seed a fault of my own. No evidence of what the cases catch or miss exists for this artifact in this run, and I am not inventing any.",
+      "citations": [
+        "mechanical.json:8",
+        "mechanical.json:265",
+        "mechanical.json:266",
+        "mechanical.json:267",
+        "scripts/kill_test.py:191"
+      ]
+    },
+    "N-D4": {
+      "name": "behavior preservation",
+      "question": "Which behaviors of the baseline did you enumerate, and is each shown still to hold? If there is no baseline, say so \u2014 that is the answer, not a gap in the note.",
+      "note": "There is no baseline for this artifact. The task states this plainly, and I confirmed it: nothing in this card's directory, nor anything else I was pointed at, presents a prior version of scripts/ to diff against for this run. I have no behaviors to enumerate and nothing to show still holds. That absence is the answer, not a gap in this note.",
+      "citations": []
+    },
+    "N-D5": {
+      "name": "honesty",
+      "question": "Does the artifact refuse rather than falsely certify, and does it name what it cannot see? Point at the refusal, or at its absence.",
+      "note": "The artifact refuses rather than falsely certifies, repeatedly and in its own words. effect_conformance.py names exactly what its own instrumentation cannot see (a child process's network activity, anything outside the working tree, a JVM/Kotlin adapter's effects) and treats an unobservable target as a hard failure rather than a silent pass. code_complexity.py, the instrument behind this card's mechanical block, discloses its own undercount by name rather than presenting its figures as complete. The weakest link: the clearest refusal-to-fake pattern in the onboarding path (raise NotImplementedError instead of a fabricated adapter) lives in a generated string template for a consumer repo, not in scripts/'s own executed code, so I weighted it as secondary to the live effect-conformance and complexity-instrument disclosures.",
+      "citations": [
+        "scripts/effect_conformance.py:22",
+        "scripts/effect_conformance.py:27",
+        "scripts/effect_conformance.py:29",
+        "scripts/effect_conformance.py:38",
+        "scripts/effect_conformance.py:39",
+        "scripts/effect_conformance.py:40",
+        "scripts/effect_conformance.py:104",
+        "scripts/effect_conformance.py:945",
+        "scripts/effect_conformance.py:948",
+        "scripts/effect_conformance.py:950",
+        "scripts/effect_conformance.py:1141",
+        "scripts/code_complexity.py:894",
+        "scripts/onboard_program_model.py:496"
+      ]
+    }
+  }
+}
