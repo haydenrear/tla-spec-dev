@@ -1,5 +1,244 @@
 # next epic — starter for the next epic owner
 
+> **AMENDED AFTER `RM-05`, the `portable-substrate` evaluation (2026-08-10).**
+> Everything below still describes how each earlier result was measured and none
+> of it is edited. What RM-05 adds is at the very top, in section 0-AAAAAAA,
+> because it **withdraws the headline of the epic it closes**, because it is the
+> first round to measure the surface an adopter actually receives, and because it
+> found that the loop this whole programme is aimed at **cannot be run by anyone
+> else**. Full record:
+> `specs/results/scorecards/portable-substrate/RM-05/RESULT.md`.
+
+---
+
+## 0-AAAAAAA. READ BEFORE EVERYTHING — what RM-05 measured
+
+### 1. MEASURE THE SERVED SURFACE. IT IS THE ONLY ONE THAT HAS EVER FALLEN.
+
+`RM-03-DF-03`: the change rule keeps old anchors and `R-H4` seals 73 cards, so a
+card removal **cannot delete prose and cannot delete code**. Three epics called
+themselves simplifications and came out net-additive *because that outcome is
+required by construction*. So stop asking "did the substrate shrink" and ask
+**which surface**:
+
+| surface | `19c5c7b` | `58411dc` | |
+|---|---|---|---|
+| **served rubric bytes** — what a judge is handed | **8,396** | **6,409** | **−23.7%, the first fall ever** |
+| **anchor rungs served** | **25** | **9** | **−64%** |
+| local-machinery demands in the served rubric | 5, mandatory | **0 mandatory** | −100% |
+| `references/eval_scorecard.md`, the file | 38,671 B | **44,266 B** | **+14.5%** |
+| rung lines **in the file** | 25 | **25** | unchanged |
+| instrument registry rows | **65** | **65** | unchanged (−2, +2) |
+| `scripts/` git tree | `e9d5544a…` | **`e9d5544a…`** | **byte-identical** |
+
+**The served rubric is byte-identical at every version-3 commit — `2098d55`,
+`f85f07a`, `4ec3028`, `19c5c7b` — spanning two whole epics.** It has been
+measurable for exactly two version bumps and has fallen exactly once. **The card
+file has never fallen: 9,791 bytes at version 1 to 44,266 today, 4.5x,
+monotonically.** `serve | wc -c` is the metric. Repository lines are not.
+
+**And the shipped toolchain did not move at all.** `scripts/`, `SKILL.md`,
+`prompts/`, `templates/`, `spec_double_compiler/` and `test_graph/` are
+byte-identical between `main` at `19c5c7b` and the epic tip. A removal epic's
+entire delta on what an installed copy of this skill contains is
+`references/eval_scorecard.md` (+239/−144) and a new 555-line
+`references/portable_scorecard.md` — **net +650 lines added to the shipped
+reference set, and nothing removed from it.**
+
+### 2. THE "FIRST PRICED REMOVAL" HEADLINE IS WITHDRAWN. THE PRICE THAT STANDS IS RM-01's.
+
+`RM-05-DF-01`, **blocking**. Run the command `RM-03-RESULT.md` section 4.3 prints:
+
+```
+$ price_removal.py entail --before .../rm03-gap-mutants-before.json --head 6298eee
+ENTAILED-SURVIVES   RM03-GM-CTRL-C-...      <-- declared is_control, gap "NONE, on purpose"
+UNDECIDED           RM03-GM-D4-...
+UNDECIDED           RM03-GM-D5-...
+ENTAILED-SURVIVES   RM03-GM-RUNNER-...      <-- the headline
+```
+
+**Four rows. The page prints three, and the missing one is the round's own
+positive control reading the headline verdict.** For any fault all of whose
+killing nodes lie in a file the removal deletes, `ENTAILED-SURVIVES` follows from
+`git show` alone — `price_removal.py:175-193`, `:307-313` — with nothing run and
+no other verdict reachable. An unresolvable `--head` prices everything, exit 0.
+
+**What stands: `RM-01-RF-1`.** A blind adversarial channel attacked it directly
+and it held on every axis — both trees measured, `pytest-full` whole at the after
+tree over 1,366 nodes, a same-class control dying at both, a contention-immune
+cross-check agreeing. **The epic has a priced removal. It is retrospective, it is
+RM-01's, and it is not the one that was headlined.**
+
+`RM-05-DF-02`: `price` also returns `PRICED` over an all-`INERT` after-table and
+over a mutant that was never applied — the exact fault `RM03-GM-RUNNER` seeds —
+and `altered_score_probe` returns `UNCAUGHT` from a tree whose `check` is dead.
+
+### 3. THE LOOP DOES NOT TRANSFER, AND THE BLOCKER IS ONE CONSTANT
+
+A blind adopter channel built a scratch repo with one Java file and ran the loop.
+**`serve`, `scaffold`, `check`, `index`, `seal`, `history`, `contested` and the
+blinding all work on a foreign tree** — that half is real and it is good. Then:
+
+```
+$ score_tools.py scaffold ... --card-version 5
+error: invalid choice: '5' (choose from '1','2','3','4')     # score_tools.py:95-96
+```
+
+**The card's own change rule — "bump `scorecard_version`" — is unfollowable
+without editing Python, and the failure is silent**: scaffolding without the flag
+stamps `version 4` onto cards carrying the version-5 anchors and `check` reports
+**0 problems**. And the one iteration an adopter *can* do without touching Python
+— rewriting a dimension caveat in their own words — **silently deletes it from the
+served bytes while `anchors_digest` stays byte-identical**
+(`score_tools.py:341-344`).
+
+**This is the next epic's first ticket.** Also: `audit` crashes out of the box
+until you also install `architecture_tags.py` and create an *empty*
+`subjects.toml`; `REPO_ROOT = HERE.parents[3]` fixes the install depth; and
+**there is no adopter-facing document anywhere.**
+
+### 4. THE LOOP DID NOT CLOSE INSIDE THIS PROJECT EITHER
+
+`RM-05-DF-05`. Two blind judges, in two different tickets, independently found
+that `reference_ports`'s **real** adapter can stop touching the filesystem
+entirely and survive every case through **both** wirings, because
+`ledger_lines()` is the only observer of the record the port exists to make
+durable. RM-03 quoted its judge's sentence about it in praise of prose notes and
+filed nothing. RM-04 recorded four seeded faults in a card note and filed
+nothing. **Every `D3 = 4` on `ab_quota_ledger` — 22 cards — rests on that
+fixture's real/fake pair being a real pair.**
+
+**RULE FOR EVERY FUTURE ROUND: sweep your own judges' `notes` and
+`judging_practice.what_was_run` for defects in the artifact and FILE them. A
+finding written into a card note is a finding nobody carries forward.**
+
+### 5. THE COMPARABILITY AXES: ONE UNDER-FIRES, ONE OVER-FIRES
+
+`RM-05-DF-03`. **`R-H1`'s instrument axis is the only one nobody computes.** The
+last `[[change]]` in `INSTRUMENT-LOG.toml` is `SM-04-scorecard-v3`, 2026-08-06 —
+a bump whose own text says *"THE ANCHORS DID NOT MOVE"*, declared anyway. **The
+version-4 bump, the first in the card's history whose anchors digest moved, was
+never declared**, so `R-H1`'s executed clause is vacuous and `audit` reports 0.
+Consequence: **D3's served block is byte-identical across the epic and D2's is
+not** — preamble replaced whole, anchor 4 deleted, scale now 0-3 — so *"D3
+replicated and D2 did not"* compares a dimension whose bar held still against one
+whose bar moved in the ticket before. **And `derived_tier` substring-matches, so
+four judge models wear two labels** (`opus-5[1m]`/`opus-4`,
+`sonnet-5`/`sonnet-4-5`) and **no two rounds of this epic used the same pair.**
+
+`RM-05-DF-04`. **The architecture axis over-fires.** RM-04 declared no
+`[[demonstration]]` row for `eval_toolchain` D3 and wrote *"it therefore refuses
+nothing"*. `authority()` is built from the **re-derived** table, so
+`compare --example eval_toolchain` returns **`INCOMPARABLE` on D3 today**, citing
+a row nobody declared, whose `ports-and-adapters` side is **one artifact, two
+judges, 2 and 4, flagged CONTESTED with `third_pass: none`, the low card being the
+one RM-04 itself records as contaminated** — and the separation holds by exactly
+one point of margin.
+
+### 6. THE TYPOLOGY: WHAT KIND OF CUT ACTUALLY HELPS
+
+Tested against the record, not assumed. **"Fields that record a measurement
+without gating on anything" is NOT the pattern.** `total` ran
+`if total != running: err(...)`; D4's anchor 4 gated on `judging_practice` and
+`check` rejected a real card for it; D2's anchor 4 capped D2 eight times. And the
+category is the project's whole doctrine: nine modules disclaim gatehood in their
+own docstrings and none was removed; D1/D4/D5 *became* required prose that takes
+no score.
+
+**The record's own discriminator is better: `ranges` was cut because it is a
+figure over an OPEN population — re-affirmed forever, with no measurement in any
+re-affirmation. `[[movement]]` and `[[contested]]` record without gating and
+stay, because their populations are CLOSED.**
+
+**What actually bought something:** cuts to the **served** surface (D1/D4/D5,
+D2's anchor 4) — the only cuts that moved it; **duplicate-of-one-source** cuts
+(SM-06's 20 restatements, which also bought a detection); and **product-side**
+cuts (RD-03's three fields — still the only simplification of a *subject* this
+project has ever measured before and after). **What bought nothing:** dead
+machinery whose entry point no longer ran (RD-02: 33 lines out, 1,403 in), and
+`[ports.*]`.
+
+**Additions that earned their keep:** the prompt -> D3; sealed predictions;
+`removal_census.py` and its refusal to total; `scope`; SM-06's one-home tripwire.
+**Additions that did not:** `contested` (the card's only rule for judge
+disagreement, no executor for three versions), `anchor_reading`, and 12 of 26
+registry demonstration slots that assert only `expect_exit = 0`.
+
+### 7. NO ROUND IN THIS EPIC RECORDED A TOKEN COUNT, AND THE NUMERATOR IS CAPPED
+
+`RD-03-DF-13`'s repair lasted **one round**. The word "token" appears in none of
+this epic's five RESULT pages, so the per-token ratio is **UNCOMPUTABLE** and no
+round is comparable to another again. RM-05's own three channels cost **463,261
+`subagent_tokens`, composition undocumented** — which is `RD-03-DF-13` recurring
+in the page that reports it.
+
+**And a second thing nobody has said: the numerator is budget-capped.** 30
+distinct defect claims came back; the deferment budget is **5**. `filed / 100k`
+measures the budget; `reported / 100k` measures nothing anyone counts the same
+way. **Print both or print neither**, and print the basis in the same sentence as
+the number.
+
+### 8. FINDINGS BY CHANNEL, AND THE SUITE'S FOUR
+
+| channel | this epic |
+|---|---|
+| operator running an instrument they built | 11 |
+| operator doing the removal | 4 |
+| **the suite** | **4** |
+| card census over the sealed cards | 3 |
+| blind judges | **1 filed — and see section 4** |
+
+**The suite produced four findings after seven rounds of zero, and the reason is
+not that the suite improved.** RM-06 was a ticket funded to *read its output*.
+**The channel was never the suite; it was paying somebody to read it.** RM-05's
+own suite run produced **0**.
+
+**Findings whose `surface` names `scripts/`: 2 of 23 this epic, 8 of 134 across
+the four before it** — and last epic it was **1**, not 0 (`RD-03-DF-08`). Since
+`scripts/` is byte-identical across this epic, **zero findings here are about a
+change to the shipped toolchain, because there were none.**
+
+### 9. THE ALARM, AND IT IS ABOUT THE PREDICTIONS
+
+Six of seven of RM-05's sealed predictions held cleanly and the seventh held on
+its conclusion. **That is the alarm condition, declared in advance and reported
+as one.** The cause is stated against the round: **the predictions were sealed
+AFTER the operator had done most of its own measurement**, so two were
+near-certainties and three predicted only that adversarial agents would find
+*something*. **The one prediction with a real mechanism in it is the one that was
+falsified.** Seal predictions BEFORE measuring, and put a mechanism in each one.
+
+### 10. THE OPEN QUESTION THAT DECIDES PORTABILITY
+
+Of the example `ab_quota_ledger`, **D3 = 3 on 0 of 63 cards** — the distribution
+is 0:6, 1:16, 2:19, 3:**0**, 4:22. Over all 83 filled cards carrying D3 it is
+0:9, 1:24, 2:23, 3:**3**, 4:24. **The scale is two-valued, and anchor 3 — the
+rung a well-separated non-hexagonal design would land on — has never once been
+awarded on the example this project has scored 63 times.** Judges say why
+unprompted: *"between anchors 2 and 3 the ladder silently changes what 'the
+domain' refers to"*; *"D3's anchors are written for an application... the subject
+is a toolchain."* **One round on a deliberately well-separated non-hexagonal
+subject, asking the judges where the ladder ran out, decides whether D3 exports
+at all.**
+
+### 11. WHAT THE NEXT EPIC SHOULD DO FIRST
+
+1. **Make the change rule runnable by a stranger** — `SUPPORTED_VERSIONS`, the
+   caveat parse, the `audit` bootstrap, and an adopter-facing page. Nothing else
+   in the portability argument matters until this works.
+2. **Give `entail` a verdict meaning EXTINCT**, exclude declared controls from
+   the verdict table, and validate `--head`. Until then no removal in this
+   repository can be priced, because the normal shape of a removal here is the
+   shape that always returns `ENTAILED-SURVIVES`.
+3. **Declare the version-4 era boundary** and key the tier on the full model id.
+4. **Sweep the judges' notes and file what they found.** Start with the
+   `FileJournal` durability hole, which sits under 22 `D3 = 4` cards.
+5. **Then, and only then, prompt architecture back in.** The served surface is at
+   6,409 bytes and 9 rungs, and that is the room the re-add has to work in.
+   Static analysis and spectral signal come after something can be adopted.
+
+---
+
 > **AMENDED AFTER `RD-03`, the `reading-discipline` evaluation (2026-08-09).**
 > Everything below still describes how each earlier result was measured and none
 > of it is edited. What RD-03 adds is at the very top, in section 0-AAAAAA,

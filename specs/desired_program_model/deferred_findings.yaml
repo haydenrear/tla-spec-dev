@@ -10044,3 +10044,377 @@ findings:
       no page checks it. A tier split whose practice is uncrossed is not a tier
       result.
     disposition: open
+
+  - id: RM-05-DF-01
+    found_by: "RM-05 (blind adversarial channel A -- 'attack the pricing headline', then re-derived by the round operator)"
+    found_at_commit: "df27cb8"
+    schedule_revision: 1
+    severity: blocking
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/gap_mutants/price_removal.py", "specs/results/scorecards/portable-substrate/GOAL-dead-weight-gone/RM-03-RESULT.md"]
+    summary: >-
+      THE EPIC'S HEADLINE `PRICED` VERDICT IS SHARED, VERBATIM, BY THE ROUND'S OWN
+      POSITIVE CONTROL -- A ROW THE CATALOGUE DECLARES HAS NO GAP -- AND THAT ROW
+      IS MISSING FROM THE OUTPUT BLOCK THE RESULT PAGE PRINTS.
+
+      `RM-03-RESULT.md` section 4.3 prints the command
+      `price_removal.py entail --before ...rm03-gap-mutants-before.json --head 6298eee`
+      followed by THREE rows. Run verbatim it prints FOUR. The fourth is
+      `RM03-GM-CTRL-C-a-detector-that-no-longer-exists-is-reported-as-a-survival`,
+      declared in the before-table with `is_control: true`, `removed_by: "nothing"`
+      and `gap: "NONE, on purpose"` -- and it reads **ENTAILED-SURVIVES**, the same
+      verdict the page reports as `-> PRICED` for `RM03-GM-RUNNER`. The published
+      artifact `rm03-entail-at-head.json` carries `"removal": null` and three rows,
+      so it was produced with explicit `--fault` flags that the printed command
+      does not contain.
+
+      AND THE VERDICT IS A THEOREM, NOT A MEASUREMENT, FOR THIS FAULT CLASS.
+      `entail` counts a kill as surviving iff its detector is not deleted AND
+      `node_present(head, node)`; `node_present` returns False whenever
+      `git show head:path` fails (`price_removal.py:175-193`, `:307-313`). So for
+      ANY fault every one of whose killing nodes lies in a file the removal
+      deletes, `ENTAILED-SURVIVES` follows from `git show` alone, with nothing run,
+      and no other verdict is reachable. `RM03-GM-RUNNER`'s two kills are one node,
+      `tests/test_gap_mutants.py::test_an_edit_that_changes_nothing_refuses`, and
+      RM-03 deleted that file in the same commit. The whole verdict reduces to
+      `git show 6298eee:tests/test_gap_mutants.py` failing.
+
+      THIRD: AN UNRESOLVABLE `--head` PRICES EVERYTHING AND EXITS 0. `_show`
+      (`price_removal.py:167-172`) cannot distinguish "ref missing" from "path
+      missing", so a typo, a short sha or a worktree lacking the commit turns every
+      row into `ENTAILED-SURVIVES` with exit 0 and no warning.
+
+      WHAT SURVIVES, STATED SO THIS FINDING CANNOT BE QUOTED AS "THE EPIC PRICED
+      NOTHING": RM-01's `RM-01-RF-1` IS a genuine non-zero price -- measured at
+      both trees, `pytest-full` run whole at the after tree over 1366 nodes, a
+      same-class positive control differing in one property that dies at both
+      trees, and a contention-immune cross-check agreeing. Channel A attacked it
+      directly and it held. The epic HAS a priced removal; it is RM-01's,
+      retrospective, and it is not the one being headlined.
+    reproduction: >-
+      python3 examples/validation/gap_mutants/price_removal.py entail --before
+      specs/results/scorecards/portable-substrate/GOAL-dead-weight-gone/rm03-gap-mutants-before.json
+      --head 6298eee    # 4 rows; row 1 is the declared no-gap control at ENTAILED-SURVIVES.
+      Then the same command with `--head 0000000000000000000000000000000000000000`
+      -> 4 of 4 ENTAILED-SURVIVES, exit 0.
+    evidence:
+      - "specs/results/scorecards/portable-substrate/GOAL-dead-weight-gone/rm03-gap-mutants-before.json -- per_mutant.RM03-GM-CTRL-C.{is_control,removed_by,gap}"
+      - "specs/results/scorecards/portable-substrate/GOAL-dead-weight-gone/rm03-entail-at-head.json -- removal: null, 3 rows"
+      - "specs/results/scorecards/portable-substrate/GOAL-dead-weight-gone/RM-03-RESULT.md:258-263"
+      - "examples/validation/gap_mutants/price_removal.py:167-193, :307-313"
+    why_out_of_scope: >-
+      RM-05 is the evaluation and files findings without fixing. A sealed RESULT
+      page is never edited (R-H4); the correction belongs beside it.
+    suggested_fix: >-
+      `entail` must not return the same verdict for a declared control with no gap
+      and for a priced removal. Either exclude `is_control` rows from the verdict
+      table (they are already declared in the before-table), or add a verdict
+      meaning EXTINCT -- the fault's seed site does not exist at head -- which is
+      the doctrine RM-01 already wrote for the `fake =` fault in
+      `residual_faults.toml` and did not implement. Validate `--head` resolves
+      before any node lookup. And no RESULT page may print a command whose output
+      it filters without saying so.
+    blast_radius: >-
+      GOAL-removal-can-be-priced, and every future removal that deletes a mechanism
+      together with the mechanism's own tests -- which is the normal shape of a
+      removal in this repository.
+    disposition: open
+
+  - id: RM-05-DF-02
+    found_by: "RM-05 (blind adversarial channel A -- constructed inputs against the shipped instruments)"
+    found_at_commit: "df27cb8"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/gap_mutants/price_removal.py", "examples/validation/gap_mutants/altered_score_probe.py"]
+    summary: >-
+      THREE DEMONSTRATED WRONG ANSWERS FROM THE TWO INSTRUMENTS THIS EPIC BUILT,
+      EACH REPRODUCED FROM THE EPIC'S OWN SEALED ARTIFACTS.
+
+      (a) `price` REPORTS `PRICED` OVER AN AFTER-TABLE WHERE EVERY COLUMN WAS
+      INERT. `kill_set` (`price_removal.py:147-159`) drops INERT / CONTROL_RED /
+      NOT_RUN cells into `undecided` and out of the kill set; `price` (`:241-248`)
+      then reads "no kills after" as `PRICED`. Its own docstring at `:143-144`
+      says a price computed over such a column "would be a price computed over a
+      column that did not run" -- and the code emits exactly that price. Taking
+      RM-03's published after-table and setting every detector cell of
+      `RM03-GM-D4` to INERT turns the published `FREE` into `PRICED`.
+
+      (b) `price` REPORTS `PRICED` WHEN THE MUTANT WAS NEVER APPLIED -- WHICH IS
+      THE EXACT FAULT `RM03-GM-RUNNER` SEEDS. `run_gap_mutants.py` recorded an
+      unapplied mutant as `{"applied": false, "detectors": {}}` and appended to
+      `mutants_not_applied`. `price_removal.py` reads neither field, so an empty
+      detector map yields an empty kill set and `PRICED`. The instrument built to
+      price the removal of the runner carries the defect the runner refused to
+      have.
+
+      (c) `altered_score_probe.py` READS `UNCAUGHT` FROM A TREE WHOSE `check` IS
+      ENTIRELY BROKEN. `problems()` (`:60-67`) scrapes `INVALID `-prefixed lines
+      and ignores the return code; the module docstring at `:40-41` claims a
+      broken setup cannot read as UNCAUGHT, but the guard exists only for
+      `scaffold` (`:130-134`). A stub tree whose `check` raises reads UNCAUGHT,
+      exit 0.
+
+      AND THE FIXED PROBE HAS NO LIVE-`check` CONTROL AT THE AFTER TREE.
+      `sm04-gm-t1-after.json` has `baseline_problems: []`,
+      `problems_after_the_alteration: []`, `new_problems: []` -- nothing in that
+      run shows the v3 tree's `check` capable of reporting anything at all. The
+      only evidence that it is alive lives in `sm04-gm-t1-after-confounded.json`,
+      the run RM-01 presents purely as an error. Combined with (c), the fixed
+      probe's UNCAUGHT and a completely dead `check` are indistinguishable from
+      its own output. `R1` -- an instrument ships with a demonstrated FAILING
+      input -- is satisfied for the alteration and not for the harness.
+    reproduction: >-
+      (a) and (b) are ~10-line python drivers over
+      `rm03-gap-mutants-before.json` / `-after.json` importing `price_removal` and
+      mutating a copy of the after-table; both printed in the RM-05 RESULT
+      section 5. (c) `python3 examples/validation/gap_mutants/altered_score_probe.py
+      --tree <stub tree whose score_tools.py raises on check>` -> UNCAUGHT, exit 0.
+    evidence:
+      - "examples/validation/gap_mutants/price_removal.py:143-159, :241-248"
+      - "examples/validation/gap_mutants/altered_score_probe.py:40-41, :60-67, :130-134"
+      - "specs/results/scorecards/portable-substrate/GOAL-removal-can-be-priced/RM-01/sm04-gm-t1-after.json"
+      - "specs/results/scorecards/portable-substrate/GOAL-removal-can-be-priced/RM-01/sm04-gm-t1-after-confounded.json"
+    why_out_of_scope: >-
+      RM-05 measures and fixes nothing. Every one of these is a repair to a
+      shipped instrument and none is reachable without editing it.
+    suggested_fix: >-
+      `price` must return UNDECIDED, never PRICED, when the after row has
+      `applied == false`, when the mutant appears in `mutants_not_applied`, or
+      when every after column is undecidable. `altered_score_probe` must read
+      `check`'s return code and must run one deliberately invalid card at the
+      after tree as a live control.
+    blast_radius: >-
+      Every verdict either instrument has produced or will produce, and
+      `GOAL-removal-can-be-priced`'s standing.
+    disposition: open
+
+  - id: RM-05-DF-03
+    found_by: "RM-05 (round operator, reading the served rubric and the instrument-change ledger)"
+    found_at_commit: "df27cb8"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/INSTRUMENT-LOG.toml", "references/eval_scorecard.md", "examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      `R-H1` HAS THREE COMPARABILITY AXES AND THE INSTRUMENT AXIS IS THE ONE
+      NOBODY COMPUTES. IT WENT UNDECLARED THROUGH THE FIRST ANCHOR MOVE IN THE
+      CARD'S HISTORY, AND THAT IS THE MOVE `GOAL-dimensions-replicate` IS READ
+      ACROSS.
+
+      (a) THE LEDGER HAS BEEN EMPTY FOR TWO EPICS. `INSTRUMENT-LOG.toml`'s last
+      `[[change]]` is `SM-04-scorecard-v3`, dated 2026-08-06. `reading-discipline`
+      declared none. `portable-substrate` declared none. `R-H1`'s executed clause
+      is "every card measured BEFORE a change affecting its example, carrying no
+      note, is reported OPEN" -- with no declared change there is no card before
+      one, so the check is vacuous exactly when the ledger is unmaintained, and
+      `audit` reports 0 violations.
+
+      (b) THE ONE BUMP THAT DID NOT MOVE THE ANCHORS WAS DECLARED; THE ONE THAT
+      DID WAS NOT. `SM-04-scorecard-v3`'s own text reads "THE ANCHORS DID NOT
+      MOVE" and it deliberately carries no `affects`, because "a card-version
+      change is an era boundary for every judged card there is". Version 4 moved
+      the anchors digest for the first time -- `eeccf4576bc6fd85` ->
+      `f73b4d82638f09df` -- and no `[[change]]` row exists for it.
+
+      (c) THE CONSEQUENCE IS THE EPIC'S HEADLINE ASYMMETRY, AND IT IS MEASURABLE
+      IN ONE DIFF. Between the served rubric at `19c5c7b` and at `58411dc`, D3's
+      block is BYTE-IDENTICAL and D2's block is not: the preamble is replaced
+      whole ("Read the measured descriptor first" -> "Diff the two trees
+      yourself"), anchor 4 is deleted so D2 becomes a 0-3 scale, and the caveat
+      changes "3 or more" to "3". So "D3 replicated on a second example and D2 did
+      not" compares one dimension whose instrument did not move against one whose
+      instrument moved in the ticket immediately before the test. Neither RM-04's
+      `SEALED-BEFORE-DISPATCH.md` nor its `RESULT.md` mentions the change. The
+      card's own version history does record it -- what is missing is the era
+      boundary that would make any tool refuse the comparison.
+
+      (d) AND THE TIER FIELD IS FOUR MODELS WEARING TWO LABELS. `derived_tier`
+      (`score_tools.py:1026-1035`) substring-matches "opus"/"sonnet", so
+      `claude-opus-5[1m]` (59 cards) and `claude-opus-4` (3 cards) are both
+      `opus`, and `claude-sonnet-5` (16) and `claude-sonnet-4-5` (5) are both
+      `sonnet`. NO TWO ROUNDS OF THIS EPIC USED THE SAME PAIR: RM-03's re-score is
+      opus-5[1m] / sonnet-4-5, RM-04's blind round is opus-4 / sonnet-4-5, and
+      every earlier two-tier round is opus-5[1m] / sonnet-5. `tags` prints
+      `tiers_measured=['opus', 'sonnet']` identically for the `ab_quota_ledger`
+      row and the `eval_toolchain` row, which were produced by four different
+      models. `RM-04-DF-05` records that tier and practice are confounded in that
+      round; this is a second, independent confound in the same cells.
+    reproduction: >-
+      `diff <(git show 19c5c7b:... | serve) <(serve)` over the D2 and D3 blocks --
+      D3 identical, D2 differs in three places. `grep '\[\[change\]\]' -A3
+      specs/results/scorecards/INSTRUMENT-LOG.toml` -- last date 2026-08-06.
+      `python3 -c` over every scorecard.json's `judge.model` -> four distinct ids.
+    evidence:
+      - "specs/results/scorecards/INSTRUMENT-LOG.toml -- [[change]] SM-04-scorecard-v3"
+      - "references/eval_scorecard.md -- the version-history table, versions 1-4"
+      - "examples/validation/scorecards/score_tools.py:1021-1035"
+      - "specs/results/scorecards/portable-substrate/RM-05/RESULT.md section 3"
+    why_out_of_scope: >-
+      Declaring an era boundary for a predecessor's version bump is editing the
+      record of a sealed round during a measurement, and RM-05 fixes nothing.
+    suggested_fix: >-
+      Declare the version-4 boundary as a `[[change]]` with no `affects`, exactly
+      as SM-04 declared version 3, and state per dimension whether its served
+      block moved -- the diff is mechanical and `served_digest` already covers the
+      bytes. Separately, key the tier on the full model id and let `opus`/`sonnet`
+      be a derived GROUPING that is printed with its members, so
+      `tiers_measured` can never print the same list for two different pairs.
+    blast_radius: >-
+      GOAL-dimensions-replicate, every tier split in the record, and every
+      cross-version D2 claim.
+    disposition: open
+
+  - id: RM-05-DF-04
+    found_by: "RM-05 (round operator, running the shipped comparison after reading RM-04's own RM-04-DF-03)"
+    found_at_commit: "df27cb8"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/architecture_tags.py", "specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/RESULT.md"]
+    summary: >-
+      AN UNDECLARED, CONTESTED, SINGLE-ARTIFACT SEPARATION IS ALREADY GRANTING A
+      LIVE REFUSAL, AND THE ROUND THAT PRODUCED IT SAYS IT IS NOT.
+
+      RM-04's RESULT section 3 limit 3 reads: "No `[[demonstration]]` row was
+      declared for it, deliberately. `audit` reports it `OPEN` and it therefore
+      refuses nothing. An authority nobody declared is not an authority."
+
+      That is false of the shipped code, and RM-04's own `RM-04-DF-03` says why:
+      `authority()` (`architecture_tags.py:412-424`) is built from the RE-DERIVED
+      demonstration table and admits an entry iff `separates` is true; `verdict()`
+      reads the re-derived entry and never the declaration. Run today:
+
+        architecture_tags.py compare --example eval_toolchain
+          --subjects rm04_scripts rm04_eval_harness
+        D3  rm04_scripts [0, 1]  rm04_eval_harness [2, 4]  INCOMPARABLE
+            (effect_boundary: effectful/ports-and-adapters, demonstrated on D3,
+             table row `effect_boundary-eval_toolchain-D3-effectful-vs-ports-and-adapters`)
+
+      `tags` prints "2 of 7 (dimension, value-pair) cell(s) grant a refusal" and
+      the second is this one. `audit`'s `OPEN` describes the DECLARED ledger; it
+      has never described authority.
+
+      AND THE EVIDENCE UNDER THE REFUSAL IS THE THINNEST IN THE TABLE. The
+      `ports-and-adapters` side is ONE artifact, `rm04_eval_harness`, two judges,
+      scored 2 and 4 -- flagged `CONTESTED` by `score_tools.py contested` as
+      `rm04-GG-d3-spread-2` with `third_pass: none` -- and the card at the low end
+      is the one RM-04 section 9 records as contaminated, having read the blinding
+      key inside its own declared scope. The separation holds by exactly one point
+      of margin (effectful max 1 < ports-and-adapters min 2), so it is that
+      contested, contaminated cell that makes it separate at all. Drop the
+      artifact and the `ports-and-adapters` side is empty.
+    reproduction: >-
+      python3 examples/validation/scorecards/architecture_tags.py compare --example
+      eval_toolchain --subjects rm04_scripts rm04_eval_harness  # D3 INCOMPARABLE
+      python3 examples/validation/scorecards/score_tools.py contested --example eval_toolchain
+      python3 examples/validation/scorecards/score_tools.py tags | tail -12
+    evidence:
+      - "examples/validation/scorecards/architecture_tags.py:412-424, :473-497"
+      - "specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/RESULT.md section 3"
+      - "specs/results/scorecards/portable-substrate-rm04-GG/eval_toolchain/"
+    why_out_of_scope: >-
+      The repair is a decision about what may earn a refusal, which RM-04
+      explicitly deferred to the next epic, and RM-05 does not make design
+      decisions during a measurement.
+    suggested_fix: >-
+      Either `authority()` admits only entries whose value-pair sides are each
+      backed by more than one artifact and carry no unadjudicated `contested`
+      group, or `audit`'s `OPEN` stops meaning "refuses nothing" and starts
+      printing the refusals an undeclared separation is already granting. Doing
+      neither leaves a six-card round refusing comparisons nobody voted for.
+    blast_radius: >-
+      Every `eval_toolchain` D3 comparison from now on, and the credibility of
+      "an authority nobody declared is not an authority" as a design principle.
+    disposition: open
+
+  - id: RM-05-DF-05
+    found_by: "RM-05 (round operator, reading the blind judges' own cards and notes across RM-03 and RM-04)"
+    found_at_commit: "df27cb8"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/reference_ports/journal_file.py", "examples/validation/ab/reference_ports/domain.py"]
+    summary: >-
+      TWO BLIND JUDGES IN TWO DIFFERENT TICKETS INDEPENDENTLY FOUND A REAL DEFECT
+      IN THE FIXTURE EVERY `D3 = 4` IN THIS PROJECT RESTS ON, AND IT WAS FILED
+      ZERO TIMES. THE LOOP THE EPIC IS ABOUT STOPPED AT A CARD NOTE.
+
+      THE DEFECT. `domain.LedgerJournal` declares its whole job as durability --
+      "a record that outlives the run" (`domain.py:41-43`). The only observer of
+      that record anywhere in the fixture is `Ledger.ledger_lines()`
+      (`domain.py:124`), which reads it back THROUGH THE ADAPTER THAT WROTE IT. So
+      a `FileJournal` that stops touching the filesystem and keeps the lines on
+      the instance passes every case through BOTH wirings. RM-04's `GG-p1` seeded
+      exactly that fault (`JF-4`), ran it, and recorded: "SURVIVED every case on
+      BOTH wirings, and my out-of-band read showed the port reporting ['COMMIT
+      acme 3 3'] while the ledger file on disk was empty... a 'real' adapter that
+      is secretly a second fake passes as the real one."
+
+      RM-03's version-4 judge reached the same place independently one ticket
+      earlier: "having to enumerate behaviors made me run the swap against the
+      shared suite, which is what surfaced that the shared suite pins nothing
+      about the file on disk -- THE SINGLE MOST USEFUL FINDING ON THIS CARD."
+
+      WHAT HAPPENED TO IT. RM-03 quoted that sentence in section 6 as evidence
+      that prose notes are better than numbers, and filed nothing. RM-04 recorded
+      `GG-p1`'s four seeded faults in the card's `N-D1` note, and filed nothing.
+      Neither RESULT page lists it. `grep -i 'FileJournal\|durab\|on disk'` over
+      `deferred_findings.yaml` returns no finding about it.
+
+      WHY THIS IS THE CHANNEL RESULT AND NOT A SIDE NOTE. The record's standing
+      recommendation for four rounds has been "keep funding blind judges". This
+      epic funded them and they delivered the only concrete defect anyone found in
+      a shipped fixture -- twice -- and the ledger records it zero times. The
+      owner's question is whether "hand-found regression -> card iteration ->
+      architectural delta" transfers to another project. Here it did not complete
+      inside the project that invented it.
+    reproduction: >-
+      Read `examples/validation/ab/reference_ports/journal_file.py` against
+      `domain.py:124` -- `ledger_lines()` is the only reader. Then, in a scratch
+      copy, replace `FileJournal`'s `_path` writes with an instance list and run
+      the fixture's cases through both composition points: all pass.
+      The judges' own records are
+      `specs/results/scorecards/portable-substrate-rm04-GG/eval_toolchain/20260810-rm04-GG-p1/scorecard.json`
+      (`notes.N-D1`, `judging_practice.what_was_run`) and
+      `specs/results/scorecards/portable-substrate/GOAL-dead-weight-gone/RM-03-RESULT.md:399-404`.
+    evidence:
+      - "examples/validation/ab/reference_ports/journal_file.py"
+      - "examples/validation/ab/reference_ports/domain.py:38-58, :124"
+      - "specs/results/scorecards/portable-substrate-rm04-GG/eval_toolchain/20260810-rm04-GG-p1/scorecard.json"
+      - "specs/results/scorecards/portable-substrate/GOAL-dead-weight-gone/RM-03-RESULT.md:394-404"
+    why_out_of_scope: >-
+      RM-05 files findings and fixes nothing, and repairing the fixture that every
+      D3 = 4 rests on during the evaluation of those D3 = 4s is the move the
+      measurement rule exists to forbid.
+    suggested_fix: >-
+      Give the fixture one observer that does not go through the adapter -- a
+      case that reads the ledger file directly -- and re-seed `JF-4`. Separately:
+      a round MUST sweep its own judges' `notes` and `judging_practice.what_was_run`
+      for defects in the artifact and file them, because two rounds have now shown
+      that a finding written into a card note is a finding nobody carries forward.
+    blast_radius: >-
+      Every `D3 = 4` on `ab_quota_ledger` -- 22 cards -- rests on this fixture's
+      real/fake pair being a real pair, and the durability half of that pair is
+      unverified. Also GOAL-portable: the loop did not close inside this project.
+    disposition: open
