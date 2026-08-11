@@ -21,17 +21,37 @@
 #   descriptor_comparison: recorded            -- before/after descriptor doc
 validated_refactor:
   tlc_before:
-    status: "TODO"
-    evidence: "TODO -- path to the pre-change TLC output"
+    status: "UNVERIFIED"
+    evidence: >-
+      Not run. RM-05 declares `model_delta_expectation: none expected` and makes
+      no model delta: `specs/desired_program_model/TlaSpecDevCli.tla` is
+      untouched. An UNVERIFIED entry is the correct value for a measurement that
+      changed no model, and it is left UNVERIFIED rather than asserted green.
   tlc_after:
-    status: "TODO"
-    evidence: "TODO -- path to the post-change TLC output"
+    status: "UNVERIFIED"
+    evidence: "Not run; see tlc_before. No model delta, so there is nothing to compare."
   behavior_tests:
-    status: "TODO"
-    evidence: "TODO -- path to the behavior-test output"
+    status: "fail"
+    evidence: >-
+      specs/results/scorecards/portable-substrate/RM-05/suite-fe87dfb-row3.txt --
+      2 failed, 1473 passed at fe87dfb in a real checkout, quiescent. RECORDED AS
+      `fail` RATHER THAN EXPLAINED AWAY. One failure is RM-06-DF-01's deliberate
+      same-tag control, inherited and untouched. The second is this ticket's own:
+      `test_nothing_in_the_repository_invokes_the_pricer` refuses a prose MENTION
+      of `price_removal` outside `specs/`, and the NEXT-EPIC.md this work order
+      mandates names the file. The available repair is the test's own allow-list;
+      taking it would be editing a target so a result passes, which an evaluation
+      may not do. RESULT.md section 8.1.
   descriptor_comparison:
-    status: "TODO"
-    evidence: "TODO -- path to the before/after descriptor comparison"
+    status: "recorded"
+    evidence: >-
+      No descriptor comparison is meaningful for this ticket and saying so is the
+      honest entry: RM-05 changes no Python, so `scripts/` and
+      `examples/validation/` are byte-identical before and after it. The
+      before/after this round DID record is a different quantity and it is in
+      RESULT.md section 1.1 -- the served rubric at 19c5c7b and at 58411dc, 8,396
+      bytes and 25 anchor rungs against 6,409 and 9, which is the surface this
+      epic actually moved.
 
 # Fuzzing-era retention members -- RECORDED at every close, non-gating since
 # CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
@@ -79,15 +99,38 @@ coverage_audit:
 # Required if complexity INCREASED. Name the new essential behavior the added
 # representation carries. This documents real behavior; it does not waive the
 # increase, which is recorded and reported either way.
-justification: ""
+justification: >-
+  Complexity did not increase in any measured sense: no production line, no
+  adapter, no TLA+ action and no test was added. What grew is the evidence record
+  -- RESULT.md, three blind channels' findings, five ledger rows and a NEXT-EPIC
+  section -- and RESULT.md section 1.1 reports that growth as the epic's own
+  shape rather than hiding it: this round adds roughly 1,700 lines of prose to
+  `specs/results/` and `NEXT-EPIC.md` and removes nothing.
 
 # The recursive refinement loop -- REQUIRED at every close.
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
+  searched: true
+  outcome: "none"
+  detail: >-
+    SEARCHED, FOUND NONE, AND FINDING ONE WOULD HAVE BEEN OUT OF ROLE. RM-05 is
+    `role: evaluation`: it MEASURES and FIXES NOTHING, and it added no production
+    line, no adapter, no TLA+ action and no test. Its whole delta is evidence
+    under `specs/results/scorecards/portable-substrate/RM-05/`, five findings
+    appended to `deferred_findings.yaml`, a section prepended to `NEXT-EPIC.md`,
+    and the ticket plan's RM-05 status.
+
+    A refinement search was nonetheless run over the surfaces this round
+    measured, and what it found are REFINEMENTS FOR SOMEBODY ELSE TO APPLY, which
+    is why the outcome here is `none` rather than `found`. They are recorded as
+    `suggested_fix` on RM-05-DF-01..05 and in RESULT.md section 9.2, and the
+    largest are: give `entail` a verdict meaning EXTINCT and exclude declared
+    controls from its verdict table (RM-05-DF-01); make `SUPPORTED_VERSIONS`
+    something a stranger can extend (section 9.2 item 1); declare the version-4
+    era boundary in INSTRUMENT-LOG.toml and key the judge tier on the full model
+    id (RM-05-DF-03). Applying any of them inside a measurement is the move
+    `measurement_rule` forbids.
   measured: false      # true only if a real TLC run produced the figure
   applied: false       # if true, approved_by is required
   approved_by: ""
@@ -99,4 +142,4 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: "specs/results/scorecards/portable-substrate/RM-05/RESULT.md"
