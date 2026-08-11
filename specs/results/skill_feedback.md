@@ -2130,3 +2130,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket RM-05
+
+- close_scope: ticket
+- close_id: RM-05
+- workflow: portable-substrate-epic
+- closed_at: 2026-08-11T01:41:36+00:00
+- summary: EVALUATION: all four goals decided; the first PRICED removal headline withdrawn; the served rubric fell 23.7% while the shipped toolchain did not move; the loop does not transfer. 5 findings filed, 0 fixed.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
