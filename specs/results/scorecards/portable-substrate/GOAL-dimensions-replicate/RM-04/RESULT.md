@@ -19,7 +19,7 @@ python3 specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM
 figure about those 6 cards. Nothing here is a claim about `ab_quota_ledger` and
 no number here may be read across to it (`R-H2`). The predictions were sealed in
 [`SEALED-BEFORE-DISPATCH.md`](SEALED-BEFORE-DISPATCH.md) before any judge
-existed. §14 records what `scope` made of this page.
+existed. §15 records what `scope` made of this page.
 
 ---
 
@@ -357,7 +357,55 @@ run different things.
   that the constant moves real answers. It does not show which value is right,
   and one contested artifact at 0.412 cannot.
 
-## 14. `scope` over this page, and the bound that applies
+## 14. The suite, with the tree for every number
+
+| tree | result | collected |
+|---|---|---|
+| `dbf355c`, pristine detached checkout — **the baseline** | **6 failed, 1462 passed** | 1468 |
+| `dbf355c` + RM-04 at `1d2b8b1`, ticket workflow OPEN | **4 failed, 1471 passed** | 1475 |
+| `dbf355c` + RM-04 at `073dc60` — **the shipped tree** | **1 failed, 1470 passed** | 1471 |
+
+**Real checkouts, all three. No `git archive` figure appears above**, and the
+baseline row names the detached worktree it was measured in.
+
+**FIVE OF THE DELIBERATE SIX ARE GREEN**, and all five are `RM-06-DF-02`'s
+downstream: `test_the_committed_demonstration_re_derives_from_the_cards`,
+`test_the_repo_ledger_passes_its_own_audit`, `…_with_rh6`,
+`test_the_shipped_rh5_demonstration_still_goes_red`, and
+`test_every_fast_demonstration_reproduces`.
+
+**THE ONE THAT STAYS RED IS NOT THIS TICKET'S**: `test_the_same_tag_control_holds`
+— `RM-06-DF-01`, group 1. Nine same-tag pairs of `ab_quota_ledger` separate on
+D2 and D5. It is red at `dbf355c` for those same nine pairs, **RM-04 added no
+card to that example**, and the control is reporting a real result that may not
+be narrowed to silence it.
+
+**`denominator_rule`, on the suite counts and not only on lines** — which is the
+half RM-03 skipped. **Nothing left the suite.** The middle row's 1475 is
+`1468 + 3 + 4`:
+
+- **+3 is the numerator this ticket added**: the three tests behind its two
+  refusals — `test_the_explicit_label_path_refuses_a_published_label`,
+  `test_a_blinded_card_carries_the_scope_and_nothing_that_identifies_it`,
+  `test_a_scope_that_spells_a_published_label_refuses_the_whole_batch`. They
+  survive into the shipped tree, which is why it is 1471 and not 1468.
+- **+4 then −4 is the DENOMINATOR moving, and it is an artifact of the workflow
+  rather than of any code.** `tests/test_spec_yaml_valid.py` parametrises over
+  `specs.rglob("*.y*ml")`, and an OPEN ticket workspace contributes four YAML
+  files of its own. `open ticket` added them and `close ticket` moved them to
+  `specs/.history/`. **Any ticket in this repository will show +4 collected
+  while its workflow is open**, and a reader comparing a mid-ticket run to a
+  closed one without this sentence would read a 4-test regression that is not
+  there.
+
+Two failures in the middle row **were** this ticket's and both are fixed at
+`073dc60`: `test_nothing_in_the_repository_invokes_the_pricer` (`subjects.toml`
+*names* `price_removal.py` in the comment declaring this round's before/after —
+a mention in a TOML comment, added to the allowlist) and
+`test_the_claim_that_justified_an_epic_is_refused` (the counterexample literal
+moved 16 → 19; see §2 of the commit that carries it for the arithmetic).
+
+## 15. `scope` over this page, and the bound that applies
 
 ```
 python3 examples/validation/scorecards/score_tools.py scope
