@@ -291,6 +291,281 @@ def test_the_probes_first_confounded_run_is_kept_on_the_record() -> None:
 
 
 # --------------------------------------------------------------------------
+# CL-02 -- EXTINCT, and the withdrawn headline made mechanical
+# --------------------------------------------------------------------------
+#
+# `RM-05` withdrew `RM-03`'s "first PRICED removal in this project's history".
+# The round's own control returned the headline verdict and its row was missing
+# from the four-row output the report printed as three. The reason is structural:
+# for every fault all of whose killing nodes lie inside a file the removal
+# deletes, `ENTAILED-SURVIVES` follows from `git show` alone and no other verdict
+# is reachable -- so the verdict carried no information about the removal.
+#
+# Every test below FAILS at `10cf11a`, this ticket's parent.
+
+RM03_BEFORE = (REPO_ROOT / "specs/results/scorecards/portable-substrate"
+               / "GOAL-dead-weight-gone/rm03-gap-mutants-before.json")
+RUNNER = "RM03-GM-RUNNER-an-unapplied-mutant-reports-a-survival"
+RM03_CTRL = "RM03-GM-CTRL-C-a-detector-that-no-longer-exists-is-reported-as-a-survival"
+SM_BEFORE = (REPO_ROOT / "specs/results/scorecards/subtract-to-measure"
+             / "before-state/gap-mutants-before.json")
+
+#: Every published before-table, with a head the record actually names.
+SEALED_TABLES = [
+    (RM03_BEFORE, "6298eee"),
+    (RM03_BEFORE, "1e6f691"),
+    (SM_BEFORE, "0342a3a"),
+    (SM_BEFORE, "bf0fb29"),
+    (EVIDENCE / "residual-before-bf0fb29p.json", "bf0fb29"),
+]
+
+
+def _table(path: Path) -> dict:
+    if not path.is_file():
+        pytest.skip(f"{path.name} is not in the tree")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def test_extinct_is_distinguishable_from_entailed_survives_on_a_real_cut(pricer) -> None:
+    """R1, ON A REAL CUT: the row RM-03 headlined and RM-05 withdrew.
+
+    `RM03-GM-RUNNER` is seeded into `examples/validation/gap_mutants/
+    run_gap_mutants.py`, which the removal at `6298eee` deletes whole. Its
+    killing nodes are in `tests/test_gap_mutants.py`, which the same removal
+    deletes whole -- so at the parent commit this row reads `ENTAILED-SURVIVES`,
+    the verdict that was published as a price.
+
+    IT IS NOT A PRICE. The removal did not take a detection away from a fault
+    that still exists; it deleted the fault's habitat. There is no artifact
+    after the cut into which this mutant could be seeded.
+    """
+    before = _table(RM03_BEFORE)
+    row = pricer.entail(before, RUNNER, ["pytest-gap-mutants"], "6298eee")
+
+    assert row["verdict"] == pricer.EXTINCT, row
+    assert row["verdict"] != pricer.ENTAILED_SURVIVES
+    assert not pricer.is_priced_result(row), "EXTINCT must never read as a price"
+    assert row["habitat"] == ["examples/validation/gap_mutants/run_gap_mutants.py"]
+    # The habitat really is gone at that head -- not a NOT-IN-TABLE in disguise.
+    assert pricer._show("6298eee", row["habitat"][0]) is None
+    # And the bound travels with the verdict, as ENTAILED-SURVIVES' does.
+    assert "RENAMED" in row["why"], "the file-granular bound must be stated"
+
+
+def test_extinct_is_a_property_of_the_head_and_not_a_blanket_downgrade(pricer) -> None:
+    """THE SAME FAULT, THE OTHER RM-03 REMOVAL, AND IT IS NOT EXTINCT.
+
+    RM-03 made two cuts. `card-dimensions-to-notes` lands at `1e6f691` and does
+    not touch `run_gap_mutants.py`; `gap-mutant-catalogue-and-runner` lands at
+    `6298eee` and deletes it. If `EXTINCT` were a way of quietly excusing awkward
+    rows it would fire at both heads. It fires at one.
+    """
+    before = _table(RM03_BEFORE)
+    assert pricer.entail(before, RUNNER, [], "1e6f691")["verdict"] == pricer.UNDECIDED
+    assert pricer.entail(before, RUNNER, [], "6298eee")["verdict"] == pricer.EXTINCT
+
+
+def test_a_mutant_that_creates_its_own_habitat_is_never_extinct(pricer) -> None:
+    """THE GUARD THAT KEEPS `EXTINCT` FROM MAKING SM-03 LOOK CHEAPER.
+
+    `SM-GM-I3` edits `scripts/gap_probe_instrument.py` with `op = "add_file"`,
+    and that path is absent at `bf0fb29` **because the mutant creates it**.
+    Absence there is the fault's PRECONDITION, not its extinction. A habitat rule
+    that read the declared path list instead of the edit ops would call this row
+    extinct and lower SM-03's price on a bookkeeping detail.
+    """
+    before = _table(SM_BEFORE)
+    i3 = "SM-GM-I3-an-instrument-that-was-never-added-to-the-registry"
+    record = before["per_mutant"][i3]
+    assert [e["op"] for e in record["edits"]] == ["add_file"]
+    assert pricer._show("bf0fb29", record["edits"][0]["path"]) is None, (
+        "the premise: the path really is absent at the head"
+    )
+    assert pricer.habitat(record) == [], "an add_file edit declares no habitat"
+    assert pricer.entail(before, i3, [], "bf0fb29")["verdict"] != pricer.EXTINCT
+
+
+# --------------------------------------------------------------------------
+# CL-02 -- a declared control is not a priceable row, in any mode
+# --------------------------------------------------------------------------
+
+
+def test_no_declared_control_in_any_sealed_table_can_be_a_priced_result(pricer) -> None:
+    """THE ROW THAT WITHDREW AN EPIC'S HEADLINE, AND EVERY ONE LIKE IT.
+
+    Swept over every published before-table and every head the record names, in
+    BOTH modes. A control excluded by `entail` and priceable by `price` would be
+    the same defect with one more step in front of it.
+    """
+    seen = 0
+    for path, head in SEALED_TABLES:
+        before = _table(path)
+        for mutant, record in before["per_mutant"].items():
+            if pricer.declared_control(record) is None:
+                continue
+            seen += 1
+            row = pricer.entail(before, mutant, [], head)
+            assert row["verdict"] == pricer.CONTROL_EXCLUDED, (path.name, mutant, row)
+            assert not pricer.is_priced_result(row)
+            # `price` reads the same row from the same table as its own after-table:
+            # the most favourable input a control could be given, and still excluded.
+            measured = pricer.price(before, before, mutant, head, [])
+            assert measured["verdict"] == pricer.CONTROL_EXCLUDED, measured
+            assert not pricer.is_priced_result(measured)
+    assert seen >= 4, f"the sealed record declares four controls; found {seen}"
+
+
+def test_the_control_that_returned_the_headline_verdict_is_excluded(pricer) -> None:
+    """`RM03-GM-CTRL-C` by name: `is_control`, `removed_by` 'nothing',
+    `gap` 'NONE, on purpose' -- and at the parent commit, `ENTAILED-SURVIVES`."""
+    before = _table(RM03_BEFORE)
+    record = before["per_mutant"][RM03_CTRL]
+    assert record["is_control"] is True
+    assert record["removed_by"] == "nothing"
+    assert record["gap"].startswith("NONE, on purpose")
+    row = pricer.entail(before, RM03_CTRL, ["pytest-gap-mutants"], "6298eee")
+    assert row["verdict"] == pricer.CONTROL_EXCLUDED
+    assert not pricer.is_priced_result(row)
+
+
+def test_an_excluded_control_is_still_printed_and_in_no_denominator(pricer) -> None:
+    """EXCLUDED IS NOT HIDDEN, AND THAT IS THE POINT OF RM-05's FINDING.
+
+    RM-05's defect was a control row MISSING from the output, not a control row
+    being scored. A renderer that dropped controls to keep the table tidy would
+    reproduce the omission exactly. So the row is printed, in its own block,
+    outside every denominator -- and the count of what was excluded is printed
+    beside the denominator, because a control leaving it lowers the denominator
+    without lowering any numerator, which is the direction that makes a price
+    look LARGER.
+    """
+    before = _table(RM03_BEFORE)
+    rows = [pricer.entail(before, m, [], "6298eee") for m in sorted(before["per_mutant"])]
+    rendered = pricer.render_entail(rows, "6298eee")
+    assert RM03_CTRL in rendered, "the control's row must not go missing again"
+    assert "1 declared control(s) excluded" in rendered
+    assert "0 of 3 subject(s) ENTAILED-SURVIVES" in rendered
+    assert "1 EXTINCT (not a price)" in rendered
+
+
+# --------------------------------------------------------------------------
+# CL-02 -- `--head` is validated, because an unresolvable one priced everything
+# --------------------------------------------------------------------------
+
+
+def test_an_unresolvable_head_is_refused_instead_of_pricing_the_whole_table(
+    pricer,
+) -> None:
+    """R1. THE DEMONSTRATED FAILING INPUT, ON THE SEALED RM-03 TABLE.
+
+    `node_present` answers `False` when `git show <head>:<path>` fails, and it
+    failed identically for a path the removal deleted and for a head that names
+    nothing. At the parent commit this exact command printed four
+    `ENTAILED-SURVIVES` rows and exited 0.
+    """
+    if not RM03_BEFORE.is_file():
+        pytest.skip("RM-03's before-table is not in the tree")
+    done = subprocess.run(
+        [sys.executable, str(PRICER), "entail",
+         "--before", str(RM03_BEFORE), "--head", "deadbeefdeadbeef"],
+        cwd=str(REPO_ROOT), capture_output=True, text=True,
+    )
+    assert done.returncode == 2, done.stdout + done.stderr
+    assert "ENTAILED-SURVIVES" not in done.stdout, done.stdout
+    assert "does not name a commit" in done.stderr, done.stderr
+
+    # And the same head that IS resolvable still produces a table.
+    good = subprocess.run(
+        [sys.executable, str(PRICER), "entail",
+         "--before", str(RM03_BEFORE), "--head", "6298eee"],
+        cwd=str(REPO_ROOT), capture_output=True, text=True,
+    )
+    assert good.returncode == 0, good.stdout + good.stderr
+    assert pricer.EXTINCT in good.stdout
+
+
+def test_the_api_refuses_an_unresolvable_head_too(pricer) -> None:
+    """Validated in the functions, not only at the CLI, so an importer that
+    skips `main` cannot skip the check."""
+    before = _table(RM03_BEFORE)
+    for call in (
+        lambda: pricer.entail(before, RUNNER, [], "deadbeefdeadbeef"),
+        lambda: pricer.price(before, before, RUNNER, "deadbeefdeadbeef", []),
+    ):
+        with pytest.raises(pricer.HeadNotResolvable):
+            call()
+
+
+# --------------------------------------------------------------------------
+# CL-02 -- the re-priced history, and the known positives
+# --------------------------------------------------------------------------
+
+
+def test_rm03s_withdrawn_headline_re_prices_to_no_price_at_all(pricer) -> None:
+    """THE RE-PRICED HISTORICAL REMOVAL, AND THE NUMBER IS ZERO.
+
+    `gap-mutant-catalogue-and-runner` was the one removal in the census with a
+    claimed non-zero price. Re-priced with the corrected instrument it has NO
+    priced row: the control is excluded, the headline row is `EXTINCT`, and the
+    two remaining subjects are `UNDECIDED` because their killing nodes are in
+    `tests/test_score_tools.py`, which this removal does not delete.
+
+    A ZERO IS NOT THE GOAL AND WAS NOT TUNED FOR. If a future round makes a
+    historical removal come back non-zero, that is the informative outcome and
+    this assertion is the thing that should be rewritten to say so.
+    """
+    before = _table(RM03_BEFORE)
+    rows = [pricer.entail(before, m, ["pytest-gap-mutants"], "6298eee")
+            for m in sorted(before["per_mutant"])]
+    assert [r for r in rows if pricer.is_priced_result(r)] == []
+    by_verdict = {r["mutant"]: r["verdict"] for r in rows}
+    assert by_verdict[RM03_CTRL] == pricer.CONTROL_EXCLUDED
+    assert by_verdict[RUNNER] == pricer.EXTINCT
+    assert sorted(set(by_verdict.values())) == [
+        pricer.CONTROL_EXCLUDED, pricer.EXTINCT, pricer.UNDECIDED,
+    ]
+
+
+def test_the_correction_does_not_move_the_sealed_audit_record(pricer) -> None:
+    """`denominator_rule`, on the ten measured rows.
+
+    Control exclusion and `EXTINCT` are additions, not re-readings: no control
+    appears in any removal's `gap_mutants`, and no catalogue fault's habitat is
+    deleted by the removal it is priced against. The ten rows are the same ten
+    rows, with the same verdicts. If this moves, the numerator moved and the
+    audit's `0 of 10 disagree` is no longer RM-01's number.
+    """
+    report = pricer.audit(
+        tomllib.loads((CENSUS_DIR / "removals.toml").read_text(encoding="utf-8"))
+    )
+    assert len(report["rows"]) == 10
+    assert all(row["agrees"] for row in report["rows"])
+    assert [r for r in report["rows"] if r["measured"] == pricer.PRICED] == []
+    assert pricer.CONTROL_EXCLUDED not in {r["measured"] for r in report["rows"]}
+    assert pricer.EXTINCT not in {r["this_instrument"] for r in report["rows"]}
+
+
+def test_rm01s_known_positive_still_prices_after_the_correction(
+    pricer, rf_before, rf_after
+) -> None:
+    """KNOWN POSITIVE ONE. An instrument that cannot reproduce it is not working.
+
+    `RM-01-RF-1` is a real `DIES` -> `SURVIVES` that survived a direct
+    adversarial attempt to refute it. Its habitat is `instruments.toml`, which
+    SM-03's removal does NOT delete -- so it is not extinct, it is not a control,
+    and it is still `PRICED`.
+    """
+    row = pricer.price(rf_before, rf_after, RF1, "bf0fb29", [])
+    assert row["verdict"] == pricer.PRICED, row
+    assert pricer.is_priced_result(row)
+    assert pricer.habitat(rf_before["per_mutant"][RF1]) == [
+        "examples/validation/instruments/instruments.toml"
+    ]
+    assert pricer._show("bf0fb29", "examples/validation/instruments/instruments.toml")
+    assert pricer.entail(rf_before, RF1, [], "bf0fb29")["verdict"] == pricer.UNDECIDED
+
+
+# --------------------------------------------------------------------------
 # the instrument is not a gate
 # --------------------------------------------------------------------------
 

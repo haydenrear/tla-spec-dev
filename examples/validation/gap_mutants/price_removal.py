@@ -72,6 +72,79 @@ after-run. So `ENTAILED-SURVIVES` is an upper bound on the price, and `price`
 (which reads a measured after-table) is what settles it. Both are printed; the
 instrument has no mode that emits only one.
 
+EXTINCT: A FAULT WHOSE HABITAT WAS DELETED IS NOT A FAULT THAT SURVIVED A CUT
+=============================================================================
+
+`CL-02`. `RM-05` withdrew the previous epic's headline and the reason is in this
+file. **For every fault all of whose killing nodes lie inside a file the removal
+deletes, `ENTAILED-SURVIVES` follows from `git show` alone, with nothing run and
+no other verdict reachable.** The round's own control -- `is_control` true,
+`removed_by` `"nothing"`, `gap` `"NONE, on purpose"` -- returned the headline
+verdict from the same arithmetic, and that row was missing from the four-row
+output the report printed as three. **So the verdict carried no information
+about the removal.**
+
+The distinction the verdict was missing is one this repository had already
+written down and never computed. `residual_faults.toml`'s `[[not_seedable]]`
+row says it in words:
+
+    The fault class is EXTINCT, not UNWATCHED, and an extinct fault class costs
+    nothing in the currency a gap mutant measures. What that removal DID cost is
+    a CAPABILITY, NOT A DETECTION, and no gap mutant of any posture measures
+    capability.
+
+`EXTINCT` computes that. A fault is extinct at a removal's head when **the
+removal deleted the fault's own habitat** -- every file the mutant must edit in
+order to exist is gone -- so there is no post-removal artifact the fault could
+be seeded into. `ENTAILED-SURVIVES` says *a detection was taken away*.
+`EXTINCT` says *there is nothing left to detect*, and it is **not** a price.
+
+**HABITAT IS READ FROM THE EDIT OPS, NOT FROM THE PATH LIST, AND THAT IS THE
+WHOLE CARE IN IT.** `SM-GM-I3-an-instrument-that-was-never-added-to-the-registry`
+edits `scripts/gap_probe_instrument.py` with `op = "add_file"`, and that path is
+absent at `bf0fb29` **because the mutant creates it**. Absence there is the
+fault's PRECONDITION, not its extinction. A rule that read "any declared path
+missing at head" would have called `SM-GM-I3` extinct and made `SM-03`'s removal
+look cheaper than it is. Only an edit that requires the file to already exist
+(`replace`, `append`, ...) declares habitat; a mutant whose every edit is
+`add_file` carries its own habitat and can never be `EXTINCT`.
+
+BOUND ON `EXTINCT`, stated rather than left to be found
+-------------------------------------------------------
+
+It is file-granular, exactly as shallow as `node_present`. **A mechanism that was
+RENAMED rather than deleted reads `EXTINCT` here and is not extinct** -- the
+fault class may be perfectly expressible in the file that replaced it. `EXTINCT`
+is therefore an upper bound on extinction, in the same way `ENTAILED-SURVIVES`
+is an upper bound on the price, and it is reported as **a refusal to price, not
+as a zero**: an extinct fault is one this instrument declines to measure, and
+the capability the removal may have cost is measured by nothing here.
+
+DECLARED CONTROLS ARE NOT PRICEABLE ROWS
+========================================
+
+A row that declares `is_control` -- or `removed_by = "nothing"`, which says the
+removal is not on its causal path at all -- **cannot appear as a priced result**.
+`CONTROL-EXCLUDED` is its verdict in every mode, and `is_priced_result` is false
+for it by construction.
+
+**The row is still PRINTED.** RM-05's finding was not that a control was scored;
+it was that the control's row went *missing from the output*, so nobody saw the
+verdict repeat. Dropping control rows to keep the table tidy would reproduce that
+failure exactly. They are shown, in their own block, outside every denominator.
+
+`--head` IS VALIDATED, BECAUSE AN UNRESOLVABLE ONE PRICED EVERYTHING
+====================================================================
+
+`node_present` answers `False` when `git show <head>:<path>` fails, and it failed
+identically for *a path this removal deleted* and for *a head that does not name
+a commit*. So a typo'd, truncated or unfetched `--head` made every killing node
+look deleted and returned `ENTAILED-SURVIVES` for every fault in the table, **at
+exit 0** (`RM-05`, §2). `resolve_head` now resolves the ref before any verdict is
+computed and raises `HeadNotResolvable`; the CLI exits 2 and prints no table. The
+demonstrated failing input is `--head deadbeefdeadbeef` over the sealed RM-03
+before-table, which used to print four `ENTAILED-SURVIVES` rows.
+
 WHAT IT IS NOT
 ==============
 
@@ -127,6 +200,67 @@ RED_EXIT = "<red-exit>"
 
 _PARAM = re.compile(r"\[[^\]]*\]$")
 
+# --------------------------------------------------------------------------
+# the vocabulary, named so a renderer and a test cannot drift from it
+# --------------------------------------------------------------------------
+
+NOT_IN_TABLE = "NOT-IN-TABLE"
+CONTROL_EXCLUDED = "CONTROL-EXCLUDED"
+EXTINCT = "EXTINCT"
+NO_KILL_TO_LOSE = "NO-KILL-TO-LOSE"
+ENTAILED_SURVIVES = "ENTAILED-SURVIVES"
+UNDECIDED = "UNDECIDED"
+PRICED = "PRICED"
+FREE = "FREE"
+
+#: The two verdicts that assert a removal took a detection away. Everything a
+#: reader would quote as "this removal cost something" is in here, and nothing
+#: else is. `CL-02`: a declared control must never reach this set, and neither
+#: must a fault whose habitat the removal deleted.
+PRICED_VERDICTS = frozenset({PRICED, ENTAILED_SURVIVES})
+
+#: Edit ops that CREATE the file they name. A mutant made only of these carries
+#: its own habitat, so a missing path is its precondition and never its
+#: extinction -- `SM-GM-I3`, which is why this set exists.
+OPS_THAT_CREATE_THEIR_HABITAT = frozenset({"add_file", "create", "new_file"})
+
+
+def is_priced_result(row: dict[str, Any]) -> bool:
+    """Would a reader quote this row as a removal having cost a detection?"""
+    return row.get("verdict") in PRICED_VERDICTS
+
+
+class HeadNotResolvable(RuntimeError):
+    """`--head` did not name a commit in this repository.
+
+    Raised BEFORE any verdict is computed. Left unraised, this condition made
+    `git show <head>:<path>` fail for every path, which reads as "every killing
+    node was deleted", which returns `ENTAILED-SURVIVES` for the whole table at
+    exit 0 (`RM-05` §2).
+    """
+
+
+_RESOLVED: dict[str, str] = {}
+
+
+def resolve_head(head: str) -> str:
+    """The full sha `head` names, or `HeadNotResolvable`. Never a silent False."""
+    if head in _RESOLVED:
+        return _RESOLVED[head]
+    done = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", f"{head}^{{commit}}"],
+        cwd=str(REPO_ROOT), capture_output=True, text=True,
+    )
+    sha = done.stdout.strip()
+    if done.returncode != 0 or not sha:
+        raise HeadNotResolvable(
+            f"--head {head!r} does not name a commit in {REPO_ROOT}. Refusing to "
+            "compute a verdict: an unresolvable head makes every killing node "
+            "look deleted and prices the whole table."
+        )
+    _RESOLVED[head] = sha
+    return sha
+
 
 # --------------------------------------------------------------------------
 # reading a gap-mutant artifact
@@ -172,6 +306,59 @@ def _show(ref: str, path: str) -> str | None:
     return done.stdout if done.returncode == 0 else None
 
 
+def declared_control(record: dict[str, Any]) -> str | None:
+    """Why this row is a control, or `None` if it is a subject.
+
+    Read from the row's OWN DECLARATIONS in the sealed table -- never inferred
+    from its verdicts, which is what would let a result decide the exclusion.
+
+      `is_control`    the seeding author said so
+      `removed_by`    `"nothing"` -- the removal is not on this row's causal
+                      path, so it cannot be priced against it whatever it does
+      `control_role`  a written role; a row with one is a control that lost its
+                      flag, and `RM-05` is about a control nobody noticed
+
+    All four controls in the sealed record (`SM-GM-CTRL-A`, `SM-GM-CTRL-B`,
+    `RM-01-RF-CTRL`, `RM03-GM-CTRL-C`) declare the first two together.
+    """
+    if record.get("is_control"):
+        return "declared is_control"
+    if (record.get("removed_by") or "").strip().lower() == "nothing":
+        return "removed_by is 'nothing' -- the removal is not on its causal path"
+    role = record.get("control_role")
+    if isinstance(role, str) and role.strip():
+        return "carries a control_role"
+    return None
+
+
+def habitat(record: dict[str, Any]) -> list[str]:
+    """The paths this fault needs to ALREADY EXIST in order to be seeded.
+
+    An `add_file` edit creates what it names, so it declares no habitat: its
+    path being absent is the fault's precondition. `SM-GM-I3` is exactly that
+    row and a path-list reading would have called it extinct.
+    """
+    return sorted({
+        edit["path"]
+        for edit in (record.get("edits") or [])
+        if edit.get("path")
+        and (edit.get("op") or "replace") not in OPS_THAT_CREATE_THEIR_HABITAT
+    })
+
+
+def extinct_at(record: dict[str, Any], head: str | None) -> tuple[bool, list[str]]:
+    """Did the removal delete every file this fault needed in order to exist?
+
+    Returns `(extinct, the habitat that was read)`. `False` with no head, and
+    `False` for a mutant that declares no habitat at all -- both mean the
+    question was not answerable, never that the answer was no.
+    """
+    sites = habitat(record)
+    if head is None or not sites:
+        return False, sites
+    return all(_show(head, path) is None for path in sites), sites
+
+
 def node_present(ref: str, node: str) -> bool:
     """Is this pytest node id still in the tree at `ref`?
 
@@ -205,12 +392,29 @@ def price(
     head: str | None,
     deleted_detectors: list[str],
 ) -> dict[str, Any]:
-    """The price of a removal for one fault, read from both measured tables."""
+    """The price of a removal for one fault, read from both measured tables.
+
+    `CL-02`: a declared control is `CONTROL-EXCLUDED` here too. The exclusion is
+    a property of the ROW, not of the mode it is read in -- a control that could
+    be priced by `price` while `entail` refused it would be the same defect with
+    one more step in front of it.
+    """
+    if head is not None:
+        resolve_head(head)
     b_record = before["per_mutant"].get(mutant_id)
     a_record = after["per_mutant"].get(mutant_id)
     if b_record is None or a_record is None:
         missing = "before" if b_record is None else "after"
-        return {"mutant": mutant_id, "verdict": "NOT-IN-TABLE", "why": f"absent from the {missing} table"}
+        return {"mutant": mutant_id, "verdict": NOT_IN_TABLE, "why": f"absent from the {missing} table"}
+
+    control = declared_control(b_record)
+    if control is not None:
+        return {
+            "mutant": mutant_id,
+            "verdict": CONTROL_EXCLUDED,
+            "control_reason": control,
+            "why": "a declared control is not a priced result in any mode",
+        }
 
     b_kills, b_undecided = kill_set(b_record)
     a_kills, a_undecided = kill_set(a_record)
@@ -224,7 +428,7 @@ def price(
     }
 
     if not b_kills:
-        row["verdict"] = "NO-KILL-TO-LOSE"
+        row["verdict"] = NO_KILL_TO_LOSE
         row["why"] = "nothing caught it before the cut, so the cut cannot have taken a kill away"
         return row
 
@@ -239,11 +443,11 @@ def price(
     ]
 
     if a_kills:
-        row["verdict"] = "FREE"
+        row["verdict"] = FREE
         row["why"] = "something still catches it after the cut; the detection was redundant"
         return row
 
-    row["verdict"] = "PRICED"
+    row["verdict"] = PRICED
     row["why"] = "every kill it had is gone; the removal took the detection away"
     return row
 
@@ -276,8 +480,14 @@ def entail(
 ) -> dict[str, Any]:
     """What survivorship over the before-table alone is entitled to conclude.
 
-    THREE VERDICTS, AND ONLY ONE OF THEM IS A CONCLUSION:
+    FIVE VERDICTS, AND ONLY ONE OF THEM IS A PRICE:
 
+      CONTROL-EXCLUDED    a declared control. Never priced, always printed.
+      EXTINCT             the removal deleted this fault's habitat. There is no
+                          post-removal artifact it could be seeded into, so
+                          there is nothing left to detect and nothing to price.
+                          NOT a zero -- a refusal to measure. Bounded: a
+                          mechanism RENAMED rather than deleted reads EXTINCT.
       NO-KILL-TO-LOSE     nothing caught it before; the cut cannot cost anything
       ENTAILED-SURVIVES   no killing (detector, node) survives the cut. The
                           removal took every kill this fault had. SOUND -- and
@@ -286,13 +496,33 @@ def entail(
                           is NOT `entailed DIES`: the survivor may have been
                           weakened, and only running the fault can tell.
 
+    THE ORDER IS THE ARGUMENT. `EXTINCT` is a fact about the SUBJECT and it
+    strictly dominates every fact about DETECTION: if the fault cannot exist
+    after the cut, then "everything that caught it is gone" is true and vacuous.
+    That vacuous truth is what `RM-03` published as the first priced removal.
+
     The shipped `removal_census.discriminating` returns `NON-DISCRIMINATING`
-    for the third case with the reason *"DIES after the cut was entailed before
+    for `UNDECIDED` with the reason *"DIES after the cut was entailed before
     the cut was made"*. That is the unsound step this function refuses to take.
     """
+    if head is not None:
+        resolve_head(head)
     record = before["per_mutant"].get(mutant_id)
     if record is None:
-        return {"mutant": mutant_id, "verdict": "NOT-IN-TABLE"}
+        return {"mutant": mutant_id, "verdict": NOT_IN_TABLE}
+
+    control = declared_control(record)
+    if control is not None:
+        return {
+            "mutant": mutant_id,
+            "verdict": CONTROL_EXCLUDED,
+            "control_reason": control,
+            "why": (
+                "a declared control is not a priced result in any mode. It is shown "
+                "and not scored: RM-05's finding was that a control's row went MISSING "
+                "from the output, so nobody saw it return the headline verdict."
+            ),
+        }
 
     kills, undecided = kill_set(record)
     row: dict[str, Any] = {
@@ -300,8 +530,30 @@ def entail(
         "kills_before": sorted(f"{d}::{n}" for d, n in kills),
         "undecidable_columns_before": undecided,
     }
+
+    gone, sites = extinct_at(record, head)
+    row["habitat"] = sites
+    if not sites:
+        row["habitat_note"] = (
+            "this row declares no habitat, so extinction was not asked"
+            if head else "no --head, so extinction was not asked"
+        )
+    elif head is None:
+        row["habitat_note"] = "no --head, so extinction was not asked"
+    if gone:
+        row["verdict"] = EXTINCT
+        row["why"] = (
+            "the removal deleted every file this fault needed in order to exist, so "
+            "there is no post-removal artifact it could be seeded into. NOT A PRICE "
+            "and not a zero: an extinct fault class costs nothing in the currency a "
+            "gap mutant measures, and what a removal like this DOES cost is a "
+            "CAPABILITY, which nothing here measures. Bound: file-granular -- a "
+            "mechanism RENAMED rather than deleted reads EXTINCT and is not extinct."
+        )
+        return row
+
     if not kills:
-        row["verdict"] = "NO-KILL-TO-LOSE"
+        row["verdict"] = NO_KILL_TO_LOSE
         return row
 
     survivors = []
@@ -313,14 +565,14 @@ def entail(
         survivors.append(f"{detector}::{node}")
     row["kills_that_survive_by_name"] = survivors
     if survivors:
-        row["verdict"] = "UNDECIDED"
+        row["verdict"] = UNDECIDED
         row["why"] = (
             "a killing node still exists at the head of the removal. It may or may not "
             "still catch this fault -- a node can keep its id and lose its body. Running "
             "the fault is the only thing that decides it."
         )
     else:
-        row["verdict"] = "ENTAILED-SURVIVES"
+        row["verdict"] = ENTAILED_SURVIVES
         row["why"] = (
             "every killing node the fault had is deleted by this removal, so the removal "
             "took the detection away. Bound: this cannot see a kill the after tree ADDED."
@@ -394,13 +646,16 @@ def audit(manifest: dict[str, Any]) -> dict[str, Any]:
 
 def _agrees(shipped: str, measured: str) -> bool:
     """Did the shipped classifier's prediction match what the re-run measured?"""
-    if shipped == "NO-KILL-TO-LOSE":
-        return measured == "NO-KILL-TO-LOSE"
+    if measured == CONTROL_EXCLUDED:
+        # A control is not a prediction the classifier is answerable for.
+        return True
+    if shipped == NO_KILL_TO_LOSE:
+        return measured == NO_KILL_TO_LOSE
     if shipped == "NON-DISCRIMINATING":  # it predicts DIES after the cut
-        return measured == "FREE"
+        return measured == FREE
     if shipped == "DISCRIMINATING":      # it predicts the re-run could say something
-        return measured in ("PRICED", "FREE")
-    return measured == "NOT-IN-TABLE"
+        return measured in (PRICED, FREE)
+    return measured == NOT_IN_TABLE
 
 
 # --------------------------------------------------------------------------
@@ -408,9 +663,26 @@ def _agrees(shipped: str, measured: str) -> bool:
 # --------------------------------------------------------------------------
 
 
+def _render_control_block(rows: list[dict[str, Any]]) -> list[str]:
+    """Controls, PRINTED and outside every denominator.
+
+    `RM-05`'s finding was a control row missing from the output, not a control
+    row being scored. A tidier table that dropped these would repeat it.
+    """
+    controls = [r for r in rows if r["verdict"] == CONTROL_EXCLUDED]
+    if not controls:
+        return []
+    out = ["", "DECLARED CONTROLS -- shown, never priced, in no denominator:"]
+    for row in controls:
+        out.append(f"    {CONTROL_EXCLUDED}  {row['mutant']}")
+        out.append(f"        {row.get('control_reason', '')}")
+    return out
+
+
 def render_price(rows: list[dict[str, Any]]) -> str:
     out = ["THE PRICE, READ FROM THE KILL SET", ""]
-    for row in rows:
+    subjects = [r for r in rows if r["verdict"] != CONTROL_EXCLUDED]
+    for row in subjects:
         out.append(f"{row['verdict']:<16} {row['mutant']}")
         if row.get("why"):
             out.append(f"                 {row['why']}")
@@ -418,9 +690,40 @@ def render_price(rows: list[dict[str, Any]]) -> str:
             out.append(f"    lost kill   [{lost['reason']}] {lost['detector']} :: {lost['node']}")
         for column in row.get("undecidable_columns_after", []):
             out.append(f"    UNDECIDABLE column after the cut, read as neither: {column}")
-    priced = [r for r in rows if r["verdict"] == "PRICED"]
-    out += ["", f"{len(priced)} of {len(rows)} fault(s) PRICED -- a fault the repository "
-                f"used to catch and no longer catches."]
+    out += _render_control_block(rows)
+    priced = [r for r in subjects if r["verdict"] == PRICED]
+    # `denominator_rule`: the denominator is SUBJECTS, and it says so. A control
+    # leaving it lowers the denominator without lowering any numerator, which is
+    # the direction that makes a price look LARGER -- so the excluded count is
+    # printed beside it rather than absorbed.
+    out += ["", f"{len(priced)} of {len(subjects)} fault(s) PRICED -- a fault the repository "
+                f"used to catch and no longer catches.",
+            f"denominator: {len(subjects)} subject(s); "
+            f"{len(rows) - len(subjects)} declared control(s) excluded from it."]
+    return "\n".join(out)
+
+
+def render_entail(rows: list[dict[str, Any]], head: str | None) -> str:
+    """The before-only reading, with the two things `RM-03`'s output lacked:
+    every row present, and a statement of what the denominator is."""
+    out = ["WHAT THE BEFORE-TABLE ALONE ENTAILS", ""]
+    subjects = [r for r in rows if r["verdict"] != CONTROL_EXCLUDED]
+    for row in subjects:
+        out.append(f"{row['verdict']:<19} {row['mutant']}")
+        if row.get("why"):
+            out.append(f"                    {row['why']}")
+        if row["verdict"] == EXTINCT:
+            for path in row.get("habitat", []):
+                out.append(f"    habitat deleted by this removal: {path}")
+    out += _render_control_block(rows)
+    entailed = [r for r in subjects if r["verdict"] == ENTAILED_SURVIVES]
+    extinct = [r for r in subjects if r["verdict"] == EXTINCT]
+    if head is None:
+        out += ["", "NOTE: no --head. Node survivorship and EXTINCT were BOTH unasked; "
+                    "this table is the weakest reading the instrument has."]
+    out += ["", f"{len(entailed)} of {len(subjects)} subject(s) ENTAILED-SURVIVES; "
+                f"{len(extinct)} EXTINCT (not a price); "
+                f"{len(rows) - len(subjects)} declared control(s) excluded."]
     return "\n".join(out)
 
 
@@ -500,12 +803,18 @@ def main(argv: list[str] | None = None) -> int:
 
     missing = [m for m in declared if m not in before["per_mutant"]]
 
+    # `--head` FIRST, AND BEFORE A SINGLE VERDICT. An unresolvable head used to
+    # make every killing node look deleted and price the whole table at exit 0.
+    if args.head is not None:
+        try:
+            resolve_head(args.head)
+        except HeadNotResolvable as bad:
+            print(f"error: {bad}", file=sys.stderr)
+            return 2
+
     if args.command == "entail":
         rows = [entail(before, m, deleted, args.head) for m in subjects]
-        for row in rows:
-            print(f"{row['verdict']:<19} {row['mutant']}")
-            if row.get("why"):
-                print(f"                    {row['why']}")
+        print(render_entail(rows, args.head))
         _write(args.out, {"removal": args.removal, "head": args.head, "rows": rows})
         return 1 if missing else 0
 
