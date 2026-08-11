@@ -1,5 +1,324 @@
 # next epic — starter for the next epic owner
 
+> **AMENDED AFTER `CL-04`, the `close-the-loop` evaluation (2026-08-11).**
+> Everything below still describes how each earlier result was measured and none
+> of it is edited. What CL-04 adds is at the very top, in section 0-AAAAAAAA,
+> because **the premise of the epic it closes is now false** — the loop CAN be
+> run by someone who did not build it, and a blind adopter ran it end to end —
+> and because the one thing the epic did not do is the one thing the next epic
+> must. Full record:
+> `specs/results/scorecards/close-the-loop/CL-04/RESULT.md`.
+
+---
+
+## 0-AAAAAAAA. READ BEFORE EVERYTHING — what CL-04 measured
+
+### 1. THE EPIC'S PREMISE IS FALSE, AND THAT IS ITS BEST RESULT
+
+`CLOSE-THE-LOOP-EPIC.md` §1 said the loop *"cannot be run by anyone who did not
+build it, and has never been run end to end even by us."* **Both halves are now
+false, and the first was falsified by measurement rather than by argument.**
+
+A blind adopter agent — handed only what the skill ships, **forbidden our `.py`
+source, everything under `specs/`, our `tests/`, our epic documents and our git
+history** — wrote its own 103-line artifact and ran the loop end to end: serve,
+scaffold, fill, check, index, seal, audit, **bump the card to version 6**,
+re-serve, re-score the same commit under both versions, declare the movement,
+`audit` clean at `0 violation(s)`. Its scores moved **D2 2 → 3 and D3 3 → 4** on
+a byte-identical commit, because it rewrote the caveat to suit its own codebase.
+
+**And our D3 caveat fired on its artifact, which we had never seen.** It rejected
+D3 = 4 under version 5 and said why: *"nothing but `JsonFileStore` ever reads the
+JSON file… the caveat did real work on a real artifact it was never written
+for."*
+
+**And the change rule survives the NEXT bump, which CL-03 could not test.** CL-03
+found that four of CL-01's own tests went red on the first correct bump, because
+their demonstrated failing input was the literal `5`, and repaired them to read
+what the file declares. CL-04 bumped the card 5 → 6 in a disposable worktree —
+one file, two insertions, one deletion, zero Python — and ran the whole suite:
+
+```
+tip, unmodified          2 failed, 1496 passed
+tip + a stranger's v6    2 failed, 1496 passed
+```
+
+**Zero new failures.** The repair was not a patch for the bump that exposed it;
+it is version-independent, and this is the first evidence of that.
+
+**Do not over-read any of it.** It establishes that the MECHANISM transfers. It
+says nothing about whether the SCORES transfer, and the probe was its own judge.
+
+### 2. THE ONE THING THE NEXT EPIC MUST RUN: THE MISSING CELL
+
+**`CL-04-DF-05` is the first ticket.** CL-03's closure — D3 `4, 4 → 3, 3`, one
+judge model, one artifact, card version the only mover — is real and reproduces
+from the sealed cards. **It has no negative control.**
+
+The version-5 caveat says *"if the only observer of the effect the port exists
+for is the adapter that wrote it, say so and take 3."* It was applied to an
+artifact with exactly that property and the score went to 3. **A caveat telling a
+judge to take 3 in condition X, applied to an artifact with condition X, moving
+the score to 3, is the minimum possible evidence that a caveat is wired up.** It
+demonstrates plumbing. It does not measure discrimination.
+
+**Score ONE artifact that plainly LACKS the single-observer hole under both
+version 4 (from `rubric_v4_frozen.md`) and version 5**, same judge model, same
+tag, two passes a side. The design is CL-03's, already run, so the cost is known
+and nothing needs inventing. Declare the prediction before dispatching.
+
+- **If D3 falls there too**, the caveat is general downward pressure and the
+  epic's headline is a recalibration, not a detection.
+- **If it holds**, the caveat discriminates and the headline is earned.
+
+**A null is the informative outcome and must be reported as loudly as CL-03
+reported the move.**
+
+### 3. THE CHANGE RULE FAILS LOUDLY UPWARDS AND SILENTLY DOWNWARDS
+
+`CL-04-DF-01`. CL-01 closed the upward direction completely: `--card-version 6`
+and `7` are refused by name, exit 2, with the two edits spelled out. **Nobody
+ran it downwards.**
+
+```
+serve --card-version 4 --digest-only   ->  sha256:2d7d4a0506d9b259   <- v5's digest
+serve --card-version 5 --digest-only   ->  sha256:2d7d4a0506d9b259
+the card's own table declares v4    =      sha256:a213a36770ccab09
+```
+
+**`--card-version` labels; it does not gate.** `serve --card-version 4` and
+`--card-version 5` emit byte-identical output. `scaffold --card-version 4`
+succeeds and writes a card stamped `version 4` carrying version 5's served
+digest, and `check` reports **0 problems** — the epic's own baseline defect with
+its direction reversed.
+
+**The guard that catches 1, 2 and 3 is structural and can never be extended.** It
+fires because the current file *"carries no anchors for D1, D4, D5"*. Versions 4
+and 5 share a dimension set, so nothing structural separates them. **The signal
+that would separate them is the declared served digest, sitting in the same table
+`check` already parses, unused.**
+
+Consequence: **for every version but the current one, `--digest-only` reproduces
+nothing.** The only thing that has ever reproduced version 4's bytes is
+`rubric_v4_frozen.md`, a frozen copy of the whole file. That operator convention
+is load-bearing, not optional — `FI-06-DF-11(c)`, four rounds running, seen from
+the other side. **No sealed card is re-based**; `check` correctly reports
+SERVED-DRIFT on the v4 cards. The damage is to reproduction, not to the record.
+
+### 4. THE SERVED SURFACE FELL, AND THE 6,409 IS STILL WRONG
+
+```
+                a662675 (base)   0adfb79 (tip)
+serve | wc -c        6,319           6,281      -38  (-0.6%)
+rungs                    9               9      unchanged
+```
+
+**It did not grow. The budget is 6,281 bytes and 9 rungs.** The D3 caveat cost
+138 bytes and was paid for out of a scoring rule that restated the served
+preamble verbatim — a real payment, not an accounting one.
+
+`CL-01-DF-01` reproduces and is slightly worse than filed: the stdout/stderr gap
+is **92 bytes today**, not 90, because the stderr line carries digests whose
+length moves. **A budget quoted as 6,409 was never reproducible from any command
+and is not even reproducible as the same mistake.**
+
+### 5. A PRICE MEANS SOMETHING, AND THE INSTRUMENT STILL HAS ONE PRICE
+
+All four target clauses reproduce independently at the tip: `EXTINCT` separates
+head-sensitively, controls are excluded **and still printed** with the excluded
+count beside the denominator, `--head deadbeefdeadbeef` exits 2, both known
+positives reproduce. Re-priced history: **`priced rows: []`**.
+
+**No target was placed on any price and no number was tuned.** A non-zero was the
+informative outcome, the instrument would have printed one, and none appeared.
+
+**And the addendum matters more than the verdict.** Two epics have now gone into
+making the pricer mean something and it has priced exactly one thing,
+`RM-01-RF-1`, which it could already price. `CL-02-DF-02` records that the
+remaining route to a spurious `PRICED` is still open. **The goal is met and the
+instrument is not yet useful. Meeting the goal is not evidence that it will
+become useful.** Do not fund a third epic on it without a reason that is not "we
+are nearly there".
+
+### 6. "ROUGHLY ONE IN SIX" IS WRONG BY A FACTOR OF SIX, IN THE FLATTERING DIRECTION
+
+`CL-04-DF-04`, and it is the project's own most expensive recurring error
+committed inside one epic. `HARVEST-CL-03.md` says two separate things: the same
+defect classes were rediscovered *"up to six times each"*, and *"the number of
+them that became an entry in `deferred_findings.yaml` is approximately one."*
+
+**The six is the maximum REDISCOVERY MULTIPLICITY of one class — the `M07`
+positive control, found by six judge passes. It is not a denominator.**
+
+The harvest carries **38 numbered defect classes**
+(`grep -cE '^\*\*[A-F][0-9]+\.'` → 38), of which approximately one had ever been
+filed. **The measured consumption rate is ~1 in 38 — 2.6%, not 17%.** CL-03's own
+text is accurate; the restatement happened downstream of it, between a RESULT
+page and the dispatch of the ticket evaluating it.
+
+**What it means for the programme, which is the question that was asked.** The
+loop's missing link was never detection and never filing — **it was that nothing
+consumed a filed finding.** CL-03 took the record from ~1/38 to ~6/38 in one
+round, and it did so by being *funded to read*. That is the same mechanism RM-06
+found for the suite: **the channel was never the instrument, it was paying
+somebody to read the instrument's output.** Two epics have now independently
+found that the binding constraint is consumption, not detection. **Budget a
+reading ticket in every epic, or the rate returns to 1 in 38.**
+
+### 7. THE PER-TOKEN RATIO LAPSED FOR A SECOND CONSECUTIVE EPIC, AND THE CAUSE IS STRUCTURAL
+
+`CL-04-DF-02`. `RD-03-DF-13`'s repair lasted one round. `portable-substrate`
+recorded none and re-filed it. **`close-the-loop` recorded none either: the
+string `token` appears nowhere under `specs/results/scorecards/close-the-loop/`.**
+Confirmed cold by a blind census that was asked the question with no hypothesis.
+
+**It is not three agents forgetting. No artifact in the repository asks for the
+number.** `ticket_plan.yaml`'s `acceptance.assertions` do not require it, the
+close-out path does not require it, and the only place it is ever demanded is the
+prose of the evaluation ticket's dispatch — **which arrives after the other
+tickets have finished and their spend is gone.**
+
+**THE FIX IS TO PUT IT WHERE IT IS UNAVOIDABLE, NOT WHERE IT MUST BE REMEMBERED.**
+Add a required `cost` block to ticket close-out with two fields — `basis` (free
+text) and `value` — and make a RESULT page without one an incomplete ticket. **Do
+NOT try to pick the one true basis first. Three epics have failed at that, and it
+is why nothing gets recorded at all.** A number with a named basis that is
+incomparable to the last one is still worth more than no number, because the
+second round with the same basis becomes comparable.
+
+**CL-04's own, with its basis named, so the epic is not zero for zero:**
+
+| channel | filed | `subagent_tokens` (composition undocumented) | per 100k |
+|---|---|---|---|
+| blind adopter probe | 1 | 102,034 | **0.98** |
+| blind census | 0 | 84,214 | **0.00** |
+| both blind channels | 1 | 186,248 | **0.54** |
+
+**Not comparable to RD-03's 1.14** (different, named basis) and not to SM-05's
+0.60. The operator's own spend is not captured by this field and is missing,
+which is the same bound RM-05 reported.
+
+### 8. FINDINGS BY CHANNEL, AND THE SUITE'S ZERO WAS PREDICTED
+
+| channel | this epic |
+|---|---|
+| operator doing the work | **7** |
+| blind judges | 2 |
+| census over the sealed record | 1 |
+| operator running an instrument they built | 1 |
+| **the suite** | **0** |
+
+**The suite's zero was predicted by RM-05's diagnosis and confirmed.** Last epic
+the suite produced four, and RM-05 said why: *"the channel was never the suite;
+it was paying somebody to read it."* No ticket in this epic was funded to read
+suite output; the suite produced nothing. **That is the one place in this record
+where a prior round's causal claim made a forward prediction that came true.**
+
+**Seven of eleven came from an operator doing ordinary work.** The instrumented
+channels produced a minority of the round.
+
+**Two structural defects in how this gets counted, both raised unprompted by the
+census.** (i) **The ledger has no `channel` field**, after five epics of rounds
+being asked to report by channel — the signal exists only as free text inside
+`found_by`, on 57 of 173 rows, which is why this measurement is expensive every
+time. (ii) The channel vocabulary **has no slot for "operator running a shipped
+instrument they did not build"**, and three findings landed in "operator doing
+the work" by the absence of that option rather than by fit.
+
+### 9. THE SHIPPED TOOLCHAIN: 0 OF 11, AND THE ZERO IS NARROWER THAN IT SOUNDS
+
+**CL: 0 of 11. Whole ledger: 10 of 173.** And:
+
+```
+$ git diff --stat a662675..0adfb79 -- scripts/ spec_double_compiler/ templates/ skill-scripts/ SKILL.md
+$ # no output
+```
+
+**Two consecutive epics have changed zero bytes of the thing this repository
+ships.**
+
+**THE CAVEAT THAT MAKES THE ZERO HONEST.** Every CL finding about a *tool* names
+`examples/validation/scorecards/score_tools.py`, `architecture_tags.py` or
+`gap_mutants/price_removal.py`. **Those are the instruments this programme
+actually runs**, and under the stated definition they are `examples/`. Under a
+definition that counted them CL would be **at least 5 of 11**. The census raised
+this itself and refused to widen the definition, which is the right call and
+makes the number reproducible — but *0 of 11* describes something much narrower
+than it sounds like, and quoting it alone would be the misreading §6 is about.
+
+**Also new:** every one of the ten shipped-toolchain findings in 173 rows is
+under `scripts/`. `spec_double_compiler/`, `templates/`, `skill-scripts/` and
+root `SKILL.md` have been named in **zero** finding surfaces across six epics.
+
+### 10. WHAT AN ADOPTER STILL CANNOT DO — `CL-04-DF-06`, ESCALATED
+
+Fifteen blockers from the probe. Three matter, and the first is **a check that
+cannot fail**:
+
+1. **The architecture axis is inert when under-installed and cannot say so.** The
+   adopter page lists three files; a fourth, `scripts/code_complexity.py`, is
+   required and named only in `references/architecture_tags.md:125`. Without it
+   every subject reads `UNDERIVABLE:unmeasurable` — **and pointing a subject's
+   `scope` at a directory that does not exist produces byte-identical output.**
+   `audit` then reports the scope *"is absent"* when it is present. **That is the
+   `absent` / `checked, none found` conflation this project's own
+   `subjects.toml` header says it keeps finding, shipped inside the axis that
+   carries D3's refusal authority.** The docs' fail-open defence covers a
+   derivation that ran and declined; it does not cover one that never ran.
+2. **The movement ledger is undiscoverable from the adopter page**, and a card
+   bump makes it mandatory at the next `audit`. `[[movement]]`'s key format is
+   documented nowhere; the probe brute-forced four wrong shapes. **The only
+   working example of the syntax in the tree is our own private measurement
+   record** — and the probe explicitly rejected reading it, correctly.
+3. **`seal` crashes with a raw traceback on the layout the docs tell you to
+   build**, and `tags` prints `REFUSED:` and exits **0**.
+
+**Do not respond to this by adding gates.** The probe's own verdict is that the
+four core commands work and the optional subsystems are honestly optional. **The
+failure is that one of them lies about being installed.**
+
+### 11. DISCIPLINE THAT PAID, AND THE ALARM THAT DID NOT FIRE
+
+**Predictions sealed BEFORE measuring, and it worked.** Sealed
+`2026-08-11T21:00:12Z` in `ab73164`, before any command in the measurement and
+before either blind agent was dispatched. **Three of eleven falsified**, so the
+declared alarm did not fire.
+
+**But do not read that as a well-designed evaluation.** Six of the eleven merely
+predicted that the predecessors' reports would reproduce, and reports here have
+reproduced reliably for several epics. **Three had a real mechanism, and two of
+those three were falsified** — and both fell in the direction that made the
+evaluation *more* wrong rather than less: one assumed the seal covered more than
+it does, the other assumed the record was emptier than it is. **Put a mechanism
+in every prediction, and expect the mechanism-carrying ones to be the ones that
+break.**
+
+**Ask every blind agent what it rejected, and read the rejections first.** Both
+agents' most valuable output was in that section: the probe rejected reading our
+source twice when it was stuck and brute-forced instead, and rejected cribbing a
+config format out of our results file — *"an adopter reverse-engineering a config
+format from someone else's results file is the failure, not the fix."* The census
+rejected widening "shipped toolchain" to make its own number bigger, **and then
+reported what the wider number would have been anyway.**
+
+**Both agents disclosed their own contamination unprompted.** The probe named a
+`git status` it ran to prove it had written nothing. The census named two places
+where an authorised grep and an allowed file put prior answers on its screen, and
+showed its figure was computed before one of them came into view. **That
+behaviour is what makes a blind channel worth paying for, and it should be asked
+for by name in every dispatch.**
+
+### 12. THE STANDING RULE, HONOURED
+
+**A low or unflattering result is the preferred outcome.** This epic's best
+material is that its own premise was false, that the change rule it shipped fails
+silently in the direction nobody tested, that the loop it closed has no control,
+and that the shipped toolchain has not moved in two epics.
+
+**An epic that closes with only good news about itself has not been measured.**
+
+---
+
 > **AMENDED AFTER `RM-05`, the `portable-substrate` evaluation (2026-08-10).**
 > Everything below still describes how each earlier result was measured and none
 > of it is edited. What RM-05 adds is at the very top, in section 0-AAAAAAA,
