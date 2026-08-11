@@ -322,37 +322,41 @@ carrying this ticket's id, and **every number names the tree it came from.**
 **No `git archive` figure appears here.** These tests read git history and an
 archive has no `.git`.
 
-| # | tree | commit | what it is | file |
-|---|---|---|---|---|
-| 1 | `wt-epic-close-the-loop` | `10cf11a` | the branch point in the work order | `CL-03`-era re-measure below |
-| 2 | `wt-epic-close-the-loop` | `0368e6f` | **epic tip after CL-02 merged** | `CL-03-baseline-0368e6f.txt` |
-| 3 | `wt-epic-close-the-loop-CL-03` | `b1068fb` | this ticket, reconciled onto tree 2 | `CL-03-tip.txt` |
+| tree | commit | working state | result |
+|---|---|---|---|
+| `wt-epic-close-the-loop` | `0368e6f` | clean checkout, **epic tip after CL-02 merged** | **2 failed, 1488 passed** |
+| `wt-epic-close-the-loop-CL-03` | `e3750d1` | this ticket, reconciled onto that tip | **2 failed, 1496 passed** |
 
-```
-TREE 2, epic tip 0368e6f  :  BASELINE_2
-TREE 3, CL-03 tip b1068fb :  TIP_3
-```
-
-**`denominator_rule`, and it bites here twice.** The denominator is not constant
-across these trees and neither number may be read as "tests added":
-
-1. **`specs/tickets/CL-03/` shifts `test_spec_yaml_valid.py`'s parametrised
-   count.** Opening a ticket workspace adds YAML files, and that test is
-   parametrised over them, so the collected total rises for a reason that has
-   nothing to do with any test being written.
-2. **CL-02's merge moved it too**, for the same reason, in the other tree.
-
-So the two figures are reported as **numerator and denominator separately**, and
-the claim CL-03 makes is only the one it can support: **no test was deleted,
-skipped or weakened, and every assertion CL-01 shipped is still asserted** — four
-of them now derived from the card rather than from a literal, which is strictly
-stronger (§6, `CL-03-DF-04`).
-
-**The two deliberate reds are inherited and untouched:**
-`tests/test_architecture_tags.py::test_the_same_tag_control_holds` (`RM-06-DF-01`)
-and `tests/test_price_removal.py::test_nothing_in_the_repository_invokes_the_pricer`,
+**The two failures are the same two at both ends, and they are the inherited
+deliberate ones:** `tests/test_architecture_tags.py::test_the_same_tag_control_holds`
+(`RM-06-DF-01`) and `tests/test_price_removal.py::test_nothing_in_the_repository_invokes_the_pricer`,
 which at this tip names **two** narrative documents because
 `CLOSE-THE-LOOP-EPIC.md` trips it as well. **Neither was repaired.**
+
+**`denominator_rule`, measured rather than asserted.** Collected went 1,490 →
+1,498, and the arithmetic is stated: **+9 tests written, −1 parametrise case**
+(D2 left `test_the_tag_cannot_refuse_a_comparison_on_a_dimension_it_did_not_move`
+and moved to a test of its own that asserts more). The numerator rose by 8 and
+**nothing was deleted, skipped or weakened.** Every assertion CL-01 shipped is
+still asserted, and four of them are now derived from what the card declares
+rather than from a literal — strictly stronger (§6, `CL-03-DF-04`).
+
+**The first tip run came back 12 failed and ten of those were mine.** None was
+noise; each is worked through in §9.1. Reporting the clean figure without that
+sentence would be the thing this project keeps filing findings about.
+
+### 9.1 The ten, and what each one was
+
+| # | red | what it actually was |
+|---|---|---|
+| 2 | `test_the_repo_ledger_passes_its_own_audit` (+ its R-H6 twin) | **the era boundary firing.** `audit` 0 → 10 violations. Ten claims **parked** `under_review` against `CL-03-DF-04`, figures byte-identical; back to 0 |
+| 1 | `test_the_committed_history_rendering_is_current` | the committed `HISTORY-*.md` renderings went stale against the new ledger; regenerated with `history --write` |
+| 1 | `test_only_the_card_states_a_dimension_an_anchor_or_a_scoring_rule` | `rubric_v4_frozen.md` is a second copy of the card. It earns its `GUARDED` entry the way v3 does — with a **running** comparison of **both** digests |
+| 1 | `test_a_scaffolded_scope_is_declared_before_scoring_and_a_moved_one_is_refused` | **a real defect: `check(card, where)` with no rubric fell back to the literal tuple**, so the first legitimate bump made it refuse a card at the version the card file declares. `check` now reads the card file. `CL-03-DF-04(b)` one level down |
+| 1 | `test_every_fast_demonstration_reproduces` | `scorecard-contested` pinned `8 contested dimension(s)`; this round makes nine. Updated with the arithmetic stated |
+| 1 | `test_the_claim_that_justified_an_epic_is_refused` | the counterexample floor moved 19 → 20 for the **fourth consecutive round** — `RM-06-DF-02`'s open-population shape on schedule. Verdict unchanged and unchangeable |
+| **2** | `test_authority_is_keyed_on_dimension_and_value_pair`, `…did_not_move[D2]` | **`CL-03-DF-06`, escalated.** Four honest cards gave the architecture tag refusal authority on **D2** — a confound, not an architecture effect. Handled as `RM-06` handled RD-03 retiring its `["opus"]` bound: **rewrite the claim, do not restore the number** |
+| 1 | `test_the_index_judge_column_is_the_model_id` | **mine, and it edited the sealed record.** `index` WRITES `INDEX.md` into the directory it is pointed at; the test now runs against a `tmp_path` copy and the stray file is removed |
 
 ### The instrument's own counts, at tree 3
 
