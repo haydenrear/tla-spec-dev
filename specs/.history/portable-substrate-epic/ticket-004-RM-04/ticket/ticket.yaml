@@ -1,0 +1,127 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket RM-04",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-04/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-04/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-04/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The toolchain is scored as a subject, blind, with a declared scope and a derived tag.",
+        "D2 either replicates off ab_quota_ledger or is BOUNDED by the attempt -- both are results.",
+        "The state_colocation threshold is probed near its boundary, or the attempt's failure is reported.",
+        "D4 and D5 are bound or dropped. Not deciding is not acceptable.",
+        "NO complexity axis is added that was tuned to a known answer."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "RM-05"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "examples/validation/scorecards/",
+        "references/eval_scorecard.md"
+      ]
+    },
+    "depends_on": [
+      "RM-03"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/212",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "D2 and D3 replicate on a second subject or are bounded; D4/D5 decided either way.",
+        "goal": "GOAL-dimensions-replicate",
+        "local_signal": "D2 and D3 on scripts/, and the bind-or-drop decision"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected; it measures the removal rather than adding to it",
+        "goal": "GOAL-dead-weight-gone",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none -- which dimensions survive the trip depends on which replicate",
+        "goal": "GOAL-portable",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-removal-can-be-priced",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "RM-04",
+    "implementation_scope": [
+      "examples/validation/scorecards/",
+      "references/",
+      "specs/results/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "THE ITERATE STEP, ON THE SIMPLIFIED SUBSTRATE. D2 and D3 are the only two dimensions that discriminate and each rests on a narrow base: D2 on TWO PAIRS OF ONE EXAMPLE IN ONE ROUND, flagged by that round's own evaluator as the result to be most suspicious of, AND tier-split opus [4,4] against sonnet [3,3]; D3's architecture tag derived on one example with a state_colocation threshold of 0.5 that HAS NEVER BEEN MEASURED NEAR ITS BOUNDARY. Score THE TOOLCHAIN IN scripts/ as a subject -- it has only ever been the thing DOING the scoring, it is the largest unexamined surface in the project, and RM-03's removal IS a real before/after. Does D2 replicate off ab_quota_ledger? Probe the tag's threshold. And DECIDE D4 AND D5: bind them to evidence a tier cannot swing, or cut the card to two dimensions and three notes. NOT DECIDING IS NOT ACCEPTABLE. THE TRAP: the complexity descriptor could not see the only simplification ever measured -- 19 of 21 axes byte-identical, one moving the WRONG WAY -- and adding an axis tuned to that known answer is MF-020 in its purest form.",
+    "promotion_order": 40,
+    "promotion_predecessor": "RM-03",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Prove D2 and D3 on the one subject never scored -- the toolchain itself -- and decide D4/D5",
+    "wave": 3
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-04/specs/tickets/RM-04",
+  "ticket_id": "RM-04",
+  "ticket_index": 4,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-04/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-04/specs/tickets"
+}

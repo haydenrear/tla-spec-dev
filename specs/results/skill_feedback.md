@@ -2073,3 +2073,72 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket RM-01
+
+- close_scope: ticket
+- close_id: RM-01
+- workflow: portable-substrate-epic
+- closed_at: 2026-08-10T18:14:21+00:00
+- summary: RM-01: a gap mutant that goes DIES->SURVIVES on a real removal, and the shipped classifier that said it could not. The re-runnability rule does exclude discriminating faults, but the fault that priced SM-03's removal was always re-runnable -- it was excluded one level further in by removal_census discriminate, which reads a surviving detector NAME as a surviving kill. Survivorship over a before-table is sound towards SURVIVES and unsound towards DIES; there is no such thing as an entailed DIES. RM-01-RF-1 DIES at bf0fb29~1 and SURVIVES at bf0fb29 with pytest-full whole at both trees and a positive control dying at both; both lost kills are DETECTOR-WEAKENED, the class the sealed record contains none of. SM-04-GM-T1 reproduces CAUGHT->UNCAUGHT from an independent implementation. The re-priced historical removals still come back at ZERO. Four findings filed, none fixed; RM-01-DF-01 is blocking and binds RM-03.
+- feedback_status: unreviewed
+
+## Close-out ticket RM-02
+
+- close_scope: ticket
+- close_id: RM-02
+- workflow: portable-substrate-epic
+- closed_at: 2026-08-10T17:32:22+00:00
+- summary: RESEARCH: the card grades this project's toolchain on D1 and D4, one architectural style on D3; adoption requires LESS and every recommendation is a removal. No production code.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket RM-06
+
+- close_scope: ticket
+- close_id: RM-06
+- workflow: portable-substrate-epic
+- closed_at: 2026-08-10T19:25:39+00:00
+- summary: Restore the baseline: 16 tests pinned to a record RD-03 grew, sorted into three groups. Five re-derived, five claims rewritten, six left deliberately red with findings RM-06-DF-01..04. Suite 16 failed/1481 passed at 356ffe8 -> 6 failed/1495 passed at e0dae3d, both real checkouts.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket RM-03
+
+- close_scope: ticket
+- close_id: RM-03
+- workflow: portable-substrate-epic
+- closed_at: 2026-08-10T21:50:03+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket RM-04
+
+- close_scope: ticket
+- close_id: RM-04
+- workflow: portable-substrate-epic
+- closed_at: 2026-08-11T00:08:20+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket RM-05
+
+- close_scope: ticket
+- close_id: RM-05
+- workflow: portable-substrate-epic
+- closed_at: 2026-08-11T01:41:36+00:00
+- summary: EVALUATION: all four goals decided; the first PRICED removal headline withdrawn; the served rubric fell 23.7% while the shipped toolchain did not move; the loop does not transfer. 5 findings filed, 0 fixed.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

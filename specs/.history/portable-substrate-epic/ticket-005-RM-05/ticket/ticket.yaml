@@ -1,0 +1,133 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket RM-05",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-05/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-05/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-05/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "All four goals decided.",
+        "Did the substrate shrink -- lines, instruments, AND concepts an adopter must understand?",
+        "Findings by channel with the per-token ratio AND the token basis named.",
+        "Findings touching the SHIPPED TOOLCHAIN counted separately from findings about generated artifacts.",
+        "Findings FILED and NONE fixed."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "specs/results/scorecards/portable-substrate/"
+      ]
+    },
+    "depends_on": [
+      "RM-01",
+      "RM-02",
+      "RM-03",
+      "RM-04"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/213",
+    "goals": [
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioural delta",
+        "goal": "GOAL-removal-can-be-priced",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioural delta",
+        "goal": "GOAL-dead-weight-gone",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioural delta",
+        "goal": "GOAL-dimensions-replicate",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioural delta",
+        "goal": "GOAL-portable",
+        "local_signal": "N/A: this ticket is the measurement"
+      }
+    ],
+    "id": "RM-05",
+    "implementation_scope": [
+      "specs/results/scorecards/",
+      "NEXT-EPIC.md"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "The epic's product and a MEASUREMENT. THE HEADLINE IS WHETHER THE SUBSTRATE GOT SIMPLER IN A WAY THAT CAN BE DEMONSTRATED RATHER THAN ASSERTED -- lines, instruments, AND concepts an adopter must understand. subtract-to-measure called itself a simplification at net +1677 lines. Decide all four goals. Report FINDINGS BY CHANNEL with the per-token ratio AND NAME THE TOKEN BASIS -- no previous round has, so no round has ever been comparable to another (RD-03-DF-13). And report THE COUNT OF FINDINGS TOUCHING THE SHIPPED TOOLCHAIN, stated SEPARATELY from findings about generated artifacts: across four epics that number is 8 OF 134 and last epic it was ZERO, and conflating the two is how a flattering headline got merged. FILE FINDINGS, FIX NOTHING.",
+    "owns_goals": [
+      "GOAL-removal-can-be-priced",
+      "GOAL-dead-weight-gone",
+      "GOAL-dimensions-replicate",
+      "GOAL-portable"
+    ],
+    "promotion_order": 50,
+    "promotion_predecessor": "RM-04",
+    "role": "evaluation",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "EVALUATION: did the substrate get simpler, and can a removal be priced at all?",
+    "wave": 4
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-05/specs/tickets/RM-05",
+  "ticket_id": "RM-05",
+  "ticket_index": 5,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-05/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-portable-substrate-RM-05/specs/tickets"
+}

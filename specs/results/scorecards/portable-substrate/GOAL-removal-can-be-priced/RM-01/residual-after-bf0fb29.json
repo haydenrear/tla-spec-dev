@@ -1,0 +1,282 @@
+{
+  "baselines": {
+    "instrument-registry": {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-3ncmwcci/tree/examples/validation/instruments/demonstrate.py",
+        "--format",
+        "json"
+      ],
+      "counts": {
+        "failed": 4,
+        "passed": 285
+      },
+      "executed": 1,
+      "exit": 1,
+      "failing_nodes": [],
+      "present": true,
+      "red": true,
+      "tail": [
+        "    }",
+        "  ],",
+        "  \"tier\": \"all\"",
+        "}"
+      ]
+    },
+    "pytest-full": {
+      "argv": [
+        "uv",
+        "run",
+        "--with",
+        "pytest",
+        "--with",
+        "pyyaml",
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-3ncmwcci/tree/tests"
+      ],
+      "counts": {
+        "failed": 9,
+        "passed": 1357
+      },
+      "executed": 1366,
+      "exit": 1,
+      "failing_nodes": [
+        "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+        "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+        "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+        "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+        "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+        "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+        "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+        "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+        "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+      ],
+      "present": true,
+      "red": true,
+      "tail": [
+        "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-3ncmwcci/tree/tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+        "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-3ncmwcci/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+        "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-3ncmwcci/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+        "9 failed, 1357 passed in 125.23s (0:02:05)"
+      ]
+    },
+    "registry-enumeration": {
+      "argv": [
+        "uv",
+        "run",
+        "--with",
+        "pytest",
+        "--with",
+        "pyyaml",
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-3ncmwcci/tree/tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated"
+      ],
+      "counts": {
+        "passed": 1
+      },
+      "executed": 1,
+      "exit": 0,
+      "failing_nodes": [],
+      "present": true,
+      "red": false,
+      "tail": [
+        ".                                                                        [100%]",
+        "1 passed in 0.14s"
+      ]
+    }
+  },
+  "cases": null,
+  "catalogue": "examples/validation/gap_mutants/residual_faults.toml",
+  "control_red": [],
+  "detectors_with_a_red_control": [],
+  "mutants_not_applied": [],
+  "not_seedable": [
+    {
+      "mechanism": "the `fake =` key of a `[ports.*]` table -- SM-01's excluded fault, re-examined",
+      "reason": "STILL NOT A PRICE, AND FOR A DIFFERENT REASON THAN THE ONE ON THE RECORD.\n\nSM-01 excluded it because it cannot be RE-RUN after the cut. `price_removal.py`\ndrops that requirement -- a before-only reading plus survivorship is sound\ntowards SURVIVES -- so the exclusion no longer applies. The fault is still not\nseeded here, on the merits:\n\n`--wiring fake`, the `[ports.*]` table, and `render_oracle_statement`'s\nport half were deleted TOGETHER. There is no post-removal artifact in which a\nport declares no fake, because there is no post-removal artifact in which a\nport declares anything. The fault class is EXTINCT, not UNWATCHED, and an\nextinct fault class costs nothing in the currency a gap mutant measures.\n\nWHAT THAT REMOVAL DID COST IS A CAPABILITY, NOT A DETECTION, and no gap mutant\nof any posture measures capability. Named here so the difference is on the\nrecord: RM-01 did not make SM-01's famous excluded fault priceable, it made it\npossible to say why it is not.\n",
+      "removed_by": "SM-02"
+    }
+  ],
+  "per_mutant": {
+    "RM-01-RF-1-a-registered-instrument-outside-the-derived-scope-loses-its-row": {
+      "applied": true,
+      "claims_to_catch": "a rename or an edit that drops an already-registered instrument out of the registry -- the ONE direction the deleted literal was sound in, and the direction its own docstring said it covered",
+      "control_role": null,
+      "detectors": {
+        "instrument-registry": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 1,
+          "exit": 1,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "    }",
+            "  ],",
+            "  \"tier\": \"all\"",
+            "}"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        },
+        "pytest-full": {
+          "baseline_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+            "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+            "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+            "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+            "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+            "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+          ],
+          "executable_count_available": true,
+          "executed": 1366,
+          "exit": 1,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-3ncmwcci/tree/tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-3ncmwcci/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-3ncmwcci/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "9 failed, 1357 passed in 149.14s (0:02:29)"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        },
+        "registry-enumeration": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 1,
+          "exit": 0,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            ".                                                                        [100%]",
+            "1 passed in 0.20s"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        }
+      },
+      "edits": [
+        {
+          "occurrences_of_find": 1,
+          "op": "replace",
+          "path": "examples/validation/instruments/instruments.toml"
+        }
+      ],
+      "gap": "THE HALF OF THE LITERAL THE DERIVED WALK DOES NOT REACH. Three of the thirteen\nrequired paths lie outside `roots`:\n\n  specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py\n  specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py\n  tests/test_code_complexity.py\n\nand the third is additionally invisible to the discovery predicate, which\nrequires a `__main__` guard and a nonzero exit path that no pytest file has.\n\n`paths = []` rather than deleting the row, so the row's demonstrations still\nrun and the only thing that changes is whether the registry NAMES the file.\nThat is exactly the shape of the fault -- a registration lost while the\ninstrument keeps working -- and it keeps the mutant off every unrelated\nassertion about row counts.\n\nWHY IT WAS NEVER SEEDED. Its anchor is in `instruments.toml`, which outlives\nthe cut, so the re-runnability rule does NOT exclude it. It is excluded one\nlevel further in: `discriminate` sees `registry-enumeration` in the killing\nset, sees that node still present at `bf0fb29`, and reports NON-DISCRIMINATING\nwithout running anything. A fault classified entailed is a fault nobody seeds.\n",
+      "is_control": false,
+      "mechanism": "the thirteen-path `required` literal in test_the_named_instruments_are_all_enumerated",
+      "must_die_on": [],
+      "removed_by": "SM-03",
+      "seeded_in": [
+        "examples/validation/instruments/instruments.toml"
+      ]
+    },
+    "RM-01-RF-CTRL-a-registered-instrument-INSIDE-the-derived-scope-loses-its-row": {
+      "applied": true,
+      "claims_to_catch": "n/a -- this row is the control, not a gap",
+      "control_role": "positive -- must die on `registry-enumeration` at BOTH `bf0fb29~1` and\n`bf0fb29`. `scripts/code_complexity.py` was in the deleted literal AND is\nunder a declared root, so the literal caught it before and the derived walk\ncatches it after. If this does not die at the after tree, then the after tree's\ndetector is dead for every input and RM-01-RF-1's SURVIVES is undecided rather\nthan a price.\n",
+      "detectors": {
+        "instrument-registry": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 1,
+          "exit": 1,
+          "new_failing_nodes": [],
+          "self_detected_nodes": [],
+          "tail": [
+            "    }",
+            "  ],",
+            "  \"tier\": \"all\"",
+            "}"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "SURVIVES"
+        },
+        "pytest-full": {
+          "baseline_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces",
+            "tests/test_prediction_seal.py::test_n05_is_reported_against_the_real_record",
+            "tests/test_score_tools.py::test_an_era_boundary_that_changed_no_instrument_is_a_violation",
+            "tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "tests/test_score_tools.py::test_reaffirming_after_the_change_clears_it",
+            "tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit",
+            "tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red"
+          ],
+          "executable_count_available": true,
+          "executed": 1366,
+          "exit": 1,
+          "new_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated"
+          ],
+          "self_detected_nodes": [],
+          "tail": [
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-3ncmwcci/tree/tests/test_score_tools.py::test_history_marks_the_instrument_change_between_the_two_rounds",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-3ncmwcci/tree/tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-3ncmwcci/tree/tests/test_score_tools.py::test_the_committed_history_rendering_is_current",
+            "10 failed, 1356 passed in 143.09s (0:02:23)"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        },
+        "registry-enumeration": {
+          "baseline_failing_nodes": [],
+          "executable_count_available": true,
+          "executed": 1,
+          "exit": 1,
+          "new_failing_nodes": [
+            "tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated"
+          ],
+          "self_detected_nodes": [],
+          "tail": [
+            "/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-3ncmwcci/tree/tests/test_instrument_demonstrations.py:484: AssertionError",
+            "=========================== short test summary info ============================",
+            "FAILED ../../../../../../../../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/sm01-gap-mutants-3ncmwcci/tree/tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated",
+            "1 failed in 0.21s"
+          ],
+          "uses_ports_binding": false,
+          "verdict": "DIES"
+        }
+      },
+      "edits": [
+        {
+          "occurrences_of_find": 1,
+          "op": "replace",
+          "path": "examples/validation/instruments/instruments.toml"
+        }
+      ],
+      "gap": "NONE, on purpose. It is RM-01-RF-1 with one property changed: the path is inside `roots`.",
+      "is_control": true,
+      "mechanism": "positive control for registry-enumeration, at BOTH trees",
+      "must_die_on": [
+        "registry-enumeration"
+      ],
+      "removed_by": "nothing",
+      "seeded_in": [
+        "examples/validation/instruments/instruments.toml"
+      ]
+    }
+  },
+  "ref": "bf0fb29",
+  "registry": {
+    "epic": "portable-substrate",
+    "id": "RM-01-residual-faults",
+    "prices": [
+      "the thirteen-path enumeration literal (SM-03, issue #167)"
+    ],
+    "seeded_before": "nothing -- these price a removal that landed at bf0fb29, in 2026-08",
+    "ticket": "RM-01"
+  }
+}

@@ -843,11 +843,11 @@ the spread is zero -- the four judges scored three subjects.
                    "2 card(s) cite predominantly outside their declared scope"]
 
   [instrument.passing]
-  summary = "the declared scopes: every one decided or refused, and every refusal reported as one. RD-05 WROTE THIS AS `the eleven declared scopes: seven decided, four refused` AND THE COUNT MOVED TO 13 OF 17 when RD-06 declared six more subjects. The four refusals are unchanged and the derivation is unchanged: the figure was never a property of the instrument, it was a property of the fixture's size, and it moves again the next time anyone declares a subject. Filed as RD-06-DF-04. The count is updated rather than dropped, because a demonstration that asserts nothing about its output is not a demonstration -- and the superseded figure is kept in this sentence rather than erased."
+  summary = "the declared scopes: every one decided or refused, and every refusal reported as one. RD-05 WROTE THIS AS `the eleven declared scopes: seven decided, four refused` AND THE COUNT MOVED TO 13 OF 17 when RD-06 declared six more subjects, AND TO 16 OF 20 when RM-04 declared three more. The four refusals are unchanged through all three and the derivation is unchanged: the figure was never a property of the instrument, it was a property of the fixture's size, and it moves again the next time anyone declares a subject -- exactly as RD-06-DF-04 predicted, now twice. denominator_rule: the numerator rose 13 -> 16 and the denominator 17 -> 20; nothing left either, and the refusals stayed at four. The count is updated rather than dropped, because a demonstration that asserts nothing about its output is not a demonstration -- and every superseded figure is kept in this sentence rather than erased."
   argv = ["{python}", "{repo}/examples/validation/scorecards/architecture_tags.py", "derive"]
   cwd = "{repo}"
   expect_exit = 0
-  expect_output = ["13 of 17 subject(s) decided", "UNDERIVABLE:no-effect-surface",
+  expect_output = ["16 of 20 subject(s) decided", "UNDERIVABLE:no-effect-surface",
                    "state_colocation threshold = 0.5"]
   expect_absent = ["SCOPE-DRIFT"]
 
@@ -1970,7 +1970,7 @@ reason, and anything that measures the registry inherits that risk.
   expect_output = ["UNREGISTERED INSTRUMENTS: 1", "scripts/gap_probe_instrument.py"]
 
     [[instrument.failing.stage]]
-    from = "examples/validation/gap_mutants/run_gap_mutants.py"
+    from = "examples/validation/gap_mutants/altered_score_probe.py"
     to = "scripts/gap_probe_instrument.py"
 
   [instrument.passing]
@@ -1981,7 +1981,7 @@ reason, and anything that measures the registry inherits that risk.
   expect_output = ["Every discovered executable has a row."]
 
     [[instrument.passing.stage]]
-    from = "examples/validation/gap_mutants/run_gap_mutants.py"
+    from = "examples/validation/gap_mutants/altered_score_probe.py"
     to = "scripts/tla_spec_dev.py"
 
   [instrument.blind_spot]
@@ -1989,54 +1989,6 @@ reason, and anything that measures the registry inherits that risk.
   tier = "slow"
   summary = "IT CANNOT SEE A REPO TRIPWIRE THAT IS A PYTEST FILE. The predicate is a `__main__` guard plus a nonzero exit path, and `tests/test_code_complexity.py` and its four siblings have neither -- so the five rows the registry most depends on are exactly the five this check would never have asked for."
   nodes = ["tests/test_instrument_demonstrations.py::test_the_derived_check_cannot_see_a_tripwire_that_is_a_test_file"]
-  expect_exit = 0
-  expect_passed = 1
-
-
-[[instrument]]
-id = "gap-mutant-runner"
-name = "SM-01's gap-mutant runner"
-paths = ["examples/validation/gap_mutants/run_gap_mutants.py"]
-family = "measurement"
-watches = "whether a fault seeded in a mechanism's gap is detected, before and after that mechanism is removed"
-verdict_surface = "exit 1 when a declared mutant could not be APPLIED; per-cell DIES/SURVIVES/INERT/REMOVED in its JSON"
-classification = "demonstrated-can-fail"
-note = """
-Shipped by SM-01 in this epic and unregistered on arrival -- the fifth
-occurrence of `FI-04-DF-04`, and the second by a ticket that was writing about
-the failure while committing it. Registered here by the check that now catches
-it.
-"""
-
-  [instrument.failing]
-  kind = "pytest"
-  tier = "slow"
-  summary = "an anchor that matches twice, an edit that changes nothing, an add_file that would overwrite, and a target that does not exist -- four ways to seed nothing, each of which must REFUSE rather than report a survival"
-  nodes = [
-    "tests/test_gap_mutants.py::test_an_anchor_that_matches_twice_refuses_rather_than_mutating_one",
-    "tests/test_gap_mutants.py::test_an_edit_that_changes_nothing_refuses",
-    "tests/test_gap_mutants.py::test_an_add_file_that_would_overwrite_refuses",
-    "tests/test_gap_mutants.py::test_a_missing_target_refuses_rather_than_reporting_a_survival",
-  ]
-  expect_exit = 0
-  expect_passed = 4
-
-  [instrument.passing]
-  kind = "pytest"
-  tier = "slow"
-  summary = "a real fault that dies with its failing node named, and an apply-then-restore that leaves the tree byte-identical"
-  nodes = [
-    "tests/test_gap_mutants.py::test_a_real_fault_dies_and_the_failing_node_is_named",
-    "tests/test_gap_mutants.py::test_apply_then_restore_leaves_the_tree_byte_identical",
-  ]
-  expect_exit = 0
-  expect_passed = 2
-
-  [instrument.blind_spot]
-  kind = "pytest"
-  tier = "slow"
-  summary = "IT DETECTED ITSELF. Its catalogue-integrity test reads mutant anchors out of whichever tree it runs in, which during a measurement is the MUTATED one, so it fired on every mutant and on two of them was the ONLY new failure -- scoring both DIES where the repository catches neither. Excluded from the verdict and reported per cell, not repaired."
-  nodes = ["tests/test_gap_mutants.py::test_this_runners_own_integrity_test_is_not_counted_as_a_repository_kill"]
   expect_exit = 0
   expect_passed = 1
 
@@ -2344,7 +2296,7 @@ reported figure rather than a number to be driven to zero.
                    "REFUTED"]
 
   [instrument.passing]
-  summary = "the SAME claim from the SAME charter with its scope written beside it -- naming the example is what changes the verdict, not rephrasing it"
+  summary = "the SAME claim in the SAME charter line with its scope written beside it -- naming the example is what changes the verdict, not rephrasing it"
   argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "scope",
           "--root", "{tree}", "--path", "{tree}/SUBTRACT-TO-MEASURE-EPIC.md",
           "--scorecards", "{repo}/specs/results/scorecards"]
@@ -2356,10 +2308,27 @@ reported figure rather than a number to be driven to zero.
     from = "SUBTRACT-TO-MEASURE-EPIC.md"
     to = "SUBTRACT-TO-MEASURE-EPIC.md"
 
+    # RM-06. THE CONTROL DID NOT FAIL; THE WORLD MOVED UNDER IT, exactly as
+    # `NEXT-EPIC.md` section 0-AAAAAA 5 predicted it would.
+    #
+    # This replacement used to read `35 of 35 cards ever written about
+    # ab_quota_ledger`. That was TRUE when it was written and it is now false at
+    # EVERY denominator: RD-06's three revision pairs put D2 at 3 and 4 on that
+    # very example, so no universal `D2 = 2` claim scoped to `ab_quota_ledger`
+    # can hold again. Restoring `35 of 35` would assert a falsehood in order to
+    # reach green, and re-pinning the true non-universal figure (51 of 59 today)
+    # would go stale on the next round that scores that example.
+    #
+    # So the scope is moved to `ex4_pipeline_coherent`, whose two cards are
+    # sealed, closed and both D2 = 2. The demonstration is UNCHANGED IN SHAPE --
+    # one sentence, evaluated with and without the example beside it, and the
+    # two verdicts differ. The failing slot above still carries the real charter
+    # line unscoped, so the pair still says what it always said: naming the
+    # example is what changes the verdict.
     [[instrument.passing.mutate]]
     file = "SUBTRACT-TO-MEASURE-EPIC.md"
     find = "`D2 = 2` on **27 of 27 cards ever written**"
-    replace = "`D2 = 2` on **35 of 35 cards ever written about `ab_quota_ledger`**"
+    replace = "`D2 = 2` on **2 of 2 cards ever written about `ex4_pipeline_coherent`**"
 
   [instrument.blind_spot]
   kind = "declared"
@@ -2387,6 +2356,14 @@ an inconvenient score be parked behind a flag nothing re-derives.
 THE COMPUTATION FINDS EXACTLY ONE GROUP IN 49 SEALED CARDS, and it is the one
 this ticket was told about -- reached with no id, no path and no dimension named
 in the code that reaches it.
+
+RM-06: THAT FIGURE CARRIES ITS CARD POPULATION AND IS NOT EDITED. It is RD-01's
+statement at 49 sealed cards and it was true there. RD-03 dispatched four judges
+at two tiers over six artifacts and the computation now finds SEVEN groups in 73
+cards, six of them from that one round. The count is a joint property of the
+record and the card population (`NEXT-EPIC.md` section 0-AAAAAA 5); a published
+sweep count that does not say which population it was taken at is not a figure
+anyone can check.
 """
 
   [instrument.failing]
@@ -2407,16 +2384,16 @@ in the code that reaches it.
     replace = 'arm = "Z"'
 
   [instrument.passing]
-  summary = "the shipped record, whose one contested dimension is recorded with third_pass = none"
+  summary = "the shipped record, whose eight contested dimensions are each recorded with third_pass = none -- RM-06: this said ONE at 49 sealed cards and the figure is re-derived rather than restored, because RD-03's round filed six more and the count is a joint property of the record and the card population. RM-04: EIGHT at 79 cards. denominator_rule -- the numerator rose 7 -> 8 and the denominator 73 -> 79; nothing left either. The one added is `rm04-GG-d3-spread-2`, two judges scoring two subtrees of ONE DECLARED SCOPE, which is RD-04's toolchain_removal finding reproduced on a second example and is filed as RM-04-DF-04."
   argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "contested",
           "--require-recorded", "--root", "{repo}/specs/results/scorecards"]
   cwd = "{repo}"
   expect_exit = 0
-  expect_output = ["1 contested dimension(s)", "0 unrecorded", "TIER-SPLIT D3"]
+  expect_output = ["8 contested dimension(s)", "0 unrecorded", "TIER-SPLIT D3"]
 
   [instrument.blind_spot]
   kind = "declared"
-  summary = "IT CANNOT FIRE ON A GROUP WITH ONE JUDGE, and one exists: `hexagonal-prompting` / `ab_quota_ledger` / `A-control-reference` was scored by a single owner pass. 20 of the 23 groups carry exactly two judges, where a spread greater than 1 needs a two-point disagreement -- so the flag is structurally hardest to trip on exactly the shape the record is mostly made of, and the ONE group it fires on is one of the two four-judge groups."
+  summary = "IT CANNOT FIRE ON A GROUP WITH ONE JUDGE, and one exists: `hexagonal-prompting` / `ab_quota_ledger` / `A-control-reference` was scored by a single owner pass. 20 of the 23 groups carry exactly two judges, where a spread greater than 1 needs a two-point disagreement -- so the flag is structurally hardest to trip on exactly the shape the record is mostly made of, and the ONE group it fires on is one of the two four-judge groups. RM-06 CARRIES THE SCOPE RATHER THAN EDITING IT: that is the shape of the record at 23 groups / 49 cards, and the corpus is now 33 groups / 79 cards with eight contested (RM-04 added three two-judge groups and one of them is contested). The structural point is unchanged and the two-judge majority still holds; only the counts moved."
   reason = "A fact about the dispatches, not about the check: a disagreement between judges cannot be measured where there is one judge. Recorded so `1 contested in 23 groups` is not read as evidence that the card is stable."
 
 [[instrument]]
@@ -2447,10 +2424,17 @@ than none, because it reads as one that happened.
     from = "specs/results/scorecards"
     to = "scorecards"
 
+    # RM-06: `find = "spread = 2"` matched ONE entry while the ledger carried a
+    # single adjudication record. RD-03 filed six more, five of them at spread
+    # 2, so the string began matching six times and the runner refused the whole
+    # demonstration as MALFORMED -- correctly, because seeding six faults and
+    # reporting them as one is exactly what that rule exists to stop. Anchored
+    # instead on the toolchain group's own score vector, which is unique in the
+    # file, so one entry is mutated however many the ledger grows to carry.
     [[instrument.failing.mutate]]
     file = "scorecards/INSTRUMENT-LOG.toml"
-    find = "spread = 2"
-    replace = "spread = 1"
+    find = "spread = 2\nscores = [2, 2, 4, 3]"
+    replace = "spread = 1\nscores = [2, 2, 4, 3]"
 
   [instrument.passing]
   summary = "the shipped ledger against the shipped cards"
@@ -2459,6 +2443,15 @@ than none, because it reads as one that happened.
   cwd = "{repo}"
   expect_exit = 0
   expect_output = ["0 violation(s)"]
+  # RM-06: THIS SLOT AND THE FAILING SLOT'S "1 violation(s)" ARE EXPECTED TO
+  # FAIL AND ARE DELIBERATELY NOT REPAIRED. `audit` exits 1 over the shipped
+  # ledger on one standing R-H1 violation -- the `[[demonstration]]` row
+  # declaring a D3 range and tier list the 73-card record no longer supports
+  # (`RM-06-DF-02`). Both totals are correct as written and become true again
+  # the moment RM-04 settles that row. Re-pinning them to 2 would bake the
+  # standing defect into the demonstration; dropping them would lose an exact
+  # count for nothing, since the row above is red either way. The seeded break
+  # itself still fires: "declares spread 1" and "the cards give 2" both appear.
 
 [[instrument]]
 id = "removal-census"
@@ -2517,69 +2510,123 @@ and the tree disagree. That is the failing input below.
   reason = "There is no mechanical definition of `exists only to prove the removal safe`, and inventing one would be a check that cannot fail rather than a measurement. The defence is that every region carries its reason in the manifest and `check` pins the LINE COUNTS, so a reclassification is visible in a diff even though it is not refused."
 
 [[instrument]]
-id = "gap-mutant-detector-argv"
-name = "a cli detector's argv against its entry point"
-paths = ["tests/test_gap_mutants.py"]
-family = "tripwire"
-watches = "every cli detector in gap_mutants.toml for a flag its entry point no longer declares"
-verdict_surface = "a failing pytest node naming the detector and the rejected flags"
+id = "removal-pricer"
+name = "RM-01's removal pricer"
+paths = ["examples/validation/gap_mutants/price_removal.py"]
+family = "measurement"
+watches = "whether a removal took a detection away -- read from the KILL SET rather than from the list of detector names the removal deleted"
+verdict_surface = "PRICED / FREE / NO-KILL-TO-LOSE per fault, with the loss reason per lost kill; exit 1 when a declared mutant is absent from the before-table it was priced against"
 classification = "demonstrated-can-fail"
 note = """
-RD-02. `port-binding-report` passed `--port-manifest` to
-`run_generated_case_adapters.py`; SM-02 deleted that flag in the same epic.
-For two epics the detector exited 2 with `unrecognized arguments`, executed
-nothing, and reported INERT -- which decides nothing and was correctly not read
-as a survival, so the table was never wrong. It was carrying a column that
-could never speak again, in a catalogue whose whole argument is R2.
+RD-02 measured that 0 of 9 gap mutants could have priced their removal, and
+shipped `removal_census.py discriminate` to compute the condition up front.
+That condition is computed over DETECTOR NAMES, and `pytest-full` is the whole
+suite, which no removal deletes -- so any fault the suite kills is classified
+NON-DISCRIMINATING before anything runs. Worse, a detector can survive by name
+and lose the kill: SM-03 left `test_the_named_instruments_are_all_enumerated`
+with the same node id and a different body.
 
-The failing input is the catalogue as it stood at `7514df0`, which is the
-subject rather than a fixture.
+This instrument reads survivorship at KILL-SET granularity and refuses the
+unsound half of it. It has no verdict meaning "it will still die"; the
+strongest thing it says about a surviving killing node is UNDECIDED.
 """
 
   [instrument.failing]
   kind = "pytest"
   tier = "slow"
-  summary = "the catalogue at 7514df0, before RD-02 removed the dead column -- port-binding-report's --port-manifest against an entry point that no longer declares it"
-  nodes = ["tests/test_gap_mutants.py::test_every_cli_detector_declares_flags_its_entry_point_still_accepts"]
-  expect_exit = 1
-  expect_passed = 0
-  expect_output = ["port-binding-report", "--port-manifest"]
-
-    [[instrument.failing.stage]]
-    from = "tests"
-    to = "tests"
-
-    [[instrument.failing.stage]]
-    from = "examples/validation/gap_mutants"
-    to = "examples/validation/gap_mutants"
-
-    [[instrument.failing.stage]]
-    from = "scripts"
-    to = "scripts"
-
-    [[instrument.failing.mutate]]
-    file = "examples/validation/gap_mutants/gap_mutants.toml"
-    find = "# NO SEEDABLE GAP -- REPORTED, NEVER SKIPPED (R2)"
-    replace = """# RD-02 DEMONSTRATION -- the dead column put back as 7514df0 carried it.
-[[detector]]
-id = "port-binding-report"
-kind = "cli"
-entry_point = "scripts/run_generated_case_adapters.py"
-uses_ports_binding = true
-argv = ["{python}", "{tree}/scripts/run_generated_case_adapters.py", "{cases}", "--mapping", "m", "--port-manifest", "p", "--validate-only"]
-note = "reinstated by the RD-02 demonstration only"
-
-# NO SEEDABLE GAP -- REPORTED, NEVER SKIPPED (R2)"""
+  summary = "THE SHIPPED CLASSIFIER, RUN UNMODIFIED OVER A REAL REMOVAL THAT COST SOMETHING. `discriminate` reports NON-DISCRIMINATING -- 'DIES after the cut was entailed before the cut was made' -- about RM-01-RF-1, a fault measured DIES at bf0fb29~1 and SURVIVES at bf0fb29. The failing input is the sealed measurement of a real removal, not a fixture."
+  nodes = [
+    "tests/test_price_removal.py::test_the_shipped_classifier_calls_a_real_priced_removal_entailed",
+    "tests/test_price_removal.py::test_the_price_is_a_detector_that_survived_by_name_and_lost_the_kill",
+  ]
+  expect_exit = 0
+  expect_passed = 2
 
   [instrument.passing]
   kind = "pytest"
   tier = "slow"
-  summary = "the shipped catalogue, whose one remaining cli detector passes only flags its entry point declares"
-  nodes = ["tests/test_gap_mutants.py::test_every_cli_detector_declares_flags_its_entry_point_still_accepts"]
+  summary = "the ten published before/after rows of the sealed record, where the shipped classifier is right ten times and no lost kill is of the weakening class"
+  nodes = [
+    "tests/test_price_removal.py::test_the_shipped_classifier_agrees_with_every_measurement_in_the_sealed_record",
+    "tests/test_price_removal.py::test_node_granularity_does_not_rescue_the_nine_catalogue_mutants",
+  ]
+  expect_exit = 0
+  expect_passed = 2
+
+  [instrument.blind_spot]
+  kind = "declared"
+  summary = "ENTAILED-SURVIVES CANNOT SEE A KILL THE AFTER TREE ADDED. It proves the removal took away every kill the fault HAD. A removal that deletes a detector and ships a stronger replacement reads ENTAILED-SURVIVES here and DIES on a real after-run, so ENTAILED-SURVIVES is an upper bound on the price and only `price` against a measured after-table settles it."
+  reason = "Closing it would mean running the after tree, which is the cost the before-only reading exists to avoid. The bound is printed with the verdict rather than left for a sweep to find."
+
+
+[[instrument]]
+id = "altered-score-probe"
+name = "SM-04-GM-T1, driven through the shipped CLI"
+paths = ["examples/validation/gap_mutants/altered_score_probe.py"]
+family = "measurement"
+watches = "whether a tree notices a dimension score altered in a scorecard after the card was written, on an unsealed card"
+verdict_surface = "CAUGHT / UNCAUGHT by subtraction of `check`'s problem list; exit 2 when the tree's own scaffold refused, so a broken setup cannot read as UNCAUGHT"
+classification = "demonstrated-can-fail"
+note = """
+The known positive. `SM-04-GM-T1` is the only mutant in this project's history
+that went DIES -> SURVIVES, and it has only ever been produced by the file that
+asserts it, using that file's own helpers, in one process at one commit. This
+probe drives `scaffold` and `check` from a staged tree, imports nothing from
+the suite, and reproduces the finding at `6aac1ec~1` and `6aac1ec`.
+
+ITS OWN FIRST DESIGN WAS CONFOUNDED AND THE ARTIFACT IS KEPT. Raising D3 from 1
+to 3 trips a citation rule at both trees, so the probe read CAUGHT everywhere
+for a reason that has nothing to do with the checksum. Moving D3 down from a
+cited 4 is what SM-04-GM-T1 does and is what the probe does now;
+`sm04-gm-t1-*-confounded.json` are in the tree.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the version 3 tree at 6aac1ec: a dimension score altered on an unsealed card and NOTHING reports it, where the version 2 tree one commit earlier reports `total does not equal the sum of dimensions`"
+  nodes = ["tests/test_price_removal.py::test_sm04_gm_t1_reproduces_from_an_independent_implementation"]
+  expect_exit = 0
+  expect_passed = 1
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the confounded first run, kept so the correction is inspectable rather than asserted"
+  nodes = ["tests/test_price_removal.py::test_the_probes_first_confounded_run_is_kept_on_the_record"]
   expect_exit = 0
   expect_passed = 1
 
   [instrument.blind_spot]
   kind = "declared"
-  summary = "IT COMPARES FLAG NAMES, NOT MEANINGS. A flag still declared but now doing something else, or a positional argument that moved, is invisible to it."
-  reason = "It catches the failure that actually happened and nothing wider. A check that claimed to verify a detector still MEASURES what it claims would have to run it, and running `instrument-registry` means running the whole registry."
+  summary = "IT ASKS ONE QUESTION OF ONE FIELD. It moves D3 and reads `check`. It says nothing about `audit`, about a sealed card, or about any other field of a scorecard -- and SM-04-GM-T1's own answer is that a SEALED card still dies, which this probe does not measure."
+  reason = "The sealed half was already measured and is not in dispute. Widening the probe to cover it would re-measure the free half of the removal and leave the priced half exactly as it is."
+
+
+[[retired]]
+id = "gap-mutant-runner"
+retired_by = "RM-03"
+retired_at = "the RM-03 removal, issue #211"
+paths = ["examples/validation/gap_mutants/run_gap_mutants.py",
+         "examples/validation/gap_mutants/gap_mutants.toml",
+         "tests/test_gap_mutants.py"]
+reason = """
+REMOVED, NOT SILENTLY DROPPED. `references/portable_scorecard.md` §5.4 cut the
+mutant catalogue and its runner on ADOPTION grounds: `gap_mutants.toml` is
+hand-authored faults in `ab_quota_ledger`, there is no version of it an adopter
+receives, and the runner has nothing to run without it.
+
+`gap-mutant-detector-argv` retires with it -- its subject was a cli detector
+declared in that catalogue, and its failing input was the catalogue as it stood
+at `7514df0`.
+
+WHAT WENT WITH THEM, recorded here because a capability that disappears from a
+registry without a row is exactly what `FI-04-DF-04` is about:
+`price_removal.py price` reads a MEASURED after-table and nothing in this
+repository produces one any more. `price_removal.py entail` is untouched, needs
+only a before-table and a diff, and is sound in the direction a price lives in.
+Every sealed before-table stays readable. Escalated as `RM-03-DF-01`, blocking,
+and reversible with `git checkout 90d0667 -- examples/validation/gap_mutants/
+tests/test_gap_mutants.py`.
+"""
+

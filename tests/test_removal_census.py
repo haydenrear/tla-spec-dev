@@ -208,6 +208,11 @@ def test_the_discriminate_table_is_read_from_the_sealed_before_state(manifest) -
     assert str(table.relative_to(REPO_ROOT)) in out.stdout
 
 
+def manifest_before_table() -> str:
+    """The ONE sealed before-table `discriminate` reads, named from the manifest."""
+    return tomllib.loads(MANIFEST.read_text(encoding="utf-8"))["gap_mutant_before_table"]
+
+
 @needs_git
 def test_no_catalogue_mutant_could_have_priced_a_removal_and_it_says_so(tmp_path: Path) -> None:
     """THE FINDING, ASSERTED SO IT CANNOT ROT.
@@ -230,7 +235,28 @@ def test_no_catalogue_mutant_could_have_priced_a_removal_and_it_says_so(tmp_path
         f"a mutant can now price a removal: {[r['mutant'] for r in discriminating]}. "
         f"RD-02 concluded the opposite on nine mutants; re-read that conclusion."
     )
-    assert {r["verdict"] for r in rows} <= {"NON-DISCRIMINATING", "NO-KILL-TO-LOSE"}
+    # `NOT-IN-TABLE` joined the vocabulary at RM-03 and it is not a fourth way of
+    # saying nothing was lost. `discriminate` reads ONE sealed before-table --
+    # `gap_mutant_before_table`, which is SM-01's -- so a removal priced against a
+    # DIFFERENT before-table has no row here at all. RM-03's two removals were
+    # priced against `rm03-gap-mutants-before.json` with `price_removal.py`, over
+    # KILL SETS, which is the reading `RM-01-DF-01` says this classifier cannot
+    # give. Every such row is named rather than absorbed, and the load-bearing
+    # assertion above is untouched.
+    verdicts = {r["verdict"] for r in rows}
+    assert verdicts <= {"NON-DISCRIMINATING", "NO-KILL-TO-LOSE", "NOT-IN-TABLE"}, verdicts
+    sealed = json.loads(
+        (REPO_ROOT / manifest_before_table()).read_text(encoding="utf-8"))["per_mutant"]
+    outside = sorted(r["mutant"] for r in rows if r["verdict"] == "NOT-IN-TABLE")
+    for mutant in outside:
+        assert mutant not in sealed, (
+            f"{mutant} IS in the sealed before-table and still reported NOT-IN-TABLE -- "
+            f"that is a lookup failure, not a mutant measured somewhere else"
+        )
+    declared = tomllib.loads(MANIFEST.read_text(encoding="utf-8"))["removal"]
+    assert outside == sorted(m for removal in declared
+                             for m in removal.get("gap_mutants", [])
+                             if m not in sealed), outside
 
 
 def test_the_one_mutant_that_did_price_a_removal_is_recorded_outside_the_table(

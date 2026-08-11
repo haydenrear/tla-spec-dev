@@ -1,0 +1,193 @@
+# RM-01 -- faults the SEEDING RULE excluded, and the pair that shows why the
+# exclusion is not the only reason the price was always zero.
+#
+# READ `price_removal.py`'s module docstring first. In one sentence: a gap
+# mutant prices a removal only if the removal takes the kill away, and
+# `removal_census.py discriminate` decides "does the removal take the kill
+# away" by asking whether every killing DETECTOR is deleted. `pytest-full` is
+# the whole suite and no removal deletes it, so any fault it kills is
+# classified NON-DISCRIMINATING before it is measured. That is a property of
+# the classifier, not of the removal.
+#
+# THIS FILE IS A PAIR, AND THE PAIR IS THE MEASUREMENT. Two faults of the SAME
+# CLASS -- a registered instrument silently loses its registration -- differing
+# in ONE property: whether the file lies inside the scope the replacement check
+# derives its obligations from.
+#
+#   RM-01-RF-CTRL   scripts/code_complexity.py     INSIDE  roots
+#   RM-01-RF-1      tests/test_code_complexity.py  OUTSIDE roots
+#
+# `roots = ["scripts", "examples/validation"]`. Both were named in the literal
+# `required` set SM-03 deleted, so before the cut the same check caught both.
+# After the cut one is discovered by walking the tree and the other is not
+# reachable by any walk, because `[registry.enumeration]`'s roots do not
+# include `tests/` AND the discovery predicate (a `__main__` guard plus a
+# nonzero exit path) cannot recognise a pytest file at all.
+#
+# SM-03 WROTE THE BLIND SPOT DOWN. `demonstrate.py`'s own comment and
+# `tests/test_instrument_demonstrations.py::
+# test_the_derived_check_cannot_see_a_tripwire_that_is_a_test_file` both say
+# it. What nobody did is ask what it COST, because the mutant that would have
+# asked was never seeded and the classifier would have refused it if it had
+# been.
+#
+# NOT A GATE. Nothing invokes this file. It exits non-zero for one reason: a
+# declared fault could not be APPLIED.
+
+[registry]
+id = "RM-01-residual-faults"
+ticket = "RM-01"
+epic = "portable-substrate"
+seeded_before = "nothing -- these price a removal that landed at bf0fb29, in 2026-08"
+prices = [
+  "the thirteen-path enumeration literal (SM-03, issue #167)",
+]
+
+
+# ===========================================================================
+# DETECTORS
+# ===========================================================================
+
+[[detector]]
+id = "registry-enumeration"
+kind = "pytest"
+nodes = ["{tree}/tests/test_instrument_demonstrations.py::test_the_named_instruments_are_all_enumerated"]
+uses_ports_binding = false
+note = """
+THE NODE THAT SURVIVED THE REMOVAL BY NAME AND GOT A NEW BODY. Before
+`bf0fb29` its body is `required <= enumerated` over a literal of thirteen
+paths; after, it is the derived walk. Same file, same function name, same
+node id -- so every survivorship test at detector OR node granularity says
+this detector outlived the cut, and both are right and neither is the
+question.
+"""
+
+[[detector]]
+id = "instrument-registry"
+kind = "cli"
+entry_point = "examples/validation/instruments/demonstrate.py"
+uses_ports_binding = false
+argv = ["{python}", "{tree}/examples/validation/instruments/demonstrate.py", "--format", "json"]
+executed_if_stdout_contains = ["\"rows\""]
+note = "the falsifiability registry, whole. Present at both trees."
+
+[[detector]]
+id = "pytest-full"
+kind = "pytest"
+nodes = ["{tree}/tests"]
+uses_ports_binding = false
+note = """
+The plan's acceptance command, and the detector that makes the classifier
+degenerate: no removal in this repository's history has ever deleted it, so
+every fault it kills is NON-DISCRIMINATING by the shortcut's arithmetic. Run
+here whole, at both trees, so the claim `pytest-full does not catch this` is
+measured rather than assumed. Some nodes fail in a `git archive` tree because
+they read git history; those are the pristine baseline and are subtracted.
+"""
+
+
+# ===========================================================================
+# THE PAIR
+# ===========================================================================
+
+[[mutant]]
+id = "RM-01-RF-1-a-registered-instrument-outside-the-derived-scope-loses-its-row"
+mechanism = "the thirteen-path `required` literal in test_the_named_instruments_are_all_enumerated"
+removed_by = "SM-03"
+claims_to_catch = "a rename or an edit that drops an already-registered instrument out of the registry -- the ONE direction the deleted literal was sound in, and the direction its own docstring said it covered"
+gap = """
+THE HALF OF THE LITERAL THE DERIVED WALK DOES NOT REACH. Three of the thirteen
+required paths lie outside `roots`:
+
+  specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py
+  specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py
+  tests/test_code_complexity.py
+
+and the third is additionally invisible to the discovery predicate, which
+requires a `__main__` guard and a nonzero exit path that no pytest file has.
+
+`paths = []` rather than deleting the row, so the row's demonstrations still
+run and the only thing that changes is whether the registry NAMES the file.
+That is exactly the shape of the fault -- a registration lost while the
+instrument keeps working -- and it keeps the mutant off every unrelated
+assertion about row counts.
+
+WHY IT WAS NEVER SEEDED. Its anchor is in `instruments.toml`, which outlives
+the cut, so the re-runnability rule does NOT exclude it. It is excluded one
+level further in: `discriminate` sees `registry-enumeration` in the killing
+set, sees that node still present at `bf0fb29`, and reports NON-DISCRIMINATING
+without running anything. A fault classified entailed is a fault nobody seeds.
+"""
+[[mutant.edit]]
+path = "examples/validation/instruments/instruments.toml"
+find = 'paths = ["tests/test_code_complexity.py"]'
+replace = 'paths = []  # RM-01-RF-1: the thermometer tripwire keeps working and the registry stops naming it'
+[[mutant.detector]]
+id = "registry-enumeration"
+[[mutant.detector]]
+id = "instrument-registry"
+[[mutant.detector]]
+id = "pytest-full"
+
+
+# ===========================================================================
+# POSITIVE CONTROL -- R2
+# ===========================================================================
+#
+# A control that cannot fail is worse than no control. This one runs through
+# the same code path, the same detectors and the same trees as the fault
+# above, and differs from it in ONE property.
+
+[[control]]
+id = "RM-01-RF-CTRL-a-registered-instrument-INSIDE-the-derived-scope-loses-its-row"
+mechanism = "positive control for registry-enumeration, at BOTH trees"
+removed_by = "nothing"
+control_role = """
+positive -- must die on `registry-enumeration` at BOTH `bf0fb29~1` and
+`bf0fb29`. `scripts/code_complexity.py` was in the deleted literal AND is
+under a declared root, so the literal caught it before and the derived walk
+catches it after. If this does not die at the after tree, then the after tree's
+detector is dead for every input and RM-01-RF-1's SURVIVES is undecided rather
+than a price.
+"""
+claims_to_catch = "n/a -- this row is the control, not a gap"
+gap = "NONE, on purpose. It is RM-01-RF-1 with one property changed: the path is inside `roots`."
+must_die_on = ["registry-enumeration"]
+[[control.edit]]
+path = "examples/validation/instruments/instruments.toml"
+find = 'paths = ["scripts/code_complexity.py"]'
+replace = 'paths = []  # RM-01-RF-CTRL: the same fault, on a path the derived walk CAN reach'
+[[control.detector]]
+id = "registry-enumeration"
+[[control.detector]]
+id = "instrument-registry"
+[[control.detector]]
+id = "pytest-full"
+
+
+# ===========================================================================
+# NO SEEDABLE GAP -- REPORTED, NEVER SKIPPED (R2)
+# ===========================================================================
+
+[[not_seedable]]
+mechanism = "the `fake =` key of a `[ports.*]` table -- SM-01's excluded fault, re-examined"
+removed_by = "SM-02"
+reason = """
+STILL NOT A PRICE, AND FOR A DIFFERENT REASON THAN THE ONE ON THE RECORD.
+
+SM-01 excluded it because it cannot be RE-RUN after the cut. `price_removal.py`
+drops that requirement -- a before-only reading plus survivorship is sound
+towards SURVIVES -- so the exclusion no longer applies. The fault is still not
+seeded here, on the merits:
+
+`--wiring fake`, the `[ports.*]` table, and `render_oracle_statement`'s
+port half were deleted TOGETHER. There is no post-removal artifact in which a
+port declares no fake, because there is no post-removal artifact in which a
+port declares anything. The fault class is EXTINCT, not UNWATCHED, and an
+extinct fault class costs nothing in the currency a gap mutant measures.
+
+WHAT THAT REMOVAL DID COST IS A CAPABILITY, NOT A DETECTION, and no gap mutant
+of any posture measures capability. Named here so the difference is on the
+record: RM-01 did not make SM-01's famous excluded fault priceable, it made it
+possible to say why it is not.
+"""

@@ -200,3 +200,81 @@ example = "ab_quota_ledger"
 scope = ["specs/results/scorecards/reading-discipline/blind/artifact_D"]
 declared_effect_boundary = "effectful"
 labels = []
+
+# --------------------------------------------------------------------------
+# RM-04: THREE SUBJECTS OF THE TOOLCHAIN, DECLARED BEFORE ANY JUDGE EXISTS.
+#
+# The toolchain has only ever been the thing DOING the scoring. This is the
+# first round in which it is the thing being scored, and it is the first
+# example in this project's history that is not `ab_quota_ledger` and not a
+# hand-built fixture.
+#
+# WHY THESE THREE, AND WHAT EACH ONE IS FOR. Each claim in RM-04's evidence
+# page names the pair it rests on, because two of these three NEST and a
+# separation between nested scopes would be partly a comparison of a tree with
+# itself:
+#
+#   * `rm04_scripts` and `rm04_eval_harness` are DISJOINT, and they are the
+#     pair every D3 separation claim rests on. `scripts` derives `effectful`
+#     and `examples/validation` derives `ports-and-adapters`, so this is the
+#     first `effectful`/`ports-and-adapters` pair in the record outside
+#     `ab_quota_ledger`.
+#   * `rm04_removal_pricer` is INSIDE `rm04_eval_harness`. It is here for D2
+#     and for nothing else: it is the only clean before/after this epic
+#     produced, and D2's anchor 3 is unreachable without one. It is named in no
+#     separation claim.
+#
+# THE BEFORE/AFTER, stated so a judge's packet and this file agree. Only
+# `rm04_removal_pricer` has one: `19c5c7b` -> `dbf355c`, 1209 lines of
+# `gap_mutants.toml` + `run_gap_mutants.py` replaced by 899 lines of
+# `price_removal.py` + `altered_score_probe.py` + `residual_faults.toml`. The
+# before tree is materialised at
+# `specs/results/scorecards/portable-substrate/GOAL-dimensions-replicate/RM-04/blind/artifact_JJ_before`
+# so a judge diffs two directories and never a commit message. THE OTHER TWO
+# HAVE NO BEFORE AND ARE NOT GIVEN ONE -- D2 is bounded at 2 for them by anchor
+# 3, that bound is predicted in `SEALED-BEFORE-DISPATCH.md`, and it is the
+# control for the one subject that does have a before.
+#
+# `scripts` IS BYTE-IDENTICAL ACROSS THIS WHOLE EPIC. `19c5c7b:scripts` and
+# `dbf355c:scripts` are both tree `e9d5544aaa33b2f910e75a461194a3360b511b90`.
+# The work order for this ticket says RM-03's removal is a real before/after
+# for the toolchain; on this scope it is not one, and that is recorded here
+# rather than worked around.
+#
+# `declared_effect_boundary` IS DECLARED AND IT IS A KNOWN LEAK VECTOR, said
+# out loud because this round is the one that fixed a blinding leak. THE
+# SUBJECT CONTAINS THE FILE YOU ARE READING: `rm04_eval_harness`'s scope is
+# `examples/validation`, and this file sits inside it. A judge who opens it can
+# match a scope to a declared value and read the D3 answer off it. Withholding
+# the value was considered and rejected -- `load_subjects` turns a missing
+# declaration into `TAG-DISPUTED`, which would assert a disagreement that was
+# never measured, and repairing that is a code change during a measurement.
+# So the declaration stands, the exposure is SEALED AS A PREDICTION before
+# dispatch, and every card's citations are checked against this path
+# afterwards. THE MEASUREMENT IS REPORTED WHICHEVER WAY IT COMES OUT.
+# --------------------------------------------------------------------------
+
+#
+# `labels` BELOW WAS WRITTEN AFTER THE ROUND, and it has to be. RM-04's cards
+# are blinded to the new standard: `subject.name` is `null` on every one of
+# them and no card carries a `declared_effect_boundary`, so the card cannot
+# name its own subject and the attribution lives here -- which is the path
+# RD-05 built for exactly this and which the pre-RD-05 record already uses.
+
+[subject.rm04_scripts]
+example = "eval_toolchain"
+scope = ["scripts"]
+declared_effect_boundary = "effectful"
+labels = [["portable-substrate-rm04-LL", "LL"]]
+
+[subject.rm04_eval_harness]
+example = "eval_toolchain"
+scope = ["examples/validation"]
+declared_effect_boundary = "ports-and-adapters"
+labels = [["portable-substrate-rm04-GG", "GG"]]
+
+[subject.rm04_removal_pricer]
+example = "eval_toolchain"
+scope = ["examples/validation/gap_mutants"]
+declared_effect_boundary = "effectful"
+labels = [["portable-substrate-rm04-JJ", "JJ"]]
