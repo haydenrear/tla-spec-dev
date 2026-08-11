@@ -128,8 +128,9 @@ times**, with the judges naming the clause. SM-03's 13-path literal carried a
 live `required <= enumerated` assertion.
 
 **Still in the tree AND records without gating.** This is not a list of
-exceptions; it is the doctrine. `no_new_gates_rule` means **nine** modules
-disclaim gatehood in their own docstrings and **none** was removed. `judging_practice`
+exceptions; it is the doctrine. `no_new_gates_rule` means **eleven** modules
+disclaim gatehood in their own docstrings — `git grep -l 'not a gate\|NOT A GATE\|never a thermostat\|refuses nothing' scripts/*.py examples/validation/**/*.py`
+— and **none** was removed. `judging_practice`
 was explicitly *de-gated* at version 4 and deliberately kept. D1, D4 and D5 were
 not deleted — they became `N-D1`/`N-D4`/`N-D5`, **required prose that takes no
 score**, i.e. the pattern's own category, retained on every card. And 20 open
@@ -150,7 +151,7 @@ is nearer **"has recurring upkeep and cannot fail"**, and even that fails on
 | kind | instances | bought |
 |---|---|---|
 | **non-exporting rubric surface** | D1/D4/D5 as scores, D2 anchor 4, R-H1's third clause as adopter surface | **PORTABILITY — the only cuts that moved the served surface at all.** −24% bytes, −64% rungs |
-| **duplicate of a single source of truth** | 20 card restatements (SM-06) | **CLARITY plus a new detection**: 3 of 4 seeded disagreements had been invisible to every instrument. Best-value cut in the record |
+| **duplicate of a single source of truth** | SM-06's card duplication — 120 prose lines over four files | **CLARITY plus a new detection**: 3 of 4 seeded disagreements had been invisible to every instrument. Best-value cut in the record |
 | **product-side duplication** | `_Tenant.outstanding`, `.quota`, `_held` (RD-03/RD-06) | **The only simplification this project has ever measured before/after.** 8 of 8 judges who saw a code change awarded anchor 3; 4 of 4 who saw none refused it |
 | **rule loosened rather than thing deleted** | re-runnability (RM-01), detector-name → kill survivorship | **CLARITY** — produced the record's one defensible price on a real past removal |
 | **hard-coded literal → derivation** | SM-03's 13 paths, `LABEL_POOL` | **CLARITY, partly reversed** — `RM-01-DF-03`: 3 of the 13 paths are now unreachable |
@@ -172,8 +173,7 @@ real removal — and §2.1 is why that is the whole of it.
 kills); the gap-mutant catalogue and the staged after-run (1,898 lines,
 arithmetically incapable of changing a verdict on 9 of 10 rows); **`contested`**
 — the card's only rule for judge disagreement, with no executor for three
-versions; `anchor_reading`; 12 of 26 registry demonstration slots that assert only
-`expect_exit = 0`, satisfiable by a fully skipped run.
+versions; and `anchor_reading`. **One further claim from that channel is NOT carried here: that 12 of 26 registry demonstration slots assert only `expect_exit = 0`. I tried to re-derive it at this tree and got zero** — every one of the 84 `failing`/`passing` slots in `instruments.toml` carries `expect_output`, `expect_passed`, `expect_passed_at_least` or `nodes` besides its exit code. A figure I could not reproduce is a figure this page does not repeat.
 
 **The one-sentence answer to the owner: the cuts that helped were cuts to what
 gets SERVED. Everything else this project has removed bought either clarity or
@@ -214,7 +214,7 @@ cards that say 4, and a green check.
 **And the one iteration an adopter *can* perform without touching Python is
 invisible to every check on the card.** `load_rubric` parses a dimension's caveat
 as the last paragraph beginning with `**` and an uppercase letter
-(`score_tools.py:341-344`). An adopter who rewrites a caveat in their own words
+(`score_tools.py:342-344`). An adopter who rewrites a caveat in their own words
 **deletes it from the served bytes with no warning, while `anchors_digest` stays
 byte-identical** — B demonstrated it on `D3`'s *"Import topology is not
 modularity"*, the caveat three judges in the sealed record cite by name as their
@@ -617,7 +617,7 @@ D3  rm04_scripts [0,1]  rm04_eval_harness [2,4]  INCOMPARABLE
 
 ### 5.3 The census miscounts, and its own check cannot see it
 
-`diff_lines` (`removal_census.py:104-105`) skips any diff line beginning `---`,
+`diff_lines` (`removal_census.py:105-106`) skips any diff line beginning `---`,
 `+++` or `@@`, which discards **content** lines beginning `--`.
 `run_gap_mutants.py` at `f88d02e` has exactly 4 such lines; `git diff --numstat`
 says 633 deleted and the census says **629**. `removal_census.py check` passes,
@@ -687,7 +687,11 @@ No number below is reported as green.
 |---|---|---|---|
 | 1 | ticket worktree, `58411dc` → `df27cb8` | **DIRTY** — `start_ticket.py` scaffolded 57 files and a commit landed mid-run | 1 failed, **1470** passed in 992.85s |
 | 2 | ticket worktree, `df27cb8` | **clean at start, then evidence files written under `specs/results/.../RM-05/` while it ran** | 1 failed, **1474** passed in 911.65s |
-| **3** | **ticket worktree, `c8d3c37`** | **quiescent — nothing written from launch to exit** | **PENDING — filled in from `suite-c8d3c37-row3.txt` after the run, and this cell was committed reading PENDING so that no number here can have been written before the run produced it** |
+| **3** | **ticket worktree, `fe87dfb`** | **quiescent — nothing written from launch to exit** | **2 failed, 1473 passed in 938.62s** |
+
+*This cell was committed reading `PENDING` before the run started, so no number
+in it can have been written before the run produced it.* Raw log:
+`suite-fe87dfb-row3.txt`.
 
 Command, all three rows:
 `uv run --with pytest --with pyyaml python -m pytest tests -q`, CPython via `uv`.
@@ -695,7 +699,10 @@ Command, all three rows:
 `.skill-manager/` present; none is a `git archive` staging and no figure on this
 page is a property of a tree without a `.git`.**
 
-**Rows 1 and 2 are reported and not relied on.** Row 1 is the error RM-02 §8.1
+**Row 3 is the measurement and it found something rows 1 and 2 could not — see
+§8.1.** Rows 1 and 2 are reported and not relied on.
+
+**Rows 1 and 2, in full.** Row 1 is the error RM-02 §8.1
 and RM-03 §1 both paid for and I repeated. Row 2 started clean and I then wrote
 this page under `specs/results/` while it ran — nothing in `CITATION_SCOPE` or
 any collection glob reaches there, so collection could not move, but tests that
@@ -706,15 +713,55 @@ committed, with nothing running against the worktree.
 **Row 1 collected 1471 and rows 2 and 3 collected 1475.** The four are the
 ticket-workspace nodes `scripts/start_ticket.py` scaffolds under
 `specs/tickets/RM-05/`, which row 1 began before they existed and **which go away
-at close** — RM-06 recorded exactly the same four. **So the tree this PR leaves
-behind reads `1 failed, 1470 passed`, which is the owner-verified baseline at
-`58411dc` unchanged.**
+at close** — RM-06 recorded exactly the same four.
 
-**The single failure is `tests/test_architecture_tags.py::test_the_same_tag_control_holds`
+`denominator_rule` on rows 2 → 3: **the passing count fell 1474 → 1473 and the
+denominator did not move.** One node crossed from passing to failing and it is
+§8.1's.
+
+**The first failure is `tests/test_architecture_tags.py::test_the_same_tag_control_holds`
 (`RM-06-DF-01`), it is deliberate, it is RM-06's, and this ticket did not touch
 it.** The control is reporting a real result — it cannot tell treatment from
 architecture — and repairing it during a measurement is the move this epic
 forbids.
+
+### 8.1 THE SECOND FAILURE IS MINE, IT APPEARED IN RUN 3 ONLY, AND I AM LEAVING IT RED
+
+```
+FAILED tests/test_price_removal.py::test_nothing_in_the_repository_invokes_the_pricer
+E   AssertionError: something consults the pricer: ['NEXT-EPIC.md']
+```
+
+**Runs 1 and 2 had one failure; run 3 has two.** The difference is not the tree
+being quiet — it is that between run 2 and run 3 I committed `NEXT-EPIC.md`,
+which this work order requires me to write, and which names `price_removal.py`
+twice in giving the file:line evidence for `RM-05-DF-01`.
+
+The check greps the repository for the string `price_removal`, exempts a small
+allow-list and everything under `specs/`, and refuses the rest. **`NEXT-EPIC.md`
+is at the repository root, so it is not exempt. Nothing in it invokes anything;
+it is prose about a finding.**
+
+**This is `RD-05` §7.1 — the checker cannot tell a claim from a MENTION of one —
+at the level of an executable test rather than a prose sweep, and it is a
+demonstrated failing input on a shipped check.** RM-03 met the same gap one
+ticket ago, wrote the stronger repair, and reverted it: *"it could not tell a
+registry `paths =` declaration from a call, and shipping a fragile new check to
+make a point about mention-versus-claim would have been worse than the gap it
+closed."* RM-03 then repaired its own instance by **adding its file to the
+allow-list with a reason**, which is the mechanism the test provides.
+
+**I am not taking that repair, and the reason is the role.** Adding
+`NEXT-EPIC.md` to the allow-list is editing a target so that a result passes,
+which is the one move `measurement_rule` names. An evaluation that reaches green
+by editing the thing it is measuring has measured nothing. **So the red stands,
+with its account here, and the successor inherits a two-failure tip instead of a
+one-failure tip. That cost is real and it is stated rather than hidden.**
+
+The consequence for the epic's headline number: **the tree this PR leaves behind
+reads `2 failed, 1470 passed`** once the four ticket-workspace nodes go at close
+— one deliberate red inherited from RM-06, and one caused by this ticket's own
+mandated deliverable naming a file. Escalated as §9.2 item 10.
 
 `denominator_rule` across the epic, on the passing column: **1470 at the epic
 base `2c0d94e` and 1470 here.** The passing count did not move at all. **The
@@ -774,6 +821,13 @@ two moving terms, not a stability result**, and it is stated that way.
    the tip of the epic that shipped version 4.
 9. **68 open findings carry no `disposition_ticket` and no `disposition_note`**,
    and settlement is recorded five different ways across the ledger. Channel C.
+10. **`tests/test_price_removal.py::test_nothing_in_the_repository_invokes_the_pricer`
+    refuses a prose MENTION of `price_removal` outside `specs/`, and this
+    ticket's own mandated `NEXT-EPIC.md` trips it.** §8.1. The allow-list is the
+    provided mechanism and taking it would have been editing a target to make a
+    result pass, so **the red stands**. Either exempt the repository's own
+    narrative documents the way `specs/` is exempted, or accept that every future
+    round which writes about the pricer turns this node red.
 
 ---
 
@@ -823,7 +877,7 @@ record and the card population.
 ```
 $ python3 examples/validation/scorecards/score_tools.py scope \
     --path specs/results/scorecards/portable-substrate/RM-05/RESULT.md
-4 counted figure(s): 2 REFUTED, 0 COUNT-MOVED, 1 HOLDS, 1 UNREACHABLE
+5 counted figure(s): 2 REFUTED, 0 COUNT-MOVED, 1 HOLDS, 2 UNREACHABLE
 ```
 
 Sealed verbatim beside this file as `scope-RM-05.txt`, at tree `df27cb8` + this
@@ -833,11 +887,15 @@ page. Population **83 filled cards carrying a D3 score**.
 IN REAL TIME.** The first run returned `2 counted: 1 REFUTED, 0 HOLDS, 1
 UNREACHABLE`. Writing the paragraphs below — whose entire purpose is to say what
 the checker can and cannot see — took it to **4 counted: 2 REFUTED, 1 HOLDS, 1
-UNREACHABLE**. The second `REFUTED` is at line 816, in the sentence directly
-below, where I quote `D3 = 4 on 4 of 4` a second time in order to explain why
-quoting it refutes it. **I am reporting the number I got last and not editing the
-section to bring it down.** `RM-01` §8 recorded exactly this and it recurred in
-its successor.
+UNREACHABLE**. The second `REFUTED` is in the sentence directly below, where I
+quote `D3 = 4 on 4 of 4` a second time in order to explain why quoting it refutes
+it. **It then moved a third time**, to `5 counted: 2 REFUTED, 0 COUNT-MOVED,
+1 HOLDS, 2 UNREACHABLE`, when §1.2 gained a sentence naming a figure from channel
+C that this page declines to carry. **Three runs, three counts, one document, and
+the only thing that changed between them is how many times the document mentions
+a figure. I am reporting the number I got last and not editing the section to
+bring it down.** `RM-01` §8 recorded exactly this and it has now recurred twice in
+its successor, on the page describing it.
 
 **Both figures the FIRST run reached are on the same line — §10 item 3 — and both
 are MENTIONS, not claims of mine.** The `REFUTED` one is `D3 = 4 on 4 of 4`,

@@ -90,7 +90,7 @@ stamps `version 4` onto cards carrying the version-5 anchors and `check` reports
 **0 problems**. And the one iteration an adopter *can* do without touching Python
 — rewriting a dimension caveat in their own words — **silently deletes it from the
 served bytes while `anchors_digest` stays byte-identical**
-(`score_tools.py:341-344`).
+(`score_tools.py:342-344`).
 
 **This is the next epic's first ticket.** Also: `audit` crashes out of the box
 until you also install `architecture_tags.py` and create an *empty*
@@ -141,9 +141,10 @@ Tested against the record, not assumed. **"Fields that record a measurement
 without gating on anything" is NOT the pattern.** `total` ran
 `if total != running: err(...)`; D4's anchor 4 gated on `judging_practice` and
 `check` rejected a real card for it; D2's anchor 4 capped D2 eight times. And the
-category is the project's whole doctrine: nine modules disclaim gatehood in their
-own docstrings and none was removed; D1/D4/D5 *became* required prose that takes
-no score.
+category is the project's whole doctrine: **eleven** modules disclaim gatehood in
+their own docstrings — `git grep -l 'not a gate\|NOT A GATE\|never a thermostat\|refuses nothing'`
+over `scripts/*.py` and `examples/validation/**/*.py` at this tree — and none was
+removed; D1/D4/D5 *became* required prose that takes no score.
 
 **The record's own discriminator is better: `ranges` was cut because it is a
 figure over an OPEN population — re-affirmed forever, with no measurement in any
@@ -152,7 +153,8 @@ stay, because their populations are CLOSED.**
 
 **What actually bought something:** cuts to the **served** surface (D1/D4/D5,
 D2's anchor 4) — the only cuts that moved it; **duplicate-of-one-source** cuts
-(SM-06's 20 restatements, which also bought a detection); and **product-side**
+(SM-06's card duplication, 120 prose lines over four files, which also bought
+a detection); and **product-side**
 cuts (RD-03's three fields — still the only simplification of a *subject* this
 project has ever measured before and after). **What bought nothing:** dead
 machinery whose entry point no longer ran (RD-02: 33 lines out, 1,403 in), and
@@ -161,8 +163,10 @@ machinery whose entry point no longer ran (RD-02: 33 lines out, 1,403 in), and
 **Additions that earned their keep:** the prompt -> D3; sealed predictions;
 `removal_census.py` and its refusal to total; `scope`; SM-06's one-home tripwire.
 **Additions that did not:** `contested` (the card's only rule for judge
-disagreement, no executor for three versions), `anchor_reading`, and 12 of 26
-registry demonstration slots that assert only `expect_exit = 0`.
+disagreement, no executor for three versions) and `anchor_reading`. **A third
+claim — 12 of 26 registry demonstration slots asserting only
+`expect_exit = 0` — is NOT carried forward: RM-05 tried to re-derive it and
+got zero at this tree.**
 
 ### 7. NO ROUND IN THIS EPIC RECORDED A TOKEN COUNT, AND THE NUMERATOR IS CAPPED
 
@@ -236,6 +240,18 @@ at all.**
 5. **Then, and only then, prompt architecture back in.** The served surface is at
    6,409 bytes and 9 rungs, and that is the room the re-add has to work in.
    Static analysis and spectral signal come after something can be adopted.
+
+**AND ONE RED YOU INHERIT FROM RM-05, DELIBERATELY.** The epic tip now fails two
+nodes, not one. The second is
+`tests/test_price_removal.py::test_nothing_in_the_repository_invokes_the_pricer`,
+and **this document is what trips it**: the check greps for the string
+`price_removal`, exempts a short allow-list and everything under `specs/`, and
+this file is at the repository root. Nothing here invokes anything — it is prose
+citing a finding. RM-05 declined the available repair (adding this file to the
+allow-list) because editing a target so a result passes is the move
+`measurement_rule` forbids an evaluation. **Either exempt the repository's own
+narrative documents, or accept that every round that writes about the pricer
+turns this node red.**
 
 ---
 
