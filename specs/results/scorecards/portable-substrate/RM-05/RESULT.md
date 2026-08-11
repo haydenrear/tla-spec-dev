@@ -687,7 +687,7 @@ No number below is reported as green.
 |---|---|---|---|
 | 1 | ticket worktree, `58411dc` → `df27cb8` | **DIRTY** — `start_ticket.py` scaffolded 57 files and a commit landed mid-run | 1 failed, **1470** passed in 992.85s |
 | 2 | ticket worktree, `df27cb8` | **clean at start, then evidence files written under `specs/results/.../RM-05/` while it ran** | 1 failed, **1474** passed in 911.65s |
-| **3** | **ticket worktree, `4ffc6ec`** | **quiescent — nothing written from launch to exit** | **1 failed, 1474 passed in 979.83s** |
+| **3** | **ticket worktree, `c8d3c37`** | **quiescent — nothing written from launch to exit** | **PENDING — filled in from `suite-c8d3c37-row3.txt` after the run, and this cell was committed reading PENDING so that no number here can have been written before the run produced it** |
 
 Command, all three rows:
 `uv run --with pytest --with pyyaml python -m pytest tests -q`, CPython via `uv`.
