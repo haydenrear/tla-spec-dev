@@ -239,14 +239,27 @@ Two rows are added: `RM-03-scorecard-v4` (commit `1e6f691`) and
 ```
 audit, WITHOUT the era boundaries:   0 violation(s)
 audit, WITH them:                   10 violation(s)
+audit, after the ten are PARKED:     0 violation(s)
 ```
 
 **All ten are `SUPERSEDED-UNMARKED`** — claims still marked `current`, measured
 before a bar that existed and was undeclared, that nothing re-affirmed. `R-H1`
 reported a clean for three epics **because the boundary it polices had never been
-declared**. The ten claims are other rounds' and are **not repaired here**;
-repairing a predecessor's claim during a measurement is the move
-`measurement_rule` forbids. Filed as `CL-03-DF-03`.
+declared**. Four rounds' claims, two of them goal decisions.
+
+**How they are disposed of, and why that is not a repair.** The rule offers
+three dispositions: re-affirm, mark superseded, or move to `under_review` with a
+filed finding. **Only the third is available to a ticket that is not the claim's
+own round** — re-affirming somebody else's number during a measurement is what
+`measurement_rule` forbids, and `superseded` asserts a replacement nobody
+measured. So all ten are `under_review` against `CL-03-DF-04`, and **the
+statement, the figure and the `why` of every one of them are byte-identical to
+what their round wrote.** What changed is that the record now says they sit
+across a declared bar. That is strictly more information than `current` was.
+
+**This was not free.** Declaring the boundary turned `score_tools`'s own
+`test_the_repo_ledger_passes_its_own_audit` red until the ten were parked, which
+is the rule finally reaching the thing it was written for.
 
 What is now readable and was not: **D3's served block is byte-identical across
 the version 3 / version 4 boundary and D2's is not.** *"D3 replicated and D2 did

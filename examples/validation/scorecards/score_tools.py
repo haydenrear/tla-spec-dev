@@ -847,6 +847,17 @@ def check(card: dict, where: str, rubric: dict | None = None,
         bad.append(f"{where}: {msg}")
 
     version = card.get("scorecard_version")
+    # CL-03. A CALLER THAT PASSES NO RUBRIC USED TO FALL BACK TO THE LITERAL
+    # TUPLE, so the first legitimate bump made `check(card, where)` refuse a card
+    # stamped with the version THE CARD FILE ITSELF DECLARES. That is CL-01's
+    # defect one level down: the population stopped being a ceiling for
+    # `scaffold` and stayed one here. Read the default card file when nobody
+    # named one; if it cannot be read, the old fallback stands and still says so.
+    if rubric is None:
+        try:
+            rubric = load_rubric(DEFAULT_RUBRIC)
+        except Exception:                                # pragma: no cover - no card
+            rubric = None
     allowed = supported_versions(rubric)
     if version not in allowed:
         err(f"scorecard_version must be one of {list(allowed)}, got {version!r}"

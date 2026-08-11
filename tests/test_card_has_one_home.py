@@ -152,6 +152,20 @@ GUARDED = {
         "load_rubric() parses it as scorecard version 3 and its anchors digest is "
         "compared to the sha256:eeccf4576bc6fd85 that the card's own version history "
         "declares for versions 1, 2 and 3",
+    # CL-03. The same tension, one version later. The change rule says FREEZE THE
+    # RUBRIC FILE BEFORE YOU EDIT IT, and CL-03's version 5 bump is the first one
+    # that had to, because it is the first whose SERVED digest moves. The
+    # exemption is earned the same way: something runs the comparison, and for a
+    # frozen bar it is the only comparison that matters -- this file must still
+    # parse as version 4 and still digest to the anchors AND served digests the
+    # card's own version history declares for version 4, or it has stopped being
+    # the bar it claims to freeze and the version 4 arm of CL-03's re-score is
+    # not a version 4 arm.
+    "examples/validation/scorecards/rubric_v4_frozen.md":
+        "load_rubric() parses it as scorecard version 4 and both of its digests are "
+        "compared to the row the card's own version history declares for version 4 -- "
+        "sha256:f73b4d82638f09df anchors and sha256:a213a36770ccab09 served -- in "
+        "tests/test_score_tools.py::test_the_frozen_v4_bar_is_still_the_v4_bar",
 }
 
 TEXTY = (".md", ".py", ".toml", ".yaml", ".yml", ".txt", ".tla", ".json", ".sh")

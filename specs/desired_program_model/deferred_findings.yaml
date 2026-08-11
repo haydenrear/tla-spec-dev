@@ -11075,3 +11075,93 @@ findings:
       Any concurrently dispatched pair. This epic runs CL-02 and CL-03 in the same
       wave and CL-04 reads both their reports.
     disposition: open
+
+  - id: CL-03-DF-06
+    found_by: "CL-03 (by publishing four honest cards and watching the derived table change)"
+    found_at_commit: "c39b1e5"
+    schedule_revision: 1
+    severity: blocking
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/architecture_tags.py", "specs/results/scorecards/"]
+    summary: >-
+      FOUR CARDS WERE ENOUGH TO GIVE THE ARCHITECTURE TAG REFUSAL AUTHORITY ON A
+      DIMENSION NOBODY CLAIMS IT MOVES, AND THE SEPARATION IS A CONFOUND THE
+      DERIVED TABLE CANNOT SEE. ESCALATED: the deferment budget is 5 and this is
+      the sixth, because it changes the behaviour of a SHIPPED instrument and it
+      binds what CL-04 may conclude.
+
+      WHAT HAPPENED. CL-03 scored `examples/validation/ab/reference_ports` four
+      times -- the subject `toolchain_fixture`, declared `ports-and-adapters` in
+      `subjects.toml` before any judge was dispatched. Its D2 came out
+      `[0, 2, 2, 2]`. The same example's `toolchain` subject, declared
+      `effectful`, carries `[3, 3, 4]` from SM-05. Disjoint. So `authority()`,
+      which is re-derived from the cards on every read, now carries a SECOND row
+      -- D2 -- and `compare --example toolchain_removal` returns INCOMPARABLE on
+      D2 where it returned comparable through three tickets.
+
+      AND THE SEPARATION IS NOT ABOUT ARCHITECTURE. D2's anchor 3 requires "a
+      simplification was made and its effect measured -- the before and after
+      figures are both recorded". The `toolchain` subject HAS a before/after;
+      a 173-line reference fixture has none and can never have one, so it is
+      capped at 2 BY THE LADDER rather than by its design. Both CL-03 judges said
+      so unprompted and then disagreed by two points about what to do with it,
+      which is this round's only contested dimension
+      (`[[contested]] cl03-v5-d2-spread-2`).
+
+      THE GENERAL SHAPE, which is why this is blocking rather than minor: THE
+      TABLE CANNOT DISTINGUISH AN EFFECT-BOUNDARY SEPARATION FROM A
+      "ONE-SUBJECT-HAD-A-BEFORE-AND-AFTER" SEPARATION, and any round that scores
+      a new subject can hand the tag authority over a dimension by accident. The
+      authority is derived, so it cannot be declared away; and a contested
+      dimension can create it, which is the tag saying something the numbers do
+      not -- the exact failure `tier_split_of` refuses one level down by
+      requiring disjointness AND reporting the population.
+    reproduction: >-
+      `python3 examples/validation/scorecards/architecture_tags.py` and read the
+      demonstration table: two rows where there was one. Or
+      `uv run --with pytest python -m pytest tests/test_architecture_tags.py -q`
+      at `c39b1e5^` with CL-03's four card directories removed, against the same
+      command with them present: `test_authority_is_keyed_on_dimension_and_value_pair`
+      goes from one key to two, and
+      `test_the_tag_cannot_refuse_a_comparison_on_a_dimension_it_did_not_move[D2]`
+      flips from COMPARABLE to INCOMPARABLE.
+    evidence:
+      - "specs/results/scorecards/close-the-loop-cl03-v4/toolchain_removal/**/scorecard.json -- D2 2, 2"
+      - "specs/results/scorecards/close-the-loop-cl03-v5/toolchain_removal/**/scorecard.json -- D2 2, 0"
+      - "specs/results/scorecards/subtract-to-measure-sm05/toolchain_removal/** -- D2 3, 3, 4"
+      - "tests/test_architecture_tags.py::test_the_new_d2_row_is_a_confound_and_the_table_cannot_tell"
+      - "specs/results/scorecards/INSTRUMENT-LOG.toml -- [[contested]] cl03-v5-d2-spread-2"
+    why_out_of_scope: >-
+      Every available repair is a code change to the instrument CL-03's own
+      comparison is held constant on, made inside the ticket that uses its output
+      as a control. Suppressing the four cards would hide the finding; deleting
+      the D2 row by hand would make the table a declaration, which is the
+      suppression-key failure this file already carries a finding about; and
+      requiring two subjects a side, or excluding a contested dimension from the
+      table, are real designs that need a round able to score the alternative.
+      What CL-03 does instead is what RM-06 did when RD-03's judges retired the
+      `["opus"]` bound: REWRITE THE CLAIM RATHER THAN RESTORE THE NUMBER. The
+      two shipped tests now assert the new row AND assert why it means nothing
+      about architecture, which is strictly more than they asserted before.
+    suggested_fix: >-
+      Decide whether a demonstration row may be derived from a dimension that is
+      CONTESTED in the group producing it -- the cheapest honest rule, and it
+      kills this row on its own. Then consider requiring the separation to hold
+      across at least two subjects a side, since one subject a side cannot
+      distinguish the boundary from anything else that differs between the two
+      subjects. Do NOT fix it by narrowing what counts as a subject: RD-05
+      declared `toolchain_fixture` before it was ever scored, and a rule that
+      punishes a round for scoring a declared subject is a rule against
+      measuring.
+    blast_radius: >-
+      Every `compare --example toolchain_removal` on D2 from `c39b1e5` forward
+      returns INCOMPARABLE. Nothing already published changes value. It binds
+      CL-04: any claim that the architecture tag "refuses only what it
+      demonstrated" is now true of a table with a demonstrated row that is a
+      measurement artefact, and CL-04 should say which of the two rows it is
+      relying on.
+    disposition: open

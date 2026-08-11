@@ -59,6 +59,7 @@ RUBRIC = REPO_ROOT / "references/eval_scorecard.md"
 # other half, and from version 4 the tool refuses rather than letting it be
 # missed.
 RUBRIC_V3 = REPO_ROOT / "examples/validation/scorecards/rubric_v3_frozen.md"
+RUBRIC_V4 = REPO_ROOT / "examples/validation/scorecards/rubric_v4_frozen.md"
 SCORECARDS = REPO_ROOT / "specs/results/scorecards"
 
 
@@ -2702,3 +2703,25 @@ def test_the_d3_caveat_carries_the_regression_the_anchor_cannot_see(st):
     assert "only observer" in served, "the caveat did not reach the served bytes"
     # and the anchor text is still there beside it -- a caveat never replaces one
     assert anchor4 in served
+
+
+def test_the_frozen_v4_bar_is_still_the_v4_bar(st):
+    """A frozen rubric that drifts is worse than none: it makes an old arm LOOK
+    reproduced. `rubric_v4_frozen.md` is what CL-03's version 4 arm was scored
+    against, and it earns its place in `test_card_has_one_home.GUARDED` here.
+
+    BOTH digests, because version 4 is the first row that declares two and CL-03
+    is the round whose bump moves only the second one. An anchors-only check
+    would pass on a frozen file whose CAVEATS had been rewritten -- which is
+    exactly the hole CL-01 closed and exactly the change CL-03 made.
+    """
+    frozen = st.load_rubric(RUBRIC_V4)
+    assert frozen["card_version"] == 4
+    declared = {v["version"]: v for v in st.load_rubric(RUBRIC)["versions"]}[4]
+    assert frozen["anchors_digest"] == declared["anchors_digest"] == \
+        "sha256:f73b4d82638f09df"
+    assert st.served_digest(frozen, 4) == declared["served_digest"] == \
+        "sha256:a213a36770ccab09"
+    # and it is a DIFFERENT bar from the live card, or freezing it bought nothing
+    live = st.load_rubric(RUBRIC)
+    assert st.served_digest(live, live["card_version"]) != st.served_digest(frozen, 4)
