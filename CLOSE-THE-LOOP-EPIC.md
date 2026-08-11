@@ -45,7 +45,7 @@ under twenty-two `D3 = 4` cards.
 ## 3. The metric, and it is not repository lines
 
 **`serve | wc -c`.** The served rubric — what a judge is actually handed — is the
-only surface this project has ever shrunk: **8,396 → 6,409 bytes, −23.7%**, and
+only surface this project has ever shrunk: **8,306 → 6,319 bytes, −23.9%**, and
 **25 → 9 anchor rungs**. It was byte-identical at every version-3 commit across
 two whole epics.
 
@@ -53,7 +53,7 @@ Repository lines are net-additive **by construction**: the change rule keeps old
 anchors and `R-H4` seals the record, so a card removal cannot delete prose or
 code. Three epics called themselves simplifications for nothing.
 
-> **The served surface is 6,409 bytes and 9 rungs. That is the room every
+> **The served surface is 6,319 bytes and 9 rungs. That is the room every
 > re-add has to work in. Do not grow it.**
 
 An **anchor** is permanent — the change rule forbids deleting the old one. A
