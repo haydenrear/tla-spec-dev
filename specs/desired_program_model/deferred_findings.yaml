@@ -11165,3 +11165,489 @@ findings:
       measurement artefact, and CL-04 should say which of the two rows it is
       relying on.
     disposition: open
+  - id: CL-04-DF-01
+    found_by: "CL-04 (running the change rule downwards, which nobody had)"
+    found_at_commit: "0adfb79"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py", "references/eval_scorecard.md"]
+    summary: >-
+      CL-01'S BASELINE DEFECT IS ALIVE AT THE TIP WITH ITS DIRECTION REVERSED: A
+      CARD REQUESTED AT AN OLD VERSION IS STAMPED WITH THAT VERSION AND SERVED
+      THE CURRENT BYTES. The epic's baseline was "a v5 card is silently stamped
+      version 4 and check reports 0 problems". CL-01 closed the UPWARD
+      direction -- `--card-version 6` and `7` are refused by name, exit 2, with
+      the two edits spelled out, and that refusal is real and good. The DOWNWARD
+      direction was never closed.
+
+      (a) `scaffold --card-version 4` AT THE TIP SUCCEEDS SILENTLY and writes a
+      card carrying `scorecard_version: 4` with
+      `rubric.served_digest: sha256:2d7d4a0506d9b259` -- which is VERSION 5's
+      digest. The card's own `### Version history` table, in the same file
+      `check` already parses, declares version 4's served digest to be
+      `sha256:a213a36770ccab09`. Nothing compares the two. `check` reports 0
+      problems, because the card truthfully records the bytes it was served; it
+      is the VERSION LABEL that is false, and the version label is the one thing
+      the second seal does not cover.
+
+      (b) THE GUARD THAT CATCHES 1, 2 AND 3 IS STRUCTURAL AND CANNOT EVER CATCH
+      4. `scaffold --card-version 1|2|3` IS refused, loudly and correctly,
+      naming `rubric_v3_frozen.md` as the remedy -- but the refusal fires
+      because the current file "carries no anchors for D1, D4, D5", not because
+      any digest disagrees. Versions 4 and 5 share a dimension set, so no
+      structural difference exists and the guard is silent. The one signal that
+      would separate them -- the declared served digest -- is present and
+      unused.
+
+      (c) `serve` AND `scaffold` ANSWER THE SAME QUESTION TWO DIFFERENT WAYS.
+      `serve --card-version 1 --digest-only` returns `sha256:a753de37842e4953`
+      and `serve --card-version 1` emits a TWO-dimension card (D2, D3) labelled
+      version 1 -- version 1 was a five-dimension card. `scaffold
+      --card-version 1` refuses the identical request. The card file states the
+      rule that `serve` is breaking, in the paragraph above the table: rows 1-3
+      "can never declare" a served digest because "rendering them from this file
+      would produce a digest no judge was ever handed". `--digest-only` produces
+      exactly that digest, for versions 1, 2, 3 and 4.
+
+      WHAT IS NOT WRONG, STATED SO THE FINDING IS NOT READ WIDER THAN IT IS: NO
+      SEALED CARD IS RE-BASED. The four CL-03 cards carry their own recorded
+      digests, `check` compares them against the current serve, and the two
+      version-4 cards correctly report SERVED-DRIFT. Rows 1-3 declare no served
+      digest, so no published row is contradicted. The damage is to
+      REPRODUCTION, not to the record: for every version but the current one,
+      `--digest-only` is not a reproduction path, and the only thing that has
+      ever reproduced version 4's bytes is a frozen copy of the whole file.
+    reproduction: >-
+      In a clean checkout of `0adfb79`:
+      `python3 examples/validation/scorecards/score_tools.py serve --card-version 4 --digest-only`
+      -> `sha256:2d7d4a0506d9b259`, identical to `--card-version 5`, against
+      `sha256:a213a36770ccab09` in the version-history table. Then
+      `python3 examples/validation/scorecards/score_tools.py scaffold /tmp/probe
+      --example probe --arms A --judges 1 --card-version 4` -> succeeds; the
+      written card has `scorecard_version: 4` and served digest
+      `sha256:2d7d4a0506d9b259`; `check /tmp/probe` reports 0 problems. The same
+      command with `--card-version 1` is refused. And
+      `serve --rubric examples/validation/scorecards/rubric_v4_frozen.md
+      --card-version 4 --digest-only` -> `sha256:a213a36770ccab09`, which is the
+      only way to get it.
+    evidence:
+      - "references/eval_scorecard.md -- `### Version history`, the version-4 row and the paragraph above the table"
+      - "examples/validation/scorecards/score_tools.py -- cmd_serve, resolve_card_version, cmd_scaffold"
+      - "specs/results/scorecards/close-the-loop/CL-04/RESULT.md section 4"
+    why_out_of_scope: >-
+      CL-04 is `role: evaluation` and fixes nothing. Beyond that, every repair
+      here is a change to the shipped instrument, and the epic's measurement of
+      that instrument is the artifact CL-04 is producing; changing `serve` in
+      the commit that reports what `serve` does is the move `measurement_rule`
+      forbids.
+    suggested_fix: >-
+      Cheapest honest repair: `resolve_card_version` already parses the version
+      history, and the history already carries the served digest. When a version
+      is requested that is NOT the file's declared current version AND the
+      history declares a served digest for it, recompute and refuse on
+      mismatch, with the frozen-rubric instruction the 1|2|3 path already
+      prints. That closes (a) and (b) with no new field and no new gate. For
+      (c), `serve --card-version N` for any N below the declared version should
+      refuse for the same reason `scaffold` does, or `--digest-only` should
+      print the declared historical digest rather than a freshly rendered one --
+      but do NOT widen `anchors_digest`, which CL-01 rejected for a reason that
+      still holds.
+    blast_radius: >-
+      No published card or figure changes value. What changes is what a future
+      round may claim: any statement of the form "version N served these bytes"
+      is only checkable for N = the current version, so a re-score across a
+      version boundary must keep a frozen rubric file, as CL-03 did, and that
+      operator convention is load-bearing rather than optional. It is
+      `FI-06-DF-11(c)`'s fourth consecutive appearance seen from the other side.
+    disposition: open
+  - id: CL-04-DF-02
+    found_by: "CL-04"
+    found_at_commit: "0adfb79"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/", "specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      THE PER-TOKEN RATIO HAS NOW LAPSED FOR TWO CONSECUTIVE EPICS, AND THE
+      REASON IS THAT NOTHING ASKS FOR IT. `RD-03-DF-13` named a basis --
+      "input + output + cache_creation, excluding cache reads" -- and reported
+      1.14 findings per 100k against SM-05's 0.60. `portable-substrate` recorded
+      none in any of five RESULT pages and re-filed the complaint. `close-the-
+      loop` has now recorded none either: the string "token" does not appear
+      ANYWHERE under `specs/results/scorecards/close-the-loop/`, across
+      CL-01's commit body, `RESULT-CL-02.md`, `CL-03/RESULT.md`,
+      `HARVEST-CL-03.md` and `PREDICTIONS-CL-03.md`.
+
+      TWO IN A ROW IS A MECHANISM, NOT A LAPSE. The basis is not missing because
+      three ticket agents each forgot; it is missing because no artifact in the
+      repository asks for it. `ticket_plan.yaml`'s `acceptance.assertions` do
+      not require it, the ticket close-out path does not require it, and the
+      only place it is ever demanded is the prose of an evaluation ticket's
+      dispatch -- which reaches exactly one ticket per epic, after the other
+      tickets have finished and their spend is unrecoverable.
+
+      CONSEQUENCE, STATED PLAINLY: this epic's per-token ratio is UNCOMPUTABLE
+      for the three tickets that did the work, and no proxy CL-04 invents is
+      comparable to RD-03's 1.14, SM-05's 0.60 or RM-05's 6.48/1.08, because
+      those three are not comparable to each other either -- two different bases
+      and one undocumented one.
+    reproduction: >-
+      `grep -rni token specs/results/scorecards/close-the-loop/` -> no hits.
+      `git grep -n "per 100k" -- '*.md'` -> hits in `NEXT-EPIC.md`,
+      `SELF-IMPROVEMENT.md` and the RM-05 history snapshot only. `grep -n
+      "token" specs/desired_program_model/ticket_plan.yaml` -> no hits.
+    evidence:
+      - "specs/.history/portable-substrate-epic/ticket-005-RM-05/results/RESULT.md section 3.1 -- the same finding one epic earlier"
+      - "NEXT-EPIC.md section 7 -- 'RD-03-DF-13's repair lasted exactly one round'"
+      - "specs/desired_program_model/ticket_plan.yaml -- no ticket's acceptance asks for it"
+    why_out_of_scope: >-
+      The repair is a change to the ticket template / plan schema, which is not
+      in CL-04's `implementation_scope` (`specs/results/scorecards/`,
+      `NEXT-EPIC.md`), and CL-04 fixes nothing. It also cannot be repaired
+      retroactively: the three tickets' spend is gone.
+    suggested_fix: >-
+      Put it where it is unavoidable, not where it must be remembered: add a
+      required `cost` block to the ticket close-out with two fields, `basis`
+      (a free-text name for what was counted) and `value`, and make a RESULT
+      page without one an incomplete ticket. A number with a named basis that is
+      incomparable to the last one is still worth more than no number, because
+      the SECOND round with the same basis becomes comparable. Do NOT try to
+      pick the one true basis first -- three epics have now failed at that, and
+      it is the reason nothing gets recorded at all.
+    blast_radius: >-
+      No published figure changes. Six epics of cost data are unrecoverable, and
+      every "this channel is worth funding" claim in `NEXT-EPIC.md` --
+      including the standing "keep the channel ratio, it is the whole method" --
+      rests on ratios whose denominators are absent for the two most recent
+      epics.
+    disposition: open
+  - id: CL-04-DF-03
+    found_by: "CL-04 (re-deriving HARVEST-CL-03's census independently)"
+    found_at_commit: "0adfb79"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md"]
+    summary: >-
+      EVERY COUNT IN THE HARVEST'S METHOD PARAGRAPH REPRODUCES EXACTLY EXCEPT
+      THE ONE THAT NAMES NO FIELD SET -- AND THAT IS THE ONE THE EPIC'S HEADLINE
+      QUOTES. `HARVEST-CL-03.md` states its corpus as "83 cards, 391 dimension
+      rationales, 389 `refuses_to_claim` fields, 52
+      `judging_practice.what_was_run` entries, 8 `notes` blocks, 83 verdicts,
+      800,181 characters of judge prose".
+
+      Re-derived at `0adfb79` over the 83 pre-CL-03 cards: 83 cards, 391
+      rationales, 389 `refuses_to_claim` (counting the dimension fields and the
+      `N-D*` note blocks together), 52 non-empty `what_was_run`, 8 `notes`
+      blocks. FIVE OF FIVE REPRODUCE TO THE UNIT. The character total does not,
+      and cannot be made to, because the field set summed is not stated:
+      `rationale + refuses_to_claim` gives 737,511; adding `citations` gives
+      952,070; adding `anchor_reading` moves it by 260. 800,181 lies between two
+      brackets and matches neither.
+
+      THIS IS THE SAME DEFECT AS `CL-04-DF-02` IN A SMALLER PLACE: a magnitude
+      printed without its basis. It matters more than its size because that
+      figure is the one carried forward -- "across 800,181 characters of
+      rationale" is how the epic's own summary states the scale of the sweep,
+      and it is the only number in the sentence a reader could check.
+    reproduction: >-
+      `uv run --with pyyaml python` over
+      `specs/results/scorecards/**/scorecard.json` excluding the two
+      `close-the-loop-cl03-v*` directories, summing `dimensions[*].rationale`
+      and `dimensions[*].refuses_to_claim` -> 737,511; adding
+      `dimensions[*].citations` -> 952,070. The full transcript is in
+      `specs/results/scorecards/close-the-loop/CL-04/RESULT.md` section 8.
+    evidence:
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md -- 'Method, and its bound'"
+      - "specs/results/scorecards/close-the-loop/CL-04/RESULT.md section 8"
+    why_out_of_scope: >-
+      A filled evidence page belonging to another ticket's round is not edited
+      by the round measuring it, for the same reason a filled card is not. CL-04
+      fixes nothing.
+    suggested_fix: >-
+      CL-03's harvest is otherwise exactly reproducible and should be credited
+      as such; the repair is one clause naming the fields summed. The general
+      rule, which is the same one `CL-04-DF-02` asks for: a character or token
+      magnitude is printed with the set it was summed over, in the same
+      sentence.
+    blast_radius: >-
+      Nothing downstream computes on 800,181. The claim it supports -- that the
+      corpus is large and was read in full -- is independently supported by the
+      five counts that do reproduce, so the harvest's conclusion is unaffected.
+    disposition: open
+  - id: CL-04-DF-04
+    found_by: "CL-04 (checking the epic's own restatement of its own result)"
+    found_at_commit: "0adfb79"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/", "NEXT-EPIC.md"]
+    summary: >-
+      "ROUGHLY ONE IN SIX BECAME A FINDING" IS NOT WHAT WAS MEASURED, AND THE
+      ERROR IS THE PROJECT'S OWN MOST EXPENSIVE RECURRING ONE. CL-03's harvest
+      says two separate things: that the same defect classes were rediscovered
+      independently "up to six times each", and that "the number of them that
+      became an entry in `deferred_findings.yaml` is approximately one". The SIX
+      is the maximum REDISCOVERY MULTIPLICITY of a single class -- the `M07`
+      positive control, found by six judge passes. It is not a denominator.
+
+      THE MEASURED CONSUMPTION RATE IS APPROXIMATELY 1 IN 38. `HARVEST-CL-03.md`
+      carries 38 numbered defect classes (A1-A7, B1-B6, C1-C7, D1-D7, E1-E5,
+      F1-F6; `grep -cE '^\*\*[A-F][0-9]+\.'` -> 38), of which approximately one,
+      `RM-05-DF-05`, had ever been filed. 1/38 is 2.6 percent; 1/6 is 17 percent
+      -- a factor of six apart, in the direction that makes the programme look
+      better.
+
+      WHY THIS IS WORTH A LEDGER ROW RATHER THAN A FOOTNOTE. `MEMORY` already
+      records "a per-example scorecard number restated as a fact about the card"
+      as the costliest recurring error in this project, and it records that it
+      justified a whole epic. This is the same move on the same kind of number,
+      committed in the space of one epic, between a ticket's RESULT page and the
+      dispatch of the ticket that evaluates it. CL-03's own text is ACCURATE;
+      the restatement happened downstream of it.
+    reproduction: >-
+      `grep -cE '^\*\*[A-F][0-9]+\.'
+      specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md`
+      -> 38. Then read the same file's headline table: the "6" column is headed
+      "independent judge passes that found it", and the sentence beneath the
+      table reads "the number of them that became an entry in
+      deferred_findings.yaml is approximately one".
+    evidence:
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md -- 'The headline, and it is a channel result'"
+      - "specs/results/scorecards/close-the-loop/CL-04/RESULT.md section 9"
+    why_out_of_scope: >-
+      There is nothing in the tree to repair -- no committed document states the
+      wrong rate. It is filed so the correct figure is the one the next epic
+      inherits, because the wrong one was already in circulation before CL-04
+      began measuring, and a rate that is wrong by 6x in the flattering
+      direction is exactly the kind that survives by being repeated.
+    suggested_fix: >-
+      The next epic quotes 1 of 38 with the grep beside it, and states the 6 as
+      what it is: the maximum number of independent passes that found ONE class,
+      which is a measure of how loudly the channel was shouting, not of how
+      often it was heard. Both numbers are damning; they are damning about
+      different things.
+    blast_radius: >-
+      No computation depends on it. It binds what the next epic may claim about
+      how much the consumption step improved: CL-03 filed five classes in one
+      round, taking the record from ~1/38 to ~6/38, and that is a 6x improvement
+      only against the correct denominator.
+    disposition: open
+  - id: CL-04-DF-05
+    found_by: "CL-04 (asking what the loop closure would look like if the caveat did nothing)"
+    found_at_commit: "0adfb79"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/", "references/eval_scorecard.md"]
+    summary: >-
+      THE LOOP CLOSED, AND THE CLOSURE HAS NO NEGATIVE CONTROL, SO "THE CAVEAT
+      MOVES SCORES" AND "THE CAVEAT MOVES SCORES ON ARTIFACTS THAT HAVE THE
+      DEFECT" ARE NOT SEPARATED BY ANY EVIDENCE IN THE RECORD. CL-03's result is
+      real and is verified independently here: D3 went 4, 4 -> 3, 3 on a
+      byte-identical artifact, one judge model, one architecture tag, card
+      version the only mover. What is missing is the other cell.
+
+      THE DESIGN THAT WAS RUN. One artifact -- the one with the `FileJournal`
+      hole -- scored under version 4 and version 5. The version-5 caveat says
+      "if the only observer of the effect the port exists for is the adapter
+      that wrote it, say so and take 3". The artifact satisfies that condition.
+      The score went to 3. A caveat instructing a judge to take 3 in condition X,
+      applied to an artifact with condition X, moving the score to 3 is the
+      MINIMUM possible evidence that a caveat is wired up. It demonstrates the
+      plumbing. It does not measure the instrument.
+
+      THE CELL THAT IS MISSING: an artifact WITHOUT the single-observer hole,
+      scored under both versions. If D3 falls there too, the caveat is a
+      general downward pressure on D3 and the epic's headline is a
+      recalibration, not a detection. If it holds, the caveat discriminates and
+      the headline is earned. NOBODY KNOWS WHICH, and the record cannot say.
+
+      A SECOND CONFOUND THE ROUND DISCLOSED AND DID NOT REMOVE. `HARVEST-CL-03`
+      F3 records that the fixture's own docstrings quote `BA-B14` including the
+      phrase "the fake that earned arm B its D3 = 4", so the packet hands a
+      judge a prior D3 number before it forms its own. CL-03 correctly notes
+      this primes TOWARD 4 and therefore cuts AGAINST its own result -- which is
+      the right way to report it, and it is still an uncontrolled variable
+      present in both arms.
+    reproduction: >-
+      `ls specs/results/scorecards/close-the-loop-cl03-v4
+      specs/results/scorecards/close-the-loop-cl03-v5` -> two cards each, one
+      subject, `examples/validation/ab/reference_ports`. No second subject is
+      scored under both versions anywhere in the record; `python3
+      examples/validation/scorecards/score_tools.py contested --root
+      specs/results/scorecards` reports 35 judge groups and none of the others
+      spans the version 4 / version 5 boundary.
+    evidence:
+      - "specs/results/scorecards/close-the-loop-cl03-v4/**/scorecard.json -- D3 4, 4"
+      - "specs/results/scorecards/close-the-loop-cl03-v5/**/scorecard.json -- D3 3, 3"
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md -- F3, the sixth blinding leak"
+      - "references/eval_scorecard.md -- D3's version-5 caveat"
+    why_out_of_scope: >-
+      Running the missing arm means dispatching judges and sealing two more
+      cards, which is producing a measurement rather than evaluating one, and it
+      would put CL-04 in the position of scoring an artifact it selected after
+      knowing what the first result was. It is the next epic's first ticket, not
+      a repair to this one.
+    suggested_fix: >-
+      Score ONE artifact that plainly lacks the single-observer hole under both
+      version 4 (from `rubric_v4_frozen.md`) and version 5, same judge model,
+      same tag, two passes a side -- the identical design CL-03 already ran, so
+      the cost is known and the method needs no invention. Declare the
+      prediction before dispatching. A null there is the informative outcome and
+      should be reported as loudly as CL-03 reported the move.
+    blast_radius: >-
+      It binds every forward claim about the card iteration. "A 138-byte caveat
+      moved a dimension by a full point" is true as stated and is a statement
+      about one artifact; "the card can now detect this class of defect" is not
+      supported and should not be written until the control exists. It does NOT
+      retract anything CL-03 published -- CL-03 claims the delta and does not
+      claim the generalisation.
+    disposition: open
+  - id: CL-04-DF-06
+    found_by: "CL-04's blind adopter probe -- an agent given only the files the skill ships, forbidden our source, our specs/ and our epic documents"
+    found_at_commit: "0adfb79"
+    schedule_revision: 1
+    severity: blocking
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/adopting_the_scorecard.md", "examples/validation/scorecards/score_tools.py", "examples/validation/scorecards/architecture_tags.py", "references/architecture_tags.md"]
+    summary: >-
+      ESCALATED: the deferment budget is 5 per ticket and this is the sixth,
+      because it is the direct answer to the question the epic exists to ask and
+      because one of its parts is a CHECK THAT CANNOT FAIL.
+
+      THE HEADLINE IS GOOD NEWS AND IT SHOULD BE READ FIRST. A blind agent given
+      only `SKILL.md`, `README.md`, `references/`, `examples/`, `scripts/` and
+      `templates/` -- forbidden our `.py` source, everything under `specs/`, our
+      tests and our git history -- RAN THE WHOLE LOOP END TO END on an artifact
+      it wrote itself: serve, scaffold, fill, check, index, seal, audit, bump the
+      card to version 6, re-serve, re-score the same commit under both versions,
+      declare the movement, `audit` clean at `0 violation(s)`. It reports the
+      four documented commands worked, three of them first time. THE CHANGE RULE
+      IS EXECUTABLE BY AN OUTSIDER. That has never been demonstrated before.
+
+      (a) THE ARCHITECTURE AXIS IS A CHECK THAT CANNOT FAIL WHEN UNDER-INSTALLED,
+      AND THIS IS THE PART THAT IS BLOCKING. `adopting_the_scorecard.md` section 1
+      lists three files for the axis. A fourth, `scripts/code_complexity.py`, is
+      required and is named only in `references/architecture_tags.md:125`. Without
+      it every subject reads `derived=UNDERIVABLE:unmeasurable`. The probe then
+      set a subject's `scope` to a DIRECTORY THAT DOES NOT EXIST and got
+      BYTE-IDENTICAL OUTPUT. A real scope and a fabricated one are
+      indistinguishable, so the axis is INERT rather than undecided, and nothing
+      says which. `audit` compounds it by stating a falsehood: it reports the
+      declared scope "is absent" when the scope is present and it is the
+      DERIVATION that returned nothing. That is the `absent` versus
+      `checked, none found` conflation this project's own `subjects.toml` header
+      says it keeps finding, shipped in the axis that carries D3's refusal
+      authority. The docs' fail-open defence
+      (`architecture_tags.md:338`, "UNDERIVABLE has zero refusal authority") is a
+      good defence of a derivation that RAN and declined; it does not cover a
+      derivation that never ran.
+
+      (b) THE MOVEMENT LEDGER IS UNDISCOVERABLE FROM THE ADOPTER PAGE, AND ITS
+      KEY FORMAT IS DOCUMENTED NOWHERE. `adopting_the_scorecard.md` never mentions
+      `INSTRUMENT-LOG.toml` or `[[movement]]`, yet the first `audit` after a card
+      bump demands both. `eval_scorecard.md:581-583` names the fields and never
+      says what a card is NAMED by. The probe brute-forced four wrong shapes
+      before finding `<round>/<example>/<run_id>`, each failure returning the same
+      line with no expected shape. The only working example of the syntax in the
+      tree is `specs/results/scorecards/INSTRUMENT-LOG.toml` -- OUR PRIVATE
+      MEASUREMENT RECORD, not documentation. An adopter reverse-engineering a
+      config format out of somebody else's results file is the failure mode, not
+      the workaround, and the probe rejected doing it.
+
+      (c) `seal` CRASHES WITH A RAW TRACEBACK ON THE LAYOUT THE DOCS TELL YOU TO
+      BUILD. Section 3 puts rounds at `results/round-1` and says to seal them; the
+      obvious command dies in `pathlib` with `FileNotFoundError` on a missing
+      `INSTRUMENT-LOG.toml`. `--root` fixes it and is documented -- in a different
+      section.
+
+      (d) `tags` PRINTS `REFUSED:` AND EXITS 0. Any CI wrapper reads that as
+      success. The refusal message itself is the best in the tool.
+
+      (e) NOTHING STOPS A SOLO ADOPTER FROM SILENTLY BREAKING SCORING RULE 5.
+      Rule 5 requires two independent blind judges. `scaffold --judges 1` is
+      accepted, `check --require-filled` reports 0 problems, and `contested`
+      reports one judge group with nothing contested. The record does not say
+      anywhere a reader would trip over it that the round had one judge. Compare
+      the `--unblinded --reason` path, which is handled well and shouts at
+      scaffold time.
+
+      (f) SMALLER, AND ALL FIRST-CONTACT SURFACES. `UNDERIVABLE:unmeasurable` is
+      the one reason code an under-installed adopter will hit and the only one
+      not documented. The `--help` epilogue still says "scorecard_version 3". An
+      adopter's generated `index` carries OUR fixtures and ticket ids
+      (`ex6_jenga`, `ex4`, `RM-04`) into their file. `index` and `history` print
+      D1/D4/D5 columns that have been dead since version 4. `subjects.toml` is
+      offered as a file to copy when it is a file to replace, and copying it makes
+      `audit` name twenty of our subjects as unverifiable in the adopter's tree.
+    reproduction: >-
+      Install only what section 1 of `references/adopting_the_scorecard.md` lists,
+      declare one subject in your own `subjects.toml`, and run
+      `python3 examples/validation/scorecards/architecture_tags.py`. Then change
+      that subject's `scope` to a path that does not exist and run it again: the
+      output is byte-identical. Copy `scripts/code_complexity.py` into place and
+      run it a third time: the axis derives. For (c),
+      `python3 examples/validation/scorecards/score_tools.py seal results/round-1`
+      from an adopter tree laid out as section 3 describes. For (d),
+      `python3 examples/validation/scorecards/score_tools.py tags; echo $?` with
+      `architecture_tags.py` absent -> `REFUSED: ...` and `0`.
+    evidence:
+      - "specs/results/scorecards/close-the-loop/CL-04/RESULT.md section 8 -- the probe's full blocker list and what it rejected"
+      - "references/adopting_the_scorecard.md -- section 1's file table, section 3's seal instruction"
+      - "references/architecture_tags.md:125 -- the only mention of scripts/code_complexity.py"
+      - "references/architecture_tags.md:338 -- the fail-open defence, which does not cover a derivation that never ran"
+    why_out_of_scope: >-
+      CL-04 is `role: evaluation` and fixes nothing. Every repair here is a change
+      to a shipped instrument or to the adopter page, in the round whose product
+      is the measurement of exactly those things.
+    suggested_fix: >-
+      (a) FIRST AND ALONE, because it is the one that reports a clean on nothing:
+      make the axis distinguish "the derivation did not run" from "the derivation
+      ran and declined". `tags` already refuses by name when `architecture_tags.py`
+      is missing and that message is good; give the missing complexity dependency
+      the same treatment, and make `audit` say "the derivation produced no figures"
+      rather than "their declared scope is absent" when the scope exists. (b) Put
+      the `[[movement]]` shape in `adopting_the_scorecard.md` with one worked
+      example that is not our record, and print the expected shape in the
+      violation. (c) `--root` in section 3's code block, and refuse instead of
+      raising. (d) non-zero exit on REFUSED. (e) record the judge count on the
+      round rather than adding a gate -- an adopter with one judge is a legitimate
+      adopter whose record should say so. (f) is a doc pass. DO NOT respond to
+      this by adding gates: the probe's own verdict is that the four core commands
+      work and the optional subsystems are honestly optional, and the failure is
+      that one of them lies about being installed.
+    blast_radius: >-
+      Nothing published changes value. It bounds what the epic may claim: the loop
+      IS runnable by a stranger from the shipped documentation -- that is now
+      demonstrated rather than asserted, and it is the epic's best result -- but
+      an adopter who runs `audit`, reads its OPEN findings and tries to close them,
+      which is the move a card bump makes mandatory, hits an undocumented config
+      format. And any adopter who installs the axis incompletely gets an inert
+      check reporting the same thing for a real scope and a fabricated one.
+    disposition: open
