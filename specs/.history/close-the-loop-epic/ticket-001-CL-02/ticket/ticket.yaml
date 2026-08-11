@@ -1,0 +1,118 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CL-02",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-02/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-02/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-02/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "EXTINCT is distinguishable from ENTAILED-SURVIVES.",
+        "A declared control cannot appear as a priced result.",
+        "--head is validated.",
+        "Both known positives reproduce, and any non-zero re-price is reported loudly."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "CL-04"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "examples/validation/gap_mutants/"
+      ]
+    },
+    "depends_on": [
+      "CL-01"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/222",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "A price stops being entailed by the shape of the removal.",
+        "goal": "GOAL-price-means-something",
+        "local_signal": "EXTINCT vs ENTAILED-SURVIVES on a real cut"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-change-rule-runnable",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-loop-closes-once",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "CL-02",
+    "implementation_scope": [
+      "examples/validation/gap_mutants/",
+      "tests/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "NO REMOVAL IN THIS REPOSITORY CAN CURRENTLY BE PRICED, because the normal shape of a removal is the shape that always returns ENTAILED-SURVIVES. RM-05 withdrew the previous epic's headline to prove it: the round's own control, declared is_control true with gap 'NONE, on purpose', RETURNED THE SAME VERDICT, and that row was MISSING from the four-row output the report printed as three. For every killing node inside a deleted file the verdict follows from git show alone and no other verdict is reachable. Give entail a verdict meaning EXTINCT; EXCLUDE DECLARED CONTROLS from the verdict table so a zero-gap row can never appear as a priced result; validate --head; and re-price at least one historical removal, REPORTING A NON-ZERO LOUDLY if one appears. RM-01-RF-1 and SM-04-GM-T1 are the known positives -- an instrument that cannot reproduce both is not working.",
+    "promotion_order": 20,
+    "promotion_predecessor": "CL-01",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Make a price mean something: EXTINCT, controls excluded, --head validated",
+    "wave": 2
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-02/specs/tickets/CL-02",
+  "ticket_id": "CL-02",
+  "ticket_index": 1,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-02/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-close-the-loop-CL-02/specs/tickets"
+}
