@@ -1,0 +1,190 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "TODO"
+    evidence: "TODO -- path to the pre-change TLC output"
+  tlc_after:
+    status: "TODO"
+    evidence: "TODO -- path to the post-change TLC output"
+  behavior_tests:
+    status: "TODO"
+    evidence: "TODO -- path to the behavior-test output"
+  descriptor_comparison:
+    status: "TODO"
+    evidence: "TODO -- path to the before/after descriptor comparison"
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness REVIEW, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them, and this
+# is the only sweep that looks at it.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# RECORDED, NEVER REFUSING (2026-08-04, owner direction). It was a hard gate at
+# workflow close with no override; it is now an optional agent-run review whose
+# verdict is written down and read by a person. `incomplete` IS STILL NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it --
+# what was withdrawn is the refusal, not the distinction.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found none, and the reason is that CL-01 changes no model. The
+    ticket's declared `model_delta_expectation` is `none expected` and this
+    ticket's `current/` and `desired/` are byte-identical (`diff -rq` clean), so
+    `TlaSpecDevCli.tla` at this tip is `TlaSpecDevCli.tla` at 400c296. The
+    figures measured above -- 9 variables, 17 actions, bound 1,111,320 over 7 of
+    9 resolved variables, delta direction ZERO against RM-05 -- are inherited
+    unchanged and describe the predecessor's model rather than this ticket's
+    work. The over-cap bound is RM-05's and is untouched here.
+
+
+    The implementation lives entirely outside the model surface, in
+    `examples/validation/scorecards/` and `references/`, which the plan's
+    `representation_scope` keeps out of model deliberately: the eval harness is
+    not program surface. There is no model refinement to search for, and
+    inventing one to fill this field would be the move MF-020 forbids.
+
+
+    WHAT WAS SEARCHED ON THE HARNESS, since that is where the change is. Three
+    reductions were considered and one was taken. (a) Widening `anchors_digest`
+    to cover the served bytes would be one digest instead of two -- REJECTED,
+    because it falsifies the version 1-3 row, whose claim is that the bar held
+    still while those versions served 4,487, 5,228 and 5,585 different bytes.
+    (b) Deriving the scored dimension set from the card file above version 4,
+    folding `RETIRED_AT` and `TOP_SCORE_V4` into the parse -- NOT TAKEN, filed
+    as `CL-01-DF-02`; it binds what CL-04 may conclude about portability and the
+    constants it would move are the ones 73 sealed cards are checked by under
+    `R-H4`. (c) Replacing the caveat regex with a positional rule -- TAKEN. The
+    old `\n\n(\*\*[A-Z].+?)\Z` returned the empty string for anything it did not
+    recognise; the caveat is now whatever follows the last anchor, which is
+    fewer conditions and no silent branch.
+  measured: false      # true only if a real TLC run produced the figure
+  applied: false       # if true, approved_by is required
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+  CL-01, wave 1, first and alone. THE MODEL DID NOT MOVE AND WAS NOT MEANT TO.
+  Ticket `current/` equals `desired/`; every figure the machine-checked core
+  above reports is inherited from RM-05 and says nothing about this ticket.
+  What moved is the eval harness, which is out of model by design.
+
+
+  WHAT WAS BROKEN, reproduced on the real record at 400c296 before anything was
+  written. (1) `SUPPORTED_VERSIONS = (1,2,3,4)` was an argparse `choices`
+  literal, so an adopter following the card's own change rule got
+  `error: invalid choice: '5'` and had to edit our Python. (2) Dropping the flag
+  stamped `VERSION` -- 4 -- onto cards scaffolded from a version 5 rubric, and
+  `check` reported 0 problems, exit 0. (3) Rewriting a dimension caveat in an
+  adopter's own words took `serve` from 6,318 bytes to 6,092 -- the caveat
+  vanished -- with `anchors_digest` byte-identical and nothing reporting it.
+  (4) `audit` exited on a `FileNotFoundError` traceback for anyone who installed
+  `score_tools.py` alone, and `REPO_ROOT = HERE.parents[3]` was an install-depth
+  literal.
+
+
+  WHAT SHIPS. The version population is `SUPPORTED_VERSIONS` UNION what the card
+  file's `### Version history` declares, so a bump is two edits to the card and
+  none to any Python; the default is the version the card declares, never a
+  constant here; a version the card does not declare is refused by name with the
+  two edits that would make it legal. The caveat parse is positional and drops
+  nothing. `### Version history` gains a SECOND SEAL -- a served-digest column
+  beside the anchors digest -- rather than a widened first one, because the
+  first column's claim (versions 1-3 declare the same anchors digest: the bar
+  did not move) is TRUE and a widened digest would make it false. The optional
+  siblings are optional and say so by name. `references/adopting_the_scorecard.md`
+  is the how.
+
+
+  THE CONSTRAINT, MEASURED BOTH SIDES. `serve | wc -c` is 6,319 at 400c296 and
+  6,319 at this tip; 9 anchor rungs both; `serve --digest-only` is
+  `sha256:a213a36770ccab09` both; versions 1/2/3 are 4,488 / 5,229 / 5,586 both.
+  Byte-identical at every version, so no sealed card's `served_digest` or
+  `digest` is re-based and `check specs/results/scorecards` reports the same 330
+  problems before and after. Nothing was added to the served surface: every
+  addition lives in `## Version history`, `## Changing this card`, the tool and
+  a new reference page, all outside what `serve` renders. No anchor was added.
+  No gate was added to any product surface.
+
+
+  AND THE BUDGET IN THE PLAN DOES NOT REPRODUCE, filed as `CL-01-DF-01`. Four
+  documents say the served surface is 6,409 bytes; RM-05's own REPRODUCE section
+  prints the command, and run as written it gives 6,319 -- with the same method
+  at 19c5c7b giving 8,306 against the published 8,396, exactly 90 low at both
+  ends. `serve` writes 92 bytes of provenance to stderr. The direction stands
+  (-23.9% against the published -23.7%) and the rung and line counts reproduce
+  exactly; the absolute constant every ticket in this epic is budgeted against
+  does not.
+
+
+  SUITE, WITH TREES. 2 failed / 1469 passed at 400c296 in a clean checkout at
+  /Users/hayde/IdeaProjects/wt-epic-close-the-loop; 2 failed / 1477 passed at
+  this tip. The numerator rose by 8 and the denominator did not fall -- 8 new
+  tests, nothing deleted, weakened or skipped, and all 8 fail against the parent
+  source. The two reds are the inherited ones and neither was touched.

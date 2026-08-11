@@ -2212,3 +2212,265 @@ def test_adding_the_rules_moved_no_bar_a_judge_reads(st, rubric):
         served = st.served_rubric(rubric, version)
         assert "R-H6" not in served
         assert "carries its scope" not in served
+
+
+# --------------------------------------------------------------------------
+# CL-01: the change rule, runnable by a stranger and loud when it is not
+# --------------------------------------------------------------------------
+#
+# `RM-05` section 3 built a scratch repository with one Java file and ran the
+# loop against it. `serve`, `scaffold`, `check`, `index`, `seal`, `history`,
+# `contested` and the blinding all worked on a foreign tree. Then the card's own
+# change rule -- *bump `scorecard_version`, keep the old anchors, re-score under
+# both* -- turned out to be unfollowable without editing our Python, AND TO FAIL
+# SILENTLY WHEN IT WAS NOT FOLLOWED.
+#
+# Three failures, all reproduced on the real record at `400c296` before a line
+# was written, all with their measured numbers in the test that closes them:
+#
+#   1. `--card-version 5` was `error: invalid choice: '5'` against the literal
+#      `SUPPORTED_VERSIONS = (1, 2, 3, 4)`;
+#   2. dropping the flag stamped **4** onto cards scaffolded from a version 5
+#      rubric and `check` reported **0 problems**, exit 0;
+#   3. rewriting a dimension caveat in an adopter's own words -- the one
+#      iteration possible without touching Python -- took the served surface
+#      from 6,318 bytes to 6,092 while `anchors_digest` stayed byte-identical
+#      and nothing reported it.
+#
+# Every test below fails at the parent commit, and the fixtures are built from
+# `references/eval_scorecard.md` itself rather than from a fake card, so they
+# are the real record and not a mock of it (R1).
+
+
+def bumped_to_five(text: str, served: str | None = None) -> str:
+    """The card an adopter has, after doing exactly what the change rule says.
+
+    Declare the new version, add its row, keep the old anchors and the old rows.
+    Nothing else -- this is a version bump and not a change to the bar.
+    """
+    out = text.replace("**Scorecard version 4.**", "**Scorecard version 5.**", 1)
+    row4 = next(l for l in out.splitlines() if l.startswith("| **4** |"))
+    cells = row4.split("|")
+    anchors = cells[2].strip()
+    served_cell = f" `{served}` " if served else " — "
+    row5 = f"| **5** |{cells[2]}|{served_cell}| an adopter's own bump: the anchors did not move. |"
+    assert anchors, row4
+    return out.replace(row4, row4 + "\n" + row5, 1)
+
+
+def test_a_version_the_card_declares_needs_no_edit_to_our_source(st, tmp_path, capsys):
+    """THE TICKET, in one assertion: a stranger bumps the card and it works.
+
+    `SUPPORTED_VERSIONS` is still a tuple in the tool and it still cannot shrink
+    -- 73 sealed cards are checked by rules that only this file knows. What it
+    stopped being is the CEILING. The population is that tuple UNION whatever
+    `### Version history` declares, so the two edits the change rule asks for --
+    the version line and the row -- are the whole of a bump.
+    """
+    v5 = tmp_path / "eval_scorecard.md"
+    v5.write_text(bumped_to_five(RUBRIC.read_text()))
+    rubric5 = st.load_rubric(v5)
+    assert rubric5["card_version"] == 5
+    assert 5 in st.supported_versions(rubric5)
+    assert 5 not in st.supported_versions(st.load_rubric(RUBRIC)), (
+        "our own card declares no version 5 and must not accept one")
+    assert st.resolve_card_version(5, rubric5) == 5
+
+    epic = tmp_path / "adopter-round"
+    assert scaffold(st, epic, labels="K,L,M", card_version=5, rubric=str(v5)) == 0
+    capsys.readouterr()
+    assert json.loads(one_card(epic).read_text())["scorecard_version"] == 5
+
+    # and the source is untouched by the bump: the tuple in the tool still says
+    # what it always said, which is what "without editing our source" means.
+    assert st.SUPPORTED_VERSIONS == (1, 2, 3, 4)
+
+
+def test_a_version_the_card_does_not_declare_is_refused_not_stamped(st, tmp_path, capsys):
+    """THE DEMONSTRATED FAILING INPUT, and it is the one RM-05 ran.
+
+    At `400c296`:
+
+        $ score_tools.py scaffold ... --card-version 5
+        error: invalid choice: '5' (choose from '1','2','3','4')
+
+    so the adopter drops the flag, and the tool stamps `version 4` on a card
+    scaffolded from a version 5 rubric with `check` reporting **0 problems**.
+    Both halves are asserted here: the request is refused BY NAME against our
+    card, and against a version 5 card the default is 5 rather than the nearest
+    number this file happens to know.
+    """
+    with pytest.raises(st.RubricError) as exc:
+        scaffold(st, tmp_path / "refused", labels="K,L,M", card_version=5)
+    assert "cannot emit a version 5 card" in str(exc.value)
+    assert "**Scorecard version 5.**" in str(exc.value), (
+        "a refusal that does not say what would make the request legal is a wall")
+    assert "Version history" in str(exc.value)
+    assert not (tmp_path / "refused").exists(), "a refused scaffold left files behind"
+
+    # THE SILENT HALF. No flag at all, against a version 5 card.
+    v5 = tmp_path / "eval_scorecard.md"
+    v5.write_text(bumped_to_five(RUBRIC.read_text()))
+    epic = tmp_path / "no-flag"
+    assert scaffold(st, epic, labels="N,R,S", rubric=str(v5)) == 0
+    capsys.readouterr()
+    assert json.loads(one_card(epic).read_text())["scorecard_version"] == 5, (
+        "the default was VERSION -- a constant in the tool -- so a version 5 card came "
+        "out stamped 4 and check reported 0 problems")
+
+    # and that card, read against OUR card, is refused rather than accepted.
+    problems = st.check(json.loads(one_card(epic).read_text()),
+                        str(one_card(epic)), st.load_rubric(RUBRIC))[0]
+    assert any("scorecard_version must be one of [1, 2, 3, 4], got 5" in p
+               for p in problems), problems
+
+
+def test_a_caveat_rewritten_in_an_adopters_words_still_reaches_the_judge(st, tmp_path):
+    """The caveat parse, which used to delete what it could not recognise.
+
+    It was `\\n\\n(\\*\\*[A-Z].+?)\\Z`: a caveat had to be the last thing in the
+    dimension block AND open with a bold capital letter. An adopter rewriting one
+    in their own words -- the only iteration `RM-05` found possible without
+    touching Python -- parsed to the empty string, and the served surface fell
+    from 6,318 bytes to 6,092 with nothing said. The caveat is now whatever
+    follows the last anchor, in whatever words.
+    """
+    text = RUBRIC.read_text()
+    old = ("**Import topology is not modularity.** Round 2 proved a codebase can pass "
+           "every\nimport check with its coupling entirely intact. A D3 of 3 or more "
+           "requires\nevidence about what *calls* what at runtime, not what imports what.")
+    assert text.count(old) == 1
+    new = ("Import topology is not modularity: a codebase can pass every import check "
+           "with\nits coupling entirely intact, so a D3 of 3 or more needs evidence about "
+           "what\ncalls what at runtime.")
+    copy = tmp_path / "eval_scorecard.md"
+    copy.write_text(text.replace(old, new, 1))
+
+    rewritten = st.load_rubric(copy)
+    assert rewritten["dimensions"]["D3"]["caveat"], "the caveat parsed to nothing"
+    served = st.served_rubric(rewritten, 4)
+    assert "coupling entirely intact" in served, (
+        "the adopter's own words were deleted from the bytes a judge reads")
+    # and the anchors digest is STILL byte-identical, which is why the anchors
+    # digest was never the seal that could have caught this.
+    assert rewritten["anchors_digest"] == st.load_rubric(RUBRIC)["anchors_digest"]
+
+
+def test_the_seal_covers_the_bytes_a_judge_reads_not_only_the_anchors(st, tmp_path):
+    """A SECOND SEAL, and the reason it is not a wider first one.
+
+    `anchors_digest` answers *did the bar move*. Versions 1, 2 and 3 declare the
+    same one, which is a true statement -- and those three versions served 4,487,
+    5,228 and 5,585 bytes, so a digest widened to cover the served surface would
+    have made that row false and deleted the only question the change rule asks.
+    Two questions, two columns.
+    """
+    rubric = st.load_rubric(RUBRIC)
+    row = {v["version"]: v for v in rubric["versions"]}[4]
+    assert row["served_digest"] == st.served_digest(rubric, 4)
+    assert row["served_digest"] != row["anchors_digest"]
+    assert st.version_history_problems(rubric) == []
+
+    # the served bytes move and the anchors do not: refused, by the new column.
+    text = RUBRIC.read_text()
+    old = "Anchors are what make two judges agree."
+    assert text.count(old) == 1
+    copy = tmp_path / "eval_scorecard.md"
+    # a preamble is served and is outside the anchors digest, exactly like a caveat
+    copy.write_text(text.replace(
+        "Diff the two trees yourself and decide whether one fact is stored twice",
+        "Diff the two trees and decide for yourself whether one fact is stored twice", 1))
+    moved = st.load_rubric(copy)
+    assert moved["anchors_digest"] == rubric["anchors_digest"], (
+        "this edit must leave the anchors alone or it is testing the wrong column")
+    problems = st.version_history_problems(moved)
+    assert any("the bytes this file serves digest to" in p for p in problems), problems
+
+    # and a row that declares no served digest at all is refused with the value.
+    unsealed = tmp_path / "unsealed.md"
+    row4 = next(l for l in text.splitlines() if l.startswith("| **4** |"))
+    cells = row4.split("|")
+    unsealed.write_text(text.replace(
+        row4, f"| **4** |{cells[2]}|{cells[4]}|", 1))
+    problems = st.version_history_problems(st.load_rubric(unsealed))
+    assert any("declares no served digest" in p for p in problems), problems
+    assert any(st.served_digest(rubric, 4) in p for p in problems), problems
+
+
+def test_prose_that_would_reach_nobody_is_refused_rather_than_dropped(st, tmp_path):
+    """The same silent deletion, one position earlier.
+
+    An anchor is its FIRST paragraph. A second one under an anchor was parsed
+    away with no report, which is the caveat defect wearing a different hat, so
+    it is refused with the text it would have dropped.
+    """
+    text = RUBRIC.read_text()
+    old = "- **1** — Boundaries are named in prose or in a declaration, and the code does\n  not follow them."
+    assert text.count(old) == 1
+    copy = tmp_path / "eval_scorecard.md"
+    copy.write_text(text.replace(
+        old, old + "\n\n  A declaration nobody executes is a declaration that drifts.", 1))
+    with pytest.raises(st.RubricError) as exc:
+        st.load_rubric(copy)
+    assert "reaches no judge" in str(exc.value)
+    assert "A declaration nobody executes" in str(exc.value)
+
+
+def test_the_tool_finds_its_tree_instead_of_counting_parents(st, tmp_path, monkeypatch):
+    """`REPO_ROOT = HERE.parents[3]` was an install-depth literal.
+
+    Three deep is right for `examples/validation/scorecards/` and wrong for every
+    other layout, so an adopter who put the tool anywhere else got `rubric not
+    found` naming a path they never chose.
+    """
+    assert st.repo_root(REPO_ROOT / "examples/validation/scorecards/score_tools.py") \
+        == REPO_ROOT
+    # one deep, which `parents[3]` cannot reach
+    shallow = tmp_path / "tools"
+    shallow.mkdir()
+    (tmp_path / "references").mkdir()
+    (tmp_path / "references/eval_scorecard.md").write_text(RUBRIC.read_text())
+    assert st.repo_root(shallow / "score_tools.py") == tmp_path
+    # and a layout neither rule fits is a variable, not a patch
+    monkeypatch.setenv("SCORECARD_REPO_ROOT", str(tmp_path))
+    assert st.repo_root(REPO_ROOT / "a/b/c/d.py") == tmp_path
+
+
+def test_audit_reports_a_missing_optional_axis_instead_of_a_traceback(st, tmp_path,
+                                                                     monkeypatch, capsys):
+    """`audit` crashed out of the box for anyone who installed the tool alone.
+
+    A `FileNotFoundError` from `<frozen importlib._bootstrap_external>` made the
+    other seven reading rules unreachable because the eighth wanted an optional
+    sibling, and the documented cure was to create an EMPTY `subjects.toml` --
+    a file whose only content is the absence.
+    """
+    cached = st._ARCH_CACHE.pop("mod", None)
+    try:
+        monkeypatch.setattr(st, "HERE", tmp_path / "score_tools.py")
+        with pytest.raises(st.BootstrapError) as exc:
+            st.arch()
+        assert "architecture_tags.py is not installed" in str(exc.value)
+
+        findings = st.audit_rh1_architecture({"demonstrations": [], "root": tmp_path})
+        assert findings and findings[0][0] == st.UNVERIFIED, findings
+        assert "not re-derivable" in findings[0][1]
+    finally:
+        st._ARCH_CACHE.pop("mod", None)
+        if cached is not None:
+            st._ARCH_CACHE["mod"] = cached
+
+
+def test_declaring_no_subject_is_a_legal_state_not_a_crash(st, tmp_path, monkeypatch):
+    """An absent `subjects.toml` declares nothing, which is an answer.
+
+    It used to be a `FileNotFoundError`, and the cure written down for it was
+    *"create an empty `subjects.toml`"* -- a file whose only content is the
+    absence this now reads directly.
+    """
+    module = st.arch()
+    assert module.load_subjects(tmp_path / "nothing-here.toml") == {}
+    monkeypatch.setattr(module, "load_subjects", lambda *a, **k: {})
+    findings = st.audit_rh1_architecture({"demonstrations": [], "root": tmp_path})
+    assert findings and findings[0][0] == st.UNVERIFIED, findings
+    assert "no subject is declared" in findings[0][1]

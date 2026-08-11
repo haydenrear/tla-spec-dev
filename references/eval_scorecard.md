@@ -688,6 +688,16 @@ comparison a guess.
 that re-score is possible at all; a tool that can only write the current version
 makes the rule above unfollowable.
 
+**The bump itself is two edits to this file and none to any Python.** Change
+`**Scorecard version N.**` at the top, and add a row to
+[Version history](#version-history) keeping every older row. `score_tools.py`
+reads the population of legal versions out of that table rather than carrying one
+— it used to carry `SUPPORTED_VERSIONS = (1, 2, 3, 4)`, which made this rule
+unfollowable by anyone who could not edit our source, and stamped the nearest
+number it did know when the flag was dropped. A version this file does not
+declare is now refused by name. `references/adopting_the_scorecard.md` is the
+short how-to for a project that is not this one.
+
 **`--card-version` alone is not enough, and saying so is part of the rule.** It
 stamps the requested version number while reading every anchor, rule and digest
 out of the rubric file it is pointed at, so on its own it reproduces the old
@@ -714,20 +724,29 @@ it a mechanism rather than the argument that sequencing works.
 
 ### Version history
 
-The `anchors digest` column is over the **anchors alone**, not the whole rubric,
-and `score_tools.py check` recomputes it from this file. Two versions carrying
-the same digest is the statement that **the bar for each score did not move** —
-only what a card must record about itself did. Note what this does *not* do:
-`check` recomputes only the CURRENT version's row against the anchors in the
-file, so it detects a stale table rather than a moved bar. That is
-`FI-06-DF-11(a)`, open.
+**Two columns, because they answer two questions and one of them was not being
+asked.** The `anchors digest` is over the **anchors alone**, so two versions
+carrying the same one is the statement that **the bar for each score did not
+move** — only what a card must record about itself did. The `served digest` is
+over **the bytes `serve` emits**: the anchors *and* the preambles, the caveats,
+the scoring rules and the recorded notes. A caveat rewritten in someone else's
+words changes what a judge reads and leaves the anchors digest byte-identical,
+which is how a rewrite could delete a caveat from the served surface with
+nothing reporting it. `score_tools.py check` recomputes **both** from this file.
 
-| version | anchors digest | what changed |
-|---|---|---|
-| **1** | `sha256:eeccf4576bc6fd85` | the original card: five dimensions, seven scoring rules, R-H1..R-H4. |
-| **2** | `sha256:eeccf4576bc6fd85` | `judging_practice` required on every filled card (rule 8); D4 = 4 gated on it; the instability caveat promoted to R-H5 with a check. **Anchors unchanged.** |
-| **3** | `sha256:eeccf4576bc6fd85` | the judge is served a generated card and never this file (rule 9); `served_digest` and `file_sha256` recorded per card; D5 anchor 4's two readings recorded in `anchor_reading`; `total` removed from the card and from every rendering. **Anchors unchanged.** |
-| **4** | `sha256:f73b4d82638f09df` | **THE ANCHORS MOVED, for the first time.** D1, D4 and D5 stop being scored and become recorded notes (rule 10); D2's anchor 4 is deleted, so D2 is a 0–3 scale; D2's preamble stops requiring a measured descriptor to be read first. Retired anchors below, byte-identical. |
+The served digest is carried from version 4 on. Rows 1–3 declare none and can
+never declare one: the bytes those versions served are a property of the file as
+it stood then, and rendering them from this file would produce a digest no judge
+was ever handed. Note also what neither column does: `check` recomputes only the
+**current** version's row, so it detects a stale table rather than a moved bar.
+That is `FI-06-DF-11(a)`, open.
+
+| version | anchors digest | served digest | what changed |
+|---|---|---|---|
+| **1** | `sha256:eeccf4576bc6fd85` | — | the original card: five dimensions, seven scoring rules, R-H1..R-H4. |
+| **2** | `sha256:eeccf4576bc6fd85` | — | `judging_practice` required on every filled card (rule 8); D4 = 4 gated on it; the instability caveat promoted to R-H5 with a check. **Anchors unchanged.** |
+| **3** | `sha256:eeccf4576bc6fd85` | — | the judge is served a generated card and never this file (rule 9); `served_digest` and `file_sha256` recorded per card; D5 anchor 4's two readings recorded in `anchor_reading`; `total` removed from the card and from every rendering. **Anchors unchanged.** |
+| **4** | `sha256:f73b4d82638f09df` | `sha256:a213a36770ccab09` | **THE ANCHORS MOVED, for the first time.** D1, D4 and D5 stop being scored and become recorded notes (rule 10); D2's anchor 4 is deleted, so D2 is a 0–3 scale; D2's preamble stops requiring a measured descriptor to be read first. Retired anchors below, byte-identical. |
 
 ### Retired anchors, versions 1–3
 

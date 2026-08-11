@@ -6,7 +6,7 @@ is IN MODEL per the plan's representation_scope, and eval harness is not program
 surface. Putting it here keeps the model's surface unchanged.
 
   python3 score_tools.py scaffold <epic-dir> --example E --arms A,B,C --judges 2
-                                  [--card-version {1,2,3}]
+                                  [--card-version N]
   python3 score_tools.py serve [--card-version N] [--rubric F] [--out FILE]
   python3 score_tools.py check <dir-or-file>... [--require-filled]
   python3 score_tools.py index <epic-dir>
@@ -59,6 +59,18 @@ requested version while reading every anchor and rule from the rubric it is
 POINTED AT. Reproducing an old card means also pointing it at a frozen copy of
 the old rubric, with `--rubric`.
 
+CL-01. THE VERSION IS NOT A LITERAL IN THIS FILE ANY MORE, and neither is the
+default. `RM-05` ran the loop on a foreign tree and got `error: invalid choice:
+'5'` from `SUPPORTED_VERSIONS = (1,2,3,4)`, so the card's own change rule needed
+an edit to this source; and dropping the flag stamped `4` onto cards scaffolded
+from a version 5 rubric with `check` reporting 0 problems. The population is now
+what the CARD FILE declares (`supported_versions`), the default is the version it
+declares, and a version it does not declare is refused with the two edits that
+would make it legal (`resolve_card_version`). `references/eval_scorecard.md`'s
+`### Version history` also seals THE BYTES A JUDGE READS from version 4 on,
+because the anchors digest is byte-identical while a rewritten caveat changes
+what `serve` emits. `references/adopting_the_scorecard.md` is the short how.
+
 `check` enforces the rules from references/eval_scorecard.md that can be
 enforced mechanically. The ones that matter -- score artifacts not claims, prose
 quality is never an input -- cannot be, which is why two blind judges exist.
@@ -84,6 +96,7 @@ import argparse
 import hashlib
 import itertools
 import json
+import os
 import pathlib
 import random
 import re
@@ -93,7 +106,79 @@ import tomllib
 from datetime import date as _date
 
 VERSION = 4
+
+#: The versions whose RULES live in this file. Version 1-4 cards are checked by
+#: code that is still here -- 73 of them are sealed and `R-H4` forbids editing
+#: one -- so this tuple is a fact about this source and can never shrink.
+#:
+#: IT IS NOT THE CEILING, and reading it as one is `RM-05` section 3: an adopter
+#: following the card's own change rule (*bump `scorecard_version`, keep the old
+#: anchors*) hit `error: invalid choice: '5'` and had to edit our Python. The
+#: ceiling is whatever the CARD FILE declares -- see `supported_versions`.
 SUPPORTED_VERSIONS = (1, 2, 3, 4)
+
+#: The version from which a row of `### Version history` must also seal the
+#: bytes a judge is SERVED, not only the anchors. `anchors_digest` answers *did
+#: the bar move*; it is byte-identical while a rewritten caveat or preamble
+#: silently changes what reaches a judge, which `RM-05` demonstrated and this
+#: ticket reproduced. Same species of constant as `RETIRED_AT`: a fact about
+#: this card's history, inherited by every version above it, so an adopter's
+#: version 5 is sealed on the served bytes without editing anything here.
+SERVED_SEAL_FROM = 4
+
+
+def supported_versions(rubric: dict | None = None) -> tuple[int, ...]:
+    """Every card version this tool will emit or accept, GIVEN A RUBRIC.
+
+    The population is `SUPPORTED_VERSIONS` -- what this source knows the rules
+    of -- UNION what the card file declares in `### Version history`. A version
+    the card declares is a version the card has; a version neither knows is
+    refused by name rather than defaulted to a neighbour.
+
+    This is the whole of what makes a bump possible without a source edit:
+    declare `**Scorecard version 5.**`, add the row, and `scaffold
+    --card-version 5` works against your file and refuses against ours.
+    """
+    declared = set()
+    for row in (rubric or {}).get("versions") or ():
+        try:
+            declared.add(int(row["version"]))
+        except (KeyError, TypeError, ValueError):       # pragma: no cover - malformed row
+            continue
+    current = (rubric or {}).get("card_version")
+    if isinstance(current, int):
+        declared.add(current)
+    return tuple(sorted(set(SUPPORTED_VERSIONS) | declared))
+
+
+def resolve_card_version(requested: int | None, rubric: dict) -> int:
+    """The version to stamp. REFUSES; never falls back to a neighbouring number.
+
+    Two silent failures, both measured at `RM-05` section 3 and both reproduced
+    at `400c296` before this was written:
+
+      * `--card-version 5` was an argparse `choices` error against a literal, so
+        the card's own change rule could not be followed without editing Python;
+      * dropping the flag stamped `VERSION` -- **4** -- onto cards scaffolded
+        from a version 5 rubric, and `check` reported **0 problems**.
+
+    So the DEFAULT is the version the rubric declares, never a constant in this
+    file, and a version outside the declared population is refused with the two
+    edits that would make it legal.
+    """
+    allowed = supported_versions(rubric)
+    if requested is None:
+        return int(rubric["card_version"])
+    if requested not in allowed:
+        raise RubricError(
+            f"cannot emit a version {requested} card from {rubric['source']}, which "
+            f"declares scorecard version {rubric['card_version']} and a version history "
+            f"of {list(allowed)}. A card version is not a flag this tool blesses -- it "
+            f"is what the card file says it is. BUMP THE CARD: write "
+            f"`**Scorecard version {requested}.**` at the top and add a row for "
+            f"{requested} to `### Version history`, keeping the old anchors and the old "
+            f"rows. Nothing in {HERE.name} needs editing.")
+    return requested
 
 # The dimension whose top anchor carries two defensible readings, and the card
 # version from which the reading is a recorded field rather than a private one.
@@ -181,8 +266,37 @@ def top_score(dim: str, version: int) -> int:
     return 4
 
 HERE = pathlib.Path(__file__).resolve()
-REPO_ROOT = HERE.parents[3]
-DEFAULT_RUBRIC = REPO_ROOT / "references/eval_scorecard.md"
+
+#: Where the one home of the card sits, relative to the tree root.
+CARD_PATH = "references/eval_scorecard.md"
+
+
+def repo_root(start: pathlib.Path) -> pathlib.Path:
+    """The tree this tool reads, FOUND rather than counted.
+
+    `REPO_ROOT = HERE.parents[3]` was an install-depth literal. It is right for
+    this repository -- `examples/validation/scorecards/` is three deep -- and
+    wrong for every layout that is not this one, so an adopter who put the tool
+    anywhere else got `rubric not found` naming a path they never chose
+    (`RM-05` section 3). Nearest ancestor carrying a card wins; failing that,
+    nearest ancestor carrying a `.git`; `SCORECARD_REPO_ROOT` overrides both, so
+    a layout neither rule fits is an environment variable and not a patch.
+    """
+    override = os.environ.get("SCORECARD_REPO_ROOT")
+    if override:
+        return pathlib.Path(override).expanduser().resolve()
+    for parent in start.parents:
+        if (parent / CARD_PATH).exists():
+            return parent
+    for parent in start.parents:
+        if (parent / ".git").exists():
+            return parent
+    parents = list(start.parents)
+    return parents[3] if len(parents) > 3 else parents[-1]
+
+
+REPO_ROOT = repo_root(HERE)
+DEFAULT_RUBRIC = REPO_ROOT / CARD_PATH
 DEFAULT_SCORECARD_ROOT = REPO_ROOT / "specs/results/scorecards"
 LOG_NAME = "INSTRUMENT-LOG.toml"
 
@@ -266,11 +380,35 @@ CLAIM_STATUSES = {"current", "sealed", "superseded", "known_wrong", "under_revie
 _ARCH_CACHE: dict = {}
 
 
+class BootstrapError(Exception):
+    """An OPTIONAL sibling of this tool is not installed beside it.
+
+    Separate from `RubricError` because it is not about the card at all. `audit`
+    exited on a `FileNotFoundError` traceback from `importlib` for an adopter
+    who installed `score_tools.py` alone (`RM-05` section 3), and a traceback
+    naming `<frozen importlib._bootstrap_external>` is not a refusal -- it is
+    the tool failing to say what it wants. Every caller turns this into a named
+    `UNVERIFIED` line: the third comparability axis goes unchecked and says so.
+    """
+
+
 def arch():
-    """The `effect_boundary` module. See `architecture_tags.py`."""
+    """The `effect_boundary` module. See `architecture_tags.py`.
+
+    OPTIONAL. It carries the third comparability axis, which needs declared
+    subjects and this repository's complexity instrument; a tree with neither
+    still gets `serve`, `scaffold`, `check`, `index`, `seal`, `history`,
+    `contested` and `scope`.
+    """
     if "mod" not in _ARCH_CACHE:
         import importlib.util
         path = HERE.parent / "architecture_tags.py"
+        if not path.exists():
+            raise BootstrapError(
+                f"{path.name} is not installed beside {HERE.name}. It carries the "
+                f"architecture axis and nothing else needs it -- install it from this "
+                f"skill's `examples/validation/scorecards/`, or run without the commands "
+                f"that use it.")
         spec = importlib.util.spec_from_file_location("_score_tools_arch", path)
         module = importlib.util.module_from_spec(spec)
         sys.modules[spec.name] = module
@@ -338,10 +476,31 @@ def load_rubric(path: pathlib.Path) -> dict:
             raise RubricError(
                 f"{path}: {key} does not carry anchors {want[0]}-{want[-1]} "
                 f"(got {sorted(anchors)})")
-        caveat = ""
-        tail = re.search(r"\n\n(\*\*[A-Z].+?)\Z", body, re.S)
-        if tail:
-            caveat = " ".join(tail.group(1).split())
+        # THE CAVEAT IS WHATEVER FOLLOWS THE LAST ANCHOR, in whatever words its
+        # author wrote it. It used to be `\n\n(\*\*[A-Z].+?)\Z` -- a caveat had
+        # to be the last thing in the block AND open with a bold capital -- so
+        # the one iteration an adopter can do without touching Python, rewriting
+        # a caveat in their own words, PARSED TO THE EMPTY STRING AND DELETED
+        # ITSELF FROM THE SERVED BYTES. Measured at `400c296`: rewriting D3's
+        # caveat unbolded took `serve` from 6,318 bytes to 6,092 with
+        # `anchors_digest` byte-identical and `check` reporting nothing
+        # (`RM-05` section 3). Nothing in a dimension block is dropped now, and
+        # the served digest in `### Version history` catches it if it changes.
+        tail_paras = re.split(r"\n[ \t]*\n", items[-1] if len(items) > 1 else "")[1:]
+        caveat = " ".join(" ".join(p.split()) for p in tail_paras if p.strip())
+        # Prose sitting BETWEEN two anchors reaches nobody: an anchor is its
+        # first paragraph and the caveat is the tail of the last block. That is
+        # the same silent deletion one position earlier, so it is refused rather
+        # than dropped.
+        for j in range(1, len(items) - 2, 2):
+            extra = [p for p in re.split(r"\n[ \t]*\n", items[j + 1])[1:] if p.strip()]
+            if extra:
+                raise RubricError(
+                    f"{path}: {key} carries prose between anchor {items[j]} and the next "
+                    f"one -- {' '.join(extra[0].split())[:90]!r}. An anchor is its first "
+                    f"paragraph and a caveat is the tail of the block, so this text "
+                    f"reaches no judge. Fold it into the anchor, or move it below the "
+                    f"last anchor where it is served as the caveat.")
         preamble = " ".join(re.split(r"^- \*\*[0-4]\*\* — ", body, flags=re.M)[0].split())
         dims[key] = {
             "name": title.lower(),
@@ -406,12 +565,17 @@ def load_rubric(path: pathlib.Path) -> dict:
     versions = []
     vblock = re.search(r"^#{2,3} Version history\s*\n(.*?)(?=^#{1,3} |\Z)", text, re.M | re.S)
     if vblock:
+        # The served-digest cell is optional in the PARSE and required by
+        # `version_history_problems` from `SERVED_SEAL_FROM`, so a frozen copy of
+        # an older bar still loads. `—` is a row that declares none.
         for row in re.finditer(
-                r"^\|\s*\*{0,2}(\d+)\*{0,2}\s*\|\s*`(sha256:[0-9a-f]+)`\s*\|\s*(.+?)\s*\|\s*$",
+                r"^\|\s*\*{0,2}(\d+)\*{0,2}\s*\|\s*`(sha256:[0-9a-f]+)`\s*\|"
+                r"(?:\s*(?:`(sha256:[0-9a-f]+)`|—|--)\s*\|)?\s*(.+?)\s*\|\s*$",
                 vblock.group(1), re.M):
             versions.append({"version": int(row.group(1)),
                              "anchors_digest": row.group(2),
-                             "summary": row.group(3).strip()})
+                             "served_digest": row.group(3),
+                             "summary": row.group(4).strip()})
 
     source = str(path.relative_to(REPO_ROOT)) if _under(path, REPO_ROOT) else str(path)
     rubric = {"source": source, "dimensions": dims, "notes": notes,
@@ -586,6 +750,19 @@ def version_history_problems(rubric: dict) -> list[str]:
     Bump the version, keep the old anchors, and say what changed. A version
     history that does not carry the CURRENT version, or whose row for it does
     not match the anchors actually in the file, is the card changing silently.
+
+    **AND THE SEAL COVERS WHAT A JUDGE READS, from `SERVED_SEAL_FROM`.** The
+    anchors digest is one column and it is not the served surface: a caveat, a
+    preamble or a scoring rule can be rewritten with the anchors untouched, and
+    `RM-05` measured exactly that -- the served bytes changed while
+    `anchors_digest` stayed byte-identical and nothing said so. A SECOND SEAL
+    rather than a wider first one, and the reason is the first column's own
+    claim: versions 1, 2 and 3 declare the same anchors digest, which is the
+    statement *the bar did not move while what a card records did*. Those three
+    versions served 4,487, 5,228 and 5,585 bytes -- the digested string, one byte
+    short of what `serve | wc -c` prints -- so a digest widened to cover the
+    served surface would falsify a true row and delete the only question the
+    change rule asks. Two questions, two columns, and both computed here.
     """
     bad: list[str] = []
     versions = rubric.get("versions") or []
@@ -603,6 +780,25 @@ def version_history_problems(rubric: dict) -> list[str]:
                    f"{seen[current]['anchors_digest']} but the anchors in this file digest to "
                    f"{rubric['anchors_digest']}. Either the anchors moved without a version "
                    f"bump, or the table is stale -- and both are the card changing silently.")
+    if current >= SERVED_SEAL_FROM:
+        want = served_digest(rubric, current)
+        got = seen[current].get("served_digest")
+        if not got:
+            bad.append(
+                f"{rubric['source']}: version {current} declares no served digest. From "
+                f"version {SERVED_SEAL_FROM} the `### Version history` row carries the "
+                f"digest of the bytes `serve` emits as well as the one over the anchors, "
+                f"because a caveat or a preamble rewritten in someone else's words changes "
+                f"what a judge reads while the anchors digest does not move. Add "
+                f"`{want}` to the row for {current}.")
+        elif got != want:
+            bad.append(
+                f"{rubric['source']}: version {current} declares served digest {got} but "
+                f"the bytes this file serves digest to {want}. Something a judge READS "
+                f"moved -- a caveat, a preamble, a scoring rule or a note -- without a "
+                f"version bump. Bump the card, or restore the text; a served surface that "
+                f"changes under a fixed version is the card changing silently where the "
+                f"anchors digest cannot see it.")
     for earlier in range(1, current):
         if earlier not in seen:
             bad.append(f"{rubric['source']}: version history drops version {earlier}. The old "
@@ -619,7 +815,7 @@ def rubric_leak_problems(rubric: dict) -> list[str]:
     """
     bad: list[str] = []
     seen: set[str] = set()
-    for cv in SUPPORTED_VERSIONS:
+    for cv in supported_versions(rubric):
         for leak in result_leaks(served_rubric(rubric, cv)):
             if leak in seen:
                 continue
@@ -651,8 +847,13 @@ def check(card: dict, where: str, rubric: dict | None = None,
         bad.append(f"{where}: {msg}")
 
     version = card.get("scorecard_version")
-    if version not in SUPPORTED_VERSIONS:
-        err(f"scorecard_version must be one of {list(SUPPORTED_VERSIONS)}, got {version!r}")
+    allowed = supported_versions(rubric)
+    if version not in allowed:
+        err(f"scorecard_version must be one of {list(allowed)}, got {version!r}"
+            + (f" -- {rubric['source']} declares scorecard version "
+               f"{rubric['card_version']}" if rubric else
+               " -- and no rubric was readable, so the population is the versions this "
+               "tool knows the rules of"))
         version = VERSION
 
     status = card.get("status", "filled")
@@ -1213,13 +1414,20 @@ def cmd_contested(argv: list[str]) -> int:
 def cmd_serve(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="score_tools.py serve")
     ap.add_argument("--rubric", default=str(DEFAULT_RUBRIC))
-    ap.add_argument("--card-version", type=int, default=VERSION, choices=SUPPORTED_VERSIONS)
+    # No `choices`: the population is not a literal in this file, it is what the
+    # rubric declares, and it is not known until the rubric is loaded. No
+    # `default` either -- see `resolve_card_version`.
+    ap.add_argument("--card-version", type=int, default=None,
+                    help="serve the rubric as this card version. Defaults to the version "
+                         "the rubric FILE declares; a version its history does not carry "
+                         "is refused rather than served as a neighbouring one.")
     ap.add_argument("--out", default=None, help="write the served rubric here as well")
     ap.add_argument("--digest-only", action="store_true")
     args = ap.parse_args(argv)
 
     try:
         rubric = load_rubric(pathlib.Path(args.rubric))
+        args.card_version = resolve_card_version(args.card_version, rubric)
     except RubricError as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 2
@@ -1434,9 +1642,14 @@ def cmd_scaffold(argv: list[str]) -> int:
     ap.add_argument("--unblinded", action="store_true",
                     help="DELIBERATELY skip blinding: emit real arm names as labels")
     ap.add_argument("--reason", default=None, help="required with --unblinded")
-    ap.add_argument("--card-version", type=int, default=VERSION, choices=SUPPORTED_VERSIONS,
-                    help="emit a card of this scorecard_version. The old version exists so "
-                         "the discontinuity a version bump creates can be MEASURED by "
+    # No `choices` and no `default`. The population of versions is what the
+    # rubric declares, not a tuple in this file, and the default is the version
+    # the rubric declares, not `VERSION` -- see `resolve_card_version`, which is
+    # where both silent failures `RM-05` measured were closed.
+    ap.add_argument("--card-version", type=int, default=None,
+                    help="emit a card of this scorecard_version. Defaults to the version "
+                         "the rubric FILE declares. The old version exists so the "
+                         "discontinuity a version bump creates can be MEASURED by "
                          "re-scoring under both, which is the card's own change rule.")
     args = ap.parse_args(argv)
 
@@ -1445,6 +1658,7 @@ def cmd_scaffold(argv: list[str]) -> int:
     except RubricError as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 2
+    args.card_version = resolve_card_version(args.card_version, rubric)
 
     # A round may not begin by handing its judges the answer. Checked BEFORE any
     # path is planned, so nothing is written -- the same discipline as the
@@ -2394,8 +2608,22 @@ def audit_rh1_architecture(ctx: dict) -> list[tuple[str, str]]:
     """
     out: list[tuple[str, str]] = []
     declared = ctx.get("demonstrations") or []
-    module = arch()
-    subjects = module.load_subjects()
+    try:
+        module = arch()
+        subjects = module.load_subjects()
+    except BootstrapError as exc:
+        # `RM-05` section 3: this raised a `FileNotFoundError` traceback out of
+        # `audit` for anyone who installed `score_tools.py` on its own, so the
+        # other seven reading rules were unreachable because the eighth needed
+        # an optional file. An axis that cannot be derived reports that it was
+        # not derived, which is what UNVERIFIED is for.
+        return [(UNVERIFIED, f"the architecture axis is not installed here, so the "
+                             f"demonstration table is not re-derivable and nothing about "
+                             f"it is checked -- {exc}")]
+    if not subjects:
+        return [(UNVERIFIED, f"no subject is declared in {module.DEFAULT_SUBJECTS}, so the "
+                             f"{module.AXIS} axis has nothing to derive over and the "
+                             f"demonstration table is not re-derivable here")]
     derived = module.derive_subjects(subjects, REPO_ROOT)
     unmeasurable = [n for n, d in derived.items()
                     if d["derived"].endswith("unmeasurable")]
@@ -3181,9 +3409,18 @@ def cmd_tags(argv: list[str]) -> int:
     ap.add_argument("--compare", nargs=2, default=None, metavar=("A", "B"),
                     help="two declared subjects of the same example")
     args = ap.parse_args(argv)
-    module = arch()
+    try:
+        module = arch()
+    except BootstrapError as exc:
+        print(f"REFUSED: {exc}", file=sys.stderr)
+        return 2
     root = pathlib.Path(args.root)
     subjects = module.load_subjects()
+    if not subjects:
+        print(f"no subject is declared in {module.DEFAULT_SUBJECTS}. The {module.AXIS} axis "
+              f"annotates a D3 comparison and has authority nowhere else; with nothing "
+              f"declared there is nothing to derive and nothing to print.", file=sys.stderr)
+        return 2
     derived = module.derive_subjects(subjects, REPO_ROOT)
     rows = module.card_rows(root)
     entries = module.demonstration_table(rows, derived, subjects)
@@ -3239,5 +3476,21 @@ def main(argv: list[str] | None = None) -> int:
     return COMMANDS[argv[0]](argv[1:])
 
 
+def _cli() -> int:
+    """`main`, with the refusals printed instead of traced.
+
+    `main` PROPAGATES `RubricError` and `BlindingError` on purpose -- callers in
+    the suite assert on the exception and its text -- but a person at a terminal
+    who asked for a version the card does not declare should read the two edits
+    that would make it legal, not `<frozen importlib._bootstrap_external>`. Loud
+    is the requirement; a traceback is merely noisy.
+    """
+    try:
+        return main()
+    except (RubricError, BlindingError, BootstrapError) as exc:
+        print(f"REFUSED: {exc}", file=sys.stderr)
+        return 2
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(_cli())
