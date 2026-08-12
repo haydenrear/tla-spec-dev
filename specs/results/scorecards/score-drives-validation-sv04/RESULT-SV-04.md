@@ -324,6 +324,40 @@ two. Escalated in §11 rather than filed — the finding budget is spent, on
 
 ---
 
+## 9b. `scope` run over this page — and the delta is zero, for a reason
+
+```
+python3 examples/validation/scorecards/score_tools.py scope
+```
+
+| tree | counted | REFUTED | COUNT-MOVED | HOLDS | UNREACHABLE |
+|---|---|---|---|---|---|
+| `86a8767` — the branch point | 97 | 71 | 0 | 6 | 20 |
+| `86a8767` + SV-04 — this tree | **97** | **71** | **0** | **6** | **20** |
+
+**SV-04's delta is zero on every column**, and no row anywhere in the output
+names a file this ticket wrote.
+
+**That is not the same as this page being checked.** The figures here are in
+tables and in prose that carry no bind-and-value form, so `scope` is **blind to
+them rather than satisfied by them** — `RD-02-DF-01`, stated here rather than
+left for a reader to find. `RM-02-DF-05` also applies: the counted-noun pattern
+admits no underscore, so `toolchain_removal` written immediately after a count is
+refused before the search for a named example runs, which is why every count on
+this page names its tree in the sentence beside it instead.
+
+**And one operator error worth leaving in, because it is the class this project
+keeps paying for.** The first `scope` run here was issued as
+`timeout 500 python3 …` and died with `ModuleNotFoundError: No module named
+'tomllib'`, which was nearly written up as a property of the tool. It is not.
+`python3` in this shell is an alias, `timeout` does not expand aliases, and the
+`python3` on `PATH` is a different interpreter. **A figure taken through a
+wrapper is a figure about the wrapper**, which is `RM-02`'s complaint about
+`git archive` in a second costume, and it was caught only because the number
+contradicted five earlier subcommands that had run clean.
+
+---
+
 ## 10. Blinding — every disclosure, recorded
 
 **Blinded by mechanism**: arms emitted as `GL`/`LG` from a label pool that
