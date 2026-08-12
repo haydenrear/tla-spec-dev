@@ -2202,3 +2202,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket SV-01
+
+- close_scope: ticket
+- close_id: SV-01
+- workflow: score-drives-validation-epic
+- closed_at: 2026-08-12T21:41:01+00:00
+- summary: The negative control: D3 = 4,4 under card version 4 and 4,4 under version 5 on an artifact lacking the single-observer property. The caveat DISCRIMINATES; close-the-loop's headline is a detection, not a recalibration. Prediction sealed at 5e07dce before any judge ran.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
