@@ -561,6 +561,13 @@ Lifecycle:
    the ticket directory into history, replaces project `specs/current` with
    ticket `desired/`, and merges ticket-local Test Graph artifacts into project
    specs.
+   When the owner withdraws a dispatched ticket instead, do not mark it closed
+   and do not use `--allow-open`. Keep the ticket in its original plan ordinal,
+   mark it `status: retired`, add the explicit `retirement` decision described
+   in `references/spec_evolution.md`, and run
+   `tla-spec-dev --spec-root specs retire ticket <ticket-id>`. Retirement writes
+   a distinct append-only receipt, archives an active workspace as unaccepted
+   work, promotes nothing, and claims no validation.
 9. Repeat until `specs/current` semantically equals
    `specs/desired_program_model`.
 10. Promote the converged model into `specs/program_model`, regenerate accepted
@@ -631,6 +638,15 @@ tla-spec-dev --spec-root specs close ticket TICKET-123 --accept-new
 as-is. `scripts/close_tickets.py` accepts the same `--accept-new` flag to adopt
 `specs/desired_program_model` as the new `specs/current` and
 `specs/program_model` during whole-workflow closeout.
+
+Ticket retirement is deliberately not a close variant. A retired entry cannot
+be passed through `close ticket`, including with `--allow-open`; use `retire
+ticket`. Whole-workflow close accepts `status: retired` only when the plan names
+the canonical receipt and that receipt exactly matches the owner decision while
+recording `semantic_promotion.performed: false` and
+`validation.claimed: false`. Direct statuses such as `carried`, `superseded`,
+or `abandoned` are not terminal; those are values of
+`retirement.resolution`, under the single terminal plan status `retired`.
 
 After `specs/current` semantically equals `specs/desired_program_model`,
 promote the converged model into `specs/program_model`, regenerate accepted
@@ -931,6 +947,25 @@ Per-ticket start and close:
 tla-spec-dev --spec-root specs open ticket TICKET-123
 tla-spec-dev --spec-root specs close ticket TICKET-123 --summary "Recorded ticket-level history" --result specs/results/adapter.txt
 ```
+
+Owner-directed retirement of a dispatched ticket is a separate path:
+
+```bash
+# First retain the ticket at its existing ordinal and author status: retired
+# plus its complete retirement block in ticket_plan.yaml.
+tla-spec-dev --spec-root specs retire ticket TICKET-123
+```
+
+That operation does not run the complexity ledger, accept desired state,
+promote project current, or claim that tests passed. It writes
+`retired-ticket-NNN-TICKET-123/manifest.json`, which workflow close validates
+against the unchanged plan entry.
+
+Workflow close also requires one matching successful-close receipt for every
+delivered ticket. If `--accept-new` is used in a plan containing retirement,
+the desired tree must exactly match the terminal delivered ticket's archived
+desired snapshot from an unweakened, non-`accept-new` close; retirement itself
+can never authorize semantic promotion.
 
 Whole-workflow close:
 

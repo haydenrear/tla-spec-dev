@@ -53,6 +53,22 @@ specs/.history/
       results/
 ```
 
+Owner-directed ticket retirements use a different entry kind and directory
+prefix so no reader can mistake a scheduling decision for successful delivery:
+
+```text
+specs/.history/
+  <workflow-name>/
+    retired-ticket-000-<ticket-id>/
+      manifest.json
+      summary.md
+      ticket/                         # only when an active workspace existed
+```
+
+The optional `ticket/` tree is preserved as explicitly unaccepted work. A
+retirement entry has no model snapshots, accepted results, complexity-ledger
+entry, semantic promotion, or validation claim.
+
 Whole-workflow close:
 
 ```text
@@ -156,6 +172,81 @@ tla-spec-dev --spec-root specs close ticket TICKET-123 --accept-new \
 `--accept-new` overwrites ticket `current/` from `desired/`, skips the
 `current == desired` gate, and records `accept_new` in the entry manifest.
 
+## Per-Ticket Retirement
+
+Retirement is for an already-dispatched ticket the owner has decided not to
+deliver in this workflow. It is not a weaker successful close and it does not
+mean the proposed ticket state was accepted.
+
+Keep the ticket mapping at its original ordinal, bump the plan schedule
+revision under the epic workflow's amendment rules, and replace its working
+status with this terminal shape:
+
+```yaml
+- id: TICKET-123
+  # The rest of the dispatched ticket mapping remains in place.
+  status: retired
+  retirement:
+    schedule_revision: 4
+    resolution: carried              # carried | superseded | abandoned
+    reason: "Owner-approved reason the dispatched work is not delivered here."
+    decided_by: "owner identity"
+    decided_at: "2026-08-12T12:00:00Z"
+    receipt: specs/.history/<workflow>/retired-ticket-000-TICKET-123/manifest.json
+    successor_issue: "https://github.com/owner/repo/issues/456"  # carried requires both
+    successor_workflow: successor-workflow
+    affected_goals:
+      - goal: GOAL-1
+        disposition: carried         # accepted_missed | accepted_unmeasured | carried
+        reason: "This goal is decided by the successor workflow."
+        successor_issue: "https://github.com/owner/repo/issues/456"
+        successor_workflow: successor-workflow
+```
+
+`retirement.schedule_revision` must be a positive integer no newer than the
+plan's current root schedule revision. It seals the revision at which the owner
+made the decision, so later schedule amendments do not invalidate an older
+append-only receipt. `reason`, `decided_by`, and `decided_at` are required. A
+ticket-level `carried` resolution requires both
+`successor_issue` and `successor_workflow`. `affected_goals` is required and
+may be empty in a workflow with no epic goals; this tool preserves the list
+exactly in the receipt, while the owning epic workflow validates each goal's
+disposition and successor. The receipt path is canonical: it uses the ticket's
+zero-based immutable plan ordinal, padded to three digits.
+
+Git epic workflows use the repository's canonical `specs` root, so their
+receipt always begins `specs/.history/`. The underlying CLI preserves its
+existing custom `--spec-root` support for non-epic workflows and derives the
+same repository-relative receipt under that explicit root.
+
+Then run:
+
+```bash
+tla-spec-dev --spec-root specs retire ticket TICKET-123
+```
+
+The command validates the complete owner decision before writing anything,
+refuses to overwrite an entry, refuses a ticket that already has a successful
+close receipt, and moves any active ticket workspace beneath the retirement
+entry without accepting it. Its manifest records, exactly:
+
+```json
+{
+  "entry_kind": "ticket-retirement",
+  "semantic_promotion": {"performed": false},
+  "validation": {"claimed": false},
+  "promotion": null,
+  "complexity_ledger": null
+}
+```
+
+`close ticket` always refuses `status: retired`, even under `--allow-open`.
+Whole-workflow close recognizes a retirement only when the canonical receipt
+exists and its ticket identity, complete retirement block, no-promotion field,
+no-validation field, and empty accepted snapshot/result lists exactly match the
+plan. Writing `status: carried`, `status: superseded`, or `status: abandoned`
+directly does not make a ticket terminal.
+
 ## Whole-Workflow Close
 
 After `current`, `desired_program_model`, and promoted `program_model` converge,
@@ -168,7 +259,11 @@ python scripts/close_tickets.py \
 ```
 
 This writes `closed-snapshot` under the workflow history directory before
-removing `current` and `desired_program_model`. It requires the
+removing `current` and `desired_program_model`. Every delivered ticket must
+have both a successful terminal status and exactly one matching successful-close
+receipt (workflow, immutable ordinal, ticket identity, and terminal status);
+every retired ticket must have the exact
+canonical retirement receipt described above. It requires the
 workflow-close ledger input at `specs/results/complexity_ledger_input.yaml`.
 That input carries a `coverage_audit` block, which is recorded and printed but
 (since 2026-08-04) refuses nothing — `pass` is still the only value meaning
@@ -183,6 +278,16 @@ before the snapshot (tickets must still be marked closed):
 python scripts/close_tickets.py --repo-root . --accept-new \
   --summary "Accepted desired_program_model as the new program_model"
 ```
+
+When the plan contains any retired ticket, `--accept-new` is deliberately
+narrower. The current `desired_program_model` must be byte-for-byte identical
+to the archived desired snapshot in the one successful close receipt for the
+terminal delivered ticket (the unique greatest `promotion_order`, or the final
+delivered ordinal when no orders are declared). That receipt must match the
+final plan's workflow, immutable ordinal, ticket identity, and terminal status;
+it must record an unweakened close with `accept_new: false`. This lets a final
+evaluation ticket authorize promotion while preventing withdrawn ticket state
+from becoming the program model merely because its schedule was retired.
 
 ## Searching History
 

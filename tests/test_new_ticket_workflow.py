@@ -39,6 +39,40 @@ Spec == Init /\\ [][Next]_vars
 """
 
 
+def write_successful_ticket_receipt(
+    specs_dir: Path,
+    ticket_id: str,
+    *,
+    ticket_index: int = 0,
+    workflow: str = "spec-workflow",
+    status: str = "done",
+) -> Path:
+    """Write the minimal successful-close identity contract used by closeout tests."""
+    manifest_path = (
+        specs_dir
+        / ".history"
+        / workflow
+        / f"ticket-{ticket_index:03d}-{ticket_id}"
+        / "manifest.json"
+    )
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "kind": "ticket",
+                "workflow_name": workflow,
+                "ticket_index": ticket_index,
+                "ticket_id": ticket_id,
+                "ticket_status": status,
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return manifest_path
+
+
 def test_skill_requires_two_minute_case_generation_budget() -> None:
     skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
     generation_modes = (ROOT / "references" / "generation_modes.md").read_text(encoding="utf-8")
@@ -483,6 +517,7 @@ def test_close_ticket_workflow_removes_current_and_desired_after_semantic_match(
     )
 
     write_workflow_ledger_input(tmp_path / "specs")
+    write_successful_ticket_receipt(tmp_path / "specs", "AUTH-123")
 
     removed = close_ticket_workflow(tmp_path, Path("specs"), dry_run=False)
 
@@ -584,6 +619,7 @@ def test_close_ticket_workflow_accept_new_promotes_desired_into_program_model(tm
     )
 
     write_workflow_ledger_input(tmp_path / "specs")
+    write_successful_ticket_receipt(tmp_path / "specs", "AUTH-133")
 
     removed = close_ticket_workflow(tmp_path, Path("specs"), dry_run=False, accept_new=True)
 

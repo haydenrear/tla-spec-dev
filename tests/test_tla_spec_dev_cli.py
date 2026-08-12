@@ -39,6 +39,7 @@ def test_cli_root_help_progressively_exposes_workflow_commands() -> None:
     assert "open" in result.stdout
     assert "run" in result.stdout
     assert "close" in result.stdout
+    assert "retire" in result.stdout
     assert "scaffold project -> scaffold workflow -> open ticket" in result.stdout
 
 
@@ -49,6 +50,7 @@ def test_cli_subcommand_help_documents_external_command_surface() -> None:
         ("scaffold", "workflow", "--help", "current", "desired_program_model"),
         ("open", "ticket", "--help", "ticket_name", "desired-first"),
         ("run", "spec-unit-tests", "--help", "generated/adapted", "spec root"),
+        ("retire", "ticket", "--help", "no validation", "ticket_name"),
         ("close", "ticket", "--help", "append-only history", "ticket_name"),
     ]
 
@@ -68,7 +70,7 @@ def test_run_spec_unit_tests_fails_when_no_spec_tests_exist(tmp_path: Path) -> N
 
 
 def test_incomplete_parent_commands_fail_with_next_step_guidance() -> None:
-    for command in ["scaffold", "open", "run", "close"]:
+    for command in ["scaffold", "open", "run", "retire", "close"]:
         result = run_cli(command)
 
         assert result.returncode == 2
@@ -537,4 +539,3 @@ def test_generate_cases_metadir_delete_stays_inside_the_declared_tree(tmp_path: 
 # went with the static architecture scanners. The constraint itself is unchanged
 # and is exercised above through `analyze complexity`, which is the point: the
 # refusal lives in resolve_evidence_out, not in each caller.
-

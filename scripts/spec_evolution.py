@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import sys
 import stat
+import tempfile
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -39,6 +40,12 @@ IGNORED_COPY_NAMES = {
     "states",
 }
 TICKET_CLOSED_STATUSES = {"accepted", "closed", "complete", "completed", "done"}
+TICKET_RETIRED_STATUS = "retired"
+TICKET_RETIREMENT_RESOLUTIONS = {"carried", "superseded", "abandoned"}
+RETIREMENT_HISTORY_POLICY = (
+    "append-only by convention; this retirement is a scheduling receipt, "
+    "not a successful close or validation claim"
+)
 SEMANTIC_SUFFIXES = {".tla", ".cfg", ".yaml", ".yml", ".py", ".toml", ".json"}
 PLANNING_FILES = {"README.md", "ticket_plan.yaml", "desired_state.yaml", "ticket.yaml"}
 
@@ -174,6 +181,25 @@ def active_ticket_dir(specs_dir: Path, ticket_ref: str, ticket_root: Path = Path
     return root / safe_segment(ticket_ref)
 
 
+def retirement_active_ticket_dir(
+    specs_dir: Path, ticket_ref: str, ticket_root: Path = Path("tickets")
+) -> Path:
+    """Resolve a retirement workspace only through a lexical path below specs/."""
+    if ticket_root.is_absolute() or ".." in ticket_root.parts:
+        raise SystemExit(
+            "ERROR: retire ticket --ticket-root must be a relative lexical path "
+            "beneath the spec root; absolute paths and '..' are refused"
+        )
+    candidate = specs_dir / ticket_root / safe_segment(ticket_ref)
+    try:
+        candidate.resolve().relative_to(specs_dir.resolve())
+    except ValueError as error:
+        raise SystemExit(
+            "ERROR: retire ticket --ticket-root resolves outside the spec root"
+        ) from error
+    return candidate
+
+
 def load_ticket_plan(specs_dir: Path) -> dict[str, Any]:
     path = ticket_plan_path(specs_dir)
     if not path.exists():
@@ -228,8 +254,479 @@ def ticket_entry_name(index: int, ticket: dict[str, Any]) -> str:
     return f"ticket-{index:03d}-{safe_segment(ticket_id(ticket, index))}"
 
 
+def retirement_entry_name(index: int, ticket: dict[str, Any]) -> str:
+    """Return the one canonical append-only receipt directory for a retirement."""
+    return f"retired-ticket-{index:03d}-{safe_segment(ticket_id(ticket, index))}"
+
+
 def history_root(specs_dir: Path, workflow: str) -> Path:
     return specs_dir / ".history" / safe_segment(workflow)
+
+
+def _record_path(path: Path, repo_root: Path) -> str:
+    """Render a stable repository-relative path, or an absolute external path."""
+    resolved = path.resolve()
+    try:
+        return resolved.relative_to(repo_root.resolve()).as_posix()
+    except ValueError:
+        return resolved.as_posix()
+
+
+def canonical_retirement_receipt(
+    repo_root: Path,
+    specs_dir: Path,
+    workflow: str,
+    index: int,
+    ticket: dict[str, Any],
+) -> tuple[Path, str]:
+    entry_dir = history_root(specs_dir, workflow) / retirement_entry_name(index, ticket)
+    manifest_path = entry_dir / "manifest.json"
+    return entry_dir, _record_path(manifest_path, repo_root)
+
+
+def retirement_commit_recommendation(
+    *,
+    repo_root: Path,
+    entry_dir: Path,
+    ticket_plan: Path,
+    ticket: str,
+) -> HistoryEntryResult:
+    """Build the retirement advisory from explicit repo-relative paths.
+
+    Unlike the legacy generic history helper this cannot change merely because
+    validation is invoked from another working directory.
+    """
+    paths = [entry_dir]
+    if ticket_plan.exists():
+        paths.append(ticket_plan)
+    rendered_paths = " ".join(
+        shlex.quote(_record_path(path, repo_root)) for path in paths
+    )
+    message = f"record ticket retirement for {ticket}"
+    return HistoryEntryResult(
+        entry_dir=entry_dir,
+        recommendation=(
+            "It is recommended to commit this history directory now: "
+            f"{_record_path(entry_dir, repo_root)}"
+        ),
+        git_add_command=f"git add {rendered_paths}",
+        git_commit_command=f"git commit -m {message!r}",
+    )
+
+
+def plan_schedule_revision(plan: dict[str, Any]) -> int | None:
+    """Read the schedule revision from either supported epic-plan location."""
+    revision = plan.get("schedule_revision")
+    if type(revision) is int:
+        return revision
+    epic = plan.get("epic")
+    if isinstance(epic, dict) and type(epic.get("schedule_revision")) is int:
+        return epic["schedule_revision"]
+    return None
+
+
+def _nonempty_text(value: Any) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
+def validate_retirement_declaration(
+    *,
+    plan: dict[str, Any],
+    ticket: dict[str, Any],
+    index: int,
+    expected_receipt: str,
+) -> list[str]:
+    """Validate the owner decision that authorizes one ticket retirement.
+
+    Retirement is not a weak close.  The plan must say ``status: retired`` and
+    carry the complete owner decision before a receipt can be written.  The
+    receipt then copies this block exactly; it never infers or repairs it.
+    """
+    resolved_ticket_id = ticket_id(ticket, index)
+    label = f"ticket {resolved_ticket_id}"
+    errors: list[str] = []
+    if ticket_status(ticket) != TICKET_RETIRED_STATUS:
+        errors.append(f"{label} is not marked retired: status={ticket_status(ticket) or '(missing)'}")
+        return errors
+
+    retirement = ticket.get("retirement")
+    if not isinstance(retirement, dict):
+        return [f"{label} retirement must be a mapping"]
+
+    allowed_fields = {
+        "schedule_revision",
+        "resolution",
+        "reason",
+        "decided_by",
+        "decided_at",
+        "receipt",
+        "successor_issue",
+        "successor_workflow",
+        "affected_goals",
+    }
+    unknown = sorted(set(retirement) - allowed_fields)
+    if unknown:
+        errors.append(f"{label} retirement has unsupported fields: {unknown}")
+
+    root_revision = plan_schedule_revision(plan)
+    if root_revision is None or root_revision < 1:
+        errors.append("ticket plan must declare a positive schedule_revision")
+    revision = retirement.get("schedule_revision")
+    if type(revision) is not int or revision < 1:
+        errors.append(f"{label} retirement.schedule_revision must be a positive integer")
+    elif root_revision is not None and revision > root_revision:
+        errors.append(
+            f"{label} retirement.schedule_revision {revision} is newer than "
+            f"ticket plan schedule_revision {root_revision}"
+        )
+
+    resolution = retirement.get("resolution")
+    if resolution not in TICKET_RETIREMENT_RESOLUTIONS:
+        errors.append(
+            f"{label} retirement.resolution must be one of "
+            f"{sorted(TICKET_RETIREMENT_RESOLUTIONS)}"
+        )
+    for field in ("reason", "decided_by", "decided_at"):
+        if not _nonempty_text(retirement.get(field)):
+            errors.append(f"{label} retirement.{field} must be a non-empty string")
+
+    receipt = retirement.get("receipt")
+    if receipt != expected_receipt:
+        errors.append(
+            f"{label} retirement.receipt must be the canonical path "
+            f"{expected_receipt!r}, got {receipt!r}"
+        )
+
+    if resolution == "carried":
+        for field in ("successor_issue", "successor_workflow"):
+            if not _nonempty_text(retirement.get(field)):
+                errors.append(
+                    f"{label} carried retirement requires non-empty retirement.{field}"
+                )
+
+    affected_goals = retirement.get("affected_goals")
+    if not isinstance(affected_goals, list):
+        errors.append(f"{label} retirement.affected_goals must be a list")
+    return errors
+
+
+def _retirement_manifest_contract(
+    *,
+    repo_root: Path,
+    specs_dir: Path,
+    workflow: str,
+    index: int,
+    ticket: dict[str, Any],
+    receipt: str,
+) -> dict[str, Any]:
+    """Fields whose exact values distinguish retirement from successful close."""
+    return {
+        "schema_version": 1,
+        "kind": "ticket-retirement",
+        "entry_kind": "ticket-retirement",
+        "workflow_name": workflow,
+        "entry_name": retirement_entry_name(index, ticket),
+        "spec_root": _record_path(specs_dir, repo_root),
+        "ticket_plan": _record_path(ticket_plan_path(specs_dir), repo_root),
+        "receipt": receipt,
+        "ticket_index": index,
+        "ticket_id": ticket_id(ticket, index),
+        "ticket_status": TICKET_RETIRED_STATUS,
+        "ticket": ticket,
+        "retirement": ticket["retirement"],
+        "summary": ticket["retirement"]["reason"],
+        "snapshots": [],
+        "results": [],
+        "accept_new": False,
+        "guard_weakening": None,
+        "promotion": None,
+        "semantic_promotion": {"performed": False},
+        "validation": {"claimed": False},
+        "complexity_ledger": None,
+        "skill_feedback": None,
+    }
+
+
+def validate_retirement_receipt(
+    *,
+    repo_root: Path,
+    specs_dir: Path,
+    plan: dict[str, Any],
+    ticket: dict[str, Any],
+    index: int,
+    workflow: str,
+) -> list[str]:
+    """Verify that a retired plan entry has the exact receipt this tool writes."""
+    entry_dir, expected_receipt = canonical_retirement_receipt(
+        repo_root, specs_dir, workflow, index, ticket
+    )
+    errors = validate_retirement_declaration(
+        plan=plan,
+        ticket=ticket,
+        index=index,
+        expected_receipt=expected_receipt,
+    )
+    if errors:
+        return errors
+
+    manifest_path = entry_dir / "manifest.json"
+    if not manifest_path.is_file():
+        return [
+            f"ticket {ticket_id(ticket, index)} retirement receipt is missing: "
+            f"{expected_receipt}"
+        ]
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        return [
+            f"ticket {ticket_id(ticket, index)} retirement receipt is not valid JSON: {error}"
+        ]
+    if not isinstance(manifest, dict):
+        return [f"ticket {ticket_id(ticket, index)} retirement receipt must be a JSON object"]
+
+    expected_values = _retirement_manifest_contract(
+        repo_root=repo_root,
+        specs_dir=specs_dir,
+        workflow=workflow,
+        index=index,
+        ticket=ticket,
+        receipt=expected_receipt,
+    )
+    dynamic_fields = {
+        "created_at_utc",
+        "ticket_workdir",
+        "commit_recommendation",
+        "history_policy",
+        "git",
+    }
+    expected_fields = set(expected_values) | dynamic_fields
+    if set(manifest) != expected_fields:
+        missing = sorted(expected_fields - set(manifest))
+        extra = sorted(set(manifest) - expected_fields)
+        errors.append(
+            f"ticket {ticket_id(ticket, index)} retirement receipt schema mismatch: "
+            f"missing={missing}, extra={extra}"
+        )
+    for field, expected in expected_values.items():
+        if manifest.get(field) != expected:
+            errors.append(
+                f"ticket {ticket_id(ticket, index)} retirement receipt field "
+                f"{field!r} does not match the canonical value"
+            )
+
+    if not _nonempty_text(manifest.get("created_at_utc")):
+        errors.append(
+            f"ticket {ticket_id(ticket, index)} retirement receipt created_at_utc is missing"
+        )
+    else:
+        try:
+            datetime.fromisoformat(manifest["created_at_utc"])
+        except (TypeError, ValueError):
+            errors.append(
+                f"ticket {ticket_id(ticket, index)} retirement receipt "
+                "created_at_utc is not an ISO timestamp"
+            )
+
+    expected_commit = retirement_commit_recommendation(
+        repo_root=repo_root,
+        entry_dir=entry_dir,
+        ticket_plan=ticket_plan_path(specs_dir),
+        ticket=ticket_id(ticket, index),
+    )
+    expected_commit_record = {
+        "message": expected_commit.recommendation,
+        "git_add": expected_commit.git_add_command,
+        "git_commit": expected_commit.git_commit_command,
+    }
+    if manifest.get("commit_recommendation") != expected_commit_record:
+        errors.append(
+            f"ticket {ticket_id(ticket, index)} retirement receipt commit recommendation "
+            "does not match the canonical paths"
+        )
+    if manifest.get("history_policy") != RETIREMENT_HISTORY_POLICY:
+        errors.append(
+            f"ticket {ticket_id(ticket, index)} retirement receipt history_policy "
+            "does not match the canonical value"
+        )
+    git_record = manifest.get("git")
+    if not isinstance(git_record, dict) or set(git_record) != {
+        "inside_work_tree",
+        "branch",
+        "commit",
+    }:
+        errors.append(
+            f"ticket {ticket_id(ticket, index)} retirement receipt git metadata "
+            "does not match the canonical schema"
+        )
+    elif any(value is not None and not isinstance(value, str) for value in git_record.values()):
+        errors.append(
+            f"ticket {ticket_id(ticket, index)} retirement receipt git metadata "
+            "values must be strings or null"
+        )
+
+    ticket_workdir = manifest.get("ticket_workdir")
+    archived_dir = entry_dir / "ticket"
+    if ticket_workdir is None:
+        if archived_dir.exists():
+            errors.append(
+                f"ticket {ticket_id(ticket, index)} receipt has an unrecorded archived workspace"
+            )
+    elif not isinstance(ticket_workdir, dict):
+        errors.append(
+            f"ticket {ticket_id(ticket, index)} retirement receipt ticket_workdir must be null or a mapping"
+        )
+    else:
+        expected_workdir_fields = {
+            "role": "retired_ticket_workdir",
+            "snapshot": _record_path(archived_dir, repo_root),
+            "exists": True,
+            "moved": True,
+            "accepted": False,
+            "semantic_promotion_performed": False,
+            "validation_claimed": False,
+        }
+        if set(ticket_workdir) != set(expected_workdir_fields):
+            errors.append(
+                f"ticket {ticket_id(ticket, index)} retirement receipt ticket_workdir "
+                "schema does not match the canonical fields"
+            )
+        for field, expected in expected_workdir_fields.items():
+            if ticket_workdir.get(field) != expected:
+                errors.append(
+                    f"ticket {ticket_id(ticket, index)} retirement receipt ticket_workdir."
+                    f"{field} does not match the canonical value"
+                )
+        if not archived_dir.is_dir():
+            errors.append(
+                f"ticket {ticket_id(ticket, index)} receipt names a missing archived workspace"
+            )
+
+    summary_path = entry_dir / "summary.md"
+    if not summary_path.is_file():
+        errors.append(f"ticket {ticket_id(ticket, index)} retirement summary is missing")
+    else:
+        expected_summary = _render_retirement_summary(
+            workflow=workflow,
+            resolved_ticket_id=ticket_id(ticket, index),
+            retirement=ticket["retirement"],
+            ticket_workdir_record=ticket_workdir if isinstance(ticket_workdir, dict) else None,
+        )
+        if summary_path.read_text(encoding="utf-8") != expected_summary:
+            errors.append(
+                f"ticket {ticket_id(ticket, index)} retirement summary does not match "
+                "the canonical receipt text"
+            )
+    allowed_children = {"manifest.json", "summary.md"}
+    if ticket_workdir is not None:
+        allowed_children.add("ticket")
+    if entry_dir.is_dir():
+        unexpected = sorted(path.name for path in entry_dir.iterdir() if path.name not in allowed_children)
+        if unexpected:
+            errors.append(
+                f"ticket {ticket_id(ticket, index)} retirement receipt contains "
+                f"non-canonical artifacts: {unexpected}"
+            )
+    return errors
+
+
+def validate_successful_ticket_receipt(
+    *,
+    specs_dir: Path,
+    ticket: dict[str, Any],
+    index: int,
+    workflow: str,
+) -> list[str]:
+    """Require one successful-close receipt for a delivered plan entry."""
+    resolved_ticket_id = ticket_id(ticket, index)
+    root = history_root(specs_dir, workflow)
+    candidates: list[tuple[Path, dict[str, Any]]] = []
+    if root.is_dir():
+        for manifest_path in sorted(root.glob("*/manifest.json")):
+            try:
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if (
+                isinstance(manifest, dict)
+                and manifest.get("kind") == "ticket"
+                and manifest.get("ticket_id") == resolved_ticket_id
+            ):
+                candidates.append((manifest_path, manifest))
+
+    if len(candidates) != 1:
+        return [
+            f"ticket {resolved_ticket_id} must have exactly one successful close "
+            f"receipt under {root}, found {len(candidates)}"
+        ]
+
+    manifest_path, manifest = candidates[0]
+    errors: list[str] = []
+    receipt_index = manifest.get("ticket_index")
+    if type(receipt_index) is not int or receipt_index != index:
+        errors.append(
+            f"ticket {resolved_ticket_id} close receipt has the wrong immutable ordinal: "
+            f"expected {index}, got {receipt_index!r} ({manifest_path})"
+        )
+    if manifest.get("workflow_name") != workflow:
+        errors.append(
+            f"ticket {resolved_ticket_id} close receipt names another workflow: "
+            f"{manifest.get('workflow_name')!r} ({manifest_path})"
+        )
+    receipt_status = str(manifest.get("ticket_status", "")).strip().lower()
+    expected_status = ticket_status(ticket)
+    if receipt_status != expected_status or receipt_status not in TICKET_CLOSED_STATUSES:
+        errors.append(
+            f"ticket {resolved_ticket_id} close receipt status does not match the "
+            f"delivered plan entry: expected {expected_status!r}, got {receipt_status!r} "
+            f"({manifest_path})"
+        )
+    return errors
+
+
+def validate_workflow_ticket_completion(
+    *,
+    repo_root: Path,
+    specs_dir: Path,
+    plan: dict[str, Any],
+    allow_open: bool = False,
+    workflow: str | None = None,
+) -> list[str]:
+    """Validate successful closes and exact retirement receipts for a workflow."""
+    errors: list[str] = []
+    resolved_workflow = workflow_name(plan, workflow)
+    tickets = plan.get("tickets")
+    if not isinstance(tickets, list):
+        return [f"ticket plan has no tickets list: {ticket_plan_path(specs_dir)}"]
+    for index, ticket in enumerate(tickets):
+        if not isinstance(ticket, dict):
+            errors.append(f"ticket {index + 1} is not a mapping")
+            continue
+        status = ticket_status(ticket)
+        if status == TICKET_RETIRED_STATUS:
+            errors.extend(
+                validate_retirement_receipt(
+                    repo_root=repo_root,
+                    specs_dir=specs_dir,
+                    plan=plan,
+                    ticket=ticket,
+                    index=index,
+                    workflow=resolved_workflow,
+                )
+            )
+        elif status in TICKET_CLOSED_STATUSES:
+            errors.extend(
+                validate_successful_ticket_receipt(
+                    specs_dir=specs_dir,
+                    ticket=ticket,
+                    index=index,
+                    workflow=resolved_workflow,
+                )
+            )
+        elif not allow_open and status not in TICKET_CLOSED_STATUSES:
+            errors.append(
+                f"ticket {ticket_id(ticket, index)} is not closed: status={status or '(missing)'}"
+            )
+    return errors
 
 
 def commit_recommendation(entry_dir: Path, message: str, *, extra_paths: list[Path] | None = None) -> HistoryEntryResult:
@@ -908,6 +1405,253 @@ def record_complexity_ledger(
     return record
 
 
+def _successful_ticket_receipt(specs_dir: Path, workflow: str, ticket_ref: str) -> Path | None:
+    """Find an existing successful close for ``ticket_ref``, including custom entry names."""
+    root = history_root(specs_dir, workflow)
+    if not root.is_dir():
+        return None
+    for manifest_path in sorted(root.glob("*/manifest.json")):
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if (
+            isinstance(manifest, dict)
+            and manifest.get("kind") == "ticket"
+            and manifest.get("ticket_id") == ticket_ref
+        ):
+            return manifest_path
+    return None
+
+
+def _render_retirement_summary(
+    *,
+    workflow: str,
+    resolved_ticket_id: str,
+    retirement: dict[str, Any],
+    ticket_workdir_record: dict[str, Any] | None,
+) -> str:
+    successor_lines: list[str] = []
+    if retirement.get("successor_issue"):
+        successor_lines.append(f"- Successor issue: `{retirement['successor_issue']}`\n")
+    if retirement.get("successor_workflow"):
+        successor_lines.append(f"- Successor workflow: `{retirement['successor_workflow']}`\n")
+    archived = (
+        f"`{ticket_workdir_record['snapshot']}` (unaccepted)"
+        if ticket_workdir_record is not None
+        else "none"
+    )
+    return "".join(
+        [
+            f"# Retired ticket: {resolved_ticket_id}\n\n",
+            f"- Workflow: `{workflow}`\n",
+            f"- Resolution: `{retirement['resolution']}`\n",
+            f"- Decided by: `{retirement['decided_by']}`\n",
+            f"- Decided at: `{retirement['decided_at']}`\n",
+            *successor_lines,
+            f"- Archived ticket workspace: {archived}\n",
+            "- Semantic promotion performed: `false`\n",
+            "- Validation claimed: `false`\n",
+            "\n## Owner reason\n\n",
+            retirement["reason"].strip(),
+            "\n\nThis append-only receipt records a scheduling decision. It is not a "
+            "successful ticket close and claims no validated program change.\n",
+        ]
+    )
+
+
+def _write_retirement_summary(
+    entry_dir: Path,
+    *,
+    workflow: str,
+    resolved_ticket_id: str,
+    retirement: dict[str, Any],
+    ticket_workdir_record: dict[str, Any] | None,
+) -> None:
+    (entry_dir / "summary.md").write_text(
+        _render_retirement_summary(
+            workflow=workflow,
+            resolved_ticket_id=resolved_ticket_id,
+            retirement=retirement,
+            ticket_workdir_record=ticket_workdir_record,
+        ),
+        encoding="utf-8",
+    )
+
+
+def _validate_staged_retirement_entry(
+    staging_dir: Path,
+    *,
+    manifest: dict[str, Any],
+    expected_summary: str,
+    has_ticket_workdir: bool,
+) -> None:
+    """Fail before publication if staged receipt bytes do not match their contract."""
+    manifest_path = staging_dir / "manifest.json"
+    summary_path = staging_dir / "summary.md"
+    try:
+        written_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        written_summary = summary_path.read_text(encoding="utf-8")
+    except (OSError, json.JSONDecodeError) as error:
+        raise RuntimeError(f"staged retirement receipt is unreadable: {error}") from error
+    if written_manifest != manifest:
+        raise RuntimeError("staged retirement manifest does not match its exact contract")
+    if written_summary != expected_summary:
+        raise RuntimeError("staged retirement summary does not match its exact contract")
+
+    expected_children = {"manifest.json", "summary.md"}
+    staged_ticket_dir = staging_dir / "ticket"
+    if has_ticket_workdir:
+        expected_children.add("ticket")
+        if staged_ticket_dir.is_symlink() or not staged_ticket_dir.is_dir():
+            raise RuntimeError(
+                "staged retirement ticket workspace must be a real directory, not a symlink"
+            )
+    actual_children = {path.name for path in staging_dir.iterdir()}
+    if actual_children != expected_children:
+        raise RuntimeError(
+            "staged retirement receipt has non-canonical top-level artifacts: "
+            f"{sorted(actual_children - expected_children)}"
+        )
+
+
+def create_ticket_retirement_entry(
+    *,
+    repo_root: Path,
+    spec_root: Path,
+    ticket_ref: str,
+    workflow: str | None = None,
+    ticket_root: Path = Path("tickets"),
+) -> HistoryEntryResult:
+    """Write the canonical no-promotion receipt for an owner-retired ticket."""
+    repo_root = repo_root.resolve()
+    specs_dir = resolve_spec_root(repo_root, spec_root)
+    plan = load_ticket_plan(specs_dir)
+    resolved_workflow = workflow_name(plan, workflow)
+    index, ticket = find_ticket(plan, ticket_ref)
+    resolved_ticket_id = ticket_id(ticket, index)
+    entry_dir, expected_receipt = canonical_retirement_receipt(
+        repo_root, specs_dir, resolved_workflow, index, ticket
+    )
+    declaration_errors = validate_retirement_declaration(
+        plan=plan,
+        ticket=ticket,
+        index=index,
+        expected_receipt=expected_receipt,
+    )
+    if declaration_errors:
+        raise SystemExit(
+            "ERROR: cannot retire ticket:\n"
+            + "\n".join(f"- {error}" for error in declaration_errors)
+        )
+
+    successful_receipt = _successful_ticket_receipt(
+        specs_dir, resolved_workflow, resolved_ticket_id
+    )
+    if successful_receipt is not None:
+        raise SystemExit(
+            f"ERROR: ticket {resolved_ticket_id} already has a successful close receipt: "
+            f"{_record_path(successful_receipt, repo_root)}"
+        )
+
+    # Resolve and confine the optional workspace before creating even an empty
+    # workflow history directory.  A refused external/parent path must be a
+    # no-op, not a partial retirement attempt.
+    active_dir = retirement_active_ticket_dir(
+        specs_dir, resolved_ticket_id, ticket_root
+    )
+    if active_dir.is_symlink():
+        raise SystemExit(
+            "ERROR: retire ticket refuses a symbolic-link ticket workspace; "
+            "the workspace root must be a real directory beneath the spec root"
+        )
+
+    make_history_appendable(specs_dir, resolved_workflow)
+    if entry_dir.exists():
+        raise SystemExit(f"ERROR: refusing to overwrite existing history entry: {entry_dir}")
+    retirement_root = history_root(specs_dir, resolved_workflow)
+    retirement_root.mkdir(parents=True, exist_ok=True)
+
+    staging_dir = Path(
+        tempfile.mkdtemp(
+            prefix=f".retire-{safe_segment(resolved_ticket_id)}-",
+            dir=retirement_root,
+        )
+    )
+    ticket_workdir_record: dict[str, Any] | None = None
+    staged_ticket_dir = staging_dir / "ticket"
+    try:
+        if active_dir.exists():
+            shutil.move(str(active_dir), str(staged_ticket_dir))
+            if staged_ticket_dir.is_symlink() or not staged_ticket_dir.is_dir():
+                raise RuntimeError(
+                    "staged retirement ticket workspace must be a real directory, "
+                    "not a symlink"
+                )
+            ticket_workdir_record = {
+                "role": "retired_ticket_workdir",
+                "snapshot": _record_path(entry_dir / "ticket", repo_root),
+                "exists": True,
+                "moved": True,
+                "accepted": False,
+                "semantic_promotion_performed": False,
+                "validation_claimed": False,
+            }
+
+        retirement = ticket["retirement"]
+        retirement_result = retirement_commit_recommendation(
+            repo_root=repo_root,
+            entry_dir=entry_dir,
+            ticket_plan=ticket_plan_path(specs_dir),
+            ticket=resolved_ticket_id,
+        )
+        manifest = _retirement_manifest_contract(
+            repo_root=repo_root,
+            specs_dir=specs_dir,
+            workflow=resolved_workflow,
+            index=index,
+            ticket=ticket,
+            receipt=expected_receipt,
+        )
+        manifest.update({
+            "created_at_utc": datetime.now(timezone.utc).isoformat(),
+            "ticket_workdir": ticket_workdir_record,
+            "commit_recommendation": {
+                "message": retirement_result.recommendation,
+                "git_add": retirement_result.git_add_command,
+                "git_commit": retirement_result.git_commit_command,
+            },
+            "history_policy": RETIREMENT_HISTORY_POLICY,
+            "git": git_metadata(),
+        })
+        write_manifest(staging_dir, manifest)
+        expected_summary = _render_retirement_summary(
+            workflow=resolved_workflow,
+            resolved_ticket_id=resolved_ticket_id,
+            retirement=retirement,
+            ticket_workdir_record=ticket_workdir_record,
+        )
+        (staging_dir / "summary.md").write_text(expected_summary, encoding="utf-8")
+        _validate_staged_retirement_entry(
+            staging_dir,
+            manifest=manifest,
+            expected_summary=expected_summary,
+            has_ticket_workdir=ticket_workdir_record is not None,
+        )
+        staging_dir.replace(entry_dir)
+    except BaseException:
+        if (
+            (staged_ticket_dir.exists() or staged_ticket_dir.is_symlink())
+            and not (active_dir.exists() or active_dir.is_symlink())
+        ):
+            active_dir.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(staged_ticket_dir), str(active_dir))
+        if staging_dir.exists():
+            shutil.rmtree(staging_dir)
+        raise
+    return retirement_result
+
+
 def create_ticket_history_entry(
     *,
     repo_root: Path,
@@ -929,6 +1673,13 @@ def create_ticket_history_entry(
     index, ticket = find_ticket(plan, ticket_ref)
     resolved_ticket_id = ticket_id(ticket, index)
     status = ticket_status(ticket)
+    if status == TICKET_RETIRED_STATUS:
+        raise SystemExit(
+            f"ERROR: ticket {resolved_ticket_id} is retired; use "
+            f"`tla-spec-dev --spec-root {spec_root} retire ticket {resolved_ticket_id}`. "
+            "A retirement receipt cannot promote desired/current state or claim validation, "
+            "even with --allow-open."
+        )
     if not allow_open and status not in TICKET_CLOSED_STATUSES:
         raise SystemExit(f"ERROR: ticket {resolved_ticket_id} is not closed in ticket_plan.yaml: status={status or '(missing)'}")
 
@@ -1112,14 +1863,18 @@ def create_workflow_closed_snapshot(
     plan = load_ticket_plan(specs_dir)
     resolved_workflow = workflow_name(plan, workflow)
     tickets = plan["tickets"]
-    if not allow_open:
-        open_tickets = [
-            f"{ticket_id(ticket, index)}: {ticket_status(ticket) or '(missing)'}"
-            for index, ticket in enumerate(tickets)
-            if isinstance(ticket, dict) and ticket_status(ticket) not in TICKET_CLOSED_STATUSES
-        ]
-        if open_tickets:
-            raise SystemExit("ERROR: cannot write closed workflow snapshot with open tickets:\n" + "\n".join(f"- {item}" for item in open_tickets))
+    completion_errors = validate_workflow_ticket_completion(
+        repo_root=repo_root,
+        specs_dir=specs_dir,
+        plan=plan,
+        allow_open=allow_open,
+        workflow=resolved_workflow,
+    )
+    if completion_errors:
+        raise SystemExit(
+            "ERROR: cannot write closed workflow snapshot with incomplete or invalid tickets:\n"
+            + "\n".join(f"- {item}" for item in completion_errors)
+        )
 
     # MF-019: workflow close records a ledger entry too, measured against the
     # promoted whole-program model. Same gate, same refusal, evaluated before
