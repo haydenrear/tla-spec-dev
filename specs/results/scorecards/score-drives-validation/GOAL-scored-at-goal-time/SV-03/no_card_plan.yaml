@@ -1,0 +1,135 @@
+# SV-03. A project with NO CARD, designed for first and demonstrated rather
+# than asserted.
+#
+# This is a complete, valid epic plan for a project that has never heard of a
+# scorecard: two goals, both decided by a command, no rubric, no dimension, no
+# judge, no `scorecard.json` anywhere. It is the subject of the before/after in
+# `analysis/no_card_project_unaffected.sh`, which runs
+# `git-epic-workflow/scripts/validate_epic_plan.py` over it from a PRISTINE
+# copy of the skill and from a copy with all four proposed diffs applied, and
+# diffs the two outputs.
+#
+# The claim being demonstrated is `the_card_is_never_mandatory`: this plan
+# validates identically before and after, and a reader of the patched files
+# never enters a sentence about a judged instrument, because every added block
+# opens with a conditional this plan does not satisfy.
+#
+# Loads with BOTH loaders. Pinned by tests/test_goal_baseline_is_a_card.py.
+version: 1
+name: ingest-latency-epic
+updated: null
+purpose: >-
+  Batched ingest cuts tail latency without losing throughput. The bench at bench/ingest.sh decides both goals, and it is the only instrument this epic has.
+status:
+  workflow: ingest-latency-epic
+  active_ticket: null
+  active_ticket_title: null
+  desired_module: Ingest
+  phase: planning
+epic:
+  id: ingest-latency
+  branch: epic/ingest-latency
+  default_branch: main
+  base_sha: 8f21c0d
+  schedule_revision: 1
+deferment_policy:
+  mode: batch
+  blocking: escalate
+  budget: 5
+  backlog: specs/desired_program_model/deferred_findings.yaml
+epic_goals:
+  - id: GOAL-ingest-p99
+    kind: perf
+    statement: >-
+      Batched ingest cuts tail latency without losing throughput.
+    metric: >-
+      p99 request latency over the ingest bench, three runs, median reported.
+    harness: bench/ingest.sh
+    baseline:
+      value: p99 412ms
+      measured_at: 8f21c0d
+      evidence: results/epic-ingest/goals/GOAL-ingest-p99/baseline.json
+    target: p99 <= 250ms
+    evaluation_ticket: ING-02
+    evidence_root: results/epic-ingest/goals/GOAL-ingest-p99
+  - id: GOAL-throughput-held
+    kind: perf
+    statement: >-
+      Throughput does not regress while tail latency falls.
+    metric: >-
+      Sustained events per second over the same bench run.
+    harness: bench/ingest.sh
+    baseline:
+      value: 41200 events/s
+      measured_at: 8f21c0d
+      evidence: results/epic-ingest/goals/GOAL-throughput-held/baseline.json
+    target: no worse than 40000 events/s
+    evaluation_ticket: ING-02
+    evidence_root: results/epic-ingest/goals/GOAL-throughput-held
+tickets:
+  - id: ING-01
+    title: Batch the ingest write path
+    status: planned
+    schedule_revision: 1
+    depends_on: []
+    blocks: [ING-02]
+    wave: 1
+    promotion_order: 10
+    promotion_predecessor: null
+    conflict_keys:
+      production: [src/ingest/]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: >-
+      Batch writes on the ingest path behind the existing port, with no change to the public contract.
+    desired_actions: []
+    implementation_scope: [src/ingest/]
+    goals:
+      - goal: GOAL-ingest-p99
+        contribution: direct
+        expected_effect: p99 falls once writes are batched.
+        local_signal: bench/ingest.sh --quick
+      - goal: GOAL-throughput-held
+        contribution: guard
+        expected_effect: none expected
+        local_signal: bench/ingest.sh --quick
+    acceptance:
+      commands: [pytest tests -q]
+      assertions: [The public contract is unchanged., The bench runs on the ticket worktree.]
+    model_delta_expectation: none expected
+  - id: ING-02
+    title: 'EVALUATION: did batching move the tail?'
+    status: planned
+    schedule_revision: 1
+    depends_on: [ING-01]
+    blocks: []
+    wave: 2
+    promotion_order: 20
+    promotion_predecessor: ING-01
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [results/epic-ingest/]
+    objective: >-
+      Run the bench unmodified on the integrated tip from a fresh start and report baseline, measured and target for both goals.
+    desired_actions: []
+    implementation_scope: [results/epic-ingest/]
+    goals:
+      - goal: GOAL-ingest-p99
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-throughput-held
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+    acceptance:
+      commands: [pytest tests -q]
+      assertions: [Both goals reported with a verdict., The bench is run unmodified.]
+    model_delta_expectation: none expected
+    role: evaluation
+    owns_goals: [GOAL-ingest-p99, GOAL-throughput-held]
