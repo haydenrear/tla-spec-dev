@@ -1,0 +1,126 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket SV-06",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-06/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-06/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-06/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The four-file surface confirmed, including that spec-double-compiler's matches are a bundled record.",
+        "goal-signal.md and regression-close.md read and reported on BEFORE any proposal.",
+        "Where the score belongs in the lifecycle, and which seams are the wrong places.",
+        "How a project with no card is unaffected -- absence designed for first.",
+        "An explicit hand-off naming the smallest set of changes SV-07 must build.",
+        "NO production code and NO skill edits."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "SV-03",
+      "SV-07",
+      "SV-05"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "references/goal_score_wiring.md"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/238",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "The wiring question moves from never-asked to designed, with the existing hooks reported on.",
+        "goal": "GOAL-scored-at-goal-time",
+        "local_signal": "the design, and the four-file hand-off"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none -- regression-close is the loop's consumption seam",
+        "goal": "GOAL-loop-reaches-the-program",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-validation-is-scorable",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-caveat-discriminates",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "SV-06",
+    "implementation_scope": [
+      "references/",
+      "specs/results/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "A RESEARCH TICKET -- design and evidence, NO production code and NO EDITS TO ANY SKILL. The goal process spans the skills that create issues, run tickets and schedule epics, and NOTHING IN ANY OF THEM REACHES THE SCORECARD. The entire cross-skill surface is THREE SKILLS AND FOUR FILES: one cross-reference in git-epic-workflow/references/goals-and-evaluation.md, git-issue-workflow's goal-signal.md, and git-issue's SKILL.md and regression-close.md -- and spec-double-compiler's ~990 matches are its bundled copy of THIS repository's record, which must be confirmed rather than assumed. READ goal-signal.md AND regression-close.md FIRST: goal-signal machinery and a regression-close path ALREADY EXIST, and the most valuable outcome may be that the hooks are there and nothing populates them. Decide where in the lifecycle the score belongs and which seams are WRONG places; what can cross a skill boundary and what is meaningless outside the project that produced it; and how this survives a project that does not use the card, WHICH IS MOST OF THEM. DO NOT DESIGN A FRAMEWORK -- four files, and if the answer is two sentences and one field that is a better result than an architecture.",
+    "promotion_order": 30,
+    "promotion_predecessor": "SV-02",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "RESEARCH: wiring the score into the goal process across every skill that mentions it",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-06/specs/tickets/SV-06",
+  "ticket_id": "SV-06",
+  "ticket_index": 2,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-06/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-06/specs/tickets"
+}

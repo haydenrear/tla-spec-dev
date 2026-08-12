@@ -11968,4 +11968,309 @@ findings:
       ticket reading the number can trust it. Do NOT add either file to `GUARDED`
       without the comparison that guarding requires -- `score_tools.NAMES` is the
       standard the test sets and a charter cannot meet it.
+    disposition: repaired
+    disposition_ticket: "epic owner, commit 2059500, merged at b999d71"
+    disposition_note: >-
+      REPAIRED BY THE OWNER, AND WITH THE POINTER RATHER THAN A CORRECTED COPY --
+      which is the fix `tests/test_card_has_one_home.py`'s own docstring asks for
+      ("the fix is a POINTER, never a corrected copy") and the one this finding
+      recommended as option (a). Both `SCORE-DRIVES-VALIDATION-EPIC.md` and
+      `specs/desired_program_model/ticket_plan.yaml` now point a reader at
+      `serve` instead of restating which dimensions version 5 scores.
+
+      VERIFIED BY SV-02 AT THE RECONCILED TREE, not taken on report:
+      `test_card_has_one_home.py` is 8 passed, and the full suite at the merge of
+      `b999d71` into `feature/SV-02` is 2 failed, 1499 passed against 3 failed,
+      1499 passed at `a527305`. The epic now carries the two inherited reds its
+      charter declares -- `RM-06-DF-01` and the pricer grep -- and no third.
+
+      Independently found by SV-06, which escalated it in its RESULT rather than
+      filing because its budget of five was spent. Two tickets reaching the same
+      undeclared red from different work is why it is recorded here rather than
+      only fixed.
+  - id: SV-06-DF-01
+    found_by: "SV-06"
+    found_at_commit: "a527305"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      THE EPIC'S OWN BASELINE FOR `GOAL-scored-at-goal-time` IS FALSE IN ITS
+      LOUDEST CLAUSE. It reads "NO GOAL HAS EVER BEEN KEYED TO A DIMENSION", and
+      `SCORE-DRIVES-VALIDATION-EPIC.md` section 3 and issue #238 repeat it.
+
+      Measured over every `ticket_plan.yaml` on disk at `a527305`, live and
+      sealed: of 27 distinct epic goals, 12 name a scorecard dimension in their
+      statement, metric, harness or target. `GOAL-D2-can-move`
+      (`subtract-to-measure`, one epic ago) is the clearest counterexample --
+      metric "D2 scored by two blind judges on the toolchain's removal, before
+      against after, per judge", baseline "D2 = 2 on 27 of 27 cards ever written
+      about the A/B example", target "D2 reaches 3 or more on the removal".
+      `GOAL-dimensions-replicate` (`portable-substrate`) is a second.
+
+      THE TRUE FIGURE IS SHARPER AND IT IS THE ONE THE EPIC WANTED. Of those 27
+      goals, ZERO have a `baseline.evidence` that points at a sealed
+      `scorecard.json`, while 87 sealed cards sit in
+      `specs/results/scorecards/`. All 25 distinct `baseline.evidence` values are
+      a directory, a `RESULT.md`, a `SELF-IMPROVEMENT.md` line range or a
+      reference page. A goal here has described a score twelve times and has
+      never been one.
+    reproduction: >-
+      `uv run --with pyyaml python3
+      specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-06/analysis/goal_score_survey.py`
+      -- it prints the 27, the 12, the 0, the 25 distinct evidence values and the
+      87 cards, and names the tree it computed them over. Roughly one second.
+    evidence:
+      - "specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-06/survey.txt"
+      - "specs/.history/subtract-to-measure-epic/ticket-005-SM-05/snapshots/desired_program_model/ticket_plan.yaml -- GOAL-D2-can-move"
+      - "specs/.history/portable-substrate-epic/ticket-002-RM-06/snapshots/desired_program_model/ticket_plan.yaml -- GOAL-dimensions-replicate"
+      - "references/goal_score_wiring.md section 1"
+    why_out_of_scope: >-
+      A goal `baseline` block is a sealed measurement and `ticket_plan.yaml` is
+      not in SV-06's `implementation_scope` (`references/`, `specs/results/`).
+      The epic's own discipline is that a target is never moved after a result is
+      known and a baseline is the target's other half; editing one mid-epic, even
+      to correct it, is the move the plan forbids. Same treatment as
+      `PA-01-DF-01`.
+    suggested_fix: >-
+      The owner amends the baseline's first clause to the measured one -- "12 of
+      27 goals name a dimension in prose; ZERO carry a scored baseline; 87 sealed
+      cards are cited by no goal" -- WITHOUT weakening the target, which is
+      unaffected and still correct. Alternatively SV-05 records the correction
+      beside the goal verdict, which is the treatment this project already
+      prescribes for a sealed number that has gone stale.
+    blast_radius: >-
+      The goal's target ("a goal can be scored at declaration and the evaluation
+      compares against the sealed number") is UNAFFECTED and is still the right
+      target -- the corrected baseline makes it easier to reach, not harder,
+      because the prose half is already done twelve times. What is affected is
+      SV-03's and SV-07's framing: an implementer told "no goal has ever been
+      keyed to a dimension" will build a keying mechanism, and the record says
+      keying is the part that works and the SCORED BASELINE is the part that has
+      never happened.
+    disposition: open
+  - id: SV-06-DF-02
+    found_by: "SV-06"
+    found_at_commit: "a527305"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["$SKILL_MANAGER_HOME/skills/git-epic-workflow/references/goals-and-evaluation.md"]
+    summary: >-
+      A SKILL RULE WITH A COMPLIANCE RATE OF ZERO IN THE PROJECT THAT IT NAMES.
+      `git-epic-workflow/references/goals-and-evaluation.md`, under Baselines,
+      says: "A judged baseline is a prior scored run, not a recollection.
+      `baseline.value` cites the sealed card that produced the number and
+      `baseline.evidence` points at it, so the comparison is against a record
+      that cannot be edited afterwards."
+
+      Of 27 distinct epic goals in this repository at `a527305`, 0 comply. The
+      instruction is correct, unambiguous, and has never been followed here --
+      including by the four goals of the epic that opened to fix exactly this.
+
+      AND THE FILE HAS NO BRANCH THAT WOULD PRODUCE COMPLIANCE. Its Baselines
+      section offers exactly two: "harness exists" -> measure at kickoff, and
+      "harness does not exist" -> schedule a wave-1 ticket. A judged instrument
+      that EXISTS but has never been run on this subject is in neither, and the
+      judged paragraph above only says how to cite a PRIOR run. An epic whose
+      subject has never been scored has no branch to follow, and 0 of 27 is what
+      following no branch looks like.
+    reproduction: >-
+      The survey script above prints all 25 distinct `baseline.evidence` values;
+      none contains `scorecard.json`. Read
+      `$SKILL_MANAGER_HOME/skills/git-epic-workflow/references/goals-and-evaluation.md`
+      lines 137-174 for the two branches and the judged-baseline paragraph.
+    evidence:
+      - "specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-06/survey.txt"
+      - "references/goal_score_wiring.md sections 1, 4 and 7"
+    why_out_of_scope: >-
+      SV-06 is a RESEARCH ticket and is forbidden from editing any skill. The
+      repair is SV-07's entry 1 and 2, and it is proposed there as a diff.
+    suggested_fix: >-
+      SV-07 entry 1: add the third branch -- judged harness, subject never scored
+      -> run it at epic kickoff on the epic branch before any ticket lands, seal
+      it, cite the card. SV-07 entry 2: one sentence that a directory is not a
+      card. NO CHECK. The 0-of-27 figure argues for a sentence, not for a
+      checker, and `no_new_gates_rule` applies.
+    blast_radius: >-
+      Every judged goal this project has ever declared is compared against a
+      paragraph rather than a number. That is not a wrong result anywhere --
+      the evaluation tickets ran the card correctly and reported what they
+      measured -- but no evaluation in the record could re-read its own baseline,
+      which is the property `GOAL-scored-at-goal-time` exists to obtain.
+    disposition: open
+  - id: SV-06-DF-03
+    found_by: "SV-06"
+    found_at_commit: "a527305"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml", "SCORE-DRIVES-VALIDATION-EPIC.md"]
+    summary: >-
+      THE SURVEYED SURFACE IS SIX FILES, NOT FOUR. The epic charter, the plan's
+      `GOAL-scored-at-goal-time` baseline and issue #238 all state "THREE SKILLS
+      AND FOUR FILES". Three skills is right. Re-run at `a527305` over
+      `/scorecard|score_tools|rubric/`, excluding each skill's own installed
+      dependencies, the surface is six:
+
+        git-epic-workflow/references/goals-and-evaluation.md   (surveyed)
+        git-issue-workflow/references/goal-signal.md           (surveyed)
+        git-issue/SKILL.md                                     (surveyed)
+        git-issue/references/regression-close.md               (surveyed)
+        git-issue-workflow/SKILL.md                            (MISSED)
+        git-issue/references/discovery.md                      (MISSED)
+
+      `discovery.md` is the one that matters. It is the MEASUREMENT INVENTORY --
+      the seam where an issue author asks what instrument decides a goal, BEFORE
+      the goal is written -- and it already answers correctly: "an artifact scored
+      against a versioned rubric by judges who cite it is an instrument, and in
+      some repositories it is the better one". A survey of where the score can
+      reach the goal process that omits the file asking "what is the instrument?"
+      has omitted the earliest seam in the lifecycle.
+    reproduction: >-
+      `grep -rlEi 'scorecard|score_tools|rubric' git-epic-workflow git-issue-workflow git-issue`
+      from `$SKILL_MANAGER_HOME/skills`, or the survey script's second section,
+      which excludes `.venv`/`__pycache__` by name (without that exclusion the
+      count is 7 and the seventh is a pygments lexer).
+    evidence:
+      - "specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-06/survey.txt"
+      - "references/goal_score_wiring.md section 3"
+    why_out_of_scope: >-
+      Same as SV-06-DF-01: the figure sits inside a sealed `baseline.value` and
+      in the epic charter, neither in SV-06's implementation scope.
+    suggested_fix: >-
+      Amend the count where the owner amends SV-06-DF-01, or let SV-05 record it
+      beside the verdict. NEITHER MISSED FILE NEEDS AN EDIT -- `discovery.md` is
+      already correct and `git-issue-workflow/SKILL.md`'s mention is a one-line
+      summary of the evaluation role. This is a scope correction, not new work.
+    blast_radius: >-
+      No design conclusion changes; SV-07's hand-off is unaffected and still
+      touches at most four files. What is affected is any future claim of the
+      form "the entire surface is four files", which is now wrong by two and
+      would be read forward.
+    disposition: open
+  - id: SV-06-DF-04
+    found_by: "SV-06"
+    found_at_commit: "a527305"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["SKILL.md"]
+    summary: >-
+      THE SHIPPED SKILL DESCRIPTION OF THE CARD DESCRIBES A CARD THAT NO LONGER
+      EXISTS. `SKILL.md:1337` reads: "`references/eval_scorecard.md`: THE
+      EVALUATION RUBRIC. Five judged dimensions (bug detection, complexity,
+      modularity, behavior preservation, honesty)".
+
+      At `a527305` the card is Scorecard version 5 and serves TWO judged
+      dimensions -- D2 complexity and D3 modularity -- plus three RECORDED NOTES
+      that take no score, `N-D1`, `N-D4` and `N-D5`. `check` REJECTS a version 4
+      or 5 card that scores D1, D4 or D5. The retirement is the headline result
+      of `portable-substrate` and is recorded in `references/eval_scorecard.md`
+      and `references/portable_scorecard.md`.
+
+      This is not an internal note. `SKILL.md` is the unit description, and the
+      installed `spec-double-compiler` unit at
+      `$SKILL_MANAGER_HOME/skills/spec-double-compiler/` is this repository --
+      `.git` present, `references/eval_scorecard.md` byte-identical to the copy
+      at `a527305`. So the first sentence any agent or adopter reads about the
+      card names five scored dimensions, three of which the checker refuses.
+    reproduction: >-
+      `sed -n '1337,1339p' SKILL.md` against `grep -n 'Scorecard version'
+      references/eval_scorecard.md` (version 5) and
+      `python3 examples/validation/scorecards/score_tools.py serve | grep '^### D'`
+      -- two dimensions, D2 and D3.
+    evidence:
+      - "SKILL.md:1337"
+      - "references/eval_scorecard.md:3 -- Scorecard version 5"
+      - "references/eval_scorecard.md -- 'dimensions carries D2 and D3 and nothing else from version 4'"
+    why_out_of_scope: >-
+      `SKILL.md` is not in SV-06's `implementation_scope` (`references/`,
+      `specs/results/`), and SV-06 ships no production or documentation change
+      outside its design page. It is also not a one-word fix: the sentence
+      describes the anchors and the gaming rules too, and rewriting it is a
+      documentation slice with its own review.
+    suggested_fix: >-
+      Rewrite the entry to "two judged dimensions (complexity, modularity) and
+      three recorded notes that take no score (bug detection, behavior
+      preservation, honesty)", and say WHY the three were retired -- they graded
+      toolchain ownership -- because that reason is the most transferable thing
+      the card has learned and it currently appears nowhere in `SKILL.md`. Then
+      write the test against what the card file DECLARES and never against the
+      literal 5, per `CL-03-DF-04`.
+    blast_radius: >-
+      Anyone scaffolding from this description expects five scored dimensions and
+      gets a `check` refusal on three of them. It also inflates every informal
+      account of what the card measures, in the direction the epic charter warns
+      about: the card is smaller than its own advertisement.
+    disposition: open
+  - id: SV-06-DF-05
+    found_by: "SV-06"
+    found_at_commit: "a527305"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/portable_scorecard.md"]
+    summary: >-
+      THE TOP ITEM OF THE IRREDUCIBLY-LOCAL LIST WAS FIXED BY THE EPIC THAT
+      FOLLOWED IT, AND THE PAGE STILL SHIPS IT AS CURRENT. `references/portable_scorecard.md`
+      section 2 item 1 names "D1 anchor 4, D4 anchors 3 and 4, and D2 anchor 4's
+      D4 gate" as "not expensive -- UNREACHABLE", and calls those three clauses
+      "the whole of the difference between grading architecture and grading
+      conformance to a toolchain".
+
+      At version 5: D1 and D4 take no score at all, D2's top anchor is 3 so there
+      is no anchor 4 to gate, and D2's preamble reads "where none exists that is
+      not a gap in the evidence" -- which is precisely what section 5 of the same
+      page asked for ("their outputs must stop being a precondition of a D2
+      score"). Item 1 is settled. The list has not been revised, and the page is
+      still cited as live prior art, including by this ticket's own work order.
+    reproduction: >-
+      `references/portable_scorecard.md` section 2 item 1 against
+      `python3 examples/validation/scorecards/score_tools.py serve` -- D2 stops at
+      anchor 3, D1 and D4 are recorded notes with no ladder.
+    evidence:
+      - "references/portable_scorecard.md -- section 2 item 1 and section 5 item 1"
+      - "references/eval_scorecard.md -- version 5, D2 anchors 0-3, N-D1/N-D4/N-D5"
+      - "references/goal_score_wiring.md section 5, correction 3"
+    why_out_of_scope: >-
+      A predecessor's statement at a predecessor's scope is not edited to match a
+      successor's finding. `RM-02` applied exactly this rule to
+      `references/architecture_tags.md` section 2.2 and filed `RM-02-DF-04`
+      rather than rewriting it; the same treatment is owed to `RM-02`'s own page.
+    suggested_fix: >-
+      Do NOT edit section 2. Add a dated one-line header note to the page saying
+      which of its six items the following epics settled and which still stand,
+      the way a sealed card carries a note rather than an edit. Item 1 is
+      settled; items 2, 3, 5 and 6 appear to stand and were not re-checked by
+      SV-06; item 4's rule/table split generalises and is restated in
+      `references/goal_score_wiring.md` section 5.
+    blast_radius: >-
+      A reader planning adoption today is told the card's top portability
+      obstacle is three unreachable model clauses. It is not, and has not been
+      for one epic. The direction of the error is the flattering one for the
+      obstacle and the unflattering one for the card's actual state, which is
+      that it is now SMALLER and more portable than its own portability page
+      says.
     disposition: open

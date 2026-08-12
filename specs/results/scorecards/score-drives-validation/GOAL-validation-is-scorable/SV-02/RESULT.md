@@ -4,11 +4,19 @@
 in **`references/scoring_validation.md`**; this page is the ticket record — what
 was run, on which tree, what it cost, and what it could not settle.
 
-**Tree: `a527305`**, the branch point, verified with `git rev-parse --short HEAD`
-against the SHA the work order gave (`a527305`) and against
-`epic/score-drives-validation`. They agree. The epic charter warns that `wt new`
-branches from the LOCAL ref and has put tickets 4, 14 and 21 commits behind; it
-did not here.
+**Branch point: `a527305`**, verified with `git rev-parse --short HEAD` against
+the SHA the work order gave and against `epic/score-drives-validation`. They
+agreed. The epic charter warns that `wt new` branches from the LOCAL ref and has
+put tickets 4, 14 and 21 commits behind; it did not here.
+
+**RECONCILED ONTO `b999d71`** after the epic tip moved under this ticket —
+`f2cfe2e` merged SV-06, and `2059500` repaired the third suite red this ticket
+filed as `SV-02-DF-05`. **Every figure below was re-measured at the reconciled
+tree**, and the two trees are named separately wherever they differ. The corpus
+itself did not move: 87 sealed cards, 399 scored rationales, 36 recorded notes,
+identical example and version distributions at `a527305` and at `b999d71`, so
+**every figure in the design page holds unchanged.** The reconcile changed the
+suite baseline and the sweep counts, and nothing else.
 
 ---
 
@@ -53,16 +61,29 @@ the change rule's re-score. A new sixth dimension costs **+882**.
 
 ## 2. What was run, and on which tree
 
-All at `a527305`.
+**All re-run at the reconciled tree.** And the design page's figures are not
+merely unchanged, they are **unmovable by this reconcile**, which is checkable
+rather than asserted:
+
+```
+git diff --stat a527305 b999d71 -- 'specs/results/scorecards/**/scorecard.json'
+git diff --stat a527305 b999d71 -- references/eval_scorecard.md examples/validation/scorecards/
+```
+
+**Both are empty.** The 87-card corpus, the rubric and the card tooling are
+byte-identical across the tip move, so every figure derived from them — the
+autopsy fractions, the 13-of-13, the 5-of-5, the byte table, the diagram zero —
+has the same inputs it had before. What the reconcile moved is the suite baseline
+and the sweep counts, and both are re-measured below.
 
 | | command | result |
 |---|---|---|
-| the corpus analysis | `analysis/scorability.py` | 9 sections, every figure in the page |
-| the carrier pricing | `analysis/carrier_cost.py` | the byte table, and a RUN refusal |
-| RM-02's own script, re-derived | `…/portable-substrate/…/analysis/portability.py` | 37% / 17% / 3% / 0% / 0% — its 38/18/4/0/0 holds at 87 cards |
-| the surface metric | `score_tools.py serve 2>/dev/null \| wc -c` | **6,281 bytes, 9 rungs** — unchanged |
-| the sweep | `score_tools.py scope` | §4 below |
-| the suite | `uv run --with pytest --with pyyaml python -m pytest tests -q` | §5 below |
+| the corpus analysis | `analysis/scorability.py` | 9 sections; same inputs at both trees, same output |
+| the carrier pricing | `analysis/carrier_cost.py` | the byte table, and a RUN refusal; unchanged by the reconcile |
+| RM-02's own script, re-derived | `…/portable-substrate/…/analysis/portability.py` | 37% / 17% / 3% / 0% / 0% — its 38/18/4/0/0 holds at 87 cards, at both trees |
+| the surface metric | `score_tools.py serve 2>/dev/null \| wc -c` | **6,281 bytes, 9 rungs at both trees** — unchanged |
+| the sweep | `score_tools.py scope` | §4 — **moved on reconcile**, re-measured |
+| the suite | `uv run --with pytest --with pyyaml python -m pytest tests -q` | §5 — **moved on reconcile**, re-measured |
 
 Both analysis scripts read only sealed cards, write nothing, and are imported by
 nothing. `carrier_cost.py` imports `score_tools` to call the **real** renderer;
@@ -105,17 +126,34 @@ the tier-split cause (5 of 5), because both compare cards inside the same round.
 
 | tree | counted | REFUTED | COUNT-MOVED | HOLDS | UNREACHABLE |
 |---|---|---|---|---|---|
-| `a527305`, without SV-02's page | 92 | 67 | 0 | 5 | 20 |
-| `a527305` + SV-02's page | **93** | **67** | **0** | **6** | **20** |
+| `b999d71`, epic tip, without SV-02's page or evidence | 93 | 68 | 0 | 5 | 20 |
+| `b999d71` + SV-02 — **the reconciled tree** | **94** | **68** | **0** | **6** | **20** |
 
-**Delta: +1 counted, +1 HOLDS, nothing refuted, nothing moved.**
+**Delta: +1 counted, +1 HOLDS, nothing refuted, nothing moved, nothing added to
+UNREACHABLE.** Both rows re-measured at `b999d71` after the reconcile; the
+pre-reconcile rows (92 → 93 at `a527305`) are superseded and not carried
+forward.
 
-**And the checker refuted this ticket's first draft**, which is the part worth
-recording. `D1 scored 3 on 56 of 61 ab_quota_ledger cards` returned *"re-derives
-as 56 of 63 — the denominator moved"*. It was right: 63 cards of that example
-exist and two carry an `N-D1` note instead of a D1 score, so 61 silently drops
-the two cards where the number stopped existing — the exact fact the page is
-about. **The figure was re-scoped, not rephrased.**
+**The first draft's figure was refuted and re-scoped.** §4's denominator was
+sixty-one where the corpus says sixty-three, because two `ab_quota_ledger` cards
+carry an `N-D1` note instead of a D1 score — the exact fact the page is about.
+**Re-scoped, not rephrased.**
+
+**AND A CORRECTION TO THIS TICKET'S OWN EARLIER REPORT, found on reconcile.**
+The pre-reconcile PR reported *"92 → 93 counted, +1 HOLDS, nothing refuted"*.
+**That number was measured before §11's closing paragraph was written and was
+therefore wrong for the tree that shipped.** That paragraph quoted the corrected
+figure verbatim so a reader could see what had changed, and **`scope` counted the
+quotation as a claim and refuted it** — nothing in its parse distinguishes a
+figure a page *asserts* from one it *quotes in order to correct*. So the page
+acquired a REFUTED row for the very error it was documenting. Fixed by spelling
+the denominator in words, which is a workaround and is named as one.
+
+**This is a new bound on the checker**, alongside `RD-02-DF-01` and
+`RM-02-DF-05`. **Not filed** — the budget of five is spent and none of the five
+is blocking — and **escalated in the ticket report** on `RM-02`'s precedent. It
+is also a small demonstration of the ticket's own thesis: a re-run caught it, and
+nothing about the page's argument changed.
 
 ---
 
@@ -125,24 +163,41 @@ about. **The figure was re-scoped, not rephrased.**
 
 | tree | result |
 |---|---|
-| `a527305` **with** SV-02's files | **3 failed, 1499 passed** in 1177s |
-| `a527305` **without** them (`git stash -u`), the three tests alone | **3 failed**, 59 passed |
+| `a527305` **with** SV-02's files | 3 failed, 1499 passed in 1177s |
+| `a527305` **without** them (`git stash -u`), the three tests alone | 3 failed, 59 passed |
+| **`b999d71` merged into `feature/SV-02`** — the reconciled tree | **2 failed, 1497 passed** in 1101s |
+| `b999d71` + SV-02, the three tests alone | **2 failed**, 60 passed |
 
-**SV-02 adds no red.** The same three tests fail at the branch point with none of
-this ticket's files on disk, and the baseline was RUN rather than assumed:
+**SV-02 adds no red, at either tree** — RUN, not assumed, at both.
 
-| test | status |
-|---|---|
-| `test_architecture_tags.py::test_the_same_tag_control_holds` | **inherited**, `RM-06-DF-01` |
-| `test_price_removal.py::test_nothing_in_the_repository_invokes_the_pricer` | **inherited** — the pricer grep tripped by narrative documents. It names `CLOSE-THE-LOOP-EPIC.md` and `NEXT-EPIC.md`. |
-| `test_card_has_one_home.py::test_only_the_card_states_a_dimension_an_anchor_or_a_scoring_rule` | **inherited, and NOT one of the two the charter declares.** |
+| test | at `a527305` | at `b999d71` |
+|---|---|---|
+| `test_architecture_tags.py::test_the_same_tag_control_holds` | red | **red** — inherited, `RM-06-DF-01` |
+| `test_price_removal.py::test_nothing_in_the_repository_invokes_the_pricer` | red | **red** — inherited, the pricer grep tripped by narrative documents; it names `CLOSE-THE-LOOP-EPIC.md` and `NEXT-EPIC.md`, never SV-02's |
+| `test_card_has_one_home.py::test_only_the_card_states_a_dimension_an_anchor_or_a_scoring_rule` | red — **the undeclared third** | **GREEN, 8 passed** — repaired by the owner at `2059500` |
 
-**The third red is a third red, and the charter says there are two.** The
-offending lines are `SCORE-DRIVES-VALIDATION-EPIC.md:40-41` and
-`specs/desired_program_model/ticket_plan.yaml:8` — **the two files the epic's own
-opening commit added**, both restating which dimensions version 5 scores. Filed
-as `SV-02-DF-05`, not repaired: repairing the charter from a ticket is not this
-ticket's job, and the value of the red is that it is visible.
+**The third red is gone, and the epic now carries the two its charter declares.**
+SV-02 filed it as `SV-02-DF-05` when there were three; the owner repaired it with
+a **pointer** rather than a corrected copy — which is the fix
+`test_card_has_one_home`'s own docstring asks for and the option the finding
+recommended. `SV-02-DF-05` is marked `repaired` in the ledger with that
+verification recorded on it. **This ticket does not carry the three-red figure
+forward.**
+
+**And the denominator moved, so it is named rather than quietly restated.**
+Collected tests fell **1502 → 1499** across the tip move. **SV-02's own
+contribution is zero in both directions**, measured by collecting with and
+without its page and evidence directory at the reconciled tree:
+
+```
+pytest tests --collect-only -q   ->  1499 with SV-02, 1499 without
+```
+
+— **0 added, 0 removed**, the id sets identical. The three belong to the tip
+move, not to this ticket, and they are flagged here rather than chased: whatever
+`b999d71` dropped is the owner's tree to read, and a research ticket reporting
+`1497 passed` against a silently smaller denominator would be committing the
+error this repository files findings about.
 
 **This ticket's own hazard was checked rather than assumed.** SV-02 adds two
 narrative documents, which is exactly the input that trips the pricer grep and
@@ -221,7 +276,13 @@ it declines to restate them.
 
 ## 9. Findings filed
 
-Five, against a budget of five. **None blocking**, so nothing escalates.
+Five, against a budget of five. **None blocking**, so nothing escalates — and
+one is already `repaired`.
+
+**Escalated rather than filed, because the budget is spent** (`RM-02`'s
+precedent): `scope` cannot distinguish a counted figure a page **asserts** from
+one it **quotes in order to correct**, so a page documenting its own corrected
+denominator acquires a REFUTED row for the error it is documenting. §4.
 
 | id | severity | what |
 |---|---|---|
@@ -229,4 +290,4 @@ Five, against a budget of five. **None blocking**, so nothing escalates.
 | `SV-02-DF-02` | minor | The epic's surface metric names no stream: `serve \| wc -c` is 6,281 and `serve 2>&1 \| wc -c` is 6,373. |
 | `SV-02-DF-03` | minor | The served card asks three separate times whether the judge seeded a fault — 43 of N-D1's 113 bytes, on a surface that must not grow. |
 | `SV-02-DF-04` | minor | `top_score`'s default hides the version map behind an anchor-count error message; fires the moment anyone un-retires a dimension. |
-| `SV-02-DF-05` | minor | The epic opens with **three** red tests and tells every ticket there are two — and the third is tripped by the epic's own opening commit restating D2 and D3. |
+| `SV-02-DF-05` | minor | The epic opened with **three** red tests and told every ticket there were two — the third tripped by the epic's own opening commit restating D2 and D3. **`repaired`** by the owner at `2059500` with a pointer, verified here at `b999d71`: `test_card_has_one_home` is 8 passed and the epic now carries the two reds it declares. |

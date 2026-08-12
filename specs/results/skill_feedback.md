@@ -2191,13 +2191,25 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
 
+## Close-out ticket SV-06
+
+- close_scope: ticket
+- close_id: SV-06
+- workflow: score-drives-validation-epic
+- closed_at: 2026-08-12T17:00:05+00:00
+- summary: SV-06 RESEARCH: the goal-score wiring already exists and has never been populated with a score. 27 goals, 12 dimension-keyed, 0 with a scored baseline, against 87 sealed cards. Design at references/goal_score_wiring.md; SV-07 hand-off is 4 prose edits across 3 skills, 0 fields, 0 bytes to serve. No production code, no skill edited.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
 ## Close-out ticket SV-02
 
 - close_scope: ticket
 - close_id: SV-02
 - workflow: score-drives-validation-epic
 - closed_at: 2026-08-12T17:13:11+00:00
-- summary: (none given)
+- summary: SV-02 RESEARCH: validation IS scorable without grading a toolchain, and the property was already in the card -- D4's retired anchor 4, "the check is demonstrated to be capable of failing", whose own sentence names no tool and which inherits toolchain-dependence only through the "3, and" chain. The locality is three clauses, not two dimensions: 13 of 13 of D4's machinery-citing anchor decisions name anchor 3, 26 of 28 of D1's name anchor 3 or 4. Autopsy fraction, RM-02's method with its patterns copied unchanged: 44 of 315 demonstration sentences (14.0%) over the record, and 1 of 30 (3%) in the ladder-free N-D1 notes, against D1's 37%. 5 of 5 D4 tier-split groups have every lower-tier card naming the model clause, so the card's stated reason for retiring D4 is a symptom of that clause. Carrier: a note prompt at -15 bytes, not a rung at +682 bytes and four permanent anchors. Adapter surfaces score with zero toolchain today; TLA+ models are unfalsified on this record; diagrams appear in 0 sentences across 0 of 87 cards. Design at references/scoring_validation.md. No production code.
 - feedback_status: unreviewed
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.

@@ -1,0 +1,145 @@
+........................................................................ [  4%]
+.............................................................F.......... [  9%]
+................F....................................................... [ 14%]
+........................................................................ [ 19%]
+........................................................................ [ 24%]
+........................................................................ [ 28%]
+........................................................................ [ 33%]
+........................................................................ [ 38%]
+........................................................................ [ 43%]
+........................................................................ [ 48%]
+........................................................................ [ 52%]
+........................................................................ [ 57%]
+........................................................................ [ 62%]
+........................................................................ [ 67%]
+...............................................................F........ [ 72%]
+........................................................................ [ 76%]
+........................................................................ [ 81%]
+........................................................................ [ 86%]
+........................................................................ [ 91%]
+........................................................................ [ 96%]
+..........................................................               [100%]
+=================================== FAILURES ===================================
+_______________________ test_the_same_tag_control_holds ________________________
+
+at = <module 'architecture_tags_rd05' from '/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-06/examples/validation/scorecards/architecture_tags.py'>
+world = {'subjects': {'arm_b': {'name': 'arm_b', 'example': 'ab_quota_ledger', 'scope': ['specs/results/scorecards/ports-as-ad...ful-vs-ports-and-adapters', 'axis': 'effect_boundary', 'example': 'eval_toolchain', 'dimension': 'D2', ...}, ...], ...}
+
+    def test_the_same_tag_control_holds(at, world) -> None:
+        """Without it any two artifacts pass, because any two differ in something.
+    
+        **THIS TEST IS DELIBERATELY RED (`RM-06`, group 2). DO NOT MAKE IT GREEN.**
+    
+        It is not pinned to a count the corpus grew. It is a CONTROL, it is now
+        reporting a real result, and the result is unflattering: nine same-tag pairs
+        separate — eight on D2 and one on D5 — every one of them a before-tree
+        scoring disjointly from an after-tree at the SAME derived value. RD-06's
+        three revision pairs gave this control its first within-value TREATMENT
+        difference and it cannot tell that apart from a difference in architecture
+        (`RD-03-DF-12`).
+    
+        The two repairs that would clear it were both rejected. Scoping the control
+        to the dimension the separation is claimed on (D3, where it still holds)
+        would make it a check about the row rather than about the axis. Excluding
+        revision pairs from the population would remove exactly the evidence the
+        control exists to see. Either one converts a measurement into a tautology,
+        which is the failure this epic family exists to prevent.
+    
+        Filed as `RM-06-DF-01`. It goes green when the axis can distinguish
+        treatment from architecture, or when the epic decides it cannot and says so.
+        """
+    
+        controls = at.same_tag_controls(world["rows"], world["derived"], world["subjects"])
+        assert controls, "no same-tag control is available; the separation is uncontrolled"
+        failed = [c for c in controls if c["separates"]]
+>       assert failed == [], (
+            f"{len(failed)} same-tag pair(s) separate: "
+            f"{[(c['dimension'], c['a'], c['b']) for c in failed]}. "
+            f"EXPECTED RED -- see this test's docstring and RM-06-DF-01. The control "
+            f"is reporting a real result and may not be narrowed to silence it."
+        )
+E       AssertionError: 9 same-tag pair(s) separate: [('D2', 'arm_a', 'rd06_artifact_D'), ('D2', 'arm_a', 'rd06_artifact_M'), ('D2', 'arm_c', 'rd06_artifact_D'), ('D2', 'arm_c', 'rd06_artifact_M'), ('D2', 'rd06_artifact_D', 'rd06_artifact_N'), ('D2', 'rd06_artifact_D', 'rd06_artifact_Z'), ('D5', 'rd06_artifact_E', 'rd06_artifact_F'), ('D2', 'rd06_artifact_M', 'rd06_artifact_N'), ('D2', 'rd06_artifact_M', 'rd06_artifact_Z')]. EXPECTED RED -- see this test's docstring and RM-06-DF-01. The control is reporting a real result and may not be narrowed to silence it.
+E       assert [{'example': ...l', ...}, ...] == []
+E         
+E         Left contains 9 more items, first extra item: {'example': 'ab_quota_ledger', 'a': 'arm_a', 'b': 'rd06_artifact_D', 'value': 'effectful', ...}
+E         Use -v to get more diff
+
+tests/test_architecture_tags.py:477: AssertionError
+______ test_only_the_card_states_a_dimension_an_anchor_or_a_scoring_rule _______
+
+offenders = {'SCORE-DRIVES-VALIDATION-EPIC.md': ['SCORE-DRIVES-VALIDATION-EPIC.md:40: states dimension D2 -- At version 5 it serve...n.md:144: states D3 anchor 3 -- - **3** — The domain does not import its I/O. An adapter could be replaced', ...], ...}
+
+    def test_only_the_card_states_a_dimension_an_anchor_or_a_scoring_rule(offenders):
+        """THE RULE, EXECUTED. This is the failing input M1, M2 and M3 could not find.
+    
+        A failure here is not a style complaint. It means a second statement of the
+        bar exists that nothing compares to the bar, which is how the two wrong rows
+        in `PORTS-AS-ADAPTERS-EPIC.md` survived an instrument change.
+    
+        The fix is a POINTER, never a corrected copy: link
+        `references/eval_scorecard.md`, and for results link
+        `specs/results/scorecards/SELF-IMPROVEMENT.md`.
+        """
+        unguarded = {k: v for k, v in offenders.items() if k not in GUARDED}
+        lines = [line for v in unguarded.values() for line in v]
+>       assert not lines, (
+            "the card is stated outside references/eval_scorecard.md:\n  "
+            + "\n  ".join(lines)
+            + "\n\nReplace the copy with a pointer. If the copy is load-bearing it has to be "
+              "compared to the card by something that runs -- add it to GUARDED and "
+              "demonstrate the comparison, as score_tools.NAMES does."
+        )
+E       AssertionError: the card is stated outside references/eval_scorecard.md:
+E           SCORE-DRIVES-VALIDATION-EPIC.md:40: states dimension D2 -- At version 5 it serves exactly two scored dimensions — **D2 complexity** and
+E           SCORE-DRIVES-VALIDATION-EPIC.md:41: states dimension D3 -- **D3 modularity**. `D1` (bug detection), `D4` (behavior preservation) and `D5`
+E           specs/desired_program_model/ticket_plan.yaml:8: states dimension D2 -- THREE MEASURED GAPS. (1) THE CARD CANNOT SCORE VALIDATION AND WE REMOVED THAT ABILITY ON PURPOSE: at version 5 it serves
+E           specs/desired_program_model/ticket_plan.yaml:8: states dimension D3 -- THREE MEASURED GAPS. (1) THE CARD CANNOT SCORE VALIDATION AND WE REMOVED THAT ABILITY ON PURPOSE: at version 5 it serves
+E         
+E         Replace the copy with a pointer. If the copy is load-bearing it has to be compared to the card by something that runs -- add it to GUARDED and demonstrate the comparison, as score_tools.NAMES does.
+E       assert not ['SCORE-DRIVES-VALIDATION-EPIC.md:40: states dimension D2 -- At version 5 it serves exactly two scored dimensions — **...EE MEASURED GAPS. (1) THE CARD CANNOT SCORE VALIDATION AND WE REMOVED THAT ABILITY ON PURPOSE: at version 5 it serves']
+
+tests/test_card_has_one_home.py:338: AssertionError
+______________ test_nothing_in_the_repository_invokes_the_pricer _______________
+
+    def test_nothing_in_the_repository_invokes_the_pricer() -> None:
+        """No new gates. Five epics of static checking caught zero bugs."""
+        hits = subprocess.run(
+            ["git", "grep", "-l", "price_removal"],
+            cwd=str(REPO_ROOT), capture_output=True, text=True,
+        ).stdout.split()
+        if not hits:
+            pytest.skip("no git history in this tree")
+        allowed = {
+            "examples/validation/gap_mutants/price_removal.py",   # itself
+            "tests/test_price_removal.py",                        # its tests
+            "examples/validation/instruments/instruments.toml",   # its registry row
+            "examples/validation/gap_mutants/residual_faults.toml",  # names it in a comment
+            # RM-03: `test_no_catalogue_mutant_could_have_priced_a_removal_and_it_says_so`
+            # explains in a comment why RM-03's mutants read `NOT-IN-TABLE` there --
+            # they were priced against their own before-table, with THIS file, over
+            # kill sets. A mention, not a call: that test runs `removal_census.py`
+            # and nothing else.
+            "tests/test_removal_census.py",
+            # RM-04: `subjects.toml` names the file in the comment that declares
+            # `rm04_removal_pricer` -- the before/after this round scored D2 on was
+            # 1209 lines of `gap_mutants.toml` + `run_gap_mutants.py` becoming 899
+            # of `price_removal.py` + `altered_score_probe.py` +
+            # `residual_faults.toml`, and a judge cannot check a declared scope
+            # against a description that will not say what is in it. A mention in a
+            # TOML comment; nothing in that file can call anything.
+            "examples/validation/scorecards/subjects.toml",
+        }
+        unexpected = [h for h in hits if h not in allowed and not h.startswith("specs/")]
+>       assert unexpected == [], f"something consults the pricer: {unexpected}"
+E       AssertionError: something consults the pricer: ['CLOSE-THE-LOOP-EPIC.md', 'NEXT-EPIC.md']
+E       assert ['CLOSE-THE-L...NEXT-EPIC.md'] == []
+E         
+E         Left contains 2 more items, first extra item: 'CLOSE-THE-LOOP-EPIC.md'
+E         Use -v to get more diff
+
+tests/test_price_removal.py:602: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_architecture_tags.py::test_the_same_tag_control_holds - Ass...
+FAILED tests/test_card_has_one_home.py::test_only_the_card_states_a_dimension_an_anchor_or_a_scoring_rule
+FAILED tests/test_price_removal.py::test_nothing_in_the_repository_invokes_the_pricer
+3 failed, 1495 passed in 1204.92s (0:20:04)

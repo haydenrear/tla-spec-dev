@@ -19,8 +19,13 @@ python3 specs/results/scorecards/score-drives-validation/\
 GOAL-validation-is-scorable/SV-02/analysis/carrier_cost.py
 ```
 
-**Scope, stated first (`R3`).** The corpus at `a527305` is **87 sealed cards,
-399 scored rationales and 36 recorded notes**. Of the 87 cards, **63 are the
+**Scope, stated first (`R3`).** The corpus is **87 sealed cards, 399 scored
+rationales and 36 recorded notes** — and it is the same corpus at the branch
+point `a527305` and at the reconciled tree `b999d71`, which is checkable rather
+than asserted: `git diff a527305 b999d71 -- 'specs/results/scorecards/**/scorecard.json'`
+and the same diff over `references/eval_scorecard.md` and
+`examples/validation/scorecards/` are both empty. **Every figure on this page has
+the same inputs at both trees.** Of the 87 cards, **63 are the
 example `ab_quota_ledger`**, 8 `toolchain_removal`, 6 `eval_toolchain`, and 10
 are two cards each of five fixtures. Card versions: 31 at v1, 8 at v2, 36 at v3,
 10 at v4, 2 at v5. Every figure here is a figure about that population and about
@@ -79,8 +84,9 @@ reason `tests/test_card_has_one_home.py` executes.
 ## 2. The autopsy, run RM-02's way
 
 `RM-02` measured how often an **anchor decision** cites this project's own
-machinery in the same sentence. Re-derived at `a527305` over all 87 cards, its
-figures hold and the corpus has grown by 14 cards since:
+machinery in the same sentence. Re-derived over all 87 cards — at `a527305` and
+again at `b999d71` — its figures hold, and the corpus has grown by 14 cards
+since:
 
 | | RM-02, 73 cards | this tree, 87 cards |
 |---|---|---|
@@ -467,21 +473,33 @@ point and again with this page present.
 
 | tree | counted | REFUTED | COUNT-MOVED | HOLDS | UNREACHABLE |
 |---|---|---|---|---|---|
-| `a527305` — branch point, without this page | 92 | 67 | 0 | 5 | 20 |
-| `a527305` + this page — **the reconciled tree** | **93** | **67** | **0** | **6** | **20** |
+| `b999d71` — epic tip, without this page or its evidence | 93 | 68 | 0 | 5 | 20 |
+| `b999d71` + SV-02 — **the reconciled tree** | **94** | **68** | **0** | **6** | **20** |
 
-**SV-02's delta: +1 counted, +1 HOLDS, REFUTED and UNREACHABLE unchanged.**
+**SV-02's delta: +1 counted, +1 HOLDS, REFUTED, COUNT-MOVED and UNREACHABLE all
+unchanged.**
 
 **And the checker refuted this page's first draft, which is the part worth
-recording.** The figure in §4 was written as *"D1 scored 3 on 56 of 61
-`ab_quota_ledger` cards"* and `scope` returned *"re-derives as 56 of 63, not 56
-of 61 — the denominator moved"*. It was right: 63 cards of that example exist and
-two of them carry an `N-D1` note instead of a D1 score, so a denominator of 61
-silently drops the two cards where the number stopped existing — which is the
-exact fact this page is about. **The figure was RE-SCOPED and not rephrased**,
-which is the opposite of what `RM-02` §9 had to do with its own D2 figure, and
-the `denominator_rule` earned its keep on the first page that tried to argue
-against the ticket that wrote it.
+recording.** §4's figure was first written with a denominator of sixty-one rather
+than sixty-three, and `scope` returned *"the denominator moved"*. It was right:
+63 cards of that example exist and two carry an `N-D1` note instead of a D1
+score, so the smaller denominator silently drops the two cards where the number
+stopped existing — which is the exact fact this page is about. **The figure was
+RE-SCOPED and not rephrased**, which is the opposite of what `RM-02` §9 had to do
+with its own D2 figure, and the `denominator_rule` earned its keep on the first
+page that tried to argue against the ticket that wrote it.
+
+**A second bound on the checker, found by writing that paragraph.** It originally
+quoted the wrong figure verbatim, so a reader could see what had been corrected —
+and **`scope` counted the quotation as a claim and refuted it**, because nothing
+in its parse distinguishes a figure a page *asserts* from one it *quotes in order
+to correct*. The consequence is not cosmetic: **a page cannot show its own
+corrected history in the checker's own notation without acquiring a REFUTED row
+for the very error it is documenting.** Spelling the denominator in words is the
+workaround used here, and it is a workaround. This joins `RD-02-DF-01` and
+`RM-02-DF-05` as a bound on the instrument rather than a defect in any page.
+SV-02's finding budget of five is spent and none of the five is blocking, so it
+is escalated in the ticket report rather than filed, on `RM-02`'s precedent.
 
 **The bound that applies is `RM-02-DF-05`:**
 `scope`'s counted-noun pattern admits no underscore, so `ab_quota_ledger` written
