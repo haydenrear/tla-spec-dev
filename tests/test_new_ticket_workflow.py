@@ -343,6 +343,22 @@ tickets:
     assert str(tmp_path / "specs" / "current") in result.git_add_command
     assert str(tmp_path / "specs" / "testgraph") in result.git_add_command
 
+    ledger_path = tmp_path / "specs" / "results" / "complexity_ledger.json"
+    ledger_before_replay = ledger_path.read_bytes()
+    try:
+        create_ticket_history_entry(
+            repo_root=tmp_path,
+            spec_root=Path("specs"),
+            ticket_ref="AUTH-128",
+            summary="replayed close",
+            result_paths=[],
+        )
+    except SystemExit as exc:
+        assert "refusing to overwrite existing history entry" in str(exc)
+    else:
+        raise AssertionError("expected replay of an existing close entry to refuse")
+    assert ledger_path.read_bytes() == ledger_before_replay
+
 
 def test_close_ticket_requires_ticket_current_to_match_desired(tmp_path: Path) -> None:
     write_program_model(tmp_path)

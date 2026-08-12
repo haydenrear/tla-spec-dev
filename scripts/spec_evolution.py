@@ -1779,6 +1779,11 @@ def create_ticket_history_entry(
             + ticket_promotion_guidance(active_dir)
         )
 
+    resolved_entry_name = safe_segment(entry_name) if entry_name else ticket_entry_name(index, ticket)
+    entry_dir = history_root(specs_dir, resolved_workflow) / resolved_entry_name
+    if entry_dir.exists():
+        raise SystemExit(f"ERROR: refusing to overwrite existing history entry: {entry_dir}")
+
     # MF-019: the standing objective is a gate, and it runs BEFORE the history
     # entry exists and before promotion, so a refused close mutates nothing.
     # There is deliberately no flag, parameter, or environment variable that
@@ -1797,9 +1802,10 @@ def create_ticket_history_entry(
         ),
     )
 
-    resolved_entry_name = safe_segment(entry_name) if entry_name else ticket_entry_name(index, ticket)
     make_history_appendable(specs_dir, resolved_workflow)
-    entry_dir = history_root(specs_dir, resolved_workflow) / resolved_entry_name
+    # Recheck immediately before creation as a race defense. The first check is
+    # deliberately before the append-only complexity ledger mutation so replay
+    # of an already closed entry refuses without adding a second ledger row.
     if entry_dir.exists():
         raise SystemExit(f"ERROR: refusing to overwrite existing history entry: {entry_dir}")
     entry_dir.mkdir(parents=True)
