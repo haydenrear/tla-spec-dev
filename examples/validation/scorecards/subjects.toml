@@ -85,11 +85,22 @@ scope = ["scripts"]
 declared_effect_boundary = "effectful"
 labels = [["subtract-to-measure-sm05", "K"]]
 
+# SV-04's round is mapped HERE and not by its cards, and the reason is the
+# blinding. `scaffold` blinds `subject.name` to null on a multi-arm round --
+# that is `F3`'s first defence, because a card whose own `subject` names the arm
+# hands a judge the arm before it scores. A blinded card therefore carries the
+# scope and not the name, and the attribution has to live beside it, which is
+# what `labels` is for. `close-the-loop-cl03-v5` needs no entry because it was
+# scaffolded UNBLINDED (one artifact, one arm) and its cards name the subject
+# themselves.
 [subject.toolchain_fixture]
 example = "toolchain_removal"
 scope = ["examples/validation/ab/reference_ports"]
 declared_effect_boundary = "ports-and-adapters"
-labels = []
+labels = [
+  ["score-drives-validation-sv04", "GL"],
+  ["score-drives-validation-sv04", "LG"],
+]
 
 [subject.toolchain_compiler]
 example = "toolchain_removal"

@@ -303,16 +303,63 @@ figure.**
 
 | suite | count | tree |
 |---|---|---|
-| repository suite | _PENDING — filled from the run, never predicted_ | `86a8767`, pristine detached checkout at `scratchpad/SV-04/operator/baseline-86a8767`, `git status` 0 entries |
-| repository suite | _PENDING — filled from the run, never predicted_ | `feature/SV-04` worktree at `60f2699` plus this round's filled cards |
-| shared behavioural contract | **28** cases | `examples/validation/ab/tests/test_behavior.py`, byte-identical at both trees (`git diff 86a8767` empty) |
-| adapter conformance (new) | **14** cases | `feature/SV-04` at `60f2699`; does not exist at `86a8767` |
+| repository suite | **2 failed, 1528 passed** (21:38) | `86a8767`, pristine detached checkout at `scratchpad/SV-04/operator/baseline-86a8767`, `git status` 0 entries |
+| repository suite | **3 failed, 1527 passed** (21:06) — **the third was SV-04's own**, §9c | `feature/SV-04` at `66b96ff`, `git status` 0 entries |
+| repository suite | **`SUITE_AFTER_REPAIR`** | `feature/SV-04` at `REPAIR_SHA`, `git status` 0 entries |
+| shared behavioural contract | **28** cases | `examples/validation/ab/tests/test_behavior.py`, byte-identical at every tree in this ticket (`git diff 86a8767` empty) |
+| adapter conformance (new) | **14** cases | `feature/SV-04`; does not exist at `86a8767` |
 | round cards | **4** filled, 0 problems, 0 audit violations | `feature/SV-04` |
 
-**The two reds are the two the charter declares** and neither is repaired:
+**The two reds at the branch point are the two the charter declares** and neither
+is repaired:
 `tests/test_architecture_tags.py::test_the_same_tag_control_holds` (`RM-06-DF-01`)
 and `tests/test_price_removal.py::test_nothing_in_the_repository_invokes_the_pricer`
 (the pricer grep tripped by `CLOSE-THE-LOOP-EPIC.md` and `NEXT-EPIC.md`).
+**`RM-06-DF-01`'s failure text is byte-identical at the branch point and at this
+tree** — the same nine separating pairs, in the same order — which is the check
+that SV-04 did not quietly narrow an inherited red while touching `subjects.toml`.
+
+---
+
+## 9c. SV-04 shipped a third red, and four gates said clean
+
+**The `66b96ff` run above is 3 failed, not 2, and the third one is this ticket's.**
+`tests/test_architecture_tags.py::test_a_card_with_no_subject_is_legal_and_is_every_sealed_card`
+failed `(82, 87)`: five rows mapped to no declared subject where exactly one is
+allowed, and four of the five were this round's cards.
+
+**The cause is the blinding, working correctly.** `scaffold` on a multi-arm round
+writes `subject.name: null` with `blinded: true`, because a card whose own
+`subject` field names the arm hands a judge the arm before it scores — `F3`'s
+first defence. A blinded card therefore carries the scope and not the name, and
+`architecture_tags.subject_of` must fall back to the `labels` list in
+`subjects.toml`. **Nothing writes that entry**, and `scaffold` holds both the
+round directory and the arm labels at the moment it blinds them.
+
+**Everything in the round's own toolchain reported clean on the unregistered
+cards** — re-demonstrated by reverting the registration and running each again:
+
+```
+check --require-filled   4 filled, 0 problem(s)
+seal                     sealed 8 file(s)
+audit                    0 violation(s)
+contested                counts the groups correctly, 3 -> 5
+architecture_tags derive "16 of 20 decided; 4 refused" -- BYTE-IDENTICAL either way
+```
+
+Only a repository test caught it, and it sits behind a 21-minute suite. **This is
+the `C` class — gates that report clean on broken input — inside the scoring
+toolchain itself**, and the consequence is not cosmetic: a round can be
+scaffolded, judged, sealed into `INSTRUMENT-LOG.toml` and audited while its cards
+are invisible to every architecture-tag comparison, which is the comparability
+machinery `RD-05` built them for.
+
+**Repaired here**, because the registration is this round's own close-out step
+and the red is this ticket's, not an inherited one: `[subject.toolchain_fixture]`
+now carries `["score-drives-validation-sv04", "GL"]` and `["…", "LG"]`.
+**`scaffold` was NOT changed** — it is the instrument this round was run through,
+and editing it after the arms were judged is the one thing `R-H2` forbids.
+Filed as `SV-04-DF-05`.
 
 **And the operator got that wrong once, which is worth recording.** The first
 baseline run reported **12 failed** and cost a re-run to explain. Ten of the

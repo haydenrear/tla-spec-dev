@@ -12845,3 +12845,82 @@ findings:
       `examples/validation/ab/seeded_faults.toml` already does for the catalogue --
       a judge's prose description of a mutant is not a mutant.
     disposition: open
+  - id: SV-04-DF-05
+    found_by: "SV-04, by shipping the defect and having the repository suite catch it 21 minutes later"
+    found_at_commit: "66b96ff"
+    schedule_revision: 1
+    severity: moderate
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "examples/validation/scorecards/score_tools.py"
+        - "examples/validation/scorecards/architecture_tags.py"
+        - "examples/validation/scorecards/subjects.toml"
+    summary: >-
+      A BLINDED ROUND'S CARDS MAP TO NO DECLARED SUBJECT UNTIL SOMEBODY EDITS
+      `subjects.toml` BY HAND, AND EVERY GATE IN THE ROUND'S OWN TOOLCHAIN
+      REPORTS CLEAN WHILE THEY DO NOT.
+
+      `scaffold` on a multi-arm round writes `subject.name: null` with
+      `blinded: true`. That is correct and it is `F3`'s first defence -- a card
+      whose own `subject` names the arm hands a judge the arm before it scores.
+      The consequence is that `architecture_tags.subject_of` cannot use the card's
+      own field and must fall back to the `labels` list in `subjects.toml`, and
+      NOTHING WRITES THAT ENTRY. `scaffold` knows the round directory and the arm
+      labels at the moment it blinds them, and does not record them.
+
+      WHAT REPORTED CLEAN on SV-04's four unregistered cards, every one of them
+      run before the gap was known:
+
+        score_tools.py check --require-filled  ->  4 filled, 0 problem(s)
+        score_tools.py seal                    ->  sealed 8 file(s)
+        score_tools.py audit                   ->  0 violation(s)
+        score_tools.py contested               ->  counts the groups correctly (3 -> 5)
+        architecture_tags.py derive            ->  "16 of 20 decided; 4 refused",
+                                                   BYTE-IDENTICAL before and after
+                                                   the registration
+
+      The only thing that caught it is
+      `tests/test_architecture_tags.py::test_a_card_with_no_subject_is_legal_and_is_every_sealed_card`,
+      which asserts every row but exactly one maps to a subject and failed
+      `(82, 87)` -- and it sits in a repository suite that takes 21 minutes.
+
+      THIS IS THE `C` CLASS OF `HARVEST-CL-03.md` -- gates that report clean on
+      broken input -- inside the scoring toolchain itself, and it cost this ticket
+      a full suite re-run. It also means a round can be scaffolded, judged, sealed
+      into `INSTRUMENT-LOG.toml` and audited while its cards are invisible to
+      every architecture-tag comparison, which is precisely the comparability
+      machinery `RD-05` built them for.
+    reproduction: >-
+      Scaffold any multi-arm round (blinding is the default):
+      `score_tools.py scaffold <dir> --example E --arms A,B --judges 2`.
+      Fill the cards, then run `check --require-filled`, `seal`, `audit`,
+      `contested` and `architecture_tags.py derive` -- all clean. Then run
+      `pytest tests/test_architecture_tags.py::test_a_card_with_no_subject_is_legal_and_is_every_sealed_card`
+      -> fails, naming the count. Add the round's `[round-dir, arm-label]` pairs
+      to the matching `[subject.*].labels` in `subjects.toml` and it passes.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py -- scaffold, which blinds `subject.name` and writes no label"
+      - "examples/validation/scorecards/architecture_tags.py:321-337 -- `subject_of`, and its fallback to `labels`"
+      - "examples/validation/scorecards/subjects.toml -- `[subject.toolchain_fixture]`, empty `labels` until SV-04 filled it"
+      - "tests/test_architecture_tags.py:629 -- the only check that fails"
+      - "specs/results/scorecards/score-drives-validation-sv04/RESULT-SV-04.md section 9c"
+    why_out_of_scope: >-
+      The registration itself is in scope and SV-04 made it -- the round is
+      registered and the red is gone. What is out of scope is changing `scaffold`
+      to write the label automatically, because `scaffold` is the instrument this
+      ticket ran its own round through and editing it mid-ticket would change the
+      instrument between the arms, which `R-H2` forbids.
+    suggested_fix: >-
+      Have `scaffold` append the `[round-dir, arm-label]` pairs to the named
+      subject's `labels` when it blinds `subject.name`, since it holds both values
+      at that moment and the blinding is exactly what makes them necessary. Failing
+      that, make `check` refuse a filled card that maps to no declared subject --
+      it already refuses a card whose `subject.scope` disagrees with
+      `subjects.toml`, so the lookup is present and only the null-name case is
+      unguarded. The second is smaller and turns a 21-minute discovery into an
+      immediate one.
+    disposition: open
