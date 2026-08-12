@@ -1,22 +1,45 @@
 # Finalize an epic
 
-Finalize only after the user asks to resume/finalize and all scheduled ticket
-agents have returned PRs. Work from a clean worktree at the remote epic tip.
+Finalize only after the user asks to resume/finalize, all delivered tickets have
+returned PRs, and all retired tickets have canonical receipts. Work from a
+clean worktree at the remote epic tip.
 
 ## 1. Audit integration
 
 Fetch remote state and verify, for every ticket in
 `specs/desired_program_model/ticket_plan.yaml`:
 
-- the mapped GitHub issue and ticket PR exist;
-- the ticket PR is merged into `origin/epic/<slug>`;
-- merge order respects `depends_on` and `promotion_order`;
-- plan status is closed/done;
-- exactly one append-only ticket history entry exists;
-- the entry records validation evidence;
-- no `specs/tickets/<id>` workspace remains;
-- every evaluation ticket merged **after** all contributors to the goals it
-  owns, so its measurement describes the integrated epic.
+- its ID and original plan ordinal are unchanged;
+- when delivered, the mapped GitHub issue and ticket PR exist, the PR is merged
+  into `origin/epic/<slug>`, merge order respects `depends_on` and
+  `promotion_order`, plan status is closed/done, and exactly one append-only
+  ticket close-history entry records validation evidence;
+- when retired, plan status is exactly `retired`, its retirement schedule
+  revision is positive and no newer than the current root revision, its
+  canonical `ticket-retirement` receipt exists at the ordinal/ID-derived path,
+  and the receipt contains the complete decision-time `retirement` mapping
+  exactly — including field set, values, and affected-goal order;
+- no undelivered non-retired dependency, reverse-block edge, promotion
+  predecessor, or active evaluation ticket refers to a retired ticket;
+- delivered tickets may retain sealed historical edges to later-retired IDs;
+  those edges are evidence of the old schedule, not active readiness links;
+- no `specs/tickets/<id>` workspace remains (an archived retired workspace is
+  explicitly unaccepted, never promoted);
+- every delivered evaluation ticket merged **after** all delivered contributors
+  to the goals it owns, so its measurement describes the integrated epic.
+
+Audit delivery histories and retirement receipts as two different ledgers. A
+retirement manifest must say both `kind: ticket-retirement` and
+`entry_kind: ticket-retirement`,
+`semantic_promotion.performed: false`, and `validation.claimed: false`; it has no
+accepted model snapshots, result claim, or complexity ledger. A merged PR or
+ordinary close history does not excuse a missing retirement receipt. Conversely,
+a retirement receipt proves only that the owner removed scope; never count it
+as a delivered PR or passed validation.
+
+Within an epic, the receipt path is always rooted at repository-relative
+`specs/.history`; lower-level custom history roots supported by `tla-spec-dev`
+are outside this workflow's contract.
 
 Also confirm there are no open ticket PRs targeting the epic branch and no
 uncommitted changes. An open/green PR or locally closed branch is not integrated.
@@ -158,6 +181,17 @@ Never edit a target to match the measurement, and never close an epic with a
 silently unmeasured goal. A regression a goal harness uncovers is a finding: it
 enters the backlog and the normal ticket path, not a hand fix on the epic branch.
 
+For a goal named in a verified retirement receipt, do not fabricate a harness
+result. Report the explicit disposition instead:
+
+- `accepted_missed` → `missed (accepted via retirement)` plus reason and receipt;
+- `accepted_unmeasured` → `unmeasured (accepted via retirement)` plus reason and
+  receipt;
+- `carried` → `carried` plus successor issue, workflow, reason, and receipt.
+
+Every retired ticket affecting the same goal must agree. These dispositions are
+the user's decision record, not evidence that the target was met.
+
 ## 3. Pass the external semantic-review gate
 
 Push the fully integrated, still-open workflow state and open or update a draft
@@ -166,11 +200,12 @@ and request external semantic review while `current` and
 `desired_program_model` still exist and can accept review changes normally.
 
 Do not write the irreversible closed snapshot until that review is approved.
-If review changes behavior, add/reopen a planned ticket, run its normal
-ticket-close path, and repeat integrated validation. Immediately before close,
-record the current default-branch SHA. If it differs from the reviewed base,
-integrate it, create a reconciliation ticket for semantic conflicts, revalidate,
-and refresh approval.
+The review must include every schedule-revision amendment and retirement
+receipt, not only delivered code. If review changes behavior, add/reopen a
+planned ticket, run its normal ticket-close path, and repeat integrated
+validation. Immediately before close, record the current default-branch SHA.
+If it differs from the reviewed base, integrate it, create a reconciliation
+ticket for semantic conflicts, revalidate, and refresh approval.
 
 ## 4. Promote and close the shared workflow
 
@@ -191,10 +226,14 @@ python <spec-double-compiler-skill>/scripts/close_tickets.py \
   --result <integrated-evidence-path>
 ```
 
-The cleanup script proves every ticket is closed and compares TLA, CFG, and
-YAML/YML model files. It does not prove Python adapters, TOML bindings, JSON
-artifacts, or Test Graph behavior; the integrated commands and evidence audit
-above are the proof for those surfaces. The script writes the workflow
+The cleanup script proves every delivered ticket has its accepted close history
+and every retired ticket has the exact canonical no-claim receipt, then compares
+TLA, CFG, and YAML/YML model files. Direct statuses such as `carried`,
+`superseded`, or `abandoned` do not satisfy it; those are
+`retirement.resolution` values under `status: retired`. The script does not prove
+Python adapters, TOML bindings, JSON artifacts, or Test Graph behavior; the
+integrated commands and evidence audit above are the proof for those surfaces.
+The script writes the workflow
 `closed-snapshot` and removes temporary current/desired directories. Inspect the
 diff and commit the promoted model, generated artifacts, close snapshot, and
 integrated evidence together.
@@ -206,7 +245,10 @@ it ready only after confirming its base SHA still matches the reviewed default
 tip and the close commit changed workflow artifacts only. Its body includes:
 
 - epic scope and the accepted program-model change;
-- every child issue and merged ticket PR;
+- a delivered-work table with every child issue, merged ticket PR, and
+  close-history path;
+- a separate retired-scope table with original ordinal/ID, resolution, reason,
+  decision identity/time, receipt, affected-goal disposition, and successor;
 - the dependency/promotion order actually integrated;
 - full validation commands, run IDs, summaries, and report paths;
 - the goal table from step 2a — baseline, measured, target, and verdict per
@@ -214,7 +256,8 @@ tip and the close commit changed workflow artifacts only. Its body includes:
 - the workflow closed-snapshot path;
 - the deferred-findings disposition: tickets opened, `wontfix` reasons, and
   issues carried to the default branch;
-- issue-closing references for the child issues.
+- issue-closing references for delivered child issues and explicit not-planned
+  or carried dispositions for retired child issues.
 
 Do not bypass branch protection or merge the epic PR unless the user explicitly
 authorizes that final action. A semantic change requested after close requires a

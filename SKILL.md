@@ -1,8 +1,9 @@
 ---
 name: git-epic-workflow
 description: >-
-  Use when planning, starting, scheduling, resuming, or finalizing a multi-ticket
-  Git epic on an epic/* branch backed by one shared spec-double-compiler workflow.
+  Use when planning, starting, scheduling, rescoping, retiring work from,
+  resuming, or finalizing a multi-ticket Git epic on an epic/* branch backed by
+  one shared spec-double-compiler workflow.
   Also use when a GitHub issue contains a git-epic-workflow assignment and must
   be implemented against an epic branch instead of the default branch. Agrees
   measurable epic goals with the user up front, relates every ticket to a final
@@ -60,9 +61,13 @@ This skill has three roles:
 2. **One epic, one branch, one workflow.** Create one `epic/<slug>` from the
    current default-branch tip and scaffold the spec workflow once. Give the
    workflow a unique stable name. Never force-push the epic branch.
-3. **Dispatched identities are immutable.** Do not reorder or rename ticket IDs
-   after publishing issue assignments; close-history paths depend on plan order
-   and IDs. Add a new ticket when scope changes.
+3. **Dispatched identities are immutable, including retired work.** Do not
+   delete, reorder, rename, or reuse a ticket ID after publishing issue
+   assignments; delivery histories and retirement-receipt paths depend on the
+   original zero-based plan ordinal and ID. Adding scope creates a new ticket.
+   Removing scope preserves the original entry with `status: retired`, bumps
+   `schedule_revision`, and records an explicit retirement receipt and affected
+   goal disposition (`references/plan-and-schedule.md`).
 4. **The epic assignment wins.** Its marker-delimited block overrides ordinary
    `git-issue` instructions that branch from or merge to the default branch.
 5. **Ticket agents close one ticket only.** They run `open ticket <id>`, update
@@ -77,8 +82,9 @@ This skill has three roles:
 7. **External review is the default.** A ticket agent stops after pushing a
    sealed branch and opening a PR whose base is the epic branch. It does not
    merge the PR, merge to the default branch, or close the GitHub issue.
-8. **Only finalization closes the workflow.** After all ticket PRs are on the
-   epic branch, the finalizer runs integrated validation, promotes the accepted
+8. **Only finalization closes the workflow.** After all delivered ticket PRs are
+   on the epic branch and every retired ticket has its verified no-delivery
+   receipt, the finalizer runs integrated validation, promotes the accepted
    model, closes the workflow, and opens the epic PR against the default branch.
 9. **Out-of-scope findings are deferred, not chased.** Agree a deferment policy
    with the user when the epic branch is created. Ticket agents report failure
@@ -214,6 +220,15 @@ other in the dependency DAG and their conflict keys are disjoint. A ticket is
 ready to **promote** only when its promotion predecessor is merged into the
 epic branch and the ticket branch has reconciled against that latest tip.
 
+A `retired` ticket remains at its original ordinal as append-only planning
+history but is absent from the active dependency, conflict, and promotion
+graphs. No undelivered non-retired ticket may depend on, block, or name it as
+promotion predecessor. A delivered ticket retains its sealed historical edges,
+including edges to a ticket retired by a later amendment; new work skips the
+retired entry. `retired` means the owner deliberately removed the work; it is
+not synonymous with `done`, and `carried`, `superseded`, or `abandoned` belong
+in `retirement.resolution`, never directly in `status`.
+
 Evaluation tickets are ordinary tickets whose slice is measurement. Each one
 depends on every ticket contributing to the goals it owns and promotes after
 them, so the harness runs on the integrated result rather than a partial one.
@@ -264,10 +279,13 @@ canonical plan entry before starting and again before promotion.
 ### Finalize an epic
 
 Follow `references/finalize.md`. Do not infer that “all agents are done” from
-open PRs or local branches: verify every planned PR is merged into the epic
-branch and every spec ticket has a close-history entry. Report every declared
-goal as baseline → measured → target with a verdict; a missed goal is a decision
-for the user, and a silently unmeasured goal is not an acceptable close.
+open PRs or local branches: verify each delivered ticket's merged PR and
+close-history entry separately from each retired ticket's canonical retirement
+receipt. A PR/history cannot substitute for a retirement receipt, and a receipt
+cannot be presented as delivered work. Report every declared goal as baseline
+→ measured → target with a verdict or its explicit retirement disposition; a
+missed goal is a decision for the user, and a silently unmeasured goal is not an
+acceptable close.
 
 ## Boundaries
 
@@ -275,6 +293,9 @@ for the user, and a silently unmeasured goal is not an acceptable close.
   starts agents and invokes this skill again for status or finalization.
 - Do not silently alter dependencies, ticket order, or conflict ownership after
   dispatch.
+- Do not delete an unwanted dispatched ticket or mark it `carried`,
+  `superseded`, or `abandoned` as though those were delivery statuses. Retire it
+  through the canonical plan amendment and receipt flow.
 - Do not invent goals, targets, or baselines the user did not agree to, and do
   not edit a target so a measured result passes. Report the run that happened.
 - Do not use `--accept-new` for ticket close or workflow finalization. Reconcile

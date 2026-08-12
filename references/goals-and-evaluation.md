@@ -250,6 +250,38 @@ validates, and the epic owner decides. Inconsistencies inside a declared goal
 set (unknown goal IDs, an evaluation ticket that promotes before its
 contributors, a goal with no contributor) are **errors**.
 
+## Goal disposition when scope is retired
+
+A ticket retirement never silently deletes its goal relation. Every goal the
+ticket contributes to, owns, or evaluates is copied into
+`retirement.affected_goals` with one explicit owner-approved disposition:
+
+- `accepted_missed` — the outcome is known not to meet its target, and the
+  owner accepts that miss for this epic with a recorded reason;
+- `accepted_unmeasured` — the outcome will not be measured in this epic, and
+  the owner accepts that gap with a recorded reason;
+- `carried` — deciding the goal moves to a named `successor_issue` and
+  `successor_workflow`.
+
+These are dispositions, not flattering verdicts. Preserve the original goal,
+baseline, target, and evaluation-ticket identity so the receipt explains what
+the epic stopped promising. When more than one retired ticket touches a goal,
+all receipts must use the same disposition and, for `carried`, the same
+successor pair.
+
+The ticket decision and goal dispositions are uniform. A ticket with
+`retirement.resolution: carried` carries every affected goal to the exact same
+ticket-level successor issue/workflow. A ticket resolved as `superseded` or
+`abandoned` cannot carry a goal, and neither the ticket nor its non-carried goal
+entries may contain successor fields.
+
+Retirement must close the goal's active schedule boundary. Its evaluation
+ticket cannot stay active and depend on work that will never be delivered, and
+no other undelivered active ticket may remain associated with a disposed goal.
+Either deliver the remaining work before retirement or include it in the
+retirement amendment. The canonical schema and transaction are in
+`plan-and-schedule.md` §5a.
+
 ## What the ticket agent does with it
 
 The assignment block carries the goal context, and the ticket agent:
@@ -294,10 +326,13 @@ own row:
 | Goal | Clause | Kind | Baseline | Measured | Target | Verdict |
 | --- | --- | --- | --- | --- | --- | --- |
 
-Verdicts are `met`, `missed`, or `unmeasured` (with a reason). An epic may close
-with a missed goal only when the user has explicitly accepted it and the reason
-is recorded in the PR body. Never close with a silently unmeasured goal: run it,
-or say why it could not run.
+Delivered-goal verdicts are `met`, `missed`, or `unmeasured` (with a reason). An
+epic may close with a missed goal only when the user has explicitly accepted it
+and the reason is recorded in the PR body. A goal covered by a verified
+retirement receipt is reported instead as `missed (accepted via retirement)`,
+`unmeasured (accepted via retirement)`, or `carried`, with its receipt and
+successor where applicable. Never label those goals `met`, and never omit them
+from the table.
 
 **A goal verdict is not always one word.** Where a target has several clauses,
 each is measured and reported separately; `GOAL-port-reach` settled as *clause 1
