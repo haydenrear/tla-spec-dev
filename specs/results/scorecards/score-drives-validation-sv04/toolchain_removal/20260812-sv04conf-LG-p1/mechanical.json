@@ -3,15 +3,78 @@
   "example": "toolchain_removal",
   "arm": "LG",
   "run_id": "20260812-sv04conf-LG-p1",
-  "commit": "",
+  "commit": "60f2699",
   "figures": {
-    "kills": {},
-    "complexity_of_produced_code": {},
-    "case_counts": {},
-    "determinism": {},
-    "runtime_seconds": null
+    "kills": {
+      "note": "Judge-seeded faults only. There was no catalogue in the packet, so these are five faults this judge wrote, applied to a copy, and ran against all three pointings. `killed` means at least one instrument failed.",
+      "seeded": 5,
+      "killed_by_any_instrument": 3,
+      "survived_every_instrument": 2,
+      "per_fault": {
+        "JF-1 fake adapter journal_memory.lines() reversed": {
+          "behavior_real": "28 passed",
+          "behavior_fake": "5 failed, 23 passed",
+          "conformance": "1 failed, 13 passed",
+          "killed": true
+        },
+        "JF-2 real adapter FileJournal rewritten to touch no filesystem": {
+          "behavior_real": "28 passed",
+          "behavior_fake": "28 passed",
+          "conformance": "5 failed, 9 passed",
+          "killed": true
+        },
+        "JF-3 both adapters silently drop a line already in the record": {
+          "behavior_real": "28 passed",
+          "behavior_fake": "28 passed",
+          "conformance": "14 passed",
+          "killed": false
+        },
+        "JF-4 domain appends a RELEASE line on release()": {
+          "behavior_real": "1 failed, 27 passed",
+          "behavior_fake": "1 failed, 27 passed",
+          "conformance": "14 passed",
+          "killed": true
+        },
+        "JF-5 domain keeps a private shadow list and never calls the port": {
+          "behavior_real": "28 passed",
+          "behavior_fake": "28 passed",
+          "conformance": "14 passed",
+          "killed": false
+        }
+      },
+      "unseeded_defect_found": "reference_ports/domain.py:122 sorts string ids lexicographically; outstanding_ids() with 12 live reservations returns ['r1','r10','r11','r12','r2','r3','r4','r5','r6','r7','r8','r9'] against FEATURE.md:29's 'ascending'. No mutation involved and no case in the packet reaches it."
+    },
+    "complexity_of_produced_code": {
+      "note": "Counted by this judge with an AST pass over reference_ports/*.py: non-blank non-comment lines minus module/class/function docstring lines. No complexity descriptor was shipped in the packet and none was read.",
+      "approx_code_lines": {
+        "domain.py": 82,
+        "journal_file.py": 9,
+        "journal_memory.py": 4,
+        "quota_ledger.py": 15,
+        "quota_ledger_fake.py": 13,
+        "total": 123
+      },
+      "domain_fields": 6,
+      "port_call_sites_in_domain": 3,
+      "widest_write_fanout": "self._available, 3 write sites (domain.py:103, :140, :161), 2 read sites",
+      "before_after_of_a_simplification": null
+    },
+    "case_counts": {
+      "tests/test_behavior.py": 28,
+      "tests/test_journal_conformance.py": 14,
+      "behavioral_case_executions_across_both_wirings": 56,
+      "total_case_executions_per_full_pass": 70
+    },
+    "determinism": {
+      "runs_per_suite": 3,
+      "behavior_real": "28 passed, 3/3 identical",
+      "conformance": "14 passed, 3/3 identical",
+      "flaky": false
+    },
+    "runtime_seconds": 0.23
   },
   "reach": {
-    "note": "Print reach beside every kill: executed of emitted, per instrument, per action, with the skip rule named."
+    "note": "Print reach beside every kill: executed of emitted, per instrument, per action, with the skip rule named.",
+    "measured": "All 5 seeded faults were executed against all 3 pointings; 15 of 15 fault-by-instrument cells were run and none was skipped. Within tests/test_journal_conformance.py the skip rule is a declared property, not a skip: TestDurableRecord is parametrised over DURABLE_ADAPTERS (test_journal_conformance.py:114), so 4 of its 4 cases execute against FileJournal and 0 against InMemoryJournal by construction -- 14 collected, 14 executed, 0 skipped. tests/test_behavior.py: 28 collected, 28 executed, 0 skipped, under each of the two wirings."
   }
 }

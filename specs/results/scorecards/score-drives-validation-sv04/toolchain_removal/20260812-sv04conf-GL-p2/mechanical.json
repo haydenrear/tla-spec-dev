@@ -3,15 +3,84 @@
   "example": "toolchain_removal",
   "arm": "GL",
   "run_id": "20260812-sv04conf-GL-p2",
-  "commit": "",
+  "commit": "60f2699",
   "figures": {
-    "kills": {},
-    "complexity_of_produced_code": {},
-    "case_counts": {},
-    "determinism": {},
-    "runtime_seconds": null
+    "kills": {
+      "source": "judge-seeded, not a catalogue. 12 faults written by this judge and run against a scratch copy; no PA catalogue or check_catalogue.py was run.",
+      "seeded": 12,
+      "killed": 5,
+      "survived": 7,
+      "equivalent_mutants_excluded": 2,
+      "kill_rate_excluding_equivalents": "5/10",
+      "killed_by_wiring": {
+        "real_wiring_only": [
+          "J2-file-drop-close (3/28 failed)",
+          "J4-file-reverse (5/28 failed)"
+        ],
+        "fake_wiring_only": [
+          "J1-mem-drop-close (3/28 failed)",
+          "J3-mem-reverse (5/28 failed)"
+        ],
+        "both_wirings": [
+          "J6-domain-commit-refunds (2/28 failed)"
+        ]
+      },
+      "survived_both_wirings": [
+        "J5-file-no-truncate (FEATURE.md:21 'the ledger file starts empty')",
+        "J7-domain-id-reuse (FEATURE.md:49-50 'ids are never reused')",
+        "K1-file-encoded (real adapter writes garbage to disk, reads it back)",
+        "K2-file-wrong-path (real adapter ignores the caller's path)",
+        "K3-file-not-a-file (real adapter drops the filesystem entirely)",
+        "J8-mem-dedupe (EQUIVALENT: duplicate lines are unreachable)",
+        "J9-file-dedupe (EQUIVALENT: duplicate lines are unreachable)"
+      ]
+    },
+    "complexity_of_produced_code": {
+      "note": "No complexity descriptor ships with this packet and none was computed by a tool. These are raw counts this judge made by hand from reference_ports/domain.py; they are not a descriptor and no before/after pair exists.",
+      "python_lines_total": 339,
+      "python_lines_by_file": {
+        "domain.py": 173,
+        "journal_file.py": 38,
+        "journal_memory.py": 43,
+        "quota_ledger.py": 36,
+        "quota_ledger_fake.py": 49
+      },
+      "domain_state_fields": 6,
+      "domain_write_sites_per_field": {
+        "_quota": 1,
+        "_available": 3,
+        "_committed": 2,
+        "_closed": 2,
+        "_outstanding": 4,
+        "_next_id": 2,
+        "_journal": 1
+      },
+      "domain_cross_boundary_call_sites": 3,
+      "domain_non_stdlib_imports": 0,
+      "before_after_pair": null
+    },
+    "case_counts": {
+      "shared_suite_file": "tests/test_behavior.py",
+      "collected": 28,
+      "passed_real_wiring": 28,
+      "passed_fake_wiring": 28,
+      "test_files_in_packet": 1,
+      "cases_that_read_the_ledger_file_independently_of_FileJournal": 0
+    },
+    "determinism": {
+      "repeats_per_wiring": 3,
+      "identical_results": true,
+      "detail": "28 passed on every one of 6 runs; no ordering or timing variation observed."
+    },
+    "runtime_seconds": {
+      "real_wiring_cold": 1.41,
+      "real_wiring_warm": 0.08,
+      "fake_wiring_warm": 0.07
+    }
   },
   "reach": {
-    "note": "Print reach beside every kill: executed of emitted, per instrument, per action, with the skip rule named."
+    "note": "Print reach beside every kill: executed of emitted, per instrument, per action, with the skip rule named.",
+    "measured": "12 of 12 seeded faults were executed; nothing was emitted-but-skipped. Each was run through BOTH composition points except the K-series (3), which were run through the real wiring only because they mutate the real adapter, which the fake wiring never constructs -- that is the skip rule and it is the finding, not an omission.",
+    "instrument": "the shared behavioural suite only (28 cases). No generated corpus, no catalogue, no property tests were available in the read list."
   }
 }

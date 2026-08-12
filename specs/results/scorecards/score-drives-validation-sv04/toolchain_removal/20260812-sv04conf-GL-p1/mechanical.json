@@ -3,15 +3,40 @@
   "example": "toolchain_removal",
   "arm": "GL",
   "run_id": "20260812-sv04conf-GL-p1",
-  "commit": "",
+  "commit": "60f2699",
   "figures": {
-    "kills": {},
+    "kills": {
+      "note": "Judge-seeded faults only (judge GL p1). No catalogue was run; these are five mutants written by the judge and run through both composition points. 'killed' = at least one of the 28 shared cases fails.",
+      "instrument": "tests/test_behavior.py, unmodified, 28 cases",
+      "seeded": 5,
+      "killed_by_at_least_one_wiring": 3,
+      "survived_both_wirings": 2,
+      "per_fault": {
+        "J1_fake_adapter_append_insert0": {"real_wiring_failed": 0, "fake_wiring_failed": 5, "killed": true},
+        "J2_real_adapter_lines_reversed": {"real_wiring_failed": 5, "fake_wiring_failed": 0, "killed": true},
+        "J3_real_adapter_roundtrip_symmetric_prefix": {"real_wiring_failed": 0, "fake_wiring_failed": 0, "killed": false},
+        "J4_domain_reserve_guard_order_swapped": {"real_wiring_failed": 0, "fake_wiring_failed": 0, "killed": false},
+        "J5_domain_commit_running_total_is_line_amount": {"real_wiring_failed": 2, "fake_wiring_failed": 2, "killed": true}
+      },
+      "unseeded_defect_found_by_probe": "reference_ports/domain.py:122 sorts reservation ids as strings; outstanding_ids() is non-ascending from the 10th live reservation. Not reachable by any case in the suite."
+    },
     "complexity_of_produced_code": {},
-    "case_counts": {},
-    "determinism": {},
-    "runtime_seconds": null
+    "case_counts": {
+      "shared_suite_cases": 28,
+      "wirings_exercised": 2,
+      "case_executions_per_full_run": 56,
+      "judge_added_cases": 0
+    },
+    "determinism": {
+      "repeats_per_wiring": 3,
+      "identical_results": true,
+      "control_real_wiring": "28 passed (3/3)",
+      "control_fake_wiring": "28 passed (3/3)"
+    },
+    "runtime_seconds": 0.09
   },
   "reach": {
-    "note": "Print reach beside every kill: executed of emitted, per instrument, per action, with the skip rule named."
+    "note": "Print reach beside every kill: executed of emitted, per instrument, per action, with the skip rule named.",
+    "measured": "5 of 5 judge-seeded mutants executed under both wirings (10 of 10 runs); nothing skipped. Reach of the instrument itself is the finding: the durable file's bytes are executed but never observed -- every durable assertion returns through the adapter that wrote them (reference_ports/domain.py:124-125), which is why J3 has reach 10/10 and kill 0."
   }
 }

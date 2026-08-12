@@ -12581,3 +12581,267 @@ findings:
       that reads SV-02's byte table as the price of a note will under-price it by
       a version bump.
     disposition: open
+  - id: SV-04-DF-01
+    found_by: "SV-04's own round, judge `20260812-sv04conf-LG-p1`, reproduced by the operator"
+    found_at_commit: "60f2699"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: ["examples/validation/ab/tests/test_journal_conformance.py"]
+      workflow: []
+    summary: >-
+      THE FILE WRITTEN TO CONSUME HARVEST CLASS A1 COMMITTED HARVEST CLASS E1 IN
+      ITS OWN DOCSTRING, AND A JUDGE CAUGHT IT IN THE SAME ROUND.
+
+      `examples/validation/ab/tests/test_journal_conformance.py:41-43` lists what
+      the suite cannot see and says: "Anything about `ReservationBook`. These
+      cases never construct a `QuotaLedger`. A domain that stopped calling the
+      port entirely is invisible here and visible to `test_behavior.py`; the two
+      suites are complements."
+
+      THE FIRST CLAUSE IS TRUE AND THE SECOND IS FALSE. Give `ReservationBook` a
+      private shadow list, append to it INSTEAD of calling the port, and return it
+      from `ledger_lines()` -- the domain then never calls the port at all, the
+      ledger file stays empty, and every instrument in the packet is green:
+      28 shared cases under the real wiring, 28 under the fake, 14 conformance,
+      70 of 70 case-executions passing.
+
+      The two suites are NOT complements where the sentence says they are. The
+      blind region the file was written to close on the adapter side stands open
+      on the domain side, and the file asserts the opposite. This is
+      `HARVEST-CL-03.md` class `E1` -- documentation asserting what the code does
+      not do -- reproduced by the artifact built to consume class `A1`.
+
+      NOT REPAIRED, DELIBERATELY. Four sealed cards in
+      `specs/results/scorecards/score-drives-validation-sv04/` were written
+      against these exact bytes and two of them quote the sentence. Editing it now
+      would leave the record describing bytes that no longer exist, which `R-H4`
+      forbids more strongly than it wants a tidy file.
+    reproduction: >-
+      Copy `examples/validation/ab/reference_ports` to a scratch tree. In
+      `domain.py`, add `self._shadow: list[str] = []` to `__init__`, replace both
+      `self._journal.append(...)` call sites (the COMMIT append at :150-153 and the
+      CLOSE append at :172) with `self._shadow.append(...)`, and make
+      `ledger_lines()` return `list(self._shadow)`. Then:
+      `QUOTA_LEDGER_DIR=<tree> QUOTA_LEDGER_IMPL=quota_ledger pytest examples/validation/ab/tests/test_behavior.py`
+      -> 28 passed; `QUOTA_LEDGER_IMPL=quota_ledger_fake` -> 28 passed;
+      `QUOTA_LEDGER_PORTS_DIR=<tree> pytest examples/validation/ab/tests/test_journal_conformance.py`
+      -> 14 passed.
+    evidence:
+      - "examples/validation/ab/tests/test_journal_conformance.py:41-43 -- the false sentence"
+      - "specs/results/scorecards/score-drives-validation-sv04/toolchain_removal/20260812-sv04conf-LG-p1/scorecard.json -- N-D1 and N-D5, `JF-5`, 70/70 green"
+      - "specs/results/scorecards/score-drives-validation-sv04/RESULT-SV-04.md section 6 -- the operator's independent reproduction"
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md -- class E1"
+    why_out_of_scope: >-
+      Repairing it means editing bytes that four sealed cards were written
+      against, inside the ticket that sealed them. The correction belongs to a
+      successor that can re-score, or to a round that does not need these cards to
+      stay readable.
+    suggested_fix: >-
+      Either (a) correct the sentence to say what is true -- the domain-bypass
+      class is invisible to BOTH suites -- and re-score, since the claim is one a
+      judge reads; or (b) close the hole with a case that observes the port being
+      called (a spy at the composition point, which `LG-p1` already built), which
+      makes the sentence true rather than deleting it. (b) is the better outcome
+      and is a larger piece of work than a docstring edit.
+    disposition: open
+  - id: SV-04-DF-02
+    found_by: "SV-04, from disclosures volunteered independently by judges `GL-p1` and `GL-p2`"
+    found_at_commit: "60f2699"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      THE TOOL EVERY JUDGE IS REQUIRED TO RUN NARRATES PRIOR JUDGES' SCORE
+      DISTRIBUTIONS IN ITS OWN SOURCE, AND TWO OF FOUR JUDGES READ THEM.
+
+      `score_tools.py` exists because of `FI-03`: a judge must never be handed the
+      finding they are the instrument for, so the rubric is RENDERED and
+      `references/eval_scorecard.md` is off the read list. The renderer does its
+      job. The file around it does not. At least five sites in
+      `examples/validation/scorecards/score_tools.py` state prior results about
+      the dimensions being scored, in prose, in comments:
+
+        :26    "D3 came out 2, 2, 3, 4"
+        :900   "`opus` judged D3 2, 2 and `sonnet` 4, 3 on the same artifact"
+        :1146  "D2 has taken one value on every card ever written about `ab_quota_ledger`"
+        :1215  "`toolchain_removal` cards whose D3 came out 2, 2, 3, 4 -- a spread of 2"
+        :1547  "a round where D3 came out 2, 2, 3, 4"
+
+      A JUDGE IS SENT THERE BY THE PROCEDURE. Every card must pass
+      `score_tools.py check --require-filled`, and a judge whose card is refused
+      reads the validation logic to find out why. Both `GL` judges disclosed
+      doing exactly that: one reported seeing :1146 "after both scores were
+      written to disk", the other reported :900 and :26 "after forming both
+      scores". Neither concealed it, which is the system working; the exposure is
+      still real and is structural rather than accidental.
+
+      This is `HARVEST-CL-03.md` `F3` -- blinding leaks -- and it is the first
+      instance located in the INSTRUMENT rather than in an artifact, a fixture, a
+      scratchpad or a `git status`. The four earlier instances could be fixed by
+      assembling the packet differently. This one cannot: the tool is on the
+      judge's path by design.
+    reproduction: >-
+      `grep -n 'D3 came out\|D2 has taken one value\|judged D3' examples/validation/scorecards/score_tools.py`
+      -> five sites. Then read the `how_to_fill` block written into every
+      scaffolded `scorecard.json`, and the `check --require-filled` step every
+      round closes with.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py:26, :900, :1146, :1215, :1547"
+      - "specs/results/scorecards/score-drives-validation-sv04/toolchain_removal/20260812-sv04conf-GL-p1/scorecard.json -- disclosure"
+      - "specs/results/scorecards/score-drives-validation-sv04/toolchain_removal/20260812-sv04conf-GL-p2/scorecard.json -- disclosure"
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md -- F3"
+    why_out_of_scope: >-
+      `score_tools.py` is the round's own instrument and SV-04 was running a round
+      through it. Editing the tool mid-round would have changed the instrument
+      between the two arms, which is the one thing `R-H2` forbids.
+    suggested_fix: >-
+      Move the narrated distributions out of the module a judge executes and into
+      `references/` where the rubric's history already lives, leaving pointers.
+      The figures are load-bearing documentation of WHY the tool computes what it
+      computes and should not be deleted -- but the sentence "D3 came out 2, 2, 3,
+      4" does not need to be in the file whose exit code a judge is chasing.
+      Cheaper alternative, and it measures something: have a round dispatch judges
+      without the `check` step and let the operator run it, then compare.
+    disposition: open
+  - id: SV-04-DF-03
+    found_by: "SV-04, reproducing a judge's survivor before filing it"
+    found_at_commit: "60f2699"
+    schedule_revision: 1
+    severity: moderate
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph:
+        - "examples/validation/ab/tests/test_behavior.py"
+        - "examples/validation/ab/tests/test_journal_conformance.py"
+      workflow: []
+    summary: >-
+      "NOTHING IS EVER REWRITTEN" IS ASSERTED BY NOTHING, IN ANY OF THE THREE
+      SUITES, AND THE NEW CONFORMANCE FILE'S OWN LIST OF BLIND SPOTS OMITS IT.
+
+      `FEATURE.md:103-104`'s R5 states the ledger is append-only and that nothing
+      is ever rewritten. Every case in the packet observes append-only as an
+      OUTCOME -- the content and the order of the lines -- and no case observes it
+      as a MECHANISM. An adapter that reads the whole file back and rewrites it
+      from scratch on every append is content-identical and order-identical to one
+      that opens in append mode, and it passes 28 shared cases under the real
+      wiring, 28 under the fake, and all 14 conformance cases: 70 of 70.
+
+      This matters more after SV-04 than before it. The conformance suite was
+      added precisely to observe the port's effect out of band, and it does -- but
+      `record_on_disk()` reads the file's CONTENT, so it is blind to how the bytes
+      got there in exactly the way the shared suite is. The file names three blind
+      classes at :39-52 and this is a fourth it does not name, which makes the list
+      itself incomplete rather than wrong.
+
+      Found by judge `LG-p2`, which also seeded the read-side variant (`lines()`
+      rewrites the file before reading) with the same result.
+    reproduction: >-
+      Copy `examples/validation/ab/reference_ports` to a scratch tree and replace
+      `FileJournal.append` with
+      `existing = self._path.read_text(encoding="utf-8");`
+      `self._path.write_text(existing + line + "\n", encoding="utf-8")`.
+      Then 28 passed (real wiring), 28 passed (fake wiring), 14 passed
+      (conformance) -- 70 of 70, zero kills.
+    evidence:
+      - "examples/validation/ab/FEATURE.md:103-104 -- R5"
+      - "examples/validation/ab/tests/test_journal_conformance.py:39-52 -- the blind-spot list that omits it"
+      - "specs/results/scorecards/score-drives-validation-sv04/toolchain_removal/20260812-sv04conf-LG-p2/scorecard.json -- N-D1, mutants E1 and E3"
+      - "specs/results/scorecards/score-drives-validation-sv04/RESULT-SV-04.md section 6"
+    why_out_of_scope: >-
+      Closing it needs a case that observes the write mechanism rather than the
+      record -- an `open` mode assertion, an inode or mtime check, or a
+      filesystem-call trace -- and each of those is a different instrument from
+      the one this ticket built and measured. Adding it after the round would also
+      change bytes four sealed cards were written against.
+    suggested_fix: >-
+      At minimum, add the class to `test_journal_conformance.py:39-52`'s list so
+      the suite stops implying it is covered. To actually close it, wrap `open` for
+      the duration of one case and assert the mode is append and the offset is not
+      rewound -- and justify it with this mutant, which is now recorded.
+    disposition: open
+  - id: SV-04-DF-04
+    found_by: "SV-04, adjudicating a factual contradiction between two of its own judges"
+    found_at_commit: "60f2699"
+    schedule_revision: 1
+    severity: moderate
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/desired_program_model/deferred_findings.yaml"
+        - "references/eval_scorecard.md"
+    summary: >-
+      `CL-03-DF-02` IS FALSE IN ITS STRONG FORM -- A SUITE CAN ASSERT DURABILITY
+      WITHOUT ANY CASE FAILING AGAINST THE FAKE -- AND THE ROUND THAT SHOWED IT
+      ALSO REPRODUCED HARVEST CLASS F6 IN ITS OWN TWO JUDGES.
+
+      (a) THE CORRECTION. `CL-03-DF-02` records a version 4 judge's reasoning that
+      D3's anchor 4 "is unsatisfiable by any suite that does assert durability,
+      since such a case must fail the fake", and concludes "the anchor
+      structurally rewards blindness to the property that makes the real adapter
+      real." SV-04 measured otherwise. Put the durability cases in a class
+      parametrised over the DURABLE adapters only, and the set of cases run
+      against both implementations is untouched: both `LG` judges ran the identical
+      28-case suite through both wirings, said so, and awarded anchor 4 with a
+      durability-asserting suite present. The anchor does not reward blindness; it
+      requires the two kinds of case to live in two places. SV-04 predicted, and
+      sealed, that a judge would REASON about this tension -- none did, because
+      there was no tension to reason about. The weaker half of `CL-03-DF-02`
+      stands: the anchor's text does not ASK for an out-of-band observer, and it
+      took the version 5 caveat to make its absence cost anything.
+
+      (b) THE F6 INSTANCE, and it is the reason (a) needed adjudicating. Judges
+      `LG-p1` and `LG-p2` made contradictory factual claims about the same
+      described fault. `LG-p1`: the domain "returning a shadow instead of calling
+      the port" passes 70 of 70. `LG-p2`: "ledger_lines() returning a shadow
+      instead of calling the port" dies in 1-7 cases under both wirings. Both are
+      correct and they ran different mutants under one sentence. The operator ran
+      both: divert the READ only, leaving the writes going to the port, and 7 of 28
+      fail under each wiring; divert the read AND the writes, so the port is never
+      called at all, and nothing anywhere fails. The interesting mutant is the
+      second and it is `SV-04-DF-01`.
+
+      THE MECHANISM IS UNDER-SPECIFICATION IN `judging_practice.what_was_run`. The
+      field records what a judge ran in prose. Two judges wrote the same prose for
+      two different mutants, and a reader of the sealed cards has no way to tell
+      without rebuilding both. `HARVEST-CL-03.md` `F6` recorded this shape once
+      ("two judges of the same artifact made mutually contradictory FACTUAL
+      claims"); this is a second instance with the mechanism identified.
+    reproduction: >-
+      The two mutants are in section 6 of
+      `specs/results/scorecards/score-drives-validation-sv04/RESULT-SV-04.md` and
+      in `SV-04-DF-01`'s reproduction. For (a): read both `LG` cards' D3
+      rationales, which report the shared 28 passing through both wirings AND a
+      durability-asserting suite in the same packet.
+    evidence:
+      - "specs/desired_program_model/deferred_findings.yaml -- CL-03-DF-02"
+      - "specs/results/scorecards/score-drives-validation-sv04/toolchain_removal/20260812-sv04conf-LG-p1/scorecard.json"
+      - "specs/results/scorecards/score-drives-validation-sv04/toolchain_removal/20260812-sv04conf-LG-p2/scorecard.json"
+      - "examples/validation/ab/tests/test_journal_conformance.py -- TestPortContract over both adapters, TestDurableRecord over the durable ones only"
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md -- F6"
+    why_out_of_scope: >-
+      `CL-03-DF-02` is another ticket's finding at another ticket's scope and
+      SV-04 does not edit it, on the precedent `RM-02` set for
+      `architecture_tags.md` and `SV-02` set for `eval_scorecard.md`'s retirement
+      sentence. The correction is recorded beside it instead.
+    suggested_fix: >-
+      For (a): annotate `CL-03-DF-02` with this measurement rather than closing it,
+      since its weaker half is still true and is still the reason the caveat
+      exists. For (b): the cheapest real fix is to require `what_was_run` to carry
+      the mutant's DIFF or its find/replace pair, the way
+      `examples/validation/ab/seeded_faults.toml` already does for the catalogue --
+      a judge's prose description of a mutant is not a mutant.
+    disposition: open
