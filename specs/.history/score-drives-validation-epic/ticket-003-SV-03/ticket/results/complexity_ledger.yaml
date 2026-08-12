@@ -1,0 +1,175 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "TODO"
+    evidence: "TODO -- path to the pre-change TLC output"
+  tlc_after:
+    status: "TODO"
+    evidence: "TODO -- path to the post-change TLC output"
+  behavior_tests:
+    status: "TODO"
+    evidence: "TODO -- path to the behavior-test output"
+  descriptor_comparison:
+    status: "TODO"
+    evidence: "TODO -- path to the before/after descriptor comparison"
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness REVIEW, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them, and this
+# is the only sweep that looks at it.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# RECORDED, NEVER REFUSING (2026-08-04, owner direction). It was a hard gate at
+# workflow close with no override; it is now an optional agent-run review whose
+# verdict is written down and read by a person. `incomplete` IS STILL NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it --
+# what was withdrawn is the refusal, not the distinction.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found none, and the search had a real subject rather than a
+    formality. SV-03's `model_delta_expectation` is `none expected`,
+    `desired_actions` is empty, and `diff -rq specs/tickets/SV-03/current
+    specs/tickets/SV-03/desired` is EMPTY -- the TLA+ model, the configs, the
+    adapters and the spec-unit tests are byte-identical to the project `current`
+    they were seeded from, so there is no representation this ticket added and
+    none it can refine away.
+
+    The refinement question that DID have a subject is the one outside the
+    model: whether the wiring needed a `dimension:` field, a `scored_by:` block,
+    a `score_signal:` field, a `--goal` flag on `score_tools.py`, or a checker.
+    Every one was considered and every one was refused -- SV-06 built and
+    validated two of them at exit 0 and rejected them anyway, and SV-03
+    re-checked rather than inherited that. The ticket ships FOUR PROSE EDITS to
+    files it does not own, zero new fields, zero new gates and zero bytes to
+    `serve`. The cheapest carrier that does the job is the standing rule and
+    this is it.
+  measured: false      # true only if a real TLC run produced the figure
+  applied: false       # if true, approved_by is required
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+    specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/RESULT.md
+    is the evidence ledger, ESCALATION.md beside it is the proposal, and
+    `references/goal_score_wiring.md` (SV-06) is the design this implements.
+
+    WHAT WAS BUILT. The four diffs SV-06 handed off, cut against the INSTALLED
+    skill files, verified to apply cleanly and independently in either order,
+    and ESCALATED rather than applied -- skills are READ from this repository
+    and never edited from it, and `skill-manager sync` was not run. The
+    installed files are re-hashed before and after every demonstration run and
+    reported UNCHANGED.
+
+    WHAT WAS MEASURED, at tree 5620c9a over 109 plans on disk. SV-06's 0-of-27
+    is a string test; this ticket resolved every `baseline.evidence` against the
+    filesystem and asked the question the evaluation ticket actually has to
+    answer -- can you OPEN the card that produced the number? Of 27 distinct
+    goals, 18 name a judged instrument and 0 OF THOSE 18 have a baseline that
+    can be opened: 8 cite a directory, 8 cite a document, 1 cites a path that
+    does not resolve at all, and 1 is pure prose. 87 sealed cards sit
+    uncited. The judged denominator is 18, not 27 (SV-03-DF-02,
+    `denominator_rule`) -- the correction makes the compliance rate worse.
+
+    R1, ON A REAL EPIC PLAN. `GOAL-loop-reaches-the-program` in this epic's own
+    live plan cites `specs/results/scorecards/close-the-loop/`, which contains
+    ZERO scorecard.json files -- the CL-03 cards are in two sibling
+    directories. The evaluation ticket is not asked to pick a card out of a
+    folder; it is handed a folder with no card in it. Sealed at eab2883, never
+    edited, pinned by a test whose docstring says to MOVE the demonstration
+    rather than delete it if the plan is ever repaired.
+
+    A SECOND FAILING INPUT, AIMED AT THE PROPOSAL ITSELF. SV-06's verbatim
+    wording for edit 2 asks for "the path to the SINGLE sealed card". Two judged
+    goals here have baselines that are figures over a POPULATION of cards --
+    including `GOAL-D2-can-move`, the goal SV-06 holds up as the best of its
+    kind -- so the sentence is unsatisfiable for them. The shipped wording asks
+    for enumerability, not singularity. Filed as SV-03-DF-01 rather than editing
+    a predecessor's sealed page.
+
+    ABSENCE, DESIGNED FOR AND DEMONSTRATED. A complete epic plan with no card
+    anywhere validates identically through a pristine copy of the three skill
+    units and through a copy with all four diffs applied -- same exit code, same
+    stdout. 331 words are added across the four diffs and 0 of them bind a
+    project with no card, because every added block opens with a conditional
+    such a project fails. The guard check is shown FAILING on an unguarded
+    sentence so it cannot pass vacuously.
+
+    NO NEW GATE, and the temptation was real: the classifier is written and
+    `return 1` is one line. It has no failing exit path at all, nothing in
+    `scripts/` reads it, and two tests assert both. The thing a checker would
+    gate is the epic owner's prose about their own baseline.
+
+    COST. `serve | wc -c` is 6,281 bytes at 9 rungs and digest
+    sha256:2d7d4a0506d9b259 before and after -- unchanged, because nothing here
+    touches `references/eval_scorecard.md`. The card does not learn about the
+    goal process; the goal process learns to name a card.
+
+    FIVE FINDINGS FILED, NONE FIXED: SV-03-DF-01 through DF-05.
