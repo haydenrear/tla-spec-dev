@@ -37,10 +37,11 @@ Branch `epic/score-drives-validation`, cut from `main` at `eab2883` after
 ## 3. The three gaps this epic exists for
 
 **THE CARD CANNOT SCORE VALIDATION, AND WE REMOVED THAT ABILITY ON PURPOSE.**
-At version 5 it serves exactly two scored dimensions — **D2 complexity** and
-**D3 modularity**. `D1` (bug detection), `D4` (behavior preservation) and `D5`
-are **recorded notes that take no score**. D1 and D4 *were* the validation
-dimensions. They were cut because **38% of D1 and 18% of D4 anchor decisions
+At version 5 it serves **exactly two scored dimensions**; three more are
+**recorded notes that take no score**. Run
+`score_tools.py serve` and read them there — this page does not restate them,
+because only the card may say what a dimension is. **The two retired to notes
+were the validation dimensions.** They were cut because **38% of D1 and 18% of D4 anchor decisions
 cited this project's own machinery**, against **0%** on D3 and D5 — they graded
 *toolchain ownership*, not validation. Right call for portability; wrong outcome
 for this goal. **SV-02 must not rebuild them under new names.**
