@@ -326,3 +326,41 @@ were known, in `PREDICTIONS-SV-01.md` §5.
 | `SV-01-DF-03` | `git status` leaks sibling cards and the dispatch's forbidden list did not name it |
 | `SV-01-DF-04` | the shared behavioral suite is blind to the property the caveat names, so the discrimination is conditional on artifact-authored tests |
 | `SV-01-DF-05` | **three defect classes four judges found in the scored artifact that BOTH suites miss** — filed rather than left in card notes, which is the consumption step this programme measured as its bottleneck |
+
+---
+
+## 12. Cost and channel — recorded, with the basis named
+
+`CL-04-DF-02`: the per-token ratio lapsed for two consecutive epics, and the
+diagnosis was that *no artifact in the repository asks for the number*, so it
+gets recorded only when someone remembers. **This round records one so the epic
+does not open with a third lapse.** The basis is stated because a number with a
+named basis that is incomparable to the last one is worth more than no number.
+
+**Basis:** `subagent_tokens` as reported by the four judge dispatches, summed.
+Composition of that field is undocumented. **The operator's own spend is not
+captured by it and is missing** — the same bound `RM-05` and `CL-04` reported.
+
+| channel | findings filed | `subagent_tokens` | per 100k |
+|---|---|---|---|
+| the four blind judges | **4** (`DF-01`, `DF-02`, `DF-03`, `DF-05`) | 406,998 | **0.98** |
+| operator running its own probe | 1 (`DF-04`) | not captured | — |
+| **the suite** | **1** — §7.1's third red | not captured | — |
+
+**Not comparable to `CL-04`'s 0.98, `RD-03`'s 1.14 or `SM-05`'s 0.60**, all of
+which used different, named bases. It is comparable to the next round that uses
+this one.
+
+**Two things in that table are worth more than the ratio.**
+
+**The suite produced one.** `CL-04` recorded the suite at **zero** and explained
+why: *"the channel was never the suite; it was paying somebody to read it."*
+This ticket was funded to read suite output — the work order names a baseline
+and demands the tree beside every number — and the suite immediately produced a
+correction to the baseline the work order itself stated. **That is the same
+causal claim making a second forward prediction that came true.**
+
+**All four blind judges independently found the same defect** — rejection
+precedence untested where two guards fire at once — which is the
+*rediscovery-multiplicity* shape `HARVEST-CL-03.md` measured across seven epics,
+reproduced inside a single round of four. It is filed this time.

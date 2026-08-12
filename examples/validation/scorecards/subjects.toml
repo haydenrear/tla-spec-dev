@@ -325,8 +325,24 @@ labels = [["portable-substrate-rm04-JJ", "JJ"]]
 # stops carrying the scope it was true at. Filed, not repaired.
 # --------------------------------------------------------------------------
 
+# `labels` BELOW WAS WRITTEN AFTER THE ROUND, and it has to be, for exactly the
+# reason RM-04 gives above: these four cards are blinded, `subject.name` is
+# `null` on every one of them, so THE CARD CANNOT NAME ITS OWN SUBJECT and the
+# attribution lives here. Both rounds carry the same label because they are the
+# same artifact under two card versions, which is the one case this project
+# reuses a label for and which `UNBLINDING.md` records with its reason.
+#
+# It was `[]` when the subject was declared, before any card existed, and
+# `test_a_card_with_no_subject_is_legal_and_is_every_sealed_card` went red on
+# four unmapped cards until it was filled in. That test is right and the empty
+# list was the error: a blinded card that no `labels` entry claims is a card
+# nothing can attribute, which is the state the test exists to refuse.
+
 [subject.sv01_negative_control]
 example = "ab_quota_ledger"
 scope = ["specs/results/scorecards/score-drives-validation/GOAL-caveat-discriminates/SV-01/blind/artifact_under_score"]
 declared_effect_boundary = "ports-and-adapters"
-labels = []
+labels = [
+  ["score-drives-validation-sv01-v4", "GL"],
+  ["score-drives-validation-sv01-v5", "GL"],
+]
