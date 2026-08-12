@@ -1,5 +1,311 @@
 # next epic — starter for the next epic owner
 
+> **AMENDED AFTER `SV-05`, the `score-drives-validation` evaluation (2026-08-12).**
+> Everything below still describes how each earlier result was measured and none
+> of it is edited. What SV-05 adds is at the very top, in section 0-AAAAAAAAA,
+> because **no round this programme has ever run was blind in the sense its own
+> dispatches assert**, because **the shipped instrument will hand you the wrong
+> card version without a word**, and because **the gap the epic was opened on is
+> not where the epic said it was**. Full record:
+> `specs/results/scorecards/score-drives-validation/SV-05/RESULT.md`.
+
+---
+
+## 0-AAAAAAAAA. READ BEFORE EVERYTHING — what SV-05 measured
+
+### 1. THE FOUR GOALS, DECIDED — THREE REACHED, ONE NOT
+
+| goal | verdict |
+|---|---|
+| `GOAL-caveat-discriminates` | **DISCRIMINATES.** `D3 = 4, 4` at v4 and `4, 4` at v5 on an artifact lacking the property, against CL-03's `4, 4 → 3, 3` on one that has it. `close-the-loop`'s headline is a **detection**. Discounted, not withdrawn — §2. |
+| `GOAL-validation-is-scorable` | **YES, and the answer was already in the card** — D4's retired anchor 4 verbatim. **Three clauses, not two dimensions**, carried the toolchain grading. And **the recommended carrier is mis-priced**: both carriers cost a version bump. |
+| `GOAL-scored-at-goal-time` | **NOT ACHIEVED.** 0 of 18 judged goals have a baseline the evaluation can open — unchanged. Four skill diffs escalated, never applied. **And the gap is not the documentation** — §4. |
+| `GOAL-loop-reaches-the-program` | **ACHIEVED, once.** `0 for 7 epics` becomes **`1 for 8`**, on harvested class `A1`. Both halves reproduced independently by SV-05, including the unflattering one. |
+
+**The owner's two-half goal, scored honestly: half one is about two-thirds true
+and one-third installed. Half two is 1 for 8 on tests and 0 for 8 on diagrams,
+architecture, model actions and adapters.**
+
+### 2. NO ROUND THIS PROGRAMME HAS RUN WAS BLIND. START HERE.
+
+`SV-05-DF-02`, and it is the finding that costs the most.
+
+**The operator's persistent auto-memory and the environment block are in every
+subagent's context before it reads anything.** Four of four blind agents in
+SV-05's 2×2 reported it unprompted. One quoted `MEMORY.md` verbatim — *"up to 2
+points per judge move on byte-identical artifacts"* — and named four prior epics
+by name. The environment block additionally hands every subagent this
+repository's path, branch, clean status and **the subject lines of its five most
+recent commits, several of which state epic outcomes in words**.
+
+**A judge dispatched to score D2 and D3 blind has, in context before it opens the
+packet, a sentence saying which dimensions this project believes are stable.**
+
+**It requires no tool call, so no forbidden list reaches it.** `SV-01-DF-03`
+filed `git status` as a leak the dispatches never named; a dispatch can name
+`git status`. Nothing a dispatch says removes a block the harness injects first.
+**It applies retroactively to CL-04's adopter probe and census, SV-01's four
+judges, SV-04's four judges, SV-06's survey and SV-05's own four agents.**
+
+**This does NOT assert that any published number is wrong.** It asserts that
+*blind* has meant *blind to the packet and to our source* for eight epics, never
+*blind to our conclusions*, and that nobody measured the difference because
+nobody noticed it. **Owed immediately, at zero cost: stop claiming a blindness
+the round does not have.** Say in every dispatch and every RESULT that the judge
+carried the project memory. The stronger fix — run judges from a home with no
+project memory bound, and record the memory file's digest beside the served
+digest — is the owner's call and is worth costing.
+
+### 3. THE INSTRUMENT WILL HAND YOU THE WRONG CARD VERSION WITHOUT A WORD
+
+`SV-05-DF-01`. Measured with `serve --digest-only`, which **does** exist:
+
+```
+--card-version 4   6,281 bytes   9 rungs   sha256:2d7d4a0506d9b259
+--card-version 5   6,281 bytes   9 rungs   sha256:2d7d4a0506d9b259
+--card-version 6   REFUSED, correctly and helpfully
+the REAL v4, --rubric rubric_v4_frozen.md
+                   6,319 bytes   9 rungs   sha256:a213a36770ccab09
+```
+
+**`--card-version 4` serves the version 5 text.** The diff against the frozen v4
+is two lines and one of them is **the version 5 caveat** — the single sentence
+that is the treatment in this epic's headline experiment. A round using the flag
+alone records the v5 served digest under `scorecard_version: 4`, and `check`
+accepts it. Versions 1–3 render at **9 rungs** when those versions scored five
+dimensions: cards that never existed.
+
+**`SV-01` got its v4 arm right only because it used `--rubric`.** This is the
+mechanism behind the still-open `FI-06-DF-11(c)`, and it is worse than that
+finding says: **the tooling route exists and returns the wrong card.** Fix the
+refusal to point both ways before running another cross-version A/B.
+
+### 4. `GOAL-scored-at-goal-time`'s GAP IS OURS, NOT THE DOCUMENTATION'S
+
+`SV-05-DF-05`. SV-05 ran the test SV-06 §9 and SV-03 §10 both handed it: four
+blind agents, none given this repository, each handed a copy of the six surveyed
+skill files and one fictional epic plan, prompt identical, never using the words
+*rubric*, *score* or *card*.
+
+**Arm A, on the UNPATCHED text, already produced a card-backed baseline**: four
+named evidence files, the instrument pinned by blob SHA, the scored artifact
+fixed as a file list, the instrument's two prior runs on a different subject
+refused, the two judges never averaged. **Every property SV-06's edit 02 was
+written to buy.**
+
+**What arm A could not do is find a branch to stand in.** It wrote into the plan:
+*"per `goals-and-evaluation.md` (`Harness does not exist`) this goal takes the
+wave-1 route"* — routing a judged instrument that plainly **does** exist into the
+branch for one that does not, and scoring the baseline at **ticket** time. Arm B
+quoted the new sentence verbatim and ran the kickoff **before any ticket lands**.
+
+**So the diffs buy the TIMING, not the CARD** — which is the half the goal is
+named after, and SV-06's *"buys the whole of the target"* is corrected. Arm A's
+mis-routing is a cold, independent confirmation that the third branch is missing.
+
+**And the 0 of 18 relocates.** The text as it ships leads a stranger most of the
+way there in one pass. **The compliance rate of zero is this project's own.**
+The next epic's cheapest real move is not a skill edit and not an escalation:
+**bring this project's 18 judged goals into compliance with text that already
+exists.**
+
+**The absence guarantee held.** Neither no-card arm asked what rubric to use;
+both rejected the judged route explicitly on their project's own README, and the
+patched arm did not notice the added sentences.
+
+### 5. THE DIAGRAM ZERO IS NOW 0 OF 95, AND HALF THE OWNER'S GOAL HAS NO EVIDENCE BASE
+
+```
+DIAGRAMS: 0 sentences across 0 of 95 cards.
+```
+
+`diagram`, `mermaid`, `UML`, `C4`, `.svg` — **no rationale, no note, no verdict,
+eight epics, five card versions, five examples.** It was 0 of 87; this epic added
+eight cards and did not move it. Three tickets refused to build a diagram rung
+and **all three refusals were correct** (`MF-020`).
+
+**Two honest options, and they are not symmetric.**
+
+1. **Drop diagrams from the goal statement.** Zero cost, and the goal becomes
+   decidable.
+2. **Run one negative control** — the same artifact with and without a diagram,
+   under the card as it stands, concurrent blind judges, exactly SV-01's shape.
+   **If no judge mentions it unprompted, there is nothing to score and option 1
+   is forced.**
+
+**Do NOT add a diagram rung first.** Eight epics, zero sentences.
+
+### 6. THE CORRECTION PATTERN IS UNDERPOWERED RESEARCH, AND THE REPAIR IS ONE SENTENCE
+
+Four tickets corrected their predecessor. **Four of five corrections were
+available to the party corrected, from data that party already had:**
+
+- SV-06 corrected the epic's *"no goal has ever been keyed to a dimension"* →
+  **12 of 27**, with one survey over plans on disk. The owner wrote the baseline
+  without running it.
+- SV-03 corrected SV-06's **0 of 27 → 0 of 18** and found SV-06's wording
+  unsatisfiable **by SV-06's own exemplar** — *"found by running the rule against
+  the record, not by reading it."*
+- SV-07 refuted SV-02's *"the free carriers do not"* by trying to ship it. SV-02
+  had already imported the real renderer and stopped one command short.
+- SV-01 and SV-06, independently, corrected the work order's *"2 reds"* → **3**.
+- **Only `SV-04-DF-04`'s correction of `CL-03-DF-02` needed new measurement.**
+
+**The programme applies `R1` — an instrument ships with a demonstrated failing
+input on a real subject — to instruments and never to prose recommendations.**
+`SV-07` is the counter-example: the only ticket asked to *ship* a predecessor's
+recommendation refuted it in one command.
+
+**Put this in the next epic charter: every research ticket runs its own proposed
+rule against the sealed record before it ships, and reports what the rule
+refuses.** That is not a gate. It is `R1` pointed at prose.
+
+### 7. THE CONSUMPTION RATE MOVED, ONCE — AND THE REGISTER IS NOT BEING KEPT
+
+| | before | now |
+|---|---|---|
+| harvest classes **consumed into program validation** | **0 of 38** | **1 of 38 (2.6%)** — `A1` |
+| harvest classes named by a ledger row | ~1 | **4 of 38** — `A1`, `E1`, `F3`, `F6` |
+| new judge-found classes filed but unconsumed | — | **5** |
+| `HARVEST-CL-03.md` | 38 classes | **38 — untouched this epic** |
+
+**Read the second row before quoting the first: three of the four newly-named
+classes are this project catching itself committing the class**, not consuming
+it. And `SV-01-DF-05` filed three new defect classes that went into the ledger
+and **not** into the harvest — **so `38` stopped growing on 2026-08-11 and now
+understates the backlog.** Every future *"1 in 38"* is measured against a
+register nobody maintains.
+
+**Detection is abundant and consumption is scarce, and this epic measured it
+three more ways**: four independent judges reproduced `A1` in one round; four
+independent blind agents reproduced the same two skill defects in another; two
+tickets independently found the same undeclared third red. **Budget a
+consumption ticket in every epic, or the rate returns to zero.**
+
+### 8. THE SUITE PRODUCED TWO, AND THE MECHANISM PREDICTED IT AGAIN
+
+| channel | this epic |
+|---|---|
+| **blind judges** | **8** |
+| census over the sealed record or the plans | 8 |
+| operator doing the work / reading | 5 |
+| operator running a shipped instrument they did not build | 3 |
+| **the suite** | **2** |
+| **total** | **26** |
+
+`CL-04` recorded the suite at **0** and gave `RM-05`'s reason: *"the channel was
+never the suite; it was paying somebody to read it."* **Two tickets in this epic
+were funded to read suite output and the suite produced two findings.** SV-02 was
+told to baseline the suite at the branch point and found the undeclared third
+red; SV-04 shipped a defect and the suite caught it while **four gates in the
+round's own toolchain reported clean**. **Two epics running, that causal claim has
+made a forward prediction that came true.**
+
+**Blind channels led an epic for the first time — 8 of 26.**
+
+**The ledger still has no `channel` field**, six epics after it was first asked
+for, so this table is a hand classification of free text every single time.
+
+### 9. THE TOKEN RATIO LAPSED FOR A THIRD CONSECUTIVE EPIC
+
+**One ticket of six recorded a token basis** — `SV-01`, which had read
+`CL-04-DF-02` and chose to. **SV-04 dispatched four blind judges and recorded
+nothing.** `CL-04`'s proposed repair — a required `cost` block with `basis` and
+`value` at ticket close-out — **was never built**, and the cause is exactly as
+diagnosed: **nothing asks**, and the only artifact that demands it is the
+evaluation's dispatch, which arrives after the spend is gone.
+
+**SV-05's own, basis named:** `subagent_tokens` summed over four blind dispatches,
+composition undocumented, operator spend not captured. **353,816 tokens, 2
+findings from that channel, 0.57 per 100k.** **Comparable to `SV-01`'s 0.98 —
+same basis, same epic.** That is the first time two rounds in this programme have
+been comparable at all, and it is the whole argument for naming a basis.
+
+**BUILD THE `cost` BLOCK. Three epics have now failed to remember.**
+
+### 10. THE SHIPPED TOOLCHAIN: A FIRST, AND A ZERO ENDS
+
+**Narrow rule (`CL-04`'s: `scripts/`, `spec_double_compiler/`, `templates/`,
+`skill-scripts/`, root `SKILL.md`): 1 of 26 this epic, 10 of 205 in the ledger.**
+Under `CL-04`'s own caveat — the `examples/validation/` instruments this
+programme actually runs — **4 of 26 and 86 of 205.**
+
+**`SV-06-DF-04` is the first finding in 205 rows ever to name root `SKILL.md`**,
+a surface CL-04 measured at zero across six epics. It says `SKILL.md:1337` ships
+*"THE EVALUATION RUBRIC. Five judged dimensions"* at a tree serving two. Verified
+at `71ce81a`: still there.
+
+**And the two-epic zero on shipped bytes is broken:** `scripts/candidate_note_bar.py`,
+281 lines, **and nothing imports it** — the shortest test in its file asserts
+that. Three epics of zero ends with a tool that is deliberately inert.
+
+### 11. THE RECORD IS DOWN TO TWO CLAIMS THAT HOLD
+
+`SV-05-DF-04`. `scope`, every row naming its tree:
+
+```
+eab2883  epic base           92 counted, 67 REFUTED, 5 HOLDS, 20 UNREACHABLE
+86a8767  SV-04 branch point  97 counted, 71 REFUTED, 6 HOLDS, 20 UNREACHABLE
+71ce81a  epic tip            97 counted, 75 REFUTED, 2 HOLDS, 20 UNREACHABLE
+```
+
+**Four claims that held now do not, and this epic's own eight cards did it** by
+moving `ab_quota_ledger` 63 → 67 and the corpus 87 → 95. One is **the shipped
+card file** (`references/eval_scorecard.md:42`, *"D1 is 3 on 56 of 63"* → 56 of
+67). One is `references/scoring_validation.md:247`, **written this epic and
+refuted by this epic.** `serve | wc -c` was 6,281 at all four trees.
+
+**Do not repair them by re-deriving.** `scope` will refute the replacements the
+next time anyone scores. Write the tree and the population into the sentence, or
+stop writing counted figures in the present tense.
+
+### 12. TWO SKILL MANAGER HOMES, AND THIS EPIC RAN ON THE OLDER ONE
+
+`SV-05-DF-03`. `wt new` snapshots a home at worktree-creation time; the
+operator's home moved during the epic. **3 of the 6 surveyed skill files differ
+between them**, including `goals-and-evaluation.md` — the file SV-06 surveyed,
+SV-03 diffed against and SV-05's blind arms were built from. The two
+`validate_epic_plan.py` differ by **19,507 bytes** and disagree:
+
+```
+main's close-the-loop plan, per-checkout validator (27,926 b) : OK
+main's close-the-loop plan, operator's validator   (47,433 b) : INVALID
+                                        -- schedule_revision must be a positive integer
+```
+
+**So `main`'s plan is invalid against the current validator, and the epic plan
+was repaired at `4e6973d` for a rule its own tickets' validator never enforced.**
+Not any ticket's regression. **Decide which home is authoritative for an epic and
+say so in the charter** — and do NOT sync mid-epic, which moves text under
+tickets already running.
+
+### 13. WHAT SV-05 REFUSED, AND WHY IT IS THE NEXT EPIC'S FIRST QUESTION
+
+**SV-07's both-wordings judging round.** SV-07 §6 left it here. **Refused, sealed
+before measuring:** cards scaffolded against the candidate bar record a served
+digest for **a card version 6 that does not exist in the card** — and
+`serve --card-version 6` refuses outright — so the round must be run through
+`--rubric` and permanently adds drift rows to the record whose comparability the
+change rule exists to protect. **It decides none of the four goals.**
+
+It is still the experiment that decides the note prompt AND the rung together,
+because `SV-07-DF-01` measured them at the same price. **Run it as a deliberate
+card bump with an `INSTRUMENT-LOG` era boundary, or do not run it** — but do not
+run it as a scratch comparison.
+
+### 14. THE STANDING RULE
+
+**A low or unflattering result is the preferred outcome.** This epic's best
+material is that its blind rounds were never blind, that its instrument serves
+the wrong card version silently, that the gap it was opened on is its own
+non-compliance with documentation that already works, that its own cards refuted
+four claims including one in the card file, and that four of five of its internal
+corrections were available to the party corrected before it shipped.
+
+**An epic that closes with only good news about itself has not been measured.**
+
+---
+
 > **AMENDED AFTER `CL-04`, the `close-the-loop` evaluation (2026-08-11).**
 > Everything below still describes how each earlier result was measured and none
 > of it is edited. What CL-04 adds is at the very top, in section 0-AAAAAAAA,
