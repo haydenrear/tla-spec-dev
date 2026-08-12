@@ -2190,3 +2190,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket SV-06
+
+- close_scope: ticket
+- close_id: SV-06
+- workflow: score-drives-validation-epic
+- closed_at: 2026-08-12T17:00:05+00:00
+- summary: SV-06 RESEARCH: the goal-score wiring already exists and has never been populated with a score. 27 goals, 12 dimension-keyed, 0 with a scored baseline, against 87 sealed cards. Design at references/goal_score_wiring.md; SV-07 hand-off is 4 prose edits across 3 skills, 0 fields, 0 bytes to serve. No production code, no skill edited.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

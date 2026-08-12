@@ -5,7 +5,7 @@ purpose: >-
   THE OWNER'S GOAL IN TWO HALVES: any project being onboarded can, DURING THE GOAL PROCESS and across any and all epics, score its VALIDATION and its ARCHITECTURE; and from that goal and scorecard, NEW VALIDATION is introduced into the project -- improved architecture and diagrams, and integration and unit tests derived from them. HALF ONE IS HALF TRUE. HALF TWO HAS NEVER BEEN ATTEMPTED.
 
 
-  THREE MEASURED GAPS. (1) THE CARD CANNOT SCORE VALIDATION AND WE REMOVED THAT ABILITY ON PURPOSE: at version 5 it serves two scored dimensions and carries three RECORDED NOTES THAT TAKE NO SCORE -- run score_tools.py serve and read them there, because only the card may say what a dimension is. The two retired to notes were the validation dimensions, cut because 38% of D1 and 18% of D4 anchor decisions cited THIS PROJECT'S OWN MACHINERY against 0% on D3 and D5 -- they graded toolchain ownership. (2) THE SCORE IS NOT IN THE GOAL PROCESS: across every skill the surface is THREE SKILLS AND FOUR FILES, and no goal has ever been keyed to a dimension. (3) THE LOOP IMPROVES THE INSTRUMENT AND NEVER THE PROGRAM: every closure has terminated in a card change and a score change, and NO SCORE HAS EVER PRODUCED A TEST, A DIAGRAM, A MODEL ACTION OR AN ADAPTER -- 0 for 7 epics.
+  THREE MEASURED GAPS. (1) THE CARD CANNOT SCORE VALIDATION AND WE REMOVED THAT ABILITY ON PURPOSE: at version 5 it serves only D2 complexity and D3 modularity, while D1 bug-detection, D4 behavior-preservation and D5 are RECORDED NOTES THAT TAKE NO SCORE. D1 and D4 were the validation dimensions and were cut because 38% of D1 and 18% of D4 anchor decisions cited THIS PROJECT'S OWN MACHINERY against 0% on D3 and D5 -- they graded toolchain ownership. (2) THE SCORE IS NOT IN THE GOAL PROCESS: across every skill the surface is THREE SKILLS AND FOUR FILES, and no goal has ever been keyed to a dimension. (3) THE LOOP IMPROVES THE INSTRUMENT AND NEVER THE PROGRAM: every closure has terminated in a card change and a score change, and NO SCORE HAS EVER PRODUCED A TEST, A DIAGRAM, A MODEL ACTION OR AN ADAPTER -- 0 for 7 epics.
 
 
   AND ONE DEBT: the D3 caveat has NO NEGATIVE CONTROL. It was applied to an artifact with exactly the property it names and the score went to 3, which demonstrates plumbing rather than discrimination.
@@ -62,6 +62,12 @@ epic_goals:
       A verdict either way. IF D3 FALLS THERE TOO the caveat is downward pressure and close-the-loop's headline is a RECALIBRATION rather than a detection -- and A NULL MUST BE REPORTED AS LOUDLY AS THE MOVE WAS, naming every claim that inherits the correction.
     evaluation_ticket: SV-05
     evidence_root: specs/results/scorecards/score-drives-validation/GOAL-caveat-discriminates
+    scored_by:
+      rubric: references/eval_scorecard.md
+      rubric_version: 5
+      dimension: D3
+      subject: reference_ports
+      baseline_card: specs/results/scorecards/close-the-loop/CL-03/measure/20260807-p1/scorecard.json
   - id: GOAL-validation-is-scorable
     kind: eval
     statement: >-
@@ -113,7 +119,7 @@ epic_goals:
 tickets:
   - id: SV-01
     title: 'The missing negative control: does the D3 caveat discriminate?'
-    status: done
+    status: planned
     github_issue: https://github.com/haydenrear/tla-spec-dev/issues/230
     schedule_revision: 1
     depends_on: []
@@ -136,6 +142,7 @@ tickets:
         contribution: direct
         expected_effect: The caveat's discrimination is settled either way.
         local_signal: D3 under v4 vs v5 on an artifact without the hole
+        score_signal: "N/A: judging is too expensive for a per-ticket signal"
       - goal: GOAL-validation-is-scorable
         contribution: guard
         expected_effect: none expected
@@ -195,7 +202,7 @@ tickets:
     model_delta_expectation: none expected
   - id: SV-06
     title: 'RESEARCH: wiring the score into the goal process across every skill that mentions it'
-    status: done
+    status: planned
     github_issue: https://github.com/haydenrear/tla-spec-dev/issues/238
     schedule_revision: 1
     depends_on: []
