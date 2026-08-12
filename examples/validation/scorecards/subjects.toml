@@ -278,3 +278,71 @@ example = "eval_toolchain"
 scope = ["examples/validation/gap_mutants"]
 declared_effect_boundary = "effectful"
 labels = [["portable-substrate-rm04-JJ", "JJ"]]
+
+# --------------------------------------------------------------------------
+# SV-01: THE NEGATIVE CONTROL FOR THE D3 CAVEAT, DECLARED BEFORE ANY JUDGE.
+#
+# `close-the-loop` moved D3 4,4 -> 3,3 by adding a caveat that says TAKE 3 when
+# the only observer of the effect the port exists for is the adapter that wrote
+# it -- and it applied that caveat to an artifact WITH EXACTLY THAT PROPERTY.
+# That demonstrates the caveat is wired up. It does not measure whether the
+# caveat DISCRIMINATES. This subject is the missing cell: an artifact that
+# plainly LACKS the property, scored under version 4 and version 5.
+#
+# WHAT THE TREE IS, said plainly because it matters to how the result may be
+# read. It is a BYTE-IDENTICAL copy of `arm_b`'s `quota_ledger/`,
+# `tests/test_ledger.py` and `NOTES.md`. `EVIDENCE.md` is NOT copied: it is the
+# producing round's instrument output, it says "artifact T" in its first line,
+# and it is not part of the artifact. So this scope is arm_b's artifact minus
+# one document that names arm_b, and every claim made about this scope is a
+# claim about that tree and not about `.../blind/artifact_T` as a directory.
+#
+# WHY A COPY AT ALL. `_subject_block` REFUSES to blind a card whose declared
+# scope spells a published label, and `arm_b`'s scope is
+# `specs/results/scorecards/ports-as-adapters/blind/artifact_T`. The tool's own
+# remedy is "copy the tree to a directory that names no published label", and
+# that is what this is. It is also the stronger blind: pointing a judge at the
+# original directory puts them two levels from ten published cards scoring it.
+#
+# WHY THIS ARTIFACT LACKS THE PROPERTY, declared before the round and checkable
+# by reading: `tests/test_ledger.py:243-247` asserts the exact bytes at the
+# ledger path with `path.read_text()`, which is an observer of the durable
+# effect that is not the adapter that wrote it, and
+# `test_a_second_journal_at_the_same_path_starts_empty` observes the write
+# through a DIFFERENT journal instance. The caveat's condition is FALSE here.
+#
+# `declared_effect_boundary` is `ports-and-adapters`, which is `arm_b`'s
+# declared value for the same bytes. It is a PRIOR taken from the sealed
+# record, not a prediction this ticket has a stake in, and NO CARD OF THIS
+# ROUND CARRIES IT -- every card is blinded, so `subject.name` is null and the
+# declared value is withheld.
+#
+# SCOPE-CARRYING NOTE ON THE COUNTS ABOVE. `[registry].note` says ELEVEN
+# SCOPES and RM-04's block says the count is 17 with its own three. This block
+# adds one, so this file now declares 21 subjects. Neither predecessor note is
+# edited: each is its author's statement at its author's scope, and rewriting a
+# predecessor's figure to match a successor's file is exactly how a number
+# stops carrying the scope it was true at. Filed, not repaired.
+# --------------------------------------------------------------------------
+
+# `labels` BELOW WAS WRITTEN AFTER THE ROUND, and it has to be, for exactly the
+# reason RM-04 gives above: these four cards are blinded, `subject.name` is
+# `null` on every one of them, so THE CARD CANNOT NAME ITS OWN SUBJECT and the
+# attribution lives here. Both rounds carry the same label because they are the
+# same artifact under two card versions, which is the one case this project
+# reuses a label for and which `UNBLINDING.md` records with its reason.
+#
+# It was `[]` when the subject was declared, before any card existed, and
+# `test_a_card_with_no_subject_is_legal_and_is_every_sealed_card` went red on
+# four unmapped cards until it was filled in. That test is right and the empty
+# list was the error: a blinded card that no `labels` entry claims is a card
+# nothing can attribute, which is the state the test exists to refuse.
+
+[subject.sv01_negative_control]
+example = "ab_quota_ledger"
+scope = ["specs/results/scorecards/score-drives-validation/GOAL-caveat-discriminates/SV-01/blind/artifact_under_score"]
+declared_effect_boundary = "ports-and-adapters"
+labels = [
+  ["score-drives-validation-sv01-v4", "GL"],
+  ["score-drives-validation-sv01-v5", "GL"],
+]

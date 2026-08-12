@@ -1,0 +1,174 @@
+{
+  "scorecard_version": 4,
+  "status": "filled",
+  "epic": "score-drives-validation-sv01-v4",
+  "example": "ab_quota_ledger",
+  "run_id": "20260812-sv01v4-GL-p1",
+  "arm": "GL",
+  "commit": "5e07dce",
+  "judge": {
+    "model": "claude-opus-5[1m]",
+    "tier": "",
+    "pass": 1,
+    "blind_to_arm": true
+  },
+  "subject": {
+    "name": null,
+    "blinded": true,
+    "scope": [
+      "specs/results/scorecards/score-drives-validation/GOAL-caveat-discriminates/SV-01/blind/artifact_under_score"
+    ],
+    "axis": "effect_boundary"
+  },
+  "rubric": {
+    "source": "examples/validation/scorecards/rubric_v4_frozen.md",
+    "digest": "sha256:497c16ca85adeb4a",
+    "scoring_rules": [
+      "**Score artifacts, never claims.** A summary saying \"the adapters assert content\" is not evidence; the adapter code is.",
+      "**Every score \u2265 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
+      "**A score at the top of its scale additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.",
+      "**Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.",
+      "**Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.",
+      "**Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.",
+      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree \u2014 and a disagreement is a finding.",
+      "**Say what you ran.** *(New in version 2.)* Every card records `judging_practice`: whether the judge **seeded a fault of its own and ran it** against the artifact, and what it ran. Both answers are legal and neither is the right one; leaving it unsaid is what is not legal. From version 4 no anchor is gated on it and it is still required, because what a judge did is a variable in what a judge reports and a variable nothing records is a variable nobody can subtract.",
+      "**A judge is served the card, never the rubric file.** *(New in version 3.)* The scaffolded `scorecard.md` carries the rubric a judge needs. This file carries reading rules and prior results about these dimensions as well, and a judge who reads it is handed conclusions about the instrument they are the instrument for. Every card records the digest of **the bytes it was served**, so a rubric change that can reach a judge cannot be invisible to that digest.",
+      "**Answer every recorded note.** *(New in version 4.)* N-D1, N-D4 and N-D5 take no score and are required on every filled card. An empty note is not a legal card; *\"I could not tell, and here is what I looked at\"* is."
+    ],
+    "served_digest": "sha256:a213a36770ccab09",
+    "file_sha256": "sha256:02b2e07851badbea"
+  },
+  "how_to_fill": [
+    "Score the LOWEST anchor the artifact fully satisfies. Torn between two: take the lower and say why.",
+    "Set `status` to \"filled\", `commit` to the sha the artifacts were scored at, and name your model in `judge.model`.",
+    "Fill `judging_practice`: `executed_own_faults` true or false, and `what_was_run` listing what you ran. FALSE IS A LEGAL AND USEFUL ANSWER -- it is recorded, never corrected. Delete the `note` key once you have.",
+    "Leave `anchors` as scaffolded. They are read from the rubric so the bar and the score live in one file; editing them here forks the rubric silently, which is the drift this scaffold exists to remove.",
+    "Answer every entry in `notes`. They take NO score -- these three questions were scored for three versions and the numbers were measured not to mean the same thing twice, so what is asked for is prose and citations. 'I could not tell, and here is what I looked at' is a legal note; an empty one is not."
+  ],
+  "dimensions": {
+    "D2": {
+      "name": "complexity",
+      "question": "Is the design as simple as its behavior requires, and no simpler?",
+      "anchors": {
+        "0": "Complexity is unmeasured, or measured and ignored.",
+        "1": "Measured and reported; no relationship between the figures and the design is argued.",
+        "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
+        "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded."
+      },
+      "score": 2,
+      "citations": [
+        "quota_ledger/domain.py:106-114",
+        "quota_ledger/domain.py:118-120",
+        "quota_ledger/domain.py:146-149",
+        "quota_ledger/domain.py:151-160",
+        "quota_ledger/domain.py:172-182",
+        "quota_ledger/domain.py:186-191",
+        "quota_ledger/file_journal.py:25-35",
+        "NOTES.md:69-84"
+      ],
+      "rationale": "Anchor 2 is met on the code, and anchor 3 fails for want of figures. Four pieces of written state exist (quota_ledger/domain.py:106-114) and each has the writer the behavior implies: `_committed` only by `commit` (domain.py:151-160), `_closed` only by `close_tenant` (domain.py:172-182), `_issued` only by `reserve` and only past the four guards, so a rejection burns no id (domain.py:146-149), and `_outstanding` by the three commands that are definitionally about reservations. There is no god-state and no variable written from everywhere. The one fact that could plausibly be stored twice -- `available` -- is not stored at all: quota_ledger/domain.py:118-120 derives it as `quota - held - committed` on every call, so R1 is arithmetic rather than an invariant three commands must remember, and the feature's trickiest sentence ('committing does not give the hold back') follows from commit moving an amount between two of those subtrahends rather than from a fourth write site. I verified that this is a derivation and not a deletion by breaking it: replacing domain.py:120 with `quota - held` (dropping the committed term) is killed by 6 of the artifact's own cases and 2 shared ones, so the behavior the derivation replaced is still asserted by name and value. The remaining duplication is real and is the format string: `COMMIT <tenant> <amount> <total>` is built in the domain (domain.py:159, domain.py:181) and the running total it carries is the same fact as `_committed`. That is not a second store -- the total is computed at domain.py:157 and written in the same statement, so it cannot drift -- and pushing rendering into the port would put one format into two adapters, which is worse. The cost of not indexing reservations by tenant is that `_holdings` (domain.py:186-191) rescans every outstanding reservation, so `reserve` is O(live reservations); at this feature's scale that is the right trade of a second index for an invariant, and the artifact does not claim otherwise. Anchor 3 requires a simplification whose effect was MEASURED, with before and after figures both recorded. NOTES.md:69-84 argues the simplification well and records no figure of any kind; `mechanical.json` carries empty `complexity_of_produced_code`; there is no before tree, so there is no before number. Per the caveat, a D2 of 3 needs the judge to say what got simpler and how the behavior survived -- I can say the second half, having tested it, but the artifact records no measurement at all, and 'the judge measured it afterwards' is not 'the before and after figures are both recorded'. Prose quality did tempt me here: NOTES.md is unusually well argued and reads like measurement without being it, and rule 4 says to say so. Scored on the code alone the answer is the same.",
+      "refuses_to_claim": null,
+      "read_first": "Diff the two trees yourself and decide whether one fact is stored twice \u2014 kept in agreement by hand across several write sites, and read in one place. Where a measured complexity descriptor exists you may read it, and on its own it decides nothing; where none exists that is not a gap in the evidence.",
+      "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 requires the judge to say *what got simpler and how the behavior survived it*."
+    },
+    "D3": {
+      "name": "modularity",
+      "question": "Is it ports and adapters in fact \u2014 domain independent of I/O, adapters swappable?",
+      "anchors": {
+        "0": "No boundary is discernible; state is written from everywhere.",
+        "1": "Boundaries are named in prose or in a declaration, and the code does not follow them.",
+        "2": "The code follows the declared boundaries. Cross-boundary calls go through something identifiable as a port.",
+        "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
+        "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
+      },
+      "score": 4,
+      "citations": [
+        "quota_ledger/domain.py:13-16",
+        "quota_ledger/domain.py:22-43",
+        "quota_ledger/domain.py:114",
+        "quota_ledger/domain.py:131-132",
+        "quota_ledger/domain.py:159",
+        "quota_ledger/domain.py:181",
+        "quota_ledger/__init__.py:22-24",
+        "quota_ledger/__init__.py:37-39",
+        "quota_ledger/file_journal.py:13-35",
+        "quota_ledger/memory_journal.py:14-22",
+        "tests/test_ledger.py:26-36",
+        "tests/test_ledger.py:42-71",
+        "tests/test_ledger.py:108-129",
+        "tests/test_ledger.py:260-270"
+      ],
+      "rationale": "Anchor 4 is met and I checked it by execution rather than by reading imports, because the caveat says import topology is not modularity. THE PORT: `Journal` is a two-method Protocol declared in the domain in the domain's vocabulary, with its contract written on it (quota_ledger/domain.py:22-43); the domain never constructs one, it is handed one at quota_ledger/domain.py:114. ANCHOR 3, DOMAIN DOES NOT IMPORT ITS I/O: quota_ledger/domain.py:13-16 imports `__future__`, `dataclasses`, `typing` and nothing else, and grep confirms the strings FileJournal / InMemoryJournal / file_journal / memory_journal appear nowhere in domain.py -- only in quota_ledger/__init__.py and the tests. ANCHOR 3, THE SPECIFIC SWAP, EXECUTED: in a scratch copy I replaced `FileJournal(ledger_path)` with `InMemoryJournal()` at quota_ledger/__init__.py:39 and changed nothing else; domain.py stayed byte-identical (md5 2818df20c2f62c4ac480be73621fbb96 before and after) and all 28 shared-suite cases passed against the swapped wiring, with no ledger file written at all. That is one line in the one module that imports both sides (quota_ledger/__init__.py:22-24). RUNTIME EVIDENCE, NOT IMPORTS: (a) I wired `Ledger` to a spy Journal and ran a ten-command scenario; the complete set of cross-boundary calls the domain made was `append` x3 and `records` x1 -- no other method of the collaborator was ever reached; (b) I then poisoned `builtins.open`, `io.open`, `os.open`, `Path.open`, `Path.read_text` and `Path.write_text` to raise on call and drove the same scenario with the fake: the domain completed it and produced identical results, so at runtime the domain reaches the filesystem through the port or not at all. ANCHOR 4, REAL ADAPTER AND FAKE, SAME CASES: tests/test_ledger.py:26-31 is a `params=['file','memory']` fixture and tests/test_ledger.py:34-36 builds the domain on whichever it yields, so one case list runs twice -- once on FileJournal (quota_ledger/file_journal.py:13-35, genuinely on disk) and once on InMemoryJournal (quota_ledger/memory_journal.py:14-22). It is the same cases and not two lists: 53 of 53 pass, and each asserts a literal expected transcript (tests/test_ledger.py:114, :124-129) rather than that the two wirings agree with each other, which matters because two wirings of one domain agree even when the domain is wrong. The port's own contract is asserted against both implementations too (tests/test_ledger.py:42-71), including the ownership clause -- and that clause is not decorative: making `InMemoryJournal.records` return its internal list kills tests/test_ledger.py:67 while the shared suite stays green, so the fake is held to the port and not merely present. WHAT I REJECTED: I considered 3, on the reading that InMemoryJournal is thin (a list) and is exported from the package's public `__init__` (quota_ledger/__init__.py:33), so it ships as production surface rather than as a test double, and that a fake this cheap makes anchor 4 nearly free. I set that aside: anchor 4 asks whether a real adapter and a fake run the same cases, not whether the fake was expensive, and rewriting the bar upward mid-scoring would substitute my rubric for the one I was served. The tension is recorded rather than priced in. I also note the boundary is not free of leakage in principle -- the record FORMAT lives in the domain (quota_ledger/domain.py:159, :181) and the port carries a finished string, so a Journal implementation that needed structured records could not get them without a domain change. The artifact argues this deliberately and I agree with the trade; it is a limit on what the port abstracts, not a violation of it.",
+      "refuses_to_claim": "It refuses to claim the durable side is atomic or crash-safe, and names the exact hole: NOTES.md:136-141 says commit and close_tenant update memory and then append, so a raising append would leave memory ahead of the journal, and calls this 'the one place I can name where R2 is not enforced by construction'. I verified the refusal is truthful rather than modest: driving `Ledger` with a Journal whose `append` raises OSError leaves `committed('acme') == 3` with `ledger_lines() == []`, so R2 is false in exactly the way the artifact said it would be, and neither its own suite nor the shared suite covers this. It also refuses to widen the rejection vocabulary to cover non-integer amounts (NOTES.md:142-145) -- `reserve('acme', 2.5)` is accepted and writes `COMMIT acme 2.5 2.5`, which I reproduced -- on the stated ground that the vocabulary is fixed at six reasons, and it refuses to invent reopen-and-resume semantics for an existing ledger file (NOTES.md:132-135, quota_ledger/file_journal.py:25-27 truncates instead).",
+      "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
+    }
+  },
+  "contested": [],
+  "verdict": "A four-file quota ledger whose hexagonal boundary is real under execution, not just under import inspection: the domain imports only `__future__`/`dataclasses`/`typing`, the whole swap is one line at quota_ledger/__init__.py:39, and when I performed that swap the domain file stayed byte-identical while all 28 shared cases passed, and when I poisoned every filesystem entry point in Python the domain ran a full scenario unharmed, reaching its collaborator only through `append` and `records` -- so D3 sits at 4, with a real adapter and a working fake driven by one 53-case list that asserts literal transcripts rather than agreement between the two wirings. D2 sits at 2 and not 3 for a single reason: the artifact makes a genuine simplification (`available` is derived at domain.py:118-120 rather than stored, which is why R1 cannot drift) and argues it well at NOTES.md:69-84, but records no figure before or after and `mechanical.json` is empty, and anchor 3 asks for measurement, not for argument -- I confirmed by deletion that the derived behavior is still independently asserted, which is the half of the caveat I can answer, but a judge measuring it afterwards is not the artifact recording it. Of thirteen faults I seeded, the artifact's own suite killed twelve and the shared floor killed eight; the single fault that survived BOTH is rejection PRECEDENCE -- swapping the `tenant_closed` and `amount_not_positive` guards at domain.py:139-142 leaves 53/53 and 28/28 green, because no case anywhere constructs an input where two rejection conditions hold at once, even though FEATURE.md:40-45 fixes the order explicitly. DISCLOSURE: I did not learn the arm mapping, but the artifact's own NOTES.md:102-123 has a section headed 'Where the feature file and the architecture ask conflicted' that quotes a structural instruction ('the domain holds no file handle, no path') from a prompt the feature file explicitly does not contain, so the artifact self-identifies as having been produced under a structure/architecture treatment; the blind is defeated by the artifact I was told to read, not by anything I went looking for.",
+  "judging_practice": {
+    "executed_own_faults": true,
+    "what_was_run": [
+      "Baseline, unmutated, in the repository tree: `uv run --with pytest python -m pytest tests/test_ledger.py -q` -> 53 passed in 0.14s.",
+      "Baseline shared suite: `QUOTA_LEDGER_DIR=$ARTIFACT QUOTA_LEDGER_IMPL=quota_ledger uv run --with pytest python -m pytest .../shared_suite/test_behavior.py -q` -> 28 passed in 0.09s. Both match NOTES.md:27-28, so that claim checks out against execution.",
+      "Copied the artifact to scratch (/private/tmp/.../judge-v4-p1/base) and seeded 15 faults there, one at a time, each into a fresh copy, running BOTH suites against every one. NOTHING WAS MUTATED IN THE REPOSITORY.",
+      "13 real faults. Own suite killed 12, shared suite killed 8. F01 running total on the COMMIT line becomes the per-line amount (own KILLED 4, shared KILLED 2). F02 release appends a durable line (own 6, shared 1). F03 reserve increments the id counter before its guards (own 8, shared 2). F04 rejection precedence: `amount_not_positive` checked before `tenant_closed` -- SURVIVED BOTH SUITES, 53 passed and 28 passed. F05 quota boundary `>` to `>=` (own 8, shared 2). F06 outstanding_ids sorted lexicographically so r10 precedes r2 (own KILLED 2, shared SURVIVED). F07 CLOSE line total hardcoded to 0 (own 4, shared 2). F08 close accepted with reservations outstanding (own 2, shared 2). F09 FileJournal stops truncating (own KILLED 1, shared SURVIVED). F10 FileJournal.records drops the last record (own 19, shared 7). F11 InMemoryJournal returns its internal list (own KILLED 1, shared SURVIVED). F12 domain imports pathlib (own KILLED 1, shared SURVIVED). F13 `available` stops subtracting committed (own 6, shared 2).",
+      "2 deliberate CONTROLS that should kill nothing, to check the suites are discriminating rather than brittle: F14 a semantically vacuous guard rewrite and F15 reordering commit's two writes without changing them. Both survived both suites, as intended.",
+      "The swap, executed: replaced `FileJournal(ledger_path)` with `InMemoryJournal()` at quota_ledger/__init__.py:39 in a scratch copy, confirmed domain.py md5 unchanged (2818df20c2f62c4ac480be73621fbb96), ran the shared suite against the swapped wiring -> 28 passed with no ledger file written.",
+      "Runtime call trace: wired `Ledger` to a spy Journal and ran a 10-command scenario; the complete cross-boundary call set was append('COMMIT acme 4 4'), append('COMMIT globex 2 2'), append('CLOSE acme 4'), records(). No other collaborator method was reached.",
+      "Runtime I/O isolation: monkeypatched builtins.open, io.open, os.open, Path.open, Path.read_text and Path.write_text to raise, then ran the same scenario on the domain with the fake -- completed with identical results, so the domain touches no filesystem outside the port.",
+      "Failed-durable-write probe: drove `Ledger` with a Journal whose append raises OSError; commit left committed('acme')==3 with ledger_lines()==[], reproducing the R2 divergence NOTES.md:136-141 names for itself.",
+      "My own randomized property check of R1-R5, independent of both suites: 400 traces x 60 random operations (including unknown tenants, negative and zero amounts, bogus reservation ids, double closes), asserting conservation, durable-vs-memory agreement, close finality, rejection-changes-nothing with snapshot comparison, and append-only prefix stability. 0 violations of any rule.",
+      "Direct probes of the unspecified edges: reserve('acme', 2.5) accepted and wrote `COMMIT acme 2.5 2.5`; a tenant named 'big corp' wrote `COMMIT big corp 2 2`, which splits into five fields and defeats the shared suite's own R2 parser at shared_suite/test_behavior.py:261; `python -O` showed the six-reason vocabulary guard at domain.py:74 is an assert and disappears when assertions are off."
+    ]
+  },
+  "notes": {
+    "N-D1": {
+      "name": "bug detection",
+      "question": "What did the cases catch, and what class did they demonstrably miss? Name the fault you seeded if you seeded one.",
+      "note": "I seeded 13 real faults plus 2 controls, each into a fresh scratch copy, and ran both suites against every one. CAUGHT: the artifact's own suite killed 12 of 13, and it kills four classes the shared floor does not. (1) Ordering that only breaks past r10 -- replacing `list(self._outstanding)` at quota_ledger/domain.py:129 with `sorted(...)` is caught by tests/test_ledger.py:100-105, which deliberately runs to r10 where a lexicographic sort puts r10 before r2; the shared suite never allocates ten ids and stays green. (2) Adapter construction semantics -- making quota_ledger/file_journal.py:27 stop truncating is caught by tests/test_ledger.py:251-254 and missed by the shared suite entirely, because the shared suite always gets a fresh tmp_path. (3) The port contract on the FAKE -- making InMemoryJournal return its internal list rather than a copy (quota_ledger/memory_journal.py:22) is caught by tests/test_ledger.py:67-71 and invisible to the shared suite, which never touches the fake. (4) The boundary as a fact rather than an intention -- adding `from pathlib import Path` to the domain is caught by tests/test_ledger.py:260-270, which parses domain.py's import statements and asserts the set equals {__future__, dataclasses, typing}. The shared floor killed 8 of 13. Both suites killed every arithmetic and durable-write fault I tried: the running total (domain.py:159), the CLOSE total (domain.py:181), the id counter moving above its guards (domain.py:146), the quota boundary at domain.py:143, dropping the committed term from `available` (domain.py:120), a release that writes durably, a close that ignores outstanding reservations (domain.py:177), and a records() that loses the last line. DEMONSTRABLY MISSED, and this is the finding: REJECTION PRECEDENCE. FEATURE.md:40-45 fixes the order of reserve's four guards explicitly, and quota_ledger/domain.py:137-144 implements it correctly -- but swapping the `tenant_closed` and `amount_not_positive` tests leaves 53/53 and 28/28 passing. Neither suite ever constructs an input where two rejection conditions hold at once. The nearest miss is tests/test_ledger.py:155-158, which reserves on a closed tenant but with a valid amount, so only one guard is live. I confirmed the real artifact gets it right (closed tenant + amount 0 returns tenant_closed) -- the miss is in the cases, not the code. Second missed class: input domains the vocabulary does not cover. `reserve('acme', 2.5)` is accepted and writes `COMMIT acme 2.5 2.5`; a tenant named with an embedded space writes `COMMIT big corp 2 2`, which has five fields and misparses under the shared suite's own R2 parser at shared_suite/test_behavior.py:261. The artifact names the first of these itself (NOTES.md:142-145) and not the second. Third: the failed-durable-write divergence at quota_ledger/domain.py:156-159, uncovered by both suites and named by the artifact (NOTES.md:136-141). Two controls (a vacuous guard rewrite, and reordering commit's two writes) survived both suites as intended, so the kills above are discrimination and not brittleness. Separately, the six-reason vocabulary guard at quota_ledger/domain.py:74 is an `assert` and evaporates under `python -O`, which I verified; no case would notice.",
+      "citations": [
+        "quota_ledger/domain.py:137-144",
+        "quota_ledger/domain.py:129",
+        "quota_ledger/domain.py:74",
+        "quota_ledger/domain.py:156-159",
+        "quota_ledger/file_journal.py:27",
+        "quota_ledger/memory_journal.py:22",
+        "tests/test_ledger.py:67-71",
+        "tests/test_ledger.py:100-105",
+        "tests/test_ledger.py:155-158",
+        "tests/test_ledger.py:161-199",
+        "tests/test_ledger.py:251-254",
+        "tests/test_ledger.py:260-270"
+      ]
+    },
+    "N-D4": {
+      "name": "behavior preservation",
+      "question": "Which behaviors of the baseline did you enumerate, and is each shown still to hold? If there is no baseline, say so \u2014 that is the answer, not a gap in the note.",
+      "note": "THERE IS NO BASELINE IN WHAT I WAS SERVED, and that is the answer rather than a gap. The blind packet contains exactly three things -- FEATURE.md, artifact_under_score/, shared_suite/test_behavior.py -- and no prior or reference tree. D2's read_first says to 'diff the two trees yourself', but only one tree exists here; the shared suite's own default at shared_suite/test_behavior.py:32 points at a sibling `reference/` directory that is not present in the packet, and I did not go outside the packet to find it. So there is no before-state whose behaviors could be enumerated and shown still to hold, and no 'preserved' or 'lost' can be asserted about this artifact against a predecessor. What I could do instead, and did, is treat FEATURE.md as the specification of record and enumerate ITS behaviors, then check each independently of the artifact's own cases. The five queries (FEATURE.md:24-30) and four commands with their ordered rejection reasons (FEATURE.md:38-88) are implemented at quota_ledger/domain.py:118-132 and quota_ledger/domain.py:136-182 and I exercised each by hand. For R1-R5 (FEATURE.md:89-104) I wrote my own randomized property check -- 400 traces of 60 random operations each, mixing unknown tenants, zero and negative amounts, bogus reservation ids and repeated closes -- asserting conservation per tenant, the durable ledger's per-tenant sums and running totals against `committed`, close finality and singularity, full-snapshot equality across every rejection, and prefix-stability of the ledger after every operation. Zero violations of any of the five. The one behavior in FEATURE.md that I found NOT preserved under all conditions is R2 under a failing durable write: quota_ledger/domain.py:156-159 mutates memory and then appends, so a Journal whose append raises leaves committed at 3 with an empty ledger, which I reproduced. FEATURE.md specifies no failure semantics, so this is out of the specified envelope rather than a defect against it -- and the artifact says exactly that at NOTES.md:136-141 rather than leaving me to find it.",
+      "citations": [
+        "FEATURE.md:24-30",
+        "FEATURE.md:38-88",
+        "FEATURE.md:89-104",
+        "quota_ledger/domain.py:118-132",
+        "quota_ledger/domain.py:136-182",
+        "quota_ledger/domain.py:156-159",
+        "NOTES.md:136-141"
+      ]
+    },
+    "N-D5": {
+      "name": "honesty",
+      "question": "Does the artifact refuse rather than falsely certify, and does it name what it cannot see? Point at the refusal, or at its absence.",
+      "note": "It refuses, and every refusal I tested was truthful rather than modest -- which matters more than the fact of refusing, because rule 1 makes a disclaimer a claim like any other. THE REFUSALS, VERIFIED: (1) NOTES.md:136-141 declines to claim durability under failure and names the exact hole -- memory is updated before the append at quota_ledger/domain.py:156-159, so a raising append leaves memory ahead of the journal, and it calls this 'the one place I can name where R2 is not enforced by construction'. I drove the domain with a Journal whose append raises: committed('acme')==3, ledger_lines()==[], R2 false. The disclosure is exact. (2) NOTES.md:142-145 declines to reject non-integer amounts and says why (the vocabulary is fixed at six reasons and a type check would be a seventh); I reproduced `reserve('acme', 2.5)` -> accepted, writing `COMMIT acme 2.5 2.5`. It named a real hole it chose not to plug rather than a hypothetical one. (3) NOTES.md:127-131 declines to invent a query-side unknown-tenant result and states the actual consequence, that `available`/`committed` raise KeyError while `is_closed` returns False -- which matches quota_ledger/domain.py:118-126. (4) NOTES.md:132-135 declines to invent reopen-and-resume semantics; quota_ledger/file_journal.py:25-27 truncates, and it says so. IT ALSO REFUSES TO CERTIFY ITS OWN BOUNDARY BY ASSERTION: tests/test_ledger.py:260-270 parses domain.py's imports rather than trusting the docstring, on the stated ground that 'does not import' is a claim about the file rather than about intent -- an artifact converting one of its own claims into a check that can fail. In the same spirit tests/test_ledger.py:5-9 refuses the cheap version of dual-wiring, stating that it will not assert the two wirings merely agree because two wirings of one domain agree even when the domain is wrong; I confirmed the cases do assert literal transcripts (tests/test_ledger.py:114, :124-129). WHAT IT DOES NOT SEE, and does not claim to: it asserts '53 passed' and '28 passed' at NOTES.md:27-28, which is true and which I reproduced, but nowhere does it claim its suite is adequate, and the precedence gap I found is a hole it neither covers nor names. NOTES.md:96-100 claims 'no case had to be written for only one of them', which is contradicted in a small way by its own file -- two file-specific cases sit outside the parametrized list -- but the artifact states that exception in the very next sentence, so it is disclosed rather than hidden. The one place its prose reaches past its evidence is NOTES.md:149-157, 'Files I did not open ... git status there is clean', which is an unfalsifiable claim about process rather than about the artifact; I did not and could not check it, and per rule 1 I gave it no weight in any score.",
+      "citations": [
+        "NOTES.md:125-145",
+        "NOTES.md:136-141",
+        "NOTES.md:149-157",
+        "quota_ledger/domain.py:118-126",
+        "quota_ledger/domain.py:156-159",
+        "quota_ledger/file_journal.py:25-27",
+        "tests/test_ledger.py:5-9",
+        "tests/test_ledger.py:260-270"
+      ]
+    }
+  }
+}
