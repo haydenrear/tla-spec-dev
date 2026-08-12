@@ -233,6 +233,23 @@ def run_close_ticket(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_retire_ticket(args: argparse.Namespace) -> int:
+    from scripts.spec_evolution import (
+        create_ticket_retirement_entry,
+        print_commit_recommendation,
+    )
+
+    result = create_ticket_retirement_entry(
+        repo_root=Path(args.repo_root).resolve(),
+        spec_root=Path(args.spec_root),
+        ticket_ref=args.ticket_name,
+        workflow=args.workflow_name,
+        ticket_root=args.ticket_root,
+    )
+    print_commit_recommendation(result)
+    return 0
+
+
 def resolved_spec_root(repo_root: Path, spec_root: str) -> Path:
     path = Path(spec_root)
     return path if path.is_absolute() else repo_root / path
@@ -418,7 +435,8 @@ def build_parser() -> argparse.ArgumentParser:
         description="Work with a spec-double-compiler project through the modeled spec workflow.",
         epilog=(
             "Typical order: scaffold project -> scaffold workflow -> open ticket -> "
-            "analyze complexity -> run spec-unit-tests -> close ticket."
+            "analyze complexity -> run spec-unit-tests -> close ticket. When the owner "
+            "withdraws a dispatched ticket, record that separately with retire ticket."
         ),
         allow_abbrev=False,
     )
@@ -735,6 +753,52 @@ def build_parser() -> argparse.ArgumentParser:
         func=run_generate_cases,
         command_path="tla-spec-dev generate cases",
         next_step="tla-spec-dev analyze corpus <cases-dir>",
+    )
+
+    retire_parser = subparsers.add_parser(
+        "retire",
+        help="Record an owner decision to withdraw a dispatched ticket.",
+        description=(
+            "Write an append-only ticket-retirement receipt without promoting ticket "
+            "desired/current state or claiming validation. The plan entry must already "
+            "be marked status: retired and contain the complete retirement decision."
+        ),
+        allow_abbrev=False,
+    )
+    retire_parser.set_defaults(
+        func=incomplete_command,
+        command_path="tla-spec-dev retire",
+        next_step="Choose a target: tla-spec-dev retire ticket <ticket-name>.",
+    )
+    retire_sub = retire_parser.add_subparsers(dest="retire_target", metavar="target")
+    retire_ticket = retire_sub.add_parser(
+        "ticket",
+        help="Write the canonical no-promotion retirement receipt for one ticket.",
+        description=(
+            "Validate status: retired plus its owner decision, archive any active ticket "
+            "workspace as unaccepted work, and write the canonical append-only receipt. "
+            "This is not close ticket: it runs no validation or complexity ledger and "
+            "promotes no semantic state."
+        ),
+        allow_abbrev=False,
+    )
+    retire_ticket.add_argument(
+        "ticket_name", help="Ticket id from desired_program_model/ticket_plan.yaml."
+    )
+    retire_ticket.add_argument(
+        "--workflow-name",
+        help="Override ticket_plan.yaml name/status.workflow for the history directory.",
+    )
+    retire_ticket.add_argument(
+        "--ticket-root",
+        type=Path,
+        default=Path("tickets"),
+        help="Ticket directory root, relative to spec root by default.",
+    )
+    retire_ticket.set_defaults(
+        func=run_retire_ticket,
+        command_path="tla-spec-dev retire ticket",
+        next_step="Commit the unchanged plan entry and its append-only retirement receipt together.",
     )
 
     close_parser = subparsers.add_parser(

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import filecmp
+import json
 import re
 import shutil
 import sys
@@ -17,9 +18,19 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from .spec_evolution import create_workflow_closed_snapshot, print_commit_recommendation
+    from .spec_evolution import (
+        create_workflow_closed_snapshot,
+        print_commit_recommendation,
+        validate_workflow_ticket_completion,
+        workflow_name as resolve_workflow_name,
+    )
 except ImportError:  # pragma: no cover - direct script execution
-    from spec_evolution import create_workflow_closed_snapshot, print_commit_recommendation
+    from spec_evolution import (
+        create_workflow_closed_snapshot,
+        print_commit_recommendation,
+        validate_workflow_ticket_completion,
+        workflow_name as resolve_workflow_name,
+    )
 
 
 SEMANTIC_SUFFIXES = {".tla", ".cfg", ".yaml", ".yml"}
@@ -41,7 +52,6 @@ PLANNING_FILES = {
     "desired_state.yaml",
     "deferred_findings.yaml",
 }
-TICKET_CLOSED_STATUSES = {"accepted", "closed", "complete", "completed", "done"}
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 
 #: The three spec trees a module reference can name. A binding map names the
@@ -141,7 +151,8 @@ def workflow_promotion_guidance() -> str:
     return (
         "How to prepare this workflow for closeout:\n"
         "- Closeout requires the semantic files in current/, desired_program_model/, and the promoted "
-        "program_model/ to match, and every ticket in ticket_plan.yaml to be closed.\n"
+        "program_model/ to match, every delivered ticket to have one matching successful-close receipt, "
+        "and every retired ticket to have its exact retirement receipt.\n"
         f"- Compared semantic files: {semantic_suffixes} (planning files such as README.md, "
         "ticket_plan.yaml, and status/notes metadata are ignored).\n"
         "- Option A: reconcile the models by hand (finish landing current/, promote the converged model "
@@ -214,22 +225,187 @@ def promote_semantic_files(src: Path, dst: Path) -> list[str]:
     return promoted
 
 
-def validate_ticket_plan_closed(ticket_plan: Path) -> list[str]:
+def validate_ticket_plan_closed(
+    ticket_plan: Path,
+    *,
+    repo_root: Path | None = None,
+    workflow: str | None = None,
+) -> list[str]:
     if not ticket_plan.exists():
         return [f"missing ticket plan: {ticket_plan}"]
     plan = _load_yaml(ticket_plan)
+    specs_dir = ticket_plan.resolve().parent.parent
+    resolved_repo_root = (repo_root or specs_dir.parent).resolve()
+    return validate_workflow_ticket_completion(
+        repo_root=resolved_repo_root,
+        specs_dir=specs_dir,
+        plan=plan,
+        workflow=workflow,
+    )
+
+
+def ticket_plan_has_retirements(ticket_plan: Path) -> bool:
+    plan = _load_yaml(ticket_plan)
+    tickets = plan.get("tickets")
+    return isinstance(tickets, list) and any(
+        isinstance(ticket, dict)
+        and str(ticket.get("status", "")).strip().lower() == "retired"
+        for ticket in tickets
+    )
+
+
+def _exact_snapshot_files(root: Path) -> dict[Path, Path]:
+    return {
+        path.relative_to(root): path
+        for path in sorted(root.rglob("*"))
+        if path.is_file()
+        and not any(part in IGNORED_EXACT_SNAPSHOT_NAMES for part in path.relative_to(root).parts)
+    }
+
+
+IGNORED_EXACT_SNAPSHOT_NAMES = {
+    ".DS_Store",
+    "__pycache__",
+    ".history",
+    ".tla-spec-evolution",
+    ".gradle",
+    ".pytest_cache",
+    "build",
+    "states",
+}
+
+
+def validate_exact_snapshot(left: Path, right: Path) -> list[str]:
+    """Compare every archived planning and semantic byte, excluding snapshot ignores."""
+    if not left.is_dir():
+        return [f"missing desired program directory: {left}"]
+    if not right.is_dir():
+        return [f"missing terminal ticket desired snapshot: {right}"]
+    left_files = _exact_snapshot_files(left)
+    right_files = _exact_snapshot_files(right)
+    errors: list[str] = []
+    for relative in sorted(set(left_files) - set(right_files)):
+        errors.append(f"file exists only in current desired_program_model: {relative}")
+    for relative in sorted(set(right_files) - set(left_files)):
+        errors.append(f"file exists only in terminal ticket desired snapshot: {relative}")
+    for relative in sorted(set(left_files) & set(right_files)):
+        if not filecmp.cmp(left_files[relative], right_files[relative], shallow=False):
+            errors.append(f"terminal ticket desired snapshot differs: {relative}")
+    return errors
+
+
+def _terminal_delivered_ticket(plan: dict[str, Any]) -> tuple[int, dict[str, Any]] | None:
     tickets = plan.get("tickets")
     if not isinstance(tickets, list):
-        return [f"ticket plan has no tickets list: {ticket_plan}"]
-    errors: list[str] = []
-    for index, ticket in enumerate(tickets, start=1):
-        if not isinstance(ticket, dict):
-            errors.append(f"ticket {index} is not a mapping")
+        return None
+    delivered = [
+        (index, ticket)
+        for index, ticket in enumerate(tickets)
+        if isinstance(ticket, dict)
+        and str(ticket.get("status", "")).strip().lower()
+        in {"accepted", "closed", "complete", "completed", "done"}
+    ]
+    if not delivered:
+        return None
+    ordered = [
+        item
+        for item in delivered
+        if type(item[1].get("promotion_order")) is int
+    ]
+    if ordered:
+        maximum = max(ticket["promotion_order"] for _, ticket in ordered)
+        terminal = [item for item in ordered if item[1]["promotion_order"] == maximum]
+        return terminal[0] if len(terminal) == 1 else None
+    return delivered[-1]
+
+
+def validate_retirement_accept_new_authority(
+    *,
+    repo_root: Path,
+    specs_dir: Path,
+    desired_dir: Path,
+    plan: dict[str, Any],
+    workflow: str | None,
+) -> list[str]:
+    """Prove withdrawn desired state came through the terminal delivered ticket."""
+    terminal = _terminal_delivered_ticket(plan)
+    if terminal is None:
+        return [
+            "retired-ticket --accept-new requires one terminal successfully closed "
+            "non-retired ticket"
+        ]
+    terminal_index, terminal_ticket = terminal
+    terminal_id = str(terminal_ticket.get("id", f"ticket-{terminal_index}"))
+    resolved_workflow = resolve_workflow_name(plan, workflow)
+    history_root = specs_dir / ".history" / resolved_workflow
+    candidates: list[tuple[Path, dict[str, Any]]] = []
+    for manifest_path in sorted(history_root.glob("*/manifest.json")):
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
             continue
-        ticket_id = ticket.get("id", f"#{index}")
-        status = str(ticket.get("status", "")).strip().lower()
-        if status not in TICKET_CLOSED_STATUSES:
-            errors.append(f"ticket {ticket_id} is not closed: status={status or '(missing)'}")
+        if (
+            isinstance(manifest, dict)
+            and manifest.get("kind") == "ticket"
+            and manifest.get("ticket_id") == terminal_id
+        ):
+            candidates.append((manifest_path, manifest))
+    if len(candidates) != 1:
+        return [
+            f"terminal delivered ticket {terminal_id} must have exactly one successful "
+            f"close receipt, found {len(candidates)}"
+        ]
+    manifest_path, manifest = candidates[0]
+    errors: list[str] = []
+    if manifest.get("ticket_index") != terminal_index:
+        errors.append(
+            f"terminal ticket {terminal_id} close receipt has the wrong immutable ordinal"
+        )
+    if manifest.get("workflow_name") != resolved_workflow:
+        errors.append(f"terminal ticket {terminal_id} close receipt names another workflow")
+    if str(manifest.get("ticket_status", "")).strip().lower() not in {
+        "accepted",
+        "closed",
+        "complete",
+        "completed",
+        "done",
+    }:
+        errors.append(f"terminal ticket {terminal_id} receipt is not a successful close")
+    guard = manifest.get("guard_weakening")
+    if not isinstance(guard, dict) or guard.get("weakened") is not False:
+        errors.append(
+            f"terminal ticket {terminal_id} receipt was not an unweakened successful close"
+        )
+    if manifest.get("accept_new") is not False:
+        errors.append(
+            f"terminal ticket {terminal_id} receipt used accept-new and cannot authorize "
+            "retirement closeout"
+        )
+    snapshots = manifest.get("snapshots")
+    desired_records = [
+        record
+        for record in snapshots if isinstance(record, dict) and record.get("role") == "desired_program_model"
+    ] if isinstance(snapshots, list) else []
+    if len(desired_records) != 1:
+        errors.append(
+            f"terminal ticket {terminal_id} receipt must contain exactly one desired snapshot"
+        )
+        return errors
+    snapshot_value = desired_records[0].get("snapshot")
+    if not isinstance(snapshot_value, str) or not snapshot_value:
+        return errors + [f"terminal ticket {terminal_id} desired snapshot path is missing"]
+    snapshot_dir = Path(snapshot_value)
+    if not snapshot_dir.is_absolute():
+        snapshot_dir = repo_root / snapshot_dir
+    receipt_dir = manifest_path.parent.resolve()
+    expected_snapshot_dir = receipt_dir / "snapshots" / "desired_program_model"
+    if snapshot_dir.resolve() != expected_snapshot_dir:
+        errors.append(
+            f"terminal ticket {terminal_id} desired snapshot is not the canonical "
+            "snapshots/desired_program_model directory"
+        )
+        return errors
+    errors.extend(validate_exact_snapshot(desired_dir, snapshot_dir))
     return errors
 
 
@@ -253,7 +429,29 @@ def close_ticket_workflow(
     if accept_new:
         if not desired_dir.exists():
             raise SystemExit(f"cannot accept new workflow state: missing model directory: {desired_dir}")
-        errors = validate_ticket_plan_closed(desired_dir / "ticket_plan.yaml")
+        ticket_plan = desired_dir / "ticket_plan.yaml"
+        errors = validate_ticket_plan_closed(
+            ticket_plan,
+            repo_root=repo_root,
+            workflow=workflow_name,
+        )
+        if ticket_plan_has_retirements(ticket_plan):
+            plan = _load_yaml(ticket_plan)
+            retirement_errors = validate_retirement_accept_new_authority(
+                repo_root=repo_root,
+                specs_dir=resolved_spec_root,
+                desired_dir=desired_dir,
+                plan=plan,
+                workflow=workflow_name,
+            )
+            if retirement_errors:
+                errors.extend(retirement_errors)
+                raise SystemExit(
+                    "cannot close ticket workflow with --accept-new: the plan contains "
+                    "retired tickets, so desired state must exactly match the archived "
+                    "desired snapshot of the terminal unweakened successful ticket:\n"
+                    + "\n".join(f"- {error}" for error in errors)
+                )
         if errors:
             raise SystemExit(
                 "cannot close ticket workflow:\n"
@@ -270,7 +468,13 @@ def close_ticket_workflow(
             print("would accept desired_program_model as the new current and program_model")
     else:
         errors = validate_equivalent(current_dir, desired_dir)
-        errors.extend(validate_ticket_plan_closed(desired_dir / "ticket_plan.yaml"))
+        errors.extend(
+            validate_ticket_plan_closed(
+                desired_dir / "ticket_plan.yaml",
+                repo_root=repo_root,
+                workflow=workflow_name,
+            )
+        )
         errors.extend(validate_equivalent(desired_dir, program_dir, label="program_model"))
         if errors:
             raise SystemExit(
@@ -331,7 +535,7 @@ def main() -> int:
     parser.add_argument(
         "--accept-new",
         action="store_true",
-        help="Accept desired_program_model/ as the new current/ and program_model/: skip the semantic-equivalence checks and overwrite them from desired_program_model/ before the snapshot. Tickets must still be closed.",
+        help="Accept desired_program_model/ as the new current/ and program_model/: skip the semantic-equivalence checks and overwrite them from desired_program_model/ before the snapshot. Ticket receipts are still required; with retirement, desired must exactly match the terminal delivered ticket's archived desired snapshot.",
     )
     args = parser.parse_args()
 
