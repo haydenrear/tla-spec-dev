@@ -1,0 +1,126 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket SV-02",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-02/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-02/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-02/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "A decision with evidence drawn from the sealed record, not from the anchors'' wording.",
+        "RM-02''s autopsy applied to any candidate, with the local-machinery fraction stated.",
+        "An explicit answer on TLA+ models and adapter surfaces without requiring our compiler.",
+        "Any proposal states its byte cost against the 6281-byte served surface.",
+        "NO production code ships."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "SV-03",
+      "SV-04",
+      "SV-07",
+      "SV-05"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "references/scoring_validation.md"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/231",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "The scorability of validation moves from assumed to decided, in either direction.",
+        "goal": "GOAL-validation-is-scorable",
+        "local_signal": "the candidate dimension and its autopsy fraction"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none -- what SV-04 can carry depends on what can be scored",
+        "goal": "GOAL-loop-reaches-the-program",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none",
+        "goal": "GOAL-scored-at-goal-time",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-caveat-discriminates",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "SV-02",
+    "implementation_scope": [
+      "references/",
+      "specs/results/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "A RESEARCH TICKET -- design and evidence, NO production code. THE CRUX OF THE EPIC'S FIRST HALF. The owner wants an onboarded project to score its VALIDATION and its ARCHITECTURE; the card scores architecture and CANNOT SCORE VALIDATION, because D1 and D4 were retired to unscored notes one epic ago for grading TOOLCHAIN OWNERSHIP -- 38% of D1 and 18% of D4 anchor decisions cited this project's own machinery against 0% on D3 and D5. So the question is not whether to put them back. It is WHETHER VALIDATION IS SCORABLE AT ALL without grading conformance to a toolchain: find the property distinguishing well-validated from badly-validated code INDEPENDENTLY OF WHICH TOOLS PRODUCED THE TESTS, test it against 87 sealed cards and 391 rationales, and APPLY RM-02's OWN AUTOPSY TO YOUR CANDIDATE -- if its anchor decisions would cite local machinery at anything like 38%, YOU HAVE REBUILT D1. Read CL-04's blind adopter blocker list first; it is the only evidence in the record from someone who was not us. And say whether a dimension can score a TLA+ model or an adapter conformance surface WITHOUT requiring the adopter to own our spec-double-compiler. IF THERE IS NO SUCH PROPERTY, SAY SO -- that is the more valuable finding.",
+    "promotion_order": 20,
+    "promotion_predecessor": "SV-01",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "RESEARCH: can validation be scored without grading toolchain ownership?",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-02/specs/tickets/SV-02",
+  "ticket_id": "SV-02",
+  "ticket_index": 1,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-02/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-02/specs/tickets"
+}
