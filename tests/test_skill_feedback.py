@@ -99,6 +99,22 @@ def test_second_close_appends_and_never_clobbers_filled_content(specs: Path) -> 
     assert second["close_out_entries"] == 2
 
 
+def test_new_unreviewed_close_does_not_inherit_older_filed_findings(specs: Path) -> None:
+    sf.emit_skill_feedback(specs, scope="ticket", scope_id="MF-017", workflow="wf")
+    path = sf.skill_feedback_path(specs)
+    set_declared_status(path, "items-recorded")
+    append_finding(path, REAL_EPIC_FINDINGS["promotion-destroyed-regression-tests"][0])
+
+    second = sf.emit_skill_feedback(specs, scope="ticket", scope_id="MF-014", workflow="wf")
+
+    assert second["declared_status"] == "unreviewed"
+    assert second["resolved"] is False
+    assert second["filed"] is False
+    assert second["filed_where"] == []
+    assert second["findings"] == []
+    assert second["findings_total"] == 0
+
+
 def test_workflow_close_uses_the_same_document(specs: Path) -> None:
     sf.emit_skill_feedback(specs, scope="ticket", scope_id="MF-017", workflow="wf")
     record = sf.emit_skill_feedback(specs, scope="workflow", scope_id="wf", workflow="wf")
@@ -143,6 +159,23 @@ def test_searched_found_none_is_a_first_class_answer(specs: Path) -> None:
     assert status["filed"] is False
 
 
+def test_none_found_with_a_finding_is_not_resolved(specs: Path) -> None:
+    sf.emit_skill_feedback(specs, scope="ticket", scope_id="MF-017", workflow="wf")
+    path = sf.skill_feedback_path(specs)
+    set_declared_status(path, "none-found")
+    append_finding(
+        path,
+        "\n### SF-001 — contradictory finding\n"
+        "- category: profile-schema-cli\n"
+        "- recommendation: ticket https://github.com/haydenrear/tla-spec-dev/issues/99\n"
+        "- status: filed\n",
+    )
+
+    status = sf.filing_status(path.read_text(encoding="utf-8"))
+    assert status["findings_total"] == 1
+    assert status["resolved"] is False
+
+
 def test_finding_without_a_recommendation_is_reported_unfiled(specs: Path) -> None:
     sf.emit_skill_feedback(specs, scope="ticket", scope_id="MF-017", workflow="wf")
     path = sf.skill_feedback_path(specs)
@@ -184,6 +217,7 @@ def test_status_filed_without_a_reference_does_not_count_as_filed(specs: Path) -
     """"filed" with nowhere to point at is the failure mode this loop exists to stop."""
     sf.emit_skill_feedback(specs, scope="ticket", scope_id="MF-017", workflow="wf")
     path = sf.skill_feedback_path(specs)
+    set_declared_status(path, "items-recorded")
     append_finding(
         path,
         "\n### SF-001 — vague\n- category: surviving-mutants\n"
@@ -195,9 +229,28 @@ def test_status_filed_without_a_reference_does_not_count_as_filed(specs: Path) -
     assert status["resolved"] is False
 
 
+def test_new_none_found_close_does_not_inherit_older_filed_findings(specs: Path) -> None:
+    sf.emit_skill_feedback(specs, scope="ticket", scope_id="MF-017", workflow="wf")
+    path = sf.skill_feedback_path(specs)
+    set_declared_status(path, "items-recorded")
+    append_finding(path, REAL_EPIC_FINDINGS["promotion-destroyed-regression-tests"][0])
+
+    sf.emit_skill_feedback(specs, scope="workflow", scope_id="wf", workflow="wf")
+    set_declared_status(path, "none-found")
+
+    status = sf.filing_status(path.read_text(encoding="utf-8"))
+    assert status["declared_status"] == "none-found"
+    assert status["resolved"] is True
+    assert status["findings_total"] == 0
+    assert status["filed"] is False
+    assert status["filed_where"] == []
+    assert status["close_out_entries"] == 2
+
+
 def test_wontfix_finding_does_not_block_resolution(specs: Path) -> None:
     sf.emit_skill_feedback(specs, scope="ticket", scope_id="MF-017", workflow="wf")
     path = sf.skill_feedback_path(specs)
+    set_declared_status(path, "items-recorded")
     append_finding(
         path,
         "\n### SF-001 — declined\n- category: friction\n"
@@ -207,6 +260,16 @@ def test_wontfix_finding_does_not_block_resolution(specs: Path) -> None:
     status = sf.filing_status(path.read_text(encoding="utf-8"))
     assert status["findings_unfiled"] == []
     assert status["resolved"] is True
+
+
+def test_items_recorded_without_a_finding_is_not_resolved(specs: Path) -> None:
+    sf.emit_skill_feedback(specs, scope="ticket", scope_id="MF-017", workflow="wf")
+    path = sf.skill_feedback_path(specs)
+    set_declared_status(path, "items-recorded")
+
+    status = sf.filing_status(path.read_text(encoding="utf-8"))
+    assert status["findings_total"] == 0
+    assert status["resolved"] is False
 
 
 def test_worked_examples_are_excluded_from_filing_status(specs: Path) -> None:
@@ -382,7 +445,7 @@ def test_history_manifest_records_feedback_filing_status(tmp_path: Path) -> None
     assert Path(manifest["skill_feedback"]["path"]).is_file()
 
 
-def test_history_manifest_records_where_feedback_was_filed(tmp_path: Path) -> None:
+def test_history_manifest_does_not_attribute_older_feedback_to_new_close(tmp_path: Path) -> None:
     evolution = load_spec_evolution()
 
     specs_dir = tmp_path / "specs"
@@ -411,8 +474,10 @@ def test_history_manifest_records_where_feedback_was_filed(tmp_path: Path) -> No
     )
 
     manifest = json.loads((result.entry_dir / "manifest.json").read_text(encoding="utf-8"))
-    assert manifest["feedback_filed"] is True
-    assert manifest["feedback_filed_where"] == ["https://github.com/haydenrear/tla-spec-dev/issues/22"]
+    assert manifest["skill_feedback"]["declared_status"] == "unreviewed"
+    assert manifest["skill_feedback"]["resolved"] is False
+    assert manifest["feedback_filed"] is False
+    assert manifest["feedback_filed_where"] == []
 
 
 def test_no_skill_feedback_opt_out(tmp_path: Path) -> None:

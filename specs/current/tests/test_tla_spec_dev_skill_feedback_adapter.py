@@ -36,7 +36,7 @@ def test_close_out_emits_skill_feedback_template(tmp_path: Path) -> None:
     )
 
 
-def test_history_records_whether_feedback_was_filed_and_where(tmp_path: Path) -> None:
+def test_history_scopes_feedback_to_the_newest_close(tmp_path: Path) -> None:
     adapters = load_adapters()
     result = adapters.SkillFeedbackCloseOutAdapter().apply(
         tmp_path, spec_root="project_specs", ticket_id="CLI-130"
@@ -45,10 +45,10 @@ def test_history_records_whether_feedback_was_filed_and_where(tmp_path: Path) ->
     assert result["first_close_feedback_filed"] is False, (
         "an unreviewed retro must be recorded as not filed, not silently accepted"
     )
-    assert result["second_close_feedback_filed"] is True
-    assert result["feedback_filed_where"] == ["https://github.com/haydenrear/tla-spec-dev/issues/22"], (
-        "history must record *where* feedback was filed, not just that it was"
+    assert result["second_close_feedback_filed"] is False, (
+        "a new unreviewed close must not inherit a prior ticket's filed finding"
     )
+    assert result["feedback_filed_where"] == []
 
 
 def test_accumulated_findings_survive_the_next_close(tmp_path: Path) -> None:

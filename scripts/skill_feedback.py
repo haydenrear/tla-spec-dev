@@ -202,17 +202,33 @@ def parse_close_out_entries(text: str) -> list[CloseOutEntry]:
     return entries
 
 
+def latest_close_out_scope(text: str) -> str:
+    """Return the newest close-out entry and only its following findings.
+
+    Findings are close-out-scoped evidence.  Older filed findings remain in the
+    append-only document, but they must not make a newly appended
+    ``unreviewed`` close look resolved or filed.
+    """
+    lines = text.splitlines()
+    starts = [index for index, line in enumerate(lines) if _ENTRY_RE.match(line.strip())]
+    if not starts:
+        return ""
+    return "\n".join(lines[starts[-1]:])
+
+
 def filing_status(text: str) -> dict[str, Any]:
     """Derive whether feedback was filed, and where, from the document itself."""
-    findings = parse_findings(text)
     entries = parse_close_out_entries(text)
+    findings = parse_findings(latest_close_out_scope(text))
     filed = [item for item in findings if item.filed]
     unfiled = [item for item in findings if item.needs_filing]
     declared = entries[-1].declared_status if entries else ""
-    if findings:
-        resolved = not unfiled
+    if declared == "none-found":
+        resolved = not findings
+    elif declared == "items-recorded":
+        resolved = bool(findings) and not unfiled
     else:
-        resolved = declared == "none-found"
+        resolved = False
     return {
         "declared_status": declared or "unreviewed",
         "findings_total": len(findings),
