@@ -35,12 +35,20 @@ tighter than the file claims, not looser.)*
 | **P4** | `D2` unmoved across the version boundary | **HELD** — `2` on all four cards |
 | **P5** | `serve \| wc -c` still 6,281 bytes / 9 rungs | **HELD** — measured, §6 |
 | **P6** | gutting `FileJournal` to a list fails ≥1 case in the artifact's own suite | **HELD** — `1 failed, 52 passed` |
-| **P7** | the suite reports the same two inherited reds at this tree as at `a527305` | §7 |
+| **P7** | the suite reports the same **two** inherited reds at this tree as at `a527305` | **FALSIFIED, on both halves** — see §7 |
 
-**Four of the four real predictions held.** That is a weaker epistemic position
-than CL-03's, which got two of four wrong, and this document says so rather than
-treating agreement as strength. **§9 states what would have made this round more
-informative and did not happen.**
+**Six of the seven predictions held and `P7` is falsified.** `P7` named **two**
+inherited reds; a clean checkout of `a527305` fails **three**, and this ticket's
+own tree then produced **three more of its own** before they were worked
+through. **Both halves of that prediction were wrong**, and the half that was
+wrong about the *branch point* corrects the work order this ticket was dispatched
+under.
+
+**Every prediction about the thing being measured held, and the only one that
+failed was about the ground the measurement stands on.** That is a weaker
+epistemic position than `CL-03`'s, which got two of four wrong on the substance,
+and this document says so rather than treating agreement as strength. **§9
+states what would have made this round more informative and did not happen.**
 
 ---
 
@@ -191,10 +199,19 @@ unanimous on both sides, so there is nothing to record.
 **Every number below names the tree it came from. No `git archive` figure
 appears here** — these tests read git history and an archive has no `.git`.
 
-| tree | commit | working state | result |
-|---|---|---|---|
-| `.../scratchpad/SV-01/operator/baseline-a527305` | `a527305` | **clean detached `git worktree` checkout of the epic branch point** | **3 failed, 1495 passed** (1189.70s) |
-| `wt-epic-score-drives-validation-SV-01` | this ticket | the work | *(§7.2)* |
+| # | tree | commit | working state | result |
+|---|---|---|---|---|
+| 1 | `.../scratchpad/SV-01/operator/baseline-a527305` | `a527305` | **clean detached `git worktree` checkout of the epic branch point** | **3 failed, 1495 passed** (1189.70s) |
+| 2 | `wt-epic-score-drives-validation-SV-01` | `beb3403` | this ticket's work, before the reds it created were worked through | **6 failed, 1496 passed** (1183.00s) |
+| 3 | `wt-epic-score-drives-validation-SV-01` | `6d895de` | **reconciled onto epic tip `b999d71`**, the three reds of §7.2 worked through | **2 failed, 1501 passed** (1226.74s) |
+
+**Tree 3 is the number this ticket stands on, and it is STALE ON PURPOSE.** The
+epic tip moved **four times** while this round measured — `b999d71` → `5620c9a`
+(SV-02) → `c9be7b5` (SV-03) → **`86a8767`** (SV-07). **Tree 3 predates
+`86a8767` and was NOT re-measured against it**, at the epic owner's explicit
+instruction to stop chasing a moving tip. **A number with an honest, stale tree
+name is worth more than a number chased onto a target that keeps moving**, and
+this row names its tree.
 
 ### 7.1 THE STATED BASELINE IS 2 AND THE MEASURED BASELINE IS 3
 
@@ -220,13 +237,57 @@ charter states the rule *"no new gates — seven epics of static checking, zero
 bugs caught"*, and its own opening commit is the seventh epic in a row to be
 caught by one of the old ones for saying what it is about.
 
-**It is not repaired, for the same reason the other two are not**, and because
-repairing it means editing the epic charter, which is not this ticket's surface.
-**The offender list is byte-identical at this ticket's tree** — SV-01's own
-documents add no offender — which is how it was established that the third red is
-inherited and not produced here.
+**It was not repaired here**, and **the offender list is byte-identical at this
+ticket's tree** — SV-01's own documents add no offender — which is how it was
+established that the third red is inherited and not produced here.
 
-### 7.2 This ticket's tree
+**AND IT WAS FOUND INDEPENDENTLY, ONE TICKET AWAY, WHILE THIS ROUND WAS
+MEASURING.** `SV-06` reached the same conclusion from the other direction —
+reproducing the identical failure **with its own page, evidence tree and
+findings removed**, which is the cleaner demonstration — and the owner repaired
+it on the epic branch at `2059500` with a pointer rather than a corrected copy.
+**So this is a confirmation, not a discovery**, and it is stated that way. Two
+tickets that could not see each other, measuring on different days for different
+reasons, agreeing that the work order's own baseline was wrong by one.
+
+### 7.2 THE THREE REDS THIS ROUND CREATED, AND WHAT EACH ONE WAS
+
+**Tree 2 came back `6 failed` against the branch point's `3`. Three of them are
+mine.** None is noise; each is worked through, and reporting the clean figure
+without this subsection is the thing this project keeps filing findings about.
+
+| red | what it actually was |
+|---|---|
+| `test_a_card_with_no_subject_is_legal_and_is_every_sealed_card` | 82 of 87 cards mapped where 86 is asserted. **The four unmapped are mine and the empty `labels` was the error, not the test.** A blinded card carries `subject.name` `null` **by construction**, so it cannot name its own subject and the attribution has to live in `subjects.toml` — which is exactly what `RM-04` wrote into that file when it shipped the blinding, in a comment saying `labels` *"has to be"* written after the round. Filled in. |
+| `test_every_fast_demonstration_reproduces` | `architecture-tag-derivation` pins `"16 of 20 subject(s) decided"` and this round declares a 21st subject. Updated **with the arithmetic stated and every superseded figure kept in the same sentence**: `7/11 → 13/17 → 16/20 → 17/21`, numerator +1, denominator +1, **refusals unchanged at four through all four figures**. `RD-06-DF-04` predicted this moves whenever anyone declares a subject; that is now three times. |
+| `test_the_committed_history_rendering_is_current` | Era 11 — *after `CL-03-scorecard-v5`* — read **"(no rows measured in this era)"**, because **nothing had been scored under version 5 since the bump that created it.** It has four rows now. Regenerated with `history --write`. |
+
+**Nothing was weakened and no assertion was dropped.** That the version 5 era
+was *empty* until this round is worth saying out loud: **`CL-03` bumped the card
+to version 5 and then no card was ever scored under it again until this one.**
+The negative control is also the first re-use of the version it controls.
+
+### 7.3 The two that remain are the two that are supposed to
+
+At tree 3 the suite is **`2 failed, 1501 passed`**, and the two are exactly the
+inherited deliberate pair:
+
+- `tests/test_architecture_tags.py::test_the_same_tag_control_holds` — `RM-06-DF-01`
+- `tests/test_price_removal.py::test_nothing_in_the_repository_invokes_the_pricer`
+  — still naming `CLOSE-THE-LOOP-EPIC.md` and `NEXT-EPIC.md`, narrative documents
+  that mention the pricer
+
+**Neither is repaired.** The third red of §7.1 is gone because the epic owner
+fixed it upstream at `2059500`, not because this ticket touched it; the three
+reds of §7.2 are gone because they were worked through and each one is written
+down.
+
+**`denominator_rule`, measured rather than asserted.** Collected went
+`1,498 → 1,503` between tree 1 and tree 3. **+5, and none of them are mine** —
+they are SV-06's, arriving through the reconciliation. **SV-01 wrote no test and
+deleted, skipped or weakened none.** It is a measurement round: it added four
+sealed cards, one declared subject and one `labels` entry, and it changed one
+pinned figure in a demonstration with the arithmetic stated.
 
 ---
 
