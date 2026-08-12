@@ -47,6 +47,8 @@ def valid_plan() -> dict:
         ]
 
     return {
+        "name": "example-epic-workflow",
+        "schedule_revision": 1,
         "deferment_policy": {
             "mode": "batch",
             "blocking": "escalate",
@@ -113,6 +115,53 @@ def valid_plan() -> dict:
     }
 
 
+def retire_ticket(
+    plan: dict,
+    index: int,
+    *,
+    resolution: str = "carried",
+    disposition: str = "carried",
+) -> None:
+    """Retire one fixture ticket using the canonical receipt contract."""
+    ticket = plan["tickets"][index]
+    retirement = {
+        "schedule_revision": plan["schedule_revision"],
+        "resolution": resolution,
+        "reason": "The owner narrowed the local MVP scope.",
+        "decided_by": "owner@example.test",
+        "decided_at": "2026-08-12T03:00:00Z",
+        "receipt": (
+            "specs/.history/example-epic-workflow/"
+            f"retired-ticket-{index:03d}-{ticket['id']}/manifest.json"
+        ),
+        "affected_goals": [
+            {
+                "goal": "GOAL-1",
+                "disposition": disposition,
+                "reason": "The goal moves with the deferred work.",
+            }
+        ],
+    }
+    if resolution == "carried":
+        retirement["successor_issue"] = "EPIC-99"
+        retirement["successor_workflow"] = "next-epic-workflow"
+    if disposition == "carried":
+        retirement["affected_goals"][0]["successor_issue"] = "EPIC-99"
+        retirement["affected_goals"][0][
+            "successor_workflow"
+        ] = "next-epic-workflow"
+    ticket["status"] = "retired"
+    ticket["retirement"] = retirement
+
+
+def fully_retired_plan() -> dict:
+    plan = valid_plan()
+    plan["schedule_revision"] = 2
+    for index in range(len(plan["tickets"])):
+        retire_ticket(plan, index)
+    return plan
+
+
 class EpicPlanValidatorTests(unittest.TestCase):
     def assert_invalid(self, plan: dict, diagnostic: str) -> None:
         report = validator.validate_plan(plan)
@@ -129,6 +178,341 @@ class EpicPlanValidatorTests(unittest.TestCase):
         report = validator.validate_plan(valid_plan())
         self.assertEqual(report.errors, [])
         self.assertEqual(report.warnings, [])
+
+    def test_rejects_missing_or_non_positive_schedule_revision(self) -> None:
+        plan = valid_plan()
+        del plan["schedule_revision"]
+        self.assert_invalid(plan, "schedule_revision must be a positive integer")
+
+        plan["schedule_revision"] = 0
+        self.assert_invalid(plan, "schedule_revision must be a positive integer")
+
+    def test_accepts_canonical_retirement_receipts(self) -> None:
+        report = validator.validate_plan(fully_retired_plan())
+        self.assertEqual(report.errors, [])
+        self.assertEqual(report.warnings, [])
+
+    def test_accepts_delivered_work_with_an_explicit_unmeasured_retirement(self) -> None:
+        plan = valid_plan()
+        plan["schedule_revision"] = 2
+        plan["tickets"][0]["status"] = "closed"
+        plan["tickets"][1]["status"] = "closed"
+        retire_ticket(
+            plan,
+            2,
+            resolution="abandoned",
+            disposition="accepted_unmeasured",
+        )
+        # Canonical-plan shape: delivered tickets retain their sealed historical
+        # `blocks` edges to the later-retired evaluation ticket.
+        report = validator.validate_plan(plan)
+        self.assertEqual(report.errors, [])
+        self.assertEqual(report.warnings, [])
+
+    def test_accepts_delivered_evaluator_with_an_accepted_miss(self) -> None:
+        plan = valid_plan()
+        plan["schedule_revision"] = 2
+        retire_ticket(
+            plan,
+            0,
+            resolution="abandoned",
+            disposition="accepted_missed",
+        )
+        plan["tickets"][1]["status"] = "closed"
+        plan["tickets"][2]["status"] = "closed"
+        # Delivered tickets retain historical dependency and predecessor edges
+        # to a ticket retired by a later schedule amendment.
+        report = validator.validate_plan(plan)
+        self.assertEqual(report.errors, [])
+        self.assertEqual(report.warnings, [])
+
+    def test_rejects_retired_status_without_retirement_receipt(self) -> None:
+        plan = valid_plan()
+        plan["tickets"][0]["status"] = "retired"
+        self.assert_invalid(plan, "status retired requires a retirement mapping")
+
+    def test_rejects_noncanonical_retired_status_spelling(self) -> None:
+        plan = fully_retired_plan()
+        plan["tickets"][0]["status"] = "Retired"
+        self.assert_invalid(plan, "retirement status must be written exactly as 'retired'")
+
+    def test_rejects_retirement_metadata_on_active_ticket(self) -> None:
+        plan = valid_plan()
+        plan["tickets"][0]["retirement"] = {}
+        self.assert_invalid(
+            plan, "retirement metadata is allowed only with status: retired"
+        )
+
+    def test_rejects_resolution_as_a_direct_ticket_status(self) -> None:
+        plan = valid_plan()
+        plan["tickets"][0]["status"] = "carried"
+        self.assert_invalid(plan, "status 'carried' is not a retirement receipt")
+
+    def test_accepts_sealed_retirement_after_later_plan_revision(self) -> None:
+        plan = fully_retired_plan()
+        plan["schedule_revision"] = 3
+        report = validator.validate_plan(plan)
+        self.assertEqual(report.errors, [])
+        self.assertEqual(report.warnings, [])
+
+    def test_accepts_canonical_closed_edges_and_new_lane_across_retirements(
+        self,
+    ) -> None:
+        """Closed CDC-MVP-002 keeps old edges; new work skips retired entries."""
+
+        def conflicts() -> dict[str, list]:
+            return {
+                "production": [],
+                "tla": [],
+                "adapters": [],
+                "test_graph": [],
+                "workflow": [],
+            }
+
+        def retired(
+            ticket_id: str,
+            index: int,
+            order: int,
+            predecessor: str,
+        ) -> dict:
+            return {
+                "id": ticket_id,
+                "status": "retired",
+                "depends_on": ["CDC-MVP-002"],
+                "blocks": [],
+                "wave": index + 2,
+                "promotion_order": order,
+                "promotion_predecessor": predecessor,
+                "conflict_keys": conflicts(),
+                "retirement": {
+                    "schedule_revision": 8,
+                    "resolution": "abandoned",
+                    "reason": "Owner removed this work from the local MVP.",
+                    "decided_by": "owner@example.test",
+                    "decided_at": "2026-08-12T03:00:00Z",
+                    "receipt": (
+                        "specs/.history/cdc-polyglot-relation-mvp-workflow/"
+                        f"retired-ticket-{index:03d}-{ticket_id}/manifest.json"
+                    ),
+                    "affected_goals": [],
+                },
+            }
+
+        plan = {
+            "name": "cdc-polyglot-relation-mvp-workflow",
+            "schedule_revision": 9,
+            "deferment_policy": {
+                "mode": "batch",
+                "blocking": "escalate",
+                "budget": 5,
+                "backlog": "specs/desired_program_model/deferred_findings.yaml",
+            },
+            "epic_goals": [],
+            "goals_waived": "scheduling regression fixture",
+            "tickets": [
+                {
+                    "id": "CDC-MVP-002",
+                    "status": "closed",
+                    "depends_on": [],
+                    "blocks": ["CDC-MVP-020", "CDC-MVP-003", "CDC-MVP-004"],
+                    "wave": 2,
+                    "promotion_order": 20,
+                    "promotion_predecessor": None,
+                    "conflict_keys": conflicts(),
+                },
+                retired("CDC-MVP-020", 1, 30, "CDC-MVP-002"),
+                retired("CDC-MVP-003", 2, 40, "CDC-MVP-020"),
+                retired("CDC-MVP-004", 3, 50, "CDC-MVP-003"),
+                {
+                    "id": "CDC-MVP-005",
+                    "status": "planned",
+                    "depends_on": [],
+                    "blocks": [],
+                    "wave": 6,
+                    "promotion_order": 60,
+                    "promotion_predecessor": "CDC-MVP-002",
+                    "conflict_keys": conflicts(),
+                },
+            ],
+        }
+        report = validator.validate_plan(plan)
+        self.assertEqual(report.errors, [])
+
+    def test_rejects_retirement_revision_newer_than_root(self) -> None:
+        plan = fully_retired_plan()
+        plan["tickets"][0]["retirement"]["schedule_revision"] = 3
+        self.assert_invalid(
+            plan,
+            "sealed decision revision and cannot exceed current root "
+            "schedule_revision 2",
+        )
+
+    def test_rejects_unknown_retirement_fields(self) -> None:
+        plan = fully_retired_plan()
+        plan["tickets"][0]["retirement"]["delivery_claim"] = True
+        self.assert_invalid(
+            plan, "retirement: unknown fields are forbidden: ['delivery_claim']"
+        )
+
+    def test_rejects_unknown_affected_goal_fields(self) -> None:
+        plan = fully_retired_plan()
+        plan["tickets"][0]["retirement"]["affected_goals"][0][
+            "verdict"
+        ] = "met"
+        self.assert_invalid(
+            plan,
+            "retirement.affected_goals[0]: unknown fields are forbidden: "
+            "['verdict']",
+        )
+
+    def test_rejects_retirement_receipt_with_rewritten_ordinal(self) -> None:
+        plan = fully_retired_plan()
+        plan["tickets"][0]["retirement"]["receipt"] = (
+            "specs/.history/example-epic-workflow/"
+            "retired-ticket-002-EPIC-1/manifest.json"
+        )
+        self.assert_invalid(plan, "must preserve immutable ticket ordinal 0")
+
+    def test_rejects_carried_retirement_without_successor_identity(self) -> None:
+        plan = fully_retired_plan()
+        del plan["tickets"][0]["retirement"]["successor_issue"]
+        del plan["tickets"][0]["retirement"]["affected_goals"][0][
+            "successor_workflow"
+        ]
+        errors = "\n".join(validator.validate_plan(plan).errors)
+        self.assertIn("retirement.successor_issue must be a non-empty string", errors)
+        self.assertIn("successor_workflow must be a non-empty string", errors)
+
+    def test_rejects_carried_ticket_with_accepted_goal(self) -> None:
+        plan = fully_retired_plan()
+        goal = plan["tickets"][0]["retirement"]["affected_goals"][0]
+        goal["disposition"] = "accepted_unmeasured"
+        goal.pop("successor_issue")
+        goal.pop("successor_workflow")
+        self.assert_invalid(
+            plan,
+            "disposition must be carried when ticket retirement.resolution is carried",
+        )
+
+    def test_rejects_carried_goal_with_different_successor(self) -> None:
+        plan = fully_retired_plan()
+        plan["tickets"][0]["retirement"]["affected_goals"][0][
+            "successor_issue"
+        ] = "EPIC-100"
+        self.assert_invalid(
+            plan,
+            "carried successor must exactly match ticket retirement "
+            "successor_issue/successor_workflow",
+        )
+
+    def test_rejects_abandoned_ticket_with_carried_goal(self) -> None:
+        plan = fully_retired_plan()
+        retirement = plan["tickets"][0]["retirement"]
+        retirement["resolution"] = "abandoned"
+        retirement.pop("successor_issue")
+        retirement.pop("successor_workflow")
+        self.assert_invalid(
+            plan,
+            "carried disposition contradicts ticket retirement.resolution "
+            "'abandoned'",
+        )
+
+    def test_rejects_noncarried_ticket_successor_fields(self) -> None:
+        plan = valid_plan()
+        plan["schedule_revision"] = 2
+        retire_ticket(
+            plan,
+            0,
+            resolution="abandoned",
+            disposition="accepted_missed",
+        )
+        retirement = plan["tickets"][0]["retirement"]
+        retirement["successor_issue"] = "EPIC-99"
+        retirement["successor_workflow"] = "next-epic-workflow"
+        errors = "\n".join(validator.validate_plan(plan).errors)
+        self.assertIn(
+            "retirement.successor_issue must be absent unless "
+            "retirement.resolution is carried",
+            errors,
+        )
+        self.assertIn(
+            "retirement.successor_workflow must be absent unless "
+            "retirement.resolution is carried",
+            errors,
+        )
+
+    def test_rejects_noncarried_goal_successor_fields(self) -> None:
+        plan = valid_plan()
+        plan["schedule_revision"] = 2
+        retire_ticket(
+            plan,
+            0,
+            resolution="superseded",
+            disposition="accepted_unmeasured",
+        )
+        goal = plan["tickets"][0]["retirement"]["affected_goals"][0]
+        goal["successor_issue"] = "EPIC-99"
+        self.assert_invalid(
+            plan,
+            "successor_issue must be absent when ticket retirement.resolution "
+            "is not carried",
+        )
+
+    def test_rejects_missing_affected_goal_disposition(self) -> None:
+        plan = fully_retired_plan()
+        plan["tickets"][0]["retirement"]["affected_goals"] = []
+        self.assert_invalid(
+            plan,
+            "retirement.affected_goals must exactly preserve every goal relation",
+        )
+
+    def test_rejects_retired_tickets_that_disagree_on_goal_disposition(self) -> None:
+        plan = fully_retired_plan()
+        plan["tickets"][0]["retirement"]["affected_goals"][0].update(
+            {
+                "disposition": "accepted_missed",
+            }
+        )
+        self.assert_invalid(plan, "retired tickets disagree on affected-goal disposition")
+
+    def test_rejects_active_dependency_on_retired_ticket(self) -> None:
+        plan = fully_retired_plan()
+        plan["tickets"][2].pop("status")
+        plan["tickets"][2].pop("retirement")
+        self.assert_invalid(
+            plan, "non-delivered depends_on cannot reference retired ticket"
+        )
+
+    def test_rejects_active_block_edge_to_retired_ticket(self) -> None:
+        plan = fully_retired_plan()
+        plan["tickets"][0].pop("status")
+        plan["tickets"][0].pop("retirement")
+        self.assert_invalid(
+            plan, "non-delivered blocks cannot reference retired ticket"
+        )
+
+    def test_rejects_active_promotion_predecessor_that_is_retired(self) -> None:
+        plan = fully_retired_plan()
+        plan["tickets"][1].pop("status")
+        plan["tickets"][1].pop("retirement")
+        self.assert_invalid(
+            plan,
+            "non-delivered promotion_predecessor cannot reference retired ticket",
+        )
+
+    def test_rejects_active_evaluator_for_a_retired_goal(self) -> None:
+        plan = fully_retired_plan()
+        plan["tickets"][2].pop("status")
+        plan["tickets"][2].pop("retirement")
+        self.assert_invalid(plan, "active evaluation ticket 'EPIC-3'")
+
+    def test_rejects_active_undelivered_ticket_for_a_retired_goal(self) -> None:
+        plan = fully_retired_plan()
+        plan["tickets"][0].pop("status")
+        plan["tickets"][0].pop("retirement")
+        plan["tickets"][0]["blocks"] = []
+        plan["tickets"][0]["promotion_predecessor"] = None
+        self.assert_invalid(plan, "retirement disposition conflicts with active tickets")
 
     def test_rejects_plan_without_a_deferment_policy(self) -> None:
         plan = valid_plan()
@@ -228,7 +612,10 @@ class EpicPlanValidatorTests(unittest.TestCase):
             stdout = io.StringIO()
             with redirect_stdout(stdout):
                 self.assertEqual(validator.main([str(path)]), 0)
-            self.assertIn("3 tickets across 2 waves, 1 goal", stdout.getvalue())
+            self.assertIn(
+                "3 tickets, 0 retired, 3 active/delivered across 2 waves, 1 goal",
+                stdout.getvalue(),
+            )
 
     def test_cli_warns_but_succeeds_without_goals(self) -> None:
         plan = valid_plan()

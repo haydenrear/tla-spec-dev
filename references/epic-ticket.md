@@ -151,6 +151,9 @@ Fetch remote state and confirm:
 - `base_sha` is an ancestor of `origin/epic/<slug>`;
 - `plan_commit` is reachable from the epic branch;
 - the workflow name and ticket ID still exist in `ticket_plan.yaml`;
+- the canonical ticket status is not `retired`; if it is, stop before creating
+  or resuming a worktree and report the canonical retirement receipt — a stale
+  assignment cannot resurrect retired scope;
 - the assignment's schedule revision, dependencies, blocks, wave, promotion
   order/predecessor, conflict keys, goal relations, validation matrix, and
   evidence root exactly match that canonical ticket entry;
@@ -158,6 +161,11 @@ Fetch remote state and confirm:
 
 Do not treat a locally closed spec ticket, a green branch, or an open PR as a
 satisfied dependency.
+
+Likewise, do not implement a ticket whose canonical plan entry is retired even
+if its GitHub issue remains open. `retired` is an owner-approved schedule
+amendment, and its receipt records that no semantic promotion or validation was
+claimed. The epic owner must create a new ticket/revision to reintroduce scope.
 
 ### 2. Create the worktree from the epic branch
 

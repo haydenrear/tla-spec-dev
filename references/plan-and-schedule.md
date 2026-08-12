@@ -297,6 +297,111 @@ dependency. Agents in one wave may implement and validate concurrently, but
 only the next ticket in that lane may reconcile, close/promote, and enter the
 epic branch.
 
+## 5a. Retire dispatched scope without claiming delivery
+
+Retirement is a reviewed schedule amendment for work the owner has explicitly
+removed from this epic. It is not ticket completion and it does not rewrite the
+published plan. Use it only after the user chooses the disposition; do not
+infer abandonment from an idle branch or absent PR.
+
+Apply one retirement transaction as follows:
+
+1. Reconcile a clean epic worktree at the canonical plan tip. Determine the
+   complete affected set: the unwanted ticket, every still-active dependent,
+   its active promotion successor, its evaluation ticket, and every goal it
+   contributes to or owns. An undelivered non-retired ticket may not depend on,
+   block, or name a retired ticket as `promotion_predecessor`.
+2. Preserve every dispatched ticket entry at its original zero-based list
+   ordinal. Never delete, reorder, rename, or reuse its ID. Increment the root
+   `schedule_revision` once for the amendment and update every changed active
+   assignment to that revision.
+3. Add `status: retired` and the `retirement` block below. Retain the retired
+   entry's original scheduling fields as history. Do not rewrite a delivered
+   ticket's sealed historical dependency, reverse-block, or promotion edges,
+   even when they name a ticket this later amendment retires. Rebuild only the
+   still-undelivered dependency/reverse-block and promotion-predecessor chains
+   so new work skips all retired entries; retire or fully deliver every
+   remaining ticket associated with an affected goal.
+4. Update GitHub blocking relationships and the marker-delimited assignments
+   for non-retired tickets to mirror the amended plan. Close or annotate a
+   retired issue as not planned and link its successor when carried. Never
+   describe it as merged or implemented.
+5. Validate the amended plan, then generate each receipt with
+   `tla-spec-dev --spec-root specs retire ticket <ticket-id>`. Do not hand-write
+   the receipt manifest. Validate again and review the amendment before commit.
+
+The plan entry has this exact shape:
+
+```yaml
+- id: EPIC-4                    # original ID at original ordinal; never moved
+  status: retired
+  # ...original scheduling and goal-relation fields remain...
+  retirement:
+    schedule_revision: 2       # positive decision revision; <= current root
+    resolution: carried        # carried | superseded | abandoned
+    reason: "Owner moved remote hardening out of the local MVP."
+    decided_by: "@epic-owner"
+    decided_at: "2026-08-12T03:00:00Z"
+    successor_issue: "https://github.com/org/repo/issues/99"   # carried only
+    successor_workflow: "agent-trace-indexing"                 # carried only
+    receipt: "specs/.history/<workflow>/retired-ticket-003-EPIC-4/manifest.json"
+    affected_goals:
+      - goal: GOAL-remote-hardening
+        disposition: carried   # accepted_missed | accepted_unmeasured | carried
+        reason: "The local MVP intentionally does not decide this goal."
+        successor_issue: "https://github.com/org/repo/issues/99" # carried only
+        successor_workflow: "agent-trace-indexing"               # carried only
+```
+
+`resolution` records what happened to the ticket scope: `carried` moves it to a
+named issue and workflow, `superseded` says another decision made this ticket's
+slice unnecessary, and `abandoned` says the owner deliberately drops it. A
+carried ticket requires both top-level successor fields, every affected goal
+must also be `carried`, and every goal must name that exact same successor issue
+and workflow. A superseded or abandoned ticket has no successor fields, none of
+its affected goals may be carried, and non-carried goal entries have no
+successor fields. Ticket and goals move together or do not carry at all. None
+of the resolution values is a direct ticket `status`; the only schedule state
+for this transaction is `retired`.
+
+`retirement.schedule_revision` seals the revision at which the owner made this
+decision. It equals the root revision when the receipt is created, but a later
+unrelated plan amendment may advance the root beyond it. Never rewrite the
+retirement block merely to catch up: validation requires a positive decision
+revision no newer than the current root, and the receipt must continue to match
+the complete decision-time `retirement` mapping exactly.
+
+`affected_goals` must exactly copy every goal the ticket relates to or owns,
+including a goal for which it was the evaluator. `accepted_missed` records that
+the owner accepts a known miss; `accepted_unmeasured` records that the owner
+accepts closing without a measurement; `carried` requires its own named
+successor issue and workflow. When several retired tickets affect one goal,
+their dispositions and carried target must agree, in addition to matching each
+ticket-level decision. Do not delete the goal or edit its baseline/target to
+conceal the disposition.
+
+The canonical receipt path encodes the immutable zero-based ordinal and ID:
+
+```text
+specs/.history/<workflow>/retired-ticket-<ordinal:03d>-<safe-id>/manifest.json
+```
+
+For a git-epic workflow, `specs/.history` is canonical and the plan receipt must
+use that exact repository-relative prefix. The lower-level `tla-spec-dev` CLI
+may support a custom history root for non-epic workflows; that flexibility does
+not change the epic contract.
+
+The generated manifest identifies both `kind` and `entry_kind` as
+`ticket-retirement`, and asserts `semantic_promotion.performed: false` and
+`validation.claimed: false`. It is a durable receipt that work was *not*
+accepted or measured, not a close-history entry. A delivered PR/history cannot
+substitute for this receipt, and this receipt cannot substitute for delivery
+evidence. If an abandoned ticket workspace existed, the retire command may
+archive it as explicitly unaccepted; that archive is not a promoted model.
+The plan and receipt declaration are closed schemas: do not add extension keys
+to `retirement` or its `affected_goals` entries, and do not reorder or edit the
+declaration after the receipt exists.
+
 Prefer an amendment/reconciliation ticket over assigning shared workflow-wide
 metadata to a parallel ticket. Ticket agents own their plan entry and declared
 semantic slice; the epic owner owns ticket order, dependency edges, and

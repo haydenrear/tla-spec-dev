@@ -31,6 +31,36 @@ CONTRIBUTIONS = ("direct", "enabling", "guard")
 TICKET_ROLES = ("implementation", "evaluation")
 EVALUATION = "evaluation"
 UNMEASURED = "unmeasured"
+RETIRED = "retired"
+DELIVERED_STATUSES = {"accepted", "closed", "complete", "completed", "done"}
+RETIREMENT_RESOLUTIONS = ("carried", "superseded", "abandoned")
+GOAL_RETIREMENT_DISPOSITIONS = (
+    "accepted_missed",
+    "accepted_unmeasured",
+    "carried",
+)
+RETIREMENT_FIELDS = frozenset(
+    {
+        "schedule_revision",
+        "resolution",
+        "reason",
+        "decided_by",
+        "decided_at",
+        "receipt",
+        "affected_goals",
+        "successor_issue",
+        "successor_workflow",
+    }
+)
+GOAL_RETIREMENT_FIELDS = frozenset(
+    {
+        "goal",
+        "disposition",
+        "reason",
+        "successor_issue",
+        "successor_workflow",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -54,8 +84,24 @@ class Goal:
 
 
 @dataclass(frozen=True)
+class GoalRetirement:
+    disposition: str
+    reason: str
+    successor_issue: str | None
+    successor_workflow: str | None
+
+
+@dataclass(frozen=True)
+class Retirement:
+    resolution: str
+    affected_goals: dict[str, GoalRetirement]
+
+
+@dataclass(frozen=True)
 class Ticket:
+    index: int
     id: str
+    status: str
     depends_on: tuple[str, ...]
     blocks: tuple[str, ...]
     wave: int | None
@@ -65,6 +111,14 @@ class Ticket:
     role: str
     goals: tuple[GoalLink, ...]
     owns_goals: object
+
+    @property
+    def retired(self) -> bool:
+        return self.status == RETIRED
+
+    @property
+    def delivered(self) -> bool:
+        return self.status in DELIVERED_STATUSES
 
 
 def _ticket_label(index: int, raw_id: object) -> str:
@@ -215,6 +269,23 @@ def _parse_tickets(plan: object, errors: list[str]) -> dict[str, Ticket]:
             errors.append(f"duplicate ticket ID {raw_id!r}")
             continue
 
+        raw_status = raw.get("status", "planned")
+        if not isinstance(raw_status, str) or not raw_status.strip():
+            errors.append(f"{label}: status must be a non-empty string")
+            status = "planned"
+        else:
+            status = raw_status.strip().lower()
+        if status == RETIRED and raw_status != RETIRED:
+            errors.append(
+                f"{label}: retirement status must be written exactly as "
+                f"{RETIRED!r}"
+            )
+        if status in RETIREMENT_RESOLUTIONS:
+            errors.append(
+                f"{label}: status {status!r} is not a retirement receipt; use "
+                f"status: retired with retirement.resolution: {status}"
+            )
+
         wave = raw.get("wave", MISSING)
         if type(wave) is not int or wave < 1:
             errors.append(f"{label}: wave must be a positive integer")
@@ -242,7 +313,9 @@ def _parse_tickets(plan: object, errors: list[str]) -> dict[str, Ticket]:
             role = "implementation"
 
         tickets[raw_id] = Ticket(
+            index=index,
             id=raw_id,
+            status=status,
             depends_on=_id_list(raw, "depends_on", label, errors),
             blocks=_id_list(raw, "blocks", label, errors),
             wave=parsed_wave,
@@ -254,6 +327,270 @@ def _parse_tickets(plan: object, errors: list[str]) -> dict[str, Ticket]:
             owns_goals=raw.get("owns_goals", MISSING),
         )
     return tickets
+
+
+def _nonempty_string(
+    value: object, label: str, field: str, errors: list[str]
+) -> str | None:
+    if not isinstance(value, str) or not value.strip():
+        errors.append(f"{label}: {field} must be a non-empty string")
+        return None
+    return value.strip()
+
+
+def _reject_unknown_fields(
+    value: dict[object, object],
+    allowed: frozenset[str],
+    label: str,
+    errors: list[str],
+) -> None:
+    unknown = sorted(str(field) for field in value if field not in allowed)
+    if unknown:
+        errors.append(f"{label}: unknown fields are forbidden: {unknown}")
+
+
+def _schedule_revision(plan: object, errors: list[str]) -> int | None:
+    if not isinstance(plan, dict):
+        return None
+    revision = plan.get("schedule_revision", MISSING)
+    if type(revision) is not int or revision < 1:
+        errors.append("schedule_revision must be a positive integer")
+        return None
+    return revision
+
+
+def _workflow_name(plan: dict[str, Any]) -> object:
+    name = plan.get("name", MISSING)
+    if name is not MISSING:
+        return name
+    status = plan.get("status")
+    if isinstance(status, dict):
+        return status.get("workflow", MISSING)
+    return MISSING
+
+
+def _expected_retirement_receipt(workflow: str, ticket: Ticket) -> str:
+    return (
+        f"specs/.history/{workflow}/retired-ticket-{ticket.index:03d}-"
+        f"{ticket.id}/manifest.json"
+    )
+
+
+def _ticket_goal_ids(ticket: Ticket, goals: dict[str, Goal]) -> set[str]:
+    result = {link.goal for link in ticket.goals}
+    if isinstance(ticket.owns_goals, list):
+        result.update(goal for goal in ticket.owns_goals if isinstance(goal, str))
+    result.update(
+        goal.id for goal in goals.values() if goal.evaluation_ticket == ticket.id
+    )
+    return result
+
+
+def _validate_retirements(
+    plan: object,
+    tickets: dict[str, Ticket],
+    goals: dict[str, Goal],
+    schedule_revision: int | None,
+    errors: list[str],
+) -> dict[str, Retirement]:
+    """Validate explicit scope retirement without treating it as delivery."""
+    if not isinstance(plan, dict):
+        return {}
+    raw_tickets = plan.get("tickets")
+    if not isinstance(raw_tickets, list):
+        return {}
+
+    retired = [ticket for ticket in tickets.values() if ticket.retired]
+    workflow_value = _workflow_name(plan)
+    workflow = (
+        workflow_value.strip()
+        if isinstance(workflow_value, str) and workflow_value.strip()
+        else None
+    )
+    if retired and (workflow is None or not STABLE_ID.fullmatch(workflow)):
+        errors.append(
+            "retired tickets require plan name (or status.workflow) to be a "
+            "stable workflow ID"
+        )
+
+    result: dict[str, Retirement] = {}
+    for ticket in tickets.values():
+        raw = raw_tickets[ticket.index]
+        if not isinstance(raw, dict):
+            continue
+        retirement = raw.get("retirement", MISSING)
+        label = f"ticket {ticket.id!r}"
+
+        if not ticket.retired:
+            if retirement is not MISSING:
+                errors.append(
+                    f"{label}: retirement metadata is allowed only with status: retired"
+                )
+            continue
+        if not isinstance(retirement, dict):
+            errors.append(f"{label}: status retired requires a retirement mapping")
+            continue
+        _reject_unknown_fields(retirement, RETIREMENT_FIELDS, "retirement", errors)
+
+        retired_revision = retirement.get("schedule_revision", MISSING)
+        if type(retired_revision) is not int or retired_revision < 1:
+            errors.append(
+                f"{label}: retirement.schedule_revision must be a positive integer"
+            )
+        elif schedule_revision is not None and retired_revision > schedule_revision:
+            errors.append(
+                f"{label}: retirement.schedule_revision is the sealed decision "
+                f"revision and cannot exceed current root schedule_revision "
+                f"{schedule_revision}; got {retired_revision}"
+            )
+
+        resolution = retirement.get("resolution", MISSING)
+        if resolution not in RETIREMENT_RESOLUTIONS:
+            errors.append(
+                f"{label}: retirement.resolution must be one of "
+                f"{list(RETIREMENT_RESOLUTIONS)}"
+            )
+            parsed_resolution = ""
+        else:
+            parsed_resolution = resolution
+
+        for field in ("reason", "decided_by", "decided_at"):
+            _nonempty_string(retirement.get(field, MISSING), label, f"retirement.{field}", errors)
+
+        successor_issue = retirement.get("successor_issue", MISSING)
+        successor_workflow = retirement.get("successor_workflow", MISSING)
+        if resolution == "carried":
+            parsed_successor_issue = _nonempty_string(
+                successor_issue, label, "retirement.successor_issue", errors
+            )
+            parsed_successor_workflow = _nonempty_string(
+                successor_workflow, label, "retirement.successor_workflow", errors
+            )
+        else:
+            parsed_successor_issue = None
+            parsed_successor_workflow = None
+            for field in ("successor_issue", "successor_workflow"):
+                if field in retirement:
+                    errors.append(
+                        f"{label}: retirement.{field} must be absent unless "
+                        "retirement.resolution is carried"
+                    )
+
+        receipt = retirement.get("receipt", MISSING)
+        if workflow is not None and STABLE_ID.fullmatch(workflow):
+            expected_receipt = _expected_retirement_receipt(workflow, ticket)
+            if receipt != expected_receipt:
+                errors.append(
+                    f"{label}: retirement.receipt must preserve immutable ticket "
+                    f"ordinal {ticket.index} at {expected_receipt!r}; got {receipt!r}"
+                )
+        elif not isinstance(receipt, str) or not receipt.strip():
+            errors.append(f"{label}: retirement.receipt must be a non-empty path")
+
+        raw_affected = retirement.get("affected_goals", MISSING)
+        parsed_affected: dict[str, GoalRetirement] = {}
+        if not isinstance(raw_affected, list):
+            errors.append(f"{label}: retirement.affected_goals must be a list")
+            raw_affected = []
+        for index, entry in enumerate(raw_affected):
+            entry_label = f"{label}: retirement.affected_goals[{index}]"
+            if not isinstance(entry, dict):
+                errors.append(f"{entry_label} must be a mapping")
+                continue
+            _reject_unknown_fields(
+                entry, GOAL_RETIREMENT_FIELDS, entry_label, errors
+            )
+            goal_id = entry.get("goal", MISSING)
+            if not isinstance(goal_id, str) or not STABLE_ID.fullmatch(goal_id):
+                errors.append(f"{entry_label}: goal must be a stable goal ID")
+                continue
+            if goal_id in parsed_affected:
+                errors.append(f"{entry_label}: duplicate goal {goal_id!r}")
+                continue
+            if goal_id not in goals:
+                errors.append(f"{entry_label}: unknown goal {goal_id!r}")
+
+            disposition = entry.get("disposition", MISSING)
+            if disposition not in GOAL_RETIREMENT_DISPOSITIONS:
+                errors.append(
+                    f"{entry_label}: disposition must be one of "
+                    f"{list(GOAL_RETIREMENT_DISPOSITIONS)}"
+                )
+                parsed_disposition = ""
+            else:
+                parsed_disposition = disposition
+            reason = _nonempty_string(
+                entry.get("reason", MISSING), entry_label, "reason", errors
+            ) or ""
+            goal_successor_issue = entry.get("successor_issue", MISSING)
+            goal_successor_workflow = entry.get("successor_workflow", MISSING)
+            if disposition == "carried":
+                goal_successor_issue = _nonempty_string(
+                    goal_successor_issue, entry_label, "successor_issue", errors
+                )
+                goal_successor_workflow = _nonempty_string(
+                    goal_successor_workflow,
+                    entry_label,
+                    "successor_workflow",
+                    errors,
+                )
+            else:
+                goal_successor_issue = None
+                goal_successor_workflow = None
+                for field in ("successor_issue", "successor_workflow"):
+                    if field in entry:
+                        errors.append(
+                            f"{entry_label}: {field} must be absent unless "
+                            "disposition is carried"
+                        )
+
+            if resolution != "carried":
+                if disposition == "carried":
+                    errors.append(
+                        f"{entry_label}: carried disposition contradicts ticket "
+                        f"retirement.resolution {resolution!r}"
+                    )
+                for field in ("successor_issue", "successor_workflow"):
+                    if field in entry:
+                        errors.append(
+                            f"{entry_label}: {field} must be absent when ticket "
+                            "retirement.resolution is not carried"
+                        )
+            elif disposition != "carried":
+                errors.append(
+                    f"{entry_label}: disposition must be carried when ticket "
+                    "retirement.resolution is carried"
+                )
+            elif (
+                goal_successor_issue,
+                goal_successor_workflow,
+            ) != (parsed_successor_issue, parsed_successor_workflow):
+                errors.append(
+                    f"{entry_label}: carried successor must exactly match ticket "
+                    "retirement successor_issue/successor_workflow"
+                )
+
+            parsed_affected[goal_id] = GoalRetirement(
+                disposition=parsed_disposition,
+                reason=reason,
+                successor_issue=goal_successor_issue,
+                successor_workflow=goal_successor_workflow,
+            )
+
+        expected_goals = _ticket_goal_ids(ticket, goals)
+        actual_goals = set(parsed_affected)
+        if actual_goals != expected_goals:
+            errors.append(
+                f"{label}: retirement.affected_goals must exactly preserve every "
+                f"goal relation/ownership; expected {sorted(expected_goals)}, got "
+                f"{sorted(actual_goals)}"
+            )
+
+        result[ticket.id] = Retirement(
+            resolution=parsed_resolution,
+            affected_goals=parsed_affected,
+        )
+    return result
 
 
 def _find_dependency_cycle(tickets: dict[str, Ticket]) -> list[str] | None:
@@ -286,9 +623,35 @@ def _find_dependency_cycle(tickets: dict[str, Ticket]) -> list[str] | None:
 
 
 def _validate_dependency_graph(tickets: dict[str, Ticket], errors: list[str]) -> None:
-    expected_blocks: dict[str, set[str]] = {ticket_id: set() for ticket_id in tickets}
+    non_retired = {
+        ticket_id: ticket
+        for ticket_id, ticket in tickets.items()
+        if not ticket.retired
+    }
+    retired_ids = {ticket_id for ticket_id, ticket in tickets.items() if ticket.retired}
+    expected_blocks: dict[str, set[str]] = {
+        ticket_id: set() for ticket_id in non_retired
+    }
 
-    for ticket in tickets.values():
+    # A retirement keeps the original schedule entry as history. Its edges no
+    # longer participate in readiness, but deleting their endpoint would still
+    # rewrite that history, so retain basic identity checks.
+    for ticket_id in retired_ids:
+        ticket = tickets[ticket_id]
+        for field, references in (
+            ("depends_on", ticket.depends_on),
+            ("blocks", ticket.blocks),
+        ):
+            for reference in references:
+                if reference == ticket.id:
+                    errors.append(f"ticket {ticket.id!r}: cannot {field} itself")
+                elif reference not in tickets:
+                    errors.append(
+                        f"ticket {ticket.id!r}: retired {field} references unknown "
+                        f"ticket {reference!r}; retired entries preserve original IDs"
+                    )
+
+    for ticket in non_retired.values():
         for dependency in ticket.depends_on:
             if dependency == ticket.id:
                 errors.append(f"ticket {ticket.id!r}: cannot depend on itself")
@@ -297,6 +660,13 @@ def _validate_dependency_graph(tickets: dict[str, Ticket], errors: list[str]) ->
                     f"ticket {ticket.id!r}: depends_on references unknown ticket "
                     f"{dependency!r}"
                 )
+            elif dependency in retired_ids:
+                if not ticket.delivered:
+                    errors.append(
+                        f"ticket {ticket.id!r}: non-delivered depends_on cannot "
+                        f"reference retired ticket {dependency!r}; remove or retire "
+                        "the dependent"
+                    )
             else:
                 expected_blocks[dependency].add(ticket.id)
                 dependency_ticket = tickets[dependency]
@@ -318,9 +688,15 @@ def _validate_dependency_graph(tickets: dict[str, Ticket], errors: list[str]) ->
                 errors.append(
                     f"ticket {ticket.id!r}: blocks references unknown ticket {blocked!r}"
                 )
+            elif blocked in retired_ids:
+                if not ticket.delivered:
+                    errors.append(
+                        f"ticket {ticket.id!r}: non-delivered blocks cannot reference "
+                        f"retired ticket {blocked!r}"
+                    )
 
-    for ticket in tickets.values():
-        actual = set(ticket.blocks)
+    for ticket in non_retired.values():
+        actual = {blocked for blocked in ticket.blocks if blocked in non_retired}
         expected = expected_blocks[ticket.id]
         if actual != expected:
             errors.append(
@@ -328,7 +704,7 @@ def _validate_dependency_graph(tickets: dict[str, Ticket], errors: list[str]) ->
                 f"depends_on; expected {sorted(expected)}, got {sorted(actual)}"
             )
 
-    cycle = _find_dependency_cycle(tickets)
+    cycle = _find_dependency_cycle(non_retired)
     if cycle:
         errors.append(f"dependency cycle detected: {' -> '.join(cycle)}")
 
@@ -336,7 +712,7 @@ def _validate_dependency_graph(tickets: dict[str, Ticket], errors: list[str]) ->
 def _validate_conflicts(tickets: dict[str, Ticket], errors: list[str]) -> None:
     by_wave: dict[int, list[Ticket]] = defaultdict(list)
     for ticket in tickets.values():
-        if ticket.wave is not None:
+        if not ticket.retired and ticket.wave is not None:
             by_wave[ticket.wave].append(ticket)
 
     for wave, wave_tickets in sorted(by_wave.items()):
@@ -363,6 +739,15 @@ def _validate_promotion_lane(tickets: dict[str, Ticket], errors: list[str]) -> N
     for ticket in tickets.values():
         if ticket.promotion_order is not None:
             orders[ticket.promotion_order].append(ticket.id)
+        if ticket.retired:
+            predecessor = ticket.promotion_predecessor
+            if isinstance(predecessor, str) and predecessor not in tickets:
+                errors.append(
+                    f"ticket {ticket.id!r}: retired promotion_predecessor references "
+                    f"unknown ticket {predecessor!r}; retired entries preserve "
+                    "original IDs"
+                )
+            continue
         predecessor = ticket.promotion_predecessor
         if isinstance(predecessor, str):
             if predecessor == ticket.id:
@@ -373,6 +758,12 @@ def _validate_promotion_lane(tickets: dict[str, Ticket], errors: list[str]) -> N
                 errors.append(
                     f"ticket {ticket.id!r}: promotion_predecessor references unknown "
                     f"ticket {predecessor!r}"
+                )
+            elif tickets[predecessor].retired and not ticket.delivered:
+                errors.append(
+                    f"ticket {ticket.id!r}: non-delivered promotion_predecessor "
+                    f"cannot reference retired ticket {predecessor!r}; point to the "
+                    "previous non-retired ticket"
                 )
 
     duplicate_orders = {
@@ -385,11 +776,16 @@ def _validate_promotion_lane(tickets: dict[str, Ticket], errors: list[str]) -> N
             f"promotion_order {order} is not unique; used by tickets {ticket_ids}"
         )
 
-    for ticket in tickets.values():
+    active = {
+        ticket_id: ticket
+        for ticket_id, ticket in tickets.items()
+        if not ticket.retired
+    }
+    for ticket in active.values():
         if ticket.promotion_order is None:
             continue
         for dependency in ticket.depends_on:
-            dependency_ticket = tickets.get(dependency)
+            dependency_ticket = active.get(dependency)
             if dependency_ticket is None or dependency_ticket.promotion_order is None:
                 continue
             if dependency_ticket.promotion_order >= ticket.promotion_order:
@@ -399,10 +795,17 @@ def _validate_promotion_lane(tickets: dict[str, Ticket], errors: list[str]) -> N
                     f"ticket {ticket.id!r} ({ticket.promotion_order})"
                 )
 
-    if len(orders) != len(tickets) or duplicate_orders:
+    active_orders = {
+        ticket.promotion_order
+        for ticket in active.values()
+        if ticket.promotion_order is not None
+    }
+    if len(active_orders) != len(active) or duplicate_orders:
         return
 
-    lane = sorted(tickets.values(), key=lambda ticket: ticket.promotion_order)  # type: ignore[arg-type]
+    lane = sorted(
+        active.values(), key=lambda ticket: ticket.promotion_order
+    )  # type: ignore[arg-type]
     for index, ticket in enumerate(lane):
         expected = None if index == 0 else lane[index - 1].id
         actual = ticket.promotion_predecessor
@@ -411,7 +814,15 @@ def _validate_promotion_lane(tickets: dict[str, Ticket], errors: list[str]) -> N
                 f"ticket {ticket.id!r}: promotion_predecessor is required; "
                 f"expected {_render_predecessor(expected)}"
             )
-        elif actual != expected:
+        elif (
+            actual != expected
+            and not (
+                ticket.delivered
+                and isinstance(actual, str)
+                and actual in tickets
+                and tickets[actual].retired
+            )
+        ):
             errors.append(
                 f"ticket {ticket.id!r}: promotion_predecessor must be "
                 f"{_render_predecessor(expected)}; got {_render_predecessor(actual)}"
@@ -558,16 +969,26 @@ def _validate_owns_goals(
 def _validate_goal_alignment(
     goals: dict[str, Goal],
     tickets: dict[str, Ticket],
+    retirements: dict[str, Retirement],
     errors: list[str],
     warnings: list[str],
 ) -> None:
     if not goals:
         return
 
-    has_evaluation_ticket = any(
-        ticket.role == EVALUATION for ticket in tickets.values()
+    retirement_impacts: dict[str, list[tuple[Ticket, GoalRetirement]]] = defaultdict(list)
+    for ticket_id, retirement in retirements.items():
+        ticket = tickets[ticket_id]
+        for goal_id, disposition in retirement.affected_goals.items():
+            if goal_id in goals:
+                retirement_impacts[goal_id].append((ticket, disposition))
+
+    undisposed_goals = set(goals) - set(retirement_impacts)
+    has_live_evaluation_ticket = any(
+        ticket.role == EVALUATION and not ticket.retired
+        for ticket in tickets.values()
     )
-    if not has_evaluation_ticket:
+    if undisposed_goals and not has_live_evaluation_ticket:
         warnings.append(
             "no ticket declares role: evaluation; schedule a terminal "
             "evaluation/perf/integration ticket that runs each goal harness on the "
@@ -575,6 +996,7 @@ def _validate_goal_alignment(
         )
 
     contributors: dict[str, list[Ticket]] = defaultdict(list)
+    associated: dict[str, list[Ticket]] = defaultdict(list)
     for ticket in sorted(tickets.values(), key=lambda item: item.id):
         _validate_owns_goals(ticket, goals, errors)
 
@@ -591,8 +1013,9 @@ def _validate_goal_alignment(
                     f"ticket {ticket.id!r}: goals references unknown goal {link.goal!r}"
                 )
                 continue
+            associated[link.goal].append(ticket)
             if link.contribution == "direct":
-                if ticket.role != EVALUATION and (
+                if not ticket.retired and ticket.role != EVALUATION and (
                     link.local_signal is None
                     or link.local_signal.strip().upper().startswith("N/A")
                 ):
@@ -604,12 +1027,59 @@ def _validate_goal_alignment(
             # A goal's own decider never counts as a contributor to it, even when
             # the plan has not marked its role yet.
             if (
-                ticket.role != EVALUATION
+                not ticket.retired
+                and ticket.role != EVALUATION
                 and goals[link.goal].evaluation_ticket != ticket.id
             ):
                 contributors[link.goal].append(ticket)
 
     for goal_id, goal in sorted(goals.items()):
+        impacts = retirement_impacts.get(goal_id, [])
+        if impacts:
+            dispositions = {impact.disposition for _, impact in impacts}
+            if len(dispositions) != 1:
+                errors.append(
+                    f"goal {goal_id!r}: retired tickets disagree on affected-goal "
+                    f"disposition: {sorted(dispositions)}"
+                )
+            carried_targets = {
+                (impact.successor_issue, impact.successor_workflow)
+                for _, impact in impacts
+                if impact.disposition == "carried"
+            }
+            if len(carried_targets) > 1:
+                errors.append(
+                    f"goal {goal_id!r}: carried retirement dispositions must name "
+                    "one successor issue/workflow"
+                )
+
+            evaluator_id = goal.evaluation_ticket
+            evaluator = tickets.get(evaluator_id) if isinstance(evaluator_id, str) else None
+            if (
+                evaluator is not None
+                and not evaluator.retired
+                and not evaluator.delivered
+            ):
+                retired_ids = sorted(ticket.id for ticket, _ in impacts)
+                errors.append(
+                    f"goal {goal_id!r}: active evaluation ticket {evaluator.id!r} "
+                    f"cannot decide retired work {retired_ids}; retire/reschedule the "
+                    "evaluator and record an accepted or carried goal disposition"
+                )
+
+            active_associations = sorted(
+                ticket.id
+                for ticket in associated.get(goal_id, [])
+                if not ticket.retired and not ticket.delivered
+            )
+            if active_associations:
+                errors.append(
+                    f"goal {goal_id!r}: retirement disposition conflicts with active "
+                    f"tickets {active_associations}; deliver or retire every remaining "
+                    "ticket serving the goal"
+                )
+            continue
+
         goal_contributors = contributors.get(goal_id, [])
         if not goal_contributors:
             errors.append(
@@ -627,13 +1097,24 @@ def _validate_goal_alignment(
                 f"{evaluator_id!r}"
             )
             continue
-        if evaluator.role != EVALUATION and has_evaluation_ticket:
+        if evaluator.retired:
+            errors.append(
+                f"goal {goal_id!r}: retired evaluation_ticket {evaluator_id!r} must "
+                "record this goal in retirement.affected_goals"
+            )
+            continue
+        if evaluator.role != EVALUATION and has_live_evaluation_ticket:
             errors.append(
                 f"goal {goal_id!r}: evaluation_ticket {evaluator_id!r} must declare "
                 "role: evaluation"
             )
 
-        evaluator_ancestors = _ancestors(tickets, evaluator_id)
+        active_tickets = {
+            ticket_id: ticket
+            for ticket_id, ticket in tickets.items()
+            if not ticket.retired
+        }
+        evaluator_ancestors = _ancestors(active_tickets, evaluator_id)
         for contributor in goal_contributors:
             if contributor.id not in evaluator_ancestors:
                 errors.append(
@@ -698,15 +1179,19 @@ def validate_plan(plan: object) -> PlanReport:
     """
     errors: list[str] = []
     warnings: list[str] = []
+    schedule_revision = _schedule_revision(plan, errors)
     _validate_deferment_policy(plan, errors)
     goals = _parse_goals(plan, errors, warnings)
     tickets = _parse_tickets(plan, errors)
     if not tickets:
         return PlanReport(errors=errors, warnings=warnings)
+    retirements = _validate_retirements(
+        plan, tickets, goals, schedule_revision, errors
+    )
     _validate_dependency_graph(tickets, errors)
     _validate_conflicts(tickets, errors)
     _validate_promotion_lane(tickets, errors)
-    _validate_goal_alignment(goals, tickets, errors, warnings)
+    _validate_goal_alignment(goals, tickets, retirements, errors, warnings)
     return PlanReport(errors=errors, warnings=warnings)
 
 
@@ -747,12 +1232,25 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
 
     ticket_count = len(plan["tickets"])
-    wave_count = len({ticket["wave"] for ticket in plan["tickets"]})
+    retired_count = sum(
+        1
+        for ticket in plan["tickets"]
+        if isinstance(ticket, dict)
+        and str(ticket.get("status", "")).strip().lower() == RETIRED
+    )
+    active_tickets = [
+        ticket
+        for ticket in plan["tickets"]
+        if isinstance(ticket, dict)
+        and str(ticket.get("status", "")).strip().lower() != RETIRED
+    ]
+    wave_count = len({ticket["wave"] for ticket in active_tickets})
     goal_count = len(plan.get("epic_goals") or [])
     goal_label = "goal" if goal_count == 1 else "goals"
     print(
         f"OK: {args.plan} has a valid epic schedule "
-        f"({ticket_count} tickets across {wave_count} waves, "
+        f"({ticket_count} tickets, {retired_count} retired, "
+        f"{len(active_tickets)} active/delivered across {wave_count} waves, "
         f"{goal_count} {goal_label})"
     )
     return 0
