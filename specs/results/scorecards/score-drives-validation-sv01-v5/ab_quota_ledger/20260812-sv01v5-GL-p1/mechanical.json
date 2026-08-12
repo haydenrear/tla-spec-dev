@@ -3,15 +3,169 @@
   "example": "ab_quota_ledger",
   "arm": "GL",
   "run_id": "20260812-sv01v5-GL-p1",
-  "commit": "",
+  "commit": "5e07dce",
   "figures": {
-    "kills": {},
-    "complexity_of_produced_code": {},
-    "case_counts": {},
-    "determinism": {},
-    "runtime_seconds": null
+    "kills": {
+      "note": "Judge-seeded mutants (pass 1). 20 faults, applied one at a time to a COPY under the judge's scratch dir, never to the repository. Each mutant run against BOTH suites.",
+      "mutants_seeded": 20,
+      "killed_by_artifact_own_suite": 17,
+      "killed_by_shared_suite": 13,
+      "survived_both": [
+        "M04_reserve_checks_amount_before_tenant",
+        "M18_factory_uses_the_FAKE_as_the_durable_side",
+        "M19_factory_ignores_the_path_and_writes_elsewhere"
+      ],
+      "survived_shared_only": [
+        "M05b_and_drop_the_later_increment",
+        "M07_outstanding_ids_sorted_lexicographically",
+        "M14_file_journal_does_not_truncate",
+        "M17_memory_records_aliases_internal_list"
+      ],
+      "matrix": {
+        "M01_running_total_is_amount": {
+          "own": "KILL",
+          "shared": "KILL"
+        },
+        "M02_commit_line_swaps_amount_and_total": {
+          "own": "KILL",
+          "shared": "KILL"
+        },
+        "M03_release_writes_a_durable_line": {
+          "own": "KILL",
+          "shared": "KILL"
+        },
+        "M04_reserve_checks_amount_before_tenant": {
+          "own": "LIVE",
+          "shared": "LIVE"
+        },
+        "M05_rejected_reserve_burns_an_id": {
+          "own": "KILL",
+          "shared": "KILL"
+        },
+        "M05b_and_drop_the_later_increment": {
+          "own": "KILL",
+          "shared": "LIVE"
+        },
+        "M06_available_ignores_committed": {
+          "own": "KILL",
+          "shared": "KILL"
+        },
+        "M07_outstanding_ids_sorted_lexicographically": {
+          "own": "KILL",
+          "shared": "LIVE"
+        },
+        "M08_close_ignores_outstanding": {
+          "own": "KILL",
+          "shared": "KILL"
+        },
+        "M09_close_line_always_zero": {
+          "own": "KILL",
+          "shared": "KILL"
+        },
+        "M10_amount_boundary_accepts_zero": {
+          "own": "KILL",
+          "shared": "KILL"
+        },
+        "M11_quota_check_off_by_one": {
+          "own": "KILL",
+          "shared": "KILL"
+        },
+        "M12_commit_does_not_increase_committed": {
+          "own": "KILL",
+          "shared": "KILL"
+        },
+        "M13_file_append_omits_newline": {
+          "own": "KILL",
+          "shared": "KILL"
+        },
+        "M14_file_journal_does_not_truncate": {
+          "own": "KILL",
+          "shared": "LIVE"
+        },
+        "M15_file_records_reversed": {
+          "own": "KILL",
+          "shared": "KILL"
+        },
+        "M16_file_records_keeps_blanks": {
+          "own": "KILL",
+          "shared": "KILL"
+        },
+        "M17_memory_records_aliases_internal_list": {
+          "own": "KILL",
+          "shared": "LIVE"
+        },
+        "M18_factory_uses_the_FAKE_as_the_durable_side": {
+          "own": "LIVE",
+          "shared": "LIVE"
+        },
+        "M19_factory_ignores_the_path_and_writes_elsewhere": {
+          "own": "LIVE",
+          "shared": "LIVE"
+        }
+      }
+    },
+    "complexity_of_produced_code": {
+      "note": "Judge-computed AST branch count (cc = 1 + If/For/While/BoolOp/IfExp/comprehension/ExceptHandler). NOT a figure the artifact recorded; the artifact records none, which is why D2 is 2 and not 3.",
+      "source_lines": {
+        "quota_ledger/__init__.py": 39,
+        "quota_ledger/domain.py": 191,
+        "quota_ledger/file_journal.py": 35,
+        "quota_ledger/memory_journal.py": 22,
+        "tests/test_ledger.py": 270
+      },
+      "callables": 23,
+      "sum_cc": 36,
+      "max_cc": 5,
+      "max_cc_at": "quota_ledger/domain.py:136 (reserve)",
+      "written_state_fields_in_domain": 5,
+      "artifact_recorded_before_after_figures": false
+    },
+    "case_counts": {
+      "artifact_own_suite": 53,
+      "of_which_run_against_both_wirings": 50,
+      "per_wiring": 25,
+      "unparametrised": 3,
+      "shared_suite": 28
+    },
+    "determinism": {
+      "artifact_own_suite": "53 passed x3 runs, identical",
+      "shared_suite": "28 passed x3 runs, identical",
+      "flakes": 0
+    },
+    "runtime_seconds": {
+      "artifact_own_suite_first_run": 0.09,
+      "shared_suite_first_run": 0.19,
+      "artifact_own_suite_repeats": [
+        0.4,
+        0.19,
+        0.18
+      ],
+      "shared_suite_repeats": [
+        0.07,
+        0.07,
+        0.07
+      ]
+    }
   },
   "reach": {
-    "note": "Print reach beside every kill: executed of emitted, per instrument, per action, with the skip rule named."
+    "note": "Print reach beside every kill: executed of emitted, per instrument, per action, with the skip rule named.",
+    "emitted": 20,
+    "executed": 20,
+    "skipped": 0,
+    "skip_rule": "None skipped. All 20 mutants applied cleanly (pattern found) and both suites ran to completion on each; no mutant was excluded for being unreachable, equivalent, or slow.",
+    "per_instrument": {
+      "artifact_own_suite": "20/20 executed, 17 killed",
+      "shared_suite": "20/20 executed, 13 killed"
+    },
+    "per_action": {
+      "reserve": 4,
+      "commit": 4,
+      "release": 1,
+      "close_tenant": 2,
+      "queries": 2,
+      "file_adapter": 4,
+      "memory_adapter": 1,
+      "composition_root": 2
+    }
   }
 }

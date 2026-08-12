@@ -12,4 +12,65 @@ The labels are drawn from a pool that excludes every label any prior round publi
 
 ## What each judge could and could not see
 
-_Fill this in before the round closes: what was supplied, what was forbidden, and every disclosure a judge volunteered. A leak that is disclosed is recorded, never used as grounds to discard a card — discarding a card after seeing its score is the one move a round may not make._
+**SUPPLIED, and identical for all four cards of both rounds.** One dispatch
+text, byte-identical except for the card path
+(`.../scratchpad/SV-01/dispatch/DISPATCH.md`, preserved). Each judge was given:
+
+- its own card directory (`scorecard.md` carrying the whole served rubric,
+  `scorecard.json`, `mechanical.json`);
+- `.../SV-01/blind/artifact_under_score/` — `quota_ledger/`,
+  `tests/test_ledger.py`, `NOTES.md`;
+- `.../SV-01/blind/FEATURE.md` and `.../SV-01/blind/shared_suite/test_behavior.py`;
+- permission to copy the tree out and mutate it in scratch, and the statement
+  that seeding faults and not seeding faults are **both legal**.
+
+**FORBIDDEN, and named in the dispatch:** `references/eval_scorecard.md`,
+`examples/validation/scorecards/rubric_v4_frozen.md`, every other scorecard
+anywhere, `PREDICTIONS-SV-01.md` and everything else directly under `SV-01/`,
+`examples/validation/` outside the two packet copies, `subjects.toml`, the
+epic documents, and `git log` / `show` / `diff` / `blame`.
+
+**THE TREATMENT IS THE CARD VERSION.** One artifact, one label, four judges,
+the same model on all four. The `-v4` cards were scaffolded from
+`rubric_v4_frozen.md` with `--card-version 4` and reproduce
+`served_digest sha256:a213a36770ccab09` byte for byte; the `-v5` cards serve
+`sha256:2d7d4a0506d9b259`. The two served surfaces differ in **exactly two
+places** — scoring rule 9's second sentence, and D3's caveat.
+
+### Disclosures volunteered by the judges — recorded, never grounds to discard
+
+1. **THE SCRATCH PATHS THIS ROUND HANDED ITS JUDGES WERE NOT TICKET-SPECIFIC,
+   AND ALL FOUR ALREADY HELD A PRIOR ROUND'S ARTIFACT.** The operator assigned
+   `scratchpad/judge-v4-p1`, `-v4-p2`, `-v5-p1`, `-v5-p2` — the same four names
+   `close-the-loop`'s CL-03 used on 2026-08-11. Every one existed and was
+   non-empty. `judge-v4-p2/base/`, `judge-v5-p1/work/`, `judge-v5-p2/work/` and
+   `judge-v5-p2/derived/` each hold CL-03's `reference_ports` tree — **the
+   artifact WITH the single-observer hole** — and its `README.md:22` reads
+   *"…that earned arm B its `D3 = 4`"*, **a prior D3 number one `ls` away from
+   every judge of this round.** Two judges (`v5-p1`, `v5-p2`) reported the
+   directory unprompted, said they saw filenames only, opened nothing and moved
+   into a fresh subdirectory; the two v4 judges did not mention it. No file
+   inside any stale directory has an mtime later than 2026-08-11. **This is the
+   operator's defect, filed as `SV-01-DF-01`.** It cuts **toward 4** — the leaked
+   number is a 4 — which is the direction this round predicted, so it is
+   reported rather than argued away.
+2. **`git status` is a blinding leak the dispatch's forbidden list did not
+   name.** `v4-p2` and `v5-p2` each ran `git status` after scoring to confirm
+   they had left the tree clean, and were shown the **paths** of the sibling
+   pass's card and of the other card-version round, which neither knew existed.
+   Both disclosed it, both opened nothing. Filed as `SV-01-DF-03`.
+3. **THE ARTIFACT'S OWN PROSE DEFEATS THE BLIND ON THE ARCHITECTURE AXIS.**
+   Three of four judges reported that `NOTES.md:102-123` quotes a structural
+   instruction — *"the domain holds no file handle, no path"* — from a prompt
+   `FEATURE.md` explicitly does not contain, so the artifact self-identifies as
+   produced under an architecture treatment. **None of them derived the `GL`
+   mapping**, and none reported a prior score from it. This is the same class as
+   `close-the-loop`'s `HARVEST-CL-03.md` §F3 and it is a property of the
+   artifact, not of this round's handling: redacting it would change the tree.
+4. **`mechanical.json` is empty on three of four cards** and filled by `v5-p1`
+   with its own kill matrix. It is recorded and never scored (rule 7). The
+   asymmetry is a fact about what each judge chose to write down, not a
+   difference in what any of them was given.
+
+**No judge reported reading anything on the forbidden list, and no judge worked
+out which arm `GL` is.**
