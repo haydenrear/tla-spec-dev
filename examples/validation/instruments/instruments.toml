@@ -809,6 +809,47 @@ classification = "demonstrated-can-fail"
   expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
+id = "candidate-note-bar"
+name = "candidate-bar generator for the recorded-note prompt (SV-07)"
+paths = ["scripts/candidate_note_bar.py"]
+family = "measurement"
+watches = "the card, for the one shape a candidate bar can be derived from -- one recorded-note bullet, one version declaration, one version-history row for the declared version"
+verdict_surface = "exit 2, REFUSED"
+classification = "demonstrated-can-fail"
+note = """
+IT REACHES NO VERDICT ABOUT ANY ARTIFACT AND NONE ABOUT ANY SCORE. Its subject
+is the CARD, and the only thing it decides is whether the card is still in the
+shape a candidate can be derived from -- at which point it refuses, rather than
+editing the wrong bullet, or silently editing nothing and printing a price for a
+substitution that never happened. That second one is the failure this row exists
+for, and it is the failure a generator of this kind actually has: it is far
+likelier to produce a confident wrong number than to crash.
+
+Everything the substitution keys on is read out of `load_rubric` at run time, so
+THE FAILING INPUT IS BUILT THE SAME WAY THE NEEDLE IS rather than pasted.
+
+`no_new_gates_rule`: it gates nothing. Without `--out` it writes nothing, no
+production code imports it, and a card that has drifted stops THIS script and no
+close, no scaffold and no score.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "a card whose recorded-note bullet has been renamed, where the substitution would otherwise silently miss and price a change it never made"
+  nodes = ["tests/test_candidate_note_bar.py::test_the_generator_refuses_a_card_it_cannot_derive_from"]
+  expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "slow"
+  summary = "the shipped card, which derives a candidate with the anchors digest unmoved and the rung count unchanged"
+  nodes = ["tests/test_candidate_note_bar.py::test_the_candidate_adds_no_rung_and_moves_no_anchor"]
+  expect_exit = 0
+  expect_passed = 1  # SM-03: exit 0 is also what a fully-skipped run returns
+
+[[instrument]]
 id = "architecture-tag-derivation"
 name = "effect_boundary architecture tag (RD-05)"
 paths = ["examples/validation/scorecards/architecture_tags.py",
