@@ -270,7 +270,12 @@ THE ANCHORS DID NOT MOVE AND THE SERVED BYTES DID -- the first bump in this card
 
 ## Era 11 — after `CL-03-scorecard-v5`
 
-_(no rows measured in this era)_
+| run | round | arm | pass | ver | D1 | D2 | D3 | D4 | D5 | commit | note |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `20260812-sv01v4-GL-p1` | score-drives-validation-sv01-v4 | GL | 1 | 4 | ? | 2 | 4 | ? | ? | `5e07dce` | — |
+| `20260812-sv01v4-GL-p2` | score-drives-validation-sv01-v4 | GL | 2 | 4 | ? | 2 | 4 | ? | ? | `5e07dce` | — |
+| `20260812-sv01v5-GL-p1` | score-drives-validation-sv01-v5 | GL | 1 | 5 | ? | 2 | 4 | ? | ? | `5e07dce` | — |
+| `20260812-sv01v5-GL-p2` | score-drives-validation-sv01-v5 | GL | 2 | 5 | ? | 2 | 4 | ? | ? | `5e07dce` | — |
 
 ## The same artifact, scored twice — declared movements
 
