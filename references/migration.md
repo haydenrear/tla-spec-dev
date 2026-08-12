@@ -173,5 +173,12 @@ where** in the append-only history entry (`feedback_filed`,
 append-only: close-out writes the template once and thereafter only appends,
 so a filled finding is never overwritten by the next close.
 
+Each receipt reports only its newest `## Close-out ...` block. Findings beneath
+older close-out blocks stay preserved in the document, but they never make a
+new ticket or workflow close look reviewed, filed, or resolved. `none-found`
+is valid only when that newest block contains no findings; `items-recorded`
+requires at least one finding and every one must be filed or explicitly marked
+`wontfix`.
+
 This feedback loop is part of the workflow, not optional polish: the skill
 improves only through what real migrations fail to express.

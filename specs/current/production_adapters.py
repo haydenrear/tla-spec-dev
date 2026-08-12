@@ -914,8 +914,8 @@ class SkillFeedbackCloseOutAdapter:
       false while the retro is unreviewed;
     * a finding filled in between the two closes survives the second close
       (the document accumulates; it is never regenerated over real content),
-      and the second history entry records ``feedback_filed`` true together
-      with *where* it was filed.
+      while the second history entry remains unresolved until its own newest
+      close-out block is reviewed.
     """
 
     action_name = "CloseTicket"
@@ -1016,8 +1016,8 @@ class SkillFeedbackCloseOutAdapter:
             and instructs_filing
             and first_filed is False
             and finding_survived
-            and second_filed is True
-            and filed_where == ["https://github.com/haydenrear/tla-spec-dev/issues/22"],
+            and second_filed is False
+            and filed_where == [],
             "setup_exit_codes": [record.returncode for record in setup],
             "exit_code": first.returncode,
             "second_exit_code": second.returncode,
