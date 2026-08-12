@@ -305,7 +305,7 @@ figure.**
 |---|---|---|
 | repository suite | **2 failed, 1528 passed** (21:38) | `86a8767`, pristine detached checkout at `scratchpad/SV-04/operator/baseline-86a8767`, `git status` 0 entries |
 | repository suite | **3 failed, 1527 passed** (21:06) — **the third was SV-04's own**, §9c | `feature/SV-04` at `66b96ff`, `git status` 0 entries |
-| repository suite | **`SUITE_AFTER_REPAIR`** | `feature/SV-04` at `REPAIR_SHA`, `git status` 0 entries |
+| repository suite | **2 failed, 1528 passed** (21:59) — the two inherited reds and no third | `feature/SV-04` at `ebfed2e`, `git status` 0 entries |
 | shared behavioural contract | **28** cases | `examples/validation/ab/tests/test_behavior.py`, byte-identical at every tree in this ticket (`git diff 86a8767` empty) |
 | adapter conformance (new) | **14** cases | `feature/SV-04`; does not exist at `86a8767` |
 | round cards | **4** filled, 0 problems, 0 audit violations | `feature/SV-04` |
@@ -360,6 +360,12 @@ now carries `["score-drives-validation-sv04", "GL"]` and `["…", "LG"]`.
 **`scaffold` was NOT changed** — it is the instrument this round was run through,
 and editing it after the arms were judged is the one thing `R-H2` forbids.
 Filed as `SV-04-DF-05`.
+
+**The repair is verified by a full run and not by the one test**: `ebfed2e` is
+**2 failed, 1528 passed**, which is the branch point's count exactly — same two
+reds, same pass total. The new conformance file adds no row to this suite because
+it lives under `examples/validation/ab/tests/` and `pytest tests` does not collect
+it; that is why the total returns to the baseline's rather than exceeding it.
 
 **And the operator got that wrong once, which is worth recording.** The first
 baseline run reported **12 failed** and cost a re-run to explain. Ten of the
