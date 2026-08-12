@@ -647,6 +647,10 @@ recording `semantic_promotion.performed: false` and
 `validation.claimed: false`. Direct statuses such as `carried`, `superseded`,
 or `abandoned` are not terminal; those are values of
 `retirement.resolution`, under the single terminal plan status `retired`.
+Terminal receipts are irreversible by immutable plan ordinal plus ticket id:
+changing a retired entry's status back to `done` cannot create a successful
+close, changing a delivered entry to `retired` cannot create a retirement, and
+workflow close refuses when both receipt kinds exist for one identity.
 
 After `specs/current` semantically equals `specs/desired_program_model`,
 promote the converged model into `specs/program_model`, regenerate accepted

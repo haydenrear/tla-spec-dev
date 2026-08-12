@@ -525,7 +525,12 @@ def write_delivered_plan(repo_root: Path) -> Path:
 
 
 def write_delivered_receipt(
-    repo_root: Path, entry: str, *, ticket_index: int = 0
+    repo_root: Path,
+    entry: str,
+    *,
+    ticket_index: int = 0,
+    ticket_id: str = "DONE-001",
+    ticket_status: str = "done",
 ) -> Path:
     receipt = repo_root / "specs" / ".history" / WORKFLOW / entry / "manifest.json"
     receipt.parent.mkdir(parents=True, exist_ok=True)
@@ -535,8 +540,8 @@ def write_delivered_receipt(
                 "kind": "ticket",
                 "workflow_name": WORKFLOW,
                 "ticket_index": ticket_index,
-                "ticket_id": "DONE-001",
-                "ticket_status": "done",
+                "ticket_id": ticket_id,
+                "ticket_status": ticket_status,
             },
             indent=2,
         )
@@ -581,3 +586,86 @@ def test_repository_canonical_delivered_plan_has_matching_close_receipts() -> No
     plan_path = ROOT / "specs" / "desired_program_model" / "ticket_plan.yaml"
 
     assert validate_ticket_plan_closed(plan_path, repo_root=ROOT) == []
+
+
+def test_success_close_refuses_to_resurrect_an_exactly_retired_ticket(
+    tmp_path: Path,
+) -> None:
+    plan_path = write_plan(tmp_path)
+    retirement = create_ticket_retirement_entry(
+        repo_root=tmp_path,
+        spec_root=Path("specs"),
+        ticket_ref=TICKET,
+    )
+    resurrected = plan_mapping()
+    resurrected["tickets"][0]["status"] = "done"
+    plan_path.write_text(render_plan(resurrected), encoding="utf-8")
+
+    with pytest.raises(SystemExit, match="already has an immutable retirement receipt"):
+        create_ticket_history_entry(
+            repo_root=tmp_path,
+            spec_root=Path("specs"),
+            ticket_ref=TICKET,
+            summary="must not resurrect",
+            result_paths=[],
+            entry_name="resurrected-close",
+        )
+
+    assert retirement.entry_dir.is_dir()
+    assert not (
+        tmp_path / "specs" / ".history" / WORKFLOW / "resurrected-close"
+    ).exists()
+    assert not (tmp_path / "specs" / "results" / "complexity_ledger.json").exists()
+
+
+def test_workflow_validation_rejects_delivered_status_after_retirement(
+    tmp_path: Path,
+) -> None:
+    plan_path = write_plan(tmp_path)
+    create_ticket_retirement_entry(
+        repo_root=tmp_path,
+        spec_root=Path("specs"),
+        ticket_ref=TICKET,
+    )
+    resurrected = plan_mapping()
+    resurrected["tickets"][0]["status"] = "done"
+    plan_path.write_text(render_plan(resurrected), encoding="utf-8")
+
+    errors = "\n".join(validate_ticket_plan_closed(plan_path, repo_root=tmp_path))
+
+    assert "delivered status conflicts with its immutable retirement receipt" in errors
+
+
+def test_workflow_validation_rejects_retired_status_after_successful_close(
+    tmp_path: Path,
+) -> None:
+    plan_path = write_plan(tmp_path)
+    write_delivered_receipt(
+        tmp_path,
+        "custom-success",
+        ticket_id=TICKET,
+    )
+
+    errors = "\n".join(validate_ticket_plan_closed(plan_path, repo_root=tmp_path))
+
+    assert "retired status conflicts with its prior successful-close receipt" in errors
+
+
+def test_workflow_validation_rejects_coexisting_terminal_receipt_kinds(
+    tmp_path: Path,
+) -> None:
+    plan_path = write_plan(tmp_path)
+    create_ticket_retirement_entry(
+        repo_root=tmp_path,
+        spec_root=Path("specs"),
+        ticket_ref=TICKET,
+    )
+    write_delivered_receipt(
+        tmp_path,
+        "custom-success",
+        ticket_id=TICKET,
+    )
+
+    errors = "\n".join(validate_ticket_plan_closed(plan_path, repo_root=tmp_path))
+
+    assert "both successful-close and retirement receipts" in errors
