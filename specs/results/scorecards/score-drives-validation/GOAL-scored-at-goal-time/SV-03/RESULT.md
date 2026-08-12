@@ -33,7 +33,10 @@ produced the baseline number?** — by resolving every value against the
 filesystem.
 
 `analysis/baseline_is_a_card.py`, at `5620c9a`, over **109 plans** on disk
-(live and sealed):
+(live and sealed). Re-run on the committed tree it reads **110** plans — closing
+this ticket seals one more snapshot of the same plan — and **every other figure
+below is identical**, because a snapshot of a plan whose goals already counted
+adds no distinct goal:
 
 | | |
 |---|---|
@@ -132,6 +135,20 @@ It **adds no field**: every key is one the schema has today, and a test asserts
 Both files load **identically under `yaml.safe_load` and under
 `scripts/extract_spec_manifest.parse_simple_yaml`**, asserted per file.
 
+**The canonical plan, both loaders, stated exactly.** The one line this ticket
+changes in `specs/desired_program_model/ticket_plan.yaml` is SV-03's
+`status: planned` → `done`, and both loaders read `done`. The plan **parses**
+under both; their parsed structures diverge in **4 places**, all in
+quote-escaping and folding inside `>-` scalars, and **the same 4 at `HEAD`
+before this ticket touched anything** — measured both ways rather than assumed.
+The divergence is the lenient parser's, is pre-existing, and is neither widened
+nor narrowed here. `deferred_findings.yaml`, which this ticket appends five
+findings to, **raises** in `parse_simple_yaml` at `HEAD` already
+(`unexpected indentation at: '- examples/validation/PREDICTIONS-PA.md'`) and
+raises identically after — an inherited condition of a file the both-loaders
+rule was never stated about, reported rather than repaired.
+`validate_epic_plan.py` reports OK on the plan before and after.
+
 ---
 
 ## 6. What landed in this repository, and why that is the right side of the line
@@ -177,8 +194,23 @@ goal process; the goal process learns to name a card.**
 
 | tree | result |
 |---|---|
-| `5620c9a`, clean checkout, before this ticket | **2 failed**, the deliberate two |
-| this branch, with the ticket workspace OPEN | see §8.1 |
+| `5620c9a`, clean checkout, before this ticket | **2 failed, 1497 passed** in 20:54 |
+| `cd02e89`, this branch committed, workspace closed | **2 failed, 1518 passed** in 21:11 |
+
+**The same two, and they are the inherited two** —
+`tests/test_architecture_tags.py::test_the_same_tag_control_holds` (`RM-06`,
+whose own docstring says *"THIS TEST IS DELIBERATELY RED. DO NOT MAKE IT
+GREEN"*) and
+`tests/test_price_removal.py::test_nothing_in_the_repository_invokes_the_pricer`
+(tripped by `CLOSE-THE-LOOP-EPIC.md` and `NEXT-EPIC.md`, two narrative documents
+at the repository root). **Neither was touched.** The pricer grep excludes
+anything under `specs/`, so this ticket's own documents — which do mention the
+pricer, once, in a sentence about not touching it — cannot widen it, and the
+failing list is byte-identical before and after.
+
+**The move is +21 passed, and both halves are named:** **+19** from
+`tests/test_goal_baseline_is_a_card.py`, **+2** from the two parametrised cases
+the evidence yaml adds to `test_spec_yaml_valid.py`. Nothing else moved.
 
 **§8.1 — `denominator_rule`, and which side each move came from.**
 `tests/test_spec_yaml_valid.py` is parametrised over every `*.y*ml` under
