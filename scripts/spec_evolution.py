@@ -702,7 +702,26 @@ def validate_workflow_ticket_completion(
             errors.append(f"ticket {index + 1} is not a mapping")
             continue
         status = ticket_status(ticket)
+        terminal_receipts = _terminal_receipts_for_identity(
+            specs_dir=specs_dir,
+            workflow=resolved_workflow,
+            index=index,
+            resolved_ticket_id=ticket_id(ticket, index),
+        )
+        successful_receipts = terminal_receipts["ticket"]
+        retirement_receipts = terminal_receipts["ticket-retirement"]
+        if successful_receipts and retirement_receipts:
+            errors.append(
+                f"ticket {ticket_id(ticket, index)} has both successful-close and "
+                f"retirement receipts for immutable ordinal {index}; terminal "
+                "dispositions cannot coexist"
+            )
         if status == TICKET_RETIRED_STATUS:
+            if successful_receipts:
+                errors.append(
+                    f"ticket {ticket_id(ticket, index)} retired status conflicts with "
+                    "its prior successful-close receipt"
+                )
             errors.extend(
                 validate_retirement_receipt(
                     repo_root=repo_root,
@@ -714,6 +733,11 @@ def validate_workflow_ticket_completion(
                 )
             )
         elif status in TICKET_CLOSED_STATUSES:
+            if retirement_receipts:
+                errors.append(
+                    f"ticket {ticket_id(ticket, index)} delivered status conflicts with "
+                    "its immutable retirement receipt"
+                )
             errors.extend(
                 validate_successful_ticket_receipt(
                     specs_dir=specs_dir,
@@ -1405,23 +1429,45 @@ def record_complexity_ledger(
     return record
 
 
-def _successful_ticket_receipt(specs_dir: Path, workflow: str, ticket_ref: str) -> Path | None:
-    """Find an existing successful close for ``ticket_ref``, including custom entry names."""
+def _terminal_receipts_for_identity(
+    *,
+    specs_dir: Path,
+    workflow: str,
+    index: int,
+    resolved_ticket_id: str,
+) -> dict[str, list[Path]]:
+    """Find terminal receipts by immutable ordinal and ticket id.
+
+    Entry-directory names are advisory for successful closes and therefore are
+    never used as identity.  The workflow history root plus the manifest's
+    exact ordinal and id are the stable key across custom entry names and later
+    plan-status edits.
+    """
+    receipts: dict[str, list[Path]] = {
+        "ticket": [],
+        "ticket-retirement": [],
+    }
     root = history_root(specs_dir, workflow)
     if not root.is_dir():
-        return None
+        return receipts
     for manifest_path in sorted(root.glob("*/manifest.json")):
         try:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
+        if not isinstance(manifest, dict):
+            continue
+        kind = manifest.get("kind")
+        if kind not in receipts:
+            continue
+        manifest_index = manifest.get("ticket_index")
         if (
-            isinstance(manifest, dict)
-            and manifest.get("kind") == "ticket"
-            and manifest.get("ticket_id") == ticket_ref
+            type(manifest_index) is int
+            and manifest_index == index
+            and manifest.get("ticket_id") == resolved_ticket_id
         ):
-            return manifest_path
-    return None
+            receipts[kind].append(manifest_path)
+    return receipts
 
 
 def _render_retirement_summary(
@@ -1545,13 +1591,16 @@ def create_ticket_retirement_entry(
             + "\n".join(f"- {error}" for error in declaration_errors)
         )
 
-    successful_receipt = _successful_ticket_receipt(
-        specs_dir, resolved_workflow, resolved_ticket_id
-    )
-    if successful_receipt is not None:
+    successful_receipts = _terminal_receipts_for_identity(
+        specs_dir=specs_dir,
+        workflow=resolved_workflow,
+        index=index,
+        resolved_ticket_id=resolved_ticket_id,
+    )["ticket"]
+    if successful_receipts:
         raise SystemExit(
             f"ERROR: ticket {resolved_ticket_id} already has a successful close receipt: "
-            f"{_record_path(successful_receipt, repo_root)}"
+            f"{_record_path(successful_receipts[0], repo_root)}"
         )
 
     # Resolve and confine the optional workspace before creating even an empty
@@ -1679,6 +1728,19 @@ def create_ticket_history_entry(
             f"`tla-spec-dev --spec-root {spec_root} retire ticket {resolved_ticket_id}`. "
             "A retirement receipt cannot promote desired/current state or claim validation, "
             "even with --allow-open."
+        )
+    retirement_receipts = _terminal_receipts_for_identity(
+        specs_dir=specs_dir,
+        workflow=resolved_workflow,
+        index=index,
+        resolved_ticket_id=resolved_ticket_id,
+    )["ticket-retirement"]
+    if retirement_receipts:
+        raise SystemExit(
+            f"ERROR: ticket {resolved_ticket_id} already has an immutable retirement "
+            f"receipt for ordinal {index}: "
+            f"{_record_path(retirement_receipts[0], repo_root)}. Editing the plan status "
+            "cannot resurrect retired work as a successful close."
         )
     if not allow_open and status not in TICKET_CLOSED_STATUSES:
         raise SystemExit(f"ERROR: ticket {resolved_ticket_id} is not closed in ticket_plan.yaml: status={status or '(missing)'}")

@@ -247,6 +247,14 @@ no-validation field, and empty accepted snapshot/result lists exactly match the
 plan. Writing `status: carried`, `status: superseded`, or `status: abandoned`
 directly does not make a ticket terminal.
 
+A terminal receipt is irreversible. Its identity is the workflow history root
+plus the ticket's immutable zero-based ordinal and id, not its directory name
+or the plan's later mutable status. `close ticket` refuses an existing
+retirement receipt even if the plan was edited back to `done`; retirement
+refuses an existing successful-close receipt. Whole-workflow validation rejects
+a delivered status after retirement, a retired status after successful close,
+and any identity for which both receipt kinds coexist.
+
 ## Whole-Workflow Close
 
 After `current`, `desired_program_model`, and promoted `program_model` converge,
