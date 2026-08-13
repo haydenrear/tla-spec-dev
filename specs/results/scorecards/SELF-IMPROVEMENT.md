@@ -1600,3 +1600,81 @@ taken in the wrong worktree; measured at the scored commit it is 34 of 48.
 **And the durable lesson is a reading habit, not a figure.** The premise that
 justified an entire epic was checkable in one command against this repository's
 own sealed cards, and five epics restated it without running it.
+
+---
+
+# CA-05 — cut-the-apparatus: consumption, and the four epics missing from this file (2026-08-13)
+
+**This is not an epic evaluation.** `CA-08` decides `cut-the-apparatus`. This
+section exists because `CA-05` went looking for why consumption is 1 in 41 and
+found the answer partly **in this file's own table of contents**.
+
+## Four epics are missing from this file, and it is the same four
+
+Scroll up. The evaluation sections end at **`SM-05`, 2026-08-07**. `git log` on
+this file agrees: last touched `73ebeb6`, 2026-08-07. **Four epics have merged
+since and none of them wrote a section here** — reading-discipline (08-10),
+portable-substrate (08-10), close-the-loop (08-11), score-drives-validation
+(08-12).
+
+Now put that beside the disposition state of the findings ledger, measured by
+`scripts/disposition.py --all` over all 220 rows:
+
+| epic | merged | section in this file | findings disposed |
+|---|---|---|---|
+| ports-as-adapters | 2026-08-05 | **yes** (`PA-06`) | 26 of 28 |
+| falsifiable-instruments | 2026-08-06 | **yes** (`FI-03`, `FI-06`) | **30 of 30** |
+| subtract-to-measure | 2026-08-07 | **yes** (`SM-05`) | **30 of 30** |
+| reading-discipline | 2026-08-10 | no | **0 of 46** |
+| portable-substrate | 2026-08-10 | no | **0 of 28** |
+| close-the-loop | 2026-08-11 | no | **0 of 17** |
+| score-drives-validation | 2026-08-12 | no | **1 of 31** |
+| cut-the-apparatus | in flight | no | **0 of 10** |
+
+**The correlation is exact across eight epics.** The three epics that wrote a
+section here are the three that disposed their findings; the five that did not,
+did not. **Both registers lapsed at the same commit and for the same reason:
+nothing reported on either.**
+
+## So the premise behind `GOAL-consumption-obligatory` is half wrong
+
+The goal was written from *"consumption is 1 of 38 because nothing requires
+it."* The first half holds. **The second half does not.** A disposition practice
+existed, ran for three consecutive epics, routed **83 findings** into named
+successors — including five purpose-built carry-forward issues, **#144–#148,
+still open today** — and then **stopped dead on 2026-08-08 without one line of
+discussion in any record.**
+
+**A practice that lapses silently is a worse failure mode than one that never
+existed**, because the first one was working and nobody was watching. That is
+the finding, and it is not the one this ticket was sent to get.
+
+**The exact boundary, and it is slightly cruel:** `reading-discipline` is the
+epic that **consumed its predecessor's deferrals** (11 `SM` rows routed into
+`RD-02`, #189) **and deferred none of its own.** The last epic to receive a
+handoff is the first that made none.
+
+## Findings by channel — now a field, not a hand classification
+
+Six epics of tables in this file and in `NEXT-EPIC.md` have been produced by
+hand-classifying free text, because **the ledger had no `channel` field**.
+`CA-02` and `CA-05` populate one. Vocabulary and the reconciliation with
+`CA-02`'s free-text shape: `references/consumption.md`.
+
+**This does not retro-classify the 210 rows filed before the field existed**,
+and `CA-05` declined to do it — assigning a channel to somebody else's finding
+from its prose is exactly the hand classification the field exists to end, and
+doing it in bulk would manufacture a clean history that was never measured.
+**Every table above this line remains a hand count and should be quoted as one.**
+
+## The consumption rate, restated
+
+**1 of 41 (2.4%)** consumed into program validation — class `A1`, by `SV-04`,
+unchanged. The denominator rose from 38 because `CA-05` appended the three
+classes `SV-01-DF-05` filed to the ledger and never to the register; **the
+numerator did not move.** Working, and its bounds:
+`specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md`,
+addendum.
+
+**And 41 is a floor.** The sweep read 83 cards; the tree holds **95**. Twelve
+cards have never been swept.

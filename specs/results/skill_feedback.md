@@ -2274,3 +2274,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CA-05
+
+- close_scope: ticket
+- close_id: CA-05
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-13T17:53:55+00:00
+- summary: A disposition requirement an epic cannot close through, demonstrated by refusing THIS epic (10 of 15 rows open) while accepting two real sealed epics; harvest register repaired 38 -> 41 with the denominator movement named; channel/channel_note and cost{basis,value} defined and populated on CA-05's own five rows. Main finding: the disposition practice existed for three epics and lapsed silently on 2026-08-08, in exact correlation with SELF-IMPROVEMENT.md's own lapse.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
