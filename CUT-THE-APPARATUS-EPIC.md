@@ -43,9 +43,27 @@ even if the lines fell.**
   replicated on new subjects.
 - **Static gates catch nothing** — seven epics, zero bugs caught by a static
   check.
-- **The removal-pricing instrument could only ever return zero** — a gap mutant
-  prices a removal only if every detector that killed it is one the removal
-  deletes: **0 of 9** over the sealed table.
+- **The removal-pricing instrument has not yet been useful** — *"A non-zero was
+  the informative outcome, the instrument would have printed one, and none
+  appeared… The goal is met and the instrument is not yet useful"*
+  (`NEXT-EPIC.md` §5).
+
+  > **CORRECTED 2026-08-13 — `CA-00-DF-05`. This bullet previously read "could
+  > only ever return zero… 0 of 9 over the sealed table", copied from issue #254
+  > into this charter, the plan, the goal baseline and CA-02's work order
+  > WITHOUT BEING CHECKED. The sealed record refutes it in three places.**
+  > `RM-05-DF-01` forbids the quotation by name: *"WHAT SURVIVES, STATED SO THIS
+  > FINDING CANNOT BE QUOTED AS 'THE EPIC PRICED NOTHING'… The epic HAS a priced
+  > removal."* `RM-02` §10.2: *"the instrument **can fire**, history remains
+  > free."* And `RD-02` — which scopes its own `0 of 9` as explicitly **not** a
+  > statement about every mutant — **refused this very deletion**, titling itself
+  > *"the apparatus is load-bearing"* and filing `RD-02-DF-02` against exactly
+  > this restatement.
+  >
+  > **The cut still stands**, on `RM-02`'s adoption argument and `NEXT-EPIC` §5's
+  > "do not fund a third epic on it". It is right for a weaker and true reason
+  > rather than a strong and false one. **`R3`/`scope` would have caught this and
+  > nobody ran it against this charter.**
 - **Three of the card's five dimensions graded toolchain ownership** — an anchor
   decision cited this project's own machinery in **38% of D1** and **18% of D4**
   rationales, against **0%** on D3 and D5.
