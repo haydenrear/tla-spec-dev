@@ -14683,3 +14683,376 @@ findings:
       while CA-08 requires the basis be named. CA-05 should reconcile these into
       a real schema; CA-02 does not defend this shape.
     disposition: open
+
+  - id: CA-04-DF-01
+    found_by: "CA-04"
+    found_at_commit: "4302082"
+    schedule_revision: 1
+    severity: major
+    channel: "verified a cited finding against the sealed record before resting a deletion on it, because the epic charter told this ticket to"
+    cost:
+      basis: "two greps and one read of the SV-06-DF-04 ledger row, plus one awk over test lengths in tests/test_candidate_note_bar.py"
+      value: "negligible -- under five minutes, and it stopped a 498-line deletion"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/desired_program_model/ticket_plan.yaml"
+        - "NEXT-EPIC.md"
+    summary: >-
+      `SV-06-DF-04` DOES NOT SAY WHAT THE PLAN, THE ISSUE AND THE GOAL BASELINE
+      SAY IT SAYS, AND THE CLAIM ATTACHED TO IT IS HALF FALSE.
+
+      `ticket_plan.yaml` CA-04 `expected_effect` reads "Consumes RM-03's
+      identified-but-declined cut and SV-06-DF-04's inert-bytes finding", and
+      issue #258 renders it as "Also cut scripts/candidate_note_bar.py: 281
+      lines, NOTHING IMPORTS IT, and the shortest test in its own file asserts
+      that -- SV-06-DF-04".
+
+      `SV-06-DF-04` is about `SKILL.md:1337` shipping a description of a
+      FIVE-DIMENSION card at a tree that serves two. Its `surface.workflow` is
+      `["SKILL.md"]`. It does not mention `candidate_note_bar.py`, shipped bytes,
+      or imports.
+
+      The actual source is `NEXT-EPIC.md:238-240`, an unattributed survey
+      paragraph sitting immediately after the paragraph about `SV-06-DF-04`:
+      "And the two-epic zero on shipped bytes is broken: `scripts/candidate_note_bar.py`,
+      281 lines, and nothing imports it -- the shortest test in its file asserts
+      that." The adjacency is how the id was acquired.
+
+      AND THE SECOND HALF OF THAT SENTENCE IS FALSE. The shortest test in
+      `tests/test_candidate_note_bar.py` is
+      `test_the_shipped_card_is_untouched_by_all_of_this` at FIVE lines, and it
+      asserts the SHIPPED CARD is still version 5 at 6,281 bytes with no version
+      history problems. It asserts nothing about imports. No test in that file
+      asserts that nothing imports the script.
+
+      This is the same class as `CA-00-DF-05` -- a claim copied into the charter,
+      the plan, the goal baseline and a work order without being checked -- and
+      it reached this ticket by the same route, one epic after the epic owner
+      filed that defect against themselves.
+    reproduction: >-
+      `grep -n -A6 "id: SV-06-DF-04" specs/desired_program_model/deferred_findings.yaml`
+      -- the summary names `SKILL.md:1337`. Then
+      `sed -n '238,240p' NEXT-EPIC.md` for the real source, and
+      `awk '/^def test_/{...}' tests/test_candidate_note_bar.py` for the test
+      lengths: the 5-line test is
+      `test_the_shipped_card_is_untouched_by_all_of_this`.
+    evidence:
+      - "specs/desired_program_model/deferred_findings.yaml -- the SV-06-DF-04 row, surface.workflow: [SKILL.md]"
+      - "NEXT-EPIC.md:238-240"
+      - "tests/test_candidate_note_bar.py:212-216"
+      - "specs/results/scorecards/cut-the-apparatus/CA-04/PRICE-TABLE.md section 7"
+    why_out_of_scope: >-
+      Correcting `ticket_plan.yaml`'s `expected_effect`, issue #258 and
+      `NEXT-EPIC.md` is the epic owner's edit, not a cutting ticket's, and the
+      same rule RM-02 applied to `architecture_tags.md` section 2.2 applies here:
+      a predecessor's statement at a predecessor's scope is filed, not rewritten.
+    suggested_fix: >-
+      Detach the inert-bytes claim from `SV-06-DF-04`, cite `NEXT-EPIC.md`
+      section 10 instead, and drop "the shortest test in its own file asserts
+      that" because no test does. Then note that `R3`/`scope` exists precisely to
+      catch this and was not run against the plan, exactly as `CA-00-DF-05`
+      concluded.
+    blast_radius: >-
+      One planned deletion of 498 lines across two files rested on it, and
+      `GOAL-apparatus-cut` clause (b) would have failed on that deletion even
+      though the lines fell. Any future reader treating `SV-06-DF-04` as an
+      inert-bytes finding will also misread the SKILL.md defect it actually
+      records, which is still open.
+    disposition: refuted
+
+  - id: CA-04-DF-02
+    found_by: "CA-04"
+    found_at_commit: "4302082"
+    schedule_revision: 1
+    severity: major
+    channel: "ran the format's own required loader check over every path this cut proposed to delete"
+    cost:
+      basis: "one grep of the ledger for candidate_note_bar plus one read of SV-07-DF-01's reproduction field and one grep of tests/ for 6281"
+      value: "negligible; it changed a planned deletion into a refusal"
+    surface:
+      production:
+        - "scripts/candidate_note_bar.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "tests/test_candidate_note_bar.py"
+    summary: >-
+      `candidate_note_bar.py` IS THE NAMED REPRODUCTION OF AN OPEN FINDING, AND
+      ITS TEST FILE HOLDS THE TREE'S ONLY ASSERTION THAT THE CARD IS 6,281 BYTES.
+
+      `SV-07-DF-01` (open, major) records that the "free carrier" is not free.
+      Its `reproduction` field reads: "python3 scripts/candidate_note_bar.py --
+      prices the candidate at 6,266 bytes and 9 rungs against the card's 6,281
+      and 9 ... Then `pytest
+      tests/test_candidate_note_bar.py::test_the_note_prompt_is_inside_both_seals`".
+      Its `suggested_fix` requires the script again: "Run SV-02 section 9's first
+      experiment -- one prior example re-scored under both wordings -- with
+      `scripts/candidate_note_bar.py --out` supplying the candidate arm."
+
+      Deleting the script and its test would make `SV-07-DF-01` READABLE BUT NO
+      LONGER RE-DERIVABLE, which is precisely the damage `CA-02` did to
+      `repriced_history.py` and precisely what `PRICE-TABLE-FORMAT.md` section 5
+      was rewritten to prevent.
+
+      SEPARATELY AND WORSE FOR THE EPIC'S OWN GOAL: `grep -rn "6281" tests/`
+      returns exactly one line, `tests/test_candidate_note_bar.py:216`. That
+      5-line test is the ONLY automated check in the repository that the served
+      card is still 6,281 bytes, which is `GOAL-apparatus-cut` clause (c). The
+      epic would have deleted its own card-size guard while cutting to satisfy
+      the goal that guard defends.
+
+      "Nothing imports it" is TRUE and is not evidence of inertness: the module
+      docstring advertises it as a design property -- "it writes nothing unless
+      `--out` is given, changes nothing in the tree, is imported by no production
+      code, and is not a gate".
+    reproduction: >-
+      `grep -n "candidate_note_bar" specs/desired_program_model/deferred_findings.yaml`
+      -> the SV-07-DF-01 reproduction and suggested_fix fields.
+      `grep -rn "6281" tests/` -> one hit, tests/test_candidate_note_bar.py:216.
+    evidence:
+      - "specs/desired_program_model/deferred_findings.yaml -- SV-07-DF-01, reproduction and suggested_fix"
+      - "tests/test_candidate_note_bar.py:212-216"
+      - "scripts/candidate_note_bar.py:30-33 -- the docstring's own statement"
+    why_out_of_scope: >-
+      Not out of scope -- IN scope and DECLINED. The deletion was this ticket's
+      to make and this ticket refused it. What is out of scope is deciding
+      whether the card should ever carry the candidate note, which is SV-02's
+      owed both-wordings round and belongs to a judging ticket.
+    suggested_fix: >-
+      Keep both files until `SV-07-DF-01` is disposed. If a later ticket still
+      wants the 498 lines, it must first re-home the 6,281-byte assertion into a
+      test that is not about the candidate bar, and either close `SV-07-DF-01` or
+      record that its reproduction was deliberately destroyed.
+    blast_radius: >-
+      `GOAL-apparatus-cut` clause (c) loses its only executable guard, and one of
+      the ledger's open findings loses the command that demonstrates it.
+    disposition: carried
+
+  - id: CA-04-DF-03
+    found_by: "CA-04"
+    found_at_commit: "4302082"
+    schedule_revision: 1
+    severity: major
+    channel: "measured by parking the file and running its consumers, because the work order demanded a run rather than an assertion"
+    cost:
+      basis: "two mv operations and four command invocations (run_controls.py import, check_catalogue.py) before and after"
+      value: "~3 minutes; it reshaped the ticket's central deletion and preserved a load-bearing disproof"
+    surface:
+      production:
+        - "scripts/kill_test.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "examples/validation/ab/eval/run_controls.py"
+        - "examples/validation/ab/check_catalogue.py"
+    summary: >-
+      `scripts/kill_test.py` IS NOT SELF-CONTAINED, AND DELETING IT WHOLESALE
+      BREAKS THE RE-DERIVATION OF A LOAD-BEARING DISPROOF. MEASURED, NOT
+      ARGUED.
+
+      The work order asked whether "the zero unique kills disproof is still
+      reproducible from the sealed record after the instrument that produced it
+      is gone". THE PREMISE IS WRONG IN ONE DIRECTION AND RIGHT IN ANOTHER, and
+      both halves matter.
+
+      WRONG: `kill_test.py` did not produce that result. It is oracle 4 over THIS
+      repository's declared ports. The 0-vs-4 table is `RD-03`'s cross-tree probe
+      over the `ab_quota_ledger` fixture, whose harness is self-contained under
+      `specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/harness/`.
+
+      RIGHT ANYWAY: `RD-03`'s four MODEL-DERIVED instrument columns -- the ones
+      whose zero IS the disproof -- were driven through
+      `examples/validation/ab/eval/run_controls.py`, per that ticket's own
+      `probe/COMMANDS.md` section 3. And `run_controls.py:165` carries a
+      MODULE-SCOPE import: `from scripts.kill_test import scan_for_suppression`.
+
+      MEASURED by parking `scripts/kill_test.py`:
+      run_controls.py went from "LOADS OK" to `ModuleNotFoundError: No module
+      named 'scripts.kill_test'` at line 165; and
+      `examples/validation/ab/check_catalogue.py` -- the arm-dispatch integrity
+      instrument `RM-03` explicitly refused to delete -- went from "Catalogue
+      integrity holds" to `ModuleNotFoundError: No module named 'kill_test'`,
+      because it loads every catalogue "via the SHIPPED parser" at line 465.
+
+      CA-04 therefore cut the ORACLE-4 HALF (boundary derivation, seeding,
+      control run, report, the `kill_rate_floor` gate) and RETAINED the 310-line
+      catalogue parser and suppression scanner, which are not gates, have no exit
+      code, and compute no rate.
+    reproduction: >-
+      `mv scripts/kill_test.py /tmp/parked` then
+      `python3 -c "import importlib.util,sys; sys.path.insert(0,'.'); spec=importlib.util.spec_from_file_location('rc','examples/validation/ab/eval/run_controls.py'); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)"`
+      and `python3 examples/validation/ab/check_catalogue.py`. Restore afterwards.
+    evidence:
+      - "examples/validation/ab/eval/run_controls.py:165"
+      - "examples/validation/ab/check_catalogue.py:457,465"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/COMMANDS.md section 3"
+      - "specs/results/scorecards/cut-the-apparatus/CA-04/PRICE-TABLE.md section 5"
+    why_out_of_scope: >-
+      Acted on within scope: the cut was reshaped so no file under `examples/`
+      needed editing. What remains out of scope is whether the parser and the
+      suppression list should live in `scripts/kill_test.py` at all now that the
+      kill test is gone -- a re-homing is a redesign, and this ticket is a cut.
+    suggested_fix: >-
+      `CA-06` or a successor may re-home the surviving 310 lines to a name that
+      does not promise a kill test -- but only together with the two importers
+      under `examples/validation/ab/`, which no ticket in this epic currently
+      owns.
+    blast_radius: >-
+      Had the deletion been taken as specified, one of the epic's four disproofs
+      would have become non-re-derivable and `GOAL-four-results-stand` would have
+      failed silently, with nothing in the suite going red to say so.
+    disposition: settled
+
+  - id: CA-04-DF-04
+    found_by: "CA-04"
+    found_at_commit: "4302082"
+    schedule_revision: 1
+    severity: moderate
+    channel: "a red raised by this ticket's own targeted run, traced to its cause before the full suite"
+    cost:
+      basis: "one 211-second run of tests/test_instrument_demonstrations.py plus one grep of instruments.toml"
+      value: "~4 minutes; it attributed two new reds to their exact registry rows"
+    surface:
+      production:
+        - "examples/validation/instruments/instruments.toml"
+        - "examples/run_distributed_history_validation.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "tests/test_instrument_demonstrations.py"
+    summary: >-
+      DELETING `scripts/run_kill_test.py` LEAVES FOUR DANGLING CONSUMERS UNDER
+      `examples/`, WHICH IS OUTSIDE THIS TICKET'S CONFLICT KEYS. TWO NEW SUITE
+      REDS, DECLARED AND NOT REPAIRED.
+
+      `examples/validation/instruments/instruments.toml` is a live registry read
+      by `examples/validation/instruments/demonstrate.py` and by
+      `tests/test_instrument_demonstrations.py`. Two rows declare
+      `paths = ["scripts/kill_test.py", "scripts/run_kill_test.py"]` (line 189)
+      and `paths = ["scripts/run_kill_test.py"]` (line 228), and four `argv`
+      entries (lines 197, 210, 236, 263) shell out to the deleted script. The
+      `kill-test-floor` and `kill-test-boundary-coverage` demonstrations carry no
+      `tier` key, so `demonstrate.py` runs them in the `fast` tier.
+
+      MEASURED: `tests/test_instrument_demonstrations.py` -> 2 failed, 24 passed
+      in 211s. `test_every_declared_path_exists` and
+      `test_every_fast_demonstration_reproduces`.
+
+      SEPARATELY, `examples/run_distributed_history_validation.py` calls
+      `validate_kill_test()` at line 77 as step 3 of 7 in its main sequence and
+      invokes `scripts/run_kill_test.py` at line 182. That example's full
+      validation run now dies partway, and NO TEST COVERS IT -- the same
+      not-exercised-by-the-suite shape as `CA-02`'s `repriced_history.py`.
+
+      Also inert but stale: `examples/distributed_history/specs/program_model/kill_mutants.toml`
+      and `examples/validation/instruments/fixtures/kill_test/killable_only.toml`
+      are a fourth and fifth mutant catalogue that nothing can now run.
+    reproduction: >-
+      `uv run --with pytest --with pyyaml -m pytest tests/test_instrument_demonstrations.py -q`
+      -> 2 failed. `grep -n "run_kill_test" examples/validation/instruments/instruments.toml`
+      -> lines 189, 197, 210, 228, 236, 263.
+      `python3 examples/run_distributed_history_validation.py` -> dies at step 3.
+    evidence:
+      - "examples/validation/instruments/instruments.toml:189,197,210,228,236,263"
+      - "examples/run_distributed_history_validation.py:77,122,182"
+      - "specs/results/scorecards/cut-the-apparatus/CA-04/pytest-instrument-demonstrations.txt"
+    why_out_of_scope: >-
+      `examples/` appears in no `conflict_keys` entry for CA-04 and in no line of
+      its `implementation_scope`. CA-01, CA-02 and CA-03 each claimed the
+      `examples/` paths they needed; CA-04 was given none, because the plan did
+      not anticipate that the kill test had consumers there. The deferment policy
+      says defer rather than fix.
+    suggested_fix: >-
+      Remove the `kill-test-floor` and `kill-test-boundary-coverage` instrument
+      rows and their fixture stage from `instruments.toml`, drop
+      `validate_kill_test()` from `examples/run_distributed_history_validation.py`,
+      and delete the two orphaned example catalogues. All of it is bookkeeping
+      against a command that no longer exists; none of it is a judgement call.
+    blast_radius: >-
+      Two suite reds persist until someone owns `examples/`, and the
+      distributed_history worked example cannot complete a validation run. The
+      instrument registry is the R1 demonstration machinery, so a stale row there
+      degrades the mechanism the epic uses to show instruments still fire.
+    disposition: carried
+
+  - id: CA-04-DF-05
+    found_by: "CA-04"
+    found_at_commit: "4302082"
+    schedule_revision: 1
+    severity: moderate
+    channel: "checked a work-order instruction against the sealed record and found the record already answered it the other way"
+    cost:
+      basis: "one read of scripts/fitness_functions.py's docstring, one grep of the ledger for 'fitness', one read of RM-03-DF-04"
+      value: "negligible; it prevented a deletion with no finding behind it"
+    surface:
+      production:
+        - "scripts/fitness_functions.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/desired_program_model/ticket_plan.yaml"
+    summary: >-
+      THE PLAN ASKED CA-04 TO "CUT THE DEAD LEVERS ONLY" FROM
+      `scripts/fitness_functions.py`, AND THE SEALED RECORD ALREADY SAYS IT IS
+      NOT ONE. NOTHING WAS CUT.
+
+      `RM-03-DF-04` states it directly, and names the survivor by id:
+      "The same shape applies more weakly to 'static gates': the complexity gate
+      was already advisory, `fitness_functions.py` says of itself that firings
+      are advisory, `scope`, `audit`, `run_gap_mutants.py` and `price_removal.py`
+      each say in their own docstrings that they are not gates. SEE RM-03-DF-05
+      FOR THE ONE THAT IS LEFT."
+
+      The module confirms it: "firings are ADVISORY -- they report, never block.
+      Nothing here changes the scanner's exit code or gates promotion. Even a
+      misconfigured rule is surfaced as INVALID rather than raised", and "there
+      are NO built-in rules -- nothing fires unless the project's agent
+      configured it".
+
+      NO FINDING IN 226 LEDGER ROWS NAMES A DEAD LEVER INSIDE THIS FILE. Cutting
+      any part of it would have been a deletion with no finding behind it, which
+      `GOAL-apparatus-cut` clause (b) fails on EVEN IF THE LINES FELL.
+
+      WHAT IS TRUE AND IS A DIFFERENT CLAIM, RECORDED SO IT IS NOT CONFLATED:
+      this repository configures ZERO fitness rules -- `fitness_functions:`
+      appears in no `spec_manifest.yaml` here and there is no sibling
+      `fitness_functions.yaml`. So the feature is unexercised BY THIS REPO while
+      remaining a shipped, tested, documented capability for adopters (450 lines
+      of module, 413 of test, `references/fitness_functions.md`, and a
+      `family = "not-an-instrument"` row in `instruments.toml`). "Unexercised
+      here" is not "dead lever", and the plan used the second word for the first
+      situation.
+    reproduction: >-
+      `grep -n "fitness" specs/desired_program_model/deferred_findings.yaml` ->
+      one hit, inside RM-03-DF-04. `grep -rn "fitness_functions:" specs/` -> no
+      manifest configures any rule. `sed -n '20,30p' scripts/fitness_functions.py`
+      for the advisory disclaimer.
+    evidence:
+      - "specs/desired_program_model/deferred_findings.yaml -- RM-03-DF-04"
+      - "scripts/fitness_functions.py:20-30"
+      - "specs/desired_program_model/ticket_plan.yaml -- CA-04 objective"
+    why_out_of_scope: >-
+      In scope and DECLINED. Whether an unexercised adopter-facing feature should
+      be carried at all is a plan decision about product surface, not a cut a
+      ticket can justify from the record it was given.
+    suggested_fix: >-
+      Drop "and cut the dead levers only" from CA-04's objective, or replace it
+      with the real question: this repository configures zero fitness rules, so
+      either configure one and demonstrate it under R1, or record the feature as
+      adopter-facing-only and stop calling it a lever. Note that a rule
+      configured now, over a descriptor whose bound this ticket just changed,
+      would be fitted to a known answer -- MF-020 -- so the first option needs
+      care.
+    blast_radius: >-
+      `GOAL-apparatus-cut`'s expected_effect counted "any dead fitness levers"
+      toward the -1,430 line target, so the target was partly funded by a
+      removal the record does not support.
+    disposition: carried

@@ -43,7 +43,6 @@ budgets:
   max_state_space_bound: 1000000            # static declared-representation ceiling; see modular_fuzzing.md
   max_internal_cases_per_component: 200     # spec-unit case cap per component
   max_external_cases_per_action: 50         # Test Graph case cap per external action
-  kill_rate_floor: 0.8                      # minimum mutation kill rate
   max_component_variables: 6                # component-size heuristic
   max_component_actions: 8                  # component-size heuristic
   max_symmetric_instances: 2                # component-size heuristic
@@ -81,9 +80,14 @@ case_codegen:
 # scripts/new_ticket_workflow.py and are filled only when
 # case_codegen.generation_status (above) reaches `generated`. Empty here
 # claims "no generated case index yet" -- generation_status is `planned` --
-# NOT "the model has no state, actions, or ports": this tree's model has 9
-# variables and 17 Next disjuncts (16 @command actions plus Stutter), and its
+# NOT "the model has no state, actions, or ports": this tree's model has 8
+# variables and 16 Next disjuncts (15 @command actions plus Stutter), and its
 # declared effect ports live in effects.components below.
+#
+# CA-04: 9 -> 8 variables and 17 -> 16 disjuncts, when the mutation kill test
+# was removed (RM-03-DF-05). Updated deliberately, for the reason the paragraph
+# below already gives: this figure is CHECKED against the module beside it, so
+# it tracks the model rather than recording a measurement.
 #
 # RC-01 (MF-026 G-5): this read "9 variables and 15 actions" for a model that
 # AC-01 had already grown to 10 and 16, and RC-01 grew again -- architecture_delta,
@@ -305,33 +309,11 @@ effects:
         git_metadata:
           type: process.spawn
           target: "git rev-parse*"
-        # CD-11 (audit run 4, gap R4-1): RunKillTest's shipped path seeds
-        # each catalog mutant INTO the production source tree and restores it
-        # (scripts/kill_test.py:585 (patched) write of the mutated copy,
-        # scripts/kill_test.py:588 (original) finally-branch restore, driven
-        # per mutant by scripts/run_kill_test.py:130 (def run)). The targets
-        # are the catalog's `path` keys -- scripts/*.py and
-        # skill-scripts/install-tla-spec-dev.sh -- which no other declared
-        # write port covers (spec_tree is **/specs/**, evidence_report
-        # **/results/**, cli_artifact **/.venv/**). An interrupted run leaves
-        # a mutated working tree; the schema distinguishes exactly this write
-        # so it cannot hide. DECLARED rather than moved to a copied tree: the
-        # finally-branch restore is the shipped defense, and the port makes
-        # the danger visible instead of relocating it. The glob covers both
-        # catalog trees (fnmatch `*` crosses separators, so it matches
-        # scripts/ and skill-scripts/).
-        mutation_write:
-          type: filesystem.write
-          target: "*scripts/*"
-        # CD-11 (audit run 4, gap R4-1, spawn member): the per-mutant corpus
-        # run (scripts/kill_test.py:646 (subprocess.run) via
-        # scripts/run_kill_test.py:198 (subprocess_case_runner)) spawns the
-        # user-supplied --corpus-command once per mutant plus the control
-        # run. The command is unconstrained user input, so any glob narrower
-        # than `*` would assert a constraint the code does not enforce -- the
-        # documented pytest-shaped corpus command is one possible value, not
-        # a contract. This port replaces test_process on RunKillTest's row:
-        # the kill test's only spawn is the corpus command itself.
+        # CD-11 declared this for RunKillTest's per-mutant corpus spawn.
+        # CA-04 removed that action; the port SURVIVES because GenerateCases
+        # carries it for the java/TLC spawn. The `*` target is retained: it
+        # was chosen because the spawned command is unconstrained user input,
+        # and that is still true of the generation path.
         corpus_process:
           type: process.spawn
           target: "*"
@@ -355,7 +337,7 @@ effects:
     #      literally runs `bash skill-scripts/install-tla-spec-dev.sh` and then
     #      the installed wrapper. It is the only adapter that executes an
     #      installer at all.
-    #   2. specs/*/kill_mutants.toml already seeds port-cli_download,
+    #   2. specs/*/kill_mutants.toml (removed by CA-04) seeded port-cli_download,
     #      port-cli_artifact_delete and port-cli_selftest_process with
     #      refine_action = "InstallLocalCli" -- including the two that live in
     #      install-tlc2.sh. RC-01's own catalog placed them here.
@@ -462,13 +444,6 @@ effects:
     # criterion: two runs over an identical corpus reporting an identical gap
     # count.
     RunEffectConformance: [evidence_report, spec_tree, spec_tree_delete, case_work_dir_delete]
-    # CD-11 (audit run 4, gap R4-1): mutation_write + corpus_process ADDED,
-    # test_process REMOVED from this row (it stays declared, and exercised,
-    # via RunSpecUnitTests). The kill test's spawn is the user-supplied
-    # corpus command (corpus_process), of which the pytest-shaped default is
-    # one value; its writes are the mutation seed/restore into production
-    # source (mutation_write) and the JSON evidence report (evidence_report).
-    RunKillTest: [evidence_report, mutation_write, corpus_process]
     RunSpecUnitTests: [test_process, runner_process, spec_tree, case_program_process, case_program_write]
     CloseTicket: [spec_tree, spec_tree_delete, git_metadata]
     # RC-01 (owner decision 2026-08-01, MF-026 round-2 reservation): the same
@@ -494,18 +469,18 @@ justification:
   setup_phase:
     invariants: [TypeInvariant, CliInstalledRequiresBuilt, WorkflowRequiresProject, BudgetsRequireProject, WorkflowRequiresBudgets, ProjectChoosesKnownSpecRoot]
     effects: []
-    kill_tests: [inv-BudgetsRequireProject, inv-CliInstalledRequiresBuilt, inv-WorkflowRequiresBudgets, inv-WorkflowRequiresProject, port-cli_artifact]
+    kill_tests: []
   spec_root:
     invariants: [ProjectChoosesKnownSpecRoot, TypeInvariant]
     effects: []
-    kill_tests: [inv-ProjectChoosesKnownSpecRoot, port-spec_tree]
+    kill_tests: []
   # MF-025: active_tickets, ticket_phase and closed_tickets collapsed into the
   # single ticket_state ordinal. It inherits the union of their invariant
   # linkages -- every named property they justified is still checked.
   ticket_state:
     invariants: [TypeInvariant, NoOpenClosedOverlap, CurrentRequiresDesired, SpecUnitTestsRequireCurrent, SpecUnitTestsRequireMeasuredCorpus, ClosedTicketsPassedSpecUnitTests]
     effects: []
-    kill_tests: [inv-ClosedTicketsPassedSpecUnitTests, inv-CurrentRequiresDesired, inv-NoOpenClosedOverlap, inv-SpecUnitTestsRequireCurrent, port-test_process]
+    kill_tests: []
   # CD-09 (G2): complexity_gate is the recorded ADVISORY verdict -- an
   # observable fact AnalyzeComplexity writes into its evidence report, read by
   # no guard. SpecUnitTestsRequireAnalyzedGate and the blocking guard it
@@ -518,7 +493,7 @@ justification:
   corpus_gate:
     invariants: [TypeInvariant, SpecUnitTestsRequireMeasuredCorpus]
     effects: [CliWorkflowResult.analyze_corpus_verdict]
-    kill_tests: [inv-SpecUnitTestsRequireMeasuredCorpus]
+    kill_tests: []
   lastCommand:
     invariants: []
     effects: [CliWorkflowResult.last_command]
@@ -526,17 +501,16 @@ justification:
   result:
     invariants: []
     effects: [CliWorkflowResult]
-    kill_tests: [inv-TypeInvariant]
+    kill_tests: []
   effect_conformance:
     invariants: [TypeInvariant, SpecUnitTestsRequireMeasuredEffects]
     effects: [CliWorkflowResult.effect_conformance_verdict]
-    kill_tests: [inv-SpecUnitTestsRequireMeasuredEffects, port-evidence_report]
-  # MF-016: kill_test is justified by its own invariant AND by the mutant that
-  # attacks the floor it gates against -- the oracle is subject to the oracle.
-  kill_test:
-    invariants: [TypeInvariant, KillTestVerdictRequiresBudgets]
-    effects: [CliWorkflowResult.kill_test_verdict]
-    kill_tests: [inv-KillTestVerdictRequiresBudgets]
+    kill_tests: []
+  # CA-04 REMOVED kill_test. It was justified by its own invariant and by the
+  # mutant that attacked the floor it gated -- the oracle subject to the
+  # oracle. Both went with the action (RM-03-DF-05). Every `kill_tests:` list
+  # below is now empty for the same reason: the catalogues they named are
+  # gone, and a stale mutant id is a justification that cannot be checked.
   # REMOVED 2026-08-04 (owner direction): architecture_scan and
   # architecture_delta, with the command that wrote them. Both were justified
   # ONLY by TypeInvariant plus their own externally-visible verdict -- no
