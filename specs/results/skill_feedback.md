@@ -2274,3 +2274,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CA-02
+
+- close_scope: ticket
+- close_id: CA-02
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-13T17:31:12+00:00
+- summary: Cut the removal-pricing machinery, an instrument RM-05-DF-01/CL-02 measured able to return only ENTAILED-SURVIVES. Removed price_removal.py (838), altered_score_probe.py (177), residual_faults.toml (193), removal_census.py (429), removals.toml (712) and their two test files (888), each deletion naming its finding. examples/validation/ 15,901 -> 14,457 (-1,444); scripts/ unchanged at 27,652 because complexity_ledger.py has NO pricer coupling (CA-02-DF-01); card unchanged at 6,281 / sha256:2d7d4a0506d9b259. Registry rows retired not deleted (FI-04-DF-04); gap_mutants/ kept as a tombstone because it is sealed subject rm04_removal_pricer's declared scope, which went UNDERIVABLE and moved the tag derivation 17->16 of 21 (numerator fell, denominator held at 21). The deliberate pricer-grep red was DELETED WITH ITS SUBJECT, not repaired. Suite 6 failed / 1526 passed on both the pre-merge and reconciled trees, zero new reds. Price-table format established as plain markdown, no new code.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

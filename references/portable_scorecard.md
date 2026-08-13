@@ -382,6 +382,16 @@ Ordered by how much each one buys:
    the classifier's granularity rather than by the removal. **The adoption
    argument is not a pricing argument and does not depend on the number**; see
    the evidence page §10.1.
+
+   > **`removal_census.py` no longer exists in this repository.** `CA-02` (issue
+   > #256) retired it, and `price_removal.py` with it, on the adoption grounds
+   > this very paragraph states. The sentence above is kept because it is the
+   > RECORD OF AN ARGUMENT, not an instruction to run anything — but an adopter
+   > reading it should not go looking for the file. It is recoverable at
+   > `git show 37ab155:examples/validation/removal_census/removal_census.py`, its
+   > retirement row is `[[retired]] id = "removal-census"` in
+   > `examples/validation/instruments/instruments.toml`, and the priced cut is
+   > `specs/results/scorecards/cut-the-apparatus/CA-02/PRICE-TABLE.md`.
 5. **Stop shipping the architecture tag as an adopter-facing surface.** Its
    derivation is Python-only and its refusal authority is re-derived from this
    repository's own cards, so an adopter receives 1,656 lines that say nothing
