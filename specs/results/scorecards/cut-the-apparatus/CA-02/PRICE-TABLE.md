@@ -153,12 +153,46 @@ and is untouched by this cut.
 ## 6. Suite movement under `denominator_rule`
 
 ```
-baseline:  7 reds  (2 deliberate, 4 inherited-undeclared, 1 CA-00-DF-02)
-after:     6 reds
-movement:  numerator -1, denominator -1 (-46 tests collected)
-cause:     test_nothing_in_the_repository_invokes_the_pricer was DELETED
-           WITH ITS SUBJECT. It was not repaired.
+command:   uv run --with pytest --with pyyaml -m pytest tests -q
+measured:  6 failed, 1526 passed in 1092.83s (0:18:12)   @ f92f0a5
+evidence:  specs/results/scorecards/cut-the-apparatus/CA-02/pytest-repo-unit.txt
+
+baseline:  7 reds / 1566 collected   (2 deliberate, 4 inherited-undeclared,
+                                      1 CA-00-DF-02)
+after:     6 reds / 1532 collected
+
+movement:  NUMERATOR  7 -> 6   (-1)
+           DENOMINATOR 1566 -> 1532 (-34 tests collected)
+cause:     test_nothing_in_the_repository_invokes_the_pricer was DELETED WITH
+           ITS SUBJECT, along with the other 33 tests in the two deleted test
+           files (22 in test_price_removal.py, 12 in test_removal_census.py).
+           IT WAS NOT REPAIRED.
 ```
+
+**Zero new reds.** The six that remain are exactly the baseline seven minus the
+deleted one, each still failing for its own recorded cause:
+
+| red | status |
+|---|---|
+| `test_the_same_tag_control_holds` | DELIBERATE (`RM-06-DF-01`) — **intact, unrepaired** |
+| `test_a_real_epic_plans_judged_baseline_cannot_be_re_opened` | `CA-00-DF-02` — intact |
+| `test_source_citations` × 3 (the three spec manifests) | inherited-undeclared — intact |
+| `test_ticket_retirement…close_receipts` | inherited-undeclared — intact |
+
+`test_every_fast_demonstration_reproduces` is **green**: the
+`architecture-tag-derivation` figure was updated to `16 of 21` in the same commit
+that caused it to move, so the cut did not leave a stale demonstration behind.
+
+### A run that is NOT the baseline, recorded rather than deleted
+
+**Run 1 was discarded.** It was killed by the harness at 79% with no summary
+line, after competing for CPU with **two concurrent full-suite runs from another
+session's `CA-01` review** (3 suites on one machine; my pytest sat at 0% CPU in
+`SN` state). It was *also* contaminated by this ticket writing
+`local-signal-apparatus-cut.txt` into `specs/` while it was in flight — **the
+same class as the epic owner's contaminated kickoff baseline, committed by the
+ticket that had been warned about it.** Run 2 was launched detached on a clean,
+fully-committed tree with nothing edited during it.
 
 ### The deliberate pricer-grep red: deleted, not repaired
 

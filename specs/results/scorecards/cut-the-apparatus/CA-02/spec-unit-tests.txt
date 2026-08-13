@@ -1,0 +1,61 @@
+F....................................................................    [100%]
+=================================== FAILURES ===================================
+_________ test_current_ticket_workflow_scaffold_points_to_desired_plan _________
+
+    def test_current_ticket_workflow_scaffold_points_to_desired_plan() -> None:
+        """The promoted current manifest and the desired plan must name the same ticket.
+    
+        Generalized from a hardcoded ticket id so this survives promotion of each
+        ticket in the epic instead of going stale after one of them lands.
+        """
+        manifest = SPEC_ROOT / "current/spec_manifest.yaml"
+        plan = SPEC_ROOT / "desired_program_model/ticket_plan.yaml"
+    
+        assert manifest.exists()
+        assert plan.exists()
+    
+        active = _active_ticket(manifest.read_text(encoding="utf-8"))
+        assert active
+>       assert active in plan.read_text(encoding="utf-8"), (
+            f"current manifest active_ticket {active!r} is not present in the desired ticket plan"
+        )
+E       AssertionError: current manifest active_ticket 'PA-01' is not present in the desired ticket plan
+E       assert 'PA-01' in 'version: 1\nname: cut-the-apparatus-epic\nschedule_revision: 1\nupdated: null\npurpose: >-\n  THE RATIO IS THE SUBJEC...ion\n    owns_goals: [GOAL-apparatus-cut, GOAL-consumption-obligatory, GOAL-blind-dispatch, GOAL-four-results-stand]\n'
+E        +  where 'version: 1\nname: cut-the-apparatus-epic\nschedule_revision: 1\nupdated: null\npurpose: >-\n  THE RATIO IS THE SUBJEC...ion\n    owns_goals: [GOAL-apparatus-cut, GOAL-consumption-obligatory, GOAL-blind-dispatch, GOAL-four-results-stand]\n' = read_text(encoding='utf-8')
+E        +    where read_text = PosixPath('/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-02/specs/desired_program_model/ticket_plan.yaml').read_text
+
+specs/current/tests/test_current_ticket_workflow.py:28: AssertionError
+=========================== short test summary info ============================
+FAILED specs/current/tests/test_current_ticket_workflow.py::test_current_ticket_workflow_scaffold_points_to_desired_plan
+1 failed, 68 passed in 16.24s
+spec root: /Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-02/specs
+spec-unit target: /Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-02/specs/current
+spec-unit target: /Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-02/specs/tickets/CA-02/current
+running pytest:/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-02/specs/current: uv run --with pytest -m pytest /Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-02/specs/current/tests -q
+
+================================================================
+TICKET-LOCAL TARGET, RUN SEPARATELY
+================================================================
+The runner above stops after the specs/current target fails, so the
+ticket-local target never ran in that invocation. Run directly:
+
+  uv run --with pytest --with pyyaml -m pytest \
+      specs/tickets/CA-02/current/tests specs/tickets/CA-02/tests -q
+
+  67 passed in 17.05s   --   0 failed
+
+THE ONE SPEC-UNIT RED IS INHERITED, NOT CA-02's:
+  specs/current/tests/test_current_ticket_workflow.py::
+      test_current_ticket_workflow_scaffold_points_to_desired_plan
+  "current manifest active_ticket 'PA-01' is not present in the
+   desired ticket plan"
+
+  specs/current/spec_manifest.yaml carries active_ticket: PA-01 from the
+  ports-as-adapters epic. It is BYTE-IDENTICAL at 37ab155 and at this
+  tree, and CA-02 changed nothing under specs/current/. The test file
+  itself was authored by 3d344cb, the ports-as-adapters kickoff.
+  Verified with: git show 37ab155:specs/current/spec_manifest.yaml
+
+  IT IS A FIFTH UNDECLARED INHERITED RED, in a different suite from the
+  four the epic baseline names. Reported here and in the PR body rather
+  than filed, because CA-02's deferment budget of 5 is already spent.
