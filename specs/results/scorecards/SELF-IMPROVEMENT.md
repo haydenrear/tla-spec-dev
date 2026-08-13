@@ -1622,28 +1622,45 @@ Now put that beside the disposition state of the findings ledger, measured by
 
 | epic | merged | section in this file | findings disposed |
 |---|---|---|---|
-| ports-as-adapters | 2026-08-05 | **yes** (`PA-06`) | 26 of 28 |
+| ports-as-adapters | 2026-08-05 | **yes** (`PA-06`) | 26 of 28 — *and both refusals are FALSE, the record is in another key* |
 | falsifiable-instruments | 2026-08-06 | **yes** (`FI-03`, `FI-06`) | **30 of 30** |
-| subtract-to-measure | 2026-08-07 | **yes** (`SM-05`) | **30 of 30** |
+| subtract-to-measure | 2026-08-07 | **yes** (`SM-05`) | **30 of 30** — *but only after `CA-05-DF-06`; it was a FALSE pass* |
 | reading-discipline | 2026-08-10 | no | **0 of 46** |
 | portable-substrate | 2026-08-10 | no | **0 of 28** |
 | close-the-loop | 2026-08-11 | no | **0 of 17** |
 | score-drives-validation | 2026-08-12 | no | **1 of 31** |
-| cut-the-apparatus | in flight | no | **0 of 10** |
+| cut-the-apparatus | in flight | no | **6 of 22** — `CA-05`'s own rows |
 
-**The correlation is exact across eight epics.** The three epics that wrote a
-section here are the three that disposed their findings; the five that did not,
-did not. **Both registers lapsed at the same commit and for the same reason:
-nothing reported on either.**
+**`CA-05` originally called this "an exact correlation across eight epics in
+both directions". THAT IS WITHDRAWN**, at the instruction of PR #265's
+independent reviewer, who was right:
+
+- **They are not two independent registers.** `d3f483d` writes
+  `deferred_findings.yaml` **and** this file **in one commit**. They are two
+  outputs of the **same close-out ritual by the same actor**, so their co-lapse
+  is *definitional*, not evidential.
+- **It is one observation, not eight** — two step functions sharing a single
+  changepoint.
+- **And the date was wrong.** "Stopped dead on 2026-08-08" named a day on which
+  nothing happened. The boundary is **2026-08-07 → 2026-08-10**.
+
+The row above is kept because it **locates the ritual that lapsed**, which is
+useful. It corroborates nothing.
 
 ## So the premise behind `GOAL-consumption-obligatory` is half wrong
 
 The goal was written from *"consumption is 1 of 38 because nothing requires
 it."* The first half holds. **The second half does not.** A disposition practice
-existed, ran for three consecutive epics, routed **83 findings** into named
-successors — including five purpose-built carry-forward issues, **#144–#148,
-still open today** — and then **stopped dead on 2026-08-08 without one line of
-discussion in any record.**
+existed, ran for three consecutive epics, routed **61 findings into successors
+OUTSIDE the filing epic** — including five purpose-built carry-forward issues,
+**#144–#148, still open today** — and then **stopped, between 2026-08-07 and
+2026-08-10, without one line of discussion in any record.**
+
+*(83 `carried` rows in total; **22 self-route** to a ticket of the epic that
+filed them and routed nothing anywhere. `CA-05` first published 83 as though it
+were all routing. The reviewer of PR #265 computed 54 from rows that
+`CA-05-DF-06` has since repaired; honouring `#188` gives 61 — PA 14, FI 29,
+SM 18.)*
 
 **A practice that lapses silently is a worse failure mode than one that never
 existed**, because the first one was working and nobody was watching. That is

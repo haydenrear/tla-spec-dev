@@ -121,29 +121,93 @@ def test_the_vocabularies_do_not_overlap_and_exclude_open():
 
 # -- the declared blind spot, demonstrated rather than asserted -----------
 
-def test_the_check_cannot_tell_a_live_successor_from_a_closed_one(rows):
-    """`CA-05-DF-03`, the instrument's own blindness, kept executable.
+def test_self_routing_passes_d3_and_this_ticket_does_it(rows):
+    """`CA-05-DF-03`, WIDENED after review. The dead case, kept executable.
 
-    D3 asks that a deferral NAME a successor. It does not ask that the successor
-    still be open, or that anyone ever read it. So a row carried to an issue
-    that closed unread satisfies the rule exactly as well as a real handoff --
-    and this test exists so that admission cannot quietly stop being true while
-    the prose still claims it.
+    The first version of this test used `falsifiable-instruments` carrying rows
+    to issues that closed the next day. The reviewer was right that that is the
+    NORMAL signature of an epic closing, not a dead handoff. **The dead case is
+    self-routing** -- an epic deferring a finding to its own ticket, which routes
+    it precisely nowhere and passes D3 with full marks.
 
-    `falsifiable-instruments` is the live example: 29 of its 30 rows point at
-    `#166`-`#169`, which are `subtract-to-measure`'s OWN ticket issues, all
-    closed within two seconds of each other the day after FI merged.
+    **And this ticket does it.** All three of `CA-05`'s `carried` rows name
+    `#262`, which is `CA-08`, *this epic's own evaluation ticket*. That is the
+    right place for those findings to surface AND it is still self-routing, and
+    the rule cannot tell the difference. Declared, rather than quietly re-pointed
+    at an issue invented to look external.
     """
-    live = {"id": "X", "disposition": "carried",
-            "disposition_ticket": "https://github.com/haydenrear/tla-spec-dev/issues/144"}
-    closed = {"id": "Y", "disposition": "carried",
-              "disposition_ticket": "https://github.com/haydenrear/tla-spec-dev/issues/169"}
-    assert D.violations(live) == D.violations(closed) == []
-
-    fi = [r for r in rows if D.epic_of(r) == "falsifiable-instruments"]
-    assert fi, "falsifiable-instruments has no rows -- the example moved"
-    assert D.report(fi, "falsifiable-instruments", False) == 0, (
-        "the epic that demonstrates the blind spot no longer passes -- if that "
-        "is because its findings were genuinely consumed, retire this test and "
-        "CA-05-DF-03 with it"
+    same = {"id": "CA-05-DF-99", "disposition": "carried",
+            "disposition_ticket": "https://github.com/haydenrear/tla-spec-dev/issues/262"}
+    other = {"id": "CA-05-DF-98", "disposition": "carried",
+             "disposition_ticket": "https://github.com/haydenrear/tla-spec-dev/issues/144"}
+    assert D.violations(same) == D.violations(other) == [], (
+        "D3 is satisfied identically by a successor inside the filing epic and "
+        "one outside it -- that is the blindness, and it must stay visible"
     )
+
+    mine = [r for r in rows if str(r["id"]).startswith("CA-05-")
+            and r.get("disposition") == "carried"]
+    assert mine, "CA-05 has no carried rows -- the example moved"
+    assert all("262" in str(r.get("disposition_ticket")) for r in mine), (
+        "CA-05's carried rows no longer point at CA-08; if they now name a "
+        "successor outside this epic, update CA-05-DF-03 rather than this test"
+    )
+
+
+def test_a_successor_need_not_be_an_issue_or_resolve_to_anything():
+    """Second face of `CA-05-DF-03`: `disposition_ticket` is any non-empty string.
+
+    14 real rows name a bare ticket id (`PA-06`, `PA-01`) rather than a URL and
+    pass. Nothing resolves the successor, so nothing distinguishes a live issue
+    from a ticket that closed with the epic that named it.
+    """
+    assert D.violations({"id": "X", "disposition": "carried",
+                         "disposition_ticket": "PA-06"}) == []
+    assert D.violations({"id": "X", "disposition": "carried",
+                         "disposition_ticket": "see the epic owner"}) == []
+
+
+def test_a_deferral_needs_no_note_at_all(rows):
+    """Third face of `CA-05-DF-03`: D2 binds terminal dispositions only.
+
+    A `carried` row satisfies the rule with no `disposition_note` whatsoever,
+    and real rows in the sealed ledger do exactly that.
+    """
+    assert D.violations({"id": "X", "disposition": "carried",
+                         "disposition_ticket": "#1"}) == []
+    noteless = [r["id"] for r in rows if r.get("disposition") == "carried"
+                and not str(r.get("disposition_note") or "").strip()]
+    assert noteless, "no noteless deferrals left -- retire this face of DF-03"
+
+
+# -- the structural guard, on the real corruption that defeated the check --
+
+def test_duplicate_keys_are_refused_structurally():
+    """`CA-05-DF-06`. A clause verdict computed over silently-discarded input is
+    not a verdict, so a duplicate key refuses BEFORE any clause is evaluated.
+
+    This is the shape of the real fault: `#188` above the note, `#169` below it,
+    and every YAML parser keeping the second without a word.
+    """
+    text = (
+        "findings:\n"
+        "  - id: X-01-DF-01\n"
+        "    disposition: carried\n"
+        '    disposition_ticket: "#188"\n'
+        "    disposition_note: >-\n"
+        "      carried to #188\n"
+        '    disposition_ticket: "#169"\n'
+    )
+    assert [(r, k) for r, k, _ in D.duplicate_keys(text)] == [
+        ("X-01-DF-01", "disposition_ticket")]
+
+
+def test_the_real_ledger_has_no_duplicate_keys(rows):
+    """Regression pin on the repair of `SM-05-DF-01`..`DF-07`.
+
+    `load` already refuses on duplicates, so `rows` existing proves the file is
+    clean; asserted explicitly so the reason is on the record rather than
+    implicit in a fixture that happens to load.
+    """
+    assert D.duplicate_keys(LEDGER.read_text()) == []
+    assert len(rows) > 200

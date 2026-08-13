@@ -61,7 +61,7 @@ register total                                41
 ## 4. 41 is a FLOOR, and that is the more important sentence
 
 `CL-03` swept **83 cards**. `find specs/results/scorecards -name scorecard.json | wc -l`
-at `a6bdf42` → **95**. **Twelve cards have been sealed since the sweep and
+at the merged tip → **95**. **Twelve cards have been sealed since the sweep and
 nobody has swept them.**
 
 So 41 is what one bounded, reproducible repair yields — **not** what re-running

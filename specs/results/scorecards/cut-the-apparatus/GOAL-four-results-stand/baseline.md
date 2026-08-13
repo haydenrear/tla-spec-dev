@@ -66,7 +66,7 @@ file** — with **D2 flat at 2 across all four**. `0 for 7 epics` became
 |---|---|
 | Model-derived cases do not catch bugs hand-written tests miss | **0** unique kills across six trees, **4** the other way, replicated on new subjects |
 | Static gates catch nothing | seven epics, **zero** bugs caught by a static check |
-| The removal-pricing instrument could only ever return zero | **0 of 9** over the sealed table |
+| The removal-pricing instrument **is not yet useful** (CORRECTED, `CA-00-DF-05`) | `NEXT-EPIC.md` §5: *"a non-zero was the informative outcome, the instrument would have printed one, and none appeared… the goal is met and the instrument is not yet useful"*. **This row previously read "could only ever return zero — 0 of 9 over the sealed table", which `RM-05-DF-01`, `RM-02` §10.2 and `RD-02` each refute.** |
 | Three of the card's five dimensions graded toolchain ownership | **38%** of D1 and **18%** of D4 anchor rationales cited local machinery, against **0%** on D3 and D5 |
 
 **`CA-04` must state explicitly whether disproof 1 is still reproducible from
