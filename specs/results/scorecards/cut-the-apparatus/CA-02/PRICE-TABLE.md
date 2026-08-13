@@ -68,6 +68,27 @@ Measured with the goal's own command on this tree:
 find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1
 ```
 
+### After reconciling with the epic tip — a second figure, not a correction
+
+Merging `CA-01` (`a6bdf42`) into this branch adds
+`examples/validation/instruments/blind_dispatch.py`, **+228 lines**:
+
+```
+surface                 base        CA-02 alone   reconciled tip
+scripts/                 27,652     27,652        27,652
+examples/validation/     15,901     14,457        14,685
+-----------------------------------------------------------------
+local_signal total       43,553     42,109        42,337
+```
+
+**These are two different measurements and must not be quoted
+interchangeably.** `CA-02` removed **1,444** lines. The reconciled tip is
+**-1,216** against the base because a sibling ticket added 228 back.
+`denominator_rule`: against the base denominator of 43,553, this ticket's
+numerator contribution is **-1,444**, and the tip's net is **-1,216**. **`CA-08`
+decides the goal on the integrated tip, not on this ticket's figure**, and the
+30% target (≤30,487) is a further **11,850 lines** away — see `CA-02-DF-01`.
+
 **The card, reported separately and added to nothing:**
 
 ```
