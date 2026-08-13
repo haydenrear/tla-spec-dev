@@ -1,0 +1,323 @@
+........................................................................ [  4%]
+.............................................................F.......... [  9%]
+........................................................................ [ 14%]
+........................................................................ [ 18%]
+........................................................................ [ 23%]
+........................................................................ [ 28%]
+........................................................................ [ 32%]
+........................................................................ [ 37%]
+........................................................................ [ 42%]
+........................................................................ [ 47%]
+...................................................F.................... [ 51%]
+........................................................................ [ 56%]
+........................................................................ [ 61%]
+........................................................................ [ 65%]
+........................................................................ [ 70%]
+........................................................................ [ 75%]
+........................................................................ [ 79%]
+........................................................................ [ 84%]
+..................................................FFF................... [ 89%]
+........................................................................ [ 94%]
+.............................................................F.......... [ 98%]
+...................                                                      [100%]
+=================================== FAILURES ===================================
+_______________________ test_the_same_tag_control_holds ________________________
+
+at = <module 'architecture_tags_rd05' from '/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-03/examples/validation/scorecards/architecture_tags.py'>
+world = {'subjects': {'arm_b': {'name': 'arm_b', 'example': 'ab_quota_ledger', 'scope': ['specs/results/scorecards/ports-as-ad...ful-vs-ports-and-adapters', 'axis': 'effect_boundary', 'example': 'eval_toolchain', 'dimension': 'D2', ...}, ...], ...}
+
+    def test_the_same_tag_control_holds(at, world) -> None:
+        """Without it any two artifacts pass, because any two differ in something.
+    
+        **THIS TEST IS DELIBERATELY RED (`RM-06`, group 2). DO NOT MAKE IT GREEN.**
+    
+        It is not pinned to a count the corpus grew. It is a CONTROL, it is now
+        reporting a real result, and the result is unflattering: nine same-tag pairs
+        separate — eight on D2 and one on D5 — every one of them a before-tree
+        scoring disjointly from an after-tree at the SAME derived value. RD-06's
+        three revision pairs gave this control its first within-value TREATMENT
+        difference and it cannot tell that apart from a difference in architecture
+        (`RD-03-DF-12`).
+    
+        The two repairs that would clear it were both rejected. Scoping the control
+        to the dimension the separation is claimed on (D3, where it still holds)
+        would make it a check about the row rather than about the axis. Excluding
+        revision pairs from the population would remove exactly the evidence the
+        control exists to see. Either one converts a measurement into a tautology,
+        which is the failure this epic family exists to prevent.
+    
+        Filed as `RM-06-DF-01`. It goes green when the axis can distinguish
+        treatment from architecture, or when the epic decides it cannot and says so.
+        """
+    
+        controls = at.same_tag_controls(world["rows"], world["derived"], world["subjects"])
+        assert controls, "no same-tag control is available; the separation is uncontrolled"
+        failed = [c for c in controls if c["separates"]]
+>       assert failed == [], (
+            f"{len(failed)} same-tag pair(s) separate: "
+            f"{[(c['dimension'], c['a'], c['b']) for c in failed]}. "
+            f"EXPECTED RED -- see this test's docstring and RM-06-DF-01. The control "
+            f"is reporting a real result and may not be narrowed to silence it."
+        )
+E       AssertionError: 9 same-tag pair(s) separate: [('D2', 'arm_a', 'rd06_artifact_D'), ('D2', 'arm_a', 'rd06_artifact_M'), ('D2', 'arm_c', 'rd06_artifact_D'), ('D2', 'arm_c', 'rd06_artifact_M'), ('D2', 'rd06_artifact_D', 'rd06_artifact_N'), ('D2', 'rd06_artifact_D', 'rd06_artifact_Z'), ('D5', 'rd06_artifact_E', 'rd06_artifact_F'), ('D2', 'rd06_artifact_M', 'rd06_artifact_N'), ('D2', 'rd06_artifact_M', 'rd06_artifact_Z')]. EXPECTED RED -- see this test's docstring and RM-06-DF-01. The control is reporting a real result and may not be narrowed to silence it.
+E       assert [{'example': ...l', ...}, ...] == []
+E         
+E         Left contains 9 more items, first extra item: {'example': 'ab_quota_ledger', 'a': 'arm_a', 'b': 'rd06_artifact_D', 'value': 'effectful', ...}
+E         Use -v to get more diff
+
+tests/test_architecture_tags.py:477: AssertionError
+__________ test_a_real_epic_plans_judged_baseline_cannot_be_re_opened __________
+
+classifier = <module 'sv03_baseline_is_a_card' from '/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-03/specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/baseline_is_a_card.py'>
+
+    def test_a_real_epic_plans_judged_baseline_cannot_be_re_opened(classifier):
+        """R1. THE SUBJECT IS REAL AND ITS BASELINE IS SEALED.
+    
+        `GOAL-loop-reaches-the-program` cites `specs/results/scorecards/close-the-loop/`.
+        That directory holds ZERO `scorecard.json` files -- the CL-03 cards are in
+        two sibling directories -- so the evaluation ticket is handed a folder it
+        cannot pick a card out of, and there is no card in it to pick.
+    
+        If this ever goes green, the baseline was edited after the fact. Move the
+        demonstration to another failing goal and say which; do not delete it.
+        """
+        goals = {g["id"]: g for g in
+                 yaml.safe_load(LIVE_PLAN.read_text(encoding="utf-8"))["epic_goals"]}
+>       goal = goals["GOAL-loop-reaches-the-program"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'GOAL-loop-reaches-the-program'
+
+tests/test_goal_baseline_is_a_card.py:199: KeyError
+_ test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml] _
+
+path = PosixPath('/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-03/specs/current/spec_manifest.yaml')
+
+    @pytest.mark.parametrize("path", scoped_files(), ids=lambda p: str(p.relative_to(REPO_ROOT)))
+    def test_every_line_citation_resolves_to_the_line_it_cites(path: Path) -> None:
+        """The check that would have caught N-3, and did catch eight more."""
+        text = path.read_text(encoding="utf-8")
+        problems: list[str] = []
+    
+        for match in CITATION.finditer(text):
+            source_line = text[: match.start()].count("\n") + 1
+            where = f"{path.relative_to(REPO_ROOT)}:{source_line}"
+            cited_name = match.group("file")
+            start = int(match.group("start"))
+            end = int(match.group("end") or start)
+            anchor = match.group("anchor")
+    
+            if anchor is None:
+                problems.append(
+                    f"{where}: citation `{cited_name}:{match.group('start')}"
+                    f"{'-' + match.group('end') if match.group('end') else ''}` has no "
+                    "(anchor). Write `file.py:12 (some_token_on_that_line)` -- an "
+                    "unanchored line number cannot be checked and goes stale silently."
+                )
+                continue
+    
+            cited = resolve_cited(cited_name)
+            if cited is None:
+                problems.append(f"{where}: cited file {cited_name!r} does not resolve to one file")
+                continue
+    
+            lines = cited.read_text(encoding="utf-8").splitlines()
+            if not 1 <= start <= end <= len(lines):
+                problems.append(
+                    f"{where}: {cited_name}:{start}-{end} is outside the file "
+                    f"({len(lines)} lines)"
+                )
+                continue
+    
+            if not any(anchor in line for line in lines[start - 1 : end]):
+                hits = [
+                    index + 1 for index, line in enumerate(lines) if anchor in line
+                ]
+                hint = f" -- the anchor is at {cited_name}:{hits[0]}" if len(hits) == 1 else ""
+                problems.append(
+                    f"{where}: {cited_name}:{start}"
+                    f"{'-' + str(end) if end != start else ''} does not contain the "
+                    f"anchor {anchor!r}{hint}"
+                )
+    
+>       assert problems == [], "stale or uncheckable citations:\n  " + "\n  ".join(problems)
+E       AssertionError: stale or uncheckable citations:
+E           specs/current/spec_manifest.yaml:238: scripts/tla_spec_dev.py:353 does not contain the anchor 'run_generated_case_adapters.py' -- the anchor is at scripts/tla_spec_dev.py:370
+E           specs/current/spec_manifest.yaml:239: scripts/tla_spec_dev.py:408 does not contain the anchor 'subprocess.run' -- the anchor is at scripts/tla_spec_dev.py:425
+E           specs/current/spec_manifest.yaml:243: scripts/tla_spec_dev.py:335-342 does not contain the anchor '--with' -- the anchor is at scripts/tla_spec_dev.py:354
+E           specs/current/spec_manifest.yaml:251: scripts/spec_evolution.py:154 does not contain the anchor 'shutil.rmtree'
+E           specs/current/spec_manifest.yaml:252: scripts/spec_evolution.py:994 does not contain the anchor 'remove_state_directories'
+E           specs/current/spec_manifest.yaml:253: scripts/spec_evolution.py:1143 does not contain the anchor 'remove_state_directories'
+E           specs/current/spec_manifest.yaml:255: scripts/spec_evolution.py:385 does not contain the anchor 'shutil.rmtree'
+E           specs/current/spec_manifest.yaml:256: scripts/spec_evolution.py:580 does not contain the anchor 'replace_tree'
+E           specs/current/spec_manifest.yaml:258: scripts/spec_evolution.py:477 does not contain the anchor 'target.unlink' -- the anchor is at scripts/spec_evolution.py:998
+E           specs/current/spec_manifest.yaml:302: scripts/spec_evolution.py:99 does not contain the anchor 'subprocess.run' -- the anchor is at scripts/spec_evolution.py:106
+E           specs/current/spec_manifest.yaml:303: scripts/spec_evolution.py:1093 does not contain the anchor 'git_metadata'
+E           specs/current/spec_manifest.yaml:304: scripts/spec_evolution.py:1195 does not contain the anchor 'git_metadata'
+E       assert ['specs/curre...tories'", ...] == []
+E         
+E         Left contains 12 more items, first extra item: "specs/current/spec_manifest.yaml:238: scripts/tla_spec_dev.py:353 does not contain the anchor 'run_generated_case_adapters.py' -- the anchor is at scripts/tla_spec_dev.py:370"
+E         Use -v to get more diff
+
+tests/test_source_citations.py:154: AssertionError
+_ test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/spec_manifest.yaml] _
+
+path = PosixPath('/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-03/specs/desired_program_model/spec_manifest.yaml')
+
+    @pytest.mark.parametrize("path", scoped_files(), ids=lambda p: str(p.relative_to(REPO_ROOT)))
+    def test_every_line_citation_resolves_to_the_line_it_cites(path: Path) -> None:
+        """The check that would have caught N-3, and did catch eight more."""
+        text = path.read_text(encoding="utf-8")
+        problems: list[str] = []
+    
+        for match in CITATION.finditer(text):
+            source_line = text[: match.start()].count("\n") + 1
+            where = f"{path.relative_to(REPO_ROOT)}:{source_line}"
+            cited_name = match.group("file")
+            start = int(match.group("start"))
+            end = int(match.group("end") or start)
+            anchor = match.group("anchor")
+    
+            if anchor is None:
+                problems.append(
+                    f"{where}: citation `{cited_name}:{match.group('start')}"
+                    f"{'-' + match.group('end') if match.group('end') else ''}` has no "
+                    "(anchor). Write `file.py:12 (some_token_on_that_line)` -- an "
+                    "unanchored line number cannot be checked and goes stale silently."
+                )
+                continue
+    
+            cited = resolve_cited(cited_name)
+            if cited is None:
+                problems.append(f"{where}: cited file {cited_name!r} does not resolve to one file")
+                continue
+    
+            lines = cited.read_text(encoding="utf-8").splitlines()
+            if not 1 <= start <= end <= len(lines):
+                problems.append(
+                    f"{where}: {cited_name}:{start}-{end} is outside the file "
+                    f"({len(lines)} lines)"
+                )
+                continue
+    
+            if not any(anchor in line for line in lines[start - 1 : end]):
+                hits = [
+                    index + 1 for index, line in enumerate(lines) if anchor in line
+                ]
+                hint = f" -- the anchor is at {cited_name}:{hits[0]}" if len(hits) == 1 else ""
+                problems.append(
+                    f"{where}: {cited_name}:{start}"
+                    f"{'-' + str(end) if end != start else ''} does not contain the "
+                    f"anchor {anchor!r}{hint}"
+                )
+    
+>       assert problems == [], "stale or uncheckable citations:\n  " + "\n  ".join(problems)
+E       AssertionError: stale or uncheckable citations:
+E           specs/desired_program_model/spec_manifest.yaml:235: scripts/tla_spec_dev.py:353 does not contain the anchor 'run_generated_case_adapters.py' -- the anchor is at scripts/tla_spec_dev.py:370
+E           specs/desired_program_model/spec_manifest.yaml:236: scripts/tla_spec_dev.py:408 does not contain the anchor 'subprocess.run' -- the anchor is at scripts/tla_spec_dev.py:425
+E           specs/desired_program_model/spec_manifest.yaml:240: scripts/tla_spec_dev.py:335-342 does not contain the anchor '--with' -- the anchor is at scripts/tla_spec_dev.py:354
+E           specs/desired_program_model/spec_manifest.yaml:248: scripts/spec_evolution.py:154 does not contain the anchor 'shutil.rmtree'
+E           specs/desired_program_model/spec_manifest.yaml:249: scripts/spec_evolution.py:994 does not contain the anchor 'remove_state_directories'
+E           specs/desired_program_model/spec_manifest.yaml:250: scripts/spec_evolution.py:1143 does not contain the anchor 'remove_state_directories'
+E           specs/desired_program_model/spec_manifest.yaml:252: scripts/spec_evolution.py:385 does not contain the anchor 'shutil.rmtree'
+E           specs/desired_program_model/spec_manifest.yaml:253: scripts/spec_evolution.py:580 does not contain the anchor 'replace_tree'
+E           specs/desired_program_model/spec_manifest.yaml:255: scripts/spec_evolution.py:477 does not contain the anchor 'target.unlink' -- the anchor is at scripts/spec_evolution.py:998
+E           specs/desired_program_model/spec_manifest.yaml:299: scripts/spec_evolution.py:99 does not contain the anchor 'subprocess.run' -- the anchor is at scripts/spec_evolution.py:106
+E           specs/desired_program_model/spec_manifest.yaml:300: scripts/spec_evolution.py:1093 does not contain the anchor 'git_metadata'
+E           specs/desired_program_model/spec_manifest.yaml:301: scripts/spec_evolution.py:1195 does not contain the anchor 'git_metadata'
+E       assert ['specs/desir...tories'", ...] == []
+E         
+E         Left contains 12 more items, first extra item: "specs/desired_program_model/spec_manifest.yaml:235: scripts/tla_spec_dev.py:353 does not contain the anchor 'run_generated_case_adapters.py' -- the anchor is at scripts/tla_spec_dev.py:370"
+E         Use -v to get more diff
+
+tests/test_source_citations.py:154: AssertionError
+_ test_every_line_citation_resolves_to_the_line_it_cites[specs/program_model/spec_manifest.yaml] _
+
+path = PosixPath('/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-03/specs/program_model/spec_manifest.yaml')
+
+    @pytest.mark.parametrize("path", scoped_files(), ids=lambda p: str(p.relative_to(REPO_ROOT)))
+    def test_every_line_citation_resolves_to_the_line_it_cites(path: Path) -> None:
+        """The check that would have caught N-3, and did catch eight more."""
+        text = path.read_text(encoding="utf-8")
+        problems: list[str] = []
+    
+        for match in CITATION.finditer(text):
+            source_line = text[: match.start()].count("\n") + 1
+            where = f"{path.relative_to(REPO_ROOT)}:{source_line}"
+            cited_name = match.group("file")
+            start = int(match.group("start"))
+            end = int(match.group("end") or start)
+            anchor = match.group("anchor")
+    
+            if anchor is None:
+                problems.append(
+                    f"{where}: citation `{cited_name}:{match.group('start')}"
+                    f"{'-' + match.group('end') if match.group('end') else ''}` has no "
+                    "(anchor). Write `file.py:12 (some_token_on_that_line)` -- an "
+                    "unanchored line number cannot be checked and goes stale silently."
+                )
+                continue
+    
+            cited = resolve_cited(cited_name)
+            if cited is None:
+                problems.append(f"{where}: cited file {cited_name!r} does not resolve to one file")
+                continue
+    
+            lines = cited.read_text(encoding="utf-8").splitlines()
+            if not 1 <= start <= end <= len(lines):
+                problems.append(
+                    f"{where}: {cited_name}:{start}-{end} is outside the file "
+                    f"({len(lines)} lines)"
+                )
+                continue
+    
+            if not any(anchor in line for line in lines[start - 1 : end]):
+                hits = [
+                    index + 1 for index, line in enumerate(lines) if anchor in line
+                ]
+                hint = f" -- the anchor is at {cited_name}:{hits[0]}" if len(hits) == 1 else ""
+                problems.append(
+                    f"{where}: {cited_name}:{start}"
+                    f"{'-' + str(end) if end != start else ''} does not contain the "
+                    f"anchor {anchor!r}{hint}"
+                )
+    
+>       assert problems == [], "stale or uncheckable citations:\n  " + "\n  ".join(problems)
+E       AssertionError: stale or uncheckable citations:
+E           specs/program_model/spec_manifest.yaml:238: scripts/tla_spec_dev.py:353 does not contain the anchor 'run_generated_case_adapters.py' -- the anchor is at scripts/tla_spec_dev.py:370
+E           specs/program_model/spec_manifest.yaml:239: scripts/tla_spec_dev.py:408 does not contain the anchor 'subprocess.run' -- the anchor is at scripts/tla_spec_dev.py:425
+E           specs/program_model/spec_manifest.yaml:243: scripts/tla_spec_dev.py:335-342 does not contain the anchor '--with' -- the anchor is at scripts/tla_spec_dev.py:354
+E           specs/program_model/spec_manifest.yaml:251: scripts/spec_evolution.py:154 does not contain the anchor 'shutil.rmtree'
+E           specs/program_model/spec_manifest.yaml:252: scripts/spec_evolution.py:994 does not contain the anchor 'remove_state_directories'
+E           specs/program_model/spec_manifest.yaml:253: scripts/spec_evolution.py:1143 does not contain the anchor 'remove_state_directories'
+E           specs/program_model/spec_manifest.yaml:255: scripts/spec_evolution.py:385 does not contain the anchor 'shutil.rmtree'
+E           specs/program_model/spec_manifest.yaml:256: scripts/spec_evolution.py:580 does not contain the anchor 'replace_tree'
+E           specs/program_model/spec_manifest.yaml:258: scripts/spec_evolution.py:477 does not contain the anchor 'target.unlink' -- the anchor is at scripts/spec_evolution.py:998
+E           specs/program_model/spec_manifest.yaml:302: scripts/spec_evolution.py:99 does not contain the anchor 'subprocess.run' -- the anchor is at scripts/spec_evolution.py:106
+E           specs/program_model/spec_manifest.yaml:303: scripts/spec_evolution.py:1093 does not contain the anchor 'git_metadata'
+E           specs/program_model/spec_manifest.yaml:304: scripts/spec_evolution.py:1195 does not contain the anchor 'git_metadata'
+E       assert ['specs/progr...tories'", ...] == []
+E         
+E         Left contains 12 more items, first extra item: "specs/program_model/spec_manifest.yaml:238: scripts/tla_spec_dev.py:353 does not contain the anchor 'run_generated_case_adapters.py' -- the anchor is at scripts/tla_spec_dev.py:370"
+E         Use -v to get more diff
+
+tests/test_source_citations.py:154: AssertionError
+_____ test_repository_canonical_delivered_plan_has_matching_close_receipts _____
+
+    def test_repository_canonical_delivered_plan_has_matching_close_receipts() -> None:
+        plan_path = ROOT / "specs" / "desired_program_model" / "ticket_plan.yaml"
+    
+>       assert validate_ticket_plan_closed(plan_path, repo_root=ROOT) == []
+E       AssertionError: assert ['ticket CA-0...atus=planned'] == []
+E         
+E         Left contains 5 more items, first extra item: 'ticket CA-04 is not closed: status=planned'
+E         Use -v to get more diff
+
+tests/test_ticket_retirement.py:588: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_architecture_tags.py::test_the_same_tag_control_holds - Ass...
+FAILED tests/test_goal_baseline_is_a_card.py::test_a_real_epic_plans_judged_baseline_cannot_be_re_opened
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml]
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/spec_manifest.yaml]
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/program_model/spec_manifest.yaml]
+FAILED tests/test_ticket_retirement.py::test_repository_canonical_delivered_plan_has_matching_close_receipts
+6 failed, 1525 passed in 1250.46s (0:20:50)
