@@ -22,22 +22,40 @@ what keeps that seal legible after the code under it was cut.
 
 | file | lines | removed because |
 |---|---|---|
-| `price_removal.py` | 838 | `RM-05-DF-01`, `CL-02` — for every fault whose killing nodes all lie in a file the removal deletes, `ENTAILED-SURVIVES` follows from `git show` alone. The instrument had one reachable answer. |
+| `price_removal.py` | 838 | **`RM-02`** — a sound instrument with **no measured after-table in this repository to run against**, over a fixture no adopter receives. |
 | `altered_score_probe.py` | 177 | `RM-02` — a fixture probe over `ab_quota_ledger`, with no version an adopter receives. |
 | `residual_faults.toml` | 193 | `RM-02` — the catalogue is hand-authored faults in `ab_quota_ledger`; the probe has nothing to read without it. |
+
+> **CORRECTED after independent review of PR #264.** The first version of this
+> row said `price_removal.py` was removed because *"the instrument had one
+> reachable answer"*, citing `RM-05-DF-01` and `CL-02`. **The sealed record
+> refutes that.** `NEXT-EPIC.md` §5: *"a non-zero was the informative outcome,
+> **the instrument would have printed one**, and none appeared… the instrument
+> is **not yet useful**."* `RM-02` §10.2: *"**the instrument can fire**, history
+> remains free."* And `CL-02`'s headline keeps the exception: ***"`RM-01-RF-1` is
+> still `PRICED` and is still the only price this project has."*** `RM-05-DF-01`
+> additionally forbids the quotation in its own words — *"STATED SO THIS FINDING
+> CANNOT BE QUOTED AS 'THE EPIC PRICED NOTHING'"* — and describes the file
+> **before** `CL-02` repaired it. Full correction table:
+> `specs/results/scorecards/cut-the-apparatus/CA-02/PRICE-TABLE.md` §0.
 
 `RM-03` had already retired this directory's other half — `run_gap_mutants.py`,
 `gap_mutants.toml`, `tests/test_gap_mutants.py` — on the same adoption grounds,
 and recorded then that `price_removal.py price` reads a measured after-table
 **that nothing in this repository produces any more**. `CA-02` finishes that
-removal rather than leaving the sound-but-unanswerable half standing.
+removal on `RM-02`'s adoption grounds, not on a pricing count.
 
 ## What the tree can no longer do
 
 - It cannot compute `ENTAILED-SURVIVES` / `FREE` / `NO-KILL-TO-LOSE` for a
-  removal. **`CL-02` re-priced the whole sealed history over kill sets and got
-  `priced rows: []`, 0 of 10**, so what is lost is a verdict that was never
-  once informative — not a measurement anyone will miss.
+  removal. `CL-02`'s re-pricing sweep returned **`priced rows: []`** over the
+  published before-tables — **an instrument that was not yet useful, not one
+  that could never fire**, and one price (`RM-01-RF-1`) stands outside that
+  sweep.
+- **`specs/.../GOAL-price-means-something/repriced_history.py` NO LONGER RUNS.**
+  It loads this directory's `price_removal.py` at line 21 and now dies with
+  `FileNotFoundError`. The sealed transcripts still read, so the RESULT survives;
+  **what is lost is the ability to re-derive it.** `CA-02-DF-04`.
 - It cannot re-run `SM-04-GM-T1` from an independent implementation. The
   finding itself stays readable in the sealed record.
 

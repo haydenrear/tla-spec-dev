@@ -14316,6 +14316,19 @@ findings:
       One column of one goal, but it is the column carrying most of the target.
       Any sibling ticket that assumed `scripts/` was already being reduced by
       CA-02 should re-plan.
+    schema_note: >-
+      CA-05 OWNS THE `channel` AND `cost` SCHEMA AND MAY REWRITE THIS SHAPE.
+      CA-02 is `enabling` on GOAL-consumption-obligatory with
+      `expected_effect: none`; populating these two fields is CA-05's `direct`
+      contribution, and CA-02 pre-empted it. The fields are left in place rather
+      than removed, per the epic owner, but they are a PROPOSAL and not a
+      standard. TWO CRITICISMS FROM REVIEW OF PR #264 ARE RECORDED HERE RATHER
+      THAN ARGUED WITH: (1) `channel` is FREE-TEXT SENTENCES, not a controlled
+      vocabulary, so a findings-by-channel table still needs hand classification
+      -- which is the exact work the field exists to eliminate; (2) `cost.value`
+      reads "negligible" in four of these five rows and carries NO TOKEN BASIS,
+      while CA-08 requires the basis be named. CA-05 should reconcile these into
+      a real schema; CA-02 does not defend this shape.
     disposition: open
 
   - id: CA-02-DF-02
@@ -14372,6 +14385,19 @@ findings:
     blast_radius: >-
       One demonstration today. Potentially every remaining ticket in this epic,
       and the cost is a misattributed red rather than a wrong result.
+    schema_note: >-
+      CA-05 OWNS THE `channel` AND `cost` SCHEMA AND MAY REWRITE THIS SHAPE.
+      CA-02 is `enabling` on GOAL-consumption-obligatory with
+      `expected_effect: none`; populating these two fields is CA-05's `direct`
+      contribution, and CA-02 pre-empted it. The fields are left in place rather
+      than removed, per the epic owner, but they are a PROPOSAL and not a
+      standard. TWO CRITICISMS FROM REVIEW OF PR #264 ARE RECORDED HERE RATHER
+      THAN ARGUED WITH: (1) `channel` is FREE-TEXT SENTENCES, not a controlled
+      vocabulary, so a findings-by-channel table still needs hand classification
+      -- which is the exact work the field exists to eliminate; (2) `cost.value`
+      reads "negligible" in four of these five rows and carries NO TOKEN BASIS,
+      while CA-08 requires the basis be named. CA-05 should reconcile these into
+      a real schema; CA-02 does not defend this shape.
     disposition: open
 
   - id: CA-02-DF-03
@@ -14424,6 +14450,19 @@ findings:
       21 declared subjects, of which the sealed ones are the ones that matter.
       The damage from getting it wrong is silent and only visible to a later
       reader of a sealed card.
+    schema_note: >-
+      CA-05 OWNS THE `channel` AND `cost` SCHEMA AND MAY REWRITE THIS SHAPE.
+      CA-02 is `enabling` on GOAL-consumption-obligatory with
+      `expected_effect: none`; populating these two fields is CA-05's `direct`
+      contribution, and CA-02 pre-empted it. The fields are left in place rather
+      than removed, per the epic owner, but they are a PROPOSAL and not a
+      standard. TWO CRITICISMS FROM REVIEW OF PR #264 ARE RECORDED HERE RATHER
+      THAN ARGUED WITH: (1) `channel` is FREE-TEXT SENTENCES, not a controlled
+      vocabulary, so a findings-by-channel table still needs hand classification
+      -- which is the exact work the field exists to eliminate; (2) `cost.value`
+      reads "negligible" in four of these five rows and carries NO TOKEN BASIS,
+      while CA-08 requires the basis be named. CA-05 should reconcile these into
+      a real schema; CA-02 does not defend this shape.
     disposition: open
 
   - id: CA-02-DF-04
@@ -14443,43 +14482,74 @@ findings:
       workflow:
         - "specs/results/scorecards/cut-the-apparatus/CA-02/PRICE-TABLE.md"
     summary: >-
-      THE CUT DELETED THE INSTRUMENT BEHIND ONE OF THE FOUR DISPROOFS, AND THE
-      DISPROOF IS THE THING THAT JUSTIFIED THE CUT. Disproof 3 -- "the
-      removal-pricing instrument could only ever return zero", 0 of 9 over the
-      sealed table -- was produced BY `price_removal.py` and `removal_census.py`,
-      which CA-02 removed on the strength of it.
-      The disproof still READS: its evidence is sealed under
-      `specs/results/scorecards/portable-substrate/GOAL-removal-can-be-priced/`
-      and `.../close-the-loop/GOAL-price-means-something/`, none of it touched.
-      What is no longer possible is RE-DERIVING it. Anyone who later doubts the
-      0-of-9 figure cannot recompute it at the tip; they must either trust the
-      sealed record or restore the instrument from `37ab155`.
-      THIS IS A SELF-SEALING SHAPE AND IT SHOULD BE SAID OUT LOUD RATHER THAN
-      DISCOVERED: an instrument that measures itself useless licenses its own
-      deletion, after which the measurement cannot be checked. CA-02 believes the
-      cut is right -- `RM-02`'s adoption argument survives a zero and survives a
-      defective classifier producing one, BECAUSE IT IS NOT A PRICING ARGUMENT --
-      but the epic should notice that the fallback argument is the load-bearing
-      one, not the 0 of 9.
+      A NAMED INSTRUMENT IN THE SEALED RECORD IS NOW BROKEN AT THE TIP, AND THIS
+      TICKET'S OWN PRICE-TABLE FORMAT DEMANDS THAT BE REPORTED.
+      `specs/results/scorecards/close-the-loop/GOAL-price-means-something/repriced_history.py`
+      line 21 loads `examples/validation/gap_mutants/price_removal.py`, which
+      CA-02 deleted. RUN AT THE TIP IT NOW DIES:
+      `FileNotFoundError: .../examples/validation/gap_mutants/price_removal.py`.
+      It also reads the deleted `removal_census/removals.toml`, so it is broken
+      twice over. THIS WAS MISSED IN THE FIRST VERSION OF THE PRICE TABLE, which
+      answered "yes, both under `specs/`" to the format's own section 5 question
+      -- does the instrument that produced this result still run at the tip --
+      in the single row where the answer was no. The format was violated by the
+      ticket that wrote it.
+      WHAT SURVIVES AND WHAT DOES NOT: the sealed transcripts under
+      `.../GOAL-removal-can-be-priced/` and `.../GOAL-price-means-something/`
+      are untouched, so the RESULT still READS. What is gone is the ability to
+      RE-DERIVE it -- anyone who later doubts the sweep must trust the record or
+      restore the instrument from `37ab155`.
+      THE SELF-SEALING SHAPE, SAID OUT LOUD: an instrument whose own output is
+      read as licensing its deletion cannot be re-checked afterwards. That is
+      why the reason for this cut matters, and why the reason first given was
+      wrong. The load-bearing argument is `RM-02`'s -- the catalogues are
+      `ab_quota_ledger` fixtures with no version an adopter receives, and that
+      "survives a zero and survives a defective classifier producing one,
+      BECAUSE IT IS NOT A PRICING ARGUMENT". It is NOT the claim that the
+      instrument could only return zero: `NEXT-EPIC.md` section 5 says the
+      instrument WOULD HAVE PRINTED a non-zero and is "not yet useful", `RM-02`
+      section 10.2 says "the instrument CAN FIRE", and `CL-02` records that
+      `RM-01-RF-1` "is still PRICED and is still the only price this project
+      has". Filed against the epic owner's propagation as `CA-00-DF-05`, with a
+      share owned by CA-02 for repeating it.
     reproduction: >-
-      git show 37ab155 -- examples/validation/gap_mutants/price_removal.py
-      examples/validation/removal_census/removal_census.py   (the only route to
-      re-running the measurement that justified removing them).
+      uv run python specs/results/scorecards/close-the-loop/GOAL-price-means-something/repriced_history.py
+      -> FileNotFoundError on examples/validation/gap_mutants/price_removal.py.
+      Restore with: git checkout 37ab155 -- examples/validation/gap_mutants/
+      examples/validation/removal_census/
     why_out_of_scope: >-
-      Not a defect to repair -- the cut is the assigned slice and the sealed
-      evidence is intact. It is recorded because `GOAL-four-results-stand`'s
-      baseline requires the epic to state what it broke, and "an instrument that
-      can no longer be re-run" is a weaker claim than "a result that no longer
-      reproduces" but is not nothing.
+      Not a defect this ticket may repair. Restoring `price_removal.py` to keep
+      one sealed script runnable would undo the assigned slice; rewriting
+      `repriced_history.py` to not need it would EDIT A SEALED MEASUREMENT
+      SCRIPT under `specs/results/`, which R-H4 forbids and which would make the
+      transcript no longer the one that produced the published figure. Both
+      available repairs are worse than the disclosure.
     suggested_fix: >-
-      CA-08 should decide whether every disproof needs a re-derivable instrument
-      at the tip or whether a sealed transcript suffices, AND STATE THE ANSWER
-      RATHER THAN INHERITING IT. The baseline already asks CA-04 the same
-      question about disproof 1; this is the same question about disproof 3, and
-      the two should get the same answer.
+      CA-08 should decide whether every sealed result needs a RE-DERIVABLE
+      instrument at the tip or whether a sealed transcript suffices, AND STATE
+      THE ANSWER RATHER THAN INHERITING IT. The baseline already asks CA-04 the
+      same question about disproof 1; this is the same question about the
+      pricing sweep, and the two should get the same answer. If the answer is
+      "re-derivable", the price-table format needs a rule that a cut must GREP
+      THE SEALED RECORD for loaders of every file it deletes -- which is the
+      mechanical check that would have caught this one, and which CA-02 did not
+      do.
     blast_radius: >-
       One of the four disproofs. The result stands; only its re-derivation is
       gone.
+    schema_note: >-
+      CA-05 OWNS THE `channel` AND `cost` SCHEMA AND MAY REWRITE THIS SHAPE.
+      CA-02 is `enabling` on GOAL-consumption-obligatory with
+      `expected_effect: none`; populating these two fields is CA-05's `direct`
+      contribution, and CA-02 pre-empted it. The fields are left in place rather
+      than removed, per the epic owner, but they are a PROPOSAL and not a
+      standard. TWO CRITICISMS FROM REVIEW OF PR #264 ARE RECORDED HERE RATHER
+      THAN ARGUED WITH: (1) `channel` is FREE-TEXT SENTENCES, not a controlled
+      vocabulary, so a findings-by-channel table still needs hand classification
+      -- which is the exact work the field exists to eliminate; (2) `cost.value`
+      reads "negligible" in four of these five rows and carries NO TOKEN BASIS,
+      while CA-08 requires the basis be named. CA-05 should reconcile these into
+      a real schema; CA-02 does not defend this shape.
     disposition: open
 
   - id: CA-02-DF-05
@@ -14533,4 +14603,17 @@ findings:
       None outstanding -- the test is gone. Filed for the class, because the
       registry contains other `repo-tripwire` rows and the next one will face the
       same choice.
+    schema_note: >-
+      CA-05 OWNS THE `channel` AND `cost` SCHEMA AND MAY REWRITE THIS SHAPE.
+      CA-02 is `enabling` on GOAL-consumption-obligatory with
+      `expected_effect: none`; populating these two fields is CA-05's `direct`
+      contribution, and CA-02 pre-empted it. The fields are left in place rather
+      than removed, per the epic owner, but they are a PROPOSAL and not a
+      standard. TWO CRITICISMS FROM REVIEW OF PR #264 ARE RECORDED HERE RATHER
+      THAN ARGUED WITH: (1) `channel` is FREE-TEXT SENTENCES, not a controlled
+      vocabulary, so a findings-by-channel table still needs hand classification
+      -- which is the exact work the field exists to eliminate; (2) `cost.value`
+      reads "negligible" in four of these five rows and carries NO TOKEN BASIS,
+      while CA-08 requires the basis be named. CA-05 should reconcile these into
+      a real schema; CA-02 does not defend this shape.
     disposition: open

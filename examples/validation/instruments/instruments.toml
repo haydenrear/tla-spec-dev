@@ -2612,29 +2612,51 @@ retired_at = "the CA-02 cut, issue #256"
 paths = ["examples/validation/gap_mutants/price_removal.py",
          "tests/test_price_removal.py"]
 reason = """
-REMOVED BECAUSE IT COULD ONLY EVER RETURN ONE ANSWER, not because it was
-unused. `RM-05-DF-01` and `CL-02` established the shape: for every fault all of
-whose killing nodes lie in a file the removal deletes, `ENTAILED-SURVIVES`
-follows from `git show` alone and NO OTHER VERDICT IS REACHABLE. The instrument
-was sound and its verdict was a foregone conclusion.
+RETIRED BECAUSE IT IS NOT YET USEFUL AND ITS SUBJECT IS A FIXTURE NO ADOPTER
+RECEIVES -- NOT because it was incapable of firing. THIS ROW WAS CORRECTED after
+independent review of PR #264; the wording it replaces claimed the instrument
+"could only ever return one answer", and the sealed record refutes that. The
+correction table is `specs/results/scorecards/cut-the-apparatus/CA-02/PRICE-TABLE.md`
+section 0, and the propagation is filed as `CA-00-DF-05`.
 
-`RM-03`'s "first PRICED removal" was WITHDRAWN when its own zero-gap control
-returned the same verdict. `CL-02` then re-priced the whole sealed history over
-kill sets and reported `priced rows: [], 0 of 10`. A gap mutant can price a
-removal only if every detector that killed it is one the removal deletes --
-0 OF 9 over the sealed table.
+WHAT THE RECORD ACTUALLY SAYS. `NEXT-EPIC.md` section 5: "A non-zero was the
+informative outcome, THE INSTRUMENT WOULD HAVE PRINTED ONE, and none appeared...
+The goal is met and THE INSTRUMENT IS NOT YET USEFUL." `RM-02` section 10.2 reads
+the same sweep as "THE INSTRUMENT CAN FIRE, history remains free." And it HAS
+fired: `CL-02`'s own headline is "`RM-01-RF-1` is still `PRICED` and is still the
+only price this project has."
 
-`RM-03` had ALREADY recorded, in the `gap-mutant-runner` row above, that
-`price_removal.py price` reads a measured after-table nothing in this repository
-produces any more, and kept `entail` because it was sound. CA-02's finding is
-that soundness was never the binding constraint: the sound half is the half
-whose answer was fixed in advance. This retirement finishes that removal.
+TWO NUMBERS THAT ARE NOT ONE NUMBER, because the superseded wording conflated
+them. `0 of 10 disagree with the measurement` is an AUDIT-AGREEMENT count -- the
+ten sealed rows did not move under the corrected instrument. `priced rows: []`
+is the separate re-pricing sweep. Nine lines below it the same transcript prints
+`PRICED RM-01-RF-1...` under "RM-01's known positive, measured (price, not
+entail)".
 
-WHAT GOES WITH IT: the tree can no longer compute a removal price. `CL-02`'s
-`priced rows: []` is what that capability was worth. Every sealed before-table
-stays readable, and the sealed verdicts stay in
-`specs/results/scorecards/portable-substrate/GOAL-removal-can-be-priced/` and
-`specs/results/scorecards/close-the-loop/GOAL-price-means-something/`.
+`RM-05-DF-01` IS SCOPED AND MUST BE READ WITH ITS OWN CAVEAT. It says
+`ENTAILED-SURVIVES` follows from `git show` alone for a fault whose killing nodes
+all lie in a deleted file -- and it also says, pre-emptively, "WHAT SURVIVES,
+STATED SO THIS FINDING CANNOT BE QUOTED AS 'THE EPIC PRICED NOTHING'... The epic
+HAS a priced removal." IT ALSO DESCRIBES THE FILE BEFORE `CL-02` REPAIRED IT. The
+file retired here CONTAINS that repair -- `EXTINCT`, `resolve_head`,
+`CONTROL_EXCLUDED` -- so quoting the pre-repair defect as the reason to delete
+the repair was backwards, and is corrected here.
+
+SO THE ACTUAL REASON, which is `RM-02`'s and stands without any pricing number:
+the catalogues are `ab_quota_ledger` fixtures with NO VERSION AN ADOPTER
+RECEIVES, and that argument "survives a zero and survives a defective classifier
+producing one, BECAUSE IT IS NOT A PRICING ARGUMENT." `RM-03` had already
+recorded that `price` reads a measured after-table nothing in this repository
+produces any more. What is retired is a sound-but-unexercised `entail` over a
+fixture, not a broken instrument.
+
+WHAT GOES WITH IT, AND IT IS MORE THAN THE SUPERSEDED WORDING ADMITTED: the tree
+can no longer compute a removal price, AND `specs/results/scorecards/close-the-loop/
+GOAL-price-means-something/repriced_history.py` NO LONGER RUNS -- it loads this
+file at line 21 and now dies with `FileNotFoundError`. The sealed transcripts
+stay readable in `.../GOAL-removal-can-be-priced/` and
+`.../GOAL-price-means-something/`, so the RESULT survives; what is lost is the
+ability to RE-DERIVE it. Filed as `CA-02-DF-04`.
 
 Reversible with `git checkout 37ab155 -- examples/validation/gap_mutants/
 tests/test_price_removal.py`.
@@ -2674,12 +2696,23 @@ paths = ["examples/validation/removal_census/removal_census.py",
          "examples/validation/removal_census/removals.toml"]
 reason = """
 RETIRED WITH THE PRICER IT EXISTED TO SERVE. `removal_census.py discriminate`
-computed, up front, the condition under which a removal could be priced at all
--- and `RM-02`/`RD-02` measured that condition at 0 of 9. Its own registry row
-recorded that the condition is computed over DETECTOR NAMES and is therefore
-unsound in both directions: `pytest-full` is the whole suite, which no removal
-deletes, so any fault the suite kills was classified NON-DISCRIMINATING before
-anything ran; and a detector can survive by name while losing the kill.
+computed, up front, the condition under which a removal could be priced at all.
+Its own registry row recorded that the condition is computed over DETECTOR NAMES
+and is therefore unsound in both directions: `pytest-full` is the whole suite,
+which no removal deletes, so any fault the suite kills was classified
+NON-DISCRIMINATING before anything ran; and a detector can survive by name while
+losing the kill. THAT UNSOUNDNESS, WHICH THE INSTRUMENT DECLARED ABOUT ITSELF, IS
+THE REASON -- not a count.
+
+`RD-02` IS DELIBERATELY NOT CITED HERE, AND THE SUPERSEDED WORDING OF THIS ROW
+CITED IT. `RD-02` is the ticket that BUILT this census and REFUSED to delete the
+pricer: "It is not deleted, and the reason is `MF-020` turned on myself: removing
+the instrument that prices removals removes the ability to detect that a removal
+was harmful." It titles itself "the apparatus is load-bearing", scopes its
+`0 of 9` explicitly as NOT a statement about every mutant, and filed
+`RD-02-DF-02` (major, open) against exactly the restatement this row made.
+Citing it as authority for this removal inverted it. Corrected after review of
+PR #264; see `.../CA-02/PRICE-TABLE.md` section 0.
 
 With `removal-pricer` retired there is no consumer for a discrimination verdict,
 and `check` was pinning line counts for a manifest whose only purpose was to

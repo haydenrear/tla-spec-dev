@@ -71,10 +71,30 @@ an acceptable answer only with a measurement behind it.
 ## 5. Which sealed results depended on it
 
 **Checked, never assumed.** For each: does it still reproduce from the sealed
-record, and does the instrument that produced it still run at the tip? A cut that
-makes a sealed subject underivable, a demonstration stale, or a manifest
+record, and **does the instrument that produced it still run at the tip?** A cut
+that makes a sealed subject underivable, a demonstration stale, or a manifest
 unreadable says so **here**, with the numerator/denominator movement named per
 `denominator_rule`.
+
+**Distinguish READABLE from RE-DERIVABLE.** A sealed transcript that still opens
+is not the same as an instrument that still runs. **Answer both, separately.**
+
+### Run this before answering, because prose did not catch it
+
+`CA-02` — the ticket that wrote this format — answered *"yes, still runs"* for a
+result whose producing script its own deletion had already broken, and no amount
+of careful writing found it. **The mechanical check is one command per deleted
+path, and it is required:**
+
+```bash
+# for every path this cut deletes, find anything that LOADS it
+git grep -n "$(basename <deleted-path>)" -- specs/ references/ scripts/ examples/ tests/
+```
+
+**`specs/results/` is where this bites:** sealed measurement scripts live there,
+they are **not exercised by the suite**, and **`R-H4` forbids editing them** to
+repair the breakage. So the only moves available are *disclose it* or *do not
+make the cut* — pick one and say which in §4.
 
 ## 6. Suite movement, under `denominator_rule`
 
