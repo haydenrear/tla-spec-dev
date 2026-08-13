@@ -469,24 +469,34 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     # variables plus lastCommand and result, and neither of the latter pair has
     # a resolvable domain (see the completeness assertions at the end).
     #
-    # Note what did NOT change and is deliberately still asserted below: the
-    # figure is still over `max_state_space_bound` 1,000,000, so the scanner
-    # still warns about this model. A removal that happened to drop the bound
-    # under the cap would be worth suspecting; this one does not, and the chain
-    # is checked all the way back to MF-020 so a future ticket cannot quietly
-    # rebuild the number under a different name.
-    assert result.bound == 1_111_320
-    # Undo the RC-01 weakened-close stage. This now lands directly on AC-01's
-    # PRE-figure, because the two factors AC-01 and RC-01 contributed between
-    # them are the two that came out.
+    # CA-04 (2026-08-13): THE BOUND WENT DOWN A SECOND TIME, by exactly the
+    # 4-valued `kill_test` gate, when the mutation kill test was removed
+    # (RM-03-DF-05). 1,111,320 / 4 = 277,830. The MF-016 step below is GONE
+    # rather than re-based: the chain gets SHORTER when model surface goes away,
+    # which is the same property the 2026-08-04 removal recorded above, and it
+    # is why only ONE figure in this test moves. Every other number in the chain
+    # -- 174,960, 34,992, 663,552, 221,184, 1,179,648, 393,216 -- is unchanged
+    # and still asserted, so this is a factor leaving a product, not a figure
+    # refitted to a new answer.
+    #
+    # WHAT DID CHANGE AND IS NO LONGER TRUE OF THIS MODEL: the bound is now
+    # UNDER `max_state_space_bound` 1,000,000 for the first time, so the scanner
+    # no longer warns about it. The comment above says "a removal that happened
+    # to drop the bound under the cap would be worth suspecting" -- so, stated
+    # plainly rather than quietly deleted: THIS REMOVAL DID THAT. It is licensed
+    # here by the CD-09 validated-refactor basis rather than by assertion --
+    # TLC green on the pre-change model (563,963 distinct states, depth 25) and
+    # on the post-change model (124,643, depth 24), both recorded under
+    # specs/results/scorecards/cut-the-apparatus/CA-04/tlc-{before,after}.txt.
+    # The bound fell because the program stopped producing the outcomes the
+    # removed variable represented, which is the one honest reason it may.
+    assert result.bound == 277_830
+    # Undo the RC-01 weakened-close stage. With MF-016's factor gone this now
+    # lands directly on the pre-MF-016 figure.
     pre_rc01_stage = result.bound // 343 * 216
-    assert pre_rc01_stage == 699_840
-    pre_ac01 = pre_rc01_stage
-    # ...then the MF-016 4-valued kill-test gate...
-    pre_mf016 = pre_ac01 // 4
-    assert pre_mf016 == 174_960
+    assert pre_rc01_stage == 174_960
     # ...then the MF-027 5-valued effect gate to recover the MF-025 figure...
-    pre_mf013 = pre_mf016 // 5
+    pre_mf013 = pre_rc01_stage // 5
     assert pre_mf013 == 34_992
     # ...undo the MF-025 lifecycle collapse to recover the MF-014 figure...
     pre_mf025 = pre_mf013 // 216 * 4096
@@ -499,26 +509,43 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     assert (pre_mf025 // 3 // 6 * 32) // 3 == 393_216
     assert set(result.unbounded) == {"lastCommand", "result"}
 
-    # RP-04: the chain is a product over 7 of 9 variables, and says so.
+    # RP-04: the chain is a product over 6 of 8 variables, and says so.
     # The 2026-08-04 removal took two variables the resolver COULD see (both had
     # fixed string domains in TypeInvariant), so both counts moved by two and the
     # unresolved pair is unchanged -- which is exactly the property RP-04's
     # assertions exist to police, now exercised in the subtracting direction:
     # the chain above is still a like-for-like comparison because the removal
     # divided out of the same resolved subset every earlier factor multiplied
-    # into.
+    # into. CA-04 took ONE more resolvable variable (`kill_test`, 4-valued),
+    # so both counts moved by one again and the unresolved pair is STILL
+    # unchanged: 7/9 -> 6/8.
     completeness = result.completeness
-    assert completeness.resolved == 7
-    assert completeness.total == 9
+    assert completeness.resolved == 6
+    assert completeness.total == 8
     assert completeness.complete is False
     assert completeness.unresolved == ["lastCommand", "result"]
-    # Over the cap on an incomplete bound is still over the cap -- the two
-    # unresolved variables can only make the complete bound larger. That is the
-    # one direction the comparison survives, and this model is on that side of
-    # it, which is why RP-04 moved no figure recorded for this repository.
-    assert completeness.comparable_to_cap(result.bound, 1_000_000) is False
-    assert any(w.kind == "state_space_bound" for w in result.warnings)
-    assert not any(w.kind == "state_space_bound_partial" for w in result.warnings)
+    # CA-04: THIS ASSERTION FLIPPED FROM `False` TO `None`, AND THE DIFFERENCE
+    # IS THE POINT RP-04 BUILT THIS CLASS TO MAKE. `False` meant "incomplete,
+    # but already over the cap" -- a claim that is sound in the direction it is
+    # made, because the two unresolved variables can only make the complete
+    # bound larger. `None` means the comparison is REFUSED: an incomplete bound
+    # at or under the cap supports no statement at all.
+    #
+    # So the honest reading of the removal is NOT "the model is now within
+    # budget". It is "the model can no longer be SAID to be over budget". The
+    # measured 277,830 is a product over 6 of 8 variables and the complete bound
+    # is unknown. A future ticket must not quote this as a model that came in
+    # under 1,000,000.
+    assert completeness.comparable_to_cap(result.bound, 1_000_000) is None
+    # CA-04: these two SWAPPED, for the same reason the cap comparison went
+    # False -> None. The scanner used to raise `state_space_bound` ("exceeds
+    # max_state_space_bound"); it now raises `state_space_bound_partial`
+    # ("INCOMPLETE and CANNOT be compared ... this scan reports the cap
+    # comparison as unknown rather than as within cap"). The model did not
+    # become compliant -- it became unmeasurable against the cap, and the
+    # scanner says so itself rather than falling silent.
+    assert any(w.kind == "state_space_bound_partial" for w in result.warnings)
+    assert not any(w.kind == "state_space_bound" for w in result.warnings)
 
 
 def test_cfg_constant_sets_drive_cardinality() -> None:
@@ -878,9 +905,12 @@ def test_repository_own_model_has_landed_the_setup_phase_collapse() -> None:
     # (architecture_scan) and RC-01's factor of 6 (architecture_delta) were both
     # REMOVED 2026-08-04 with the static architecture scanners, so they are no
     # longer divided out here: the chain gets SHORTER when model surface goes
-    # away, which is the point. Undo the rest before checking the setup-phase
-    # factor. A change to the setup-phase factor itself would still break this.
-    pre_mf025 = result.bound // 343 * 216 // 4 // 5 // 216 * 4096
+    # away, which is the point. CA-04 removed MF-016's factor of 4 the same way
+    # (the mutation kill test, RM-03-DF-05), so THAT `// 4` is gone from the
+    # chain too -- the third time this has happened and the second removal to do
+    # it. Undo the rest before checking the setup-phase factor. A change to the
+    # setup-phase factor itself would still break this.
+    pre_mf025 = result.bound // 343 * 216 // 5 // 216 * 4096
     # The figure MF-011 projected, still present as a factor of the bound
     # after MF-014's corpus_gate tripled it.
     assert pre_mf025 % 221_184 == 0

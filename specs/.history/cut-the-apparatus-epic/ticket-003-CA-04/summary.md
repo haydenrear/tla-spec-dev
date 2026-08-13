@@ -1,0 +1,20 @@
+# Ticket snapshot: CA-04
+
+- Workflow: `cut-the-apparatus-epic`
+- Entry: `ticket-003-CA-04`
+- Ticket: `CA-04`
+
+## Summary
+
+Cut oracle 4, the mutation kill test and the last hard static gate in this repository (RM-03-DF-05, which identified this cut, declined it as a model delta its own ticket forbade, and asked for 'its own ticket against the CLI model'). Removed: the kill_test variable, the RunKillTest action and the KillTestVerdictRequiresBudgets invariant; RunKillTestAdapter and its binding; kill_rate_floor, the mutation_write port and RunKillTest's port row; three kill_mutants.toml catalogues; three spec-unit adapter tests; scripts/run_kill_test.py; tests/test_kill_test.py; and the 'run kill-test' subcommand. scripts/ -1,105 lines; card unchanged at 6,281 bytes sha256:2d7d4a0506d9b259. THE DECREASE IS LICENSED AND WAS NOT WHEN THIS CLOSE WAS FIRST ATTEMPTED: the ledger REFUSED the first attempt because no TLC had been run, that refusal was correct and is kept at close-refusal.txt, and the basis was then measured -- TLC green on both models, the before-model reconstructed from the branch point and verified both by sha256 and by reproducing the 563,963-state figure the repository had already recorded for it. WHAT THE MODEL CAN NO LONGER EXPRESS: nothing validates the representation against the PROGRAM; the cost caps lost their matching value floor; coverage can drift behind the model silently; and compare_reports, which separated a legitimate simplification from a disguised deletion, is gone -- in a cutting epic. A green tlc_after is weaker evidence here than for an ordinary refactor, because it certifies self-consistency, which is exactly what the kill test existed because TLC could not check. ONE MEASUREMENT GOT WORSE AND THE FLATTERING VERSION WAS WITHDRAWN: the bound fell 1,111,320 -> 277,830, but comparable_to_cap returns None rather than True for an incomplete bound under the cap, so the model did not become compliant, it became UNMEASURABLE against the cap. TWO ORDERED DELETIONS WERE REFUSED: kill_test.py has five in-repo consumers of its parser and suppression scanner, one at module scope in the driver RD-03 used for the zero-unique-kills disproof, so the oracle-4 half was cut and the 310-line parser retained; and candidate_note_bar.py rests on a misattributed finding, holds the repository's only assertion that the card is 6,281 bytes, and is the named reproduction of the open SV-07-DF-01. THE MOST TRANSFERABLE RESULT IS CA-04-DF-06 AND IT GENERALISES BEYOND THIS CUT: the epic's REQUIRED loader check greps deleted PATHS and is structurally blind to deleted INTERFACES -- CLI subcommands, exported symbols, manifest keys, TOML sections have no basename to grep for -- so every cutting ticket runs a check that cannot see the interfaces it retires and shipped adopter instructions rot with nothing going red; demonstrated on this ticket's own cut at SKILL.md:1167 and :1174, and again from the other end in CA-04-DF-08, where the validation matrix given to all eight tickets names a 'run tlc' subcommand the CLI does not have. AND CA-04-DF-07, which this ledger produced about itself: a hard gate refused a real promotion on substance and was right, after lying dormant the whole epic because CA-04 is the first ticket to change the model at all. Eight findings against a budget of five, all disposed, the overrun recorded as one. Suite 8 failed / 1466 passed on the merged tip: six pre-existing at CA-03's tip, two this ticket's, both declared and outside its scope, none repaired.
+
+## Snapshots
+
+- `program_model`: `specs/.history/cut-the-apparatus-epic/ticket-003-CA-04/snapshots/program_model`
+- `desired_program_model`: `specs/.history/cut-the-apparatus-epic/ticket-003-CA-04/snapshots/desired_program_model`
+- `current`: `specs/.history/cut-the-apparatus-epic/ticket-003-CA-04/snapshots/current`
+- `ticket_workdir`: `specs/.history/cut-the-apparatus-epic/ticket-003-CA-04/ticket`
+
+## Follow-up
+
+Review this append-only entry, then commit the history directory with the related spec changes.
