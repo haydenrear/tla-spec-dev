@@ -2286,3 +2286,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CA-03
+
+- close_scope: ticket
+- close_id: CA-03
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-13T19:26:02+00:00
+- summary: CA-03: RD-03-DF-08's cut was already made at card version 4 (zero lines removed, enumeration shipped as evidence); SV-04-DF-05 repaired in cmd_scaffold by recording the [round-dir, arm-label] pair blinding makes necessary, with a demonstrated failing input on the real subject toolchain_fixture. All five checks kept and decided on the record. No new gate. Card unchanged at 6281 bytes.
+- feedback_status: none-found
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
