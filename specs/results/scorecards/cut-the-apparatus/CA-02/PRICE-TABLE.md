@@ -299,7 +299,8 @@ tellings**, which is exactly why the wrong endpoints survived a self-check — s
 ```
 runs:      6 failed, 1526 passed in 1092.83s (0:18:12)  @ f92f0a5  (pre-merge)
            6 failed, 1526 passed in 1130.91s (0:18:50)  @ 2244095  (reconciled)
-           PENDING-HEAD-RUN                             @ PR head
+           6 failed, 1522 passed in 1167.65s (0:19:27)  @ 148a155  (PR HEAD)
+           SAME SIX FAILURES IN ALL THREE. 1522 + 6 = 1528 = collection.
 evidence:  specs/results/scorecards/cut-the-apparatus/CA-02/pytest-repo-unit.txt
            specs/results/scorecards/cut-the-apparatus/CA-02/pytest-repo-unit-reconciled.txt
            specs/results/scorecards/cut-the-apparatus/CA-02/pytest-repo-unit-head.txt
@@ -311,10 +312,17 @@ PR head**. `2244095` precedes the close commit, which rewrites
 `specs/desired_program_model/ticket_plan.yaml` and moves `specs/tickets/CA-02/`
 — and **two of the six reds read those paths at test time**
 (`test_ticket_retirement`, `test_source_citations`). So the committed evidence
-was consistent with the conclusion but **did not establish it at the head**. A
-third run at the PR head is recorded above and in
-`pytest-repo-unit-head.txt`; the passed count differs from the earlier runs only
-by the six collection items the close removed.
+was consistent with the conclusion but **did not establish it at the head**.
+
+**A third run at `148a155` now does**, recorded in `pytest-repo-unit-head.txt`:
+**6 failed, 1522 passed**, the same six failures, and `1522 + 6 = 1528` matches
+the measured collection exactly. The passed count differs from the earlier runs
+by precisely the six collection items the close removed. **The only delta
+between the run commit and the PR head is that transcript and this paragraph**,
+and neither can enter collection — `CITATION_SCOPE` is a fixed glob list
+(`scripts/*.py` plus three named manifests), so nothing under
+`specs/results/scorecards/` is collectable. Verified by reading the constant,
+not assumed.
 
 **Zero new reds.** The six that remain are exactly the baseline seven minus the
 deleted one, each still failing for its own recorded cause:
