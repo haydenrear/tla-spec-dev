@@ -2,24 +2,24 @@
 .............................................................F.......... [  9%]
 ........................................................................ [ 13%]
 ........................................................................ [ 18%]
-........................................................................ [ 22%]
+........................................................................ [ 23%]
 ........................................................................ [ 27%]
 ........................................................................ [ 32%]
-........................................................................ [ 36%]
+........................................................................ [ 37%]
 ........................................................................ [ 41%]
-........................................................................ [ 45%]
-..............................................................F......... [ 50%]
-........................................................................ [ 54%]
-........................................................................ [ 59%]
-........................................................................ [ 64%]
-........................................................................ [ 68%]
-.............................F.......................................... [ 73%]
-........................................................................ [ 77%]
-........................................................................ [ 82%]
-........................................................................ [ 86%]
-.....................FFF................................................ [ 91%]
-........................................................................ [ 96%]
-.................................F.............................          [100%]
+........................................................................ [ 46%]
+..................................................................F..... [ 51%]
+........................................................................ [ 55%]
+........................................................................ [ 60%]
+........................................................................ [ 65%]
+........................................................................ [ 69%]
+........................................................................ [ 74%]
+........................................................................ [ 79%]
+........................................................................ [ 83%]
+...............................................................FFF...... [ 88%]
+........................................................................ [ 93%]
+........................................................................ [ 97%]
+...F.............................                                        [100%]
 =================================== FAILURES ===================================
 _______________________ test_the_same_tag_control_holds ________________________
 
@@ -88,45 +88,6 @@ classifier = <module 'sv03_baseline_is_a_card' from '/Users/hayde/IdeaProjects/w
 E       KeyError: 'GOAL-loop-reaches-the-program'
 
 tests/test_goal_baseline_is_a_card.py:199: KeyError
-______________ test_nothing_in_the_repository_invokes_the_pricer _______________
-
-    def test_nothing_in_the_repository_invokes_the_pricer() -> None:
-        """No new gates. Five epics of static checking caught zero bugs."""
-        hits = subprocess.run(
-            ["git", "grep", "-l", "price_removal"],
-            cwd=str(REPO_ROOT), capture_output=True, text=True,
-        ).stdout.split()
-        if not hits:
-            pytest.skip("no git history in this tree")
-        allowed = {
-            "examples/validation/gap_mutants/price_removal.py",   # itself
-            "tests/test_price_removal.py",                        # its tests
-            "examples/validation/instruments/instruments.toml",   # its registry row
-            "examples/validation/gap_mutants/residual_faults.toml",  # names it in a comment
-            # RM-03: `test_no_catalogue_mutant_could_have_priced_a_removal_and_it_says_so`
-            # explains in a comment why RM-03's mutants read `NOT-IN-TABLE` there --
-            # they were priced against their own before-table, with THIS file, over
-            # kill sets. A mention, not a call: that test runs `removal_census.py`
-            # and nothing else.
-            "tests/test_removal_census.py",
-            # RM-04: `subjects.toml` names the file in the comment that declares
-            # `rm04_removal_pricer` -- the before/after this round scored D2 on was
-            # 1209 lines of `gap_mutants.toml` + `run_gap_mutants.py` becoming 899
-            # of `price_removal.py` + `altered_score_probe.py` +
-            # `residual_faults.toml`, and a judge cannot check a declared scope
-            # against a description that will not say what is in it. A mention in a
-            # TOML comment; nothing in that file can call anything.
-            "examples/validation/scorecards/subjects.toml",
-        }
-        unexpected = [h for h in hits if h not in allowed and not h.startswith("specs/")]
->       assert unexpected == [], f"something consults the pricer: {unexpected}"
-E       AssertionError: something consults the pricer: ['CLOSE-THE-LOOP-EPIC.md', 'NEXT-EPIC.md']
-E       assert ['CLOSE-THE-L...NEXT-EPIC.md'] == []
-E         
-E         Left contains 2 more items, first extra item: 'CLOSE-THE-LOOP-EPIC.md'
-E         Use -v to get more diff
-
-tests/test_price_removal.py:602: AssertionError
 _ test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml] _
 
 path = PosixPath('/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-05/specs/current/spec_manifest.yaml')
@@ -348,16 +309,15 @@ _____ test_repository_canonical_delivered_plan_has_matching_close_receipts _____
 >       assert validate_ticket_plan_closed(plan_path, repo_root=ROOT) == []
 E       AssertionError: assert ['ticket CA-0...atus=planned'] == []
 E         
-E         Left contains 6 more items, first extra item: 'ticket CA-02 is not closed: status=planned'
+E         Left contains 5 more items, first extra item: 'ticket CA-03 is not closed: status=planned'
 E         Use -v to get more diff
 
 tests/test_ticket_retirement.py:588: AssertionError
 =========================== short test summary info ============================
 FAILED tests/test_architecture_tags.py::test_the_same_tag_control_holds - Ass...
 FAILED tests/test_goal_baseline_is_a_card.py::test_a_real_epic_plans_judged_baseline_cannot_be_re_opened
-FAILED tests/test_price_removal.py::test_nothing_in_the_repository_invokes_the_pricer
 FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml]
 FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/spec_manifest.yaml]
 FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/program_model/spec_manifest.yaml]
 FAILED tests/test_ticket_retirement.py::test_repository_canonical_delivered_plan_has_matching_close_receipts
-7 failed, 1568 passed in 1166.35s (0:19:26)
+6 failed, 1539 passed in 1253.99s (0:20:53)
