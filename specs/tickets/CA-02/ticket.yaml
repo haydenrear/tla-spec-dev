@@ -1,0 +1,136 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CA-02",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-02/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-02/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-02/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Every deletion names the finding ID that justifies it -- RM-05-DF-01, CL-02, RM-02, RM-03.",
+        "Lines removed reported PER SURFACE and never combined with the card.",
+        "The sealed record still reads: HISTORY-toolchain_removal.md and the affected cards open and render.",
+        "The fate of the deliberate pricer-grep red is stated explicitly, with numerator/denominator movement named.",
+        "The price-table format is a plain markdown file with a fixed row shape and NO new code.",
+        "The card is unchanged: serve | wc -c is still 6,281."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "CA-03",
+      "CA-04",
+      "CA-08"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "examples/validation/gap_mutants/",
+        "examples/validation/removal_census/",
+        "scripts/complexity_ledger.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "tests/test_price_removal.py",
+        "tests/test_removal_census.py",
+        "tests/test_complexity_ledger.py",
+        "specs/results/scorecards/cut-the-apparatus/GOAL-apparatus-cut/"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/256",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "-1,444 lines or more from examples/validation/ (price_removal.py 838, altered_score_probe.py 177, removal_census.py 429) plus whatever in scripts/ exists only to feed them, and the epic's price-table format established.",
+        "goal": "GOAL-apparatus-cut",
+        "local_signal": "find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected -- none of the four results depends on the pricer. VERIFY THAT RATHER THAN ASSERTING IT, and say what happens to the deliberate pricer-grep red.",
+        "goal": "GOAL-four-results-stand",
+        "local_signal": "uv run --with pytest --with pyyaml -m pytest tests -q"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none -- this is the worked example of a finding being consumed into a deletion",
+        "goal": "GOAL-consumption-obligatory",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-blind-dispatch",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "CA-02",
+    "implementation_scope": [
+      "examples/validation/gap_mutants/",
+      "examples/validation/removal_census/",
+      "scripts/",
+      "tests/",
+      "specs/results/scorecards/cut-the-apparatus/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "THE FIRST CUT, AND THE ONE WITH THE CLEANEST FINDING BEHIND IT. RM-05-DF-01 and CL-02: the normal shape of a removal here ALWAYS returns ENTAILED-SURVIVES, because that verdict follows from git show alone. RM-03's 'first PRICED removal' was WITHDRAWN when its own zero-gap control returned the same verdict. Re-priced history over kill sets returned 'priced rows: [], 0 of 10'. RM-02 adds that the catalogues are ab_quota_ledger fixtures with NO VERSION AN ADOPTER RECEIVES, and that this argument SURVIVES A ZERO AND SURVIVES A DEFECTIVE CLASSIFIER PRODUCING ONE, BECAUSE IT IS NOT A PRICING ARGUMENT. A gap mutant can price a removal only if every detector that killed it is one the removal deletes -- 0 OF 9 over the sealed table. THE INSTRUMENT COULD ONLY EVER RETURN ZERO. Cut it: price_removal.py, altered_score_probe.py, removal_census.py, their catalogues, and whatever in complexity_ledger.py exists only to feed them. PRICE THE CUT: lines removed per surface, what the tree can no longer do, and which sealed results depended on it -- and CHECK THAT DEPENDENCY EXPLICITLY, because HISTORY-toolchain_removal.md and the sealed cards must still read. ONE OF THE TWO DELIBERATE REDS IS THE PRICER GREP TRIPPED BY NARRATIVE DOCUMENTS: say what happens to that red when the pricer goes, and DO NOT quietly claim a red repaired that was actually deleted -- denominator_rule applies to suite counts. Establish the epic's PRICE TABLE FORMAT in this ticket as a plain markdown file with a fixed row shape -- NO NEW CODE; the epic is about cutting apparatus, and a tool to measure cutting apparatus is apparatus.",
+    "promotion_order": 20,
+    "promotion_predecessor": "CA-01",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Cut the gap-mutant / removal-pricing machinery, which was measured to be able to return only one answer",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-02/specs/tickets/CA-02",
+  "ticket_id": "CA-02",
+  "ticket_index": 1,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-02/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-02/specs/tickets"
+}

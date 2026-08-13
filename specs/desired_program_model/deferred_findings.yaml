@@ -13764,3 +13764,272 @@ findings:
       the real subject is a file the next epic overwrites. Worth a census against
       the other shipped demonstrations, which is CA-03's neighbourhood.
     disposition: open
+
+  - id: CA-02-DF-01
+    found_by: "CA-02, cutting the removal-pricing machinery"
+    found_at_commit: "37ab155"
+    schedule_revision: 1
+    severity: moderate
+    channel: "measured while implementing the assigned slice -- a grep the work order's own wording predicted would find something"
+    cost:
+      basis: "one grep over 1,245 lines plus one predicate check; no run"
+      value: "negligible -- under a minute, and it removed a planned deletion rather than adding one"
+    surface:
+      production:
+        - "scripts/complexity_ledger.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      `scripts/complexity_ledger.py` HAS NO PRICER COUPLING AT ALL, and the work
+      order assumed it did. Issue #256 and the plan both instruct CA-02 to cut
+      "whatever in `complexity_ledger.py` exists only to feed them". Measured:
+      NOTHING does. A search of all 1,245 lines for `gap_mutant`, `price`,
+      `removal`, `residual`, `census` and `mutant` returns exactly one hit -- the
+      word "removed" inside an unrelated prose string at line 854. The file does
+      not import, invoke, or reference any cut surface, and it does not satisfy
+      the instrument registry's own executable predicate either.
+      THE CONSEQUENCE IS A GOAL RISK, NOT A TIDINESS POINT. `scripts/` is 27,652
+      of the 43,553 lines `GOAL-apparatus-cut` measures -- 63% of the denominator
+      -- and CA-02, the ticket the plan aimed at `scripts/`, moved it by ZERO
+      lines. The 30% target (43,553 -> 30,487, a cut of 13,066) is not reachable
+      from `examples/validation/` alone, which is only 15,901 lines in total.
+    reproduction: >-
+      grep -n -iE 'gap_mutant|price|removal|residual|census|mutant'
+      scripts/complexity_ledger.py   ->   one hit, line 854, the word "removed"
+      in a prose string about TLA+ transitions.
+    why_out_of_scope: >-
+      Deleting any part of `complexity_ledger.py` on this ticket would have been a
+      cut with NO FINDING BEHIND IT, which fails clause (b) of
+      `GOAL-apparatus-cut` even when the lines fall. The epic charter is explicit
+      that a cut is made on the record and never on aesthetics. Manufacturing a
+      justification to make the `scripts/` column non-zero is the exact failure
+      mode the clause exists to prevent.
+    suggested_fix: >-
+      Plan feedback for the epic owner, not ticket work. Either a later ticket
+      (CA-03/CA-05/CA-06's neighbourhood) finds a REAL finding-backed cut inside
+      `scripts/`, or CA-08 records that clause (a) was missed and says so with the
+      denominator named. Do NOT resolve it by re-scoping the goal after the fact.
+    blast_radius: >-
+      One column of one goal, but it is the column carrying most of the target.
+      Any sibling ticket that assumed `scripts/` was already being reduced by
+      CA-02 should re-plan.
+    disposition: open
+
+  - id: CA-02-DF-02
+    found_by: "CA-02, cutting the removal-pricing machinery"
+    found_at_commit: "37ab155"
+    schedule_revision: 1
+    severity: moderate
+    channel: "a red raised by this ticket's own targeted run, traced to its cause before the full suite"
+    cost:
+      basis: "one 224-second targeted run of tests/test_instrument_demonstrations.py, plus one direct invocation of the derivation"
+      value: "~4 minutes; it caught a stale demonstration that a full-suite-only workflow would have surfaced 20 minutes later"
+    surface:
+      production:
+        - "examples/validation/instruments/instruments.toml"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "tests/test_instrument_demonstrations.py"
+    summary: >-
+      A DEMONSTRATION WHOSE `expect_output` ENCODES A WHOLE-TREE CENSUS FIGURE
+      GOES STALE ON ANY DELETION ANYWHERE IN THE TREE, AND THIS IS A CUTTING
+      EPIC. `architecture-tag-derivation`'s passing slot asserts
+      "17 of 21 subject(s) decided". CA-02 deleted the Python under
+      `examples/validation/gap_mutants`, which is the declared scope of
+      `subject.rm04_removal_pricer`, so that subject went
+      `UNDERIVABLE:no-effect-surface` and the figure moved to 16 of 21 -- turning
+      `test_every_fast_demonstration_reproduces` red for a reason that has
+      nothing to do with the instrument being wrong.
+      EVERY REMAINING CUTTING TICKET IN THIS EPIC WILL HIT THIS if it deletes
+      Python under any of the 21 declared subject scopes, and the red it produces
+      LOOKS like a broken instrument while actually being a correct instrument
+      reporting a changed tree.
+    reproduction: >-
+      Delete the last Python file under any declared subject scope in
+      `examples/validation/scorecards/subjects.toml`, then run
+      `python3 examples/validation/scorecards/architecture_tags.py derive` and
+      compare with the `expect_output` of `architecture-tag-derivation`.
+    why_out_of_scope: >-
+      CA-02 updated the figure for its own cut -- which is what the row's own
+      summary instructs, since RD-05 already moved it three times and the row
+      says the count is updated rather than dropped and every superseded figure
+      kept. Redesigning how demonstrations encode census figures is a change to
+      the registry mechanism and belongs to whoever owns it, not to a cut.
+    suggested_fix: >-
+      Consider whether a whole-tree census figure belongs in `expect_output` at
+      all, or whether the demonstration should assert the SHAPE ("N of M
+      subject(s) decided" plus the refusal reasons) and let the count live in the
+      summary where it is already narrated. NOTE THE TENSION HONESTLY: the row's
+      current design is deliberate -- "a demonstration that asserts nothing about
+      its output is not a demonstration" -- so this is a real trade and not an
+      obvious repair. Do not weaken it to a regex that can never fail; that is a
+      check fitted to convenience.
+    blast_radius: >-
+      One demonstration today. Potentially every remaining ticket in this epic,
+      and the cost is a misattributed red rather than a wrong result.
+    disposition: open
+
+  - id: CA-02-DF-03
+    found_by: "CA-02, cutting the removal-pricing machinery"
+    found_at_commit: "37ab155"
+    schedule_revision: 1
+    severity: moderate
+    channel: "noticed while checking, per the work order, which sealed results depended on the cut"
+    cost:
+      basis: "one read of subjects.toml and one grep for scope-existence assertions across tests/"
+      value: "negligible; it changed the shape of the deletion (a tombstone instead of an empty directory)"
+    surface:
+      production:
+        - "examples/validation/scorecards/subjects.toml"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      THERE IS NO DECLARED POLICY FOR WHAT HAPPENS TO A SEALED SCORECARD SUBJECT
+      WHOSE SCOPE A LATER CUT EMPTIES. `subject.rm04_removal_pricer` declares
+      `scope = ["examples/validation/gap_mutants"]` and was scored into the
+      sealed cards `portable-substrate-rm04-JJ`. CA-02 deleted everything
+      executable under that scope. The subject is still declared, its sealed
+      cards still read, and its D2 before-tree is materialised under `specs/` --
+      but the live tree it names is now a tombstone file.
+      CA-02 kept the directory alive with `RETIRED.md` precisely so the scope
+      resolves, BUT THAT WAS A JUDGEMENT CALL WITH NOTHING BEHIND IT. Nothing in
+      the repository asserts that a non-RD-06 subject's scope exists -- only
+      `tests/test_rd06_subjects.py` makes that assertion, and only for RD-06
+      labels -- so an outright deletion would have passed the suite and quietly
+      left a sealed card pointing at nothing.
+    reproduction: >-
+      Compare `tests/test_rd06_subjects.py::test_every_rd06_subject_declares_a_scope_that_points_at_a_real_tree`
+      (asserts `is_dir()`, RD-06 labels only) against the rm04 and SV-01 subjects
+      in `examples/validation/scorecards/subjects.toml`, which have no equivalent
+      assertion anywhere.
+    why_out_of_scope: >-
+      Adding a scope-existence assertion over all declared subjects is a NEW
+      CHECK, and this epic's charter says do not add a gate -- seven epics, zero
+      bugs caught by a static check. It is also outside CA-02's conflict keys.
+      The right answer may well be a documented convention rather than a test.
+    suggested_fix: >-
+      Decide and write down what a cut owes a sealed subject: keep the scope path
+      alive with a tombstone (what CA-02 did), retire the subject explicitly in
+      `subjects.toml` with a `retired_by`, or accept a dangling scope and say so.
+      Any of the three is defensible; the current state is that NONE is written
+      down and the outcome depends on whether the ticket agent happened to look.
+    blast_radius: >-
+      21 declared subjects, of which the sealed ones are the ones that matter.
+      The damage from getting it wrong is silent and only visible to a later
+      reader of a sealed card.
+    disposition: open
+
+  - id: CA-02-DF-04
+    found_by: "CA-02, cutting the removal-pricing machinery"
+    found_at_commit: "37ab155"
+    schedule_revision: 1
+    severity: moderate
+    channel: "raised by the ticket against its own work while writing the price table's sealed-results section"
+    cost:
+      basis: "no run; a consequence noticed while writing section 5 of the price table"
+      value: "negligible to find, and it is the one entry here that argues against the ticket that filed it"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/cut-the-apparatus/CA-02/PRICE-TABLE.md"
+    summary: >-
+      THE CUT DELETED THE INSTRUMENT BEHIND ONE OF THE FOUR DISPROOFS, AND THE
+      DISPROOF IS THE THING THAT JUSTIFIED THE CUT. Disproof 3 -- "the
+      removal-pricing instrument could only ever return zero", 0 of 9 over the
+      sealed table -- was produced BY `price_removal.py` and `removal_census.py`,
+      which CA-02 removed on the strength of it.
+      The disproof still READS: its evidence is sealed under
+      `specs/results/scorecards/portable-substrate/GOAL-removal-can-be-priced/`
+      and `.../close-the-loop/GOAL-price-means-something/`, none of it touched.
+      What is no longer possible is RE-DERIVING it. Anyone who later doubts the
+      0-of-9 figure cannot recompute it at the tip; they must either trust the
+      sealed record or restore the instrument from `37ab155`.
+      THIS IS A SELF-SEALING SHAPE AND IT SHOULD BE SAID OUT LOUD RATHER THAN
+      DISCOVERED: an instrument that measures itself useless licenses its own
+      deletion, after which the measurement cannot be checked. CA-02 believes the
+      cut is right -- `RM-02`'s adoption argument survives a zero and survives a
+      defective classifier producing one, BECAUSE IT IS NOT A PRICING ARGUMENT --
+      but the epic should notice that the fallback argument is the load-bearing
+      one, not the 0 of 9.
+    reproduction: >-
+      git show 37ab155 -- examples/validation/gap_mutants/price_removal.py
+      examples/validation/removal_census/removal_census.py   (the only route to
+      re-running the measurement that justified removing them).
+    why_out_of_scope: >-
+      Not a defect to repair -- the cut is the assigned slice and the sealed
+      evidence is intact. It is recorded because `GOAL-four-results-stand`'s
+      baseline requires the epic to state what it broke, and "an instrument that
+      can no longer be re-run" is a weaker claim than "a result that no longer
+      reproduces" but is not nothing.
+    suggested_fix: >-
+      CA-08 should decide whether every disproof needs a re-derivable instrument
+      at the tip or whether a sealed transcript suffices, AND STATE THE ANSWER
+      RATHER THAN INHERITING IT. The baseline already asks CA-04 the same
+      question about disproof 1; this is the same question about disproof 3, and
+      the two should get the same answer.
+    blast_radius: >-
+      One of the four disproofs. The result stands; only its re-derivation is
+      gone.
+    disposition: open
+
+  - id: CA-02-DF-05
+    found_by: "CA-02, cutting the removal-pricing machinery"
+    found_at_commit: "37ab155"
+    schedule_revision: 1
+    severity: minor
+    channel: "traced deliberately, because the work order required the fate of this red to be stated"
+    cost:
+      basis: "one `git grep -l price_removal` filtered against the test's own allow-list"
+      value: "negligible; it converted an assumption about the red into a two-file measurement"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      A NO-NEW-GATES TRIPWIRE THAT GREPS FOR A FILENAME IS TRIPPED BY THE
+      PROJECT'S OWN NARRATIVE, AND THIS ONE WAS RED FOR TWO EPICS BEFORE BEING
+      DELETED WITH ITS SUBJECT RATHER THAN RESOLVED.
+      `test_nothing_in_the_repository_invokes_the_pricer` ran
+      `git grep -l price_removal` with an allow-list of legitimate code paths. At
+      `37ab155` exactly TWO files tripped it and BOTH ARE PROSE:
+      `CLOSE-THE-LOOP-EPIC.md` and `NEXT-EPIC.md`. It never once caught code.
+      CA-02 deleted it with `tests/test_price_removal.py` because that file tests
+      only the pricer. DENOMINATOR_RULE: the numerator fell because the assertion
+      left the suite, NOT because the tree changed to satisfy it. Both documents
+      still name `price_removal`, and this ticket's own price table names it many
+      times more. Had the test been kept it would be red today for exactly the
+      same reason.
+    reproduction: >-
+      At 37ab155:  git grep -l price_removal | grep -v '^specs/' | grep -vE
+      '<the six allowed paths>'   ->   CLOSE-THE-LOOP-EPIC.md, NEXT-EPIC.md.
+    why_out_of_scope: >-
+      RM-05 already identified the only available repair -- widening the test's
+      own allow-list -- and refused it as "editing a target so a result passes,
+      which an evaluation may not do". CA-02 agrees and did not take it. Keeping
+      a test whose subject no longer exists, purely to preserve a red, would be
+      the same move wearing different clothes.
+    suggested_fix: >-
+      A rule for the next agent who proposes a repo tripwire of this shape:
+      A GREP FOR A FILENAME CANNOT DISTINGUISH A CALL FROM A MENTION, and in a
+      repository that narrates its own history in checked-in markdown, the
+      mentions will always win. If such a tripwire is wanted, it should match on
+      an IMPORT or an INVOCATION (an AST predicate, as the enumeration check
+      already uses) rather than on the string. Better still, note that this one
+      caught zero bugs in two epics and do not replace it -- seven epics, zero
+      bugs caught by a static check.
+    blast_radius: >-
+      None outstanding -- the test is gone. Filed for the class, because the
+      registry contains other `repo-tripwire` rows and the next one will face the
+      same choice.
+    disposition: open
