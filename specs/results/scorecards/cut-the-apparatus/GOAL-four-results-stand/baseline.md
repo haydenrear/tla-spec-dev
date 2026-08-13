@@ -105,7 +105,64 @@ uv run --with pytest --with pyyaml -m pytest tests -q
 ```
 
 <!-- SUITE-BASELINE-START -->
-*(pending — filled in by the run started at epic kickoff on this branch)*
+### At the epic base `08d1d6a`, isolated detached worktree, seven affected files
+
+**6 failed, 314 passed.** Two are the declared deliberate reds. **Four are
+inherited and were never declared:**
+
+```
+test_architecture_tags.py::test_the_same_tag_control_holds                      DELIBERATE (RM-06-DF-01)
+test_price_removal.py::test_nothing_in_the_repository_invokes_the_pricer        DELIBERATE (pricer grep)
+test_source_citations.py::...[specs/current/spec_manifest.yaml]                 INHERITED, UNDECLARED
+test_source_citations.py::...[specs/desired_program_model/spec_manifest.yaml]   INHERITED, UNDECLARED
+test_source_citations.py::...[specs/program_model/spec_manifest.yaml]           INHERITED, UNDECLARED
+test_ticket_retirement.py::...delivered_plan_has_matching_close_receipts        INHERITED, UNDECLARED
+```
+
+**The record says "two deliberate reds, plus a third undeclared one found last
+epic." That understates it: there are at least four undeclared inherited reds**,
+and `SV-01` and `SV-02` each found only one of them. **None of these is any
+ticket's regression.**
+
+### At the epic tip `87a526b`, the same seven files
+
+**12 failed** on the full suite. The six above, plus six the kickoff commit
+introduced. **Attributed, because attribution is the whole point:**
+
+| red | cause | verdict |
+|---|---|---|
+| `test_a_refuted_finding_stays_on_the_record_with_its_filing` | `CA-00-DF-01` | **epic owner's damage** |
+| `test_the_repo_ledger_passes_its_own_audit` | `CA-00-DF-01` | **epic owner's damage** |
+| `test_the_repo_ledger_passes_its_own_audit_with_rh6` | `CA-00-DF-01` | **epic owner's damage** |
+| `test_the_shipped_rh5_demonstration_still_goes_red` | `CA-00-DF-01` | **epic owner's damage** |
+| `test_every_fast_demonstration_reproduces` | `CA-00-DF-01` (`scorecard-audit`, `scorecard-contested-drift`) | **epic owner's damage** |
+| `test_a_real_epic_plans_judged_baseline_cannot_be_re_opened` | `CA-00-DF-02` | **a finding, not damage** |
+
+**Restoring the ledger cleared five of the six**: those three files went from
+**6 failed / 152 passed** to **1 failed / 157 passed** on the same tree. The
+survivor is `CA-00-DF-02` — an `R1` instrument whose "real subject" is read out
+of the live plan and therefore dies at every epic kickoff.
+
+### So the figure every ticket compares against
+
+**7 reds at the epic branch after the restore**: the 2 deliberate, the 4
+inherited-undeclared, and `CA-00-DF-02`. **Anything beyond that list is yours and
+must be declared with its cause.**
+
+### Two runs that are NOT the baseline, and why
+
+Both are recorded rather than deleted, because a discarded run is evidence about
+method.
+
+1. **First full-suite run, 9 failed / 1553 passed.** Started at kickoff and
+   **contaminated by the epic owner editing `ticket_plan.yaml` and the manifests
+   while it was in flight** — several of those tests read those files at test
+   time. Unusable, and the same class as the shared-`baseline.txt` corruption in
+   this project's own operational rules.
+2. **Second full-suite run, 12 failed / 1550 passed.** Clean tree, but a ticket
+   agent created a worktree and branch mid-run. **Three tests flipped between the
+   two runs on the same tree**, which is why neither was published as the
+   baseline and why the attribution above was done per-file in isolation instead.
 <!-- SUITE-BASELINE-END -->
 
 **Compare against this figure, not against a recollection.** Two reds are
