@@ -37,7 +37,10 @@ what keeps that seal legible after the code under it was cut.
 > additionally forbids the quotation in its own words — *"STATED SO THIS FINDING
 > CANNOT BE QUOTED AS 'THE EPIC PRICED NOTHING'"* — and describes the file
 > **before** `CL-02` repaired it. Full correction table:
-> `specs/results/scorecards/cut-the-apparatus/CA-02/PRICE-TABLE.md` §0.
+> `specs/results/scorecards/cut-the-apparatus/CA-02/PRICE-TABLE.md` §0. The
+> propagation is filed as **`CA-00-DF-05`** (major, open), which names the origin
+> as the epic owner's and records that `CA-02` was the ticket told to check the
+> dependency explicitly and propagated it instead.
 
 `RM-03` had already retired this directory's other half — `run_gap_mutants.py`,
 `gap_mutants.toml`, `tests/test_gap_mutants.py` — on the same adoption grounds,

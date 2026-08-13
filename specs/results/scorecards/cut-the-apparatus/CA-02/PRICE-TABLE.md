@@ -15,17 +15,29 @@ conclusion survives. **What follows is what this table claimed first, what the
 record actually says, and who owns each error.** Nothing in the tree changed to
 produce this section.
 
-**The origin is the epic owner's**, filed as `CA-00-DF-05`: the work order and
-the canonical plan asserted *"THE INSTRUMENT COULD ONLY EVER RETURN ZERO"* and
-*"0 OF 9 over the sealed table"*, taken from issue #254 and propagated without
-checking them against the sealed record. **A share is this ticket's**: `CA-02`
-was the ticket told to *"CHECK THAT DEPENDENCY EXPLICITLY"*, and it propagated
-the assertion instead — then **added a citation the owner never made**.
+**The origin is the epic owner's, and it is filed as
+[`CA-00-DF-05`](../../../../desired_program_model/deferred_findings.yaml)
+(major, open) — read that row alongside this section; the two are one record,
+not two.** Issue #254's sentence *"the removal-pricing instrument could only
+ever return zero… 0 of 9 over the sealed table"* was copied into
+`CUT-THE-APPARATUS-EPIC.md`, the canonical plan, the `GOAL-four-results-stand`
+baseline **and `CA-02`'s work order** without being run against the record.
+`CA-00-DF-05` names the origin as the owner's and records that **`CA-02` was the
+ticket told to *"CHECK THAT DEPENDENCY EXPLICITLY"*.**
+
+**So a share is this ticket's, and this table states it in its own words rather
+than deferring to that row:** `CA-02` propagated the assertion instead of
+checking it, and then **added a citation the owner never made** — `RD-02`, the
+one ticket that had explicitly refused this deletion. `CA-00-DF-05` records the
+class as *"a scoped result restated as an unqualified fact… the project's own
+costliest recurring error, committed in the document that governs eight
+tickets"*. **`R3` and `scope` exist to catch exactly this and neither the
+charter's author nor this ticket ran them.**
 
 | # | what this table claimed | what the record says | owner |
 |---|---|---|---|
 | 1 | `RD-02` cited as authority for deleting the pricer and the census | **`RD-02` REFUSED this deletion.** It titles itself *"the apparatus is load-bearing"*, and `RD-02-RESULT.md:292` says *"It is not deleted, and the reason is `MF-020` turned on myself: removing the instrument that prices removals removes the ability to detect that a removal was harmful."* It also scopes its `0 of 9` explicitly as **not** a claim about every mutant, and filed **`RD-02-DF-02` (major, open)** against exactly this restatement. | **CA-02** — added, not inherited |
-| 2 | *"the instrument could only ever return zero"* | `NEXT-EPIC.md` §5: *"A non-zero was the informative outcome, **the instrument would have printed one**, and none appeared… The goal is met and **the instrument is not yet useful**."* `RM-02` §10.2: *"**the instrument can fire**, history remains free."* | owner's assertion, CA-02 propagated |
+| 2 | *"the instrument could only ever return zero"* | `NEXT-EPIC.md` §5: *"A non-zero was the informative outcome, **the instrument would have printed one**, and none appeared… The goal is met and **the instrument is not yet useful**."* `RM-02` §10.2: *"**the instrument can fire**, history remains free."* | **`CA-00-DF-05`** — owner's assertion, CA-02 propagated |
 | 3 | *"`priced rows: []`, 0 of 10"* as one figure | **Two different statistics conflated.** `0 of 10 disagree with the measurement` is an **audit-agreement** count — *"`audit`'s ten sealed rows did not move"*. `priced rows: []` is the re-pricing sweep. And nine lines below it the same transcript prints `PRICED RM-01-RF-1…`, under the heading *"RM-01's known positive, measured (price, not entail)"*. **CL-02's headline keeps the exception this table dropped.** | **CA-02** |
 | 4 | `RM-05-DF-01`'s *"no other verdict is reachable"* given as the standing reason to delete | **It describes the file BEFORE `CL-02` repaired it.** The file deleted here CONTAINS that repair — `EXTINCT`, `resolve_head`, `CONTROL_EXCLUDED`. The retirement row cited a repaired-and-closed defect as the reason to delete the repair. | **CA-02** |
 | 5 | suite denominator `1566 → 1532` | **Measured: `1562 → 1528`.** Same −34 delta, **both endpoints wrong**. 1566 was DERIVED as `1532 + 34`; 1562 is what the epic baseline already records (both discarded runs collected 1562). 1532 was the count at `2244095` only, inflated by six `test_source_citations` params over this ticket's own `specs/tickets/CA-02/` workspace, which the close then moved to `.history`. **On a ticket whose whole frame is `denominator_rule`, in an epic whose baseline says that 7 *"was DERIVED, and has since been MEASURED"* — the same error one layer down.** | **CA-02** |
@@ -46,12 +58,16 @@ stops this ticket repairing `repriced_history.py` — and **this section is what
 supersedes both**. A reader who finds the old sentences there should read them
 against this table.
 
-**Two more are the epic owner's to correct, not this ticket's:**
-`CUT-THE-APPARATUS-EPIC.md` §2 and
-`specs/results/scorecards/cut-the-apparatus/GOAL-four-results-stand/baseline.md`
-both still list *"the removal-pricing instrument could only ever return zero —
-0 of 9 over the sealed table"* among the four disproofs. The owner has taken
-that, with `CA-00-DF-05`.
+**The charter and the goal baseline were the epic owner's to correct, and they
+now ARE.** This paragraph previously said they *"both still list"* the refuted
+sentence; **that stopped being true at `fc39224`** and the claim is withdrawn
+here rather than left to rot. `CUT-THE-APPARATUS-EPIC.md` §2 now reads *"the
+removal-pricing instrument **is not yet useful**"* under a `CA-00-DF-05`
+correction block; the `GOAL-four-results-stand` disproof row was rewritten the
+same way and marked `(CORRECTED, CA-00-DF-05)`; the canonical plan went with
+them. The only occurrences of the old wording left in either file are **inside
+those correction blocks, quoting what they used to say** — the same shape as
+this section. **Checked against the merged tree, not assumed.**
 
 ---
 

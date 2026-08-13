@@ -14265,6 +14265,72 @@ findings:
       REQUIRED entry and wants a clean close is being handed a standing
       temptation to repair promoted state from a ticket branch.
     disposition: open
+  - id: CA-00-DF-05
+    found_by: "CA-02's independent reviewer, dispatched by the epic owner to refute PR #264"
+    found_at_commit: "87a526b"
+    schedule_revision: 1
+    severity: major
+    channel: "blind reviewer dispatched to refute"
+    cost:
+      basis: "harness-reported subagent_tokens for the CA-02 review dispatch"
+      value: "143,862 tokens, 77 tool uses"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "CUT-THE-APPARATUS-EPIC.md"
+        - "specs/desired_program_model/ticket_plan.yaml"
+        - "specs/results/scorecards/cut-the-apparatus/GOAL-four-results-stand/baseline.md"
+    summary: >-
+      THE EPIC'S OWN CHARTER ASSERTED A CLAIM THE SEALED RECORD REFUTES, AND THE
+      EPIC OWNER PUT IT THERE UNCHECKED. Issue #254 states "The removal-pricing
+      instrument could only ever return zero -- a gap mutant can price a removal
+      only if every detector that killed it is one the removal deletes: 0 of 9 over
+      the sealed table." The epic owner copied it into CUT-THE-APPARATUS-EPIC.md,
+      the canonical plan, the GOAL-four-results-stand baseline AND CA-02's work
+      order without running it against the record.
+
+      THE RECORD REFUTES IT IN THREE PLACES. RM-05-DF-01 forbids the quotation by
+      name: "WHAT SURVIVES, STATED SO THIS FINDING CANNOT BE QUOTED AS 'THE EPIC
+      PRICED NOTHING'... The epic HAS a priced removal." RM-02 section 10.2: "the
+      instrument CAN FIRE, history remains free." And RD-02 -- which scopes its own
+      0 of 9 explicitly as NOT a statement about every mutant -- REFUSED THIS VERY
+      DELETION, titling itself "the apparatus is load-bearing" and filing
+      RD-02-DF-02 (major, open) against exactly this restatement.
+
+      THIS IS THE PROJECT'S OWN COSTLIEST RECURRING ERROR COMMITTED IN THE DOCUMENT
+      THAT GOVERNS EIGHT TICKETS: a scoped result restated as an unqualified fact.
+      R3 and `scope` exist to catch it. NOBODY RAN THEM AGAINST THIS CHARTER,
+      including the party who wrote the charter rule requiring every research
+      ticket to run its own proposed rule against the sealed record before shipping.
+    reproduction: >-
+      `grep -rn "could only ever return zero" CUT-THE-APPARATUS-EPIC.md` at 87a526b
+      through a6bdf42. Against the record: RM-05-DF-01's "WHAT SURVIVES" paragraph;
+      RM-02 section 10.2; RD-02-RESULT.md:292 -- "It is not deleted, and the reason
+      is MF-020 turned on myself: removing the instrument that prices removals
+      removes the ability to detect that a removal was harmful."
+    why_out_of_scope: >-
+      Not out of scope -- it IS the scope, and it is the epic owner's own defect
+      rather than any ticket's. Filed so the correction is on the record rather
+      than quietly edited into the charter, and so CA-08 can count it as a finding
+      the epic produced about itself.
+    suggested_fix: >-
+      DONE for the prose: the charter, the plan and the goal baseline now carry the
+      correction with the refuting citations, and CA-02 is correcting its own
+      artifacts. NOT DONE, and this is the durable half: RUN `scope` AGAINST THE
+      EPIC CHARTER AND THE CANONICAL PLAN AT KICKOFF, the way it is run against the
+      card and the record. The instrument for catching this already ships. It was
+      never pointed at the document that directs the work.
+    blast_radius: >-
+      CA-02's entire justification chain, which propagated the claim into five
+      retirement rows and a price table -- though the CUT ITSELF SURVIVES on
+      RM-02's adoption argument and NEXT-EPIC section 5's "do not fund a third
+      epic on it". Also GOAL-four-results-stand's disproof table, which listed the
+      refuted sentence as one of the four load-bearing disproofs the epic must not
+      break -- so the epic was guarding a claim that was already false.
+    disposition: open
 
   - id: CA-02-DF-01
     found_by: "CA-02, cutting the removal-pricing machinery"
