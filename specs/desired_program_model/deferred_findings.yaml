@@ -14683,3 +14683,394 @@ findings:
       while CA-08 requires the basis be named. CA-05 should reconcile these into
       a real schema; CA-02 does not defend this shape.
     disposition: open
+
+  - id: CA-03-DF-01
+    found_by: "CA-03, by reading the card's own version history before cutting anything"
+    found_at_commit: "4302082"
+    schedule_revision: 1
+    severity: major
+    channel: "operator-doing-the-work"
+    channel_note: >-
+      Found by reading `references/eval_scorecard.md`'s version-history table and
+      then sweeping the live tree for the coupling it describes, before writing a
+      line of code. The charter's own new rule -- every research ticket runs its
+      proposed rule against the sealed record before it ships -- is what produced
+      this, and it produced it in the first hour.
+    cost:
+      basis: "one read of the card's version-history table plus one exhaustive repository sweep for descriptor-to-D2 coupling"
+      value: >-
+        ~87k subagent tokens for the sweep, plus the primary read. It converted a
+        deletion into a verdict and stopped a cut that had no live subject.
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml", "CUT-THE-APPARATUS-EPIC.md"]
+    summary: >-
+      THE CUT CA-03 WAS SENT TO MAKE WAS ALREADY MADE, AT CARD VERSION 4, AND THE
+      CARD SAYS SO IN ITS OWN VERSION HISTORY.
+
+      The work order reads *"Cut the descriptor's role as a precondition of a D2
+      score"*. `references/eval_scorecard.md:769`, the version-4 row, reads:
+      *"D2's anchor 4 is deleted, so D2 is a 0-3 scale; D2's preamble stops
+      requiring a measured descriptor to be read first."* The retired preamble is
+      kept verbatim at `:801-803` and is UNREACHABLE by construction -- `:775-778`
+      says `serve` renders parsed structure and the parser matches
+      `### D<n> - <name>` headings, which the retired block deliberately is not.
+
+      The LIVE version-5 preamble is the opposite of a precondition:
+      *"Where a measured complexity descriptor exists you may read it, and on its
+      own it decides nothing; where none exists that is not a gap in the
+      evidence."*
+
+      MEASURED, NOT ASSUMED. `grep -c 'code_complexity\|analyze_complexity'
+      examples/validation/scorecards/score_tools.py` is ZERO. `check()`
+      (`score_tools.py:840-1122`) never opens `mechanical.json` and validates a
+      D2 of 0-3 with no figure of any kind present. Nothing in `prompts/` puts a
+      descriptor in front of a judge: `prompts/produced_code_reading.md` is
+      addressed to *"the agent that wrote the tree"* and the string `D2` does not
+      occur in it; `prompts/hexagonal_implementation.md:56-57` says the
+      descriptor *"is dispatched AFTER the tree exists, as a separate ask, and
+      never as part of the block below."* And
+      `tests/test_code_complexity.py:669::test_no_reader_of_this_instrument_gates_on_its_output`
+      already asserts, repository-wide, `sorted(refusals) == []`.
+
+      WHAT REMAINS IS NOT CUTTABLE AND IS NOT A PRECONDITION. The scaffolded
+      `mechanical.json` and the pointer to it are mandated by SERVED card rule 7
+      -- *"The mechanical block is recorded, never scored. Kill counts,
+      complexity figures, case counts, determinism, runtime"* -- which is line 13
+      of `serve` output, and the ticket's own acceptance forbids the card
+      changing. `architecture_tags.measure` is the only shipped executable reader
+      and it sits on the D3 axis (`DRIFT_DIM = "D3"`), carrying standing result 2.
+
+      SO CA-03 CUT NOTHING FOR `RD-03-DF-08`, AND SAYS SO RATHER THAN FINDING
+      SOMETHING TO DELETE. This is the same class as `CA-00-DF-05`: a claim that
+      reached a work order without being checked against the sealed record.
+    reproduction: >-
+      grep -c 'code_complexity\|analyze_complexity'
+      examples/validation/scorecards/score_tools.py   ->   0
+      sed -n '769p;801,803p' references/eval_scorecard.md
+      python3 examples/validation/scorecards/score_tools.py serve | grep -in complexity
+    evidence:
+      - "references/eval_scorecard.md:769 (version-4 row), :160-163 (live D2 preamble), :775-778, :801-803 (retired, out of the served surface)"
+      - "examples/validation/scorecards/score_tools.py:840-1122 -- check(), no descriptor figure"
+      - "tests/test_code_complexity.py:669 -- test_no_reader_of_this_instrument_gates_on_its_output"
+      - "specs/results/scorecards/cut-the-apparatus/CA-03/descriptor-coupling.md"
+    why_out_of_scope: >-
+      Not out of scope -- IN scope and DECIDED. Filed as a finding because the
+      correction is to the epic's plan and charter, which CA-03 may not rewrite,
+      and because CA-08 decides `GOAL-apparatus-cut` clause (b) and must know that
+      one of the epic's eight tickets had no live subject for half its brief.
+    suggested_fix: >-
+      CA-08: record that `RD-03-DF-08`'s consumption into the program happened at
+      card version 4, before this epic opened, and do not count CA-03's zero lines
+      against clause (a). The finding's OWN suggested_fix -- *"state the blind
+      spot beside the instrument: the descriptor measures SHAPE and does not
+      measure whether two stored things must agree"* -- is an ADDITION to
+      `scripts/code_complexity.py`, outside CA-03's conflict_keys and against this
+      epic's direction, and is deliberately not taken.
+    blast_radius: >-
+      One ticket of eight. No score, no card and no standing result is affected:
+      nothing was changed for this finding.
+    disposition: settled
+    disposition_note: >-
+      Decided on the record within this ticket. The premise is refuted, the
+      enumeration of the coupling is shipped as evidence, and no code moved. CA-08
+      adjudicates the goal consequence; nothing is carried, because there is
+      nothing left to do.
+
+  - id: CA-03-DF-02
+    found_by: "CA-03, by executing the frozen rubric rather than reading about it"
+    found_at_commit: "4302082"
+    schedule_revision: 1
+    severity: minor
+    channel: "operator-running-a-shipped-instrument"
+    channel_note: >-
+      Found by running the shipped `serve` against
+      `examples/validation/scorecards/rubric_v3_frozen.md` at `--card-version 3`
+      and reading the bytes it emitted, rather than trusting the version-history
+      table's account of what version 4 retired.
+    cost:
+      basis: "one `serve --rubric rubric_v3_frozen.md --card-version 3` and one read of its output"
+      value: "negligible in tokens; it is the only true exception to CA-03-DF-01 and it would have been missed by reading alone"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/rubric_v3_frozen.md"]
+    summary: >-
+      ONE PLACE IN THE LIVE TREE STILL SERVES THE DESCRIPTOR AS A PRECONDITION OF
+      A D2 SCORE, AND IT MUST STAY.
+
+      `examples/validation/scorecards/rubric_v3_frozen.md:119-121` carries the
+      retired preamble verbatim -- *"Read the measured descriptor first
+      (variables, actions, state-space bound, R/W density, modularity, dense
+      rows). Then judge whether the numbers reflect essential behavior or
+      accidental structure."* -- and it is REACHABLE:
+      `serve --rubric examples/validation/scorecards/rubric_v3_frozen.md
+      --card-version 3` renders it into the bytes a version-3 judge is served.
+
+      IT IS NOT A DEFECT AND IT IS NOT CUTTABLE. The frozen rubric exists so the
+      card's own change rule -- re-score a prior example under both versions --
+      is followable at all, and `R-H4` seals the record it reproduces. Deleting
+      the sentence would make the version-3 bar unreproducible and would edit a
+      sealed instrument, which is the class `R-H4` exists to refuse.
+
+      RECORDED SO THE NEXT SWEEP DOES NOT COUNT IT AS LIVE COUPLING and so
+      `CA-03-DF-01`'s "nothing remains" is exact rather than approximately true.
+    reproduction: >-
+      python3 examples/validation/scorecards/score_tools.py serve --rubric
+      examples/validation/scorecards/rubric_v3_frozen.md --card-version 3
+      | grep -n 'Read the measured descriptor first'
+    evidence:
+      - "examples/validation/scorecards/rubric_v3_frozen.md:119-121"
+      - "references/eval_scorecard.md:801-803 -- the same text, retired and unserved from the live card"
+    why_out_of_scope: >-
+      In scope to FIND, out of scope to change: the frozen rubric is a sealed bar,
+      not apparatus, and this epic's do-not-cut list carries `R-H4`.
+    suggested_fix: >-
+      Do nothing to the file. If a future sweep wants the exception to disappear
+      it must first answer how a version-3 card is re-scored without it, and the
+      answer today is that it cannot be.
+    blast_radius: >-
+      None. No round has been scaffolded at card version 3 since version 4
+      shipped, and the live default rubric is version 5.
+    disposition: wontfix
+    disposition_note: >-
+      The one live descriptor-as-precondition is a sealed reproduction bar
+      protected by `R-H4` and by the card's own change rule. Recorded so the
+      enumeration is complete; deliberately not touched.
+
+  - id: CA-03-DF-03
+    found_by: "CA-03, by asking what each of the five checks has ever caught instead of what each one claims"
+    found_at_commit: "4302082"
+    schedule_revision: 1
+    severity: minor
+    channel: "operator-doing-the-work"
+    channel_note: >-
+      A dossier built over the sealed record -- NEXT-EPIC.md, every RESULT.md,
+      INSTRUMENT-LOG.toml, this ledger and both tools' docstrings -- asking of
+      each of the five checks in `SV-04-DF-05` what it has ever caught. The
+      instrument's own file answered loudest: it says in as many words that it
+      cannot catch anything.
+    cost:
+      basis: "one exhaustive record search over the five checks, ~175k subagent tokens"
+      value: >-
+        It is the only cut this ticket found a case for, and the case is that the
+        subject's own source says it refuses nothing.
+    surface:
+      production: ["examples/validation/scorecards/architecture_tags.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      `architecture_tags.py derive` IS THE ONLY ONE OF `SV-04-DF-05`'S FIVE
+      CHECKS WITH NO DOCUMENTED CATCH, IT CANNOT CATCH BY CONSTRUCTION, AND
+      `audit` ALREADY RECOMPUTES IT.
+
+      Its own file says so: `architecture_tags.py:36-37` -- *"WHAT THIS IS NOT.
+      It is not a gate. It refuses nothing about any artifact, no close path
+      consults it"*; `:600-602` -- *"CLI. Every command prints; none of them
+      refuses anything."*; `:256-262` -- all three verdicts *"FAIL OPEN"*.
+      `main` always returns 0.
+
+      SUBSUMED: `score_tools.py`'s `audit_rh1_architecture` (`:2668-2767`) calls
+      `arch()`, `load_subjects()` and re-derives the whole demonstration table on
+      every `audit` run, and R-H1 additionally emits `SCOPE-DRIFT` through
+      `module.scope_drift`, which `derive` does not. What `derive` adds over
+      `audit` is `render_derive`'s per-subject printout.
+
+      IT IS ALSO DEMONSTRABLY BLIND IN THREE DIRECTIONS: byte-identical output
+      before and after `SV-04`'s registration was fixed (`SV-04-DF-05`);
+      byte-identical output on a FABRICATED scope pointing at a directory that
+      does not exist (`CL-04-DF-06`); and byte-identical output when the
+      complexity instrument is not installed at all.
+
+      NOT CUT BY CA-03. `examples/validation/scorecards/architecture_tags.py` is
+      not in CA-03's `conflict_keys` -- its only production key is
+      `score_tools.py` -- and this epic's rule is that a defect outside the slice
+      is deferred, not fixed. It is also the file carrying standing result 2, so
+      the cut wants an owner who is measuring that result, not one who is passing
+      through.
+    reproduction: >-
+      grep -n 'def main' -A 14 examples/validation/scorecards/architecture_tags.py
+      (every branch prints and returns 0), against
+      sed -n '2668,2767p' examples/validation/scorecards/score_tools.py
+      (audit_rh1_architecture re-deriving the same table).
+    evidence:
+      - "examples/validation/scorecards/architecture_tags.py:36-45, :256-262, :600-602, :690-692"
+      - "examples/validation/scorecards/score_tools.py:2668-2767 -- audit_rh1_architecture"
+      - "specs/desired_program_model/deferred_findings.yaml -- SV-04-DF-05 (derive byte-identical), CL-04-DF-06 (a real scope and a fabricated one are indistinguishable)"
+      - "specs/results/scorecards/cut-the-apparatus/CA-03/five-checks.md"
+    why_out_of_scope: >-
+      `architecture_tags.py` is outside CA-03's `conflict_keys`
+      (`production: ["examples/validation/scorecards/score_tools.py"]`).
+    suggested_fix: >-
+      Price the removal of the `derive` SUBCOMMAND ONLY -- `render_derive` plus
+      its CLI branch -- and keep `derive_subjects`, `measure` and `derive`, which
+      `audit_rh1_architecture` and the demonstration table both call. THE PRICE
+      TO STATE IS WHAT A READER LOSES: `derive` is the only surface that prints
+      the per-subject derived-versus-declared table on its own, and
+      `RD-04-DF-02` (three of five fixtures with no effect surface, scored on D3
+      anyway) was surfaced by reading exactly that output. That is a real
+      readability cost against roughly twenty lines, and it may well not be
+      worth paying.
+    blast_radius: >-
+      Standing result 2 -- D3 separates architectures on more than one example --
+      is computed in this file. Nothing here is proposed for removal that the
+      result's computation touches, and any ticket taking this up must verify the
+      result reproduces before and after.
+    disposition: carried
+    disposition_ticket: "CA-08"
+
+  - id: CA-03-DF-04
+    found_by: "CA-03, by searching for the seal refusal that eight epics of prose assume has fired"
+    found_at_commit: "4302082"
+    schedule_revision: 1
+    severity: minor
+    channel: "operator-doing-the-work"
+    channel_note: >-
+      A targeted search of NEXT-EPIC.md, every RESULT.md, INSTRUMENT-LOG.toml,
+      this ledger, all nine charters and both tools' docstrings for any instance
+      of `cmd_seal`'s own REFUSED path firing on a real card. There is none.
+    cost:
+      basis: "part of the same five-check record search; no separate run"
+      value: "negligible marginal; it changes what 'the second seal' may be credited to"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      "CL-01'S SECOND SEAL" IS EXECUTED BY `check`, NOT BY `seal`, AND `seal`'S
+      OWN REFUSAL HAS NO RECORDED LIVE FIRING.
+
+      The charter and three work orders defend `seal` by citing *"CL-01's second
+      seal caught a real class one ticket later."* That catch is real -- version 5
+      is the first row whose SERVED digest moved while the ANCHORS digest did not
+      (`references/eval_scorecard.md:770`, `CL-03/RESULT.md:210-215`). But the
+      code that catches it is `version_history_problems`
+      (`score_tools.py:747-808`, gated on `SERVED_SEAL_FROM = 4`), and it is
+      called from `cmd_check` (`:1183-1185`) AND NOWHERE ELSE. `cmd_seal`
+      (`:3431-3470`) only `read_bytes()` and `hashlib.sha256`.
+
+      SO THE SENTENCE PROTECTS THE WRONG COMMAND. Anyone who cut `check` on the
+      strength of `SV-04-DF-05`'s "five checks passed a live defect" would cut
+      the second seal while believing they had preserved it.
+
+      SEPARATELY: `cmd_seal`'s drift refusal -- *"REFUSED: these are already
+      sealed and their contents changed"* -- has NO documented firing on a real
+      card in eight epics. Every seal-credited catch in the record routes through
+      `audit`'s R-H4 re-verification of the digests `seal` wrote, and both
+      documented R-H4 catches (`SM-06` M4, `SM-04-GM-T1`) are SEEDED MUTANTS.
+      `seal` is nonetheless KEPT, and not narrowly: R-H4 is on the do-not-cut
+      list and R-H4 has nothing to verify without the digests `seal` writes.
+    reproduction: >-
+      grep -n 'version_history_problems' examples/validation/scorecards/score_tools.py
+      -> defined at 747, called at 1183 only. Then read cmd_seal at 3431-3470:
+      no call to check(), no digest comparison beyond its own.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py:120-127 (SERVED_SEAL_FROM), :747-808, :1183-1185, :3431-3470"
+      - "references/eval_scorecard.md:8-13, :770"
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/RESULT.md:210-215"
+      - "specs/results/scorecards/cut-the-apparatus/CA-03/five-checks.md"
+    why_out_of_scope: >-
+      In scope and DECIDED -- both commands are kept. Filed because the
+      misattribution is in the CHARTER and in three work orders, which CA-03 may
+      not rewrite, and because the next ticket handed "seal is protected" needs to
+      know which code that protects.
+    suggested_fix: >-
+      Wherever the charter or a work order writes *"CL-01's second seal"*, name
+      `check`'s `version_history_problems` beside it. Do not move the code: the
+      second seal belongs in `check` because it is a property of the CARD, not of
+      a card FILE, and `check` is the only command that parses the rubric.
+    blast_radius: >-
+      No result. It bounds what a future cut may safely assume about `check`.
+    disposition: settled
+    disposition_note: >-
+      Both commands kept, the attribution corrected on the record here, and
+      CA-03's five-check verdict rests on the corrected version rather than the
+      charter's sentence.
+
+  - id: CA-03-DF-05
+    found_by: "CA-03, by asking what audit has caught rather than whether it is a static gate"
+    found_at_commit: "4302082"
+    schedule_revision: 1
+    severity: major
+    channel: "operator-doing-the-work"
+    channel_note: >-
+      Fell out of the five-check dossier. The claim was not being tested; it was
+      contradicted by the evidence gathered to answer a different question, which
+      is the shape `CA-00-DF-05` should have had.
+    cost:
+      basis: "no additional run; a re-reading of the five-check dossier against the charter's sentence"
+      value: "zero marginal. The evidence was already collected for another purpose"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["CUT-THE-APPARATUS-EPIC.md", "specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      "STATIC GATES CATCH NOTHING -- SEVEN EPICS, ZERO BUGS" IS NARROWER THAN IT
+      READS, AND THIS EPIC HAS NOW ADDED A THIRD AND FOURTH COUNTEREXAMPLE.
+
+      The charter lists it among four disproven claims *"which are equally
+      load-bearing"*. It is defensible ONLY as a claim about static checks over
+      SUBJECT CODE. Over this project's own RECORD, static checks have caught
+      real defects repeatedly and changed outcomes:
+
+        * `audit` reported NINE `SUPERSEDED-UNMARKED` violations at once on the
+          ticket that shipped the change, and one claim was SUPERSEDED as a
+          result (`SM-04/RESULT.md:249-264`).
+        * `audit` reported TEN on `CL-03`, over four rounds' claims, two of them
+          goal decisions, and turned the repository's own ledger test red until
+          they were parked (`CL-03/RESULT.md:240-259`).
+        * `audit` REJECTED THE EPIC OWNER'S OWN UNEXECUTED RULE at close, within
+          the minute, because it was numbered `R-H5` with no check behind it
+          (`references/eval_scorecard.md:564-568`).
+        * `audit` found SCOPE-DRIFT on two of `toolchain_removal`'s four REAL
+          cards (`RD-03/analysis/audit.txt:37-38`).
+        * `check` rejected a real card on rule 8
+          (`RM-05/RESULT.md:125-127`, `NEXT-EPIC.md:766-768`).
+        * `contested` found THE ONLY spread greater than 1 in 49 sealed cards,
+          which the producing round, that epic's close and an `index` run all
+          walked past (`INSTRUMENT-LOG.toml:2608-2641`).
+
+      AND THIS EPIC ADDS TO IT: the `registry-enumeration-coverage` tripwire
+      caught `CA-05` shipping an unregistered instrument, and `CA-01` pre-empted
+      the same check.
+
+      THE HONEST RESTATEMENT: static checks over subject code have caught zero
+      bugs in seven epics. Static checks over this project's own record and
+      paperwork have caught real defects in at least five separate epics. THOSE
+      ARE DIFFERENT CLAIMS AND THE CHARTER MERGES THEM -- which matters, because
+      the merged version is quoted to justify not building instruments and, in
+      `SV-04-DF-05`'s own words, is the reason five checks were put on trial.
+    reproduction: >-
+      Read the six citations above in order. Each names a dated, outcome-changing
+      catch by a static check in this repository.
+    evidence:
+      - "specs/results/scorecards/subtract-to-measure/SM-04/RESULT.md:249-264"
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/RESULT.md:240-259"
+      - "references/eval_scorecard.md:564-568"
+      - "specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/analysis/audit.txt:37-38"
+      - "specs/results/scorecards/portable-substrate/RM-05/RESULT.md:125-127"
+      - "specs/results/scorecards/INSTRUMENT-LOG.toml:2608-2641"
+    why_out_of_scope: >-
+      The correction is to the epic charter and the plan, neither of which CA-03
+      may rewrite, and the claim is decided by CA-08.
+    suggested_fix: >-
+      CA-08: split the disproof into its two claims and keep both. Do NOT read
+      this as a licence to add a gate -- CA-03 added none, and the repair it did
+      ship refuses nothing. What it licenses is retiring the sentence as a
+      general argument against instruments over the record.
+    blast_radius: >-
+      One of the four load-bearing disproofs, quoted in the charter, the goal
+      baseline and at least three work orders including CA-03's own.
+    disposition: carried
+    disposition_ticket: "CA-08"
