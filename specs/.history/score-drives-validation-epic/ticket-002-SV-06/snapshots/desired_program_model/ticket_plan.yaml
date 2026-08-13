@@ -1,0 +1,406 @@
+version: 1
+name: score-drives-validation-epic
+updated: null
+purpose: >-
+  THE OWNER'S GOAL IN TWO HALVES: any project being onboarded can, DURING THE GOAL PROCESS and across any and all epics, score its VALIDATION and its ARCHITECTURE; and from that goal and scorecard, NEW VALIDATION is introduced into the project -- improved architecture and diagrams, and integration and unit tests derived from them. HALF ONE IS HALF TRUE. HALF TWO HAS NEVER BEEN ATTEMPTED.
+
+
+  THREE MEASURED GAPS. (1) THE CARD CANNOT SCORE VALIDATION AND WE REMOVED THAT ABILITY ON PURPOSE: at version 5 it serves only D2 complexity and D3 modularity, while D1 bug-detection, D4 behavior-preservation and D5 are RECORDED NOTES THAT TAKE NO SCORE. D1 and D4 were the validation dimensions and were cut because 38% of D1 and 18% of D4 anchor decisions cited THIS PROJECT'S OWN MACHINERY against 0% on D3 and D5 -- they graded toolchain ownership. (2) THE SCORE IS NOT IN THE GOAL PROCESS: across every skill the surface is THREE SKILLS AND FOUR FILES, and no goal has ever been keyed to a dimension. (3) THE LOOP IMPROVES THE INSTRUMENT AND NEVER THE PROGRAM: every closure has terminated in a card change and a score change, and NO SCORE HAS EVER PRODUCED A TEST, A DIAGRAM, A MODEL ACTION OR AN ADAPTER -- 0 for 7 epics.
+
+
+  AND ONE DEBT: the D3 caveat has NO NEGATIVE CONTROL. It was applied to an artifact with exactly the property it names and the score went to 3, which demonstrates plumbing rather than discrimination.
+planning_rules:
+  served_surface_is_the_metric: >-
+    serve | wc -c, 6281 bytes and 9 rungs, MUST NOT GROW. Repository lines are net-additive BY CONSTRUCTION because the change rule keeps old anchors and R-H4 seals the record, so they measure nothing. AN ANCHOR IS PERMANENT AND A PROMPT OR RECORDED NOTE IS FREE -- prefer the cheapest carrier and justify any new rung.
+  do_not_rebuild_d1_and_d4: >-
+    They were MEASURED to grade toolchain ownership -- 38% and 18% of anchor decisions citing local machinery against 0% elsewhere. A dimension that asks 'do you have model-derived cases' is D1 with a haircut. IF VALIDATION IS NOT SCORABLE WITHOUT GRADING A TOOLCHAIN, SAYING SO IS THE RESULT and it redirects the goal.
+  the_card_is_never_mandatory: >-
+    A project that declines to score runs epics exactly as it does today. DESIGN FOR ABSENCE FIRST. A skill that hard-requires a scorecard is a skill nobody can adopt, and the goal was to make scoring AVAILABLE everywhere rather than COMPULSORY anywhere. A goal that cannot be scored is not a goal that fails.
+  use_a_harvested_defect: >-
+    HARVEST-CL-03.md carries 38 classes found by judges across seven epics, of which roughly ONE was ever filed. The measured bottleneck of this programme is that NOTHING CONSUMED A FILED FINDING. SV-04 is the consumption step; inventing a fresh defect dodges the thing being tested.
+  no_new_gates_rule: >-
+    Seven epics of static checking caught zero bugs. Nothing in this epic refuses anything about anyone's code.
+  skills_are_read_never_edited: >-
+    Skills are READ from this repository and never edited. Anything that must change in SKILL_MANAGER_HOME is PROPOSED AS A DIFF AND ESCALATED. Never run skill-manager sync.
+  measurement_rule: >-
+    File findings; fix nothing during a measurement. SEAL PREDICTIONS BEFORE MEASURING AND SAY WHEN, in a commit with a timestamp. If every prediction passes, report it as an ALARM. Never edit a target to match a result. Do NOT report git archive figures as tree properties. Do NOT hand-roll a wait loop. Write scratch output to a TICKET-SPECIFIC path. VERIFY YOUR BRANCH POINT -- even when the owner hands you the SHA, which has been wrong once.
+status:
+  workflow: score-drives-validation-epic
+  active_ticket: null
+  active_ticket_title: null
+  desired_module: TlaSpecDevCli
+  phase: planning
+epic:
+  id: score-drives-validation
+  branch: epic/score-drives-validation
+  default_branch: main
+  base_sha: eab2883
+  base_note: Branched from main after close-the-loop merged, with 2 deliberate reds.
+  schedule_revision: 1
+  review_mode: epic-owner-post-merge
+  notes: >-
+    Never merge to main and never run skill-manager sync without explicit owner say-so. Never invoke tla-spec-dev from PATH. THE PLAN MUST LOAD WITH BOTH LOADERS. Never kill a process by name alone, and check whether a process is yours before touching it.
+deferment_policy:
+  mode: batch
+  blocking: escalate
+  budget: 5
+  backlog: specs/desired_program_model/deferred_findings.yaml
+epic_goals:
+  - id: GOAL-caveat-discriminates
+    kind: eval
+    statement: >-
+      The D3 caveat DISCRIMINATES rather than applying general downward pressure -- settled by the negative control close-the-loop never ran.
+    metric: >-
+      D3 on an artifact that plainly LACKS the single-observer property, scored under both version 4 and version 5, same judge model, same tag, two passes a side.
+    harness: SV-01, decided by SV-05
+    baseline:
+      value: >-
+        NO NEGATIVE CONTROL EXISTS. The caveat was applied to an artifact WITH exactly the property it names and D3 went 4,4 -> 3,3. Both firings on record -- ours and the blind adopter's -- ran the SAME DIRECTION. No artifact lacking the property has ever been scored under both versions.
+      measured_at: eab2883
+      evidence: specs/results/scorecards/close-the-loop/CL-04/RESULT.md -- CL-04-DF-05
+    target: >-
+      A verdict either way. IF D3 FALLS THERE TOO the caveat is downward pressure and close-the-loop's headline is a RECALIBRATION rather than a detection -- and A NULL MUST BE REPORTED AS LOUDLY AS THE MOVE WAS, naming every claim that inherits the correction.
+    evaluation_ticket: SV-05
+    evidence_root: specs/results/scorecards/score-drives-validation/GOAL-caveat-discriminates
+  - id: GOAL-validation-is-scorable
+    kind: eval
+    statement: >-
+      Whether VALIDATION can be scored at all without grading conformance to a toolchain -- decided on evidence, with a negative answer accepted as a result.
+    metric: >-
+      A candidate dimension tested against the sealed record, plus the D1/D4 autopsy applied to it: what fraction of its anchor decisions would cite local machinery?
+    harness: SV-02's research, decided by SV-05
+    baseline:
+      value: >-
+        THE CARD SCORES D2 AND D3 ONLY. D1 bug-detection, D4 behavior-preservation and D5 are RECORDED NOTES TAKING NO SCORE. D1 and D4 were retired because an anchor decision cited this project's own machinery in 38% of D1 and 18% of D4 rationales against 0% on D3 and D5 -- verbatim, 'Anchor 4 is refused: T's cases are hand-written' -- and D1 read 3 on 55 of 59 cards of the only example the project scores.
+      measured_at: eab2883
+      evidence: references/portable_scorecard.md, and RM-02's rationale analysis
+    target: >-
+      A decision with evidence from the 87 sealed cards and the 38 harvested classes. IF VALIDATION IS NOT SCORABLE WITHOUT GRADING A TOOLCHAIN, SAYING SO IS THE RESULT and it redirects the goal. A candidate whose autopsy looks like D1's has rebuilt D1.
+    evaluation_ticket: SV-05
+    evidence_root: specs/results/scorecards/score-drives-validation/GOAL-validation-is-scorable
+  - id: GOAL-scored-at-goal-time
+    kind: eval
+    statement: >-
+      A project scores as part of the GOAL PROCESS rather than as a separate evaluation act -- and a project that declines to score is unaffected.
+    metric: >-
+      A goal keyed to a dimension with a baseline scored AT DECLARATION and sealed; plus proof that a project with no card runs epics unchanged.
+    harness: SV-06's design, SV-03 and SV-07's implementation, decided by SV-05
+    baseline:
+      value: >-
+        ZERO. Across every skill the surface is THREE SKILLS AND FOUR FILES: one cross-reference in git-epic-workflow/references/goals-and-evaluation.md, git-issue-workflow's goal-signal.md, and git-issue's SKILL.md and regression-close.md. NO GOAL HAS EVER BEEN KEYED TO A DIMENSION, and scoring happens in an evaluation ticket as a separate act. spec-double-compiler's ~990 matches are its bundled copy of this repository's own record.
+      measured_at: eab2883
+      evidence: survey of SKILL_MANAGER_HOME at eab2883
+    target: >-
+      A goal can be scored at declaration and the evaluation compares against the sealed number -- AND a project with no card is provably unaffected. Tested the way CL-04 tested the loop, BY AN AGENT WITH NONE OF OUR SOURCE. Any proposal that makes the card mandatory anywhere fails this goal.
+    evaluation_ticket: SV-05
+    evidence_root: specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time
+  - id: GOAL-loop-reaches-the-program
+    kind: eval
+    statement: >-
+      A score produces NEW VALIDATION IN THE PROGRAM -- a test, a diagram, a model action or an adapter -- and the re-score detects it.
+    metric: >-
+      One end-to-end: score or card iteration -> a concrete validation artifact that did not exist -> a re-score that moves, with the counterfactual stated.
+    harness: SV-04, decided by SV-05
+    baseline:
+      value: >-
+        0 FOR 7 EPICS. Every loop this project has closed terminated in a CARD change and a SCORE change. CL-03 ran regression -> card iteration -> re-score and deliberately never touched the artifact. NO SCORE HAS EVER PRODUCED A TEST, A DIAGRAM, A MODEL ACTION OR AN ADAPTER.
+      measured_at: eab2883
+      evidence: specs/results/scorecards/close-the-loop/ -- CL-03 and CL-04
+    target: >-
+      One closure into the program, on a HARVESTED defect rather than a fresh one, with the validation justified by the defect it catches and the score movement reported as the OBSERVATION rather than the objective. Tuning validation to raise a number is MF-020 and fails this goal.
+    evaluation_ticket: SV-05
+    evidence_root: specs/results/scorecards/score-drives-validation/GOAL-loop-reaches-the-program
+tickets:
+  - id: SV-01
+    title: 'The missing negative control: does the D3 caveat discriminate?'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/230
+    schedule_revision: 1
+    depends_on: []
+    blocks: [SV-05]
+    wave: 1
+    promotion_order: 10
+    promotion_predecessor: null
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/results/scorecards/score-drives-validation/]
+    objective: >-
+      SMALL, FIRST, AND IT SETTLES A HEADLINE THE PREVIOUS EPIC COULD NOT. close-the-loop moved D3 4,4 -> 3,3 with the card version the only mover, and IT HAS NO NEGATIVE CONTROL. The version-5 caveat says take 3 when the only observer of the effect the port exists for is the adapter that wrote it; it was applied to an artifact WITH EXACTLY THAT PROPERTY and the score went to 3. That is the minimum possible evidence a caveat is wired up -- IT DEMONSTRATES PLUMBING AND DOES NOT MEASURE DISCRIMINATION. Score ONE artifact that plainly LACKS the hole under both version 4 from rubric_v4_frozen.md and version 5, same judge model, same tag, two passes a side. The design is CL-03's, already run, so nothing needs inventing. DECLARE THE PREDICTION BEFORE DISPATCHING. If D3 falls there too the caveat is general downward pressure and the headline is a recalibration; if it holds, the caveat discriminates. A NULL IS THE INFORMATIVE OUTCOME.
+    desired_actions: []
+    implementation_scope: [specs/results/scorecards/]
+    goals:
+      - goal: GOAL-caveat-discriminates
+        contribution: direct
+        expected_effect: The caveat's discrimination is settled either way.
+        local_signal: D3 under v4 vs v5 on an artifact without the hole
+      - goal: GOAL-validation-is-scorable
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+      - goal: GOAL-scored-at-goal-time
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+      - goal: GOAL-loop-reaches-the-program
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ["One artifact LACKING the property scored under both v4 and v5, same judge model, two passes a side.", The prediction declared before dispatch., 'A null reported as loudly as the move was, naming what inherits the correction.', The served surface untouched.]
+    model_delta_expectation: none expected
+  - id: SV-02
+    title: 'RESEARCH: can validation be scored without grading toolchain ownership?'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/231
+    schedule_revision: 1
+    depends_on: []
+    blocks: [SV-03, SV-04, SV-07, SV-05]
+    wave: 1
+    promotion_order: 20
+    promotion_predecessor: SV-01
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [references/scoring_validation.md]
+    objective: >-
+      A RESEARCH TICKET -- design and evidence, NO production code. THE CRUX OF THE EPIC'S FIRST HALF. The owner wants an onboarded project to score its VALIDATION and its ARCHITECTURE; the card scores architecture and CANNOT SCORE VALIDATION, because D1 and D4 were retired to unscored notes one epic ago for grading TOOLCHAIN OWNERSHIP -- 38% of D1 and 18% of D4 anchor decisions cited this project's own machinery against 0% on D3 and D5. So the question is not whether to put them back. It is WHETHER VALIDATION IS SCORABLE AT ALL without grading conformance to a toolchain: find the property distinguishing well-validated from badly-validated code INDEPENDENTLY OF WHICH TOOLS PRODUCED THE TESTS, test it against 87 sealed cards and 391 rationales, and APPLY RM-02's OWN AUTOPSY TO YOUR CANDIDATE -- if its anchor decisions would cite local machinery at anything like 38%, YOU HAVE REBUILT D1. Read CL-04's blind adopter blocker list first; it is the only evidence in the record from someone who was not us. And say whether a dimension can score a TLA+ model or an adapter conformance surface WITHOUT requiring the adopter to own our spec-double-compiler. IF THERE IS NO SUCH PROPERTY, SAY SO -- that is the more valuable finding.
+    desired_actions: []
+    implementation_scope: [references/, specs/results/]
+    goals:
+      - goal: GOAL-validation-is-scorable
+        contribution: direct
+        expected_effect: The scorability of validation moves from assumed to decided, in either direction.
+        local_signal: the candidate dimension and its autopsy fraction
+      - goal: GOAL-loop-reaches-the-program
+        contribution: enabling
+        expected_effect: none -- what SV-04 can carry depends on what can be scored
+        local_signal: N/A
+      - goal: GOAL-scored-at-goal-time
+        contribution: enabling
+        expected_effect: none
+        local_signal: N/A
+      - goal: GOAL-caveat-discriminates
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ['A decision with evidence drawn from the sealed record, not from the anchors'' wording.', 'RM-02''s autopsy applied to any candidate, with the local-machinery fraction stated.', An explicit answer on TLA+ models and adapter surfaces without requiring our compiler., Any proposal states its byte cost against the 6281-byte served surface., NO production code ships.]
+    model_delta_expectation: none expected
+  - id: SV-06
+    title: 'RESEARCH: wiring the score into the goal process across every skill that mentions it'
+    status: done
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/238
+    schedule_revision: 1
+    depends_on: []
+    blocks: [SV-03, SV-07, SV-05]
+    wave: 1
+    promotion_order: 30
+    promotion_predecessor: SV-02
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [references/goal_score_wiring.md]
+    objective: >-
+      A RESEARCH TICKET -- design and evidence, NO production code and NO EDITS TO ANY SKILL. The goal process spans the skills that create issues, run tickets and schedule epics, and NOTHING IN ANY OF THEM REACHES THE SCORECARD. The entire cross-skill surface is THREE SKILLS AND FOUR FILES: one cross-reference in git-epic-workflow/references/goals-and-evaluation.md, git-issue-workflow's goal-signal.md, and git-issue's SKILL.md and regression-close.md -- and spec-double-compiler's ~990 matches are its bundled copy of THIS repository's record, which must be confirmed rather than assumed. READ goal-signal.md AND regression-close.md FIRST: goal-signal machinery and a regression-close path ALREADY EXIST, and the most valuable outcome may be that the hooks are there and nothing populates them. Decide where in the lifecycle the score belongs and which seams are WRONG places; what can cross a skill boundary and what is meaningless outside the project that produced it; and how this survives a project that does not use the card, WHICH IS MOST OF THEM. DO NOT DESIGN A FRAMEWORK -- four files, and if the answer is two sentences and one field that is a better result than an architecture.
+    desired_actions: []
+    implementation_scope: [references/, specs/results/]
+    goals:
+      - goal: GOAL-scored-at-goal-time
+        contribution: direct
+        expected_effect: >-
+          The wiring question moves from never-asked to designed, with the existing hooks reported on.
+        local_signal: the design, and the four-file hand-off
+      - goal: GOAL-loop-reaches-the-program
+        contribution: enabling
+        expected_effect: none -- regression-close is the loop's consumption seam
+        local_signal: N/A
+      - goal: GOAL-validation-is-scorable
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+      - goal: GOAL-caveat-discriminates
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ["The four-file surface confirmed, including that spec-double-compiler's matches are a bundled record.", goal-signal.md and regression-close.md read and reported on BEFORE any proposal., 'Where the score belongs in the lifecycle, and which seams are the wrong places.', How a project with no card is unaffected -- absence designed for first., An explicit hand-off naming the smallest set of changes SV-07 must build., NO production code and NO skill edits.]
+    model_delta_expectation: none expected
+  - id: SV-03
+    title: Wire the scorecard into the epic goal process, for any project
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/232
+    schedule_revision: 1
+    depends_on: [SV-02, SV-06]
+    blocks: [SV-04, SV-07, SV-05]
+    wave: 2
+    promotion_order: 40
+    promotion_predecessor: SV-06
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [scripts/, specs/desired_program_model/]
+    objective: >-
+      Scoped by SV-06's design and SV-02's answer. Today scoring happens in an evaluation ticket as a separate act and NO GOAL HAS EVER BEEN KEYED TO A DIMENSION. Build: a goal can declare a scored dimension and a subject, so 'this epic improves modularity' is a claim the card SETTLES rather than prose the evaluation re-derives; A BASELINE IS SCORED AT DECLARATION AND SEALED, because this project's whole record shows baselines written from memory and later found wrong; it must work for a project that is NOT THIS ONE, with no path, fixture or dimension id that only exists here; and IT MUST BE OPTIONAL AND FAIL OPEN -- a goal that cannot be scored is not a goal that fails. NO NEW GATES: this wires a MEASUREMENT into the goal process, refuses nothing about anyone's code, and a project that declines to score must run epics exactly as before.
+    desired_actions: []
+    implementation_scope: [scripts/, specs/desired_program_model/, tests/]
+    goals:
+      - goal: GOAL-scored-at-goal-time
+        contribution: direct
+        expected_effect: Scoring moves from a separate evaluation act into the goal process.
+        local_signal: a goal keyed to a dimension with a sealed baseline
+      - goal: GOAL-loop-reaches-the-program
+        contribution: enabling
+        expected_effect: none -- SV-04 needs a goal that carries a score
+        local_signal: N/A
+      - goal: GOAL-validation-is-scorable
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+      - goal: GOAL-caveat-discriminates
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ["A goal can name a dimension and a subject, and the baseline is scored at declaration and sealed.", 'A project with no card runs epics unchanged -- demonstrated, not asserted.', The plan loads with BOTH loaders., 'A demonstrated FAILING input on a real epic plan, not a fixture.', 'No new gate, and the served surface untouched.']
+    model_delta_expectation: none expected
+  - id: SV-04
+    title: 'Close the loop INTO the program: turn a score into new validation'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/233
+    schedule_revision: 1
+    depends_on: [SV-02, SV-03]
+    blocks: [SV-05]
+    wave: 3
+    promotion_order: 50
+    promotion_predecessor: SV-03
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/, specs/results/]
+    objective: >-
+      THE GOAL'S SECOND HALF, AND IT HAS NEVER BEEN ATTEMPTED. The loop this project closed improves the MEASURING INSTRUMENT and has never improved the THING MEASURED: CL-03 ran regression -> card iteration -> re-score, and the deltas were a change to the CARD and a change to a SCORE, with the artifact deliberately untouched. NO SCORE HAS EVER PRODUCED A TEST, A DIAGRAM, A MODEL ACTION OR AN ADAPTER -- 0 for 7 epics. Close the loop into the program, end to end on a real subject: a score or card iteration -> A CONCRETE CHANGE TO THE PROJECT'S VALIDATION -> a re-score that detects it. The change must be VALIDATION and not prose -- a test that did not exist, an adapter conformance case, a model action, a diagram something is checked against -- and you must say which and why that artifact was the right carrier. Then measure the part that matters: DID THE RE-SCORE MOVE, AND WOULD IT HAVE MOVED WITHOUT THE CHANGE? DO NOT TUNE THE VALIDATION TO THE SCORE, which is MF-020 in its purest form, and DO NOT MANUFACTURE THE DEFECT -- use one of HARVEST-CL-03's 38 classes, because the measured bottleneck is that nothing consumed a filed finding and inventing a fresh defect dodges the thing being tested.
+    desired_actions: []
+    implementation_scope: [examples/validation/, specs/results/, tests/]
+    goals:
+      - goal: GOAL-loop-reaches-the-program
+        contribution: direct
+        expected_effect: >-
+          The loop reaches the program for the first time, or the round reports the precise point it could not.
+        local_signal: the new validation artifact and the re-score delta
+      - goal: GOAL-validation-is-scorable
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+      - goal: GOAL-scored-at-goal-time
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+      - goal: GOAL-caveat-discriminates
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ["One end-to-end: score or card iteration -> a concrete NEW validation artifact -> a re-score that detects it.", 'The defect comes from HARVEST-CL-03''s 38 classes, not invented.', "The validation is justified by the defect it catches; the score movement is the observation, not the objective.", 'The counterfactual stated: would the re-score have moved without the change?', The served surface not grown.]
+    model_delta_expectation: none expected
+  - id: SV-07
+    title: 'PLACEHOLDER: implement the cross-skill goal wiring (scope defined by SV-06)'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/239
+    schedule_revision: 1
+    depends_on: [SV-06, SV-02, SV-03]
+    blocks: [SV-05]
+    wave: 3
+    promotion_order: 60
+    promotion_predecessor: SV-04
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [scripts/, references/]
+    objective: >-
+      PLACEHOLDER. Scope is defined by SV-06 and SV-02 and this ticket is REWRITTEN FROM THEIR DESIGNS BEFORE DISPATCH. Implement the cross-skill changes so a project being onboarded scores as part of the GOAL PROCESS rather than as a separate evaluation act. Nothing is settled: SV-06 decides which of the four files change, where in the lifecycle the score belongs, what crosses a skill boundary, and how it behaves for a project that declines to score; SV-02 decides whether validation is scorable at all, AND IF ITS ANSWER IS NO THIS TICKET'S SCOPE SHRINKS TO ARCHITECTURE, WHICH IS A LEGITIMATE OUTCOME. What holds regardless: the card is NEVER MANDATORY and absence is designed for first; no new gates; a goal that cannot be scored is not a goal that fails; it must work for a project that is not this one, tested the way CL-04 tested the loop; the served surface must not grow; R1 on a real subject; and SKILLS ARE READ NOT EDITED -- anything that must change in SKILL_MANAGER_HOME is PROPOSED AS A DIFF AND ESCALATED, never applied, and skill-manager sync is never run.
+    desired_actions: []
+    implementation_scope: [scripts/, references/, tests/]
+    goals:
+      - goal: GOAL-scored-at-goal-time
+        contribution: direct
+        expected_effect: >-
+          The wiring reaches the skills an onboarded project actually runs, or reports what could not be reached.
+        local_signal: the shipped wiring, and the escalated diffs
+      - goal: GOAL-validation-is-scorable
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+      - goal: GOAL-loop-reaches-the-program
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+      - goal: GOAL-caveat-discriminates
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: [Rewritten from SV-06's and SV-02's designs before dispatch., A project with no card is provably unaffected., 'Any SKILL_MANAGER_HOME change is proposed as a diff and escalated, never applied.', A demonstrated FAILING input on a real subject., 'No new gate, and the served surface untouched.']
+    model_delta_expectation: none expected
+  - id: SV-05
+    title: >-
+      EVALUATION: can an onboarded project score its validation, and does a score change anything?
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/234
+    schedule_revision: 1
+    depends_on: [SV-01, SV-02, SV-03, SV-04, SV-06, SV-07]
+    blocks: []
+    wave: 4
+    promotion_order: 70
+    promotion_predecessor: SV-07
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/results/scorecards/score-drives-validation/]
+    objective: >-
+      The epic's product and a MEASUREMENT. DECIDE HOW MUCH OF THE OWNER'S TWO-HALF GOAL IS NOW TRUE AND SAY PLAINLY WHAT IS NOT. Four goals. GOAL-caveat-discriminates: if the caveat turns out to be downward pressure rather than detection, REPORT IT AS LOUDLY AS close-the-loop REPORTED THE MOVE and name every claim that inherits the correction. GOAL-validation-is-scorable: a negative answer is a real result and redirects the goal. GOAL-scored-at-goal-time: test it THE WAY CL-04 TESTED THE LOOP, with an agent that has none of our source. GOAL-loop-reaches-the-program: baseline 0 for 7 epics. Also report the served surface with --digest-only per version; FINDINGS BY CHANNEL WITH THE PER-TOKEN RATIO AND THE TOKEN BASIS NAMED, saying whether the tickets recorded theirs, because for two consecutive epics they did not and the cause is that nothing asks; findings touching the SHIPPED TOOLCHAIN separately, 10 of 173 across six epics; and WHETHER THE CONSUMPTION RATE MOVED -- the harvest carries 38 classes of which roughly one was ever filed, and that ratio is the programme's measured bottleneck. FILE FINDINGS, FIX NOTHING.
+    desired_actions: []
+    implementation_scope: [specs/results/scorecards/, NEXT-EPIC.md]
+    goals:
+      - goal: GOAL-caveat-discriminates
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-validation-is-scorable
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-scored-at-goal-time
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-loop-reaches-the-program
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: [All four goals decided., The served surface before and after with --digest-only per version., 'Findings by channel, the token basis named, and whether tickets recorded their own.', Findings touching the shipped toolchain counted separately., Whether the 38-classes-to-one-filed consumption ratio moved., 'Predictions sealed BEFORE measuring, with the time of sealing stated.', Findings FILED and NONE fixed.]
+    model_delta_expectation: none expected
+    role: evaluation
+    owns_goals: [GOAL-caveat-discriminates, GOAL-validation-is-scorable, GOAL-scored-at-goal-time, GOAL-loop-reaches-the-program]

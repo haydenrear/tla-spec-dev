@@ -11651,3 +11651,2004 @@ findings:
       format. And any adopter who installs the axis incompletely gets an inert
       check reporting the same thing for a real scope and a fabricated one.
     disposition: open
+  - id: SV-02-DF-01
+    found_by: "SV-02, re-deriving RM-02's autopsy over the 87-card corpus"
+    found_at_commit: "a527305"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md"]
+    summary: >-
+      THE CARD GIVES D4'S TIER INSTABILITY AS AN INDEPENDENT REASON FOR RETIRING
+      IT, AND IT IS NOT INDEPENDENT -- IT IS A SYMPTOM OF THE CLAUSE THE SAME
+      VERSION DELETED FROM D2.
+
+      `references/eval_scorecard.md:216` explains the version 4 retirements one
+      line each, and D4's reads "N-D4 tier-split on 4 of the 8 judge groups
+      scored by both `opus` and `sonnet`, more than any other dimension." Read
+      beside the other two reasons -- N-D1's top anchor needing cases derived
+      from the model, N-D5's independence from architecture -- it presents
+      instability as a defect of the dimension rather than of one rung.
+
+      MEASURED OVER EVERY D4 TIER-SPLIT GROUP IN THE SEALED RECORD: in 5 of 5
+      groups, EVERY card on the lower side names the model clause at anchor 3 as
+      its ceiling. The three `reading-discipline` arms are the sharpest -- D, M
+      and N, a two-point gap on each, and all six `sonnet` cards refuse anchor 3
+      in almost the same words ("a mutation check is not a model-derived check";
+      "there is no TLA+ spec or generator anywhere in this tree"; "everything
+      here is hand-written") while all six `opus` cards read the same clause as
+      an illustration, clear it and go to 4. Four of those six lower-tier cards
+      report a break they caught in their own prose BEFORE refusing the rung.
+
+      THIS IS THE MECHANISM RM-02 PROVED FOR D2's ANCHOR 4, NOW SHOWN FOR D4's
+      ANCHOR 3. RM-02 called the D2 case "the single strongest evidence in this
+      ticket that the local clause is what makes the card local", and measured
+      four of four `sonnet` judges naming the model clause against zero of four
+      `opus`. D4 is the second instance, in the same direction, by the same tier,
+      and nobody looked for it -- so a clause-level defect was recorded as a
+      dimension-level one.
+
+      AND THE FIGURE ITSELF HAS MOVED. "4 of the 8 judge groups" was true when
+      written; at `a527305` the corpus is 87 cards and D4 splits 5 of 9. The
+      sentence is a `COUNT-MOVED` shape that `scope` cannot see, because a figure
+      counting judge groups carries no bind-and-value form.
+
+      WHY IT MATTERS BEYOND THE PAGE: SV-02 was asked whether validation is
+      scorable and the record says the toolchain grading sits in three clauses,
+      not two dimensions. A reader of the card today is told D4 was unstable
+      full stop, which argues against the whole ladder rather than against one
+      rung, and that reading would foreclose the one experiment
+      `references/scoring_validation.md` section 9 says must run before any rung
+      is restored.
+    reproduction: >-
+      From the repository root:
+      `python3 specs/results/scorecards/score-drives-validation/GOAL-validation-is-scorable/SV-02/analysis/scorability.py`
+      -- section 7 prints which anchor each machinery-citing decision names
+      (D4: 13 of 13 at anchor 3), and section 8 prints every D4 tier-split group
+      with the count of lower-tier cards naming the model clause (5 of 5 groups,
+      all cards). Then read
+      `specs/results/scorecards/reading-discipline/**/20260809-rd03{D,M,N}-*-p3`
+      and `-p4` D4 rationales directly.
+    evidence:
+      - "references/eval_scorecard.md:216 -- the retirement sentence"
+      - "references/eval_scorecard.md, `Retired anchors, versions 1-3` -- D4 anchor 3's model clause and anchor 4's provenance-free wording"
+      - "references/portable_scorecard.md section 1.1 -- the same mechanism proved for D2's anchor 4"
+      - "references/scoring_validation.md section 3 -- the 5-of-5 table"
+      - "specs/results/scorecards/score-drives-validation/GOAL-validation-is-scorable/SV-02/analysis/scorability.py -- sections 7 and 8"
+    why_out_of_scope: >-
+      SV-02 is a research ticket that ships no production code, and the sentence
+      is a predecessor's statement at a predecessor's scope. RM-02 set the
+      precedent by filing `architecture_tags.md` section 2.2 rather than editing
+      it. Repairing it here would also edit the card in the epic whose surface
+      metric is the card, during a ticket whose product is a measurement of it.
+    suggested_fix: >-
+      One clause, not a rewrite: make D4's line say that the split was measured
+      and that every lower-tier card in every split group named anchor 3's model
+      clause, so a reader learns the cause with the effect. Refresh 4-of-8 to
+      the tree it is quoted at, or drop the figure and keep the mechanism, which
+      does not move. Do NOT restore D4 on the strength of this finding --
+      `references/scoring_validation.md` section 9 names the round that would
+      have to run first, and restoring a rung because a reason for retiring it
+      weakened is MF-020 from the other side.
+    disposition: open
+  - id: SV-02-DF-02
+    found_by: "SV-02, measuring the epic's own surface metric"
+    found_at_commit: "a527305"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py", "SCORE-DRIVES-VALIDATION-EPIC.md"]
+    summary: >-
+      THE EPIC'S SURFACE METRIC DOES NOT NAME ITS STREAM, AND THE TWO READINGS
+      DIFFER BY 92 BYTES.
+
+      Every ticket in this epic is handed the same standing rule: "`serve |
+      wc -c` is the surface metric -- 6,281 bytes, 9 rungs, must not grow."
+      `serve` writes the served card to stdout and one line to STDERR: "served
+      digest sha256:... (card version 5, rubric file sha256:...)". So
+      `serve | wc -c` is 6,281 and `serve 2>&1 | wc -c` is 6,373, on the same
+      tree with nothing changed.
+
+      SV-02 read 6,373 first and spent a measurement establishing that the card
+      had not grown by 92 bytes since `close-the-loop`. The failure is cheap and
+      it is the shape this project keeps finding: a number quoted without the
+      command that produces it, in the one rule six concurrent tickets are all
+      told not to break. A ticket that redirects stderr -- which is the natural
+      thing to do when a tool prints a digest you do not want in a diff -- will
+      report a 92-byte regression that does not exist, or will fail to notice a
+      92-byte one that does.
+
+      The stderr line is correct behaviour and should not move: the digest is
+      metadata about the served bytes and putting it on stdout would change the
+      bytes it describes. The defect is that neither the tool's help nor the
+      epic's rule says which stream carries the metric.
+    reproduction: >-
+      `python3 examples/validation/scorecards/score_tools.py serve 2>/dev/null | wc -c`
+      -> 6281.
+      `python3 examples/validation/scorecards/score_tools.py serve 2>&1 | wc -c`
+      -> 6373.
+    evidence:
+      - "SCORE-DRIVES-VALIDATION-EPIC.md section 5 -- the standing rule, no stream named"
+      - "examples/validation/scorecards/score_tools.py -- `serve` prints the digest line to stderr"
+      - "references/eval_scorecard.md version history -- the 6,319 -> 6,281 figure the rule inherits"
+    why_out_of_scope: >-
+      SV-02 ships no production code and does not edit the epic charter. The
+      repair is one sentence in each of two files and belongs with whoever owns
+      the charter.
+    suggested_fix: >-
+      Write the metric as the command that produces it -- `serve 2>/dev/null |
+      wc -c` -- in the epic's standing rules and in `serve --help`. Nothing about
+      the tool changes.
+    disposition: open
+  - id: SV-02-DF-03
+    found_by: "SV-02, costing carriers against the 6,281-byte surface"
+    found_at_commit: "a527305"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md"]
+    summary: >-
+      THE SERVED CARD ASKS A JUDGE THREE SEPARATE TIMES WHETHER IT SEEDED A
+      FAULT, ON A SURFACE THAT MUST NOT GROW.
+
+      In the 6,281 bytes a judge is served, the same question appears at three
+      places: scoring rule 8 ("whether the judge seeded a fault of its own and
+      ran it against the artifact, and what it ran"), the whole `Judging
+      practice -- REQUIRED` block ("Did you seed a fault of your own and run it
+      against this artifact...?"), and the tail of the N-D1 note prompt ("Name
+      the fault you seeded if you seeded one").
+
+      The first two are deliberate -- a rule and the field it governs -- and the
+      third is a third statement of the same ask inside the prompt for a note.
+      It costs 43 of N-D1's 113 bytes. That is 0.7% of the entire surface spent
+      restating something the same document has already required twice, on the
+      one metric every ticket in this epic is told not to grow.
+
+      It also matters more than its size. `tests/test_card_has_one_home.py`
+      exists because "a second statement of the bar is a copy nothing compares
+      to the bar", and this is a third statement of an ask. SV-02's proposal for
+      carrying validation buys its two new clauses -- the denominator and "who
+      wrote the cases is not an input" -- entirely out of this duplication, and
+      lands at -15 bytes. The duplication is worth removing whether or not that
+      proposal is adopted.
+    reproduction: >-
+      `python3 examples/validation/scorecards/score_tools.py serve 2>/dev/null | grep -n seed`
+      -> three hits, at the scoring rules, the judging-practice block and the
+      N-D1 prompt.
+    evidence:
+      - "references/eval_scorecard.md -- scoring rule 8, and the `- **N-D1 — bug detection.**` prompt"
+      - "examples/validation/scorecards/score_tools.py `served_rubric` -- the `Judging practice — REQUIRED` block it writes"
+      - "references/scoring_validation.md section 6 -- the byte table, where this duplication is the budget"
+    why_out_of_scope: >-
+      Editing the note prompt IS the proposal SV-02 makes; making the edit in
+      SV-02 would ship the change in the research ticket that recommends it and
+      would move the surface metric during the epic that guards it. It belongs
+      to whichever ticket adopts or rejects the proposal.
+    suggested_fix: >-
+      Drop "Name the fault you seeded if you seeded one" from N-D1's prompt. Rule
+      8 and the judging-practice block already require it, and the block is
+      served immediately above the notes.
+    disposition: open
+  - id: SV-02-DF-04
+    found_by: "SV-02, pricing a restored dimension by running `serve` against a scratch rubric"
+    found_at_commit: "a527305"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      A DIMENSION'S SCALE IS DEFINED IN A DICT WITH A DEFAULT, AND THE DEFAULT
+      REPORTS AS AN ANCHOR-COUNT ERROR RATHER THAN AS A VERSION FACT.
+
+      `TOP_SCORE_V4 = {"D2": 3, "D3": 4}` and `top_score` returns
+      `TOP_SCORE_V4.get(dim, 4)` for any version at or above 4. The dict's own
+      comment is unusually good -- it explains that deleting D2's anchor 4 costs
+      the top of the scale and that "that cost is this dict rather than a
+      sentence somewhere". The default is the gap: a dimension absent from the
+      dict silently gets a 0-4 scale.
+
+      Today no dimension is affected, because D1, D4 and D5 carry no live
+      anchors at version 4 or above. It fires the moment anyone un-retires one.
+      SV-02 priced a restored D4 on a 0-3 scale and `serve` refused with
+      "D4 does not carry anchors 0-4 (got ['0', '1', '2', '3'])" -- a message
+      about the rubric's anchor count when the cause is that the version map has
+      no row for D4. The author is told to add anchors they deliberately did not
+      write. With a 0-4 block the tool gives the right refusal, naming the
+      retirement, which is the message that should have come first.
+
+      This is not blocking and nothing depends on it now. It is filed because
+      SV-03 and SV-07 may restore a dimension, and this is thirty seconds of
+      confusion sitting exactly on that path.
+    reproduction: >-
+      Copy `references/eval_scorecard.md` to a scratch path, insert a
+      `### D4 — behavior preservation` block carrying anchors 0-3 above
+      `## The recorded notes`, and run
+      `python3 examples/validation/scorecards/score_tools.py serve --rubric <scratch>`.
+      -> exit 2, "D4 does not carry anchors 0-4 (got ['0', '1', '2', '3'])".
+      Repeat with anchors 0-4 -> exit 2, "declares scorecard version 5 and still
+      serves anchors for D4", which is the accurate refusal.
+      `specs/results/scorecards/score-drives-validation/GOAL-validation-is-scorable/SV-02/analysis/carrier_cost.py`
+      section 4 runs the second case on every invocation.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py -- `TOP_SCORE_V4`, `top_score`, and the anchor-range check in `load_rubric`"
+      - "specs/results/scorecards/score-drives-validation/GOAL-validation-is-scorable/SV-02/analysis/carrier_cost.py section 4"
+    why_out_of_scope: >-
+      SV-02 ships no production code. Nothing in the tree hits this path.
+    suggested_fix: >-
+      Check the retirement before the anchor range, so a dimension the version
+      does not score is refused for that reason whatever anchors it carries.
+      Alternatively give `TOP_SCORE_V4` a row per scored dimension and drop the
+      default, so the dict states every scale rather than most of them -- which
+      is what its own comment already claims it does.
+    disposition: open
+  - id: SV-02-DF-05
+    found_by: "SV-02, baselining the suite at the epic branch point before reporting its own numbers"
+    found_at_commit: "a527305"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["SCORE-DRIVES-VALIDATION-EPIC.md", "specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      THE EPIC OPENS WITH THREE RED TESTS AND TELLS EVERY TICKET THERE ARE TWO --
+      AND THE THIRD IS TRIPPED BY THE EPIC'S OWN OPENING COMMIT.
+
+      `SCORE-DRIVES-VALIDATION-EPIC.md` section 7 and every ticket's standing
+      rules say: "Two reds are inherited deliberately: `RM-06-DF-01`, and the
+      pricer grep tripped by narrative documents. Do not repair them silently."
+      At `a527305`, `uv run --with pytest --with pyyaml python -m pytest tests -q`
+      is `3 failed, 1499 passed`. The third is
+      `tests/test_card_has_one_home.py::test_only_the_card_states_a_dimension_an_anchor_or_a_scoring_rule`,
+      and its unguarded offenders are exactly two files:
+
+        SCORE-DRIVES-VALIDATION-EPIC.md:40 states dimension D2
+        SCORE-DRIVES-VALIDATION-EPIC.md:41 states dimension D3
+        specs/desired_program_model/ticket_plan.yaml:8 states dimensions D2 and D3
+
+      Both were added by the single commit that opened this epic, and both are
+      restating which dimensions version 5 scores while explaining why validation
+      cannot be scored.
+
+      THE TEST IS RIGHT AND ITS OWN DOCSTRING SAYS WHY: "a second statement of the
+      bar exists that nothing compares to the bar, which is how the two wrong rows
+      in `PORTS-AS-ADAPTERS-EPIC.md` survived an instrument change." The charter
+      quotes the card correctly today. The failure is that nothing will notice
+      when it stops being correct, which is the same shape as the two wrong rows
+      the test was written for.
+
+      THE COST IS ALREADY BEING PAID. Six tickets run concurrently in this epic
+      and each is told the expected red count is two. A ticket that reads three,
+      as this one did, must either spend a baseline run establishing that its own
+      work is not the cause -- which SV-02 did, by `git stash -u` and re-running
+      the three tests at `a527305` with none of its files on disk (3 failed, 59
+      passed, identical set) -- or quietly assume it. The second is the likelier
+      behaviour and it is the one that hides a real regression.
+    reproduction: >-
+      At `a527305` with a clean tree:
+      `uv run --with pytest --with pyyaml python -m pytest tests/test_card_has_one_home.py -q`
+      -> 1 failed, 7 passed, naming
+      `SCORE-DRIVES-VALIDATION-EPIC.md:40`, `:41` and `ticket_plan.yaml:8`.
+      `git log --oneline -1 -- SCORE-DRIVES-VALIDATION-EPIC.md` -> the epic-opening
+      commit.
+    evidence:
+      - "SCORE-DRIVES-VALIDATION-EPIC.md section 7 -- 'Two reds are inherited deliberately'"
+      - "SCORE-DRIVES-VALIDATION-EPIC.md:39-46 -- the D2/D3 restatement that trips it"
+      - "specs/desired_program_model/ticket_plan.yaml:8 -- the same restatement in `epic_goals`"
+      - "tests/test_card_has_one_home.py:338 and its docstring -- the rule, and the fix being a POINTER and never a corrected copy"
+      - "specs/results/scorecards/score-drives-validation/GOAL-validation-is-scorable/SV-02/RESULT.md section 5 -- both trees, run"
+    why_out_of_scope: >-
+      The offending files are the epic charter and the ticket plan, which a
+      ticket does not edit, and the charter explicitly instructs tickets not to
+      repair inherited reds silently. Repairing this one would also delete the
+      evidence that the declared count was wrong.
+    suggested_fix: >-
+      Whichever is preferred, and the choice is the owner's: (a) replace the
+      restatement in both files with a pointer to `references/eval_scorecard.md`,
+      which is what the test's docstring asks for and costs two sentences; or
+      (b) declare three inherited reds instead of two, naming this one, so a
+      ticket reading the number can trust it. Do NOT add either file to `GUARDED`
+      without the comparison that guarding requires -- `score_tools.NAMES` is the
+      standard the test sets and a charter cannot meet it.
+    disposition: repaired
+    disposition_ticket: "epic owner, commit 2059500, merged at b999d71"
+    disposition_note: >-
+      REPAIRED BY THE OWNER, AND WITH THE POINTER RATHER THAN A CORRECTED COPY --
+      which is the fix `tests/test_card_has_one_home.py`'s own docstring asks for
+      ("the fix is a POINTER, never a corrected copy") and the one this finding
+      recommended as option (a). Both `SCORE-DRIVES-VALIDATION-EPIC.md` and
+      `specs/desired_program_model/ticket_plan.yaml` now point a reader at
+      `serve` instead of restating which dimensions version 5 scores.
+
+      VERIFIED BY SV-02 AT THE RECONCILED TREE, not taken on report:
+      `test_card_has_one_home.py` is 8 passed, and the full suite at the merge of
+      `b999d71` into `feature/SV-02` is 2 failed, 1499 passed against 3 failed,
+      1499 passed at `a527305`. The epic now carries the two inherited reds its
+      charter declares -- `RM-06-DF-01` and the pricer grep -- and no third.
+
+      Independently found by SV-06, which escalated it in its RESULT rather than
+      filing because its budget of five was spent. Two tickets reaching the same
+      undeclared red from different work is why it is recorded here rather than
+      only fixed.
+  - id: SV-06-DF-01
+    found_by: "SV-06"
+    found_at_commit: "a527305"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      THE EPIC'S OWN BASELINE FOR `GOAL-scored-at-goal-time` IS FALSE IN ITS
+      LOUDEST CLAUSE. It reads "NO GOAL HAS EVER BEEN KEYED TO A DIMENSION", and
+      `SCORE-DRIVES-VALIDATION-EPIC.md` section 3 and issue #238 repeat it.
+
+      Measured over every `ticket_plan.yaml` on disk at `a527305`, live and
+      sealed: of 27 distinct epic goals, 12 name a scorecard dimension in their
+      statement, metric, harness or target. `GOAL-D2-can-move`
+      (`subtract-to-measure`, one epic ago) is the clearest counterexample --
+      metric "D2 scored by two blind judges on the toolchain's removal, before
+      against after, per judge", baseline "D2 = 2 on 27 of 27 cards ever written
+      about the A/B example", target "D2 reaches 3 or more on the removal".
+      `GOAL-dimensions-replicate` (`portable-substrate`) is a second.
+
+      THE TRUE FIGURE IS SHARPER AND IT IS THE ONE THE EPIC WANTED. Of those 27
+      goals, ZERO have a `baseline.evidence` that points at a sealed
+      `scorecard.json`, while 87 sealed cards sit in
+      `specs/results/scorecards/`. All 25 distinct `baseline.evidence` values are
+      a directory, a `RESULT.md`, a `SELF-IMPROVEMENT.md` line range or a
+      reference page. A goal here has described a score twelve times and has
+      never been one.
+    reproduction: >-
+      `uv run --with pyyaml python3
+      specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-06/analysis/goal_score_survey.py`
+      -- it prints the 27, the 12, the 0, the 25 distinct evidence values and the
+      87 cards, and names the tree it computed them over. Roughly one second.
+    evidence:
+      - "specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-06/survey.txt"
+      - "specs/.history/subtract-to-measure-epic/ticket-005-SM-05/snapshots/desired_program_model/ticket_plan.yaml -- GOAL-D2-can-move"
+      - "specs/.history/portable-substrate-epic/ticket-002-RM-06/snapshots/desired_program_model/ticket_plan.yaml -- GOAL-dimensions-replicate"
+      - "references/goal_score_wiring.md section 1"
+    why_out_of_scope: >-
+      A goal `baseline` block is a sealed measurement and `ticket_plan.yaml` is
+      not in SV-06's `implementation_scope` (`references/`, `specs/results/`).
+      The epic's own discipline is that a target is never moved after a result is
+      known and a baseline is the target's other half; editing one mid-epic, even
+      to correct it, is the move the plan forbids. Same treatment as
+      `PA-01-DF-01`.
+    suggested_fix: >-
+      The owner amends the baseline's first clause to the measured one -- "12 of
+      27 goals name a dimension in prose; ZERO carry a scored baseline; 87 sealed
+      cards are cited by no goal" -- WITHOUT weakening the target, which is
+      unaffected and still correct. Alternatively SV-05 records the correction
+      beside the goal verdict, which is the treatment this project already
+      prescribes for a sealed number that has gone stale.
+    blast_radius: >-
+      The goal's target ("a goal can be scored at declaration and the evaluation
+      compares against the sealed number") is UNAFFECTED and is still the right
+      target -- the corrected baseline makes it easier to reach, not harder,
+      because the prose half is already done twelve times. What is affected is
+      SV-03's and SV-07's framing: an implementer told "no goal has ever been
+      keyed to a dimension" will build a keying mechanism, and the record says
+      keying is the part that works and the SCORED BASELINE is the part that has
+      never happened.
+    disposition: open
+  - id: SV-06-DF-02
+    found_by: "SV-06"
+    found_at_commit: "a527305"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["$SKILL_MANAGER_HOME/skills/git-epic-workflow/references/goals-and-evaluation.md"]
+    summary: >-
+      A SKILL RULE WITH A COMPLIANCE RATE OF ZERO IN THE PROJECT THAT IT NAMES.
+      `git-epic-workflow/references/goals-and-evaluation.md`, under Baselines,
+      says: "A judged baseline is a prior scored run, not a recollection.
+      `baseline.value` cites the sealed card that produced the number and
+      `baseline.evidence` points at it, so the comparison is against a record
+      that cannot be edited afterwards."
+
+      Of 27 distinct epic goals in this repository at `a527305`, 0 comply. The
+      instruction is correct, unambiguous, and has never been followed here --
+      including by the four goals of the epic that opened to fix exactly this.
+
+      AND THE FILE HAS NO BRANCH THAT WOULD PRODUCE COMPLIANCE. Its Baselines
+      section offers exactly two: "harness exists" -> measure at kickoff, and
+      "harness does not exist" -> schedule a wave-1 ticket. A judged instrument
+      that EXISTS but has never been run on this subject is in neither, and the
+      judged paragraph above only says how to cite a PRIOR run. An epic whose
+      subject has never been scored has no branch to follow, and 0 of 27 is what
+      following no branch looks like.
+    reproduction: >-
+      The survey script above prints all 25 distinct `baseline.evidence` values;
+      none contains `scorecard.json`. Read
+      `$SKILL_MANAGER_HOME/skills/git-epic-workflow/references/goals-and-evaluation.md`
+      lines 137-174 for the two branches and the judged-baseline paragraph.
+    evidence:
+      - "specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-06/survey.txt"
+      - "references/goal_score_wiring.md sections 1, 4 and 7"
+    why_out_of_scope: >-
+      SV-06 is a RESEARCH ticket and is forbidden from editing any skill. The
+      repair is SV-07's entry 1 and 2, and it is proposed there as a diff.
+    suggested_fix: >-
+      SV-07 entry 1: add the third branch -- judged harness, subject never scored
+      -> run it at epic kickoff on the epic branch before any ticket lands, seal
+      it, cite the card. SV-07 entry 2: one sentence that a directory is not a
+      card. NO CHECK. The 0-of-27 figure argues for a sentence, not for a
+      checker, and `no_new_gates_rule` applies.
+    blast_radius: >-
+      Every judged goal this project has ever declared is compared against a
+      paragraph rather than a number. That is not a wrong result anywhere --
+      the evaluation tickets ran the card correctly and reported what they
+      measured -- but no evaluation in the record could re-read its own baseline,
+      which is the property `GOAL-scored-at-goal-time` exists to obtain.
+    disposition: open
+  - id: SV-06-DF-03
+    found_by: "SV-06"
+    found_at_commit: "a527305"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml", "SCORE-DRIVES-VALIDATION-EPIC.md"]
+    summary: >-
+      THE SURVEYED SURFACE IS SIX FILES, NOT FOUR. The epic charter, the plan's
+      `GOAL-scored-at-goal-time` baseline and issue #238 all state "THREE SKILLS
+      AND FOUR FILES". Three skills is right. Re-run at `a527305` over
+      `/scorecard|score_tools|rubric/`, excluding each skill's own installed
+      dependencies, the surface is six:
+
+        git-epic-workflow/references/goals-and-evaluation.md   (surveyed)
+        git-issue-workflow/references/goal-signal.md           (surveyed)
+        git-issue/SKILL.md                                     (surveyed)
+        git-issue/references/regression-close.md               (surveyed)
+        git-issue-workflow/SKILL.md                            (MISSED)
+        git-issue/references/discovery.md                      (MISSED)
+
+      `discovery.md` is the one that matters. It is the MEASUREMENT INVENTORY --
+      the seam where an issue author asks what instrument decides a goal, BEFORE
+      the goal is written -- and it already answers correctly: "an artifact scored
+      against a versioned rubric by judges who cite it is an instrument, and in
+      some repositories it is the better one". A survey of where the score can
+      reach the goal process that omits the file asking "what is the instrument?"
+      has omitted the earliest seam in the lifecycle.
+    reproduction: >-
+      `grep -rlEi 'scorecard|score_tools|rubric' git-epic-workflow git-issue-workflow git-issue`
+      from `$SKILL_MANAGER_HOME/skills`, or the survey script's second section,
+      which excludes `.venv`/`__pycache__` by name (without that exclusion the
+      count is 7 and the seventh is a pygments lexer).
+    evidence:
+      - "specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-06/survey.txt"
+      - "references/goal_score_wiring.md section 3"
+    why_out_of_scope: >-
+      Same as SV-06-DF-01: the figure sits inside a sealed `baseline.value` and
+      in the epic charter, neither in SV-06's implementation scope.
+    suggested_fix: >-
+      Amend the count where the owner amends SV-06-DF-01, or let SV-05 record it
+      beside the verdict. NEITHER MISSED FILE NEEDS AN EDIT -- `discovery.md` is
+      already correct and `git-issue-workflow/SKILL.md`'s mention is a one-line
+      summary of the evaluation role. This is a scope correction, not new work.
+    blast_radius: >-
+      No design conclusion changes; SV-07's hand-off is unaffected and still
+      touches at most four files. What is affected is any future claim of the
+      form "the entire surface is four files", which is now wrong by two and
+      would be read forward.
+    disposition: open
+  - id: SV-06-DF-04
+    found_by: "SV-06"
+    found_at_commit: "a527305"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["SKILL.md"]
+    summary: >-
+      THE SHIPPED SKILL DESCRIPTION OF THE CARD DESCRIBES A CARD THAT NO LONGER
+      EXISTS. `SKILL.md:1337` reads: "`references/eval_scorecard.md`: THE
+      EVALUATION RUBRIC. Five judged dimensions (bug detection, complexity,
+      modularity, behavior preservation, honesty)".
+
+      At `a527305` the card is Scorecard version 5 and serves TWO judged
+      dimensions -- D2 complexity and D3 modularity -- plus three RECORDED NOTES
+      that take no score, `N-D1`, `N-D4` and `N-D5`. `check` REJECTS a version 4
+      or 5 card that scores D1, D4 or D5. The retirement is the headline result
+      of `portable-substrate` and is recorded in `references/eval_scorecard.md`
+      and `references/portable_scorecard.md`.
+
+      This is not an internal note. `SKILL.md` is the unit description, and the
+      installed `spec-double-compiler` unit at
+      `$SKILL_MANAGER_HOME/skills/spec-double-compiler/` is this repository --
+      `.git` present, `references/eval_scorecard.md` byte-identical to the copy
+      at `a527305`. So the first sentence any agent or adopter reads about the
+      card names five scored dimensions, three of which the checker refuses.
+    reproduction: >-
+      `sed -n '1337,1339p' SKILL.md` against `grep -n 'Scorecard version'
+      references/eval_scorecard.md` (version 5) and
+      `python3 examples/validation/scorecards/score_tools.py serve | grep '^### D'`
+      -- two dimensions, D2 and D3.
+    evidence:
+      - "SKILL.md:1337"
+      - "references/eval_scorecard.md:3 -- Scorecard version 5"
+      - "references/eval_scorecard.md -- 'dimensions carries D2 and D3 and nothing else from version 4'"
+    why_out_of_scope: >-
+      `SKILL.md` is not in SV-06's `implementation_scope` (`references/`,
+      `specs/results/`), and SV-06 ships no production or documentation change
+      outside its design page. It is also not a one-word fix: the sentence
+      describes the anchors and the gaming rules too, and rewriting it is a
+      documentation slice with its own review.
+    suggested_fix: >-
+      Rewrite the entry to "two judged dimensions (complexity, modularity) and
+      three recorded notes that take no score (bug detection, behavior
+      preservation, honesty)", and say WHY the three were retired -- they graded
+      toolchain ownership -- because that reason is the most transferable thing
+      the card has learned and it currently appears nowhere in `SKILL.md`. Then
+      write the test against what the card file DECLARES and never against the
+      literal 5, per `CL-03-DF-04`.
+    blast_radius: >-
+      Anyone scaffolding from this description expects five scored dimensions and
+      gets a `check` refusal on three of them. It also inflates every informal
+      account of what the card measures, in the direction the epic charter warns
+      about: the card is smaller than its own advertisement.
+    disposition: open
+  - id: SV-06-DF-05
+    found_by: "SV-06"
+    found_at_commit: "a527305"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/portable_scorecard.md"]
+    summary: >-
+      THE TOP ITEM OF THE IRREDUCIBLY-LOCAL LIST WAS FIXED BY THE EPIC THAT
+      FOLLOWED IT, AND THE PAGE STILL SHIPS IT AS CURRENT. `references/portable_scorecard.md`
+      section 2 item 1 names "D1 anchor 4, D4 anchors 3 and 4, and D2 anchor 4's
+      D4 gate" as "not expensive -- UNREACHABLE", and calls those three clauses
+      "the whole of the difference between grading architecture and grading
+      conformance to a toolchain".
+
+      At version 5: D1 and D4 take no score at all, D2's top anchor is 3 so there
+      is no anchor 4 to gate, and D2's preamble reads "where none exists that is
+      not a gap in the evidence" -- which is precisely what section 5 of the same
+      page asked for ("their outputs must stop being a precondition of a D2
+      score"). Item 1 is settled. The list has not been revised, and the page is
+      still cited as live prior art, including by this ticket's own work order.
+    reproduction: >-
+      `references/portable_scorecard.md` section 2 item 1 against
+      `python3 examples/validation/scorecards/score_tools.py serve` -- D2 stops at
+      anchor 3, D1 and D4 are recorded notes with no ladder.
+    evidence:
+      - "references/portable_scorecard.md -- section 2 item 1 and section 5 item 1"
+      - "references/eval_scorecard.md -- version 5, D2 anchors 0-3, N-D1/N-D4/N-D5"
+      - "references/goal_score_wiring.md section 5, correction 3"
+    why_out_of_scope: >-
+      A predecessor's statement at a predecessor's scope is not edited to match a
+      successor's finding. `RM-02` applied exactly this rule to
+      `references/architecture_tags.md` section 2.2 and filed `RM-02-DF-04`
+      rather than rewriting it; the same treatment is owed to `RM-02`'s own page.
+    suggested_fix: >-
+      Do NOT edit section 2. Add a dated one-line header note to the page saying
+      which of its six items the following epics settled and which still stand,
+      the way a sealed card carries a note rather than an edit. Item 1 is
+      settled; items 2, 3, 5 and 6 appear to stand and were not re-checked by
+      SV-06; item 4's rule/table split generalises and is restated in
+      `references/goal_score_wiring.md` section 5.
+    blast_radius: >-
+      A reader planning adoption today is told the card's top portability
+      obstacle is three unreachable model clauses. It is not, and has not been
+      for one epic. The direction of the error is the flattering one for the
+      obstacle and the unflattering one for the card's actual state, which is
+      that it is now SMALLER and more portable than its own portability page
+      says.
+    disposition: open
+  - id: SV-03-DF-01
+    found_by: "SV-03"
+    found_at_commit: "5620c9a"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/goal_score_wiring.md"]
+    summary: >-
+      SV-06'S HAND-OFF ASKS FOR A RULE ITS OWN EXEMPLAR CANNOT SATISFY.
+      `references/goal_score_wiring.md` section 7.2 proposes the sentence "For a
+      judged goal, `baseline.evidence` is the path to the SINGLE sealed card that
+      produced the number."
+
+      Two of this repository's judged goals have a baseline VALUE that is a
+      figure over a POPULATION of cards, so no single card produced it and the
+      sentence is unsatisfiable for them, not merely unmet:
+      `GOAL-D2-can-move` ("D2 = 2 on 27 of 27 cards ever written about the A/B
+      example") and `GOAL-validation-is-scorable` ("D1 read 3 on 55 of 59
+      cards"). `GOAL-D2-can-move` is the goal section 1 of that same page holds
+      up as the clearest dimension-keyed goal this project has ever written.
+
+      A rule whose best subject cannot comply is ignored or complied with
+      falsely. The requirement wanted is ENUMERABILITY -- name the cards,
+      however many -- not singularity.
+    reproduction: >-
+      `uv run --with pyyaml python3 specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/baseline_is_a_card.py`
+      -- section "Population baselines", 2 goals at 5620c9a.
+    evidence:
+      - "references/goal_score_wiring.md -- section 7, hand-off item 2"
+      - "specs/.history/subtract-to-measure-epic/ticket-005-SM-05/snapshots/desired_program_model/ticket_plan.yaml -- GOAL-D2-can-move"
+      - "specs/desired_program_model/ticket_plan.yaml -- GOAL-validation-is-scorable"
+    why_out_of_scope: >-
+      A predecessor's research page is not rewritten by its successor -- the rule
+      RM-02 applied to `architecture_tags.md` section 2.2 and SV-06 applied to
+      `portable_scorecard.md` section 2. SV-03 shipped the corrected wording in
+      its own escalated diff 02 and recorded the deviation in ESCALATION.md;
+      editing SV-06's sealed page would hide that the correction was needed.
+    suggested_fix: >-
+      Leave section 7.2 as written. If the owner wants the page to agree with
+      what was escalated, add a dated one-line note at the top of section 7
+      pointing at the diff that shipped, the way a sealed card carries a note
+      rather than an edit.
+    blast_radius: >-
+      Bounded and already contained: the escalated diff carries the corrected
+      wording, so nothing reaches SKILL_MANAGER_HOME with the defect. The risk is
+      a later reader taking section 7.2 as the specification and re-introducing
+      "single".
+    disposition: open
+  - id: SV-03-DF-02
+    found_by: "SV-03"
+    found_at_commit: "5620c9a"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/goal_score_wiring.md"]
+    summary: >-
+      THE 0-OF-27 HEADLINE MIXES NINE GOALS THE RULE DOES NOT APPLY TO INTO ITS
+      DENOMINATOR. `references/goal_score_wiring.md` reports "of 27 goals, ZERO
+      have a `baseline.evidence` that points at a sealed card", and the numerator
+      is right. But 9 of those 27 name no judged instrument at all -- they are
+      decided by seeded mutants, a bench, or findings-per-token
+      (`GOAL-cheaper`, `GOAL-removal-is-measured`, `GOAL-removal-can-be-priced`,
+      `GOAL-price-means-something`, `GOAL-instruments-can-fail`,
+      `GOAL-fixture-can-diverge`, `GOAL-scope-loss-catchable`,
+      `GOAL-dead-weight-gone`, `GOAL-apparatus-priced`).
+
+      The judged denominator is 18, and the compliance rate is 0 of 18. The
+      correction makes the figure WORSE, which is why it is worth filing:
+      quoting 27 invites the reply that most of those goals were never about
+      cards, and that reply is true and does not save the number.
+    reproduction: >-
+      `uv run --with pyyaml python3 specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/baseline_is_a_card.py`
+      -- "not-judged : 9" against 27 distinct goals at 5620c9a.
+    evidence:
+      - "references/goal_score_wiring.md -- section 1"
+      - "specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/RESULT.md -- section 2"
+    why_out_of_scope: >-
+      Same rule as SV-03-DF-01: SV-06's page is sealed at its own scope. SV-03
+      reports the corrected denominator in its own RESULT.md and in the
+      escalation instead.
+    suggested_fix: >-
+      SV-05 quotes 0 of 18 judged goals, with 27 and the 9 excluded goals named
+      beside it, rather than 0 of 27 alone.
+    blast_radius: >-
+      A denominator that includes subjects the rule cannot apply to is the exact
+      error `denominator_rule` exists for, and this project has paid for it
+      before. Low blast radius because the numerator is zero either way.
+    disposition: open
+  - id: SV-03-DF-03
+    found_by: "SV-03"
+    found_at_commit: "5620c9a"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/.history/architectural-coherence-epic/"]
+    summary: >-
+      A SEALED BASELINE POINTS AT A PATH THAT DOES NOT EXIST ANYWHERE IN THE
+      TREE. `GOAL-simpler-same-behavior`'s `baseline.evidence` is
+      `specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/ex3_over_complex/`.
+      That directory is not present at 5620c9a. It is the only one of the 25
+      distinct evidence values that does not resolve to anything at all -- the
+      other 24 resolve to a directory or a document.
+
+      An evaluation ticket following it lands on nothing and has no way to tell
+      whether the evidence was moved, renamed, or never committed.
+    reproduction: >-
+      `ls specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/ex3_over_complex/`
+      -> no such file or directory. The classifier reports it as the single
+      `unresolvable` row.
+    evidence:
+      - "specs/.history/architectural-coherence-epic/closed-snapshot/snapshots/desired_program_model/ticket_plan.yaml"
+      - "specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/baseline_is_a_card.py"
+    why_out_of_scope: >-
+      `specs/.history` is append-only and records what was actually committed at
+      the time; rewriting it to satisfy a check is the opposite of the point, and
+      the same reasoning `test_spec_yaml_valid.py` gives for excluding that tree.
+      A sealed baseline is not edited by a later ticket in any case.
+    suggested_fix: >-
+      Nothing in `.history`. If the evidence still exists under another name, the
+      owner records the mapping once, beside the goal's verdict, where a sealed
+      number that has gone stale is already handled.
+    blast_radius: >-
+      One goal from a closed epic. It matters as EVIDENCE rather than as a
+      defect: it is the strongest single case for diff 02, because it shows a
+      free-text evidence field decaying into an unfollowable pointer with nothing
+      anywhere noticing for two epics.
+    disposition: open
+  - id: SV-03-DF-04
+    found_by: "SV-03"
+    found_at_commit: "5620c9a"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      TWO GOALS CITE SCORECARD DIRECTORIES THAT CONTAIN ZERO SCORECARDS.
+      `GOAL-loop-reaches-the-program` cites `specs/results/scorecards/close-the-loop/`
+      and `GOAL-tags-earn-their-place` cites
+      `specs/results/scorecards/subtract-to-measure/`. Both directories exist and
+      both hold RESULT/analysis material; neither holds a single
+      `scorecard.json`. The cards those goals are about are in SIBLING
+      directories -- `close-the-loop-cl03-v4/` and `-v5/`,
+      `subtract-to-measure-sm05/` and `-sm05-greenfield/`.
+
+      This is the R1 failing input SV-03 ships, and it is one step worse than the
+      failure diff 02 is written against: the evaluation ticket is not asked to
+      pick a card out of a folder, it is handed a folder with no card in it.
+    reproduction: >-
+      `find specs/results/scorecards/close-the-loop -name scorecard.json` -> empty.
+      `find specs/results/scorecards/subtract-to-measure -name scorecard.json` -> empty.
+      Pinned by `tests/test_goal_baseline_is_a_card.py::test_a_real_epic_plans_judged_baseline_cannot_be_re_opened`.
+    evidence:
+      - "specs/desired_program_model/ticket_plan.yaml -- GOAL-loop-reaches-the-program"
+      - "specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/RESULT.md -- section 3"
+    why_out_of_scope: >-
+      `baseline` blocks are sealed measurements. The epic's own discipline is
+      that a target is never moved after a result is known and a baseline is the
+      target's other half -- the same ground PA-01-DF-01 was filed on. Repairing
+      it would also destroy this ticket's demonstrated failing input.
+    suggested_fix: >-
+      Nothing during the epic. SV-05 may record the resolved card paths beside
+      the goal verdict. Future epics get this right for free from diff 01 and 02
+      if they are applied.
+    blast_radius: >-
+      Directly on `GOAL-loop-reaches-the-program`, which SV-04 must compare
+      against: SV-04's re-score has a baseline it cannot re-open, so its "would
+      the score have moved anyway" counterfactual rests on prose.
+    disposition: open
+  - id: SV-03-DF-05
+    found_by: "SV-03"
+    found_at_commit: "5620c9a"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      SV-07'S SCOPE IS NOW WHAT SV-03 JUST DID. SV-07 is a PLACEHOLDER whose
+      objective is "implement the cross-skill goal wiring (scope defined by
+      SV-06)" and whose acceptance is "any SKILL_MANAGER_HOME change is proposed
+      as a diff and escalated". That is this ticket's deliverable, verbatim: the
+      four diffs SV-06 handed off are written, verified to apply, and escalated
+      here.
+
+      The two tickets were planned before SV-06 reported, when it was still open
+      whether the wiring needed a field, a validator change or production code.
+      SV-06's answer was "four prose edits, no field, no code", which collapses
+      the two into one. Dispatching SV-07 as written would either duplicate this
+      work or invent scope to fill it -- and inventing scope to fill a ticket is
+      how a fitted axis gets added, which is MF-020.
+    reproduction: >-
+      Compare `specs/desired_program_model/ticket_plan.yaml` SV-07's objective
+      and acceptance against SV-03's, and both against
+      `references/goal_score_wiring.md` section 7.
+    evidence:
+      - "specs/desired_program_model/ticket_plan.yaml -- SV-03 and SV-07"
+      - "references/goal_score_wiring.md -- section 7"
+      - "specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/ESCALATION.md"
+    why_out_of_scope: >-
+      Ticket scope is the epic owner's, not a ticket agent's, and SV-07 is
+      explicitly "REWRITTEN FROM THEIR DESIGNS BEFORE DISPATCH" by the owner. A
+      ticket agent that re-scoped or closed a sibling ticket would be editing the
+      plan it is a subject of.
+    suggested_fix: >-
+      The owner either closes SV-07 as delivered by SV-03, or re-scopes it to the
+      one thing SV-03 deliberately did NOT do: applying the escalated diffs to
+      SKILL_MANAGER_HOME and reconciling the three source repos, which are all
+      behind their installed copies. That is a decision, not an implementation.
+    blast_radius: >-
+      SV-05 depends on SV-07 and would wait on a ticket with nothing to build.
+      SV-05's blind test needs the diffs APPLIED to be run as SV-06 section 6
+      specifies, so the decision SV-07 becomes is on SV-05's critical path.
+    disposition: open
+  - id: SV-07-DF-01
+    found_by: "SV-07"
+    found_at_commit: "c9be7b5"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/scoring_validation.md"]
+    summary: >-
+      THE FREE CARRIER IS NOT FREE, AND THE BYTE METRIC DOES NOT DISTINGUISH THE
+      TWO CARRIERS IT RANKED. `references/scoring_validation.md` section 6 prices
+      a sharpened recorded-note prompt at -15 bytes against +682 for a restored
+      scored dimension, and section 7 concludes "Carrier R requires a version
+      bump and would hand every adopter that experience. The free carriers do
+      not." The second sentence is false, measured.
+
+      A recorded note's PROMPT is inside both of the card's seals. It is in the
+      payload `load_rubric` digests, and it is in the bytes `serve` emits, which
+      `## Version history` declares per version and
+      `score_tools.version_history_problems` recomputes for the current row. Put
+      the priced prompt into the card and change nothing else, and the card's own
+      change rule refuses it in the tree's own words -- "Bump the card, or
+      restore the text; a served surface that changes under a fixed version is
+      the card changing silently". The shipped card's own version 5 row is the
+      precedent and says so: it moved no anchor, moved only served bytes, and
+      took a bump to do it.
+
+      So both carriers cost a version bump, and a bump is what SV-02 used to
+      reject the rung -- an INSTRUMENT-LOG era boundary, the change rule's
+      re-score of a prior example under both versions, and CL-04 blocker 2 handed
+      to every adopter. What separates them after that is the rung count and the
+      +682 bytes, which is still a real difference and is no longer the
+      difference the recommendation rested on. The epic's surface metric
+      `serve | wc -c` is not the binding constraint for note-shaped changes, and
+      nothing said so before this ticket tried to spend it.
+    reproduction: >-
+      python3 scripts/candidate_note_bar.py -- prices the candidate at 6,266
+      bytes and 9 rungs against the card's 6,281 and 9, with the anchors digest
+      byte-identical. Then
+      `pytest tests/test_candidate_note_bar.py::test_the_note_prompt_is_inside_both_seals`,
+      which puts the same prompt into the card WITHOUT a version row and asserts
+      the change rule's refusal, and shows the two real sealed version-5 cards
+      under specs/results/scorecards/close-the-loop-cl03-v5/ drifting against the
+      candidate while they do not drift against the shipped bar.
+    evidence:
+      - "references/scoring_validation.md -- sections 6 and 7"
+      - "references/eval_scorecard.md -- `Changing this card`, and the version 5 row of `### Version history`"
+      - "examples/validation/scorecards/score_tools.py -- version_history_problems, SERVED_SEAL_FROM"
+      - "scripts/candidate_note_bar.py"
+      - "tests/test_candidate_note_bar.py::test_the_note_prompt_is_inside_both_seals"
+      - "specs/results/scorecards/close-the-loop-cl03-v5/toolchain_removal/20260811-cl03v5-CL-p1/scorecard.json"
+    why_out_of_scope: >-
+      The work order forbids forcing a card bump and says in terms that if the
+      note requires one, that is a finding and not a licence. Bumping would also
+      require the change rule's re-score under both versions, which is a judging
+      round and belongs to SV-05. Editing SV-02's page is out of scope for the
+      same reason RM-02 left `architecture_tags.md` section 2.2 standing: a
+      predecessor's statement at a predecessor's scope is filed, not rewritten.
+    suggested_fix: >-
+      Run SV-02 section 9's first experiment -- one prior example re-scored under
+      both wordings -- with `scripts/candidate_note_bar.py --out` supplying the
+      candidate arm, and let that round decide the prompt AND the rung together,
+      since they are now known to cost the same bump. If the owner wants the note
+      without a round, that is a deliberate exception to the change rule and
+      should be recorded as one.
+    blast_radius: >-
+      SV-04 and SV-05 key on the denominator inside a note, so what the note ASKS
+      for is on their path: the shipped prompt asks for a fault the judge seeded
+      and does not ask for the artifact's denominator at all. Any future ticket
+      that reads SV-02's byte table as the price of a note will under-price it by
+      a version bump.
+    disposition: open
+  - id: SV-01-DF-01
+    found_by: "SV-01"
+    found_at_commit: "5e07dce"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/score-drives-validation-sv01-v4/UNBLINDING.md", "specs/results/scorecards/score-drives-validation-sv01-v5/UNBLINDING.md"]
+    summary: >-
+      THE TICKET-SPECIFIC-SCRATCH RULE COVERS THE OPERATOR'S OUTPUT FILES AND NOT
+      THE PATHS HANDED TO SUBAGENTS, AND ALL FOUR OF THIS ROUND'S JUDGES WERE GIVEN
+      A DIRECTORY HOLDING A PRIOR ROUND'S ARTIFACT AND A PRIOR `D3 = 4`.
+
+      The epic's standing rule -- "write scratch output to a TICKET-SPECIFIC path;
+      two concurrent tickets corrupted a shared `baseline.txt` last epic" -- was
+      followed for every file SV-01's operator wrote. It was NOT followed for the
+      four scratch directories the operator assigned to its judge agents:
+      `judge-v4-p1`, `judge-v4-p2`, `judge-v5-p1`, `judge-v5-p2`. Those are the
+      same four names `close-the-loop`'s CL-03 used on 2026-08-11 in the same
+      shared scratchpad, and every one of them already existed and was non-empty.
+
+      `judge-v4-p2/base/`, `judge-v5-p1/work/`, `judge-v5-p2/work/` and
+      `judge-v5-p2/derived/` each contain CL-03's `reference_ports` tree -- THE
+      ARTIFACT WITH THE SINGLE-OBSERVER HOLE, the positive cell of the very
+      comparison this round is the negative cell of -- together with its
+      `README.md:22`, which reads "...that earned arm B its D3 = 4". A PRIOR D3
+      NUMBER, one `ls` away from every judge of a round measuring D3.
+
+      Two judges (`v5-p1`, `v5-p2`) reported the stale directory unprompted, said
+      they saw filenames only, opened nothing and moved into a fresh subdirectory.
+      The two version 4 judges did not mention it. No file inside any stale
+      directory has an mtime later than 2026-08-11, so nothing was overwritten and
+      CL-03's record is intact.
+
+      THE LEAK CUTS TOWARD 4, WHICH IS THE ANSWER THIS ROUND PREDICTED AND GOT.
+      That is precisely why it is filed loudly rather than argued away, and it is
+      the reason SV-01's verdict is stated with the scope bound in RESULT.md
+      section 9 attached to it.
+    reproduction: >-
+      `ls -la <scratchpad>/judge-v4-p2/base` -> `FEATURE.md`, `reference_ports/`,
+      `tests/`, all dated 2026-08-11, a day before SV-01 scaffolded anything.
+      `grep -n 'D3' <scratchpad>/judge-v4-p2/base/reference_ports/README.md` ->
+      line 22, "that earned arm B its D3 = 4". Same for
+      `judge-v5-p2/work/reference_ports/README.md`.
+    evidence:
+      - "specs/results/scorecards/score-drives-validation-sv01-v5/UNBLINDING.md -- disclosure 1"
+      - "specs/results/scorecards/score-drives-validation/GOAL-caveat-discriminates/SV-01/RESULT.md section 9"
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/RESULT.md section 10 -- the same README leak, disclosed by CL-03's own judges from inside the packet"
+    why_out_of_scope: >-
+      SV-01 is a measurement. The repair is a change to how judge agents are
+      dispatched, made by the round that has just measured with the unrepaired
+      version, and a card is never discarded after its score is seen. The four
+      cards stand, the exposure is recorded on them, and the fix belongs to a
+      round that is not reporting a score.
+    suggested_fix: >-
+      Two parts, and the first is the one that matters. (a) THE RULE IS ABOUT
+      PATHS, NOT ABOUT FILES: state it as "every path an agent is given -- its own
+      output, its scratch, and any directory named in its dispatch -- carries the
+      ticket id", and put the ticket id in the judge directory name
+      (`SV-01-judge-v5-p1`). (b) Make the dispatch create the directory and refuse
+      to proceed if it is non-empty, so a collision is a stop rather than a
+      disclosure. DO NOT respond by adding a gate to the scorecard tooling: the
+      defect is in how a round dispatches agents, and score_tools.py cannot see it.
+    blast_radius: >-
+      No published number changes. It bounds SV-01's verdict: a prior `D3 = 4` was
+      reachable by every judge of a round that concluded `D3 = 4`, so the four
+      cards are evidence with a disclosed exposure attached rather than clean
+      evidence. It also applies backwards -- CL-03's judges wrote those trees, so
+      any round that reused those names before SV-01 had the same exposure and did
+      not check for it.
+    disposition: open
+  - id: SV-01-DF-02
+    found_by: "SV-01"
+    found_at_commit: "5e07dce"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md"]
+    summary: >-
+      D2's ANCHOR LADDER IS NON-MONOTONE: RUNGS 0 AND 2 ARE SIMULTANEOUSLY
+      SATISFIABLE, AND ONLY THE DIMENSION'S PREAMBLE FORECLOSES THE 0. THREE OF
+      FOUR BLIND JUDGES RAISED IT INDEPENDENTLY AND UNPROMPTED, AND IT NAMES THE
+      CAUSE OF AN ALREADY-RECORDED CONTESTED SPREAD.
+
+      D2 anchor 0 reads "Complexity is unmeasured, or measured and ignored".
+      Anchor 2 reads "The design's complexity is proportional to its behavior; no
+      god-state, no variable written from everywhere". An artifact that never ran
+      a complexity tool but whose design is proportional satisfies BOTH, and the
+      instruction served to every judge is "score the LOWEST anchor the artifact
+      fully satisfies". Read mechanically, that is a 0.
+
+      The only thing standing against it is D2's `read_first` preamble -- "where a
+      measured complexity descriptor exists you may read it, and on its own it
+      decides nothing; where none exists that is not a gap in the evidence".
+      Rungs 0 and 1 grade THE REPORT; rungs 2 and 3 grade THE DESIGN. They are two
+      different scales sharing one ladder.
+
+      Verbatim, from three separate cards on byte-identical bytes:
+      "Anchor 0's text and the preamble say opposite things about the same fact; a
+      judge reading the ladder without the preamble scores this 0. A 0-vs-2 spread
+      on identical bytes is a rubric defect, not a judging one." / "The D2 ladder
+      is non-monotone at that seam: applied mechanically, it scores 0 on any
+      artifact that never ran a complexity tool, making D2 measure TOOL USE rather
+      than design." / "Two judges weighting the anchor text vs. the `read_first`
+      differently will split 0 vs 2 on byte-identical evidence."
+
+      AND THAT SPLIT IS ALREADY IN THE SEALED RECORD. `[[contested]]`
+      `cl03-v5-d2-spread-2` is D2 at 2 against 0 on one artifact, recorded by CL-03
+      as "both judges wrote the same defect and differ only on where D2's ladder
+      puts it", with no cause named. This is the cause, found by four judges who
+      were never shown that card.
+
+      This is the same shape as the D1/D4 autopsy in the epic charter: a dimension
+      that grades toolchain use rather than the artifact.
+    reproduction: >-
+      Read D2's served block: `python3 examples/validation/scorecards/score_tools.py serve`.
+      Anchor 0 and anchor 2 are both true of any artifact with a proportional design
+      and no recorded complexity figure. Then
+      `python3 examples/validation/scorecards/score_tools.py contested --root specs/results/scorecards`
+      -> `cl03-v5-d2-spread-2`, D2 spread 2, third pass none.
+    evidence:
+      - "specs/results/scorecards/score-drives-validation-sv01-v4/ab_quota_ledger/20260812-sv01v4-GL-p1/scorecard.json -- D2 rationale and the rejected 0"
+      - "specs/results/scorecards/score-drives-validation-sv01-v4/ab_quota_ledger/20260812-sv01v4-GL-p2/scorecard.json"
+      - "specs/results/scorecards/score-drives-validation-sv01-v5/ab_quota_ledger/20260812-sv01v5-GL-p1/scorecard.json"
+      - "specs/results/scorecards/score-drives-validation-sv01-v5/ab_quota_ledger/20260812-sv01v5-GL-p2/scorecard.json"
+      - "specs/results/scorecards/INSTRUMENT-LOG.toml -- [[contested]] cl03-v5-d2-spread-2"
+    why_out_of_scope: >-
+      An anchor is PERMANENT under the change rule and 91 sealed cards are read
+      against D2's ladder. Rewording a rung during a round that is measuring the
+      effect of a card change is the one thing this ticket exists to be a control
+      for, and it would make every historical D2 incomparable. SV-01 does not touch
+      the card at all.
+    suggested_fix: >-
+      DO NOT REWORD AN ANCHOR to fix this, and do not add a rung. The cheapest
+      carrier that does the job is a CAVEAT, which is what CL-03 established and
+      what this round has just shown to be conditional rather than blunt: one
+      sentence on D2 saying that where no complexity figure exists anywhere, rungs
+      0 and 1 do not apply and the ladder starts at 2. Pay for it out of served
+      bytes as CL-03 did. THE ALTERNATIVE WORTH CONSIDERING FIRST is that the
+      finding is really that D2 rungs 0-1 grade the report and 2-3 grade the
+      design, which is a dimension doing two jobs -- and the epic charter's
+      question is whether a dimension can be scored without grading toolchain
+      ownership. Hand this to SV-02 as evidence before anyone edits anything.
+    blast_radius: >-
+      Every D2 score in the record is read against a ladder whose bottom two rungs
+      may not have been applicable. It does not move any published number by
+      itself; it means a D2 of 2 and a D2 of 0 on comparable artifacts may be one
+      judge reading the preamble and another reading the rung.
+    disposition: open
+  - id: SV-01-DF-03
+    found_by: "SV-01"
+    found_at_commit: "5e07dce"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/score-drives-validation/GOAL-caveat-discriminates/SV-01/DISPATCH.md"]
+    summary: >-
+      `git status` IS A BLINDING LEAK AND NO DISPATCH IN THIS PROJECT HAS EVER
+      NAMED IT. SV-01's forbidden list named `git log`, `show`, `diff` and `blame`
+      -- the routes into HISTORY -- and said nothing about the working tree. Two of
+      four judges ran `git status` after scoring, for the honest reason that they
+      wanted to confirm they had left the repository clean, and were shown the
+      PATHS of the sibling pass's card and of the other card-version round, whose
+      existence neither of them knew about. One wrote: "its output listed the paths
+      of two sv01-v4 GL cards as modified. Opened neither. Judged `git status`
+      outside the ban on log/show/diff/blame, but flagging it."
+
+      Filenames only, no contents, no scores, no arm mapping, and both disclosed it
+      on the card. But a judge who learns that a SECOND card version of the same
+      artifact is being scored in the same round learns that the round is a
+      version comparison, which is the one thing the dispatch withholds.
+    reproduction: >-
+      From any ticket worktree mid-round: `git status --short` lists every card
+      directory the round has scaffolded, including arms and card versions the
+      judge was never given.
+    evidence:
+      - "specs/results/scorecards/score-drives-validation-sv01-v4/ab_quota_ledger/20260812-sv01v4-GL-p2/scorecard.json -- Disclosures"
+      - "specs/results/scorecards/score-drives-validation-sv01-v5/ab_quota_ledger/20260812-sv01v5-GL-p2/scorecard.json"
+      - "specs/results/scorecards/score-drives-validation-sv01-v5/UNBLINDING.md -- disclosure 2"
+    why_out_of_scope: >-
+      The repair is to the dispatch template, and SV-01's dispatch is now part of
+      its own sealed record: editing it after the round would make the recorded
+      text not the text the judges read.
+    suggested_fix: >-
+      Name the working tree as well as the history: forbid every `git` invocation
+      outright, and give the judge the one thing it wanted instead -- tell it up
+      front that the operator will verify the tree is clean, so it has no reason to
+      look. Judges asked twice for a way to check they had done no harm; the fix is
+      to answer that need, not to add a prohibition and leave the need standing.
+    blast_radius: >-
+      Bounded and disclosed on the cards. Both affected judges had already fixed
+      their scores; one says so explicitly.
+    disposition: open
+  - id: SV-01-DF-04
+    found_by: "SV-01"
+    found_at_commit: "5e07dce"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/score-drives-validation/GOAL-caveat-discriminates/SV-01/RESULT.md"]
+    summary: >-
+      THE SHARED 28-CASE BEHAVIORAL SUITE IS BLIND TO THE PROPERTY THE D3 CAVEAT
+      NAMES, ON BOTH SIDES OF THE COMPARISON -- SO THE CAVEAT'S DEMONSTRATED
+      DISCRIMINATION IS CONDITIONAL ON A JUDGE READING OR RUNNING THE ARTIFACT'S
+      OWN TESTS.
+
+      Measured on SV-01's artifact, which is the negative cell: gutting
+      `FileJournal` to an in-memory list with zero filesystem contact leaves the
+      shared suite at 28 passed and is killed by exactly ONE case in the artifact's
+      own suite (1 failed, 52 passed). CL-03 measured the same mutation on the
+      positive cell and got 28/28 through both wirings there too.
+
+      So the shared contract -- the one instrument common to every artifact in this
+      record -- cannot tell the two cells apart. Everything that separates them
+      lives in tests the artifact's own author wrote. A judge scoring D3 from the
+      shared suite alone would find the caveat's condition equally
+      undecidable on both, and the discrimination SV-01 measured would not appear.
+
+      This is not a defect in the caveat and it is not a reason to change it. It is
+      the SCOPE of what SV-01 established, and it belongs in the record beside the
+      verdict rather than in a reader's inference.
+    reproduction: >-
+      Copy `specs/results/scorecards/score-drives-validation/GOAL-caveat-discriminates/SV-01/blind/artifact_under_score`
+      to scratch; replace `FileJournal`'s body with an in-memory list keeping the
+      same three method signatures; then
+      `uv run --with pytest python -m pytest tests/test_ledger.py -q` -> 1 failed,
+      52 passed, and
+      `QUOTA_LEDGER_DIR=<copy> QUOTA_LEDGER_IMPL=quota_ledger uv run --with pytest python -m pytest examples/validation/ab/tests/test_behavior.py -q`
+      -> 28 passed.
+    evidence:
+      - "specs/results/scorecards/score-drives-validation/GOAL-caveat-discriminates/SV-01/RESULT.md section 4"
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/RESULT.md section 2 -- 28/28 real and 28/28 fake on the positive cell"
+    why_out_of_scope: >-
+      Nothing here is broken. Repairing it would mean editing the shared suite,
+      which is the one file no arm of the A/B may edit -- "a change here is a
+      change to the requirement, and two arms measured against two requirements are
+      not an A/B" -- and doing so in the round that just measured against it.
+    suggested_fix: >-
+      Do not edit the shared suite. If a future round wants the caveat's
+      discrimination to be measurable from a common instrument, the right move is a
+      SEPARATE durability probe declared beside the suite rather than inside it, so
+      the shared contract stays the shared contract. Consider instead simply
+      quoting SV-01's verdict with its condition attached, which costs nothing.
+    blast_radius: >-
+      Bounds SV-01's own headline and nothing else. The correct statement is "the
+      caveat discriminates for a judge who reads or runs the artifact's own suite",
+      and RESULT.md states it that way.
+    disposition: open
+  - id: SV-01-DF-05
+    found_by: "SV-01"
+    found_at_commit: "5e07dce"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/score-drives-validation/GOAL-caveat-discriminates/SV-01/blind/artifact_under_score"]
+    summary: >-
+      THREE DEFECT CLASSES FOUR BLIND JUDGES FOUND IN THE SCORED ARTIFACT THAT
+      SURVIVE BOTH SUITES -- FILED, BECAUSE THE MEASURED BOTTLENECK OF THIS
+      PROGRAMME IS THAT NOTHING CONSUMES A FILED FINDING AND THE RATE IS ~1 IN 38.
+
+      (a) REJECTION PRECEDENCE IS UNTESTED WHEREVER TWO GUARDS FIRE AT ONCE. Found
+      independently by ALL FOUR judges. `FEATURE.md` fixes the order of `reserve`'s
+      rejections in a numbered list -- the only thing it bothers to number -- and
+      the artifact implements it correctly. Swapping `tenant_closed` and
+      `amount_not_positive` at `quota_ledger/domain.py:139-142` leaves 53/53 and
+      28/28 green, because no case anywhere constructs an input where two rejection
+      conditions hold at once. One judge: "the requirement the spec was most
+      emphatic about is the one nothing pins."
+
+      (b) THE SHIPPED COMPOSITION ROOT IS EXERCISED BY NO CASE. Found by two
+      judges. The artifact's own suite never constructs `QuotaLedger`, and the
+      shared suite never looks at the path it passes in, so rewiring
+      `quota_ledger/__init__.py:39` to hand the domain an `InMemoryJournal` -- the
+      shipped program then never writes a durable file at all -- passes both
+      suites. Both judges considered this grounds for D3 = 3 and both put it in
+      `N-D1` instead, on the ground that it is a hole in the CASES.
+
+      (c) THE ONE CASE THAT READS BYTES OFF DISK CANNOT SEE A LINE-ENDING FAULT.
+      `tests/test_ledger.py:247` compares through `Path.read_text()`, which
+      silently normalises CRLF, so the single independent observer of the durable
+      effect is blind to the framing the adapter is responsible for. Found by one
+      judge. NOTE THAT THIS IS THE VERY LINE SV-01's VERDICT RESTS ON, and it is
+      filed rather than softened.
+
+      Also found and worth carrying: closing tenant A while tenant B holds a live
+      reservation is tested nowhere.
+
+      THE CODE IS CORRECT ON ALL OF THESE. The gap is in the cases.
+    reproduction: >-
+      For (a): in a copy, swap the `tenant_closed` and `amount_not_positive` guards
+      in `Ledger.reserve` and run both suites -> 53 passed, 28 passed. For (b):
+      change `FileJournal(ledger_path)` to `InMemoryJournal()` at
+      `quota_ledger/__init__.py:39` and run both suites -> 53 passed, 28 passed.
+      For (c): make `FileJournal.append` write `\r\n` and run both suites -> green.
+    evidence:
+      - "specs/results/scorecards/score-drives-validation-sv01-v4/ab_quota_ledger/20260812-sv01v4-GL-p1/scorecard.json -- N-D1"
+      - "specs/results/scorecards/score-drives-validation-sv01-v4/ab_quota_ledger/20260812-sv01v4-GL-p2/scorecard.json -- N-D1"
+      - "specs/results/scorecards/score-drives-validation-sv01-v5/ab_quota_ledger/20260812-sv01v5-GL-p1/scorecard.json -- N-D1"
+      - "specs/results/scorecards/score-drives-validation-sv01-v5/ab_quota_ledger/20260812-sv01v5-GL-p2/scorecard.json -- N-D1"
+    why_out_of_scope: >-
+      The artifact is a byte-identical copy of a sealed round's product and it is
+      the SUBJECT of a measurement taken in this same commit. Repairing it would
+      destroy the subject the negative control is measured on -- which is exactly
+      the move CL-03 refused for the same reason on the positive cell.
+    suggested_fix: >-
+      Nothing here should be repaired in the artifact. What should happen is that
+      these three become a CONSUMED finding rather than a card note: they are
+      candidate defects for SV-04's harvested-defect closure, and (a) in particular
+      is the strongest one this record has -- a requirement the specification
+      numbers, implemented correctly, and pinned by no case in either suite, found
+      independently by four judges who could not see each other.
+    blast_radius: >-
+      No published score changes; all four judges declined to move a score on any
+      of these and said why. It is evidence for the epic's own claim that the
+      binding constraint is consumption rather than detection.
+    disposition: open
+  - id: SV-04-DF-01
+    found_by: "SV-04's own round, judge `20260812-sv04conf-LG-p1`, reproduced by the operator"
+    found_at_commit: "60f2699"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: ["examples/validation/ab/tests/test_journal_conformance.py"]
+      workflow: []
+    summary: >-
+      THE FILE WRITTEN TO CONSUME HARVEST CLASS A1 COMMITTED HARVEST CLASS E1 IN
+      ITS OWN DOCSTRING, AND A JUDGE CAUGHT IT IN THE SAME ROUND.
+
+      `examples/validation/ab/tests/test_journal_conformance.py:41-43` lists what
+      the suite cannot see and says: "Anything about `ReservationBook`. These
+      cases never construct a `QuotaLedger`. A domain that stopped calling the
+      port entirely is invisible here and visible to `test_behavior.py`; the two
+      suites are complements."
+
+      THE FIRST CLAUSE IS TRUE AND THE SECOND IS FALSE. Give `ReservationBook` a
+      private shadow list, append to it INSTEAD of calling the port, and return it
+      from `ledger_lines()` -- the domain then never calls the port at all, the
+      ledger file stays empty, and every instrument in the packet is green:
+      28 shared cases under the real wiring, 28 under the fake, 14 conformance,
+      70 of 70 case-executions passing.
+
+      The two suites are NOT complements where the sentence says they are. The
+      blind region the file was written to close on the adapter side stands open
+      on the domain side, and the file asserts the opposite. This is
+      `HARVEST-CL-03.md` class `E1` -- documentation asserting what the code does
+      not do -- reproduced by the artifact built to consume class `A1`.
+
+      NOT REPAIRED, DELIBERATELY. Four sealed cards in
+      `specs/results/scorecards/score-drives-validation-sv04/` were written
+      against these exact bytes and two of them quote the sentence. Editing it now
+      would leave the record describing bytes that no longer exist, which `R-H4`
+      forbids more strongly than it wants a tidy file.
+    reproduction: >-
+      Copy `examples/validation/ab/reference_ports` to a scratch tree. In
+      `domain.py`, add `self._shadow: list[str] = []` to `__init__`, replace both
+      `self._journal.append(...)` call sites (the COMMIT append at :150-153 and the
+      CLOSE append at :172) with `self._shadow.append(...)`, and make
+      `ledger_lines()` return `list(self._shadow)`. Then:
+      `QUOTA_LEDGER_DIR=<tree> QUOTA_LEDGER_IMPL=quota_ledger pytest examples/validation/ab/tests/test_behavior.py`
+      -> 28 passed; `QUOTA_LEDGER_IMPL=quota_ledger_fake` -> 28 passed;
+      `QUOTA_LEDGER_PORTS_DIR=<tree> pytest examples/validation/ab/tests/test_journal_conformance.py`
+      -> 14 passed.
+    evidence:
+      - "examples/validation/ab/tests/test_journal_conformance.py:41-43 -- the false sentence"
+      - "specs/results/scorecards/score-drives-validation-sv04/toolchain_removal/20260812-sv04conf-LG-p1/scorecard.json -- N-D1 and N-D5, `JF-5`, 70/70 green"
+      - "specs/results/scorecards/score-drives-validation-sv04/RESULT-SV-04.md section 6 -- the operator's independent reproduction"
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md -- class E1"
+    why_out_of_scope: >-
+      Repairing it means editing bytes that four sealed cards were written
+      against, inside the ticket that sealed them. The correction belongs to a
+      successor that can re-score, or to a round that does not need these cards to
+      stay readable.
+    suggested_fix: >-
+      Either (a) correct the sentence to say what is true -- the domain-bypass
+      class is invisible to BOTH suites -- and re-score, since the claim is one a
+      judge reads; or (b) close the hole with a case that observes the port being
+      called (a spy at the composition point, which `LG-p1` already built), which
+      makes the sentence true rather than deleting it. (b) is the better outcome
+      and is a larger piece of work than a docstring edit.
+    disposition: open
+  - id: SV-04-DF-02
+    found_by: "SV-04, from disclosures volunteered independently by judges `GL-p1` and `GL-p2`"
+    found_at_commit: "60f2699"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/scorecards/score_tools.py"]
+    summary: >-
+      THE TOOL EVERY JUDGE IS REQUIRED TO RUN NARRATES PRIOR JUDGES' SCORE
+      DISTRIBUTIONS IN ITS OWN SOURCE, AND TWO OF FOUR JUDGES READ THEM.
+
+      `score_tools.py` exists because of `FI-03`: a judge must never be handed the
+      finding they are the instrument for, so the rubric is RENDERED and
+      `references/eval_scorecard.md` is off the read list. The renderer does its
+      job. The file around it does not. At least five sites in
+      `examples/validation/scorecards/score_tools.py` state prior results about
+      the dimensions being scored, in prose, in comments:
+
+        :26    "D3 came out 2, 2, 3, 4"
+        :900   "`opus` judged D3 2, 2 and `sonnet` 4, 3 on the same artifact"
+        :1146  "D2 has taken one value on every card ever written about `ab_quota_ledger`"
+        :1215  "`toolchain_removal` cards whose D3 came out 2, 2, 3, 4 -- a spread of 2"
+        :1547  "a round where D3 came out 2, 2, 3, 4"
+
+      A JUDGE IS SENT THERE BY THE PROCEDURE. Every card must pass
+      `score_tools.py check --require-filled`, and a judge whose card is refused
+      reads the validation logic to find out why. Both `GL` judges disclosed
+      doing exactly that: one reported seeing :1146 "after both scores were
+      written to disk", the other reported :900 and :26 "after forming both
+      scores". Neither concealed it, which is the system working; the exposure is
+      still real and is structural rather than accidental.
+
+      This is `HARVEST-CL-03.md` `F3` -- blinding leaks -- and it is the first
+      instance located in the INSTRUMENT rather than in an artifact, a fixture, a
+      scratchpad or a `git status`. The four earlier instances could be fixed by
+      assembling the packet differently. This one cannot: the tool is on the
+      judge's path by design.
+    reproduction: >-
+      `grep -n 'D3 came out\|D2 has taken one value\|judged D3' examples/validation/scorecards/score_tools.py`
+      -> five sites. Then read the `how_to_fill` block written into every
+      scaffolded `scorecard.json`, and the `check --require-filled` step every
+      round closes with.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py:26, :900, :1146, :1215, :1547"
+      - "specs/results/scorecards/score-drives-validation-sv04/toolchain_removal/20260812-sv04conf-GL-p1/scorecard.json -- disclosure"
+      - "specs/results/scorecards/score-drives-validation-sv04/toolchain_removal/20260812-sv04conf-GL-p2/scorecard.json -- disclosure"
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md -- F3"
+    why_out_of_scope: >-
+      `score_tools.py` is the round's own instrument and SV-04 was running a round
+      through it. Editing the tool mid-round would have changed the instrument
+      between the two arms, which is the one thing `R-H2` forbids.
+    suggested_fix: >-
+      Move the narrated distributions out of the module a judge executes and into
+      `references/` where the rubric's history already lives, leaving pointers.
+      The figures are load-bearing documentation of WHY the tool computes what it
+      computes and should not be deleted -- but the sentence "D3 came out 2, 2, 3,
+      4" does not need to be in the file whose exit code a judge is chasing.
+      Cheaper alternative, and it measures something: have a round dispatch judges
+      without the `check` step and let the operator run it, then compare.
+    disposition: open
+  - id: SV-04-DF-03
+    found_by: "SV-04, reproducing a judge's survivor before filing it"
+    found_at_commit: "60f2699"
+    schedule_revision: 1
+    severity: moderate
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph:
+        - "examples/validation/ab/tests/test_behavior.py"
+        - "examples/validation/ab/tests/test_journal_conformance.py"
+      workflow: []
+    summary: >-
+      "NOTHING IS EVER REWRITTEN" IS ASSERTED BY NOTHING, IN ANY OF THE THREE
+      SUITES, AND THE NEW CONFORMANCE FILE'S OWN LIST OF BLIND SPOTS OMITS IT.
+
+      `FEATURE.md:103-104`'s R5 states the ledger is append-only and that nothing
+      is ever rewritten. Every case in the packet observes append-only as an
+      OUTCOME -- the content and the order of the lines -- and no case observes it
+      as a MECHANISM. An adapter that reads the whole file back and rewrites it
+      from scratch on every append is content-identical and order-identical to one
+      that opens in append mode, and it passes 28 shared cases under the real
+      wiring, 28 under the fake, and all 14 conformance cases: 70 of 70.
+
+      This matters more after SV-04 than before it. The conformance suite was
+      added precisely to observe the port's effect out of band, and it does -- but
+      `record_on_disk()` reads the file's CONTENT, so it is blind to how the bytes
+      got there in exactly the way the shared suite is. The file names three blind
+      classes at :39-52 and this is a fourth it does not name, which makes the list
+      itself incomplete rather than wrong.
+
+      Found by judge `LG-p2`, which also seeded the read-side variant (`lines()`
+      rewrites the file before reading) with the same result.
+    reproduction: >-
+      Copy `examples/validation/ab/reference_ports` to a scratch tree and replace
+      `FileJournal.append` with
+      `existing = self._path.read_text(encoding="utf-8");`
+      `self._path.write_text(existing + line + "\n", encoding="utf-8")`.
+      Then 28 passed (real wiring), 28 passed (fake wiring), 14 passed
+      (conformance) -- 70 of 70, zero kills.
+    evidence:
+      - "examples/validation/ab/FEATURE.md:103-104 -- R5"
+      - "examples/validation/ab/tests/test_journal_conformance.py:39-52 -- the blind-spot list that omits it"
+      - "specs/results/scorecards/score-drives-validation-sv04/toolchain_removal/20260812-sv04conf-LG-p2/scorecard.json -- N-D1, mutants E1 and E3"
+      - "specs/results/scorecards/score-drives-validation-sv04/RESULT-SV-04.md section 6"
+    why_out_of_scope: >-
+      Closing it needs a case that observes the write mechanism rather than the
+      record -- an `open` mode assertion, an inode or mtime check, or a
+      filesystem-call trace -- and each of those is a different instrument from
+      the one this ticket built and measured. Adding it after the round would also
+      change bytes four sealed cards were written against.
+    suggested_fix: >-
+      At minimum, add the class to `test_journal_conformance.py:39-52`'s list so
+      the suite stops implying it is covered. To actually close it, wrap `open` for
+      the duration of one case and assert the mode is append and the offset is not
+      rewound -- and justify it with this mutant, which is now recorded.
+    disposition: open
+  - id: SV-04-DF-04
+    found_by: "SV-04, adjudicating a factual contradiction between two of its own judges"
+    found_at_commit: "60f2699"
+    schedule_revision: 1
+    severity: moderate
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/desired_program_model/deferred_findings.yaml"
+        - "references/eval_scorecard.md"
+    summary: >-
+      `CL-03-DF-02` IS FALSE IN ITS STRONG FORM -- A SUITE CAN ASSERT DURABILITY
+      WITHOUT ANY CASE FAILING AGAINST THE FAKE -- AND THE ROUND THAT SHOWED IT
+      ALSO REPRODUCED HARVEST CLASS F6 IN ITS OWN TWO JUDGES.
+
+      (a) THE CORRECTION. `CL-03-DF-02` records a version 4 judge's reasoning that
+      D3's anchor 4 "is unsatisfiable by any suite that does assert durability,
+      since such a case must fail the fake", and concludes "the anchor
+      structurally rewards blindness to the property that makes the real adapter
+      real." SV-04 measured otherwise. Put the durability cases in a class
+      parametrised over the DURABLE adapters only, and the set of cases run
+      against both implementations is untouched: both `LG` judges ran the identical
+      28-case suite through both wirings, said so, and awarded anchor 4 with a
+      durability-asserting suite present. The anchor does not reward blindness; it
+      requires the two kinds of case to live in two places. SV-04 predicted, and
+      sealed, that a judge would REASON about this tension -- none did, because
+      there was no tension to reason about. The weaker half of `CL-03-DF-02`
+      stands: the anchor's text does not ASK for an out-of-band observer, and it
+      took the version 5 caveat to make its absence cost anything.
+
+      (b) THE F6 INSTANCE, and it is the reason (a) needed adjudicating. Judges
+      `LG-p1` and `LG-p2` made contradictory factual claims about the same
+      described fault. `LG-p1`: the domain "returning a shadow instead of calling
+      the port" passes 70 of 70. `LG-p2`: "ledger_lines() returning a shadow
+      instead of calling the port" dies in 1-7 cases under both wirings. Both are
+      correct and they ran different mutants under one sentence. The operator ran
+      both: divert the READ only, leaving the writes going to the port, and 7 of 28
+      fail under each wiring; divert the read AND the writes, so the port is never
+      called at all, and nothing anywhere fails. The interesting mutant is the
+      second and it is `SV-04-DF-01`.
+
+      THE MECHANISM IS UNDER-SPECIFICATION IN `judging_practice.what_was_run`. The
+      field records what a judge ran in prose. Two judges wrote the same prose for
+      two different mutants, and a reader of the sealed cards has no way to tell
+      without rebuilding both. `HARVEST-CL-03.md` `F6` recorded this shape once
+      ("two judges of the same artifact made mutually contradictory FACTUAL
+      claims"); this is a second instance with the mechanism identified.
+    reproduction: >-
+      The two mutants are in section 6 of
+      `specs/results/scorecards/score-drives-validation-sv04/RESULT-SV-04.md` and
+      in `SV-04-DF-01`'s reproduction. For (a): read both `LG` cards' D3
+      rationales, which report the shared 28 passing through both wirings AND a
+      durability-asserting suite in the same packet.
+    evidence:
+      - "specs/desired_program_model/deferred_findings.yaml -- CL-03-DF-02"
+      - "specs/results/scorecards/score-drives-validation-sv04/toolchain_removal/20260812-sv04conf-LG-p1/scorecard.json"
+      - "specs/results/scorecards/score-drives-validation-sv04/toolchain_removal/20260812-sv04conf-LG-p2/scorecard.json"
+      - "examples/validation/ab/tests/test_journal_conformance.py -- TestPortContract over both adapters, TestDurableRecord over the durable ones only"
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md -- F6"
+    why_out_of_scope: >-
+      `CL-03-DF-02` is another ticket's finding at another ticket's scope and
+      SV-04 does not edit it, on the precedent `RM-02` set for
+      `architecture_tags.md` and `SV-02` set for `eval_scorecard.md`'s retirement
+      sentence. The correction is recorded beside it instead.
+    suggested_fix: >-
+      For (a): annotate `CL-03-DF-02` with this measurement rather than closing it,
+      since its weaker half is still true and is still the reason the caveat
+      exists. For (b): the cheapest real fix is to require `what_was_run` to carry
+      the mutant's DIFF or its find/replace pair, the way
+      `examples/validation/ab/seeded_faults.toml` already does for the catalogue --
+      a judge's prose description of a mutant is not a mutant.
+    disposition: open
+  - id: SV-04-DF-05
+    found_by: "SV-04, by shipping the defect and having the repository suite catch it 21 minutes later"
+    found_at_commit: "66b96ff"
+    schedule_revision: 1
+    severity: moderate
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "examples/validation/scorecards/score_tools.py"
+        - "examples/validation/scorecards/architecture_tags.py"
+        - "examples/validation/scorecards/subjects.toml"
+    summary: >-
+      A BLINDED ROUND'S CARDS MAP TO NO DECLARED SUBJECT UNTIL SOMEBODY EDITS
+      `subjects.toml` BY HAND, AND EVERY GATE IN THE ROUND'S OWN TOOLCHAIN
+      REPORTS CLEAN WHILE THEY DO NOT.
+
+      `scaffold` on a multi-arm round writes `subject.name: null` with
+      `blinded: true`. That is correct and it is `F3`'s first defence -- a card
+      whose own `subject` names the arm hands a judge the arm before it scores.
+      The consequence is that `architecture_tags.subject_of` cannot use the card's
+      own field and must fall back to the `labels` list in `subjects.toml`, and
+      NOTHING WRITES THAT ENTRY. `scaffold` knows the round directory and the arm
+      labels at the moment it blinds them, and does not record them.
+
+      WHAT REPORTED CLEAN on SV-04's four unregistered cards, every one of them
+      run before the gap was known:
+
+        score_tools.py check --require-filled  ->  4 filled, 0 problem(s)
+        score_tools.py seal                    ->  sealed 8 file(s)
+        score_tools.py audit                   ->  0 violation(s)
+        score_tools.py contested               ->  counts the groups correctly (3 -> 5)
+        architecture_tags.py derive            ->  "16 of 20 decided; 4 refused",
+                                                   BYTE-IDENTICAL before and after
+                                                   the registration
+
+      The only thing that caught it is
+      `tests/test_architecture_tags.py::test_a_card_with_no_subject_is_legal_and_is_every_sealed_card`,
+      which asserts every row but exactly one maps to a subject and failed
+      `(82, 87)` -- and it sits in a repository suite that takes 21 minutes.
+
+      THIS IS THE `C` CLASS OF `HARVEST-CL-03.md` -- gates that report clean on
+      broken input -- inside the scoring toolchain itself, and it cost this ticket
+      a full suite re-run. It also means a round can be scaffolded, judged, sealed
+      into `INSTRUMENT-LOG.toml` and audited while its cards are invisible to
+      every architecture-tag comparison, which is precisely the comparability
+      machinery `RD-05` built them for.
+    reproduction: >-
+      Scaffold any multi-arm round (blinding is the default):
+      `score_tools.py scaffold <dir> --example E --arms A,B --judges 2`.
+      Fill the cards, then run `check --require-filled`, `seal`, `audit`,
+      `contested` and `architecture_tags.py derive` -- all clean. Then run
+      `pytest tests/test_architecture_tags.py::test_a_card_with_no_subject_is_legal_and_is_every_sealed_card`
+      -> fails, naming the count. Add the round's `[round-dir, arm-label]` pairs
+      to the matching `[subject.*].labels` in `subjects.toml` and it passes.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py -- scaffold, which blinds `subject.name` and writes no label"
+      - "examples/validation/scorecards/architecture_tags.py:321-337 -- `subject_of`, and its fallback to `labels`"
+      - "examples/validation/scorecards/subjects.toml -- `[subject.toolchain_fixture]`, empty `labels` until SV-04 filled it"
+      - "tests/test_architecture_tags.py:629 -- the only check that fails"
+      - "specs/results/scorecards/score-drives-validation-sv04/RESULT-SV-04.md section 9c"
+    why_out_of_scope: >-
+      The registration itself is in scope and SV-04 made it -- the round is
+      registered and the red is gone. What is out of scope is changing `scaffold`
+      to write the label automatically, because `scaffold` is the instrument this
+      ticket ran its own round through and editing it mid-ticket would change the
+      instrument between the arms, which `R-H2` forbids.
+    suggested_fix: >-
+      Have `scaffold` append the `[round-dir, arm-label]` pairs to the named
+      subject's `labels` when it blinds `subject.name`, since it holds both values
+      at that moment and the blinding is exactly what makes them necessary. Failing
+      that, make `check` refuse a filled card that maps to no declared subject --
+      it already refuses a card whose `subject.scope` disagrees with
+      `subjects.toml`, so the lookup is present and only the null-name case is
+      unguarded. The second is smaller and turns a 21-minute discovery into an
+      immediate one.
+    disposition: open
+  - id: SV-05-DF-01
+    found_by: "SV-05, running the shipped instrument to produce the per-version digest table the work order asked for"
+    found_at_commit: "3e16b96"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "examples/validation/scorecards/score_tools.py"
+        - "references/eval_scorecard.md"
+    summary: >-
+      `serve --card-version N` SILENTLY SERVES THE WRONG CARD FOR EVERY N BELOW
+      THE CURRENT ONE, AND ONLY N ABOVE IT REFUSES.
+
+      Measured at this tree, with `--digest-only`:
+
+        --card-version 1   4,450 bytes   9 rungs   sha256:a753de37842e4953
+        --card-version 2   5,191 bytes   9 rungs   sha256:d6bc48a44641aead
+        --card-version 3   5,548 bytes   9 rungs   sha256:116146e48ecec13b
+        --card-version 4   6,281 bytes   9 rungs   sha256:2d7d4a0506d9b259
+        --card-version 5   6,281 bytes   9 rungs   sha256:2d7d4a0506d9b259
+        --card-version 6   REFUSED, with a correct and helpful message
+
+        the REAL version 4, --rubric examples/validation/scorecards/rubric_v4_frozen.md
+                           6,319 bytes   9 rungs   sha256:a213a36770ccab09
+
+      TWO SEPARATE DEFECTS, AND THE FIRST IS THE DANGEROUS ONE.
+
+      (1) VERSION 4 AND VERSION 5 ARE BYTE-IDENTICAL, and neither is version 4.
+      The diff between `--card-version 4` and the frozen v4 file is exactly two
+      lines, and one of them is THE VERSION 5 CAVEAT -- "and two fakes are not a
+      pair ... if the only observer of the effect the port exists for is the
+      adapter that wrote it, say so and take 3". That sentence is the TREATMENT
+      in this epic's headline experiment. A round that reproduces a version 4 arm
+      through the flag alone serves the version 5 text under a
+      `scorecard_version: 4` label, records `sha256:2d7d4a0506d9b259` as the
+      served digest of a version 4 card, and `check` accepts it.
+
+      (2) VERSIONS 1-3 RENDER AT 9 RUNGS, which is D2's four plus D3's five --
+      the version 5 population. Versions 1-3 scored FIVE dimensions. The retired
+      ladders are gone from the file, so those renders are cards that never
+      existed, and nothing says so.
+
+      SV-01 got the version 4 arm right ONLY because it used
+      `--rubric rubric_v4_frozen.md`. THIS IS THE MECHANISM BEHIND THE STILL-OPEN
+      `FI-06-DF-11(c)` -- five consecutive rounds reproducing an old card by
+      operator sequencing rather than by tooling -- and it is worse than that
+      finding states: the tooling route EXISTS and returns the wrong card without
+      a word. The refusal path proves the tool knows how to say no; it says no
+      only in the direction that cannot corrupt a record.
+    reproduction: >-
+      python3 examples/validation/scorecards/score_tools.py serve --card-version 4 --digest-only
+      python3 examples/validation/scorecards/score_tools.py serve --card-version 5 --digest-only
+      -- identical. Then:
+      python3 examples/validation/scorecards/score_tools.py serve --rubric examples/validation/scorecards/rubric_v4_frozen.md --card-version 4 --digest-only
+      -- sha256:a213a36770ccab09, and diff the two renders: the version 5 caveat
+      is present in the first.
+    why_out_of_scope: >-
+      SV-05 is the evaluation and files findings without fixing them. Changing
+      `serve` during a measurement round would edit the instrument four of this
+      epic's eight cards were produced by. `references/eval_scorecard.md` is also
+      outside this ticket's implementation_scope.
+    suggested_fix: >-
+      Make `--card-version N` REFUSE for any N whose text the current file cannot
+      reconstruct, exactly as it already refuses N above the declared version, and
+      name the frozen-rubric route in the refusal. The card file keeps retired
+      anchors under `Retired anchors` where a person can read them and a judge
+      cannot be served them, so the file already knows which versions it cannot
+      rebuild. A second, cheaper half: have `scaffold` refuse to write a card
+      whose `scorecard_version` is below the declared one unless `--rubric` names
+      a frozen file.
+    blast_radius: >-
+      Every future A/B across a card version boundary, which is the design this
+      programme has used for its last three headline results. Any such round run
+      through the flag alone produces two arms that are byte-identical and a card
+      set that looks like a version comparison and is not. It also silently
+      breaks `FI-06-DF-11(c)`'s premise that the reproduction problem is
+      operator discipline.
+    disposition: open
+  - id: SV-05-DF-02
+    found_by: "SV-05, from disclosures volunteered independently and unprompted by all four of its blind agents"
+    found_at_commit: "3e16b96"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/score-drives-validation/GOAL-caveat-discriminates/SV-01/DISPATCH.md"
+        - "specs/results/scorecards/score-drives-validation/SV-05/RESULT.md"
+    summary: >-
+      THE OPERATOR'S PERSISTENT AUTO-MEMORY AND ENVIRONMENT BLOCK ARE IN EVERY
+      SUBAGENT'S CONTEXT BEFORE IT READS ANYTHING, AND THEY NAME THIS PROJECT'S
+      EPICS, ITS OUTCOMES AND ITS SCORECARD'S MEASURED INSTABILITY. NO DISPATCH
+      IN THIS PROGRAMME HAS EVER NAMED THIS LEAK, AND NO FORBIDDEN LIST CAN
+      REACH IT, BECAUSE IT REQUIRES NO TOOL CALL.
+
+      Four of four blind agents in SV-05's 2x2 reported it without being asked
+      about it specifically. One quoted the memory file verbatim -- "up to 2
+      points per judge move on byte-identical artifacts" -- and named
+      `single-example generalisation`, `ports-as-adapters`, `subtract-to-measure`
+      and `architectural-coherence`. Verified by the operator against
+      `~/.claude/projects/-Users-hayde-IdeaProjects-tla-spec-dev/memory/MEMORY.md`,
+      whose entries include, in the summary line a subagent sees:
+
+        "Scorecard D1/D4/D5 unstable -- measured 2026-08-05: up to 2 points per
+         judge move on byte-identical artifacts; its D2/D3 claim is CORRECTED by
+         the next two entries"
+        "Subtract-to-measure epic -- merged to main 2026-08-07; D2 proven able to
+         measure, D3 shown contested with nothing computing it"
+
+      A JUDGE DISPATCHED TO SCORE D2 AND D3 BLIND HAS, IN CONTEXT BEFORE IT
+      OPENS THE PACKET, A SENTENCE TELLING IT WHICH DIMENSIONS THIS PROJECT
+      BELIEVES ARE STABLE AND WHICH IT BELIEVES ARE CONTESTED.
+
+      The environment block additionally hands every subagent this repository's
+      absolute path, its branch, its clean/dirty status and THE SUBJECT LINES OF
+      ITS FIVE MOST RECENT COMMITS -- several of which state epic outcomes in
+      words ("the loop closed, and a stranger ran it"; "the card can measure, and
+      the premise was false").
+
+      Two of the four agents said in terms that they could not claim it had no
+      influence on their answer.
+
+      THIS IS STRICTLY WORSE THAN `SV-01-DF-03`. That finding filed `git status`
+      as a blinding leak the dispatches never named; a forbidden list can name
+      `git status`. Nothing a dispatch says can remove a block the harness
+      injects before the dispatch is read. IT APPLIES RETROACTIVELY TO EVERY
+      BLIND ROUND THIS PROGRAMME HAS RUN: CL-04's adopter probe and census,
+      SV-01's four judges, SV-04's four judges, SV-06's survey, and SV-05's own
+      four agents.
+    reproduction: >-
+      Dispatch any subagent with a prompt that asks it to report, verbatim,
+      everything in its context before its first tool call. Compare against
+      `~/.claude/projects/<project>/memory/MEMORY.md` and against the environment
+      block. SV-05's four `OWNER-NOTES.md` files under its scratch path each
+      carry a `## Contamination` section written independently.
+    why_out_of_scope: >-
+      SV-05 files findings and fixes nothing. The leak is a property of the
+      harness that runs the agents, not of any file this repository ships, and
+      the two candidate mitigations (below) are both the owner's call.
+    suggested_fix: >-
+      There is no fix inside this repository, and pretending otherwise is worse
+      than naming it. Two honest options. (a) STOP CLAIMING BLINDNESS THIS ROUND
+      DOES NOT HAVE: every dispatch and every RESULT should state that the judge
+      carried the operator's project memory, so the claim matches the fact --
+      zero cost, and it is what R3 already requires of a scope. (b) Run judges
+      from a harness home with no project memory bound, and record the memory
+      file's digest in the card beside the served digest, so a reader can tell
+      what a judge was carrying. Option (a) is owed immediately and independently
+      of (b).
+    blast_radius: >-
+      Every claim in this programme that rests on a judge being blind. It does
+      not obviously point in the direction of any particular score, and this
+      finding does NOT assert that any published number is wrong. What it asserts
+      is that the word "blind" in eight epics of dispatches has meant "blind to
+      the packet and to our source", never "blind to our conclusions" -- and that
+      the difference was never measured because it was never noticed.
+    disposition: open
+  - id: SV-05-DF-03
+    found_by: "SV-05, hashing the six surveyed skill files in both homes while building the blind arms"
+    found_at_commit: "3e16b96"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "$SKILL_MANAGER_HOME/skills/git-epic-workflow/scripts/validate_epic_plan.py"
+        - "$SKILL_MANAGER_HOME/skills/git-epic-workflow/references/goals-and-evaluation.md"
+        - "specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-06/survey.txt"
+    summary: >-
+      THERE ARE TWO SKILL MANAGER HOMES AND THIS EPIC RAN ON THE OLDER ONE. THE
+      SURFACE `SV-06` SURVEYED AND `SV-03` CUT ITS DIFFS AGAINST IS A SNAPSHOT
+      TAKEN WHEN `wt new` CREATED THE WORKTREE, NOT THE INSTALLED TEXT.
+
+      Measured at this tree, first 16 of sha256:
+
+        file                                              per-checkout   operator's home
+        git-epic-workflow/references/goals-and-evaluation.md  c63462221bbb3118  3c02f7b6c3be3534
+        git-issue-workflow/SKILL.md                           f2a8d4968f7230d7  e52d3f7b736d33fe
+        git-issue/SKILL.md                                    a7a0104ec98e3a0b  4bb2e8155e92210c
+        git-issue-workflow/references/goal-signal.md          488ffa0f1350e1a5  488ffa0f1350e1a5
+        git-issue/references/discovery.md                     a9026dd0c89c3051  a9026dd0c89c3051
+        git-issue/references/regression-close.md              235a38ebbdfa63ad  235a38ebbdfa63ad
+
+      THREE OF THE SIX SURVEYED FILES DIFFER, and the one that differs is the
+      one this epic's whole `GOAL-scored-at-goal-time` design edits.
+      `c63462221bbb3118` is exactly the base hash `SV-03/ESCALATION.md` records
+      as "the installed bytes, which is what the ticket agents actually read" --
+      true of the snapshot, not of the operator's home.
+
+      AND THE VALIDATOR DISAGREES WITH ITSELF ACROSS THE TWO HOMES:
+
+        per-checkout  validate_epic_plan.py  27,926 bytes
+        operator      validate_epic_plan.py  47,433 bytes   (+19,507)
+
+        main's close-the-loop plan, per-checkout validator : OK
+        main's close-the-loop plan, operator's validator   : INVALID --
+                                                             "schedule_revision must be a positive integer"
+
+      So `main`'s plan is INVALID against the current validator and VALID against
+      the one every ticket in this epic ran; the epic's own plan was repaired at
+      `4e6973d` for a rule its own tickets' validator never enforced; and the
+      operator's validator has grown a vocabulary the epic never saw (it reports
+      "7 tickets, 0 retired, 7 active/delivered" where the snapshot reports
+      "7 tickets across 4 waves").
+
+      All four of SV-03's proposed patches still apply cleanly to BOTH homes, so
+      nothing is broken today. What is broken is the claim that a survey of the
+      installed skills describes what an agent reads, or what the owner has.
+    reproduction: >-
+      From a `wt new` worktree:
+      shasum -a 256 .skill-manager/skills/git-epic-workflow/references/goals-and-evaluation.md
+      shasum -a 256 "$HOME/.claude/skills/git-epic-workflow/references/goals-and-evaluation.md"
+      Then run each home's `scripts/validate_epic_plan.py` over
+      `git show main:specs/desired_program_model/ticket_plan.yaml`.
+    why_out_of_scope: >-
+      Skills are READ from this repository and never edited, and `skill-manager
+      sync` may not be run. Reconciling two homes is the owner's operation, and
+      SV-05 is a measurement.
+    suggested_fix: >-
+      Two things, both cheap. (1) Any ticket that SURVEYS or DIFFS a skill file
+      must record WHICH HOME it read and the file's digest, the way a card records
+      a served digest -- `SV-06/survey.txt` records the home path but no digests,
+      which is why the skew survived a whole epic. (2) Decide, once, whether the
+      per-checkout snapshot or the operator's home is authoritative for an epic,
+      and say so in the epic charter. Do NOT respond by syncing homes mid-epic:
+      that would move the text under tickets already running.
+    blast_radius: >-
+      `SV-06`'s six-file survey, `SV-06-DF-02`, `SV-06-DF-03`, all four of
+      `SV-03`'s patches and their recorded base hashes, `SV-03`'s proof that a
+      no-card project is unaffected (run against the snapshot), and SV-05's own
+      blind 2x2, which was built from the snapshot. None is refuted; all are
+      scoped to a copy nobody named.
+    disposition: open
+  - id: SV-05-DF-04
+    found_by: "SV-05, running `scope` at four trees to price the epic's own effect on the record"
+    found_at_commit: "3e16b96"
+    schedule_revision: 1
+    severity: moderate
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "references/eval_scorecard.md"
+        - "references/scoring_validation.md"
+        - "NEXT-EPIC.md"
+    summary: >-
+      THIS EPIC'S OWN EIGHT CARDS REFUTED FOUR CLAIMS THAT PREVIOUSLY HELD, ONE
+      OF THEM IN THE SHIPPED CARD FILE AND ONE ON A PAGE WRITTEN THIS EPIC --
+      AND THE SURFACE METRIC IS BLIND TO ALL OF IT.
+
+      `score_tools.py scope`, every row naming its tree:
+
+        eab2883  epic base           92 counted, 67 REFUTED, 5 HOLDS, 20 UNREACHABLE
+        86a8767  SV-04 branch point  97 counted, 71 REFUTED, 6 HOLDS, 20 UNREACHABLE
+        71ce81a  epic tip            97 counted, 75 REFUTED, 2 HOLDS, 20 UNREACHABLE
+
+      The four that fell from HOLDS to REFUTED between `86a8767` and `71ce81a`:
+
+        references/eval_scorecard.md:42        "D1 is 3 on 56 of 63"
+                                               re-derives as 56 of 67
+        references/scoring_validation.md:247   "D1 = 3 on 56 of 63 cards"
+        NEXT-EPIC.md:536                       "D3 = 3 on 0 of 63 cards"
+        .../portable-substrate/RM-05/RESULT.md:918  the same figure
+
+      The cause is not an error in any of them: SV-01's four `ab_quota_ledger`
+      cards moved that example's population 63 -> 67 and the corpus 87 -> 95.
+      This is `RD-03`'s "the sweep count is a joint property of the record and
+      the card population", firing on the instrument's own file.
+
+      TWO CONSEQUENCES WORTH SEPARATING. (a) THE SHIPPED CARD NOW STATES A
+      REFUTED FIGURE. It is not served to judges -- rule 9 says a judge is served
+      the card and never the rubric file -- but it is the first line of defence
+      anybody reads about what D1 did. (b) THE RECORD IS DOWN TO 2 CLAIMS THAT
+      HOLD OUT OF 97 COUNTED, and both survivors are on one page about a
+      six-card example. `serve | wc -c` was 6,281 at all four trees.
+    reproduction: >-
+      In a detached checkout, at each of eab2883, 86a8767 and 71ce81a:
+      `python3 examples/validation/scorecards/score_tools.py scope | tail -2`,
+      then diff the `## HOLDS` sections.
+    why_out_of_scope: >-
+      SV-05 fixes nothing, and `references/eval_scorecard.md` is outside its
+      implementation_scope. Editing a figure in the card file during the round
+      that measured it is also the move the doctrine forbids.
+    suggested_fix: >-
+      Do NOT repair the four figures by re-deriving them; that is a treadmill,
+      and `scope` will refute the new ones the next time anyone scores. Two
+      durable options: state such figures with the tree AND the population in the
+      same sentence ("56 of 63 `ab_quota_ledger` cards at a527305"), which `scope`
+      already accepts; or accept that a counted figure about a growing corpus is
+      a measurement with a date and stop writing it in the present tense. The
+      card file's line is the one worth fixing first, because it is the only one
+      that ships.
+    blast_radius: >-
+      Any figure of the form "D<n> = k on N of M cards" anywhere in the record,
+      which is 97 of them. Two hold. A reader who quotes any of the other 95
+      without its tree is quoting a number about a corpus that no longer exists.
+    disposition: open
+  - id: SV-05-DF-05
+    found_by: "SV-05's blind 2x2 -- arm A, a stranger given the UNPATCHED skill text"
+    found_at_commit: "3e16b96"
+    schedule_revision: 1
+    severity: moderate
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "references/goal_score_wiring.md"
+        - "specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/ESCALATION.md"
+    summary: >-
+      `GOAL-scored-at-goal-time`'s GAP IS NOT WHERE THE EPIC SAID IT WAS. A BLIND
+      STRANGER READING THE UNPATCHED SKILL TEXT ALREADY PRODUCES A CARD-BACKED,
+      SEALED, PER-JUDGE, NEVER-AVERAGED BASELINE. THE FOUR DIFFS BUY THE TIMING,
+      NOT THE CARD.
+
+      SV-05 ran the test `SV-06` section 9 and `SV-03` section 10 both handed to
+      it: four agents, none given this repository, each handed a scratch copy of
+      the six surveyed skill files and one epic plan for a fictional project, with
+      an identical prompt that never used the words rubric, score or card.
+
+        arm A  pristine text, judged instrument never run on this subject
+        arm B  + the four diffs, same plan
+        arm C  pristine text, a project with no card anywhere
+        arm D  + the four diffs, same plan
+
+      ARM A, ON THE UNPATCHED TEXT, named four specific evidence files
+      (`reviewer-1.md`, `reviewer-2.md`, `scope.txt`, `setup.md`), pinned the
+      instrument by blob SHA because the rubric carries no version, fixed the
+      scored artifact as a file list with per-file blob SHAs, REFUSED to reuse
+      the instrument's two prior runs on a different subject, and REFUSED to
+      average the two judges. Every property `SV-06`'s edit 02 was written to buy.
+
+      WHAT ARM A COULD NOT DO IS FIND A BRANCH TO STAND IN. It wrote, in the
+      plan file: "per goals-and-evaluation.md (`Harness does not exist`) this
+      goal takes the wave-1 route" -- routing a judged instrument that plainly
+      DOES exist into the branch for one that does not, and thereby scoring the
+      baseline at TICKET time, after a wave-1 ticket merges. Arm B quoted the new
+      sentence verbatim -- "The instrument existing is not a baseline" -- and ran
+      the kickoff on the epic branch BEFORE ANY TICKET LANDS.
+
+      So `SV-06`'s claim that edit 01 "buys the whole of `GOAL-scored-at-goal-time`'s
+      target" is HALF RIGHT, and the half it buys is the half the goal is named
+      after: WHEN the baseline is scored. The openable card was already reachable.
+
+      AND THAT RELOCATES THE 0-OF-18. The documentation as it ships leads a
+      stranger most of the way there, cold, in one pass. THE COMPLIANCE RATE OF
+      ZERO IS THIS PROJECT'S, NOT THE DOCUMENTATION'S -- which makes
+      `SV-06-DF-02` worse rather than better, because the rule it says nobody
+      follows turns out to be followable by somebody who has never seen us.
+
+      The absence guarantee held: arms C and D never asked what rubric to use and
+      both REJECTED the judged route explicitly, on their project's own README.
+      Arm D did not notice the added sentences, which is the pass condition
+      `SV-06` section 9 sealed in advance.
+    reproduction: >-
+      The four arms, their skill copies, their plans and the four `OWNER-NOTES.md`
+      are under SV-05's scratch path
+      `.../scratchpad/SV-05/blind/arm-{A,B,C,D}/`. The arms differ only in
+      (i) whether SV-03's four patches were applied to the COPY and (ii) which of
+      two fictional project plans was supplied. Nothing was written to any
+      SKILL_MANAGER_HOME.
+    why_out_of_scope: >-
+      SV-05 measures and fixes nothing, and `references/goal_score_wiring.md` is
+      a predecessor's page at a predecessor's scope -- filed and left standing,
+      the way RM-02 left `architecture_tags.md` section 2.2 and SV-02 left the
+      card's D4 retirement sentence.
+    suggested_fix: >-
+      Keep all four diffs and RE-ARGUE edit 01 on what it actually buys: not that
+      the evaluation gets an openable card, but that the baseline is scored
+      BEFORE the first ticket rather than inside one. Then stop treating the
+      0-of-18 as a documentation defect: the next epic's cheapest real move is to
+      bring THIS project's 18 judged goals into compliance with text that already
+      exists, which needs no skill edit at all and no owner escalation.
+    blast_radius: >-
+      `references/goal_score_wiring.md` section 6-8, `SV-03/ESCALATION.md`'s
+      "buys" column for edit 01 and 02, and the epic's own framing of
+      `GOAL-scored-at-goal-time`. It does NOT refute the diffs -- arm A's
+      mis-routing is a cold, independent confirmation of `SV-06-DF-02` and of the
+      missing third branch.
+    disposition: open

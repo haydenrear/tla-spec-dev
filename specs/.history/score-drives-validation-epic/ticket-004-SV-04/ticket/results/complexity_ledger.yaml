@@ -1,0 +1,146 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+
+# Validated-refactor basis -- CD-09. This LICENSES a complexity DECREASE.
+# SV-04 makes no decrease, and no model change of any kind, so the license is
+# not being drawn on. The members are recorded `not_run` rather than asserted
+# green: an unmeasured constraint cannot witness retention, and claiming a TLC
+# run this ticket did not perform is the one thing the ledger exists to stop.
+validated_refactor:
+  tlc_before:
+    status: "not_run"
+    evidence: "no model change; `diff -r specs/tickets/SV-04/current specs/tickets/SV-04/desired` is empty"
+  tlc_after:
+    status: "not_run"
+    evidence: "no model change; see above"
+  behavior_tests:
+    status: "pass"
+    evidence: "specs/results/scorecards/score-drives-validation-sv04/RESULT-SV-04.md section 9 -- the repository suite at the branch point and at this tree, each named with its tree, carrying the two deliberate inherited reds and no third"
+  descriptor_comparison:
+    status: "not_run"
+    evidence: "no representation was added or removed, so there is no before/after descriptor to compare"
+
+# Fuzzing-era retention members -- RECORDED, non-gating since CD-09.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. Recorded, never refusing.
+coverage_audit:
+  status: "not_run"
+  report: ""
+  in_scope_gaps: null
+  scope_source: ""
+
+# Required only if complexity INCREASED. It did not: the delta is zero.
+justification: ""
+
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found none, and the search had a subject. SV-04's
+    `model_delta_expectation` is `none expected`, its `desired_actions` list is
+    empty, and `diff -r specs/tickets/SV-04/current specs/tickets/SV-04/desired`
+    is EMPTY -- the TLA+ model, the configs, the adapters and the spec-unit tests
+    are byte-identical to the project `current` they were seeded from. This
+    ticket added no representation to the model, so there is none to refine away.
+    The ledger's OVER CAP figure (1,111,320 against a 1,000,000 cap) and its
+    INCOMPLETE caveat (a product over 7 of 9 declared variables, `lastCommand`
+    and `result` unresolved, so the figure is a LOWER BOUND) are inherited from
+    the seeded model unchanged; SV-04 neither improved nor worsened either, and
+    reports them rather than restating them as its own.
+    What this ticket added to the repository is one test module under
+    `examples/validation/ab/tests/`, one scoring round with four sealed cards,
+    two records, and four findings. None of it is program surface and none of it
+    is in the model's `representation_scope`.
+  measured: false
+  applied: false
+  approved_by: ""
+
+transition_diff: ""
+
+narrative: >-
+    specs/results/scorecards/score-drives-validation-sv04/RESULT-SV-04.md is the
+    evidence ledger; PREDICTIONS-SV-04.md beside it carries the predictions,
+    sealed at 2026-08-12T17:42:26-04:00 in commit 60f2699 before any judge was
+    dispatched and while all four cards were unfilled skeletons.
+    WHAT THE TICKET WAS ASKED FOR. The goal's second half, never attempted in
+    seven epics: carry a score into the thing being measured rather than into
+    the measuring instrument. A score or card iteration, then a concrete change
+    to the project's VALIDATION, then a re-score that detects it -- with the
+    defect taken from HARVEST-CL-03's 38 harvested classes rather than invented,
+    and without tuning the validation to the score.
+    THE CLASS CONSUMED. A1 -- the real adapter's one distinguishing property is
+    observed by nothing -- found by four judges across three epics plus two more
+    in CL-03's own round, filed once as RM-05-DF-05, and consumed by nothing for
+    seven epics. It is real: gut FileJournal to a list and the shared 28-case
+    suite passes 28 of 28 through the real wiring while creating zero ledger.txt
+    files against 28 at control. This is its third independent reproduction.
+    THE CARRIER, AND WHY. An adapter conformance suite,
+    examples/validation/ab/tests/test_journal_conformance.py, 14 cases. It
+    exercises both implementations of the LedgerJournal port directly, and every
+    assertion about the durable record is made OUT OF BAND through
+    Path.read_text() on the declared path, never through lines(). A suite that
+    reads the record back through the adapter that wrote it is asking the writer
+    whether it wrote, and gets the same answer from an adapter that touched no
+    filesystem. Not the shared contract suite, which both arms are measured
+    against and which a durability case must fail under the fake wiring; not
+    inside reference_ports/, because the counterfactual depends on the scored
+    scope's bytes not moving; not a diagram, because diagram, mermaid, UML, C4
+    and .svg appear in 0 of 87 sealed cards.
+    THE DISCIPLINE. The suite is justified by a seven-mutant matrix sealed before
+    the round, three of whose mutants are lifted unchanged from the fixture's own
+    seeded_faults.toml so it is not measured only against faults its author
+    invented. M1 through M4 survive the shared suite 56 of 56 under both wirings
+    and die under the new file. Three of the 14 cases are killed by none of the
+    seven and are named in the sealed predictions rather than quietly kept.
+    THE MEASUREMENT, AND THE COUNTERFACTUAL IS MEASURED RATHER THAN ASSERTED.
+    Two arms judged concurrently, blind to each other and to which arm they hold:
+    a control packet byte-identical to CL-03's, and the same plus one added file,
+    both verified with diff -r. D3 reads 3, 3 on the control and 4, 4 on the
+    treatment; D2 reads 2 on all four with nothing contested. All four judges
+    independently reproduced the harvested class, and the score separates exactly
+    on whether an out-of-band observer is present. The control arm exists because
+    the predecessor round's own two passes scored D2 = 2 and D2 = 0 on
+    byte-identical bytes, which is too much spread to attribute a one-round
+    difference to a treatment.
+    THE UNFLATTERING RESULT, WHICH IS THE ONE WORTH KEEPING. The same round
+    falsified the file it was measuring. A judge made the domain stop calling the
+    port entirely -- a private shadow list, appended to instead of the port -- and
+    got 70 of 70 case-executions green, against the new file's own docstring
+    claim that test_behavior.py covers that class. The operator reproduced it.
+    Filed as SV-04-DF-01 and NOT repaired, because four sealed cards were written
+    against those exact bytes and two of them quote the sentence. A second class,
+    FEATURE.md R5's "nothing is ever rewritten", survives all three suites at 70
+    of 70 and is filed as SV-04-DF-03.
+    TWO SEALED PREDICTIONS WERE WRONG. P5 predicted D2 would be unstable again
+    and it was not. P2 predicted a judge would reason about CL-03-DF-02's claim
+    that anchor 4 is unsatisfiable by any durability-asserting suite; none did,
+    because there is no tension to reason about -- put the durability cases in a
+    class parametrised over the durable adapters only and the set of cases run
+    against both implementations is untouched. That corrects a filed finding and
+    is SV-04-DF-04.
+    THE CARD WAS NOT TOUCHED AND NO BUMP WAS NEEDED. serve is 6,281 bytes and 9
+    rungs at both trees, served digest sha256:2d7d4a0506d9b259 unchanged, and git
+    diff on references/eval_scorecard.md against the branch point is empty. That
+    matters because SV-07-DF-01 measured that BOTH carriers -- a scored rung and
+    a recorded note alike -- cost a version bump; a closure needing no card change
+    pays none of it.
+    WHAT WAS REJECTED. Adding the durability case to the shared suite, which was
+    the cheapest way to make a number move and would have broken the A/B. Editing
+    reference_ports/ to make the adapter more obviously real, which would have
+    destroyed the counterfactual. Reporting 3,3 to 4,4 against the sealed cl03-v5
+    cards with no control arm. Fixing the false docstring found in the round.
+    Deleting the three cases that killed nothing. Proposing any card change.
+    Repairing either inherited red. No skill was edited and skill-manager sync
+    was never run.

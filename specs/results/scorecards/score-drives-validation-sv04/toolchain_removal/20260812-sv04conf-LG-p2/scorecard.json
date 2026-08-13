@@ -1,0 +1,177 @@
+{
+  "scorecard_version": 5,
+  "status": "filled",
+  "epic": "score-drives-validation-sv04",
+  "example": "toolchain_removal",
+  "run_id": "20260812-sv04conf-LG-p2",
+  "arm": "LG",
+  "commit": "60f2699",
+  "judge": {
+    "model": "claude-opus-5[1m]",
+    "tier": "",
+    "pass": 2,
+    "blind_to_arm": true
+  },
+  "subject": {
+    "name": null,
+    "blinded": true,
+    "scope": [
+      "examples/validation/ab/reference_ports"
+    ],
+    "axis": "effect_boundary"
+  },
+  "rubric": {
+    "source": "references/eval_scorecard.md",
+    "digest": "sha256:24b2c599901d7ae0",
+    "scoring_rules": [
+      "**Score artifacts, never claims.** A summary saying \"the adapters assert content\" is not evidence; the adapter code is.",
+      "**Every score ≥ 2 cites `file:line`.** A score with no citation is capped at 1, mechanically, by the schema check.",
+      "**A score at the top of its scale additionally names something the artifact refuses to claim.** The top of every scale requires a stated limit. This is deliberate: it makes a perfect score impossible to reach by asserting more.",
+      "**Prose quality is never an input.** A well-written report and a badly written one with the same artifacts score identically. Say so in the rationale if the writing tempted you.",
+      "**Two judges, independently, blind to each other.** Any dimension where they differ by more than 1 is recorded as `contested` and adjudicated by a third pass that must cite new evidence, not re-read the same lines.",
+      "**Blind to arm.** Where an eval has arms (with-prompt vs without), judges do not learn which artifact came from which until after scoring.",
+      "**The mechanical block is recorded, never scored.** Kill counts, complexity figures, case counts, determinism, runtime. It sits beside the judgement so a reader can see when the two disagree — and a disagreement is a finding.",
+      "**Say what you ran.** *(New in version 2.)* Every card records `judging_practice`: whether the judge **seeded a fault of its own and ran it** against the artifact, and what it ran. Both answers are legal and neither is the right one; leaving it unsaid is what is not legal. From version 4 no anchor is gated on it and it is still required, because what a judge did is a variable in what a judge reports and a variable nothing records is a variable nobody can subtract.",
+      "**A judge is served the card, never the rubric file.** *(New in version 3.)* The scaffolded `scorecard.md` carries the rubric a judge needs. Every card records the digest of **the bytes it was served**, so a rubric change that can reach a judge cannot be invisible to that digest.",
+      "**Answer every recorded note.** *(New in version 4.)* N-D1, N-D4 and N-D5 take no score and are required on every filled card. An empty note is not a legal card; *\"I could not tell, and here is what I looked at\"* is."
+    ],
+    "served_digest": "sha256:2d7d4a0506d9b259",
+    "file_sha256": "sha256:b7fe75437bf68646"
+  },
+  "how_to_fill": [
+    "Score the LOWEST anchor the artifact fully satisfies. Torn between two: take the lower and say why.",
+    "Set `status` to \"filled\", `commit` to the sha the artifacts were scored at, and name your model in `judge.model`.",
+    "Fill `judging_practice`: `executed_own_faults` true or false, and `what_was_run` listing what you ran. FALSE IS A LEGAL AND USEFUL ANSWER -- it is recorded, never corrected. Delete the `note` key once you have.",
+    "Leave `anchors` as scaffolded. They are read from the rubric so the bar and the score live in one file; editing them here forks the rubric silently, which is the drift this scaffold exists to remove.",
+    "Answer every entry in `notes`. They take NO score -- these three questions were scored for three versions and the numbers were measured not to mean the same thing twice, so what is asked for is prose and citations. 'I could not tell, and here is what I looked at' is a legal note; an empty one is not."
+  ],
+  "dimensions": {
+    "D2": {
+      "name": "complexity",
+      "question": "Is the design as simple as its behavior requires, and no simpler?",
+      "anchors": {
+        "0": "Complexity is unmeasured, or measured and ignored.",
+        "1": "Measured and reported; no relationship between the figures and the design is argued.",
+        "2": "The design's complexity is proportional to its behavior; no god-state, no variable written from everywhere.",
+        "3": "2, **and** a simplification was made and its effect measured — the before and after figures are both recorded."
+      },
+      "score": 2,
+      "citations": [
+        "reference_ports/domain.py:101-108",
+        "reference_ports/domain.py:140",
+        "reference_ports/domain.py:149",
+        "reference_ports/domain.py:161",
+        "reference_ports/domain.py:171",
+        "reference_ports/domain.py:150-153",
+        "reference_ports/quota_ledger.py:24-25",
+        "reference_ports/quota_ledger_fake.py:37-38",
+        "FEATURE.md:61",
+        "FEATURE.md:92"
+      ],
+      "rationale": "Anchor 2, not 3, and the missing rung is the measurement, not the design. I diffed the state by hand rather than trusting the prose. ReservationBook holds six fields (reference_ports/domain.py:101-108) and every one of them is written from at most two command bodies: _available at :140 (reserve) and :161 (release); _committed at :149 only; _closed at :171 only; _outstanding at :141/:148/:160; _next_id at :139; _journal never after construction. There is no field written from everywhere and no god-state: the aggregate is one aggregate because FEATURE.md's R1 (FEATURE.md:92) is a per-tenant invariant across exactly these fields, so the coupling is the behavior's, not the design's. Total subject size is 173 + 38 + 43 + 36 + 49 lines across five files, of which the two composition points are one class and one constructor line each (reference_ports/quota_ledger.py:24-25, reference_ports/quota_ledger_fake.py:37-38) -- proportional to a five-query, four-command feature.\n\nOne fact IS stored twice and I want it on the record rather than glossed. `committed(tenant)` lives both in the `_committed` dict and in the running total rendered onto the COMMIT line (reference_ports/domain.py:150-153); and `_available` is fully derivable from quota - outstanding - committed by R1 yet is stored and hand-maintained across two write sites (:140, :161). Neither is a defect under this anchor: the running total is literally demanded by FEATURE.md:61, and the derived-vs-stored choice for `available` is a free choice the feature does not constrain. But it is the reason I did not reach further, and the reason a reader should not read this 2 as \"nothing is duplicated\".\n\nAnchor 3 fails on its own words: it requires that \"a simplification was made and its effect measured -- the before and after figures are both recorded\". No figure of any kind is recorded anywhere in the packet: no complexity descriptor, no line/branch/fan-in count, no before tree. The packet asserts behavioral identity with a flat predecessor module (reference_ports/domain.py:8-10) but that module is outside the scored scope and outside my read list, so I can neither check the claim nor extract a \"before\" from it -- and per the rubric's own read_first, the absence of a descriptor is not a gap in the evidence, it simply leaves rung 3 unearned. MF-020's warning does not even get to apply here: there is no number to have dropped.\n\nA note on the literal ladder, because a second judge may read it differently. Read strictly, anchor 0 (\"Complexity is unmeasured\") is a true sentence about this packet, and \"score the LOWEST anchor the artifact fully satisfies\" would then force a 0. I reject that reading: the dimension's read_first says in terms that where no measured descriptor exists \"that is not a gap in the evidence\" and instructs the judge to diff the trees and decide, which is unintelligible if the absence of a metric caps the score at 0. I read 0/1 as describing artifacts whose only complexity story is a number, and 2/3 as describing the design. Under that reading the design is proportional and the measurement is absent, which is exactly 2.\n\nProse quality was not an input and it did tempt me: every file in this tree carries an unusually persuasive docstring that argues its own design. I scored the field list and the write sites, and where a docstring made a checkable numeric claim I ran it instead of believing it (see judging_practice).",
+      "refuses_to_claim": "It refuses to claim the shape generalises or that the tree is unbiased: reference_ports/README.md:69-77 says it does not show an arm will produce this shape, that it is n = 1, and that the tree and the fault catalogue that seeds into it share an author -- \"that is the same declared bias the flat reference carries and it is not reduced by there being two trees\".",
+      "read_first": "Diff the two trees yourself and decide whether one fact is stored twice — kept in agreement by hand across several write sites, and read in one place. Where a measured complexity descriptor exists you may read it, and on its own it decides nothing; where none exists that is not a gap in the evidence.",
+      "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 requires the judge to say *what got simpler and how the behavior survived it*."
+    },
+    "D3": {
+      "name": "modularity",
+      "question": "Is it ports and adapters in fact — domain independent of I/O, adapters swappable?",
+      "anchors": {
+        "0": "No boundary is discernible; state is written from everywhere.",
+        "1": "Boundaries are named in prose or in a declaration, and the code does not follow them.",
+        "2": "The code follows the declared boundaries. Cross-boundary calls go through something identifiable as a port.",
+        "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
+        "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
+      },
+      "score": 4,
+      "citations": [
+        "reference_ports/domain.py:20-23",
+        "reference_ports/domain.py:38-58",
+        "reference_ports/domain.py:125",
+        "reference_ports/domain.py:150-153",
+        "reference_ports/domain.py:172",
+        "reference_ports/quota_ledger.py:17-25",
+        "reference_ports/quota_ledger_fake.py:30-38",
+        "reference_ports/journal_file.py:32-38",
+        "reference_ports/journal_memory.py:39-43",
+        "tests/test_journal_conformance.py:117-128",
+        "tests/test_journal_conformance.py:144-166",
+        "tests/test_journal_conformance.py:181-210",
+        "tests/test_journal_conformance.py:216-232"
+      ],
+      "rationale": "Anchor 4, and I got there on runtime evidence because the caveat says import topology does not count.\n\nAnchor 3 first. The domain's entire import list is dataclasses and typing (reference_ports/domain.py:20-23); it declares LedgerJournal as a structural Protocol (reference_ports/domain.py:38-58) and reaches the durable side only through it, at three call sites: :125 (lines), :150-153 (COMMIT append), :172 (CLOSE append). The named swap: reference_ports/quota_ledger.py:25 passes `FileJournal(ledger_path)` into `ReservationBook.__init__`; reference_ports/quota_ledger_fake.py:38 passes `InMemoryJournal()` into the identical constructor. That is the whole swap, and no file under reference_ports/ other than the composition point differs between the two. The dependency also runs one way at the adapter end -- reference_ports/journal_file.py imports only pathlib and reference_ports/journal_memory.py imports nothing, so neither adapter knows the domain exists.\n\nAnchor 4 needs the same cases passing against both, and needs the pair to be a real one and a fake one rather than two fakes. I ran the identical 28-case shared suite through both composition points: 28 passed under QUOTA_LEDGER_IMPL=quota_ledger and 28 passed under QUOTA_LEDGER_IMPL=quota_ledger_fake, three times each, byte-identical output. On top of that, tests/test_journal_conformance.py:144-166 runs one parametrised source of four port-contract cases against both implementations directly, 8 executions, all green.\n\nThe caveat is the part that decides this dimension, so I attacked it instead of reciting it. \"Anchor 4 holds when the real adapter does nothing real: if the only observer of the effect the port exists for is the adapter that wrote it, say so and take 3.\" There IS an observer outside the writer: tests/test_journal_conformance.py:117-128 `record_on_disk()` opens the declared path with `Path.read_text` and never calls `lines()`, and tests/test_journal_conformance.py:181-210 makes every assertion through it. I did not take that on the docstring's word. I seeded a fault that replaces FileJournal's body with a plain in-memory buffer and removes every filesystem call: 28/28 shared cases pass through the REAL wiring with zero ledger.txt files created, and 5 conformance cases kill it. So the out-of-band observer is load-bearing and the real adapter is proved to do something the fake cannot. tests/test_journal_conformance.py:216-232 closes the other half by asserting the fake writes no file at all, under a chdir so an invented path would be caught.\n\nI also checked that the swap swaps what EXECUTES rather than only what imports. A fault seeded in reference_ports/journal_memory.py:39-43 (drop CLOSE lines) leaves the real wiring green at 28/28 and kills 3 cases under the fake wiring; a fault seeded in reference_ports/journal_file.py:32-38 (drop CLOSE lines) does the mirror image, 3 kills real, 0 kills fake. Two faults with one semantic, one on each side of the port, land on opposite sides of the run. That is a runtime fact about what calls what, which is what the caveat demanded.\n\nOne reservation I will not hide, and it did not move me off 4. \"Durable\" here means the file outlives the OBJECT, not the run: reference_ports/journal_file.py:30 truncates on construction, so a second FileJournal over a written path destroys the record. The artifact pins that itself as an executable case rather than papering over it (tests/test_journal_conformance.py:235-250), which is why it reads to me as a scoped port rather than an oversold one.\n\nProse quality was not an input. Every docstring in this tree argues its own case at length and that is exactly why I ran mutants instead of reading them.",
+      "refuses_to_claim": "It refuses to treat agreement between the two wirings as an oracle, and says why: reference_ports/quota_ledger_fake.py:14-22 -- \"it does not assert that the two wirings agree. A test that only compares two wirings of one domain passes when the domain is wrong, because both wirings are wrong together.\" It also refuses to claim the conformance suite sees the domain, concurrency, crash-atomicity, or any record older than one object (tests/test_journal_conformance.py:39-52).",
+      "caveat": "**Import topology is not modularity, and two fakes are not a pair.** Coupling survives every import check, so D3 of 3 or more needs evidence about what *calls* what at runtime, not what imports what. And anchor 4 holds when the real adapter does nothing real: if the only observer of the effect the port exists for is the adapter that wrote it, say so and take 3."
+    }
+  },
+  "contested": [],
+  "verdict": "A genuine ports-and-adapters tree whose port is verified from outside the writer -- D3 = 4 survived a deliberate attack on the anchor-4 caveat (a FileJournal replaced by an in-memory buffer passes 28/28 through the real wiring and is killed only by the out-of-band conformance cases) -- but D2 stops at 2 because the packet records no complexity figure of any kind, and the one class of fault that survives all three suites is FEATURE.md R5's \"nothing is ever rewritten\": an adapter that rewrites the whole ledger file on every append, or on every read, is indistinguishable from an appending one to all 70 case-executions in this packet. DISCLOSURE (leak, from inside my own packet, which I was told to read in full): reference_ports/README.md:3-4 and reference_ports/domain.py:3-4 both open with \"THIS IS NOT AN ARM\", so I know the subject is a reference/anchor tree rather than an A/B arm's output; and reference_ports/README.md:19-23, reference_ports/journal_memory.py:9-15 and tests/test_journal_conformance.py:16-18 quote a prior round's FINDINGS.md verbatim, including finding ids BA-B14 and RM-05-DF-05 and the sentence \"the fake that earned arm B its D3 = 4 is verified by nothing outside arm B's own tests\" -- i.e. a prior score on the very dimension I am the instrument for. I did not open any of those files and did not go looking for the arm mapping. I cannot un-see the number, so: my D3 = 4 rests on the out-of-band observer at tests/test_journal_conformance.py:117-128 verified with my own F1 mutant, a mechanism BA-B14 explicitly says did not exist in the prior round, so the quoted 4 is not the evidence mine rests on. Full disclosures, including what I rejected, are in scorecard.md.",
+  "judging_practice": {
+    "executed_own_faults": true,
+    "what_was_run": [
+      "Copied the packet to /private/tmp/.../scratchpad/SV-04/judge-LG-p2/base and mutated only copies; `git status --porcelain` on the packet is clean afterwards.",
+      "Green control, three repetitions each, identical output every time: `QUOTA_LEDGER_DIR=<base>/reference_ports QUOTA_LEDGER_IMPL=quota_ledger uv run --with pytest python -m pytest <base>/tests/test_behavior.py -q -p no:cacheprovider` -> 28 passed (~0.08s).",
+      "Same with `QUOTA_LEDGER_IMPL=quota_ledger_fake` -> 28 passed (~0.07s).",
+      "`QUOTA_LEDGER_PORTS_DIR=<base>/reference_ports uv run --with pytest python -m pytest <base>/tests/test_journal_conformance.py -q -p no:cacheprovider` -> 14 passed (~0.07s).",
+      "Seeded 14 faults of my own, one per fresh copy, and ran all three suites against each (42 suite runs). Fake-adapter faults: J1 fake drops CLOSE lines; J2 fake sorts its lines; J3 fake stops filtering blanks. Real-adapter faults: F1 FileJournal becomes a pure in-memory buffer with no filesystem call; F2 FileJournal buffers until two lines are pending; F3 FileJournal drops CLOSE lines; F4 constructor touches instead of truncating; E1 append rewrites the whole file instead of appending; E3 lines() rewrites the file before reading it. Domain faults: D1 release appends a RELEASE line; D2 commit gives the hold back to available; D3 the amount_not_positive / quota_exceeded guard order swapped; D4 ledger_lines() returns a shadow list instead of calling the port. Encapsulation fault: E2 InMemoryJournal.lines() returns its live internal list.",
+      "Kills by instrument, out of 14: shared suite through the real wiring 5 (F2, F3, D1, D2, D4); shared suite through the fake wiring 5 (J1, J2, D1, D2, D4); conformance suite 7 (J1, J2, J3, F1, F2, F3, F4). Union 10/14. Survivors: D3, E1, E2, E3.",
+      "Proved by exhaustive enumeration over available in 0..20 and amount in -20..20 that survivor D3 is an EQUIVALENT mutant -- with available >= 0 and integer amounts there is no input on which the two guard orderings disagree -- so it is not counted as a miss. Genuine survivors are 3 of 13 non-equivalent faults.",
+      "Reproduced the artifact's own falsifiable claim at tests/test_journal_conformance.py:14-17 exactly: with FileJournal's body replaced by a list and every filesystem call removed, 28 of 28 shared cases pass through the real wiring and zero ledger.txt files are created.",
+      "Counted state and write sites in reference_ports/domain.py by hand (ast + grep) rather than reading the docstrings' account of them."
+    ]
+  },
+  "notes": {
+    "N-D1": {
+      "name": "bug detection",
+      "question": "What did the cases catch, and what class did they demonstrably miss? Name the fault you seeded if you seeded one.",
+      "note": "I seeded 14 faults of my own and ran all three suites against each; the full list is in judging_practice. What the cases catch, by region:\n\nDOMAIN faults are caught by the shared suite through EITHER wiring and are invisible to the conformance suite -- release appending a RELEASE line, commit handing the hold back to available, and ledger_lines() returning a shadow instead of calling the port all died 1-7 cases under both wirings (tests/test_behavior.py:159-166, :112-119, :270-281) and left tests/test_journal_conformance.py at 14/14 green. That is exactly what the conformance suite says about itself at tests/test_journal_conformance.py:40-43, and it checks out: the two suites are complements, not overlaps.\n\nADAPTER faults are caught asymmetrically, and this is the packet's real instrument. A fault in reference_ports/journal_memory.py:39-43 is invisible to the real wiring and killed by the fake wiring; the mirror fault in reference_ports/journal_file.py:32-38 is the reverse. Without the second composition point (reference_ports/quota_ledger_fake.py:37-38) the fake-side faults would have had nowhere to be seen at all. Three adapter faults were killed ONLY by the conformance suite and by nothing else: the fake keeping blanks, the constructor touching instead of truncating (reference_ports/journal_file.py:30), and above all FileJournal reduced to an in-memory buffer -- 28/28 shared cases pass through the real wiring with zero files written, and tests/test_journal_conformance.py:117-128 kills it in 5 cases. So the conformance file is not decoration: it is the only thing in the packet that observes the effect the port exists for.\n\nTHE CLASS THEY DEMONSTRABLY MISS is the write discipline itself -- FEATURE.md:104's R5 clause \"Nothing is ever rewritten\". I seeded E1 (append reads the whole file and rewrites it with the new line on the end) and E3 (lines() rewrites the file before reading it). Both are content-identical and order-identical, and both pass all three suites: 28 real, 28 fake, 14 conformance, zero kills out of 70 case-executions. Every case in the packet observes the CONTENT of the record and none observes how the bytes got there, so \"append-only as a mechanism\" is unasserted while \"append-only as an outcome\" is asserted well. A second missed class is encapsulation: E2, InMemoryJournal.lines() returning its live internal list so a caller can mutate the record through the accessor, survives all three suites; reference_ports/journal_memory.py:43 currently returns a fresh list and nothing holds it to that.\n\nOne survivor is NOT a miss and I checked rather than reported it: swapping the amount_not_positive and quota_exceeded guards at reference_ports/domain.py:134-137 survives everything, but with available >= 0 and integer amounts there is no input on which the two orderings differ (enumerated exhaustively over available 0..20, amount -20..20). It is an equivalent mutant. Counting it as a miss would have inflated the miss rate by a third.",
+      "citations": [
+        "reference_ports/journal_file.py:30",
+        "reference_ports/journal_file.py:32-38",
+        "reference_ports/journal_memory.py:39-43",
+        "reference_ports/quota_ledger_fake.py:37-38",
+        "reference_ports/domain.py:134-137",
+        "tests/test_journal_conformance.py:117-128",
+        "tests/test_journal_conformance.py:40-43",
+        "tests/test_behavior.py:112-119",
+        "tests/test_behavior.py:270-281",
+        "FEATURE.md:104"
+      ]
+    },
+    "N-D4": {
+      "name": "behavior preservation",
+      "question": "Which behaviors of the baseline did you enumerate, and is each shown still to hold? If there is no baseline, say so — that is the answer, not a gap in the note.",
+      "note": "There is no baseline tree in the packet, and that is the answer. reference_ports/domain.py:8-10 and reference_ports/README.md:36-38 assert that this tree's behavior is `../reference/quota_ledger.py`'s \"statement for statement\", but that module is outside the scored scope and outside my read list, so the equivalence claim is unverifiable from here. I did not chase it. What I can say is that the claim is stated as checkable rather than as a conclusion -- reference_ports/README.md:39-45 names the exact commands that would decide it -- so its unverifiability here is a property of my packet, not of the artifact.\n\nWhat the packet does give me is a SPECIFICATION baseline, FEATURE.md, and I enumerated it clause by clause and checked each against a run rather than against a docstring:\n\n(1) the five observable queries, FEATURE.md:25-31 -- all five are implemented at reference_ports/domain.py:112-125 and all five are read in tests/test_behavior.py:46-54's snapshot, which is what R4 is compared across. Holds.\n(2) reserve's four rejections IN ORDER, FEATURE.md:40-45 -- reference_ports/domain.py:130-137, and tests/test_behavior.py:75-101 covers unknown_tenant, tenant_closed, amount_not_positive (0 and -2) and quota_exceeded. Holds; and I established separately that the amount_not_positive/quota_exceeded ordering is not observable at all, so \"in order\" is untestable for that pair rather than untested.\n(3) commit's effects, FEATURE.md:52-66 -- one line per commit with the running total, and available NOT returned. reference_ports/domain.py:144-154, asserted at tests/test_behavior.py:112-119 including the explicit \"committing does not give the hold back\". Holds, and my seeded D2 fault (commit credits available) dies there.\n(4) release writes nothing to the ledger, FEATURE.md:72 -- reference_ports/domain.py:156-162 has no journal call; tests/test_behavior.py:159-166 asserts ledger_lines() == []. Holds, and my seeded D1 fault dies there.\n(5) close's three rejections and its single CLOSE line, FEATURE.md:76-88 -- reference_ports/domain.py:164-173, tests/test_behavior.py:186-233. Holds.\n(6) R1 conservation -- tests/test_behavior.py:239-255, both with reservations live and after they are resolved. Holds.\n(7) R2 ledger agrees with memory -- tests/test_behavior.py:258-267 recomputes the running total from the parsed lines. Holds.\n(8) R3 close is final and singular -- covered in part (tests/test_behavior.py:209-226); \"exactly one CLOSE line\" follows from the already-closed rejection rather than being asserted as a count.\n(9) R4 a rejection changes nothing -- the strongest thing in the suite, because every rejection case snapshots all five observables and compares (tests/test_behavior.py:85-91). Holds.\n(10) R5 append-only and ordered, FEATURE.md:104 -- ORDER holds (tests/test_behavior.py:270-281 pins the exact interleaved sequence). \"Nothing is ever rewritten\" does NOT hold as an assertion: see N-D1, a whole-file-rewriting adapter passes every case in the packet.\n\nAll ten were checked through BOTH composition points, three repetitions, 28/28 each time, so whatever preservation the shared suite establishes it establishes on both sides of the port and not only on the wired one.",
+      "citations": [
+        "reference_ports/domain.py:8-10",
+        "reference_ports/README.md:36-45",
+        "FEATURE.md:25-31",
+        "FEATURE.md:40-45",
+        "FEATURE.md:72",
+        "FEATURE.md:104",
+        "reference_ports/domain.py:112-125",
+        "reference_ports/domain.py:144-154",
+        "tests/test_behavior.py:46-54",
+        "tests/test_behavior.py:85-91",
+        "tests/test_behavior.py:258-267",
+        "tests/test_behavior.py:270-281"
+      ]
+    },
+    "N-D5": {
+      "name": "honesty",
+      "question": "Does the artifact refuse rather than falsely certify, and does it name what it cannot see? Point at the refusal, or at its absence.",
+      "note": "It refuses, in four distinct places, and -- the part that actually persuaded me -- its refusals are falsifiable and survived falsification.\n\nThe refusals. (a) tests/test_journal_conformance.py:39-52, \"WHAT THIS SUITE STILL CANNOT SEE\", names three blind spots by name: anything about ReservationBook, concurrency and crash-atomicity, and any record older than one object. All three are true; I confirmed the first by seeding domain faults that leave the conformance suite 14/14 green. (b) reference_ports/quota_ledger_fake.py:14-22 refuses the cheapest available oracle -- comparing the two wirings to each other -- and gives the correct reason, that both wirings are wrong together when the domain is wrong. An artifact reaching for a score would have taken the parity test and called it a differential oracle. (c) reference_ports/README.md:69-77 refuses three generalisations at once: that an arm would produce this shape, that n > 1, and that the author bias is reduced by there being two trees. (d) reference_ports/README.md:66, \"Nothing here gates, refuses, or reports a verdict. It is a fixture.\"\n\nIt also converts a limit into an executable case instead of a caveat, which is the strongest form of this. tests/test_journal_conformance.py:235-250 asserts that constructing a second FileJournal over a written path DESTROYS the record (reference_ports/journal_file.py:30 truncates), so \"outlives the run\" is true of the file and not of the adapter. Naming a weakness in prose is cheap; pinning it so that a later tree which fixes it must come and change the case is not.\n\nWhat I checked rather than accepted: tests/test_journal_conformance.py:14-17 makes a hard numeric claim -- \"28 of 28 shared cases still pass through the real wiring while zero ledger.txt files are created\" if FileJournal is replaced by a plain list. I built exactly that mutant. 28 passed, no file created. The claim is exactly true. A docstring that stakes a falsifiable number and is right is the honesty evidence here; the eloquence around it is not, and I ignored it.\n\nTwo debits, neither large. reference_ports/README.md:76 calls quota_ledger_fake.py \"four lines\"; the file is 49 lines and the wiring within it is five (reference_ports/quota_ledger_fake.py:34-38). The rhetorical figure is repeated at reference_ports/quota_ledger_fake.py:11. It is a small overstatement in the direction of the artifact's own argument, and it is the only claim in the packet I found to be inaccurate. Second: the honesty is concentrated in docstrings whose authority a reader cannot check without doing what I did -- the artifact ships no machine-readable record of what it ran, so every number in it is a claim until a judge re-runs it. It happens to be a claim that held.\n\nWhat it does NOT name, and should: FEATURE.md:104's \"nothing is ever rewritten\" is asserted by no case, and the conformance suite's list of blind spots (tests/test_journal_conformance.py:39-52) does not include write discipline even though that file is the one place that would have observed it.",
+      "citations": [
+        "tests/test_journal_conformance.py:14-17",
+        "tests/test_journal_conformance.py:39-52",
+        "tests/test_journal_conformance.py:235-250",
+        "reference_ports/quota_ledger_fake.py:14-22",
+        "reference_ports/quota_ledger_fake.py:34-38",
+        "reference_ports/README.md:66",
+        "reference_ports/README.md:69-77",
+        "reference_ports/journal_file.py:30",
+        "FEATURE.md:104"
+      ]
+    }
+  }
+}

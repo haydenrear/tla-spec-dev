@@ -1,0 +1,60 @@
+{
+  "note": "Measured figures. NEVER SCORED. Recorded beside the judgement so a reader can see when measurement and judgement disagree -- and a disagreement is a finding, not a rounding error.",
+  "example": "toolchain_removal",
+  "arm": "LG",
+  "run_id": "20260812-sv04conf-LG-p2",
+  "commit": "60f2699",
+  "figures": {
+    "kills": {
+      "note": "Judge-seeded faults only. This card's judge seeded 14 faults of its own into a COPY of the packet and ran all three suites against each (42 suite runs). No catalogue from the repository was read or run.",
+      "faults_seeded": 14,
+      "faults_equivalent": 1,
+      "faults_non_equivalent": 13,
+      "equivalent_detail": "reserve() guard-order swap (amount_not_positive vs quota_exceeded) at reference_ports/domain.py:134-137 -- proved unobservable by exhaustive enumeration over available 0..20, amount -20..20, since available >= 0 and amounts are integers.",
+      "by_instrument": {
+        "test_behavior.py @ QUOTA_LEDGER_IMPL=quota_ledger": 5,
+        "test_behavior.py @ QUOTA_LEDGER_IMPL=quota_ledger_fake": 5,
+        "test_journal_conformance.py": 7
+      },
+      "by_region": {
+        "domain.py": {"seeded": 4, "killed_by_behavior_real": 3, "killed_by_behavior_fake": 3, "killed_by_conformance": 0},
+        "journal_file.py (real adapter)": {"seeded": 6, "killed_by_behavior_real": 2, "killed_by_behavior_fake": 0, "killed_by_conformance": 4},
+        "journal_memory.py (fake adapter)": {"seeded": 4, "killed_by_behavior_real": 0, "killed_by_behavior_fake": 2, "killed_by_conformance": 3}
+      },
+      "union_killed": 10,
+      "union_kill_rate_non_equivalent": 0.769,
+      "survivors_non_equivalent": 3,
+      "survivor_detail": "E1 append rewrites the whole file; E3 lines() rewrites the file before reading it -- both violate FEATURE.md:104 'nothing is ever rewritten' while remaining content- and order-identical, 0 kills out of 70 case-executions. E2 InMemoryJournal.lines() returns its live internal list -- encapsulation leak, 0 kills.",
+      "killed_only_by_conformance": 3,
+      "killed_only_by_conformance_detail": "fake stops filtering blanks; FileJournal constructor touches instead of truncating; FileJournal reduced to an in-memory buffer with zero filesystem calls (28/28 shared cases pass through the REAL wiring, 5 conformance cases kill it)."
+    },
+    "complexity_of_produced_code": {
+      "note": "Counted by the judge with ast/grep over the scored scope; no complexity descriptor exists in the packet and none was read.",
+      "files_in_scope": 5,
+      "python_lines": {"domain.py": 173, "journal_file.py": 38, "journal_memory.py": 43, "quota_ledger.py": 36, "quota_ledger_fake.py": 49, "total": 339},
+      "classes": {"domain.py": 4, "journal_file.py": 1, "journal_memory.py": 1, "quota_ledger.py": 1, "quota_ledger_fake.py": 1},
+      "domain_state_fields": 6,
+      "max_write_sites_per_field_outside_constructor": 3,
+      "before_after_simplification_figures": null,
+      "before_after_note": "None recorded anywhere in the packet, which is why D2 stops at 2. The claimed behavioural predecessor (reference_ports/domain.py:8-10) is outside the scored scope and outside this judge's read list."
+    },
+    "case_counts": {
+      "tests/test_behavior.py": 28,
+      "tests/test_journal_conformance.py": 14,
+      "conformance_parametrised_over_both_adapters": 8,
+      "conformance_durable_only_cases": 4,
+      "case_executions_per_full_pass": 70,
+      "note": "70 = 28 (real wiring) + 28 (fake wiring) + 14 (conformance). test_behavior.py runs identically through both composition points; test_journal_conformance.py runs once and parametrises internally."
+    },
+    "determinism": {
+      "repetitions": 3,
+      "identical_results": true,
+      "detail": "All three suites run three times each on the unmutated copy: 28 / 28 / 14 passed every time, same counts, no ordering or tmp_path sensitivity observed."
+    },
+    "runtime_seconds": 0.24
+  },
+  "reach": {
+    "note": "Print reach beside every kill: executed of emitted, per instrument, per action, with the skip rule named.",
+    "measured": "Reach is total for this packet and there is no skip rule: no case in either suite is skipped, xfailed or conditionally collected, so executed == emitted for every instrument (28/28, 28/28, 14/14). The one conditional in the packet is TestDurableRecord's parametrisation over DURABLE_ADAPTERS (tests/test_journal_conformance.py:114), which EMITS 4 cases rather than 8 -- the fake is excluded at collection, not skipped at run time, and tests/test_journal_conformance.py:216-232 covers the fake's side of that clause instead."
+  }
+}

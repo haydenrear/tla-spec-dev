@@ -1,0 +1,121 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket SV-01",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-01/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-01/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-01/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "One artifact LACKING the property scored under both v4 and v5, same judge model, two passes a side.",
+        "The prediction declared before dispatch.",
+        "A null reported as loudly as the move was, naming what inherits the correction.",
+        "The served surface untouched."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "SV-05"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "specs/results/scorecards/score-drives-validation/"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/230",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "The caveat's discrimination is settled either way.",
+        "goal": "GOAL-caveat-discriminates",
+        "local_signal": "D3 under v4 vs v5 on an artifact without the hole"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-validation-is-scorable",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-scored-at-goal-time",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-loop-reaches-the-program",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "SV-01",
+    "implementation_scope": [
+      "specs/results/scorecards/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "SMALL, FIRST, AND IT SETTLES A HEADLINE THE PREVIOUS EPIC COULD NOT. close-the-loop moved D3 4,4 -> 3,3 with the card version the only mover, and IT HAS NO NEGATIVE CONTROL. The version-5 caveat says take 3 when the only observer of the effect the port exists for is the adapter that wrote it; it was applied to an artifact WITH EXACTLY THAT PROPERTY and the score went to 3. That is the minimum possible evidence a caveat is wired up -- IT DEMONSTRATES PLUMBING AND DOES NOT MEASURE DISCRIMINATION. Score ONE artifact that plainly LACKS the hole under both version 4 from rubric_v4_frozen.md and version 5, same judge model, same tag, two passes a side. The design is CL-03's, already run, so nothing needs inventing. DECLARE THE PREDICTION BEFORE DISPATCHING. If D3 falls there too the caveat is general downward pressure and the headline is a recalibration; if it holds, the caveat discriminates. A NULL IS THE INFORMATIVE OUTCOME.",
+    "promotion_order": 10,
+    "promotion_predecessor": null,
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "The missing negative control: does the D3 caveat discriminate?",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-01/specs/tickets/SV-01",
+  "ticket_id": "SV-01",
+  "ticket_index": 0,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-01/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-score-drives-validation-SV-01/specs/tickets"
+}

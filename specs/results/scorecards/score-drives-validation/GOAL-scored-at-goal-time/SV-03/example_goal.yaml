@@ -1,0 +1,57 @@
+# SV-03. The worked example: what a goal looks like when its baseline IS a card.
+#
+# TWO goals, and the second one is the point as much as the first. The first is
+# judged and card-backed; the second has a command harness and no card at all,
+# is written exactly as it would be today, and is UNCHANGED by anything this
+# ticket proposes. A project with no card writes only goals of the second kind
+# and never reads the sentences about the first.
+#
+# NO NEW FIELD. Every key below already exists in the epic plan schema at
+# `git-epic-workflow/references/goals-and-evaluation.md` and is accepted by
+# `validate_epic_plan.py` today. `dimension:` is deliberately absent -- a
+# dimension id is an index into one project's rubric and does not cross a skill
+# boundary (goal_score_wiring.md section 5), so the keying lives in the
+# free-text `metric`, where 12 of this repository's 27 goals already put it.
+#
+# THE PATHS RESOLVE. The four cards cited are this repository's real sealed
+# cards behind close-the-loop's headline, and `analysis/baseline_is_a_card.py`
+# opens them and prints the numbers back. This is the shape of a baseline
+# scored at declaration; it is NOT a claim that this epic's own baselines were
+# scored that way -- they were not, which is what the 0-of-27 measures.
+#
+# Loads with BOTH loaders: yaml.safe_load and
+# scripts/extract_spec_manifest.parse_simple_yaml. Pinned by
+# tests/test_goal_baseline_is_a_card.py.
+epic_goals:
+  - id: EXAMPLE-judged-goal-card-backed
+    kind: eval
+    statement: >-
+      The rubric's version-5 caveat lowers D3 on the toolchain removal, and the epic is judged on whether it moved rather than on a recollection that it did.
+    metric: >-
+      D3 on the toolchain_removal artifact, two blind passes per rubric version, same judge model and same architecture tag. The dimension key lives here, in free text, because it is this project's rubric's key and nobody else's.
+    harness: >-
+      examples/validation/scorecards/score_tools.py at rubric version 5, run on the epic branch at kickoff before any ticket landed, sealed under the evidence root.
+    baseline:
+      value: >-
+        D3 = 4 and 4 across two blind passes under rubric version 4 (digest sha256:497c16ca85adeb4a), on toolchain_removal at commit a73186d.
+      measured_at: a73186d
+      evidence: >-
+        specs/results/scorecards/close-the-loop-cl03-v4/toolchain_removal/20260811-cl03v4-CL-p1/scorecard.json specs/results/scorecards/close-the-loop-cl03-v4/toolchain_removal/20260811-cl03v4-CL-p2/scorecard.json
+    target: >-
+      D3 under version 5 on the same artifact, same tag, two passes. A verdict either way; a movement inside the instrument's documented noise band is not a result.
+    evaluation_ticket: SV-05
+    evidence_root: specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time
+  - id: EXAMPLE-command-goal-no-card
+    kind: perf
+    statement: >-
+      Batched ingest cuts tail latency without losing throughput.
+    metric: >-
+      p99 request latency over the ingest bench, three runs, median reported.
+    harness: bench/ingest.sh
+    baseline:
+      value: p99 412ms
+      measured_at: 8f21c0d
+      evidence: results/epic-ingest/goals/GOAL-ingest-p99/baseline.json
+    target: p99 <= 250ms
+    evaluation_ticket: ING-09
+    evidence_root: results/epic-ingest/goals/GOAL-ingest-p99
