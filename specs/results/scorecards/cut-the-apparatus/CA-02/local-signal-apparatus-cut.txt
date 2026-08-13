@@ -1,0 +1,14 @@
+GOAL-apparatus-cut local_signal, ticket CA-02, tree 1d873029c6dc47fb916dc4b3eb4eeec05032c9c3
+command: find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1
+
+baseline @ 08d1d6a90ad2 : 43553  (scripts 27652 + examples/validation 15901)
+measured  @ this tree  : 42109
+
+per surface, reported SEPARATELY and never combined with the card:
+  scripts/             : 27652
+  examples/validation/ : 14457
+  tests/               : 31274
+
+the card, reported separately:
+  serve | wc -c        : 6281
+  serve --digest-only  : sha256:2d7d4a0506d9b259
