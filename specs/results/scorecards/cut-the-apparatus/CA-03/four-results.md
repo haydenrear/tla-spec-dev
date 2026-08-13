@@ -26,13 +26,38 @@ directly**: arm C, a *longer* prompt carrying no architectural vocabulary, score
 
 `eval_toolchain`, RM-04. D3 by arm and judge tier:
 
-| arm | opus | sonnet | range |
-|---|---|---|---|
-| `GG` (ports-and-adapters) | 2 | 4 | **[2, 4]** |
-| `JJ` (effectful) | 1 | 0 | **[0, 1]** |
-| `LL` (effectful) | 1 | 0 | **[0, 1]** |
+| arm | subject | opus | sonnet | range | tag still re-derivable? |
+|---|---|---|---|---|---|
+| `GG` | `rm04_eval_harness` (ports-and-adapters) | 2 | 4 | **[2, 4]** | **yes** — derives `ports-and-adapters`, agrees |
+| `LL` | `rm04_scripts` (effectful) | 1 | 0 | **[0, 1]** | **yes** — derives `effectful`, agrees |
+| `JJ` | `rm04_removal_pricer` (effectful) | 1 | 0 | **[0, 1]** | **NO — `UNDERIVABLE:no-effect-surface`** |
 
-**Disjoint, both judge tiers on both sides.**
+**Disjoint, both judge tiers on both sides. The scores reproduce exactly.**
+
+### The caveat this document owed, added on review of PR #266
+
+**`CA-02` cut the removal pricer, and `JJ`'s architecture tag is no longer
+re-derivable.** `CA-02` kept `examples/validation/gap_mutants/` as a tombstone
+precisely because it is `rm04_removal_pricer`'s declared scope — but the tree it
+points at now has **no effect surface at all**:
+
+```
+$ architecture_tags.py derive
+rm04_removal_pricer   derived=UNDERIVABLE:no-effect-surface   declared=effectful   UNDERIVABLE
+                        iface=0 eff_mods=0/0 state_coloc=None
+```
+
+**So `JJ`'s "effectful" survives only as the DECLARATION in `subjects.toml`, not
+as a computed tag.** That is `CA-02`'s priced cost — it reported the derivation
+moving `17 → 16 of 21` — but **this document is where it would otherwise read as
+clean**, so it is recorded here.
+
+**The result does not collapse, and this is the part worth being precise about.**
+The effectful side still has `LL` = `rm04_scripts`, which **does** still derive
+`effectful` from the live tree. So the separation `[2, 4]` vs `[0, 1]` remains
+re-derivable end to end on **one** subject per side rather than two. **What was
+lost is a replicate, not the result.** `derive` today reports
+**`16 of 21 subject(s) decided; 5 refused`**.
 
 ## 3. D3's v5 caveat discriminates — **REPRODUCES**
 

@@ -7942,7 +7942,29 @@ findings:
       does not invalidate any score -- rule 7 forbids scoring the block -- but it
       is the reason a judge who followed the numbers would have reached the
       opposite verdict on two of three pairs.
-    disposition: open
+    disposition: consumed
+    disposition_note: >-
+      CONSUMED BY CA-03. The token is `consumed` and NOT `refuted` deliberately:
+      what is refuted is the PREMISE CA-03 was tasked under, not this finding,
+      and labelling the row `refuted` would misdescribe the finding itself --
+      which is the precision this ticket was corrected for on review. CA-03 was sent to cut the
+      descriptor's role as a precondition of a D2 score. That cut was made at
+      CARD VERSION 4, before this epic opened: `references/eval_scorecard.md:769`
+      records "D2's preamble stops requiring a measured descriptor to be read
+      first", the retired text is out of the served surface by construction, and
+      `tests/test_code_complexity.py:669` has asserted repository-wide since
+      RD-05 that nothing gates on the instrument. ZERO LINES CUT. What remains is
+      mandated by served card rule 7, which CA-03 may not change.
+
+      THE FINDING ITSELF IS NOT REFUTED -- the descriptor really cannot see
+      stored-versus-derived duplication, and 19 of 21 axes really were
+      byte-identical. What is refuted is the coupling it was read as implying.
+      Its own suggested_fix (state the blind spot beside the instrument) is an
+      ADDITION to scripts/code_complexity.py, outside CA-03's conflict_keys and
+      against this epic's direction; it is recorded as not taken rather than
+      silently dropped. Enumeration:
+      specs/results/scorecards/cut-the-apparatus/CA-03/descriptor-coupling.md.
+      See CA-03-DF-01 and CA-03-DF-02.
 
   - id: RD-03-DF-09
     found_by: "RD-03"
@@ -13258,7 +13280,24 @@ findings:
       `subjects.toml`, so the lookup is present and only the null-name case is
       unguarded. The second is smaller and turns a 21-minute discovery into an
       immediate one.
-    disposition: open
+    disposition: repaired
+    disposition_note: >-
+      CONSUMED AND REPAIRED BY CA-03, VIA THIS FINDING'S OWN FIRST SUGGESTION:
+      `cmd_scaffold` now calls `register_round()` and records the
+      [round-dir, arm-label] pair when it blinds `subject.name`. The SECOND
+      suggestion -- make `check` refuse -- was REJECTED as a sixth gate, which
+      this epic forbids. R1 demonstration ships as
+      tests/test_score_tools.py::test_a_blinded_round_registers_itself_and_the_unregistered_card_is_the_failing_input,
+      which runs the failing input FIRST on the real subject `toolchain_fixture`
+      -- the exact entry SV-04 filled by hand.
+
+      DECLARED BOUND, RAISED BY INDEPENDENT REVIEW OF PR #266 AND NOT FIXED: the
+      repair is guarded by `if args.subject and not args.unblinded`, and
+      `--subject` is OPTIONAL. THIS FINDING'S OWN REPRODUCTION COMMAND CARRIES NO
+      `--subject`, so that path is untouched and still produces cards mapping to
+      no declared subject. The rejected `check` option would have covered it.
+      Half the defect is closed, not all of it, and the record says which half.
+      See five-checks.md, "DECLARED BOUND".
   - id: SV-05-DF-01
     found_by: "SV-05, running the shipped instrument to produce the per-version digest table the work order asked for"
     found_at_commit: "3e16b96"
@@ -14924,7 +14963,16 @@ findings:
       result's computation touches, and any ticket taking this up must verify the
       result reproduces before and after.
     disposition: carried
-    disposition_ticket: "CA-08"
+    disposition_ticket: "next-epic"
+    disposition_note: >-
+      RE-POINTED FROM CA-08 BY THE EPIC OWNER ON REVIEW OF PR #266, AND THE
+      REASON IS A REAL CONFLICT: CA-08's plan objective is "FILE FINDINGS, FIX
+      NOTHING", so routing the one cut this ticket found a case for to CA-08
+      would land it on a ticket chartered not to make it. No rescope is opened:
+      this epic is already long, `derive` computes standing result 2, and
+      cutting it late is precisely the risk GOAL-four-results-stand exists to
+      prevent. THE CUT IS IDENTIFIED, JUSTIFIED, PRICED AND DELIBERATELY NOT
+      MADE IN THIS EPIC.
 
   - id: CA-03-DF-04
     found_by: "CA-03, by searching for the seal refusal that eight epics of prose assume has fired"
@@ -15027,33 +15075,62 @@ findings:
         * `audit` reported NINE `SUPERSEDED-UNMARKED` violations at once on the
           ticket that shipped the change, and one claim was SUPERSEDED as a
           result (`SM-04/RESULT.md:249-264`).
-        * `audit` reported TEN on `CL-03`, over four rounds' claims, two of them
-          goal decisions, and turned the repository's own ledger test red until
-          they were parked (`CL-03/RESULT.md:240-259`).
-        * `audit` REJECTED THE EPIC OWNER'S OWN UNEXECUTED RULE at close, within
-          the minute, because it was numbered `R-H5` with no check behind it
-          (`references/eval_scorecard.md:564-568`).
-        * `audit` found SCOPE-DRIFT on two of `toolchain_removal`'s four REAL
-          cards (`RD-03/analysis/audit.txt:37-38`).
-        * `check` rejected a real card on rule 8
-          (`RM-05/RESULT.md:125-127`, `NEXT-EPIC.md:766-768`).
+        * `audit` reported TEN on `CL-03`, and turned the repository's own ledger
+          test red until they were parked (`CL-03/RESULT.md:240-259`). RE-DERIVED
+          HERE: those ten span THREE distinct `measured_at` commits and carry
+          FOUR `goal-*` claims. CL-03's own sentence reads "Four rounds' claims,
+          two of them goal decisions" and IS WRONG IN BOTH TERMS; the first
+          version of this row repeated it without re-deriving.
         * `contested` found THE ONLY spread greater than 1 in 49 sealed cards,
           which the producing round, that epic's close and an `index` run all
-          walked past (`INSTRUMENT-LOG.toml:2608-2641`).
+          walked past (`INSTRUMENT-LOG.toml:2608-2641`), plus RD-03's six groups.
+          THESE ARE RECORDINGS, NOT ADJUDICATIONS: all NINE `[[contested]]`
+          entries carry `third_pass = "none"`, and `INSTRUMENT-LOG.toml:2949`
+          says "Rule 5's remedy has never been applied to anything in this
+          repository." ZERO adjudications, ever. The first version of this row
+          claimed eight.
+        * `architecture_tags.scope_drift()` found SCOPE-DRIFT on two of
+          `toolchain_removal`'s four REAL cards (`RD-03/analysis/audit.txt:37-38`).
+          `audit` SURFACES it (`score_tools.py:2928`); it does not compute it,
+          and the first version of this row credited the wrong instrument.
+        * `audit` REJECTED THE EPIC OWNER'S OWN UNEXECUTED `R-H5` at close
+          (`references/eval_scorecard.md:562-569`). SELF-REPORTED, WITH NO
+          INSTRUMENT RECORD -- no audit transcript, no violation line, no
+          timestamp; the record gives a day, not a minute. The sentence has since
+          been restated in two frozen rubrics, `references/architecture_tags.md`
+          and `score_tools.py:2840-2844`. Labelled at the epic owner's own
+          instruction: a self-report laundered into doctrine through four
+          restatements is worse than no evidence, because it looks like evidence.
+        * WITHDRAWN: `check` rejecting a real card on rule 8. The primary source
+          (`falsifiable-instruments/GOAL-scorecard-carries-a-delta/RESULT.md:190-193`)
+          is a COUNTERFACTUAL -- "under `scorecard_version 2` that exact card IS
+          rejected by `check`" -- present-conditional, about a version-1 card,
+          against a rule that did not exist when it was written. `check` never
+          refused it in flight. My source was `RM-05/RESULT.md:125-126`, itself a
+          restatement. `check` is still KEPT, on the second seal, which is primary.
 
       AND THIS EPIC ADDS TO IT: the `registry-enumeration-coverage` tripwire
       caught `CA-05` shipping an unregistered instrument, and `CA-01` pre-empted
       the same check.
 
-      THE HONEST RESTATEMENT: static checks over subject code have caught zero
-      bugs in seven epics. Static checks over this project's own record and
-      paperwork have caught real defects in at least five separate epics. THOSE
-      ARE DIFFERENT CLAIMS AND THE CHARTER MERGES THEM -- which matters, because
+      CORRECTED AFTER INDEPENDENT REVIEW OF PR #266: of the seven citations the
+      first version of this row offered, FIVE HOLD, ONE IS WEAK (the R-H5
+      self-report) AND ONE IS WITHDRAWN (the rule-8 counterfactual). A finding
+      about evidence quality that shipped two bad citations has made its own
+      point, and the corrections all cut against it.
+
+      THE HONEST RESTATEMENT, ON THE FIVE THAT SURVIVE: static checks over
+      subject code have caught zero bugs in seven epics. Static checks over this
+      project's own record and paperwork have caught real defects in several
+      separate epics. THOSE ARE DIFFERENT CLAIMS AND THE CHARTER MERGES THEM -- which matters, because
       the merged version is quoted to justify not building instruments and, in
       `SV-04-DF-05`'s own words, is the reason five checks were put on trial.
     reproduction: >-
-      Read the six citations above in order. Each names a dated, outcome-changing
-      catch by a static check in this repository.
+      Read the citations above in order, and note which are marked WITHDRAWN or
+      SELF-REPORTED. The CL-03 figures are re-derived by diffing the
+      `under_review` population across CL-03's own commit 62a45d5, where the
+      count moves 2 -> 12, so CL-03 parked exactly ten: 8878cd5 x6, 51fe73d x2,
+      2098d55 x2 -- three commits, four `goal-*` ids.
     evidence:
       - "specs/results/scorecards/subtract-to-measure/SM-04/RESULT.md:249-264"
       - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/RESULT.md:240-259"

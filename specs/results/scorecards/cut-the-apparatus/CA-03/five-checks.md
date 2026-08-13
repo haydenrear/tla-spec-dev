@@ -92,17 +92,131 @@ which cards scored the subject; the file's own comment says SV-04's round *"is
 mapped HERE and not by its cards, and the reason is the blinding."* **No derived
 value is written and no declared value is touched.**
 
+### DECLARED BOUND: the repair fires only when `--subject` is passed, and `--subject` is optional
+
+**Raised by independent review of PR #266, verified, and stated rather than
+fixed.** `cmd_scaffold`'s registration is guarded by `if args.subject and not
+args.unblinded`. `--subject` has `default=None`. **So a blinded round scaffolded
+without `--subject` is untouched by this fix and still produces cards that map to
+no declared subject.**
+
+**`SV-04-DF-05`'s own reproduction command is exactly that case:**
+
+> Scaffold any multi-arm round (blinding is the default):
+> `score_tools.py scaffold <dir> --example E --arms A,B --judges 2`.
+
+**No `--subject`. The finding's own reproduction still reproduces.**
+
+**This is a real bound and it is the strongest argument for the option I
+rejected**: making `check` refuse a filled card that maps to no declared subject
+would have covered the no-`--subject` case too, because it acts at read time on
+any card. I still decline it — it is a sixth gate and this epic forbids one — but
+the trade is not free and the record should say which half of the defect each
+option covers:
+
+| | round WITH `--subject` | round WITHOUT `--subject` |
+|---|---|---|
+| **shipped: `scaffold` records** | covered | **NOT covered** |
+| rejected: `check` refuses | covered | covered |
+
+**Why the shipped half is still the right half.** A round scaffolded without
+`--subject` has declared no scope either, so `check`'s A5 scope defence never
+engaged for it and it was never comparable to begin with; the `--subject` case is
+the one where a round *did* everything right and was still invisible. But that is
+an argument about which half matters more, **not** a claim to have closed the
+defect, and the first version of this document read as the latter.
+
+### DECLARED: this ticket added a runtime writer outside its `conflict_keys`
+
+`register_round` **writes** `examples/validation/scorecards/subjects.toml` at
+scaffold time. That file is **not** in CA-03's `conflict_keys`
+(`production: ["examples/validation/scorecards/score_tools.py"]`). **No conflict
+arose** — no other CA ticket touches it, the file is byte-unchanged in this PR's
+diff, and it is byte-unchanged after a full 1,525-test suite run. **But the
+ownership is now shared at runtime and is declared here** so the next ticket
+editing `subjects.toml` knows a tool writes it.
+
 ---
 
 ## 2. The five, decided
 
+> **CORRECTED after independent review of PR #266.** Four figures in the first
+> version of this table were wrong, and **three of the four were wrong because I
+> restated somebody else's number instead of re-deriving it** — which is exactly
+> the discipline this ticket claims as its contribution, and the `CA-00-DF-05`
+> class for the third time in this epic, once by me. **Every figure below has now
+> been re-derived from the record by this document.** The corrections are §3a.
+> **No verdict changed**, which is worth saying plainly: the case for keeping
+> `audit` and `contested` survives its own numbers being wrong, and that is luck
+> rather than method.
+
 | check | what it has caught | verdict |
 |---|---|---|
-| **`check`** | Rejected a real card on rule 8 (`RM-05/RESULT.md:125-127`). **And it executes CL-01's second seal** — see §3. | **KEEP** |
+| **`check`** | **The rule-8 case is a COUNTERFACTUAL and is WITHDRAWN** (§3a.4). The real case: **it executes CL-01's second seal** (§3) — a primary catch on a live class. | **KEEP** |
 | **`seal`** | No recorded firing of its own refusal in eight epics. But R-H4 is on the do-not-cut list and **has nothing to verify without the digests `seal` writes**. | **KEEP**, with the blind spot recorded (`CA-03-DF-04`) |
-| **`audit`** | The strongest record of the five: 9 `SUPERSEDED-UNMARKED` on `SM-04`, 10 on `CL-03` over four rounds' claims, the **epic owner's own unexecuted `R-H5` rejected at close within the minute**, `SCOPE-DRIFT` on two of four real `toolchain_removal` cards, and RD-03's six unrecorded contested groups. | **KEEP** |
-| **`contested`** | Found **the only spread greater than 1 in 49 sealed cards** — walked past by the producing round, that epic's close and an `index` run (`INSTRUMENT-LOG.toml:2608-2641`). Eight adjudications since. | **KEEP** |
-| **`derive`** | **Nothing, and it cannot** — `architecture_tags.py:36-37`: *"It is not a gate. It refuses nothing about any artifact"*; `:600-602`: *"Every command prints; none of them refuses anything."* Subsumed by `audit_rh1_architecture`, which re-derives the same table plus `SCOPE-DRIFT`. | **CARRIED to `CA-08`** — outside CA-03's `conflict_keys` (`CA-03-DF-03`) |
+| **`audit`** | **9** `SUPERSEDED-UNMARKED` on `SM-04`; **10 on `CL-03`, spanning 3 distinct `measured_at` commits and carrying 4 `goal-*` claims** — re-derived here (§3a.2). It **surfaces** `SCOPE-DRIFT`, which is **computed in `architecture_tags.scope_drift()`** (§3a.3). The `R-H5` catch is **self-reported, with no instrument record** (§3a.1). | **KEEP** |
+| **`contested`** | Found **the only spread greater than 1 in 49 sealed cards** — walked past by the producing round, that epic's close and an `index` run (`INSTRUMENT-LOG.toml:2608-2641`). RD-03's six groups are **`contested`'s, not `audit`'s**. **Nine recordings. ZERO adjudications, ever** (§3a.1). | **KEEP** |
+| **`derive`** | **Nothing, and it cannot** — `architecture_tags.py:36-37`: *"It is not a gate. It refuses nothing about any artifact"*; `:600-602`: *"Every command prints; none of them refuses anything."* Subsumed by `audit_rh1_architecture`, which re-derives the same table plus `SCOPE-DRIFT`. | **CARRIED to the NEXT EPIC** — outside CA-03's `conflict_keys`, and CA-08 is chartered *"FILE FINDINGS, FIX NOTHING"* (`CA-03-DF-03`) |
+
+### §3a. The four corrections, each re-derived
+
+**1. "Eight adjudications since" — REFUTED. The number is ZERO.**
+All **9** `[[contested]]` entries in `INSTRUMENT-LOG.toml` carry
+`third_pass = "none"`, and `:2949` says it outright:
+
+> `third_pass = "none"`. **Rule 5's remedy has never been applied to anything in
+> this repository**, and running one here would be a measurement made during a
+> measurement.
+
+The correct word is **recordings**, not adjudications. `contested` **records** a
+spread; nothing has ever adjudicated one. That strengthens rather than weakens
+the case for keeping it — the recording is the entire product.
+
+**2. "Four rounds' claims, two of them goal decisions" — REFUTED on both terms,
+and it is CL-03's own sentence, which I repeated.**
+
+Re-derived by diffing the `under_review` population across CL-03's own commit
+`62a45d5` (the count moves `2 → 12`, so CL-03 parked exactly **10**):
+
+```
+CL-03's ten, by measured_at:   8878cd5 x6,  51fe73d x2,  2098d55 x2
+distinct measured_at commits:  3          (not 4)
+goal-* claims:                 4          (not 2)
+  goal-port-reach-clause-1-pa06, goal-port-reach-clause-2-pa06,
+  goal-cases-drive-ports-missed-at-pa06, goal-complexity-measurable-met
+```
+
+**The `10` is right. Both qualifiers were wrong**, and in opposite directions.
+`CL-03/RESULT.md:249` reads *"Four rounds' claims, two of them goal decisions"*;
+neither figure survives re-derivation from the ledger it describes.
+
+**3. `SCOPE-DRIFT` is not `audit`'s catch.** It is computed in
+`architecture_tags.scope_drift()` (`:557`) and `audit` **surfaces** it via
+`module.scope_drift(rows, subjects)` at `score_tools.py:2928`. Crediting the
+finding to `audit` credits the wrong instrument. Likewise **RD-03's six
+contested groups are `contested`'s**, not `audit`'s.
+
+**4. `check`'s "rejected a real card on rule 8" is a COUNTERFACTUAL, and is
+withdrawn.** My source was `RM-05/RESULT.md:125-126` — itself a restatement. The
+primary source is
+`falsifiable-instruments/GOAL-scorecard-carries-a-delta/RESULT.md:190-193`:
+
+> Under `scorecard_version 2` that exact card **is** rejected by `check`.
+
+**Present-conditional tense, about a version-1 card, evaluated against a rule
+that did not exist when it was written.** `check` never refused that card in
+flight. **`check` is still kept** — on the second seal, which is primary and
+which §3 shows is executed by `check` and nothing else.
+
+**And the `R-H5` catch is self-reported, with no instrument record.** The only
+evidence anywhere is the epic owner's own prose at
+`references/eval_scorecard.md:562-569` — *"that first draft numbered it `R-H5`
+and `audit` rejected it within the minute"* — restated since in two frozen
+rubrics, `references/architecture_tags.md`, and now `score_tools.py:2840-2844`.
+**No audit transcript, no violation line, no timestamp; the record gives a day,
+not a minute.** Labelled here at the epic owner's own instruction: *"a
+self-report laundered into doctrine through four restatements is worse than no
+evidence, because it looks like evidence."*
 
 ### Why `derive` is not cut here
 
@@ -115,6 +229,18 @@ not be worth paying: `derive` is the only surface that prints the per-subject
 derived-versus-declared table on its own, and `RD-04-DF-02` — three of five
 fixtures with no effect surface, scored on D3 anyway — was surfaced by reading
 exactly that output.
+
+**AND IT IS NOT ROUTED TO `CA-08`. Epic owner's decision on review of PR #266,
+and it is right:** `CA-08`'s plan objective is **"FILE FINDINGS, FIX NOTHING"**,
+so routing the one cut this ticket found a case for to `CA-08` would land it on a
+ticket chartered not to make it. **`CA-03-DF-03` is carried to the NEXT EPIC.**
+No rescope is opened for it: this epic is already long, `derive` computes
+standing result 2, and **cutting it late is precisely the risk
+`GOAL-four-results-stand` exists to prevent.**
+
+**So the honest summary of this ticket's cutting is: the one deletion it found a
+case for is identified, justified, priced — and deliberately not made in this
+epic.**
 
 ---
 
@@ -152,11 +278,27 @@ read it afterwards.
 ## 5. On "static gates catch nothing — seven epics, zero bugs"
 
 The work order asked CA-03 to say whether its work bears on this. **It does, and
-the claim is narrower than it reads.** Over subject code the claim stands. Over
-this project's own record, static checks have caught real defects and changed
-outcomes in at least five epics — the six citations are in §2's `audit`,
-`check` and `contested` rows, and this epic adds the
-`registry-enumeration-coverage` tripwire catching `CA-05`.
+the claim is narrower than it reads** — but the case is **weaker than the first
+version of this document said**, and the corrections in §3a all cut against me.
+
+**What survives re-derivation:**
+
+| catch | instrument | standing |
+|---|---|---|
+| 9 `SUPERSEDED-UNMARKED` on `SM-04` | `audit` | **holds** |
+| 10 on `CL-03`, over 3 `measured_at` commits, 4 of them `goal-*` | `audit` | **holds** (qualifiers corrected) |
+| the only spread > 1 in 49 cards; RD-03's six groups | `contested` | **holds** |
+| `SCOPE-DRIFT` on two of four real `toolchain_removal` cards | **`architecture_tags.scope_drift()`**, surfaced by `audit` | **holds, re-attributed** |
+| `registry-enumeration-coverage` catching `CA-05` | a repo tripwire | **holds** |
+| the `R-H5` rejection at close | `audit`, **self-reported** | **weak — no instrument record** |
+| `check` rejecting a card on rule 8 | — | **WITHDRAWN, counterfactual** |
+
+**Five hold, one is weak, one is withdrawn.** The restatement stands — static
+checks over subject code have caught zero bugs in seven epics; static checks over
+this project's own **record** have caught real defects in several. **But one of
+the seven citations I offered was not a catch at all, and another is the epic
+owner's own unwitnessed sentence repeated four times.** A claim about evidence
+quality that ships two bad citations has made its own point.
 
 **This is not a licence to add a gate**, and CA-03 added none. Filed as
 `CA-03-DF-05`, carried to `CA-08`, which decides it.
