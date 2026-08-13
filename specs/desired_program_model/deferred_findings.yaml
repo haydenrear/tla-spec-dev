@@ -15056,3 +15056,93 @@ findings:
       toward the -1,430 line target, so the target was partly funded by a
       removal the record does not support.
     disposition: carried
+
+  - id: CA-04-DF-06
+    found_by: "CA-04 (surfaced by independent review of PR #267)"
+    found_at_commit: "6bf1687"
+    schedule_revision: 1
+    severity: major
+    channel: "independent reviewer dispatched to refute, running the shipped instructions rather than reading them"
+    cost:
+      basis: "one grep of SKILL.md and one invocation of the documented command; the structural half cost one further reading of PRICE-TABLE-FORMAT.md section 5"
+      value: "negligible to find, and it is the sixth row against a declared budget of five -- recorded as an overrun, not dropped"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "SKILL.md"
+        - "specs/results/scorecards/cut-the-apparatus/GOAL-apparatus-cut/PRICE-TABLE-FORMAT.md"
+    summary: >-
+      THE EPIC'S REQUIRED LOADER CHECK IS STRUCTURALLY BLIND TO INTERFACE
+      REMOVALS, AND IT MISSED SHIPPED SKILL.md TEXT IN THE TICKET WHOSE OWN
+      HEADLINE FINDING IS ABOUT SHIPPED SKILL.md TEXT.
+
+      THE INSTANCE. `SKILL.md:1167` and `SKILL.md:1174` still instruct adopters
+      to run the command CA-04 deleted. Line 1174: "Run it with `tla-spec-dev run
+      kill-test --corpus-command \"<corpus>\"`, and". Measured:
+      `python3 scripts/tla_spec_dev.py --spec-root specs run kill-test
+      --corpus-command "pytest"` -> `tla-spec-dev run: error: argument target:
+      invalid choice: 'kill-test' (choose from 'spec-unit-tests',
+      'effect-conformance')`.
+
+      This is the SAME CLASS AS SV-06-DF-04 -- root `SKILL.md` shipping a
+      description of something the toolchain no longer has -- and CA-04's own
+      headline finding (CA-04-DF-01) is that SV-06-DF-04 was misattributed. The
+      ticket corrected the citation of that finding and then committed the
+      finding's actual defect. Root `SKILL.md` is inside CL-04's narrow
+      shipped-toolchain rule, so this is shipped-bytes damage.
+
+      THE STRUCTURAL HOLE, WHICH IS THE MORE VALUABLE HALF. CA-02's
+      `PRICE-TABLE-FORMAT.md` section 5 makes this check REQUIRED:
+      `git grep -n "$(basename <deleted-path>)" -- specs/ references/ scripts/
+      examples/ tests/`. It greps deleted PATHS. `run kill-test` is a deleted CLI
+      SURFACE and has no basename, so NO PATH GREP CAN REACH IT -- even though
+      CA-04's own price table section 1 lists that subparser among the deletions.
+      The check is sound for files and blind to interface removals: CLI
+      subcommands, public function exports, manifest keys, TOML sections.
+
+      The evidence that the blindness is operative rather than theoretical: CA-04
+      ran the check, declared the lesser `references/modular_fuzzing.md:415`
+      staleness it DID surface as under-budget bookkeeping, and missed the
+      shipped instruction two files away -- because the tool it was given only
+      looks for paths.
+    reproduction: >-
+      `sed -n '1167p;1174p' SKILL.md`, then
+      `python3 scripts/tla_spec_dev.py --spec-root specs run kill-test
+      --corpus-command "pytest"` -> exit 2, invalid choice. For the hole:
+      `git grep -n "kill-test" -- scripts/ tests/ examples/ specs/ references/`
+      finds no basename for a subcommand, which is the point.
+    evidence:
+      - "SKILL.md:1167"
+      - "SKILL.md:1174"
+      - "specs/results/scorecards/cut-the-apparatus/GOAL-apparatus-cut/PRICE-TABLE-FORMAT.md -- section 5, the required command"
+      - "specs/results/scorecards/cut-the-apparatus/CA-04/PRICE-TABLE.md section 5"
+    why_out_of_scope: >-
+      `SKILL.md` is not in CA-04's `implementation_scope` (`scripts/`,
+      `specs/program_model/`, `specs/current/`, `specs/desired_program_model/`,
+      `tests/`, `specs/results/scorecards/cut-the-apparatus/`), and it is not a
+      one-word fix: the surrounding paragraphs explain what the kill test was
+      FOR, so rewriting them is a documentation slice with its own review --
+      exactly the reasoning SV-06-DF-04 gave for the same file. Amending
+      `PRICE-TABLE-FORMAT.md` is CA-02's format and the epic owner's to change.
+      THIS IS THE SIXTH FINDING AGAINST A DECLARED BUDGET OF 5; filed as an
+      escalation under `deferment_policy.blocking: escalate` rather than dropped
+      to stay under a number.
+    suggested_fix: >-
+      Two moves, and the second is the one worth having. (1) Rewrite
+      `SKILL.md:1160-1180` to remove the kill-test instruction, together with
+      SV-06-DF-04's own still-open `SKILL.md:1337` fix, since both are the same
+      file and the same class. (2) Add a SECOND REQUIRED COMMAND to
+      `PRICE-TABLE-FORMAT.md` section 5 covering removed INTERFACES rather than
+      removed files -- for each retired CLI subcommand, exported symbol or
+      manifest key, `git grep -n "<the surface string>" -- SKILL.md references/
+      prompts/ templates/ examples/` -- and state that a path grep cannot
+      substitute for it.
+    blast_radius: >-
+      Every future cutting ticket runs a check that cannot see the interfaces it
+      retires, so shipped adopter-facing instructions rot silently with nothing
+      going red. An adopter following SKILL.md today gets an exit-2 refusal from
+      the first command the section tells them to run.
+    disposition: carried

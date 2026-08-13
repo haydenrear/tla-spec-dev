@@ -202,6 +202,24 @@ measurement, not because of caution.**
 **Verdict: still readable, still re-derivable.** With the parser/scanner
 retained, `run_controls.py` loads and `check_catalogue.py` runs.
 
+**ADDED AFTER REVIEW — the case for retention is stronger than this ticket made
+it, and the extra evidence was inside `tests/`.** Independent review found
+**three more in-repo consumers** that `CA-04` did not name, all importing
+`SUPPRESSION_KEYS` from this module:
+
+```
+tests/test_eval_controls.py:503             from scripts.kill_test import SUPPRESSION_KEYS
+tests/test_ab_three_arms_and_port_faults.py:573   import kill_test  ->  kill_test.SUPPRESSION_KEYS
+tests/test_falsifiable_controls.py:470            import kill_test  ->  kill_test.SUPPRESSION_KEYS
+```
+
+`tests/` is **inside this ticket's `implementation_scope`**, so a wholesale
+deletion would have added **three more reds in a surface this ticket owns**, on
+top of breaking the two `examples/` instruments. The retained 310 lines are load-
+bearing for five known consumers, not two. **`CA-04` verified the two it found
+and stopped looking**, which is a smaller version of the same reading failure
+this table is otherwise about.
+
 ### The RM-03-protected instrument
 
 `examples/validation/ab/check_catalogue.py` — which `RM-03` explicitly refused to
@@ -217,6 +235,47 @@ AFTER : ModuleNotFoundError: No module named 'kill_test'
 ```
 
 **Verdict: still runs** at this tip, unchanged output.
+
+### DISCLOSED AFTER REVIEW — the shipped skill still tells adopters to run the deleted command, and the loader check cannot see it
+
+**`SKILL.md:1167` and `SKILL.md:1174` still instruct adopters to run the command
+this ticket deleted.** Line 1174: *"Run it with `tla-spec-dev run kill-test
+--corpus-command "<corpus>"`, and…"*. Measured at this tip:
+
+```
+$ python3 scripts/tla_spec_dev.py --spec-root specs run kill-test --corpus-command "pytest"
+tla-spec-dev run: error: argument target: invalid choice: 'kill-test'
+                  (choose from 'spec-unit-tests', 'effect-conformance')
+```
+
+**This is the same class as `SV-06-DF-04`** — root `SKILL.md` shipping a
+description of something the toolchain no longer has — **found in the ticket
+whose own headline finding is about that exact surface, and missed by that
+ticket.** Root `SKILL.md` is inside `CL-04`'s narrow shipped-toolchain
+definition, so it counts as shipped-bytes damage rather than an internal note.
+
+**And the instance matters less than what it exposes about the check that
+missed it.** `PRICE-TABLE-FORMAT.md` §5's required loader check is:
+
+```bash
+git grep -n "$(basename <deleted-path>)" -- specs/ references/ scripts/ examples/ tests/
+```
+
+**It greps deleted PATHS. `run kill-test` is a deleted CLI SURFACE, and no path
+grep can reach it** — there is no basename to search for. §1 of this very table
+lists that subparser among the things deleted, and the check still could not see
+it. The check is sound for files and **structurally blind to interface
+removals**: CLI subcommands, public function exports, manifest keys, TOML
+sections. `CA-04` declared the lesser `references/modular_fuzzing.md:415`
+staleness as under-budget bookkeeping and **missed the larger one directly above
+it, because the tool it was given only looks for paths.**
+
+**The check needs a second half for surfaces**, something of the shape
+`git grep -n "run kill-test\|kill-test" -- SKILL.md references/ prompts/ templates/`
+run against the command strings a removal retires. Filed as `CA-04-DF-06`, which
+is the **sixth** finding against a declared budget of five — recorded as an
+overrun rather than dropped, because the deferment policy's `blocking: escalate`
+applies and the epic owner asked for it by name.
 
 ### The other three results and the other three disproofs
 
@@ -302,22 +361,61 @@ and they were updated rather than left:
 | `specs/*/tests/test_tla_spec_dev_binding_reconciliation.py::test_the_model_has_the_expected_sixteen_command_actions` | the model has exactly 16 command actions | updated to **15**, renamed, `RunKillTest not in actions` asserted |
 | `tests/test_infer_action_params.py::test_all_sixteen_action_labels_are_audited` | set equality with the model's action set | `RunKillTest` recipes removed, docstring records why |
 
-**The line these three sit on, stated so the inconsistency with the two
-`analyze_complexity` reds is not silent:** each of these is a **record that must
-track the model by construction**, and each says so in its own words — the
-manifest comment reads *"A count in a comment goes stale the moment a variable
-lands, which is why the figure is no longer only a comment: tests/…parses the
-module beside each manifest and fails if the two disagree"*, and the action-set
-docstring says a disappearing label must fail *"so a reinstatement is a
-deliberate edit rather than a silent one."* Landing the model delta **is**
-updating them; leaving them would ship a manifest that lies about its own model.
+### CORRECTED after independent review — the original argument here was overstated
 
-**The two `analyze_complexity` bound assertions are a different kind** and were
-therefore left red: they record a **measured historical figure** with
-`MF-011`/`MF-014`/`MF-025` provenance in their own comments, and the manifest
-records no bound at all — only the `max_state_space_bound` budget, which this
-ticket did not touch. Rewriting a measured figure to the number this ticket just
-produced is `MF-020`.
+**What the first version of this section claimed:** that the three updated
+checks are "records that track the model" while the two `analyze_complexity`
+bound assertions are "measured historical figures", and that rewriting the
+latter would be `MF-020`. **The review marked that split OVERSTATED and it was
+right on both halves.**
+
+**Half one — the distinction does not separate what I said it separates.**
+`test_repository_own_model_reproduces_the_recorded_state_space_bound` **also
+asserts live variable counts** — `completeness.total == 9`,
+`completeness.resolved == 7`, `set(result.unbounded) == {"lastCommand",
+"result"}` — which is exactly the kind of model-tracking record I updated in the
+manifest. The test is *both* kinds at once, so the line I drew cannot be what
+decided it.
+
+**Half two — `MF-020` was the wrong doctrine, and a precedent refutes it.**
+`MF-020` forbids *adding* an axis, test, rung or case fitted to a known answer.
+Maintaining a derivation chain across a removal is not that, and **a prior
+removal-only ticket already did it**, in this test's own comment:
+
+> *"AC-01's factor of 4 (architecture_scan) and RC-01's factor of 6
+> (architecture_delta) were both REMOVED 2026-08-04 with the static architecture
+> scanners, so they are no longer divided out here: **the chain gets SHORTER
+> when model surface goes away, which is the point.**"*
+
+**The real reason these two are left red, which is stronger and is about what is
+missing rather than about doctrine:** the repository's own complexity ledger
+licenses a **decrease** only against the `validated_refactor` evidence set, and
+`scripts/complexity_ledger.py` gate 3 says so in terms:
+
+> *"REJECTED -- complexity decreased but the validated-refactor basis is
+> UNVERIFIED … A decrease is licensed only by the validated-refactor evidence
+> set from the same run (`validated_refactor:` -- `tlc_before`, `tlc_after`,
+> `behavior_tests`, `descriptor_comparison`). **Absent evidence is not passing
+> evidence.**"*
+
+**`CA-04` ran no TLC — on either side.** The `model_delta_expectation` called for
+none because the delta is a removal, and none was run. So the bound movement
+**1,111,320 → 277,830 is MEASURED but NOT VALIDATED**, and writing `277,830`
+into the test as the repository's licensed bound would record a decrease this
+repository's own gate refuses to license. **Leaving the test red is the honest
+state: the number is known and the licence for it is not.**
+
+**So the ticket's model delta is PRICED but NOT VALIDATED**, and that belongs in
+the headline rather than in a footnote. A successor that wants these two tests
+green should run `tlc_before`/`tlc_after` and record the `validated_refactor`
+basis — that is the missing work, and it is a real cost this cut did not pay.
+
+**What survives of the original distinction, narrowed to where it holds:** a
+**shipped record that would state a falsehood to an adopter** — the manifest's
+*"this tree's model has 9 variables and 17 Next disjuncts"* — is different in
+kind from **a red test, which states nothing to anyone**. That is why the
+manifest was corrected and the tests were not. It does **not** separate the two
+action-enumeration tests from the bound test, and that claim is withdrawn.
 
 **The first run is kept at `pytest-repo-unit-superseded.txt`** rather than
 deleted, because a discarded run is evidence about method. The published figure
@@ -351,9 +449,20 @@ any check."*
      both-wordings round `SV-02` says is owed. Deleting it repeats `CA-02`'s
      error against a finding that is still open.
 
+  4. **ADDED AFTER REVIEW — a fourth ground this ticket missed.**
+     `examples/validation/instruments/instruments.toml:814` declares
+     `[[instrument]] id = "candidate-note-bar"` with
+     `paths = ["scripts/candidate_note_bar.py"]` and **two demonstration nodes**
+     on its test file — `test_the_generator_refuses_a_card_it_cannot_derive_from`
+     and `test_the_candidate_adds_no_rung_and_moves_no_anchor`. Deleting the two
+     files would have added **two more instrument reds**, in the same registry
+     that already supplies two of this ticket's four declared reds.
+
   **"Nothing imports it" is true and is not evidence of inertness** — the
   script's own docstring advertises it as a deliberate property: *"is imported
-  by no production code, and is not a gate."*
+  by no production code, and is not a gate."* **And it is why the claim was
+  believed**: the registry entry, the two demonstration nodes and the open
+  finding that names the script are all invisible to the word "imports".
 
 - **`scripts/fitness_functions.py` (450) — examined and NOT cut.** `CA-04-DF-05`.
   The work order asked for "dead levers only". The sealed record says this is
@@ -394,7 +503,7 @@ any check."*
 | goal | contribution | expected | measured | classification |
 |---|---|---|---|---|
 | `GOAL-apparatus-cut` | direct | −1,430 or more from `scripts/` | **−1,105** from `scripts/`; combined 42,337 → 41,232 | **moved less than expected** |
-| `GOAL-four-results-stand` | guard | none expected; verify disproof 1 | four results and four disproofs all still reproduce; **4 new reds declared**, 7 baseline reds intact | **no measurable movement** (guard held) |
+| `GOAL-four-results-stand` | guard | none expected; verify disproof 1 | four results and four disproofs all still reproduce; **4 new reds declared**, the **6 baseline reds at `4302082`** intact | **no measurable movement** (guard held) |
 | `GOAL-consumption-obligatory` | direct | consume `RM-03`'s cut and the inert-bytes finding | `RM-03-DF-05` **consumed**; the inert-bytes finding **refuted, not consumed** | **moved less than expected** |
 | `GOAL-blind-dispatch` | guard | none expected | nothing in this ticket dispatched a judge | **no measurable movement** |
 
