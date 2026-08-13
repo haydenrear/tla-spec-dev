@@ -1,1 +1,343 @@
-findings: []
+findings:
+  - id: CA-01-DF-01
+    found_by: "CA-01"
+    found_at_commit: "87a526b"
+    schedule_revision: 1
+    severity: major
+    blocking: true
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/blind_dispatch.md"]
+    summary: >-
+      A SECOND LEAK CLASS THAT NO FINDING IN THIS PROGRAMME HAS NAMED, AND IT
+      SURVIVES EVERY MITIGATION CA-01 FOUND. Removing the operator's auto-memory
+      and the gitStatus block does NOT make a judge blind to this project. In the
+      neutral cell -- the arm that PASSED -- the judge still received, before any
+      tool call: the SessionStart hook's `skt status` output naming installed
+      units by name (`spec-double-compiler`, `discovery`, `git-epic-workflow`,
+      `test-graph`) with their versions and sync state; the ~40-entry skill
+      listing whose `spec-double-compiler` description spells out the TLA+
+      spec-double pipeline and whose `discovery` description names the
+      `specs/program_model` tree; the MCP server instructions; and the available
+      agent-types listing.
+
+      SO A JUDGE ASKED TO SCORE AN ARTIFACT FOR DOMAIN/IO SEPARATION CAN STILL
+      INFER, BEFORE OPENING THE PACKET, THAT IT IS STANDING IN A TOOLCHAIN BUILT
+      AROUND TLA+ SPEC DOUBLES AND PROGRAM-MODEL SPECS. That is a weaker prior
+      than a sentence stating which dimensions are stable, and it is not zero.
+
+      This is filed as BLOCKING because it decides what CA-08 is allowed to call
+      its rounds. `GOAL-blind-dispatch` clause (b) asks for a path carrying none
+      of the operator's CONCLUSIONS; that is met and proven. Full blindness is
+      NOT met, and the honest reading is that with this harness it is not
+      reachable from this ticket.
+    reproduction: >-
+      `python3 examples/validation/instruments/blind_dispatch.py cell
+      /private/tmp/blind-x` then `cd /private/tmp/blind-x && claude -p "<the
+      probe in specs/results/scorecards/cut-the-apparatus/CA-01/probes/probe-prompt.txt>"`.
+      The reply's PART 1 inventory lists the SessionStart hook output and the
+      skill listing. Recorded verbatim at
+      specs/results/scorecards/cut-the-apparatus/CA-01/probes/ARM-N-neutral-cell-selfreport.txt
+      blocks 3 and 9.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/CA-01/probes/ARM-N-neutral-cell-selfreport.txt"
+      - "references/blind_dispatch.md"
+    why_out_of_scope: >-
+      The residual leak is emitted by the SessionStart hook configured in the
+      operator's `~/.claude/settings.json` and by the skill listing assembled
+      from `SKILL_MANAGER_HOME`. Both are outside CA-01's conflict_keys, and both
+      are covered by the charter's absolute rule that skills are READ, never
+      edited, and that no `SKILL_MANAGER_HOME` change is applied. Suppressing the
+      hook would also be a change to the operator's machine that this ticket is
+      forbidden to make silently.
+    suggested_fix: >-
+      An owner decision, not a repair. Either (a) accept it and print the
+      qualified contamination note from references/blind_dispatch.md section 7 --
+      "blind to our conclusions, not to our identity" -- beside every number, or
+      (b) test whether a judge dispatched with a settings file that disables the
+      SessionStart hook and with `--disable-slash-commands` loses the skill
+      listing too, which CA-01 did NOT measure and therefore does not claim, or
+      (c) state as the epic's finding that blindness is unachievable with this
+      harness, which GOAL-blind-dispatch clause (c) explicitly provides for.
+    blast_radius: >-
+      Every judged round this epic runs. If CA-08 prints "blind" unqualified
+      after CA-01 landed, the epic repeats the exact error CA-01 was opened to
+      correct, one ticket later.
+
+  - id: CA-01-DF-02
+    found_by: "CA-01"
+    found_at_commit: "87a526b"
+    schedule_revision: 1
+    severity: minor
+    blocking: false
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/blind_dispatch.md"]
+    summary: >-
+      THE HARNESS SHIPS THE EXACT SWITCH THIS TICKET NEEDED AND THIS OPERATOR
+      CANNOT USE IT. `claude --bare` documents itself as skipping "hooks, LSP,
+      plugin sync, attribution, auto-memory, background prefetches, keychain
+      reads, and CLAUDE.md auto-discovery" -- which is CA-01's whole problem plus
+      the residual leak in CA-01-DF-01, in one flag. It also states that Anthropic
+      auth under `--bare` is "strictly ANTHROPIC_API_KEY or apiKeyHelper via
+      --settings (OAuth and keychain are never read)". `ANTHROPIC_API_KEY` is not
+      set in this environment, so the flag cannot authenticate and was never run.
+
+      CA-01 therefore built a cwd-based path instead. THE CWD PATH IS STRICTLY
+      WEAKER: it removes auto-memory and gitStatus and leaves the hook and skill
+      listings standing.
+
+      `--safe-mode` disables customizations and keeps normal auth, but is NOT
+      documented to disable auto-memory. It was not measured, so nothing is
+      claimed about it -- recorded here so a later round does not assume either
+      way.
+    reproduction: >-
+      `claude --help | grep -A12 -- '--bare'` for the flag's own text;
+      `[ -n "$ANTHROPIC_API_KEY" ] && echo set || echo NOT set` -> NOT set.
+    evidence:
+      - "references/blind_dispatch.md"
+    why_out_of_scope: >-
+      Providing an API key is a credential decision for the operator and touches
+      nothing in this repository. CA-01 will not add a key, and will not measure
+      `--safe-mode` speculatively and report it as if it had been proven.
+    suggested_fix: >-
+      The operator sets `ANTHROPIC_API_KEY` (or an `apiKeyHelper`) for judge
+      dispatches only, and a successor re-runs CA-01's probe under `--bare` to
+      measure whether CA-01-DF-01's residual leak disappears. That is a cheap,
+      decisive experiment and it is the single highest-value follow-up this
+      ticket found. A separate, equally cheap arm measures `--safe-mode` under
+      ordinary auth.
+    blast_radius: >-
+      If `--bare` does close CA-01-DF-01, the epic can claim real blindness and
+      CA-01's 182-line instrument shrinks to a two-line invocation plus its
+      `check` half. If it does not, CA-01-DF-01's option (c) is forced.
+
+  - id: CA-01-DF-03
+    found_by: "CA-01"
+    found_at_commit: "87a526b"
+    schedule_revision: 1
+    severity: minor
+    blocking: false
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/cut-the-apparatus/GOAL-blind-dispatch/"]
+    summary: >-
+      `SV-05-DF-02`'s "4 OF 4" IS CORRECTED TO A TIER, AND THE TIER MUST NOT BE
+      USED. Four agents dispatched identically from one repo-rooted session: THREE
+      received the operator's auto-memory and the five commit subject lines
+      (`general-purpose` x2, `claude`), and ONE received neither (`Explore`). The
+      `Explore` arm shared the leaking session, so cwd does not explain it;
+      whatever suppresses those blocks is internal to the harness's per-agent-type
+      prompt assembly.
+
+      SV-05 measured one agent type and generalised to all dispatches. The finding
+      that "the leak reaches every dispatched agent" is FALSE AS STATED; the
+      finding that it reaches the agent types this project actually uses for
+      judges is TRUE and unaffected.
+
+      THIS IS NOT A BLINDING MECHANISM AND CA-01 REFUSES TO SHIP IT AS ONE. It is
+      one observation, on one harness version, of undocumented behaviour, and
+      `SV-05-DF-01` is this project's own precedent for what happens when a round
+      depends on an undocumented instrument detail that changes underneath it.
+    reproduction: >-
+      Dispatch the probe at
+      specs/results/scorecards/cut-the-apparatus/CA-01/probes/probe-prompt.txt to
+      subagent types `general-purpose`, `claude` and `Explore` from a session
+      rooted at the primary checkout, and compare each reply's PART 1 inventory
+      for the `# claudeMd` and `gitStatus` rows. Table in
+      specs/results/scorecards/cut-the-apparatus/CA-01/INVENTORY.md section 2.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/CA-01/INVENTORY.md"
+    why_out_of_scope: >-
+      The baseline text lives in
+      specs/results/scorecards/cut-the-apparatus/GOAL-blind-dispatch/baseline.md
+      and in the plan's `epic_goals` baseline block. A goal baseline is a sealed
+      measurement and this epic's discipline forbids editing one mid-epic, even to
+      correct it. Recorded rather than repaired.
+    suggested_fix: >-
+      CA-08 records the corrected shape beside the goal verdict -- the treatment
+      the epic doc already prescribes for a sealed number that has gone stale --
+      rather than anyone rewriting the baseline.
+    blast_radius: >-
+      Small and mostly protective. The risk is a future ticket reading "4 of 4"
+      and concluding agent type is irrelevant, or reading this correction and
+      concluding `Explore` is safe to judge with. Both are wrong.
+
+  - id: CA-01-DF-04
+    found_by: "CA-01"
+    found_at_commit: "87a526b"
+    schedule_revision: 1
+    severity: minor
+    blocking: false
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/cut-the-apparatus/GOAL-blind-dispatch/"]
+    summary: >-
+      THE WORKTREES WERE NEVER THE LEAK; THE SESSION CWD WAS -- AND THAT RELOCATES
+      THE FIX. Auto-memory is keyed by a slug of the session's working directory
+      (`~/.claude/projects/<cwd-slug>/memory/MEMORY.md`). Measured on disk: 34 of
+      174 project slugs carry a memory directory, this project's is the largest at
+      19 files, and NO `wt-epic-*` ticket worktree of this repository has one at
+      all.
+
+      Every blind round this programme has run was dispatched from a session
+      rooted at the PRIMARY CHECKOUT, which is the one slug carrying the memory.
+      The elaborate per-worktree Skill Manager home machinery, which this project
+      has invested heavily in, never had anything to do with this leak in either
+      direction.
+
+      The corollary is cheap and worth stating on its own: A JUDGE DISPATCHED FROM
+      A SESSION ROOTED IN THE TICKET WORKTREE RATHER THAN THE PRIMARY CHECKOUT
+      WOULD ALREADY HAVE MISSED THE AUTO-MEMORY, at zero cost and with no new
+      apparatus. CA-01 did not measure that arm and does not claim it -- the
+      gitStatus block would still be injected, naming the epic branch and its
+      commit subjects, which on this branch state the epic's own premise.
+    reproduction: >-
+      `ls -d ~/.claude/projects/*/memory` and compare against
+      `git worktree list`. No `-Users-hayde-IdeaProjects-wt-epic-*` slug has a
+      memory directory; `-Users-hayde-IdeaProjects-tla-spec-dev` has 19 files.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/CA-01/INVENTORY.md"
+      - "references/blind_dispatch.md"
+    why_out_of_scope: >-
+      Same as CA-01-DF-03: it corrects the wording of a sealed baseline, and the
+      untested worktree-rooted arm would be new measurement beyond this ticket's
+      slice.
+    suggested_fix: >-
+      A successor measures the worktree-rooted dispatch arm directly -- one probe,
+      no new apparatus -- and reports whether the gitStatus block alone still
+      leaks enough to matter. If it does not, CA-01's 182 lines can be deleted in
+      favour of a one-line rule about where to stand.
+    blast_radius: >-
+      Potentially reduces this epic's apparatus rather than adding to it, which is
+      the direction GOAL-apparatus-cut wants.
+
+  - id: CA-01-DF-05
+    found_by: "CA-01"
+    found_at_commit: "87a526b"
+    schedule_revision: 1
+    severity: minor
+    blocking: false
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      THE ROOT SKILL MANAGER HOME REPORTS `DRIFT PENDING (launch will refuse)`,
+      AND A FRESH AGENT READ IT OUT LOUD. The neutral-cell probe's SessionStart
+      hook printed: `home /Users/hayde/.skill-manager -- tier: root, policy: live,
+      DRIFT PENDING (launch will refuse; ack with: skill-manager home drift
+      --ack)`, alongside `skt modified locally (ahead) -- please sync with root to
+      publish changes globally: skt publish skt`.
+
+      Filed, not touched. The charter freezes syncing for this epic's duration
+      ("11 change-managed units are stale against their sources at the epic base
+      ... DELIBERATELY NOT SYNCED"), and `skill-manager sync` is forbidden
+      outright. This ticket ran neither, and acknowledged no drift.
+
+      Worth recording for a reason beyond housekeeping: THIS IS THE SUITE-CHANNEL
+      PATTERN AGAIN. The finding arrived because an agent was funded to read
+      output nobody was reading -- the same mechanism `SV-02` and `SV-04` produced
+      findings through last epic, in a channel `CL-04` had recorded at zero.
+    reproduction: >-
+      Any session started outside a project home prints it; recorded verbatim at
+      specs/results/scorecards/cut-the-apparatus/CA-01/probes/ARM-N-neutral-cell-selfreport.txt
+      block 3.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/CA-01/probes/ARM-N-neutral-cell-selfreport.txt"
+    why_out_of_scope: >-
+      Touching the root home is forbidden by the charter and by the operator's
+      standing rule. Nothing in this repository is affected.
+    suggested_fix: >-
+      The operator decides after the epic closes, when syncing is unfrozen.
+    blast_radius: >-
+      None inside this epic. A launch that refuses would be noticed immediately.
+
+  # BUDGET NOTE. The deferment policy sets budget 5 and this is the SIXTH
+  # finding. It is filed at the epic owner's explicit instruction after CA-01
+  # reported it, rather than silently dropped to keep the count at five --
+  # which is the failure mode a budget creates and the one worth naming. The
+  # first five are CA-01's own; this one is an inherited defect CA-01 was told
+  # to record rather than repair.
+  - id: CA-01-DF-06
+    found_by: "CA-01"
+    found_at_commit: "87a526b"
+    schedule_revision: 1
+    severity: major
+    blocking: true
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/current/spec_manifest.yaml"]
+    summary: >-
+      THE EPIC BASE CARRIES A STALE `active_ticket` FROM TWO EPICS AGO, AND IT
+      REDS A REQUIRED VALIDATION ENTRY FOR EVERY TICKET IN THIS EPIC -- NOT JUST
+      CA-01.
+
+      `specs/current/spec_manifest.yaml` lines 6-7 read:
+
+        active_ticket: PA-01
+        active_ticket_title: "Ports as adapters: make the model's ports and the
+                              toolchain's adapters the same object"
+
+      `PA-01` belongs to `ports-as-adapters`. The desired plan is
+      `cut-the-apparatus-epic`, so `PA-01` is not in it, and
+      `specs/current/tests/test_current_ticket_workflow.py::test_current_ticket_workflow_scaffold_points_to_desired_plan`
+      asserts otherwise:
+
+        AssertionError: current manifest active_ticket 'PA-01' is not present in
+        the desired ticket plan
+
+      THE RUNNER ABORTS ON IT BEFORE REACHING THE TICKET-LOCAL TARGET. So
+      `tla-spec-dev --spec-root specs run spec-unit-tests --ticket <id>` -- a
+      REQUIRED matrix entry for every ticket in this epic -- exits 1 without ever
+      running the ticket's own spec-unit tests. CA-01 ran its ticket-local half
+      directly with the repository test command and it is GREEN at 67 passed.
+
+      Reading the validator's OUTPUT rather than its exit code is what separated
+      these two facts, and the charter asks for exactly that.
+    reproduction: >-
+      `git show 87a526b0:specs/current/spec_manifest.yaml | grep -n active_ticket`
+      shows the same two lines at the epic base, and
+      `git status --porcelain specs/current` is EMPTY on feature/CA-01, so nothing
+      in this ticket caused or touched it. Full output and the note explaining the
+      two targets:
+      specs/results/scorecards/cut-the-apparatus/CA-01/spec-unit-CA-01.txt
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/CA-01/spec-unit-CA-01.txt"
+    why_out_of_scope: >-
+      `specs/current/` is not in CA-01's conflict_keys, and the charter forbids
+      repairing an inherited red silently. It is also promoted state rather than
+      ticket state: whoever repairs it is deciding what the whole-program current
+      manifest says, which is a plan-owner decision and not one ticket's to make
+      from its own branch.
+    suggested_fix: >-
+      The epic owner schedules it -- either a one-line correction of the promoted
+      manifest on the epic branch, or an explicit decision that the entry stays
+      until a ticket's own close rewrites it. CA-01 makes no recommendation
+      between the two, because choosing would be making the decision it just said
+      is not its own.
+    blast_radius: >-
+      Every ticket in this epic. Each one is told to run the assigned spec-unit
+      command as a REQUIRED entry, each one gets exit 1 for a reason that has
+      nothing to do with its work, and each one must either notice that its
+      ticket-local tests never ran or mistake the inherited red for its own.
+      There is a second-order risk worth naming: a ticket agent that sees a red
+      REQUIRED entry and wants a clean close is being handed a standing
+      temptation to repair promoted state from a ticket branch.

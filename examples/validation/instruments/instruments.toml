@@ -2644,6 +2644,59 @@ cited 4 is what SM-04-GM-T1 does and is what the probe does now;
   reason = "The sealed half was already measured and is not in dispute. Widening the probe to cover it would re-measure the free half of the removal and leave the priced half exactly as it is."
 
 
+[[instrument]]
+id = "blind-dispatch-check"
+name = "CA-01 blind-dispatch leak check"
+paths = ["examples/validation/instruments/blind_dispatch.py"]
+family = "measurement"
+watches = "a dispatched agent's own report of its pre-read context, for the operator's conclusions"
+verdict_surface = "exit 1 REFUSED with every matched indicator named; exit 2 UNDECIDED when no needle could be derived"
+classification = "demonstrated-can-fail"
+note = """
+BOTH DEMONSTRATIONS ARE REAL SUBJECTS, NOT FIXTURES. `R1` asks for a
+demonstrated failing input on a real subject, and this row's failing input is
+the verbatim self-report of an agent that was actually dispatched and actually
+leaked -- a fresh `claude -p` rooted at this repository. The passing input is
+the self-report of an agent dispatched through the path this instrument exists
+to support. Neither file was authored to make this row pass; both were produced
+by the measurement in `specs/results/scorecards/cut-the-apparatus/CA-01/`.
+
+THE NEEDLES ARE DERIVED, NOT LISTED. `check` builds them at run time from the
+live auto-memory index and the repository's own commit subjects. A detector
+fitted to a known answer is `MF-020`, refused three times in this project.
+
+WHAT IT CANNOT SEE, per `R2` and `CA-01-DF-01`: it reads a SELF-REPORT. It
+cannot detect a leak the agent did not disclose, and a `PASS` is silence about
+its needles only -- not evidence that the agent knew nothing of this project.
+The blind spot below is that inability, declared rather than discovered.
+"""
+
+  [instrument.failing]
+  summary = "ARM-O: a fresh `claude -p` rooted at this repository reports the operator's auto-memory and the five most recent commit subject lines verbatim"
+  argv = ["{python}", "{repo}/examples/validation/instruments/blind_dispatch.py",
+          "check",
+          "{repo}/specs/results/scorecards/cut-the-apparatus/CA-01/probes/ARM-O-repo-cwd-selfreport.txt",
+          "--repo", "{repo}", "--commits", "12"]
+  cwd = "{repo}"
+  expect_exit = 1
+  expect_output = ["REFUSED", "This round is not blind"]
+
+  [instrument.passing]
+  summary = "ARM-N: the same probe, same day, dispatched into a neutral cell through this instrument's own `cell` subcommand"
+  argv = ["{python}", "{repo}/examples/validation/instruments/blind_dispatch.py",
+          "check",
+          "{repo}/specs/results/scorecards/cut-the-apparatus/CA-01/probes/ARM-N-neutral-cell-selfreport.txt",
+          "--repo", "{repo}", "--commits", "12"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["PASS"]
+
+  [instrument.blind_spot]
+  kind = "declared"
+  summary = "IT READS A SELF-REPORT AND NOTHING ELSE. A judge that received the operator's memory and simply did not mention it passes this check. It also cannot see the residual identity leak it is documented beside -- the SessionStart hook output and the skill listing name this project's toolchain in EVERY arm, including the one this instrument passes."
+  reason = "CA-01 measured what agents disclose when asked, and four of four disclosed. That makes a self-report a usable instrument and does NOT make it a complete one. The identity leak is filed as CA-01-DF-01, blocking, rather than folded into this check -- detecting it would require asserting on the harness's own injected blocks, which no dispatch can reach and which this ticket is forbidden to modify."
+
+
 [[retired]]
 id = "gap-mutant-runner"
 retired_by = "RM-03"
