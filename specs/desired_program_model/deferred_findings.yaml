@@ -13764,3 +13764,123 @@ findings:
       the real subject is a file the next epic overwrites. Worth a census against
       the other shipped demonstrations, which is CA-03's neighbourhood.
     disposition: open
+  - id: CA-00-DF-03
+    found_by: "CA-01's independent reviewer, dispatched by the epic owner to refute PR #263"
+    found_at_commit: "6008c71"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/cut-the-apparatus/GOAL-blind-dispatch/baseline.md"
+        - "specs/results/scorecards/cut-the-apparatus/CA-01/RESULT.md"
+    summary: >-
+      BLINDNESS IS REACHABLE, AND THE FINDING THAT SAID OTHERWISE WAS REFUTED BY A
+      ONE-FLAG MEASUREMENT THE TICKET NAMED AND DECLINED TO RUN. `CA-01-DF-01`
+      shipped blocking, asserting that blindness to this project's identity is not
+      achievable with this harness. `claude --safe-mode` authenticates on OAuth --
+      no `ANTHROPIC_API_KEY` needed -- and removes the auto-memory, the
+      `SessionStart` hook output, the MCP server instructions and the project skill
+      listing. Every leak source `CA-01-DF-01` names except `<env>`, which CA-01's
+      own cell already handles. Cost: one flag, about three minutes.
+
+      THE TICKET REJECTED "claiming --safe-mode works when I never measured it",
+      which was the right instinct pointed the wrong way: THE ANSWER WAS TO MEASURE
+      IT, NOT TO SHIP THE FINDING AROUND IT. `DF-01`'s own suggested_fix (b)
+      pointed at this territory.
+
+      THE PATTERN IS SV-05 SECTION 6 REPEATING ITSELF ON THE FIRST TICKET OF THE
+      NEXT EPIC: a correction available to the party corrected, from data it
+      already had. Four of five were last epic. This is one of one so far in this
+      one, and it was found by a reviewer whose only instruction was to refute.
+    reproduction: >-
+      Four arms, `claude -p` with an identical probe asking only for pre-read
+      context. Plain at repo cwd: claudeMd YES, gitStatus YES, SessionStart hook
+      YES, 34 skills including 22 project units. CA-01's cell plus plain `claude
+      -p` (ARM-N): claudeMd no, gitStatus no, hook STILL YES, ~40 skills including
+      project units. `claude --safe-mode -p` at repo cwd: claudeMd NO, hook NO, 12
+      built-ins only. `claude --safe-mode -p` in a neutral cell: claudeMd NO,
+      gitStatus NO, hook NO, 12 built-ins only.
+    why_out_of_scope: >-
+      Filed by the epic owner rather than folded silently into CA-01, because the
+      refutation is a fact about the EPIC's method and about how the finding was
+      reached, not only about one ticket's prose. CA-01 is separately correcting
+      its own finding and title.
+    suggested_fix: >-
+      CA-08 runs its judged work under `--safe-mode` in a neutral cell and states
+      exactly what its judges received. `CA-01-DF-01` is downgraded from blocking
+      to a narrower finding about `--bare` and `<env>`. AND CARRY THE HEDGE: the
+      reviewer measured the EFFECT twice and did NOT establish whether safe-mode
+      disables auto-memory by design or incidentally -- the same epistemic status
+      CA-01 correctly assigned its own `Explore` observation, and it must not be
+      quietly upgraded on the way into the evaluation.
+    blast_radius: >-
+      `GOAL-blind-dispatch` clause (c) -- the escape hatch for "blindness cannot be
+      achieved" was invoked prematurely and is now NOT available on the evidence.
+      CA-08's method. And part of CA-01's 182-line `GOAL-apparatus-cut` regression:
+      safe-mode makes much of the cell redundant for the conclusions leak, so the
+      apparatus this epic added to buy blindness may be larger than blindness
+      actually costs.
+    disposition: open
+  - id: CA-00-DF-04
+    found_by: "CA-01's independent reviewer, dispatched by the epic owner to refute PR #263"
+    found_at_commit: "6008c71"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production:
+        - "examples/validation/instruments/blind_dispatch.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "examples/validation/instruments/instruments.toml"
+        - "references/blind_dispatch.md"
+    summary: >-
+      AN INSTRUMENT WHOSE ONLY JOB IS REFUSING RETURNS PASS ON AN EMPTY FILE AND ON
+      A FAILED DISPATCH. `blind_dispatch.py check` exits 0 with no warning on an
+      empty subject, and exits 0 on a file containing `Error: Invalid API key.
+      Please run /login`. THESE ARE THE OPERATIONALLY LIKELY INPUTS: a dispatch that
+      silently produced nothing reads as a clean blind round. The `WEAK PASS` guard
+      fires only when needles cannot be DERIVED, never when the SUBJECT is empty.
+
+      A third false PASS -- a contaminated judge that PARAPHRASES rather than quotes
+      -- IS declared as a blind spot in `instruments.toml`. The empty and
+      failed-dispatch cases are declared nowhere.
+
+      AND THE `MF-020` CLAIM IS CONTRADICTED BY THE INSTRUMENT'S OWN SOURCE. 4 of
+      the 27 needles are hand-written literals in `HARNESS_MARKERS`.
+      `references/blind_dispatch.md` section 4 calls all 27 "derived from live
+      data" and `RESULT.md` section 6 says "Rejected hand-writing the leak
+      needles", while the PR body's own table correctly admits the 4 are literals.
+      Run with `--memory /nonexistent --commits 0` the instrument STILL REFUSES, on
+      those 4 literals alone -- SO THE SHIPPED `R1` FAILING DEMONSTRATION IS CARRIED
+      BY THE HAND-WRITTEN HALF, which is the exact tension the ticket claims to
+      have refused.
+    reproduction: >-
+      `check` against an empty file -> PASS, exit 0. Against a file containing the
+      invalid-API-key error -> PASS, exit 0. ARM-O with `--memory /nonexistent
+      --commits 0` -> REFUSED on the four `HARNESS_MARKERS` literals. Also: the
+      sealed `R1-demonstration.txt` records 26/25 indicators; `--commits 5` today
+      gives 22/21, because `git log` moved -- the drift CA-01 predicted has already
+      reached its own recorded figures.
+    why_out_of_scope: >-
+      Found after CA-01's close, and the close is sealed. CA-01 is correcting the
+      prose in an addendum; whether `check` should refuse a subject too short to be
+      a self-report is a change to a shipped instrument and wants its own decision.
+    suggested_fix: >-
+      Make `check` refuse a subject too short or too error-shaped to be a
+      self-report, rather than passing it -- and ship that with a demonstrated
+      failing input on a real subject, which is trivially available here. Correct
+      "never a hand-written list" to match the source. THE HONEST FRAMING is that
+      the failing demonstration survives on the hand-written four, and saying so
+      costs nothing that pretending otherwise does not cost more.
+    blast_radius: >-
+      Any future round that uses `blind_dispatch check` to certify a judge was
+      blind. A false PASS here does not merely fail to catch contamination -- IT
+      CERTIFIES ITS ABSENCE, which is worse than having no instrument, and it is
+      the third instrument this project has shipped and later found blind.
+    disposition: open

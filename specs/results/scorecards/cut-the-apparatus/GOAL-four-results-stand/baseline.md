@@ -149,6 +149,25 @@ of the live plan and therefore dies at every epic kickoff.
 inherited-undeclared, and `CA-00-DF-02`. **Anything beyond that list is yours and
 must be declared with its cause.**
 
+#### That 7 was DERIVED, and has since been MEASURED
+
+**Stated honestly when written:** the `6 failed / 314 passed` above is a
+**seven-file subset**, not a full suite, and the 7th red was added **by
+reasoning** rather than by a run. CA-01's independent reviewer caught that the
+figure had never been measured end to end, and measured it:
+
+```
+full suite at PR #263 head (CA-01, on the restored tree)
+  7 failed, 1555 passed in 1192.05s (0:19:52)
+```
+
+**Exact match, item for item, no more and no less** — the 2 deliberate, the 3
+`test_source_citations`, `test_ticket_retirement`, and `CA-00-DF-02`. **Nothing
+attributable to CA-01.**
+
+The derived figure and the measured figure agree. **They did not have to**, and
+recording that they were arrived at separately is the point.
+
 ### Two runs that are NOT the baseline, and why
 
 Both are recorded rather than deleted, because a discarded run is evidence about

@@ -6,12 +6,38 @@
 
 ## The baseline is a negative
 
+> **CORRECTED 2026-08-13, AFTER CA-01 AND ITS REVIEW. Read this box before the
+> figures below it; they are left unedited as the baseline this epic opened on.**
+>
+> 1. **"4 of 4" is a tier, not a universal.** `CA-01` dispatched four agents
+>    asked only to report their own pre-read context: **3 of 4** received the
+>    memory and the commit subject lines; the `Explore` agent type received
+>    neither. Independently replicated by CA-01's reviewer at **n=2** on the
+>    `Explore` side. **The half that survives is the half that matters** — the
+>    leak reaches the agent types actually used as judges. **Caveat carried:**
+>    this establishes the tier's *effect*, observed, not its *rule*, and **arm
+>    B's verbatim transcript does not exist in the record.**
+> 2. **The mechanism.** Auto-memory is keyed by a slug of the **session's cwd**.
+>    No ticket worktree of this repo has a memory directory at all. **Every past
+>    "blind" round was dispatched from the primary checkout — the one path that
+>    carries it. The worktrees were never the leak.**
+> 3. **"Blindness is not reachable with this harness" IS REFUTED.** `CA-01` filed
+>    that as a blocking finding; its reviewer refuted it with a one-flag
+>    measurement the ticket had named and declined to run. **`claude --safe-mode`
+>    authenticates on OAuth and removes the auto-memory, the `SessionStart` hook
+>    output, the MCP instructions and the project skill listing.** `--bare` is
+>    genuinely unusable without `ANTHROPIC_API_KEY` — that half stands — but it
+>    is not needed. **Judged rounds in this epic can run blind.** Caveat carried:
+>    measured twice, as an effect; whether safe-mode disables memory by design or
+>    incidentally is **not established**.
+
 **No round this programme has run was blind in the sense its own dispatches
 assert.** `SV-05-DF-02`, and it is the finding that costs the most.
 
 **4 of 4** blind agents in `SV-05`'s 2×2 reported, **unprompted**, that the
 operator's persistent auto-memory and the environment block were in their
-context **before they read anything**. One quoted `MEMORY.md` verbatim —
+context **before they read anything** — **now corrected to 3 of 4 by agent type;
+see the box above.** One quoted `MEMORY.md` verbatim —
 
 > *"up to 2 points per judge move on byte-identical artifacts"*
 
