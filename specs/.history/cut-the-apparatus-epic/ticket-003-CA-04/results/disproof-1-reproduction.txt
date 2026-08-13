@@ -1,0 +1,26 @@
+# CA-04 -- is the 'zero unique kills' disproof still re-derivable?
+# Answered with a RUN, as the work order required.
+
+## 1. What actually produced the disproof (read from the sealed record)
+RD-03's cross-tree probe, NOT scripts/kill_test.py.
+  harness: specs/results/scorecards/reading-discipline/GOAL-product-round/RD-03/probe/harness/
+  table  : RESULT.md section 2, Q1 -- model-derived unique kills 0, hand-written 4, over six trees
+  driver for the four model-derived columns, per probe/COMMANDS.md section 3:
+           examples/validation/ab/eval/run_controls.py
+
+## 2. The coupling that the work order did not anticipate
+165:from scripts.kill_test import scan_for_suppression  # noqa: E402
+457:    import kill_test  # noqa: PLC0415
+
+## 3. MEASURED with scripts/kill_test.py PARKED (before the cut was reshaped)
+run_controls.py   : ModuleNotFoundError: No module named 'scripts.kill_test'  (line 165, module scope)
+check_catalogue.py: ModuleNotFoundError: No module named 'kill_test'          (line 457)
+
+## 4. MEASURED at this tip, with the parser/scanner retained
+run_controls.py   : LOADS OK
+check_catalogue.py: catalogue: /Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-04/examples/validation/ab/seeded_faults.toml root: /Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-04/examples/validation/ab 15 mutant(s) id class occurs revert parses -------------------------------------------------------------------------------------- M01-guard-zero-amount guard_relaxation 1 ok ok M02-guard-over-quota guard_relaxation 1 ok ok M03-guard-close-with-outstanding guard_relaxation 1 ok ok M04-durable-stale-total durable_content 1 ok ok M05-durable-close-line-zero-and-swallowed durable_content 1 ok ok M08-cross-aspect-commit-refunds-the-hold cross_aspect 1 ok ok M06-wrong-status-on-release output_oracle 1 ok ok M10-apply-only-double-refund wrong_value 1 ok ok M07-positive-control-wrong-hold wrong_value 1 ok ok M09-negative-control-ledger-order ordering 1 ok ok PA-M11-real-adapter-drops-close-lines adapter_internal 1 ok ok PA-M12-fake-adapter-drops-close-lines adapter_internal 1 ok ok PA-M13-fake-drifts-from-real-on-write adapter_internal 1 ok ok PA-M14-positive-control-accepted-hold-too-large wrong_value 1 ok ok FI-M15-positive-control-commit-total-too-large wrong_value 1 ok ok class coverage: adapter_internal 3 PA-M11-real-adapter-drops-close-lines, PA-M12-fake-adapter-drops-close-lines, PA-M13-fake-drifts-from-real-on-write cross_aspect 1 M08-cross-aspect-commit-refunds-the-hold durable_content 2 M04-durable-stale-total, M05-durable-close-line-zero-and-swallowed guard_relaxation 3 M01-guard-zero-amount, M02-guard-over-quota, M03-guard-close-with-outstanding ordering 1 M09-negative-control-ledger-order output_oracle 1 M06-wrong-status-on-release wrong_value 4 M10-apply-only-double-refund, M07-positive-control-wrong-hold, PA-M14-positive-control-accepted-hold-too-large, FI-M15-positive-control-commit-total-too-large controls: 3 positive (2 anchor tree(s)), 1 negative adapter-internal mutants: 3 across 2 adapter file(s) PA-M11-real-adapter-drops-close-lines reference_ports/journal_file.py PA-M12-fake-adapter-drops-close-lines reference_ports/journal_memory.py PA-M13-fake-drifts-from-real-on-write reference_ports/journal_memory.py Catalogue integrity holds: every pattern occurs exactly once, every mutant applies and reverts cleanly, and every declared gap is seeded. 
+
+## VERDICT
+Readable:      YES -- the sealed RD-03 record is intact and untouched by this ticket.
+Re-derivable:  YES -- and only because the cut was reshaped. A wholesale deletion of
+               kill_test.py would have broken the driver at module scope. CA-04-DF-03.

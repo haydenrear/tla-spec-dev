@@ -1,0 +1,40 @@
+        )
+        assert claim, f"{manifest_path}: no variable/action count recorded at all"
+>       assert int(claim.group(1)) == variables, (
+            f"{manifest_path} claims {claim.group(1)} variables; "
+            f"{tla_path.name} declares {variables}"
+        )
+E       AssertionError: /Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-04/specs/desired_program_model/spec_manifest.yaml claims 9 variables; TlaSpecDevCli.tla declares 8
+E       assert 9 == 8
+E        +  where 9 = int('9')
+E        +    where '9' = <built-in method group of re.Match object at 0x10c04c360>(1)
+E        +      where <built-in method group of re.Match object at 0x10c04c360> = <re.Match object; span=(4304, 4337), match='9 variables and 17 Next disjuncts'>.group
+
+tests/test_spec_manifest_records.py:171: AssertionError
+_____ test_repository_canonical_delivered_plan_has_matching_close_receipts _____
+
+    def test_repository_canonical_delivered_plan_has_matching_close_receipts() -> None:
+        plan_path = ROOT / "specs" / "desired_program_model" / "ticket_plan.yaml"
+    
+>       assert validate_ticket_plan_closed(plan_path, repo_root=ROOT) == []
+E       AssertionError: assert ['ticket CA-0...atus=planned'] == []
+E         
+E         Left contains 6 more items, first extra item: 'ticket CA-03 is not closed: status=planned'
+E         Use -v to get more diff
+
+tests/test_ticket_retirement.py:588: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_analyze_complexity.py::test_repository_own_model_reproduces_the_recorded_state_space_bound
+FAILED tests/test_analyze_complexity.py::test_repository_own_model_has_landed_the_setup_phase_collapse
+FAILED tests/test_architecture_tags.py::test_the_same_tag_control_holds - Ass...
+FAILED tests/test_goal_baseline_is_a_card.py::test_a_real_epic_plans_judged_baseline_cannot_be_re_opened
+FAILED tests/test_instrument_demonstrations.py::test_every_declared_path_exists
+FAILED tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml]
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/spec_manifest.yaml]
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/program_model/spec_manifest.yaml]
+FAILED tests/test_spec_manifest_records.py::test_the_manifest_states_the_counts_of_the_model_beside_it[program_model]
+FAILED tests/test_spec_manifest_records.py::test_the_manifest_states_the_counts_of_the_model_beside_it[current]
+FAILED tests/test_spec_manifest_records.py::test_the_manifest_states_the_counts_of_the_model_beside_it[desired_program_model]
+FAILED tests/test_ticket_retirement.py::test_repository_canonical_delivered_plan_has_matching_close_receipts
+13 failed, 1458 passed in 1235.21s (0:20:35)

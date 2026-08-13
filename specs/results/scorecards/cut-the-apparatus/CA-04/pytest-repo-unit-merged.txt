@@ -1,0 +1,35 @@
+E           specs/program_model/spec_manifest.yaml:260: scripts/spec_evolution.py:580 does not contain the anchor 'replace_tree'
+E           specs/program_model/spec_manifest.yaml:262: scripts/spec_evolution.py:477 does not contain the anchor 'target.unlink' -- the anchor is at scripts/spec_evolution.py:998
+E           specs/program_model/spec_manifest.yaml:306: scripts/spec_evolution.py:99 does not contain the anchor 'subprocess.run' -- the anchor is at scripts/spec_evolution.py:106
+E           specs/program_model/spec_manifest.yaml:307: scripts/spec_evolution.py:1093 does not contain the anchor 'git_metadata'
+E           specs/program_model/spec_manifest.yaml:308: scripts/spec_evolution.py:1195 does not contain the anchor 'git_metadata'
+E       assert ['specs/progr...tories'", ...] == []
+E         
+E         Left contains 12 more items, first extra item: "specs/program_model/spec_manifest.yaml:242: scripts/tla_spec_dev.py:353 does not contain the anchor 'run_generated_case_adapters.py' -- the anchor is at scripts/tla_spec_dev.py:369"
+E         Use -v to get more diff
+
+tests/test_source_citations.py:154: AssertionError
+_____ test_repository_canonical_delivered_plan_has_matching_close_receipts _____
+
+    def test_repository_canonical_delivered_plan_has_matching_close_receipts() -> None:
+        plan_path = ROOT / "specs" / "desired_program_model" / "ticket_plan.yaml"
+    
+>       assert validate_ticket_plan_closed(plan_path, repo_root=ROOT) == []
+E       AssertionError: assert ['ticket CA-0...atus=planned'] == []
+E         
+E         Left contains 5 more items, first extra item: 'ticket CA-04 is not closed: status=planned'
+E         Use -v to get more diff
+
+tests/test_ticket_retirement.py:588: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_analyze_complexity.py::test_repository_own_model_reproduces_the_recorded_state_space_bound
+FAILED tests/test_analyze_complexity.py::test_repository_own_model_has_landed_the_setup_phase_collapse
+FAILED tests/test_architecture_tags.py::test_the_same_tag_control_holds - Ass...
+FAILED tests/test_goal_baseline_is_a_card.py::test_a_real_epic_plans_judged_baseline_cannot_be_re_opened
+FAILED tests/test_instrument_demonstrations.py::test_every_declared_path_exists
+FAILED tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml]
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/spec_manifest.yaml]
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/program_model/spec_manifest.yaml]
+FAILED tests/test_ticket_retirement.py::test_repository_canonical_delivered_plan_has_matching_close_receipts
+10 failed, 1464 passed in 1235.75s (0:20:35)

@@ -48,7 +48,6 @@ def _state(setup_phase: int, spec_root: str, ticket_state: dict, last: str, nxt:
         "complexity_gate": "unknown",
         "corpus_gate": "unknown",
         "effect_conformance": "unknown",
-        "kill_test": "unknown",
         "lastCommand": last,
         "result": {"accepted": True, "next": nxt, "reason": "NoReason"},
         "setup_phase": setup_phase,
