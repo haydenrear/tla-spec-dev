@@ -2693,8 +2693,30 @@ The blind spot below is that inability, declared rather than discovered.
 
   [instrument.blind_spot]
   kind = "declared"
-  summary = "IT READS A SELF-REPORT AND NOTHING ELSE. A judge that received the operator's memory and simply did not mention it passes this check. It also cannot see the residual identity leak it is documented beside -- the SessionStart hook output and the skill listing name this project's toolchain in EVERY arm, including the one this instrument passes."
-  reason = "CA-01 measured what agents disclose when asked, and four of four disclosed. That makes a self-report a usable instrument and does NOT make it a complete one. The identity leak is filed as CA-01-DF-01, blocking, rather than folded into this check -- detecting it would require asserting on the harness's own injected blocks, which no dispatch can reach and which this ticket is forbidden to modify."
+  summary = "IT READS A SELF-REPORT AND NOTHING ELSE, SO A JUDGE THAT PARAPHRASES ITS MEMORY RATHER THAN QUOTING IT PASSES. The needles are literal substrings: a report saying `I was told this project believes some scored dimensions are unstable' carries the prior and matches nothing. It also cannot see the `<env>` block or the scratchpad path, which name the working directory in every arm including the one this instrument passes."
+  reason = """
+CA-01 measured what agents disclose when asked, and four of four disclosed
+VERBATIM. That makes a self-report a usable instrument and does NOT make it a
+complete one, and the residual gap is PARAPHRASE rather than silence. It is not
+fixable by substring matching, so it stays declared.
+
+A SECOND FALSE-PASS MODE WAS FOUND BY REVIEW AND IS NOW REFUSED RATHER THAN
+DECLARED -- the distinction is the point, so both are recorded. As first
+shipped, an EMPTY subject and a FAILED DISPATCH (`Error: Invalid API key`) each
+returned PASS at exit 0. Finding no needles in a document with no content is
+absence of EVIDENCE, not evidence of absence, and it was the OPERATIONALLY
+LIKELY failure: a dispatch that silently did not run reads as a clean round.
+`WEAK PASS` did not cover it -- that fires only when needles cannot be DERIVED,
+never when the subject is empty. `check` now returns exit 2 UNDECIDED for an
+empty subject, one below a 200-byte floor, or one carrying a dispatch-failure
+signature. Demonstrated on all three reviewer cases at
+specs/results/scorecards/cut-the-apparatus/CA-01/false-pass-demonstration.txt.
+
+THE ORIGINAL WORDING OF THIS ROW ALSO CITED CA-01-DF-01 AS BLOCKING AND CLAIMED
+THE SessionStart HOOK AND SKILL LISTING REACHED EVERY ARM. Both are corrected:
+`claude --safe-mode` removes them, CA-01-DF-01 is downgraded to minor, and the
+identity leak is not the standing objection this row once said it was.
+"""
 
 
 [[retired]]

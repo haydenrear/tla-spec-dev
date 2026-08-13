@@ -15,6 +15,16 @@ inventory, the verbatim leaked blocks and every agent's REJECTED answer are in
 **Blindness to the operator's CONCLUSIONS is achievable with this harness.
 Blindness to the project's IDENTITY is not.**
 
+> **CORRECTED 2026-08-13, and the correction is the important part.** The second
+> sentence was REFUTED by `claude --safe-mode`, which CA-01 named and declined to
+> measure. `--safe-mode` + a cwd outside any git repository removes the
+> auto-memory, the `gitStatus` block, the `SessionStart` hook output, the MCP
+> instructions and the project skill listing — every source this document
+> originally called unreachable. **Judged rounds CAN be run blind to the
+> operator's conclusions.** Full measurement and what remains unestablished:
+> `specs/results/scorecards/cut-the-apparatus/CA-01/ADDENDUM.md` §1. Read that
+> before §1, §3, §5 or §6 below, all of which were written before it.
+
 Both halves are demonstrated on real subjects. Neither is a claim about
 configuration.
 
@@ -60,14 +70,31 @@ here. See §6.
 
 One neutral cell per dispatched agent, and a **separate process**:
 
+**USE `--safe-mode`.** It was added to this section after `CA-00-DF-03`; the
+original path omitted it and was strictly weaker.
+
 ```bash
 python3 examples/validation/instruments/blind_dispatch.py cell /private/tmp/blind-<round>-<n>
-cd /private/tmp/blind-<round>-<n> && claude -p "<packet prompt>" > reply.txt
+cd /private/tmp/blind-<round>-<n> && claude --safe-mode -p "<packet prompt>" > reply.txt
 
 python3 examples/validation/instruments/blind_dispatch.py check reply.txt \
   --repo <repo> \
   --memory ~/.claude/projects/<dispatching-session-slug>/memory/MEMORY.md
 ```
+
+**Both halves are needed and neither is sufficient.** `--safe-mode` removes the
+auto-memory, the `SessionStart` hook, the MCP instructions and the project skill
+listing, but **not `gitStatus`** — measured: at the repository cwd a safe-mode
+probe still received the five commit subject lines and reported *rejecting* an
+inference drawn from them. The neutral cell removes `gitStatus`, but on its own
+leaves the hook and the skill listing standing. Together they are clean except
+for the `<env>` block and the scratchpad path, which in a neutral cell no longer
+name this project.
+
+**Verify, do not trust.** `--safe-mode` is not documented to disable auto-memory
+— its `--help` lists customizations and ends with "and more". The effect is
+measured; the guarantee is not. Run `check` on every reply and record the memory
+digest beside the round.
 
 `cell` refuses a directory that is inside a git repository, that already owns a
 memory slug, or whose path names the project under test. `check` **refuses** a
@@ -82,7 +109,9 @@ That is the failing configuration, and it is the one every past round used.
 
 ## 4. Proof, on real subjects (`R1`)
 
-Not a fixture. Four agents, same probe, asked what they received.
+Not a fixture. **Three `check` subjects**, each a real agent's self-report.
+(The four-agent context measurement is a different thing and lives in
+`INVENTORY.md` §2 — the two were conflated in this sentence as first written.)
 
 | subject | dispatch | verdict |
 |---|---|---|
@@ -90,8 +119,13 @@ Not a fixture. Four agents, same probe, asked what they received.
 | `ARM-D-judge-selfreport.md` | subagent of a repo-rooted session, dressed as a blind judge | **REFUSED — 25 indicators** |
 | `ARM-N-neutral-cell-selfreport.txt` | `claude -p` in a neutral cell | **PASS** |
 
-27 needles were derived from live data (4 harness block labels, 18 memory index
-entries, 5 commit subjects). Transcript:
+27 needles: **4 are hand-written literals** in `HARNESS_MARKERS` — harness block
+*labels*, not expected answers — and **23 are derived at run time** (18 memory
+index entries, 5 commit subjects). This document previously called all 27
+"derived from live data", which was wrong. The distinction matters twice over:
+running `ARM-O` with `--memory /nonexistent --commits 0` **still REFUSES on the
+4 literals alone**, so the shipped failing demonstration is carried by the
+hand-written half — which is also why it cannot die from drift (§6). Transcript:
 `specs/results/scorecards/cut-the-apparatus/CA-01/R1-demonstration.txt`.
 
 **The neutral-cell agent said it in its own words, unprompted**, before being
@@ -150,9 +184,15 @@ honestly:
    for skipping auto-memory and `CLAUDE.md` discovery, and it would be the
    principled fix. It also forces `ANTHROPIC_API_KEY` or an `apiKeyHelper` and
    **never reads OAuth or the keychain**; `ANTHROPIC_API_KEY` is not set here, so
-   the switch cannot authenticate. `--safe-mode` disables customizations but is
-   not documented to disable auto-memory and **was not measured**, so it is not
-   claimed.
+   the switch cannot authenticate — unchanged, and it is why `<env>`'s dynamic
+   sections are still the residue.
+
+   **The second half of this item was wrong and is withdrawn.** It read:
+   *"`--safe-mode` disables customizations but is not documented to disable
+   auto-memory and was not measured, so it is not claimed."* Declining to claim
+   it was right; **declining to measure it was not.** It was measured after
+   review: it works, it authenticates on OAuth, and it removes four of the five
+   leak sources. `ADDENDUM.md` §1.
 
 3. **Operational cost, measured.** One extra OS process per judge; ~2.5–3 minutes
    wall clock per probe reply; 45–56 KB of reply text per agent. Judges can no
@@ -168,14 +208,14 @@ honestly:
    | surface | epic base | CA-01 tip | delta |
    |---|---|---|---|
    | `scripts/` | 27,652 | 27,652 | **0** |
-   | `examples/validation/` | 15,901 | 16,083 | **+182** |
-   | combined | 43,553 | 43,735 | **+182** |
+   | `examples/validation/` | 15,901 | 16,129 | **+228** |
+   | combined | 43,553 | 43,781 | **+228** |
 
-   The whole `+182` is `examples/validation/instruments/blind_dispatch.py`.
+   The whole `+228` is `examples/validation/instruments/blind_dispatch.py`. **It was +182 until review**; the false-PASS fix and the corrected source comments added 46. Of the 228, `cmd_cell` is **31** and is replaceable by a documented rule; `cmd_check` and its needle derivation are not. See `ADDENDUM.md` §4 — **the flag buys the blindness, these lines prove it.**
    `references/blind_dispatch.md` is prose and is not counted by the goal's
    command — stated so nobody reads the table as the total cost.
 
-   The card is untouched. **`examples/validation/` rises by 182 lines and the
+   The card is untouched. **`examples/validation/` rises by 228 lines and the
    epic must absorb that inside its 30% cut** (target ≤30,487 combined), or
    delete this instrument once `CA-08` has used it.
 
@@ -205,7 +245,7 @@ rather than withdrawing it. **Print one of these beside every judged number.**
 For a round dispatched the ordinary way:
 
 > **NOT BLIND.** The judge's context carried the operator's auto-memory
-> (`MEMORY.md`, sha256 `665f984c…`, 17 index entries) and the repository's five
+> (`MEMORY.md`, sha256 `665f984c…`, **17 bullets injected**; the file on disk carried 18 at the time, the extra being the epic's own kickoff entry — the injected copy lags disk) and the repository's five
 > most recent commit subject lines before it opened the packet, including a prior
 > on judged-dimension stability and a sentence naming the previous epic's verdict.
 > Measured by `CA-01`, refused by `blind_dispatch.py check` at N indicators.

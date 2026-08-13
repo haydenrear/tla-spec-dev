@@ -32,12 +32,37 @@ import subprocess
 import sys
 
 MEMORY_ROOT = pathlib.Path.home() / ".claude" / "projects"
-# Literal harness labels. These are block names, not conclusions.
+# HAND-WRITTEN LITERALS, and they must be described as such. These four are the
+# harness's own block LABELS -- names of injected blocks, not conclusions about
+# any subject -- which is why they are not the MF-020 hazard that a hand-written
+# list of expected ANSWERS would be. But they are not "derived from live data",
+# and the other two needle classes are; see `check`'s output, which reports the
+# three classes separately for exactly this reason.
 HARNESS_MARKERS = (
     "# claudeMd",
     "user's auto-memory",
     "gitStatus:",
     "Recent commits:",
+)
+
+# A subject that is not a self-report cannot be judged. No needles found in an
+# empty file is absence of EVIDENCE, not evidence of absence, and returning PASS
+# for it is a FALSE PASS in an instrument whose entire job is refusing. Found by
+# review of this instrument as shipped: an empty file and a failed dispatch
+# (`Error: Invalid API key`) both returned PASS, exit 0.
+#
+# The floor sits far below any honest answer to a four-part probe and far above
+# any single-line dispatch failure, so it separates those two cases without
+# being tuned to the particular transcripts this ticket happens to hold.
+MIN_REPORT_BYTES = 200
+DISPATCH_FAILURE_SIGNATURES = (
+    "Invalid API key",
+    "Please run /login",
+    "Credit balance is too low",
+    "command not found",
+    "Traceback (most recent call last)",
+    "usage: claude",
+    "error: unknown option",
 )
 
 
@@ -75,6 +100,27 @@ def cmd_check(args: argparse.Namespace) -> int:
     # has the whole index -- so pointing --repo at a worktree silently derives
     # zero memory needles. Found by running this instrument on a real subject.
     mem = pathlib.Path(args.memory) if args.memory else memory_path_for(repo)
+
+    # PRECONDITION, before any needle is counted: is this a self-report at all?
+    stripped = report.strip()
+    unusable = None
+    if not stripped:
+        unusable = "the subject is empty"
+    elif len(stripped) < MIN_REPORT_BYTES:
+        unusable = (f"the subject is {len(stripped)} bytes, below the "
+                    f"{MIN_REPORT_BYTES}-byte floor for an honest answer to the probe")
+    else:
+        for sig in DISPATCH_FAILURE_SIGNATURES:
+            if sig in stripped[:2000]:
+                unusable = f"the subject looks like a failed dispatch ({sig!r})"
+                break
+    if unusable is not None:
+        print(f"subject      {args.report}")
+        print(f"\nUNDECIDED: {unusable}.")
+        print("A subject that is not an agent's self-report cannot be judged. "
+              "Finding no leak in it is absence of EVIDENCE, not evidence of "
+              "absence.\nThis is NOT a pass. Re-dispatch and re-run.")
+        return 2
 
     groups = {
         "harness block label": list(HARNESS_MARKERS),

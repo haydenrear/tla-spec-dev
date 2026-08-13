@@ -13764,13 +13764,135 @@ findings:
       the real subject is a file the next epic overwrites. Worth a census against
       the other shipped demonstrations, which is CA-03's neighbourhood.
     disposition: open
+  - id: CA-00-DF-03
+    found_by: "CA-01's independent reviewer, dispatched by the epic owner to refute PR #263"
+    found_at_commit: "6008c71"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/cut-the-apparatus/GOAL-blind-dispatch/baseline.md"
+        - "specs/results/scorecards/cut-the-apparatus/CA-01/RESULT.md"
+    summary: >-
+      BLINDNESS IS REACHABLE, AND THE FINDING THAT SAID OTHERWISE WAS REFUTED BY A
+      ONE-FLAG MEASUREMENT THE TICKET NAMED AND DECLINED TO RUN. `CA-01-DF-01`
+      shipped blocking, asserting that blindness to this project's identity is not
+      achievable with this harness. `claude --safe-mode` authenticates on OAuth --
+      no `ANTHROPIC_API_KEY` needed -- and removes the auto-memory, the
+      `SessionStart` hook output, the MCP server instructions and the project skill
+      listing. Every leak source `CA-01-DF-01` names except `<env>`, which CA-01's
+      own cell already handles. Cost: one flag, about three minutes.
+
+      THE TICKET REJECTED "claiming --safe-mode works when I never measured it",
+      which was the right instinct pointed the wrong way: THE ANSWER WAS TO MEASURE
+      IT, NOT TO SHIP THE FINDING AROUND IT. `DF-01`'s own suggested_fix (b)
+      pointed at this territory.
+
+      THE PATTERN IS SV-05 SECTION 6 REPEATING ITSELF ON THE FIRST TICKET OF THE
+      NEXT EPIC: a correction available to the party corrected, from data it
+      already had. Four of five were last epic. This is one of one so far in this
+      one, and it was found by a reviewer whose only instruction was to refute.
+    reproduction: >-
+      Four arms, `claude -p` with an identical probe asking only for pre-read
+      context. Plain at repo cwd: claudeMd YES, gitStatus YES, SessionStart hook
+      YES, 34 skills including 22 project units. CA-01's cell plus plain `claude
+      -p` (ARM-N): claudeMd no, gitStatus no, hook STILL YES, ~40 skills including
+      project units. `claude --safe-mode -p` at repo cwd: claudeMd NO, hook NO, 12
+      built-ins only. `claude --safe-mode -p` in a neutral cell: claudeMd NO,
+      gitStatus NO, hook NO, 12 built-ins only.
+    why_out_of_scope: >-
+      Filed by the epic owner rather than folded silently into CA-01, because the
+      refutation is a fact about the EPIC's method and about how the finding was
+      reached, not only about one ticket's prose. CA-01 is separately correcting
+      its own finding and title.
+    suggested_fix: >-
+      CA-08 runs its judged work under `--safe-mode` in a neutral cell and states
+      exactly what its judges received. `CA-01-DF-01` is downgraded from blocking
+      to a narrower finding about `--bare` and `<env>`. AND CARRY THE HEDGE: the
+      reviewer measured the EFFECT twice and did NOT establish whether safe-mode
+      disables auto-memory by design or incidentally -- the same epistemic status
+      CA-01 correctly assigned its own `Explore` observation, and it must not be
+      quietly upgraded on the way into the evaluation.
+    blast_radius: >-
+      `GOAL-blind-dispatch` clause (c) -- the escape hatch for "blindness cannot be
+      achieved" was invoked prematurely and is now NOT available on the evidence.
+      CA-08's method. And part of CA-01's 182-line `GOAL-apparatus-cut` regression:
+      safe-mode makes much of the cell redundant for the conclusions leak, so the
+      apparatus this epic added to buy blindness may be larger than blindness
+      actually costs.
+    disposition: open
+  - id: CA-00-DF-04
+    found_by: "CA-01's independent reviewer, dispatched by the epic owner to refute PR #263"
+    found_at_commit: "6008c71"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production:
+        - "examples/validation/instruments/blind_dispatch.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "examples/validation/instruments/instruments.toml"
+        - "references/blind_dispatch.md"
+    summary: >-
+      AN INSTRUMENT WHOSE ONLY JOB IS REFUSING RETURNS PASS ON AN EMPTY FILE AND ON
+      A FAILED DISPATCH. `blind_dispatch.py check` exits 0 with no warning on an
+      empty subject, and exits 0 on a file containing `Error: Invalid API key.
+      Please run /login`. THESE ARE THE OPERATIONALLY LIKELY INPUTS: a dispatch that
+      silently produced nothing reads as a clean blind round. The `WEAK PASS` guard
+      fires only when needles cannot be DERIVED, never when the SUBJECT is empty.
+
+      A third false PASS -- a contaminated judge that PARAPHRASES rather than quotes
+      -- IS declared as a blind spot in `instruments.toml`. The empty and
+      failed-dispatch cases are declared nowhere.
+
+      AND THE `MF-020` CLAIM IS CONTRADICTED BY THE INSTRUMENT'S OWN SOURCE. 4 of
+      the 27 needles are hand-written literals in `HARNESS_MARKERS`.
+      `references/blind_dispatch.md` section 4 calls all 27 "derived from live
+      data" and `RESULT.md` section 6 says "Rejected hand-writing the leak
+      needles", while the PR body's own table correctly admits the 4 are literals.
+      Run with `--memory /nonexistent --commits 0` the instrument STILL REFUSES, on
+      those 4 literals alone -- SO THE SHIPPED `R1` FAILING DEMONSTRATION IS CARRIED
+      BY THE HAND-WRITTEN HALF, which is the exact tension the ticket claims to
+      have refused.
+    reproduction: >-
+      `check` against an empty file -> PASS, exit 0. Against a file containing the
+      invalid-API-key error -> PASS, exit 0. ARM-O with `--memory /nonexistent
+      --commits 0` -> REFUSED on the four `HARNESS_MARKERS` literals. Also: the
+      sealed `R1-demonstration.txt` records 26/25 indicators; `--commits 5` today
+      gives 22/21, because `git log` moved -- the drift CA-01 predicted has already
+      reached its own recorded figures.
+    why_out_of_scope: >-
+      Found after CA-01's close, and the close is sealed. CA-01 is correcting the
+      prose in an addendum; whether `check` should refuse a subject too short to be
+      a self-report is a change to a shipped instrument and wants its own decision.
+    suggested_fix: >-
+      Make `check` refuse a subject too short or too error-shaped to be a
+      self-report, rather than passing it -- and ship that with a demonstrated
+      failing input on a real subject, which is trivially available here. Correct
+      "never a hand-written list" to match the source. THE HONEST FRAMING is that
+      the failing demonstration survives on the hand-written four, and saying so
+      costs nothing that pretending otherwise does not cost more.
+    blast_radius: >-
+      Any future round that uses `blind_dispatch check` to certify a judge was
+      blind. A false PASS here does not merely fail to catch contamination -- IT
+      CERTIFIES ITS ABSENCE, which is worse than having no instrument, and it is
+      the third instrument this project has shipped and later found blind.
+    disposition: open
 
   - id: CA-01-DF-01
     found_by: "CA-01"
     found_at_commit: "87a526b"
+    amended_at_commit: "f8b40bb"
     schedule_revision: 1
-    severity: major
-    blocking: true
+    severity: minor
+    blocking: false
+    disposition: open
     surface:
       production: []
       tla: []
@@ -13778,61 +13900,91 @@ findings:
       test_graph: []
       workflow: ["references/blind_dispatch.md"]
     summary: >-
-      A SECOND LEAK CLASS THAT NO FINDING IN THIS PROGRAMME HAS NAMED, AND IT
-      SURVIVES EVERY MITIGATION CA-01 FOUND. Removing the operator's auto-memory
-      and the gitStatus block does NOT make a judge blind to this project. In the
-      neutral cell -- the arm that PASSED -- the judge still received, before any
-      tool call: the SessionStart hook's `skt status` output naming installed
-      units by name (`spec-double-compiler`, `discovery`, `git-epic-workflow`,
-      `test-graph`) with their versions and sync state; the ~40-entry skill
-      listing whose `spec-double-compiler` description spells out the TLA+
-      spec-double pipeline and whose `discovery` description names the
-      `specs/program_model` tree; the MCP server instructions; and the available
-      agent-types listing.
+      REFUTED IN ITS ORIGINAL FORM AND REWRITTEN. AS FIRST FILED THIS SAID
+      BLINDNESS TO THIS PROJECT'S IDENTITY WAS NOT REACHABLE WITH THIS HARNESS,
+      AND FILED IT BLOCKING. THAT WAS WRONG, AND IT WAS WRONG BY THE ONE FLAG
+      CA-01 NAMED AND DECLINED TO MEASURE. `claude --safe-mode` authenticates
+      normally on OAuth and removes the leak. Found by an independent reviewer of
+      PR #263; filed by the epic owner as CA-00-DF-03; MEASURED INDEPENDENTLY BY
+      CA-01 AFTERWARDS, and the two agree.
 
-      SO A JUDGE ASKED TO SCORE AN ARTIFACT FOR DOMAIN/IO SEPARATION CAN STILL
-      INFER, BEFORE OPENING THE PACKET, THAT IT IS STANDING IN A TOOLCHAIN BUILT
-      AROUND TLA+ SPEC DOUBLES AND PROGRAM-MODEL SPECS. That is a weaker prior
-      than a sentence stating which dimensions are stable, and it is not zero.
+      CA-01's own two probes, same probe text as the original four:
 
-      This is filed as BLOCKING because it decides what CA-08 is allowed to call
-      its rounds. `GOAL-blind-dispatch` clause (b) asks for a path carrying none
-      of the operator's CONCLUSIONS; that is met and proven. Full blindness is
-      NOT met, and the honest reading is that with this harness it is not
-      reachable from this ticket.
+        --safe-mode at the repository cwd
+          auto-memory        GONE
+          SessionStart hook  GONE
+          project skills     GONE (11 built-in entries, no project units)
+          MCP instructions   GONE
+          gitStatus          STILL PRESENT, commit subjects and all
+
+        --safe-mode in a neutral cell
+          all of the above   GONE, including gitStatus
+          agent's own words: "no instruction/memory file (CLAUDE.md), no
+          repository status listing (the environment block states 'Is a git
+          repository: false'), no MCP server instructions"
+
+      SO NEITHER HALF IS SUFFICIENT ALONE AND THE COMBINATION IS. `--safe-mode`
+      does NOT remove the gitStatus block: at the repository cwd the probe still
+      received the five commit subject lines, and it reported REJECTING an
+      inference from them -- "I was inclined to infer that 'attribute every red'
+      and '210-row findings ledger' imply a scoring rubric with red/amber/green
+      bands and therefore answer yes to (b)". That is the original leak class
+      operating under safe-mode, caught only because the agent declined it.
+      Conversely the neutral cell alone does not remove the hook or the skill
+      listing. `--safe-mode` + a cwd outside any git repository removes every
+      source this finding originally named.
+
+      WHAT SURVIVES, and it is now a small finding rather than a blocking one:
+      the `<env>` block and the scratchpad path. Under `--safe-mode` in a neutral
+      cell these no longer name this project -- the cell is neutral by
+      construction -- so the residue is that a judge knows its own working
+      directory and platform. `--bare` would additionally drop the `<env>`
+      dynamic sections and remains unusable here for the auth reason in
+      CA-01-DF-02, which is unchanged.
+
+      WHAT CA-01 ESTABLISHED AND WHAT IT DID NOT. Established: the EFFECT,
+      twice, on this harness version, with the transcripts recorded. NOT
+      established: whether `--safe-mode` disables auto-memory BY DESIGN or
+      INCIDENTALLY. Its own `--help` text names "CLAUDE.md, skills, plugins,
+      hooks, MCP servers, custom commands and agents, output styles, workflows,
+      custom themes, keybindings, and more" -- auto-memory is not named, and "and
+      more" is carrying it. A round that depends on this is depending on
+      undocumented behaviour, which is the exact objection CA-01 raised against
+      the `Explore` tier in CA-01-DF-03 and it applies here with equal force.
+      RECORD THE MEMORY DIGEST BESIDE EVERY ROUND rather than trusting the flag.
+
+      CONSEQUENCE FOR THE EPIC: judged rounds CAN be run effectively blind to the
+      operator's conclusions, so GOAL-blind-dispatch clause (c)'s "state the
+      impossibility" escape hatch was invoked PREMATURELY by CA-01 and is
+      withdrawn. CA-08 should use `--safe-mode` plus a neutral cell and verify
+      each round rather than assume it.
     reproduction: >-
-      `python3 examples/validation/instruments/blind_dispatch.py cell
-      /private/tmp/blind-x` then `cd /private/tmp/blind-x && claude -p "<the
-      probe in specs/results/scorecards/cut-the-apparatus/CA-01/probes/probe-prompt.txt>"`.
-      The reply's PART 1 inventory lists the SessionStart hook output and the
-      skill listing. Recorded verbatim at
-      specs/results/scorecards/cut-the-apparatus/CA-01/probes/ARM-N-neutral-cell-selfreport.txt
-      blocks 3 and 9.
+      `cd <neutral dir outside any git repo> && claude --safe-mode -p "<the probe
+      at specs/results/scorecards/cut-the-apparatus/CA-01/probes/probe-prompt.txt>"`
+      and the same at the repository root. Transcripts:
+      specs/results/scorecards/cut-the-apparatus/CA-01/probes/ARM-S1-safemode-repo.txt
+      and ARM-S2-safemode-cell.txt.
     evidence:
-      - "specs/results/scorecards/cut-the-apparatus/CA-01/probes/ARM-N-neutral-cell-selfreport.txt"
-      - "references/blind_dispatch.md"
+      - "specs/results/scorecards/cut-the-apparatus/CA-01/probes/ARM-S1-safemode-repo.txt"
+      - "specs/results/scorecards/cut-the-apparatus/CA-01/probes/ARM-S2-safemode-cell.txt"
+      - "specs/results/scorecards/cut-the-apparatus/CA-01/ADDENDUM.md"
     why_out_of_scope: >-
-      The residual leak is emitted by the SessionStart hook configured in the
-      operator's `~/.claude/settings.json` and by the skill listing assembled
-      from `SKILL_MANAGER_HOME`. Both are outside CA-01's conflict_keys, and both
-      are covered by the charter's absolute rule that skills are READ, never
-      edited, and that no `SKILL_MANAGER_HOME` change is applied. Suppressing the
-      hook would also be a change to the operator's machine that this ticket is
-      forbidden to make silently.
+      The remaining residue is the `<env>` block and the scratchpad path, which
+      are emitted by the harness and are not reachable from this repository. The
+      `--bare` route to removing them is blocked by credentials, which is
+      CA-01-DF-02 and is the operator's decision.
     suggested_fix: >-
-      An owner decision, not a repair. Either (a) accept it and print the
-      qualified contamination note from references/blind_dispatch.md section 7 --
-      "blind to our conclusions, not to our identity" -- beside every number, or
-      (b) test whether a judge dispatched with a settings file that disables the
-      SessionStart hook and with `--disable-slash-commands` loses the skill
-      listing too, which CA-01 did NOT measure and therefore does not claim, or
-      (c) state as the epic's finding that blindness is unachievable with this
-      harness, which GOAL-blind-dispatch clause (c) explicitly provides for.
+      CA-08 dispatches judges as `claude --safe-mode -p` from a directory outside
+      any git repository, and runs `blind_dispatch.py check` on each reply rather
+      than trusting the flag. A successor establishes whether the auto-memory
+      suppression is by design -- one question to the harness's documentation
+      owners, not a measurement -- because an incidental behaviour can change
+      without notice.
     blast_radius: >-
-      Every judged round this epic runs. If CA-08 prints "blind" unqualified
-      after CA-01 landed, the epic repeats the exact error CA-01 was opened to
-      correct, one ticket later.
-    disposition: open
+      Positive rather than negative now. The epic can run judged rounds blind to
+      the operator's conclusions, which changes CA-08's method. The residual risk
+      is depending on undocumented behaviour without recording the memory digest
+      beside the round.
 
   - id: CA-01-DF-02
     found_by: "CA-01"
