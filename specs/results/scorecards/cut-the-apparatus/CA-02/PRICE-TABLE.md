@@ -315,8 +315,11 @@ tellings**, which is exactly why the wrong endpoints survived a self-check — s
 ```
 runs:      6 failed, 1526 passed in 1092.83s (0:18:12)  @ f92f0a5  (pre-merge)
            6 failed, 1526 passed in 1130.91s (0:18:50)  @ 2244095  (reconciled)
-           6 failed, 1522 passed in 1167.65s (0:19:27)  @ 148a155  (PR HEAD)
+           6 failed, 1522 passed in 1167.65s (0:19:27)  @ 148a155  (full suite)
            SAME SIX FAILURES IN ALL THREE. 1522 + 6 = 1528 = collection.
+
+           5 failed,  525 passed in 1102.69s (0:18:22)  @ 08d462e  (fc39224 merge,
+                                                         TARGETED -- see below)
 evidence:  specs/results/scorecards/cut-the-apparatus/CA-02/pytest-repo-unit.txt
            specs/results/scorecards/cut-the-apparatus/CA-02/pytest-repo-unit-reconciled.txt
            specs/results/scorecards/cut-the-apparatus/CA-02/pytest-repo-unit-head.txt
@@ -330,7 +333,28 @@ PR head**. `2244095` precedes the close commit, which rewrites
 (`test_ticket_retirement`, `test_source_citations`). So the committed evidence
 was consistent with the conclusion but **did not establish it at the head**.
 
-**A third run at `148a155` now does**, recorded in `pytest-repo-unit-head.txt`:
+### After merging the epic tip `fc39224` — targeted, not another full suite
+
+The merge brought in exactly **four** files: `CUT-THE-APPARATUS-EPIC.md`,
+`deferred_findings.yaml`, `ticket_plan.yaml` and the `GOAL-four-results-stand`
+baseline. **The re-run scope was chosen by `grep -rln`, not by judgement** —
+every test file that reads one of those paths, plus the two covering what this
+revision itself edited:
+
+```
+5 failed, 525 passed in 1102.69s (0:18:22)  @ 08d462e
+evidence: specs/results/scorecards/cut-the-apparatus/CA-02/pytest-merge-targeted.txt
+```
+
+**All five are pre-existing baseline reds; zero new.** The sixth baseline red,
+`test_the_same_tag_control_holds`, is **deliberately not in this subset**: it
+reads scorecards, not any merged file, so it cannot be invalidated by this merge
+— and it was measured red at `148a155`. The measured surfaces were re-checked at
+the merged tree and are unmoved: **42,337** Python lines, card **6,281** /
+`sha256:2d7d4a0506d9b259`, collection **1528**.
+
+**A third full-suite run at `148a155`** is what establishes the headline figure,
+recorded in `pytest-repo-unit-head.txt`:
 **6 failed, 1522 passed**, the same six failures, and `1522 + 6 = 1528` matches
 the measured collection exactly. The passed count differs from the earlier runs
 by precisely the six collection items the close removed. **The only delta
