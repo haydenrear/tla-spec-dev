@@ -2262,3 +2262,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CA-01
+
+- close_scope: ticket
+- close_id: CA-01
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-13T15:35:40+00:00
+- summary: Blindness measured, not assumed: 3 of 4 dispatched agents received the operator's auto-memory and the five most recent commit subject lines before any tool call, correcting SV-05-DF-02's '4 of 4' to a tier. A memory-free path is proven on real subjects (2 REFUSED, 1 PASS) and its residual impossibility is stated as blocking finding CA-01-DF-01: blindness to our conclusions is achievable, blindness to our identity is not. No memory file and no skill edited; two diffs escalated. Costs 182 Python lines in examples/validation/.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
