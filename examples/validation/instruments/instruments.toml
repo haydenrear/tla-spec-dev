@@ -2746,3 +2746,69 @@ and reversible with `git checkout 90d0667 -- examples/validation/gap_mutants/
 tests/test_gap_mutants.py`.
 """
 
+
+[[instrument]]
+id = "epic-disposition"
+name = "CA-05 disposition requirement (epic close-out)"
+paths = ["scripts/disposition.py"]
+family = "workflow"
+watches = "every finding in `specs/desired_program_model/deferred_findings.yaml` filed by the epic being closed -- D1 a `disposition` from the closed vocabulary that is not `open`, D2 a `disposition_note` on a terminal disposition, D3 a `disposition_ticket` on a deferral"
+verdict_surface = "exit 1 with `REFUSED <scope>: N of M findings undisposed`, the count per failing clause, and the failing rows named"
+classification = "demonstrated-can-fail"
+note = """
+NOT A GATE ON ANYONE'S CODE, and the distinction is the reason this row exists
+in `workflow` rather than `repo-tripwire`. It reads ONE file in this repository
+and reports on THIS project's own epics at close-out. Nothing runs it in CI,
+nothing blocks a merge or a promotion on it, and it never looks at a subject
+artifact. Seven epics of static checking caught zero bugs and this epic adds no
+gate.
+
+`R1` DISCHARGED ON THE REAL LEDGER, NOT A FIXTURE. Over the sealed 225 rows it
+REFUSES `cut-the-apparatus` -- the epic that ships it -- at 10 of 15 rows
+`open`, while ACCEPTING `falsifiable-instruments` (30/30) and
+`subtract-to-measure` (30/30) and refusing `ports-as-adapters` on 2 of 28 under
+D2 alone. Two real sealed epics pass, six refuse, the refusals differ in size
+AND in clause, and `--ticket CA-05` exits 0 inside an epic that exits 1.
+
+THE DISCRIMINATION HAD TO BE DEMONSTRATED SEPARATELY. An instrument that refuses
+everything is a constant, not a measurement -- the shape of harvest class `D1`,
+where every `SURVIVED` cell was a floor. `passing` below is that check, and it
+selects its slices FROM THE REAL LEDGER AT RUN TIME rather than naming ids, so
+nothing here is fitted to a known answer (`MF-020`).
+
+Working: `references/consumption.md` and
+`specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/refusal.md`.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "fast"
+  summary = "a real epic slice carrying an undisposed row, plus each of D1/D2/D3 shown able to refuse on its own and whitespace shown not to satisfy either clause"
+  nodes = [
+    "tests/test_disposition_requirement.py::test_it_refuses_a_real_slice_that_contains_an_undisposed_row",
+    "tests/test_disposition_requirement.py::test_d1_refuses_open_and_refuses_a_word_outside_the_vocabulary",
+    "tests/test_disposition_requirement.py::test_d2_refuses_a_terminal_disposition_with_no_note",
+    "tests/test_disposition_requirement.py::test_d3_refuses_a_deferral_that_names_no_successor",
+    "tests/test_disposition_requirement.py::test_whitespace_does_not_satisfy_a_clause",
+  ]
+  expect_exit = 0
+  expect_passed = 5
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "fast"
+  summary = "A DIFFERENT RUN, deliberately -- SM-03 found two rows whose slots were byte-identical and so demonstrated one thing while reporting two. These assert ACCEPTANCE: at least one real epic in the sealed ledger passes all three clauses, and the ticket that shipped the rule obeys it."
+  nodes = [
+    "tests/test_disposition_requirement.py::test_it_accepts_a_real_slice_whose_rows_are_all_disposed",
+    "tests/test_disposition_requirement.py::test_the_ticket_that_shipped_the_rule_obeys_it",
+  ]
+  expect_exit = 0
+  expect_passed = 2
+
+  [instrument.blind_spot]
+  kind = "pytest"
+  tier = "fast"
+  summary = "IT MEASURES ROUTING, NOT CONSUMPTION. D3 asks that a deferral NAME a successor -- not that the successor still be open, nor that anyone ever read it. A row carried to an issue that closed unread satisfies the rule exactly as well as a real handoff, and `falsifiable-instruments` PASSES on precisely that shape: 29 of 30 rows pointed at #166-#169, all closed within two seconds of each other the day after FI merged. `CA-05-DF-03`, declared by the author rather than found by a reviewer."
+  nodes = ["tests/test_disposition_requirement.py::test_the_check_cannot_tell_a_live_successor_from_a_closed_one"]
+  expect_exit = 0
+  expect_passed = 1

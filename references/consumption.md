@@ -51,7 +51,7 @@ python3 scripts/disposition.py --all                      # every epic
 subject**, not a fixture. This project has shipped three instruments later found
 blind, one of them **this epic**, and its false-PASS modes were found by a
 reviewer rather than by its author. So the demonstration is the whole sealed
-ledger — 220 rows, eight epics, nothing constructed for the occasion:
+ledger — 225 rows, eight epics, nothing constructed for the occasion:
 
 | epic | merged | verdict | why |
 |---|---|---|---|
@@ -62,9 +62,11 @@ ledger — 220 rows, eight epics, nothing constructed for the occasion:
 | portable-substrate | 2026-08-10 | **REFUSED** | 27 `open` + 1 terminal with no note |
 | close-the-loop | 2026-08-11 | **REFUSED** | 17 of 17 `open` |
 | score-drives-validation | 2026-08-12 | **REFUSED** | 30 of 31 `open` |
-| **cut-the-apparatus** | in flight | **REFUSED** | **10 of 10 `open` — this epic, right now** |
+| **cut-the-apparatus** | in flight | **REFUSED** | **10 of 15 `open` — this epic, right now** |
 
-**133 of 220 findings are undisposed.**
+**133 of 225 findings are undisposed.** (The 5 disposed rows in
+`cut-the-apparatus` are `CA-05`'s own; every other epic's figure is untouched by
+this ticket.)
 
 **The refusal that matters is the last row.** The requirement is shipped by an
 epic it refuses. `CA-05` can dispose its own findings and does; it cannot

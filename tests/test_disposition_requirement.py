@@ -117,3 +117,33 @@ def test_whitespace_does_not_satisfy_a_clause():
 def test_the_vocabularies_do_not_overlap_and_exclude_open():
     assert not (D.TERMINAL & D.DEFERRAL)
     assert "open" not in D.TERMINAL | D.DEFERRAL
+
+
+# -- the declared blind spot, demonstrated rather than asserted -----------
+
+def test_the_check_cannot_tell_a_live_successor_from_a_closed_one(rows):
+    """`CA-05-DF-03`, the instrument's own blindness, kept executable.
+
+    D3 asks that a deferral NAME a successor. It does not ask that the successor
+    still be open, or that anyone ever read it. So a row carried to an issue
+    that closed unread satisfies the rule exactly as well as a real handoff --
+    and this test exists so that admission cannot quietly stop being true while
+    the prose still claims it.
+
+    `falsifiable-instruments` is the live example: 29 of its 30 rows point at
+    `#166`-`#169`, which are `subtract-to-measure`'s OWN ticket issues, all
+    closed within two seconds of each other the day after FI merged.
+    """
+    live = {"id": "X", "disposition": "carried",
+            "disposition_ticket": "https://github.com/haydenrear/tla-spec-dev/issues/144"}
+    closed = {"id": "Y", "disposition": "carried",
+              "disposition_ticket": "https://github.com/haydenrear/tla-spec-dev/issues/169"}
+    assert D.violations(live) == D.violations(closed) == []
+
+    fi = [r for r in rows if D.epic_of(r) == "falsifiable-instruments"]
+    assert fi, "falsifiable-instruments has no rows -- the example moved"
+    assert D.report(fi, "falsifiable-instruments", False) == 0, (
+        "the epic that demonstrates the blind spot no longer passes -- if that "
+        "is because its findings were genuinely consumed, retire this test and "
+        "CA-05-DF-03 with it"
+    )
