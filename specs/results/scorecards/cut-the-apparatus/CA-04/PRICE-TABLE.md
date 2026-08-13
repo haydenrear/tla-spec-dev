@@ -423,6 +423,81 @@ is the second, run from a clean start on the final tree.
 
 ---
 
+## 6a. RE-MEASURED AT THE PROMOTED TIP, after merging CA-03
+
+**`CA-03` merged between the measurement above and this promotion, so every
+figure was taken again on the merged tree rather than carried forward.** Merge
+commit `b581439`; epic tip `24cd340` is an ancestor of `feature/CA-04`.
+
+### Lines, per surface, at the promoted tip
+
+```
+surface                 4302082    CA-03 tip   CA-04 promoted   CA-04's own delta
+scripts/                 27,652      27,652         26,547            -1,105
+examples/validation/     14,685      14,854         14,854                 0
+                        -------     -------        -------           -------
+GOAL-apparatus-cut       42,337      42,506         41,401            -1,105
+```
+
+**`examples/validation/` rose by 169 lines and none of it is mine** — it is
+`CA-03`'s. It is reported here rather than netted against my cut, because a
+combined figure would read `-936` and silently attribute another ticket's
+addition to this one. **Each surface keeps its own tree.**
+
+```
+card: serve | wc -c   6,281 -> 6,281   digest sha256:2d7d4a0506d9b259 (unchanged)
+```
+
+### Suite at the promoted tip, under `denominator_rule`
+
+```
+CA-03 tip 24cd340:   6 failed / 1525 passed   (1,531 collected)  -- CA-03's own measurement
+CA-04 promoted:     10 failed / 1464 passed   (1,474 collected)  -- 1235.75s (0:20:35)
+
+numerator:    +4     the same four, named below; THE SET DID NOT CHANGE
+denominator:  -57 collected tests, because the tests of the deleted gate went
+              with the gate (test_kill_test.py plus the RunKillTest recipes in
+              test_infer_action_params.py). Passed ALSO rises by CA-03's new
+              tests, so 1,525 -> 1,464 is NOT a loss of 61 passing tests and
+              must not be read as one.
+```
+
+**The four new reds are the same four, on a different baseline tree:**
+
+```
+test_analyze_complexity.py::test_repository_own_model_reproduces_the_recorded_state_space_bound
+test_analyze_complexity.py::test_repository_own_model_has_landed_the_setup_phase_collapse
+test_instrument_demonstrations.py::test_every_declared_path_exists
+test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces
+```
+
+and the six baseline reds are `CA-03`'s six, unchanged and unrepaired. **No new
+red appeared from the merge and none of mine went away** — checked rather than
+assumed, since `CA-03` touched `score_tools.py`, `subjects.toml` and
+`tests/test_score_tools.py`.
+
+**Spec-unit at the promoted tip:** `1 failed / 55 passed`; the failure is the
+inherited `active_ticket: PA-01`, which `CA-03` also carried (`1 failed / 68
+passed`). The 68 → 55 move is the same denominator effect — the three
+`test_tla_spec_dev_kill_test_adapter.py` files went with the action.
+**Ticket-local: 53 passed / 0 failed.**
+
+### Ledger at the promoted tip
+
+```
+226 base -> 231 (CA-03's five) -> 237 (CA-04's six)
+duplicate IDs                       NONE
+rows missing a disposition          NONE
+pre-existing rows altered by CA-04  NONE
+CA-03's two disposition edits       PRESERVED (RD-03-DF-08 consumed,
+                                    SV-04-DF-05 repaired)
+duplicate YAML keys                 7, all `disposition_ticket`, all on
+                                    SM-05-DF-01..07 -- pre-existing at base,
+                                    none of them CA-04's. CA-05-DF-06.
+```
+
+---
+
 ## 7. What was REJECTED — including everything that would have made this look bigger
 
 Doctrine: *"Ask every blind agent what it REJECTED — it has produced more than
