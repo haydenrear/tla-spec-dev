@@ -20,36 +20,70 @@
 #   behavior_tests:        pass | fail         -- the repository behavior tests
 #   descriptor_comparison: recorded            -- before/after descriptor doc
 validated_refactor:
+  # ==================================================================
+  # READ THIS BEFORE CREDITING CA-05 WITH ANYTHING BELOW.
+  #
+  # THE `vars 9->8, actions 17->16` DECREASE IS **CA-04's**, NOT CA-05's.
+  # CA-04 removed the mutation kill test, which removes model surface; its
+  # plan entry says so ("EXPECTED AND DELIBERATE"). CA-05's
+  # model_delta_expectation is "none expected" and the ticket held to it:
+  #   ticket desired == ticket current == promoted specs/current,
+  #   and no .tla/.cfg outside CA-05's own sealed history snapshot differs
+  #   from the epic tip e379d6b.
+  # Recorded entries: CA-01, CA-02, CA-03 and CA-05's OWN FIRST CLOSE all
+  # read vars=9 actions=17. CA-04 reads vars=8 actions=16.
+  #
+  # THE EVIDENCE BELOW IS **CITED FROM CA-04, NOT MEASURED BY CA-05**, on the
+  # epic owner's explicit instruction after this gate refused CA-05's close.
+  # CA-05 did NOT run TLC. Running it would have certified a decrease this
+  # ticket did not cause, which is the misattribution the gate exists to
+  # prevent. Filed as CA-05-DF-07: the gate's ticket-scoped delta compares a
+  # ticket's new entry against ITS OWN PREVIOUS ENTRY, and that pair straddles
+  # a merge, so any ticket promoting after a model-changing ticket inherits
+  # that ticket's delta and is asked to license it.
+  # ==================================================================
   tlc_before:
-    status: "not_run"
+    status: "green"
     evidence: >-
-      NO MODEL DELTA. CA-05's model_delta_expectation is "none expected" and the
-      ticket held to it: no Internal/External action, state variable, invariant
-      or model config changed, so there is no before/after model to compare and
-      nothing licenses claiming a green TLC run that did not happen.
+      CITED FROM CA-04, NOT RUN BY CA-05.
+      specs/results/scorecards/cut-the-apparatus/CA-04/tlc-before.txt (also at
+      specs/.history/cut-the-apparatus-epic/ticket-003-CA-04/results/tlc-before.txt):
+      13,008,254 states generated, 563,963 distinct states, 0 left on queue,
+      depth 25, "Model checking completed. No error has been found." This is the
+      BEFORE side of the 9-variable model -- the model CA-04 changed and CA-05
+      did not. CA-04 additionally reported that this figure reproduces the count
+      recorded in TlaSpecDevCli.tla's own comment for that model, a faithfulness
+      check stronger than a hash.
   tlc_after:
-    status: "not_run"
+    status: "green"
     evidence: >-
-      Same reason. Recorded as not_run rather than green, because an unrun
-      constraint cannot witness retention -- which is this ledger's own rule.
+      CITED FROM CA-04, NOT RUN BY CA-05.
+      specs/results/scorecards/cut-the-apparatus/CA-04/tlc-after.txt:
+      2,505,440 states generated, 124,643 distinct states, 0 left on queue,
+      depth 24, "Model checking completed. No error has been found.", 13
+      invariants hold. This is the AFTER side of the same delta -- the
+      8-variable model CA-05 inherited by merging CA-04 and did not modify.
   behavior_tests:
     status: "pass"
     evidence: >-
+      MEASURED BY CA-05, and the only member here that is.
       specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/suite-CA-05.md
-      -- and the figure stated plainly rather than as a bare "pass": 8 FAILED /
-      1483 passed at the reconciled tip. ALL EIGHT ARE THE EPIC-TIP BASELINE,
-      MEASURED DIRECTLY at e379d6b in a detached worktree rather than assumed:
-      the 2 deliberate/inherited, the 3 test_source_citations, test_ticket_
-      retirement, CA-00-DF-02, and the TWO CA-04 DECLARED under CA-04-DF-04
-      (kill-test rows pointing at files CA-04 deleted). ZERO attributable to
-      CA-05. "pass" here means BEHAVIOR RETAINED, not a green suite.
+      -- stated plainly rather than as a bare "pass": 8 FAILED / 1483 passed at
+      the reconciled tip. ALL EIGHT ARE THE EPIC-TIP BASELINE, MEASURED DIRECTLY
+      at e379d6b in a detached worktree with this branch not involved, rather
+      than assumed: the 2 deliberate/inherited, the 3 test_source_citations,
+      test_ticket_retirement, CA-00-DF-02, and the TWO CA-04 DECLARED under
+      CA-04-DF-04. ZERO attributable to CA-05. "pass" means BEHAVIOR RETAINED,
+      not a green suite.
   descriptor_comparison:
-    status: "not_run"
+    status: "recorded"
     evidence: >-
-      No model changed, so a before/after descriptor comparison would compare a
-      tree with itself and report a null that is an arithmetic consequence of an
-      empty diff -- harvest class D5. Not run, and not reported as a measured
-      null.
+      CITED FROM CA-04, NOT PRODUCED BY CA-05.
+      specs/results/scorecards/cut-the-apparatus/CA-04/descriptor-comparison.md
+      -- before/after over the same two models, before side verified
+      byte-faithful by sha256 9c0f394c28259fe67848d2b7d45323d759d29bfb8e69c916b010051c91c622ef,
+      recording variables 9 -> 8 attributed to `kill_test`. CA-05 produced no
+      descriptor comparison because CA-05 changed no descriptor.
 
 # Fuzzing-era retention members -- RECORDED at every close, non-gating since
 # CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs

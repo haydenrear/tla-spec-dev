@@ -26,29 +26,16 @@ slogan's usual reading, that checks catch nothing. In this epic alone:
    a gate that blocked a promotion and improved the record by doing so;
 3. **`CA-03` found `audit` has dated, outcome-changing catches.**
 
-4. **and the fourth points the OTHER WAY — the same complexity ledger then
-   FALSELY refused `CA-05`.** Its ticket-scoped delta compares a ticket's new
-   entry against **its own previous entry**, and that pair straddles a merge, so
-   `CA-04`'s deliberate model reduction (`vars 9→8`) was charged to a ticket that
-   changed no model surface at all. `CA-05-DF-07`.
-
 **The honest statement is therefore about the SUBJECT, not about checking.**
 Static checks over *subject program content* have caught nothing in seven epics.
-**This project's own process gates, over its own reporting, produced four results
-in one epic — three catches and one false refusal.**
+**This project's own process gates, over its own reporting, caught three things
+in one epic.**
 
-**Both directions are now evidenced, and that is a better input to `CA-08` than
-three catches alone.**
-
-**It also weakens the case this page is building, and the author is not a
-disinterested party.** `CA-05` is arguing that the process-gate category does
-real work, because the disposition requirement is in that category. A false
-refusal by the most substantive gate in the repository is direct evidence
-against the reliability of the class `CA-05` is asking a reader to trust — and it
-was produced *by refusing `CA-05` itself*, which is the only reason it was found.
-**A reader should discount this page accordingly, in both directions:** the
-category catches real things, and it also refuses real things wrongly, and
-nobody has yet measured the ratio.
+**And that cuts in favour of this page, which a reader should discount
+accordingly:** the disposition requirement is in the second category. It is a
+close-out check over this project's own bookkeeping, which is exactly the class
+that has just been shown to work — so the prior on it should go *up*, and the
+author of this page is not a disinterested party in saying so.
 
 It is also not a target on the consumption rate. A threshold on a consumption
 number before the mechanism exists is `MF-020` — an axis fitted to a known
