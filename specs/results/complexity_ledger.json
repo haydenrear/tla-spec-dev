@@ -28642,6 +28642,176 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "CA-06",
+      "workflow": "cut-the-apparatus-epic",
+      "recorded_at_utc": "2026-08-14T02:22:47.474552+00:00",
+      "metrics": {
+        "variables": 8,
+        "actions": 16,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 277830,
+        "bound_complete": false,
+        "bound_resolved_variables": 6,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.002483746073489777,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 8 declared variables (2 unresolved: lastCommand, result) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 277830,
+            "bound_complete": false,
+            "percent_lower_bound": 27.8,
+            "percent": null,
+            "within_cap": null,
+            "caveat": "the bound is a product over 6 of 8 declared variables (2 unresolved: lastCommand, result), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "CA-05",
+        "metrics": {
+          "variables": {
+            "before": 8,
+            "after": 8,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 16,
+            "after": 16,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 277830,
+            "after": 277830,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "scripts/kill_test.py's oracle-4 half was removed by CA-04 (RM-03-DF-05), so this repository has no mutation-kill instrument to run. CA-06 measured kills on a DIFFERENT subject with its own probe -- specs/results/scorecards/cut-the-apparatus/CA-06/mutation_probe.py -- and that is NOT this member and is not recorded as it.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "not_applicable",
+          "classification": "unverified",
+          "evidence": "specs/results/scorecards/cut-the-apparatus/CA-06/CLOSE-NARRATIVE.md -- section 1. direction=zero: the pre- and post-change models are byte-identical, so a before/after TLC pair would compare a model with itself. Not run, and not claimed.",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "not_applicable",
+          "classification": "unverified",
+          "evidence": "specs/results/scorecards/cut-the-apparatus/CA-06/CLOSE-NARRATIVE.md -- section 1. Same reason. CA-04-DF-07 records that `tla-spec-dev run tlc` is not a subcommand and TLC must be driven through .skill-manager/bin/cli/tlc2; it was not needed here.",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "specs/results/scorecards/cut-the-apparatus/CA-06/pytest-promotion.txt -- full suite at the merged tip. READ THE FILE, NOT THIS WORD: the suite carries 8 inherited and deliberate reds at this epic's baseline and this run reproduces exactly that set, item for item, with nothing attributable to CA-06. `pass` here means `matches the declared baseline`, which is the only sense in which this suite passes for anyone.",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "specs/results/scorecards/cut-the-apparatus/CA-06/PRICE-TABLE.md -- section 3b, the model-delta restatement, and section 3, the three-column per-surface figures. The descriptor comparison is DEGENERATE BY CONSTRUCTION at direction=zero: before and after are the same model.",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=not_applicable (UNVERIFIED)",
+        "tlc_after=not_applicable (UNVERIFIED)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "found",
+        "detail": "SEARCHED, AND A REAL REDUCTION WAS FOUND AND DELIBERATELY NOT TAKEN, which is recorded here rather than reported as \"none\" because \"none\" would be false. The execution mode CA-06 deleted (CA-06-DF-03) leaves TWO NOW-DEAD PORTS declared in the model: `case_program_process` (process.spawn, `*programs/case-*`) and `case_program_write` (filesystem.write, `**/programs/case-*`), both listed under RunSpecUnitTests, both @port annotated at TlaSpecDevCli.tla:506 and :509, in all three spec trees. The effects they declare CAN NO LONGER OCCUR, so removing them is a genuine reduction of declared model surface and it needs NO TLC -- a port declaration is not a variable, an action or a bound. NOT TAKEN HERE for one stated reason: tests/test_port_declarations.py:136 asserts `case_program_process` BY NAME, so it is a model change WITH a test to update, and it was discovered at review time on an already-open PR. Enumerated exactly in CA-06-DF-03's blast_radius -- 2 manifest port blocks x 3 trees, 2 @port annotations x 3 trees, 1 RunSpecUnitTests list entry x 3 trees, 3 citation comments x 3 trees, plus the test row -- so the next ticket takes it without rediscovering it. THE REFINEMENT THAT WAS TAKEN is generator-side rather than model-side and is a SUBTRACTION: resolve_next_relation deletes a hardcoded \"Next\" in favour of find_next_relation, which scripts/analyze_complexity.py has shipped for three epics and this module never called. It removes a special case instead of adding one, and it is a byte-level no-op on both models that already worked, so no sealed corpus and no TLC figure moves.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "specs/results/scorecards/cut-the-apparatus/CA-06/CLOSE-NARRATIVE.md",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

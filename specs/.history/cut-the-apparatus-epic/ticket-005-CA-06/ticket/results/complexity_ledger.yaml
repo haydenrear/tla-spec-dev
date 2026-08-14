@@ -1,0 +1,89 @@
+# Complexity ledger input -- MF-019 standing objective. Filled by CA-06.
+#
+# THE MODEL DELTA IS direction=zero. No .tla, no .cfg and no spec_manifest.yaml
+# changed:
+#
+#   git diff e379d6b -- specs/program_model specs/current \
+#       specs/desired_program_model/TlaSpecDevCli.tla \
+#       specs/desired_program_model/spec_manifest.yaml     # -> empty
+#
+# No variable, action or bound moved. There is therefore no DECREASE for the
+# validated-refactor basis to license, and TLC was legitimately skipped.
+#
+# Recorded rather than implied, because CA-06's first PR said "no model delta"
+# and that was the wrong phrase: NO MODEL WORK WAS DONE, and the model is now
+# STALE. See CA-06-DF-03's blast_radius and section 1 of the narrative.
+
+validated_refactor:
+  tlc_before:
+    status: "not_applicable"
+    evidence: "specs/results/scorecards/cut-the-apparatus/CA-06/CLOSE-NARRATIVE.md -- section 1. direction=zero: the pre- and post-change models are byte-identical, so a before/after TLC pair would compare a model with itself. Not run, and not claimed."
+  tlc_after:
+    status: "not_applicable"
+    evidence: "specs/results/scorecards/cut-the-apparatus/CA-06/CLOSE-NARRATIVE.md -- section 1. Same reason. CA-04-DF-07 records that `tla-spec-dev run tlc` is not a subcommand and TLC must be driven through .skill-manager/bin/cli/tlc2; it was not needed here."
+  behavior_tests:
+    status: "pass"
+    evidence: "specs/results/scorecards/cut-the-apparatus/CA-06/pytest-promotion.txt -- full suite at the merged tip. READ THE FILE, NOT THIS WORD: the suite carries 8 inherited and deliberate reds at this epic's baseline and this run reproduces exactly that set, item for item, with nothing attributable to CA-06. `pass` here means `matches the declared baseline`, which is the only sense in which this suite passes for anyone."
+  descriptor_comparison:
+    status: "recorded"
+    evidence: "specs/results/scorecards/cut-the-apparatus/CA-06/PRICE-TABLE.md -- section 3b, the model-delta restatement, and section 3, the three-column per-surface figures. The descriptor comparison is DEGENERATE BY CONSTRUCTION at direction=zero: before and after are the same model."
+
+# Fuzzing-era retention members -- recorded, non-gating since CD-09.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: "scripts/kill_test.py's oracle-4 half was removed by CA-04 (RM-03-DF-05), so this repository has no mutation-kill instrument to run. CA-06 measured kills on a DIFFERENT subject with its own probe -- specs/results/scorecards/cut-the-apparatus/CA-06/mutation_probe.py -- and that is NOT this member and is not recorded as it."
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. Recorded, never refusing.
+coverage_audit:
+  status: "not_run"
+  report: ""
+  in_scope_gaps: null
+  scope_source: ""
+
+# Required only if complexity INCREASED. It did not; direction=zero.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+refinement:
+  searched: true
+  outcome: "found"
+  detail: >-
+    SEARCHED, AND A REAL REDUCTION WAS FOUND AND DELIBERATELY NOT TAKEN, which
+    is recorded here rather than reported as "none" because "none" would be
+    false. The execution mode CA-06 deleted (CA-06-DF-03) leaves TWO NOW-DEAD
+    PORTS declared in the model: `case_program_process` (process.spawn,
+    `*programs/case-*`) and `case_program_write` (filesystem.write,
+    `**/programs/case-*`), both listed under RunSpecUnitTests, both @port
+    annotated at TlaSpecDevCli.tla:506 and :509, in all three spec trees. The
+    effects they declare CAN NO LONGER OCCUR, so removing them is a genuine
+    reduction of declared model surface and it needs NO TLC -- a port
+    declaration is not a variable, an action or a bound.
+    NOT TAKEN HERE for one stated reason: tests/test_port_declarations.py:136
+    asserts `case_program_process` BY NAME, so it is a model change WITH a test
+    to update, and it was discovered at review time on an already-open PR.
+    Enumerated exactly in CA-06-DF-03's blast_radius -- 2 manifest port blocks
+    x 3 trees, 2 @port annotations x 3 trees, 1 RunSpecUnitTests list entry x 3
+    trees, 3 citation comments x 3 trees, plus the test row -- so the next
+    ticket takes it without rediscovering it.
+    THE REFINEMENT THAT WAS TAKEN is generator-side rather than model-side and
+    is a SUBTRACTION: resolve_next_relation deletes a hardcoded "Next" in favour
+    of find_next_relation, which scripts/analyze_complexity.py has shipped for
+    three epics and this module never called. It removes a special case instead
+    of adding one, and it is a byte-level no-op on both models that already
+    worked, so no sealed corpus and no TLC figure moves.
+  measured: false
+  applied: false
+  approved_by: ""
+
+# Required only on a generated-states drop at constant distinct states.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger.
+narrative: "specs/results/scorecards/cut-the-apparatus/CA-06/CLOSE-NARRATIVE.md"
