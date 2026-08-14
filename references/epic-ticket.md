@@ -341,7 +341,19 @@ silently.
 
 ### 6. Close only this spec ticket
 
-Mark only this plan entry closed/done, then run:
+**First** set this ticket's `status` to closed/done in the canonical plan,
+`specs/desired_program_model/ticket_plan.yaml` — and only this ticket's. This is
+a precondition, not bookkeeping: `close ticket` reads the plan, not the ticket
+workspace, and refuses outright while the entry still says `status: planned`:
+
+```
+ERROR: ticket <id> is not closed in ticket_plan.yaml: status=planned
+```
+
+`--allow-open` exists to bypass that precondition and is recorded in the history
+as a guard weakening. Never reach for it here; edit the plan entry instead.
+
+Then run:
 
 ```bash
 tla-spec-dev --spec-root specs close ticket <stable-ticket-id> \
