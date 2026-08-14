@@ -2401,3 +2401,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CA-08
+
+- close_scope: ticket
+- close_id: CA-08
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-14T05:26:52+00:00
+- summary: EVALUATION: 14 goal clauses met, 4 missed. The apparatus cut reached 14% of its target and CA-08-DF-08 measures why. scope returns 0 counted figures on the charter that credits it. Static gates adjudicated at 3:1 with the doctrine's real defect named. Eight findings filed, nothing fixed.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

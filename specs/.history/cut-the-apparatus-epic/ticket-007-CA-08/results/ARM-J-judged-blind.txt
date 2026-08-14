@@ -1,0 +1,76 @@
+Only `PACKET.md` is in the directory, so this is a pure adjudication. Here it is.
+
+---
+
+# 1. What wording survives
+
+**Survives:** *"No static gate in this project has ever been shown to catch a semantic defect in shipped program code."*
+
+**Population that claim ranges over, precisely:** defects in executable program code that produce wrong behavior — wrong output, never-executed branches, comparisons that pass vacuously. That is the population of the three defects in the "Also on the record" section: the generator emitting zero cases for every model not literally named `Next`, the key comparison that had never executed, the cross-check comparing key sets that could never match.
+
+**Explicitly outside that population, and where the doctrine is flatly false:**
+- declared-vs-actual mismatch (Outcome 3)
+- set completeness / registration (Outcome 2)
+- sealed-record hygiene (Outcome 1, historically — nine, then ten, then two violations, one published claim withdrawn as a direct result)
+- operator protocol and blindness violations (Outcome 5)
+
+Four catches in one cycle in that second population. "Static gates catch nothing" as a universal is dead. It was falsified four times by the packet's own record.
+
+**And the surviving narrow claim is weaker than it looks.** Not one of the five checks *targets* program semantics. `audit` checks records. The tripwire checks registry rows. The close-out checker checks declarations against declarations. The blindness checker checks a path string. They caught no code bugs because none of them was ever pointed at code. Zero observations of X is not evidence about X when the instrument was never aimed at X. The correct statement is "our gates have never caught a code bug," and the honest gloss is "our gates were never built to." That is a fact about what the project chose to build, not a fact about gates.
+
+# 2. The ratio I would publish
+
+**3 catches : 1 false refusal, this cycle.** Restricted to refusals of in-flight work items only: **2 : 1.** I publish both because the difference is a real scoping judgment, not a rounding choice.
+
+**Counting** — Outcome 2 (missing registry row), Outcome 3 (correct close refusal), Outcome 5 (operator's method, correctly refused) as catches; Outcome 4 (baseline straddled a merge) as the false refusal. Outcome 5 is the one that moves between the two ratios, since it refused an operator rather than a work item.
+
+**Excluding, and why:**
+
+- **Outcome 1's historical firings.** Prior cycles, not this one. Reported separately: three firing occasions, one published claim withdrawn, evidentiary quality 5 hold / 1 weak / 1 withdrawn. Folding prior-cycle events into a per-cycle ratio inflates it.
+- **The withdrawn citation: worth zero, not "weak."** A counterfactual — "under version 2 that card *would* be rejected" — about a version-1 card, against a rule that did not exist when it was written. The check never refused anything in flight. That is not a catch that degraded; that is not an event.
+- **The weak citation.** Self-report, no instrument transcript, no violation line, no timestamp. Unverifiable. Out of the numerator, on the record as a flag.
+- **The three program-code defects.** Out of *both* numerator and denominator. They are not check outcomes. They belong to a different denominator entirely — defects-found-by-method — where this cycle reads **3 by execution and mutation, 0 by static gate**. Putting known misses into a catch ratio manufactures precision, because you cannot count the misses you don't know about; any miss count is a lower bound, and lower bounds don't belong in ratios.
+- **Outcome 3 counts once.** One refusal, two downstream corrected claims. I will not inflate it to three, though it is the single most valuable item in the packet: the two claims it corrected *flattered the author's own work*. That is the failure mode no self-review catches, ever.
+
+**Two numbers that belong next to the ratio, not inside it.** Outcome 4 cost two close attempts — severity is asymmetric and a scalar hides it. And Outcome 1's remedy arm has fired **zero times in project history**: every entry carries `third_pass = "none"`.
+
+**The number that matters most:** in the program-code population, the gates produced 0 catches and 0 false refusals. The ratio there is undefined. They were silent. That silence is the finding.
+
+# 3. May the doctrine, as originally worded, refuse a new check?
+
+**No.**
+
+**Condition:** as worded it is a universal, and a falsified universal cannot do refusal work. Four counterexamples in one cycle.
+
+A successor claim may refuse only under these conditions:
+
+1. **The refuser re-derives the headline number first.** "Seven cycles, zero bugs" has never been audited. It comes out of the same write-up apparatus that this cycle was shown to claim eight adjudications where the true number is zero, and to cite a counterfactual as an event. If the record is that unreliable in the pro-check direction, it is exactly that unreliable in the anti-check direction. Nobody may invoke a figure that has never received the treatment Outcome 1 just received. That is the gating condition, and it is not optional.
+2. **It may never refuse a check in the metadata/declaration/completeness/protocol population.** Gates demonstrably work there. Refusals there need a different argument: duplication, or false-refusal cost exceeding expected value.
+3. **In the program-code population it may shift burden, not bar.** The legitimate form is "gates of the type we build have never caught one — show why yours differs." That is a burden on the proposer. It is not a prohibition, and it is not what the doctrine has been doing for eight cycles.
+
+# 4. Weakest part of each case
+
+**Weakest part of the case for KEEPING it:** the headline number's provenance. Not that "seven cycles, zero bugs" is wrong — that it has precisely the provenance the project just proved it cannot trust, and eight cycles of refusals rest on a figure nobody ever checked. Close second: the keeping case now survives only by silently re-scoping "bugs" to mean program-code semantics *after* four counterexamples landed. That re-scoping is legitimate as a revision. It is illegitimate as a defense of the original wording, and everyone invoking the doctrine has been trading on the broad reading while retreating to the narrow one under pressure.
+
+**Weakest part of the case for DISCARDING it:** every single catch is in the same low-severity population. Not one gate caught anything that would have shipped broken behavior. Meanwhile a generator emitted zero cases for *every model in the repository* for three cycles, a key comparison never executed once, and a cross-check passed vacuously on every input — all invisible to gates, all found by running the code on a real subject and reading the output, or by deleting code to see whether anything went red. In the third case the reviewer established nothing in the suite would *ever* have gone red, in either direction. The discard case wants to conclude "gates work, add more." The evidence supports "the marginal gate here enforces more paperwork." Add Outcome 4's two consumed close attempts and Outcome 1's remedy arm that has never once fired, and the discard advocate has to answer a question they have not answered: why is the correct response not "audit the existing gates and mandate mutation testing" rather than "add gates"? Nobody in this packet has proposed institutionalizing the one method that actually found all three real bugs — and it was cheap.
+
+# 5. REJECTED
+
+**What I was inclined to conclude and didn't.** My first read was "doctrine's dead, four catches in one cycle, next question." Wrong — that counts a population swap as a refutation. On the population the doctrine was plausibly *about*, the score this cycle is 0 for 3, and the packet says so itself. I nearly steamrolled a narrow claim that is correct.
+
+I was also inclined the other way: to treat 5/7 citations and the eight-vs-zero error as discrediting the pro-check case wholesale. It doesn't. A degraded write-up about a catch is not evidence the catch didn't happen. Five hold, and a published claim was actually withdrawn.
+
+**Framings considered and discarded.** Folding the three code defects into the denominator as "misses" to produce 3 catches : 1 false refusal : 3 misses — rejected, misses aren't commensurable with refusals and any miss count is a lower bound. "Defense in depth, every check pays for itself" — rejected, unfalsifiable, and the exact mirror of the doctrine. Any expected-value calculation in attempt-cost — rejected, n=5 over one cycle; the honest output is a population split, not a scalar. Counting Outcome 3 as three catches — rejected as inflation. Denying Outcome 5 is a catch because it refused an operator rather than code — rejected, but it moves the ratio, so I published both.
+
+**What's loaded in this packet.**
+
+- **The chunking, and this is the big one.** Five check outcomes get five numbered sections; a checker firing three times in past cycles becomes "Outcome 1," a single missing registry row becomes "Outcome 2." The three program-code defects get three bullets under a header. Five-versus-three is an artifact of how the packet chose to slice, not a measurement. Slice it the other way — "three defects that shipped and survived three cycles" versus "one missing registry row" — and the picture inverts. I do not know the real base rates and neither does anyone reading this.
+- **"Also on the record from the same cycle" is a demotion.** That unnumbered section holds the only defects here that would have hurt a user. Placement is doing argumentative work.
+- **The bolding is doing argument.** Every bolded span is a thumb on a scale — `zero`, `third_pass = "none"`, `flattered the author's work`, `None of the three was found by any automated check`, `nothing in the test suite would ever have gone red`. It cuts roughly both ways, which is something, but I am reasoning off the packet's highlight reel.
+- **`third_pass = "none"` is the most rhetorically loaded item here.** Presented as devastating; actually ambiguous. A remedy that never fires can mean dead ceremony, or can mean upstream deterrence so effective it's never needed. The packet gives me no way to distinguish and offers only the first reading. I used it anyway, flagged, because the eight-versus-zero gap is independently damning as a *reporting* failure regardless of which reading is right.
+- **Task 1's phrasing presupposes its answer.** "What wording survives" invites me to hand back a salvaged doctrine. "Nothing survives; replace it with a positive policy about where gates work and where execution and mutation testing work" was not offered as an option. I have taken most of it anyway.
+- **"Be blunt," twice, plus a REJECTED section, is an invitation to perform iconoclasm** — to be harsh about the doctrine to demonstrate independence. Bluntness that only ever points one direction is just a different flavor of compliance. So, bluntly: the doctrine's narrow form is correct, and the people invoking it were not wrong about everything.
+- **What I was not given.** How often the gates passed cleanly — the true denominator. What the gates cost to run. How many work items shipped. Who wrote the doctrine and whether they benefit from it. Every ratio in §2 sits on a numerator the packet selected and a denominator I do not have.
+- **"WITHOUT the project's own conclusion attached" is a claim of neutrality I cannot verify.** Stripping conclusions off a selected set of facts does not make the selection neutral. I am adjudicating on evidence assembled by someone with a position, and I have no way to see what was left out.
+
+**One thing the packet never says, which is the actual defect in the doctrine.** "Bugs," in "seven cycles, zero bugs," is nowhere defined — and the entire adjudication turns on that definition. The doctrine's real failure isn't that it's false. It's that it was unfalsifiable as stated, which is exactly what made it usable to refuse things for eight cycles.
