@@ -289,3 +289,122 @@ is willing to stand behind, and this register is the evidence under them.
 **The rule that produced it stands and is now demonstrated rather than asserted:
 a finding written into a card note is a finding nobody carries forward, and the
 carrying is a separate act that has to be funded.**
+
+---
+
+# ADDENDUM — `CA-05`, 2026-08-13: the register was not being kept
+
+**Everything above this line is `CL-03`'s and is not edited.** This section
+appends; it corrects no sentence of the sweep.
+
+## Why an addendum was needed
+
+`CL-03` swept **83 cards on 2026-08-11** and named 38 classes. The register was
+then **untouched for a whole epic**, while `SV-01-DF-05` filed three new defect
+classes into `deferred_findings.yaml` and **not into this file**. So `38`
+stopped growing on 2026-08-11, and every *"1 in 38"* quoted since was measured
+against a register nobody maintained.
+
+## G. Classes filed to the ledger and never swept in — `SV-01-DF-05`
+
+Found by four blind judges scoring `artifact_under_score` in `SV-01`'s round.
+All four judges declined to move a score on any of them and said why; **the code
+is correct on all three and the gap is in the cases.** Sealed evidence: the four
+`N-D1` blocks in `score-drives-validation-sv01-v4/` and `-sv01-v5/`.
+
+**G1. Rejection precedence is pinned by no case, and it is the requirement the
+specification was most emphatic about.** `FEATURE.md` fixes the order of
+`reserve`'s rejections in a numbered list — the only thing it numbers — and the
+artifact implements it correctly. Swapping `tenant_closed` and
+`amount_not_positive` at `quota_ledger/domain.py:139-142` leaves **53/53 and
+28/28 green**, because no case anywhere constructs an input where two rejection
+conditions hold at once. **Found independently by all four judges.** One:
+*"the requirement the spec was most emphatic about is the one nothing pins."*
+*(Related to `B1`, which records the 28-case contract as green on
+refusal-precedence faults; `G1` is the same blindness located in the artifact's
+own suite as well, and pinned to a numbered requirement.)*
+
+**G2. The shipped composition root is exercised by no case.** The artifact's own
+suite never constructs `QuotaLedger` and the shared suite never looks at the
+path it is handed, so rewiring `quota_ledger/__init__.py:39` to an
+`InMemoryJournal` — after which **the shipped program writes no durable file at
+all** — passes both suites. Two judges; both considered it grounds for `D3 = 3`
+and both routed it to `N-D1` instead, on the ground that it is a hole in the
+cases rather than in the design.
+
+**G3. The one case that reads bytes off disk cannot see a line-ending fault.**
+`tests/test_ledger.py:247` compares through `Path.read_text()`, which silently
+normalises CRLF, so **the single independent observer of the durable effect is
+blind to the framing the adapter is responsible for.** One judge. **This is the
+very line `SV-01`'s verdict rests on**, and `SV-01` filed it rather than
+softening it.
+
+*(Carried in `SV-01-DF-05` and not promoted to a class here: closing tenant A
+while tenant B holds a live reservation is tested nowhere. It is a single
+missing case, not a class.)*
+
+## The true denominator
+
+<!-- HARVEST-DENOMINATOR-START -->
+| | classes |
+|---|---|
+| `CL-03`'s sweep, 2026-08-11 | 38 (A1–A7, B1–B6, C1–C7, D1–D7, E1–E5, F1–F6) |
+| appended by `CA-05` from `SV-01-DF-05` | 3 (G1–G3) |
+| **register total** | **41** |
+
+**Per `denominator_rule` — which half moved:**
+
+> **The denominator rose, 38 → 41. The numerator did not move.**
+>
+> - **consumed into program validation: 1 of 38 (2.6%) → 1 of 41 (2.4%)** — still
+>   `A1`, by `SV-04`, and no second class has been consumed since.
+> - **named by a ledger row: 4 of 38 → 4 of 41** — `A1`, `E1`, `F3`, `F6`.
+>
+> **No consumption was lost and nothing regressed.** The rate fell because the
+> register was repaired, and a rate that falls on a bookkeeping repair was
+> always overstated.
+<!-- HARVEST-DENOMINATOR-END -->
+
+**41 is a floor, not a recount.** `CL-03` swept **83** cards; the tree now holds
+**95**. **Twelve cards have been sealed since and nobody has swept them.** 41 is
+what one bounded, reproducible repair yields — not what re-running `CL-03`'s
+method over 95 cards would yield. **Quoting 41 as "the number of known classes"
+is the same error quoting 38 was**, and the only honest fix is to run the sweep
+again, which `CA-05` did not do and does not claim to have done.
+
+## Read the numerator honestly
+
+Four classes are named by a ledger row. **Three of the four are this project
+catching *itself* committing the class, not consuming it:**
+
+| class | the ledger row | what actually happened |
+|---|---|---|
+| `A1` | `SV-04` | **CONSUMED** — carried into program validation, control 3,3 vs treatment 4,4 |
+| `E1` | `SV-04-DF-01` | **COMMITTED** — the file written to consume `A1` asserted in its own docstring what its code did not do, and a judge caught it in the same round |
+| `F3` | `SV-04-DF-02`, `CL-04-DF-05`, `SV-04-DF-05` | **COMMITTED** — a blinding leak, this time located in the instrument itself |
+| `F6` | `SV-04-DF-04` | **COMMITTED** — a round's own two judges made mutually contradictory factual claims |
+
+**One class in 41 has been consumed. Three more were re-committed by the
+programme that named them.** A table that reports *"4 of 38 named"* without that
+sentence overstates the loop by a factor of four.
+
+*(Disclosed for completeness: `SV-04-DF-05` also names the whole `C` section —
+*"gates that report clean on broken input"* — inside the scoring toolchain. That
+is a reference at section granularity, not to any of `C1`–`C7`, so it does not
+move the count of 4. Recorded rather than counted.)*
+
+## An internal inconsistency in the sweep, recorded and not repaired
+
+The method paragraph says *"the four items marked **[RUN]**"*. The file carries
+**five** run markers: `A1`, `A2` and `F1` as `[RUN]`, and `C4` and `C5` as
+`[RUN by the judge]`. **Not repaired here** — `CL-03`'s text is sealed and the
+discrepancy is one sentence against five markers, which a reader can resolve.
+Recorded so the next person does not have to rediscover it.
+
+## How to keep this register
+
+**`references/consumption.md` carries the requirement.** The short version: a
+finding that names a defect *class* belongs in **both** the ledger and this
+register, and the epic that files it appends it here **before it closes**.
+`SV-01-DF-05` did the first half and not the second, which is the entire reason
+this addendum exists.

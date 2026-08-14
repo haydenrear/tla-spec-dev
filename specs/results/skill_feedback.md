@@ -2282,6 +2282,13 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: cut-the-apparatus-epic
 - closed_at: 2026-08-13T17:31:12+00:00
 - summary: Cut the removal-pricing machinery, an instrument RM-05-DF-01/CL-02 measured able to return only ENTAILED-SURVIVES. Removed price_removal.py (838), altered_score_probe.py (177), residual_faults.toml (193), removal_census.py (429), removals.toml (712) and their two test files (888), each deletion naming its finding. examples/validation/ 15,901 -> 14,457 (-1,444); scripts/ unchanged at 27,652 because complexity_ledger.py has NO pricer coupling (CA-02-DF-01); card unchanged at 6,281 / sha256:2d7d4a0506d9b259. Registry rows retired not deleted (FI-04-DF-04); gap_mutants/ kept as a tombstone because it is sealed subject rm04_removal_pricer's declared scope, which went UNDERIVABLE and moved the tag derivation 17->16 of 21 (numerator fell, denominator held at 21). The deliberate pricer-grep red was DELETED WITH ITS SUBJECT, not repaired. Suite 6 failed / 1526 passed on both the pre-merge and reconciled trees, zero new reds. Price-table format established as plain markdown, no new code.
+## Close-out ticket CA-05
+
+- close_scope: ticket
+- close_id: CA-05
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-13T17:53:55+00:00
+- summary: A disposition requirement an epic cannot close through, demonstrated by refusing THIS epic (10 of 15 rows open) while accepting two real sealed epics; harvest register repaired 38 -> 41 with the denominator movement named; channel/channel_note and cost{basis,value} defined and populated on CA-05's own five rows. Main finding: the disposition practice existed for three epics and lapsed silently on 2026-08-08, in exact correlation with SELF-IMPROVEMENT.md's own lapse.
 - feedback_status: unreviewed
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
@@ -2339,6 +2346,18 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - forced_workaround: bypass the documented CLI entirely and hand-roll both sides of a two-sided measurement
 - data_loss: no
 - detail: THE CLOSE GATE REQUIRES TLC EVIDENCE THE CLI CANNOT PRODUCE. The complexity ledger licenses a complexity DECREASE only on the CD-09 validated-refactor basis, whose first two members are `tlc_before` and `tlc_after` from the same run. The toolchain ships no command that runs TLC at all, and every ticket assignment in this epic says to run `tla-spec-dev --spec-root specs run tlc`, which answers "argument target: invalid choice: 'tlc'". Worse, `tlc_before` is unaddressed rather than merely unimplemented: the pre-change model does not exist in the working tree by close time, so satisfying the gate requires reconstructing it from git into a scratch directory -- a step no documentation mentions and which has an obvious wrong answer (running "before" against the post-change file). A `tla-spec-dev run tlc [--baseline <rev>]` emitting both runs in the shape `validated_refactor` expects would close the gap. Until then every model-changing ticket hand-rolls it, and the first one to try had its close refused before discovering the command did not exist.
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CA-05
+
+- close_scope: ticket
+- close_id: CA-05
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-14T00:34:31+00:00
+- summary: RECONCILED CLOSE at the epic tip e379d6b (CA-01..CA-04 merged). This is a SECOND, APPEND-ONLY history entry: ticket-004-CA-05 is the first close, taken before the promotion predecessor merged, and is preserved unedited. Requirement REFUSES cut-the-apparatus 24 of 36 (16 D1 rows from CA-00/CA-01/CA-02 outstanding). Ledger 246 = tip's 239 + this ticket's 7, verified row-by-row, nothing dropped or reordered. CA-05-DF-06: seven duplicate-key rows the check certified clean, repaired, with a structural guard whose failing input is the real pre-repair file. CA-05-DF-07: this gate's ticket delta straddles a merge and charged CA-04's model reduction to CA-05 -- basis filled BY CITATION to CA-04's TLC run on the owner's instruction, never re-measured. Discrimination argument WITHDRAWN: 10 false D2/D3 refusals, each inspected. Register 38->41 (denominator rose), then NUMERATOR 1->2 of 41 via CA-03's F3 repair, verified by hand. Suite 8/1483, exactly the epic-tip baseline measured in a detached worktree.
+- feedback_status: unreviewed
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

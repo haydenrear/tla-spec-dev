@@ -27610,6 +27610,1038 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "CA-05",
+      "workflow": "cut-the-apparatus-epic",
+      "recorded_at_utc": "2026-08-13T17:53:03.674153+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 17,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 1111320,
+        "bound_complete": false,
+        "bound_resolved_variables": 7,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.00334800669601341,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 1,111,320 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 7 of 9 declared variables, so the complete bound is at least this large)",
+          "component C1 has 7 variables (complexity_gate, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 16 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 1111320,
+            "bound_complete": false,
+            "percent_lower_bound": 111.1,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 7 of 9 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "CA-01",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 17,
+            "after": 17,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 1111320,
+            "after": 1111320,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the pre-change TLC output",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the post-change TLC output",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the behavior-test output",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the before/after descriptor comparison",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=(absent) (UNVERIFIED)",
+        "tlc_after=(absent) (UNVERIFIED)",
+        "behavior_tests=(absent) (UNVERIFIED)",
+        "descriptor_comparison=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": false,
+        "outcome": "",
+        "detail": "",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+      ],
+      "errors": [
+        "REJECTED -- no recursive refinement record. Every close carries either an approved recommendation with evidence, or an explicit 'searched, found none'. Set `refinement.searched: true` and record the outcome.",
+        "REJECTED -- no `narrative:` recorded. The ledger's machine-checked core is deliberately narrow; the narrative carries the reasoning, the measured alternatives, and any finding the core cannot express."
+      ],
+      "verdict": "rejected"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "CA-05",
+      "workflow": "cut-the-apparatus-epic",
+      "recorded_at_utc": "2026-08-13T17:53:55.057743+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 17,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 1111320,
+        "bound_complete": false,
+        "bound_resolved_variables": 7,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.00334800669601341,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 1,111,320 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 7 of 9 declared variables, so the complete bound is at least this large)",
+          "component C1 has 7 variables (complexity_gate, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 16 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 1111320,
+            "bound_complete": false,
+            "percent_lower_bound": 111.1,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 7 of 9 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "CA-01",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 17,
+            "after": 17,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 1111320,
+            "after": 1111320,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the pre-change TLC output",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the post-change TLC output",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the behavior-test output",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the before/after descriptor comparison",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=(absent) (UNVERIFIED)",
+        "tlc_after=(absent) (UNVERIFIED)",
+        "behavior_tests=(absent) (UNVERIFIED)",
+        "descriptor_comparison=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched, found none. CA-05's model_delta_expectation is \"none expected\" and the ticket held to it: no Internal/External action, state variable or invariant changed, so there is no transition structure to refine. The ticket's whole delta is markdown registers, five appended ledger rows, one 133-line checker under scripts/ and one 119-line test. The refinement loop has nothing to search over here, and saying so is the honest outcome rather than manufacturing a recommendation.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "CA-05 -- the disposition requirement. Full working: specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/refusal.md and .../harvest-recount.md; the rule itself is references/consumption.md.\nWHAT SHIPPED. An epic may not close while a finding it filed is undisposed: D1 a disposition that is not `open`, D2 a note on a terminal disposition, D3 a named successor on a deferral. Vocabulary closed on purpose. NOT A GATE ON ANYONE'S CODE -- it reads one file in this repository and reports on this project's own epics; seven epics of static checking caught zero bugs and this epic adds none.\nR1, DISCHARGED ON REAL INPUT. Run against the sealed 225-row ledger it REFUSES cut-the-apparatus at 10 of 15 rows open -- this epic, its own close-out, not a fixture -- while ACCEPTING falsifiable-instruments (30/30) and subtract-to-measure (30/30), and refusing ports-as-adapters on 2 of 28 rows under D2 alone. Two real epics pass, six refuse, the refusals differ in size and clause, and one real slice (--ticket CA-05) passes inside a refused epic. A rule that refuses everything is a constant, not a measurement -- the mirror of harvest class D1 -- so the discrimination was demonstrated separately rather than assumed.\nTHE FINDING, AND IT IS NOT THE ONE THE TICKET WAS SENT TO GET. The premise \"consumption is 1 of 38 because nothing requires it\" is half wrong. A disposition practice EXISTED, ran three consecutive epics, routed 83 findings into named successors -- including five purpose-built carry-forward issues, #144-#148, still open today -- and STOPPED DEAD on 2026-08-08 with no discussion in any record. And the same four epics are missing from SELF-IMPROVEMENT.md, whose sections end at SM-05 on 2026-08-07: the correlation is exact across all eight epics in both directions. Both registers lapsed at the same commit because nothing reported on either. CA-05-DF-01.\nTHE REGISTER. 38 verified before it was changed, then SV-01-DF-05's three unswept classes appended as G1-G3. Per denominator_rule: THE DENOMINATOR ROSE 38 -> 41, THE NUMERATOR DID NOT MOVE, 2.6% -> 2.4%; the rate fell on a bookkeeping repair, nothing regressed. 41 IS A FLOOR -- the sweep read 83 cards, the tree holds 95, twelve are unswept (CA-05-DF-04). And three of the four classes named by a ledger row are this project catching ITSELF committing the class; only A1 was consumed.\nMEASURED ALTERNATIVES, REJECTED. (1) A pure-prose requirement with a grep, which the charter prefers -- rejected because grep cannot scope to an epic or check the D2/D3 grammar, and the \"demonstrated refusal\" R1 demands would not have been reproducible. (2) Hiding the instrument in tests/, where GOAL-apparatus-cut does not count it -- rejected as metric-dodging; it sits in scripts/ and is priced at +133 lines. (3) Retro-classifying `channel` on the 210 pre-existing rows -- rejected because assigning a channel from somebody else's prose is exactly the hand classification the field exists to end, and in bulk it would manufacture a clean history nobody measured. (4) Building the consumption half of the check -- rejected as apparatus measuring apparatus, and DECLARED as the instrument's known blindness instead (CA-05-DF-03): a row can satisfy all three clauses by being carried to an issue that closes unread, and falsifiable-instruments passes on exactly that shape.\nPRICE. scripts/ 27,652 -> 27,785 (+133, scripts/disposition.py). tests/ +119. examples/validation/ 16,129, UNCHANGED. Card 6,281 bytes, sha256:2d7d4a0506d9b259, UNCHANGED -- clause (c) of GOAL-apparatus-cut holds. The surfaces are reported separately and never combined with the card.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+      ],
+      "errors": [],
+      "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "CA-05",
+      "workflow": "cut-the-apparatus-epic",
+      "recorded_at_utc": "2026-08-14T00:28:31.214096+00:00",
+      "metrics": {
+        "variables": 8,
+        "actions": 16,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 277830,
+        "bound_complete": false,
+        "bound_resolved_variables": 6,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.002483746073489777,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 8 declared variables (2 unresolved: lastCommand, result) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 277830,
+            "bound_complete": false,
+            "percent_lower_bound": 27.8,
+            "percent": null,
+            "within_cap": null,
+            "caveat": "the bound is a product over 6 of 8 declared variables (2 unresolved: lastCommand, result), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "CA-05",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 8,
+            "delta": -1,
+            "percent": -11.1
+          },
+          "actions": {
+            "before": 17,
+            "after": 16,
+            "delta": -1,
+            "percent": -5.9
+          },
+          "bound": {
+            "before": 1111320,
+            "after": 277830,
+            "delta": -833490,
+            "percent": -75.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "decrease"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "NO MODEL DELTA. CA-05's model_delta_expectation is \"none expected\" and the ticket held to it: no Internal/External action, state variable, invariant or model config changed, so there is no before/after model to compare and nothing licenses claiming a green TLC run that did not happen.",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "Same reason. Recorded as not_run rather than green, because an unrun constraint cannot witness retention -- which is this ledger's own rule.",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/suite-CA-05.md -- and the figure stated plainly rather than as a bare \"pass\": 8 FAILED / 1483 passed at the reconciled tip. ALL EIGHT ARE THE EPIC-TIP BASELINE, MEASURED DIRECTLY at e379d6b in a detached worktree rather than assumed: the 2 deliberate/inherited, the 3 test_source_citations, test_ticket_ retirement, CA-00-DF-02, and the TWO CA-04 DECLARED under CA-04-DF-04 (kill-test rows pointing at files CA-04 deleted). ZERO attributable to CA-05. \"pass\" here means BEHAVIOR RETAINED, not a green suite.",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "No model changed, so a before/after descriptor comparison would compare a tree with itself and report a null that is an arithmetic consequence of an empty diff -- harvest class D5. Not run, and not reported as a measured null.",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=not_run (UNVERIFIED)",
+        "tlc_after=not_run (UNVERIFIED)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=not_run (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched, found none. CA-05's model_delta_expectation is \"none expected\" and the ticket held to it: no Internal/External action, state variable or invariant changed, so there is no transition structure to refine. The ticket's delta is markdown registers, six appended ledger rows, one 213-line checker under scripts/ and one test file. Saying so is the honest outcome rather than manufacturing a recommendation.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "CA-05 -- the disposition requirement, at the RECONCILED epic tip e379d6b (CA-01..CA-04 all merged). Working: specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/refusal.md, .../harvest-recount.md, .../suite-CA-05.md; rule in references/consumption.md.\nWHAT SHIPPED. An epic may not close while a finding it filed is undisposed: D1 a disposition that is not `open`, D2 a note on a terminal disposition, D3 a named successor on a deferral, plus a STRUCTURAL rule that refuses duplicate YAML keys before any clause runs. NOT A GATE ON ANYONE'S CODE -- it reads one file and reports on this project's own epics.\nTHE VERDICT AT THE RECONCILED TIP, AND IT DOES NOT PASS. `--epic cut-the-apparatus` REFUSES at 24 of 35, now on all three clauses: 16 D1 rows from CA-00, CA-01 and CA-02 that are still `open`, plus 8 CA-04 rows failing D2/D3. That is what is outstanding and those are who owe it. Ledger 245 rows = the tip's 239 plus this ticket's 6, nothing dropped or reordered.\nWHAT THE REVIEW ROUNDS TOOK APART, AND IT WAS RIGHT TO. The discrimination argument this ticket first made is WITHDRAWN. subtract-to-measure was a FALSE PASS caused by seven rows of duplicate `disposition_ticket` keys that every parser silently resolved to the discarded value (CA-05-DF-06) -- CA-00-DF-04's class, shipped by an instrument in the epic that filed the class, found by a reviewer and not by me. falsifiable-instruments passes on the weakest blind spot. ports-as-adapters' 2-of-28 refusal is TWO FALSE REFUSALS, on field naming. And CA-04 added EIGHT more of the same kind. Ten false D2/D3 refusals over the record, each inspected. What survives is D1 alone: four epics filed 122 findings and routed NONE, three routed 61 cross-epic.\nTHE RULE IS DELIBERATELY NOT CHANGED to fix the D2/D3 false refusals. Demoting them after seeing this epic's own numbers is MF-020; CA-08 must not measure a rule that moved after seeing its data; and it would not rescue this epic, which refuses on 16 D1 rows either way. Recommended to CA-08.\nTHE GOOD RESULT, AND IT IS NOT MINE. CA-03 satisfied all three clauses VOLUNTARILY from the proposal alone while this PR was unmerged, and CA-03 repaired SV-04-DF-05, which carries harvest class F3 into program validation with an R1 test. Per denominator_rule: on the register repair the DENOMINATOR ROSE 38 -> 41 and the numerator held; on this one the NUMERATOR ROSE 1 -> 2 and the denominator held at 41. 2 of 41, 4.9%. Verified by hand -- the named test exists and passes, and eval_scorecard.md:769 says what RD-03-DF-08 claims.\nCONSUMPTION OR ROUTING: the instrument CANNOT TELL, which is CA-05-DF-03. A person can, and did, in two commands. Any future \"N consumed\" from this field alone is a count of CLAIMS.\nSUITE AT THE RECONCILED TIP: 8 failed / 1483 passed, EXACTLY the epic-tip baseline, item for item. The baseline moved 6 -> 8 when CA-04 merged, and CA-04 declared both new reds itself under CA-04-DF-04. CA-05 did not assume that: it checked out e379d6b in a detached worktree and ran the file, getting 2 failed / 24 passed there with this branch not involved.\nMEASURED ALTERNATIVES, REJECTED. A prose-only requirement with a grep (cannot scope to an epic or check the grammar). Hiding the instrument in tests/ where the goal metric does not count it (metric-dodging). Retro-classifying `channel` on 210 older rows (would manufacture a clean history nobody measured). Building the consumption half (apparatus measuring apparatus; declared as blindness instead). Adding a `gate-refused` channel token mid-epic after seeing which rows need it.\nTHE HONEST ALTERNATIVE, RE-ARGUED. The retirement is QUALIFIED, not defended. Nothing has been consumed BECAUSE of the requirement -- it has been complied with, never yet binding. The description the evidence supports is \"a measurement programme with a newly installed close-out requirement that three tickets have voluntarily honoured\". CA-08 is the test.\nPRICE, per surface, worse than first reported. scripts/ +213 (disposition.py; 80 of those added by review -- the duplicate-key guard and the channel advisory). examples/validation/ Python +0. tests/ +213. instruments.toml +75. Card UNCHANGED at 6,281 bytes / sha256:2d7d4a0506d9b259. Clause (a) of GOAL-apparatus-cut MOVED THE WRONG WAY and this ledger says so.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "decrease proceeds past non-gating experimental retention members (CD-09): kill_rate=not_run (UNVERIFIED); effect_conformance=not_run (UNVERIFIED); external_coverage=not_run (UNVERIFIED)",
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+      ],
+      "errors": [
+        "REJECTED -- complexity decreased but the validated-refactor basis is UNVERIFIED: tlc_before=not_run (UNVERIFIED); tlc_after=not_run (UNVERIFIED); descriptor_comparison=not_run (UNVERIFIED). A decrease is licensed only by the validated-refactor evidence set from the same run (`validated_refactor:` -- tlc_before, tlc_after, behavior_tests, descriptor_comparison). Absent evidence is not passing evidence."
+      ],
+      "verdict": "rejected"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "CA-05",
+      "workflow": "cut-the-apparatus-epic",
+      "recorded_at_utc": "2026-08-14T00:28:44.727699+00:00",
+      "metrics": {
+        "variables": 8,
+        "actions": 16,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 277830,
+        "bound_complete": false,
+        "bound_resolved_variables": 6,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.002483746073489777,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 8 declared variables (2 unresolved: lastCommand, result) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 277830,
+            "bound_complete": false,
+            "percent_lower_bound": 27.8,
+            "percent": null,
+            "within_cap": null,
+            "caveat": "the bound is a product over 6 of 8 declared variables (2 unresolved: lastCommand, result), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "CA-05",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 8,
+            "delta": -1,
+            "percent": -11.1
+          },
+          "actions": {
+            "before": 17,
+            "after": 16,
+            "delta": -1,
+            "percent": -5.9
+          },
+          "bound": {
+            "before": 1111320,
+            "after": 277830,
+            "delta": -833490,
+            "percent": -75.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "decrease"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "NO MODEL DELTA. CA-05's model_delta_expectation is \"none expected\" and the ticket held to it: no Internal/External action, state variable, invariant or model config changed, so there is no before/after model to compare and nothing licenses claiming a green TLC run that did not happen.",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "Same reason. Recorded as not_run rather than green, because an unrun constraint cannot witness retention -- which is this ledger's own rule.",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/suite-CA-05.md -- and the figure stated plainly rather than as a bare \"pass\": 8 FAILED / 1483 passed at the reconciled tip. ALL EIGHT ARE THE EPIC-TIP BASELINE, MEASURED DIRECTLY at e379d6b in a detached worktree rather than assumed: the 2 deliberate/inherited, the 3 test_source_citations, test_ticket_ retirement, CA-00-DF-02, and the TWO CA-04 DECLARED under CA-04-DF-04 (kill-test rows pointing at files CA-04 deleted). ZERO attributable to CA-05. \"pass\" here means BEHAVIOR RETAINED, not a green suite.",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "No model changed, so a before/after descriptor comparison would compare a tree with itself and report a null that is an arithmetic consequence of an empty diff -- harvest class D5. Not run, and not reported as a measured null.",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=not_run (UNVERIFIED)",
+        "tlc_after=not_run (UNVERIFIED)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=not_run (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched, found none. CA-05's model_delta_expectation is \"none expected\" and the ticket held to it: no Internal/External action, state variable or invariant changed, so there is no transition structure to refine. The ticket's delta is markdown registers, six appended ledger rows, one 213-line checker under scripts/ and one test file. Saying so is the honest outcome rather than manufacturing a recommendation.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "CA-05 -- the disposition requirement, at the RECONCILED epic tip e379d6b (CA-01..CA-04 all merged). Working: specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/refusal.md, .../harvest-recount.md, .../suite-CA-05.md; rule in references/consumption.md.\nWHAT SHIPPED. An epic may not close while a finding it filed is undisposed: D1 a disposition that is not `open`, D2 a note on a terminal disposition, D3 a named successor on a deferral, plus a STRUCTURAL rule that refuses duplicate YAML keys before any clause runs. NOT A GATE ON ANYONE'S CODE -- it reads one file and reports on this project's own epics.\nTHE VERDICT AT THE RECONCILED TIP, AND IT DOES NOT PASS. `--epic cut-the-apparatus` REFUSES at 24 of 35, now on all three clauses: 16 D1 rows from CA-00, CA-01 and CA-02 that are still `open`, plus 8 CA-04 rows failing D2/D3. That is what is outstanding and those are who owe it. Ledger 245 rows = the tip's 239 plus this ticket's 6, nothing dropped or reordered.\nWHAT THE REVIEW ROUNDS TOOK APART, AND IT WAS RIGHT TO. The discrimination argument this ticket first made is WITHDRAWN. subtract-to-measure was a FALSE PASS caused by seven rows of duplicate `disposition_ticket` keys that every parser silently resolved to the discarded value (CA-05-DF-06) -- CA-00-DF-04's class, shipped by an instrument in the epic that filed the class, found by a reviewer and not by me. falsifiable-instruments passes on the weakest blind spot. ports-as-adapters' 2-of-28 refusal is TWO FALSE REFUSALS, on field naming. And CA-04 added EIGHT more of the same kind. Ten false D2/D3 refusals over the record, each inspected. What survives is D1 alone: four epics filed 122 findings and routed NONE, three routed 61 cross-epic.\nTHE RULE IS DELIBERATELY NOT CHANGED to fix the D2/D3 false refusals. Demoting them after seeing this epic's own numbers is MF-020; CA-08 must not measure a rule that moved after seeing its data; and it would not rescue this epic, which refuses on 16 D1 rows either way. Recommended to CA-08.\nTHE GOOD RESULT, AND IT IS NOT MINE. CA-03 satisfied all three clauses VOLUNTARILY from the proposal alone while this PR was unmerged, and CA-03 repaired SV-04-DF-05, which carries harvest class F3 into program validation with an R1 test. Per denominator_rule: on the register repair the DENOMINATOR ROSE 38 -> 41 and the numerator held; on this one the NUMERATOR ROSE 1 -> 2 and the denominator held at 41. 2 of 41, 4.9%. Verified by hand -- the named test exists and passes, and eval_scorecard.md:769 says what RD-03-DF-08 claims.\nCONSUMPTION OR ROUTING: the instrument CANNOT TELL, which is CA-05-DF-03. A person can, and did, in two commands. Any future \"N consumed\" from this field alone is a count of CLAIMS.\nSUITE AT THE RECONCILED TIP: 8 failed / 1483 passed, EXACTLY the epic-tip baseline, item for item. The baseline moved 6 -> 8 when CA-04 merged, and CA-04 declared both new reds itself under CA-04-DF-04. CA-05 did not assume that: it checked out e379d6b in a detached worktree and ran the file, getting 2 failed / 24 passed there with this branch not involved.\nMEASURED ALTERNATIVES, REJECTED. A prose-only requirement with a grep (cannot scope to an epic or check the grammar). Hiding the instrument in tests/ where the goal metric does not count it (metric-dodging). Retro-classifying `channel` on 210 older rows (would manufacture a clean history nobody measured). Building the consumption half (apparatus measuring apparatus; declared as blindness instead). Adding a `gate-refused` channel token mid-epic after seeing which rows need it.\nTHE HONEST ALTERNATIVE, RE-ARGUED. The retirement is QUALIFIED, not defended. Nothing has been consumed BECAUSE of the requirement -- it has been complied with, never yet binding. The description the evidence supports is \"a measurement programme with a newly installed close-out requirement that three tickets have voluntarily honoured\". CA-08 is the test.\nPRICE, per surface, worse than first reported. scripts/ +213 (disposition.py; 80 of those added by review -- the duplicate-key guard and the channel advisory). examples/validation/ Python +0. tests/ +213. instruments.toml +75. Card UNCHANGED at 6,281 bytes / sha256:2d7d4a0506d9b259. Clause (a) of GOAL-apparatus-cut MOVED THE WRONG WAY and this ledger says so.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "decrease proceeds past non-gating experimental retention members (CD-09): kill_rate=not_run (UNVERIFIED); effect_conformance=not_run (UNVERIFIED); external_coverage=not_run (UNVERIFIED)",
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+      ],
+      "errors": [
+        "REJECTED -- complexity decreased but the validated-refactor basis is UNVERIFIED: tlc_before=not_run (UNVERIFIED); tlc_after=not_run (UNVERIFIED); descriptor_comparison=not_run (UNVERIFIED). A decrease is licensed only by the validated-refactor evidence set from the same run (`validated_refactor:` -- tlc_before, tlc_after, behavior_tests, descriptor_comparison). Absent evidence is not passing evidence."
+      ],
+      "verdict": "rejected"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "CA-05",
+      "workflow": "cut-the-apparatus-epic",
+      "recorded_at_utc": "2026-08-14T00:34:01.332184+00:00",
+      "metrics": {
+        "variables": 8,
+        "actions": 16,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 277830,
+        "bound_complete": false,
+        "bound_resolved_variables": 6,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.002483746073489777,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 8 declared variables (2 unresolved: lastCommand, result) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 277830,
+            "bound_complete": false,
+            "percent_lower_bound": 27.8,
+            "percent": null,
+            "within_cap": null,
+            "caveat": "the bound is a product over 6 of 8 declared variables (2 unresolved: lastCommand, result), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "CA-05",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 8,
+            "delta": -1,
+            "percent": -11.1
+          },
+          "actions": {
+            "before": 17,
+            "after": 16,
+            "delta": -1,
+            "percent": -5.9
+          },
+          "bound": {
+            "before": 1111320,
+            "after": 277830,
+            "delta": -833490,
+            "percent": -75.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "decrease"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "CITED FROM CA-04, NOT RUN BY CA-05. specs/results/scorecards/cut-the-apparatus/CA-04/tlc-before.txt (also at specs/.history/cut-the-apparatus-epic/ticket-003-CA-04/results/tlc-before.txt): 13,008,254 states generated, 563,963 distinct states, 0 left on queue, depth 25, \"Model checking completed. No error has been found.\" This is the BEFORE side of the 9-variable model -- the model CA-04 changed and CA-05 did not. CA-04 additionally reported that this figure reproduces the count recorded in TlaSpecDevCli.tla's own comment for that model, a faithfulness check stronger than a hash.",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "CITED FROM CA-04, NOT RUN BY CA-05. specs/results/scorecards/cut-the-apparatus/CA-04/tlc-after.txt: 2,505,440 states generated, 124,643 distinct states, 0 left on queue, depth 24, \"Model checking completed. No error has been found.\", 13 invariants hold. This is the AFTER side of the same delta -- the 8-variable model CA-05 inherited by merging CA-04 and did not modify.",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "MEASURED BY CA-05, and the only member here that is. specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/suite-CA-05.md -- stated plainly rather than as a bare \"pass\": 8 FAILED / 1483 passed at the reconciled tip. ALL EIGHT ARE THE EPIC-TIP BASELINE, MEASURED DIRECTLY at e379d6b in a detached worktree with this branch not involved, rather than assumed: the 2 deliberate/inherited, the 3 test_source_citations, test_ticket_retirement, CA-00-DF-02, and the TWO CA-04 DECLARED under CA-04-DF-04. ZERO attributable to CA-05. \"pass\" means BEHAVIOR RETAINED, not a green suite.",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "CITED FROM CA-04, NOT PRODUCED BY CA-05. specs/results/scorecards/cut-the-apparatus/CA-04/descriptor-comparison.md -- before/after over the same two models, before side verified byte-faithful by sha256 9c0f394c28259fe67848d2b7d45323d759d29bfb8e69c916b010051c91c622ef, recording variables 9 -> 8 attributed to `kill_test`. CA-05 produced no descriptor comparison because CA-05 changed no descriptor.",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=green (retained)",
+        "tlc_after=green (retained)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched, found none. CA-05's model_delta_expectation is \"none expected\" and the ticket held to it: no Internal/External action, state variable or invariant changed, so there is no transition structure to refine. The ticket's delta is markdown registers, six appended ledger rows, one 213-line checker under scripts/ and one test file. Saying so is the honest outcome rather than manufacturing a recommendation.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "CA-05 -- the disposition requirement, at the RECONCILED epic tip e379d6b (CA-01..CA-04 all merged). Working: specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/refusal.md, .../harvest-recount.md, .../suite-CA-05.md; rule in references/consumption.md.\nWHAT SHIPPED. An epic may not close while a finding it filed is undisposed: D1 a disposition that is not `open`, D2 a note on a terminal disposition, D3 a named successor on a deferral, plus a STRUCTURAL rule that refuses duplicate YAML keys before any clause runs. NOT A GATE ON ANYONE'S CODE -- it reads one file and reports on this project's own epics.\nTHE VERDICT AT THE RECONCILED TIP, AND IT DOES NOT PASS. `--epic cut-the-apparatus` REFUSES at 24 of 35, now on all three clauses: 16 D1 rows from CA-00, CA-01 and CA-02 that are still `open`, plus 8 CA-04 rows failing D2/D3. That is what is outstanding and those are who owe it. Ledger 245 rows = the tip's 239 plus this ticket's 6, nothing dropped or reordered.\nWHAT THE REVIEW ROUNDS TOOK APART, AND IT WAS RIGHT TO. The discrimination argument this ticket first made is WITHDRAWN. subtract-to-measure was a FALSE PASS caused by seven rows of duplicate `disposition_ticket` keys that every parser silently resolved to the discarded value (CA-05-DF-06) -- CA-00-DF-04's class, shipped by an instrument in the epic that filed the class, found by a reviewer and not by me. falsifiable-instruments passes on the weakest blind spot. ports-as-adapters' 2-of-28 refusal is TWO FALSE REFUSALS, on field naming. And CA-04 added EIGHT more of the same kind. Ten false D2/D3 refusals over the record, each inspected. What survives is D1 alone: four epics filed 122 findings and routed NONE, three routed 61 cross-epic.\nTHE RULE IS DELIBERATELY NOT CHANGED to fix the D2/D3 false refusals. Demoting them after seeing this epic's own numbers is MF-020; CA-08 must not measure a rule that moved after seeing its data; and it would not rescue this epic, which refuses on 16 D1 rows either way. Recommended to CA-08.\nTHE GOOD RESULT, AND IT IS NOT MINE. CA-03 satisfied all three clauses VOLUNTARILY from the proposal alone while this PR was unmerged, and CA-03 repaired SV-04-DF-05, which carries harvest class F3 into program validation with an R1 test. Per denominator_rule: on the register repair the DENOMINATOR ROSE 38 -> 41 and the numerator held; on this one the NUMERATOR ROSE 1 -> 2 and the denominator held at 41. 2 of 41, 4.9%. Verified by hand -- the named test exists and passes, and eval_scorecard.md:769 says what RD-03-DF-08 claims.\nCONSUMPTION OR ROUTING: the instrument CANNOT TELL, which is CA-05-DF-03. A person can, and did, in two commands. Any future \"N consumed\" from this field alone is a count of CLAIMS.\nSUITE AT THE RECONCILED TIP: 8 failed / 1483 passed, EXACTLY the epic-tip baseline, item for item. The baseline moved 6 -> 8 when CA-04 merged, and CA-04 declared both new reds itself under CA-04-DF-04. CA-05 did not assume that: it checked out e379d6b in a detached worktree and ran the file, getting 2 failed / 24 passed there with this branch not involved.\nMEASURED ALTERNATIVES, REJECTED. A prose-only requirement with a grep (cannot scope to an epic or check the grammar). Hiding the instrument in tests/ where the goal metric does not count it (metric-dodging). Retro-classifying `channel` on 210 older rows (would manufacture a clean history nobody measured). Building the consumption half (apparatus measuring apparatus; declared as blindness instead). Adding a `gate-refused` channel token mid-epic after seeing which rows need it.\nTHE HONEST ALTERNATIVE, RE-ARGUED. The retirement is QUALIFIED, not defended. Nothing has been consumed BECAUSE of the requirement -- it has been complied with, never yet binding. The description the evidence supports is \"a measurement programme with a newly installed close-out requirement that three tickets have voluntarily honoured\". CA-08 is the test.\nPRICE, per surface, worse than first reported. scripts/ +213 (disposition.py; 80 of those added by review -- the duplicate-key guard and the channel advisory). examples/validation/ Python +0. tests/ +213. instruments.toml +75. Card UNCHANGED at 6,281 bytes / sha256:2d7d4a0506d9b259. Clause (a) of GOAL-apparatus-cut MOVED THE WRONG WAY and this ledger says so.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "decrease proceeds past non-gating experimental retention members (CD-09): kill_rate=not_run (UNVERIFIED); effect_conformance=not_run (UNVERIFIED); external_coverage=not_run (UNVERIFIED)",
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+      ],
+      "errors": [],
+      "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "CA-05",
+      "workflow": "cut-the-apparatus-epic",
+      "recorded_at_utc": "2026-08-14T00:34:31.836134+00:00",
+      "metrics": {
+        "variables": 8,
+        "actions": 16,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 277830,
+        "bound_complete": false,
+        "bound_resolved_variables": 6,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.002483746073489777,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 8 declared variables (2 unresolved: lastCommand, result) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 277830,
+            "bound_complete": false,
+            "percent_lower_bound": 27.8,
+            "percent": null,
+            "within_cap": null,
+            "caveat": "the bound is a product over 6 of 8 declared variables (2 unresolved: lastCommand, result), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "CA-05",
+        "metrics": {
+          "variables": {
+            "before": 8,
+            "after": 8,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 16,
+            "after": 16,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 277830,
+            "after": 277830,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "CITED FROM CA-04, NOT RUN BY CA-05. specs/results/scorecards/cut-the-apparatus/CA-04/tlc-before.txt (also at specs/.history/cut-the-apparatus-epic/ticket-003-CA-04/results/tlc-before.txt): 13,008,254 states generated, 563,963 distinct states, 0 left on queue, depth 25, \"Model checking completed. No error has been found.\" This is the BEFORE side of the 9-variable model -- the model CA-04 changed and CA-05 did not. CA-04 additionally reported that this figure reproduces the count recorded in TlaSpecDevCli.tla's own comment for that model, a faithfulness check stronger than a hash.",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "CITED FROM CA-04, NOT RUN BY CA-05. specs/results/scorecards/cut-the-apparatus/CA-04/tlc-after.txt: 2,505,440 states generated, 124,643 distinct states, 0 left on queue, depth 24, \"Model checking completed. No error has been found.\", 13 invariants hold. This is the AFTER side of the same delta -- the 8-variable model CA-05 inherited by merging CA-04 and did not modify.",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "MEASURED BY CA-05, and the only member here that is. specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/suite-CA-05.md -- stated plainly rather than as a bare \"pass\": 8 FAILED / 1483 passed at the reconciled tip. ALL EIGHT ARE THE EPIC-TIP BASELINE, MEASURED DIRECTLY at e379d6b in a detached worktree with this branch not involved, rather than assumed: the 2 deliberate/inherited, the 3 test_source_citations, test_ticket_retirement, CA-00-DF-02, and the TWO CA-04 DECLARED under CA-04-DF-04. ZERO attributable to CA-05. \"pass\" means BEHAVIOR RETAINED, not a green suite.",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "CITED FROM CA-04, NOT PRODUCED BY CA-05. specs/results/scorecards/cut-the-apparatus/CA-04/descriptor-comparison.md -- before/after over the same two models, before side verified byte-faithful by sha256 9c0f394c28259fe67848d2b7d45323d759d29bfb8e69c916b010051c91c622ef, recording variables 9 -> 8 attributed to `kill_test`. CA-05 produced no descriptor comparison because CA-05 changed no descriptor.",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=green (retained)",
+        "tlc_after=green (retained)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched, found none. CA-05's model_delta_expectation is \"none expected\" and the ticket held to it: no Internal/External action, state variable or invariant changed, so there is no transition structure to refine. The ticket's delta is markdown registers, six appended ledger rows, one 213-line checker under scripts/ and one test file. Saying so is the honest outcome rather than manufacturing a recommendation.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "CA-05 -- the disposition requirement, at the RECONCILED epic tip e379d6b (CA-01..CA-04 all merged). Working: specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/refusal.md, .../harvest-recount.md, .../suite-CA-05.md; rule in references/consumption.md.\nWHAT SHIPPED. An epic may not close while a finding it filed is undisposed: D1 a disposition that is not `open`, D2 a note on a terminal disposition, D3 a named successor on a deferral, plus a STRUCTURAL rule that refuses duplicate YAML keys before any clause runs. NOT A GATE ON ANYONE'S CODE -- it reads one file and reports on this project's own epics.\nTHE VERDICT AT THE RECONCILED TIP, AND IT DOES NOT PASS. `--epic cut-the-apparatus` REFUSES at 24 of 35, now on all three clauses: 16 D1 rows from CA-00, CA-01 and CA-02 that are still `open`, plus 8 CA-04 rows failing D2/D3. That is what is outstanding and those are who owe it. Ledger 245 rows = the tip's 239 plus this ticket's 6, nothing dropped or reordered.\nWHAT THE REVIEW ROUNDS TOOK APART, AND IT WAS RIGHT TO. The discrimination argument this ticket first made is WITHDRAWN. subtract-to-measure was a FALSE PASS caused by seven rows of duplicate `disposition_ticket` keys that every parser silently resolved to the discarded value (CA-05-DF-06) -- CA-00-DF-04's class, shipped by an instrument in the epic that filed the class, found by a reviewer and not by me. falsifiable-instruments passes on the weakest blind spot. ports-as-adapters' 2-of-28 refusal is TWO FALSE REFUSALS, on field naming. And CA-04 added EIGHT more of the same kind. Ten false D2/D3 refusals over the record, each inspected. What survives is D1 alone: four epics filed 122 findings and routed NONE, three routed 61 cross-epic.\nTHE RULE IS DELIBERATELY NOT CHANGED to fix the D2/D3 false refusals. Demoting them after seeing this epic's own numbers is MF-020; CA-08 must not measure a rule that moved after seeing its data; and it would not rescue this epic, which refuses on 16 D1 rows either way. Recommended to CA-08.\nTHE GOOD RESULT, AND IT IS NOT MINE. CA-03 satisfied all three clauses VOLUNTARILY from the proposal alone while this PR was unmerged, and CA-03 repaired SV-04-DF-05, which carries harvest class F3 into program validation with an R1 test. Per denominator_rule: on the register repair the DENOMINATOR ROSE 38 -> 41 and the numerator held; on this one the NUMERATOR ROSE 1 -> 2 and the denominator held at 41. 2 of 41, 4.9%. Verified by hand -- the named test exists and passes, and eval_scorecard.md:769 says what RD-03-DF-08 claims.\nCONSUMPTION OR ROUTING: the instrument CANNOT TELL, which is CA-05-DF-03. A person can, and did, in two commands. Any future \"N consumed\" from this field alone is a count of CLAIMS.\nSUITE AT THE RECONCILED TIP: 8 failed / 1483 passed, EXACTLY the epic-tip baseline, item for item. The baseline moved 6 -> 8 when CA-04 merged, and CA-04 declared both new reds itself under CA-04-DF-04. CA-05 did not assume that: it checked out e379d6b in a detached worktree and ran the file, getting 2 failed / 24 passed there with this branch not involved.\nMEASURED ALTERNATIVES, REJECTED. A prose-only requirement with a grep (cannot scope to an epic or check the grammar). Hiding the instrument in tests/ where the goal metric does not count it (metric-dodging). Retro-classifying `channel` on 210 older rows (would manufacture a clean history nobody measured). Building the consumption half (apparatus measuring apparatus; declared as blindness instead). Adding a `gate-refused` channel token mid-epic after seeing which rows need it.\nTHE HONEST ALTERNATIVE, RE-ARGUED. The retirement is QUALIFIED, not defended. Nothing has been consumed BECAUSE of the requirement -- it has been complied with, never yet binding. The description the evidence supports is \"a measurement programme with a newly installed close-out requirement that three tickets have voluntarily honoured\". CA-08 is the test.\nPRICE, per surface, worse than first reported. scripts/ +213 (disposition.py; 80 of those added by review -- the duplicate-key guard and the channel advisory). examples/validation/ Python +0. tests/ +213. instruments.toml +75. Card UNCHANGED at 6,281 bytes / sha256:2d7d4a0506d9b259. Clause (a) of GOAL-apparatus-cut MOVED THE WRONG WAY and this ledger says so.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }
