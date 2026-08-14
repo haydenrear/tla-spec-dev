@@ -99,59 +99,26 @@ CONSTANTS
 \* ways to reach "clean" are to DECLARE the port or to CHANGE THE PROGRAM so it
 \* no longer emits the effect. There is no third option.
 \*
-\* MF-016: kill_test is the mutation kill-test verdict -- oracle 4, and the
-\* only one of the four that validates the representation against the PROGRAM
-\* rather than against itself. TLC proves self-consistency, analyze corpus
-\* proves tractability, effect conformance proves the boundaries are declared;
-\* none of them can tell a faithful model from a vacuous one. This can.
+\* CA-04 REMOVED kill_test, the oracle-4 mutation kill-test verdict, together
+\* with the RunKillTest action, its adapter, and the kill_mutants.toml
+\* catalogues. It was the last HARD STATIC GATE in this repository:
+\* kill_rate_floor was a value floor with no waiver, and the model specified it
+\* as a command. The finding is RM-03-DF-05, which identified exactly this cut
+\* and declined it because it was a model delta in a ticket declaring none --
+\* "THE ONE HARD STATIC GATE LEFT IN THIS REPOSITORY IS A SPECIFIED ACTION OF
+\* THE MODEL" -- and whose suggested_fix asked for "its own ticket against the
+\* CLI model". The standing evidence is the epic record's "static gates catch
+\* nothing -- seven epics, zero bugs caught by a static check".
 \*
-\* The experiment it records: seed one fault per declared port and one per
-\* invariant, run the distilled corpus, and require the kill rate to meet
-\* kill_rate_floor. Like the three gate variables above it is a fact about the
-\* whole program, so it is a single global variable.
-\*
-\* Four values, and the three non-"unknown" ones are NOT interchangeable:
-\*   "pass"               -- a COMPLETE catalog ran and the kill rate met the
-\*                           floor. The representation caught the seeded bugs.
-\*   "below_floor"        -- a complete catalog ran and the rate fell short.
-\*                           Some mutant survived: the corpus executed a
-\*                           deliberately broken program and could not tell it
-\*                           from the correct one, so the representation is too
-\*                           abstract at that mutant's boundary. Each survivor
-\*                           names the variable and action to refine.
-\*   "incomplete_catalog" -- a declared port or an invariant has NO seeded
-\*                           fault. No rate is computed. This is deliberately
-\*                           NOT "below_floor" and deliberately not a rate of
-\*                           0.0 or 1.0: a number derived from a surface that
-\*                           was never covered asserts something the run has no
-\*                           evidence for, which is exactly the defect MF-027
-\*                           removed from the effect oracle when it stopped
-\*                           reporting unobserved targets as clean.
-\*
-\* The remedies differ, which is why the values are kept apart rather than
-\* collapsed into one "fail": below_floor is fixed by REFINING THE MODEL at the
-\* named variable or action, incomplete_catalog by SEEDING A FAULT for the
-\* uncovered boundary. Both are externally visible in `result.next`, which is
-\* the same criterion MF-027 used to keep "gaps" apart from "unobservable".
-\*
-\* Why this gate has no override, stated here because it is the one that keeps
-\* the others honest: every other budget in this toolchain is a COST CAP
-\* (max_distinct_states, the case caps, the component heuristics). Cost caps
-\* alone are gameable in a single obvious direction -- shrink the model toward
-\* nothing and every cap passes. kill_rate_floor is the matching VALUE FLOOR,
-\* and a trivial model stops killing mutants. Cost cap plus value floor is a
-\* real optimization target; either alone invites gaming. So there is no
-\* override input, no waiver, no expected-to-survive annotation, and no
-\* transition from "below_floor" to "pass" that is not a genuine re-measurement
-\* after the model was actually refined. Weakening this one weakens all of them.
-\*
-\* Note also what is ABSENT by construction: there is no path from
-\* "incomplete_catalog" to "pass" that does not go through seeding the missing
-\* fault, because the implementation recomputes the required boundary set from
-\* the port declarations and the INVARIANTS block on every run. Adding a port
-\* to the model breaks the kill test until somebody seeds a fault for it. The
-\* obligation cannot drift behind the model, which is the failure mode a
-\* documented "remember to add a mutant" rule would have had.
+\* WHAT THE MODEL CAN NO LONGER EXPRESS, stated so it is not discovered later:
+\* there is now no modeled notion of the representation being validated against
+\* the PROGRAM. The three surviving gate variables record self-consistency
+\* (TLC), tractability (corpus_gate) and boundary declaration
+\* (effect_conformance); none of them can distinguish a faithful model from a
+\* vacuous one, and kill_test was the only one that could. The cost caps
+\* therefore no longer have a matching value floor in the model, so a model
+\* shrunk toward nothing now satisfies every budget the model still states.
+\* This is the ticket's PRICE, recorded rather than avoided.
 \*
 \* NOTE ON PLACEMENT: this comment sits ABOVE the VARIABLES block on purpose.
 \* Comments interleaved between names inside the block are not parsed by
@@ -167,8 +134,7 @@ VARIABLES
   result,
   complexity_gate,
   corpus_gate,
-  effect_conformance,
-  kill_test
+  effect_conformance
 
 vars ==
   << setup_phase,
@@ -178,8 +144,7 @@ vars ==
      result,
      complexity_gate,
      corpus_gate,
-     effect_conformance,
-     kill_test >>
+     effect_conformance >>
 
 \* MF-025: the lifecycle stages by name. Guards and invariants below read as a
 \* lifecycle rather than as arithmetic on an integer.
@@ -242,7 +207,6 @@ Init ==
   /\ complexity_gate = "unknown"
   /\ corpus_gate = "unknown"
   /\ effect_conformance = "unknown"
-  /\ kill_test = "unknown"
 
 \* CD-11 (audit run 4, ESC-R4-3): `@port TlaSpecDevCliPort.<name>` names a
 \* DECLARED EFFECT PORT -- an entry of
@@ -267,8 +231,7 @@ BuildSkillCli ==
                   ticket_state,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance,
-                  kill_test >>
+                  effect_conformance >>
 
 \* The local environment can invoke `tla-spec-dev ...` after install.
 \* RC-02 (MF-026 round-3 N-1): three @port lines ADDED so this action's
@@ -293,8 +256,7 @@ InstallLocalCli ==
                   ticket_state,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance,
-                  kill_test >>
+                  effect_conformance >>
 
 \* CLI: `tla-spec-dev --spec-root <root> scaffold project`
 \* Creates the accepted `program_model` baseline only.
@@ -311,8 +273,7 @@ ScaffoldProject(root) ==
   /\ UNCHANGED << ticket_state,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance,
-                  kill_test >>
+                  effect_conformance >>
 
 \* CLI: scaffold emits a `budgets:` block into spec_manifest.yaml and
 \* instructs the agent to propose the documented defaults to the user, ask
@@ -333,8 +294,7 @@ RecordBudgets(root) ==
                   ticket_state,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance,
-                  kill_test >>
+                  effect_conformance >>
 
 \* CLI: `tla-spec-dev --spec-root <root> scaffold workflow`
 \* Creates project `current/`, `desired_program_model/`, and ticket plan.
@@ -351,8 +311,7 @@ ScaffoldWorkflow(root) ==
                   ticket_state,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance,
-                  kill_test >>
+                  effect_conformance >>
 
 \* CLI: `tla-spec-dev --spec-root <root> open ticket <ticket-name>`
 \* Creates ticket-local current/desired/results/Test Graph workspace.
@@ -374,8 +333,7 @@ OpenTicket(root, ticket) ==
                   spec_root,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance,
-                  kill_test >>
+                  effect_conformance >>
 
 \* Agent step: update ticket desired model, adapters, and Test Graph bindings.
 \* This is intentionally modeled because the CLI must print this instruction.
@@ -392,8 +350,7 @@ UpdateTicketDesired(ticket) ==
                   spec_root,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance,
-                  kill_test >>
+                  effect_conformance >>
 
 \* Agent step: production implementation has landed and current matches desired.
 \* @command UpdateTicketCurrent
@@ -409,8 +366,7 @@ UpdateTicketCurrent(ticket) ==
                   spec_root,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance,
-                  kill_test >>
+                  effect_conformance >>
 
 \* CLI: `tla-spec-dev --spec-root <root> analyze complexity <spec> <cfg>`
 \* MF-011, amended by CD-09 (G2): measures the model against the manifest
@@ -435,8 +391,7 @@ AnalyzeComplexity(root) ==
                   spec_root,
                   ticket_state,
                   corpus_gate,
-                  effect_conformance,
-                  kill_test >>
+                  effect_conformance >>
 
 \* CLI: `tla-spec-dev --spec-root <root> analyze corpus <cases-dir>`
 \* MF-014: measures the GENERATED CORPUS against the manifest case caps
@@ -468,8 +423,7 @@ AnalyzeCorpus(root) ==
                   spec_root,
                   ticket_state,
                   complexity_gate,
-                  effect_conformance,
-                  kill_test >>
+                  effect_conformance >>
 
 \* CLI: `tla-spec-dev --spec-root <root> run effect-conformance`
 \* MF-013: executes component adapters in a sandbox (temp dirs, fake
@@ -523,61 +477,7 @@ RunEffectConformance(root) ==
                   spec_root,
                   ticket_state,
                   complexity_gate,
-                  corpus_gate,
-                  kill_test >>
-
-\* CLI: `tla-spec-dev --spec-root <root> run kill-test --corpus-command <cmd>`
-\* MF-016, oracle 4. Seeds one fault per declared port and one per invariant
-\* into real production source, runs the distilled corpus against each, and
-\* gates the resulting kill rate against kill_rate_floor from the budgets.
-\*
-\* Like RunEffectConformance this action advances no ticket -- measuring is its
-\* whole job. Unlike RunEffectConformance there is deliberately NO enforcing
-\* copy inside RunSpecUnitTests, and that difference is a considered one rather
-\* than an omission. The effect oracle is nearly free: it observes a corpus run
-\* that was happening anyway. The kill test runs the ENTIRE corpus once per
-\* mutant, so at this repository's 18 declared boundaries it costs 18 full
-\* corpus runs. Folding that into every spec-unit invocation would make the
-\* inner development loop unusable, and a gate people disable to get work done
-\* protects nothing. The doctrine therefore names ONBOARDING and PROMOTION as
-\* the required kill-test moments, with per-ticket work reusing the baseline
-\* mutants plus one new mutant at the changed boundary.
-\*
-\* HONEST SCOPE, recorded here because the model must not claim more than the
-\* CLI does: the promotion INTERLOCK -- CloseTicket requiring kill_test =
-\* "pass" -- is NOT modeled, because the shipped `close ticket` does not yet
-\* enforce it. Kill-test RUNS are deferred epic-wide to MF-023, so gating close
-\* on a run that cannot happen yet would block every ticket close including
-\* this one. Writing the guard into the model anyway would make the model
-\* assert a behavior the program does not have, which is precisely the defect
-\* oracle 4 exists to detect. The interlock lands with the runs in MF-023.
-\*
-\* Note the verdict range below excludes "unknown": running the command always
-\* produces a measurement or an explicit refusal to measure. There is no
-\* outcome where the kill test runs and learns nothing, and no input by which a
-\* caller supplies the verdict -- the same shape as the three gates above.
-\* @command RunKillTest
-\* @result CliWorkflowResult
-\* @port TlaSpecDevCliPort.evidence_report
-\* @port TlaSpecDevCliPort.mutation_write
-\* @port TlaSpecDevCliPort.corpus_process
-RunKillTest(root) ==
-  /\ setup_phase >= 4
-  /\ root = spec_root
-  /\ kill_test' \in {"pass", "below_floor", "incomplete_catalog"}
-  /\ lastCommand' = "tla-spec-dev run kill-test"
-  /\ result' = CASE kill_test' = "pass"
-                      -> CommandResult(TRUE, NoReason, "tla-spec-dev close ticket <ticket>")
-                 [] kill_test' = "below_floor"
-                      -> CommandResult(FALSE, NoReason, "Refine the variable or action named by each surviving mutant until it dies -- the floor is not waivable")
-                 [] OTHER
-                      -> CommandResult(FALSE, NoReason, "Seed a fault for every declared port and invariant that has none")
-  /\ UNCHANGED << setup_phase,
-                  spec_root,
-                  ticket_state,
-                  complexity_gate,
-                  corpus_gate,
-                  effect_conformance >>
+                  corpus_gate >>
 
 \* CLI: `tla-spec-dev --spec-root <root> run spec-unit-tests`
 \* Runs generated/adapted spec-unit validation for ticket current.
@@ -654,8 +554,7 @@ RunSpecUnitTests(root, ticket) ==
                       -> CommandResult(TRUE, NoReason, "tla-spec-dev close ticket <ticket>")
   /\ UNCHANGED << setup_phase,
                   spec_root,
-                  complexity_gate,
-                  kill_test >>
+                  complexity_gate >>
 
 \* CLI: `tla-spec-dev --spec-root <root> close ticket <ticket-name>`
 \* Closes ticket only after current == desired and spec-unit tests passed.
@@ -678,8 +577,7 @@ CloseTicket(root, ticket) ==
                   spec_root,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance,
-                  kill_test >>
+                  effect_conformance >>
 
 \* CLI: `tla-spec-dev --spec-root <root> close ticket <ticket-name>` taken under
 \* one of the six GUARD-WEAKENING FLAGS.
@@ -740,8 +638,7 @@ CloseTicketWeakened(root, ticket) ==
                   spec_root,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance,
-                  kill_test >>
+                  effect_conformance >>
 
 \* REMOVED 2026-08-04 (owner direction): the state variables architecture_scan
 \* and architecture_delta, and the action AnalyzeArchitecture that was the only
@@ -824,8 +721,7 @@ GenerateCases(root) ==
                   ticket_state,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance,
-                  kill_test >>
+                  effect_conformance >>
 
 Stutter ==
   UNCHANGED vars
@@ -853,8 +749,6 @@ Next ==
       GenerateCases(root)
   \/ \E root \in SpecRoots:
       RunEffectConformance(root)
-  \/ \E root \in SpecRoots:
-      RunKillTest(root)
   \/ \E root \in SpecRoots, ticket \in Tickets:
       RunSpecUnitTests(root, ticket)
   \/ \E root \in SpecRoots, ticket \in Tickets:
@@ -877,7 +771,6 @@ TypeInvariant ==
   /\ complexity_gate \in {"unknown", "pass", "fail"}
   /\ corpus_gate \in {"unknown", "pass", "fail"}
   /\ effect_conformance \in {"unknown", "clean", "gaps", "dead_surface", "unobservable"}
-  /\ kill_test \in {"unknown", "pass", "below_floor", "incomplete_catalog"}
 
 \* MF-022: the four bootstrap ordering invariants below are retained by name
 \* even though the setup_phase ordinal now enforces them structurally, so each
@@ -1030,23 +923,6 @@ ClosedTicketsPassedSpecUnitTests ==
 WeakenedClosesCertifyNothing ==
   \A ticket \in WeakenedClosedTickets:
     ~TicketReached(ticket, TicketSpecUnitTestsPassed)
-
-\* MF-016: a kill-test verdict exists only after the workflow it measures.
-\* RunKillTest guards on setup_phase >= 4 (budgets recorded), because the floor
-\* it gates against IS a budget -- reading kill_rate_floor before budgets are
-\* recorded would silently measure against a default nobody negotiated, which
-\* is the "falls back to" degeneracy the doctrine forbids. This invariant
-\* states the consequence globally: a measured verdict implies the budgets it
-\* was measured against exist.
-\*
-\* Deliberately stated as an implication from the verdict rather than as
-\* "closing a ticket requires kill_test = pass". That stronger property is the
-\* promotion interlock, and it is NOT true of the shipped CLI yet -- see the
-\* honest-scope note on RunKillTest. An invariant that TLC proves about a model
-\* the program does not implement is worse than no invariant, because it reads
-\* as an assurance.
-KillTestVerdictRequiresBudgets ==
-  kill_test /= "unknown" => setup_phase >= 4
 
 Spec ==
   Init /\ [][Next]_vars

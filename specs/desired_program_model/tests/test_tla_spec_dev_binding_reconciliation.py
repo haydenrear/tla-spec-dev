@@ -56,7 +56,7 @@ def load_production_adapters():
     return module
 
 
-def test_the_model_has_the_expected_sixteen_command_actions() -> None:
+def test_the_model_has_the_expected_command_actions() -> None:
     """RC-01 added GenerateCases and CloseTicketWeakened; 2026-08-04 removed one.
 
     RC-01 (MF-026 G-6 and the owner's guard-weakening decision): GenerateCases
@@ -68,12 +68,20 @@ def test_the_model_has_the_expected_sixteen_command_actions() -> None:
     2026-08-04 (owner direction): AnalyzeArchitecture REMOVED with the static
     architecture scanners. The count going DOWN is the first time this figure
     has moved in that direction, and it is asserted here in both directions --
-    the action is absent, and the total is 16 -- so a reinstatement is a
+    the action is absent, and the total is asserted -- so a reinstatement is a
     deliberate edit rather than a silent one.
+
+    CA-04 removed RunKillTest with the mutation kill test (RM-03-DF-05), taking
+    the count 16 -> 15. That is the SECOND time this figure has gone down. The
+    count was updated deliberately and both directions are still asserted: this
+    test tracks the model's action set by construction, so an action removed
+    from the model must leave it, and the removal is recorded here rather than
+    absorbed silently.
     """
     actions = model_actions()
-    assert len(actions) == 16, sorted(actions)
+    assert len(actions) == 15, sorted(actions)
     assert "AnalyzeArchitecture" not in actions
+    assert "RunKillTest" not in actions
     assert "GenerateCases" in actions
     assert "CloseTicketWeakened" in actions
     assert "Stutter" not in actions

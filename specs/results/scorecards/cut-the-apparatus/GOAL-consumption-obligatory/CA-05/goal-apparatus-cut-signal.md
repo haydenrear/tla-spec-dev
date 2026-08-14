@@ -14,19 +14,22 @@ $ find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | x
    42550 total
 ```
 
-## Per surface, never combined with the card
+## Per surface, at the RECONCILED tip `e379d6b` (CA-01..CA-04 all merged)
 
 ```
-                          epic tip 4302082    HEAD     MY DELTA
-scripts/*.py                        27,652   27865      +213
-examples/validation/*.py            14,685   14685        +0   NO Python changed
+                          epic tip e379d6b    HEAD     MY DELTA
+scripts/*.py                        26,547  26,760       +213   scripts/disposition.py
+examples/validation/*.py            14,854  14,854         +0   NO Python changed
+                                    ------  ------
+combined                            41,401  41,614       +213
 
-tests/*.py                          31,274   31487      +213   NOT in the goal metric
-instruments.toml                         -       -       +75   TOML, not in the metric
+tests/*.py                          30,422  30,635       +213   NOT in the goal metric
+instruments.toml                         -       -        +75   TOML, not in the metric
 ```
 
-**Both `+213` figures are `git diff --numstat` against `4302082`, not a
-subtraction of two totals.**
+**All deltas are `git diff --numstat` against `e379d6b`, not a subtraction of
+totals.** The absolute figures fell sharply between review rounds because
+**CA-02, CA-03 and CA-04 cut; CA-05 only added.**
 
 ## The card, reported separately
 

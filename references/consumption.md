@@ -11,13 +11,31 @@ means, what refuses, what the numbers are, and — first — what this is not.
 blocks a promotion, or inspects a subject artifact. It reads one file in this
 repository and reports on **this project's own epics**.
 
-**The slogan, qualified — `CA-05` shipped it unqualified in three places and it
-was false in its own PR.** The measured claim is *"seven epics of static checking
-caught zero bugs **in a subject program**"*, and that stands. It is **not** the
-claim that no check ever catches anything: `registry-enumeration-coverage`
-caught this very ticket shipping an unregistered instrument, and a
-set-completeness check over machine-derived metadata is a different class from a
-static gate on program content.
+**The slogan, qualified twice — and the doctrine is now contested from three
+directions in a single epic.** `CA-05` shipped it unqualified in three places and
+it was false in its own PR.
+
+The measured claim that **still stands** is narrow: *"seven epics of static
+checking caught zero bugs **in a subject program**."* What is **not** true is the
+slogan's usual reading, that checks catch nothing. In this epic alone:
+
+1. **`registry-enumeration-coverage` caught `CA-05`** shipping an unregistered
+   instrument — a set-completeness check over machine-derived metadata;
+2. **the complexity ledger REFUSED `CA-04`'s close on substance, was right, and
+   complying corrected two flattering claims in that ticket's own reporting** —
+   a gate that blocked a promotion and improved the record by doing so;
+3. **`CA-03` found `audit` has dated, outcome-changing catches.**
+
+**The honest statement is therefore about the SUBJECT, not about checking.**
+Static checks over *subject program content* have caught nothing in seven epics.
+**This project's own process gates, over its own reporting, caught three things
+in one epic.**
+
+**And that cuts in favour of this page, which a reader should discount
+accordingly:** the disposition requirement is in the second category. It is a
+close-out check over this project's own bookkeeping, which is exactly the class
+that has just been shown to work — so the prior on it should go *up*, and the
+author of this page is not a disinterested party in saying so.
 
 It is also not a target on the consumption rate. A threshold on a consumption
 number before the mechanism exists is `MF-020` — an axis fitted to a known
@@ -60,27 +78,55 @@ python3 scripts/disposition.py --all                      # every epic
 ## What it refuses, on the real record
 
 `R1` says an instrument ships with a demonstrated failing input on a **real
-subject**, not a fixture. So the demonstration is the whole sealed ledger — 232
-rows, eight epics, nothing constructed for the occasion:
+subject**, not a fixture. So the demonstration is the whole sealed ledger — **245
+rows** at the reconciled epic tip `e379d6b` (CA-01…CA-04 merged), nothing
+constructed for the occasion:
 
 | epic | merged | verdict | why |
 |---|---|---|---|
-| ports-as-adapters | 2026-08-05 | **REFUSED** | 2 of 28 under D2 — **and both are FALSE refusals, see below** |
+| ports-as-adapters | 2026-08-05 | **REFUSED** | 2 of 28 under D2 — **both FALSE refusals** |
 | falsifiable-instruments | 2026-08-06 | **DISPOSED** | 30 of 30 |
-| subtract-to-measure | 2026-08-07 | **DISPOSED** | 30 of 30 — **only after `CA-05-DF-06` repaired it; it was a FALSE pass** |
-| reading-discipline | 2026-08-10 | **REFUSED** | 46 of 46 `open` |
-| portable-substrate | 2026-08-10 | **REFUSED** | 27 `open` + 1 terminal with no note |
+| subtract-to-measure | 2026-08-07 | **DISPOSED** | 30 of 30 — only after `CA-05-DF-06` repaired a false PASS |
+| reading-discipline | 2026-08-10 | **REFUSED** | 45 of 46 — **was 46; `CA-03` consumed `RD-03-DF-08`** |
+| portable-substrate | 2026-08-10 | **REFUSED** | 28 of 28 `open` |
 | close-the-loop | 2026-08-11 | **REFUSED** | 17 of 17 `open` |
-| score-drives-validation | 2026-08-12 | **REFUSED** | 30 of 31 `open` |
-| **cut-the-apparatus** | in flight | **REFUSED** | **16 of 22 `open` — this epic, right now** |
+| score-drives-validation | 2026-08-12 | **REFUSED** | 29 of 31 — **was 30; `CA-03` repaired `SV-04-DF-05`** |
+| **cut-the-apparatus** | in flight | **REFUSED** | **24 of 35 — D1 ×16, D2 ×2, D3 ×6** |
 
-**139 of 232 findings are undisposed.** The 6 disposed rows in
-`cut-the-apparatus` are `CA-05`'s own.
+**145 of 245 findings are undisposed.**
 
-**The refusal that matters is the last row.** The requirement is shipped by an
-epic it refuses. `CA-05` disposed its own findings; it cannot dispose `CA-00`'s,
-`CA-01`'s or `CA-02`'s, so `cut-the-apparatus` stays refused and the refusal is a
-live obligation on `CA-08`.
+### The epic still refuses, and now on all three clauses
+
+**It does not pass.** 16 rows from `CA-00`, `CA-01` and `CA-02` are still `open`
+— **that is what is outstanding, and those three tickets' authors owe it.**
+`CA-03`, `CA-05` and (in intent) `CA-04` have all dispositioned their own rows.
+
+**Two things happened here that had not happened before.**
+
+**1. `CA-03` satisfied all three clauses voluntarily.** Its five rows carry a
+vocabulary token, a `channel_note`, and a complete disposition — adopted **while
+this PR was still open and unmerged**, from the proposal alone. It is the first
+ticket other than the author's to meet the requirement.
+
+**2. `CA-04` tried and failed all three clauses on 8 rows** — and inspection says
+**the disposition work was done and put in different keys.** `CA-04-DF-01`
+(`refuted`, no `disposition_note`) carries the refutation in `summary` and the
+reason it was not repaired in `why_out_of_scope`. `CA-04-DF-02` (`carried`, no
+`disposition_ticket`) names its successor **in prose** — *"SV-02's owed
+both-wordings round"*. Six more of the same shape.
+
+**So the D2/D3 false-refusal count over the whole record is now 10** — `PA-01-DF-03`,
+`PA-05-DF-02`, and `CA-04`'s eight — and **every one of the 10 was inspected
+individually.** In each case the record of the disposition exists; it is not in
+the key the clause reads.
+
+**The rule is NOT being changed to fix this, and the reason matters.** Demoting
+D2/D3 to advisory would be an instrument change made after seeing its own epic's
+numbers, which is `MF-020`, and `CA-08` is the ticket that decides this goal — it
+must not measure a rule that moved after seeing its data. **It would also not
+rescue this epic**, which still refuses on 16 D1 rows either way, so there is no
+self-serving version of the change available. **Recommended to `CA-08`, not
+performed here.**
 
 ### How much this discriminates — the claim as first written is WITHDRAWN
 
@@ -168,10 +214,23 @@ harvest.** They are appended to the register by `CA-05` as `G1`, `G2`, `G3`.
 
 **Per `denominator_rule`, which half moved:**
 
-> **The denominator rose from 38 to 41. The numerator did not move.**
-> **1 of 38 (2.6%) → 1 of 41 (2.4%).** No consumption was lost and no
-> regression occurred; the rate fell because the register was repaired. The
-> classes named by a ledger row go **4 of 38 → 4 of 41** on the same arithmetic.
+> **First move — the register repair.** The denominator rose 38 → 41; the
+> numerator did not move. **1 of 38 (2.6%) → 1 of 41 (2.4%).** Nothing
+> regressed; the rate fell because the register was repaired.
+>
+> **Second move, and it is the good one — `CA-03` consumed a class.**
+> **THE NUMERATOR ROSE 1 → 2; THE DENOMINATOR HELD AT 41.**
+> **2 of 41 (4.9%).** `SV-04-DF-05` names harvest class **`F3`** (*"blinding
+> leaked, five different ways"*) and `CA-03` repaired it: `cmd_scaffold` now
+> calls `register_round()`, shipped with the R1 test
+> `test_a_blinded_round_registers_itself_and_the_unregistered_card_is_the_failing_input`.
+> **Verified independently by `CA-05`: the test exists and passes, and
+> `cmd_scaffold` really does call `register_round`.**
+>
+> **The bound, stated:** `F3` names five leak modes and `CL-03` added a sixth;
+> `CA-03` closed **one**. That is the same standard `A1`'s consumption was
+> credited under — one instance, carried into program validation with a
+> demonstration — and it is applied here for consistency, not generosity.
 
 **41 is a floor, not a recount.** The sweep read 83 cards; the tree now holds
 **95**. Twelve cards have been sealed since and **nobody has swept them**, so 41
@@ -302,6 +361,39 @@ next epic opening carry-forward issues the way `ports-as-adapters` did
 
 ---
 
+## Consumption or only routing? — the first real test, answered
+
+`CA-03` and `CA-04` disposed findings they say they **consumed**:
+`RD-03-DF-08` → `consumed`, `SV-04-DF-05` → `repaired`. **This is the mechanism
+being used by tickets that are not its author, inside the same epic.** So: is it
+consumption, or only routing?
+
+**The instrument cannot tell, and that is exactly what `CA-05-DF-03` declares.**
+D1 checks that a token is present; D2 checks that a note exists. A row reading
+`consumed` with a plausible sentence passes identically to one that shipped
+code. **Nothing in `disposition.py` opens the artifact.**
+
+**But a reader can tell, and `CA-05` checked by hand rather than reporting an
+unfalsifiable "the field says consumed":**
+
+| row | claim | verification |
+|---|---|---|
+| `SV-04-DF-05` | `cmd_scaffold` now calls `register_round()`; R1 test shipped | **VERIFIED** — the named test exists and passes; `register_round` appears twice in `score_tools.py` |
+| `RD-03-DF-08` | the cut was already made at card version 4; `eval_scorecard.md:769` records it | **VERIFIED** — line 769 says exactly that, and the retired text is out of the served surface |
+
+**So: genuine consumption, in both cases, for these two rows.** One of them
+(`SV-04-DF-05`) carries harvest class `F3` into program validation and moves the
+consumption numerator from 1 to 2.
+
+**The general answer is the uncomfortable one.** That verification took two
+commands and a judgement, **and it was done by a person, not by the instrument**.
+The requirement can make consumption *claimable* and *auditable*; it cannot make
+it *true*. Any future *"N findings consumed"* figure derived from this field
+alone is a count of claims. **Read it as routing unless somebody opened the
+artifact, and say which you did.**
+
+---
+
 ## The honest alternative, re-argued — and the case is weaker than `CA-05` first put it
 
 The owner's framing was: *"Either a filed finding must receive a disposition
@@ -325,23 +417,47 @@ available evidence, and on the evidence that is correct:**
 > **A requirement now exists, it is documented, it runs, and it refuses the epic
 > that shipped it.** That is a real change from a state where nothing asked.
 
-**What is not yet true, and must not be claimed:**
+**What is not yet true, and must not be claimed:** that the requirement *caused*
+anything. Nobody has yet been refused a close-out and consumed a finding in
+response.
 
-> **Nothing has been consumed *because* of it.** The rate is still **1 in 41**.
-> The mechanism that used to route findings was switched off for four epics
-> while every consumption figure was published. **No finding has yet been
-> carried into the program because this requirement forced it.**
+### The evidence moved between review rounds, and it moved TOWARDS the loop
 
-**The honest description today is therefore still closer to "a measurement
-programme with a newly installed close-out requirement" than to "a
-self-improvement loop."** The alternative is **not refuted — it is deferred by
-one epic.** The test is `CA-08` and its successors: if a finding is consumed
-*because* the requirement refused a close-out, the loop language is earned. If
-the next epic's findings are routed and nothing downstream reads them, then the
-measurement-programme description was right all along and should be adopted
-without embarrassment.
+When `CA-05` first qualified this retirement, the rate was **1 in 41** and no
+ticket but its author had used the mechanism. At the reconciled tip:
 
-**`CA-05`'s own sentence, which is stronger than the case it first made for
-retirement, and is kept here for that reason:** *the loop has closed once in 41,
-and the mechanism was switched off for four epics while every consumption figure
-was published.*
+- **`CA-03` adopted the vocabulary and satisfied all three clauses voluntarily**,
+  from the proposal alone, **while this PR was open and unmerged**;
+- **`CA-03` and `CA-04` disposed findings from CLOSED epics they consumed** —
+  `RD-03-DF-08` and `SV-04-DF-05`, the first terminal dispositions any ticket has
+  written against another epic's backlog;
+- **the consumption numerator rose 1 → 2 of 41**, verified by hand, because one
+  of those repairs carried harvest class `F3` into program validation with an R1
+  test.
+
+**That is three tickets in one epic behaving like a loop.** It is more than
+`CA-05` had when it first argued the point, and honesty requires saying the case
+got stronger and not only where it got weaker.
+
+### And it is still not enough, for one specific reason
+
+**None of it was caused by the requirement.** `CA-03` adopted a proposal it read;
+`CA-04` disposed rows because its work order told it to. **No close-out has been
+refused and then fixed.** The requirement has been *complied with*, never yet
+*binding*.
+
+**So the description stands where the reviewer put it:** *a measurement programme
+with a newly installed close-out requirement that three tickets have voluntarily
+honoured.* That is a better sentence than either of the owner's two options and
+it is the one the evidence supports.
+
+**The test remains `CA-08`**, and it is now sharper: 16 rows from `CA-00`,
+`CA-01` and `CA-02` are outstanding and their authors owe them. **If those get
+dispositioned because the requirement refuses the epic's close, the loop language
+is earned.** If the epic closes with them still `open`, then the requirement is
+documentation and the measurement-programme description should be adopted without
+embarrassment.
+
+**`CA-05`'s own sentence, kept because it is still the sharpest thing here:** the
+loop has closed twice in 41, and the mechanism that routes findings was switched
+off for four epics while every consumption figure was published.

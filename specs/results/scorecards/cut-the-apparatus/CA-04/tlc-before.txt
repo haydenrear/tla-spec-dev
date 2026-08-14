@@ -1,0 +1,33 @@
+# TLC on the before model
+# module sha256: 9c0f394c28259fe67848d2b7d45323d759d29bfb8e69c916b010051c91c622ef
+# source: git show 4302082:specs/current/{TlaSpecDevCli.tla,MC.cfg} -- byte-faithful, sha verified
+# command: tlc2 -config MC.cfg TlaSpecDevCli.tla
+
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 2 and seed -279057777376484083 with 1 worker on 10 cores with 16384MB heap and 64MB offheap memory [pid: 97194] (Mac OS X 26.6.1 aarch64, Oracle Corporation 21 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/fe6d0271-2a77-4295-9483-37e89a514b13/scratchpad/CA-04/tlc_before/TlaSpecDevCli.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Naturals.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/FiniteSets.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/TLC.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Sequences.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module TlaSpecDevCli
+Starting... (2026-08-13 17:31:28)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-08-13 17:31:28.
+Progress(13) at 2026-08-13 17:31:31: 1,069,084 states generated (1,069,084 s/min), 114,394 distinct states found (114,394 ds/min), 55,820 states left on queue.
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 3.8E-7
+  based on the actual fingerprints:  val = 1.7E-8
+13008254 states generated, 563963 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 25.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 24 and the 95th percentile is 7).
+Finished in 26s at (2026-08-13 17:31:54)
+# EXIT=0

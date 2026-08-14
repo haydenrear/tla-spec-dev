@@ -41,7 +41,6 @@ def _base_state(ticket_stage: int):
         "complexity_gate": "unknown",
         "corpus_gate": "unknown",
         "effect_conformance": "unknown",
-        "kill_test": "unknown",
         "lastCommand": "tla-spec-dev open ticket",
         "result": {"accepted": True, "next": "next", "reason": "NoReason"},
         "setup_phase": 5,

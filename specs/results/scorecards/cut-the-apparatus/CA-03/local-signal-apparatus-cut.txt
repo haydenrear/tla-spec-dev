@@ -1,0 +1,23 @@
+# GOAL-apparatus-cut -- local signal, CA-03
+
+Tree: feature/CA-03 at a3b159c, branched from epic tip 4302082.
+
+```
+$ find scripts examples/validation -name "*.py" -not -path "*/__pycache__/*" | xargs wc -l | tail -1
+   42506 total
+
+$ find scripts -name "*.py" -not -path "*/__pycache__/*" | xargs wc -l | tail -1
+   27652 total
+
+$ find examples/validation -name "*.py" -not -path "*/__pycache__/*" | xargs wc -l | tail -1
+   14854 total
+
+$ wc -l examples/validation/scorecards/score_tools.py
+    3740 examples/validation/scorecards/score_tools.py
+
+$ score_tools.py serve | wc -c
+    6281
+
+$ score_tools.py serve --digest-only
+sha256:2d7d4a0506d9b259
+```

@@ -318,6 +318,146 @@ def test_a_blinded_card_carries_the_scope_and_nothing_that_identifies_it(
     assert subject["declared_effect_boundary"] == "effectful"
 
 
+def test_a_blinded_round_registers_itself_and_the_unregistered_card_is_the_failing_input(
+        st, tmp_path, monkeypatch, capsys):
+    """`SV-04-DF-05`. THE DEMONSTRATED FAILING INPUT, ON THE SUBJECT THAT SHIPPED IT.
+
+    The subject is `toolchain_fixture` out of the REAL `subjects.toml`, and it is
+    the exact entry SV-04 filled in by hand after the fact -- the file's own
+    comment beside it says so: *"SV-04's round is mapped HERE and not by its
+    cards, and the reason is the blinding."*
+
+    THE FAILING INPUT IS RUN FIRST AND IT FAILS. A blinded round is scaffolded,
+    and against the declaration file as it stood every one of its cards maps to
+    NO declared subject -- which is what `check`, `seal`, `audit`, `contested`
+    and `derive` all reported clean on, and what only a test behind a 21-minute
+    suite caught. Then the same scaffold's registration is read back and the
+    same cards map to the subject.
+
+    IT IS NOT A GATE. Nothing refuses; a fact the scaffold already holds is
+    written down at the moment it holds it.
+    """
+    at = st.arch()
+    subjects_path = tmp_path / "subjects.toml"
+    shutil.copy(at.DEFAULT_SUBJECTS, subjects_path)
+    pristine_path = tmp_path / "pristine.toml"
+    shutil.copy(at.DEFAULT_SUBJECTS, pristine_path)
+    monkeypatch.setattr(at, "DEFAULT_SUBJECTS", subjects_path)
+
+    root = tmp_path / "scorecards"
+    monkeypatch.setattr(st, "DEFAULT_SCORECARD_ROOT", root)
+    epic = root / "ca03-registration-demo"
+
+    assert scaffold(st, epic, example="toolchain_removal", arms="control,treatment",
+                    judges=2, labels="GG,GJ", subject="toolchain_fixture") == 0
+    out = capsys.readouterr().out
+
+    rows = at.card_rows(root)
+    assert len(rows) == 4, rows
+    assert {r["arm"] for r in rows} == {"GG", "GJ"}
+    # every card is blinded: it cannot name its own subject, by design
+    assert {r["declared_subject"] for r in rows} == {None}
+
+    # 1. THE FAILING INPUT: against the file as it stood, nothing attributes them.
+    before = at.load_subjects(pristine_path)
+    assert [at.subject_of(r, before) for r in rows] == [None, None, None, None], (
+        "the unregistered-card hole did not reproduce, so this test is not "
+        "demonstrating anything")
+
+    # 2. THE FIX: the scaffold that blinded them recorded them.
+    after = at.load_subjects(subjects_path)
+    assert [at.subject_of(r, after) for r in rows] == ["toolchain_fixture"] * 4
+    assert ("ca03-registration-demo", "GG") in after["toolchain_fixture"]["labels"]
+    assert ("ca03-registration-demo", "GJ") in after["toolchain_fixture"]["labels"]
+    assert "registered 2 blinded card group(s)" in out
+
+    # 3. WHAT WAS ALREADY THERE IS UNTOUCHED -- this file is the record for every
+    #    sealed card and an edit that dropped a row would break attribution for
+    #    rounds nobody is looking at.
+    for name, s in before.items():
+        assert set(s["labels"]) <= set(after[name]["labels"]), name
+        assert s["scope"] == after[name]["scope"], name
+        assert s["declared"] == after[name]["declared"], name
+
+    # 4. IDEMPOTENT, so a re-run cannot grow the file. Asserted on the writer
+    #    directly because the scaffold itself refuses to write a round twice.
+    assert st.register_round(subjects_path, "toolchain_fixture",
+                             "ca03-registration-demo", ["GG", "GJ"]) == []
+    assert at.load_subjects(subjects_path)["toolchain_fixture"]["labels"] == \
+        after["toolchain_fixture"]["labels"]
+
+    # A SECOND round registers beside the first rather than replacing it.
+    assert scaffold(st, root / "ca03-second-round", example="toolchain_removal",
+                    arms="control,treatment", judges=1, labels="LV,LG",
+                    subject="toolchain_fixture") == 0
+    capsys.readouterr()
+    labels = at.load_subjects(subjects_path)["toolchain_fixture"]["labels"]
+    assert len(labels) == len(set(labels)), labels
+    assert set(after["toolchain_fixture"]["labels"]) < set(labels)
+    assert ("ca03-second-round", "LV") in labels
+
+    # 5. AN UNBLINDED ROUND NEEDS NO ENTRY and gets none: its cards name the
+    #    subject themselves, which is what `subject_of` reads first.
+    assert scaffold(st, root / "ca03-unblinded-demo", example="toolchain_removal",
+                    arms="control", judges=1, subject="toolchain_fixture",
+                    unblinded=True, reason="the recorded escape") == 0
+    capsys.readouterr()
+    unblinded = at.load_subjects(subjects_path)
+    assert unblinded["toolchain_fixture"]["labels"] == labels
+    named = [r for r in at.card_rows(root) if r["round"] == "ca03-unblinded-demo"]
+    assert [r["declared_subject"] for r in named] == ["toolchain_fixture"]
+
+
+def test_a_round_outside_the_scorecard_root_is_not_registered(st, tmp_path,
+                                                              monkeypatch, capsys):
+    """No reader could ever match it, and this file is all declaration.
+
+    `subject_of` keys on the round directory RELATIVE TO the scorecard root it
+    walks. A round scaffolded anywhere else -- every other test in this file, and
+    any dry run -- would get an entry nothing can match, written into the one
+    file whose header says nothing in it may be computed. So it is not written,
+    and the scaffold SAYS it is not written rather than leaving it to be found.
+    """
+    at = st.arch()
+    subjects_path = tmp_path / "subjects.toml"
+    shutil.copy(at.DEFAULT_SUBJECTS, subjects_path)
+    monkeypatch.setattr(at, "DEFAULT_SUBJECTS", subjects_path)
+    monkeypatch.setattr(st, "DEFAULT_SCORECARD_ROOT", tmp_path / "elsewhere")
+
+    before = subjects_path.read_text()
+    assert scaffold(st, tmp_path / "scorecards" / "e1", example="toolchain_removal",
+                    arms="A,B", judges=1, labels="GG,GJ",
+                    subject="toolchain_fixture") == 0
+    assert "Not registered" in capsys.readouterr().out
+    assert subjects_path.read_text() == before
+
+
+def test_registration_reports_rather_than_losing_a_round(st, tmp_path):
+    """THE CARDS ARE THE MEASUREMENT. A bookkeeping failure does not cost one.
+
+    `register_round` verifies its own edit by re-parsing before it writes, so the
+    failure mode it has is "declined to write", never "wrote something broken".
+    Both halves are pinned here: an undeclared subject raises rather than
+    inventing an entry, and a file it cannot edit is left byte-identical.
+    """
+    subjects_path = tmp_path / "subjects.toml"
+    subjects_path.write_text('[subject.only]\nexample = "e"\nscope = ["scripts"]\n')
+    before = subjects_path.read_text()
+
+    with pytest.raises(st.RegistrationError):
+        st.register_round(subjects_path, "not_declared", "r", ["GG"])
+    assert subjects_path.read_text() == before
+
+    with pytest.raises(st.RegistrationError):
+        st.register_round(subjects_path, "only", "r", ["GG"])
+    assert subjects_path.read_text() == before, (
+        "a subject with no `labels` array is left alone rather than guessed at")
+
+    # nothing to add is not a failure, and writes nothing
+    assert st.register_round(subjects_path, "only", "r", []) == []
+    assert subjects_path.read_text() == before
+
+
 def test_a_scope_that_spells_a_published_label_refuses_the_whole_batch(
         st, tmp_path, capsys):
     """THE DEMONSTRATED FAILING INPUT, on the real subject that shipped it.

@@ -1,0 +1,130 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CA-03",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-03/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-03/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-03/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "analyze_complexity.py and code_complexity.py STILL EXIST and still serve the spec workflow.",
+        "The descriptor is no longer a precondition of a D2 score, and the removed coupling is enumerated.",
+        "The unregistered-card hole is closed and the fix has a demonstrated failing input on a real subject.",
+        "Each of the five checks is decided on the record: kept with the case that it caught something, or cut with the finding that it did not.",
+        "NO NEW GATE is added.",
+        "All four standing results verified to still reproduce, each named individually.",
+        "The card is unchanged: serve | wc -c is still 6,281."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "CA-08"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "examples/validation/scorecards/score_tools.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "tests/test_score_tools.py"
+      ]
+    },
+    "depends_on": [
+      "CA-02"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/257",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "A reduction in score_tools.py (3,571 lines at base) from removing descriptor coupling and checks that have never caught anything. NO TARGET ON THE NUMBER -- the constraint is that every removal names its finding.",
+        "goal": "GOAL-apparatus-cut",
+        "local_signal": "find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "NONE, AND THIS IS THE HIGHEST-RISK TICKET FOR THIS GOAL. score_tools.py produced all four results. seal, contested, scope and the double seal MUST still run and the sealed cards MUST still open. Verify each of the four results reproduces before opening the PR.",
+        "goal": "GOAL-four-results-stand",
+        "local_signal": "python3 examples/validation/scorecards/score_tools.py audit && python3 examples/validation/scorecards/score_tools.py scope"
+      },
+      {
+        "contribution": "direct",
+        "expected_effect": "Two more filed findings consumed into the program -- RD-03-DF-08 and SV-04-DF-05 -- which is the mechanism GOAL-consumption-obligatory exists to make routine.",
+        "goal": "GOAL-consumption-obligatory",
+        "local_signal": "the finding IDs named in the price table"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-blind-dispatch",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "CA-03",
+    "implementation_scope": [
+      "examples/validation/scorecards/",
+      "tests/",
+      "specs/results/scorecards/cut-the-apparatus/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "TWO FINDINGS, ONE OWNER, BECAUSE BOTH LIVE IN score_tools.py. FIRST, RD-03-DF-08: on THE CLEAREST SIMPLIFICATION THIS PROJECT EVER MEASURED, 19 OF 21 DESCRIPTOR AXES WERE BYTE-IDENTICAL AND ONE MOVED THE WRONG WAY, while EIGHT JUDGES FOUND THE SIMPLIFICATION INDEPENDENTLY. The descriptor cannot see the one thing it was built to see. READ THE CONSTRAINT EXACTLY: analyze_complexity.py and code_complexity.py SERVE THE SPEC WORKFLOW AND STAY -- RM-02 was explicit about this and cutting them fails the ticket. What is cut is their ROLE AS A PRECONDITION OF A D2 SCORE. Find every place the descriptor's output gates, blocks, decorates or is required by a D2 scoring path and remove that coupling; the scripts keep running for the workflow that actually uses them. SECOND, SV-04-DF-05: check, seal, audit, contested AND derive ALL PASSED ON UNREGISTERED CARDS -- a live defect in the round's own output, and the only thing that caught it was a test behind a 21-minute suite. FIVE CHECKS PASSED A LIVE DEFECT. That is not an argument for a sixth check; it is an argument that these five are not doing the job they claim. Decide, on the record, whether each of the five EARNS ITS KEEP: seal, contested and the version/served double seal are on RM-02's do-not-cut list and CL-01's second seal caught a real class one ticket later, so the likely shape is REPAIR the registration hole and CUT what is left that has never caught anything. NO NEW GATES -- seven epics, zero bugs. PRICE BOTH CUTS. And run your own rule against the sealed record before shipping it, per the charter.",
+    "promotion_order": 30,
+    "promotion_predecessor": "CA-02",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Stop the complexity descriptor being a precondition of a D2 score, and fix the five checks that passed a live defect",
+    "wave": 2
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-03/specs/tickets/CA-03",
+  "ticket_id": "CA-03",
+  "ticket_index": 2,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-03/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-03/specs/tickets"
+}

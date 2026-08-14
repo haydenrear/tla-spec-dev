@@ -233,7 +233,7 @@ def project_state(
     COST NOTE: this is the half of the seam that does NOT come for free, and it
     is where the remaining adapters will diverge. `setup_phase` and `spec_root`
     are read from directory evidence below in ~10 lines. The four gate variables
-    (complexity_gate, corpus_gate, effect_conformance, kill_test) are read from
+    (complexity_gate, corpus_gate, effect_conformance) are read from
     results artifacts and are only meaningful once the corresponding oracle has
     run -- for setup-segment actions they are carried from `prior` because the
     action provably cannot change them (the TLA+ action lists them UNCHANGED).

@@ -1625,11 +1625,11 @@ Now put that beside the disposition state of the findings ledger, measured by
 | ports-as-adapters | 2026-08-05 | **yes** (`PA-06`) | 26 of 28 — *and both refusals are FALSE, the record is in another key* |
 | falsifiable-instruments | 2026-08-06 | **yes** (`FI-03`, `FI-06`) | **30 of 30** |
 | subtract-to-measure | 2026-08-07 | **yes** (`SM-05`) | **30 of 30** — *but only after `CA-05-DF-06`; it was a FALSE pass* |
-| reading-discipline | 2026-08-10 | no | **0 of 46** |
+| reading-discipline | 2026-08-10 | no | **1 of 46** — `CA-03` consumed `RD-03-DF-08` |
 | portable-substrate | 2026-08-10 | no | **0 of 28** |
 | close-the-loop | 2026-08-11 | no | **0 of 17** |
-| score-drives-validation | 2026-08-12 | no | **1 of 31** |
-| cut-the-apparatus | in flight | no | **6 of 22** — `CA-05`'s own rows |
+| score-drives-validation | 2026-08-12 | no | **2 of 31** — `CA-03` repaired `SV-04-DF-05` |
+| cut-the-apparatus | in flight | no | **11 of 35** — `CA-03`'s 5 and `CA-05`'s 6; `CA-04`'s 8 fail on field naming |
 
 **`CA-05` originally called this "an exact correlation across eight epics in
 both directions". THAT IS WITHDRAWN**, at the instruction of PR #265's
@@ -1686,8 +1686,12 @@ doing it in bulk would manufacture a clean history that was never measured.
 
 ## The consumption rate, restated
 
-**1 of 41 (2.4%)** consumed into program validation — class `A1`, by `SV-04`,
-unchanged. The denominator rose from 38 because `CA-05` appended the three
+**2 of 41 (4.9%)** consumed into program validation — class `A1` by `SV-04`, and
+now class **`F3` by `CA-03`**, which made `cmd_scaffold` register a blinded round
+and shipped the R1 test for it. **Verified by hand by `CA-05`: the test exists
+and passes.** Per `denominator_rule`, on the second move **the numerator rose
+1 → 2 and the denominator held at 41**; on the first (the register repair) the
+denominator rose 38 → 41 and the numerator did not move. The denominator rose from 38 because `CA-05` appended the three
 classes `SV-01-DF-05` filed to the ledger and never to the register; **the
 numerator did not move.** Working, and its bounds:
 `specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md`,

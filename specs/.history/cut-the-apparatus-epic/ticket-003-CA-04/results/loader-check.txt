@@ -1,0 +1,47 @@
+# CA-04 -- PRICE-TABLE-FORMAT.md section 5 REQUIRED loader check, run at the CA-04 tip.
+# Filtered to LIVE surfaces: scripts/ tests/ references/ examples/**.py examples/**.toml specs/*/ (no .history, no results/, no runs/, no evidence/).
+
+## run_kill_test.py
+examples/distributed_history/specs/program_model/kill_mutants.toml:15:#   python3 scripts/run_kill_test.py \
+examples/run_distributed_history_validation.py:182:            str(REPO_ROOT / "scripts" / "run_kill_test.py"),
+examples/validation/instruments/fixtures/kill_test/killable_only.toml:28:#   python3 scripts/run_kill_test.py \
+examples/validation/instruments/instruments.toml:189:paths = ["scripts/kill_test.py", "scripts/run_kill_test.py"]
+examples/validation/instruments/instruments.toml:197:  argv = ["{python}", "{repo}/scripts/run_kill_test.py",
+examples/validation/instruments/instruments.toml:210:  argv = ["{python}", "{repo}/scripts/run_kill_test.py",
+examples/validation/instruments/instruments.toml:228:paths = ["scripts/run_kill_test.py"]
+examples/validation/instruments/instruments.toml:236:  argv = ["{python}", "{repo}/scripts/run_kill_test.py",
+examples/validation/instruments/instruments.toml:263:  argv = ["{python}", "{repo}/scripts/run_kill_test.py",
+references/modular_fuzzing.md:415:(`scripts/kill_test.py`, `scripts/run_kill_test.py`). Five properties are
+scripts/kill_test.py:10:together with ``scripts/run_kill_test.py``, the ``RunKillTest`` action of
+specs/desired_program_model/deferred_findings.yaml:9746:      production: ["scripts/kill_test.py", "scripts/run_kill_test.py"]
+specs/desired_program_model/deferred_findings.yaml:9762:      `kill_test.py` 1149 + `run_kill_test.py` 235 + `tests/test_kill_test.py`,
+specs/desired_program_model/deferred_findings.yaml:14931:      DELETING `scripts/run_kill_test.py` LEAVES FOUR DANGLING CONSUMERS UNDER
+specs/desired_program_model/deferred_findings.yaml:14938:      `paths = ["scripts/kill_test.py", "scripts/run_kill_test.py"]` (line 189)
+specs/desired_program_model/deferred_findings.yaml:14939:      and `paths = ["scripts/run_kill_test.py"]` (line 228), and four `argv`
+specs/desired_program_model/deferred_findings.yaml:14950:      invokes `scripts/run_kill_test.py` at line 182. That example's full
+specs/desired_program_model/ticket_plan.yaml:271:      production: [scripts/kill_test.py, scripts/run_kill_test.py, scripts/candidate_note_bar.py, scripts/fitness_functions.py]
+specs/desired_program_model/ticket_plan.yaml:284:          -1,430 lines or more from scripts/ (kill_test.py 1,149 + candidate_note_bar.py 281) plus run_kill_test.py and any dead fitness levers, with the model delta priced rather than avoided.
+
+## test_kill_test.py
+specs/desired_program_model/deferred_findings.yaml:9762:      `kill_test.py` 1149 + `run_kill_test.py` 235 + `tests/test_kill_test.py`,
+specs/desired_program_model/ticket_plan.yaml:275:      workflow: [tests/test_kill_test.py, tests/test_candidate_note_bar.py, tests/test_fitness_functions.py]
+
+## kill_mutants.toml
+examples/validation/instruments/fixtures/kill_test/killable_only.toml:3:# `examples/distributed_history/specs/program_model/kill_mutants.toml` with the
+examples/validation/instruments/instruments.toml:110:had never been written down. Its catalogue of mutants is `kill_mutants.toml`;
+examples/validation/instruments/instruments.toml:115:  summary = "a checked-out order is persisted with status 'pending' instead of 'accepted' (kill_mutants.toml store-order_store, verbatim)"
+examples/validation/instruments/instruments.toml:223:    to = "dh/specs/program_model/kill_mutants.toml"
+scripts/kill_test.py:11:``TlaSpecDevCli.tla``, its adapter, and the ``kill_mutants.toml`` catalogues.
+specs/current/TlaSpecDevCli.tla:103:\* with the RunKillTest action, its adapter, and the kill_mutants.toml
+specs/desired_program_model/TlaSpecDevCli.tla:103:\* with the RunKillTest action, its adapter, and the kill_mutants.toml
+specs/desired_program_model/deferred_findings.yaml:9768:      `kill_mutants.toml`, `production_adapters.py`, `adapter_case_runtime.py`
+specs/desired_program_model/deferred_findings.yaml:14954:      Also inert but stale: `examples/distributed_history/specs/program_model/kill_mutants.toml`
+specs/desired_program_model/ticket_plan.yaml:272:      tla: [specs/program_model/kill_mutants.toml, specs/current/kill_mutants.toml, specs/desired_program_model/kill_mutants.toml]
+specs/desired_program_model/ticket_plan.yaml:277:      THE LARGEST SINGLE CUT AVAILABLE, AND RM-03 ALREADY IDENTIFIED IT. kill_test.py is 1,149 lines covering both dead levers; RM-03 DECLINED IT BECAUSE IT IS A MODEL DELTA, and THAT REFUSAL WAS RIGHT FOR THAT TICKET. IT IS NOW IN SCOPE, AND A MODEL DELTA IS A COST TO PRICE RATHER THAN A REASON TO STOP -- so price it properly: the TLA+ actions, the adapters, the kill_mutants.toml entries and the spec-unit surface that go with it, and what the model can no longer express. THE FINDING BEHIND IT: model-derived cases do not catch bugs hand-written tests miss -- ZERO unique kills for the generated corpus across six trees, FOUR THE OTHER WAY, replicated on new subjects. Also cut scripts/candidate_note_bar.py: 281 lines, NOTHING IMPORTS IT, and the shortest test in its own file asserts that -- SV-06 found it and it is the first shipped-bytes finding in three epics. Examine scripts/fitness_functions.py against the same rule and cut the dead levers only. THIS TICKET IS A CUT, NOT A REDESIGN: the TLA+ / case-generation / adapter PATH is CA-06's and the owner keeps it. Do not touch generate_cases_from_tlc_dump.py or run_generated_case_adapters.py here -- CA-06 owns them and will need a tree that still builds. If removing kill_test.py breaks a spec-unit adapter or a Test Graph node, THAT IS THE PRICE: record it, do not paper over it, and DECLARE any new red rather than repairing it silently.
+specs/program_model/TlaSpecDevCli.tla:103:\* with the RunKillTest action, its adapter, and the kill_mutants.toml
+
+## test_tla_spec_dev_kill_test_adapter.py
+specs/current/production_adapters.py:1754:# tests/test_tla_spec_dev_kill_test_adapter.py in each spec tree.
+specs/desired_program_model/production_adapters.py:1754:# tests/test_tla_spec_dev_kill_test_adapter.py in each spec tree.
+specs/program_model/production_adapters.py:1754:# tests/test_tla_spec_dev_kill_test_adapter.py in each spec tree.
+

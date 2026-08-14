@@ -73,7 +73,6 @@ ALL_ACTIONS = (
     "AnalyzeCorpus",
     "GenerateCases",
     "RunEffectConformance",
-    "RunKillTest",
     "RunSpecUnitTests",
     "CloseTicket",
     "CloseTicketWeakened",
@@ -101,7 +100,6 @@ def state(
     complexity_gate: str = "unknown",
     corpus_gate: str = "unknown",
     effect_conformance: str = "unknown",
-    kill_test: str = "unknown",
 ) -> dict:
     base = {ticket: 0 for ticket in TICKETS}
     base.update(ticket_state or {})
@@ -114,7 +112,6 @@ def state(
         "complexity_gate": complexity_gate,
         "corpus_gate": corpus_gate,
         "effect_conformance": effect_conformance,
-        "kill_test": kill_test,
     }
 
 
@@ -191,11 +188,6 @@ def pair(action: str) -> tuple[dict, dict]:
             state(setup_phase=4, spec_root="default_specs"),
             state(setup_phase=4, spec_root="default_specs", effect_conformance="clean"),
         )
-    if action == "RunKillTest":
-        return (
-            state(setup_phase=4, spec_root="default_specs"),
-            state(setup_phase=4, spec_root="default_specs", kill_test="pass"),
-        )
     if action == "RunSpecUnitTests":
         return (
             state(
@@ -248,7 +240,6 @@ EXPECTED = {
     "AnalyzeCorpus": {"root": "default_specs"},
     "GenerateCases": {"root": "default_specs"},
     "RunEffectConformance": {"root": "default_specs"},
-    "RunKillTest": {"root": "default_specs"},
     # CD-09 (G2): the `override` parameter left the model with the withdrawn
     # blocking gate -- RunSpecUnitTests is (root, ticket) now.
     "RunSpecUnitTests": {
@@ -273,7 +264,6 @@ NEGATIVE_CONTROLS = {
     "AnalyzeCorpus": {"root": "custom_specs"},
     "GenerateCases": {"root": "custom_specs"},
     "RunEffectConformance": {"root": "custom_specs"},
-    "RunKillTest": {"root": "custom_specs"},
     # except-index: name a ticket that did not change.
     "OpenTicket": {"root": "custom_specs", "ticket": "cli_entrypoint"},
     "UpdateTicketDesired": {"ticket": "cli_workflow"},
@@ -344,7 +334,6 @@ def test_negative_controls_cover_every_action():
         ("AnalyzeComplexity", "spec_root"),
         ("AnalyzeCorpus", "spec_root"),
         ("RunEffectConformance", "spec_root"),
-        ("RunKillTest", "spec_root"),
         ("OpenTicket", "spec_root"),
         ("CloseTicket", "spec_root"),
         ("RunSpecUnitTests", "spec_root"),
@@ -377,7 +366,6 @@ def test_guard_pinned_root_tracks_the_before_state(recipes, action, variable):
         "AnalyzeComplexity",
         "AnalyzeCorpus",
         "RunEffectConformance",
-        "RunKillTest",
         "OpenTicket",
         "CloseTicket",
         "RunSpecUnitTests",
@@ -566,7 +554,7 @@ def test_mechanism_classification_matches_the_model(recipes):
     assert recipes["InstallLocalCli"].params == ()
 
 
-def test_all_sixteen_action_labels_are_audited(recipes):
+def test_every_action_label_is_audited(recipes):
     """Completeness: every Next disjunct appears, none is silently skipped.
 
     AC-01 added the fifteenth, AnalyzeArchitecture. RC-01 added the sixteenth
@@ -576,7 +564,10 @@ def test_all_sixteen_action_labels_are_audited(recipes):
     removed AnalyzeArchitecture with the static architecture scanners, which is
     the first time this count has gone DOWN -- and the reason the assertion is
     set equality rather than a length: a label that disappears must fail here
-    just as loudly as one that appears.
+    just as loudly as one that appears. CA-04 removed the mutation kill test
+    (RM-03-DF-05) and this set was updated DELIBERATELY rather than repaired --
+    it tracks the model's action set by construction, so an action removed from
+    the model must leave it. The test fired exactly as designed.
     """
     audited = set(recipes) - {"Stutter"}
     assert audited == set(ALL_ACTIONS), f"unaudited: {audited ^ set(ALL_ACTIONS)}"
