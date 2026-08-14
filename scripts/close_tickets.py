@@ -20,6 +20,7 @@ from typing import Any
 try:
     from .spec_evolution import (
         create_workflow_closed_snapshot,
+        live_receipt_manifests,
         print_commit_recommendation,
         validate_workflow_ticket_completion,
         workflow_name as resolve_workflow_name,
@@ -27,6 +28,7 @@ try:
 except ImportError:  # pragma: no cover - direct script execution
     from spec_evolution import (
         create_workflow_closed_snapshot,
+        live_receipt_manifests,
         print_commit_recommendation,
         validate_workflow_ticket_completion,
         workflow_name as resolve_workflow_name,
@@ -338,18 +340,9 @@ def validate_retirement_accept_new_authority(
     terminal_id = str(terminal_ticket.get("id", f"ticket-{terminal_index}"))
     resolved_workflow = resolve_workflow_name(plan, workflow)
     history_root = specs_dir / ".history" / resolved_workflow
-    candidates: list[tuple[Path, dict[str, Any]]] = []
-    for manifest_path in sorted(history_root.glob("*/manifest.json")):
-        try:
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            continue
-        if (
-            isinstance(manifest, dict)
-            and manifest.get("kind") == "ticket"
-            and manifest.get("ticket_id") == terminal_id
-        ):
-            candidates.append((manifest_path, manifest))
+    # Superseded receipts stay on disk but do not count: see the
+    # SUPERSEDED_MARKER_KEY note in spec_evolution.
+    candidates = live_receipt_manifests(history_root, kind="ticket", ticket_id=terminal_id)
     if len(candidates) != 1:
         return [
             f"terminal delivered ticket {terminal_id} must have exactly one successful "

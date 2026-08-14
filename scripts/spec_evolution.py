@@ -644,6 +644,92 @@ def validate_retirement_receipt(
     return errors
 
 
+#: Key a receipt's own manifest carries when a LATER receipt for the same
+#: immutable identity replaced it. CA-09 follow-up (owner decision 2026-08-13).
+#:
+#: Two rules collided whenever a close had to be retaken: the workflow close and
+#: `validate_successful_ticket_receipt` demand exactly ONE successful-close
+#: receipt per delivered ticket, and the append-only history policy forbids ever
+#: deleting one. A retake therefore produced a permanently red repository. This
+#: marker resolves the collision WITHOUT deletion: the superseded receipt stays
+#: on disk, stays readable, and stops being counted.
+#:
+#: The marker is DIRECTIONAL BY CONSTRUCTION, not by inference:
+#: - it is written on the receipt that LOST, and it NAMES the receipt that won,
+#:   so the arrow is recorded, never derived from mtimes or entry-name sort
+#:   order. "Newest wins" would silently reorder history; this cannot.
+#: - only the superseded side carries it, so the pair is never symmetric.
+#: - it carries a `reason`, so a reader learns WHY without reading the diff.
+#:
+#: Supersession only takes effect when the named successor actually exists in
+#: the same workflow history root and shares the same terminal identity (kind,
+#: ticket id, immutable ordinal). A typo therefore cannot silently erase a
+#: receipt from the count; it leaves the pre-existing count error standing.
+#: Nothing here REFUSES anything -- this is a correction to an existing count,
+#: not a new gate.
+SUPERSEDED_MARKER_KEY = "superseded_by"
+
+
+def superseded_marker(manifest: Any) -> dict[str, Any] | None:
+    """Return the well-formed supersession marker on a receipt manifest, if any."""
+    if not isinstance(manifest, dict):
+        return None
+    marker = manifest.get(SUPERSEDED_MARKER_KEY)
+    if not isinstance(marker, dict):
+        return None
+    entry_name = marker.get("entry_name")
+    if not isinstance(entry_name, str) or not entry_name.strip():
+        return None
+    return marker
+
+
+def receipt_is_superseded(manifest_path: Path, manifest: Any) -> bool:
+    """Report whether this receipt was replaced by a later one for the same identity.
+
+    A superseded receipt is LIVE ON DISK and DEAD TO THE COUNT.
+    """
+    marker = superseded_marker(manifest)
+    if marker is None:
+        return False
+    entry_name = str(marker["entry_name"]).strip()
+    receipt_dir = manifest_path.parent
+    if entry_name == receipt_dir.name:
+        # A receipt cannot supersede itself; treat the marker as absent so the
+        # existing count still sees it.
+        return False
+    successor_path = receipt_dir.parent / entry_name / "manifest.json"
+    try:
+        successor = json.loads(successor_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    if not isinstance(successor, dict):
+        return False
+    return all(
+        successor.get(key) == manifest.get(key)
+        for key in ("kind", "ticket_id", "ticket_index")
+    )
+
+
+def live_receipt_manifests(root: Path, **match: Any) -> list[tuple[Path, dict[str, Any]]]:
+    """Load every non-superseded receipt manifest under ``root`` matching ``match``."""
+    found: list[tuple[Path, dict[str, Any]]] = []
+    if not root.is_dir():
+        return found
+    for manifest_path in sorted(root.glob("*/manifest.json")):
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(manifest, dict):
+            continue
+        if any(manifest.get(key) != value for key, value in match.items()):
+            continue
+        if receipt_is_superseded(manifest_path, manifest):
+            continue
+        found.append((manifest_path, manifest))
+    return found
+
+
 def validate_successful_ticket_receipt(
     *,
     specs_dir: Path,
@@ -654,19 +740,8 @@ def validate_successful_ticket_receipt(
     """Require one successful-close receipt for a delivered plan entry."""
     resolved_ticket_id = ticket_id(ticket, index)
     root = history_root(specs_dir, workflow)
-    candidates: list[tuple[Path, dict[str, Any]]] = []
-    if root.is_dir():
-        for manifest_path in sorted(root.glob("*/manifest.json")):
-            try:
-                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            except (OSError, json.JSONDecodeError):
-                continue
-            if (
-                isinstance(manifest, dict)
-                and manifest.get("kind") == "ticket"
-                and manifest.get("ticket_id") == resolved_ticket_id
-            ):
-                candidates.append((manifest_path, manifest))
+    # Superseded receipts stay on disk but do not count: see SUPERSEDED_MARKER_KEY.
+    candidates = live_receipt_manifests(root, kind="ticket", ticket_id=resolved_ticket_id)
 
     if len(candidates) != 1:
         return [
@@ -1511,6 +1586,9 @@ def _terminal_receipts_for_identity(
             type(manifest_index) is int
             and manifest_index == index
             and manifest.get("ticket_id") == resolved_ticket_id
+            # A receipt a later one replaced is history, not a live terminal
+            # disposition: see SUPERSEDED_MARKER_KEY.
+            and not receipt_is_superseded(manifest_path, manifest)
         ):
             receipts[kind].append(manifest_path)
     return receipts

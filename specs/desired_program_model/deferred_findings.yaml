@@ -18569,3 +18569,361 @@ findings:
       LOOKED AT: whether the other template sentinels in `TEMPLATE` are matched by
       substring anywhere else in the file. `TEMPLATE_SENTINEL` had exactly two
       call sites and both are fixed; the other fields use their own vocabularies.
+  - id: CA-10-DF-01
+    found_by: CA-10, resolving CA-09-DF-03 on the owner's chosen option
+    found_at_commit: 7066e06
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: [scripts/spec_evolution.py, scripts/close_tickets.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/.history/cut-the-apparatus-epic/ticket-004-CA-05]
+    channel: operator-doing-the-work
+    cost:
+      basis: one marker on one manifest, three call sites, six tests
+      value: about an hour, against an epic that could not be closed at all
+    summary: >-
+      TWO RULES OF THIS PROJECT CONTRADICTED EACH OTHER WHENEVER A CLOSE HAD TO BE
+      RETAKEN, and `CA-09-DF-03` proved it on this epic. The append-only history
+      policy forbids deleting a receipt; the workflow close and
+      `validate_successful_ticket_receipt` demand exactly one per delivered
+      ticket. `cut-the-apparatus-epic` holds two for `CA-05` because the first
+      close was taken before its promotion predecessor merged and the owner
+      ordered it retaken. Resolved by teaching the COUNT, not by touching the
+      RECORD: `ticket-004-CA-05/manifest.json` now carries a `superseded_by`
+      object naming `ticket-004-CA-05-reconciled`, and receipt counting excludes
+      superseded receipts. Nothing was deleted, nothing else on either manifest
+      was edited, and no new refusal was added -- the arithmetic of an existing
+      count changed and one standing red went green.
+    reproduction: >-
+      `tests/test_ticket_retirement.py::test_repository_canonical_delivered_plan_has_matching_close_receipts`
+      on this repository. Red at `7066e06` with "ticket CA-05 must have exactly
+      one successful close receipt ... found 2"; green after. The real subject is
+      this repository's own history, not a fixture.
+    evidence:
+      - "specs/.history/cut-the-apparatus-epic/ticket-004-CA-05/manifest.json -- the marker"
+      - "scripts/spec_evolution.py SUPERSEDED_MARKER_KEY, receipt_is_superseded, live_receipt_manifests"
+      - "tests/test_ticket_retirement.py -- six tests, three of which fail without the change"
+    why_out_of_scope: >-
+      In scope and repaired, on the owner's explicit instruction.
+    suggested_fix: >-
+      Done. NOTE THAT `CA-09-DF-03`'s OWN SUGGESTED FIX WAS REJECTED: it proposed
+      "select the LATEST receipt per ticket id", and the owner ruled that
+      newest-wins silently reorders history. The marker is directional instead --
+      it is written on the receipt that LOST and names the one that WON, carries a
+      `reason`, and takes effect only when the named successor exists in the same
+      workflow history root with the same kind, ticket id and immutable ordinal.
+      A typo therefore leaves the pre-existing count error standing rather than
+      silently erasing a receipt.
+    blast_radius: >-
+      Every workflow close, and every future epic that has to retake a ticket
+      close after a merge.
+    disposition: repaired
+    disposition_note: >-
+      Repaired with a failing-first test on the real subject. NOT DONE, AND NOT
+      LOOKED AT: no schema document describes `superseded_by` (the manifest has no
+      published schema at all), and nothing writes the marker -- it is authored by
+      hand. A CLI that records a supersession, and a check that a superseded
+      receipt's successor is itself live, are both absent by choice: adding either
+      would have been a new gate.
+  - id: CA-10-DF-02
+    found_by: CA-10, while making one count superseded-aware
+    found_at_commit: 7066e06
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: [scripts/spec_evolution.py, scripts/close_tickets.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: operator-doing-the-work
+    cost:
+      basis: reading three functions to change one rule
+      value: minutes here; the risk is a future edit to two of the three
+    summary: >-
+      ONE RULE, THREE HAND-ROLLED IMPLEMENTATIONS. "Count the terminal receipts
+      for this ticket" was written out three separate times -- glob
+      `*/manifest.json`, `json.loads` in a `try`, filter on `kind`/`ticket_id` --
+      in `spec_evolution.validate_successful_ticket_receipt`,
+      `spec_evolution._terminal_receipts_for_identity` and
+      `close_tickets.validate_retirement_accept_new_authority`. They do not even
+      agree on identity: two match on `ticket_id` alone, the third additionally
+      requires the immutable ordinal. Changing the rule meant finding all three,
+      and a change to only two would have left the close and the validator
+      disagreeing about which receipts exist.
+    reproduction: >-
+      `grep -n 'glob("\*/manifest.json")' scripts/*.py` -- three sites at
+      `7066e06`.
+    evidence:
+      - "scripts/spec_evolution.py:647 validate_successful_ticket_receipt"
+      - "scripts/spec_evolution.py:1478 _terminal_receipts_for_identity"
+      - "scripts/close_tickets.py:324 validate_retirement_accept_new_authority"
+    why_out_of_scope: >-
+      Partly in scope: all three now honour supersession, two through a shared
+      `live_receipt_manifests` helper. The third keeps its own loop because it
+      returns receipts bucketed by kind.
+    suggested_fix: >-
+      Fold `_terminal_receipts_for_identity` onto `live_receipt_manifests` too,
+      and settle whether receipt identity is `ticket_id` or
+      `(ticket_id, ticket_index)` -- the two answers currently coexist.
+    blast_radius: >-
+      Ticket close, ticket retirement, and workflow close.
+    disposition: carried
+    disposition_ticket: "NEXT-EPIC.md -- successor section; not self-routed, because collapsing the third site is a refactor this ticket had no mandate for"
+    disposition_note: >-
+      Two of three sites now share one helper. The duplication that remains is
+      named above and was deliberately not removed during a close.
+  - id: CA-10-DF-03
+    found_by: CA-10, verifying that CA-09's ledger archive is the copy actually read
+    found_at_commit: 7066e06
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: [scripts/disposition.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: operator-running-a-shipped-instrument
+    cost:
+      basis: one post-close `disposition.py --epic cut-the-apparatus`
+      value: seconds; the answer is right and the address in the message is not the one used
+    summary: >-
+      THE NAMED ARTIFACT `CA-09` ADDED IS NEVER THE COPY THAT GETS READ. The close
+      writes the ledger twice: once as `closed-snapshot/deferred_findings.yaml`
+      (the named artifact, recorded in the manifest under `findings_ledger`) and
+      once inside `closed-snapshot/snapshots/desired_program_model/`. Both are
+      produced by `shutil.copy2` from the same source in the same close, so both
+      carry the SAME mtime and the SAME size; `archived_ledgers` then breaks the
+      tie on `str(path)`, and `snapshots/...` sorts after `deferred_findings.yaml`.
+      So the fallback always resolves to the legacy copy while
+      `resolve_ledger`'s own error text, `summary.md` and the manifest all point
+      the reader at the named one.
+    reproduction: >-
+      Run the workflow close on a copy of this repository, then
+      `uv run --with pyyaml python scripts/disposition.py --epic cut-the-apparatus`.
+      The NOTE on stderr names
+      `.../closed-snapshot/snapshots/desired_program_model/deferred_findings.yaml`,
+      not `.../closed-snapshot/deferred_findings.yaml`.
+    evidence:
+      - "scripts/disposition.py archived_ledgers -- sort key (mtime, size, str(path))"
+      - "scripts/spec_evolution.py snapshot_models runs before snapshot_findings_ledger, and copy2 preserves the source mtime for both"
+    why_out_of_scope: >-
+      The fallback WORKS -- `FileNotFoundError` is gone and the two copies are
+      byte-identical, so the verdict is correct. This is an address defect, and
+      changing a sort order during a workflow close is not a close-out agent's
+      call.
+    suggested_fix: >-
+      Prefer the manifest's `findings_ledger.snapshot` when the entry declares
+      one, and fall back to the glob only for the pre-`CA-09` entries that have
+      no such key. That reads the recorded address instead of guessing at it.
+    blast_radius: >-
+      Every post-close read of the findings ledger.
+    disposition: carried
+    disposition_ticket: "NEXT-EPIC.md -- successor section, alongside CA-09-DF-02 which is about the same path"
+    disposition_note: >-
+      CARRIED unrepaired and untouched. Verified rather than assumed: the two
+      copies were compared and are byte-identical at this close, so nothing read
+      the wrong CONTENT -- only the wrong PATH.
+  - id: CA-10-DF-04
+    found_by: CA-10, reading what the workflow close's own gate was about to accept
+    found_at_commit: 7066e06
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/results/complexity_ledger_input.yaml]
+    channel: operator-running-a-shipped-instrument
+    cost:
+      basis: one real workflow close on a throwaway copy
+      value: seconds to see; two epics of a stale document nobody read
+    summary: >-
+      THE WORKFLOW-SCOPE COMPLEXITY LEDGER INPUT IS ABOUT ANOTHER WORKFLOW, AND
+      THE CLOSE ACCEPTED IT. `specs/results/complexity_ledger_input.yaml` opens
+      "Workflow-ledger input for the hexagonal-prompting close" and its
+      `narrative` describes `complexity-descriptor-main-readiness`, PRs #94-#98
+      and commit `24ed3fa`. `justification` and `transition_diff` are both empty
+      strings. `record_complexity_ledger` ran at this epic's workflow close, read
+      that file, and recorded VERDICT `recorded` -- so the gate `CA-09` repaired
+      for substring-blanking is fed, at workflow scope, a narrative from two
+      epics ago. Gate 7 asks whether prose is PRESENT, never whether it is ABOUT
+      THIS CLOSE.
+    reproduction: >-
+      `head -1 specs/results/complexity_ledger_input.yaml`, then run
+      `python3 scripts/close_tickets.py --repo-root . --summary trial` on a copy
+      and read the ledger report it prints.
+    evidence:
+      - "specs/results/complexity_ledger_input.yaml:1 and its narrative/justification/transition_diff fields"
+      - "scripts/spec_evolution.py record_complexity_ledger, called from create_workflow_closed_snapshot"
+    why_out_of_scope: >-
+      Rewriting the narrative a gate is about to read, during the close that
+      gate governs, is editing a target to match a result. Left exactly as found.
+    suggested_fix: >-
+      Have the workflow-scope ledger input name its workflow and have
+      `record_complexity_ledger` compare that name to the workflow being closed --
+      a correction to an existing record, not a new gate. Failing that, treat the
+      workflow narrative as a per-epic artifact the way the ticket-scope one is.
+    blast_radius: >-
+      Every workflow close in this repository, and the complexity ledger's whole
+      workflow-scope history.
+    disposition: carried
+    disposition_ticket: "NEXT-EPIC.md -- successor section; deliberately NOT self-routed, because the fix touches a gate during a close"
+    disposition_note: >-
+      CARRIED unrepaired and untouched. The file was not edited by this ticket.
+  - id: CA-10-DF-05
+    found_by: CA-10, on the owner's instruction to check a warning that had outlived its condition
+    found_at_commit: 7066e06
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/desired_program_model/ticket_plan.yaml]
+    channel: independent-review
+    cost:
+      basis: one line of the charter, read against README.md:35
+      value: negligible, except that the charter is what every ticket agent reads first
+    summary: >-
+      A CHARTER WARNING OUTLIVED ITS CONDITION AND NOBODY NOTICED. `ticket_plan.yaml`'s
+      `operational_rules_this_project_has_paid_for` said "README.md:35 omits
+      --with pyyaml and yields 12 PHANTOM REDS". `CA-09` fixed `README.md:35` to
+      carry the flag; the warning kept naming a defect that no longer existed.
+      The requirement it protects -- run the suite WITH `--with pyyaml` -- is
+      still real, so the line was corrected rather than removed. This is the same
+      class as `CA-08-DF-02` (the register one revision stale) and `F-6` in the
+      coverage-audit input (a plan citation that went stale inside its own epic):
+      the documents every agent reads first are the ones nothing checks.
+    reproduction: >-
+      `sed -n 35p README.md` shows `--with pyyaml`; the charter line claimed it
+      does not.
+    evidence:
+      - "README.md:35"
+      - "specs/desired_program_model/ticket_plan.yaml operational_rules_this_project_has_paid_for"
+    why_out_of_scope: >-
+      In scope and corrected, on the owner's instruction.
+    suggested_fix: >-
+      Done for this line. `tests/test_source_citations.py` still does not cover
+      `ticket_plan.yaml`, which is the general repair and has now been
+      recommended by three separate rounds.
+    blast_radius: >-
+      Every ticket agent's first read of the epic charter.
+    disposition: repaired
+    disposition_note: >-
+      Corrected in place, keeping the live half of the warning. NOT DONE: extending
+      the citation test to the charter, which is what would stop the next one.
+  - id: CA-10-DF-06
+    found_by: CA-10, running the suite against a throwaway copy AFTER the real workflow close
+    found_at_commit: 7066e06
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [tests/test_disposition_requirement.py, tests/test_ticket_retirement.py]
+    channel: the-suite
+    cost:
+      basis: one suite run on a closed copy
+      value: 8 collection errors and 1 returning red, none of them visible before the close was performed
+    summary: >-
+      `CA-09` GAVE THE SCRIPT A FALLBACK AND LEFT THE SUITE WITHOUT ONE. The
+      workflow close removes `specs/desired_program_model/` by design, and
+      `tests/test_disposition_requirement.py` binds `LEDGER = ROOT / D.LEDGER` at
+      import and calls `D.load(LEDGER)` directly, bypassing the `D.resolve_ledger`
+      fallback `CA-09` added for exactly this moment. Post-close the module ERRORS
+      at fixture setup on all 8 tests that use the `rows` fixture -- the tests that
+      pin `GOAL-consumption-obligatory`'s instrument. Two further consequences of
+      the same removal, both structural rather than defects: `test_source_citations`
+      drops from 3 reds to 1 because two of its three parametrised subjects
+      (`specs/current`, `specs/desired_program_model`) no longer exist -- A
+      DENOMINATOR FALL, NOT A REPAIR -- and
+      `test_repository_canonical_delivered_plan_has_matching_close_receipts`
+      returns to red with a DIFFERENT cause, "missing ticket plan", because the
+      plan it validates is inside the directory the close deletes.
+    reproduction: >-
+      Copy the repo, run `python3 scripts/close_tickets.py --repo-root . --summary trial`,
+      then `uv run --with pytest --with pyyaml -m pytest tests/test_disposition_requirement.py -q`.
+      8 errors, `FileNotFoundError` at fixture setup.
+    evidence:
+      - "tests/test_disposition_requirement.py:25-30 -- LEDGER and the rows fixture"
+      - "scripts/disposition.py resolve_ledger -- the fallback the script has and the test does not"
+    why_out_of_scope: >-
+      DELIBERATELY NOT REPAIRED. The epic-base suite figure this ticket reports was
+      measured before the close; editing a test after taking the figure would make
+      the figure meaningless, and this ticket's mandate was the receipt
+      contradiction and the close, not the suite's post-close shape.
+    suggested_fix: >-
+      One line: `D.load(D.resolve_ledger(LEDGER, explicit=False))` in the fixture,
+      which uses the API `CA-09` already shipped. Whether
+      `test_repository_canonical_delivered_plan_has_matching_close_receipts` should
+      validate the ARCHIVED plan after a close is a separate and larger question,
+      and it is the owner's.
+    blast_radius: >-
+      Any repository whose workflow is actually closed. Until this epic, no epic
+      here had ever written a `closed-snapshot`, so nothing had ever exercised the
+      suite in that state.
+    disposition: carried
+    disposition_ticket: "NEXT-EPIC.md -- successor section, together with CA-10-DF-03; both are CA-09's fallback not reaching every reader"
+    disposition_note: >-
+      CARRIED unrepaired and measured rather than predicted: the figures above come
+      from a suite run on a genuinely closed copy, not from reading the code.
+  - id: CA-10-DF-07
+    found_by: CA-10, checking PR #272's own factual claims before editing the body
+    found_at_commit: 7066e06
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: independent-review
+    cost:
+      basis: one `git ls-tree` over origin/main
+      value: seconds; the claim had been published and was steering an owner decision
+    summary: >-
+      A PUBLISHED CLAIM IN PR #272 IS FALSE, AND IT WAS ONE OF THE TWO FACTS
+      OFFERED TO THE OWNER FOR THE CLOSE DECISION. Section 7 states "No epic in
+      this repository has ever written a `closed-snapshot`. `specs/.history/` on
+      `main` holds fourteen workflows and not one closed-snapshot entry" and
+      concludes "Closing here would be a first, not a routine." FIVE of the
+      fourteen have one -- `architectural-coherence-epic`,
+      `complexity-descriptor-epic`, `complexity-descriptor-main-readiness`,
+      `hexagonal-prompting-epic` and `tla-spec-dev-cli-workflow` -- each a real
+      `kind: workflow-close` manifest. `CA-09`'s own commit message already said
+      so ("The five existing closed-snapshots lack it because they PREDATE the
+      ledger living at that path"), so the record contained the refutation before
+      the claim was acted on. What IS true is the narrower statement `CA-09` made:
+      none of the five archived the findings ledger, because they predate its
+      living at that path.
+    reproduction: >-
+      `for d in $(git ls-tree -d --name-only origin/main specs/.history/); do
+      echo "$(git ls-tree -d --name-only origin/main "$d/" | grep -c closed-snapshot) $d"; done`
+      -- five ones and nine zeroes.
+    evidence:
+      - "PR #272 body, section 7"
+      - "git show origin/main:specs/.history/hexagonal-prompting-epic/closed-snapshot/manifest.json -- kind: workflow-close"
+    why_out_of_scope: >-
+      In scope: the same edit that records the performed close corrects the
+      sentence.
+    suggested_fix: >-
+      Corrected in the PR body. The general repair is the one this epic keeps
+      re-finding -- `CA-08-DF-02`, `CA-10-DF-05`, coverage-audit `F-6`: nothing
+      checks the figures inside the documents the owner decides from.
+    blast_radius: >-
+      One owner decision, made on a claim that overstated how unusual the action was.
+    disposition: repaired
+    disposition_note: >-
+      Corrected in PR #272's body with the count and the five names. NOT DONE: no
+      sweep of #272's other unverified figures; only the claims this ticket's own
+      edit touched were checked.
