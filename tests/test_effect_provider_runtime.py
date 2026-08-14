@@ -21,7 +21,6 @@ from scripts.run_generated_case_adapters import (
     execute_cases_in_batch,
     load_effect_provider_plan,
     parse_simple_mapping_toml,
-    validate_effect_provider_execution_mode,
 )
 
 
@@ -1120,14 +1119,12 @@ provider = "effect_provider_fixture:enter_failure_provider"
     ]
 
 
-def test_provider_bearing_non_batch_execution_is_rejected() -> None:
-    plan = SimpleNamespace(configured=True)
-
-    with pytest.raises(SystemExit, match="semantic effect providers require --batch"):
-        validate_effect_provider_execution_mode(plan, batch=False, validate_only=False)
-
-    validate_effect_provider_execution_mode(plan, batch=True, validate_only=False)
-    validate_effect_provider_execution_mode(plan, batch=False, validate_only=True)
+# CA-06-DF-03: `test_provider_bearing_non_batch_execution_is_rejected` stood
+# here. Its subject was the refusal that fenced the per-case-program execution
+# mode off from effect providers. CA-06 deleted the mode, so the refusal went
+# too and this assertion has nothing left to make. A DENOMINATOR move under
+# `denominator_rule` -- the test did not start passing, its subject stopped
+# existing.
 
 
 def test_semantic_providers_coexist_with_passive_effect_sandbox(tmp_path: Path) -> None:
@@ -1409,20 +1406,29 @@ provider = "provider_app:filesystem_provider"
         "exit:FilesystemPort",
     ]
 
+    # CA-06-DF-03: the second half of this test drove the same command WITHOUT
+    # `--batch` and asserted the refusal. There is no second mode to refuse any
+    # more, and `--batch` is inert, so what that half asserted is now true by
+    # construction. Replaced by the weaker claim that still has content: the run
+    # behaves identically whether or not the inert flag is passed, which is what
+    # keeps the ~15 live command lines and the sealed reproduction commands
+    # working.
     (spec_dir / "events.txt").unlink()
-    non_batch_work = tmp_path / "non-batch-work"
-    non_batch_command = [part for part in command if part != "--batch"]
-    non_batch_command[non_batch_command.index(str(tmp_path / "work"))] = str(non_batch_work)
-    non_batch = subprocess.run(
-        non_batch_command,
+    without_flag = subprocess.run(
+        [part for part in command if part != "--batch"],
         cwd=ROOT,
         text=True,
         capture_output=True,
     )
-    assert non_batch.returncode != 0
-    assert "semantic effect providers require --batch" in non_batch.stdout + non_batch.stderr
-    assert not (spec_dir / "events.txt").exists(), "provider and adapter code must not run in unsupported mode"
-    assert not non_batch_work.exists(), "non-batch refusal must precede program/work-directory generation"
+    assert without_flag.returncode == 0, without_flag.stdout + without_flag.stderr
+    assert (spec_dir / "events.txt").read_text(encoding="utf-8").splitlines() == [
+        "enter:FilesystemPort",
+        "setup:FilesystemPort",
+        "write",
+        "run:Publish",
+        "teardown:True",
+        "exit:FilesystemPort",
+    ]
 
 
 def test_no_effect_plan_preserves_legacy_batch_execution(tmp_path: Path) -> None:

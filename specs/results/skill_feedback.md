@@ -2361,3 +2361,31 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CA-06
+
+- close_scope: ticket
+- close_id: CA-06
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-14T02:22:47+00:00
+- summary: THE PATH IS SIMPLER AND IT IS NOT DRAMATICALLY SMALLER, AND THE MEASUREMENT TAKEN INSTEAD OF THE CUT IS THE OUTPUT. The mass this ticket was sent to cut -- --negative-cases (290 lines on a 1,043-line shared TLA+ parser and guard evaluator) and --port-cases (397) -- was measured and KEPT by SM-02 one epic ago in a still-green shipped test written expressly against this widening, so it was measured again instead. CA-06-DF-01: extract_action_signatures hardcoded the name `Next` and neither caller ever overrode it, so BOTH defended mechanisms emit ZERO cases on any model spelling its next-state relation differently -- every number defending them is taken on QuotaLedger, the one model here named `Next` -- while the run still printed `corpus gate PASS`. Fixed by calling find_next_relation, which the sibling module has shipped for three epics; 0 -> 11 cases. CA-06-DF-02: those 11 cannot execute, params keyed by TLA formal names against adapters written for recovered names, so the measured yield on a real subject is zero cases EXECUTED. CA-06-DF-05: the one-sided cap that made the zero silent is NOT repaired, filed with a subtractive fix because no_new_gates_rule forbids the obvious one. COST AND CATCH on examples/distributed_history, 128 exhaustively enumerated mutants: 39 corpus-unique kills raw, but on JOINTLY-EXERCISED CODE the corpus has ZERO semantic unique kills and the hand-written suite has ONE -- the 39 is coverage breadth, not fault-detection power, and that third discount is the independent reviewer's, adopted whole. The disproof survives; CA-06-DF-04 refutes only the UNQUALIFIED generalisation. THE CUT: one execution mode instead of two, and its "zero live callers" justification was FALSE when filed -- two live callers passed no flag at all, and A GREP CANNOT FIND AN ABSENT ARGUMENT, which is CA-04-DF-06's class from a third direction in three tickets. scripts/ moved -4 for this ticket and +209 actual, 28 of the difference being the review fixes themselves: RD-02 for the third time inside one ticket. Model delta direction=zero, TLC legitimately skipped -- but "no model delta" meant NO MODEL WORK WAS DONE and two now-dead ports remain declared, enumerated for the successor. Suite 8 failed / 1485 passed at the merged tip, identical item-for-item to the e379d6b baseline. Five findings, all disposed.
+- feedback_status: items-recorded
+
+### SF-307
+
+- category: instrument-blindness-loader-check
+- target: the epic's REQUIRED loader check -- `git grep` over deleted paths (CA-02) and deleted interfaces (CA-04-DF-06)
+- observed_on: tla-spec-dev, ticket CA-06, cut-the-apparatus epic
+- evidence: specs/results/scorecards/cut-the-apparatus/CA-06/loader-check.txt -- which ran BOTH required greps and still missed three live consumers; and CA-06-DF-03 in specs/desired_program_model/deferred_findings.yaml
+- severity: wrong-result
+- root_cause: skill
+- workaround_applied: none available -- the misses were found by an independent reviewer reading the tests, not by any grep
+- recommendation: none yet -- needs a ticket against tla-spec-dev; the ledger row is CA-06-DF-03
+- status: open
+- surface: the loader-check procedure prescribed by PRICE-TABLE-FORMAT.md section 5
+- forced_workaround: human reading of every test that invokes the changed entry point
+- data_loss: no
+- detail: A GREP CANNOT FIND AN ABSENT ARGUMENT, AND THAT IS THE THIRD DIRECTION THIS CLASS HAS ARRIVED FROM IN THREE TICKETS. CA-02 missed a deleted PATH and silently broke repriced_history.py. CA-04 established that the check is blind to deleted INTERFACES -- subcommands, exports, manifest keys, TOML sections -- because it greps paths only. CA-06 ran BOTH greps, correctly, and still missed three live consumers of the execution mode it deleted: two tests that reach the mode by passing NO execution-mode flag at all (one of them literally NAMED for the mode), and a shipped CLI flag `--no-batch` that became a silent no-op. Every one of them is characterised by the ABSENCE of a token, and a check built on `git grep` searches for tokens. This is not fixable by adding a third grep. What would catch it is a check that enumerates the CALLERS of a changed entry point and asks which defaults each one relies on -- an import/invocation graph rather than a text search. Until something like that exists, every simplification that removes a default is unaudited by the procedure the epic requires, and the procedure will keep reporting clean.
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

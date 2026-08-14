@@ -1,0 +1,13 @@
+# CA-06 -- which definition each model's next-state relation actually is,
+# resolved with scripts/analyze_complexity.py:643 find_next_relation(), which
+# scripts/generate_cases_from_tlc_dump.py has never called.
+
+model                                                                  resolved         `Next` defined?
+examples/validation/ab/model/QuotaLedger.tla                           Next             True
+specs/program_model/TlaSpecDevCli.tla                                  Next             True
+examples/distributed_history/specs/program_model/Internal.tla          InternalNext     False
+examples/distributed_history/specs/program_model/External.tla          ExternalNext     False
+
+# The two that resolve to `Next` are the two the negative and port corpora have
+# EVER been measured on. The two that do not are the repository's own worked
+# real-world example, on which both modes emit ZERO cases.

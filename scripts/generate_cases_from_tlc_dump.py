@@ -2206,6 +2206,41 @@ class ActionSignature:
         return total
 
 
+def resolve_next_relation(cfg_text: str, definitions: dict[str, TlaDefinition]) -> str:
+    """The name of this model's next-state relation, read from its own ``.cfg``.
+
+    CA-06-DF-01. ``extract_action_signatures`` defaulted to the literal name
+    ``Next`` and NEITHER CALLER EVER OVERRODE IT, so the negative corpus and the
+    port corpus emitted ZERO cases on any model that spells its next-state
+    relation differently -- while the run still printed ``corpus gate PASS``.
+    Measured: ``examples/distributed_history`` names its relations
+    ``InternalNext`` and ``ExternalNext`` and got nothing from either mode, and
+    every measurement that defends those two modes (``SM-02``'s "guard
+    relaxation 3 of 3" and "83.2% executable") is taken on
+    ``examples/validation/ab/model/QuotaLedger.tla``, the one model in this
+    repository whose relation is literally named ``Next``.
+
+    The resolver is NOT NEW. ``scripts/analyze_complexity.py`` has shipped
+    ``find_next_relation`` for three epics -- ``NEXT Name`` in the cfg wins,
+    otherwise ``SPECIFICATION Spec`` is followed to the ``[][Next]_vars``
+    box-action, transitively through aliases -- and this module simply never
+    called it. So this is the DELETION of a hardcoded constant in favour of a
+    function the repository already ships and tests, and it is a NO-OP on both
+    models that already worked: ``find_next_relation`` returns ``Next`` for
+    each, so no sealed corpus moves.
+
+    Falls back to ``Next`` when the cfg names nothing resolvable, which keeps
+    the previous behaviour for a model that declares neither NEXT nor a
+    followable SPECIFICATION.
+    """
+    try:
+        from scripts.analyze_complexity import find_next_relation
+    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+        from analyze_complexity import find_next_relation  # type: ignore[no-redef]
+
+    return find_next_relation(cfg_text, definitions) or "Next"
+
+
 def extract_action_signatures(
     definitions: dict[str, TlaDefinition],
     evaluator: GuardEvaluator,
@@ -2435,7 +2470,9 @@ def negative_cases_for_corpus(
     }
     definitions = parse_tla_definitions(tla_source)
     evaluator = GuardEvaluator(definitions, constants, variables)
-    signatures, rejected = extract_action_signatures(definitions, evaluator)
+    signatures, rejected = extract_action_signatures(
+        definitions, evaluator, resolve_next_relation(cfg_text, definitions)
+    )
     report.suppressed.update(rejected)
 
     if only_actions:
@@ -2791,7 +2828,9 @@ def _signatures_for_regions(
     }
     definitions = parse_tla_definitions(tla_source)
     evaluator = GuardEvaluator(definitions, constants, variables)
-    signatures, _ = extract_action_signatures(definitions, evaluator)
+    signatures, _ = extract_action_signatures(
+        definitions, evaluator, resolve_next_relation(cfg_text, definitions)
+    )
     return signatures, variables, definitions
 
 

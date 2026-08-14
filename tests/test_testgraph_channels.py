@@ -485,6 +485,13 @@ def _offending_bindings(tmp_path: Path, *, channel: str | None = "http") -> Path
 
 
 def _run_adapters(package_dir: Path, bindings: Path, tmp_path: Path, *view: str):
+    """CA-06-DF-03: this helper passes NO `--batch`, and every caller below
+    therefore reached the per-case-program execution mode. That mode is gone and
+    these calls now run batch. The channel refusals they assert are raised
+    before either mode is chosen, so coverage is unchanged -- but this was one of
+    the two live call sites that made CA-06's original "zero live callers" claim
+    false, and it is recorded here rather than left for the next grep to miss.
+    """
     import subprocess
 
     return subprocess.run(

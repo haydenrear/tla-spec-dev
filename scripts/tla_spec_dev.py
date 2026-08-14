@@ -389,6 +389,15 @@ def run_spec_unit_tests(args: argparse.Namespace) -> int:
                 command.append("--validate-only")
             if args.validate_capabilities:
                 command.append("--validate-capabilities")
+            # CA-06-DF-03: `--no-batch` selected the per-case-program execution
+            # mode, which CA-06 deleted. Both sides of this branch now produce
+            # the same behaviour -- `--batch` is accepted and inert -- so the
+            # flag is a NO-OP rather than a choice. The branch is KEPT so the
+            # emitted command line still matches the sealed reproduction
+            # commands that captured it, and the flag is tombstoned in its help
+            # rather than removed, because removing it would break every caller
+            # that passes it. An untombstoned silent no-op is exactly the
+            # CA-04-DF-06 interface class, and a reviewer of PR #268 caught it.
             if not args.no_batch:
                 command.append("--batch")
             command.extend(
@@ -558,7 +567,18 @@ def build_parser() -> argparse.ArgumentParser:
     run_spec_units.add_argument("--limit", type=int, help="Limit generated cases.")
     run_spec_units.add_argument("--validate-only", action="store_true", help="Validate adapter coverage without executing generated cases.")
     run_spec_units.add_argument("--validate-capabilities", action="store_true", help="Ask adapters whether they can run selected cases.")
-    run_spec_units.add_argument("--no-batch", action="store_true", help="Run generated cases as one Python program per case instead of batched hooks.")
+    run_spec_units.add_argument(
+        "--no-batch",
+        action="store_true",
+        help=(
+            "ACCEPTED AND INERT (CA-06-DF-03). It used to select one Python "
+            "program per case instead of batched hooks; CA-06 deleted that mode "
+            "after finding it carried fewer oracles than the one nothing chose "
+            "against it. Batch is now the only mode, so this flag selects "
+            "nothing. Kept accepted rather than removed so callers that pass it "
+            "keep working."
+        ),
+    )
     run_spec_units.add_argument(
         "--fuzz-runs",
         type=int,
