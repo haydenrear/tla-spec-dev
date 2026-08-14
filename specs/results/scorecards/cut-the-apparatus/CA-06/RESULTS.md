@@ -160,6 +160,43 @@ from the epic's headline.
    The internal corpus has no case that drives the outbox drain to the depth the
    hand-written test does. **A real gap, measured, not argued.**
 
+### Sharpened at review, and it cuts against this ticket's own headline
+
+An independent reviewer re-ran this probe from scratch on its own tree and got
+**44 / 9 / 39 / 36 — exact match, zero per-mutant disagreements.** It then took
+the discount one step further than I did. **All three semantic corpus-only kills
+are in `project_order`** — a near-duplicate of `process_outbox` that the 42-line
+hand-written test never calls at all:
+
+| discount | corpus-only | semantic | suite-only | semantic |
+|---|---:|---:|---:|---:|
+| raw | 39 | 3 | 9 | 1 |
+| minus `load_state`/`reset` (mine) | 22 | 3 | 9 | 1 |
+| **minus `project_order` too** | **12** | **0** | **9** | **1** |
+
+**On jointly-exercised code the generated corpus has ZERO semantic unique kills
+and the hand-written suite has one** (`BOOLC:110:74`, in `checkout`).
+
+**So the 39 measures coverage breadth, not fault-detection power.** The corpus
+wins where it is the only thing executing the code, and wins nothing where both
+instruments run. **The disproof survives, and this ticket's finding is narrower
+than I first wrote it**: what is refuted is the *unqualified generalisation*
+carried by the charter, the plan and the goal baseline. The `ab_quota_ledger`
+result itself is untouched. The defensible sentence is:
+
+> *"on `ab_quota_ledger`, against that subject's developed hand-written suite,
+> the generated corpus had zero unique kills."*
+
+### `MF-020` ordering — stated honestly because it cannot be checked
+
+My claim is that the 128-mutant population was enumerated and run **before**
+`CA-06-DF-01` was found. **The reviewer could not verify that from the
+repository**, because the probe, its transcript and the finding all landed in a
+single commit (`8324551`); it recorded only that the probe's structure is
+*consistent* with the account. **The ordering therefore rests on my word and is
+not independently checkable.** Weigh it that way. The fix for the next ticket is
+cheap and nobody has been doing it: **commit the population before running it.**
+
 ### Cost
 
 | | |
@@ -204,8 +241,15 @@ documentation problem.**
   outermost `specs/` component of the spec directory. It **adds** a path and
   removes none, and is skipped entirely when the flag is supplied.
 
-Both verified on the real subject: the old six-flag command and the new two-flag
-command each report `executed 93 cases in batch`.
+Both verified on the real subject: the old **four-flag** command and the new
+**two-flag** command each report `executed 93 cases in batch`. (This ticket's PR
+first said "six flags to two", which its own diff block contradicts — corrected
+at review.)
+
+**And the derivation had a bug of its own, found by the reviewer and fixed:** it
+took the *first* `specs` component, so a project nested under any ancestor named
+`specs` derived the wrong root. It now takes the `specs` that contains the spec
+directory, with a regression test built under `tmp_path`.
 
 ---
 
@@ -215,10 +259,19 @@ command each report `executed 93 cases in batch`.
 conformance suite that asserts the outcome **out of band** rather than through
 the generated corpus's own after-state comparison.
 
-The regression was chosen **mechanically** — the first non-string mutant in
-source order from the 36 that **neither** instrument in §2 kills:
-`INT:95:35:404`, `add_cart_item` returning `404 account_not_found` for an
-unknown account.
+The regression is `INT:95:35:404` — `add_cart_item` returning
+`404 account_not_found` for an unknown account — one of the 36 that **neither**
+instrument in §2 kills.
+
+**CORRECTED AT REVIEW: the stated selection rule was wrong.** This ticket
+claimed it was "the first non-string mutant in source order". It is not — four
+boolean survivors precede it (`BOOLC:19:18`, `BOOL:27:27`, `BOOLC:28:69`,
+`BOOLC:73:75`). It is the first **integer** survivor. **The red/green below is
+genuine and reproducible; the selection was filtered, not mechanical, and
+describing a filtered choice as a mechanical one is the `MF-020`-adjacent error
+this project has paid for before.** Recorded rather than restated correctly and
+quietly, because "I applied a rule" and "I applied a rule I wrote down
+afterwards" are different claims.
 
 ```
 PRISTINE   2 passed in 0.01s
@@ -243,15 +296,31 @@ EXPRESSIBLE. It is not evidence that any instrument catches it.
 
 ## 5. What was cut, priced per surface
 
-`PRICE-TABLE.md` in this directory. In summary: **`scripts/` −32,
-`examples/validation/` 0, `tests/` +41, card unchanged at 6,281
-(`sha256:2d7d4a0506d9b259`), no model file changed.**
+`PRICE-TABLE.md` in this directory, which prints **three columns** — baseline,
+post-`CA-05` epic tip, and this PR's head — because printing only the
+counterfactual delta was a presentation failure the review caught.
+
+```
+surface               (a) e379d6b   (b) 88165bd   (c) PR head   (c)-(b)   (c)-(a)
+                        baseline     epic tip      this PR      CA-06     actual
+scripts/                   26,547       26,760       26,756        -4       +209
+examples/validation/       14,854       14,854       14,854         0          0
+tests/                     30,422       30,635       30,738      +103       +316
+```
+
+Card unchanged at **6,281**, `sha256:2d7d4a0506d9b259`. **No model file
+changed — and section 3b of the price table explains why that is a defect
+rather than a virtue.**
 
 **This ticket was named "the largest single reduction in the epic" and it is
-not.** The removals total ~193 lines across two scripts and two test files; the
-additions — tombstones, two docstrings and the `R1` regression tests — total
-~198. That is `RD-02`'s finding happening inside the ticket that quotes it, and
-the price table counts it rather than netting it away.
+not. It is now approximately nothing.** CA-06's own `scripts/` figure was −32
+when the PR opened and is **−4** after the review corrections: the `--no-batch`
+tombstone, the renamed test's docstring and the docstring explaining the
+import-root bug cost 28 lines between them. **That is `RD-02`'s finding for the
+third time inside one ticket** — *"every removal shipped instruments, tests and
+demonstrations to prove the removal safe and nobody counted that as a cost"* —
+and **responding to a review is itself one of those costs.** The price table
+counts it rather than netting it away.
 
 ---
 

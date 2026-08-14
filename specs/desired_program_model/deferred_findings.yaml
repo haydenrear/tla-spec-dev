@@ -16699,6 +16699,38 @@ findings:
       and all three effect-provider example validators. The grep finds no live
       invocation that omits it.
 
+      CORRECTED AT REVIEW, AND THE CORRECTION IS THE INTERESTING HALF.
+      "EVERY live consumer passes `--batch`" IS FALSE, and it was false when
+      filed. An independent reviewer of PR #268 found TWO live call sites that
+      passed NO execution-mode flag at all and therefore reached the deleted
+      mode:
+
+        tests/test_case_adapter_runtime.py -- the test literally NAMED
+          `test_non_batch_generated_program_runs_projected_state_assertion`,
+          which drives the runner as a subprocess with no `--batch`;
+        tests/test_testgraph_channels.py -- `_run_adapters`, the helper every
+          channel-refusal test in that file goes through.
+
+      Both still pass and still assert what they were written to assert, because
+      the oracles they exercise fire in either mode. But after CA-06 a test
+      named for a mode that no longer exists silently exercises batch.
+
+      AND A THIRD, IN SHIPPED CODE: `scripts/tla_spec_dev.py:561` still offers
+      `--no-batch` ("one Python program per case"). With `--batch` inert, both
+      branches now behave identically, so the flag is a SILENT NO-OP.
+
+      WHY THE GREP MISSED ALL THREE, which is the finding worth keeping: the
+      loader check searched for the string `--batch`, and every one of these
+      call sites is characterised by the ABSENCE of a flag. THIS IS
+      `CA-04-DF-06`'S CLASS ARRIVING FROM THE THIRD DIRECTION IN THREE TICKETS
+      -- CA-02 missed a deleted PATH, CA-04 established that the check is blind
+      to deleted INTERFACES, and CA-06 missed a live caller identifiable only by
+      what it does NOT say. A grep cannot find an absent argument.
+
+      WHAT SURVIVES THE CORRECTION, unchanged: no PRODUCTION consumer used the
+      mode, it was the DEFAULT, and it carried fewer oracles. The cut still
+      stands; the justification is narrower than filed.
+
       AND THE DEFAULT MODE CARRIES FEWER ORACLES. Effect providers cannot run in
       it at all, which is why `validate_effect_provider_execution_mode` exists:
       "semantic effect providers require --batch in V0; non-batch generated
@@ -16719,14 +16751,42 @@ findings:
       command lines and the sealed reproduction commands under `specs/results/`
       keep running, and delete the refusal that existed only to fence it.
     blast_radius: >-
-      Nothing live. `--python` KEEPS its meaning -- `reexec_batch_if_needed`
-      uses it to re-exec the batch under a chosen interpreter, which is what the
+      `--python` KEEPS its meaning -- `reexec_batch_if_needed` uses it to
+      re-exec the batch under a chosen interpreter, which is what the
       effect-provider tests exercise.
+
+      THE MODEL IS NOW STALE, and CA-06 did not repair it. `spec_manifest.yaml`
+      in all three trees still declares two ports that exist ONLY for the
+      deleted mode -- `case_program_process` (`process.spawn`,
+      `*programs/case-*`) and `case_program_write` (`filesystem.write`,
+      `**/programs/case-*`) -- both listed under `RunSpecUnitTests`, both
+      annotated `@port` in `TlaSpecDevCli.tla:506` and `:509`, and all three
+      declaration comments cite lines inside the code CA-06 deleted. So CA-06's
+      PR originally said "no model delta"; the accurate statement is NO MODEL
+      WORK WAS DONE, and the model now over-declares two effects that can no
+      longer occur.
+
+      NOT REPAIRED HERE, deliberately: `tests/test_port_declarations.py:136`
+      asserts `case_program_process` by name, so the removal is a model change
+      WITH a test to update, and it arrived at review time on a PR that is
+      already open. Enumerated so the next ticket does not have to rediscover
+      it: 2 manifest port blocks x 3 trees, 2 `@port` annotations x 3 trees, 1
+      `RunSpecUnitTests` list entry x 3 trees, 3 citation comments x 3 trees,
+      and the `test_port_declarations.py` row. Removing a port DECLARATION whose
+      effect can no longer occur changes no variable, action or bound, so it
+      needs no TLC -- only the test.
     disposition: repaired
     disposition_note: >-
       CUT IN THIS TICKET and priced in CA-06's PRICE-TABLE.md. The two tests
       whose only subject was the refusal are deleted with it -- a DENOMINATOR
       move under `denominator_rule`, not a repair.
+
+      THE REVIEW CORRECTIONS ARE ALSO LANDED, in the same PR: the mis-named test
+      is renamed with the correction in its docstring, `_run_adapters` carries a
+      note, and `--no-batch` is TOMBSTONED in its help rather than removed,
+      because removing it would break every caller that passes it. The residual
+      model staleness in `blast_radius` is the one part NOT repaired, and it is
+      enumerated there rather than implied.
 
   - id: CA-06-DF-04
     found_by: "CA-06"
@@ -16798,11 +16858,15 @@ findings:
       are amended by the owner, not by a ticket. CA-06 reports the arithmetic and
       ships the probe that re-derives it.
     suggested_fix: >-
-      Where the sentence appears, say which subject and which hand-written suite
-      it is measured against, exactly as `FI-04-DF-01` had to be corrected for
-      the same class one epic ago. The defensible form is: "on `ab_quota_ledger`,
-      against that subject's developed hand-written suite, the generated corpus
-      had zero unique kills."
+      Where the sentence appears -- `CUT-THE-APPARATUS-EPIC.md` section 2,
+      `specs/desired_program_model/ticket_plan.yaml`, and
+      `GOAL-four-results-stand/baseline.md` -- replace it with the defensible
+      form, exactly as `FI-04-DF-01` had to be corrected for the same class one
+      epic ago: "on `ab_quota_ledger`, against that subject's developed
+      hand-written suite, the generated corpus had zero unique kills." And carry
+      the three-tier table with it: the jointly-exercised-code row is the
+      strongest evidence this ticket produced and it SUPPORTS the disproof
+      rather than undermining it.
     blast_radius: >-
       Every decision to defund generation taken on the strength of the
       unqualified sentence -- including this epic's own framing of CA-06, which
@@ -16822,3 +16886,95 @@ findings:
 
       SELF-ROUTING, DECLARED per `CA-05-DF-03` face (a): #262 is this epic's own
       evaluation ticket, and the rule cannot tell that from a real handoff.
+
+  - id: CA-06-DF-05
+    found_by: "CA-06 (raised by the independent reviewer of PR #268)"
+    found_at_commit: "11c4eaa"
+    schedule_revision: 1
+    severity: major
+    channel: "independent-review"
+    cost:
+      basis: "one reading of corpus_diagnostics.py's verdict property, prompted by asking why CA-06-DF-01 could hide for three epics"
+      value: "minutes, and it is the question CA-06 should have asked itself and did not -- CA-06 fixed the cause of one silent zero and left the mechanism that silences the next one"
+    surface:
+      production: ["scripts/corpus_diagnostics.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      THE CORPUS GATE CANNOT FAIL ON AN EMPTY CORPUS, SO ANY FUTURE MODE THAT
+      SILENTLY PRODUCES NOTHING WILL PASS EXACTLY AS `CA-06-DF-01` DID.
+      `CA-06` repaired the CAUSE of one silent zero. It did not repair the
+      MECHANISM that made the zero silent, and that is a separate defect with a
+      separate lifetime.
+
+      `scripts/corpus_diagnostics.py:280` -- `passed` is `not self.over_cap`.
+      The verdict is a ONE-SIDED CAP: it asks only whether any group exceeds an
+      upper bound. Zero cases exceed nothing, so `render_report` prints
+      `corpus gate PASS: 0 internal case(s), cap ... = 200 per component` and
+      the exit code is `EXIT_OK`.
+
+      THAT IS THE SENTENCE THAT COVERED `CA-06-DF-01` FOR THREE EPICS. The
+      negative and port corpora emitted nothing on every model whose next-state
+      relation is not named `Next`, and the run reported PASS over the silence
+      with the one contrary line -- `SUPPRESSED: Next -- no such definition` --
+      printed inside a report the reader reaches AFTER the verdict.
+
+      THE GENERAL SHAPE, stated so it is not read as a bug in one file: a gate
+      with only an upper bound treats "nothing was produced" and "everything
+      produced is within budget" as the same verdict, and the model's own
+      rationale for the removed `kill_rate_floor` said this in advance --
+      "cost caps alone are gameable in one obvious direction: shrink the model
+      toward nothing and every cap passes" (`CA-04`, quoting `TlaSpecDevCli.tla`
+      before deleting the counterweight). `CA-04` removed the only floor this
+      toolchain had and recorded that it was doing so. `CA-06` is the first
+      measured instance of the consequence.
+    reproduction: >-
+      `sed -n '278,282p' scripts/corpus_diagnostics.py` -> `def passed(self) ->
+      bool: return not self.over_cap`. Then generate any corpus with
+      `--negative-cases only` against a model whose next-state relation is not
+      named `Next` at the CA-06 branch point `e379d6b`: 0 cases emitted,
+      `corpus gate PASS`, exit 0. The transcript is
+      `specs/results/scorecards/cut-the-apparatus/CA-06/negative-corpus-before.txt`.
+    evidence:
+      - "scripts/corpus_diagnostics.py -- CorpusReport.passed, render_report, EXIT_OK"
+      - "specs/results/scorecards/cut-the-apparatus/CA-06/negative-corpus-before.txt"
+      - "specs/results/scorecards/cut-the-apparatus/CA-06/negative-corpus-after.txt"
+    why_out_of_scope: >-
+      THE OBVIOUS REPAIR IS A NEW REFUSAL, AND THIS EPIC FORBIDS ONE. Making an
+      empty corpus FAIL is a gate, `no_new_gates_rule` prohibits adding gates,
+      and the charter's own count is seven epics and zero bugs caught by a
+      static check -- so a new gate is exactly the move the record says does not
+      pay. `corpus_diagnostics.py` is inside CA-06's conflict keys, so this is a
+      scope choice rather than a permission problem, and it is recorded as such.
+    suggested_fix: >-
+      SUBTRACT, DO NOT ADD, WHICH IS THIS EPIC'S OWN DOCTRINE. The cheapest
+      honest change is to stop printing a VERDICT the measurement cannot
+      support: report `0 case(s)` without the word PASS, so an empty corpus is
+      neither passed nor refused but simply unclaimed. That removes a false
+      reassurance instead of adding a refusal, and it needs no new threshold to
+      be negotiated or gamed. If a floor is ever wanted instead, it belongs in
+      the same conversation as the `kill_rate_floor` `CA-04` removed, and it
+      should be argued on `RM-03-DF-05` rather than on this row.
+    blast_radius: >-
+      Every `corpus gate PASS` this project has ever printed over an empty or
+      near-empty corpus, and every future generation mode that fails to resolve
+      something and produces nothing. The class is not specific to the
+      next-state relation: any unresolvable input reaches the same silence.
+    disposition: carried
+    disposition_ticket: "CA-08 (#262)"
+    disposition_note: >-
+      Carried to CA-08, which decides `GOAL-four-results-stand` and already owns
+      the question of what this toolchain's gates are worth -- and which is the
+      right place to weigh "print no verdict" against "add a floor" against
+      "leave it", since the answer touches `CA-04`'s removal of `kill_rate_floor`
+      as much as it touches this file.
+
+      SELF-ROUTING, DECLARED per `CA-05-DF-03` face (a): #262 is this epic's own
+      evaluation ticket, and the rule cannot tell that from a real handoff.
+
+      FILED RATHER THAN FOLDED INTO `CA-06-DF-01` on purpose, at the epic
+      owner's instruction not to leave it implied. DF-01 is a hardcoded name;
+      this is the verdict that hid it. Repairing one does nothing for the other,
+      and merging them would let the fixed half vouch for the unfixed half.

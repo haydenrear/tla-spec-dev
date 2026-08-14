@@ -204,8 +204,15 @@ def default_import_roots_for(spec_dir: Path | None) -> list[Path]:
 
     In the documented layout the second root is derivable and never had to be
     typed: a spec directory is `<project>/specs/<tree>`, so `<project>` is the
-    directory above the OUTERMOST `specs/` component. That is the root holding
-    the adapters, providers and production packages a mapping names.
+    directory above the `specs/` component that CONTAINS this spec directory.
+
+    THE LAST `specs`, NOT THE FIRST, and the difference is a real bug an
+    independent reviewer of PR #268 found in the first version of this function.
+    It used `parts.index("specs")` -- the FIRST match -- so a project living
+    under any ancestor named `specs`, e.g.
+    `/home/me/specs/myproject/specs/program_model`, derived `/home/me` instead
+    of `/home/me/specs/myproject`: a useless root added and the wanted one never
+    derived, silently, on exactly the layout this function exists to serve.
 
     This ADDS a path and removes none, so nothing that resolved before stops
     resolving; and it is skipped entirely when `--import-root` is given, so a
@@ -216,7 +223,8 @@ def default_import_roots_for(spec_dir: Path | None) -> list[Path]:
     roots = [Path.cwd(), spec_dir]
     parts = spec_dir.resolve().parts
     if "specs" in parts:
-        project_root = Path(*parts[: parts.index("specs")])
+        innermost = len(parts) - 1 - parts[::-1].index("specs")
+        project_root = Path(*parts[:innermost])
         if project_root not in roots:
             roots.append(project_root)
     return roots

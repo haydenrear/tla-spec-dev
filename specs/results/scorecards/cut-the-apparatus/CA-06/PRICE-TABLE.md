@@ -58,25 +58,26 @@ the removal safe and nobody counted that as a cost"*. It is counted here.
 Measured at `feature/CA-06` against branch point `e379d6b`, with
 `find <surface> -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1`:
 
-```
-surface                 before      after       delta
-scripts/                 26,547     26,515        -32
-examples/validation/     14,854     14,854          0
-                        -------    -------    -------
-GOAL-apparatus-cut       41,401     41,369        -32
-
-tests/                   30,422     30,463        +41
-specs/ (all kinds)            —          —          0   (no model file changed)
-```
-
-Per file:
+The per-file movement, CA-06's own, measured against branch point `e379d6b`
+(which for these files equals the movement against the post-CA-05 epic tip,
+since CA-05 touched none of them):
 
 ```
 scripts/generate_cases_from_tlc_dump.py    3,471 -> 3,510    +39
-scripts/run_generated_case_adapters.py     2,455 -> 2,384    -71
+scripts/run_generated_case_adapters.py     2,455 -> 2,392    -63
+scripts/tla_spec_dev.py                      824 ->   844    +20   (--no-batch tombstone)
+scripts/effect_conformance.py              1,845 -> 1,845      0   (citation repointed)
+tests/test_generate_cases_from_tlc_dump.py   810 ->   863    +53
+tests/test_case_adapter_runtime.py           614 ->   669    +55
+tests/test_testgraph_channels.py             605 ->   612     +7
 tests/test_effect_provider_fuzzing.py      1,545 -> 1,527    -18
 tests/test_effect_provider_runtime.py      1,484 -> 1,490     +6
-tests/test_generate_cases_from_tlc_dump.py   810 ->   863    +53
+```
+
+```
+specs/ (all model kinds)                                       0   (NO model file changed --
+                                                                    and see section 4, that is
+                                                                    a defect, not a virtue)
 ```
 
 `examples/validation/` is **exactly zero** and that is deliberate: nothing under
@@ -101,17 +102,42 @@ carries it. **The absolute figures at the PR head are therefore NOT this
 ticket's delta:**
 
 ```
-                      at e379d6b   at PR head   of which CA-05's
-scripts/                  26,547       26,728        +245 (scripts/disposition.py)
-examples/validation/      14,854       14,854            0
-tests/                    30,422       30,676        +213 (test_disposition_requirement.py)
+surface               (a) e379d6b   (b) 88165bd   (c) PR head   (c)-(b)   (c)-(a)
+                        baseline     epic tip      this PR      CA-06     actual
+                                     after CA-05                alone     movement
+scripts/                   26,547       26,760       26,756        -4       +209
+examples/validation/       14,854       14,854       14,854         0          0
+tests/                     30,422       30,635       30,738      +103       +316
 ```
 
-**CA-06's own delta is the `-32` / `0` / `+41` above, measured against `e379d6b`,
-and it does not change.** Recorded here because reporting a post-merge absolute
-as a ticket's delta is precisely the denominator confusion `denominator_rule`
-exists to stop, and `GOAL-apparatus-cut` is decided by `CA-08` on the integrated
-tip, not by adding ticket deltas together.
+Command, at each ref:
+`find <surface> -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1`
+
+**ALL THREE COLUMNS PRINT, because the review was right that printing only the
+counterfactual was a presentation failure.** `(c)-(b)` is CA-06's own
+contribution; `(c)-(a)` is what actually happened to this branch, and the
+difference between them is `CA-05`, which merged mid-ticket and brought
+`scripts/disposition.py` and `tests/test_disposition_requirement.py` with it.
+**Stating a counterfactual in the slot a reader expects an after-figure is how a
+number later gets quoted without its qualifier** — this project's most expensive
+recurring error, committed here and corrected at review.
+
+**AND THE HONEST HEADLINE MOVED AGAIN WHEN THE REVIEW FIXES LANDED.** CA-06's
+own `scripts/` figure was **−32** when the PR opened and is **−4** now: the
+tombstones for `--no-batch`, the corrected test name and docstring, and the
+docstring explaining the import-root bug the reviewer found cost 28 lines
+between them. **The cut in `scripts/` is now approximately nothing**, and
+`tests/` rose +103 rather than +41. **That is `RD-02`'s finding for the third
+time in one ticket** — *"every removal shipped instruments, tests and
+demonstrations to prove the removal safe and nobody counted that as a cost"* —
+and responding to a review is itself one of those costs.
+
+**One correction to the review, checked before writing it down:**
+`examples/validation/` is **14,854 at all three refs — movement is exactly
+zero**, not `+75`. Nothing under it was edited by CA-06 or by CA-05. Recorded
+because this epic's rule is to check a figure rather than restate it, and that
+applies to figures arriving from a reviewer as much as to figures arriving from
+a work order.
 
 The card is unchanged through the merge: **6,281 bytes,
 `sha256:2d7d4a0506d9b259`.**
@@ -120,20 +146,80 @@ The card is unchanged through the merge: **6,281 bytes,
 ticket was named "the largest single reduction in the epic" and it is not.**
 Stated plainly rather than dressed up.
 
+## 3b. The model delta, restated — the first version was wrong twice
+
+**CA-06's PR said "no model delta" and gave this command as proof:**
+
+```bash
+git diff e379d6b -- '*.tla' '*.cfg' '*/spec_manifest.yaml' specs/current
+```
+
+**That command does not show it.** Run at the PR head it returns **48 files and
+18,838 insertions**, because the globs sweep in this ticket's own
+`specs/tickets/CA-06/` scaffold and `CA-05`'s history snapshots. **It is a
+mis-scoped comparison straddling a merge — a milder instance of `CA-05-DF-07`'s
+class**, and it is worth naming as such: the conclusion happened to be right and
+the evidence offered for it was not.
+
+**The command that does show it:**
+
+```bash
+git diff e379d6b -- specs/program_model specs/current \
+    specs/desired_program_model/TlaSpecDevCli.tla \
+    specs/desired_program_model/spec_manifest.yaml     # -> empty
+```
+
+**And "no model delta" was the wrong phrase anyway.** The accurate statement is
+**no model work was done, and the model is now stale.** `spec_manifest.yaml` in
+all three trees still declares two ports that exist only for the execution mode
+this ticket deleted — `case_program_process` and `case_program_write`, both
+listed under `RunSpecUnitTests`, both `@port`-annotated at
+`TlaSpecDevCli.tla:506` and `:509` — and **all three of their declaration
+comments cite line numbers inside code that no longer exists.**
+
+**Those three dangling citations are MINE**, and CA-06 first reported them as
+"INHERITED, UNDECLARED". A reviewer diffed the problem lists inside the
+already-red `test_source_citations` params: **base 14 → head 17, and all three
+new ones are this ticket's deletions** (`program_path`, `subprocess.run:2276`,
+`:2392`, the last two now past the end of a 2,392-line file). **The red COUNT did
+not move, which is exactly why prose missed it.**
+
+**Not repaired here, and enumerated so the next ticket need not rediscover it:**
+2 manifest port blocks × 3 trees, 2 `@port` annotations × 3 trees, 1
+`RunSpecUnitTests` list entry × 3 trees, 3 citation comments × 3 trees, plus
+`tests/test_port_declarations.py:136`, which asserts `case_program_process` by
+name. Removing a port declaration whose effect can no longer occur changes no
+variable, action or bound, **so it needs no TLC — only the test.** Filed in
+`CA-06-DF-03`'s `blast_radius`.
+
+**TLC was still legitimately skipped**: `specs/tickets/CA-06/current` equals
+`desired`, and no variable, action or bound moved.
+
 ## 4. What the tree can no longer do
 
 **The runner can no longer write a standalone, self-contained Python program per
 case and run each in its own interpreter.** That mode produced one file per case
 under `<work-dir>/programs/`, importable and runnable on its own, which is a real
 capability: a case could be handed to someone as a script. **What the record says
-it was worth: nothing measured.** Every invocation in this repository — both
-READMEs, `examples/validation/instruments/instruments.toml`, the
-`distributed_history` Test Graph node and its adapter test,
+it was worth: nothing measured in PRODUCTION.** Every production invocation in
+this repository — both READMEs, `examples/validation/instruments/instruments.toml`,
+the `distributed_history` Test Graph node and its adapter test,
 `examples/run_distributed_history_validation.py` at three call sites, and all
-three effect-provider validators — passes `--batch` and always has, and the mode
-carried strictly fewer oracles: effect providers could not run in it at all,
-which is why a refusal existed in the code to fence it off. **The mode with fewer
-oracles was the default.**
+three effect-provider validators — passes `--batch`, and the mode carried
+strictly fewer oracles: effect providers could not run in it at all, which is why
+a refusal existed in the code to fence it off. **The mode with fewer oracles was
+the default.**
+
+**CORRECTED AT REVIEW: "zero live callers" was FALSE.** Two TEST call sites
+reached the deleted mode by passing no execution-mode flag at all —
+`tests/test_case_adapter_runtime.py`'s subprocess test (which was *named* for
+the mode) and `tests/test_testgraph_channels.py::_run_adapters` — and
+`scripts/tla_spec_dev.py` still ships `--no-batch`, now a silent no-op. **The
+loader grep searched for `--batch` and every one of these is characterised by
+the ABSENCE of a flag; a grep cannot find an absent argument.** All three are
+now renamed, annotated or tombstoned, and the correction is carried in
+`CA-06-DF-03`. **The cut still stands on the narrower justification: no
+production consumer, fewer oracles, and it was the default.**
 
 **No refusal replaced it.** `no_new_gates_rule` is intact: this ticket removed a
 mechanism and a refusal and added neither.
@@ -162,10 +248,23 @@ to a removed symbol, flag or manifest key.
 ## 6. Suite movement, under `denominator_rule`
 
 ```
-baseline:  8 reds at e379d6b   8 failed / 1462 passed in 1354.07s  (pytest-baseline.txt)
-after:    10 reds              10 failed / 1465 passed in 1339.03s  (pytest-after.txt)
-repaired: back to 8            (targeted re-run, tests/test_source_citations.py)
+baseline:      8 reds at e379d6b   8 failed / 1462 passed  in 1354.07s  (pytest-baseline.txt)
+first run:    10 reds             10 failed / 1465 passed  in 1339.03s  (pytest-after.txt)
+after review:  9 reds              9 failed / 1484 passed  in 1280.52s  (pytest-after-review.txt)
+repaired:      8 reds             (targeted re-run of tests/test_source_citations.py:
+                                   3 failed / 77 passed -- the 3 inherited spec_manifest params)
 ```
+
+**THE SAME DEFECT BIT THREE TIMES AND THAT IS WORTH RECORDING RATHER THAN
+TIDYING AWAY.** `scripts/effect_conformance.py:1684` cites
+`run_generated_case_adapters.py:<line> (case-work)`. Deleting 108 lines moved the
+anchor `1354 -> 1405`; adding the review's import-root docstring moved it
+`1405 -> 1413`. **Every edit to a file that something cites by line number
+re-breaks the citation**, and it went red again on the review round for exactly
+the reason it went red on the first. Repointed each time, and the test caught it
+each time. **This is the strongest argument in this ticket for content anchors
+over line numbers**, and `RC-02` — which built the anchor mechanism — already
+made it.
 
 **The two extra reds were MINE, they were found by the suite rather than by
 prose, and they were REPAIRED rather than declared** — because they are not

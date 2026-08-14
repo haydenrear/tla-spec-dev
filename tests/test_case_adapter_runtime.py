@@ -425,7 +425,23 @@ class RequestStateProjector:
         raise AssertionError("expected projected state mismatch to fail")
 
 
-def test_non_batch_generated_program_runs_projected_state_assertion(tmp_path: Path) -> None:
+def test_the_runner_subprocess_runs_projected_state_assertion(tmp_path: Path) -> None:
+    """Renamed by CA-06, and the rename is the correction.
+
+    This was `test_non_batch_generated_program_runs_projected_state_assertion`.
+    It drives the runner as a SUBPROCESS WITHOUT `--batch`, which is why
+    `CA-06-DF-03` originally claimed the per-case-program mode had "zero live
+    callers" -- the loader grep looked for `--batch` and this call site has no
+    flag at all to find. **The claim was FALSE**: this test and
+    `tests/test_testgraph_channels.py::_run_adapters` both reached the deleted
+    mode, and after CA-06 they silently exercise batch instead.
+
+    They still assert what they were written to assert -- the projected-state
+    oracle fires either way -- but a test NAMED for a mode that no longer exists
+    is the `CA-04-DF-06` interface-blindness class wearing a different hat, and
+    an independent reviewer of PR #268 found it. The name now says what the test
+    does; what it covers is unchanged.
+    """
     package_dir = tmp_path / "external_cases"
     render_python_package(
         module="Program",
@@ -612,3 +628,42 @@ if __name__ == "__main__":
     test_adapter_mapping_prefers_toml_order_for_fine_labels()
     test_adapter_accepts_case_uses_can_run()
     test_assert_case_result_compares_semantic_projection()
+
+
+# -- CA-06: the derived import root, and the bug a reviewer found in it --------
+
+
+def test_the_derived_project_root_is_the_specs_that_contains_the_spec_dir(tmp_path):
+    """`R1` on a real shape: a project nested under a directory named `specs`.
+
+    The first version of `default_import_roots_for` took `parts.index("specs")`,
+    the FIRST match, and an independent reviewer of PR #268 pointed out that any
+    project nested under a directory named `specs` therefore derived the wrong
+    root -- silently, and on exactly the layout the function exists to serve.
+
+    Built under `tmp_path` rather than from a literal absolute path: `resolve()`
+    rewrites `/home` on macOS (firmlinks), which is a nuisance this assertion
+    should not be measuring.
+    """
+    import sys as _sys
+
+    _sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    from run_generated_case_adapters import default_import_roots_for
+
+    outer = tmp_path / "specs"
+    project = outer / "myproject"
+    spec_dir = project / "specs" / "program_model"
+    spec_dir.mkdir(parents=True)
+
+    roots = default_import_roots_for(spec_dir)
+    assert project.resolve() in roots, "the innermost `specs` is the project boundary"
+    assert tmp_path.resolve() not in roots, "the OUTER `specs` must not win -- that was the bug"
+
+    ordinary = tmp_path / "plain" / "specs" / "program_model"
+    ordinary.mkdir(parents=True)
+    assert (tmp_path / "plain").resolve() in default_import_roots_for(ordinary)
+
+    # No `specs` component at all: cwd and the spec dir, nothing derived.
+    loose = tmp_path / "loose"
+    loose.mkdir()
+    assert default_import_roots_for(loose) == [Path.cwd(), loose]
