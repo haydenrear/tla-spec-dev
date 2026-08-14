@@ -251,12 +251,31 @@ Ask one question with the concrete tradeoff:
 > rather be asked to authorize an inline fix instead.
 
 Record the answer, a per-ticket deferral `budget`, and the backlog path in
-`ticket_plan.yaml` using the schema in `deferment.md`. Create the empty backlog
-file in the same commit:
+`ticket_plan.yaml` using the schema in `deferment.md`.
 
-```yaml
-findings: []
+**Create the backlog file only if that path does not already exist.** In a
+repository that has run epics before, the configured backlog path is very often
+a **cumulative** ledger carrying every prior epic's findings, and writing the
+empty template over it is a silent, pushable data loss that no validator, test
+or gate in this workflow detects:
+
+```bash
+test -e <backlog-path> || printf 'findings: []\n' > <backlog-path>
 ```
+
+**When the file already exists, do not truncate, re-template, prune, reorder or
+"reset it for this epic".** Leave every existing row in place and append this
+epic's findings to it — the `filed_as` references in sealed close-history
+records point into that file by ID, and rewriting it breaks them. Confirm before
+dispatching any issue that the row count did not fall:
+
+```bash
+grep -c '^  - id:' <backlog-path>   # before the kickoff commit, and after it
+```
+
+If the epic genuinely needs a backlog scoped to itself, give it a **new path**
+and record that path in `ticket_plan.yaml`; do not repoint an existing
+cumulative ledger at a fresh file.
 
 Read `references/deferment.md` for scope classification, entry format, agent
 behavior, and triage.

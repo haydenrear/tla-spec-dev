@@ -88,6 +88,34 @@ learned this by measurement: a charter there restated a table of judged results
 and two of its rows were wrong, read forward across a change to the instrument
 before anyone noticed.
 
+**A round that calls itself blind must say what its judges received.** Blindness
+to the packet is not blindness to the operator's conclusions. An agent harness
+can inject persistent memory, the repository's recent commit subjects, session
+hooks and an installed-tooling listing into a dispatched judge *before it makes
+any tool call*, so no forbidden-reading list written inside the dispatch can
+reach them. Measured on Claude Code: judges dispatched from the repository
+received the auto-memory index verbatim and the five most recent commit
+subjects; one, asked before opening any packet, reported that it arrived
+carrying not only the expected answer but the expected *distribution*, and named
+the temptation to reproduce it.
+
+**It is fixable, and the fix is two halves — neither sufficient alone.** On that
+harness, `--safe-mode` removes auto-memory, hooks, project skills and MCP but
+**not** the repository status block, so a judge run at the repository still
+receives the commit subjects; dispatching from a directory outside any git
+repository removes those but leaves the session hook and skill listing standing.
+Both together measured clean. Do not read that as a settled recipe: the flag's
+own help does not name auto-memory, so a round leaning on it leans on
+undocumented behaviour, and the honest practice is to **verify rather than trust
+it** — record the digest of whatever memory file the round was supposed to
+exclude, and ask each judge to report what it received before it opens anything.
+
+So, beside the scores, record which dispatch path was used and what the judges
+reported receiving. Where a round could not be made blind, print the
+contamination note next to the number: withdrawing the number or dropping the
+word *blind* silently both destroy the record of what was actually measured.
+This is a disclosure obligation a reader can check, deliberately not a gate.
+
 ### Not every target is a number
 
 A target states what counts as success. Usually that is a threshold, but two
@@ -146,6 +174,14 @@ if nobody knows today's number.
   harness plus the baseline run. Every behavior-changing ticket depends on it.
   Until it merges, the goal's `baseline.value` stays `unmeasured` and the
   validator warns.
+- **Harness is judged and this subject has never been scored under it** — the
+  instrument existing is not a baseline. Run it at epic kickoff on the epic
+  branch, before any ticket lands, exactly as for a command harness; seal that
+  run and record its card as the baseline. A judged instrument that has been
+  run on other subjects, or in other epics, has measured something else. If a
+  kickoff round is not affordable, `unmeasured` with the reason is the honest
+  answer and the goal stays legal — a goal that cannot be scored is not a goal
+  that fails.
 
 Never take the baseline after the first behavioral ticket has merged; that
 measures the epic against itself.
@@ -167,6 +203,12 @@ the hard way in `ports-as-adapters`:
   otherwise. `tla-spec-dev` executes this as a rule and an audit; the general
   point is that "the number moved" and "the thing got better" are different
   claims.
+
+**For a judged goal, `baseline.evidence` is the card, not the folder it sits
+in.** Point it at the sealed card that produced the number, or — where the
+number is a figure over several cards — at the exact list of them. A directory
+is not a card and neither is a results summary: the evaluation ticket has to
+re-open the same cards, and it cannot pick them out of a folder.
 
 A baseline of `unmeasured` is honest and warns; a baseline of "no such
 instrument exists" is the normal state of a goal whose epic is building the
