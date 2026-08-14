@@ -13740,7 +13740,17 @@ findings:
       drive. Five suite reds were misattributed to "my kickoff wrote counted
       figures in the present tense" before the real cause was found -- that
       hypothesis was WRONG and is withdrawn here.
-    disposition: open
+    disposition: repaired
+    disposition_note: >-
+      REPAIRED at fc39224 by restoring the 210-row ledger from 08d1d6a, and the
+      restore alone took three test files from 6 failed/152 passed to 1
+      failed/157 passed on the same tree -- five of the six reds attributed to
+      this defect. THE INSTRUCTION THAT CAUSED IT IS NOT REPAIRED and is not
+      this repository's to fix: git-epic-workflow's plan-and-schedule.md section
+      4a still says to create the backlog with `findings: []`, which in this
+      repository destroys the cumulative ledger. Skills are read and never
+      edited from here, so the fix is a proposed diff and an escalation to the
+      operator, recorded here rather than applied.
   - id: CA-00-DF-02
     found_by: "the epic owner, scaffolding cut-the-apparatus"
     found_at_commit: "87a526b"
@@ -13795,7 +13805,17 @@ findings:
       demonstrated failing input on a real subject" is weaker than it sounds when
       the real subject is a file the next epic overwrites. Worth a census against
       the other shipped demonstrations, which is CA-03's neighbourhood.
-    disposition: open
+    disposition: carried
+    disposition_note: >-
+      CARRIED to the next epic. The R1 demonstration for the goal-baseline
+      classifier reads its subject from the LIVE plan, so it dies at every epic
+      kickoff while its docstring claims a stable subject. Not repaired during
+      this epic deliberately: repointing it at whichever goal the current epic
+      happens to have reproduces the defect with a new name and is MF-020. The
+      suggested fix is a sealed plan under specs/.history, and CA-03
+      independently confirmed the wider class -- scope reaches none of the prose
+      people actually write.
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/262"
   - id: CA-00-DF-03
     found_by: "CA-01's independent reviewer, dispatched by the epic owner to refute PR #263"
     found_at_commit: "6008c71"
@@ -13856,7 +13876,17 @@ findings:
       safe-mode makes much of the cell redundant for the conclusions leak, so the
       apparatus this epic added to buy blindness may be larger than blindness
       actually costs.
-    disposition: open
+    disposition: consumed
+    disposition_note: >-
+      CONSUMED. Blindness is reachable: --safe-mode plus a neutral cell removes
+      the auto-memory, the SessionStart hook, the MCP instructions and the
+      project skill listing. CA-01 measured both halves and established that
+      NEITHER IS SUFFICIENT ALONE -- safe-mode does not strip gitStatus, so at
+      repo cwd the commit subject lines still arrive. CA-01-DF-01 was downgraded
+      from blocking to minor on this evidence and GOAL-blind-dispatch clause
+      (c)'s impossibility hatch was withdrawn as premature. The hedge is carried
+      unupgraded: the effect was measured twice, and whether safe-mode disables
+      auto-memory by design or incidentally is NOT established.
   - id: CA-00-DF-04
     found_by: "CA-01's independent reviewer, dispatched by the epic owner to refute PR #263"
     found_at_commit: "6008c71"
@@ -13915,7 +13945,15 @@ findings:
       blind. A false PASS here does not merely fail to catch contamination -- IT
       CERTIFIES ITS ABSENCE, which is worse than having no instrument, and it is
       the third instrument this project has shipped and later found blind.
-    disposition: open
+    disposition: repaired
+    disposition_note: >-
+      REPAIRED by CA-01 at 57ab769: an empty subject and a failed dispatch now
+      return exit 2 UNDECIDED rather than PASS, verified by the epic owner
+      (empty exit 2, failed exit 2, ARM-O exit 1, ARM-N exit 0). The MF-020
+      wording was corrected to match the source -- 4 of 27 needles are hand-
+      written literals and the shipped R1 failing demonstration is carried by
+      that half. The paraphrase false PASS is NOT fixed and is not fixable by
+      substring matching; it remains declared as the instrument's blind spot.
 
   - id: CA-01-DF-01
     found_by: "CA-01"
@@ -14364,7 +14402,21 @@ findings:
       epic on it". Also GOAL-four-results-stand's disproof table, which listed the
       refuted sentence as one of the four load-bearing disproofs the epic must not
       break -- so the epic was guarding a claim that was already false.
-    disposition: open
+    disposition: settled
+    disposition_note: >-
+      SETTLED as a correction, not a repair. The charter, the canonical plan and
+      the GOAL-four-results-stand disproof row were corrected in place at
+      fc39224 with the refuting citations, and CA-02 corrected its own
+      artifacts. THE CUT SURVIVED on a weaker and true reason -- RM-02's
+      adoption argument and NEXT-EPIC section 5's 'the instrument would have
+      printed one and none appeared; the goal is met and the instrument is not
+      yet useful'. THE DURABLE HALF IS NOT DONE: scope already ships and already
+      does this job for the card and the record, and nobody has ever pointed it
+      at the document that directs the work. CA-03 then measured that scope
+      reaches none of the prose it would need to read, so the fix is larger than
+      'run the existing tool'. That is the next epic's, and this row is settled
+      rather than carried because the correction is complete and the durable fix
+      is a different piece of work.
 
   - id: CA-02-DF-01
     found_by: "CA-02, cutting the removal-pricing machinery"
