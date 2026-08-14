@@ -1,0 +1,17 @@
+.......................F....                                             [100%]
+=================================== FAILURES ===================================
+_____ test_repository_canonical_delivered_plan_has_matching_close_receipts _____
+
+    def test_repository_canonical_delivered_plan_has_matching_close_receipts() -> None:
+        plan_path = ROOT / "specs" / "desired_program_model" / "ticket_plan.yaml"
+    
+>       assert validate_ticket_plan_closed(plan_path, repo_root=ROOT) == []
+E       AssertionError: assert ['ticket CA-0...atus=planned'] == []
+E         
+E         Left contains 2 more items, first extra item: 'ticket CA-05 must have exactly one successful close receipt under /Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-07/specs/.history/cut-the-apparatus-epic, found 2'
+E         Use -v to get more diff
+
+tests/test_ticket_retirement.py:588: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_ticket_retirement.py::test_repository_canonical_delivered_plan_has_matching_close_receipts
+1 failed, 27 passed in 0.99s

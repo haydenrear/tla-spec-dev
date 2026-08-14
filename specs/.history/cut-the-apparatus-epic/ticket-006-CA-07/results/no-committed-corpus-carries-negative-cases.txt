@@ -1,0 +1,43 @@
+# CA-07 -- what else could this change move? Searched POSITIVELY, not by absence.
+#
+# CA-04-DF-06 / SF-307 / CA-06 section 4.1: A GREP CANNOT FIND AN ABSENT ARGUMENT,
+# and the same lesson arrived from three directions in three tickets. So the
+# check below does NOT search for the absence of anything. It searches for a
+# token every negative case ALWAYS carries -- `expect:rejected`, emitted as
+# REJECTED_LABEL on every case negative_cases_for_corpus produces -- across every
+# committed generated corpus in the repository.
+#
+# If a committed corpus contained a negative case, this would find it.
+
+$ find examples specs -name "cases.py" -not -path "*/.history/*" -not -path "*/__pycache__/*" | wc -l
+19
+
+$ grep -rln "expect:rejected\|StateGraphRejection" --include="cases.py" examples specs | grep -v ".history"
+(no output)
+
+RESULT: NO COMMITTED CORPUS IN THIS REPOSITORY CONTAINS A NEGATIVE CASE.
+
+  - `examples/distributed_history/specs/generated/spec_unit/ecommerce_internal_cases`
+    holds 4 POSITIVE cases and no negative ones; the 11 negative cases exist only
+    in a regenerated corpus, which is why CA-06 had to generate one to find
+    CA-06-DF-02 at all.
+  - Every `examples/effect_providers/*` corpus is positive-only.
+  - `specs/results/rc02-effect-conformance/corpus-executed` is positive-only.
+
+SO THE ARGUMENT-NAMING CHANGE CANNOT MOVE A COMMITTED ARTIFACT. It changes what
+a FUTURE generation emits, on a model that declares an action marker, and only
+for cases the negative pass produces.
+
+The two models this repository generates negative corpora from, both measured:
+
+  examples/distributed_history   declares a marker  -> 11 cases re-keyed, and
+                                                       they now execute
+  examples/validation/ab/QuotaLedger  declares NONE -> 118 cases byte-identical
+                                                       (quota-ledger-corpus-unchanged.txt)
+
+The scaffolders DO emit the marker -- scripts/scaffold_spec.py:208 and
+scripts/onboard_program_model.py:150 both write
+`lastInternalAction' = [name |-> ..., params |-> [<declared> |-> <formal>]]` --
+so every project this toolchain scaffolds from here on gets negative cases whose
+arguments its adapters can read. That is the fix's real reach and it is stated
+here rather than claimed in a summary.

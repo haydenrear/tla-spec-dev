@@ -1,0 +1,86 @@
+..FFF                                                                    [100%]
+=================================== FAILURES ===================================
+__ test_the_negative_corpus_names_its_arguments_as_the_committed_corpus_does ___
+
+    def test_the_negative_corpus_names_its_arguments_as_the_committed_corpus_does() -> None:
+        """`CA-06-DF-02`: two corpora over one model must agree on one contract.
+    
+        Neither side of this comparison is written here. The left is what the
+        generator emits; the right is the corpus checked in under
+        ``specs/generated/``, which every adapter in ``case_adapters.toml`` was
+        written against.
+        """
+        cases, _ = _negative_corpus()
+        emitted: dict[str, frozenset[str]] = {}
+        for case in cases:
+            emitted.setdefault(case.edge.action, frozenset(case.params))
+>       assert emitted == _committed_argument_names()
+E       AssertionError: assert {'AddCartItem...zenset({'o'})} == {'CreateAccou...et({'order'})}
+E         
+E         Differing items:
+E         {'Checkout': frozenset({'a', 'o'})} != {'Checkout': frozenset({'account', 'order'})}
+E         {'ProjectOrder': frozenset({'o'})} != {'ProjectOrder': frozenset({'order'})}
+E         {'AddCartItem': frozenset({'a', 'sku'})} != {'AddCartItem': frozenset({'account', 'sku'})}
+E         {'CreateAccount': frozenset({'a'})} != {'CreateAccount': frozenset({'account'})}
+E         Use -v to get more diff
+
+tests/test_negative_corpus_adapter_conformance.py:201: AssertionError
+____________ test_the_shipped_adapters_execute_every_negative_case _____________
+
+    def test_the_shipped_adapters_execute_every_negative_case() -> None:
+        """The defect as `CA-06`'s reviewer measured it: 11 dead before any assertion.
+    
+        This drives ``run``, the entry point the runner calls, so the case's own
+        before-state is loaded into the store exactly as it is in a shipped run.
+        """
+        cases, _ = _negative_corpus()
+        adapters = _shipped_adapters()
+        failures: list[str] = []
+        for case in cases:
+            shim = SimpleNamespace(
+                name=case.name,
+                before=case.before,
+                input=SimpleNamespace(action=case.edge.action, params=dict(case.params)),
+            )
+            try:
+                adapters[case.edge.action]().run(shim)
+            except Exception as error:  # noqa: BLE001 -- the failure IS the finding
+                failures.append(
+                    f"{case.name} via {case.edge.action}: {type(error).__name__}: {error}"
+                )
+>       assert not failures, "\n".join(failures)
+E       AssertionError: case_0001_add_cart_item_rejected via AddCartItem: KeyError: 'account'
+E         case_0002_add_cart_item_rejected via AddCartItem: KeyError: 'account'
+E         case_0003_checkout_rejected via Checkout: KeyError: 'account'
+E         case_0004_checkout_rejected via Checkout: KeyError: 'account'
+E         case_0005_checkout_rejected via Checkout: KeyError: 'account'
+E         case_0006_checkout_rejected via Checkout: KeyError: 'account'
+E         case_0007_create_account_rejected via CreateAccount: KeyError: 'account'
+E         case_0008_project_order_rejected via ProjectOrder: KeyError: 'order'
+E         case_0009_project_order_rejected via ProjectOrder: KeyError: 'order'
+E       assert not ["case_0001_add_cart_item_rejected via AddCartItem: KeyError: 'account'", "case_0002_add_cart_item_rejected via AddCar...kout_rejected via Checkout: KeyError: 'account'", "case_0006_checkout_rejected via Checkout: KeyError: 'account'", ...]
+
+tests/test_negative_corpus_adapter_conformance.py:225: AssertionError
+_____ test_a_module_that_declares_no_action_marker_keeps_its_formal_names ______
+
+    def test_a_module_that_declares_no_action_marker_keeps_its_formal_names() -> None:
+        """The constraint `CA-06` named, and why the sealed tables cannot move.
+    
+        ``QuotaLedger`` is the fixture whose kill tables this programme quotes
+        throughout. It declares no action marker, so it declares no argument
+        names, so there is nothing to re-key and its corpus is byte-identical
+        either side of this change.
+    
+        Imported here rather than at module scope on purpose: with the fix backed
+        out, the three cases above must fail ON THE DEFECT rather than the whole
+        module failing to import.
+        """
+>       from scripts.generate_cases_from_tlc_dump import declared_param_names
+E       ImportError: cannot import name 'declared_param_names' from 'scripts.generate_cases_from_tlc_dump' (/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-07/scripts/generate_cases_from_tlc_dump.py)
+
+tests/test_negative_corpus_adapter_conformance.py:240: ImportError
+=========================== short test summary info ============================
+FAILED tests/test_negative_corpus_adapter_conformance.py::test_the_negative_corpus_names_its_arguments_as_the_committed_corpus_does
+FAILED tests/test_negative_corpus_adapter_conformance.py::test_the_shipped_adapters_execute_every_negative_case
+FAILED tests/test_negative_corpus_adapter_conformance.py::test_a_module_that_declares_no_action_marker_keeps_its_formal_names
+3 failed, 2 passed in 0.08s

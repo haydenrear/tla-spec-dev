@@ -1,0 +1,130 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CA-07",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-07/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-07/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-07/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The subject is a finding THIS EPIC FILED or one already on the harvest register -- never a fresh defect invented for the ticket.",
+        "The regression is expressed as a TLA+ action or an adapter conformance case via CA-06''s simplified path.",
+        "The validation is justified BY THE DEFECT IT CATCHES; any score movement is reported as the observation and not the objective.",
+        "MF-020 respected.",
+        "Its addition is priced against GOAL-apparatus-cut."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "CA-08"
+    ],
+    "conflict_keys": {
+      "adapters": [
+        "specs/desired_program_model/case_adapters.toml"
+      ],
+      "production": [],
+      "test_graph": [],
+      "tla": [
+        "specs/desired_program_model/TlaSpecDevCli.tla"
+      ],
+      "workflow": [
+        "specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-07/"
+      ]
+    },
+    "depends_on": [
+      "CA-05",
+      "CA-06"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/261",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "One more filed finding consumed into program validation, taking the epic's own consumption count above the 1-of-38 baseline -- with the true denominator stated and the numerator/denominator movement named.",
+        "goal": "GOAL-consumption-obligatory",
+        "local_signal": "the new TLA+ action or adapter conformance case failing on the defect and passing after"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-four-results-stand",
+        "local_signal": "uv run --with pytest --with pyyaml -m pytest tests -q"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "A SMALL INCREASE IS EXPECTED AND ACCEPTED -- one action or one conformance case. Price it; it is counted against the goal like everything else.",
+        "goal": "GOAL-apparatus-cut",
+        "local_signal": "find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-blind-dispatch",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "CA-07",
+    "implementation_scope": [
+      "specs/desired_program_model/",
+      "specs/current/",
+      "tests/",
+      "specs/results/scorecards/cut-the-apparatus/"
+    ],
+    "model_delta_expectation": "EXPECTED. This ticket's whole purpose is a model or adapter delta that did not exist before.",
+    "objective": "SUBJECT NAMED AT SCHEDULE REVISION 2 BY THE EPIC OWNER, FROM WHAT THIS EPIC ACTUALLY FILED: CA-06-DF-02. THE NEGATIVE CORPUS KEYS `params` BY TLA FORMAL NAMES WHILE THE POSITIVE CORPUS KEYS THEM BY RECOVERED NAMES, SO EVERY SHIPPED ADAPTER DIES ON KeyError -- confirmed by CA-06's reviewer running all 11 recovered cases: 11 dead, KeyError 'account' x7, KeyError 'order' x4. CA-06 FILED IT AND DELIBERATELY DID NOT FIX IT, because re-keying changes corpus contents under the fixture whose sealed tables this programme quotes. IT IS THE RIGHT SUBJECT FOR THIS TICKET FOR THREE REASONS: it is a finding THIS EPIC FILED rather than a fresh defect invented for the ticket; the defect is EXACTLY an adapter-conformance mismatch, so the regression's natural home is an ADAPTER CONFORMANCE CASE, which is the owner's section 4 shape verbatim; and CA-06-DF-01 established that the measured yield of --negative-cases on a real subject is ZERO CASES EXECUTED, so this is the defect standing between a mechanism the owner chose to keep and any yield at all. THIS TICKET IS DELIBERATELY RESERVED AT PLANNING TIME AND ITS SUBJECT WAS SUPPLIED BY ITS PREDECESSORS. That is the point: the epic is testing whether consumption can be made routine, and a consumption ticket whose defect was chosen before the epic ran would be answering an easier question. AT WAVE-3 TRIAGE THE EPIC OWNER NAMES THE SUBJECT from what CA-01 through CA-06 actually filed, and records it in this entry with a schedule_revision bump. THE RULE FOR CHOOSING: use a finding THIS EPIC FILED or one already on the harvest register -- NEVER A FRESH DEFECT INVENTED FOR THE TICKET, because inventing one dodges the thing being tested. THE SHAPE, from the owner's section 4: 'a regression, once found, should be expressible as a TLA+ action or an adapter conformance case -- the most simple validated way'. Use CA-06's simplified path to do it, which is also the first real test of whether that path is usable. SV-04 is the worked precedent and its honest caveat carries: a 14-case conformance suite with durability asserted OUT OF BAND moved D3 3 -> 4 against a control, AND THE SCORE MOVEMENT IS THE OBSERVATION, NOT THE OBJECTIVE. Tuning validation to raise a number is MF-020 and fails this ticket. IF NO SUITABLE FINDING EXISTS AT TRIAGE, THIS TICKET IS RETIRED THROUGH THE CANONICAL RECEIPT FLOW WITH ITS GOAL DISPOSITION RECORDED -- and that retirement is itself a result about GOAL-consumption-obligatory, not an embarrassment to be avoided.",
+    "promotion_order": 70,
+    "promotion_predecessor": "CA-06",
+    "schedule_revision": 2,
+    "status": "planned",
+    "title": "RESERVED AT PLANNING: consume one finding this epic produced into the program, as a TLA+ action or an adapter conformance case",
+    "wave": 4
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-07/specs/tickets/CA-07",
+  "ticket_id": "CA-07",
+  "ticket_index": 6,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-07/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-07/specs/tickets"
+}

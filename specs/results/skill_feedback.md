@@ -2389,3 +2389,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CA-07
+
+- close_scope: ticket
+- close_id: CA-07
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-14T03:36:35+00:00
+- summary: CA-06-DF-02 consumed as an adapter conformance case: the negative corpus now names its arguments the way the module declares them, the sealed fixture is byte-identical because it declares no marker, and the 11 unlocked cases execute for the first time -- 5 of them naming a real model/implementation divergence, filed not fixed.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
