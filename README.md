@@ -32,7 +32,7 @@ Run focused checks while editing:
 
 ```bash
 python3 -m py_compile scripts/*.py tests/*.py spec_double_compiler/*.py
-uv run --with pytest -m pytest tests
+uv run --with pytest --with pyyaml -m pytest tests   # pyyaml is REQUIRED: without it 12 tests red spuriously
 uv run examples/distributed_history/tests/test_ecommerce_backend.py
 uv run examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py
 ```

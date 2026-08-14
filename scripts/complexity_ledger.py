@@ -191,6 +191,27 @@ COVERAGE_AUDIT_PASSING = {"pass"}
 # so an unfilled template can never be closed through.
 TEMPLATE_SENTINEL = "TODO"
 
+
+def is_unfilled_template_prose(value: str) -> bool:
+    """True only when a free-prose field is STILL the value the template shipped.
+
+    SF-305. This used to be `TEMPLATE_SENTINEL in value` -- a substring test over
+    free prose. `justification` and `narrative` are the two fields the ledger
+    asks a human to write in their own words, and the substring test silently
+    blanked any of that prose that happened to contain the word, after which
+    Gate 7 refused the close for a narrative that was `absent`. The refusal named
+    the wrong fault, so the author's repair -- write more narrative -- could not
+    work, and the failure was worst exactly where the tool is most valuable: a
+    narrative ABOUT the ledger's own template states cannot mention them.
+
+    Equality against the shipped default keeps the property that mattered (an
+    untouched template never closes through) and drops the one that never did.
+    `check_ledger` strips before calling, so trailing whitespace still counts as
+    unfilled.
+    """
+    return value == TEMPLATE_SENTINEL
+
+
 # Metrics whose growth counts as a complexity increase. Deliberately the
 # representation-size and reachable-size measures, not counts of files or tests.
 DELTA_METRICS = (
@@ -771,10 +792,10 @@ def evaluate(
     refinement = parse_refinement(ledger_input.get("refinement"))
     coverage_audit = parse_coverage_audit(ledger_input.get("coverage_audit"))
     justification = str(ledger_input.get("justification", "") or "").strip()
-    if TEMPLATE_SENTINEL in justification:
+    if is_unfilled_template_prose(justification):
         justification = ""
     narrative = str(ledger_input.get("narrative", "") or "").strip()
-    if TEMPLATE_SENTINEL in narrative:
+    if is_unfilled_template_prose(narrative):
         narrative = ""
 
     fuzz_not_retained = [m for m in retention.values() if not m.retained]

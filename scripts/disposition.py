@@ -4,7 +4,9 @@
 THIS IS NOT A GATE ON ANYONE'S CODE. It is a close-out requirement on THIS
 project's own epics, run by hand at epic close and by `CA-08`. It reads one file
 -- `specs/desired_program_model/deferred_findings.yaml` -- and reports whether
-the findings an epic filed were routed anywhere.
+the findings an epic filed were routed anywhere. Once a workflow close has
+removed `desired_program_model/`, it reads the copy that close archived under
+`specs/.history/` instead, and says on stderr which one (`resolve_ledger`).
 
 The slogan this file used to carry unqualified, now qualified because it was
 FALSE in this ticket's own PR: seven epics of static checking caught zero bugs
@@ -41,6 +43,25 @@ import pathlib
 import sys
 
 LEDGER = "specs/desired_program_model/deferred_findings.yaml"
+
+# WHERE THE LEDGER GOES WHEN THE WORKFLOW CLOSES. `LEDGER` is a path inside
+# `desired_program_model/`, and `scripts/close_tickets.py` REMOVES that directory
+# at workflow close -- by design; the close is supposed to take the workflow
+# directories with it. So the live path is not a stable address: it exists
+# during an epic and is gone the moment the epic is closed, which is exactly
+# when someone wants to read what the epic filed. Before CA-09 this script
+# answered that with a bare `FileNotFoundError` traceback.
+#
+# The close archives the ledger into the history entry (`spec_evolution.
+# snapshot_findings_ledger`, recorded in the entry manifest as
+# `findings_ledger`). These globs find those archives, newest first. The first
+# form is the named artifact the close writes; the second is the same file
+# carried along inside the desired-model snapshot, which is where closes BEFORE
+# CA-09 left it and the only copy those entries have.
+ARCHIVE_GLOBS = (
+    "specs/.history/*/*/deferred_findings.yaml",
+    "specs/.history/*/*/snapshots/desired_program_model/deferred_findings.yaml",
+)
 
 # Ticket-id prefix -> epic, a fact of the record rather than a configuration.
 EPICS = {
@@ -106,6 +127,51 @@ def duplicate_keys(text: str) -> list[tuple[str, str, list[int]]]:
             seen.setdefault(m.group(1), []).append(n)
     flush()
     return out
+
+
+def archived_ledgers(root: pathlib.Path = pathlib.Path(".")) -> list[pathlib.Path]:
+    """Every archived copy of the ledger under `specs/.history`, best last.
+
+    Ordered by (mtime, size). Size breaks mtime ties -- and it is not arbitrary:
+    the ledger is APPEND-ONLY by rule, so of two copies the larger one carries
+    the later state. A `git checkout` flattens mtimes, which is exactly when the
+    tie-break is needed.
+    """
+    seen: dict[pathlib.Path, None] = {}
+    for pattern in ARCHIVE_GLOBS:
+        for path in root.glob(pattern):
+            seen.setdefault(path.resolve(), None)
+    return sorted(seen, key=lambda p: (p.stat().st_mtime, p.stat().st_size, str(p)))
+
+
+def resolve_ledger(path: pathlib.Path, *, explicit: bool) -> pathlib.Path:
+    """The live ledger if it is there; otherwise the newest archived copy.
+
+    THIS IS A READ FALLBACK, NOT AN EXEMPTION. The close still removes
+    `desired_program_model/` and the live ledger with it. What changed is that
+    this script can still answer afterwards, and says out loud which copy it
+    read -- an archived ledger is frozen at the close, so a verdict from one is
+    a verdict about a closed epic, never about work done since.
+    """
+    if path.exists():
+        return path
+    if explicit:
+        raise SystemExit(f"{path}: no such ledger (--ledger was given explicitly, so no archive is searched)")
+    archives = archived_ledgers()
+    if not archives:
+        raise SystemExit(
+            f"{path}: no ledger there and no archived copy under specs/.history. "
+            f"If a workflow close removed it, the archive is "
+            f"specs/.history/<workflow>/closed-snapshot/deferred_findings.yaml "
+            f"(entry manifest key `findings_ledger`)."
+        )
+    newest = archives[-1]
+    print(
+        f"NOTE: {path} is absent -- a workflow close removes desired_program_model/. "
+        f"Reading the archived ledger {newest}, which is FROZEN at that close.",
+        file=sys.stderr,
+    )
+    return newest
 
 
 def load(path: pathlib.Path) -> list[dict]:
@@ -180,7 +246,13 @@ def report(rows: list[dict], label: str, verbose: bool) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--ledger", default=LEDGER, type=pathlib.Path)
+    p.add_argument(
+        "--ledger",
+        default=None,
+        type=pathlib.Path,
+        help=f"ledger to read (default {LEDGER}, falling back to the newest archived copy "
+             f"under specs/.history once a workflow close has removed the live one)",
+    )
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--epic", help="epic name or ticket-id prefix, e.g. cut-the-apparatus or CA")
     g.add_argument("--ticket", help="one ticket id, e.g. CA-05")
@@ -188,13 +260,14 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("-v", "--verbose", action="store_true")
     a = p.parse_args(argv)
 
-    rows = load(a.ledger)
+    ledger_path = resolve_ledger(a.ledger or pathlib.Path(LEDGER), explicit=a.ledger is not None)
+    rows = load(ledger_path)
     if a.all:
         worst = 0
         for e in sorted({epic_of(r) for r in rows}):
             worst |= report([r for r in rows if epic_of(r) == e], e, a.verbose)
         print(f"\n{sum(1 for r in rows if violations(r))} of {len(rows)} findings "
-              f"in {a.ledger} are undisposed")
+              f"in {ledger_path} are undisposed")
         if off := off_vocabulary_channels(rows):
             print(f"\nADVISORY (not a clause): {len(off)} row(s) carry a `channel` "
                   f"outside the vocabulary in references/consumption.md:")

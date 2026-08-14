@@ -29,6 +29,21 @@ except ImportError:  # pragma: no cover - direct script execution
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 MODEL_DIRS = ("program_model", "desired_program_model", "current")
+
+#: The CUMULATIVE findings ledger. It sits in `desired_program_model/` beside
+#: `ticket_plan.yaml` and is bookkeeping about the work rather than a statement
+#: about the program (`close_tickets.PLANNING_FILES`), but unlike the plan it is
+#: NOT per-epic: one append-only file carries every epic's findings, and
+#: `scripts/disposition.py` reads it at that live path.
+#:
+#: Workflow close removes `desired_program_model/`. The models are archived under
+#: `<entry>/snapshots/`, so the ledger has always gone with them -- but three
+#: levels down, inside a tree whose whole subject is the program model, under a
+#: directory name that records where the file HAPPENED to live rather than what
+#: it is. `snapshot_findings_ledger` also writes it at the top of the history
+#: entry and records it in the manifest under `findings_ledger`, so the archive
+#: is addressable by an index that does not know this file's accidental home.
+FINDINGS_LEDGER_NAME = "deferred_findings.yaml"
 IGNORED_COPY_NAMES = {
     ".DS_Store",
     "__pycache__",
@@ -789,6 +804,20 @@ def write_summary(entry_dir: Path, *, title: str, summary: str, manifest: dict[s
     )
     for snapshot in manifest["snapshots"]:
         lines.append(f"- `{snapshot['role']}`: `{snapshot.get('snapshot', 'missing')}`\n")
+    ledger = manifest.get("findings_ledger")
+    if isinstance(ledger, dict):
+        lines.append("\n## Findings ledger\n\n")
+        if ledger.get("snapshot"):
+            lines.append(
+                f"The cumulative findings ledger `{ledger['source']}` was archived to "
+                f"`{ledger['snapshot']}`. The close removed the directory it lived in; "
+                "this copy is the record. Read it with "
+                f"`python3 scripts/disposition.py --ledger {ledger['snapshot']} --all`.\n"
+            )
+        else:
+            lines.append(
+                f"No cumulative findings ledger at `{ledger['source']}` when this workflow closed.\n"
+            )
     lines.extend(
         [
             "\n## Follow-up\n\n",
@@ -803,6 +832,23 @@ def snapshot_models(specs_dir: Path, entry_dir: Path) -> list[dict[str, Any]]:
     for name in MODEL_DIRS:
         add_copied_path(records, role=name, source=specs_dir / name, destination=entry_dir / "snapshots" / name)
     return records
+
+
+def snapshot_findings_ledger(specs_dir: Path, entry_dir: Path) -> dict[str, Any]:
+    """Archive the cumulative findings ledger at the TOP of the history entry.
+
+    Returns the copy record whether or not the ledger exists; `exists: false`
+    with no `snapshot` key is the honest record for a repository that keeps no
+    ledger, and is not an error. Nothing here refuses a close.
+    """
+    records: list[dict[str, Any]] = []
+    add_copied_path(
+        records,
+        role="findings_ledger",
+        source=specs_dir / "desired_program_model" / FINDINGS_LEDGER_NAME,
+        destination=entry_dir / FINDINGS_LEDGER_NAME,
+    )
+    return records[0]
 
 
 def snapshot_results(specs_dir: Path, entry_dir: Path, result_paths: list[Path]) -> list[dict[str, Any]]:
@@ -1966,6 +2012,10 @@ def create_workflow_closed_snapshot(
     remove_state_directories(*(specs_dir / name for name in MODEL_DIRS))
 
     snapshots = snapshot_models(specs_dir, entry_dir)
+    # CA-09: the close removes desired_program_model/, and the cumulative
+    # findings ledger lives there. Archive it as a named artifact of the close,
+    # not only as a file inside the desired-model snapshot tree.
+    findings_ledger = snapshot_findings_ledger(specs_dir, entry_dir)
     results = snapshot_results(specs_dir, entry_dir, result_paths)
 
     # MF-017: the workflow close is the last chance to run the Phase 6 retro,
@@ -2001,6 +2051,10 @@ def create_workflow_closed_snapshot(
         "tickets": tickets,
         "summary": summary,
         "snapshots": snapshots,
+        # CA-09: where the cumulative findings ledger went. The close deletes the
+        # directory it lived in, so this record is the address a later index --
+        # or a reader running `scripts/disposition.py` after the close -- reads.
+        "findings_ledger": findings_ledger,
         "results": results,
         "complexity_ledger": complexity_record,
         "complexity_delta": (complexity_record or {}).get("delta"),

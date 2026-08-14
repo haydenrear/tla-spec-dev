@@ -18304,3 +18304,268 @@ findings:
       NOTE WHAT THE CORRECTION DID TO THE ROW'S DIRECTION -- the first version
       excused the miss and the corrected version does not. An evaluator's error
       that ran toward its own subject's defence is the one to watch for.
+  - id: CA-09-DF-01
+    found_by: CA-09, by running the workflow close on a real copy of this repository and looking at what landed
+    found_at_commit: b535e81
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: [scripts/spec_evolution.py, scripts/disposition.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: operator-doing-the-work
+    cost:
+      basis: one throwaway copy of specs/, one real `close_tickets.py` run, one `find`
+      value: under five minutes, and it refuted the diagnosis three separate parties had already reported
+    summary: >-
+      THE LEDGER WAS NEVER LOST BY THE CLOSE. IT WAS UNREACHABLE AFTER IT, AND
+      EVERY DIAGNOSIS OFFERED BEFORE ONE WAS RUN NAMED THE WRONG MECHANISM.
+
+      What was reported, and what a real close actually does:
+
+        REPORTED  "no epic in this repository has ever written a closed-snapshot"
+        MEASURED  five have -- hexagonal-prompting-epic, complexity-descriptor-epic,
+                  architectural-coherence-epic, tla-spec-dev-cli-workflow,
+                  complexity-descriptor-main-readiness.
+
+        REPORTED  `copy_ignore` filters `deferred_findings.yaml` out of the
+                  closed-snapshot, which is why those five lack it.
+        MEASURED  `IGNORED_COPY_NAMES` is {.DS_Store, __pycache__, .history,
+                  .tla-spec-evolution, .gradle, .pytest_cache, build, states}.
+                  The ledger is not in it and never was. A real close archived
+                  all 267 rows, byte-identical, to
+                  `closed-snapshot/snapshots/desired_program_model/deferred_findings.yaml`.
+                  The five lack it because they PREDATE the ledger living at
+                  that path: it was added at `e6d1351` (2026-08-05 13:25) and
+                  the newest of the five was written 2026-08-05 11:29.
+
+        REPORTED  the close deletes the cumulative findings ledger.
+        MEASURED  the close deletes the DIRECTORY, archives the FILE, and leaves
+                  the only tool that reads it addressing the deleted path. The
+                  observed `FileNotFoundError` was a read fault, not data loss.
+
+      THE GENERAL POINT, WHICH IS WHY THIS IS FILED AT ALL: three parties read
+      `shutil.rmtree` at `close_tickets.py:516`, reasoned forward from it, and
+      produced three confident and different accounts of a mechanism that takes
+      one command to observe. The archive step was in the same file they were
+      reading.
+    reproduction: >-
+      `cp -R` the repo to a scratch dir, drop one of the two CA-05 receipts, run
+      `python3 scripts/close_tickets.py --repo-root . --summary probe`, then
+      `find specs/.history/cut-the-apparatus-epic/closed-snapshot -name
+      deferred_findings.yaml`. Before this fix: one hit, under
+      `snapshots/desired_program_model/`, 267 rows. Then
+      `python3 scripts/disposition.py --epic cut-the-apparatus` in that tree:
+      `FileNotFoundError`. Automated as
+      `tests/test_workflow_close_keeps_the_ledger.py`, which builds its subject
+      from this repository's real specs tree rather than a fixture.
+    evidence:
+      - "scripts/spec_evolution.py IGNORED_COPY_NAMES and snapshot_models"
+      - "tests/test_workflow_close_keeps_the_ledger.py (3 of its 4 tests fail at b535e81)"
+      - "git log --diff-filter=A -- specs/desired_program_model/deferred_findings.yaml -> e6d1351, 2026-08-05 13:25"
+    why_out_of_scope: >-
+      In scope and repaired in this change; filed so the CORRECTED mechanism is
+      on the record next to the three wrong ones, which are also on the record.
+    suggested_fix: >-
+      Done. `spec_evolution.snapshot_findings_ledger` writes the ledger at the
+      TOP of the history entry and names it in the manifest under
+      `findings_ledger`; `disposition.resolve_ledger` reads the newest archived
+      copy when the live path is gone and says on stderr which copy it read. The
+      close still removes `desired_program_model/` -- the ledger is archived, not
+      exempted.
+    blast_radius: >-
+      Every workflow close, and every reader of `scripts/disposition.py` after
+      one.
+    disposition: repaired
+    disposition_note: >-
+      Repaired in this change with a failing-first test over a real close. NOTE
+      WHAT THE REPAIR IS NOT: it does not make the live path survive, and it does
+      not stop the ledger also being copied inside
+      `snapshots/desired_program_model/`. There are now two archived copies per
+      close, written in one operation from one source, and the one at the entry
+      root is the addressable one.
+  - id: CA-09-DF-02
+    found_by: CA-09, while fixing CA-09-DF-01
+    found_at_commit: b535e81
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: [scripts/disposition.py, scripts/close_tickets.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [references/consumption.md, SKILL.md]
+    channel: operator-doing-the-work
+    cost:
+      basis: one `grep -rl` over the repository for the live path
+      value: seconds, and it prices a relocation nobody had priced
+    summary: >-
+      THE CUMULATIVE LEDGER LIVES IN A PER-EPIC DIRECTORY, AND THAT IS THE ROOT
+      BOTH THIS LOSS AND `CA-00-DF-01` GREW FROM.
+
+      `specs/desired_program_model/` is scoped to one workflow. It is created
+      when a workflow opens and REMOVED when it closes, and everything in it is
+      a candidate for promotion between trees. `deferred_findings.yaml` is
+      neither scoped nor promotable: one append-only file carrying every epic's
+      findings, 267 rows across eight epic prefixes. Two distinct destruction
+      paths follow from the mismatch alone -- `CA-00-DF-01`, where promotion
+      would delete it as "a file the source no longer has" (fixed by naming it
+      in `PLANNING_FILES`), and `CA-09-DF-01`, where close removes the directory
+      out from under the only tool that reads it. Both fixes are exceptions
+      carved for one filename. The next path will need a third.
+
+      THE HONEST COUNTER-ARGUMENT: the ledger is written by the same agents who
+      are editing `desired_program_model/` during a ticket, so putting it there
+      makes it obvious and keeps it inside the tree that ticket snapshots
+      already archive. That convenience is real and is what has kept it there.
+    reproduction: >-
+      `grep -rl 'desired_program_model/deferred_findings.yaml' --include='*.py'
+      --include='*.md' --include='*.yaml' --include='*.toml' . | grep -v
+      '/.history/'` -> 36 files: 25 under `specs/results/` (immutable scorecards
+      and harvests, which a relocation leaves permanently stale), and 10 live
+      ones -- `scripts/disposition.py`, `tests/test_card_has_one_home.py`,
+      `references/consumption.md`, `references/portable_scorecard.md`,
+      `examples/validation/scorecards/score_tools.py`,
+      `examples/validation/instruments/instruments.toml`, `NEXT-EPIC.md`,
+      `PORTS-AS-ADAPTERS-EPIC.md`, `specs/desired_program_model/ticket_plan.yaml`,
+      and the ledger's own rows.
+    evidence:
+      - "tests/test_deferment_backlog_is_planning.py -- the CA-00-DF-01 exception"
+      - "scripts/close_tickets.py PLANNING_FILES and its comment block"
+      - "scripts/spec_evolution.py snapshot_findings_ledger -- the CA-09 exception"
+    why_out_of_scope: >-
+      A PATH CHANGE IS NOT THIS CHANGE'S TO MAKE. It touches `disposition.py`,
+      the skill guidance, and the citation fields of 267 rows, and the owner
+      asked to be told before it happens rather than to find it done.
+    suggested_fix: >-
+      Move it to `specs/deferred_findings.yaml` -- cross-epic data in the
+      cross-epic directory, outside every tree the close removes and every tree
+      promotion compares, which retires both carved exceptions instead of adding
+      to them. COST, MEASURED, NOT ESTIMATED: 10 live files to edit, of which
+      exactly one is code that must change behaviour (`disposition.LEDGER`); 25
+      archival scorecards that will cite a path that no longer exists and must
+      NOT be rewritten, since they are the record of what was true when they were
+      written; one migration commit that is a `git mv` plus a redirect in
+      `disposition.py` for repositories mid-epic. The archive machinery added by
+      `CA-09-DF-01` keeps working either way -- it would simply snapshot from the
+      new location.
+    blast_radius: >-
+      Every consumer of the ledger path, and every future close or promotion
+      mechanism that would otherwise need its own exception for this filename.
+    disposition: carried
+    disposition_ticket: "NEXT-EPIC.md -- owner decision required before any path change; deliberately NOT self-routed to CA-09"
+    disposition_note: >-
+      CARRIED, UNSTARTED, and the deferral is the point: the owner asked to be
+      told the cost before the move, so this row is the telling. NOTE THAT THIS
+      IS EXACTLY THE SELF-ROUTING HOLE `CA-05-DF-03` NAMED, pointed the other
+      way -- a bare `NEXT-EPIC.md` string satisfies D3 and resolves to nothing
+      enforceable. If the owner declines the move, this row should be re-disposed
+      `wontfix` with the reason, not left pointing at a document.
+  - id: CA-09-DF-03
+    found_by: CA-09, by trying to close this epic's workflow for real
+    found_at_commit: b535e81
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/.history/cut-the-apparatus-epic]
+    channel: operator-running-a-shipped-instrument
+    cost:
+      basis: one `close_tickets.py --dry-run`
+      value: seconds, and it is a hard blocker on the epic close nobody had hit yet
+    summary: >-
+      THIS EPIC CANNOT CURRENTLY BE CLOSED, AND THE THING BLOCKING IT IS A
+      RECONCILIATION THE OWNER ORDERED. `specs/.history/cut-the-apparatus-epic`
+      holds two successful close receipts for CA-05: `ticket-004-CA-05`, taken
+      before CA-05's promotion predecessor had merged, and
+      `ticket-004-CA-05-reconciled`, the close retaken at the epic tip and
+      preserved append-only beside it, as the history policy requires. The
+      workflow close refuses:
+
+        ticket CA-05 must have exactly one successful close receipt under
+        specs/.history/cut-the-apparatus-epic, found 2
+
+      So the append-only policy and the one-receipt-per-ticket rule contradict
+      each other whenever a close has to be retaken, and the correct response to
+      a premature close -- redo it, keep both -- produces a workflow that cannot
+      close. Either receipt alone satisfies the check; VERIFIED BOTH WAYS.
+    reproduction: >-
+      Copy the repo, run `python3 scripts/close_tickets.py --repo-root . --dry-run`
+      -> refuses on CA-05. Delete either receipt directory and re-run -> passes.
+    evidence:
+      - "specs/results/skill_feedback.md, close-out ticket CA-05 -- 'This is a SECOND, APPEND-ONLY history entry'"
+      - "scripts/close_tickets.py validate_workflow_ticket_completion"
+    why_out_of_scope: >-
+      Deciding which of two owner-authored receipts is authoritative is not a
+      defect-fix agent's call, and neither is weakening a receipt check during an
+      epic about removing checks.
+    suggested_fix: >-
+      Have the receipt check select the LATEST receipt per ticket id rather than
+      demanding exactly one, so a reconciled close supersedes rather than
+      collides -- which is what `tests/test_workflow_close_keeps_the_ledger.py`
+      does to build its subject. Failing that, the owner names one receipt before
+      #272 goes ready.
+    blast_radius: >-
+      The cut-the-apparatus workflow close, and any future epic that has to retake
+      a ticket close after a merge.
+    disposition: carried
+    disposition_ticket: "PR #272 -- the owner must resolve this before the epic workflow can be closed at all"
+    disposition_note: >-
+      CARRIED to the epic owner, unrepaired and untouched: this change did not
+      edit, delete or reorder either receipt. The test subject drops one IN A
+      THROWAWAY COPY only.
+  - id: CA-09-DF-04
+    found_by: CA-09, repairing SF-305 which CA-04 filed and worked around
+    found_at_commit: b535e81
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: [scripts/complexity_ledger.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: operator-running-a-shipped-instrument
+    cost:
+      basis: CA-04's refused close, then one equality change and a test
+      value: a full round for CA-04, and the workaround it forced was to paraphrase a true quotation
+    summary: >-
+      A SUBSTRING TEST OVER FREE PROSE, REPORTED AS AN ABSENCE. `TEMPLATE_SENTINEL
+      = "TODO"` was applied as `if TEMPLATE_SENTINEL in narrative: narrative = ""`,
+      so any narrative merely QUOTING the word was blanked without a word and Gate
+      7 then refused the close for a narrative that was `absent` -- against, in
+      CA-04's case, 5,842 present and parsed characters. THE MESSAGE NAMED THE
+      WRONG FAULT, so the obvious repair (write more narrative) could not work,
+      and the failure is worst exactly where the ledger is most valuable: a
+      narrative about the ledger's own template states cannot be written in the
+      ledger. CA-04's actual workaround was to paraphrase the quotation.
+    reproduction: >-
+      Set `narrative` in `specs/results/complexity_ledger_input.yaml` to any
+      sentence containing the word TODO and run a close. Automated as
+      `test_a_narrative_that_quotes_the_template_sentinel_is_not_blanked`, with
+      `test_an_unfilled_template_narrative_still_refuses_the_close` holding the
+      property the substring test was there to protect.
+    evidence:
+      - "specs/results/skill_feedback.md SF-305"
+      - "specs/results/scorecards/cut-the-apparatus/CA-04/close-refusal.txt"
+    why_out_of_scope: >-
+      In scope and repaired in this change.
+    suggested_fix: >-
+      Done: `is_unfilled_template_prose` tests EQUALITY against the shipped
+      default. An untouched template still refuses; prose that quotes it no
+      longer does. The same class of bug may remain in the other `"TODO -- ..."`
+      template defaults (`refinement.outcome`, the `validated_refactor` evidence
+      fields), which are parsed elsewhere and were NOT audited here.
+    blast_radius: >-
+      Every ticket and workflow close that records a narrative or a justification.
+    disposition: repaired
+    disposition_note: >-
+      Repaired with a failing-first test on a real close. NOT REPAIRED, AND NOT
+      LOOKED AT: whether the other template sentinels in `TEMPLATE` are matched by
+      substring anywhere else in the file. `TEMPLATE_SENTINEL` had exactly two
+      call sites and both are fixed; the other fields use their own vocabularies.
