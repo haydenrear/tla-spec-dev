@@ -808,3 +808,56 @@ def test_with_positive_keeps_every_enabled_edge_and_appends_rejections(tmp_path:
     positive = [case for case in cases if NEGATIVE_LABEL not in case.labels]
     assert len(positive) == 1
     assert len(cases) == 1 + reports[0].emitted
+
+
+# -- CA-06-DF-01: the next-state relation is READ, never assumed ---------------
+#
+# R1 says an instrument ships with a demonstrated failing input on a REAL
+# SUBJECT, not a fixture. The subject below is `examples/distributed_history` --
+# this repository's own worked example, checked in, named by README.md as the
+# active one -- and it is the input that was failing: it spells its next-state
+# relations `InternalNext` and `ExternalNext`, so a generator that looks up the
+# literal name `Next` found nothing, emitted ZERO negative and ZERO port cases,
+# and printed `corpus gate PASS` over the silence.
+#
+# The two models these modes have ever been measured on are asserted too, and
+# they are the reason the defect survived three epics: both are named `Next`.
+
+
+def test_the_next_state_relation_is_resolved_from_each_models_own_cfg() -> None:
+    from scripts.generate_cases_from_tlc_dump import (
+        parse_tla_definitions,
+        resolve_next_relation,
+    )
+
+    subjects = {
+        # THE REAL SUBJECT, and the demonstrated failing input.
+        "examples/distributed_history/specs/program_model/Internal": "InternalNext",
+        "examples/distributed_history/specs/program_model/External": "ExternalNext",
+        # The two the negative and port corpora have ever been measured on.
+        "examples/validation/ab/model/QuotaLedger": "Next",
+    }
+    for stem, expected in subjects.items():
+        definitions = parse_tla_definitions((ROOT / f"{stem}.tla").read_text())
+        cfg_name = "External" if stem.endswith("External") else Path(stem).name
+        cfg = ROOT / f"{Path(stem).parent}/{cfg_name if 'distributed_history' in stem else 'QuotaLedger'}.cfg"
+        resolved = resolve_next_relation(cfg.read_text(), definitions)
+        assert resolved == expected, f"{stem}: resolved {resolved!r}, expected {expected!r}"
+        if expected != "Next":
+            assert "Next" not in definitions, (
+                f"{stem} must have NO definition literally named `Next` -- that is "
+                "what made the old hardcoded lookup silently empty"
+            )
+
+
+def test_a_model_whose_cfg_names_nothing_resolvable_still_falls_back_to_next(
+    tmp_path: Path,
+) -> None:
+    """The fallback is the OLD behaviour, kept, so nothing that worked stops."""
+    from scripts.generate_cases_from_tlc_dump import (
+        parse_tla_definitions,
+        resolve_next_relation,
+    )
+
+    definitions = parse_tla_definitions("Next == x' = x\n")
+    assert resolve_next_relation("INVARIANT Inv\n", definitions) == "Next"

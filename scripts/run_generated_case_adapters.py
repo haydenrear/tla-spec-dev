@@ -189,6 +189,39 @@ def infer_spec_dir(cases_dir: Path, mapping: Path, explicit: Path | None) -> Pat
     return None
 
 
+def default_import_roots_for(spec_dir: Path | None) -> list[Path]:
+    """The import roots a project of the documented layout needs, derived.
+
+    CA-06. `--import-root` is the single most reported way to fail to run this
+    tool. The sealed adopter transcript at
+    examples/validation/runs/ex4-run3/artifacts/BLIND-RUN-B-RESULT.md:93 (--import-root)
+    says it in those words -- *"run_generated_case_adapters.py needs two
+    --import-root flags; the error names one"* -- and the flag's own help says the same:
+    *"a project normally needs two ... Passing only one is the common cause of
+    a ModuleNotFoundError on an otherwise correct mapping."* A tool whose help
+    explains how its default fails has a default problem, not a documentation
+    problem.
+
+    In the documented layout the second root is derivable and never had to be
+    typed: a spec directory is `<project>/specs/<tree>`, so `<project>` is the
+    directory above the OUTERMOST `specs/` component. That is the root holding
+    the adapters, providers and production packages a mapping names.
+
+    This ADDS a path and removes none, so nothing that resolved before stops
+    resolving; and it is skipped entirely when `--import-root` is given, so a
+    caller that states its roots still gets exactly those.
+    """
+    if spec_dir is None:
+        return [Path.cwd()]
+    roots = [Path.cwd(), spec_dir]
+    parts = spec_dir.resolve().parts
+    if "specs" in parts:
+        project_root = Path(*parts[: parts.index("specs")])
+        if project_root not in roots:
+            roots.append(project_root)
+    return roots
+
+
 def resolve_runtime_path(path: Path, spec_dir: Path | None) -> Path:
     if spec_dir is None:
         return resolve_existing_from_cwd(path)
@@ -832,17 +865,13 @@ def load_effect_provider_plan(
     )
 
 
-def validate_effect_provider_execution_mode(
-    plan: EffectProviderPlan,
-    *,
-    batch: bool,
-    validate_only: bool,
-) -> None:
-    if plan.configured and not batch and not validate_only:
-        raise SystemExit(
-            "ERROR: semantic effect providers require --batch in V0; "
-            "non-batch generated programs and exported cases cannot silently ignore provider bindings"
-        )
+# CA-06-DF-03: `validate_effect_provider_execution_mode` stood here. It refused
+# a provider-bearing run outside `--batch`, because the OTHER execution mode --
+# one standalone generated program per case, run as a subprocess -- could not
+# carry the effect oracle. That mode had ZERO live callers (every invocation in
+# this repository passes `--batch`) and it was the DEFAULT, so the default
+# carried fewer oracles than the flag. CA-06 deleted the mode; the refusal that
+# existed only to fence it went with it, and NO NEW REFUSAL replaced it.
 
 
 def case_labels(cases: list[Any]) -> set[str]:
@@ -1256,112 +1285,20 @@ def validate_adapter_capabilities(
         raise SystemExit(f"ERROR: adapter capability validation failed for {len(rejected)} cases\n{details}{suffix}")
 
 
-def write_case_program(
-    *,
-    case: Any,
-    mapping: AdapterMapping,
-    cases_dir: Path,
-    program_path: Path,
-    case_work_dir: Path,
-    import_roots: list[Path],
-) -> None:
-    program_path.parent.mkdir(parents=True, exist_ok=True)
-    case_work_dir.mkdir(parents=True, exist_ok=True)
-    root_inserts = "\n".join(
-        f"sys.path.insert(0, {str(root.resolve())!r})" for root in [Path(__file__).resolve().parents[1], *import_roots]
-    )
-    content = f"""#!/usr/bin/env python3
-from __future__ import annotations
-
-import sys
-from pathlib import Path
-
-sys.path.insert(0, {str(cases_dir.resolve().parent)!r})
-{root_inserts}
-
-from {cases_dir.name}.cases import CASES_BY_NAME
-from {cases_dir.name}.validators import assert_case_replays
-from scripts.run_generated_case_adapters import AdapterMapping, adapter_kind, assert_case_result_per_field, assert_projected_state_if_configured
-from spec_double_compiler.runtime import AdapterCaseContext, call_adapter, instantiate, load_object
-
-
-MAPPING = AdapterMapping(
-    label={mapping.label!r},
-    adapter={mapping.adapter!r},
-    output_projection={mapping.output_projection!r},
-    expected_projection={mapping.expected_projection!r},
-    view={mapping.view!r},
-    layer={mapping.layer!r},
-    controllability={mapping.controllability!r},
-    projector={mapping.projector!r},
-    assertion={mapping.assertion!r},
-    kind={mapping.kind!r},
-    channel={mapping.channel!r},
-    order={mapping.order!r},
-)
-
-
-def main() -> int:
-    case = CASES_BY_NAME[{case.name!r}]
-    assert_case_replays(case)
-    adapter = instantiate(load_object({mapping.adapter!r}))
-    projector = None
-    if MAPPING.output_projection is not None:
-        projector = load_object(MAPPING.output_projection)
-    case_work_dir = Path({str(case_work_dir.resolve())!r})
-    result = call_adapter(adapter, case, case_work_dir)
-    assert_case_result_per_field(
-        case=case,
-        result=result,
-        projector=projector,
-    )
-    case_context = AdapterCaseContext(
-        kind=adapter_kind(MAPPING),
-        case=case,
-        work_dir=case_work_dir,
-        mapping=MAPPING,
-        shared={{}},
-        result=result,
-    )
-    assert_projected_state_if_configured(case_context, MAPPING, {{}})
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
-"""
-    program_path.write_text(content)
-    program_path.chmod(0o755)
-
-
-def generate_programs(
-    *,
-    cases: list[Any],
-    mappings: dict[str, AdapterMapping],
-    cases_dir: Path,
-    work_dir: Path,
-    import_roots: list[Path],
-) -> list[Path]:
-    programs: list[Path] = []
-    for case in cases:
-        mapping = adapter_for_case(case, mappings)
-        if mapping is None:
-            raise AssertionError(f"no adapter mapping for case {case.name}: {sorted(case.labels)}")
-        if mapping.adapter is None:
-            raise SystemExit(f"ERROR: case {case.name} via {mapping.label} has no executable adapter")
-        case_component = _opaque_path_component("case", case.name)
-        program_path = work_dir / "programs" / f"{case_component}.py"
-        case_work_dir = work_dir / "case-work" / case_component
-        write_case_program(
-            case=case,
-            mapping=mapping,
-            cases_dir=cases_dir,
-            program_path=program_path,
-            case_work_dir=case_work_dir,
-            import_roots=import_roots,
-        )
-        programs.append(program_path)
-    return programs
+# CA-06-DF-03: `write_case_program` and `generate_programs` stood here -- the
+# runner's OTHER execution mode, which wrote one standalone Python program per
+# case into a work directory and ran each as a subprocess. It was the DEFAULT
+# and it had ZERO live callers: every invocation in this repository, in the
+# READMEs, in examples/validation/instruments/instruments.toml, in the
+# distributed_history test_graph node and in all three effect-provider
+# validators, passes `--batch`. It also carried FEWER ORACLES than the mode
+# nothing chose against it -- effect providers could not run in it at all --
+# and needed a refusal in the code to fence that off.
+#
+# `--batch` is still ACCEPTED and is now inert, so the ~15 live command lines
+# and the sealed reproduction commands under specs/results/ keep running.
+# `--python` KEEPS its meaning: `reexec_batch_if_needed` uses it to re-exec the
+# batch under a chosen interpreter.
 
 
 class _null_context:
@@ -2191,7 +2128,10 @@ def execute_cases_in_batch(
 
 
 def reexec_batch_if_needed(args: argparse.Namespace) -> int | None:
-    if not args.batch or not args.python or os.environ.get("SPEC_DOUBLE_BATCH_REEXEC") == "1":
+    # CA-06-DF-03: the `args.batch` conjunct went with the mode it distinguished.
+    # `--python` keeps its meaning -- it selects the interpreter the batch re-execs
+    # into -- and is the only thing that arms this path.
+    if not args.python or os.environ.get("SPEC_DOUBLE_BATCH_REEXEC") == "1":
         return None
     command = [*args.python, str(Path(__file__).resolve()), str(args.cases_dir), "--mapping", str(args.mapping), "--batch"]
     if args.spec_dir is not None:
@@ -2270,15 +2210,8 @@ def build_replay_command(
     return shlex.join(command)
 
 
-def execute_programs(programs: list[Path], python: list[str]) -> None:
-    failures: list[tuple[Path, int]] = []
-    for program in programs:
-        result = subprocess.run([*python, str(program)])
-        if result.returncode != 0:
-            failures.append((program, result.returncode))
-    if failures:
-        details = "\n".join(f"{path}: exit {code}" for path, code in failures)
-        raise SystemExit(f"ERROR: {len(failures)} generated case programs failed\n{details}")
+# CA-06-DF-03: `execute_programs` stood here -- the subprocess driver for the
+# per-case generated programs. It went with the mode that produced them.
 
 
 def main() -> int:
@@ -2308,7 +2241,18 @@ def main() -> int:
     parser.add_argument("--python", action="append", default=[], help="Python command used to run generated programs")
     parser.add_argument("--validate-only", action="store_true")
     parser.add_argument("--validate-capabilities", action="store_true", help="Ask adapters whether they can run every selected case")
-    parser.add_argument("--batch", action="store_true", help="Execute selected cases in this process instead of one generated program per case")
+    parser.add_argument(
+        "--batch",
+        action="store_true",
+        help=(
+            "ACCEPTED AND INERT (CA-06-DF-03). In-process batch execution is now "
+            "the only mode, so this flag selects nothing. It is still accepted "
+            "because roughly fifteen live command lines pass it -- both READMEs, "
+            "instruments.toml, the distributed_history Test Graph node, all three "
+            "effect-provider validators -- and because the reproduction commands "
+            "recorded in sealed evidence under specs/results/ must keep running."
+        ),
+    )
     parser.add_argument(
         "--effect-report",
         type=Path,
@@ -2337,7 +2281,7 @@ def main() -> int:
     args.cases_dir = resolve_runtime_path(args.cases_dir, spec_dir)
     args.mapping = resolve_runtime_path(args.mapping, spec_dir)
     args.import_root = [resolve_runtime_path(root, spec_dir) for root in args.import_root]
-    default_import_roots = args.import_root or ([Path.cwd(), spec_dir] if spec_dir is not None else [Path.cwd()])
+    default_import_roots = args.import_root or default_import_roots_for(spec_dir)
     if args.work_dir is not None and spec_dir is not None:
         args.work_dir = resolve_spec_relative_path(args.work_dir, spec_dir)
 
@@ -2368,11 +2312,6 @@ def main() -> int:
         )
     except EffectProviderConfigurationError as exc:
         raise SystemExit(f"ERROR: invalid semantic effect provider configuration: {exc}") from exc
-    validate_effect_provider_execution_mode(
-        effect_provider_plan,
-        batch=args.batch,
-        validate_only=args.validate_only,
-    )
     if args.fuzz_runs < 1:
         raise SystemExit("ERROR: --fuzz-runs must be at least 1")
     if args.fuzz_iteration is not None and args.fuzz_iteration < 0:
@@ -2408,46 +2347,36 @@ def main() -> int:
     coverage_note = effect_provider_plan.render_oracle_coverage()
     if coverage_note:
         print(coverage_note)
-    if args.batch:
-        if not args.validate_only:
-            try:
-                declarations = load_effect_declarations_for_spec(spec_dir)
-            except EffectDeclarationError as exc:
-                raise SystemExit(f"ERROR: malformed effect declarations: {exc}")
-            executed_points = execute_cases_in_batch(
-                cases=runnable_cases,
-                mappings=mappings,
-                work_dir=work_dir,
-                import_roots=default_import_roots,
-                declarations=declarations,
-                effect_report_path=args.effect_report,
-                effect_provider_plan=effect_provider_plan,
-                fuzz_runs=args.fuzz_runs,
-                root_seed=args.seed,
-                fuzz_iteration=args.fuzz_iteration,
-                replay_command_factory=lambda point: build_replay_command(
-                    args=args,
-                    spec_dir=spec_dir,
-                    import_roots=default_import_roots,
-                    point=point,
-                ),
-            )
-            if args.fuzz_runs == 1 and args.fuzz_iteration is None:
-                print(f"executed {len(runnable_cases)} cases in batch")
-            else:
-                print(f"executed {executed_points} effect-fuzz execution points")
-    else:
-        programs = generate_programs(
+    # CA-06-DF-03: one execution mode, not two. The branch that stood here chose
+    # between in-process batch execution and one generated program per case; the
+    # second had no callers and carried fewer oracles, and is gone.
+    if not args.validate_only:
+        try:
+            declarations = load_effect_declarations_for_spec(spec_dir)
+        except EffectDeclarationError as exc:
+            raise SystemExit(f"ERROR: malformed effect declarations: {exc}")
+        executed_points = execute_cases_in_batch(
             cases=runnable_cases,
             mappings=mappings,
-            cases_dir=args.cases_dir,
             work_dir=work_dir,
             import_roots=default_import_roots,
+            declarations=declarations,
+            effect_report_path=args.effect_report,
+            effect_provider_plan=effect_provider_plan,
+            fuzz_runs=args.fuzz_runs,
+            root_seed=args.seed,
+            fuzz_iteration=args.fuzz_iteration,
+            replay_command_factory=lambda point: build_replay_command(
+                args=args,
+                spec_dir=spec_dir,
+                import_roots=default_import_roots,
+                point=point,
+            ),
         )
-        print(f"generated {len(programs)} case programs in {work_dir / 'programs'}")
-    if not args.validate_only and not args.batch:
-        execute_programs(programs, args.python or [sys.executable])
-        print(f"executed {len(programs)} case programs")
+        if args.fuzz_runs == 1 and args.fuzz_iteration is None:
+            print(f"executed {len(runnable_cases)} cases in batch")
+        else:
+            print(f"executed {executed_points} effect-fuzz execution points")
     return 0
 
 

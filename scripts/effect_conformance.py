@@ -1681,7 +1681,7 @@ def reset_case_work_dir(work_dir: Path, case_name: str) -> Path:
     directory the caller can point anywhere without the oracle emptying it.
     """
     # MF-026 round 2. The per-case directory lives under a fixed `case-work`
-    # component -- the same shape scripts/run_generated_case_adapters.py:1354 (case-work)
+    # component -- the same shape scripts/run_generated_case_adapters.py:1405 (case-work)
     # already uses -- so `case_work_dir_delete` can declare `**/case-work/*`
     # instead of `**`. The first repair declared `**`, which _target_matches
     # collapses to `*` and fnmatch crosses separators with, so it accepted every

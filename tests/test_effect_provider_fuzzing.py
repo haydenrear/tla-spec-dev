@@ -357,10 +357,7 @@ provider = "fuzz_campaign_fixture:patch_provider"
 def test_case_and_kind_work_paths_use_opaque_collision_resistant_components(
     tmp_path: Path,
 ) -> None:
-    from scripts.run_generated_case_adapters import (
-        _opaque_path_component,
-        generate_programs,
-    )
+    from scripts.run_generated_case_adapters import _opaque_path_component
 
     write_campaign_fixture(tmp_path)
     spec_dir, mapping_path = write_contract(
@@ -433,25 +430,10 @@ provider = "fuzz_campaign_fixture:patch_provider"
             for component in components
         )
 
-    generated_work = tmp_path / "generated-work"
-    programs = generate_programs(
-        cases=cases,
-        mappings={
-            "Publish": AdapterMapping(
-                "Publish",
-                "fuzz_campaign_fixture:Adapter",
-                kind=dangerous_kind,
-            )
-        },
-        cases_dir=tmp_path / "generated_contract",
-        work_dir=generated_work,
-        import_roots=[tmp_path],
-    )
-    assert {program.stem for program in programs} == expected_case_components
-    assert {
-        path.name for path in (generated_work / "case-work").iterdir()
-    } == expected_case_components
-    assert all(program.resolve().is_relative_to(generated_work.resolve()) for program in programs)
+    # CA-06-DF-03: the tail of this test re-ran the same collision-resistance
+    # claim through `generate_programs` -- the per-case-program execution mode --
+    # to show the two modes derived the same opaque components. That mode is
+    # gone, so there is only one derivation left and the batch half above is it.
 
 
 def test_point_isolated_providers_preserve_corpus_level_passive_effect_diff(

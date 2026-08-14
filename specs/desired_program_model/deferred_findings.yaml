@@ -15811,3 +15811,326 @@ findings:
       and will hit the same clause, the same missing subcommand and the same
       close refusal. Every future epic that copies this matrix inherits it.
     disposition: carried
+
+  - id: CA-06-DF-01
+    found_by: "CA-06"
+    found_at_commit: "e379d6b"
+    schedule_revision: 1
+    severity: major
+    channel: "ran the two defended generation modes on a subject that is not the fixture they were measured on, because the work order asked what they cost and catch on a REAL subject"
+    cost:
+      basis: "one `--negative-cases with-positive` run on examples/distributed_history, then one grep for the caller of extract_action_signatures"
+      value: "under ten minutes; the resolver it needs has been in the sibling module scripts/analyze_complexity.py for three epics"
+    surface:
+      production: ["scripts/generate_cases_from_tlc_dump.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_generate_cases_from_tlc_dump.py"]
+    summary: >-
+      THE NEGATIVE CORPUS AND THE PORT CORPUS EMIT ZERO CASES ON ANY MODEL WHOSE
+      NEXT-STATE RELATION IS NOT LITERALLY NAMED `Next`, AND THE RUN STILL
+      PRINTS `corpus gate PASS`. Both mechanisms are the ones `SM-02` measured
+      and DEFENDED one epic ago, and every number defending them is measured on
+      the one model in this repository that names it `Next`.
+
+      `scripts/generate_cases_from_tlc_dump.py:2211` declares
+      `extract_action_signatures(definitions, evaluator, next_name: str = "Next")`.
+      NEITHER CALLER EVER PASSES IT: `negative_cases_for_corpus` at :2438 and
+      `_signatures_for_regions` at :2794 both take the default. When the lookup
+      misses, `extract_action_signatures` returns an empty signature map and one
+      rejection reason, so `negatable_actions` chooses nothing and the pass
+      emits nothing.
+
+      THE RESOLVER ALREADY EXISTS, IN THE SIBLING MODULE, AND IS ALREADY TESTED.
+      `scripts/analyze_complexity.py:643` is
+      `find_next_relation(cfg_text, defs_by_name)`: `NEXT Name` in the .cfg
+      wins, otherwise `SPECIFICATION Spec` is followed to the `[][Next]_vars`
+      box-action, transitively through aliases. The generator never calls it.
+
+      MEASURED, on the four models this repository generates from:
+        examples/validation/ab/model/QuotaLedger.tla     -> `Next`          (defined)
+        specs/program_model/TlaSpecDevCli.tla            -> `Next`          (defined)
+        examples/distributed_history/.../Internal.tla    -> `InternalNext`  (NO `Next`)
+        examples/distributed_history/.../External.tla    -> `ExternalNext`  (NO `Next`)
+
+      So on `examples/distributed_history` -- the README's active checked-in
+      example, and the only real-world-shaped subject in the tree -- both modes
+      emit 0 cases from 0 candidate triples, `negated: (none)`, with the single
+      line `SUPPRESSED: Next -- no such definition` printed inside a report the
+      reader reaches AFTER `corpus gate PASS`.
+
+      THIS IS `R1`, TWICE. `SM-02`'s defence of the negative corpus ("guard
+      relaxation 3 of 3, a class no other instrument has reached") and of the
+      port corpus ("83.2% executable against the whole-view corpus's 8.66%")
+      are BOTH measured on `QuotaLedger` alone, and
+      `tests/test_ports_binding_removed.py` asserts the two FLAGS survive
+      without ever asserting they EMIT anything on a model that is not that
+      fixture. The charter counts three instruments in this project later found
+      blind; these are the fourth and fifth. Measured, the machinery behind them is
+      1,730 lines: a 1,043-line TLA+ expression parser and guard evaluator shared
+      by both, 290 lines of negative-corpus construction, 397 of port-corpus
+      construction.
+    reproduction: >-
+      `python3 scripts/generate_cases_from_tlc_dump.py
+      examples/distributed_history/specs/program_model/Internal.tla
+      examples/distributed_history/specs/program_model/Internal.cfg --out <under a specs/ dir>
+      --package p --view internal --negative-cases with-positive` -> "emitted: 0
+      case(s) from 0 candidate (state, action, argument) triples" and
+      "SUPPRESSED: Next -- no such definition", followed by "corpus gate PASS".
+      Then: `python3 -c "import sys; sys.path.insert(0,'scripts');
+      from analyze_complexity import find_next_relation;
+      from generate_cases_from_tlc_dump import parse_tla_definitions;
+      from pathlib import Path;
+      print(find_next_relation(Path('examples/distributed_history/specs/program_model/Internal.cfg').read_text(),
+      parse_tla_definitions(Path('examples/distributed_history/specs/program_model/Internal.tla').read_text())))"`
+      -> `InternalNext`.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/CA-06/negative-corpus-before.txt"
+      - "specs/results/scorecards/cut-the-apparatus/CA-06/negative-corpus-after.txt"
+      - "specs/results/scorecards/cut-the-apparatus/CA-06/next-relation-resolution.txt"
+      - "scripts/analyze_complexity.py -- find_next_relation"
+    why_out_of_scope: ""
+    suggested_fix: >-
+      Resolve the next-state relation from the .cfg with the function the
+      repository already ships, and fall back to `Next` only when it returns
+      None. It is a DELETION of a hardcoded constant rather than an addition,
+      and it is a NO-OP on both models that already worked -- `find_next_relation`
+      returns `Next` for each -- so no sealed corpus moves.
+    blast_radius: >-
+      Every claim about what `--negative-cases` or `--port-cases` is worth. None
+      of them has ever been measured on a model outside `QuotaLedger`, because
+      on every other model in the tree the modes silently produced nothing.
+    disposition: repaired
+    disposition_note: >-
+      FIXED IN THIS TICKET, inside CA-06's own conflict keys, with a regression
+      test that resolves the relation on the REAL example rather than on a
+      fixture (`R1`). The fix does not make the mechanism useful -- see
+      `CA-06-DF-02`, which is why it still cannot execute -- it makes its
+      failure visible instead of silent.
+
+  - id: CA-06-DF-02
+    found_by: "CA-06"
+    found_at_commit: "e379d6b"
+    schedule_revision: 1
+    severity: major
+    channel: "ran the 11 negative cases CA-06-DF-01's fix unlocked through the subject's own shipped adapters, instead of counting them"
+    cost:
+      basis: "one adapter run over the unlocked corpus"
+      value: "seconds, and only reachable at all after CA-06-DF-01 was fixed -- which is why three epics never saw it"
+    surface:
+      production: ["scripts/generate_cases_from_tlc_dump.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      THE NEGATIVE CORPUS KEYS ITS `params` BY THE TLA+ FORMAL PARAMETER NAMES
+      WHILE THE POSITIVE CORPUS KEYS THEM BY THE RECOVERED NAMES EVERY SHIPPED
+      ADAPTER IS WRITTEN AGAINST, SO EVERY NEGATIVE CASE FAILS WITH `KeyError`
+      BEFORE IT ASSERTS ANYTHING.
+
+      Measured on `examples/distributed_history` with `CA-06-DF-01` fixed, which
+      is the first time these cases have ever existed on this subject:
+
+        positive case  params={'account': 'acct-1', 'sku': 'sku-1'}   (params:recovered)
+        negative case  params={'a': 'acct-1', 'sku': 'sku-1'}         (params:enumerated)
+
+      All 11 emitted cases fail:
+      `case_0094_add_cart_item_rejected via AddCartItem: KeyError: 'account'`.
+
+      THE PROVENANCE DISTINCTION IS DELIBERATE AND IS NOT THE DEFECT.
+      `negative_cases_for_corpus` documents why the label is `params:enumerated`
+      rather than `params:recovered` -- the arguments were enumerated from the
+      action's quantifier domains, never recovered from a state pair, and a
+      reader must be able to tell those apart. That is right. What is not right
+      is that the negative pass ALREADY RECEIVES `param_recipes` and uses it for
+      its cross-check, and still emits `dict(zip(signature.params, combination))`
+      -- the formal names -- as the case's arguments.
+
+      CONSEQUENCE FOR THE EPIC'S QUESTION: the measured yield of
+      `--negative-cases` on a real subject is ZERO CASES EXECUTED. Not zero
+      unique kills -- zero executions. The 1,333 lines of hand-written TLA+
+      expression parser and guard evaluator behind it have never run against an
+      adapter outside `QuotaLedger`.
+    reproduction: >-
+      With CA-06-DF-01's fix in place, generate with `--negative-cases
+      with-positive` against `examples/distributed_history/.../Internal.tla`,
+      then run `scripts/run_generated_case_adapters.py <package> --mapping
+      examples/distributed_history/specs/program_model/case_adapters.toml --view
+      internal --import-root examples/distributed_history` ->
+      "ERROR: 11 batched case executions failed", every one a `KeyError` on a
+      recovered parameter name.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/CA-06/negative-corpus-after.txt"
+      - "specs/results/scorecards/cut-the-apparatus/CA-06/negative-corpus-execution.txt"
+      - "scripts/generate_cases_from_tlc_dump.py -- negative_cases_for_corpus, the `bindings` dict"
+    why_out_of_scope: >-
+      Re-keying the arguments CHANGES WHAT A CORPUS CONTAINS. `HP-03` shipped
+      `--negative-cases` off by default for exactly that reason -- "a mode that
+      silently doubled every existing corpus would be a schedule change nobody
+      asked for" -- and the same rule forbids CA-06 changing the keys of a corpus
+      under the one fixture whose sealed kill tables are quoted throughout this
+      programme. It is also not needed to answer this ticket's question: the
+      answer is that the mechanism does not run.
+    suggested_fix: >-
+      Map each formal parameter to its recovered name through the `ActionRecipe`
+      the pass already holds, keeping the `params:enumerated` label so provenance
+      stays legible, and re-run `QuotaLedger`'s sealed negative kill table on
+      BOTH keyings to show the sealed cells do not move. If they do move, the
+      keying is load-bearing and that is a bigger finding than this one.
+    blast_radius: >-
+      `SM-02`'s "guard relaxation 3 of 3" and every future claim that the
+      negative corpus reaches a class nothing else reaches. On the one subject
+      outside the fixture it reaches nothing, because nothing runs.
+    disposition: carried
+    disposition_note: >-
+      Carried to CA-07, which is the ticket that must land a regression through
+      this path and is the first party for whom a non-executing negative corpus
+      is a blocker rather than a curiosity.
+
+  - id: CA-06-DF-03
+    found_by: "CA-06"
+    found_at_commit: "e379d6b"
+    schedule_revision: 1
+    severity: minor
+    channel: "grepped every live invocation of the runner before cutting, per CA-02's loader-check rule, and found the default execution mode has no callers at all"
+    cost:
+      basis: "one git grep over live surfaces"
+      value: "minutes; the mode has been the DEFAULT and unused for as long as the grep reaches"
+    surface:
+      production: ["scripts/run_generated_case_adapters.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_effect_provider_runtime.py", "tests/test_effect_provider_fuzzing.py"]
+    summary: >-
+      THE RUNNER SHIPPED TWO EXECUTION MODES; THE DEFAULT ONE HAD ZERO LIVE
+      CALLERS, CARRIED FEWER ORACLES THAN THE OTHER, AND NEEDED A REFUSAL IN THE
+      CODE TO FENCE IT OFF.
+
+      `--batch` executes selected cases in-process. The DEFAULT writes one
+      standalone Python program per case and runs each as a subprocess
+      (`write_case_program`, `generate_programs`, `execute_programs`).
+
+      EVERY live consumer passes `--batch`: README.md:73/117/129, the
+      distributed_history README and its `test_ecommerce_adapters.py` and
+      `run_external_cases.py`, `examples/run_distributed_history_validation.py`
+      (three call sites), `examples/validation/instruments/instruments.toml`,
+      and all three effect-provider example validators. The grep finds no live
+      invocation that omits it.
+
+      AND THE DEFAULT MODE CARRIES FEWER ORACLES. Effect providers cannot run in
+      it at all, which is why `validate_effect_provider_execution_mode` exists:
+      "semantic effect providers require --batch in V0; non-batch generated
+      programs and exported cases cannot silently ignore provider bindings". A
+      refusal in the code, and two tests, existed solely to fence a mode nothing
+      used. `HP-04`'s oracle statement is printed identically in both, so the
+      mode with fewer oracles said the same thing about itself.
+    reproduction: >-
+      `git grep -n "run_generated_case_adapters" -- examples scripts tests
+      references '*.md' | grep -v 'evidence/\|specs/.history\|specs/results'`,
+      then check each invocation for `--batch`.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/CA-06/loader-check.txt"
+      - "specs/results/scorecards/cut-the-apparatus/CA-06/PRICE-TABLE.md"
+    why_out_of_scope: ""
+    suggested_fix: >-
+      Delete the mode, keep `--batch` accepted as an inert flag so the ~15 live
+      command lines and the sealed reproduction commands under `specs/results/`
+      keep running, and delete the refusal that existed only to fence it.
+    blast_radius: >-
+      Nothing live. `--python` KEEPS its meaning -- `reexec_batch_if_needed`
+      uses it to re-exec the batch under a chosen interpreter, which is what the
+      effect-provider tests exercise.
+    disposition: repaired
+    disposition_note: >-
+      CUT IN THIS TICKET and priced in CA-06's PRICE-TABLE.md. The two tests
+      whose only subject was the refusal are deleted with it -- a DENOMINATOR
+      move under `denominator_rule`, not a repair.
+
+  - id: CA-06-DF-04
+    found_by: "CA-06"
+    found_at_commit: "e379d6b"
+    schedule_revision: 1
+    severity: major
+    channel: "ran this epic's own headline as a measurement on a subject it had never been measured on, because the work order said to report what the path catches on a real subject"
+    cost:
+      basis: "one 128-mutant enumeration over one 202-line module, both instruments per mutant"
+      value: "about two minutes of wall clock; the subject has been checked into this repository the whole time"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "CUT-THE-APPARATUS-EPIC.md"
+        - "specs/desired_program_model/ticket_plan.yaml"
+        - "specs/results/scorecards/cut-the-apparatus/GOAL-four-results-stand/baseline.md"
+    summary: >-
+      "MODEL-DERIVED CASES DO NOT CATCH BUGS HAND-WRITTEN TESTS MISS -- ZERO
+      UNIQUE KILLS, FOUR THE OTHER WAY" IS QUOTED IN FOUR PLACES AS A PROPERTY OF
+      GENERATION. ON THE FIRST SUBJECT OUTSIDE THE FIXTURE IT HAS EVER BEEN
+      MEASURED ON, THE GENERATED CORPUS HAS 39 UNIQUE KILLS AGAINST THE
+      HAND-WRITTEN SUITE'S 9.
+
+      Subject: `examples/distributed_history`, the README's active checked-in
+      example. 128 mutants ENUMERATED EXHAUSTIVELY from a fixed grammar over
+      every eligible AST site of `ecommerce_backend/domain.py` -- comparison-op
+      swap, `not` removal, and/or swap, boolean flip, int +1, string rotation.
+      No mutant chosen, named or ordered by the author, and the population was
+      fixed BEFORE `CA-06-DF-01` was found (`MF-020`).
+
+        population        n    both  suite-only  corpus-only  neither
+        all             128      44           9           39       36
+        string-rotation 101      35           8           36       22
+        non-string       27       9           1            3       14
+
+      THE SCOPE IS DOING MOST OF THE WORK AND IS STATED WITH THE NUMBER (`R3`):
+
+      (1) THIS IS NOT "GENERATION VERSUS HAND-WRITING". It is 93 generated cases
+      against ONE hand-written test of 42 lines. The prior figure was measured
+      on `ab_quota_ledger` against a DEVELOPED suite. THIS RESULT DOES NOT REFUTE
+      THAT ONE. It refutes the generalisation of it, which is the single
+      costliest recurring error on this project's own list.
+
+      (2) 17 of the 39 corpus-only kills are in code the corpus itself drives --
+      13 in `load_state`, 4 in `reset`, the state-installation path each
+      generated case calls to load its `before`. The hand-written test never
+      calls `load_state`. Discounting them leaves 22 on program behaviour.
+
+      (3) On the 27 NON-STRING mutants -- the semantic ones -- it is 3
+      corpus-only against 1 suite-only. Close, not dominant.
+
+      (4) All 9 suite-only kills are in `process_outbox` (7) and `checkout` (2).
+      The internal corpus drives no case to the outbox depth the hand-written
+      test reaches. A real gap, measured.
+    reproduction: >-
+      `specs/results/scorecards/cut-the-apparatus/CA-06/mutation_probe.py`,
+      run against a copy of `examples/distributed_history` with a corpus
+      generated from the pristine model. Emits
+      `specs/results/scorecards/cut-the-apparatus/CA-06/kill-table.json`.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/CA-06/kill-table.json"
+      - "specs/results/scorecards/cut-the-apparatus/CA-06/mutation_probe.py"
+      - "specs/results/scorecards/cut-the-apparatus/CA-06/RESULTS.md"
+    why_out_of_scope: >-
+      The charter, the plan and the goal baseline are the epic owner's text and
+      are amended by the owner, not by a ticket. CA-06 reports the arithmetic and
+      ships the probe that re-derives it.
+    suggested_fix: >-
+      Where the sentence appears, say which subject and which hand-written suite
+      it is measured against, exactly as `FI-04-DF-01` had to be corrected for
+      the same class one epic ago. The defensible form is: "on `ab_quota_ledger`,
+      against that subject's developed hand-written suite, the generated corpus
+      had zero unique kills."
+    blast_radius: >-
+      Every decision to defund generation taken on the strength of the
+      unqualified sentence -- including this epic's own framing of CA-06, which
+      instructed a dramatic shrink on the basis of a corpus said to produce
+      nothing.
+    disposition: open
+    disposition_note: >-
+      OPEN for CA-08, which decides `GOAL-four-results-stand` and owns the
+      disproof table this sentence sits in. It is a correction to a DISPROOF, and
+      the charter says the four disproofs are as load-bearing as the four results.
