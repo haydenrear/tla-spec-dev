@@ -3,10 +3,19 @@
 **The defect, filed by `CA-06` and confirmed by its reviewer.** The negative
 corpus keyed each case's ``params`` by the TLA+ FORMAL parameter names, while
 the positive corpus keys them by the names the module DECLARES in its own
-action marker -- the names every shipped adapter reads. All 11 negative cases
-the generator emits for ``examples/distributed_history`` died before asserting
-anything: ``KeyError: 'account'`` x7, ``KeyError: 'order'`` x4. The measured
-yield of ``--negative-cases`` on a real subject was zero cases EXECUTED.
+action marker -- the names every shipped adapter reads. Over a full TLC state
+graph the generator emits 11 negative cases for
+``examples/distributed_history`` and all 11 died before asserting anything:
+``KeyError: 'account'`` x7, ``KeyError: 'order'`` x4. The measured yield of
+``--negative-cases`` on a real subject was zero cases EXECUTED.
+
+**THIS FILE BUILDS AT TWO STATES, NOT THE WHOLE GRAPH, SO IT EMITS 9 AND NOT
+11** -- ``KeyError: 'account'`` x7, ``KeyError: 'order'`` x2. Both figures are
+real and they are not the same measurement; the 11 is the sealed pipeline run
+in ``specs/results/scorecards/cut-the-apparatus/CA-07/`` and the 9 is what the
+two commands in that directory's ``RESULTS.md`` reproduce. The two states are
+enough because they reach all four negated actions and all four refusal
+reasons; they are not enough to reproduce a count.
 
 **The subject is real, not a fixture (`R1`).** Everything below is
 ``examples/distributed_history`` -- this repository's own worked example: its
@@ -19,6 +28,20 @@ disagreement between two artifacts -- what the corpus emits and what the
 adapter reads -- and only one of them lives in ``scripts/``. A test of the
 generator alone is green on either keying, because either keying is
 self-consistent. That is how this survived three epics.
+
+**WHAT THIS FILE DOES NOT COVER, found by the independent reviewer of PR #269
+and stated here rather than in a document nobody reads next to the code.**
+`CA-06-DF-02` has a SECOND face: the same key mismatch made
+``negative_cases_for_corpus``'s soundness cross-check compare declared names
+against formal ones, so it examined nothing on any model that declares a
+marker. `CA-07` repaired that too -- and **NOTHING BELOW PROTECTS THE REPAIR.**
+Every call here passes ``edges=[]``, so the cross-check loop is empty by
+construction; the reviewer deleted the 11-line remap and this file still
+reported 5 passed. Roughly a third of `CA-07`'s production delta is therefore
+evidenced by a TRANSCRIPT and not by an executable check. Filed as
+`CA-07-DF-05`. Covering it needs dump ``edges`` whose after-states carry a
+populated action marker, which is the one thing two hand-written states cannot
+supply without transcribing a third.
 
 **The one transcribed input** is the pair of states the cases are built at:
 TLC is the only thing that produces a state graph and a unit test may not run
@@ -76,11 +99,21 @@ WITH_AN_ACCOUNT = dict(INITIAL, accounts=frozenset({"acct-1"}))
 def _example_module(dotted: str) -> ModuleType:
     """Import one module of the example by the name its own mapping uses.
 
-    Loaded by path under a private name so putting the example's ``specs``
-    package on ``sys.path`` cannot shadow this repository's own ``specs/``
-    for the rest of the session. The example root itself IS added, because
-    that is what ``--import-root`` does and what ``adapters.py`` needs to
-    reach ``ecommerce_backend``.
+    Loaded by path under a private name, which keeps THIS import off the
+    ``specs`` name. The example root itself is still added to ``sys.path``,
+    because that is what ``--import-root`` does and what ``adapters.py`` needs
+    to reach ``ecommerce_backend``.
+
+    **AND THAT INSERT DOES SHADOW THIS REPOSITORY'S ``specs/``, which an
+    earlier version of this docstring claimed it could not.** Corrected on the
+    independent review of PR #269, which confirmed that after this runs,
+    ``import specs.program_model.adapters`` resolves to the example's file:
+    the example ships ``specs/__init__.py`` and is therefore a REGULAR
+    package, this repository's ``specs/`` has none and is a NAMESPACE package,
+    and a regular package wins wherever it sits on the path. Nothing in the
+    suite imports ``specs.*``, so nothing breaks today -- it is an
+    ordering-dependent landmine for whoever adds the first such import.
+    Declared rather than worked around, as `CA-07-DF-06`.
     """
     if str(EXAMPLE) not in sys.path:
         sys.path.insert(0, str(EXAMPLE))

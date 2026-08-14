@@ -18,13 +18,13 @@ __ test_the_negative_corpus_names_its_arguments_as_the_committed_corpus_does ___
 E       AssertionError: assert {'AddCartItem...zenset({'o'})} == {'CreateAccou...et({'order'})}
 E         
 E         Differing items:
-E         {'CreateAccount': frozenset({'a'})} != {'CreateAccount': frozenset({'account'})}
-E         {'AddCartItem': frozenset({'a', 'sku'})} != {'AddCartItem': frozenset({'account', 'sku'})}
-E         {'ProjectOrder': frozenset({'o'})} != {'ProjectOrder': frozenset({'order'})}
 E         {'Checkout': frozenset({'a', 'o'})} != {'Checkout': frozenset({'account', 'order'})}
+E         {'ProjectOrder': frozenset({'o'})} != {'ProjectOrder': frozenset({'order'})}
+E         {'AddCartItem': frozenset({'a', 'sku'})} != {'AddCartItem': frozenset({'account', 'sku'})}
+E         {'CreateAccount': frozenset({'a'})} != {'CreateAccount': frozenset({'account'})}
 E         Use -v to get more diff
 
-tests/test_negative_corpus_adapter_conformance.py:168: AssertionError
+tests/test_negative_corpus_adapter_conformance.py:201: AssertionError
 ____________ test_the_shipped_adapters_execute_every_negative_case _____________
 
     def test_the_shipped_adapters_execute_every_negative_case() -> None:
@@ -60,7 +60,7 @@ E         case_0008_project_order_rejected via ProjectOrder: KeyError: 'order'
 E         case_0009_project_order_rejected via ProjectOrder: KeyError: 'order'
 E       assert not ["case_0001_add_cart_item_rejected via AddCartItem: KeyError: 'account'", "case_0002_add_cart_item_rejected via AddCar...kout_rejected via Checkout: KeyError: 'account'", "case_0006_checkout_rejected via Checkout: KeyError: 'account'", ...]
 
-tests/test_negative_corpus_adapter_conformance.py:192: AssertionError
+tests/test_negative_corpus_adapter_conformance.py:225: AssertionError
 _____ test_a_module_that_declares_no_action_marker_keeps_its_formal_names ______
 
     def test_a_module_that_declares_no_action_marker_keeps_its_formal_names() -> None:
@@ -78,9 +78,9 @@ _____ test_a_module_that_declares_no_action_marker_keeps_its_formal_names ______
 >       from scripts.generate_cases_from_tlc_dump import declared_param_names
 E       ImportError: cannot import name 'declared_param_names' from 'scripts.generate_cases_from_tlc_dump' (/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-07/scripts/generate_cases_from_tlc_dump.py)
 
-tests/test_negative_corpus_adapter_conformance.py:207: ImportError
+tests/test_negative_corpus_adapter_conformance.py:240: ImportError
 =========================== short test summary info ============================
 FAILED tests/test_negative_corpus_adapter_conformance.py::test_the_negative_corpus_names_its_arguments_as_the_committed_corpus_does
 FAILED tests/test_negative_corpus_adapter_conformance.py::test_the_shipped_adapters_execute_every_negative_case
 FAILED tests/test_negative_corpus_adapter_conformance.py::test_a_module_that_declares_no_action_marker_keeps_its_formal_names
-3 failed, 2 passed in 0.09s
+3 failed, 2 passed in 0.08s

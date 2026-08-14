@@ -439,10 +439,20 @@ def declared_param_names(body: str, params: tuple[str, ...], view: str) -> dict[
     Only a marker field whose value is a bare formal parameter is a rename: an
     expression is not a parameter. A formal the marker does not mention keeps
     its own name, because dropping it would lose an argument the guard was
-    evaluated on, and two formals declared under one name refuse the rename
-    outright for the same reason. A module that declares no action marker gets
-    an empty map -- which is why nothing moves for ``QuotaLedger``, whose sealed
-    kill tables this repository quotes throughout.
+    evaluated on. A module that declares no action marker gets an empty map --
+    which is why nothing moves for ``QuotaLedger``, whose sealed kill tables
+    this repository quotes throughout.
+
+    THE COLLISION GUARD BELOW IS NARROWER THAN IT LOOKS, and this paragraph
+    replaces one that stated an invariant the code does not enforce
+    (`CA-07-DF-07`, from the independent review of PR #269). It refuses only
+    when two RENAMED formals land on one declared name. A rename that collides
+    with the name of a formal the marker DOES NOT mention still passes:
+    ``Foo(x, y)`` with ``params |-> [y |-> x]`` maps ``x -> y`` while ``y``
+    keeps ``y``, so the emitted dict has ONE key and SILENTLY DROPS AN
+    ARGUMENT, and the cross-check above then hits the same `continue` vacuity
+    in narrower form. No module in this repository is shaped that way, and the
+    case is named rather than repaired here.
     """
     marker = "lastExternalAction" if view == "external" else "lastInternalAction"
     anchor = re.search(rf"\b{marker}'\s*=\s*\[", body)
@@ -3187,7 +3197,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     java spawn at scripts/generate_cases_from_tlc_dump.py:126
     (subprocess.run), the metadir delete at
     scripts/generate_cases_from_tlc_dump.py:150 (shutil.rmtree), the package
-    writes at scripts/generate_cases_from_tlc_dump.py:1129-1130 (path.write_text)
+    writes at scripts/generate_cases_from_tlc_dump.py:1139-1140 (path.write_text)
     or the parameter-recovery audit write. Nothing generated a case for it,
     nothing adapted it, nothing mutated it, and all four oracles reported green
     over surface the model did not contain.

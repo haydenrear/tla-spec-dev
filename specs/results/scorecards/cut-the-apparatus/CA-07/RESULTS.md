@@ -18,8 +18,14 @@ on a real subject was zero cases *executed*.**
 > forbids `CA-06` changing the keys of a corpus under the one fixture whose
 > sealed kill tables are quoted throughout this programme."*
 
-**That caution was right and its premise was not checked.** The names the
-positive corpus uses are **not** recovered from the state pair at all. They are
+**That caution was right, and the row's own `why_out_of_scope` asserted as
+settled fact something the row's own `suggested_fix` prescribed a check for.**
+The check is quoted in §1a below; `CA-07` ran it, and it came back the other
+way. **The gap is between two fields of one row** — not, as this document first
+said, between the row and a reader nobody had thought to be.
+
+The names the positive corpus uses are **not** recovered from the state pair
+at all. They are
 read out of the module's own action-marker record —
 `params_from_action_marker`, `generate_cases_from_tlc_dump.py:414` — which is
 why `Internal.tla:28` writing
@@ -42,12 +48,20 @@ $ diff -r <before>/quota_neg <after>/quota_neg
         (only case_coverage.json's `source` field — the scratch path each run wrote to)
 ```
 
-`specs/results/scorecards/cut-the-apparatus/CA-07/quota-ledger-corpus-unchanged.txt`.
-**No sealed cell can move.** The fix is inert on every model that predates it,
-because the only models it changes are the ones that told the generator their
-argument names.
+`specs/results/scorecards/cut-the-apparatus/CA-07/quota-ledger-corpus-unchanged.txt`,
+and **regenerated independently by the reviewer of PR #269**, who got the same
+118 cases and the same 4,028 cross-checked edges on both keyings.
+**No sealed cell can move.**
 
-### `CA-06`'s `suggested_fix` names a mechanism that cannot do the job
+**Stated precisely, because an earlier version of this sentence was false.**
+The fix is inert on every model **that declares no action marker** — *not* on
+"every model that predates it". `examples/distributed_history` predates it and
+is precisely the model it is not inert on; that is the entire point of the
+change. The evidence file said it correctly and this section did not.
+
+### 1a. `CA-06`'s `suggested_fix`: one clause wrong, one clause right
+
+**The clause that is wrong:**
 
 > *"Map each formal parameter to its recovered name through the `ActionRecipe`
 > the pass already holds."*
@@ -57,8 +71,21 @@ argument names.
 of the definition, and `infer_params` returns `{recovery.name: value}` — so on
 `AddCartItem(a, sku)` the recipe can only ever say `a`. It cannot supply
 `account`, because nothing in the recovery machinery has ever seen that word.
-A ticket that followed the suggested fix literally would have got nowhere.
+A ticket that followed **that clause** literally would have got nowhere.
 Filed as `CA-07-DF-01`.
+
+**The clause that is right, and it is the best instruction on the row:**
+
+> *"…and re-run `QuotaLedger`'s sealed negative kill table on BOTH keyings to
+> show the sealed cells do not move. If they do move, the keying is
+> load-bearing and that is a bigger finding than this one."*
+
+**That is exactly the check §1 reports, and `CA-07` ran it because the row
+asked for it.** Corrected on the review of PR #269, which was right that
+"the premise was never checked" implied nobody had thought of the check when
+the row itself specifies it. **What is notable is that it was the first
+`suggested_fix` on this ledger to be *executed* rather than quoted — not that
+it was unimagined.**
 
 ---
 
@@ -92,6 +119,39 @@ over a dump holding **141** such edges. Measured at this branch:
 always matched. **The check has been vacuous on exactly the models it was
 never measured on, which is `CA-06-DF-01`'s shape a second time.** Repairing
 it suppressed no action and changed no corpus: 0 of 141 disagreed.
+
+### 2a. And **this repair is routed, not consumed** — `CA-07-DF-05`
+
+**The sharpest thing either this ticket or its review produced, and it is
+against this ticket.**
+
+**Nothing in the repository protects the cross-check repair.** The reviewer of
+PR #269 deleted the 11-line `formal_for` remap and re-ran the shipped
+conformance case: **5 passed.** Every call in
+`tests/test_negative_corpus_adapter_conformance.py` passes `edges=[]`, so the
+cross-check loop body never executes, and no other generator test asserts a
+nonzero `crosschecked_edges` either.
+
+**So `CA-07`'s production delta splits in two and only one half is consumed:**
+
+| half of `CA-06-DF-02` | evidence | verdict |
+|---|---|---|
+| the **emission** keying | back it out and the shipped case goes red on `KeyError` | **CONSUMED** |
+| the **cross-check** remap | `cross-check: 0` → `141, 0 disagreed` in a transcript | **ROUTED** |
+
+**Roughly a third of the production delta lands as a transcript, not as an
+executable check** — and the transcript is a real measurement on a real
+subject, which is exactly what makes it seductive. `CA-05-DF-03` measured that
+the disposition instrument cannot tell consumption from routing. **This is that
+finding arriving on a real input, produced by the epic's own consumption
+ticket, and nothing in the mechanism noticed.** An independent reviewer
+deleting code and re-running did.
+
+**Not closed here, on the epic owner's instruction.** Adding the missing
+coverage after review would erase the measurement the review produced, which is
+worth more than the coverage. What it would take is written down in
+`CA-07-DF-05`'s `suggested_fix`: one edge whose after-state carries a populated
+action marker, and `assert report.crosschecked_edges == 1`.
 
 ---
 
@@ -139,7 +199,7 @@ could make the distinction mechanically does not exist yet.**
 
 ## 4. The regression, and the two commands that check it
 
-`tests/test_negative_corpus_adapter_conformance.py` — **222 lines, 5 cases, and
+`tests/test_negative_corpus_adapter_conformance.py` — **255 lines, 5 cases, and
 it did not exist.** It is an **adapter conformance case** in the owner's §4
 shape: it takes what the generator emits for the real subject and hands it to
 the adapter classes that subject's own `case_adapters.toml` names.
@@ -208,15 +268,15 @@ run found (`a \in accounts`, `Len(carts[a]) > 0`, `a \notin accounts`,
 
 | surface | `14fbb10` | here | delta |
 |---|---:|---:|---:|
-| `scripts/` | 26,756 | 26,827 | **+71** |
+| `scripts/` | 26,756 | 26,837 | **+81** |
 | `examples/validation/` | 14,854 | 14,854 | **0** |
-| `tests/` | 30,738 | 30,960 | **+222** |
+| `tests/` | 30,738 | 30,993 | **+255** |
 | **card** (`serve \| wc -c`) | 6,281 | **6,281** | **0**, `sha256:2d7d4a0506d9b259` |
 
 `GOAL-apparatus-cut`'s `expected_effect` for this ticket is *"A SMALL INCREASE
 IS EXPECTED AND ACCEPTED — one action or one conformance case. Price it."*
-This is one conformance case and one generator function. **+71 in `scripts/`,
-+222 in `tests/`, nothing in `examples/validation/`, and the card did not
+This is one conformance case and one generator function. **+81 in `scripts/`,
++255 in `tests/`, nothing in `examples/validation/`, and the card did not
 move.** Never reported as one number. Detail in `line-counts.txt` and
 `PRICE-TABLE.md`.
 

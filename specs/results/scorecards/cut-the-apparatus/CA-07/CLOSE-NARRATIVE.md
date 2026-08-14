@@ -11,6 +11,11 @@ and consuming it exposed that the mechanism's real yield on a real subject is
 **11 cases executed, 11 failing, 5 of them naming a genuine disagreement
 between the model and the program**.
 
+**And the line the review of PR #269 added, which is the one that costs**: the
+defect had two halves and **only one of them is consumed.** The emission fix is
+protected by the shipped case; **the cross-check fix is protected by nothing**,
+and this document reported both as consumption. §1 and `CA-07-DF-05`.
+
 ---
 
 ## 1. Was it consumed, or only routed?
@@ -19,8 +24,25 @@ between the model and the program**.
 instrument cannot tell consumption from routing** (`CA-05-DF-03`). So the
 question has to be answered by artifacts, not by a field.
 
-**It is consumption, and here is what makes it checkable by someone who does
-not trust this document.** `14fbb10` is the epic tip this branch was cut from and `HEAD` is the ticket commit:
+**BOTH. This ticket's production delta is half consumed and half routed, and
+this document first reported all of it as consumed.** The correction is the
+review of PR #269's, it is `CA-07-DF-05`, and it belongs at the top of this
+section rather than in a footnote:
+
+| half of `CA-06-DF-02` | protected by | verdict |
+|---|---|---|
+| the **emission** keying | the shipped conformance case — back it out and it goes red | **CONSUMED** |
+| the **cross-check** remap | nothing; the reviewer deleted it and all 5 cases still passed | **ROUTED** |
+
+Every call in the shipped test passes `edges=[]`, so the cross-check loop body
+never runs, and no other generator test asserts a nonzero `crosschecked_edges`.
+**Roughly a third of the production delta is evidenced by a transcript.** That
+transcript (`cross-check: 0` → `141, 0 disagreed`) is a real measurement on a
+real subject, which is exactly why it was easy to mistake for coverage.
+
+**The consumed half, and what makes it checkable by someone who does not trust
+this document.** `14fbb10` is the epic tip this branch was cut from and `HEAD`
+is the ticket commit:
 
 ```bash
 git checkout 14fbb10 -- scripts/generate_cases_from_tlc_dump.py \
@@ -32,7 +54,7 @@ git checkout HEAD    -- scripts/generate_cases_from_tlc_dump.py \
 #   5 passed
 ```
 
-The artifact is `tests/test_negative_corpus_adapter_conformance.py`: **222
+The artifact is `tests/test_negative_corpus_adapter_conformance.py`: **255
 lines, five cases, and it did not exist at `14fbb10`.** Transcripts of both
 sides are sealed at `regression-red.txt` and `regression-green.txt`.
 
@@ -66,7 +88,8 @@ not zero.
 > forbids `CA-06` changing the keys of a corpus under the one fixture whose
 > sealed kill tables are quoted throughout this programme."*
 
-**Right as a caution, and its premise was never checked.** The names the
+**Right as a caution, and stated as settled fact in the one field of the row
+whose other field prescribed the check that would settle it.** The names the
 positive corpus uses are not recovered from a state pair at all — they are read
 out of the module's own action-marker record. **`QuotaLedger` declares no
 action marker.** It therefore declares no argument names, has nothing to
@@ -74,17 +97,24 @@ re-key, and cannot move.
 
 **Measured, both keyings, `diff -r`:** 118 cases either side; the only
 difference is the scratch directory recorded in `case_coverage.json`.
-`quota-ledger-corpus-unchanged.txt`. **No sealed cell can move**, and the fix is
-inert on every model that predates it by construction — it changes only models
-that told the generator their argument names.
+`quota-ledger-corpus-unchanged.txt`, **and regenerated independently by the
+reviewer of PR #269**. **No sealed cell can move.**
+
+**Stated precisely, because the first version of this paragraph was false.**
+The fix is inert on every model **that declares no action marker** — *not* on
+"every model that predates it". `examples/distributed_history` predates it and
+is exactly the model it is not inert on; that is the point of the change.
 
 **So the answer to "can this be landed without disturbing sealed tables" is
-yes**, and the reason it looked otherwise is that the row's `suggested_fix`
-named the wrong mechanism. `CA-07-DF-01`: an `ActionRecipe` is keyed by the
-**formal** names and cannot supply `account`. A ticket that followed the
-suggested fix literally would have got nowhere. **This is the first time a
-`suggested_fix` on this 255-row ledger has been executed rather than quoted, and
-it was wrong on its central noun.**
+yes.** The reason it looked otherwise is narrower than this document first
+claimed, and the review was right to cut it down: the row's `suggested_fix` has
+**two clauses, and only the mechanism clause is wrong**. `CA-07-DF-01`: an
+`ActionRecipe` is keyed by the **formal** names and cannot supply `account`.
+**Its other clause — "re-run `QuotaLedger`'s sealed negative kill table on BOTH
+keyings" — is exactly the check that settled this, and `CA-07` ran it because
+the row asked for it.** What is notable is that it is the first `suggested_fix`
+on this ledger to be **executed** rather than quoted; not that nobody had
+thought of it.
 
 ---
 
@@ -183,6 +213,26 @@ finding's own `surface` block at triage. **This ticket did not edit its own
 conflict keys**: a ticket that widened its declared scope to match what it had
 already done would leave no record that the departure happened.
 
+### 6a. All four writes outside the declared scope, not one of four
+
+The first PR declared the `scripts/` edit and left three others unstated. The
+review counted them; here they all are.
+
+| write | declared in scope? | why it happened |
+|---|---|---|
+| `scripts/generate_cases_from_tlc_dump.py` | **no** — `conflict_keys.production: []` | the subject's own `surface.production`; the ticket cannot be done without it |
+| `specs/results/complexity_ledger.json` | **no** | written by `close ticket`; MF-019 requires the ledger input and the CLI appends the entry |
+| `specs/results/skill_feedback.md` | **no** | written by `close ticket` from the close summary |
+| `specs/.history/cut-the-apparatus-epic/ticket-006-CA-07/` | **no** | the append-only close receipt the CLI creates and tells you to commit |
+
+**The last three are mechanically forced by the close-out the assignment
+REQUIRES**, so they are not discretionary — but "forced" is not "declared", and
+three of four going unmentioned while one was singled out is the reporting
+defect, not the writes. Every epic ticket produces these three; the plan's
+`implementation_scope` names none of them, which makes it wrong for every
+ticket rather than for this one. Recorded on `CA-07-DF-03`'s ground, not filed
+again.
+
 ---
 
 ## 7. Suite
@@ -201,16 +251,26 @@ test_source_citations.py::...[specs/program_model/spec_manifest.yaml]           
 test_ticket_retirement.py::...delivered_plan_has_matching_close_receipts         inherited
 ```
 
-**At the head this ticket closed: `8 failed, 1490 passed`**
-(`pytest-after.txt`), and the failure set is **identical item for item**:
+**At the committed head: `8 failed, 1486 passed`** (`pytest-after.txt`), and
+the failure set is **identical item for item**:
 
 ```bash
 $ diff <(grep ^FAILED pytest-baseline.txt | sort) <(grep ^FAILED pytest-after.txt | sort)
         (no output)
 ```
 
-**+9 passing**: the 5 cases of the new conformance file, plus 4 elsewhere that
-the fix unblocked.
+**+5 passing, and it is exactly the new file.** 1,481 → 1,486.
+
+**THE FIGURE THIS SECTION FIRST PUBLISHED WAS `1490` AND IT WAS WRONG**
+(`CA-07-DF-08`, from the review of PR #269). That run was taken while the
+ticket's scaffold directory `specs/tickets/CA-07/` still existed, and several
+tests are parametrized over `specs/tickets/*`, so it recorded **1,498 outcomes
+against a tree that collects 1,494**. The `+4 elsewhere that the fix unblocked`
+this section claimed is **withdrawn, not reworded**: the fix unblocked nothing
+elsewhere, and those four cases were the scaffold. `collection-count.txt`
+records `1494 tests collected` beside the re-run, which is the cheap guard
+`CA-07-DF-08` proposes: *an outcome total above the collection count of the
+tree you are reporting on is a report about a different tree.*
 
 **Not one of the 8 was repaired.** One new red appeared during the work and was
 declared with its cause and fixed: the line-number citation of `CA-07-DF-04`.
@@ -218,16 +278,23 @@ The three manifest citation reds were checked to be **identical** before and
 after this branch's edit, by re-running the test on both trees and diffing the
 15 stale citations it reports.
 
-**Measurement point, stated exactly.** That run is at the **pre-close** head.
-What lands after it is the plan's `status: planned -> done` flip and the close
-receipt, read only by `test_ticket_retirement` — already one of the 8 inherited
-reds either way. Its verdict at the closed head is recorded separately in
-`pytest-ticket-retirement-after-close.txt`.
-
 ---
 
 ## 8. What was refused
 
+- **Closing `CA-07-DF-05` by adding the missing cross-check coverage.** The
+  single most tempting change after review, and refused on the epic owner's
+  instruction: a ticket that quietly patches the hole a reviewer found erases
+  the measurement, and the measurement — *this project's consumption machinery
+  could not tell a protected change from an unprotected one* — is worth more
+  than the coverage. The exact test that would close it is written down in
+  `CA-07-DF-05`'s `suggested_fix` so the successor does not rediscover it.
+- **Repairing `CA-07-DF-06` and `CA-07-DF-07`.** Declared, not fixed, per the
+  same instruction. Both docstrings **were** corrected, because a comment that
+  misdescribes its code is worse than no comment.
+- **Trimming the finding count to the deferral budget of 5.** Six carried is
+  over by one and is declared instead. Folding two distinct mechanisms into one
+  row to hit a number is what `CA-06` refused by name.
 - **Making the 11 negative cases pass.** `MF-020`, and §4's finding is worth
   more than a green run.
 - **Giving the shipped adapters a rejection contract.** It would repair the
@@ -264,17 +331,59 @@ All under `specs/results/scorecards/cut-the-apparatus/CA-07/`:
 | `quota-ledger-corpus-unchanged.txt` | the sealed fixture on both keyings, `diff -r` |
 | `line-counts.txt` | per-surface counts and the card |
 | `pytest-baseline.txt` / `pytest-after.txt` | the suite either side |
-| `disposition.txt` | `DISPOSED ticket CA-07: 4 findings, all three clauses hold` |
+| `collection-count.txt` | `1494 tests collected` — the tree the after-run reports on |
+| `pytest-ticket-retirement-after-close.txt` | the one plan-reading test, at the closed head |
+| `no-committed-corpus-carries-negative-cases.txt` | nothing committed can move |
+| `disposition.txt` | the ticket and epic verdicts, with the selector caveat |
 
-**Findings**: `CA-07-DF-01` (settled), `CA-07-DF-02` (carried, `CA-08`),
-`CA-07-DF-03` (carried, `CA-08`), `CA-07-DF-04` (carried, `CA-08`). Four rows,
-all disposed, `scripts/disposition.py --ticket CA-07` exit 0. `CA-06-DF-02`
-moved `carried` → **`consumed`**.
+**THE SEALED CLOSE-HISTORY COPY IS THE PRE-REVIEW VERSION AND IS DELIBERATELY
+NOT REWRITTEN.** `specs/.history/cut-the-apparatus-epic/ticket-006-CA-07/results/`
+holds the `RESULTS.md`, `PRICE-TABLE.md` and `CLOSE-NARRATIVE.md` as they stood
+at `close ticket`, carrying `1490`, `1 of 41`, `+71/+222` and the
+consumption-only verdict. **Those figures are withdrawn; the corrected ones are
+the files above, at the evidence root.** The snapshot is append-only by
+construction and re-closing to refresh it would mint a second close receipt for
+one ticket — the exact defect `test_ticket_retirement` already reports against
+`CA-05`. *"Results and history are append-only records of what was true when
+written"* (`tests/test_source_citations.py`), and this is what that costs when
+a review lands after a close.
 
-**The consumption count, per `denominator_rule`.** `CA-06-DF-02` is a **ledger
-row filed by this epic**, not one of `HARVEST-CL-03`'s 41 classes — so **the
-harvest numerator does not move and stays 1 of 41**. What moves is the ledger's
-own terminal-disposition count: `consumed` goes **2 → 3** over a ledger that
-grew **251 → 255 rows** in the same commit. **The numerator rose by one and the
-denominator rose by four**, and quoting either number without the other
-overstates the loop.
+**Findings: eight.** `CA-07-DF-01` (settled), `-02` (carried, `CA-08`), `-03`
+(carried), `-04` (carried), and from the review of PR #269: `-05` (carried),
+`-06` (carried), `-07` (carried), `-08` (settled). `CA-06-DF-02` moved
+`carried` → **`consumed`**.
+
+**Two things about that count that must not be quoted without each other.**
+
+**(a) The deferral budget is 5 and this ticket carried 6.** `deferment_policy`
+in the plan sets `budget: 5`, `blocking: escalate`. Six of the eight rows are
+`carried`; two are `settled` and are not deferrals. **Over by one, declared to
+the epic owner rather than trimmed** — three of the six arrived from an
+external review after the work was done, and folding two distinct mechanisms
+into one row to hit a number is the failure mode `CA-06` refused by name when
+it declined to merge `CA-06-DF-05` into `-DF-01`.
+
+**(b) `disposition.py --ticket CA-07` reports FOUR, not eight.**
+`scripts/disposition.py:205` selects on `found_by.startswith(<ticket>)`, and
+the four review findings name the reviewer in `found_by` — honestly, following
+`CA-05-DF-06`'s precedent. **`--epic cut-the-apparatus` sees all eight** and is
+the figure to quote. Recorded inside `CA-07-DF-05`: a finding a ticket did not
+find itself is invisible to its own ticket-scoped check, and `CA-05-DF-06` is
+invisible to `--ticket CA-05` for the same reason.
+
+**The consumption count, per `denominator_rule`, corrected.** `CA-06-DF-02` is
+a **ledger row filed by this epic**, not one of `HARVEST-CL-03`'s 41 classes —
+so **the harvest numerator does not move**. It stands at **2 of 41 (4.9%)** at
+this tip (`A1` by `SV-04`, `F3` by `CA-03`, verified by hand by `CA-05`,
+`SELF-IMPROVEMENT.md:1689`). **This document first said "stays 1 of 41", which
+paired the goal baseline's pre-`CA-05` numerator with `CA-05`'s repaired
+denominator** — `CA-07-DF-08`, and it errs *against* this epic, which is why
+its smell did not give it away.
+
+What moves is the ledger's own terminal-disposition count: `consumed` goes
+**2 → 3** over a ledger that grew **251 → 259 rows** across this ticket's two
+commits. **The numerator rose by one and the denominator rose by eight**, and
+quoting either without the other overstates the loop.
+
+**And one of those three consumptions is half a consumption.** See §1 and
+`CA-07-DF-05`: the emission fix is consumed, the cross-check fix is routed.
