@@ -25,9 +25,24 @@ from scripts import disposition as D  # noqa: E402
 LEDGER = ROOT / D.LEDGER
 
 
+def ledger_path() -> pathlib.Path:
+    """The one address every read below goes through. See `rows`."""
+    return D.resolve_ledger(LEDGER, explicit=False)
+
+
 @pytest.fixture(scope="module")
 def rows() -> list[dict]:
-    return D.load(LEDGER)
+    """`CA-10-DF-06`. Resolve exactly as the script does, then load.
+
+    This fixture used to call `D.load(LEDGER)` directly. `LEDGER` is inside
+    `desired_program_model/`, which the workflow close REMOVES, so all eight
+    tests below errored the moment the epic was actually closed -- `CA-09` gave
+    the SCRIPT a read fallback and left the SUITE without one. Going through
+    `resolve_ledger` means the demonstration reads the archived copy after a
+    close for the same reason and by the same rule the instrument does, rather
+    than being a second, more fragile opinion about where the ledger lives.
+    """
+    return D.load(ledger_path())
 
 
 def test_the_real_ledger_loads_and_is_not_empty(rows):
@@ -209,5 +224,5 @@ def test_the_real_ledger_has_no_duplicate_keys(rows):
     clean; asserted explicitly so the reason is on the record rather than
     implicit in a fixture that happens to load.
     """
-    assert D.duplicate_keys(LEDGER.read_text()) == []
+    assert D.duplicate_keys(ledger_path().read_text()) == []
     assert len(rows) > 200

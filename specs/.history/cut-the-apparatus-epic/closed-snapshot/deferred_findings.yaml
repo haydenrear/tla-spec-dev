@@ -18927,3 +18927,433 @@ findings:
       Corrected in PR #272's body with the count and the five names. NOT DONE: no
       sweep of #272's other unverified figures; only the claims this ticket's own
       edit touched were checked.
+  - id: CA-10-DF-08
+    found_by: CA-10 post-close pass, applying CA-10-DF-06's own suggested_fix and then RUNNING it
+    found_at_commit: 7d99969
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [tests/test_disposition_requirement.py]
+    channel: the-suite
+    cost:
+      basis: one targeted run of the repaired module
+      value: the difference between `15 passed` and `1 failed, 14 passed`
+    summary: >-
+      `CA-10-DF-06`'S SUGGESTED FIX WAS WRITTEN FROM READING AND IS INCOMPLETE.
+      The row says the repair is one line in the `rows` fixture --
+      `D.load(D.resolve_ledger(LEDGER, explicit=False))`. Applying exactly that
+      clears 7 of the 8 errors and leaves the eighth,
+      `test_the_real_ledger_has_no_duplicate_keys`, RED rather than ERRORED: that
+      test takes `rows` AND separately calls `LEDGER.read_text()` on its own line,
+      a second bypass of the same fallback that the finding never mentions. The
+      row counted the affected tests correctly and located the cause incompletely
+      -- the module has TWO live-path reads, not one.
+    reproduction: >-
+      Apply only the fixture line to the closed tree, then
+      `uv run --with pytest --with pyyaml -m pytest tests/test_disposition_requirement.py -q`
+      -- `1 failed, 14 passed`, FileNotFoundError at the `LEDGER.read_text()` call.
+    evidence:
+      - "tests/test_disposition_requirement.py -- the `rows` fixture and the duplicate-key assertion, two reads of the same constant"
+      - "CA-10-DF-06 suggested_fix -- names the fixture only"
+    why_out_of_scope: >-
+      In scope and REPAIRED. Both reads now go through one `ledger_path()` helper,
+      so the module has a single address rather than two, and a future close
+      cannot split them again.
+    suggested_fix: >-
+      Done. The transferable point is the programme's own rule: a `suggested_fix`
+      that was never executed is a prediction, and this one was wrong in the way
+      predictions are wrong -- it was right about the symptom and short about the
+      cause.
+    blast_radius: >-
+      One test module. The general case -- a deferred repair whose cost was
+      estimated by reading and never run -- is the one worth carrying.
+    disposition: repaired
+    disposition_note: >-
+      Repaired and MEASURED: `15 passed` on the closed tree, and all 8 fixture
+      tests green in the full run. This discharges CA-10-DF-06 for the
+      `test_disposition_requirement.py` half ONLY. Its `test_ticket_retirement.py`
+      half is untouched and remains the owner's question.
+  - id: CA-10-DF-09
+    found_by: CA-10 post-close pass, reading WHICH file disposition.py said it read instead of trusting its exit code
+    found_at_commit: 7d99969
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: [scripts/disposition.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: operator-running-a-shipped-instrument
+    cost:
+      basis: one run of the shipped instrument, reading its stderr
+      value: seconds; the claim it refutes was published in the close summary, the entry manifest and a commit message
+    summary: >-
+      THE ARCHIVE THE CLOSE NAMES IS NOT THE ARCHIVE THE SCRIPT READS. `CA-09`
+      archives the ledger to `closed-snapshot/deferred_findings.yaml`, records that
+      address in the entry manifest under `findings_ledger`, and the generated
+      `summary.md` says "disposition.py reads it from there". It does not. With no
+      `--ledger`, `resolve_ledger` -> `archived_ledgers` sorts candidates by
+      `(st_mtime, st_size, str(path))`; the two archived copies are byte-identical
+      with identical mtime and size, so the STRING tie-break decides, and
+      `closed-snapshot/snapshots/desired_program_model/deferred_findings.yaml`
+      sorts after `closed-snapshot/deferred_findings.yaml` because `s` follows `d`.
+      The script therefore answers from the incidental copy carried inside the
+      model snapshot, not from the named artifact `CA-09` built. The answer is
+      correct today ONLY because the two files are byte-identical, and nothing
+      keeps them so.
+    reproduction: >-
+      `python3 scripts/disposition.py --epic cut-the-apparatus` on the closed tree;
+      the NOTE on stderr names the `snapshots/desired_program_model/` path rather
+      than the manifest's `findings_ledger` path. `shasum -a 256` on both gives
+      f60f1bf742ca8f11...; both are 1067730 bytes with the same mtime.
+    evidence:
+      - "scripts/disposition.py -- archived_ledgers sorts by (st_mtime, st_size, str(p))"
+      - "specs/.history/cut-the-apparatus-epic/closed-snapshot/manifest.json -- findings_ledger.snapshot"
+      - "specs/.history/cut-the-apparatus-epic/closed-snapshot/summary.md -- 'disposition.py reads it from there'"
+    why_out_of_scope: >-
+      OUT. Changing the resolution order of a shipped instrument at merge time is
+      not this pass's mandate, and a wrong resolution order that returns the right
+      answer is not yet a wrong answer.
+    suggested_fix: >-
+      Prefer the address the entry manifest records under `findings_ledger` when a
+      `closed-snapshot/manifest.json` is present, and fall back to the globs only
+      when it is not. That makes the recorded address the read address instead of
+      two independent guesses that agree by luck.
+    blast_radius: >-
+      Every default read of a closed epic's ledger. The `summary.md` instruction
+      passes `--ledger` explicitly and is correct; it is the default path that
+      drifts, which is the path every casual reader takes.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED unrepaired and measured rather than predicted. Note that appending
+      this row to the named artifact makes the two copies diverge for the first
+      time, which is what makes the tie-break observable rather than theoretical.
+  - id: CA-10-DF-10
+    found_by: CA-10 post-close pass, needing somewhere to file these rows
+    found_at_commit: 7d99969
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: [scripts/disposition.py, scripts/close_tickets.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: operator-doing-the-work
+    cost:
+      basis: the act of filing this row
+      value: the ledger's freeze guarantee, spent by the first task performed after the close
+    summary: >-
+      THE CLOSE LEFT NO LIVE LEDGER, SO POST-CLOSE FINDINGS CAN ONLY BE WRITTEN
+      INTO A FILE THE INSTRUMENT DOCUMENTS AS FROZEN. `resolve_ledger`'s docstring
+      says "an archived ledger is frozen at that close, so a verdict from one is a
+      verdict about a closed epic, never about work done since". These rows ARE
+      work done since, and they are inside it. The guarantee was falsified by the
+      very next task rather than by some distant future one. `CA-09` answered
+      where a reader reads after a close and left unanswered where a WRITER
+      writes, and the ledger is cumulative and cross-epic -- it lived inside
+      `desired_program_model/` by accident of scaffolding, not because it belongs
+      to one workflow.
+    reproduction: >-
+      `ls specs/` on the closed tree: no `current/`, no `desired_program_model/`,
+      and no `deferred_findings.yaml` anywhere outside `specs/.history/`.
+    evidence:
+      - "scripts/disposition.py resolve_ledger docstring -- the freeze claim"
+      - "this row's own location, inside the file that claim is about"
+    why_out_of_scope: >-
+      OUT. Where a closed repository's ledger lives is a decision for the owner and
+      the successor epic, not a merge-time edit by the pass that noticed it.
+    suggested_fix: >-
+      Either give the cumulative ledger an address that survives close, or state
+      plainly that a closed repository has no writable ledger and route post-close
+      findings to issues. What must not stand is an instrument claiming a freeze
+      the workflow gives writers no way to honour.
+    blast_radius: >-
+      Every finding filed after any close, in any repository using this workflow.
+      This is the first close this repository has performed, so this is the first
+      time anyone has had to answer it.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED and DISCLOSED rather than worked around. These rows are appended to
+      `specs/.history/cut-the-apparatus-epic/closed-snapshot/deferred_findings.yaml`,
+      the address the entry manifest records under `findings_ledger`, and that file
+      is consequently no longer byte-identical to the model-snapshot copy beside it
+      (CA-10-DF-09). Said out loud rather than left for a reader to discover.
+  - id: CA-10-DF-11
+    found_by: CA-10 post-close pass, running the full suite on the genuinely closed tree and attributing every new red
+    found_at_commit: 7d99969
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: [examples/validation/scorecards/score_tools.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [tests/test_score_tools.py]
+    channel: the-suite
+    cost:
+      basis: one full suite run on the closed tree plus one in-process attribution probe
+      value: 4 new reds and 14 false violations, none of them predicted by the close's own cost assessment
+    summary: >-
+      THE SCORECARD AUDIT FAILS INTO CONFIDENT WRONGNESS WHEN THE LEDGER IS GONE.
+      `score_tools._finding_ids()` hard-codes
+      `specs/desired_program_model/deferred_findings.yaml` and, when it is absent,
+      RETURNS AN EMPTY SET rather than refusing. R-H3 then reports every `filed_as`
+      citation in the entire scorecard record as naming an id that is not in the
+      ledger. Measured on this tree: with the live ledger absent the audit reports
+      14 violations and exits 1; with `_finding_ids` resolved to the archived
+      ledger (278 ids) and NOTHING else changed, it reports 0 violations and exits
+      0. That accounts for four of the six new post-close reds --
+      `test_a_refuted_finding_stays_on_the_record_with_its_filing`,
+      `test_the_shipped_rh5_demonstration_still_goes_red`,
+      `test_the_repo_ledger_passes_its_own_audit` and `..._with_rh6`. `CA-09` gave
+      `scripts/disposition.py` a read fallback and this second reader of the same
+      file at the same address has none. The close's own cost assessment
+      (`CA-10-DF-06`) named three consequences and missed this one, because it
+      searched `tests/` and `scripts/` and the second reader is in
+      `examples/validation/`.
+    reproduction: >-
+      `specs/results/scorecards/cut-the-apparatus/CA-10-post-close/probe_score_tools.py`
+      -- imports score_tools against this tree, runs `audit` twice, swapping only
+      `_finding_ids`. Output in `score-tools-attribution-probe.txt`: 0 ids -> 14
+      violations, exit 1; 278 ids -> 0 violations, exit 0.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py -- _finding_ids, `if not path.exists(): return set()`"
+      - "specs/results/scorecards/cut-the-apparatus/CA-10-post-close/score-tools-attribution-probe.txt"
+      - "specs/results/scorecards/cut-the-apparatus/CA-10-post-close/pytest-repo-unit-postclose.txt"
+    why_out_of_scope: >-
+      OUT, TWICE OVER. These are reds this pass did not cause, and the epic rule is
+      not to repair those; and repairing them would have changed the suite figure
+      the owner merges on, after that figure was taken.
+    suggested_fix: >-
+      Resolve the ledger the way `scripts/disposition.py` does, and REFUSE rather
+      than return an empty set if no copy is found. An audit that cannot find its
+      authority must say so; silently treating every citation as fabricated is the
+      worst available behaviour, because it is indistinguishable from a real result.
+    blast_radius: >-
+      Every scorecard audit run in a repository whose workflow has been closed --
+      which, after this merge, is this one. The verdict is not merely unavailable;
+      it is wrong and confident.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED unrepaired, with the cause established by measurement rather than by
+      reading, and with the exact repair stated. Deliberately left red so the
+      figure in PR #272 is the figure that was measured.
+  - id: CA-10-DF-12
+    found_by: CA-10 post-close pass, listing the 22 skips and reading their reasons
+    found_at_commit: 7d99969
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [tests/test_workflow_close_keeps_the_ledger.py]
+    channel: the-suite
+    cost:
+      basis: one `-rs` run over the files carrying skip guards
+      value: 4 tests, and they are the ones that certify the close
+    summary: >-
+      `CA-09`'S OWN PROOF THAT THE CLOSE PRESERVES THE LEDGER SKIPS ITSELF OUT ON A
+      CLOSED REPOSITORY. All four tests in
+      `tests/test_workflow_close_keeps_the_ledger.py` skip with "no open workflow
+      to close: specs/desired_program_model/deferred_findings.yaml or
+      specs/.history/cut-the-apparatus-epic is absent (the epic these tests use as
+      their subject has itself been closed)". The guard is honest about its reason
+      and the effect is still that the guarantee stops being checked at exactly the
+      moment it becomes load-bearing. Before the close the tests ran and the close
+      had not happened; after the close the close has happened and the tests do not
+      run. There is no state in which this suite executes its own close-preservation
+      guarantee against a performed close.
+    reproduction: >-
+      `uv run --with pytest --with pyyaml -m pytest tests/test_workflow_close_keeps_the_ledger.py -q -rs`
+      on the closed tree -- 4 skipped, reason as quoted.
+    evidence:
+      - "tests/test_workflow_close_keeps_the_ledger.py:92 -- the skip guard"
+      - "specs/results/scorecards/cut-the-apparatus/CA-10-post-close/skip-reasons.txt"
+    why_out_of_scope: >-
+      OUT. Making these tests run against an ALREADY-closed workflow means giving
+      them a synthetic subject or pointing them at the archive, which is a design
+      decision about what they are for, not a repair.
+    suggested_fix: >-
+      Build the subject rather than requiring a live one: scaffold a throwaway
+      workflow in `tmp_path`, close it, and assert the ledger survived. That is
+      what the tests actually claim, and it holds in every repository state instead
+      of only in the one that no longer exists after the thing being tested happens.
+    blast_radius: >-
+      The guarantee `CA-09` shipped is unverified on any closed repository,
+      including this one at merge.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED. Counted in the 22 skips in the post-close figure and named there
+      rather than folded into the total.
+  - id: CA-10-DF-13
+    found_by: CA-10 post-close pass, reading the traceback of a red it expected to find unchanged
+    found_at_commit: 7d99969
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [tests/test_goal_baseline_is_a_card.py]
+    channel: the-suite
+    cost:
+      basis: reading one traceback instead of one test name
+      value: a declared standing red that is no longer demonstrating what it is counted for
+    summary: >-
+      A SECOND SAME-NAME-DIFFERENT-CAUSE RED, AND THIS ONE WAS NOT PREDICTED.
+      `CA-10-DF-06` predicted that
+      `test_repository_canonical_delivered_plan_has_matching_close_receipts` would
+      return red with a different cause, and it did (`missing ticket plan`). It
+      missed that the SAME thing happened to
+      `test_goal_baseline_is_a_card::test_a_real_epic_plans_judged_baseline_cannot_be_re_opened`,
+      which PR #272 counts as the standing epic-kickoff red `CA-00-DF-02`. That
+      test demonstrates that a judged baseline cites a directory holding zero
+      cards. Post-close it never reaches the assertion: it dies at
+      `LIVE_PLAN.read_text()` with FileNotFoundError on the removed
+      `specs/desired_program_model/ticket_plan.yaml`. The name is still red, the
+      count is unchanged, AND THE DEMONSTRATION IS GONE. A red counted as evidence
+      for a claim it is no longer evaluating is worse than a red that flips, because
+      the summary line looks identical.
+    reproduction: >-
+      `uv run --with pytest --with pyyaml -m pytest "tests/test_goal_baseline_is_a_card.py::test_a_real_epic_plans_judged_baseline_cannot_be_re_opened" -q`
+      on the closed tree -- FileNotFoundError, not the docstring's assertion.
+    evidence:
+      - "tests/test_goal_baseline_is_a_card.py:75 -- LIVE_PLAN, and :198 where it is read"
+      - "specs/results/scorecards/cut-the-apparatus/CA-10-post-close/pytest-repo-unit-postclose.txt"
+    why_out_of_scope: >-
+      OUT. This is a declared baseline red and the rule is not to touch those; and
+      choosing whether the demonstration should read the archived plan is the same
+      owner question CA-10-DF-06 raised for the retirement test.
+    suggested_fix: >-
+      Whatever is decided for the retirement test, decide the same way here, and
+      make the red assert its own cause so that a red for the WRONG reason cannot
+      keep being counted as the declared one. The docstring already says "if this
+      ever goes green, the baseline was edited after the fact"; it needs the other
+      half -- if this ever goes red for a different reason, it is no longer the
+      demonstration.
+    blast_radius: >-
+      One declared red in a published goal table. The class -- a named red counted
+      as evidence after its cause silently changed -- is what this epic has been
+      about from the start.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED unrepaired and DISCLOSED in PR #272's post-close accounting, where
+      the red is now reported with its actual cause rather than under its declared
+      one.
+  - id: CA-10-DF-14
+    found_by: CA-10 post-close pass, asking which of the 1458 passes still assert anything
+    found_at_commit: 7d99969
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [tests/test_analyze_complexity.py]
+    channel: the-suite
+    cost:
+      basis: one grep over the guards in one test module
+      value: 3 green results that assert nothing and say nothing about it
+    summary: >-
+      THREE PASSES ARE NOT PASSES, AND UNLIKE A SKIP THEY ARE INVISIBLE.
+      `tests/test_analyze_complexity.py` guards its repository-model tests with a
+      bare `if not tla.is_file(): return`. With `specs/current/` removed by the
+      close, `test_repository_own_model_reproduces_the_recorded_state_space_bound`,
+      `test_cm01df02_the_repository_own_cfg_is_unchanged_by_the_fix` and
+      `test_repository_own_model_has_landed_the_setup_phase_collapse` all return
+      immediately and are counted among the 1458 passes while executing no
+      assertion. The 22 skips in the same run announce themselves in the summary
+      line; these do not. The repository has a working idiom for this -- the four
+      files that skip say why -- and this module uses `return` instead.
+    reproduction: >-
+      `grep -n -A1 "is_file():" tests/test_analyze_complexity.py` -- the guards at
+      the three `specs/current` sites; each is followed by a bare `return`.
+    evidence:
+      - "tests/test_analyze_complexity.py -- the three specs/current guards"
+      - "tests/test_spec_manifest_records.py:52 -- the same situation handled with pytest.skip and a reason"
+    why_out_of_scope: >-
+      OUT of a pass whose mandate is the figure, and it is three characters from
+      being in scope. Filed rather than changed because editing test outcomes after
+      taking the figure is exactly what CA-10 refused to do.
+    suggested_fix: >-
+      `pytest.skip("specs/current is absent -- no spec workflow is open")`, the
+      wording the rest of the suite already uses. Then the post-close figure would
+      have read 25 skipped and 1455 passed, and the three would have been visible
+      without anyone grepping for them.
+    blast_radius: >-
+      Three tests in one module. The number that matters is that a suite total can
+      hide vacuous greens, which is a property of every figure this programme has
+      published.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED and counted: named in the post-close accounting so the 1458 is read
+      as 1455 plus three that assert nothing.
+  - id: CA-10-DF-15
+    found_by: CA-10 post-close pass, as a by-product of the score_tools attribution probe
+    found_at_commit: 7d99969
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [tests/test_score_tools.py]
+    channel: the-suite
+    cost:
+      basis: the second half of a probe run for another purpose
+      value: two docstrings asserting a refusal the instrument does not make
+    summary: >-
+      TWO TESTS DECLARE THEMSELVES DELIBERATELY RED AND WERE GREEN. Both
+      `test_the_repo_ledger_passes_its_own_audit` and
+      `..._with_rh6` carry docstrings reading "**DELIBERATELY RED (`RM-06`, group
+      2). DO NOT MAKE IT GREEN HERE**" and describe one standing R-H1 violation
+      about a `[[demonstration]]` row. With the ledger resolvable the audit reports
+      ZERO violations and exits 0, and `CA-08`'s own sealed red list does not
+      contain either test. The declaration is stale: the violation it describes was
+      settled and the docstrings were not. A future reader repairing "the standing
+      R-H1 violation" would be chasing something that no longer exists, and a
+      future reader seeing these tests red would credit the wrong cause -- which is
+      precisely what happened in this run, where they are red for CA-10-DF-11.
+    reproduction: >-
+      `specs/results/scorecards/cut-the-apparatus/CA-10-post-close/probe_score_tools.py`,
+      case B -- 0 violations, exit 0. `grep -E "^FAILED"
+      specs/results/scorecards/cut-the-apparatus/CA-08/goal/pytest-repo-unit.txt`
+      -- neither test appears among CA-08's eight reds.
+    evidence:
+      - "tests/test_score_tools.py -- the two DELIBERATELY RED docstrings"
+      - "specs/results/scorecards/cut-the-apparatus/CA-08/goal/pytest-repo-unit.txt"
+      - "specs/results/scorecards/cut-the-apparatus/CA-10-post-close/score-tools-attribution-probe.txt"
+    why_out_of_scope: >-
+      OUT. Correcting a docstring that describes a deliberate red is a statement
+      about the record, and the record belongs to RM-06 and the owner, not to a
+      pass measuring a suite.
+    suggested_fix: >-
+      Either delete the stale paragraph or say when the R-H1 violation was settled
+      and by what. The repository already knows how to do this -- CA-10-DF-07 is
+      the same class of stale claim, corrected rather than left standing.
+    blast_radius: >-
+      Two docstrings. The class -- a declaration of deliberate redness that outlives
+      the red -- makes every "declared red" count in this programme slightly less
+      trustworthy than it reads.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED. Found while attributing another finding, which is the channel this
+      epic has produced most from.
