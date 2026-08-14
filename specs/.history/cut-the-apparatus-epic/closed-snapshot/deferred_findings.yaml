@@ -19357,3 +19357,53 @@ findings:
     disposition_note: >-
       CARRIED. Found while attributing another finding, which is the channel this
       epic has produced most from.
+  - id: CA-10-DF-16
+    found_by: CA-10 post-close pass, sweeping for every other hard-coded reference to the removed live paths
+    found_at_commit: 7d99969
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [tests/test_card_has_one_home.py]
+    channel: the-suite
+    cost:
+      basis: one grep, as part of the sweep that found CA-10-DF-11
+      value: a scope exemption that can no longer match anything
+    summary: >-
+      A SCOPE EXEMPTION THAT NOW EXEMPTS NOTHING, AND NOTHING SAYS SO.
+      `tests/test_card_has_one_home.py` carries
+      `specs/desired_program_model/deferred_findings.yaml` as a key in its
+      `OUT_OF_SCOPE` map, with the reason "findings quote the text they are
+      findings about". The path cannot occur after the close, so the entry is
+      dead: the ledger it exempts now sits under `specs/.history/`, which a
+      DIFFERENT key already exempts. Inert today, and it is the wrong kind of
+      inert -- if a live ledger is ever restored at a different address
+      (CA-10-DF-10 is the decision that would do it), the exemption silently
+      fails to apply and the card checker starts reporting findings for quoting
+      the text they are about. The check is unchanged and the record it reads
+      moved out from under it.
+    reproduction: >-
+      `grep -n "desired_program_model" tests/test_card_has_one_home.py` -> the
+      OUT_OF_SCOPE key; `ls specs/desired_program_model` -> absent.
+    evidence:
+      - "tests/test_card_has_one_home.py -- OUT_OF_SCOPE, and the single `rel.startswith(k)` that consumes it"
+      - "the same file's `specs/.history/` key, which is what actually exempts the ledger now"
+    why_out_of_scope: >-
+      OUT. Not the same class as the repair this pass made -- that one changed a
+      read that had gone wrong, and this one is a declaration that has gone inert.
+      Editing a scope declaration is a statement about what the check is for.
+    suggested_fix: >-
+      Decide it with CA-10-DF-10 rather than before it: whatever address the
+      cumulative ledger ends up at is the address this key should name. If the
+      answer is "there is no live ledger", delete the key and say that the
+      `specs/.history/` key covers it.
+    blast_radius: >-
+      Nothing today. One check, in the state where a ledger comes back.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED, and reported as INERT rather than as a defect -- it changes no
+      count in the post-close figure and is not offered as one.
