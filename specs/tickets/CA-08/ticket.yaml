@@ -1,0 +1,143 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CA-08",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-08/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-08/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-08/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "All four goals decided CLAUSE BY CLAUSE, with the multi-clause targets never collapsed to one word.",
+        "scripts/ and examples/validation/ reported separately and the card reported separately; never combined.",
+        "The price table audited against the actual diff, with any deletion lacking a finding named.",
+        "Each of the four standing results verified BY NAME against its sealed evidence.",
+        "What the judges received is stated exactly, whether or not CA-01''s path exists.",
+        "Findings by channel with the token basis NAMED, and whether tickets recorded their own.",
+        "scope run at the epic base and the epic tip, each row naming its tree.",
+        "Predictions sealed BEFORE measuring, in a commit, with the time stated.",
+        "If every prediction passes, an ALARM is reported.",
+        "Findings FILED and NONE fixed.",
+        "NEXT-EPIC.md amended top-down with the next starter."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "specs/results/scorecards/cut-the-apparatus/",
+        "NEXT-EPIC.md",
+        "CUT-THE-APPARATUS-EPIC.md"
+      ]
+    },
+    "depends_on": [
+      "CA-01",
+      "CA-02",
+      "CA-03",
+      "CA-04",
+      "CA-05",
+      "CA-06",
+      "CA-07"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/262",
+    "goals": [
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioural delta",
+        "goal": "GOAL-apparatus-cut",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioural delta",
+        "goal": "GOAL-consumption-obligatory",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioural delta",
+        "goal": "GOAL-blind-dispatch",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioural delta",
+        "goal": "GOAL-four-results-stand",
+        "local_signal": "N/A: this ticket is the measurement"
+      }
+    ],
+    "id": "CA-08",
+    "implementation_scope": [
+      "specs/results/scorecards/cut-the-apparatus/",
+      "NEXT-EPIC.md",
+      "CUT-THE-APPARATUS-EPIC.md"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "THE EPIC'S PRODUCT AND A MEASUREMENT. DECIDE ALL FOUR GOALS, CLAUSE BY CLAUSE, AND SAY PLAINLY WHAT IS NOT TRUE. GOAL-apparatus-cut: report scripts/ and examples/validation/ SEPARATELY against 27,652 and 15,901, the card separately at 6,281, and NEVER AS ONE NUMBER -- and check clause (b) hardest, because a cut with no finding behind it fails the goal EVEN IF THE LINES FELL. Audit the price table against the actual diff: RM-03-DF-03 says a card removal cannot delete prose or code, so verify the epic did not come out net-additive by construction the way three previous 'simplifications' did. GOAL-consumption-obligatory: exercise the disposition requirement against this epic's own findings and REPORT WHETHER IT REFUSED ANYTHING REAL; state the true harvest denominator; and if the requirement does not work, SAY SO AND PUT THE HONEST RENAMING ON THE TABLE. GOAL-blind-dispatch: this is the goal that governs your own method -- RUN YOUR JUDGED WORK THROUGH CA-01'S PATH IF IT EXISTS, AND STATE EXACTLY WHAT YOUR JUDGES RECEIVED EITHER WAY. If the path does not exist, say what the round carried, the way SV-01-DF-01 did. GOAL-four-results-stand: verify EACH of the four by name against its sealed evidence and the instrument at the tip; a silently broken result is the worst outcome available. ALSO REPORT: the served surface with --digest-only per version; FINDINGS BY CHANNEL with the per-token ratio AND THE TOKEN BASIS NAMED, saying whether the tickets recorded their own, because three consecutive epics have failed to; findings touching the SHIPPED TOOLCHAIN separately under both CL-04's narrow rule and its own caveat; whether the consumption rate moved and against what denominator; and scope over the record at the epic base and the epic tip, since last epic's own eight cards refuted four claims that previously held including one in the shipped card file. SEAL YOUR PREDICTIONS BEFORE MEASURING, IN A COMMIT, WITH A TIMESTAMP -- one evaluation declared an ALARM against itself for sealing after. IF EVERY PREDICTION PASSES, REPORT IT AS AN ALARM. FILE FINDINGS, FIX NOTHING. Then write the next epic's starter: amend NEXT-EPIC.md top-down, newest first, and say what the next owner must not repeat. A LOW OR UNFLATTERING RESULT IS THE PREFERRED OUTCOME; AN EPIC THAT CLOSES WITH ONLY GOOD NEWS ABOUT ITSELF HAS NOT BEEN MEASURED.",
+    "owns_goals": [
+      "GOAL-apparatus-cut",
+      "GOAL-consumption-obligatory",
+      "GOAL-blind-dispatch",
+      "GOAL-four-results-stand"
+    ],
+    "promotion_order": 80,
+    "promotion_predecessor": "CA-07",
+    "role": "evaluation",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "EVALUATION: did the ratio change, is consumption obligatory, was the round blind, and do the four results still stand?",
+    "wave": 5
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-08/specs/tickets/CA-08",
+  "ticket_id": "CA-08",
+  "ticket_index": 7,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-08/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-08/specs/tickets"
+}

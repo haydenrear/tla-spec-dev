@@ -17704,3 +17704,563 @@ findings:
       its collection count recorded beside it, and the false "+4 unblocked
       elsewhere" attribution is withdrawn rather than reworded. The structural
       suggestion above is left for CA-08 and is not a gate.
+  - id: CA-08-DF-01
+    found_by: CA-08, by running the instrument the charter says would have caught the error
+    found_at_commit: ea624b9723cb10d1864da67400e52dd032c6ed49
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [CUT-THE-APPARATUS-EPIC.md, specs/desired_program_model/ticket_plan.yaml]
+    channel: operator-running-a-shipped-instrument
+    cost:
+      basis: five `score_tools.py scope --path` invocations plus two full `scope` runs, one per tree
+      value: under two minutes, and it refutes a sentence eight tickets were governed by
+    summary: >-
+      THE CHARTER'S CORRECTION BLOCK ASSERTS AN INSTRUMENT CAPABILITY THE
+      INSTRUMENT DOES NOT HAVE, INSIDE THE PARAGRAPH WRITTEN TO CORRECT EXACTLY
+      THAT CLASS OF ERROR. `CUT-THE-APPARATUS-EPIC.md` section 2, in the
+      `CA-00-DF-05` block, says **"`R3`/`scope` would have caught this and nobody
+      ran it against this charter."** CA-08 ran it. Each row names its tree, all
+      at `ea624b9`:
+
+        scope --path CUT-THE-APPARATUS-EPIC.md                     0 counted figures
+        scope --path specs/desired_program_model/ticket_plan.yaml  0 counted figures
+        scope --path .../GOAL-four-results-stand/baseline.md       0 counted figures
+        scope --path .../cut-the-apparatus/CA-02/PRICE-TABLE.md    0 counted figures
+
+      THE CLAIM IS FALSE. `scope` recognises counted figures in one sentence
+      form -- `D<n> = <v> on <n> of <m>` and near variants -- and the assertion
+      it was supposed to have caught (*"0 of 9 over the sealed table"*) is not
+      in that form. It could not have caught `CA-00-DF-05` and it cannot read
+      any document this project uses to direct work.
+
+      AND THE EPIC-SCALE MEASUREMENT AGREES. `scope` over the whole record
+      returns 102 counted figures / 80 REFUTED / 0 COUNT-MOVED / 2 HOLDS / 20
+      UNREACHABLE over 37 files, BYTE-FOR-BYTE IDENTICAL at the epic base
+      `08d1d6a` and the epic tip `ea624b9`, with the 16 differing rows differing
+      only in line offset. ZERO of the 102 come from any `cut-the-apparatus`
+      document, against +17,817 lines of scorecard prose and a 239-line charter
+      the epic added. `CA-03` measured that `scope` reached none of ITS prose;
+      this replicates it at the epic scale and shows the bound is the sentence
+      form, not the corpus.
+    reproduction: >-
+      At `ea624b9`: `python3 examples/validation/scorecards/score_tools.py scope
+      --path CUT-THE-APPARATUS-EPIC.md` -> `0 counted figure(s)`. Then
+      `score_tools.py scope --format json` at `ea624b9` and at a detached
+      worktree of `08d1d6a`; both emit 102 rows over the same 37 `file` values
+      with the same verdict distribution.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/CA-08/goal/scope-base.json -- 08d1d6a, 102 rows"
+      - "specs/results/scorecards/cut-the-apparatus/CA-08/goal/scope-tip.json -- ea624b9, 102 rows, identical verdicts"
+      - "specs/results/scorecards/cut-the-apparatus/CA-08/RESULT.md section 8"
+      - "CUT-THE-APPARATUS-EPIC.md:65-66 -- the sentence refuted"
+    why_out_of_scope: >-
+      CA-08 is chartered FILE FINDINGS, FIX NOTHING, and the repair is a change
+      to `scope`'s recogniser -- new code in an epic whose subject is cutting
+      code, decided by nobody. The charter sentence is the epic owner's to
+      correct.
+    suggested_fix: >-
+      Two separable things, and only the first is cheap. (1) CORRECT THE
+      SENTENCE: `scope` would NOT have caught `CA-00-DF-05`, and saying it would
+      have is the same class the block exists to correct. (2) THE DURABLE HALF:
+      `R3` says a claim carries its scope, and the only instrument enforcing it
+      reads one sentence form in the sealed card record. Every counted figure
+      that has ever hurt this project -- "0 of 9", "1 of 38", "four rounds' claims",
+      "8 failed, 1490 passed", "seven epics, zero bugs" -- is invisible to it.
+      A recogniser for `<n> of <m>` in any prose, reporting UNREACHABLE by
+      default rather than HOLDS, is the next epic's candidate. NOT A GATE.
+    blast_radius: >-
+      Every future correction that cites `scope` or `R3` as the remedy for a
+      restated scoped result -- which is `CA-00-DF-05`'s own `suggested_fix`,
+      `CA-03-DF-05`'s, and this ticket's section 9 class one. The remedy named
+      five times in this epic does not exist in runnable form.
+    disposition: carried
+    disposition_ticket: "NEXT-EPIC.md section 0-AAAAAAAAAA -- named as the successor epic's first candidate; NOT self-routed to CA-08"
+    disposition_note: >-
+      CARRIED, and deliberately NOT routed to this ticket. `CA-05-DF-03` face
+      (a) records that self-routing satisfies D3 with full marks and means
+      nothing; CA-08 is the last ticket in this epic and routing to itself would
+      be the emptiest possible instance. The successor is named in
+      `NEXT-EPIC.md` with the measurement attached.
+  - id: CA-08-DF-02
+    found_by: CA-08, by reading the register the published rate is computed from
+    found_at_commit: ea624b9723cb10d1864da67400e52dd032c6ed49
+    schedule_revision: 1
+    severity: moderate
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md]
+    channel: operator-doing-the-work
+    cost:
+      basis: one read of the register against the two documents that publish its rate
+      value: minutes, and it is the same class as `CA-07-DF-08` pointing the other way
+    summary: >-
+      THE HARVEST REGISTER AND THE DOCUMENTS THAT PUBLISH ITS RATE DISAGREE AT
+      THIS TIP. `HARVEST-CL-03.md:357-361` and `CA-05/harvest-recount.md:51`
+      state **"1 of 41"** and **"no second class has been consumed since"**;
+      `HARVEST-CL-03.md:387` says **"One class in 41 has been consumed"** with
+      `F3` listed as COMMITTED. `SELF-IMPROVEMENT.md:1689` and
+      `references/consumption.md:236` state **"2 of 41 (4.9%)"**, `A1` by
+      `SV-04` and `F3` by `CA-03`, verified by hand by `CA-05`.
+
+      2 OF 41 IS CORRECT. The register was written before `CA-03`'s consumption
+      was recognised and was never restated. So the authoritative source
+      publishes the stale figure and the derived documents publish the live one,
+      which is the inversion that makes it worth a row: a reader who does the
+      right thing and goes to the register gets the wrong number.
+
+      `CA-07-DF-08` was filed for a rate mismatched to its register in one
+      direction, and was settled. THIS IS THE SAME CLASS IN THE OTHER DIRECTION
+      AND IT IS LIVE. Two revisions of one record, quoted against each other.
+    reproduction: >-
+      At `ea624b9`: `grep -n "of 41" specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md`
+      against `grep -n "of 41" specs/results/scorecards/SELF-IMPROVEMENT.md`.
+    evidence:
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md:357-361 -- `1 of 41`"
+      - "specs/results/scorecards/SELF-IMPROVEMENT.md:1689 -- `2 of 41 (4.9%)`"
+      - "references/consumption.md:228-246 -- both moves named per denominator_rule"
+    why_out_of_scope: >-
+      CA-08 files findings and fixes nothing, and `HARVEST-CL-03.md` is a sealed
+      close-the-loop result carrying an appended addendum; restating it is the
+      register owner's move, not the evaluator's.
+    suggested_fix: >-
+      Restate the addendum's two sentences to `2 of 41`, keeping the `1 of 41`
+      line visible as what it said, in the correction-block shape this epic used
+      four times. AND STATE THE FLOOR IN THE SAME BREATH: 41 is `CA-05-DF-04`'s
+      floor over 83 swept cards against 95 on disk, not a count.
+    blast_radius: >-
+      `GOAL-consumption-obligatory` clause (b), and every future quotation of the
+      consumption rate. The rate is this programme's headline self-assessment.
+    disposition: carried
+    disposition_ticket: "NEXT-EPIC.md section 0-AAAAAAAAAA -- carried with CA-05-DF-04's re-sweep, which is the same work"
+    disposition_note: >-
+      CARRIED to the successor epic together with `CA-05-DF-04`, because
+      restating the addendum and re-sweeping the 12 unswept cards are one job and
+      doing the first without the second re-freezes a floor as a count.
+  - id: CA-08-DF-03
+    found_by: CA-08, from the blind arm's own verbatim inventory
+    found_at_commit: ea624b9723cb10d1864da67400e52dd032c6ed49
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/instruments/blind_dispatch.py, references/blind_dispatch.md]
+    channel: operator-running-a-shipped-instrument
+    cost:
+      basis: one `--safe-mode` dispatch into a neutral cell; the finding is in PART 1 of its reply
+      value: zero marginal -- the arm was run for GOAL-blind-dispatch and this fell out of it
+    summary: >-
+      `--safe-mode` PLUS A NEUTRAL CELL STILL DELIVERS THE OPERATOR'S EMAIL
+      ADDRESS, AND `blind_dispatch check` DOES NOT LOOK FOR IT. CA-08's Arm B
+      inventoried a `<system-reminder>` carrying `# userEmail`
+      (`hayden.rear@gmail.com`) and `# currentDate`. The auto-memory, the
+      `gitStatus` block and the five commit subject lines were all absent and the
+      agent said so unprompted; `check` returned PASS on 27 needles across three
+      classes.
+
+      IT IS NOT A CONCLUSION ABOUT ANY SUBJECT, so `GOAL-blind-dispatch` clause
+      (b) is not affected and this row does not claim it is. IT IS A PERSISTENT
+      OPERATOR IDENTIFIER THAT SURVIVES BOTH HALVES OF THE PATH, and the
+      instrument that certifies the path silent about the operator's conclusions
+      has no needle class for the operator's identity.
+
+      SECOND, SMALLER, AND MORE ANNOYING: `blind_dispatch.py cell` REFUSED
+      CA-08's first cell path because this harness's session scratchpad
+      directory is slugged from the repository path, so it contains
+      `-Users-hayde-IdeaProjects-tla-spec-dev`. THE DEFAULT SCRATCH LOCATION
+      THIS HARNESS HANDS EVERY AGENT IS DISQUALIFIED AS A NEUTRAL CELL BY THIS
+      PROJECT'S OWN INSTRUMENT. That is the instrument working, and it is worth
+      writing down before somebody builds a cell there and reports it blind.
+    reproduction: >-
+      `cd /private/tmp/<neutral> && claude --safe-mode -p "$(cat
+      specs/results/scorecards/cut-the-apparatus/CA-01/probes/probe-prompt.txt)"`,
+      then read PART 1 of the reply for `# userEmail`. And
+      `python3 examples/validation/instruments/blind_dispatch.py cell
+      <scratchpad-path>` -> `PROBLEM path component ... names the project under test`.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/CA-08/probes/ARM-B-safemode-cell.txt -- PART 1 block 12"
+      - "specs/results/scorecards/cut-the-apparatus/CA-08/probes/blind-dispatch-check.txt -- PASS, 27 needles"
+    why_out_of_scope: >-
+      Adding a needle class is a change to a shipped instrument, by the ticket
+      that is measuring whether that instrument works. CA-08 fixes nothing.
+    suggested_fix: >-
+      Do NOT add an email needle by pattern-matching one address -- that is a
+      hand-written list of expected answers and the module's own comment refuses
+      it as `MF-020`. The honest move is a sentence in
+      `references/blind_dispatch.md` extending the existing scope note: the path
+      removes the operator's CONCLUSIONS; it does not remove the operator's
+      IDENTITY, the date, the `<env>` block or the skill listing.
+    blast_radius: >-
+      Any future round claiming an agent was blind to the operator. It was blind
+      to the operator's conclusions, which is what the goal asked for and is
+      narrower than "blind".
+    disposition: carried
+    disposition_ticket: "NEXT-EPIC.md section 0-AAAAAAAAAA"
+    disposition_note: >-
+      CARRIED as documentation work on `references/blind_dispatch.md`, not as a
+      code change. Filed rather than fixed because CA-08 measured this
+      instrument and may not edit it.
+  - id: CA-08-DF-04
+    found_by: CA-08, by asking what is established about the mechanism rather than the effect
+    found_at_commit: ea624b9723cb10d1864da67400e52dd032c6ed49
+    schedule_revision: 1
+    severity: moderate
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [references/blind_dispatch.md, specs/results/scorecards/cut-the-apparatus/GOAL-blind-dispatch/baseline.md]
+    channel: operator-doing-the-work
+    cost:
+      basis: no run; a reading of what the three prior observations establish
+      value: zero marginal, and it is the one row here that argues against this epic's headline
+    summary: >-
+      THE WHOLE OF `GOAL-blind-dispatch` RESTS ON AN UNDOCUMENTED HARNESS
+      BEHAVIOUR OBSERVED FOUR TIMES AND SPECIFIED ZERO TIMES. `--safe-mode`
+      removes the auto-memory, the SessionStart hook output, the MCP
+      instructions and the project skill listing. That is measured: `CA-01` n=1,
+      its reviewer n=2, `CA-08`'s Arm B n=1. WHETHER IT DOES SO BY DESIGN IS NOT
+      ESTABLISHED, and the goal baseline carries that caveat explicitly.
+
+      THE CAVEAT MUST NOT BE SILENTLY UPGRADED, and this row exists so that the
+      epic's own closing document cannot do it. A behaviour with no documented
+      contract can change in a point release with no notice and no test in this
+      repository would go red -- `blind_dispatch check` would keep returning PASS
+      on transcripts produced by a path that had stopped being blind, because it
+      reads the AGENT'S REPORT, not the harness's configuration. THE INSTRUMENT
+      CANNOT DETECT THE REGRESSION IT EXISTS TO GUARD AGAINST, and that is the
+      same class as section 9's "instruments that certify what they cannot see".
+
+      NOTE THE ASYMMETRY, because it is what keeps this from being alarmism: a
+      round run through this path and CHECKED is evidenced by the check. What is
+      unevidenced is the claim that the path will still work tomorrow.
+    reproduction: >-
+      Search this repository and the harness documentation for any statement
+      that `--safe-mode` disables auto-memory. There is none; the only sources
+      are the three observation transcripts named in the evidence.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/GOAL-blind-dispatch/baseline.md -- the correction box's own caveat"
+      - "specs/results/scorecards/cut-the-apparatus/CA-01/probes/ARM-S1-safemode-repo.txt"
+      - "specs/results/scorecards/cut-the-apparatus/CA-01/probes/ARM-S2-safemode-cell.txt"
+      - "specs/results/scorecards/cut-the-apparatus/CA-08/probes/ARM-B-safemode-cell.txt"
+    why_out_of_scope: >-
+      There is nothing in this repository to repair. The remedy is either a
+      documented contract from outside this project or a per-round re-check, and
+      choosing between them is the next epic owner's call.
+    suggested_fix: >-
+      RE-RUN THE PROBE AT THE START OF EVERY JUDGED ROUND and store the transcript
+      beside the round's cards, so blindness is EVIDENCED PER ROUND rather than
+      INHERITED FROM CA-01. That costs one dispatch, it is the R1 discipline
+      applied to a harness property instead of an instrument, and it is what
+      `check` was built to consume. Do not write a test that asserts the
+      harness's behaviour: it would pass until the day it mattered.
+    blast_radius: >-
+      Every judged round this programme runs after this epic. `GOAL-blind-dispatch`
+      is met at this tip and is not met in perpetuity, and nothing currently
+      distinguishes the two.
+    disposition: carried
+    disposition_ticket: "NEXT-EPIC.md section 0-AAAAAAAAAA -- per-round re-probe named as a standing practice"
+    disposition_note: >-
+      CARRIED as a standing practice for the successor epic rather than as a
+      repair, because there is no defect in this tree to repair. Recorded loudly
+      because it is the row that most weakens this epic's most flattering result.
+  - id: CA-08-DF-05
+    found_by: CA-08, by serving every card version rather than the current one
+    found_at_commit: ea624b9723cb10d1864da67400e52dd032c6ed49
+    schedule_revision: 1
+    severity: moderate
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/scorecards/score_tools.py, references/eval_scorecard.md]
+    channel: operator-running-a-shipped-instrument
+    cost:
+      basis: six `serve --card-version N` invocations plus two `diff`s, at both trees
+      value: minutes; it was run because the work order asked for the served surface PER VERSION
+    summary: >-
+      `serve --card-version 4` AND `serve --card-version 5` AGAINST THE LIVE
+      RUBRIC EMIT BYTE-IDENTICAL CARDS WITH THE SAME DIGEST, AND THE v5 CAVEAT IS
+      PRESENT IN BOTH. Measured at the tip and at the epic base, so THIS EPIC DID
+      NOT CAUSE IT:
+
+        v1  4,450  sha256:a753de37842e4953
+        v2  5,191  sha256:d6bc48a44641aead
+        v3  5,548  sha256:116146e48ecec13b
+        v4  6,281  sha256:2d7d4a0506d9b259
+        v5  6,281  sha256:2d7d4a0506d9b259
+        v6  REFUSED
+
+      The version label does not select content above v3; the frozen rubric files
+      do. `rubric_v4_frozen.md` at v4 serves 6,411 bytes `sha256:a213a36770ccab09`
+      -- A DIFFERENT CARD FROM `--card-version 4` ON THE LIVE FILE.
+
+      `SV-01` IS NOT AFFECTED and this row does not claim it is: its v4 arm sealed
+      `rubric_v4_frozen.md` digest `sha256:497c16ca85adeb4a`, served
+      `sha256:a213a36770ccab09`, recorded in every one of its `scorecard.json`
+      files. Standing result 3 stands.
+
+      THE TRAP IS LIVE FOR THE NEXT ROUND. Anyone re-running a v4-versus-v5
+      comparison with `--card-version 4` against the live rubric scores THE SAME
+      BYTES TWICE, and `R-H1`/`R-H2` would forbid comparing the two results while
+      the double seal shows a version difference and no byte difference. A null
+      result would read as a finding.
+    reproduction: >-
+      `diff <(score_tools.py serve --card-version 4) <(score_tools.py serve
+      --card-version 5)` -> no output, at `ea624b9` and at `08d1d6a`. Then
+      `score_tools.py serve --rubric examples/validation/scorecards/rubric_v4_frozen.md
+      --card-version 4 --digest-only` -> `sha256:a213a36770ccab09`.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/CA-08/RESULT.md section 6"
+      - "specs/results/scorecards/score-drives-validation-sv01-v4/ab_quota_ledger/20260812-sv01v4-GL-p1/scorecard.md:3 -- the frozen rubric, sealed"
+    why_out_of_scope: >-
+      A change to `score_tools.py` in the ticket measuring `score_tools.py`, and
+      a card-serving change is a version bump under `SV-07-DF-01`, which owes a
+      re-score under both versions. Far outside an evaluation ticket.
+    suggested_fix: >-
+      Cheapest honest move, no code: state in `references/eval_scorecard.md` that
+      a historical card is served from its frozen rubric file and that
+      `--card-version N` against the live file is a LABEL, not a selector. The
+      code move, if anyone wants it, is for `serve` to refuse `--card-version N`
+      against a file declaring a later version unless `--rubric` names the frozen
+      one -- but that is a refusal, and this epic's charter says add no gates.
+    blast_radius: >-
+      Any future cross-version comparison, and any reader who takes the
+      version/served double seal to mean that two different versions are two
+      different cards. For v4 and v5 on the live file they are the same card.
+    disposition: carried
+    disposition_ticket: "NEXT-EPIC.md section 0-AAAAAAAAAA"
+    disposition_note: >-
+      CARRIED as a documentation correction. Not urgent -- it has been true for
+      two epics and has cost nothing yet, because `SV-01` used the frozen file --
+      but it is a loaded gun for the next cross-version round.
+  - id: CA-08-DF-06
+    found_by: CA-08, by counting the field and then reading the ticket the count accused
+    found_at_commit: ea624b9723cb10d1864da67400e52dd032c6ed49
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/desired_program_model/deferred_findings.yaml]
+    channel: census
+    cost:
+      basis: one pass over 49 CA-* rows counting `cost`, plus one read of `CA-01/COST.md`
+      value: negligible, and it inverted the conclusion the count alone supported
+    summary: >-
+      A PER-FIELD COUNT OF COST DISCIPLINE REPORTS THE OPPOSITE OF THE TRUTH FOR
+      THE TICKET THAT DID IT BEST. `cost` is populated on 39 of this epic's 49
+      ledger rows. `CA-01` shows **0 of 6** -- and `CA-01` is the ticket that
+      recorded its cost most rigorously in the entire eight-epic record: a
+      dedicated `COST.md` with three components reported SEPARATELY and never
+      summed, an exact harness-reported `75,365` subagent tokens over four
+      probes, measured reply BYTES for two CLI arms with the token figure
+      explicitly labelled an estimate, and its own session recorded as NOT
+      MEASURED rather than guessed.
+
+      IT SHOWS AS ZERO BECAUSE IT WROTE A FILE AND THE FIELD DID NOT EXIST YET.
+      `CA-05` built `channel` and `cost` at ticket five; `CA-00` and `CA-01` ran
+      before it. The other eight uncounted rows are `CA-00`'s four, same cause.
+      SO THE HONEST STATEMENT IS 8 OF 8 TICKETS RECORDED A COST, not 7 of 8, and
+      the field measures WHEN A TICKET RAN as much as WHETHER IT COMPLIED.
+
+      AND THE FIGURE THAT ACTUALLY MATTERS IS WORSE THAN EITHER: only 3 of 8
+      tickets name a NUMERIC TOKEN basis -- `CA-00` (143,862), `CA-01` (75,365),
+      `CA-03` (~87k and ~175k). The rest record wall-clock or effort narratives
+      ("negligible", "~4 minutes"). AN EPIC-WIDE FINDINGS-PER-100K-TOKEN RATIO IS
+      NOT COMPUTABLE AT THIS TIP, and `CL-04` asked for the block four epics ago
+      precisely so that it would be.
+    reproduction: >-
+      Load `specs/desired_program_model/deferred_findings.yaml`, filter `id`
+      starting `CA-`, count rows with a `cost` key -> 39 of 49, none of them
+      `CA-01-DF-*`. Then read
+      `specs/results/scorecards/cut-the-apparatus/CA-01/COST.md`.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/CA-01/COST.md"
+      - "specs/results/scorecards/cut-the-apparatus/CA-08/RESULT.md section 7"
+    why_out_of_scope: >-
+      Back-filling `cost` onto `CA-00` and `CA-01`'s ten rows would be CA-08
+      editing other tickets' sealed findings to improve a number CA-08 publishes.
+    suggested_fix: >-
+      Whoever next reports cost discipline must read `COST.md` files as well as
+      the field, or say the count is field-only. AND ASK FOR THE EXPENSIVE
+      COMPONENT: `CA-01`'s own warning is that a block recording only the cheap
+      exact part and "unmeasured" for the dispatching session "will understate
+      every future comparison", and `75,365` "is almost certainly the smallest of
+      the three". Four epics have now asked for `cost` and none has asked for the
+      component that dominates it.
+    blast_radius: >-
+      `GOAL-consumption-obligatory` clause (c), and every findings-per-token
+      figure this programme publishes.
+    disposition: settled
+    disposition_note: >-
+      SETTLED IN THIS TICKET. Section 7 of `RESULT.md` reports 8 of 8 with the
+      chronology stated, reports the 3-of-8 token figure separately, publishes
+      per-ticket ratios only where a basis exists, and declines to publish an
+      epic-wide ratio. Nothing is left for a successor except `CA-01`'s standing
+      request, which is carried in `NEXT-EPIC.md`.
+  - id: CA-08-DF-07
+    found_by: the blind judge of CA-08's own adjudication packet, unprompted, in its REJECTED section
+    found_at_commit: ea624b9723cb10d1864da67400e52dd032c6ed49
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [references/blind_dispatch.md, specs/results/scorecards/cut-the-apparatus/GOAL-blind-dispatch/baseline.md]
+    channel: independent-review
+    cost:
+      basis: one `--safe-mode` judged dispatch into a neutral cell; the finding is in its answer to task 5
+      value: zero marginal -- the arm was run to decide the doctrine and produced a better finding than the decision
+    summary: >-
+      BLIND DISPATCH REMOVES THE OPERATOR'S CONCLUSIONS FROM THE JUDGE'S
+      CONTEXT. IT DOES NOT REMOVE THE OPERATOR FROM THE SELECTION OF WHAT THE
+      JUDGE SEES, AND THE JUDGE SAID SO ITSELF:
+
+        "'WITHOUT the project's own conclusion attached' is a claim of
+         neutrality I cannot verify. Stripping conclusions off a selected set
+         of facts does not make the selection neutral. I am adjudicating on
+         evidence assembled by someone with a position, and I have no way to
+         see what was left out."
+
+      AND IT DEMONSTRATED THE POINT ON THE PACKET IT WAS GIVEN rather than
+      asserting it: "The chunking, and this is the big one. Five check outcomes
+      get five numbered sections; ... The three program-code defects get three
+      bullets under a header. Five-versus-three is an artifact of how the packet
+      chose to slice, not a measurement. Slice it the other way ... and the
+      picture inverts." It also named the packet's placement ("'Also on the
+      record from the same cycle' is a demotion"), its bolding, its one-sided
+      reading of `third_pass = "none"`, and that task 1's phrasing presupposed
+      its answer.
+
+      THIS IS A BOUND ON `GOAL-blind-dispatch` ITSELF, filed at the moment the
+      goal was met. The goal's clause (b) asks for a path carrying none of the
+      operator's conclusions and CA-08 delivered one, PROVEN by a fresh agent.
+      What no dispatch path can deliver is a packet the operator did not choose.
+      EIGHT EPICS OF "BLIND" ROUNDS HAVE ALL BEEN BLIND-TO-CONCLUSIONS AT BEST
+      AND NEVER BLIND-TO-SELECTION, and `SV-05-DF-02` corrected the first half
+      of that sentence while leaving the second unexamined.
+    reproduction: >-
+      Read task 5 of
+      `specs/results/scorecards/cut-the-apparatus/CA-08/probes/ARM-J-judged-blind.txt`
+      against the packet it was answering,
+      `.../probes/ARM-J-packet.md`.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/CA-08/probes/ARM-J-judged-blind.txt -- task 5"
+      - "specs/results/scorecards/cut-the-apparatus/CA-08/probes/ARM-J-packet.md -- the selected evidence"
+      - "specs/results/scorecards/cut-the-apparatus/CA-08/RESULT.md section 5"
+    why_out_of_scope: >-
+      Not a defect in any file. It is a limit on a goal this ticket decides, and
+      naming it is the decision; removing it is a research problem nobody has
+      scoped.
+    suggested_fix: >-
+      Do not try to solve selection bias with a dispatch flag. Two cheap moves
+      that are real: (1) ASK EVERY BLIND AGENT WHAT WAS LOADED IN ITS PACKET --
+      the charter already says to ask what it REJECTED and that has produced
+      more than any check; this is the same question pointed at the operator, and
+      it worked the first time it was asked. (2) STATE THE SELECTION RULE beside
+      every packet -- what was included, what was excluded, and by what rule --
+      so a reader can attack the rule instead of guessing at it.
+    blast_radius: >-
+      Every judged round in this programme's history, `CL-04`'s adopter probe,
+      `SV-01`'s and `SV-04`'s four judges each, `SV-06`'s survey, `SV-05`'s 2x2,
+      `CA-01`'s five arms and `CA-08`'s two. It does NOT assert that any
+      published number is wrong; it asserts that "blind" has meant "blind to our
+      conclusions" and never "blind to our framing", and that nobody measured the
+      difference until a judge was asked and volunteered it.
+    disposition: carried
+    disposition_ticket: "NEXT-EPIC.md section 0-AAAAAAAAAA -- 'ask what was loaded' named as a standing practice beside 'ask what it rejected'"
+    disposition_note: >-
+      CARRIED as a standing practice. Deliberately not routed to a repair,
+      because there is nothing to repair: the finding is that a solved problem
+      was the smaller half of the problem.
+  - id: CA-08-DF-08
+    found_by: CA-08, by checking the goal's target against the goal's own do-not-cut list
+    found_at_commit: ea624b9723cb10d1864da67400e52dd032c6ed49
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/desired_program_model/ticket_plan.yaml, CUT-THE-APPARATUS-EPIC.md]
+    channel: operator-doing-the-work
+    cost:
+      basis: one line count at each tree plus one read of the charter's section 5 against the goal's target
+      value: minutes, and it is the explanation for the epic's headline miss
+    summary: >-
+      THE 30% TARGET WAS SET OVER A DENOMINATOR THE SAME DOCUMENT HAD ALREADY
+      PROTECTED, AND THE MISS IS ARITHMETIC RATHER THAN EFFORT.
+      `GOAL-apparatus-cut` clause (a) asks for 43,553 -> 30,487, a cut of 13,066
+      Python lines from `scripts/` + `examples/validation/`. Measured at the tip:
+      41,691, a cut of 1,862 -- 4.28%, or 14% OF THE REQUIRED CUT.
+
+      `CUT-THE-APPARATUS-EPIC.md` section 5 ring-fenced, BEFORE ANY TICKET RAN:
+      `analyze_complexity.py` (2,401) and `code_complexity.py` (968) "SERVE THE
+      SPEC WORKFLOW AND STAY"; `scope`, `seal`, `contested`, the blinding
+      mechanism and the double seal, all inside `score_tools.py` (3,571, the
+      card's own server); and the TLA+/case-generation/adapter path
+      (`generate_cases_from_tlc_dump.py` 3,471 + `run_generated_case_adapters.py`
+      2,455) which section 6 assigns to `CA-06` with "SIMPLIFY AGGRESSIVELY; DO
+      NOT DELETE" ON THE OWNER'S EXPLICIT DECISION. THAT IS 13,866 LINES -- MORE
+      THAN THE ENTIRE REQUIRED CUT -- DECLARED UNCUTTABLE BY THE CHARTER THAT SET
+      THE TARGET.
+
+      NO TICKET COULD HAVE MET CLAUSE (a) WITHOUT VIOLATING SECTION 5 OR SECTION
+      6. The seven contributors between them deleted 15 files and reduced 8
+      more, every one justified on the record, and the arithmetic still could not
+      reach. This is not a defence of the tickets: it is a statement that the
+      target measured something other than what the epic was allowed to do.
+      `MF-020` forbids fitting an axis to a known answer; the mirror failure is
+      setting one that the constraints make unreachable, and it costs the same
+      thing -- a number that cannot discriminate effort.
+    reproduction: >-
+      `find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*'
+      | xargs wc -l | tail -1` at `08d1d6a` -> 43,553; at `ea624b9` -> 41,691.
+      Then sum the line counts of the files named in `CUT-THE-APPARATUS-EPIC.md`
+      sections 5 and 6 at `08d1d6a`.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/CA-08/RESULT.md section 1"
+      - "CUT-THE-APPARATUS-EPIC.md sections 5 and 6 -- the do-not-cut list and the owner decision"
+      - "specs/results/scorecards/cut-the-apparatus/GOAL-apparatus-cut/baseline.md -- the largest-files table, which lists them"
+    why_out_of_scope: >-
+      CA-08 may not edit a target to match a result, and this row must not be
+      read as asking for that. It is plan feedback about how the NEXT target is
+      set. The miss stands as MISSED in the goal verdicts.
+    suggested_fix: >-
+      Set the next line target over the CUTTABLE remainder, computed and
+      published at kickoff, not over the whole surface. At this epic's base that
+      remainder was 43,553 - 13,866 = 29,687, and 30% of it is 8,906 -- a target
+      an epic could aim at. BETTER STILL, STOP TARGETING LINES: this epic
+      measured that repository line count cannot go down, because the close-out
+      writes a full tree snapshot into `specs/.history/` (+371,418 lines this
+      epic, zero deletions) and `RM-03-DF-03` makes card removals structurally
+      unable to delete code. Three epics have now called themselves
+      simplifications and come out net-additive; this one did too, by the widest
+      margin yet.
+    blast_radius: >-
+      `GOAL-apparatus-cut` and any successor goal phrased as a percentage of a
+      repository surface.
+    disposition: carried
+    disposition_ticket: "NEXT-EPIC.md section 0-AAAAAAAAAA -- named as the first thing the next owner must not repeat"
+    disposition_note: >-
+      CARRIED to the successor epic as target-setting feedback. NOT routed to a
+      repair of this epic's goal, which stays as written and stays MISSED: moving
+      it now would delete the only thing the measurement was against.
