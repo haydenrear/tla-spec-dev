@@ -7,8 +7,9 @@ Measured on `feature/CA-06` at branch point `e379d6b` (the epic tip after
 **Headline, stated before the tables because it changes how they should be read:
 the dramatic shrink this ticket's work order asks for was not available, and the
 reason is on the record rather than in the author's judgement.** The two things
-that hold the mass — `--negative-cases` (~1,030 lines of TLA+ expression parser
-and guard evaluator) and `--port-cases` (~400) — were **measured and defended by
+that hold the mass — `--negative-cases` (290 lines of construction on a
+1,043-line shared TLA+ expression parser and guard evaluator) and `--port-cases`
+(397 on the same parser), **1,730 lines together** — were **measured and defended by
 `SM-02` one epic ago in a shipped test that is still green**, in a file written
 expressly to stop a later reader widening "defund `[ports.*]`" into "defund the
 corpus". This ticket checked the work order against the record, per this epic's
@@ -45,7 +46,7 @@ that survives, so the rows are symbols rather than paths.
 | `scripts/` | `run_generated_case_adapters.py` — `default_import_roots_for` | **+31** | py | Derives the project root above `specs/` so `--import-root` need not be typed. **24 lines are docstring**, citing the sealed adopter transcript that reported the failure. |
 | `scripts/` | `run_generated_case_adapters.py` — four tombstone comments and the `--batch` help text | **+47** | py | What each removal was, the finding that removed it, and what still accepts the flag. |
 | `tests/` | `test_generate_cases_from_tlc_dump.py` — two `R1` regression tests | **+53** | py | The demonstrated failing input is `examples/distributed_history`, a **real subject**, not a fixture. Asserts the two models the modes were measured on resolve to `Next`, and that the fallback keeps the old behaviour. |
-| `tests/` | `test_effect_provider_runtime.py` — the replacement half of the campaign test | **+28** | py | The removed half asserted a refusal that no longer exists. The replacement asserts what still has content: the run behaves identically with and without the now-inert `--batch`, which is what keeps ~15 live command lines and the sealed reproduction commands running. |
+| `tests/` | `test_effect_provider_runtime.py` — the replacement half of the campaign test | **+28** | py | The removed half asserted a refusal that no longer exists. The replacement asserts what still has content: the run behaves identically with and without the now-inert `--batch`, which is what keeps the **27 live files** that pass `--batch`, and every sealed reproduction command, running. |
 
 **The addition table is larger than the removal table in `tests/` and nearly as
 large in `scripts/`, and that is `RD-02`'s finding happening again in this very
