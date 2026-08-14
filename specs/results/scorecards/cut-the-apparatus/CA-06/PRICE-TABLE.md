@@ -93,6 +93,28 @@ card: score_tools.py serve | wc -c    6,281 -> 6,281
 
 Clause (c) of `GOAL-apparatus-cut` holds: **the card did not grow.**
 
+### After reconciling with the epic tip, and why the absolute figures moved
+
+`CA-05` (#265) merged while this ticket was measuring, and `feature/CA-06` now
+carries it. **The absolute figures at the PR head are therefore NOT this
+ticket's delta:**
+
+```
+                      at e379d6b   at PR head   of which CA-05's
+scripts/                  26,547       26,728        +245 (scripts/disposition.py)
+examples/validation/      14,854       14,854            0
+tests/                    30,422       30,676        +213 (test_disposition_requirement.py)
+```
+
+**CA-06's own delta is the `-32` / `0` / `+41` above, measured against `e379d6b`,
+and it does not change.** Recorded here because reporting a post-merge absolute
+as a ticket's delta is precisely the denominator confusion `denominator_rule`
+exists to stop, and `GOAL-apparatus-cut` is decided by `CA-08` on the integrated
+tip, not by adding ticket deltas together.
+
+The card is unchanged through the merge: **6,281 bytes,
+`sha256:2d7d4a0506d9b259`.**
+
 **Clause (a): −32 lines against a goal needing −13,066 across the epic. This
 ticket was named "the largest single reduction in the epic" and it is not.**
 Stated plainly rather than dressed up.
