@@ -1,0 +1,153 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "not_applicable"
+    evidence: "specs/results/scorecards/cut-the-apparatus/CA-07/RESULTS.md -- section 6. direction=zero: no .tla, .cfg, spec_manifest.yaml or case_adapters.toml changed, so a before/after TLC pair would compare a model with itself. Not run, and not claimed."
+  tlc_after:
+    status: "not_applicable"
+    evidence: "specs/results/scorecards/cut-the-apparatus/CA-07/RESULTS.md -- section 6. Same reason. This basis exists to LICENSE A DECREASE and this ticket is an increase (+71 scripts/, +222 tests/), so it has nothing to license here either way."
+  behavior_tests:
+    status: "pass"
+    evidence: "specs/results/scorecards/cut-the-apparatus/CA-07/pytest-after.txt, against specs/results/scorecards/cut-the-apparatus/CA-07/pytest-baseline.txt measured in this worktree at 14fbb10. READ BOTH FILES, NOT THIS WORD: the suite carries 8 inherited and deliberate reds and `pass` means `reproduces that set item for item`, which is the only sense in which this suite passes for anyone."
+  descriptor_comparison:
+    status: "recorded"
+    evidence: "specs/results/scorecards/cut-the-apparatus/CA-07/PRICE-TABLE.md -- per-surface figures and the card. DEGENERATE BY CONSTRUCTION at direction=zero: before and after are the same model, so the comparison is of the apparatus around it, which is what the table carries."
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: "CA-04 removed scripts/kill_test.py's oracle-4 half (RM-03-DF-05), so this repository has no mutation-kill instrument to run. Nothing in this ticket substitutes for one and none is claimed."
+  effect_conformance:
+    status: "not_run"
+    evidence: "The mapping this ticket exercised binds no [effect_providers.<Port>] provider, and the runner said so unprompted in both transcripts: 'this mapping binds no effect provider, so NO DURABLE-WRITE ORACLE is in this run'. Recorded because a reader of negative-corpus-execution-after.txt must not mistake 11 executions for 11 oracles."
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness REVIEW, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them, and this
+# is the only sweep that looks at it.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# RECORDED, NEVER REFUSING (2026-08-04, owner direction). It was a hard gate at
+# workflow close with no override; it is now an optional agent-run review whose
+# verdict is written down and read by a person. `incomplete` IS STILL NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it --
+# what was withdrawn is the refusal, not the distinction.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""
+  in_scope_gaps: null
+  scope_source: ""
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: >-
+  COMPLEXITY OF THE MODEL DID NOT INCREASE -- direction=zero, no variable,
+  action or bound moved. What increased is the APPARATUS, by 71 lines in
+  scripts/ and 222 in tests/, and GOAL-apparatus-cut's own expected_effect for
+  this ticket accepts exactly that: "A SMALL INCREASE IS EXPECTED AND ACCEPTED
+  -- one action or one conformance case. Price it." It is one conformance case
+  and one generator function, priced per surface in PRICE-TABLE.md, with the
+  card unchanged at 6,281 bytes / sha256:2d7d4a0506d9b259.
+
+  THE ESSENTIAL BEHAVIOUR THE ADDED SURFACE CARRIES: a negative case now names
+  its arguments the way the module itself declares them, so the shipped
+  adapters can read them. Before this, the measured yield of --negative-cases
+  on the one subject outside the house fixture was ZERO CASES EXECUTED
+  (CA-06-DF-02). The 52-line addition reads a declaration the module already
+  makes; it invents no new concept and adds no gate.
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "found"
+  detail: >-
+    SEARCHED, AND THE ONE REFINEMENT ON THE RECORD WAS FOUND AND DELIBERATELY
+    NOT TAKEN. It is recorded as "found" rather than "none" because "none"
+    would be false: CA-06's own close narrative section 6 enumerates an
+    available model reduction -- the two now-dead ports `case_program_process`
+    and `case_program_write`, declared under RunSpecUnitTests and @port
+    annotated at TlaSpecDevCli.tla:506 and :509 in all three spec trees, whose
+    effects can no longer occur since CA-06 deleted the execution mode that
+    produced them. It needs no TLC (a port declaration is not a variable, an
+    action or a bound) and it falls inside this ticket's declared tla conflict
+    key.
+
+    NOT TAKEN, for three stated reasons rather than for convenience. (1) It is
+    not this ticket's subject: the epic owner named CA-06-DF-02 at
+    schedule_revision 2, and MF-020 as written into this ticket's work order
+    forbids fitting work to a bug already known beyond the one assigned. (2) It
+    is a DELETION in a CONSUMPTION ticket, and mixing them makes the
+    regression's red/green demonstration harder for a sceptic to isolate --
+    the two commands in RESULTS.md section 4 touch exactly one file for exactly
+    that reason. (3) It carries a test to update
+    (tests/test_port_declarations.py:136 asserts one of them by name), so it is
+    a model change with a suite consequence in a ticket whose other goal is to
+    leave the 8-red baseline untouched.
+
+    THE REFINEMENT THAT WAS TAKEN is generator-side and is a REPLACEMENT OF A
+    FALLBACK RATHER THAN AN ADDITION OF A CASE: negative_cases_for_corpus
+    stops inventing argument names and reads the ones the module already
+    declares, through the same action-marker record params_from_action_marker
+    has read out of dumps since MF-029. One declaration, two readers, instead
+    of one declaration and one guess. It is a byte-level no-op on every model
+    that declares no marker -- proved on the sealed fixture in
+    quota-ledger-corpus-unchanged.txt -- so no corpus and no TLC figure moves.
+
+    A SECOND, SMALLER SUBTRACTION IS PROPOSED AND NOT TAKEN, on CA-07-DF-04:
+    let a line-number citation resolve BY ITS ANCHOR when the line has moved,
+    since the checker already computes the true location and prints it. That
+    removes a failure mode rather than adding a gate, and it is a
+    repository-wide sweep a consumption ticket should not carry.
+  measured: false
+  applied: false
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: "specs/results/scorecards/cut-the-apparatus/CA-07/CLOSE-NARRATIVE.md"

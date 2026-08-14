@@ -1,0 +1,36 @@
+# CA-07 -- the sealed fixture's negative corpus, generated on BOTH keyings.
+# examples/validation/ab/model/QuotaLedger.{tla,cfg}, --negative-cases only, tlc2 from the worktree home.
+# The constraint CA-06 named was that re-keying would move a corpus whose kill tables this programme quotes.
+# QuotaLedger DECLARES NO ACTION MARKER, so it declares no argument names, so there is nothing to re-key.
+
+BEFORE    emitted:        118 case(s) from 47682 candidate (state, action, argument) triples
+BEFORE    negated:        CloseTenant, Commit, Release, Reserve
+BEFORE    cross-check:    4028 ENABLED edge(s) with fully recovered arguments re-evaluated at their own source state; 0 evaluated FALSE
+BEFORE    NOT negated: RefuseCloseAlreadyClosed -- writes {reason, status}, none of which any guard reads -- this is a refusal or a pure observation, not a call to be refused
+BEFORE    NOT negated: RefuseCloseOutstanding -- writes {reason, status}, none of which any guard reads -- this is a refusal or a pure observation, not a call to be refused
+BEFORE    NOT negated: RefuseCommitUnknown -- writes {reason, status}, none of which any guard reads -- this is a refusal or a pure observation, not a call to be refused
+BEFORE    NOT negated: RefuseReleaseUnknown -- writes {reason, status}, none of which any guard reads -- this is a refusal or a pure observation, not a call to be refused
+BEFORE    NOT negated: RefuseReserveClosed -- writes {reason, status}, none of which any guard reads -- this is a refusal or a pure observation, not a call to be refused
+BEFORE    NOT negated: RefuseReserveNotPositive -- writes {reason, status}, none of which any guard reads -- this is a refusal or a pure observation, not a call to be refused
+BEFORE    NOT negated: RefuseReserveOverQuota -- writes {reason, status}, none of which any guard reads -- this is a refusal or a pure observation, not a call to be refused
+AFTER     emitted:        118 case(s) from 47682 candidate (state, action, argument) triples
+AFTER     negated:        CloseTenant, Commit, Release, Reserve
+AFTER     cross-check:    4028 ENABLED edge(s) with fully recovered arguments re-evaluated at their own source state; 0 evaluated FALSE
+AFTER     NOT negated: RefuseCloseAlreadyClosed -- writes {reason, status}, none of which any guard reads -- this is a refusal or a pure observation, not a call to be refused
+AFTER     NOT negated: RefuseCloseOutstanding -- writes {reason, status}, none of which any guard reads -- this is a refusal or a pure observation, not a call to be refused
+AFTER     NOT negated: RefuseCommitUnknown -- writes {reason, status}, none of which any guard reads -- this is a refusal or a pure observation, not a call to be refused
+AFTER     NOT negated: RefuseReleaseUnknown -- writes {reason, status}, none of which any guard reads -- this is a refusal or a pure observation, not a call to be refused
+AFTER     NOT negated: RefuseReserveClosed -- writes {reason, status}, none of which any guard reads -- this is a refusal or a pure observation, not a call to be refused
+AFTER     NOT negated: RefuseReserveNotPositive -- writes {reason, status}, none of which any guard reads -- this is a refusal or a pure observation, not a call to be refused
+AFTER     NOT negated: RefuseReserveOverQuota -- writes {reason, status}, none of which any guard reads -- this is a refusal or a pure observation, not a call to be refused
+
+$ diff -r <before>/quota_neg <after>/quota_neg
+diff -r /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/fe6d0271-2a77-4295-9483-37e89a514b13/scratchpad/CA-07/ql-before/specs/corpus-neg/spec-unit/quota_neg/case_coverage.json /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/fe6d0271-2a77-4295-9483-37e89a514b13/scratchpad/CA-07/ql-after/specs/corpus-neg/spec-unit/quota_neg/case_coverage.json
+12c12
+<   "source": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/fe6d0271-2a77-4295-9483-37e89a514b13/scratchpad/CA-07/ql-before/specs/corpus-neg/spec-unit/quota_neg",
+---
+>   "source": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/fe6d0271-2a77-4295-9483-37e89a514b13/scratchpad/CA-07/ql-after/specs/corpus-neg/spec-unit/quota_neg",
+
+The ONLY difference is case_coverage.json's `source` field, which records the
+scratch directory each run was written to. Every case, every param dict and
+every expected output is identical. NO SEALED CELL CAN MOVE.

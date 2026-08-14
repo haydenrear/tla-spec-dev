@@ -424,6 +424,57 @@ def params_from_action_marker(edge: Edge, after: dict[str, Any], view: str) -> d
     return dict(to_plain_value(params))
 
 
+def declared_param_names(body: str, params: tuple[str, ...], view: str) -> dict[str, str]:
+    """Map each formal parameter to the argument name its own module declares.
+
+    ``params_from_action_marker`` reads exactly these names out of a dump's
+    after-state, which is why every positive case -- and every adapter written
+    against one -- is keyed by them. A case with no transition to read them from
+    had no way to reach the same declaration, so `CA-06-DF-02` left the negative
+    corpus emitting the FORMAL names and all 11 cases it produces for
+    ``examples/distributed_history`` died on ``KeyError`` before asserting
+    anything. The declaration is in the module either way; this reads it from
+    the source instead of from a state pair.
+
+    Only a marker field whose value is a bare formal parameter is a rename: an
+    expression is not a parameter. A formal the marker does not mention keeps
+    its own name, because dropping it would lose an argument the guard was
+    evaluated on, and two formals declared under one name refuse the rename
+    outright for the same reason. A module that declares no action marker gets
+    an empty map -- which is why nothing moves for ``QuotaLedger``, whose sealed
+    kill tables this repository quotes throughout.
+    """
+    marker = "lastExternalAction" if view == "external" else "lastInternalAction"
+    anchor = re.search(rf"\b{marker}'\s*=\s*\[", body)
+    if anchor is None:
+        return {}
+    opener = re.search(r"\bparams\s*\|->\s*\[", body[anchor.end() :])
+    if opener is None:
+        return {}
+    start = anchor.end() + opener.end()
+    depth, end = 1, start
+    while end < len(body) and depth:
+        depth += {"[": 1, "]": -1}.get(body[end], 0)
+        end += 1
+    fields: list[str] = []
+    field = ""
+    depth = 0
+    for char in body[start : end - 1]:
+        depth += {"[": 1, "(": 1, "{": 1, "]": -1, ")": -1, "}": -1}.get(char, 0)
+        if char == "," and depth == 0:
+            fields.append(field)
+            field = ""
+        else:
+            field += char
+    fields.append(field)
+    names: dict[str, str] = {}
+    for field in fields:
+        match = re.fullmatch(r"\s*([A-Za-z_]\w*)\s*\|->\s*([A-Za-z_]\w*)\s*", field)
+        if match and match.group(2) in params:
+            names[match.group(2)] = match.group(1)
+    return names if len(set(names.values())) == len(names) else {}
+
+
 def params_for_case(
     edge: Edge,
     raw_before: dict[str, Any],
@@ -2520,12 +2571,25 @@ def negative_cases_for_corpus(
         failures = 0
         checked = 0
         signature = signatures[name]
+        # `CA-06-DF-02`, second face, and the one nobody read. `params_for_case`
+        # returns the names the MODULE declares while `signature.params` are the
+        # formal ones, so on every model that declares an action marker the two
+        # key sets never matched and this cross-check silently examined NOTHING.
+        # `CA-06`'s own sealed report prints it -- `cross-check: 0 ENABLED
+        # edge(s)` over a dump holding 141 of them.
+        formal_for = {
+            declared: formal
+            for formal, declared in declared_param_names(
+                signature.body, signature.params, view
+            ).items()
+        }
         for edge in edges:
             if edge.action != name:
                 continue
             params = params_for_case(edge, states[edge.source], states[edge.target], view, param_recipes)
             if not params or unchecked_param_names(params):
                 continue
+            params = {formal_for.get(key, key): value for key, value in params.items()}
             if set(params) != set(signature.params):
                 continue
             checked += 1
@@ -2548,6 +2612,7 @@ def negative_cases_for_corpus(
     for name in chosen:
         signature = signatures[name]
         reads = guard_read_variables(signature, evaluator)
+        declared = declared_param_names(signature.body, signature.params, view)
         for node in ordered_states:
             state = states[node]
             for combination in itertools.product(*signature.domains):
@@ -2572,6 +2637,12 @@ def negative_cases_for_corpus(
                         continue
                     seen.add(signature_key)
                 projected = call_state_projector(state_projector, state)
+                # `CA-06-DF-02`. The guard above is evaluated on the FORMAL
+                # names it is written in; the case carries the names the module
+                # DECLARES, which is what every shipped adapter reads.
+                arguments = {
+                    declared.get(formal, formal): value for formal, value in bindings.items()
+                }
                 metadata = action_metadata_for(name, view, action_metadata)
                 labels = (
                     name,
@@ -2591,13 +2662,13 @@ def negative_cases_for_corpus(
                         edge=Edge(source=node, target=node, action=name),
                         before=projected,
                         after=projected,
-                        params=dict(bindings),
+                        params=dict(arguments),
                         output_value=None,
                         output_expression=(
                             "StateGraphRejection(action={action!r}, params={params}, "
                             "reason={reason!r}, outcome_fields={outcome})".format(
                                 action=name,
-                                params=py_repr(dict(bindings)),
+                                params=py_repr(dict(arguments)),
                                 reason=reason,
                                 outcome=py_repr(outcome_fields),
                             )
@@ -3116,7 +3187,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     java spawn at scripts/generate_cases_from_tlc_dump.py:126
     (subprocess.run), the metadir delete at
     scripts/generate_cases_from_tlc_dump.py:150 (shutil.rmtree), the package
-    writes at scripts/generate_cases_from_tlc_dump.py:1078-1079 (path.write_text)
+    writes at scripts/generate_cases_from_tlc_dump.py:1129-1130 (path.write_text)
     or the parameter-recovery audit write. Nothing generated a case for it,
     nothing adapted it, nothing mutated it, and all four oracles reported green
     over surface the model did not contain.

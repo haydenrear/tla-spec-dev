@@ -28812,6 +28812,176 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "CA-07",
+      "workflow": "cut-the-apparatus-epic",
+      "recorded_at_utc": "2026-08-14T03:36:35.854957+00:00",
+      "metrics": {
+        "variables": 8,
+        "actions": 16,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 277830,
+        "bound_complete": false,
+        "bound_resolved_variables": 6,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.002483746073489777,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 8 declared variables (2 unresolved: lastCommand, result) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 277830,
+            "bound_complete": false,
+            "percent_lower_bound": 27.8,
+            "percent": null,
+            "within_cap": null,
+            "caveat": "the bound is a product over 6 of 8 declared variables (2 unresolved: lastCommand, result), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "CA-06",
+        "metrics": {
+          "variables": {
+            "before": 8,
+            "after": 8,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 16,
+            "after": 16,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 277830,
+            "after": 277830,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "COMPLEXITY OF THE MODEL DID NOT INCREASE -- direction=zero, no variable, action or bound moved. What increased is the APPARATUS, by 71 lines in scripts/ and 222 in tests/, and GOAL-apparatus-cut's own expected_effect for this ticket accepts exactly that: \"A SMALL INCREASE IS EXPECTED AND ACCEPTED -- one action or one conformance case. Price it.\" It is one conformance case and one generator function, priced per surface in PRICE-TABLE.md, with the card unchanged at 6,281 bytes / sha256:2d7d4a0506d9b259.\nTHE ESSENTIAL BEHAVIOUR THE ADDED SURFACE CARRIES: a negative case now names its arguments the way the module itself declares them, so the shipped adapters can read them. Before this, the measured yield of --negative-cases on the one subject outside the house fixture was ZERO CASES EXECUTED (CA-06-DF-02). The 52-line addition reads a declaration the module already makes; it invents no new concept and adds no gate.",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "CA-04 removed scripts/kill_test.py's oracle-4 half (RM-03-DF-05), so this repository has no mutation-kill instrument to run. Nothing in this ticket substitutes for one and none is claimed.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "The mapping this ticket exercised binds no [effect_providers.<Port>] provider, and the runner said so unprompted in both transcripts: 'this mapping binds no effect provider, so NO DURABLE-WRITE ORACLE is in this run'. Recorded because a reader of negative-corpus-execution-after.txt must not mistake 11 executions for 11 oracles.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "not_applicable",
+          "classification": "unverified",
+          "evidence": "specs/results/scorecards/cut-the-apparatus/CA-07/RESULTS.md -- section 6. direction=zero: no .tla, .cfg, spec_manifest.yaml or case_adapters.toml changed, so a before/after TLC pair would compare a model with itself. Not run, and not claimed.",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "not_applicable",
+          "classification": "unverified",
+          "evidence": "specs/results/scorecards/cut-the-apparatus/CA-07/RESULTS.md -- section 6. Same reason. This basis exists to LICENSE A DECREASE and this ticket is an increase (+71 scripts/, +222 tests/), so it has nothing to license here either way.",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "specs/results/scorecards/cut-the-apparatus/CA-07/pytest-after.txt, against specs/results/scorecards/cut-the-apparatus/CA-07/pytest-baseline.txt measured in this worktree at 14fbb10. READ BOTH FILES, NOT THIS WORD: the suite carries 8 inherited and deliberate reds and `pass` means `reproduces that set item for item`, which is the only sense in which this suite passes for anyone.",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "specs/results/scorecards/cut-the-apparatus/CA-07/PRICE-TABLE.md -- per-surface figures and the card. DEGENERATE BY CONSTRUCTION at direction=zero: before and after are the same model, so the comparison is of the apparatus around it, which is what the table carries.",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=not_applicable (UNVERIFIED)",
+        "tlc_after=not_applicable (UNVERIFIED)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "found",
+        "detail": "SEARCHED, AND THE ONE REFINEMENT ON THE RECORD WAS FOUND AND DELIBERATELY NOT TAKEN. It is recorded as \"found\" rather than \"none\" because \"none\" would be false: CA-06's own close narrative section 6 enumerates an available model reduction -- the two now-dead ports `case_program_process` and `case_program_write`, declared under RunSpecUnitTests and @port annotated at TlaSpecDevCli.tla:506 and :509 in all three spec trees, whose effects can no longer occur since CA-06 deleted the execution mode that produced them. It needs no TLC (a port declaration is not a variable, an action or a bound) and it falls inside this ticket's declared tla conflict key.\nNOT TAKEN, for three stated reasons rather than for convenience. (1) It is not this ticket's subject: the epic owner named CA-06-DF-02 at schedule_revision 2, and MF-020 as written into this ticket's work order forbids fitting work to a bug already known beyond the one assigned. (2) It is a DELETION in a CONSUMPTION ticket, and mixing them makes the regression's red/green demonstration harder for a sceptic to isolate -- the two commands in RESULTS.md section 4 touch exactly one file for exactly that reason. (3) It carries a test to update (tests/test_port_declarations.py:136 asserts one of them by name), so it is a model change with a suite consequence in a ticket whose other goal is to leave the 8-red baseline untouched.\nTHE REFINEMENT THAT WAS TAKEN is generator-side and is a REPLACEMENT OF A FALLBACK RATHER THAN AN ADDITION OF A CASE: negative_cases_for_corpus stops inventing argument names and reads the ones the module already declares, through the same action-marker record params_from_action_marker has read out of dumps since MF-029. One declaration, two readers, instead of one declaration and one guess. It is a byte-level no-op on every model that declares no marker -- proved on the sealed fixture in quota-ledger-corpus-unchanged.txt -- so no corpus and no TLC figure moves.\nA SECOND, SMALLER SUBTRACTION IS PROPOSED AND NOT TAKEN, on CA-07-DF-04: let a line-number citation resolve BY ITS ANCHOR when the line has moved, since the checker already computes the true location and prints it. That removes a failure mode rather than adding a gate, and it is a repository-wide sweep a consumption ticket should not carry.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "specs/results/scorecards/cut-the-apparatus/CA-07/CLOSE-NARRATIVE.md",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

@@ -1,0 +1,28 @@
+# CA-07 -- lines PER SURFACE at this tree, and the card, NEVER as one number.
+# Epic tip 14fbb10 -> this branch.
+
+surface                   14fbb10      here     delta
+scripts/                   26,756    26,827       +71
+examples/validation/       14,854    14,854         0
+tests/                     30,738    30,960      +222
+
+$ find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1
+   41681 total
+  (14fbb10: 41,610 -- so +71, all of it in scripts/)
+
+THE CARD, reported separately and unchanged:
+$ python3 examples/validation/scorecards/score_tools.py serve | wc -c
+    6281
+$ python3 examples/validation/scorecards/score_tools.py serve --digest-only
+sha256:2d7d4a0506d9b259
+  (baseline: 6,281 bytes, sha256:2d7d4a0506d9b259 -- IDENTICAL)
+
+WHAT THE +71 BOUGHT, per GOAL-apparatus-cut clause (b):
+  52  declared_param_names -- the finding CA-06-DF-02 names, and its docstring
+  11  the cross-check remap and the comment naming CA-06-DF-02's second face
+   7  the emission remap and its comment
+   1  a line-number citation repointed (CA-06 section 4.2's class, 4th time)
+
+WHAT THE +222 IN tests/ BOUGHT:
+  222 tests/test_negative_corpus_adapter_conformance.py -- the regression,
+      5 cases, 3 of which go red when the fix is backed out.
