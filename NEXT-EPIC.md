@@ -3,12 +3,17 @@
 > **AMENDED AFTER `CA-08`, the `cut-the-apparatus` evaluation (2026-08-14).**
 > Everything below still describes how each earlier result was measured and none
 > of it is edited. What CA-08 adds is at the very top, in section 0-AAAAAAAAAA,
-> because **the epic cut 4.3% against a 30% target and the target was unreachable
-> by construction**, because **the instrument the charter says would have caught
-> its own worst error cannot read the charter**, and because **the blindness this
+> because **the epic cut 4.3% against a 30% target that was reachable — it did
+> not cut, and CA-08's first claim that it COULD not was refuted on its own
+> arithmetic**, because **the instrument the charter credits with catching its
+> own worst error is blind to the charter**, and because **the blindness this
 > programme just achieved is the smaller half of the problem — and a blind judge
 > said so about the packet it was handed.** Full record:
 > `specs/results/scorecards/cut-the-apparatus/CA-08/RESULT.md`.
+>
+> **CA-08's own PR was returned CHANGES by independent review and six figures in
+> this section were corrected before it merged, five of them errors in CA-08's
+> favour. Every correction is marked below.**
 >
 > **The previous amendment, after `SV-05`, begins at section 0-AAAAAAAAA below
 > and is unedited.**
@@ -17,43 +22,88 @@
 
 ## 0-AAAAAAAAAA. READ BEFORE EVERYTHING — what CA-08 measured
 
-### 1. THE FOUR GOALS, DECIDED CLAUSE BY CLAUSE — 14 CLAUSES MET, 4 MISSED
+### 1. THE FOUR GOALS, DECIDED CLAUSE BY CLAUSE — 13 MET, 2 MISSED, OF 15
 
-**Never quote a goal here without its clause.** `GOAL-apparatus-cut` is met on
-three clauses and missed on two, and a single word for it would pick whichever
-suited the sentence.
+**Never quote a goal here without its clause.** And **score on the target text,
+not on a split of your own**: CA-08 first published *"14 met, 4 missed"* over a
+table whose own rows were 15/3, because it had **split `GOAL-apparatus-cut` (b)
+to gain a MET and split `GOAL-consumption-obligatory` (c) to invent a MISSED**.
+Both splits are withdrawn. **Splitting a clause to add a MET and splitting one to
+add a MISSED are the same error.**
 
-| goal | clause | verdict |
+| goal | clause (as the target writes it) | verdict |
 |---|---|---|
-| `GOAL-apparatus-cut` | (a) ≤30,487 lines | **MISSED. 41,691 — a 4.28% cut against a 30% target, or 14% of the required cut.** |
-| | (b1) every deletion justified on the record | **MET**, 15 of 15 |
-| | (b2) every deletion names a **finding ID** | **MISSED**, 10 of 15; five name a ticket id |
+| `GOAL-apparatus-cut` | (a) ≤30,487 lines | **MISSED. 41,691 — a 4.28% cut, or 14% of the required cut.** |
+| | (b) every deletion names the **finding ID** | **MISSED**, 10 of 15; five name a ticket id |
 | | (c) card does not grow | **MET**, 6,281 bytes and the same digest |
 | | (d) surfaces separate, tree named | **MET** |
-| `GOAL-consumption-obligatory` | (a) demonstrated refusal on a real input | **MET.** It refuses this epic: 19 of 49 undisposed, exit 1 |
+| `GOAL-consumption-obligatory` | (a) demonstrated refusal on a real input | **MET.** It refuses this epic: 19 of 49 undisposed, exit 1; **6** epics refused on `--all` |
 | | (b) register repaired, denominator stated | **MET.** 2 of 41 **as a floor** |
-| | (c) `channel` + `cost` populated | **MET** for both fields; **MISSED** for a *token* basis, 3 of 8 tickets |
+| | (c) `channel` + `cost` exist and are populated | **MET.** Both exist; `cost` on 39 of 49 rows, **6 of 8 tickets on every row** |
 | | (d) honest alternative stated | **MET — and ADOPTED.** See §3 |
-| `GOAL-blind-dispatch` | (a)(b)(c)(d) | **ALL MET.** A fresh agent through `--safe-mode` + a neutral cell reported *"there is nothing of the kind"*, unprompted |
+| `GOAL-blind-dispatch` | (a)(b)(d) | **MET.** A fresh agent through `--safe-mode` + a neutral cell reported *"there is nothing of the kind"* — **a verdict it reached itself, in wording the probe dictated** |
+| | (c) the cost stated | **MET, DISCLOSURE INCOMPLETE.** See §8.9 |
 | `GOAL-four-results-stand` | (a)(b)(c) | **ALL MET.** 8 reds, `−1` denominator `+2` declared, zero attributable to CA-08 |
 
-### 2. DO NOT SET A LINE TARGET OVER A SURFACE YOU HAVE ALREADY PROTECTED
+**Not a clause and not scored, but do not lose it:** only **3 of 8 tickets** name
+a numeric token basis, so an epic-wide findings-per-100k-token ratio is **not
+computable**. `CL-04` asked for the `cost` block four epics ago so that it would
+be.
 
-**`CA-08-DF-08`, and it is the first thing not to repeat.** The goal asked for
-13,066 Python lines to come out. The same charter, in sections 5 and 6, declared
-**13,866 lines uncuttable before any ticket ran** — `analyze_complexity.py`,
-`code_complexity.py`, `score_tools.py` (which carries `scope`, `seal`,
-`contested` and the double seal), and the TLA+/adapter path that section 6 orders
-*simplified, not deleted*, on the owner's explicit decision.
+### 2. THE EPIC DID NOT CUT. IT IS NOT THAT IT COULD NOT.
 
-**No ticket could have met clause (a) without violating section 5 or section 6.**
-Seven tickets deleted 15 files, reduced 8 more, priced every one, and the
-arithmetic still could not reach. **`MF-020` forbids fitting an axis to a known
-answer; setting one the constraints make unreachable costs the same thing — a
-number that cannot discriminate effort.**
+> **CORRECTED before merge, after independent review of PR #270. This section
+> previously said the charter had ring-fenced "13,866 lines — more than the
+> entire required cut" and that "no ticket could have met clause (a)". THAT WAS
+> WRONG THREE WAYS and it was published as the first thing the next owner must
+> not repeat.**
+>
+> 1. **The sum was wrong by exactly 1,000:** `2401 + 968 + 3571 + 3471 + 2455 =`
+>    **12,866**, not 13,866.
+> 2. **So the comparison was false on its own arithmetic:** the required cut is
+>    **13,066**, and **12,866 < 13,066**.
+> 3. **And 5,926 of it was never protected.** Charter §6 says *"SIMPLIFY
+>    AGGRESSIVELY; DO NOT DELETE"* and *"those are compatible only if it gets
+>    **dramatically smaller**"* — **a mandate to shrink, not a protection.**
+>
+> **The evaluator committed §9's class one in the finding that accuses the work
+> order of exactly that, and the error ran toward excusing the epic it was
+> measuring.** Corrected figures below.
 
-**And stop targeting repository lines at all.** This epic measured why they
-cannot fall:
+**Genuinely ring-fenced by charter §5:** `analyze_complexity.py` (2,401),
+`code_complexity.py` (968) and `score_tools.py` (3,571, which carries `scope`,
+`seal`, `contested` and the double seal) — **6,940 lines.** **Cuttable surface
+36,613.** The required cut of 13,066 was **35.7% of what could actually move.**
+**Brutal, and reachable.**
+
+**And the path that was ORDERED to shrink, grew:**
+
+```
+5,926  at 08d1d6a   generate_cases_from_tlc_dump 3,471 + run_generated_case_adapters 2,455
+5,983  at ea624b9                                3,591 +                             2,392    +57
+```
+
+`CA-06` reported honestly that *"the dramatic shrink this ticket's work order
+asks for was not available"*, with `SM-02`'s shipped green test behind it. **What
+no price table does is add that up against the mandate.** **Two ring-fenced files
+grew too:** `score_tools.py` **+169** and `generate_cases_from_tlc_dump.py`
+**+120**. **Protected does not mean frozen, and nothing counted the growth
+against the goal.**
+
+**So the honest sentence is: the epic did not cut.** Seven tickets deleted 15
+files and reduced 8 more, every deletion priced — and the total came to 1,862
+lines against 13,066 asked for.
+
+**The bookkeeping fix, which is NOT an excuse:** publish the **cuttable
+remainder** at kickoff beside the target, so a percentage names the surface it
+can move. At this epic's base that is **36,613**, of which 30% is **10,984**.
+**The deeper fix is upstream of any number:** §6 ordered a path to get
+*dramatically smaller* and **nothing in the epic measured it against that
+mandate** — it grew, and only the evaluation added it up. **A mandate with no
+instrument is a preference.**
+
+**And consider not targeting repository lines at all**, because this epic
+measured why they cannot fall:
 
 ```
 whole diff 08d1d6a..ea624b9        +398,596  /  -7,366     net +391,230
@@ -64,11 +114,10 @@ excluding that snapshot             +28,744  /  -8,932     net  +19,812
 scorecard prose alone               +17,817  /       0
 ```
 
-**The close-out writes a copy of everything, so an epic in this repository cannot
-be net-negative in lines.** Three epics have now called themselves
-simplifications and come out net-additive; this one did too, by the widest margin
-yet. **It wrote 9.6 lines of scorecard prose per line of apparatus cut**, before
-the snapshot is counted.
+**The close-out writes a copy of everything, so an epic here cannot be
+net-negative in lines.** Three epics have now called themselves simplifications
+and come out net-additive; this one did too, by the widest margin yet, **writing
+9.6 lines of scorecard prose per line of apparatus cut.**
 
 ### 3. THE HONEST DESCRIPTION IS ADOPTED, NOT DEFERRED
 
@@ -90,7 +139,7 @@ supports.** The harvest rate is **2 of 41 (4.9%)**, and **41 is a FLOOR** —
 `CL-03` swept 83 cards, the tree holds 95, **twelve are unswept**
 (`CA-05-DF-04`). Quoting 41 as a count is the same error quoting 38 was.
 
-### 4. `scope` CANNOT READ ANY DOCUMENT THIS PROJECT USES TO DIRECT WORK
+### 4. `scope` IS BLIND TO THE CHARTER, THE PLAN, THE BASELINES AND EVERY PRICE TABLE
 
 **`CA-08-DF-01`, and it is the most useful thing this evaluation found.** The
 charter's own `CA-00-DF-05` correction block says *"`R3`/`scope` would have
@@ -103,19 +152,32 @@ scope --path CUT-THE-APPARATUS-EPIC.md                      0 counted figures
 scope --path specs/desired_program_model/ticket_plan.yaml   0 counted figures
 scope --path .../GOAL-four-results-stand/baseline.md        0 counted figures
 scope --path .../cut-the-apparatus/CA-02/PRICE-TABLE.md     0 counted figures
+scope --path NEXT-EPIC.md                                   3 counted figures, 3 REFUTED
 ```
 
-**The claim is false.** `scope` recognises one sentence form —
+> **THE FIFTH ROW WAS DROPPED FROM THIS SECTION AND IS RESTORED, after
+> independent review of PR #270.** `RESULT.md` §8 printed all five; **this
+> starter printed four and carried a heading — *"scope CANNOT READ ANY DOCUMENT
+> THIS PROJECT USES TO DIRECT WORK"* — that the dropped row refutes.** `scope`
+> **does** read `NEXT-EPIC.md`, and finds three figures there, all REFUTED. **The
+> successor's starter must never be more absolute than the epic's own
+> measurement**, and a heading that survives only by omitting a row is the same
+> class as everything else in §8.
+
+**The charter's claim is false, and the bound is the sentence form, not the
+corpus.** `scope` recognises one sentence form —
 `D<n> = <v> on <n> of <m>` — and *"0 of 9 over the sealed table"* is not in it.
 **And over the whole record it is byte-for-byte identical at the epic base and
 the epic tip**: 102 figures, 80 REFUTED, 0 COUNT-MOVED, 2 HOLDS, 20 UNREACHABLE,
 over the same 37 files, with **zero** figures from any `cut-the-apparatus`
 document — against +17,817 lines of prose the epic added.
 
-**So `R3`'s remedy has been named as the fix five times in this epic and does not
-exist in runnable form.** Every counted figure that has ever hurt this project —
+**So `R3`'s remedy has been named as the fix five times in this epic and reaches
+almost nothing that directs work.** Every counted figure that has ever hurt this project —
 *"0 of 9"*, *"1 of 38"*, *"four rounds' claims"*, *"8 failed, 1490 passed"*,
 *"seven epics, zero bugs"* — is invisible to the instrument named to catch it.
+**Reviewer-confirmed: those files ARE swept, so the blindness is the recogniser,
+not an artifact of the corpus.**
 **This is the successor epic's first candidate**, and the shape is a recogniser
 for `<n> of <m>` in ordinary prose that reports UNREACHABLE by default. **Not a
 gate.**
@@ -124,14 +186,27 @@ gate.**
 
 **Wording that survives:**
 
-> **Static checks over SUBJECT PROGRAM CODE have caught zero bugs in eight
-> epics.** Unrefuted, and this epic adds evidence FOR it.
+> **No static check in this project has ever been shown to catch a semantic
+> defect in shipped program code.**
 >
 > **Static checks over this project's own record, metadata and method have caught
 > real defects repeatedly and changed outcomes.** **3 catches : 1 false refusal**
 > this epic; **2 : 1** restricted to refusals of in-flight work items.
 >
 > **Those are two different claims and the charter merges them.**
+>
+> **AND THE FIRST IS NOT EVIDENCE ABOUT GATES.** *"Zero observations of X is not
+> evidence about X when the instrument was never aimed at X. The correct
+> statement is 'our gates have never caught a code bug,' and the honest gloss is
+> 'our gates were never built to.' **That is a fact about what the project chose
+> to build, not a fact about gates.**"* — the blind judge, Arm J.
+
+> **CORRECTED before merge. This block previously read "…caught zero bugs in
+> eight epics. Unrefuted, and this epic adds evidence FOR it" — exactly the
+> inference the judge refused. CA-08 adopted three of its four scoping
+> corrections and dropped the one that cost its own conclusion something.**
+> **Do not repeat that: a rejection list that keeps every correction which
+> sharpens the argument and drops the one that weakens it is a highlight reel.**
 
 **The catches:** `registry-enumeration-coverage` caught `CA-05` shipping an
 unregistered instrument; the complexity ledger **refused `CA-04`'s close on
@@ -167,11 +242,21 @@ changing outcomes.
 
 | | this epic | previous epic | whole ledger |
 |---|---:|---:|---:|
-| findings on the shipped toolchain, **`CL-04`'s narrow rule** | **15 of 49 (30.6%)** | 1 of 26 (3.8%) | 26 of 259 |
+| findings on the shipped toolchain, **`CL-04`'s narrow rule** | **15 of 49 (30.6%)** | 1 of 26 (3.8%) — see caveat | 26 of 259 |
 | findings on `CL-04`'s own caveat surface (`examples/validation/`) | 7 of 49 (14.3%) | 4 of 26 (15.4%) | 104 of 259 |
 
 **This epic produced 15 of the 26 shipped-toolchain findings in the entire
-eight-epic ledger. An eightfold jump in the rate.** And `CL-04`'s caveat surface
+eight-epic ledger. Roughly an eightfold jump in the rate.**
+
+> **CAVEAT, added before merge, and it is CA-08's own "class three" committed in
+> the table it calls the epic's best number.** The **1 of 26** comparator is
+> `SV-05`'s figure at `SV-05`'s tree, taken mid-epic; the ledger holds **31
+> `SV-*` rows** at both `08d1d6a` and `ea624b9`. **A complete epic is being
+> compared against a partial one.** The direction is conservative — on the full
+> denominator the prior rate is ≤ 1/31 = **3.2%**, which makes the jump slightly
+> larger — **but a comparison whose two sides come from different trees is
+> forbidden by the rule being cited, whichever way it errs.** The **15 of 49** is
+> measured at `ea624b9` and stands. And `CL-04`'s caveat surface
 did not move, so the movement is entirely in the narrow surface.
 
 **The mechanism is the whole point: `CA-06` and `CA-07` RAN the toolchain on a
@@ -254,15 +339,38 @@ found and stopped looking.**
    tokens and is almost certainly the smallest of the three."* **Ask for the
    dispatching session first.**
 8. **Do not let an evaluation route its findings to itself.** `CA-05-DF-03` face
-   (a): self-routing satisfies `D3` with full marks and means nothing. Six of
-   CA-08's seven carried rows name this section instead.
+   (a): self-routing satisfies `D3` with full marks and means nothing. **All
+   seven** of CA-08's carried rows name this section instead.
+9. **State the cost of your OWN blindness, including the part that is yours.**
+   `GOAL-blind-dispatch` clause (c) came back **MET, DISCLOSURE INCOMPLETE**
+   because CA-08 stated every cost except the two that were its own:
+   - **Its neutral cell path named the ticket.** `/private/tmp/ca08-cell-neutral`
+     contains `ca08`, and `cmd_cell` refuses only the literals `tla-spec` and
+     `spec-dev` (`blind_dispatch.py:191`). **The instrument had just refused the
+     previous path for exactly this class and could not catch the replacement.**
+   - **The evaluating session itself carried `MEMORY.md`.** CA-08 ran from the
+     primary checkout — the one cwd whose auto-memory slug exists — so **the
+     operator's memory and the five commit subject lines were in the evaluator's
+     context before it read anything.** Arms B and J were blind; **the agent that
+     chose what to put in front of them, and wrote every judgement, was not.**
+     That is the largest unstated cost in the round and **it was in the goal's own
+     baseline the whole time.**
+10. **Do not call a dictated answer unprompted.** CA-08 published PART 3's *"there
+   is nothing of the kind"* as *"verbatim and unprompted"*. `CA-01`'s probe ends
+   that part with *"say so explicitly in those words."* **The verdict is the
+   agent's; the sentence is the probe's.** Say which.
 
 ### 9. THE PREDICTIONS, AND THERE IS NO ALARM
 
 Sealed at `1696b74`, **2026-08-14T04:57:01Z**, before any measurement ran —
 `specs/results/scorecards/cut-the-apparatus/CA-08/PREDICTIONS.md`. **17
-predictions; four failed or half-failed, so there is no ALARM** — and **the
-failures carried more than the passes.**
+predictions; FIVE failed or half-failed — P7, P8, P10, P12, P15 — so there is no
+ALARM**, and **the failures carried more than the passes.**
+
+> **CORRECTED before merge: this said "four" while listing five ids, and resolved
+> the arithmetic by silently dropping P7.** **NO ALARM was and is correct** — the
+> sealed rule fires only if *every* prediction passes — but a count that
+> disagrees with its own list is the same defect the section is about.
 
 - **P10 failed and it is the epic's best news.** I predicted a blind agent would
   still report a working directory naming the project. It did not: the neutral
@@ -272,7 +380,14 @@ failures carried more than the passes.**
   tip. It reached **exactly the same 102**, and that failure produced
   `CA-08-DF-01`, §4 above.
 - **P8's first half failed**: I predicted fewer than half the tickets would
-  populate `cost`. **Eight of eight did.**
+  populate `cost`. **Six of eight populated it on every row** — `CA-00` on 1 of
+  5, `CA-01` on 0 of 6 (it wrote a `COST.md` instead). *Corrected from "eight of
+  eight", which was the most flattering of the three figures this evaluation
+  published for one measurement.*
+- **P7 half-failed** and was the id dropped from the count above: the
+  denominator-movement call was right; the defect I predicted (a document
+  quoting the rate without the move) was wrong — **the real defect is a stale
+  register**, `CA-08-DF-02`.
 - **P12 named the wrong subject**: disproof 1 was *saved*; the removal-pricing
   sweep is what broke.
 - **And one passing prediction is discounted rather than counted.** P13 sealed

@@ -18191,7 +18191,7 @@ findings:
       because there is nothing to repair: the finding is that a solved problem
       was the smaller half of the problem.
   - id: CA-08-DF-08
-    found_by: CA-08, by checking the goal's target against the goal's own do-not-cut list
+    found_by: CA-08; REFUTED AND REWRITTEN by independent review of PR #270, which found the sum wrong by 1,000 and the section-6 path counted as protected when it was a mandate to shrink
     found_at_commit: ea624b9723cb10d1864da67400e52dd032c6ed49
     schedule_revision: 1
     severity: major
@@ -18203,64 +18203,104 @@ findings:
       workflow: [specs/desired_program_model/ticket_plan.yaml, CUT-THE-APPARATUS-EPIC.md]
     channel: operator-doing-the-work
     cost:
-      basis: one line count at each tree plus one read of the charter's section 5 against the goal's target
-      value: minutes, and it is the explanation for the epic's headline miss
+      basis: one line count at each tree per file, plus one read of charter sections 5 and 6
+      value: minutes to find and minutes to refute -- the reviewer redid the same addition and got a different number, which is the whole cost of an arithmetic nobody re-ran
+    correction: >-
+      REFUTED AND REWRITTEN AFTER INDEPENDENT REVIEW OF PR #270, 2026-08-14. THE
+      FIRST VERSION OF THIS ROW WAS WRONG THREE WAYS AND ITS HEADLINE CLAIM WAS
+      FALSE ON ITS OWN ARITHMETIC. Restated rather than deleted, because this row
+      was the PR title, section 2 of `NEXT-EPIC.md`, and "the first thing the next
+      owner must not repeat".
+
+      (1) THE SUM WAS WRONG BY EXACTLY 1,000. 2401 + 968 + 3571 + 3471 + 2455 =
+      12,866; this row published 13,866. (2) THE COMPARISON IT RESTED ON IS
+      THEREFORE FALSE: the required cut is 13,066, and 12,866 < 13,066, so the
+      protected mass was NEVER "more than the entire required cut". (3) AND
+      5,926 OF IT WAS NEVER PROTECTED. Charter section 6 says "SIMPLIFY
+      AGGRESSIVELY; DO NOT DELETE" and "those are compatible only if it gets
+      DRAMATICALLY SMALLER" -- A MANDATE TO SHRINK, NOT A PROTECTION. Counting it
+      as uncuttable is what converted a ticket-level shortfall into a
+      charter-level impossibility.
+
+      THE CLASS IS THIS TICKET'S OWN `RESULT.md` SECTION 9 CLASS ONE -- a locator
+      quoted without re-reading what it locates -- committed BY THE EVALUATOR, in
+      the row that accuses the work order of exactly that, on the most visible
+      surface the epic has. The section lists five instances; the evaluator is
+      the sixth, and the only one that reached a PR title.
     summary: >-
-      THE 30% TARGET WAS SET OVER A DENOMINATOR THE SAME DOCUMENT HAD ALREADY
-      PROTECTED, AND THE MISS IS ARITHMETIC RATHER THAN EFFORT.
-      `GOAL-apparatus-cut` clause (a) asks for 43,553 -> 30,487, a cut of 13,066
+      THE 30% TARGET WAS SET OVER A SURFACE THE SAME DOCUMENT HAD PARTLY
+      RING-FENCED. IT WAS BRUTAL, NOT IMPOSSIBLE, AND THE HONEST EXPLANATION OF
+      THE MISS IS THAT THE EPIC DID NOT CUT -- NOT THAT IT COULD NOT.
+      `GOAL-apparatus-cut` clause (a) asks 43,553 -> 30,487, a cut of 13,066
       Python lines from `scripts/` + `examples/validation/`. Measured at the tip:
       41,691, a cut of 1,862 -- 4.28%, or 14% OF THE REQUIRED CUT.
 
-      `CUT-THE-APPARATUS-EPIC.md` section 5 ring-fenced, BEFORE ANY TICKET RAN:
-      `analyze_complexity.py` (2,401) and `code_complexity.py` (968) "SERVE THE
-      SPEC WORKFLOW AND STAY"; `scope`, `seal`, `contested`, the blinding
-      mechanism and the double seal, all inside `score_tools.py` (3,571, the
-      card's own server); and the TLA+/case-generation/adapter path
-      (`generate_cases_from_tlc_dump.py` 3,471 + `run_generated_case_adapters.py`
-      2,455) which section 6 assigns to `CA-06` with "SIMPLIFY AGGRESSIVELY; DO
-      NOT DELETE" ON THE OWNER'S EXPLICIT DECISION. THAT IS 13,866 LINES -- MORE
-      THAN THE ENTIRE REQUIRED CUT -- DECLARED UNCUTTABLE BY THE CHARTER THAT SET
-      THE TARGET.
+      GENUINELY RING-FENCED BY CHARTER SECTION 5, BEFORE ANY TICKET RAN:
+      `analyze_complexity.py` (2,401) and `code_complexity.py` (968), which
+      "SERVE THE SPEC WORKFLOW AND STAY", and `score_tools.py` (3,571), which
+      carries `scope`, `seal`, `contested` and the double seal. THAT IS 6,940
+      LINES. Cuttable surface: 43,553 - 6,940 = 36,613. THE REQUIRED CUT WAS
+      35.7% OF THE CUTTABLE SURFACE -- hard, and reachable.
 
-      NO TICKET COULD HAVE MET CLAUSE (a) WITHOUT VIOLATING SECTION 5 OR SECTION
-      6. The seven contributors between them deleted 15 files and reduced 8
-      more, every one justified on the record, and the arithmetic still could not
-      reach. This is not a defence of the tickets: it is a statement that the
-      target measured something other than what the epic was allowed to do.
-      `MF-020` forbids fitting an axis to a known answer; the mirror failure is
-      setting one that the constraints make unreachable, and it costs the same
-      thing -- a number that cannot discriminate effort.
+      NOT PROTECTED, AND THIS IS THE CORRECTION THAT MATTERS: the
+      TLA+/case-generation/adapter path (`generate_cases_from_tlc_dump.py` 3,471
+      + `run_generated_case_adapters.py` 2,455 = 5,926) was ORDERED TO SHRINK
+      DRAMATICALLY, not preserved. MEASURED AT THE TIP: 3,591 + 2,392 = 5,983.
+      IT GREW BY 57 LINES. `CA-06` reported honestly that "the dramatic shrink
+      this ticket's work order asks for was not available" and gave a reason on
+      the record -- `SM-02` defends both mechanisms in a shipped green test --
+      but the outcome against section 6 is +57, and no price table adds that up
+      against the mandate.
+
+      AND TWO RING-FENCED FILES GREW DURING AN APPARATUS-CUTTING EPIC:
+      `score_tools.py` 3,571 -> 3,740 (+169) and `generate_cases_from_tlc_dump.py`
+      3,471 -> 3,591 (+120). Protected does not mean frozen, and nothing counted
+      the growth against the goal.
+
+      SO: THE TARGET WAS REACHABLE AND WAS NOT REACHED. What the charter did do
+      is publish a percentage over the WHOLE surface while ring-fencing 6,940 of
+      it in the same document, so "30%" was really 35.7% of what could move.
+      THAT IS WORTH FIXING FOR THE NEXT EPIC AND IT IS NOT AN EXCUSE FOR THIS
+      ONE.
     reproduction: >-
       `find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*'
       | xargs wc -l | tail -1` at `08d1d6a` -> 43,553; at `ea624b9` -> 41,691.
-      Then sum the line counts of the files named in `CUT-THE-APPARATUS-EPIC.md`
-      sections 5 and 6 at `08d1d6a`.
+      Then, per file, at both trees: `git cat-file blob <rev>:<path> | wc -l`.
+      analyze_complexity 2401 -> 2401; code_complexity 968 -> 968; score_tools
+      3571 -> 3740; generate_cases_from_tlc_dump 3471 -> 3591;
+      run_generated_case_adapters 2455 -> 2392. Sum the section-5 three: 6,940.
     evidence:
       - "specs/results/scorecards/cut-the-apparatus/CA-08/RESULT.md section 1"
-      - "CUT-THE-APPARATUS-EPIC.md sections 5 and 6 -- the do-not-cut list and the owner decision"
-      - "specs/results/scorecards/cut-the-apparatus/GOAL-apparatus-cut/baseline.md -- the largest-files table, which lists them"
+      - "CUT-THE-APPARATUS-EPIC.md section 5 -- the do-not-cut list (the three that are protected)"
+      - "CUT-THE-APPARATUS-EPIC.md section 6 -- 'SIMPLIFY AGGRESSIVELY; DO NOT DELETE', which is a mandate and not a protection"
+      - "specs/results/scorecards/cut-the-apparatus/CA-06/PRICE-TABLE.md -- CA-06's own account of why the shrink was not available"
     why_out_of_scope: >-
       CA-08 may not edit a target to match a result, and this row must not be
-      read as asking for that. It is plan feedback about how the NEXT target is
-      set. The miss stands as MISSED in the goal verdicts.
+      read as asking for that -- especially now, since the corrected version
+      REMOVES the excuse rather than supplying one. The miss stands as MISSED in
+      the goal verdicts.
     suggested_fix: >-
-      Set the next line target over the CUTTABLE remainder, computed and
-      published at kickoff, not over the whole surface. At this epic's base that
-      remainder was 43,553 - 13,866 = 29,687, and 30% of it is 8,906 -- a target
-      an epic could aim at. BETTER STILL, STOP TARGETING LINES: this epic
-      measured that repository line count cannot go down, because the close-out
-      writes a full tree snapshot into `specs/.history/` (+371,418 lines this
-      epic, zero deletions) and `RM-03-DF-03` makes card removals structurally
-      unable to delete code. Three epics have now called themselves
-      simplifications and come out net-additive; this one did too, by the widest
-      margin yet.
+      Publish the CUTTABLE remainder at kickoff beside the target, so a
+      percentage names the surface it can actually move: at this epic's base
+      36,613, of which 30% is 10,984. That is bookkeeping, not a lower bar --
+      the 13,066 asked for was reachable and this row no longer claims
+      otherwise. THE REAL FIX IS UPSTREAM OF THE NUMBER: charter section 6
+      ordered a path to get "dramatically smaller" and nothing in the epic
+      measured it against that mandate; it grew 57 lines and only this
+      evaluation added it up. A mandate with no instrument is a preference.
+      AND CONSIDER NOT TARGETING LINES AT ALL: repository line count cannot fall,
+      because close-out writes a full tree snapshot into `specs/.history/`
+      (+371,418 this epic, zero deletions) and `RM-03-DF-03` makes card removals
+      structurally unable to delete code.
     blast_radius: >-
       `GOAL-apparatus-cut` and any successor goal phrased as a percentage of a
       repository surface.
     disposition: carried
-    disposition_ticket: "NEXT-EPIC.md section 0-AAAAAAAAAA -- named as the first thing the next owner must not repeat"
+    disposition_ticket: "NEXT-EPIC.md section 0-AAAAAAAAAA -- carried as target-setting bookkeeping, NOT as an excuse for the miss"
     disposition_note: >-
-      CARRIED to the successor epic as target-setting feedback. NOT routed to a
-      repair of this epic's goal, which stays as written and stays MISSED: moving
-      it now would delete the only thing the measurement was against.
+      CARRIED to the successor epic as target-setting bookkeeping. NOT routed to
+      a repair of this epic's goal, which stays as written and stays MISSED:
+      moving it now would delete the only thing the measurement was against.
+      NOTE WHAT THE CORRECTION DID TO THE ROW'S DIRECTION -- the first version
+      excused the miss and the corrected version does not. An evaluator's error
+      that ran toward its own subject's defence is the one to watch for.
