@@ -251,7 +251,8 @@ test_source_citations.py::...[specs/program_model/spec_manifest.yaml]           
 test_ticket_retirement.py::...delivered_plan_has_matching_close_receipts         inherited
 ```
 
-**At the committed head: `8 failed, 1486 passed`** (`pytest-after.txt`), and
+**At the committed head `8aab056`, clean working tree: `8 failed, 1486 passed`**
+(`pytest-after.txt`, 1,494 collected and 1,494 outcomes), and
 the failure set is **identical item for item**:
 
 ```bash
