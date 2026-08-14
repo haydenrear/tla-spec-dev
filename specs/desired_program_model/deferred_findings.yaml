@@ -5677,7 +5677,6 @@ findings:
     disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/188"
     disposition_note: >-
       Carried to the successor epic RD-01 (#188): make a single-example generalisation catchable and make contested compute. The premise of subtract-to-measure was a claim about ONE example restated as a fact about the instrument, and nothing existed to refuse it.
-    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
 
   - id: SM-05-DF-02
     found_by: "SM-05 (staging the judge trees and scanning them), and a blind judge who was moved by it"
@@ -5761,7 +5760,6 @@ findings:
     disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/188"
     disposition_note: >-
       Carried to the successor epic RD-01 (#188): make a single-example generalisation catchable and make contested compute. The premise of subtract-to-measure was a claim about ONE example restated as a fact about the instrument, and nothing existed to refuse it.
-    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
 
   - id: SM-05-DF-03
     found_by: "SM-05's blind judges (four of them, independently, unprompted)"
@@ -5830,7 +5828,6 @@ findings:
     disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/188"
     disposition_note: >-
       Carried to the successor epic RD-01 (#188): make a single-example generalisation catchable and make contested compute. The premise of subtract-to-measure was a claim about ONE example restated as a fact about the instrument, and nothing existed to refuse it.
-    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
 
   - id: SM-05-DF-04
     found_by: "SM-05 (parsing the registry's own output), and a blind judge on the provenance half"
@@ -5899,7 +5896,6 @@ findings:
     disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/188"
     disposition_note: >-
       Carried to the successor epic RD-01 (#188): make a single-example generalisation catchable and make contested compute. The premise of subtract-to-measure was a claim about ONE example restated as a fact about the instrument, and nothing existed to refuse it.
-    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
 
   - id: SM-05-DF-05
     found_by: "SM-05's blind judges (the ladder-fit question), escalating SM-04-DF-06"
@@ -5984,7 +5980,6 @@ findings:
     disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/188"
     disposition_note: >-
       Carried to the successor epic RD-01 (#188): make a single-example generalisation catchable and make contested compute. The premise of subtract-to-measure was a claim about ONE example restated as a fact about the instrument, and nothing existed to refuse it.
-    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
 
   - id: SM-05-DF-06
     found_by: "SM-05 (two blind judges disagreeing by two points, and naming why)"
@@ -6065,7 +6060,6 @@ findings:
     disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/188"
     disposition_note: >-
       Carried to the successor epic RD-01 (#188): make a single-example generalisation catchable and make contested compute. The premise of subtract-to-measure was a claim about ONE example restated as a fact about the instrument, and nothing existed to refuse it.
-    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
 
   - id: SM-05-DF-07
     found_by: "SM-05 (running check over its own eight cards)"
@@ -6126,7 +6120,6 @@ findings:
     disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/188"
     disposition_note: >-
       Carried to the successor epic RD-01 (#188): make a single-example generalisation catchable and make contested compute. The premise of subtract-to-measure was a claim about ONE example restated as a fact about the instrument, and nothing existed to refuse it.
-    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/169"
 
   - id: RD-01-DF-01
     found_by: "RD-01"
@@ -13747,7 +13740,17 @@ findings:
       drive. Five suite reds were misattributed to "my kickoff wrote counted
       figures in the present tense" before the real cause was found -- that
       hypothesis was WRONG and is withdrawn here.
-    disposition: open
+    disposition: repaired
+    disposition_note: >-
+      REPAIRED at fc39224 by restoring the 210-row ledger from 08d1d6a, and the
+      restore alone took three test files from 6 failed/152 passed to 1
+      failed/157 passed on the same tree -- five of the six reds attributed to
+      this defect. THE INSTRUCTION THAT CAUSED IT IS NOT REPAIRED and is not
+      this repository's to fix: git-epic-workflow's plan-and-schedule.md section
+      4a still says to create the backlog with `findings: []`, which in this
+      repository destroys the cumulative ledger. Skills are read and never
+      edited from here, so the fix is a proposed diff and an escalation to the
+      operator, recorded here rather than applied.
   - id: CA-00-DF-02
     found_by: "the epic owner, scaffolding cut-the-apparatus"
     found_at_commit: "87a526b"
@@ -13802,7 +13805,17 @@ findings:
       demonstrated failing input on a real subject" is weaker than it sounds when
       the real subject is a file the next epic overwrites. Worth a census against
       the other shipped demonstrations, which is CA-03's neighbourhood.
-    disposition: open
+    disposition: carried
+    disposition_note: >-
+      CARRIED to the next epic. The R1 demonstration for the goal-baseline
+      classifier reads its subject from the LIVE plan, so it dies at every epic
+      kickoff while its docstring claims a stable subject. Not repaired during
+      this epic deliberately: repointing it at whichever goal the current epic
+      happens to have reproduces the defect with a new name and is MF-020. The
+      suggested fix is a sealed plan under specs/.history, and CA-03
+      independently confirmed the wider class -- scope reaches none of the prose
+      people actually write.
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/262"
   - id: CA-00-DF-03
     found_by: "CA-01's independent reviewer, dispatched by the epic owner to refute PR #263"
     found_at_commit: "6008c71"
@@ -13863,7 +13876,17 @@ findings:
       safe-mode makes much of the cell redundant for the conclusions leak, so the
       apparatus this epic added to buy blindness may be larger than blindness
       actually costs.
-    disposition: open
+    disposition: consumed
+    disposition_note: >-
+      CONSUMED. Blindness is reachable: --safe-mode plus a neutral cell removes
+      the auto-memory, the SessionStart hook, the MCP instructions and the
+      project skill listing. CA-01 measured both halves and established that
+      NEITHER IS SUFFICIENT ALONE -- safe-mode does not strip gitStatus, so at
+      repo cwd the commit subject lines still arrive. CA-01-DF-01 was downgraded
+      from blocking to minor on this evidence and GOAL-blind-dispatch clause
+      (c)'s impossibility hatch was withdrawn as premature. The hedge is carried
+      unupgraded: the effect was measured twice, and whether safe-mode disables
+      auto-memory by design or incidentally is NOT established.
   - id: CA-00-DF-04
     found_by: "CA-01's independent reviewer, dispatched by the epic owner to refute PR #263"
     found_at_commit: "6008c71"
@@ -13922,7 +13945,15 @@ findings:
       blind. A false PASS here does not merely fail to catch contamination -- IT
       CERTIFIES ITS ABSENCE, which is worse than having no instrument, and it is
       the third instrument this project has shipped and later found blind.
-    disposition: open
+    disposition: repaired
+    disposition_note: >-
+      REPAIRED by CA-01 at 57ab769: an empty subject and a failed dispatch now
+      return exit 2 UNDECIDED rather than PASS, verified by the epic owner
+      (empty exit 2, failed exit 2, ARM-O exit 1, ARM-N exit 0). The MF-020
+      wording was corrected to match the source -- 4 of 27 needles are hand-
+      written literals and the shipped R1 failing demonstration is carried by
+      that half. The paraphrase false PASS is NOT fixed and is not fixable by
+      substring matching; it remains declared as the instrument's blind spot.
 
   - id: CA-01-DF-01
     found_by: "CA-01"
@@ -14309,7 +14340,9 @@ findings:
     found_at_commit: "87a526b"
     schedule_revision: 1
     severity: major
-    channel: "blind reviewer dispatched to refute"
+    channel: independent-review
+    channel_note: >-
+      blind reviewer dispatched to refute
     cost:
       basis: "harness-reported subagent_tokens for the CA-02 review dispatch"
       value: "143,862 tokens, 77 tool uses"
@@ -14369,14 +14402,30 @@ findings:
       epic on it". Also GOAL-four-results-stand's disproof table, which listed the
       refuted sentence as one of the four load-bearing disproofs the epic must not
       break -- so the epic was guarding a claim that was already false.
-    disposition: open
+    disposition: settled
+    disposition_note: >-
+      SETTLED as a correction, not a repair. The charter, the canonical plan and
+      the GOAL-four-results-stand disproof row were corrected in place at
+      fc39224 with the refuting citations, and CA-02 corrected its own
+      artifacts. THE CUT SURVIVED on a weaker and true reason -- RM-02's
+      adoption argument and NEXT-EPIC section 5's 'the instrument would have
+      printed one and none appeared; the goal is met and the instrument is not
+      yet useful'. THE DURABLE HALF IS NOT DONE: scope already ships and already
+      does this job for the card and the record, and nobody has ever pointed it
+      at the document that directs the work. CA-03 then measured that scope
+      reaches none of the prose it would need to read, so the fix is larger than
+      'run the existing tool'. That is the next epic's, and this row is settled
+      rather than carried because the correction is complete and the durable fix
+      is a different piece of work.
 
   - id: CA-02-DF-01
     found_by: "CA-02, cutting the removal-pricing machinery"
     found_at_commit: "37ab155"
     schedule_revision: 1
     severity: moderate
-    channel: "measured while implementing the assigned slice -- a grep the work order's own wording predicted would find something"
+    channel: operator-doing-the-work
+    channel_note: >-
+      measured while implementing the assigned slice -- a grep the work order's own wording predicted would find something
     cost:
       basis: "one grep over 1,245 lines plus one predicate check; no run"
       value: "negligible -- under a minute, and it removed a planned deletion rather than adding one"
@@ -14441,7 +14490,9 @@ findings:
     found_at_commit: "37ab155"
     schedule_revision: 1
     severity: moderate
-    channel: "a red raised by this ticket's own targeted run, traced to its cause before the full suite"
+    channel: the-suite
+    channel_note: >-
+      a red raised by this ticket's own targeted run, traced to its cause before the full suite
     cost:
       basis: "one 224-second targeted run of tests/test_instrument_demonstrations.py, plus one direct invocation of the derivation"
       value: "~4 minutes; it caught a stale demonstration that a full-suite-only workflow would have surfaced 20 minutes later"
@@ -14510,7 +14561,9 @@ findings:
     found_at_commit: "37ab155"
     schedule_revision: 1
     severity: moderate
-    channel: "noticed while checking, per the work order, which sealed results depended on the cut"
+    channel: operator-doing-the-work
+    channel_note: >-
+      noticed while checking, per the work order, which sealed results depended on the cut
     cost:
       basis: "one read of subjects.toml and one grep for scope-existence assertions across tests/"
       value: "negligible; it changed the shape of the deletion (a tombstone instead of an empty directory)"
@@ -14575,7 +14628,9 @@ findings:
     found_at_commit: "37ab155"
     schedule_revision: 1
     severity: moderate
-    channel: "raised by the ticket against its own work while writing the price table's sealed-results section"
+    channel: operator-doing-the-work
+    channel_note: >-
+      raised by the ticket against its own work while writing the price table's sealed-results section
     cost:
       basis: "no run; a consequence noticed while writing section 5 of the price table"
       value: "negligible to find, and it is the one entry here that argues against the ticket that filed it"
@@ -14662,7 +14717,9 @@ findings:
     found_at_commit: "37ab155"
     schedule_revision: 1
     severity: minor
-    channel: "traced deliberately, because the work order required the fate of this red to be stated"
+    channel: census
+    channel_note: >-
+      traced deliberately, because the work order required the fate of this red to be stated
     cost:
       basis: "one `git grep -l price_removal` filtered against the test's own allow-list"
       value: "negligible; it converted an assumption about the red into a two-file measurement"
@@ -15157,7 +15214,9 @@ findings:
     found_at_commit: "4302082"
     schedule_revision: 1
     severity: major
-    channel: "verified a cited finding against the sealed record before resting a deletion on it, because the epic charter told this ticket to"
+    channel: census
+    channel_note: >-
+      verified a cited finding against the sealed record before resting a deletion on it, because the epic charter told this ticket to
     cost:
       basis: "two greps and one read of the SV-06-DF-04 ledger row, plus one awk over test lengths in tests/test_candidate_note_bar.py"
       value: "negligible -- under five minutes, and it stopped a 498-line deletion"
@@ -15237,7 +15296,9 @@ findings:
     found_at_commit: "4302082"
     schedule_revision: 1
     severity: major
-    channel: "ran the format's own required loader check over every path this cut proposed to delete"
+    channel: operator-running-a-shipped-instrument
+    channel_note: >-
+      ran the format's own required loader check over every path this cut proposed to delete
     cost:
       basis: "one grep of the ledger for candidate_note_bar plus one read of SV-07-DF-01's reproduction field and one grep of tests/ for 6281"
       value: "negligible; it changed a planned deletion into a refusal"
@@ -15306,7 +15367,9 @@ findings:
     found_at_commit: "4302082"
     schedule_revision: 1
     severity: major
-    channel: "measured by parking the file and running its consumers, because the work order demanded a run rather than an assertion"
+    channel: operator-doing-the-work
+    channel_note: >-
+      measured by parking the file and running its consumers, because the work order demanded a run rather than an assertion
     cost:
       basis: "two mv operations and four command invocations (run_controls.py import, check_catalogue.py) before and after"
       value: "~3 minutes; it reshaped the ticket's central deletion and preserved a load-bearing disproof"
@@ -15382,7 +15445,9 @@ findings:
     found_at_commit: "4302082"
     schedule_revision: 1
     severity: moderate
-    channel: "a red raised by this ticket's own targeted run, traced to its cause before the full suite"
+    channel: the-suite
+    channel_note: >-
+      a red raised by this ticket's own targeted run, traced to its cause before the full suite
     cost:
       basis: "one 211-second run of tests/test_instrument_demonstrations.py plus one grep of instruments.toml"
       value: "~4 minutes; it attributed two new reds to their exact registry rows"
@@ -15455,7 +15520,9 @@ findings:
     found_at_commit: "4302082"
     schedule_revision: 1
     severity: moderate
-    channel: "checked a work-order instruction against the sealed record and found the record already answered it the other way"
+    channel: census
+    channel_note: >-
+      checked a work-order instruction against the sealed record and found the record already answered it the other way
     cost:
       basis: "one read of scripts/fitness_functions.py's docstring, one grep of the ledger for 'fitness', one read of RM-03-DF-04"
       value: "negligible; it prevented a deletion with no finding behind it"
@@ -15530,7 +15597,9 @@ findings:
     found_at_commit: "6bf1687"
     schedule_revision: 1
     severity: major
-    channel: "independent reviewer dispatched to refute, running the shipped instructions rather than reading them"
+    channel: independent-review
+    channel_note: >-
+      independent reviewer dispatched to refute, running the shipped instructions rather than reading them
     cost:
       basis: "one grep of SKILL.md and one invocation of the documented command; the structural half cost one further reading of PRICE-TABLE-FORMAT.md section 5"
       value: "negligible to find, and it is the sixth row against a declared budget of five -- recorded as an overrun, not dropped"
@@ -15620,7 +15689,9 @@ findings:
     found_at_commit: "e85ba85"
     schedule_revision: 1
     severity: major
-    channel: "a hard gate refused this ticket's own promotion, on substance, and the ticket could not proceed until it complied"
+    channel: operator-running-a-shipped-instrument
+    channel_note: >-
+      a hard gate refused this ticket's own promotion, on substance, and the ticket could not proceed until it complied
     cost:
       basis: "one refused close, two TLC runs (before 13,008,254 states, after 2,505,440), one reconstructed before-tree, one descriptor comparison"
       value: "~25 minutes of measurement; it produced two corrections to this ticket's own reporting that nothing else had caught"
@@ -15734,7 +15805,9 @@ findings:
     found_at_commit: "e85ba85"
     schedule_revision: 1
     severity: major
-    channel: "tried to run the command the assignment named, at the moment the close gate demanded exactly that evidence"
+    channel: operator-running-a-shipped-instrument
+    channel_note: >-
+      tried to run the command the assignment named, at the moment the close gate demanded exactly that evidence
     cost:
       basis: "one `tla-spec-dev run --help` and one `--help` on the top-level CLI"
       value: "negligible to find; it cost a round trip to the epic owner and it is in the assignment text of all eight tickets"
@@ -15811,13 +15884,621 @@ findings:
       and will hit the same clause, the same missing subcommand and the same
       close refusal. Every future epic that copies this matrix inherits it.
     disposition: carried
+  - id: CA-05-DF-01
+    found_by: "CA-05"
+    found_at_commit: "a6bdf42"
+    schedule_revision: 1
+    severity: major
+    channel: census
+    channel_note: >-
+      A census over the whole ledger (220 rows when first run, 231 at the
+      merged tip) and over `git log` for SELF-IMPROVEMENT.md, run to establish
+      the disposition baseline this ticket was sent to move.
+    cost:
+      basis: "one pass over 220 ledger rows plus `git log` on one markdown file; no judged round, no suite run"
+      value: "negligible -- under five minutes, and it is the ticket's main result"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/deferred_findings.yaml", "specs/results/scorecards/SELF-IMPROVEMENT.md"]
+    summary: >-
+      THE DISPOSITION PRACTICE EXISTED, RAN FOR THREE CONSECUTIVE EPICS, AND
+      STOPPED DEAD ON 2026-08-08 WITHOUT ONE LINE OF DISCUSSION IN ANY RECORD.
+      THE PREMISE BEHIND `GOAL-consumption-obligatory` -- "consumption is 1 of 38
+      BECAUSE NOTHING REQUIRES IT" -- IS HALF WRONG.
+
+      `ports-as-adapters` opened five purpose-built carry-forward issues
+      (#144-#148, ALL STILL OPEN TODAY) and routed 14 rows into them.
+      `falsifiable-instruments` routed 29 rows into `subtract-to-measure`'s own
+      tickets SM-02..SM-05 (#166-#169) with a note on each saying what the
+      successor was expected to do. `subtract-to-measure` routed 18 rows
+      onward, 11 into RD-02 (#189) and 7 into RD-01 (#188).
+
+      THE HEADLINE IS 61, NOT 83, AND THE CORRECTION IS THE REVIEWER'S. 83 is
+      every `carried` row; 22 of those SELF-ROUTE to a ticket of the FILING
+      epic (12 PA rows to PA-06, 10 SM rows to SM-05/#169) and routed nothing
+      anywhere. GENUINE CROSS-EPIC ROUTING IS 61 -- PA 14, FI 29, SM 18. The
+      reviewer computed 54 from the rows corrupted per `CA-05-DF-06`; honouring
+      #188 moves SM from 11 to 18.
+
+      THEN NOTHING. reading-discipline 0 of 46. portable-substrate 0 of 28.
+      close-the-loop 0 of 17. score-drives-validation 1 of 31.
+      cut-the-apparatus 0 of 22 at the time of filing. ZERO deferrals in any of them.
+
+      COUNT CORRECTED AFTER REVIEW (see `correction`): 122 rows in the FOUR
+      CLOSED epics, 144 including cut-the-apparatus at the merged tip. The
+      figure originally filed here was `121` -- an arithmetic slip restated
+      without being re-derived, which is `CA-00-DF-05`'s class three commits
+      after it was filed.
+
+      THE BOUNDARY: the last disposing epic merged 2026-08-07, the first
+      non-disposing one 2026-08-10. Nothing happened on 2026-08-08; an earlier
+      version of this row named that date and it was wrong.
+
+      A WEAKER COMPANION OBSERVATION, DELIBERATELY DEMOTED. `SELF-IMPROVEMENT.md`
+      also stops at SM-05 (2026-08-07, `73ebeb6`) and the three epics with a
+      section there are the three that disposed. AN EARLIER VERSION CALLED THAT
+      AN "EXACT CORRELATION ACROSS EIGHT EPICS IN BOTH DIRECTIONS"; THAT IS
+      WITHDRAWN. They are not two independent registers -- `d3f483d` writes BOTH
+      in ONE commit, and they are two outputs of the SAME close-out ritual by
+      the SAME actor, so co-lapse is DEFINITIONAL, not evidential. It is also
+      ONE observation, two step functions sharing one changepoint, not eight. It
+      corroborates nothing and is kept only because it locates the ritual.
+
+      `reading-discipline` is still the epic that CONSUMED its predecessor's
+      deferrals (11 SM rows into #189) AND DEFERRED NONE OF ITS OWN.
+
+      A PRACTICE THAT LAPSES SILENTLY IS A WORSE FAILURE MODE THAN ONE THAT
+      NEVER EXISTED, because the first one was working and nobody was watching.
+    reproduction: >-
+      `python3 scripts/disposition.py --all` over the ledger at `a6bdf42` prints
+      the per-epic table: falsifiable-instruments and subtract-to-measure
+      DISPOSED, the other six REFUSED, 133 of 220 undisposed. Then
+      `grep -n "^# " specs/results/scorecards/SELF-IMPROVEMENT.md` -> sections
+      end at SM-05, and `git log -1 --format=%ad -- <that file>` -> 2026-08-07.
+      `grep -c "RD-0\|RM-0\|CL-0\|SV-0"` on the same file -> 0.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/disposition-all.txt"
+      - "specs/results/scorecards/SELF-IMPROVEMENT.md"
+      - "references/consumption.md"
+    why_out_of_scope: >-
+      Disposing 121 findings filed by four CLOSED epics means deciding, on
+      somebody else's behalf, where each of them goes. That is a plan-owner
+      decision and not one ticket's to make from its own branch -- the same
+      reason CA-01 gave for not repairing the promoted manifest. CA-05 disposes
+      its OWN rows and no others, which is exactly what the requirement it ships
+      asks of every ticket.
+    suggested_fix: >-
+      The owner decides, per closed epic, whether the backlog is carried to a
+      named successor issue or marked `wontfix` with a reason. #144-#148 are the
+      model: purpose-built, still open, one per theme. That is four decisions,
+      not 121, if the epics are dispositioned in blocks.
+    blast_radius: >-
+      Every consumption figure this programme has published since 2026-08-10 was
+      measured while the mechanism that produces consumption was switched off,
+      and nobody noticed because the register that would have shown it was
+      switched off at the same commit.
+    correction: >-
+      AMENDED BY CA-05 AFTER INDEPENDENT REVIEW OF PR #265, at the epic owner's
+      instruction, with each change named. THREE corrections, NONE of which this
+      ticket found itself: (1) `121` was wrong; it is 122 in the four closed
+      epics -- a count restated without being re-derived, `CA-00-DF-05`'s class
+      three commits after it was filed; (2) the "exact correlation across eight
+      epics in both directions" is WITHDRAWN as definitional rather than
+      evidential; (3) "stopped dead on 2026-08-08" named a date on which nothing
+      happened. THE CORE FINDING -- a disposition practice ran three epics and
+      stopped without discussion -- survives all three unchanged.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/262"
+    disposition_note: >-
+      Carried to CA-08 (#262), the evaluation that decides
+      `GOAL-consumption-obligatory`. NOTE: this is SELF-ROUTING -- #262 is this
+      epic's own evaluation ticket -- and per `CA-05-DF-03` the rule cannot tell
+      that from a real handoff. Declared rather than re-pointed at an issue
+      invented to look external. CA-08 must report the refusal of
+      `cut-the-apparatus` by its own requirement, and must not treat the 1-of-41
+      rate as measured under a working mechanism -- it was not. The disposal of
+      the 121 rows themselves is an owner decision that CA-08 surfaces rather
+      than makes.
+  - id: CA-05-DF-02
+    found_by: "CA-05"
+    found_at_commit: "a6bdf42"
+    schedule_revision: 1
+    severity: minor
+    channel: operator-doing-the-work
+    channel_note: >-
+      Noticed while reconciling this ticket's `channel` design against CA-02's,
+      which the work order required rather than left optional.
+    cost:
+      basis: "one read of the five `channel` values on CA-02's branch, against the two prior requests for the field"
+      value: "negligible; it changed the shape of the field rather than adding one"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/deferred_findings.yaml"]
+    summary: >-
+      CA-02 SHIPPED `channel` AS A FREE-TEXT SENTENCE, WHICH DOES NOT DO THE JOB
+      THE FIELD WAS ASKED FOR.
+
+      CA-02's five rows carry values like "measured while implementing the
+      assigned slice -- a grep the work order's own wording predicted would find
+      something". The prose is good. It is not a category.
+
+      The complaint that produced this field, twice, was that the channel signal
+      "exists only as FREE TEXT inside `found_by`, on 57 of 173 rows, WHICH IS
+      WHY THIS MEASUREMENT IS EXPENSIVE EVERY TIME" (RM-05 census) and that the
+      resulting table "is a hand classification of free text every single time"
+      (SV-05). A free-text `channel` RELOCATES the free text from `found_by` to
+      `channel`; the next census still classifies by hand, and the field has
+      bought nothing.
+
+      CA-02's `cost` block is a different matter and is ADOPTED VERBATIM: it is
+      exactly CL-04's proposal, `basis` and `value`, and it is right.
+    reproduction: >-
+      `git show origin/feature/CA-02:specs/desired_program_model/deferred_findings.yaml
+      | grep -A1 "^    channel:"` -> five sentences, no repeated token, nothing a
+      counter can group by.
+    evidence:
+      - "references/consumption.md"
+      - "NEXT-EPIC.md"
+    why_out_of_scope: >-
+      CA-02's rows are CA-02's, its PR is open and under external review, and
+      editing a sibling ticket's findings from this branch is the move the epic
+      workflow forbids. CA-05 defines the field and reconciles the shape at
+      promotion; whether CA-02 agrees is a review question, not this ticket's to
+      settle unilaterally.
+    suggested_fix: >-
+      `channel` takes one token from the closed vocabulary in
+      `references/consumption.md`; CA-02's sentences move to `channel_note`
+      INTACT, losing not one word. CA-05 applies exactly this to CA-02's five
+      rows when CA-02 merges ahead of it, and says so in its PR.
+    blast_radius: >-
+      Bounded and cheap while only five rows exist. It stops being cheap the
+      moment a third ticket copies the free-text shape, because then the field
+      has a precedent and the next census is still done by hand. THAT HAPPENED:
+      `CA-04` shipped eight more free-text `channel` values, because CA-05 was
+      still unmerged when it ran. Reconciled here, 14 rows in total.
+
+      AND A SECOND DEFECT, WHICH IS RM-05'S COMPLAINT REPEATING. The vocabulary
+      HAS NO SLOT FOR "A GATE REFUSED A CLOSE". `CA-04-DF-07` (the complexity
+      ledger refusing CA-04's promotion on substance) and `CA-04-DF-08` land in
+      `operator-running-a-shipped-instrument` BY THE ABSENCE OF A BETTER OPTION
+      RATHER THAN BY FIT -- which is exactly what RM-05's census said about
+      "operator running a shipped instrument they did not build" being missing,
+      one vocabulary revision earlier. A closed vocabulary inherits this failure
+      mode permanently; the fix is a `gate-refused` token, and CA-05 does not
+      add one because adding a token after seeing which rows need it, mid-epic,
+      moves the classification under CA-08.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/262"
+    disposition_note: >-
+      Carried to CA-08 (#262). CA-05 reconciled CA-02's five rows into
+      `channel` + `channel_note` at promotion; CA-08 confirms the reconciliation
+      survived and that no later ticket reintroduced the free-text shape. If
+      review overrules the reconciliation, the field reverts to prose and this
+      row records why that was a choice rather than an accident.
+  - id: CA-05-DF-03
+    found_by: "CA-05"
+    found_at_commit: "a6bdf42"
+    schedule_revision: 1
+    severity: major
+    channel: operator-running-own-instrument
+    channel_note: >-
+      Found by running the checker this ticket built against the sealed record,
+      per the charter rule that every research ticket runs its own proposed rule
+      against the record before it ships. The rule ACCEPTED an epic that should
+      make a reader uneasy, which is how the bound was located.
+    cost:
+      basis: "one `--all` run of the shipped checker, plus ten `gh issue view` calls on the successor issues it accepted"
+      value: "negligible; it is the one entry here that argues against the instrument that filed it"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["scripts/disposition.py", "references/consumption.md"]
+    summary: >-
+      THE DISPOSITION CHECK MEASURES ROUTING AND NOT CONSUMPTION, AND THE HOLE
+      IS WIDER THAN THIS ROW FIRST CLAIMED. WIDENED AFTER REVIEW OF PR #265;
+      EVERY FACE BELOW EXCEPT THE FIRST WAS FOUND BY THE REVIEWER, NOT BY ME.
+
+      (a) SELF-ROUTING PASSES, AND THIS TICKET DOES IT. An epic may defer a
+      finding to its OWN ticket and satisfy D3 with full marks. 22 real rows do
+      it (12 PA rows to PA-06, 10 SM rows to SM-05/#169) -- AND SO DO ALL THREE
+      OF CA-05'S OWN `carried` ROWS, which name #262 = CA-08, this epic's own
+      evaluation ticket. THAT IS THE DEAD CASE, and the first version of this
+      row did not name it.
+
+      (b) THE SUCCESSOR NEED NOT BE AN ISSUE, OR RESOLVE TO ANYTHING.
+      `disposition_ticket` is any non-empty string; 14 real rows name a bare
+      ticket id. Nothing resolves it, so nothing tells a live successor from
+      one that closed with the epic that named it.
+
+      (c) A DEFERRAL NEEDS NO NOTE AT ALL. D2 binds terminal dispositions only;
+      17 real `carried` rows carry no `disposition_note`.
+
+      (d) THE WHOLE BACKLOG IS ONE SCRIPT AWAY FROM GREEN. The reviewer turned
+      all 133 undisposed rows green with TWO FIELD REWRITES, exit 0 on both.
+
+      (f) MEASURED AT THE RECONCILED TIP: D2 AND D3 PRODUCE FALSE REFUSALS AT
+      SCALE. `CA-04` dispositioned all eight of its rows and FAILED D2 twice and
+      D3 six times -- because it recorded the disposition in `summary`,
+      `why_out_of_scope` and `suggested_fix` rather than in the two keys the
+      clauses read. `CA-04-DF-01` carries its refutation in `summary`;
+      `CA-04-DF-02` names its successor in prose ("SV-02's owed both-wordings
+      round") and not in `disposition_ticket`. WITH `PA-01-DF-03` AND
+      `PA-05-DF-02` THAT IS 10 FALSE REFUSALS OVER THE WHOLE RECORD, EVERY ONE
+      INSPECTED INDIVIDUALLY. D1's 134 refusals remain genuine.
+
+      THE RULE IS DELIBERATELY NOT CHANGED. Demoting D2/D3 to advisory after
+      seeing this epic's own numbers is `MF-020`, and `CA-08` must not measure a
+      rule that moved after seeing its data. It would also not rescue this epic,
+      which refuses on 16 D1 rows either way -- so no self-serving version of
+      the change exists. RECOMMENDED TO `CA-08`, NOT PERFORMED HERE.
+
+      (e) AND THE ORIGINAL CLAIM, WHICH THE REVIEWER CORRECTLY DEMOTED.
+      `falsifiable-instruments` passes with 29 rows carried to #166-#169, which
+      closed the day after FI merged. That is the NORMAL signature of an epic
+      handing work to its successor, not a dead handoff, and citing it as the
+      blindness was the weaker example.
+
+      THIS IS THE SAME SHAPE AS HARVEST CLASS D1 -- a cell that is a floor
+      rather than a measurement -- pointed at the instrument this ticket ships.
+      It is stated here rather than left for a reviewer to find, BECAUSE THIS
+      PROJECT HAS SHIPPED THREE INSTRUMENTS LATER FOUND BLIND AND ONE OF THEM
+      SHIPPED THIS EPIC.
+    reproduction: >-
+      `python3 scripts/disposition.py --epic falsifiable-instruments` -> exit 0,
+      "DISPOSED falsifiable-instruments: 30 findings, all three clauses hold".
+      Then `gh issue view 166 --json closedAt` .. `169` -> all four
+      `2026-08-07T19:37:58Z`-`19:38:00Z`, and
+      `git log --format=%ad --date=short --grep="Merge epic/falsifiable-instruments"`
+      -> 2026-08-06.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/disposition-all.txt"
+      - "references/consumption.md"
+    why_out_of_scope: >-
+      Closing it means measuring whether a successor ticket actually consumed
+      the finding it received, which is a whole ticket's work and would be
+      apparatus built in the name of measuring apparatus -- the hazard this
+      ticket's own goal block names as real. CA-05 declines to build it and
+      declares the bound instead.
+    suggested_fix: >-
+      Nothing, for now. If a later epic wants it, the cheap version is a
+      `consumed_by` field naming the commit or test that carried the finding
+      into the program -- which is what `SV-04` did for class A1 and is the only
+      instance in 220 rows. A count of `consumed_by` is the real consumption
+      numerator; D1-D3 only count routing.
+    blast_radius: >-
+      Anyone quoting "N epics disposed" as if it meant "N epics consumed" is
+      overstating, in exactly the direction this programme keeps overstating.
+      `references/consumption.md` carries the caveat beside the table so the
+      number cannot be lifted without it.
+    correction: >-
+      WIDENED BY CA-05 AFTER INDEPENDENT REVIEW OF PR #265. Faces (a)-(d) were
+      added at review; face (e) is the original claim, demoted. The row as first
+      filed named the WEAKEST of the five and presented it as the blindness.
+      A ticket that declares its instrument's blind spot and picks the flattering
+      one has not declared it.
+    disposition: wontfix
+    disposition_note: >-
+      WONTFIX, DELIBERATELY AND WITH THE REASON ON THE RECORD -- but note that
+      the reason covers only the CONSUMPTION half. The check measures ROUTING,
+      and says so in its docstring, its documentation and the table it prints.
+      Building the consumption half would be new apparatus measuring apparatus,
+      against `GOAL-apparatus-cut`, on a ticket whose own goal block names that
+      hazard. Faces (a) and (c) are CHEAP to close and CA-05 still declines,
+      because a rule that refuses self-routing would refuse this ticket's own
+      three deferrals and there is no external successor to point them at yet --
+      which is an argument for the next epic opening carry-forward issues the
+      way `ports-as-adapters` did (#144-#148), not for weakening the rule.
+  - id: CA-05-DF-04
+    found_by: "CA-05"
+    found_at_commit: "a6bdf42"
+    schedule_revision: 1
+    severity: minor
+    channel: census
+    channel_note: >-
+      A count of the sealed cards on disk against the count `CL-03`'s method
+      paragraph declares, taken while repairing the register.
+    cost:
+      basis: "one `find specs/results/scorecards -name scorecard.json | wc -l` against one number in CL-03's prose"
+      value: "negligible; it converted the repaired denominator from a figure into a floor"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md"]
+    summary: >-
+      THE REPAIRED DENOMINATOR OF 41 IS A FLOOR, NOT A RECOUNT, AND SAYING SO IS
+      THE POINT.
+
+      `CL-03` swept 83 cards on 2026-08-11 and named 38 classes. CA-05 appended
+      the three classes `SV-01-DF-05` filed to the ledger and never to the
+      register, giving 41. But the tree now holds 95 `scorecard.json` files.
+      TWELVE CARDS HAVE BEEN SEALED SINCE THE SWEEP AND NOBODY HAS SWEPT THEM.
+
+      So 41 is what one bounded, reproducible repair yields -- not what
+      re-running CL-03's method over 95 cards would yield. QUOTING 41 AS "THE
+      NUMBER OF KNOWN CLASSES" IS THE SAME ERROR QUOTING 38 WAS, one epic later
+      and with the correction already written down.
+    reproduction: >-
+      `find specs/results/scorecards -name scorecard.json | wc -l` -> 95 at
+      `a6bdf42`. `CL-03`'s method paragraph declares 83. `grep -cE '^\*\*[A-F][0-9]+\.'`
+      on HARVEST-CL-03.md -> 38 before this ticket's addendum.
+    evidence:
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md"
+      - "specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/harvest-recount.md"
+    why_out_of_scope: >-
+      Re-running the sweep is CL-03's whole ticket: four agents reading four
+      slices in full, 800,181 characters of judge prose. It is not a side effect
+      of a bookkeeping repair, and doing a cheap version would produce a number
+      that looks like CL-03's and was not made the same way -- which is the
+      comparability error `R-H1`/`R-H2` exist to prevent.
+    suggested_fix: >-
+      A next-epic ticket re-runs CL-03's method over the 12 unswept cards ONLY,
+      and reports the new classes as an increment with its own bound, rather
+      than re-deriving the whole 41.
+    blast_radius: >-
+      Every consumption rate published from here forward. The rate has now been
+      restated twice on a moving denominator, and the second restatement is the
+      one that says out loud that the denominator is still moving.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/262"
+    disposition_note: >-
+      Carried to CA-08 (#262), which decides `GOAL-consumption-obligatory` and
+      will quote the denominator. CA-08 must quote 41 AS A FLOOR with the
+      12-unswept-cards caveat attached, or it repeats the error this row exists
+      to stop. The re-sweep itself is next-epic work and CA-05 recommends it be
+      scoped to the increment.
+  - id: CA-05-DF-05
+    found_by: "CA-05"
+    found_at_commit: "a6bdf42"
+    schedule_revision: 1
+    severity: trivial
+    channel: census
+    channel_note: >-
+      Fell out of enumerating the harvest's class ids and run markers to verify
+      the count of 38 before appending to it.
+    cost:
+      basis: "two greps over one 291-line markdown file"
+      value: "negligible"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md"]
+    summary: >-
+      `HARVEST-CL-03.md`'s METHOD PARAGRAPH SAYS "the four items marked [RUN]".
+      THE FILE CARRIES FIVE RUN MARKERS: `A1`, `A2` and `F1` as `[RUN]`, and
+      `C4` and `C5` as `[RUN by the judge]`.
+
+      The likely reading is that the sentence counts only the bare `[RUN]`
+      markers and forgot one, or counts `[RUN]` and not `[RUN by the judge]` and
+      is then wrong about which set it is describing. Either way the sentence
+      that states the sweep's ONE claim of verification -- "nothing below is
+      verified by this ticket EXCEPT the four items marked [RUN]" -- does not
+      match the file it introduces.
+    reproduction: >-
+      `grep -c '\[RUN\]' ` and `grep -c '\[RUN by the judge\]'` on
+      HARVEST-CL-03.md -> 3 and 2. The method paragraph says four.
+    evidence:
+      - "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md"
+    why_out_of_scope: >-
+      `CL-03`'s text is sealed and CA-05's mandate on this file is to APPEND a
+      register repair, not to edit a predecessor's prose. The charter's change
+      rule keeps old anchors for exactly this reason.
+    suggested_fix: >-
+      Nothing. It is recorded in the addendum so the next reader does not
+      rediscover it, and a reader can resolve one sentence against five markers
+      without help.
+    blast_radius: >-
+      Trivial in itself. Worth a row only because the affected sentence is the
+      one that bounds what the sweep claims to have verified, and this project
+      has twice been bitten by a bound quoted without its caveat.
+    disposition: wontfix
+    disposition_note: >-
+      WONTFIX: recorded in the HARVEST-CL-03.md addendum, deliberately not
+      repaired, because the predecessor's text is sealed and the discrepancy is
+      self-resolving on inspection.
+  - id: CA-05-DF-06
+    found_by: "PR #265's independent reviewer, dispatched by the epic owner; NOT by CA-05, and NOT by the instrument CA-05 shipped"
+    found_at_commit: "766deb5"
+    schedule_revision: 1
+    severity: major
+    channel: independent-review
+    channel_note: >-
+      A reviewer dispatched to refute PR #265 read the ledger as TEXT rather
+      than through a parser. Every instrument in this project reads it through
+      a parser, which is precisely why nothing had ever seen it.
+    cost:
+      basis: "not measured by CA-05 -- the finding arrived from the reviewer's dispatch, whose token cost belongs to that dispatch and was not reported to this ticket"
+      value: "UNKNOWN, and recorded as unknown rather than estimated. CA-05's own cost for the REPAIR was one 7-row edit, one 32-line guard, two tests and one re-run."
+    surface:
+      production: ["scripts/disposition.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/deferred_findings.yaml"]
+    summary: >-
+      SEVEN LEDGER ROWS CARRIED DUPLICATE `disposition_ticket` KEYS, AND THE
+      DISPOSITION CHECK CERTIFIED THE RESULT AS CLEAN.
+
+      `SM-05-DF-01`..`DF-07` each had `disposition_ticket` TWICE: `.../188`
+      above the `disposition_note`, `.../169` below it. YAML keeps the LAST and
+      discards the rest without a word, so every parser in this repository read
+      `#169` -- `subtract-to-measure`'s OWN evaluation issue, closed 2026-08-07
+      -- while the `disposition_note` on the same row says "Carried to the
+      successor epic RD-01 (#188)" and the close-out commit `c387336` says
+      "SM-05's seven to RD-01 (#188)". The stray `#169` is `c387336`'s `Refs`
+      trailer, pasted into the wrong place.
+
+      `scripts/disposition.py` READ EXACTLY THE DISCARDED FIELD and printed
+      `DISPOSED subtract-to-measure: 30 findings, all three clauses hold`. That
+      was ONE OF THE TWO PASSES THE ENTIRE DISCRIMINATION ARGUMENT OF CA-05
+      RESTED ON.
+
+      THIS IS `CA-00-DF-04`'S CLASS EXACTLY -- a false PASS on real data, from
+      an instrument shipped in the same epic that filed the class. Nothing in
+      the record had ever noted it, across every epic that read this file.
+    reproduction: >-
+      At `766deb5`: `grep -n 'disposition_ticket' specs/desired_program_model/deferred_findings.yaml`
+      shows lines 5677/5680, 5761/5764, 5830/5833, 5899/5902, 5984/5987,
+      6065/6068, 6126/6129 in pairs. `python3 -c "import yaml; ..."` on any of
+      the seven returns `.../169` while the row's own note says `#188`.
+      `git log -1 --format=%B c387336` agrees with the note.
+      `python3 scripts/disposition.py --ledger <the pre-repair file> --epic subtract-to-measure`
+      now prints seven `STRUCTURAL` lines and refuses.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/refusal.md"
+      - "scripts/disposition.py"
+      - "tests/test_disposition_requirement.py"
+    why_out_of_scope: >-
+      NOT out of scope, and NOT deferred. Repaired in this ticket, because the
+      epic owner instructed it and because leaving it would mean shipping an
+      instrument whose documentation cites a PASS the instrument computed from
+      data a parser had thrown away.
+    suggested_fix: >-
+      Done, in three parts. (1) The seven rows keep `#188`, which the note and
+      the close-out commit message both name, and the stray `#169` lines are
+      deleted -- 7 lines. (2) `duplicate_keys()` refuses BEFORE any clause is
+      evaluated: a clause verdict over silently-discarded input is not a
+      verdict. (3) Two tests, one on the exact shape of the real fault and one
+      pinning the repaired ledger.
+    blast_radius: >-
+      Beyond this ticket: the ledger is read by `close_tickets.py`,
+      `score_tools.py` and four test files, and NONE of them would have seen a
+      duplicate key either. The guard is in `disposition.py` only, so the class
+      remains reachable through every other reader -- named here rather than
+      fixed everywhere, because a schema validator for this file is a whole
+      ticket and CA-05 is already over its finding budget.
+
+      AND THE HONEST SECOND-ORDER COST: the reviewer's cross-epic routing figure
+      of 54 was computed FROM the corrupted rows. Repairing them moves it to 61.
+      A correction that changes the number it was correcting is worth stating
+      twice.
+    disposition: repaired
+    disposition_note: >-
+      REPAIRED IN CA-05 at the epic owner's instruction: seven rows corrected to
+      `#188`, a structural guard added that refuses duplicate keys before any
+      clause runs, and two tests pinning both. The guard's demonstrated failing
+      input is THE REAL PRE-REPAIR FILE, not a fixture -- `R1` discharged on a
+      genuine historical corruption. The residual class (every other reader of
+      this file is still blind to duplicate keys) is named in `blast_radius` and
+      is NOT repaired here.
+  - id: CA-05-DF-07
+    found_by: "CA-05, by being refused; diagnosed by CA-05 and confirmed by the epic owner"
+    found_at_commit: "b3fb00d"
+    schedule_revision: 1
+    severity: major
+    channel: operator-running-a-shipped-instrument
+    channel_note: >-
+      A hard close gate refused this ticket's promotion, on a delta this ticket
+      did not cause. The vocabulary still has no `gate-refused` token -- see
+      CA-05-DF-02's blast_radius -- so this lands here by the absence of a
+      better option rather than by fit, which is the third time that has
+      happened in this epic.
+    cost:
+      basis: "two refused close attempts plus one query over complexity_ledger.json's 14 CA-* entries; no TLC run, deliberately"
+      value: "~10 minutes. The diagnosis was one table: every ticket's recorded variables/actions beside its own model_delta_expectation."
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/complexity_ledger.json", "scripts/complexity_ledger.py"]
+    summary: >-
+      THE COMPLEXITY LEDGER'S TICKET-SCOPED DELTA IS MEASURED AGAINST THE
+      TICKET'S OWN PREVIOUS ENTRY, AND THAT PAIR STRADDLES A MERGE. SO A TICKET
+      THAT PROMOTES AFTER A MODEL-CHANGING PREDECESSOR INHERITS THE
+      PREDECESSOR'S DELTA AND IS ASKED TO LICENSE IT.
+
+      CA-05 was refused with:
+
+        REJECTED -- complexity decreased but the validated-refactor basis is
+        UNVERIFIED. variables: 9 -> 8 (-11.1%), actions: 17 -> 16 (-5.9%)
+
+      CA-05 CHANGED NO MODEL SURFACE. Its model_delta_expectation is "none
+      expected"; ticket desired == ticket current == promoted specs/current; no
+      .tla or .cfg outside its own sealed history snapshot differs from the epic
+      tip. The decrease is CA-04's, which removed the mutation kill test
+      deliberately.
+
+      THE RECORDED ENTRIES MAKE IT UNAMBIGUOUS. In complexity_ledger.json:
+      CA-01 9/17, CA-02 9/17, CA-03 9/17, CA-05's FIRST close 9/17, CA-04 8/16,
+      CA-05's re-close 8/16. The `9 -> 8` CA-05 is charged with is precisely the
+      step CA-04 took between CA-05's two closes.
+
+      THE COMPARISON SHOULD BE AGAINST THE MERGE BASE, not the ticket's previous
+      entry. A ticket-scoped delta is supposed to answer "what did THIS TICKET
+      do to the model", and against a moving baseline it answers "what happened
+      to the model between two times this ticket happened to close".
+
+      EVERY REMAINING TICKET IN THIS EPIC WILL HIT THIS. CA-06 and CA-07 both
+      promote after CA-04. It is filed now, before they run, rather than after.
+    reproduction: >-
+      `python3 -c "import json; d=json.load(open('specs/results/complexity_ledger.json'));
+      print([(e['scope_id'], e['metrics']['variables'], e['metrics']['actions'])
+      for e in d['entries'] if e.get('scope')=='ticket' and e['scope_id'].startswith('CA-')])"`
+      prints the 9/17 -> 8/16 step at CA-04 and CA-05 re-closing on the far side
+      of it. Then `tla-spec-dev --spec-root specs close ticket CA-05` on a tree
+      whose ticket desired == ticket current == promoted current is refused for a
+      decrease, with `diff -q` on all three showing no model difference.
+    evidence:
+      - "specs/results/complexity_ledger.json"
+      - "specs/results/scorecards/cut-the-apparatus/CA-04/tlc-before.txt"
+      - "specs/results/scorecards/cut-the-apparatus/CA-04/descriptor-comparison.md"
+    why_out_of_scope: >-
+      `scripts/complexity_ledger.py` is not in CA-05's conflict keys, and
+      changing how a hard close gate scopes its comparison, mid-epic, while
+      three tickets still have to promote through it, is a plan-owner decision.
+      CA-05 was refused BY this gate; a ticket repairing the gate that just
+      refused it is the worst possible author for that change.
+    suggested_fix: >-
+      Scope the ticket delta to the MERGE BASE of the ticket branch against the
+      epic branch, not to the ticket's previous recorded entry. Until then, the
+      workaround the owner authorised here is sound and cheap: fill the
+      validated-refactor basis BY CITATION to the ticket that actually made the
+      change, with the attribution stated inside the basis so no later reader
+      credits the wrong ticket. DO NOT let a ticket run TLC on a model it never
+      touched -- that produces a real run certifying a false attribution, which
+      is worse than the refusal.
+    blast_radius: >-
+      CA-06 and CA-07 in this epic, and every future epic where a ticket
+      promotes after a model-changing predecessor -- which is the normal shape of
+      a serialized promotion lane, so this is not an edge case.
+
+      AND THE SECOND-ORDER COST, WHICH IS THE ONE THAT MATTERS FOR THIS EPIC'S
+      OWN ARGUMENT: this is a FALSE REFUSAL by a hard gate. Three gate results in
+      this epic were catches (audit's dated outcome-changing catches, the
+      registry tripwire catching CA-05, and the substantive refusal that
+      corrected CA-04's own flattering claim). THIS IS THE FOURTH AND IT POINTS
+      THE OTHER WAY. Both directions are now evidenced, which is a better input
+      to CA-08 than three catches alone -- AND IT WEAKENS THE CASE CA-05 WAS
+      BUILDING, since CA-05 is the party arguing that the process-gate category
+      is doing real work. Stated here rather than left for CA-08 to notice.
+    disposition: carried
+    disposition_ticket: "https://github.com/haydenrear/tla-spec-dev/issues/262"
+    disposition_note: >-
+      Carried to CA-08 (#262), which adjudicates the gate question and must now
+      weigh FOUR results in two directions rather than three in one. NOTE: this
+      is SELF-ROUTING per CA-05-DF-03 face (a) -- #262 is this epic's own
+      evaluation ticket -- and the rule cannot tell that from a real handoff.
+      Declared, not disguised. The gate repair itself is the plan owner's, and
+      it should land BEFORE CA-06 and CA-07 promote rather than after.
 
   - id: CA-06-DF-01
     found_by: "CA-06"
     found_at_commit: "e379d6b"
     schedule_revision: 1
     severity: major
-    channel: "ran the two defended generation modes on a subject that is not the fixture they were measured on, because the work order asked what they cost and catch on a REAL subject"
+    channel: "operator-running-a-shipped-instrument"
     cost:
       basis: "one `--negative-cases with-positive` run on examples/distributed_history, then one grep for the caller of extract_action_signatures"
       value: "under ten minutes; the resolver it needs has been in the sibling module scripts/analyze_complexity.py for three epics"
@@ -15867,10 +16548,7 @@ findings:
       `tests/test_ports_binding_removed.py` asserts the two FLAGS survive
       without ever asserting they EMIT anything on a model that is not that
       fixture. The charter counts three instruments in this project later found
-      blind; these are the fourth and fifth. Measured, the machinery behind them is
-      1,730 lines: a 1,043-line TLA+ expression parser and guard evaluator shared
-      by both, 290 lines of negative-corpus construction, 397 of port-corpus
-      construction.
+      blind; these are the fourth and fifth, and they are ~1,430 lines.
     reproduction: >-
       `python3 scripts/generate_cases_from_tlc_dump.py
       examples/distributed_history/specs/program_model/Internal.tla
@@ -15914,7 +16592,7 @@ findings:
     found_at_commit: "e379d6b"
     schedule_revision: 1
     severity: major
-    channel: "ran the 11 negative cases CA-06-DF-01's fix unlocked through the subject's own shipped adapters, instead of counting them"
+    channel: "operator-running-a-shipped-instrument"
     cost:
       basis: "one adapter run over the unlocked corpus"
       value: "seconds, and only reachable at all after CA-06-DF-01 was fixed -- which is why three epics never saw it"
@@ -15950,7 +16628,7 @@ findings:
 
       CONSEQUENCE FOR THE EPIC'S QUESTION: the measured yield of
       `--negative-cases` on a real subject is ZERO CASES EXECUTED. Not zero
-      unique kills -- zero executions. The 1,333 lines of hand-written TLA+
+      unique kills -- zero executions. The ~1,030 lines of hand-written TLA+
       expression parser and guard evaluator behind it have never run against an
       adapter outside `QuotaLedger`.
     reproduction: >-
@@ -15984,6 +16662,7 @@ findings:
       negative corpus reaches a class nothing else reaches. On the one subject
       outside the fixture it reaches nothing, because nothing runs.
     disposition: carried
+    disposition_ticket: "CA-07 (#261)"
     disposition_note: >-
       Carried to CA-07, which is the ticket that must land a regression through
       this path and is the first party for whom a non-executing negative corpus
@@ -15994,7 +16673,7 @@ findings:
     found_at_commit: "e379d6b"
     schedule_revision: 1
     severity: minor
-    channel: "grepped every live invocation of the runner before cutting, per CA-02's loader-check rule, and found the default execution mode has no callers at all"
+    channel: "operator-doing-the-work"
     cost:
       basis: "one git grep over live surfaces"
       value: "minutes; the mode has been the DEFAULT and unused for as long as the grep reaches"
@@ -16054,7 +16733,7 @@ findings:
     found_at_commit: "e379d6b"
     schedule_revision: 1
     severity: major
-    channel: "ran this epic's own headline as a measurement on a subject it had never been measured on, because the work order said to report what the path catches on a real subject"
+    channel: "operator-running-own-instrument"
     cost:
       basis: "one 128-mutant enumeration over one 202-line module, both instruments per mutant"
       value: "about two minutes of wall clock; the subject has been checked into this repository the whole time"
@@ -16129,8 +16808,17 @@ findings:
       unqualified sentence -- including this epic's own framing of CA-06, which
       instructed a dramatic shrink on the basis of a corpus said to produce
       nothing.
-    disposition: open
+    disposition: carried
+    disposition_ticket: "CA-08 (#262)"
     disposition_note: >-
-      OPEN for CA-08, which decides `GOAL-four-results-stand` and owns the
+      Carried to CA-08, which decides `GOAL-four-results-stand` and owns the
       disproof table this sentence sits in. It is a correction to a DISPROOF, and
       the charter says the four disproofs are as load-bearing as the four results.
+
+      FILED AS `open` AND CHANGED TO `carried` BEFORE THIS PR MERGED, because
+      CA-05 landed while CA-06 was measuring and `open` stopped being an
+      acceptable value. Recorded rather than quietly rewritten: the rule caught
+      a real row of this ticket's own, which is what CA-05 built it for.
+
+      SELF-ROUTING, DECLARED per `CA-05-DF-03` face (a): #262 is this epic's own
+      evaluation ticket, and the rule cannot tell that from a real handoff.
