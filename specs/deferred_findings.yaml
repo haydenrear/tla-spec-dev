@@ -20584,3 +20584,248 @@ findings:
       Note for SS-08: if the repaired classifier moves the denominator, the
       baseline `0 of 20` is superseded and the movement is the finding, not a
       correction to be applied silently.
+  - id: SS-03-DF-01
+    found_by: "SS-03"
+    found_at_commit: "25600fa"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_goal_baseline_is_a_card.py"]
+    channel: execution
+    cost: >-
+      Reading one red in the epic-base suite and its traceback.
+    summary: >-
+      AN R1 SUBJECT PINNED BY LIVE-PLAN LOOKUP IS LOST SILENTLY AT EVERY EPIC
+      ROLLOVER, AND IT IS LOST AS AN ERROR RATHER THAN AS A FINDING.
+      `tests/test_goal_baseline_is_a_card.py::test_a_real_epic_plans_judged_baseline_cannot_be_re_opened`
+      held this project's only demonstrated failing input on a real epic plan.
+      It read the subject out of `specs/desired_program_model/ticket_plan.yaml`
+      and indexed it by goal id. When `stabilize-substrate`'s plan became the
+      live plan, the lookup raised `KeyError: 'GOAL-loop-reaches-the-program'`.
+      THE SUBJECT DID NOT MOVE. It is still declared, sealed and unedited in
+      `score-drives-validation-epic`'s plans under `specs/.history`, still
+      verdict `directory`, still citing a folder with zero cards. What moved was
+      the live plan. THE TEST'S OWN DOCSTRING ANTICIPATED THE WRONG FAILURE MODE
+      -- it says "if this ever goes GREEN, the baseline was edited after the
+      fact" -- and a green is not what happened; a KeyError is. A demonstration
+      that reports its subject's disappearance as an exception cannot be
+      distinguished by a reader from a broken test.
+    reproduction: >-
+      At 25600fa on `epic/stabilize-substrate`, before this ticket's repair,
+      `uv run --with pytest --with pyyaml -m pytest
+      tests/test_goal_baseline_is_a_card.py -q` fails with
+      `KeyError: 'GOAL-loop-reaches-the-program'`. The same subject is present
+      and unchanged at
+      `specs/.history/score-drives-validation-epic/ticket-005-SV-07/snapshots/desired_program_model/ticket_plan.yaml`
+      and five sibling snapshots.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-03/pytest-25600fa-base.txt -- the red at the epic base"
+      - "specs/results/scorecards/stabilize-substrate/GOAL-tree-stabilizes/baseline.md section 2.3 -- the kickoff's own attribution of it"
+      - "tests/test_goal_baseline_is_a_card.py -- the repaired demonstration and the docstring that names the move"
+    why_out_of_scope: >-
+      IN SCOPE and REPAIRED by SS-03. The demonstration was MOVED, not deleted,
+      per its own docstring: it now reads the whole record keyed on
+      `(workflow, goal id)` and pins the subject where it actually lives. Filed
+      because the MECHANISM is general and the repair of one test does not
+      consume it.
+    suggested_fix: >-
+      CONSUMPTION, not routing. Any test that pins an `R1` subject must address
+      it by `(workflow, id)` over the whole record -- live and sealed -- rather
+      than by lookup in whatever plan happens to be live, and must assert the
+      subject's PRESENCE with a message before asserting anything about it, so a
+      vanished subject reports as a finding rather than as a KeyError. The
+      substrate check that would catch the whole class is a sweep asserting that
+      no test in `tests/` indexes `specs/desired_program_model/ticket_plan.yaml`
+      by a goal id it does not first assert exists. SS-03 did not build that
+      sweep and says so.
+    blast_radius: >-
+      Every demonstrated-failing-input test in this repository that reads the
+      live plan. One found and repaired; the class is not swept.
+    disposition: carried
+    disposition_ticket: "unassigned -- stabilize-substrate triage; SS-03 repaired the instance, not the class"
+    disposition_note: >-
+      CARRIED as a class. The single instance is repaired at SS-03's tip and the
+      demonstration is preserved and moved, not deleted. The sweep that would
+      consume the class is named in suggested_fix and was NOT built by SS-03.
+  - id: SS-03-DF-02
+    found_by: "SS-03"
+    found_at_commit: "25600fa"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/baseline_is_a_card.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: execution
+    cost: >-
+      Zero. SS-03 committed this defect's failing input by accident while doing
+      other work and the instrument reported the wrong number without a word.
+    summary: >-
+      THE CENSUS SILENTLY DROPPED ANY PLAN THAT DID NOT PARSE, WHICH SHRINKS THE
+      DENOMINATOR IN EXACTLY THE DIRECTION `SS-00-DF-02` IS ABOUT. `every_plan`
+      wrapped `yaml.safe_load` in `except Exception: continue`. SS-03 edited the
+      LIVE plan and left an unquoted `": "` inside a `baseline.evidence` string;
+      the plan stopped parsing, and the next census run reported 122 plans and
+      31 goals instead of 123 and 36 -- FIVE GOALS GONE, no warning, no error,
+      no line saying a plan had been skipped, and the compliance rate computed
+      over the smaller denominator. THIS IS THE ABSENT-INPUT CLASS ON THE
+      INSTRUMENT THAT MEASURES THE ABSENT-INPUT CLASS: "read and found nothing"
+      was answered with "read nothing", and the answer was confident.
+    reproduction: >-
+      Insert `": "` into any plain scalar in
+      `specs/desired_program_model/ticket_plan.yaml` (for example inside
+      `epic_goals[].baseline.evidence`) and run `uv run --with pyyaml python3
+      specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/baseline_is_a_card.py`.
+      Before the repair the population line reads `plans on disk : 122` and
+      `distinct epic goals : 31` with no other change in output. After the
+      repair the run prints `plans that DID NOT PARSE and were dropped
+      (SS-03-DF-02) : 1` and names the file and the parser error.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-03/RESULT.md section 6 -- the accidental reproduction, recorded rather than hidden"
+      - "specs/results/scorecards/stabilize-substrate/SS-03/baseline_is_a_card-SS-03-tip.txt -- the repaired population block, which now prints the drop count"
+    why_out_of_scope: >-
+      IN SCOPE and REPAIRED by SS-03 in the same file as SS-00-DF-02, because it
+      is the same defect wearing different clothes.
+    suggested_fix: >-
+      Landed. `_walk_plans` returns the plans that parsed AND the plans that did
+      not, and the census prints the count and every file with its parser error.
+      THE GENERAL RULE, which is not landed and is named here rather than
+      claimed: any census over a corpus must report the members it could not
+      read, because a member dropped in silence is indistinguishable from a
+      member that does not exist, and the difference is the denominator.
+    blast_radius: >-
+      Every figure this instrument has ever produced. Not known to have been
+      wrong before 25600fa -- zero plans fail to parse at this tree, verified --
+      but nothing would have said so.
+    disposition: repaired
+    disposition_ticket: "SS-03"
+    disposition_note: >-
+      REPAIRED at SS-03's tip with the failing input reproduced above. The
+      general rule it implies is filed, not landed.
+  - id: SS-03-DF-03
+    found_by: "SS-03"
+    found_at_commit: "25600fa"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/.history/**/ticket_plan.yaml"]
+    channel: execution
+    cost: >-
+      Two dispatched research agents reading 23 sealed goal baselines against
+      129 sealed cards.
+    summary: >-
+      FOR 14 OF THIS RECORD'S 23 JUDGED GOALS, NO CARD PRODUCED THE BASELINE
+      NUMBER, SO THE CARD-BACKED-BASELINE RULE IS NOT MERELY UNMET FOR THEM --
+      IT IS UNSATISFIABLE. Every judged goal was read against the sealed cards
+      and classified. 6 resolve to an exact card list; 3 more are figures over a
+      card population that is exactly enumerable (27, 22, and 55-of-59, each
+      re-derived independently at this tree); the remaining 14 are ABSENCE
+      CLAIMS ("NOT MEASURED", "NO TAGS EXIST", "0 FOR 7 EPICS", "ZERO",
+      "NEVER ASKED"), SURVEYS of skills or instruments, PER-MUTANT KILL-TABLE
+      COUNTS, byte counts, or source-literal readings. A judged card carries a
+      dimension score and a rationale; it carries no per-mutant cell, no
+      instrument enumeration and no absence. `goals-and-evaluation.md`'s rule --
+      "`baseline.evidence` is the card, not the folder" -- is written for a
+      baseline a card produced, and more than half of this project's judged
+      baselines are not that.
+    reproduction: >-
+      `uv run --with pyyaml python3
+      specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/baseline_is_a_card.py`
+      at 25600fa or later, then read
+      `specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml`,
+      which carries one entry per judged goal with its verdict, its basis and
+      its corroboration. The 14 carry `verdict: no-card-produced-it` and
+      `cards: []`.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml -- 23 entries, 9 with an exact card list"
+      - "specs/results/scorecards/stabilize-substrate/SS-03/RESULT.md section 4"
+    why_out_of_scope: >-
+      IN SCOPE as a measurement, OUT OF SCOPE as a repair: fixing it means
+      editing sealed plans, which R-H4 forbids, and the correct target is the
+      RULE rather than the record.
+    suggested_fix: >-
+      CHANGE WHAT THE SUBSTRATE CHECKS, and change the sentence upstream. A
+      judged goal's baseline should point at whatever ARTIFACT the instrument
+      that produced the number actually sealed -- a card where a card produced
+      it, the kill table where a kill table produced it, the sealed raw command
+      output where a command produced it -- and a baseline that is an ABSENCE
+      claim should say so in a declared field rather than being asked for a card
+      it can never have. That is a diff to
+      `git-epic-workflow/references/goals-and-evaluation.md`, and SS-03 did NOT
+      write it: skills are read from this repository and never edited, and a
+      proposal this size needs the owner. It is escalated in SS-03's PR body.
+    blast_radius: >-
+      The `0 of N` compliance figure itself. If the 14 are excluded as
+      unsatisfiable, the honest denominator is 9, not 23, and the numerator is
+      still zero.
+    disposition: carried
+    disposition_ticket: "unassigned -- escalated to the epic owner in SS-03's PR body as a skill diff"
+    disposition_note: >-
+      CARRIED. Measured and indexed by SS-03; the repair is a diff to
+      goals-and-evaluation.md plus an owner decision about the rule, and skills
+      are read from this repository and never edited.
+  - id: SS-03-DF-04
+    found_by: "SS-03"
+    found_at_commit: "25600fa"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml"]
+    channel: execution
+    cost: >-
+      One comparison, run while checking that SS-03's own plan edits were safe.
+    summary: >-
+      THE LIVE PLAN LOADS WITH BOTH LOADERS AND THE TWO LOADERS DISAGREE ABOUT
+      WHAT IT SAYS. The epic notes require that "THE PLAN MUST LOAD WITH BOTH
+      LOADERS", and it does: `yaml.safe_load` and
+      `scripts.extract_spec_manifest.parse_simple_yaml` both return a mapping.
+      They are not equal. At least six scalars differ between them, including
+      `epic.base_note`, `purpose`, two ticket `objective` fields and two
+      `epic_goals[].baseline.value` fields. This is the `SF-004` / `SF-007`
+      class -- a plan one loader accepts and the other reads differently -- and
+      `tests/test_goal_baseline_is_a_card.py` pins loader equality only on two
+      small fixtures, never on the live plan.
+    reproduction: >-
+      `uv run --with pyyaml python3 -c "import yaml,sys; sys.path.insert(0,'.');
+      from scripts.extract_spec_manifest import parse_simple_yaml;
+      t=open('specs/desired_program_model/ticket_plan.yaml',encoding='utf-8').read();
+      print(yaml.safe_load(t)==parse_simple_yaml(t))"` prints `False` at
+      25600fa, before any SS-03 edit, and prints `False` at SS-03's tip. The
+      five `baseline.evidence` fields SS-03 edited are IDENTICAL under both
+      loaders; the divergence is pre-existing and elsewhere.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-03/RESULT.md section 7"
+    why_out_of_scope: >-
+      OUT OF SCOPE. Neither loader is in SS-03's conflict keys, the divergence
+      predates this ticket, and repairing a shared YAML loader mid-epic while
+      seven tickets are editing the plan is the kind of widening the deferment
+      policy exists to stop.
+    suggested_fix: >-
+      Establish which loader is authoritative for the plan, then either pin
+      equality on the LIVE plan in a test or state in the plan notes that the
+      two loaders are not interchangeable and which one decides. "Both loaders
+      accept it" and "both loaders agree what it says" are different claims and
+      the epic notes currently assert only the first while relying on the
+      second.
+    blast_radius: >-
+      Anything that reads the plan through `parse_simple_yaml` rather than
+      PyYAML, including the spec-manifest extraction path.
+    disposition: carried
+    disposition_ticket: "unassigned -- outside SS-03's conflict keys and pre-existing at 25600fa"
+    disposition_note: >-
+      CARRIED. Reported by SS-03 with a reproduction; not repaired by it, and
+      the divergence predates this ticket.

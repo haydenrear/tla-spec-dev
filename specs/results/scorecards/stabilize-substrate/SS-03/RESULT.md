@@ -1,0 +1,353 @@
+# `SS-03` — this project's own judged goals, measured rather than fixed
+
+**Ticket:** `SS-03`, issue #274, epic `stabilize-substrate`.
+**Branch base:** `25600fa04ef26eb352cf3e6db5990e7f36a20ea8` — the epic tip,
+resolved once from `origin/epic/stabilize-substrate` and branched from the OID.
+**Every figure below names the tree it was measured on.**
+
+**The short version, and it is the unflattering one.** The numerator has never
+moved off zero and this ticket did not move it. The denominator moved twice, in
+both directions, for two different reasons — once because the corpus grew and
+once because the instrument was repaired. And the deepest result is that for
+**14 of the 23 judged goals no card produced the baseline number at all**, so
+the rule they are being measured against is not merely unmet for them, it is
+**unsatisfiable**.
+
+---
+
+## 1. The census, re-derived — and `0 of 18` is wrong twice over
+
+| tree | recogniser | figure | population |
+|---|---|---|---|
+| `ea624b9` (issue #271) | keyword | `0 of 18` | pre-`cut-the-apparatus` |
+| `436c78c` (epic base, charter §0) | keyword | **`0 of 20`** | 122 plans, 31 goals |
+| **`25600fa`** (this ticket's base) | keyword | **`0 of 24`** | 123 plans, 36 goals |
+| **`25600fa`** (this ticket's tip) | **declared `kind`** | **`0 of 23`** | 123 plans, 36 goals |
+
+**`0 of 18` is corrected explicitly and twice.** The charter already corrected it
+to `0 of 20` at `436c78c`, and that correction is right at that tree. **It is
+already stale for every ticket agent on this epic**: at `25600fa`, the tree every
+`SS` ticket branches from, the unrepaired instrument reads **`0 of 24`**.
+Re-derived, not quoted — `baseline_is_a_card-25600fa-PRE-REPAIR.txt` in this
+directory is the raw output.
+
+**Both movements are denominator movements. The numerator held at zero in all
+four rows.**
+
+- `18 → 20`: `cut-the-apparatus` added goals. Charter §0, already stated.
+- `20 → 24`: **scaffolding this epic's own workflow** added five goals to the
+  live plan and four of them matched the keyword list. **Corpus movement, no
+  repair involved.** `denominator_rule`.
+- `24 → 23`: **`SS-00-DF-03`'s repair.** Net `−1`, and the net badly understates
+  it — see §3.
+
+**A figure that already moved inside the charter, again.** Charter §0 and
+`GOAL-judged-goals-compliant`'s baseline both say the census classified **three**
+of this epic's five goals as judged. At `25600fa` it is **four** — commit
+`25600fa` itself edited the plan's prose, and the keyword matcher followed the
+prose. **That is `SS-00-DF-03` demonstrating itself between two commits of the
+same plan.**
+
+---
+
+## 2. `SS-00-DF-02` — the id collision, repaired, with its failing input
+
+**The repair.** `distinct_goals` keys on the DECLARED `(workflow, goal id)` pair
+— `status.workflow`, falling back to `epic.id`, never inferred from the path. A
+reused id is reported as its own verdict class, `id-collision`, and is **never
+resolved**: the census names both workflows and stops.
+
+**The demonstrated failing input, on the real record.** The kickoff's first plan
+draft reused `GOAL-four-results-stand` and was never committed, so the subject is
+reconstructed over **every plan on disk** by renaming exactly the one id the
+kickoff renamed and then backed out. Nothing on disk is touched; the rename is in
+memory.
+
+```
+ids renamed in the in-memory draft                 : 1
+OLD key (id alone)  -> distinct goals              : 35
+NEW key (workflow, id) -> distinct goals           : 36
+collisions named rather than collapsed             : ['GOAL-four-results-stand']
+```
+
+**35 where 36 exist — the kickoff's measured figure, reproduced exactly.** Pinned
+by `tests/test_goal_baseline_is_a_card.py::test_a_reused_goal_id_is_named_and_never_collapsed`.
+
+**The record was checked for EXISTING collisions, as the finding demanded.**
+**Zero.** 123 plans, 36 distinct `(workflow, id)` pairs, 36 distinct ids — the
+two counts agree, so the census's denominator is not currently understated. The
+`continues:` field on `GOAL-four-results-still-stand` is why, and it remains what
+the finding called it: a workaround, not the fix. A future reuse is now named
+instead of absorbed.
+
+---
+
+## 3. `SS-00-DF-03` — the keyword matcher, retired, and what replaced it
+
+**Classification now reads the DECLARED `kind` field**, whose four values are
+fixed by `goals-and-evaluation.md`'s "Goal kinds": `eval` is the judged/scored
+kind; `quality` is "an invariant/coverage/robustness property **with a deciding
+command**"; `perf` needs a baseline run; `integration` names a graph. A goal
+declaring **no recognised kind is `UNDECIDED`** — never PASS, never a confident
+`not-judged` (`r1_now_requires_an_absent_input`; the same shape as
+`set[str] → set[str] | None`).
+
+**`MF-020`: this was not fitted to a known answer, and the evidence is that it
+moves goals in BOTH directions.**
+
+| | count | effect |
+|---|---:|---|
+| prose said judged, declared kind says **command** (over-reach) | **7** | leave the judged set |
+| prose said not judged, declared kind says **judged** (under-reach) | **6** | enter the judged set |
+| **total disagreement** | **13 of 36** | 36% of the record |
+
+A rule fitted to "this epic's five goals must stop being judged" would have moved
+seven out and nothing in. Six sealed goals of other epics entered the denominator
+because the record says they are `eval`. **The net is `−1`; the churn is 13.**
+
+**No harness string in the plan was reworded to flip a classification.** The
+`kind` values this repair reads were written at kickoff, before the finding was
+filed. **`SS-00-DF-03`'s own `suggested_fix` names `kind` as the option to
+take** — the field was the owner's suggestion, not this ticket's invention.
+
+**The retired matcher is kept as `keyword_judged()` and decides nothing.** It is
+printed beside the declared answer so all 13 disagreements are on the record by
+name and any of them can be contested.
+
+**Coordination with `SS-04`, stated explicitly as required:** `SS-04` repairs the
+same class of bound in `scope`. **`SS-03` and `SS-04` do NOT share a recogniser.**
+`SS-03`'s classifier reads one declared YAML field of the plan schema and does no
+text matching at all; `scope`'s problem is recognising counted figures in free
+prose, which is a different problem with a different failure mode. Nothing in
+`baseline_is_a_card.py` is importable by `score_tools.py` and nothing imports it.
+
+**The rule was run against the sealed record before shipping, and what it refuses
+is reported.** Over 123 plans and 36 goals it refuses **nothing** — `undecided` is
+`0`, because every goal in this record declares a `kind`. The `UNDECIDED` branch
+is therefore exercised only by the absent-input demonstrations
+(`{}`, `kind: ""`, `kind: vibes`, and a `kind: null` goal whose prose is loud with
+judged vocabulary). **A branch with no live subject is worth saying out loud**:
+the refusal path is real and tested, and this record gives it nothing to refuse.
+
+---
+
+## 4. The result the ticket is actually for — and it bounds the goal
+
+### 4.1 Clause (c), counted: 23 of 23 are sealed
+
+**Every one of the 23 judged goals is declared ONLY in a plan under
+`specs/.history`.** Not one is in the live plan; the live plan's five goals all
+declare `kind: quality` and are command goals.
+
+**So `23 of 23` cannot be made compliant without editing a record `R-H4` seals,
+and none was edited.** Under the inherited keyword population of 24, the split is
+`20` sealed and `4` reachable — and those four are this epic's own, which the
+repaired recogniser says are not judged goals at all. **Either way the reachable
+judged population is zero.**
+
+### 4.2 And for most of them the rule is unsatisfiable, not merely unmet
+
+Every judged goal's baseline was read against the sealed cards. `SS-03-DF-03`.
+
+| what produced the baseline number | goals |
+|---|---:|
+| an exact, nameable set of cards | **6** |
+| a card population that is exactly enumerable | **3** |
+| **no card at all** | **14** |
+| | **23** |
+
+The 14 are absence claims (*"NOT MEASURED"*, *"NO TAGS EXIST"*, *"0 FOR 7
+EPICS"*, *"ZERO"*, *"NEVER ASKED"*), surveys of skills or instruments, per-mutant
+kill-table counts, byte counts from `serve | wc -c`, and source-literal readings.
+**A judged card carries a dimension score and a rationale. It carries no
+per-mutant cell, no instrument enumeration and no absence.**
+
+**This reframes the figure.** `goals-and-evaluation.md`'s rule — *"`baseline.evidence`
+is the card, not the folder"* — is written for a baseline that a card produced.
+If the 14 are excluded as out of the rule's reach, **the honest denominator is 9
+and the numerator is still zero.** That is not a better number; it is a more
+truthful one, and the correction is escalated rather than applied, because the
+sentence that needs changing is in a skill this repository reads and never edits.
+
+### 4.3 The additive index — and it is not compliance
+
+`GOAL-judged-goals-compliant/baseline_resolution_index.yaml`: **23 entries, one
+per judged goal, 9 carrying an exact card list (142 card references), 14 carrying
+`cards: []` and the reason no card can be listed.** Every listed card was
+verified to exist, to parse, and to carry a field that reproduces part of the
+goal's `baseline.value`; the three population figures were re-derived
+independently at this tree (27 of 27 with `D2 = 2`; 22 cards with `D3 = 4`;
+55 of 59 with `D1 = 3`, the four exceptions named).
+
+**The instrument reports these as `card-via-index`, a verdict class of its own,
+and NEVER adds them to `card`.** Pinned by a test. An index entry is SS-03's
+assertion about somebody else's sealed number; a compliant goal is the epic that
+wrote the number saying so itself. **The `card` count is 0 at the tip and the
+index cannot move it.**
+
+Two of the index's entries record that the sealed figure they locate **has since
+been refuted** (`GOAL-D2-can-move`'s `27 of 27` was re-derived as `35 of 35`;
+`GOAL-validation-is-scorable`'s `55 of 59` as `56 of 63`). The index says which
+cards produced the sealed number. **It does not say the sealed number holds.**
+
+### 4.4 Path defects found while doing it
+
+Six, all reported and none repaired (they are in sealed plans):
+
+1. `GOAL-simpler-same-behavior` — declared path drops one segment; the cards are
+   under `.../scorecards/architectural-coherence/ex3_over_complex/`. This is the
+   whole cause of its `unresolvable` verdict.
+2. `GOAL-instruments-can-fail` — cites
+   `specs/desired_program_model/deferred_findings.yaml`, which **the ledger
+   relocation deleted**. A sealed goal's evidence became unresolvable because a
+   live path moved under it. `SS-01`'s surface; deferred, not fixed.
+3. `GOAL-scope-loss-catchable` and `GOAL-tags-earn-their-place` — cite
+   `specs/results/scorecards/subtract-to-measure/`, which holds **zero** cards at
+   any depth and has no `SM-05` subdirectory.
+4. `GOAL-loop-reaches-the-program` — cites `close-the-loop/`, **zero** cards.
+5. `GOAL-loop-closes-once` — section pointer names `RM-05/RESULT.md — section 4`,
+   which is a different section; the claim is §1.3.
+6. `GOAL-portable` and `GOAL-validation-is-scorable` — name card populations by
+   **count** ("the 73 sealed cards", "the 87 sealed cards") with no path. Both
+   happen to reproduce exactly as a `run_id` date slice; **nothing in the record
+   says that is the rule.**
+
+---
+
+## 5. Clause (a): this epic's own five goals
+
+**All five now resolve to a concrete artifact the evaluation can re-read**, and
+in every case it is the **sealed raw output of the command that produced the
+number**, listed before the narrative. Verified by resolution, not by assertion.
+
+| goal | `baseline.evidence` now resolves to |
+|---|---|
+| `GOAL-absent-input-consumed` | `class-rows-436c78c.txt` |
+| `GOAL-tree-stabilizes` | `kickoff/pytest-baseline-436c78c.txt`, then `collection-436c78c.txt` |
+| `GOAL-judged-goals-compliant` | `baseline_is_a_card-436c78c.txt`, then `SS-03/baseline_is_a_card-SS-03-tip.txt` |
+| `GOAL-counted-figures-reach-the-record` | `scope-work-directing-docs-436c78c.txt`, then `scope-whole-record-436c78c.json` |
+| `GOAL-four-results-still-stand` | `serve-digest-436c78c.txt`, then `audit-436c78c.txt` |
+
+**Nothing but the `evidence` pointer was touched.** No `baseline.value` was
+edited except `GOAL-judged-goals-compliant`'s, which carries an **appended,
+explicitly labelled supersession paragraph** naming both movements with numerator
+and denominator — never a silent correction, and the original sentence is intact
+above it. No `measured_at` changed. **No `baseline.md` of another goal was
+edited**, because four of the five sit outside this ticket's conflict keys.
+
+**And no test asserts that these five comply.** The file's own rule — *"a test
+that failed until every plan cited a card would be the eighth gate, and a gate on
+the epic owner's prose"* — survives this ticket intact.
+
+---
+
+## 6. A defect this ticket committed, measured, and repaired: `SS-03-DF-02`
+
+**Recorded because hiding it would remove the record of what happened.** While
+repointing the five evidence fields, SS-03 left an unquoted `": "` inside one of
+them. The plan stopped parsing. The next census run reported **122 plans and 31
+goals instead of 123 and 36** — five goals gone — **with no warning, no error and
+no line saying a plan had been skipped**, because `every_plan` wrapped
+`yaml.safe_load` in `except Exception: continue`.
+
+**That is `SS-00-DF-02`'s direction on a different input**, and it is the
+absent-input class on the instrument that measures the absent-input class: *"read
+and found nothing"* answered with *"read nothing"*, confidently.
+
+Repaired in the same file: `_walk_plans` returns the plans that parsed **and**
+the plans that did not, and the population block now prints
+`plans that DID NOT PARSE and were dropped (SS-03-DF-02) : N` with each file and
+its parser error. **At this tree that number is 0** — verified, not assumed, and
+nothing before this ticket would have said so.
+
+---
+
+## 7. `SS-03-DF-04`: the plan loads with both loaders and they disagree
+
+The epic notes require that the plan load with both loaders. It does. **They are
+not equal.** At least six scalars differ between `yaml.safe_load` and
+`scripts.extract_spec_manifest.parse_simple_yaml`, including `epic.base_note`,
+`purpose`, two ticket `objective`s and two `baseline.value`s. **The divergence is
+pre-existing** — it reproduces at `25600fa` before any SS-03 edit — and **the five
+`evidence` fields SS-03 wrote are identical under both loaders**, checked. Filed,
+not repaired: neither loader is in this ticket's conflict keys.
+
+*"Both loaders accept it"* and *"both loaders agree what it says"* are different
+claims, and the epic currently asserts the first while relying on the second.
+
+---
+
+## 8. The tree — four numbers that sum, at both ends
+
+```
+$ uv run --with pytest --with pyyaml -m pytest tests -q
+base 25600fa   17 failed / 1483 passed / 4 skipped        collection 1504
+tip  SS-03     16 failed / 1494 passed / 4 skipped        collection 1514
+```
+
+`17 + 1483 + 4 = 1504` ✓  `16 + 1494 + 4 = 1514` ✓
+
+**The base figure reproduces the epic base exactly** — `17 / 1483 / 4 / 1504`,
+`GOAL-tree-stabilizes`' baseline — measured independently in this worktree rather
+than quoted.
+
+| | base | tip | movement | attribution |
+|---|---:|---:|---:|---|
+| failed | 17 | **16** | **−1, NUMERATOR FELL** | `test_a_real_epic_plans_judged_baseline_cannot_be_re_opened`. Exactly one red cleared and **zero new reds** — verified by diffing the two `FAILED` lists, not by comparing counts. |
+| passed | 1483 | **1494** | **+11** | `+10` newly collected nodes, all green; `+1` the repaired red. |
+| skipped | 4 | **4** | **0** | The four `test_workflow_close_keeps_the_ledger.py:92` survivors, `CA-10-DF-12`, which are `SS-01`'s. Untouched. |
+| collected | 1504 | **1514** | **+10, DENOMINATOR ROSE** | itemised below |
+
+**Every one of the ten new nodes, named:**
+
+- **`+5`** — SS-03's new tests in `tests/test_goal_baseline_is_a_card.py`: the
+  `SS-00-DF-02` collision demonstration, the existing-collision check of the
+  record, the `SS-00-DF-03` declared-field test, the absent-input `UNDECIDED`
+  test, and the index-is-never-a-card test.
+- **`+1`** — `test_spec_yaml_valid.py::test_spec_yaml_parses[baseline_resolution_index.yaml]`.
+  The repository's own YAML sweep picked the new index file up; SS-03 did not
+  wire it in.
+- **`+4`** — `python3 scripts/tla_spec_dev.py --spec-root specs open ticket SS-03`
+  scaffolding `specs/tickets/SS-03/`, which re-parametrises four sweeps:
+  `complexity_ledger.yaml` → `…0`/`…1`, `ticket.yaml` → `…0`/`…1`, plus
+  `spec_manifest.yaml6` and `spec_manifest.yaml7`. Two ids disappear, four
+  appear, net `+4`.
+
+`5 + 1 + 4 = 10` ✓
+
+**Not repaired, and not silently.** The two `test_source_citations` manifest reds
+are `SS-06`'s; the five `test_disposition_requirement` reds, the three
+`test_score_tools` reds and `test_card_has_one_home` are `SS-00-DF-01` and
+`SS-01`'s, and **all nine were still red at this tip** — filed, not fixed, as the
+plan instructs. The `test_architecture_tags` and two
+`test_instrument_demonstrations` reds are the **deliberate** ones
+(`RM-06-DF-01`, `CA-04-DF-04`) and were left alone. `test_ticket_retirement` is
+the self-clearing one and was measured **before** this ticket's close flipped its
+status.
+
+## 9. What this ticket did NOT do
+
+- **It did not move the numerator.** `card` is 0 at the tip, as at the base.
+  Nothing in the record was made compliant, because doing so requires editing a
+  sealed plan.
+- **It did not build the sweep** that would consume `SS-03-DF-01` as a class —
+  a check that no test indexes the live plan by a goal id it has not first
+  asserted exists. One instance repaired; the class is filed.
+- **It did not write the skill diff** `SS-03-DF-03` calls for. Skills are read
+  from this repository and never edited; it is escalated in the PR body.
+- **It did not repair the two evidence paths that belong to `SS-01`** or the two
+  sealed command goals whose evidence does not resolve.
+- **It added no gate.** `baseline_is_a_card.py` still has no failing exit path,
+  is imported by nothing in `scripts/`, and exits 0 on every input including the
+  failing one — executed at the end of every run, not asserted.
+- **It did NOT close or promote the spec ticket, and that is deliberate.**
+  `promotion_predecessor` for `SS-03` is `SS-01`, and at the time this PR opened
+  `origin/epic/stabilize-substrate` was still `25600fa` — the commit this branch
+  was cut from — with no ticket PR merged into it. The epic's serialized
+  promotion rule forbids closing ahead of the predecessor, so the plan entry
+  stays `planned` and `specs/current` is unpromoted. The close is one command
+  once `SS-01` merges and this branch is reconciled:
+  `python3 scripts/tla_spec_dev.py --spec-root specs close ticket SS-03
+  --summary "…" --result specs/results/scorecards/stabilize-substrate/SS-03/RESULT.md …`.
+  `test_ticket_retirement`'s red is the visible consequence and is the
+  self-clearing one.

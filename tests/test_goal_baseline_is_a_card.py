@@ -45,11 +45,34 @@ WHAT IS DELIBERATELY NOT HERE
 sentence, not for a checker (`no_new_gates_rule`, and seven epics of static
 checking that caught zero bugs). A test that failed until every plan cited a
 card would be the eighth gate, and it would be a gate on the epic owner's
-prose.
+prose. **`SS-03` kept that rule**: it repointed this epic's own five goals at
+their sealed raw command output and wrote **no test asserting that they are
+compliant**.
+
+WHAT `SS-03` CHANGED HERE, AND WHY
+----------------------------------
+Section 7 carries the two kickoff defects `SS-00-DF-02` and `SS-00-DF-03`, each
+with a demonstrated failing input on a real subject, plus the absent-input case
+`r1_now_requires_an_absent_input` demands. Neither repair refuses anything and
+the classifier still has no failing exit path.
+
+**Section 3's `R1` subject moved, and this file says where.** The demonstration
+read the goal out of the LIVE plan by id. When this epic's plan became the live
+plan the lookup raised `KeyError: 'GOAL-loop-reaches-the-program'` -- an
+exception, not a red assertion, so a test whose whole job is to hold a failing
+input on the record reported its subject's absence as a crash. **The subject did
+not move; the live plan did.** `GOAL-loop-reaches-the-program` is still declared,
+sealed and unedited in `score-drives-validation-epic`'s plans under
+`specs/.history`, still verdict `directory`, still citing a folder with zero
+cards. The demonstration now reads the WHOLE record keyed by `(workflow, id)`,
+which pins the subject where it actually lives. Filed as `SS-03-DF-01`: a test
+that pins an `R1` subject by live-plan lookup loses it at every epic rollover,
+and loses it as an error rather than as a finding.
 """
 
 from __future__ import annotations
 
+import copy
 import importlib.util
 import json
 import subprocess
@@ -193,10 +216,19 @@ def test_a_real_epic_plans_judged_baseline_cannot_be_re_opened(classifier):
 
     If this ever goes green, the baseline was edited after the fact. Move the
     demonstration to another failing goal and say which; do not delete it.
+
+    SS-03 MOVED IT AND SAYS WHERE. It did not go green -- it raised KeyError,
+    because it read the subject out of `LIVE_PLAN` and the live plan rolled over
+    to `stabilize-substrate`'s. The subject is unchanged and unedited; it is read
+    here from the WHOLE record, keyed `(workflow, id)`, which is where it lives.
+
+    The verdict is taken FROM THE GOAL ALONE -- no resolution index -- because
+    that is the property the third branch is about: *given only the goal*, can
+    you open the card? SS-03's additive index can locate these cards; it is
+    reported as `card-via-index` and it does not make this goal compliant.
     """
-    goals = {g["id"]: g for g in
-             yaml.safe_load(LIVE_PLAN.read_text(encoding="utf-8"))["epic_goals"]}
-    goal = goals["GOAL-loop-reaches-the-program"]
+    goals = classifier.distinct_goals(classifier.every_plan(REPO_ROOT))
+    goal = goals[("score-drives-validation-epic", "GOAL-loop-reaches-the-program")]
     verdict, why = classifier.classify(REPO_ROOT, goal)
     assert verdict == "directory", why
     cited = REPO_ROOT / "specs/results/scorecards/close-the-loop"
@@ -209,14 +241,22 @@ def test_no_goal_in_the_whole_record_has_a_re_openable_baseline(classifier):
     """The measurement behind the proposal, over every plan on disk.
 
     Reported as a COUNT and never as a gate. The denominator is the judged
-    goals, not all goals: 9 of the 27 name no judged instrument and the rule
-    does not apply to them, which is a correction to SV-06's 0-of-27 framing
-    rather than a disagreement with its numerator.
+    goals, not all goals: the goals that declare a COMMAND kind name no judged
+    instrument and the rule does not apply to them, which is a correction to
+    SV-06's 0-of-27 framing rather than a disagreement with its numerator.
+
+    SS-03: the denominator now comes from the DECLARED `kind` field rather than
+    from keywords in the harness prose (`SS-00-DF-03`), and `card-via-index` is
+    excluded from `card` on purpose -- an index entry is SS-03's assertion about
+    a sealed number, not an epic writing a compliant goal, so it may never move
+    this numerator.
     """
     plans = classifier.every_plan(REPO_ROOT)
     goals = classifier.distinct_goals(plans)
-    verdicts = {gid: classifier.classify(REPO_ROOT, g)[0] for gid, g in goals.items()}
-    judged = {gid: v for gid, v in verdicts.items() if v != "not-judged"}
+    verdicts = {k: v for k, (v, _why) in classifier.census(
+        REPO_ROOT, goals, classifier.load_index(REPO_ROOT)).items()}
+    judged = {k: v for k, v in verdicts.items()
+              if v not in ("not-judged", "undecided", "id-collision")}
     assert len(goals) >= 27, len(goals)
     assert judged, "a record with no judged goal would make this vacuous"
     assert sum(v == "card" for v in judged.values()) == 0, (
@@ -244,7 +284,14 @@ def test_a_goal_with_a_command_harness_is_out_of_scope(classifier):
 
 
 def test_an_empty_goal_and_an_empty_plan_are_legal(classifier):
-    assert classifier.classify(REPO_ROOT, {})[0] == "not-judged"
+    """SS-03 changed the first assertion, and the change IS the repair.
+
+    An empty goal used to be classified `not-judged` -- a confident answer about
+    an input that declared nothing. `r1_now_requires_an_absent_input`: the
+    correct answer to an absent input is UNDECIDED, never a pass in either
+    direction. `set[str] -> set[str] | None` is the same shape.
+    """
+    assert classifier.classify(REPO_ROOT, {})[0] == "undecided"
     assert classifier.distinct_goals([(Path("x"), {"epic_goals": [], "goals_waived": "no delta"})]) == {}
 
 
@@ -351,3 +398,128 @@ def test_the_classifier_runs_over_the_real_record_and_exits_zero():
     assert out.returncode == 0, out.stderr[-2000:]
     assert "The R1 failing input, on a real epic plan" in out.stdout
     assert "REFUSES NOTHING" in out.stdout
+
+
+# ---------------------------------------------------------------------------
+# 7. SS-03 -- the two kickoff defects in this instrument, each with a
+#    demonstrated failing input on a real subject, and the absent-input case
+# ---------------------------------------------------------------------------
+
+
+def test_a_reused_goal_id_is_named_and_never_collapsed(classifier):
+    """`SS-00-DF-02`, `R1`. The failing input is THIS EPIC'S OWN FIRST DRAFT.
+
+    The kickoff drafted this plan reusing the predecessor's
+    `GOAL-four-results-stand`, and the census reported 35 distinct goals where
+    36 exist -- no warning, no refusal, no ambiguity line, and undefined which
+    of the two baselines the surviving row reported. That draft was never
+    committed, so the subject is reconstructed over the WHOLE REAL RECORD by
+    renaming exactly the one id the kickoff renamed and then backed out.
+    Nothing on disk is touched.
+
+    THE DIRECTION IS THE DEFECT: a collision SHRINKS the denominator, which
+    INFLATES the compliance rate this instrument exists to compute.
+    """
+    plans = classifier.every_plan(REPO_ROOT)
+    renamed = 0
+    drafted = []
+    for path, plan in plans:
+        if classifier.plan_workflow(plan) != "stabilize-substrate-epic":
+            drafted.append((path, plan))
+            continue
+        draft = copy.deepcopy(plan)
+        for goal in draft.get("epic_goals") or []:
+            if goal.get("id") == "GOAL-four-results-still-stand":
+                goal["id"] = "GOAL-four-results-stand"
+                goal.pop("continues", None)
+                renamed += 1
+        drafted.append((path, draft))
+    assert renamed == 1, "the live plan no longer carries this demonstration's subject"
+
+    collided = classifier.distinct_goals(drafted)
+    old_key = {gid for _wf, gid in collided}
+    assert len(old_key) == len(collided) - 1, (
+        "the OLD key must lose exactly the collided row -- if it does not, the "
+        "demonstration needs restating, not deleting")
+    collisions = classifier.id_collisions(collided)
+    assert "GOAL-four-results-stand" in collisions, collisions
+    assert sorted(collisions["GOAL-four-results-stand"]) == [
+        "cut-the-apparatus-epic", "stabilize-substrate-epic"], collisions
+
+
+def test_the_record_declares_no_reused_goal_id_at_this_tree(classifier):
+    """The check `SS-00-DF-02` demanded: is this only about the future?
+
+    Answer at this tree: yes. Zero collisions across every plan on disk, live
+    and sealed, so the census's distinct-goal count is not currently understated
+    -- and the `continues:` field on `GOAL-four-results-still-stand` is why.
+    That field is the workaround the finding forced; this is the instrument that
+    makes a future reuse visible instead of silently shrinking a denominator.
+    """
+    goals = classifier.distinct_goals(classifier.every_plan(REPO_ROOT))
+    collisions = classifier.id_collisions(goals)
+    assert collisions == {}, (
+        "a goal id is now declared by two workflows -- that is a finding to "
+        f"REPORT, not to resolve: {collisions}")
+    assert len({gid for _wf, gid in goals}) == len(goals)
+
+
+def test_judged_classification_reads_a_declared_field_not_prose(classifier):
+    """`SS-00-DF-03`, `R1`. Real subjects on BOTH sides of the retired matcher.
+
+    `GOAL-tree-stabilizes` declares `kind: quality` and a pytest command, and
+    its prose contains `card` and `sealed`: the keyword matcher called it judged
+    (over-reach). `GOAL-price-means-something` declares `kind: eval` and its
+    prose contains none of the keywords: the keyword matcher called it
+    not-judged (under-reach). Both were wrong, in OPPOSITE directions -- which
+    is why the repair could not have been fitted to a known answer.
+    """
+    goals = classifier.distinct_goals(classifier.every_plan(REPO_ROOT))
+
+    over = goals[("stabilize-substrate-epic", "GOAL-tree-stabilizes")]
+    assert classifier.keyword_judged(over) is True
+    assert classifier.instrument_kind(over)[0] == "command"
+    assert classifier.classify(REPO_ROOT, over)[0] == "not-judged"
+
+    under = goals[("close-the-loop-epic", "GOAL-price-means-something")]
+    assert classifier.keyword_judged(under) is False
+    assert classifier.instrument_kind(under)[0] == "judged"
+    assert classifier.classify(REPO_ROOT, under)[0] != "not-judged"
+
+
+def test_a_harness_that_cannot_be_classified_from_declared_data_is_undecided(classifier):
+    """The ABSENT-INPUT case, `r1_now_requires_an_absent_input`.
+
+    UNDECIDED, never PASS and never a confident `not-judged`. A goal declaring
+    no `kind` has told this instrument nothing, and "read and found nothing" is
+    not "read nothing". Prose cannot rescue it: the last case below is loud with
+    judged vocabulary and is still UNDECIDED.
+    """
+    assert classifier.instrument_kind({})[0] == "undecided"
+    assert classifier.classify(REPO_ROOT, {})[0] == "undecided"
+    assert classifier.classify(REPO_ROOT, {"kind": "vibes"})[0] == "undecided"
+    assert classifier.classify(REPO_ROOT, {"kind": ""})[0] == "undecided"
+    loud = {"kind": None, "harness": "scored against the card by two blind judges"}
+    assert classifier.classify(REPO_ROOT, loud)[0] == "undecided"
+
+
+def test_the_resolution_index_is_its_own_class_and_never_a_card(classifier):
+    """An index entry is `SS-03`'s assertion, not the goal's.
+
+    `R-H4` seals `specs/.history` and every judged goal in this record is
+    declared only there, so the index is the only way to point one at its cards
+    without editing sealed history. It must never move the `card` numerator:
+    that number is about epics writing compliant goals, and no additive file
+    beside the record can do that on their behalf.
+    """
+    index = classifier.load_index(REPO_ROOT)
+    assert index, "the index is absent -- report that rather than passing vacuously"
+    goals = classifier.distinct_goals(classifier.every_plan(REPO_ROOT))
+    verdicts = classifier.census(REPO_ROOT, goals, index)
+    assert any(v == "card-via-index" for v, _why in verdicts.values())
+    assert all(v != "card" for v, _why in verdicts.values())
+    for entry in index.values():
+        for card in entry.get("cards") or []:
+            path = REPO_ROOT / card
+            assert path.is_file() and path.name == "scorecard.json", card
+            json.loads(path.read_text(encoding="utf-8"))

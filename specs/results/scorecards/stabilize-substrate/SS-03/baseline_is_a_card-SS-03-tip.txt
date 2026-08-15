@@ -1,0 +1,152 @@
+tree: 25600fa   (every figure below is about THIS tree)
+
+## The population
+plans on disk (live + sealed)                              : 123
+plans that DID NOT PARSE and were dropped (SS-03-DF-02)    : 0
+distinct epic goals, keyed (workflow, id)                  : 36
+distinct goal IDS, ignoring workflow (the OLD key)         : 36
+goal ids declared by more than one workflow (COLLISION)    : 0
+sealed scorecard.json files under specs/results/scorecards : 95
+resolution-index entries (ADDITIVE, not compliant goals)   : 23
+cross-check against SV-06 at 5620c9a: 27 goals, 87 cards, 0 card-backed.
+SS-00-DF-02: the two goal counts above MUST NOT DIFFER SILENTLY. When they do,
+the old key was reporting FEWER goals than the plans declare, which shrinks the
+denominator below and INFLATES every compliance rate computed from it.
+
+## Can the evaluation ticket open the baseline card?
+          card : 0
+     directory : 6
+       summary : 6
+  unresolvable : 1
+         prose : 1
+   no-evidence : 0
+    not-judged : 13
+card-via-index : 9   <- SS-03's assertion, NOT the goal's; never added to `card`
+     undecided : 0   <- kind not declared: refused rather than guessed
+  id-collision : 0   <- reported, never resolved
+
+JUDGED GOALS (declared kind: eval)                    : 23
+  of which the evaluation can re-open FROM THE GOAL   : 0
+  of which only the additive index can locate         : 9
+COMMAND GOALS (declared kind: quality/perf/integration): 13
+  of which baseline.evidence resolves to a re-readable file: 11
+
+### directory
+  GOAL-fixture-can-diverge               [falsifiable-instruments-epic] a directory, not a card: specs/results/scorecards/ports-as-adapters/ (contains 6 cards; the goal does not say which)
+  GOAL-removal-can-be-priced             [portable-substrate-epic] a directory, not a card: specs/results/scorecards/reading-discipline/ (contains 24 cards; the goal does not say which)
+  GOAL-product-round                     [reading-discipline-epic] a directory, not a card: specs/results/scorecards/ (contains 95 cards; the goal does not say which)
+  GOAL-scope-loss-catchable              [reading-discipline-epic] a directory, not a card: specs/results/scorecards/subtract-to-measure/ (contains 0 cards; the goal does not say which)
+  GOAL-tags-earn-their-place             [reading-discipline-epic] a directory, not a card: specs/results/scorecards/subtract-to-measure/ (contains 0 cards; the goal does not say which)
+  GOAL-loop-reaches-the-program          [score-drives-validation-epic] a directory, not a card: specs/results/scorecards/close-the-loop/ (contains 0 cards; the goal does not say which)
+
+### summary
+  GOAL-change-rule-runnable              [close-the-loop-epic] a document, not a card: specs/results/scorecards/portable-substrate/RM-05/RESULT.md
+  GOAL-price-means-something             [close-the-loop-epic] a document, not a card: specs/results/scorecards/portable-substrate/RM-05/RESULT.md
+  GOAL-portable                          [portable-substrate-epic] a document, not a card: references/eval_scorecard.md
+  GOAL-cases-drive-ports                 [ports-as-adapters-epic] a document, not a card: specs/.history/hexagonal-prompting-epic/closed-snapshot/results/scorecards/SELF-IMPROVEMENT.md
+  GOAL-port-reach                        [ports-as-adapters-epic] a document, not a card: specs/.history/hexagonal-prompting-epic/closed-snapshot/results/scorecards/SELF-IMPROVEMENT.md
+  GOAL-removal-is-measured               [subtract-to-measure-epic] a document, not a card: references/architecture_advice.md
+
+### unresolvable
+  GOAL-instruments-can-fail              [falsifiable-instruments-epic] path-shaped but does not resolve at this tree: specs/desired_program_model/deferred_findings.yaml
+
+### prose
+  GOAL-scored-at-goal-time               [score-drives-validation-epic] no path at all: 'survey of SKILL_MANAGER_HOME at eab2883'
+
+### not-judged
+  GOAL-apparatus-cut                     [cut-the-apparatus-epic] declared kind 'quality' names a deciding command (goals-and-evaluation.md, 'Goal kinds') -- the card rule does not apply, and that is legal
+  GOAL-blind-dispatch                    [cut-the-apparatus-epic] declared kind 'quality' names a deciding command (goals-and-evaluation.md, 'Goal kinds') -- the card rule does not apply, and that is legal
+  GOAL-consumption-obligatory            [cut-the-apparatus-epic] declared kind 'quality' names a deciding command (goals-and-evaluation.md, 'Goal kinds') -- the card rule does not apply, and that is legal
+  GOAL-four-results-stand                [cut-the-apparatus-epic] declared kind 'quality' names a deciding command (goals-and-evaluation.md, 'Goal kinds') -- the card rule does not apply, and that is legal
+  GOAL-dead-weight-gone                  [portable-substrate-epic] declared kind 'quality' names a deciding command (goals-and-evaluation.md, 'Goal kinds') -- the card rule does not apply, and that is legal
+  GOAL-complexity-measurable             [ports-as-adapters-epic] declared kind 'quality' names a deciding command (goals-and-evaluation.md, 'Goal kinds') -- the card rule does not apply, and that is legal
+  GOAL-apparatus-priced                  [reading-discipline-epic] declared kind 'quality' names a deciding command (goals-and-evaluation.md, 'Goal kinds') -- the card rule does not apply, and that is legal
+  GOAL-absent-input-consumed             [stabilize-substrate-epic] declared kind 'quality' names a deciding command (goals-and-evaluation.md, 'Goal kinds') -- the card rule does not apply, and that is legal
+  GOAL-counted-figures-reach-the-record  [stabilize-substrate-epic] declared kind 'quality' names a deciding command (goals-and-evaluation.md, 'Goal kinds') -- the card rule does not apply, and that is legal
+  GOAL-four-results-still-stand          [stabilize-substrate-epic] declared kind 'quality' names a deciding command (goals-and-evaluation.md, 'Goal kinds') -- the card rule does not apply, and that is legal
+  GOAL-judged-goals-compliant            [stabilize-substrate-epic] declared kind 'quality' names a deciding command (goals-and-evaluation.md, 'Goal kinds') -- the card rule does not apply, and that is legal
+  GOAL-tree-stabilizes                   [stabilize-substrate-epic] declared kind 'quality' names a deciding command (goals-and-evaluation.md, 'Goal kinds') -- the card rule does not apply, and that is legal
+  GOAL-cheaper                           [subtract-to-measure-epic] declared kind 'quality' names a deciding command (goals-and-evaluation.md, 'Goal kinds') -- the card rule does not apply, and that is legal
+
+### card-via-index
+  GOAL-loop-closes-once                  [close-the-loop-epic] 22 card(s) named by specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml, NOT by the goal: specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p1/scorecard.json, specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p2/scorecard.json, specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-T-p1/scorecard.json ...
+  GOAL-scorecard-carries-a-delta         [falsifiable-instruments-epic] 8 card(s) named by specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml, NOT by the goal: specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-P-p1/scorecard.json, specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-P-p2/scorecard.json, specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-Q-p1/scorecard.json ...
+  GOAL-catch-bugs                        [hexagonal-prompting-epic] 10 card(s) named by specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml, NOT by the goal: specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex1_scaffold_only/20260803-j1/scorecard.json, specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex1_scaffold_only/20260803-j2/scorecard.json, specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j1/scorecard.json ...
+  GOAL-hexagonal-in-fact                 [hexagonal-prompting-epic] 10 card(s) named by specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml, NOT by the goal: specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex1_scaffold_only/20260803-j1/scorecard.json, specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex1_scaffold_only/20260803-j2/scorecard.json, specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j1/scorecard.json ...
+  GOAL-simpler-same-behavior             [hexagonal-prompting-epic] 2 card(s) named by specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml, NOT by the goal: specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j1/scorecard.json, specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j2/scorecard.json
+  GOAL-dimensions-replicate              [portable-substrate-epic] 4 card(s) named by specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml, NOT by the goal: specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03M-M-p1/scorecard.json, specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03M-M-p2/scorecard.json, specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03M-M-p3/scorecard.json ...
+  GOAL-caveat-discriminates              [score-drives-validation-epic] 4 card(s) named by specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml, NOT by the goal: specs/results/scorecards/close-the-loop-cl03-v4/toolchain_removal/20260811-cl03v4-CL-p1/scorecard.json, specs/results/scorecards/close-the-loop-cl03-v4/toolchain_removal/20260811-cl03v4-CL-p2/scorecard.json, specs/results/scorecards/close-the-loop-cl03-v5/toolchain_removal/20260811-cl03v5-CL-p1/scorecard.json ...
+  GOAL-validation-is-scorable            [score-drives-validation-epic] 55 card(s) named by specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml, NOT by the goal: specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p1/scorecard.json, specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p2/scorecard.json, specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-U-p1/scorecard.json ...
+  GOAL-D2-can-move                       [subtract-to-measure-epic] 27 card(s) named by specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml, NOT by the goal: specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p1/scorecard.json, specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p2/scorecard.json, specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-U-p1/scorecard.json ...
+
+## SS-00-DF-03: where the RETIRED keyword recogniser disagrees with declared data
+Reported by name so the residual risk is on the record instead of inside the number.
+Nothing below changes a verdict; `keyword_judged` decides nothing.
+  prose says judged, declared kind says COMMAND (over-reach) : 7
+      GOAL-apparatus-cut                     [cut-the-apparatus-epic]
+      GOAL-blind-dispatch                    [cut-the-apparatus-epic]
+      GOAL-complexity-measurable             [ports-as-adapters-epic]
+      GOAL-counted-figures-reach-the-record  [stabilize-substrate-epic]
+      GOAL-four-results-still-stand          [stabilize-substrate-epic]
+      GOAL-judged-goals-compliant            [stabilize-substrate-epic]
+      GOAL-tree-stabilizes                   [stabilize-substrate-epic]
+  prose says not judged, declared kind says JUDGED (under-reach) : 6
+      GOAL-price-means-something             [close-the-loop-epic]
+      GOAL-fixture-can-diverge               [falsifiable-instruments-epic]
+      GOAL-instruments-can-fail              [falsifiable-instruments-epic]
+      GOAL-removal-can-be-priced             [portable-substrate-epic]
+      GOAL-scope-loss-catchable              [reading-discipline-epic]
+      GOAL-removal-is-measured               [subtract-to-measure-epic]
+  keyword recogniser would have counted 24 judged goals; declared data counts 23.
+
+## The R1 failing input, on a real epic plan
+SS-03 MOVED THIS DEMONSTRATION AND SAYS WHICH. The original subject,
+GOAL-loop-reaches-the-program, was read out of the LIVE plan; the live plan is now
+stabilize-substrate's and the subject raised KeyError. It did not vanish -- it is
+still declared, sealed and unedited, in score-drives-validation-epic's plans. The
+demonstration now reads the whole record keyed by (workflow, id), which is the
+repair for the fragility as well as for SS-00-DF-02.
+  baseline.evidence : specs/results/scorecards/close-the-loop/ -- CL-03 and CL-04
+  verdict           : directory
+  why               : a directory, not a card: specs/results/scorecards/close-the-loop/ (contains 0 cards; the goal does not say which)
+  FAILING: the evaluation ticket cannot re-read the number. It is handed a
+  folder and would have to pick a card out of it, which is the exact move
+  goals-and-evaluation.md's judged-baseline paragraph already forbids.
+
+## SS-00-DF-02, demonstrated on the real record
+The kickoff's first plan draft reused the predecessor's id and was never committed,
+so the subject is RECONSTRUCTED over the WHOLE REAL RECORD: every plan on disk is
+walked as-is, and the live plan's GOAL-four-results-still-stand is renamed back to
+the predecessor's GOAL-four-results-stand -- the one rename the kickoff made and
+then backed out. Nothing on disk is touched; the rename happens in memory.
+  ids renamed in the in-memory draft                 : 1
+  OLD key (id alone)  -> distinct goals              : 35
+  NEW key (workflow, id) -> distinct goals           : 36
+  collisions named rather than collapsed             : ['GOAL-four-results-stand']
+  The kickoff measured exactly this: 35 where 36 goals exist, with no warning,
+  no refusal and no ambiguity line. The old key reports a SMALLER denominator;
+  the new key cannot report fewer goals than the plans declare.
+
+## Population baselines -- where SV-06's proposed wording does not fit
+SV-06 proposed: 'baseline.evidence is the path to the SINGLE sealed card that
+produced the number'. Some real baselines are figures over MANY cards, and no
+single card produced them. Those goals cannot comply with that wording at all.
+  judged goals whose baseline VALUE is a figure over a population of cards: 2
+    GOAL-validation-is-scorable        'THE CARD SCORES D2 AND D3 ONLY. D1 bug-detection, D4 behavior-preservation and D5 are RECO'
+    GOAL-D2-can-move                   'D2 = 2 on 27 of 27 cards ever written about the A/B example. A CONSTANT, not a stable dime'
+
+## The worked example, re-read
+  EXAMPLE-judged-goal-card-backed    verdict=card  (2 sealed card(s) resolve: specs/results/scorecards/close-the-loop-cl03-v4/toolchain_removal/20260811-cl03v4-CL-p1/scorecard.json, specs/results/scorecards/close-the-loop-cl03-v4/toolchain_removal/20260811-cl03v4-CL-p2/scorecard.json)
+      re-read -> version 4, toolchain_removal, run 20260811-cl03v4-CL-p1, commit a73186d, judge pass 1, scores {'D2': 2, 'D3': 4}
+      re-read -> version 4, toolchain_removal, run 20260811-cl03v4-CL-p2, commit a73186d, judge pass 2, scores {'D2': 2, 'D3': 4}
+  EXAMPLE-command-goal-no-card       verdict=not-judged  (declared kind 'perf' names a deciding command (goals-and-evaluation.md, 'Goal kinds') -- the card rule does not apply, and that is legal)
+
+## Fail-open -- executed, not asserted
+  a plan with epic_goals: [] and goals_waived   -> 0 goals to classify, nothing to say, exit 0
+  a goal with a COMMAND harness and no card    -> not-judged: declared kind 'perf' names a deciding command (goals-and-evaluation.md, 'Goal kinds') -- the card rule does not apply, and that is legal
+  a goal with every field empty                -> undecided: kind is absent: not one of ['eval', 'integration', 'perf', 'quality'] -- this instrument cannot classify the harness from declared data and refuses to guess from prose (SS-00-DF-03)
+  a COMMAND-kind goal whose prose says 'card'  -> not-judged (prose decides nothing)
+  a goal whose kind is not in the schema       -> undecided: kind is 'vibes': not one of ['eval', 'integration', 'perf', 'quality'] -- this instrument cannot classify the harness from declared data and refuses to guess from prose (SS-00-DF-03)
+  a plan that declares no workflow             -> keyed [('UNDECLARED', 'GOAL-x')] (counted, never dropped)
+
+REFUSES NOTHING: this exits 0 on every input above, including the failing one.
