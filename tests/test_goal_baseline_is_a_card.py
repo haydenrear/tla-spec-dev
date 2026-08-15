@@ -481,10 +481,150 @@ def test_judged_classification_reads_a_declared_field_not_prose(classifier):
     assert classifier.instrument_kind(over)[0] == "command"
     assert classifier.classify(REPO_ROOT, over)[0] == "not-judged"
 
+    # THE UNDER-REACH SIDE IS NOT SIMPLY RE-ADMITTED. The SS-03 review pointed at
+    # SV-03-DF-02, which names nine goals as naming no judged instrument, and six
+    # of them declare `kind: eval`. Declared field and prior finding disagree, so
+    # the shipped rule answers UNDECIDED rather than picking one.
     under = goals[("close-the-loop-epic", "GOAL-price-means-something")]
     assert classifier.keyword_judged(under) is False
-    assert classifier.instrument_kind(under)[0] == "judged"
-    assert classifier.classify(REPO_ROOT, under)[0] != "not-judged"
+    assert classifier.instrument_kind_by_field_only(under) == "judged"
+    assert classifier.instrument_kind(under)[0] == "undecided"
+    assert classifier.classify(REPO_ROOT, under)[0] == "undecided"
+
+
+#: `SV-03-DF-02`'s own list, quoted from the ledger at this tree. Six of its
+#: nine declare `kind: eval`; the other three declare a command kind, where the
+#: field and the finding agree.
+SV_03_DF_02_NAMED = {
+    "GOAL-cheaper", "GOAL-removal-is-measured", "GOAL-removal-can-be-priced",
+    "GOAL-price-means-something", "GOAL-instruments-can-fail",
+    "GOAL-fixture-can-diverge", "GOAL-scope-loss-catchable",
+    "GOAL-dead-weight-gone", "GOAL-apparatus-priced",
+}
+
+
+def test_what_the_rule_refuses_is_exactly_the_prior_findings_disputed_goals(classifier):
+    """The veto is not arbitrary: it reproduces a filed finding's own list.
+
+    `SV-03-DF-02` names nine goals that "name no judged instrument at all --
+    they are decided by seeded mutants, a bench, or findings-per-token". Every
+    goal this rule refuses is one of those nine, and the three of the nine it
+    does not refuse are the three declaring a command kind, where the field and
+    the finding agree.
+
+    The issue asked what the proposed rule refuses when run against the sealed
+    record. This is the answer, executed rather than described.
+    """
+    goals = classifier.distinct_goals(classifier.every_plan(REPO_ROOT))
+    undecided = {gid for (_wf, gid), g in goals.items()
+                 if classifier.instrument_kind(g)[0] == "undecided"}
+    assert undecided, "a rule that refuses nothing has not been shown able to refuse"
+    assert undecided <= SV_03_DF_02_NAMED, undecided - SV_03_DF_02_NAMED
+    agreed = {gid for (_wf, gid), g in goals.items()
+              if gid in SV_03_DF_02_NAMED and classifier.instrument_kind(g)[0] == "command"}
+    assert undecided | agreed == SV_03_DF_02_NAMED, SV_03_DF_02_NAMED - (undecided | agreed)
+
+
+def test_wrong_shaped_input_is_answered_and_never_raised(classifier):
+    """`classify`'s docstring said "NEVER raises". It raised.
+
+    A `baseline:` that is a scalar or a list is valid YAML and the wrong shape;
+    it reached `.get` on a `str`, raised `AttributeError` out of `main`, printed
+    a traceback and EXITED 1 with half the report unwritten. That made the
+    instrument a gate on malformed input, which the issue forbids outright.
+    """
+    judged = {"id": "G", "kind": "eval", "metric": "D3 on the card"}
+    for baseline in ("measured last week", ["a", "b"], 3, 0.5, True):
+        verdict, why = classifier.classify(REPO_ROOT, dict(judged, baseline=baseline))
+        assert verdict in classifier.VERDICTS and why, baseline
+    for evidence in (["a.json"], {"path": "a"}, 7):
+        verdict, _why = classifier.classify(REPO_ROOT, dict(judged, baseline={"evidence": evidence}))
+        assert verdict == "no-evidence", (evidence, verdict)
+    for goal in ("GOAL-a-string", ["GOAL-a"], None, 3):
+        verdict, _why = classifier.classify(REPO_ROOT, goal)
+        assert verdict == "undecided", (goal, verdict)
+
+
+def test_a_goal_a_parsed_plan_declares_but_cannot_be_keyed_is_named(classifier):
+    """`SS-03-DF-06`, one schema level below the plan parse.
+
+    A plan that parses perfectly can declare `epic_goals` as a mapping, as a
+    list of strings, or as goals with no `id`. Each counted as ZERO goals while
+    `plans that DID NOT PARSE` read 0 — a silent drop, and that is the direction
+    `SS-00-DF-02` is about.
+    """
+    for plan in ({"epic_goals": {"GOAL-a": {}}},
+                 {"epic_goals": ["GOAL-a", "GOAL-b"]},
+                 {"epic_goals": [{"kind": "eval"}]}):
+        pair = [(Path("synthetic.yaml"), plan)]
+        assert classifier.distinct_goals(pair) == {}
+        problems = classifier.unreadable_goals(pair)
+        assert problems, plan
+        assert all(why for _path, why in problems)
+    assert classifier.unreadable_goals([(Path("x.yaml"), {"epic_goals": []})]) == []
+    assert classifier.unreadable_goals([(Path("x.yaml"), {})]) == []
+    assert classifier.unreadable_goals(classifier.every_plan(REPO_ROOT)) == []
+
+
+def test_an_unreadable_resolution_index_is_named_never_swallowed(classifier, tmp_path):
+    """`SS-03-DF-06` — `SS-03-DF-02`'s own sentence handed back to its author.
+
+    `load_index` swallowed every exception and returned `{}`: a corrupt index
+    silently changed the verdict class of every goal it would have located and
+    exited 0 without a word. The real index reads clean, so the failing input is
+    synthesised — but at the real path, in a real root, through the real reader.
+    """
+    root = tmp_path
+    (root / "references").mkdir()
+    (root / "references" / "eval_scorecard.md").write_text("stub", encoding="utf-8")
+    target = root / classifier.INDEX_PATH
+    target.parent.mkdir(parents=True)
+
+    assert classifier.load_index(root) == {}
+    assert any("absent" in p for p in classifier.index_problems(root))
+
+    target.write_text("entries: [\n  - broken: (", encoding="utf-8")
+    assert classifier.load_index(root) == {}
+    problems = classifier.index_problems(root)
+    assert problems and "Error" in problems[0], problems
+
+    target.write_text("entries:\n  - a string entry\n  - goal: G\n", encoding="utf-8")
+    assert classifier.load_index(root) == {}
+    assert len(classifier.index_problems(root)) == 2, classifier.index_problems(root)
+
+    target.write_text("entries: 3\n", encoding="utf-8")
+    assert classifier.load_index(root) == {}
+    assert classifier.index_problems(root)
+
+    assert classifier.index_problems(REPO_ROOT) == []
+
+
+def test_the_two_verdict_columns_are_not_interchangeable(classifier):
+    """Clause (d), and the comment that used to claim otherwise.
+
+    `card-via-index` is DRAWN FROM `directory`/`summary`/`unresolvable`, not
+    added beside them, so the with-index table is not comparable line for line
+    to the `0 of 20` baseline. Both are printed; this pins that they differ and
+    that the difference is exactly the index's contribution.
+    """
+    goals = classifier.distinct_goals(classifier.every_plan(REPO_ROOT))
+    with_index = classifier.census(REPO_ROOT, goals, classifier.load_index(REPO_ROOT))
+    without = classifier.census(REPO_ROOT, goals, None)
+
+    def counts(c):
+        out = {v: 0 for v in classifier.VERDICTS}
+        for verdict, _why in c.values():
+            out[verdict] += 1
+        return out
+
+    a, b = counts(with_index), counts(without)
+    assert b["card-via-index"] == 0
+    assert a["card-via-index"] > 0
+    moved = sum(b[v] - a[v] for v in ("directory", "summary", "unresolvable", "prose", "no-evidence"))
+    assert moved == a["card-via-index"], (moved, a["card-via-index"])
+    assert a["card"] == b["card"] == 0
+    # the two populations are identical; only the classes differ
+    assert sum(a.values()) == sum(b.values()) == len(goals)
 
 
 def test_a_harness_that_cannot_be_classified_from_declared_data_is_undecided(classifier):

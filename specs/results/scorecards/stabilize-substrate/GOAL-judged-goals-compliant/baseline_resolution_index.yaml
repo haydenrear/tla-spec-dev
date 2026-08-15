@@ -27,6 +27,15 @@
 # `cards:` is read by the instrument. `corroborating_cards:` is NOT read by it:
 # those cards support a sub-clause of the value, not the headline figure, and
 # counting them would overstate what was resolved.
+# A CIRCULARITY IN THIS FILE, NAMED BY THE SS-03 INDEPENDENT REVIEW AND NOT
+# REPAIRED BY IT. The entries verdicted `no-card-produced-it` are exactly the
+# entries with `cards: []`, and both were decided by the SAME pass -- the one
+# that went looking for cards and did not find them. NOTHING HERE INDEPENDENTLY
+# SEPARATES "no card could carry this claim" FROM "I could not attribute it".
+# The distinction is argued per entry in each `note:`, and an argument is not a
+# test. A reader who doubts a particular row should read its note and contest
+# it; a reader who doubts the SPLIT should treat 15 as an upper bound on the
+# unsatisfiable population, not as a measurement.
 version: 1
 determined_by: SS-03 (stabilize-substrate)
 determined_at: 25600fa04ef26eb352cf3e6db5990e7f36a20ea8
@@ -140,32 +149,10 @@ entries:
       - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-W-p2/scorecard.json
   - workflow: close-the-loop-epic
     goal: GOAL-loop-closes-once
-    verdict: population-figure
-    basis: "the 22 ab_quota_ledger cards scoring D3 = 4 at the time of measurement (run_id date <= 20260810)"
-    note: "Verified independently by SS-03: 22 exactly. At this tree 26 such cards exist; the extra four are SV-01's 20260812 cards, which post-date the baseline. THE HEADLINE OF THIS BASELINE IS AN ABSENCE ('ZERO' loops closed) and no card carries that -- only the supporting 22-card count is card-derived."
-    cards:
-      - specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p1/scorecard.json
-      - specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p2/scorecard.json
-      - specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-T-p1/scorecard.json
-      - specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-T-p2/scorecard.json
-      - specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-Q-p1/scorecard.json
-      - specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-Q-p2/scorecard.json
-      - specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-X-p1/scorecard.json
-      - specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-X-p2/scorecard.json
-      - specs/results/scorecards/portable-substrate/RM-03-rescore/v3/ab_quota_ledger/20260810-v3-T-p1/scorecard.json
-      - specs/results/scorecards/portable-substrate/RM-03-rescore/v3/ab_quota_ledger/20260810-v3-T-p2/scorecard.json
-      - specs/results/scorecards/portable-substrate/RM-03-rescore/v4/ab_quota_ledger/20260810-v4-T-p1/scorecard.json
-      - specs/results/scorecards/portable-substrate/RM-03-rescore/v4/ab_quota_ledger/20260810-v4-T-p2/scorecard.json
-      - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-T-p1/scorecard.json
-      - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-T-p2/scorecard.json
-      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03E-E-p1/scorecard.json
-      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03E-E-p2/scorecard.json
-      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03E-E-p3/scorecard.json
-      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03E-E-p4/scorecard.json
-      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03F-F-p1/scorecard.json
-      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03F-F-p2/scorecard.json
-      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03F-F-p3/scorecard.json
-      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03F-F-p4/scorecard.json
+    verdict: no-card-produced-it
+    basis: "none -- no card produced this number. RECLASSIFIED by the SS-03 independent review, and the review is right."
+    note: "THE BASELINE VALUE BEGINS LITERALLY 'ZERO.' -- an absence claim about how many loops this project has closed, and no card carries an absence. SS-03 originally filed this as population-figure on the strength of a SUPPORTING clause (22 ab_quota_ledger cards reading D3 = 4 at run_id date <= 20260810, re-derived independently and correct), while this file's own header says a card list is listed only where it produces THE HEADLINE. That is the criterion, and by it the 22 cards are corroboration, not attribution. They are recorded here in prose rather than in `cards:` so that they cannot be counted: specs/results/scorecards/{falsifiable-instruments-rescore-v1,falsifiable-instruments-rescore-v2,hexagonal-prompting,hexagonal-prompting-rerun,ports-as-adapters}/ab_quota_ledger/*/scorecard.json filtered to D3 == 4 and run_id date <= 20260810. Moving this row takes the located population from 9 to 8 and the unsatisfiable population from 14 to 15."
+    cards: []
   - workflow: score-drives-validation-epic
     goal: GOAL-validation-is-scorable
     verdict: population-figure

@@ -5,6 +5,12 @@
 resolved once from `origin/epic/stabilize-substrate` and branched from the OID.
 **Every figure below names the tree it was measured on.**
 
+**AMENDED AFTER INDEPENDENT REVIEW.** PR #281 was sent to a reviewer instructed
+to refute it. Verdict CHANGES: ten claims confirmed, three refuted, two partial.
+Everything below carries the amendments; §10 lists what the review broke and what
+it confirmed, and **the largest finding in this ticket is now one the reviewer
+found, not one I did** (`SS-03-DF-05`).
+
 **The short version, and it is the unflattering one.** The numerator has never
 moved off zero and this ticket did not move it. The denominator moved twice, in
 both directions, for two different reasons — once because the corpus grew and
@@ -22,7 +28,13 @@ the rule they are being measured against is not merely unmet for them, it is
 | `ea624b9` (issue #271) | keyword | `0 of 18` | pre-`cut-the-apparatus` |
 | `436c78c` (epic base, charter §0) | keyword | **`0 of 20`** | 122 plans, 31 goals |
 | **`25600fa`** (this ticket's base) | keyword | **`0 of 24`** | 123 plans, 36 goals |
-| **`25600fa`** (this ticket's tip) | **declared `kind`** | **`0 of 23`** | 123 plans, 36 goals |
+| `25600fa` (SS-03 stage one) | declared `kind` alone | `0 of 23` | 123 plans, 36 goals |
+| **`e4b13a2`+ (SHIPPED)** | **declared `kind`, prose may only withhold** | **`0 of 17`, 6 `UNDECIDED`** | 123 plans, 36 goals |
+
+**`0 of 20` had no sealed artifact behind it until this ticket made one.** The
+file the goal pointed at reports 123/36/23, not 122/31/20 — see §10.1. A clean
+`436c78c`, measured in a detached worktree with an empty `git status`, does give
+`0 of 20`, and is now sealed as `baseline_is_a_card-436c78c-CLEAN.txt`.
 
 **`0 of 18` is corrected explicitly and twice.** The charter already corrected it
 to `0 of 20` at `436c78c`, and that correction is right at that tree. **It is
@@ -38,8 +50,10 @@ four rows.**
 - `20 → 24`: **scaffolding this epic's own workflow** added five goals to the
   live plan and four of them matched the keyword list. **Corpus movement, no
   repair involved.** `denominator_rule`.
-- `24 → 23`: **`SS-00-DF-03`'s repair.** Net `−1`, and the net badly understates
-  it — see §3.
+- `24 → 23`: **`SS-00-DF-03`'s repair**, stage one. Net `−1`, and the net badly
+  understates it — see §3.
+- `23 → 17`: **the review's amendment to that repair.** Six goals move to
+  `UNDECIDED`, and they are exactly the six `SV-03-DF-02` already disputed — §3.1.
 
 **A figure that already moved inside the charter, again.** Charter §0 and
 `GOAL-judged-goals-compliant`'s baseline both say the census classified **three**
@@ -110,12 +124,69 @@ because the record says they are `eval`. **The net is `−1`; the churn is 13.**
 filed. **`SS-00-DF-03`'s own `suggested_fix` names `kind` as the option to
 take** — the field was the owner's suggestion, not this ticket's invention.
 
-**The retired matcher is kept as `keyword_judged()` and decides nothing.** It is
+### 3.1 The review amended this, and the amendment makes it worse — correctly
+
+**`SV-03-DF-02` is in the ledger at this tree and I did not cite it.** It names
+nine goals as naming no judged instrument — *"decided by seeded mutants, a bench,
+or findings-per-token"* — and **six of my six "under-reach" re-admissions are
+inside that list.** I re-admitted all six on a `kind: eval` field without
+rebutting the prior finding, then reported them among the "unsatisfiable" and
+escalated a skill diff on that basis. The review is right that this cannot stand.
+
+**The rebuttal, and it is not a defence of the re-admission.** `SV-03-DF-02` read
+the *harness prose*; the plan declares `kind: eval`. **Both are in the record and
+they contradict each other**, and nothing in this repository validates
+`epic_goals`, so `kind` is a convention the record keeps rather than a field
+anything enforces. A convention contradicted by a filed finding is not declared
+data an instrument may lean on. **So the answer is neither: it is `UNDECIDED`.**
+
+**The shipped rule, amended.** The declared field still decides, and the retired
+keyword recogniser gets **one vote which is a veto with no positive power**:
+where a goal declares `kind: eval` and its statement, metric, harness and target
+name no judge, rubric, card or dimension anywhere, the two signals disagree and
+the verdict is `UNDECIDED`. **Prose can move a goal out of a confident class and
+into a refusal; it can never put one in.** That is the direction that matters —
+`SS-00-DF-03` was prose *asserting* judged-ness and inflating a denominator.
+
+**The rule refuses six goals, and they are exactly `SV-03-DF-02`'s six.** Not a
+set I chose: the veto reproduces a filed finding's own list, and the three of its
+nine that it does not refuse are the three declaring a command kind, where field
+and finding agree. Pinned by
+`test_what_the_rule_refuses_is_exactly_the_prior_findings_disputed_goals`.
+
+**Movement: `0 of 23` → `0 of 17`, six goals to `UNDECIDED`. Numerator still
+zero.** Denominator fell because the instrument stopped answering a question the
+record does not answer.
+
+### 3.2 And a stricter rule the review is also right about, measured and NOT adopted
+
+**15 of the 23 declared-judged goals have harness text naming no judge, rubric,
+card or dimension** — many are bare ticket pointers like `"CL-01, decided by
+CL-04"`. Under the shipped rule 8 of those survive as judged, because the
+keyword lives in their `metric` or `statement` instead. The census prints the
+counterfactual:
+
+| rule | judged |
+|---|---:|
+| (A) declared field alone — SS-03 stage one | 23 |
+| **(B) SHIPPED** — declared field, prose may only withhold | **17** |
+| (C) the `harness` field itself must name a judge/rubric/card/dimension | **9** |
+
+**(C) is not shipped and the reason is directional:** it decides judged-ness from
+the harness *string*, which is the exact field `SS-00-DF-03` established cannot
+carry that decision. Adopting it makes the recogniser **more** prose-bound, not
+less. It is printed with all eight goals named so a reader who prefers (C) can
+have it, and so the choice is on the record rather than inside the number.
+
+**The retired matcher is kept as `keyword_judged()` and asserts nothing.** It is
 printed beside the declared answer so all 13 disagreements are on the record by
 name and any of them can be contested.
 
-**Coordination with `SS-04`, stated explicitly as required:** `SS-04` repairs the
-same class of bound in `scope`. **`SS-03` and `SS-04` do NOT share a recogniser.**
+**Coordination with `SS-04` — and this is a PREDICTION, not a verified fact.**
+`SS-04` repairs the same class of bound in `scope`. **`SS-04` does not exist
+yet**, so "they do not share a recogniser" cannot be verified against it. What IS
+verified, today: this classifier reads one declared YAML field and does no text
+matching to assert anything;
 `SS-03`'s classifier reads one declared YAML field of the plan schema and does no
 text matching at all; `scope`'s problem is recognising counted figures in free
 prose, which is a different problem with a different failure mode. Nothing in
@@ -135,9 +206,10 @@ the refusal path is real and tested, and this record gives it nothing to refuse.
 
 ### 4.1 Clause (c), counted: 23 of 23 are sealed
 
-**Every one of the 23 judged goals is declared ONLY in a plan under
-`specs/.history`.** Not one is in the live plan; the live plan's five goals all
-declare `kind: quality` and are command goals.
+**Every judged goal is declared ONLY in a plan under `specs/.history`** — `23 of
+23` under stage one, `17 of 17` under the shipped rule. Not one is in the live
+plan; the live plan's five goals all declare `kind: quality` and are command
+goals.
 
 **So `23 of 23` cannot be made compliant without editing a record `R-H4` seals,
 and none was edited.** Under the inherited keyword population of 24, the split is
@@ -152,9 +224,25 @@ Every judged goal's baseline was read against the sealed cards. `SS-03-DF-03`.
 | what produced the baseline number | goals |
 |---|---:|
 | an exact, nameable set of cards | **6** |
-| a card population that is exactly enumerable | **3** |
-| **no card at all** | **14** |
+| a card population that is exactly enumerable | **2** |
+| **no card at all** | **15** |
 | | **23** |
+
+**Corrected by the review from 9/14 to 8/15.** `GOAL-loop-closes-once`'s
+`baseline.value` begins literally *"ZERO."* — an absence claim — and this index's
+own header says a card list is listed only where the cards produced **the
+headline**. I filed it `population-figure` on the strength of a *supporting*
+clause (22 cards, re-derived and correct). By my own stated criterion that is
+corroboration, not attribution. Moved, and the 22 cards are recorded in that
+entry's prose rather than in `cards:` **so that they cannot be counted**.
+
+**And a circularity the review named that I have not repaired.** The 15
+`no-card-produced-it` entries are exactly the entries with `cards: []`, and both
+were decided by the same pass — the one that went looking for cards and did not
+find them. **Nothing here independently separates "no card could carry this" from
+"I could not attribute it".** Each entry argues the distinction in its `note:`,
+and an argument is not a test. **Treat 15 as an upper bound on the unsatisfiable
+population, not as a measurement.**
 
 The 14 are absence claims (*"NOT MEASURED"*, *"NO TAGS EXIST"*, *"0 FOR 7
 EPICS"*, *"ZERO"*, *"NEVER ASKED"*), surveys of skills or instruments, per-mutant
@@ -171,9 +259,11 @@ sentence that needs changing is in a skill this repository reads and never edits
 
 ### 4.3 The additive index — and it is not compliance
 
-`GOAL-judged-goals-compliant/baseline_resolution_index.yaml`: **23 entries, one
-per judged goal, 9 carrying an exact card list (142 card references), 14 carrying
-`cards: []` and the reason no card can be listed.** Every listed card was
+`GOAL-judged-goals-compliant/baseline_resolution_index.yaml`: **23 entries — one
+per goal that was judged under stage one — 8 carrying an exact card list (120
+card references), 15 carrying `cards: []` and the reason no card can be listed.**
+Of the **17** goals the shipped rule still calls judged, **8 are located by the
+index and 9 are not.** Every listed card was
 verified to exist, to parse, and to carry a field that reproduces part of the
 goal's `baseline.value`; the three population figures were re-derived
 independently at this tree (27 of 27 with `D2 = 2`; 22 cards with `D3 = 4`;
@@ -192,15 +282,26 @@ cards produced the sealed number. **It does not say the sealed number holds.**
 
 ### 4.4 Path defects found while doing it
 
-Six, all reported and none repaired (they are in sealed plans):
+Six, all reported and none repaired (they are in sealed plans). **The review
+noted these were prose-only with no ledger id; the load-bearing one is now
+filed as `SS-03-DF-07`** because it is `SS-01`'s live surface and `SS-01` and
+`SS-08` must both meet it. The other five stay prose: each is a pointer inside a
+plan `R-H4` seals, none is anyone's live surface, and filing five rows that name
+no actionable surface is the routing-instead-of-consuming the epic warns about.
 
 1. `GOAL-simpler-same-behavior` — declared path drops one segment; the cards are
    under `.../scorecards/architectural-coherence/ex3_over_complex/`. This is the
    whole cause of its `unresolvable` verdict.
-2. `GOAL-instruments-can-fail` — cites
+2. **`SS-03-DF-07`** — `GOAL-instruments-can-fail` cites
    `specs/desired_program_model/deferred_findings.yaml`, which **the ledger
    relocation deleted**. A sealed goal's evidence became unresolvable because a
-   live path moved under it. `SS-01`'s surface; deferred, not fixed.
+   live path moved under it, and `R-H4` forbids repairing it where it broke.
+   **The general form: the seal protects a record's TEXT and protects nothing
+   the record POINTS AT** — a sealed baseline is only as re-readable as the
+   mutable tree around it, which no rule in this project states. All four
+   finding ids the baseline cites do resolve at the ledger's new path, so the
+   content survived and only the pointer broke. `SS-01`'s surface; filed, not
+   fixed.
 3. `GOAL-scope-loss-catchable` and `GOAL-tags-earn-their-place` — cite
    `specs/results/scorecards/subtract-to-measure/`, which holds **zero** cards at
    any depth and has no `SM-05` subdirectory.
@@ -281,49 +382,58 @@ claims, and the epic currently asserts the first while relying on the second.
 
 ```
 $ uv run --with pytest --with pyyaml -m pytest tests -q
-base 25600fa   17 failed / 1483 passed / 4 skipped        collection 1504
-tip  SS-03     16 failed / 1494 passed / 4 skipped        collection 1514
+base 25600fa      17 failed / 1483 passed / 4 skipped     collection 1504
+tip  (amended)    16 failed / 1499 passed / 4 skipped     collection 1519
 ```
 
-`17 + 1483 + 4 = 1504` ✓  `16 + 1494 + 4 = 1514` ✓
+`17 + 1483 + 4 = 1504` ✓  `16 + 1499 + 4 = 1519` ✓
 
 **The base figure reproduces the epic base exactly** — `17 / 1483 / 4 / 1504`,
-`GOAL-tree-stabilizes`' baseline — measured independently in this worktree rather
-than quoted.
+`GOAL-tree-stabilizes`' baseline — measured independently in this worktree
+rather than quoted.
 
 | | base | tip | movement | attribution |
 |---|---:|---:|---:|---|
-| failed | 17 | **16** | **−1, NUMERATOR FELL** | `test_a_real_epic_plans_judged_baseline_cannot_be_re_opened`. Exactly one red cleared and **zero new reds** — verified by diffing the two `FAILED` lists, not by comparing counts. |
-| passed | 1483 | **1494** | **+11** | `+10` newly collected nodes, all green; `+1` the repaired red. |
+| failed | 17 | **16** | **−1, NUMERATOR FELL** | `test_a_real_epic_plans_judged_baseline_cannot_be_re_opened`. Exactly one red cleared and **zero new reds**, verified by diffing the two `FAILED` lists rather than comparing counts. |
+| passed | 1483 | **1499** | **+16** | `+15` newly collected nodes, all green; `+1` the repaired red. |
 | skipped | 4 | **4** | **0** | The four `test_workflow_close_keeps_the_ledger.py:92` survivors, `CA-10-DF-12`, which are `SS-01`'s. Untouched. |
-| collected | 1504 | **1514** | **+10, DENOMINATOR ROSE** | itemised below |
+| collected | 1504 | **1519** | **+15, DENOMINATOR ROSE** | itemised below, `+17 / −2` node for node |
 
-**Every one of the ten new nodes, named:**
+**Every node, named** — the diff is `+17 / −2`, net `+15`:
 
-- **`+5`** — SS-03's new tests in `tests/test_goal_baseline_is_a_card.py`: the
-  `SS-00-DF-02` collision demonstration, the existing-collision check of the
-  record, the `SS-00-DF-03` declared-field test, the absent-input `UNDECIDED`
-  test, and the index-is-never-a-card test.
+- **`+10`** — SS-03's tests in `tests/test_goal_baseline_is_a_card.py`. Five from
+  the original ticket (the `SS-00-DF-02` collision demonstration, the
+  existing-collision check, the `SS-00-DF-03` declared-field test, the
+  absent-input `UNDECIDED` test, the index-is-never-a-card test) and **five added
+  by the review**: what the rule refuses is `SV-03-DF-02`'s own list,
+  wrong-shaped input never raises, unkeyable goals in a parsed plan are named, an
+  unreadable index is named, and the two verdict columns are not interchangeable.
 - **`+1`** — `test_spec_yaml_valid.py::test_spec_yaml_parses[baseline_resolution_index.yaml]`.
-  The repository's own YAML sweep picked the new index file up; SS-03 did not
-  wire it in.
-- **`+4`** — `python3 scripts/tla_spec_dev.py --spec-root specs open ticket SS-03`
+  The repository's own YAML sweep picked the index up; SS-03 did not wire it in.
+- **`+6 / −2`** — `python3 scripts/tla_spec_dev.py --spec-root specs open ticket SS-03`
   scaffolding `specs/tickets/SS-03/`, which re-parametrises four sweeps:
-  `complexity_ledger.yaml` → `…0`/`…1`, `ticket.yaml` → `…0`/`…1`, plus
-  `spec_manifest.yaml6` and `spec_manifest.yaml7`. Two ids disappear, four
-  appear, net `+4`.
+  `complexity_ledger.yaml` → `…0`/`…1`, `ticket.yaml` → `…0`/`…1`,
+  `spec_manifest.yaml6`, `spec_manifest.yaml7`. Net `+4`.
 
-`5 + 1 + 4 = 10` ✓
+`10 + 1 + 4 = 15` ✓
 
-**Not repaired, and not silently.** The two `test_source_citations` manifest reds
-are `SS-06`'s; the five `test_disposition_requirement` reds, the three
-`test_score_tools` reds and `test_card_has_one_home` are `SS-00-DF-01` and
-`SS-01`'s, and **all nine were still red at this tip** — filed, not fixed, as the
-plan instructs. The `test_architecture_tags` and two
-`test_instrument_demonstrations` reds are the **deliberate** ones
-(`RM-06-DF-01`, `CA-04-DF-04`) and were left alone. `test_ticket_retirement` is
-the self-clearing one and was measured **before** this ticket's close flipped its
-status.
+**The 16 reds at the tip, enumerated so they sum**, none repaired by this ticket:
+
+| file | rows | owner / cause |
+|---|---:|---|
+| `test_disposition_requirement.py` | 5 | `SS-00-DF-01`, `SS-01`'s |
+| `test_source_citations.py` | **3** | two from the scaffolded manifests (`SS-06`'s), one inherited (`specs/program_model/spec_manifest.yaml`) |
+| `test_score_tools.py` | 3 | `SS-00-DF-01`, `SS-01`'s — `CA-10` repaired these and they are red again, which is the finding |
+| `test_instrument_demonstrations.py` | 2 | **deliberate**, `CA-04-DF-04` |
+| `test_card_has_one_home.py` | 1 | the ledger relocation, `SS-01`'s; issue #271 §7.1's prediction firing |
+| `test_architecture_tags.py` | 1 | **deliberate**, `RM-06-DF-01` |
+| `test_ticket_retirement.py` | 1 | expected and self-clearing; measured **before** this ticket's close flips its status |
+| | **16** | |
+
+`5 + 3 + 3 + 2 + 1 + 1 + 1 = 16` ✓ — **an earlier version of this enumeration
+summed to 15 because it called `test_source_citations` two rows when it is
+three.** The three deliberate reds were left alone; the nine belonging to
+`SS-01`/`SS-06` were filed, not fixed, as the plan instructs.
 
 ## 9. What this ticket did NOT do
 
@@ -351,3 +461,99 @@ status.
   --summary "…" --result specs/results/scorecards/stabilize-substrate/SS-03/RESULT.md …`.
   `test_ticket_retirement`'s red is the visible consequence and is the
   self-clearing one.
+
+---
+
+## 10. What the independent review broke, and what it confirmed
+
+PR #281 was dispatched to a reviewer instructed to **refute** it. **Verdict:
+CHANGES** — ten claims confirmed, **three refuted**, two partial. Every refutation
+is repaired above; this section is the record of what was wrong and who found it.
+
+### 10.1 `M1` — the largest finding in this ticket is the reviewer's
+
+**I pointed a goal at a file and verified that the path resolved.** I then wrote
+*"verified by resolution, not asserted"*. **Resolution was verified; content was
+not.** The file — `baseline_is_a_card-436c78c.txt`, cited by
+`GOAL-judged-goals-compliant`'s `baseline.evidence` and by its `baseline.md` as
+the source *"every figure below is re-readable from"* — **reports 123 plans, 36
+goals and 23 judged**. A clean `436c78c` reports `122 / 31 / 20`.
+
+**No sealed artifact anywhere in the record produced `0 of 20`** until this
+amendment measured one. `SS-03-DF-05`. Repaired: a clean run sealed from a
+detached worktree with an empty `git status`, the goal repointed at it, the
+mislabelled file renamed and headed rather than deleted, `baseline.md`'s false
+sentence corrected. **The mechanism is not repaired**: no baseline in this record
+carries evidence that its tree matched its commit, and the other four kickoff
+baselines have never been checked this way. **`SS-08` must not quote one
+unchecked.**
+
+**A path that opens is not a number that reproduces**, and I wrote the stronger
+claim from the weaker check.
+
+### 10.2 `M2` and `M3` — I filed `SS-03-DF-02` against myself and then shipped it twice more
+
+`SS-03-DF-06`. In the same commit as the finding about swallowing a parse
+failure: `load_index` swallowed everything and returned `{}`; `distinct_goals`
+dropped unkeyable goals from plans that parsed perfectly; and `classify`'s
+docstring said *"NEVER raises"* while a scalar `baseline:` raised
+`AttributeError` out of `main` and **exited 1** — a declared non-gate acting as a
+gate on malformed input. All three repaired, each with an executed failing input.
+
+**Filing a finding about a class does not make its author able to see the class.**
+That is `consumption_is_changing_what_the_substrate_checks` demonstrated against
+the party quoting it, and it is the most useful thing in this ticket.
+
+### 10.3 `M9` — my repair delivers the weaker guarantee, and the code now says so
+
+`SS-00-DF-02` says a collision must not shrink the denominator. **What is
+protected is the distinct-goal line**, which cannot fall. **The compliance
+denominator is not protected**: `id-collision` counts in neither `judged_total`
+nor the command total, so a collision between two judged goals takes
+`judged_total` from 17 to 16 while printing `id-collision : 2`. **Visible rather
+than silent is the improvement; it is not the absence of movement the finding's
+sentence asks for.** Fixing it means deciding whether an ambiguous goal belongs
+in a compliance denominator at all — the owner's call, not the instrument's.
+Documented in `census`, restated here, not repaired.
+
+### 10.4 `M5` — surfaces I modified outside my own conflict keys
+
+My declared `workflow` conflict keys are
+`specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/` and
+`.../SS-03/`. **I modified three surfaces outside them and the first version of
+this document disclosed none of them:**
+
+| surface | why | authority |
+|---|---|---|
+| `tests/test_goal_baseline_is_a_card.py` | the red assigned to me by issue #274 lives here | **the plan lists this file under `SS-06`.** The owner has confirmed this is a plan inconsistency, is handling it as a schedule amendment, and directed me not to change conflict keys myself |
+| `specs/desired_program_model/ticket_plan.yaml` | clause (a) is about `baseline.evidence` fields, which live here | listed in my `implementation_scope`; shared with every other ticket |
+| `.../SV-03/analysis/baseline_is_a_card.py` | both kickoff defects are in this file | listed in my `implementation_scope`; named as `SS-00-DF-03`'s surface |
+
+**Only `evidence:` pointers and one appended supersession paragraph were changed
+in the shared plan.** No other ticket's entry, status, dependency or conflict key
+was touched.
+
+### 10.5 What the review confirmed, so it is not re-done
+
+The census figures re-derive exactly, and the reviewer isolated the `24 → 23`
+movement independently and got 23 — **the plan edits contribute zero to it**,
+which is cleaner than my own evidence showed. All three population figures
+re-derive to the card (142 references then, 120 now, 0 missing). The committed
+`FAILED` lists are byte-identical to the evidence and `+10` decomposes node for
+node as `+12 / −2`. `R-H4` is clean: **zero bytes changed under
+`specs/.history`**. `SS-01`'s surfaces are untouched.
+
+The reviewer also named `SS-00-DF-03`'s mechanism more sharply than I did: **the
+token that flipped `GOAL-tree-stabilizes` into the judged set is `score_tools`,
+added by commit `25600fa` itself, inside a clause about a different finding.**
+
+### 10.6 Where I disagree with the review
+
+**Nowhere on the three refutations** — `M1`, `M2` and `M3` are correct,
+reproducible, and repaired.
+
+One qualification, on `M3`'s figure rather than its substance: the reviewer
+measured the without-index column as `11/9/2/1`. At the amended tip it is
+`8/7/1/1`, because six goals moved to `UNDECIDED` after `M4`. **The reviewer's
+number was right for the tree it was measured on**, and the comment it refuted —
+*"comparable line for line"* — was wrong on both trees, which is the point.

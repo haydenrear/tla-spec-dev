@@ -1,8 +1,10 @@
-tree: 25600fa   (every figure below is about THIS tree)
+tree: e4b13a2   (every figure below is about THIS tree)
 
 ## The population
 plans on disk (live + sealed)                              : 123
 plans that DID NOT PARSE and were dropped (SS-03-DF-02)    : 0
+goals a PARSED plan declares but this census cannot key    : 0
+parts of the resolution index that could not be read       : 0
 distinct epic goals, keyed (workflow, id)                  : 36
 distinct goal IDS, ignoring workflow (the OLD key)         : 36
 goal ids declared by more than one workflow (COLLISION)    : 0
@@ -14,41 +16,65 @@ the old key was reporting FEWER goals than the plans declare, which shrinks the
 denominator below and INFLATES every compliance rate computed from it.
 
 ## Can the evaluation ticket open the baseline card?
-          card : 0
-     directory : 6
-       summary : 6
-  unresolvable : 1
-         prose : 1
-   no-evidence : 0
-    not-judged : 13
-card-via-index : 9   <- SS-03's assertion, NOT the goal's; never added to `card`
-     undecided : 0   <- kind not declared: refused rather than guessed
-  id-collision : 0   <- reported, never resolved
+TWO COLUMNS, BECAUSE THE INDEX IS NOT ADDITIVE TO THESE CLASSES. `card-via-index`
+is DRAWN FROM directory/summary/unresolvable, not added beside them, so only the
+WITHOUT-INDEX column is comparable line for line to the `0 of 20` baseline
+(clause (d)). The WITH-INDEX column is what this tree reports.
+                 with index  without
+          card :          0        0
+     directory :          3        8
+       summary :          5        7
+  unresolvable :          0        1
+         prose :          1        1
+   no-evidence :          0        0
+    not-judged :         13       13
+card-via-index :          8        0   <- SS-03's assertion, NOT the goal's; never added to `card`
+     undecided :          6        6   <- declared data absent or self-contradictory: refused, not guessed
+  id-collision :          0        0   <- reported, never resolved
 
-JUDGED GOALS (declared kind: eval)                    : 23
-  of which the evaluation can re-open FROM THE GOAL   : 0
-  of which only the additive index can locate         : 9
-COMMAND GOALS (declared kind: quality/perf/integration): 13
-  of which baseline.evidence resolves to a re-readable file: 11
+JUDGED GOALS (declared kind: eval, prose not contradicting) : 17
+  of which the evaluation can re-open FROM THE GOAL         : 0
+  of which only the additive index can locate               : 8
+COMMAND GOALS (declared kind: quality/perf/integration)     : 13
+  of which baseline.evidence resolves to a re-readable file : 11
+UNDECIDED -- what this rule REFUSES to classify             : 6
+
+## Counterfactual denominators -- reported, NOT adopted
+The issue asked what this rule refuses. It refuses the count above. Two stricter
+rules were measured and neither is shipped; both are stated so the choice is on
+the record rather than inside the number.
+  (A) DECLARED FIELD ALONE, no prose veto -- the rule as first shipped by SS-03
+      judged goals                                          : 23
+  (B) SHIPPED: declared field, with prose able only to WITHHOLD
+      judged goals                                          : 17
+  (C) STRICTER: the HARNESS FIELD ITSELF must name a judge, rubric, card or dimension
+      judged goals                                          : 9
+      would become UNDECIDED                                : 8
+          GOAL-change-rule-runnable              [close-the-loop-epic]  harness: 'CL-01, decided by CL-04'
+          GOAL-loop-closes-once                  [close-the-loop-epic]  harness: 'CL-03, decided by CL-04'
+          GOAL-dimensions-replicate              [portable-substrate-epic]  harness: "RM-04's blind round on scripts/, decided by RM-05"
+          GOAL-tags-earn-their-place             [reading-discipline-epic]  harness: "RD-04's design tested by RD-05's implementation, swept b"
+          GOAL-caveat-discriminates              [score-drives-validation-epic]  harness: 'SV-01, decided by SV-05'
+          GOAL-loop-reaches-the-program          [score-drives-validation-epic]  harness: 'SV-04, decided by SV-05'
+          GOAL-scored-at-goal-time               [score-drives-validation-epic]  harness: "SV-06's design, SV-03 and SV-07's implementation, decide"
+          GOAL-validation-is-scorable            [score-drives-validation-epic]  harness: "SV-02's research, decided by SV-05"
+  (C) IS NOT SHIPPED, and the reason is directional: it decides judged-ness from
+  the harness STRING, which is the field SS-00-DF-03 established cannot carry that
+  decision. Adopting it would make the recogniser MORE prose-bound, not less. It
+  is reported because the population it names is real: for those goals the record
+  does not carry the data to decide, and a reader may reasonably prefer (C).
 
 ### directory
-  GOAL-fixture-can-diverge               [falsifiable-instruments-epic] a directory, not a card: specs/results/scorecards/ports-as-adapters/ (contains 6 cards; the goal does not say which)
-  GOAL-removal-can-be-priced             [portable-substrate-epic] a directory, not a card: specs/results/scorecards/reading-discipline/ (contains 24 cards; the goal does not say which)
   GOAL-product-round                     [reading-discipline-epic] a directory, not a card: specs/results/scorecards/ (contains 95 cards; the goal does not say which)
-  GOAL-scope-loss-catchable              [reading-discipline-epic] a directory, not a card: specs/results/scorecards/subtract-to-measure/ (contains 0 cards; the goal does not say which)
   GOAL-tags-earn-their-place             [reading-discipline-epic] a directory, not a card: specs/results/scorecards/subtract-to-measure/ (contains 0 cards; the goal does not say which)
   GOAL-loop-reaches-the-program          [score-drives-validation-epic] a directory, not a card: specs/results/scorecards/close-the-loop/ (contains 0 cards; the goal does not say which)
 
 ### summary
   GOAL-change-rule-runnable              [close-the-loop-epic] a document, not a card: specs/results/scorecards/portable-substrate/RM-05/RESULT.md
-  GOAL-price-means-something             [close-the-loop-epic] a document, not a card: specs/results/scorecards/portable-substrate/RM-05/RESULT.md
+  GOAL-loop-closes-once                  [close-the-loop-epic] a document, not a card: specs/results/scorecards/portable-substrate/RM-05/RESULT.md
   GOAL-portable                          [portable-substrate-epic] a document, not a card: references/eval_scorecard.md
   GOAL-cases-drive-ports                 [ports-as-adapters-epic] a document, not a card: specs/.history/hexagonal-prompting-epic/closed-snapshot/results/scorecards/SELF-IMPROVEMENT.md
   GOAL-port-reach                        [ports-as-adapters-epic] a document, not a card: specs/.history/hexagonal-prompting-epic/closed-snapshot/results/scorecards/SELF-IMPROVEMENT.md
-  GOAL-removal-is-measured               [subtract-to-measure-epic] a document, not a card: references/architecture_advice.md
-
-### unresolvable
-  GOAL-instruments-can-fail              [falsifiable-instruments-epic] path-shaped but does not resolve at this tree: specs/desired_program_model/deferred_findings.yaml
 
 ### prose
   GOAL-scored-at-goal-time               [score-drives-validation-epic] no path at all: 'survey of SKILL_MANAGER_HOME at eab2883'
@@ -69,7 +95,6 @@ COMMAND GOALS (declared kind: quality/perf/integration): 13
   GOAL-cheaper                           [subtract-to-measure-epic] declared kind 'quality' names a deciding command (goals-and-evaluation.md, 'Goal kinds') -- the card rule does not apply, and that is legal
 
 ### card-via-index
-  GOAL-loop-closes-once                  [close-the-loop-epic] 22 card(s) named by specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml, NOT by the goal: specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p1/scorecard.json, specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p2/scorecard.json, specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-T-p1/scorecard.json ...
   GOAL-scorecard-carries-a-delta         [falsifiable-instruments-epic] 8 card(s) named by specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml, NOT by the goal: specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-P-p1/scorecard.json, specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-P-p2/scorecard.json, specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-Q-p1/scorecard.json ...
   GOAL-catch-bugs                        [hexagonal-prompting-epic] 10 card(s) named by specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml, NOT by the goal: specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex1_scaffold_only/20260803-j1/scorecard.json, specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex1_scaffold_only/20260803-j2/scorecard.json, specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j1/scorecard.json ...
   GOAL-hexagonal-in-fact                 [hexagonal-prompting-epic] 10 card(s) named by specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml, NOT by the goal: specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex1_scaffold_only/20260803-j1/scorecard.json, specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex1_scaffold_only/20260803-j2/scorecard.json, specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j1/scorecard.json ...
@@ -78,6 +103,14 @@ COMMAND GOALS (declared kind: quality/perf/integration): 13
   GOAL-caveat-discriminates              [score-drives-validation-epic] 4 card(s) named by specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml, NOT by the goal: specs/results/scorecards/close-the-loop-cl03-v4/toolchain_removal/20260811-cl03v4-CL-p1/scorecard.json, specs/results/scorecards/close-the-loop-cl03-v4/toolchain_removal/20260811-cl03v4-CL-p2/scorecard.json, specs/results/scorecards/close-the-loop-cl03-v5/toolchain_removal/20260811-cl03v5-CL-p1/scorecard.json ...
   GOAL-validation-is-scorable            [score-drives-validation-epic] 55 card(s) named by specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml, NOT by the goal: specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p1/scorecard.json, specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p2/scorecard.json, specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-U-p1/scorecard.json ...
   GOAL-D2-can-move                       [subtract-to-measure-epic] 27 card(s) named by specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_resolution_index.yaml, NOT by the goal: specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p1/scorecard.json, specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p2/scorecard.json, specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-U-p1/scorecard.json ...
+
+### undecided
+  GOAL-price-means-something             [close-the-loop-epic] declared kind 'eval' says judged, but the goal's statement, metric, harness and target name no judge, rubric, card or dimension anywhere -- the record's two signals DISAGREE and SV-03-DF-02 names this goal as naming no judged instrument. Prose may only WITHHOLD here, never assert (SS-00-DF-03)
+  GOAL-fixture-can-diverge               [falsifiable-instruments-epic] declared kind 'eval' says judged, but the goal's statement, metric, harness and target name no judge, rubric, card or dimension anywhere -- the record's two signals DISAGREE and SV-03-DF-02 names this goal as naming no judged instrument. Prose may only WITHHOLD here, never assert (SS-00-DF-03)
+  GOAL-instruments-can-fail              [falsifiable-instruments-epic] declared kind 'eval' says judged, but the goal's statement, metric, harness and target name no judge, rubric, card or dimension anywhere -- the record's two signals DISAGREE and SV-03-DF-02 names this goal as naming no judged instrument. Prose may only WITHHOLD here, never assert (SS-00-DF-03)
+  GOAL-removal-can-be-priced             [portable-substrate-epic] declared kind 'eval' says judged, but the goal's statement, metric, harness and target name no judge, rubric, card or dimension anywhere -- the record's two signals DISAGREE and SV-03-DF-02 names this goal as naming no judged instrument. Prose may only WITHHOLD here, never assert (SS-00-DF-03)
+  GOAL-scope-loss-catchable              [reading-discipline-epic] declared kind 'eval' says judged, but the goal's statement, metric, harness and target name no judge, rubric, card or dimension anywhere -- the record's two signals DISAGREE and SV-03-DF-02 names this goal as naming no judged instrument. Prose may only WITHHOLD here, never assert (SS-00-DF-03)
+  GOAL-removal-is-measured               [subtract-to-measure-epic] declared kind 'eval' says judged, but the goal's statement, metric, harness and target name no judge, rubric, card or dimension anywhere -- the record's two signals DISAGREE and SV-03-DF-02 names this goal as naming no judged instrument. Prose may only WITHHOLD here, never assert (SS-00-DF-03)
 
 ## SS-00-DF-03: where the RETIRED keyword recogniser disagrees with declared data
 Reported by name so the residual risk is on the record instead of inside the number.
@@ -90,14 +123,8 @@ Nothing below changes a verdict; `keyword_judged` decides nothing.
       GOAL-four-results-still-stand          [stabilize-substrate-epic]
       GOAL-judged-goals-compliant            [stabilize-substrate-epic]
       GOAL-tree-stabilizes                   [stabilize-substrate-epic]
-  prose says not judged, declared kind says JUDGED (under-reach) : 6
-      GOAL-price-means-something             [close-the-loop-epic]
-      GOAL-fixture-can-diverge               [falsifiable-instruments-epic]
-      GOAL-instruments-can-fail              [falsifiable-instruments-epic]
-      GOAL-removal-can-be-priced             [portable-substrate-epic]
-      GOAL-scope-loss-catchable              [reading-discipline-epic]
-      GOAL-removal-is-measured               [subtract-to-measure-epic]
-  keyword recogniser would have counted 24 judged goals; declared data counts 23.
+  prose says not judged, declared kind says JUDGED (under-reach) : 0
+  keyword recogniser would have counted 24 judged goals; declared data counts 17.
 
 ## The R1 failing input, on a real epic plan
 SS-03 MOVED THIS DEMONSTRATION AND SAYS WHICH. The original subject,
@@ -148,5 +175,19 @@ single card produced them. Those goals cannot comply with that wording at all.
   a COMMAND-kind goal whose prose says 'card'  -> not-judged (prose decides nothing)
   a goal whose kind is not in the schema       -> undecided: kind is 'vibes': not one of ['eval', 'integration', 'perf', 'quality'] -- this instrument cannot classify the harness from declared data and refuses to guess from prose (SS-00-DF-03)
   a plan that declares no workflow             -> keyed [('UNDECLARED', 'GOAL-x')] (counted, never dropped)
+
+  WRONG-SHAPE INPUT -- every one of these RAISED and exited 1 before the SS-03 review:
+    baseline is a string         -> no-evidence: a judged goal whose `baseline` is a str, not a mapping -- no evidence field can be read 
+    baseline is a list           -> no-evidence: a judged goal whose `baseline` is a list, not a mapping -- no evidence field can be read
+    baseline is a number         -> no-evidence: a judged goal whose `baseline` is a int, not a mapping -- no evidence field can be read 
+    baseline.evidence is a list  -> no-evidence: a judged goal whose `baseline.evidence` is a list, not a string -- a path cannot be reso
+    baseline.evidence is a dict  -> no-evidence: a judged goal whose `baseline.evidence` is a dict, not a string -- a path cannot be reso
+    the goal is a string         -> undecided: the goal is a str, not a mapping -- nothing is declared and nothing can be classified
+    the goal is a list           -> undecided: the goal is a list, not a mapping -- nothing is declared and nothing can be classified
+    the goal is None             -> undecided: the goal is a NoneType, not a mapping -- nothing is declared and nothing can be classifi
+  AND THE SAME SHAPES ONE LEVEL UP, where a silent drop shrinks the denominator:
+    epic_goals is a mapping      -> 0 goals counted, 1 NAMED: `epic_goals` is dict, not a list -- 0 goals counted
+    epic_goals is a list of str  -> 0 goals counted, 2 NAMED: epic_goals[0] is str, not a mapping
+    a goal has no id             -> 0 goals counted, 1 NAMED: epic_goals[0] has no `id` -- it cannot be keyed or counted
 
 REFUSES NOTHING: this exits 0 on every input above, including the failing one.
