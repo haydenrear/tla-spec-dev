@@ -20584,3 +20584,137 @@ findings:
       Note for SS-08: if the repaired classifier moves the denominator, the
       baseline `0 of 20` is superseded and the movement is the finding, not a
       correction to be applied silently.
+  - id: SS-01-DF-01
+    found_by: SS-01, repointing the ledger's live path
+    found_at_commit: 25600fa
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: [scripts/spec_evolution.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [tests/test_workflow_close_keeps_the_ledger.py]
+    channel: operator-doing-the-work
+    cost:
+      basis: one probe close over the sealed cut-the-apparatus snapshot, run while repointing the consumers
+      value: every future close records `findings_ledger.exists = false` and archives nothing
+    summary: >-
+      THE CLOSE STILL LOOKS FOR THE LEDGER WHERE IT NO LONGER IS.
+      `spec_evolution.snapshot_findings_ledger` sources the archive from
+      `specs_dir / "desired_program_model" / "deferred_findings.yaml"` -- a path
+      built from parts, which is why a grep for the literal dead path does not
+      find it and why it is not in SS-01's conflict keys. SS-01 moved the live
+      ledger to `specs/deferred_findings.yaml`, OUTSIDE the directory the close
+      removes. The good consequence is the point of the ticket: the ledger now
+      SURVIVES a close, so no reader needs the archive fallback and no writer
+      needs to append to an archive (CA-10-DF-10's cause). The bad consequence
+      is unclaimed: every close from here on writes
+      `findings_ledger: {exists: false}` into its manifest, writes "No cumulative
+      findings ledger at ..." into its summary, and archives NO frozen per-epic
+      snapshot of the ledger at all. That also means the deterministic archive
+      resolution SS-01 shipped gains no new candidates: it is pinned forever to
+      the one entry `cut-the-apparatus-epic` recorded.
+    reproduction: >-
+      Build a subject from
+      `specs/.history/cut-the-apparatus-epic/closed-snapshot/snapshots/`, move
+      its `desired_program_model/deferred_findings.yaml` to
+      `specs/deferred_findings.yaml`, run
+      `close_tickets.close_ticket_workflow(root, Path("specs"), dry_run=False)`,
+      then read `specs/.history/cut-the-apparatus-epic/closed-snapshot/manifest.json`
+      -> `findings_ledger.exists` is `false` and no `snapshot` key. The live
+      ledger is still at `specs/deferred_findings.yaml`, complete.
+    evidence:
+      - "scripts/spec_evolution.py:912-926 -- snapshot_findings_ledger, source path built from `desired_program_model`"
+      - "scripts/spec_evolution.py:882-895 -- the summary branch that now writes the `No cumulative findings ledger` sentence"
+      - "tests/test_workflow_close_keeps_the_ledger.py -- the rewritten test asserts the ledger SURVIVES and deliberately does not assert the archive, because of this row"
+    why_out_of_scope: >-
+      OUT. `scripts/spec_evolution.py` is in nobody's conflict keys and is not in
+      SS-01's implementation_scope (production: scripts/disposition.py,
+      examples/validation/scorecards/score_tools.py). NOT BLOCKING: SS-01's
+      REQUIRED matrix passes without it, because the property that matters --
+      the ledger outlives the close -- is now true by ADDRESS rather than by
+      archive. Widening SS-01 into the close machinery would put it in the way of
+      SS-06 and SS-07 for a one-line change nothing is waiting on.
+    suggested_fix: >-
+      One line: source the archive from `specs_dir / FINDINGS_LEDGER_NAME`,
+      falling back to the old location so a repository that has not migrated is
+      still archived. Then the close records a frozen copy of a ledger it no
+      longer deletes, which is the honest version of the freeze claim
+      CA-10-DF-10 falsified -- and, unlike today, that copy really is frozen,
+      because nobody has to write into it.
+    blast_radius: >-
+      Every workflow close after SS-01 merges. Nothing breaks; a record stops
+      being written. Silent, which is the reason to file it rather than leave it
+      to be noticed four epics later the way CA-10-DF-10 was.
+    disposition: carried
+    disposition_ticket: "SS-07"
+    disposition_note: >-
+      CARRIED to SS-07, which owns close machinery, rather than self-routed to a
+      later SS-01 pass (CA-05-DF-03: self-routing satisfies D3 and routes
+      nowhere).
+  - id: SS-01-DF-02
+    found_by: SS-01, re-deriving SS-00-DF-01's mechanism before repairing it
+    found_at_commit: 25600fa
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/deferred_findings.yaml, STABILIZE-SUBSTRATE-EPIC.md]
+    channel: operator-running-own-instrument
+    cost:
+      basis: two `git clone --local` checkouts of 25600fa and one stat of the 85 candidates
+      value: a stated cause that would have made "sort by size" look like a fix
+    summary: >-
+      SS-00-DF-01's SYMPTOM REPRODUCES EXACTLY AND ITS STATED CAUSE DOES NOT.
+      The row and the charter both say all 85 archive candidates share ONE mtime
+      on a fresh checkout, so `(mtime, size, path)` "degenerates to SIZE" and
+      "THE LARGEST FILE WINS". Measured on two independent fresh clones of
+      `25600fa`: the 85 candidates carry 85 DISTINCT mtimes, spanning 3.597
+      seconds of checkout time, so the size term never breaks a tie. MTIME ALONE
+      DECIDES, and it lands on whatever git wrote last -- `specs/.history` is
+      checked out in name order and `subtract-to-measure-epic` sorts last, which
+      is why the winner is `ticket-005-SM-05`. AND THE LARGEST CANDIDATE IS THE
+      CORRECT ONE: `cut-the-apparatus-epic/closed-snapshot/deferred_findings.yaml`
+      at 1,152,237 bytes against the decoy's 345,400. HAD THE ORDERING REALLY
+      DEGENERATED TO SIZE, THE INSTRUMENT WOULD HAVE BEEN RIGHT. Also corrected:
+      "9 on this worktree and 0 on another, at the same commit" -- both fresh
+      clones report 9, deterministically. The divergence is not between two fresh
+      checkouts; it is between a fresh checkout and one whose files have been
+      touched. Demonstrated: in one clone, `touch
+      specs/.history/cut-the-apparatus-epic/closed-snapshot/deferred_findings.yaml`
+      moves `audit` from 9 violations to 0 with no byte of the tree changed.
+    reproduction: >-
+      `git clone --local --no-checkout <repo> ck && cd ck && git checkout 25600fa`,
+      then `python3 -c "import sys; sys.path.insert(0,'examples/validation/scorecards');
+      import score_tools as S; c=[p for g in S.LEDGER_ARCHIVE_GLOBS for p in
+      S.REPO_ROOT.glob(g)]; print(len(c), len({p.stat().st_mtime for p in c}),
+      max(p.stat().st_size for p in c))"` -> `85 85 1152237`. Then
+      `python3 examples/validation/scorecards/score_tools.py audit` -> 9; `touch`
+      the closed-snapshot ledger; re-run -> 0.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-01/two-checkouts-base.txt -- both clones at 25600fa, 9 violations each"
+      - "specs/results/scorecards/stabilize-substrate/SS-01/touch-moves-the-answer.txt -- 9 -> 0 on one touch"
+      - "specs/deferred_findings.yaml SS-00-DF-01 summary -- the one-mtime / largest-file claim"
+      - "STABILIZE-SUBSTRATE-EPIC.md section 0 -- the same claim, in the charter"
+    why_out_of_scope: >-
+      IN SCOPE and already acted on: SS-01's repair removes the mtime term
+      entirely, so it is correct under either cause. Filed because the RECORD is
+      wrong in a way that survives the repair -- a reader who trusts it would
+      conclude that ordering by size is a fix, and it is not. R-H4 seals the
+      charter's section 0, so this row is the correction rather than an edit to
+      it.
+    suggested_fix: >-
+      Do not edit STABILIZE-SUBSTRATE-EPIC.md section 0 or the SS-00-DF-01 row;
+      both are records. SS-08 quotes this row instead when it verifies the
+      kickoff repairs, per its obligation (8) to check each by RUNNING it.
+    blast_radius: >-
+      The record only. No instrument reads either sentence.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      CARRIED to SS-08, which is required to verify the three kickoff defects by
+      running them and which quotes SS-00-DF-01 when it does.

@@ -2793,39 +2793,60 @@ OK = "OK"
 #: filed. Measured: 0 ids -> 14 VIOLATIONs, exit 1; the archived 278 ids -> 0,
 #: exit 0. Not one of those 278 findings had gone anywhere.
 #:
-#: The globs are the same two `scripts/disposition.py` resolves through
-#: (`ARCHIVE_GLOBS`), and for the same reason: the first is the named artifact
-#: the close writes and records in the entry manifest under `findings_ledger`;
-#: the second is the copy carried inside the desired-model snapshot, which is
-#: the only copy closes before `CA-09` have. Ordering is `disposition`'s too --
-#: newest by mtime, size breaking ties because the ledger is append-only and a
-#: `git checkout` flattens mtimes.
+#: `SS-01` MOVED THE LIVE PATH out of `desired_program_model/`, the directory a
+#: workflow close removes, so the address itself now survives a close and the
+#: fallback below is the rare case rather than the normal one.
+#:
+#: AND `SS-00-DF-01` REPLACED THE FALLBACK'S ORDERING. It used to glob for the
+#: FILENAME and take the newest by `(st_mtime, st_size, path)`. Git does not
+#: carry mtimes, so the answer was a property of the CHECKOUT: on a fresh clone
+#: of this repository it read a four-epic-old MID-TICKET snapshot with 88 ids
+#: instead of the 296-id copy the close recorded, and R-H3 then reported nine
+#: TRUE `filed_as` citations as fabrications. One `touch` moved the same tree
+#: from nine violations to zero. That is `CA-10-DF-11`'s own warning coming
+#: true -- the repair moved the wrong answer from "no ledger" to "wrong ledger".
+#:
+#: A close NAMES the archive it wrote, in that history entry's `manifest.json`
+#: under `findings_ledger`, ordered by the manifest's `created_at_utc`. Both are
+#: in the tree, so both read the same in every checkout. A copy no manifest
+#: points at is not a candidate: it cannot be identified as the ledger any close
+#: kept, and identifying one anyway is the defect.
 #:
 #: DELIBERATELY NOT AN IMPORT of `scripts/disposition.py`: this tool ships
 #: standalone (`RM-05` section 3) and already refuses to hard-require siblings.
-LEDGER_LIVE = "specs/desired_program_model/deferred_findings.yaml"
-LEDGER_ARCHIVE_GLOBS = (
-    "specs/.history/*/*/deferred_findings.yaml",
-    "specs/.history/*/*/snapshots/desired_program_model/deferred_findings.yaml",
-)
+#: `tests/test_ledger_resolution_is_deterministic.py` pins the two to one answer.
+LEDGER_LIVE = "specs/deferred_findings.yaml"
+LEDGER_HISTORY_MANIFESTS = "specs/.history/*/*/manifest.json"
 
 
 def _ledger_path() -> pathlib.Path | None:
-    """The live ledger, else the newest archived copy, else `None`.
+    """The live ledger, else the one the latest close RECORDED, else `None`.
 
-    `None` means NO LEDGER EXISTS IN THIS TREE, which is a different answer
-    from an empty one and is why this returns an option rather than a set.
+    `None` means NO LEDGER CAN BE IDENTIFIED IN THIS TREE, which is a different
+    answer from an empty one and is why this returns an option rather than a
+    set. An archived copy that no close claims is not an answer either -- the
+    honest verdict there is UNVERIFIED, not a confident audit against whichever
+    file happened to be biggest.
     """
     live = REPO_ROOT / LEDGER_LIVE
     if live.exists():
         return live
-    seen: dict[pathlib.Path, None] = {}
-    for pattern in LEDGER_ARCHIVE_GLOBS:
-        for path in REPO_ROOT.glob(pattern):
-            seen.setdefault(path.resolve(), None)
-    if not seen:
-        return None
-    return sorted(seen, key=lambda p: (p.stat().st_mtime, p.stat().st_size, str(p)))[-1]
+    found: list[tuple[str, str, pathlib.Path]] = []
+    for manifest_path in REPO_ROOT.glob(LEDGER_HISTORY_MANIFESTS):
+        try:
+            manifest = json.loads(manifest_path.read_text())
+        except (OSError, ValueError):
+            continue
+        record = manifest.get("findings_ledger")
+        if not isinstance(record, dict) or not record.get("exists") or not record.get("snapshot"):
+            continue
+        snapshot = pathlib.Path(str(record["snapshot"]))
+        for candidate in (REPO_ROOT / snapshot, manifest_path.parent / snapshot.name):
+            if candidate.is_file():
+                found.append((str(manifest.get("created_at_utc") or ""),
+                              str(manifest_path), candidate.resolve()))
+                break
+    return sorted(found)[-1][2] if found else None
 
 
 def _finding_ids() -> set[str] | None:
@@ -3023,10 +3044,13 @@ def audit_rh3(ctx: dict) -> list[tuple[str, str]]:
         # then UNDECIDABLE, and saying so once is the whole answer: reporting
         # every citation as dangling would be an assertion about findings this
         # tool never read. `CA-10-DF-11`.
-        out.append((UNVERIFIED, f"no findings ledger in this tree: neither `{LEDGER_LIVE}` "
-                                f"nor any archived copy under `specs/.history/`. Every "
-                                f"`filed_as` citation below is UNCHECKED -- not verified, "
-                                f"and NOT fabricated."))
+        out.append((UNVERIFIED, f"no findings ledger this tool can IDENTIFY in this tree: "
+                                f"no `{LEDGER_LIVE}`, and no workflow close under "
+                                f"`specs/.history/` records one in its manifest under "
+                                f"`findings_ledger`. Every `filed_as` citation below is "
+                                f"UNCHECKED -- not verified, and NOT fabricated. An "
+                                f"unclaimed archived copy is not used: reading one anyway "
+                                f"is `SS-00-DF-01`."))
     # A repair declares how many verdicts it moved, so "nothing moved" is a
     # MEASURED statement rather than an absence. Zero is a real and important
     # answer: an instrument can get more honest without a single number
@@ -3442,9 +3466,25 @@ _OPEN_QUALIFIERS = {"ever", "written", "judged", "blind", "sealed", "the", "all"
 #: its own specification. That is the correct outcome rather than an oversight:
 #: exempting the document that declares a rule from the rule is how three
 #: unexecuted declarations got written into this repository already.
+#: `specs/deferred_findings.yaml` IS THE LEDGER THE FIRST SENTENCE ABOVE NAMES.
+#: It was reached by `specs/desired_program_model/*.yaml` until the close deleted
+#: that directory and `SS-01` moved the ledger out of it. Adding its new address
+#: is NOT an override of the decision `CA-10-DF-18` instance 5 protected -- that
+#: decision is `specs/.history/**`, and it is untouched here and still enforced
+#: by `sweep_paths` below. `CA-10-DF-18`'s own `suggested_fix` says so: "Instance
+#: 5 waits on CA-10-DF-10; whatever address that decides is the address
+#: DEFAULT_SWEEP should name." `SS-01` decided the address, and this is it.
+#:
+#: MEASURED COST OF NOT ADDING IT, at `25600fa`: the ledger carries 21 counted
+#: figures -- 18 REFUTED and 3 UNREACHABLE -- and none of them were being read.
+#: The figure in issue #271, "17 REFUTED figures currently unswept", is neither:
+#: 17 is the whole-record UNREACHABLE count, and those 17 are IN the sweep.
+#: The old pattern stays: it still reaches `ticket_plan.yaml` while a workflow
+#: is open, so it is not dead.
 DEFAULT_SWEEP = (
     "*.md",
     "references/*.md",
+    "specs/deferred_findings.yaml",
     "specs/desired_program_model/*.yaml",
     "specs/results/scorecards/**/*.md",
     "specs/results/scorecards/INSTRUMENT-LOG.toml",

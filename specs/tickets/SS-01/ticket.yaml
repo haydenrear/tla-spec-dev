@@ -1,0 +1,132 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket SS-01",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-01/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-01/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-01/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "specs/deferred_findings.yaml is the live path for every live consumer, and the row count is 296 or higher -- NEVER lower.",
+        "The real consumer count at this tree is MEASURED and reported against the inherited claim of 10, whichever way it lands.",
+        "The 25 archival scorecards citing the old path are UNCHANGED. R-H4.",
+        "The two single-filename exceptions are removed and no third is carved.",
+        "CA-10-DF-10 is decided on the record with a stated reason.",
+        "DEFAULT_SWEEP at :3448 is decided on the record; if changed, the overridden written decision is named; and 20 / 21 / 18 / 17 are reconciled exactly.",
+        "SS-00-DF-01 is repaired: archive resolution is deterministic from the tree, never from filesystem mtime, and an unidentifiable archive answers UNVERIFIED rather than auditing against the largest file.",
+        "audit reports the SAME violation count on two independent fresh worktrees of the same commit -- demonstrated, not asserted.",
+        "Every suite movement is attributed with numerator/denominator direction named.",
+        "The card is unchanged: serve | wc -c is still 6,281 and the digest is stated."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "SS-02",
+      "SS-07",
+      "SS-08"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/disposition.py",
+        "examples/validation/scorecards/score_tools.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "tests/test_workflow_close_keeps_the_ledger.py",
+        "tests/test_disposition_requirement.py",
+        "tests/test_score_tools.py",
+        "specs/results/scorecards/stabilize-substrate/SS-01/"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/273",
+    "goals": [
+      {
+        "contribution": "enabling",
+        "expected_effect": "none directly -- but the class's own worked example IS a ledger-absence bug (CA-10-DF-11), and a ledger the instruments can actually find is the precondition for measuring consumption at all. Note the hazard honestly: a fallback that merely moves the false PASS to a rarer input has NOT fixed the class.",
+        "goal": "GOAL-absent-input-consumed",
+        "local_signal": "python3 examples/validation/scorecards/score_tools.py audit"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "MOVEMENT IS EXPECTED HERE AND MUST BE ATTRIBUTED. Repointing the ledger will change what several ledger-reading tests see. Report every red, pass, skip and collection movement with its cause and its numerator/denominator direction. A red that appears because the substrate now reports truthfully is NOT a regression -- say which it is.",
+        "goal": "GOAL-tree-stabilizes",
+        "local_signal": "uv run --with pytest --with pyyaml -m pytest tests -q"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected -- but score_tools.py produced all four results; verify seal, contested, scope and the double seal still run rather than asserting it",
+        "goal": "GOAL-four-results-still-stand",
+        "local_signal": "python3 examples/validation/scorecards/score_tools.py scope --path NEXT-EPIC.md"
+      }
+    ],
+    "id": "SS-01",
+    "implementation_scope": [
+      "scripts/disposition.py",
+      "examples/validation/scorecards/score_tools.py",
+      "tests/",
+      "specs/deferred_findings.yaml",
+      "specs/results/scorecards/stabilize-substrate/SS-01/"
+    ],
+    "model_delta_expectation": "possible -- if the workflow close's treatment of the ledger is modelled, the path change is a model delta. Determine it rather than assuming; if there is no delta, record the no-op model result and its evidence rather than skipping ticket closeout.",
+    "objective": "THE PRECONDITION FOR EVERY OTHER TICKET, AND THREE INHERITED DECISIONS LIVE HERE. THE STATE YOU ARE INHERITING: disposition.LEDGER and score_tools.LEDGER_LIVE BOTH NAME specs/desired_program_model/deferred_findings.yaml, WHICH THE WORKFLOW CLOSE DELETES. Every consumer in the repository is currently running on an ARCHIVE-GLOB FALLBACK. THE OWNER HAS ALREADY MOVED THE DATA: specs/deferred_findings.yaml exists on this branch carrying all 296 rows, verified byte-identical to the closed snapshot before and after. YOUR SLICE IS THE CONSUMER MIGRATION AND THE DECISIONS, NOT THE DATA. FIRST, VERIFY THE BLAST RADIUS RATHER THAN INHERITING IT -- issue",
+    "promotion_order": 10,
+    "promotion_predecessor": null,
+    "role": "implementation",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Move the cumulative ledger to a path that survives a close, and decide the three findings that live at that path",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-01/specs/tickets/SS-01",
+  "ticket_id": "SS-01",
+  "ticket_index": 0,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-01/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-01/specs/tickets"
+}

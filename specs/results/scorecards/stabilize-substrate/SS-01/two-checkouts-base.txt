@@ -1,0 +1,29 @@
+SS-00-DF-01 at the SS-01 BASE (before the repair)
+commit: 25600fa04ef26eb352cf3e6db5990e7f36a20ea8  (origin/epic/stabilize-substrate)
+date:   2026-08-15T21:02:35Z
+
+Two INDEPENDENT fresh checkouts, each 'git clone --local --no-checkout' + 'git checkout 25600fa':
+  ck-B (untouched):
+    
+    9 violation(s)
+    candidates: 85
+    distinct mtimes: 85
+    mtime span (s): 3.585
+    LARGEST candidate: cut-the-apparatus-epic/closed-snapshot/deferred_findings.yaml 1152237
+    RESOLVED (mtime,size,path): subtract-to-measure-epic/ticket-005-SM-05/snapshots/desired_program_model/deferred_findings.yaml
+    ids in resolved: 88
+
+  ck-A, identical bytes, ONE touch on the archive the close RECORDED:
+    $ touch specs/.history/cut-the-apparatus-epic/closed-snapshot/deferred_findings.yaml
+    
+    0 violation(s)
+    RESOLVED: cut-the-apparatus-epic/closed-snapshot/deferred_findings.yaml
+    ids in resolved: 296
+
+READING: two fresh checkouts AGREE at 9. The instrument's answer is not
+unstable between clones -- git checks out specs/.history in name order and
+subtract-to-measure-epic sorts last, so the wrong file is newest every time.
+It is unstable between a fresh checkout and any tree whose files have been
+touched, which is what CA-10's worktree was. And note the direction: the
+LARGEST candidate is the CORRECT one, so the 'degenerates to size' account
+in SS-00-DF-01 and in the charter would have produced the right answer.
