@@ -19407,3 +19407,951 @@ findings:
     disposition_note: >-
       CARRIED, and reported as INERT rather than as a defect -- it changes no
       count in the post-close figure and is not offered as one.
+  - id: CA-10-DF-17
+    found_by: the post-close absent-input sweep, a second pass after CA-10's on the same closed tree, dispatched by the epic owner
+    found_at_commit: deabd4b
+    schedule_revision: 2
+    severity: major
+    surface:
+      production:
+        - "scripts/"
+        - "examples/validation/"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/consumption.md"]
+    channel: census
+    cost:
+      basis: one sweep of the 43 verdict-producing modules under scripts/ and examples/validation/, four parallel readers, every reported hit carrying a run reproduction
+      value: 48 instances of one class across 30 files, none of which any instrument in this repository was capable of finding
+    summary: >-
+      THE CLASS THIS PROJECT HAD NEVER NAMED, AND ITS MEASURED EXTENT.
+
+      An instrument returns a confident PASSING answer -- PASS, clean, zero
+      violations, disposed, exit 0 -- when handed an input that is ABSENT, EMPTY
+      or UNPARSEABLE. The five instances the epic owner enumerated
+      (`CA-00-DF-04`, `CA-05-DF-06`, `CA-06-DF-01`, `CA-06-DF-05`,
+      `CA-10-DF-11`) were each filed as a defect in one file. They are one
+      class, and the class is general.
+
+      WHY ALL FIVE SHIPPED, stated as the rule rather than as five accidents:
+      `R1` requires a demonstrated FAILING input on a real subject. IT DOES NOT
+      REQUIRE A DEMONSTRATED ABSENT INPUT. Every one of the five satisfied `R1`
+      in full. An instrument can carry a passing `R1` demonstration, a failing
+      `R1` demonstration, and still answer PASS to the question it was built to
+      refuse, because the third input was never in the contract.
+
+      MEASURED EXTENT: 48 instances across 30 of the 43 verdict-producing
+      modules under `scripts/` and `examples/validation/`. Nine are recorded in
+      the sibling rows `CA-10-DF-18`..`CA-10-DF-25`, grouped by instrument
+      family, each with a file, a line, the behaviour, a reachability call and a
+      reproduction. THE EXTENT IS THE FINDING. One repair was made
+      (`CA-10-DF-11`, below); nothing else was repaired, deliberately, because
+      the owner asked for the extent before the repair.
+
+      THREE OF THE FIVE NAMED EXEMPLARS ARE ALREADY REPAIRED IN THIS TREE, and
+      the epic's own record does not say so. `blind_dispatch.py` gained
+      `MIN_REPORT_BYTES` and `DISPATCH_FAILURE_SIGNATURES` and now exits 2 on an
+      empty subject (`CA-00-DF-04` half-discharged; the WEAK PASS half survives,
+      see `CA-10-DF-24`). `generate_cases_from_tlc_dump.py` gained
+      `resolve_next_relation` and both callers pass it (`CA-06-DF-01`
+      discharged; the reporting half survives, see `CA-10-DF-23`).
+      `disposition.py` gained the duplicate-key refusal (`CA-05-DF-06`
+      discharged for four-space nesting only, see `CA-10-DF-22`). Only
+      `CA-06-DF-05`'s one-sided cap and `CA-10-DF-11` were live when this sweep
+      started, and `CA-10-DF-11` is now repaired.
+
+      THE SUB-SHAPES, so the next sweep is cheaper than this one: (1) an
+      `if not path.exists(): return set()/[]/{}` guard whose empty result feeds a
+      verdict as though it were measured; (2) `all(...)` / `not any(...)` over a
+      possibly-empty collection, VACUOUSLY TRUE; (3) a one-sided threshold that
+      zero trivially satisfies; (4) `.get(k, default)` collapsing both sides of a
+      comparison so two empties match; (5) `except (OSError, ValueError): return []`
+      making unparseable indistinguishable from absent; (6) a default-named
+      lookup that misses silently; (7) an empty selection (`--only` matching
+      nothing, a glob matching no file) reported as a satisfied population.
+    reproduction: >-
+      Each sibling row carries its own. The class-level demonstration is
+      `CA-10-DF-11`'s, which this pass repaired and which is the only one of the
+      48 with a before/after: `score_tools.py audit` on this tree reported 14
+      VIOLATIONs and exit 1 with the ledger absent, and reports 0 and exit 0
+      resolving through the archive -- 287 ids, none of which had gone anywhere.
+    evidence:
+      - "specs/results/scorecards/cut-the-apparatus/CA-10-absent-input/RESULT.md -- the full sweep table"
+      - "examples/validation/scorecards/score_tools.py -- _ledger_path/_finding_ids, the one repair"
+    why_out_of_scope: >-
+      The class is named here and measured here; repairing 47 more instruments is not
+      a post-close pass. Each sibling row states the correct answer for its
+      instances, and the correct answer is almost always UNDECIDED or a refusal,
+      NOT a repair that makes the instrument pass.
+    suggested_fix: >-
+      Amend `R1` so it requires a demonstrated ABSENT input alongside the
+      demonstrated failing one, and require the answer to that input to be a
+      refusal or an explicit UNDECIDED. That is one sentence in
+      `references/consumption.md` and it is the only change that would have
+      caught all five named instances at the time they shipped. The repair made
+      here is the shape to copy: `_finding_ids` returns `set[str] | None`, where
+      `None` means NOTHING WAS READ and an empty set means THE LEDGER WAS READ
+      AND FILED NOTHING -- a signature that can no longer confuse the two.
+    blast_radius: >-
+      Every PASS this repository has ever printed. Not every one is wrong; none
+      of them distinguishes "checked and clean" from "had nothing to check", and
+      no instrument in the tree can tell you which of the two you are reading.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED with its eight sibling rows. The extent is measured and the repair
+      is deliberately confined to one line, per the owner's instruction that the
+      extent be measured before it is repaired.
+  - id: CA-10-DF-18
+    found_by: the post-close absent-input sweep, second pass
+    found_at_commit: deabd4b
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: ["examples/validation/scorecards/score_tools.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: census
+    cost:
+      basis: one reading of every command in score_tools.py against an absent, empty or wrong --root, each verdict run
+      value: five more instances of the class in the file the class was found in, none of which CA-10-DF-11's repair touches
+    summary: >-
+      THE INSTRUMENT THAT EXECUTES THE READING RULES CARRIES FIVE MORE OF THE
+      SAME CLASS, AND `CA-10-DF-11` REPAIRED ONLY THE SIXTH.
+
+      1. `:2484-2486` -- `load_log` returns a fully-populated empty skeleton
+      (`{"changes": [], "notes": [], "claims": [], ...}`) when `INSTRUMENT-LOG.toml`
+      is absent under `--root`. All six R-H checks then iterate empty lists and
+      `audit` prints `0 violation(s)`, exit 0. `--root` is free text and the
+      per-round directories are the natural thing to point it at; only the
+      top-level `specs/results/scorecards/` carries a log.
+
+      2. `:3293-3294` -- `audit_rh6`: `if not computed: out.append((OK, "no judge
+      group has a spread greater than 1 on any dimension"))`. With zero cards
+      that is an `OK` asserting a measured property of a corpus never read. It
+      should be `UNVERIFIED`.
+
+      3. `:2930` -- `audit_rh1_architecture` guards absent subjects and absent
+      scope, and has NO guard for zero cards: `entries` is `{}` and R-H1's third
+      comparability clause emits nothing at all. A clause that prints nothing is
+      indistinguishable from a clause that passed.
+
+      4. `:3590` with `:3556` and `:3654` -- `scope` over an absent card corpus
+      turns every claim `UNREACHABLE` ("empty scope") and `cmd_scope` returns
+      `1 if counts[REFUTED] else 0`. MEASURED: the default root prints
+      `82 counted figure(s): 63 REFUTED`, exit 1; `--scorecards /nonexistent`
+      prints `0 REFUTED, 82 UNREACHABLE`, EXIT 0. The file's own prose says "a
+      claim this cannot reach is NOT a claim that holds" and the exit code says
+      the opposite. `cmd_check:1189-1191` already refuses correctly on the same
+      shape -- copy it.
+
+      5. `:3448` -- `DEFAULT_SWEEP` still carries
+      `specs/desired_program_model/*.yaml`, which the close deleted, and
+      `sweep_paths:3461-3470` simply never enters its loop body for a pattern
+      matching zero files. MEASURED: the archived ledger carries 20 counted
+      figures of which `evaluate_claim` returns REFUTED for 17 against the
+      current cards -- including the `D2 = 2 on 27 of 27 cards` figure that
+      `RD-01` and this whole check exist for. The denominator fell silently and
+      17 refutations went unreported.
+    reproduction: >-
+      1. `score_tools.py audit --root specs/results/scorecards/cut-the-apparatus`
+      -> `# 0 card(s), 0 instrument change(s), 0 claim(s)` ... `0 violation(s)`,
+      exit 0.
+      4. `score_tools.py scope` -> `63 REFUTED`, exit 1;
+      `score_tools.py scope --scorecards /nonexistent/scorecards` ->
+      `0 REFUTED, 0 COUNT-MOVED, 0 HOLDS, 82 UNREACHABLE`, exit 0.
+      5. `REPO_ROOT.glob("specs/desired_program_model/*.yaml")` -> `[]`.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py:2484, :2930, :3293, :3590, :3448"
+      - "examples/validation/scorecards/score_tools.py:1189 -- cmd_check, the refusal that should be copied into run_scope"
+    why_out_of_scope: >-
+      OUT, and instance 5 is out for a REASON THAT IS NOT WORKLOAD. It looks
+      exactly like the repair this pass made -- the same file, the same deleted
+      path, and `LEDGER_ARCHIVE_GLOBS` now sits 600 lines above it -- but
+      `DEFAULT_SWEEP`'s own docstring DECLARES `specs/.history/**` deliberately
+      out of scope, because sweeping the archive "would report one claim once
+      per epic that ever snapshotted it, which is a denominator about the
+      archive rather than about the record". Resolving this pattern through the
+      archive overrides a written design decision, and that is a decision about
+      what the check is for, not a repair. It is the exact sibling of
+      `CA-10-DF-16` and belongs with the same answer: decide it with
+      `CA-10-DF-10`, which decides where a cumulative ledger lives, rather than
+      before it.
+    suggested_fix: >-
+      Instances 1-4 are refusals to add, not paths to resolve: `load_log` needs
+      the same `None`-vs-empty distinction the `_finding_ids` repair introduced,
+      and `run_scope` needs `cmd_check`'s refusal. Instance 5 waits on
+      `CA-10-DF-10`; whatever address that decides is the address `DEFAULT_SWEEP`
+      should name, and `sweep_paths` should report `swept 0 of N declared
+      patterns` either way, so a pattern that matches nothing is never silent.
+    blast_radius: >-
+      Instances 1-3 change no count in the post-close figure -- the suite runs
+      `audit` at the default root, which has a log and cards. Instance 4 is an
+      exit code that flips the wrong way on a mistyped path. Instance 5 has
+      already cost 17 unreported refutations.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED. Instance 5 is explicitly NOT repaired here so that it does not
+      pre-empt `CA-10-DF-10`.
+  - id: CA-10-DF-19
+    found_by: the post-close absent-input sweep, second pass
+    found_at_commit: deabd4b
+    schedule_revision: 2
+    severity: major
+    surface:
+      production:
+        - "scripts/corpus_diagnostics.py"
+        - "scripts/run_generated_case_adapters.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: census
+    cost:
+      basis: one reading of the corpus gate's inputs and of the effect-oracle activation path, both run
+      value: the effect oracle can be absent from a run that exits 0 and says nothing
+    summary: >-
+      THE CORPUS GATE HAS THREE MORE ENTRANCES THAN `CA-06-DF-05` NAMED, AND THE
+      EFFECT ORACLE CAN SWITCH ITSELF OFF SILENTLY.
+
+      `corpus_diagnostics.py:889-899` -- an empty GENERATED PACKAGE
+      (`cases.py` carrying `CASES = []`) is accepted, while an empty TRACE
+      directory eight lines later at `:903` raises `SystemExit: no generated
+      cases or trace JSON files`. That asymmetry is the sink `CA-06-DF-01`
+      drained into: the generator emitted `CASES = []` and this accepted it.
+      One line, and the refusal to copy is already in the same function.
+
+      `corpus_diagnostics.py:543` -- when the upward walk finds no
+      `spec_manifest.yaml`, `load_budgets(Path("__missing__"), warn=False)`
+      SUPPRESSES `budgets.py`'s own "no readable spec manifest" warning on
+      exactly the path where it is load-bearing. The report then prints
+      `cap max_external_cases_per_action = 50` with nothing saying the number is
+      a default rather than the project's negotiated 10.
+
+      `corpus_diagnostics.py:916` -- `view = args.view or package_view or "internal"`.
+      `infer_view:877` returns `None` when no directory name matches, so an
+      EXTERNAL corpus is gated at the INTERNAL cap: 200 instead of 50. A 120-case
+      external corpus PASSES at four times its real cap.
+
+      `run_generated_case_adapters.py:1548-1553` -> `:1571` -- when no `effects:`
+      block is found (absent file, or a block that parses falsy),
+      `load_effect_declarations(None)` yields zero ports, `effects_active` is
+      `False`, NO `EffectSandbox` IS EVER CONSTRUCTED, `diff_effects` is never
+      called, the `--effect-report` file is never written, and `main` prints
+      `executed N cases in batch` and returns 0. Three things make this a defect
+      rather than a design: the function's own docstring at `:1536-1537` asserts
+      the opposite ("a program with no declared ports is checked as such, and any
+      effect it emits is a gap" -- false: with zero ports nothing is observed, so
+      nothing can be a gap); the comment at `:2051-2055` says "the report is
+      written unconditionally" and it is written under `if effects_active:`; and
+      the standalone twin `effect_conformance_report.py:80-87` REFUSES with exit
+      2 on precisely this input. The enforcing copy passes where the reporting
+      copy refuses.
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py analyze corpus <dir>` where `<dir>/cases.py`
+      contains `CASES = []` -> `corpus gate PASS: 0 internal case(s)`, exit 0.
+      Copy a generated package to a directory with no manifest above it and run
+      the same -> `cap ... = 50` with no warning.
+      `python3 scripts/run_generated_case_adapters.py --cases-dir <pkg>/cases
+      --mapping <pkg>/case_adapters.toml --effect-report /tmp/effects.json` with no
+      `actions.yml`/`spec_manifest.yaml` beside the mapping -> exit 0,
+      `/tmp/effects.json` never created, nothing printed about why.
+    evidence:
+      - "scripts/corpus_diagnostics.py:889-899 against :903 -- the asymmetry"
+      - "scripts/corpus_diagnostics.py:543, :916"
+      - "scripts/run_generated_case_adapters.py:1548-1553, :1571, :1536-1537, :2051-2055"
+      - "scripts/effect_conformance_report.py:80-87 -- the sibling that refuses"
+    why_out_of_scope: >-
+      OUT. `CA-06-DF-05` already carries the one-sided cap itself and is carried
+      to the same successor; these are its unnamed entrances, and the
+      `run_generated_case_adapters` one is a different instrument again. None is
+      a path resolution, so none is in the class this pass was authorised to
+      repair.
+    suggested_fix: >-
+      `:889-899`: raise the same `SystemExit` as `:903` for a package with zero
+      cases. `:543`: drop `warn=False`, and print the provenance of every cap in
+      the report. `:916`: refuse an unattributable corpus rather than defaulting
+      to `internal` -- a corpus whose view cannot be established has no cap.
+      `:1571`: refuse with `effect_conformance_report.py:81-87`'s message, or at
+      minimum add the missing sandbox to `render_oracle_statement`, whose existing
+      "effect-conformance" line reports on the semantic provider plan and not on
+      `effects_active`, so today the missing oracle is disclosed nowhere.
+    blast_radius: >-
+      Every corpus gate verdict in the record, and every effect-conformance run
+      whose spec directory did not resolve. The exit codes were 0 and the reports
+      say PASS.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED beside `CA-06-DF-05`, which named the mechanism; these are the
+      entrances it did not enumerate.
+  - id: CA-10-DF-20
+    found_by: the post-close absent-input sweep, second pass
+    found_at_commit: deabd4b
+    schedule_revision: 2
+    severity: major
+    surface:
+      production:
+        - "scripts/testgraph_channels.py"
+        - "scripts/case_modules.py"
+        - "scripts/export_testgraph_cases.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: census
+    cost:
+      basis: one reading of the channel gate and the coverage report against an unresolvable adapter and an empty corpus, both run
+      value: the import-isolation gate answers clean for a file it never opened
+    summary: >-
+      THE CHANNEL GATE DISABLES ITSELF ON THE INPUT ITS OWN DOCSTRING FORBIDS,
+      AND THE COVERAGE REPORT CERTIFIES FULL COVERAGE OVER ZERO ACTIONS.
+
+      `testgraph_channels.py:336-337` and `:341-342` --
+      `production_imports_for_module` returns `[]` when the adapter module
+      RESOLVES TO NO FILE, and again on `except (OSError, SyntaxError)`.
+      `enforce_external_bindings` reads zero offenders as compliance, so the gate
+      whose entire purpose is proving "this adapter does not import the program
+      under test" answers CLEAN for a module it never opened. The module's own
+      docstring at `:29-33` names this: "a gate that disables itself when its
+      input is absent is the exact degeneracy the doctrine forbids." Reachable
+      today by the close: any binding naming `specs.current.*` resolves to
+      nothing in this tree.
+
+      `testgraph_channels.py:410`, `:415-416` -- `enforce_external_bindings(...,
+      actions=set())` sets `wanted = set()` and every binding hits `continue`.
+      `export_testgraph_cases.py:239`, `:243` supplies exactly that when
+      `all_external` is empty and then prints `external channel enforcement
+      passed; integration rung ...`. STATED HONESTLY: the process still exits 1
+      eight lines later at `:250-251` (`ERROR: no external cases selected`), so
+      the EXIT CODE is not a false pass -- THE CLAIM IS. The docstring says the
+      action set "narrows which bindings are checked, never how strictly"; an
+      empty set narrows it to zero, which is a difference in kind.
+
+      `case_modules.py:552-565`, `:699`, `:713-717` -- `uncovered_actions` loops
+      `for action in self.view_actions`; an empty tuple returns `[]` and
+      `render_report` takes the else branch. RUN VERBATIM against this repo's own
+      manifest with no `--corpus`: `view action set: 0 actions` ... `(no view
+      actions resolved -- supply --actions-metadata or a corpus)` ... `UNCOVERED:
+      none -- every view action is entered by a measured module or covered by the
+      view's own corpus.` exit 0. The report self-declares that it gates nothing
+      (`:745`), so the exit code is by design -- THE VERDICT STRING IS NOT, and
+      the same function already says "Unmeasured is not zero" two lines earlier
+      for the corpus column.
+    reproduction: >-
+      `python3 -c "import scripts.testgraph_channels as t, pathlib;
+      print(t.production_imports_for_module('specs.current.adapters',
+      package='scripts', roots=[pathlib.Path('.')]))"` -> `[]`.
+      `python3 scripts/case_modules.py coverage --manifest
+      specs/program_model/spec_manifest.yaml` -> `UNCOVERED: none -- every view
+      action is entered by a measured module`, exit 0.
+      `enforce_external_bindings('examples/distributed_history/.../testgraph_bindings.yml',
+      actions=set())` -> `PASS rung HistoryPort+OrderPort`.
+    evidence:
+      - "scripts/testgraph_channels.py:29-33 -- the docstring this violates"
+      - "scripts/testgraph_channels.py:336-337, :341-342, :410, :415-416"
+      - "scripts/case_modules.py:552-565, :713-717, :745"
+      - "scripts/export_testgraph_cases.py:239, :243, :250-251"
+    why_out_of_scope: >-
+      OUT. Not a path resolution: each of these needs a new refusal or a new
+      UNDECIDED verdict, which is a change to what the gate asserts.
+    suggested_fix: >-
+      `testgraph_channels`: emit a `ChannelViolation` reading "adapter module X
+      could not be resolved/parsed, so import isolation is UNDECIDED" rather than
+      returning `[]`; refuse an empty `actions` set, or check every binding when
+      the corpus contributes none. `case_modules`: `UNCOVERED: UNDECIDED -- no
+      view actions resolved`, in the wording the same function already uses.
+    blast_radius: >-
+      Every green channel-enforcement line in the record for a binding whose
+      adapter did not resolve, and every coverage report run without a corpus.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED. The `export_testgraph_cases` half is reported as a FALSE CLAIM WITH
+      A CORRECT EXIT CODE rather than as a false pass, which is the weaker and
+      accurate statement.
+  - id: CA-10-DF-21
+    found_by: the post-close absent-input sweep, second pass
+    found_at_commit: deabd4b
+    schedule_revision: 2
+    severity: major
+    surface:
+      production:
+        - "scripts/generate_python.py"
+        - "scripts/scaffold_spec.py"
+        - "scripts/onboard_program_model.py"
+        - "scripts/extract_spec_manifest.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: census
+    cost:
+      basis: one reading of the generators' emitted oracles, checked against the two shipped example projects
+      value: two shipped examples carry a state oracle that passes every state, and validate_manifest reports no error
+    summary: >-
+      THE GENERATORS EMIT ORACLES THAT ASSERT NOTHING, INTO EVERY REPOSITORY THIS
+      TOOLCHAIN SCAFFOLDS.
+
+      `generate_python.py:238-239` -- an absent `invariants:` key, an empty list,
+      or an `invariants:` block a parse failure turned into `None` all emit
+      `def validate_state(state) -> None: return None`. That function is the spec
+      double's state oracle: `explain_state_failure` then returns `""` for every
+      state, `validate_trace` opens by calling it, and the generated contract
+      tests and Hypothesis strategies all run through it.
+      `extract_spec_manifest.validate_manifest:322-357` does not list `invariants`
+      among the required keys, so generation exits 0 with ZERO ERRORS. MEASURED:
+      `examples/validation/ex4_pipeline_coherent` (`invariants: None`) and
+      `examples/effect_providers/reminder_worker` (`invariants: []`) both ship
+      this today. The sibling paths in the same function get it right --
+      the per-invariant body at `:270` and the per-transition body at `:319` both
+      emit `raise NotImplementedError(...)`, and `_validate_transition:325-333`
+      ends in `raise AssertionError`. Only `validate_state` was given a pass.
+
+      `extract_spec_manifest.py:352` -- `for invariant in manifest.get("invariants", []) or []`
+      is the same absence one layer up: zero invariants checked, `errors == []`,
+      exit 0 PASS.
+
+      `scaffold_spec.py:651` with `:636`, and `onboard_program_model.py:824-826`
+      with `:807` -- the scaffolded state assertion projects both sides through
+      `.get(k, default)`. If the modeled variable is renamed, dropped, or the TLC
+      projection emits a state without it, BOTH SIDES BECOME THE SAME EMPTY DICT,
+      `actual == expected` is True, and the artifact records `"matched": true`.
+      `onboard_program_model.py:859-870` applies the same `.get` upstream in the
+      `tlc_projection.py` template, so the generated case's `after` is silently
+      empty too. This ships into every repo scaffolded by
+      `tla_spec_dev scaffold project`.
+
+      `onboard_program_model.py:1219-1222` -- the generated
+      `test_testgraph_bindings_cover_external_actions` asserts that four literal
+      substrings (`"adapter:"`, `"projector:"`, ...) appear ANYWHERE in
+      `testgraph_bindings.yml`. A bindings file with an EMPTY `actions:` table
+      passes, as does one carrying those four words only in a comment header. The
+      test's name claims coverage of the external action set and it never reads
+      `External.tla`, `actions.yml`, or the action table.
+    reproduction: >-
+      `python3 -c "import sys; sys.path.insert(0,'scripts'); import generate_python as gp;
+      from extract_spec_manifest import load_manifest, validate_manifest; from pathlib import Path;
+      mp=Path('examples/validation/ex4_pipeline_coherent/specs/program_model/spec_manifest.yaml');
+      m=load_manifest(mp); print(m.get('invariants'), validate_manifest(m,mp));
+      v=gp.render_validators(m,mp); print(v[v.index('def validate_state'):][:120])"`
+      -> `None []` and `def validate_state(state: PipelineState) -> None:\n    return None`.
+      Same for `examples/effect_providers/reminder_worker` with `invariants: []`.
+    evidence:
+      - "scripts/generate_python.py:236-239 against its own :270 and :319"
+      - "scripts/extract_spec_manifest.py:322-357, :352"
+      - "scripts/scaffold_spec.py:636, :651"
+      - "scripts/onboard_program_model.py:807, :824-826, :859-870, :1219-1222"
+    why_out_of_scope: >-
+      OUT, and the largest of the eight sibling rows by blast radius. These are
+      emitted artifacts in shipped examples, not a read path; changing what the
+      generator emits changes every downstream repository's oracle and is a
+      decision, not a repair.
+    suggested_fix: >-
+      `generate_python.py:238`: emit `raise NotImplementedError("no invariants
+      declared in <manifest>; validate_state cannot decide anything")`, matching
+      `:270`. A model with genuinely no invariants should have to say so
+      explicitly, because "no invariants declared" and "no invariants extracted"
+      are indistinguishable at this line. `scaffold_spec`/`onboard_program_model`:
+      raise when the projected key set is empty on either side -- "I projected
+      nothing" is not "they agree".
+    blast_radius: >-
+      Every repository this toolchain has scaffolded, and the two shipped examples
+      today. A vacuous `validate_state` cannot fail, so no trace it validates has
+      ever been validated.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED. Filed with the two shipped examples named so the successor does not
+      have to rediscover which artifacts are already affected.
+  - id: CA-10-DF-22
+    found_by: the post-close absent-input sweep, second pass
+    found_at_commit: deabd4b
+    schedule_revision: 2
+    severity: major
+    surface:
+      production:
+        - "scripts/extract_spec_manifest.py"
+        - "scripts/disposition.py"
+        - "scripts/infer_action_params.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: census
+    cost:
+      basis: one reading of the three hand-written parsers this repository reads its own record through, each exercised
+      value: CA-05-DF-06's mechanism is still live one nesting level up, and the parser underneath it still discards silently
+    summary: >-
+      THE PARSERS UNDERNEATH THE VERDICTS STILL DISCARD INPUT WITHOUT A WORD,
+      INCLUDING THE ONE `CA-05-DF-06` WAS FILED ABOUT.
+
+      `extract_spec_manifest.py:184` (also `:188`, `:190`) -- `_parse_dict`
+      assigns `result[key] = ...` with NO duplicate detection. VERIFIED:
+      `parse_simple_yaml('module: A\nmodule: B\n')` -> `{'module': 'B'}`, no
+      warning, no error. THIS IS THE MECHANISM OF `CA-05-DF-06`: `disposition.py`
+      reads its ledger through `load_manifest`, so seven rows with duplicate keys
+      were half-read and then certified. It is also how a SEMANTIC EQUIVALENCE
+      verdict goes vacuous: `spec_evolution.semantic_file_matches:960-962` and
+      `close_tickets._semantic_file_matches:106-108` compare manifests AS PARSED,
+      so two manifests differing only in a shadowed duplicate key compare EQUAL
+      and the ticket close passes.
+
+      `disposition.py:126` -- the structural refusal `CA-05-DF-06` earned only
+      sees keys at EXACTLY four-space indent inside a `  - id:` block. Verified
+      against the ledger this repository reads today, the seven-row case is
+      genuinely caught. What is not caught is a duplicate at any other level,
+      most importantly a duplicated TOP-LEVEL `findings:` key: `yaml.safe_load`
+      keeps the last block, `doc.get("findings")` returns only its rows, and
+      `report:229` prints `DISPOSED <label>: N findings, all three clauses hold`
+      with exit 0 over a ledger half of which the parser discarded. THE EXACT
+      DEFECT THE REFUSAL WAS WRITTEN TO PREVENT, ONE NESTING LEVEL UP.
+
+      `infer_action_params.py:227` -- `DEFINITION_RE` ends in `\s*==\s*$`, so only
+      definitions whose body begins on the NEXT line are seen. `Add(x) == q' = q
+      \cup {x}` on one line is invisible. VERIFIED on a four-line module using
+      single-line definitions: `bodies: []`, `recipes: []`. The cascade:
+      `build_recipes` -> `{}`; `infer_params` returns `{}` at `:540`/`:543`;
+      and `generate_cases_from_tlc_dump.param_provenance_labels:516-517`
+      (`if not params: return []`) emits NO LABEL AT ALL -- so every case
+      silently carries no params AND NO `params:unchecked` MARK, while the
+      docstring two lines above promises "an unrecoverable parameter is MARKED
+      AND KEPT". `render_audit:693` then prints an empty table under the sentence
+      "Every action label is listed ... so the audit is complete rather than
+      selective", exit 0. Everything downstream of a successful parse in that
+      file is exemplary (`:623-629`, `:786-802`, `:850` all guard against
+      vacuity); the hole is upstream, where an unreadable module and a module
+      with nothing to recover produce the same empty dict.
+    reproduction: >-
+      `python3 -c "import sys; sys.path.insert(0,'scripts'); from extract_spec_manifest
+      import parse_simple_yaml; print(parse_simple_yaml('module: A\nmodule: B\n'))"`
+      -> `{'module': 'B'}`.
+      `cat specs/.history/*/closed-snapshot/deferred_findings.yaml > /tmp/ledger.yaml`
+      (two `findings:` roots) then `python3 scripts/disposition.py --ledger
+      /tmp/ledger.yaml --epic PA` -> no STRUCTURAL line, a clause verdict over the
+      second block only.
+      A four-line TLA module whose actions are written `Foo(x) == <body>` on one
+      line -> `parse_action_bodies` returns `[]`, `render_audit` prints an empty
+      table, exit 0.
+    evidence:
+      - "scripts/extract_spec_manifest.py:184, :188, :190"
+      - "scripts/disposition.py:122-126 -- the four-space assumption"
+      - "scripts/infer_action_params.py:227, :540, :543, :693"
+      - "scripts/generate_cases_from_tlc_dump.py:516-517 -- the missing params:unchecked label"
+    why_out_of_scope: >-
+      OUT. `disposition.py`'s half is a repair to a red this epic already declared
+      resolved, and re-opening it is the owner's call; the other two are new
+      refusals in hand-written parsers. None is a path resolution.
+    suggested_fix: >-
+      `_parse_dict`: `raise ValueError(f"duplicate key {key!r}")`. `disposition.py`:
+      check duplicates at every level, or better, parse with a duplicate-rejecting
+      loader and delete the regex scanner entirely -- it exists only because
+      `yaml.safe_load` does not refuse. `infer_action_params`: refuse when
+      `parse_action_bodies` returns zero definitions from a non-empty module, and
+      give `param_provenance_labels` a third state distinguishing "action has no
+      formals" from "no recipe existed".
+    blast_radius: >-
+      Every verdict this repository has computed over its own YAML, including the
+      one `CA-05-DF-06` describes and every semantic-equivalence check a ticket
+      close ran.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED. `CA-05-DF-06` is NOT re-filed and is not contradicted: its
+      four-space case is genuinely fixed. What is filed is that the same defect is
+      reachable at every other nesting level and that the parser beneath it never
+      gained the refusal at all.
+  - id: CA-10-DF-23
+    found_by: the post-close absent-input sweep, second pass
+    found_at_commit: deabd4b
+    schedule_revision: 2
+    severity: major
+    surface:
+      production:
+        - "scripts/analyze_complexity.py"
+        - "scripts/complexity_ledger.py"
+        - "scripts/code_complexity.py"
+        - "scripts/generate_cases_from_tlc_dump.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: census
+    cost:
+      basis: one reading of the TLC report chain from the flag to the ledger verdict, each step run against a missing and an unparseable report
+      value: an unmeasured delta is recorded as direction zero and stands down all three ledger gates
+    summary: >-
+      A TLC RUN THAT DID NOT HAPPEN AND A TLC RUN THAT MEASURED NOTHING ARE THE
+      SAME VALUE ALL THE WAY UP TO THE LEDGER VERDICT.
+
+      `analyze_complexity.py:1762`, `:1764`, `:1767`, `:1782` -- the guards
+      `if current_tlc is not None and current_tlc.is_file()` collapse "flag not
+      given" and "flag given, path is a typo or the run crashed" into one silent
+      skip, and `parse_tlc_report:1355-1364` returns an all-`None` report for any
+      text its regexes miss, so `report.complete` is False and `:1782`'s
+      `max_distinct_states` budget check is skipped too. RUN: with
+      `--tlc-report /nonexistent --baseline-tlc /nonexistent` the output is
+      BYTE-IDENTICAL to omitting both flags, exit 0. SHARPEST FORM: with a valid
+      report and a missing baseline it prints `Pass --baseline-tlc to check for
+      the self-loop-deletion signature` -- advice to pass the flag that WAS
+      passed, with the MF-020 red-flag check silently not run.
+
+      `complexity_ledger.py:592-594`, `:612-613` -- `directions` accumulates only
+      comparable metrics, and `if not directions: delta["direction"] = "zero"`.
+      AN EMPTY LIST IS READ AS "NO CHANGE" RATHER THAN AS "NO COMPARISON", and
+      `direction` is what Gate 1 (an increase needs a justification), Gate 2 and
+      Gate 3 (a decrease needs validated-refactor evidence) all switch on. RUN
+      against a `tlc-current.txt` containing `Error: TLC failed to start`:
+      `distinct None`, `DIRECTION zero`, `VERDICT recorded`, `errors []` -- the
+      previous entry recorded 49,386 distinct states, this one recorded none, and
+      the ledger certified the close. Reachable through the ordinary close path:
+      `spec_evolution.record_complexity_ledger:1509-1520` probes for
+      `tlc-current.txt`/`tlc.txt` beside the ledger input and passes whatever it
+      finds, and a truncated or crashed run is exactly the file that lands there.
+      `:383` is the milder twin -- a supplied-but-missing path leaves `tlc_report`
+      and `tlc_run_complete` out of the entry entirely, so nothing downstream can
+      tell "no TLC run" from "TLC report not found".
+
+      `generate_cases_from_tlc_dump.py:2912` -- `signatures, _ = extract_action_signatures(...)`.
+      The `_` is the defect: the `rejected` dict exists precisely so a failure has
+      a name, the negative pass keeps it (`:2534-2536`), and the PORT pass throws
+      it away. With zero signatures `port_regions` computes an empty region for
+      every port and `:2963-2966` explains the emptiness as A FACT ABOUT THE
+      MODEL -- "no action declaring this port writes any modeled variable -- the
+      port's effect is outside the model" -- and closes with "checked against the
+      model's own write behaviour, both directions, every run" over zero checks.
+      THIS IS THE SURVIVING HALF OF `CA-06-DF-01`: the resolution was repaired,
+      the reporting of a failed resolution was not. `:785`/`:2847`/`:2850` are the
+      manifest-side twin, and `:1336-1338` with `:1371` is the third: omitting the
+      optional `--actions-metadata` makes `declared_for_view` empty, so the
+      `R4-DF-04` zero-case coverage-hole loop iterates nothing IN TOTAL SILENCE,
+      and `case_modules.build_report:596-597` then labels `set()` as "the supplied
+      actions metadata" because `set()` is not `None`.
+
+      `code_complexity.py:919-920` -- `if not completeness["unparsed"] and not
+      completeness["unresolved_constructs"]` is vacuously true over the empty set,
+      so a nonexistent path prints `figures: none measured` and then, three lines
+      later, `nothing was left unmeasured by this instrument's own limits`. The
+      weakest hit here and reported as such: the tool is deliberately a
+      thermometer and refuses nothing by design. The defect is that the last
+      sentence a reader sees contradicts the one three lines above it.
+    reproduction: >-
+      `python3 scripts/analyze_complexity.py examples/validation/ab/model/QuotaLedger.tla
+      examples/validation/ab/model/QuotaLedger.cfg --tlc-report /nonexistent/tlc.txt
+      --baseline-tlc /nonexistent/base.txt` -> exit 0, no `[MEASURED] TLC` section,
+      output identical to omitting both flags.
+      A ledger input beside a `tlc-current.txt` containing `Error: TLC failed to start`
+      -> `DIRECTION zero`, `VERDICT recorded`, `errors []`.
+      `python3 scripts/code_complexity.py /nonexistent/tree` -> `figures: none measured`
+      then `nothing was left unmeasured by this instrument's own limits`, exit 0.
+    evidence:
+      - "scripts/analyze_complexity.py:1762, :1764, :1767, :1782, :1355-1364"
+      - "scripts/complexity_ledger.py:383, :592-594, :612-613"
+      - "scripts/spec_evolution.py:1509-1520 -- the caller that makes L1 reachable"
+      - "scripts/generate_cases_from_tlc_dump.py:2912, :2963-2966, :1336-1338, :1371"
+      - "scripts/code_complexity.py:919-920"
+    why_out_of_scope: >-
+      OUT. The ledger half needs a fourth direction (`unknown`) threaded through
+      three gates, which is a polarity change to the close criterion and squarely
+      the owner's decision.
+    suggested_fix: >-
+      `analyze_complexity`: a supplied path that does not resolve is a REFUSAL
+      (`EXIT_USAGE`, as `:2328`/`:2332` already do for the spec and cfg); a report
+      that resolves but does not parse is an explicit finding naming the budget
+      that was NOT checked. `complexity_ledger`: add `direction = "unknown"` when
+      any `DIRECTION_METRIC` pair is non-comparable, and make Gates 1-3 treat
+      `unknown` the way they treat `mixed`, not the way they treat `zero`.
+      `generate_cases_from_tlc_dump:2912`: thread `rejected` into
+      `PortCorpusReport` exactly as `NegativeCorpusReport.suppressed` already is.
+    blast_radius: >-
+      Every complexity-ledger entry whose TLC report was missing or unparseable is
+      recorded as `direction: zero` and passed all three gates. This ledger's own
+      `cut-the-apparatus-epic` entry records `tlc_findings: [{level: NOTE, message:
+      "TLC reports incomplete; comparison skipped."}]` and `direction: zero` --
+      that is this shape, disclosed as a NOTE and counted as no change.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED. `CA-06-DF-01` is NOT re-filed: its resolver is genuinely fixed and
+      both callers pass it. What is filed is that the failure REPORTING on the port
+      path was never repaired, so the same zero-cases-reports-success outcome is
+      still available whenever resolution itself fails.
+  - id: CA-10-DF-24
+    found_by: the post-close absent-input sweep, second pass
+    found_at_commit: deabd4b
+    schedule_revision: 2
+    severity: major
+    surface:
+      production:
+        - "examples/validation/instruments/blind_dispatch.py"
+        - "examples/validation/instruments/demonstrate.py"
+        - "examples/validation/check_prediction_seal.py"
+        - "examples/validation/ab/dispatch_record.py"
+        - "examples/validation/ab/eval/divergence.py"
+        - "examples/validation/ab/eval/run_controls.py"
+        - "examples/validation/ab/eval/run_arm_swap.py"
+        - "examples/validation/scorecards/architecture_tags.py"
+        - "scripts/fitness_functions.py"
+        - "scripts/budgets.py"
+        - "scripts/effect_conformance.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: census
+    cost:
+      basis: one reading of every evidence instrument in examples/validation plus the three advisory scanners, each verdict run
+      value: fourteen instances, of which the prediction seal and the control-coverage check are the two that decide published claims
+    summary: >-
+      THE EVIDENCE INSTRUMENTS -- THE ONES WHOSE WHOLE JOB IS REFUSING -- ARE THE
+      DENSEST CONCENTRATION OF THE CLASS.
+
+      `blind_dispatch.py:143` -- `if not any(groups.values())` can NEVER be false:
+      `groups["harness block label"]` is `list(HARNESS_MARKERS)`, four hard-coded
+      literals, so the `UNDECIDED: no needles could be derived. Not a pass.`
+      branch at `:144-145` IS DEAD CODE. Both classes that are actually derived
+      fail silently to empty (`:76-77` `if not mem.is_file(): return []`; `:89-90`
+      `except (SubprocessError, OSError): return []`), and only the memory class
+      gets a warning. RUN: `check <200-byte file> --repo /tmp/notarepo --memory
+      /nonexistent` -> `needles 0 operator memory entry`, `needles 0 repository
+      commit subject`, `WEAK PASS`, EXIT 0. Both live needle classes derived
+      nothing and the round was still passed. NOTE: `CA-00-DF-04`'s empty-subject
+      half IS repaired -- `MIN_REPORT_BYTES`/`DISPATCH_FAILURE_SIGNATURES` now
+      exit 2 -- and this is the half that survived.
+
+      `check_prediction_seal.py:279-291` with `:399-418` -- `load_record` returns
+      `None` on `except (OSError, ValueError)` and on a non-dict `per_mutant`;
+      `check:319` drops those; `report:415-418` returns 0 whenever `already` is
+      empty. RUN: `check_prediction_seal.py PREDICTIONS-PA.md --record
+      /nonexistent/kill-table.json` -> `records read: 0 of 1`, MOVES `N05` -- THE
+      ONE ROW THIS INSTRUMENT WAS BUILT TO CATCH -- INTO UNPARSED, then prints
+      `No prediction is contradicted by a measurement that pre-dates the seal.`
+      and exits 0. `--demonstrate` protects the default path only; `--record` is
+      unguarded. `:294-298` `retired_controls` `if not path.is_file(): return []`
+      silently removes the whole retired-control cross-check, the clause that
+      catches `M09`.
+
+      `demonstrate.py:505-508` with `:597` -- a typo'd `--only` selects nothing,
+      `failures` is empty, and the run prints `enumerated 0 ... Every declared
+      demonstration reproduced.` exit 0. `:447-450` with `:480-482` -- a declared
+      root that is not a directory is skipped, so `--check-enumeration --root
+      <empty dir>` prints `Every discovered executable has a row.` exit 0.
+
+      `ab/dispatch_record.py:163-164`, `:266-273`, `:351` -- an absent
+      `dispatch.toml` yields `[]`, `verify` returns an empty problem list, and
+      `cmd_verify` prints `evidence is self-consistent`, exit 0. It propagates:
+      `check_catalogue.py:683-695` calls `verify`, gets no problems, every
+      `record_for` returns `None`, the arms are measured on-disk -- AND THE LOUD
+      `NO DISPATCH RECORD REQUESTED` WARNING AT `:697-702` IS SKIPPED PRECISELY
+      BECAUSE A `--dispatch-dir` WAS PASSED. That is `PA-06-DF-10` reproducing
+      itself through a wrong `--dir`.
+
+      `ab/eval/divergence.py:133`, `:141`, `:356`, `:386` -- two `all(...)` over
+      `report["per_mutant"]`, vacuously true when it is empty, so
+      `distinct_compositions` is 1 everywhere and `:356` returns `NOT_REACHABLE`
+      with the confident text `E1 holds ... E2 holds (AD-F1 measured the mutated
+      trees observationally identical)`. RUN with two synthetic reports carrying
+      `"per_mutant": {}`: `identical to corpus-port-swap:real on every row` (zero
+      rows), `NULL STILL ENTAILED -- no divergence measured`, exit 0.
+      `rows_compared: 0` is ALREADY RECORDED in the artifact at `:149` and nothing
+      reads it.
+
+      `ab/eval/run_controls.py:573-574` -- `if not declared: continue`, so a run
+      whose catalogues declare NO control at all produces `controls_red: []`,
+      `polarities_with_no_deciding_control: []`, exit 0, while the docstring at
+      `:46-48` promises "a run with no positive control that decides anything is
+      not green". The proof that this is a defect and not a choice is its own
+      sibling: `run_arm_swap.py:160-166` REFUSES exactly this condition with
+      `RED -- NO ROW IN THIS RUN DECLARES A CONTROL ROLE. 'No control was
+      violated' is vacuous when there is no control`. `run_arm_swap.py:155`
+      (`report.get("control_red", [])`) is the same shape in the other direction
+      and is NOT reachable today, filed only because it sits in the file whose
+      docstring is about not inheriting a false green.
+
+      `architecture_tags.py:296-298`, `:587-589` -- a wrong or deleted
+      `--scorecards` yields zero rows and prints `0 card(s) cite predominantly
+      outside their declared scope`; inside `scope_drift`, `if not located:
+      continue` drops any card whose D3 citations name no declared scope,
+      INCLUDING A CARD WITH NO CITATIONS AT ALL, so those cards leave the
+      denominator silently rather than being counted as unchecked.
+
+      `fitness_functions.py:82`, `:103-110` -- an absent or wrong-shaped
+      descriptor makes every COUNT fact `0`, so `max_component_actions <= 8`,
+      `god_state_count == 0`, `dense_column_count == 0` and
+      `port_crossing_action_count == 0` all report HOLDS over a descriptor that
+      measured nothing. Line `:111` is the proof the authors knew the answer --
+      `unjustified_count` is `None` when unmeasurable, and `_eval_leaf:165-166`
+      turns that into `unknown`. The module docstring at `:27-29` claims "Unknown
+      never silently converts to a pass or a fail". `:345-370` with `:448` --
+      a `fitness_functions.yaml` that parses to `None` (empty, or all comments)
+      falls through every branch including `elif loaded is not None`, yielding 0
+      rules and 0 errors, and `run_fitness` returns `None` so the scanner prints
+      NO FITNESS SECTION AT ALL, indistinguishable from a project that configured
+      nothing.
+
+      `budgets.py:132-134` -- `except Exception: return None` makes an UNPARSEABLE
+      manifest identical to an ABSENT one, and the permissive documented defaults
+      follow; `corpus_diagnostics.py:543` then suppresses even the warning.
+
+      `effect_conformance.py:998-999` -- LATENT, NOT REACHABLE TODAY, and filed as
+      latent: `WorkingTreeObserver._snapshot` skips a root that does not exist, so
+      both snapshots are `{}` and `_diff_and_record` still records the full
+      class-constant `covered_types` with `observed_count=0`; `diff_effects:1532-1545`
+      then reads that as POSITIVE coverage. It cannot flip a verdict today only
+      because the shipped `covered_types` is two of the four
+      `BOUNDARY_EFFECT_TYPES`. Coverage here is DECLARED BY A CLASS CONSTANT, not
+      derived from what the snapshot saw.
+    reproduction: >-
+      `python3 examples/validation/instruments/blind_dispatch.py check <200+ byte file>
+      --repo /tmp/notarepo --memory /nonexistent/MEMORY.md` -> `WEAK PASS`, exit 0.
+      `python3 examples/validation/check_prediction_seal.py examples/validation/PREDICTIONS-PA.md
+      --record /nonexistent/kill-table.json` -> `records read: 0 of 1`, N05 UNPARSED,
+      `No prediction is contradicted ...`, exit 0.
+      `python3 examples/validation/instruments/demonstrate.py --only no-such-instrument`
+      -> `enumerated 0 ... Every declared demonstration reproduced.`, exit 0.
+      Two synthetic divergence reports with `"per_mutant": {}` -> `NULL STILL ENTAILED`,
+      exit 0.
+      `evaluate_rules([FitnessRule("no god state", {"fact":"god_state_count","op":"==","value":0})],
+      extract_facts({}))` -> `holds`.
+    evidence:
+      - "examples/validation/instruments/blind_dispatch.py:41-46, :76-77, :89-90, :143-145, :150"
+      - "examples/validation/check_prediction_seal.py:279-291, :294-298, :399-418"
+      - "examples/validation/instruments/demonstrate.py:447-450, :480-482, :505-508, :597"
+      - "examples/validation/ab/dispatch_record.py:163-164, :266-273, :351 and ab/check_catalogue.py:683-702"
+      - "examples/validation/ab/eval/divergence.py:133, :141, :149, :356, :386"
+      - "examples/validation/ab/eval/run_controls.py:46-48, :573-574 against run_arm_swap.py:160-166"
+      - "examples/validation/scorecards/architecture_tags.py:296-298, :587-589"
+      - "scripts/fitness_functions.py:27-29, :82, :103-111, :345-370, :448"
+      - "scripts/budgets.py:132-134"
+      - "scripts/effect_conformance.py:959, :998-999, :1532-1545"
+    why_out_of_scope: >-
+      OUT. Every one needs a new refusal or a new UNDECIDED state; none is a path
+      resolution. The `run_controls`/`run_arm_swap` pair is the cheapest and the
+      most valuable, because the refusal to copy is already written in the sibling
+      file.
+    suggested_fix: >-
+      `blind_dispatch:143`: test the DERIVED classes only -- `groups["operator
+      memory entry"] or groups["repository commit subject"]` -- and warn on the
+      commit class as well as the memory class. `check_prediction_seal`: a record
+      that did not load makes the file NOT SEALABLE-DECIDABLE; exit non-zero when
+      `len(loaded) < len(records)`. `demonstrate`: refuse an `--only` that matches
+      no row and a declared root that is not a directory. `dispatch_record`:
+      verifying a directory with no manifest is a refusal, and `check_arms` must
+      treat "asked for a dispatch record, found none" as a problem.
+      `divergence`: `rows_compared == 0` makes `distinct_compositions` `None` --
+      the value the file already reserves for "a name nobody could ask" -- and the
+      verdict UNDECIDED. `run_controls`: port `run_arm_swap.py:160-166` verbatim.
+      `fitness_functions`: make the count facts `None`, as `:111` already does.
+    blast_radius: >-
+      The blind-round record, the prediction seals, the demonstration registry,
+      the A/B dispatch evidence and the divergence verdicts -- that is most of
+      what this programme has published as evidence.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED. `CA-00-DF-04` is NOT re-filed and is not contradicted: its
+      empty-subject and failed-dispatch halves are genuinely repaired. What is
+      filed is the WEAK PASS half, which the same row predicted and which survives.
+  - id: CA-10-DF-25
+    found_by: the post-close absent-input sweep, second pass
+    found_at_commit: deabd4b
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production:
+        - "scripts/spec_evolution.py"
+        - "scripts/close_tickets.py"
+        - "scripts/new_ticket_workflow.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: census
+    cost:
+      basis: one reading of the close preconditions against an empty ticket plan and an absent baseline manifest
+      value: an empty ticket plan certifies every ticket complete and the close proceeds to delete both model directories
+    summary: >-
+      THE WORKFLOW CLOSE'S OWN PRECONDITIONS TREAT AN EMPTY PLAN AS A SATISFIED
+      PLAN -- AND THIS IS THE SET WHERE THE CLASS IS THINNEST, WHICH IS ITSELF
+      WORTH RECORDING.
+
+      `spec_evolution.py:790` (guard at `:787-789`) -- `validate_workflow_ticket_completion`
+      rejects a non-list `tickets` and then iterates; `tickets: []` produces no
+      errors, i.e. "every ticket complete". `close_tickets.py:238`, `:241`
+      inherits it verbatim, so `close_ticket_workflow` proceeds to delete
+      `current/` and `desired_program_model/` on a plan that certified nothing.
+      `:249-256` `ticket_plan_has_retirements` is `any(...)` over the same
+      possibly-empty list and returns `False`, which SKIPS
+      `validate_retirement_accept_new_authority` entirely -- a one-sided
+      precondition where "I saw no retirements" and "there are no retirements" are
+      the same value. NOT REACHABLE IN THIS TREE TODAY: the plan is gone and
+      `load_ticket_plan:218-221` refuses with `ERROR: missing desired program
+      ticket plan`. Reachable in any open workflow.
+
+      `new_ticket_workflow.py:240-241`, `:245-246` -- `carry_manifest_semantic_tail`
+      returns the bare template when the baseline manifest is absent AND when
+      either side lacks `MANIFEST_CARRY_ANCHOR`, silently. The function's own
+      docstring names the defect it exists to fix -- "silently drops everything the
+      accepted program model negotiated: budgets with recorded rationales, the
+      effects/ports declarations" -- and then reinstates it on two paths with no
+      message. Downstream the budget gate runs on built-in defaults, which
+      `export_testgraph_cases.resolve_manifest:135-148` explicitly calls "a silent
+      fallback -- the defect this function removes".
+
+      `new_ticket_workflow.py:312-313` -- `workflow_tree_seed_paths` returns `[]`
+      for an empty `specs/current/`, written to `ticket.yaml` as
+      `seed_manifest.desired: []`. `spec_evolution.load_ticket_seed_manifest` then
+      returns `set()` -- NOT `None` -- and its own docstring warns callers to treat
+      unrecorded as "no deletion intent is provable" rather than as an empty seed.
+      `promote_current_tree:1110-1112` therefore reports `basis: seed manifest
+      recorded at open` and `removed 0 paths`: a confident measured claim built
+      from no evidence. Lowest severity of the 48 -- the failure direction is safe
+      (preserve, never delete) -- and still an absent input rendered as a
+      measurement.
+
+      WHAT THIS SET GETS RIGHT, recorded because it is the counter-evidence to the
+      class being universal: `load_ticket_plan:218-221`, `record_complexity_ledger:1479-1497`
+      ("it does not estimate and it does not skip"), `close_tickets.validate_equivalent:122-135`
+      (which carries the anti-vacuity guard `no semantic model files found to
+      compare`), `validate_equivalent_model_dirs:981-993`,
+      `tla_spec_dev.run_spec_unit_tests:321-324` and `:414-425` (refuses when zero
+      pytest tests AND zero case packages were discovered, rather than reporting
+      success over the empty set), all of `spec_paths.py`,
+      `export_testgraph_cases.resolve_manifest:150-168`,
+      `extract_spec_manifest.validate_manifest` on an empty file, and
+      `new_ticket_workflow.discover_baseline:141-185` ALL REFUSE CORRECTLY on the
+      absent input. Six of the fifteen files in this set have no instance at all.
+    reproduction: >-
+      `printf 'name: demo\ntickets: []\n' > <tree>/specs/desired_program_model/ticket_plan.yaml`
+      then `spec_evolution.validate_workflow_ticket_completion(<tree>)` -> `[]`.
+      `carry_manifest_semantic_tail` with a baseline manifest lacking
+      `# Per-program complexity and case budgets` -> the bare template, no message.
+    evidence:
+      - "scripts/spec_evolution.py:787-790, :218-221 (the correct refusal beside it)"
+      - "scripts/close_tickets.py:238, :241, :249-256, :122-135 (the correct anti-vacuity guard)"
+      - "scripts/new_ticket_workflow.py:240-241, :245-246, :312-313"
+      - "scripts/export_testgraph_cases.py:135-148 -- the docstring naming this exact fallback a defect"
+    why_out_of_scope: >-
+      OUT. Not reachable in this tree for the close half, and none of it is a path
+      resolution.
+    suggested_fix: >-
+      `validate_workflow_ticket_completion`: `if not tickets: return ["ticket plan
+      declares no tickets; completion is UNDECIDED"]`. `carry_manifest_semantic_tail`:
+      refuse, or at minimum print `WARNING: baseline manifest carries no carry
+      anchor; scaffolding bare defaults`. `workflow_tree_seed_paths`: return `None`
+      rather than `[]` when the source is absent, so the seed manifest can record
+      "unrecorded" as the distinct value `load_ticket_seed_manifest` already
+      documents.
+    blast_radius: >-
+      One class of close that has not happened in this repository. Filed for the
+      open-workflow case and for the scaffolder, which does ship.
+    disposition: carried
+    disposition_ticket: "#271 -- EPIC STARTER: make the substrate survive contact with an agent"
+    disposition_note: >-
+      CARRIED. This row deliberately records the SIX FILES WITH NO INSTANCE and
+      the eleven correct refusals beside the three defects, because a census that
+      only lists hits cannot be read as a rate.

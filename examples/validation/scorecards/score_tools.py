@@ -2784,10 +2784,62 @@ UNVERIFIED = "UNVERIFIED"
 OK = "OK"
 
 
-def _finding_ids() -> set[str]:
-    path = REPO_ROOT / "specs/desired_program_model/deferred_findings.yaml"
-    if not path.exists():
-        return set()
+#: The live findings ledger, and where a workflow close puts it instead.
+#:
+#: `CA-10-DF-11`. `_finding_ids` read ONLY the first of these and returned an
+#: EMPTY SET when it was absent -- so from the moment a workflow close removed
+#: `desired_program_model/`, R-H3 reported every `filed_as` citation in the
+#: whole scorecard record as a dangling reference to a finding that was never
+#: filed. Measured: 0 ids -> 14 VIOLATIONs, exit 1; the archived 278 ids -> 0,
+#: exit 0. Not one of those 278 findings had gone anywhere.
+#:
+#: The globs are the same two `scripts/disposition.py` resolves through
+#: (`ARCHIVE_GLOBS`), and for the same reason: the first is the named artifact
+#: the close writes and records in the entry manifest under `findings_ledger`;
+#: the second is the copy carried inside the desired-model snapshot, which is
+#: the only copy closes before `CA-09` have. Ordering is `disposition`'s too --
+#: newest by mtime, size breaking ties because the ledger is append-only and a
+#: `git checkout` flattens mtimes.
+#:
+#: DELIBERATELY NOT AN IMPORT of `scripts/disposition.py`: this tool ships
+#: standalone (`RM-05` section 3) and already refuses to hard-require siblings.
+LEDGER_LIVE = "specs/desired_program_model/deferred_findings.yaml"
+LEDGER_ARCHIVE_GLOBS = (
+    "specs/.history/*/*/deferred_findings.yaml",
+    "specs/.history/*/*/snapshots/desired_program_model/deferred_findings.yaml",
+)
+
+
+def _ledger_path() -> pathlib.Path | None:
+    """The live ledger, else the newest archived copy, else `None`.
+
+    `None` means NO LEDGER EXISTS IN THIS TREE, which is a different answer
+    from an empty one and is why this returns an option rather than a set.
+    """
+    live = REPO_ROOT / LEDGER_LIVE
+    if live.exists():
+        return live
+    seen: dict[pathlib.Path, None] = {}
+    for pattern in LEDGER_ARCHIVE_GLOBS:
+        for path in REPO_ROOT.glob(pattern):
+            seen.setdefault(path.resolve(), None)
+    if not seen:
+        return None
+    return sorted(seen, key=lambda p: (p.stat().st_mtime, p.stat().st_size, str(p)))[-1]
+
+
+def _finding_ids() -> set[str] | None:
+    """Every id in the findings ledger, or `None` if there is no ledger at all.
+
+    THE ABSENT INPUT IS NOT AN EMPTY INPUT. An empty set says "the ledger was
+    read and filed nothing"; `None` says "nothing was read". The old signature
+    could not tell those apart and answered the second with the first, which is
+    the shape `CA-10-DF-11` filed: an instrument handed an absent input and
+    returning a confident verdict over it.
+    """
+    path = _ledger_path()
+    if path is None:
+        return None
     return set(re.findall(r"^\s*-\s+id:\s*\"?([A-Za-z0-9_.-]+)\"?", path.read_text(), re.M))
 
 
@@ -2966,6 +3018,15 @@ def audit_rh3(ctx: dict) -> list[tuple[str, str]]:
     """R-H3 repair vs improvement: what a change moved, and what stays `current` across it."""
     out = []
     filed = _finding_ids()
+    if filed is None:
+        # No ledger in this tree, live or archived. The `filed_as` clause is
+        # then UNDECIDABLE, and saying so once is the whole answer: reporting
+        # every citation as dangling would be an assertion about findings this
+        # tool never read. `CA-10-DF-11`.
+        out.append((UNVERIFIED, f"no findings ledger in this tree: neither `{LEDGER_LIVE}` "
+                                f"nor any archived copy under `specs/.history/`. Every "
+                                f"`filed_as` citation below is UNCHECKED -- not verified, "
+                                f"and NOT fabricated."))
     # A repair declares how many verdicts it moved, so "nothing moved" is a
     # MEASURED statement rather than an absence. Zero is a real and important
     # answer: an instrument can get more honest without a single number
@@ -3019,7 +3080,7 @@ def audit_rh3(ctx: dict) -> list[tuple[str, str]]:
                                 f"record"))
         # `filed_as` is checked on EVERY status, not only under_review: a refuted
         # or discharged finding must stay reachable from the ledger.
-        if c.get("filed_as") and c["filed_as"] not in filed:
+        if c.get("filed_as") and filed is not None and c["filed_as"] not in filed:
             out.append((VIOLATION, f"claim `{cid}`: `filed_as = {c['filed_as']}` is not an "
                                    f"id in deferred_findings.yaml"))
         if status == "superseded" and not c.get("superseded_by"):
@@ -3030,7 +3091,7 @@ def audit_rh3(ctx: dict) -> list[tuple[str, str]]:
                 out.append((VIOLATION, f"claim `{cid}`: `under_review` with no `filed_as`. "
                                        f"That status is only legal with a filed finding; "
                                        f"otherwise it parks a number quietly."))
-            elif c["filed_as"] in filed:
+            elif filed is not None and c["filed_as"] in filed:
                 out.append((OK, f"claim `{cid}` is under review and filed as {c['filed_as']}"))
         if status != "current":
             continue
