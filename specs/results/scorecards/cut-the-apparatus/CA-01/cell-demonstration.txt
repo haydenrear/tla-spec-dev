@@ -1,0 +1,19 @@
+### 1. A good cell
+cell         /private/tmp/ca01-cell-demo-good
+memory slug  -private-tmp-ca01-cell-demo-good  (no memory dir)
+
+Ready. Dispatch with:  cd /private/tmp/ca01-cell-demo-good && claude -p "<prompt>"
+Then run `check` on the agent's reply before believing any number.
+EXIT=0
+
+### 2. REFUSES a cell inside a git repository (real failing input)
+cell         /Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-01/tmp-cell-bad
+memory slug  -Users-hayde-IdeaProjects-wt-epic-cut-the-apparatus-CA-01-tmp-cell-bad  (no memory dir)
+PROBLEM      inside a git repository (/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-01) -- the gitStatus block will be injected
+EXIT=1
+
+### 3. REFUSES a path that names the project under test
+cell         /private/tmp/tla-spec-dev-judge
+memory slug  -private-tmp-tla-spec-dev-judge  (no memory dir)
+PROBLEM      path component 'tla-spec-dev-judge' names the project under test
+EXIT=1

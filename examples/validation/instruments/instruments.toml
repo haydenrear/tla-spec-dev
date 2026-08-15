@@ -884,11 +884,11 @@ the spread is zero -- the four judges scored three subjects.
                    "2 card(s) cite predominantly outside their declared scope"]
 
   [instrument.passing]
-  summary = "the declared scopes: every one decided or refused, and every refusal reported as one. RD-05 WROTE THIS AS `the eleven declared scopes: seven decided, four refused` AND THE COUNT MOVED TO 13 OF 17 when RD-06 declared six more subjects, TO 16 OF 20 when RM-04 declared three more, AND TO 17 OF 21 when SV-01 declared the negative control the D3 caveat had never been tested against. The four refusals are unchanged through all three and the derivation is unchanged: the figure was never a property of the instrument, it was a property of the fixture's size, and it moves again the next time anyone declares a subject -- exactly as RD-06-DF-04 predicted, now twice. denominator_rule: the numerator rose 13 -> 16 -> 17 and the denominator 17 -> 20 -> 21; nothing left either at any step, and the refusals stayed at four through all four figures -- SV-01 added one subject, it derived, and no refusal became a decision or the other way round. The count is updated rather than dropped, because a demonstration that asserts nothing about its output is not a demonstration -- and every superseded figure is kept in this sentence rather than erased."
+  summary = "the declared scopes: every one decided or refused, and every refusal reported as one. RD-05 WROTE THIS AS `the eleven declared scopes: seven decided, four refused` AND THE COUNT MOVED TO 13 OF 17 when RD-06 declared six more subjects, TO 16 OF 20 when RM-04 declared three more, TO 17 OF 21 when SV-01 declared the negative control the D3 caveat had never been tested against, AND BACK TO 16 OF 21 when CA-02 deleted the effect surface under `rm04_removal_pricer`. The derivation is unchanged through all five. THE FIFTH MOVE IS THE FIRST DOWNWARD ONE AND THE FIRST CAUSED BY A DELETION RATHER THAN A DECLARATION, which is the part worth keeping: RD-06-DF-04 predicted the figure would move whenever anyone declared a subject, and it was right about the mechanism and incomplete about the direction -- a subject can also stop being derivable because the tree under its scope went away. `rm04_removal_pricer` is STILL DECLARED and still scored; what it lost is its effect surface, so it moved from decided to UNDERIVABLE:no-effect-surface rather than out of the population. denominator_rule: the numerator rose 13 -> 16 -> 17 and then FELL 17 -> 16, while the denominator rose 17 -> 20 -> 21 and then HELD AT 21; nothing left the denominator at any step. The refusals stayed at four through the first four figures and ROSE TO FIVE at the fifth -- CA-02 is the only step at which a decision became a refusal. The count is updated rather than dropped, because a demonstration that asserts nothing about its output is not a demonstration -- and every superseded figure is kept in this sentence rather than erased."
   argv = ["{python}", "{repo}/examples/validation/scorecards/architecture_tags.py", "derive"]
   cwd = "{repo}"
   expect_exit = 0
-  expect_output = ["17 of 21 subject(s) decided", "UNDERIVABLE:no-effect-surface",
+  expect_output = ["16 of 21 subject(s) decided", "UNDERIVABLE:no-effect-surface",
                    "state_colocation threshold = 0.5"]
   expect_absent = ["SCOPE-DRIFT"]
 
@@ -2011,7 +2011,15 @@ reason, and anything that measures the registry inherits that risk.
   expect_output = ["UNREGISTERED INSTRUMENTS: 1", "scripts/gap_probe_instrument.py"]
 
     [[instrument.failing.stage]]
-    from = "examples/validation/gap_mutants/altered_score_probe.py"
+    # CA-02: was `examples/validation/gap_mutants/altered_score_probe.py`, which
+    # that ticket deleted. THE STAGED FILE IS NOT THE SUBJECT HERE -- both slots
+    # need one file satisfying the enumeration predicate (a `__main__` guard and
+    # a nonzero exit path), and what is being demonstrated is the DESTINATION
+    # PATH: unregistered below, declared in the passing slot. `demonstrate.py`
+    # is chosen deliberately over a smaller candidate because it is this
+    # instrument's own `paths` entry, so it cannot go stale independently of the
+    # row that cites it -- the failure mode a re-point like this otherwise sets up.
+    from = "examples/validation/instruments/demonstrate.py"
     to = "scripts/gap_probe_instrument.py"
 
   [instrument.passing]
@@ -2022,7 +2030,7 @@ reason, and anything that measures the registry inherits that risk.
   expect_output = ["Every discovered executable has a row."]
 
     [[instrument.passing.stage]]
-    from = "examples/validation/gap_mutants/altered_score_probe.py"
+    from = "examples/validation/instruments/demonstrate.py"
     to = "scripts/tla_spec_dev.py"
 
   [instrument.blind_spot]
@@ -2495,153 +2503,78 @@ than none, because it reads as one that happened.
   # itself still fires: "declares spread 1" and "the cards give 2" both appear.
 
 [[instrument]]
-id = "removal-census"
-name = "RD-02 removal census -- what a removal cost to prove safe"
-paths = ["examples/validation/removal_census/removal_census.py",
-         "examples/validation/removal_census/removals.toml"]
+id = "blind-dispatch-check"
+name = "CA-01 blind-dispatch leak check"
+paths = ["examples/validation/instruments/blind_dispatch.py"]
 family = "measurement"
-watches = "every declared removal region against the commit range it claims to measure, and refuses when the manifest no longer measures what it recorded"
-verdict_surface = "exit 2 with CENSUS-DRIFT naming the region, the measured count and the recorded one"
+watches = "a dispatched agent's own report of its pre-read context, for the operator's conclusions"
+verdict_surface = "exit 1 REFUSED with every matched indicator named; exit 2 UNDECIDED when no needle could be derived"
 classification = "demonstrated-can-fail"
 note = """
-`subtract-to-measure` published `-225 lines from scripts/` and the same epic
-added 1677 net `code_lines` across the trees it touched, because every removal
-shipped instruments, tests and demonstrations to prove the removal safe and
-nobody counted that as a cost.
+BOTH DEMONSTRATIONS ARE REAL SUBJECTS, NOT FIXTURES. `R1` asks for a
+demonstrated failing input on a real subject, and this row's failing input is
+the verbatim self-report of an agent that was actually dispatched and actually
+leaked -- a fresh `claude -p` rooted at this repository. The passing input is
+the self-report of an agent dispatched through the path this instrument exists
+to support. Neither file was authored to make this row pass; both were produced
+by the measurement in `specs/results/scorecards/cut-the-apparatus/CA-01/`.
 
-THE CENSUS REFUSES A TOTAL, on purpose and in code. `--total` and
-`report_total = true` both exit 2 with the 1677 figure in the refusal, because
-a total over removals hides which removals paid for themselves and that is the
-defect this instrument exists to correct.
+THE NEEDLES ARE DERIVED, NOT LISTED. `check` builds them at run time from the
+live auto-memory index and the repository's own commit subjects. A detector
+fitted to a known answer is `MF-020`, refused three times in this project.
 
-Its numbers are MEASURED from git on every run, never typed in: `check`
-re-measures every declared region and reports CENSUS-DRIFT when the manifest
-and the tree disagree. That is the failing input below.
+WHAT IT CANNOT SEE, per `R2` and `CA-01-DF-01`: it reads a SELF-REPORT. It
+cannot detect a leak the agent did not disclose, and a `PASS` is silence about
+its needles only -- not evidence that the agent knew nothing of this project.
+The blind spot below is that inability, declared rather than discovered.
 """
 
   [instrument.failing]
-  tier = "slow"
-  summary = "the real manifest with SM-02's deleted-line count moved by one -- 290 to 291, the way a hand-maintained census goes stale"
-  argv = ["{python}", "{repo}/examples/validation/removal_census/removal_census.py",
-          "--manifest", "{tree}/census/removals.toml", "check"]
+  summary = "ARM-O: a fresh `claude -p` rooted at this repository reports the operator's auto-memory and the five most recent commit subject lines verbatim"
+  argv = ["{python}", "{repo}/examples/validation/instruments/blind_dispatch.py",
+          "check",
+          "{repo}/specs/results/scorecards/cut-the-apparatus/CA-01/probes/ARM-O-repo-cwd-selfreport.txt",
+          "--repo", "{repo}", "--commits", "12"]
   cwd = "{repo}"
-  expect_exit = 2
-  expect_output = ["CENSUS-DRIFT", "measures 290, manifest says 291"]
-
-    [[instrument.failing.stage]]
-    from = "examples/validation/removal_census"
-    to = "census"
-
-    [[instrument.failing.mutate]]
-    file = "census/removals.toml"
-    find = "expect_lines = 290"
-    replace = "expect_lines = 291"
+  expect_exit = 1
+  expect_output = ["REFUSED", "This round is not blind"]
 
   [instrument.passing]
-  tier = "slow"
-  summary = "the shipped manifest against the shipped history"
-  argv = ["{python}", "{repo}/examples/validation/removal_census/removal_census.py", "check"]
+  summary = "ARM-N: the same probe, same day, dispatched into a neutral cell through this instrument's own `cell` subcommand"
+  argv = ["{python}", "{repo}/examples/validation/instruments/blind_dispatch.py",
+          "check",
+          "{repo}/specs/results/scorecards/cut-the-apparatus/CA-01/probes/ARM-N-neutral-cell-selfreport.txt",
+          "--repo", "{repo}", "--commits", "12"]
   cwd = "{repo}"
   expect_exit = 0
-  expect_output = ["every declared region measures what the manifest recorded"]
+  expect_output = ["PASS"]
 
   [instrument.blind_spot]
   kind = "declared"
-  summary = "IT CANNOT TELL A PROOF LINE FROM A REPLACEMENT LINE. The role of every region is DECLARED by a human in the manifest, with a written reason, and nothing derives it. A future author who classifies a new mechanism as `proof` makes the ratio look worse and one who classifies apparatus as `replacement` makes it look better, and this instrument would report both without complaint."
-  reason = "There is no mechanical definition of `exists only to prove the removal safe`, and inventing one would be a check that cannot fail rather than a measurement. The defence is that every region carries its reason in the manifest and `check` pins the LINE COUNTS, so a reclassification is visible in a diff even though it is not refused."
+  summary = "IT READS A SELF-REPORT AND NOTHING ELSE, SO A JUDGE THAT PARAPHRASES ITS MEMORY RATHER THAN QUOTING IT PASSES. The needles are literal substrings: a report saying `I was told this project believes some scored dimensions are unstable' carries the prior and matches nothing. It also cannot see the `<env>` block or the scratchpad path, which name the working directory in every arm including the one this instrument passes."
+  reason = """
+CA-01 measured what agents disclose when asked, and four of four disclosed
+VERBATIM. That makes a self-report a usable instrument and does NOT make it a
+complete one, and the residual gap is PARAPHRASE rather than silence. It is not
+fixable by substring matching, so it stays declared.
 
-[[instrument]]
-id = "removal-pricer"
-name = "RM-01's removal pricer"
-paths = ["examples/validation/gap_mutants/price_removal.py"]
-family = "measurement"
-watches = "whether a removal took a detection away -- read from the KILL SET rather than from the list of detector names the removal deleted"
-verdict_surface = "PRICED / FREE / NO-KILL-TO-LOSE per fault, with the loss reason per lost kill; exit 1 when a declared mutant is absent from the before-table it was priced against"
-classification = "demonstrated-can-fail"
-note = """
-RD-02 measured that 0 of 9 gap mutants could have priced their removal, and
-shipped `removal_census.py discriminate` to compute the condition up front.
-That condition is computed over DETECTOR NAMES, and `pytest-full` is the whole
-suite, which no removal deletes -- so any fault the suite kills is classified
-NON-DISCRIMINATING before anything runs. Worse, a detector can survive by name
-and lose the kill: SM-03 left `test_the_named_instruments_are_all_enumerated`
-with the same node id and a different body.
+A SECOND FALSE-PASS MODE WAS FOUND BY REVIEW AND IS NOW REFUSED RATHER THAN
+DECLARED -- the distinction is the point, so both are recorded. As first
+shipped, an EMPTY subject and a FAILED DISPATCH (`Error: Invalid API key`) each
+returned PASS at exit 0. Finding no needles in a document with no content is
+absence of EVIDENCE, not evidence of absence, and it was the OPERATIONALLY
+LIKELY failure: a dispatch that silently did not run reads as a clean round.
+`WEAK PASS` did not cover it -- that fires only when needles cannot be DERIVED,
+never when the subject is empty. `check` now returns exit 2 UNDECIDED for an
+empty subject, one below a 200-byte floor, or one carrying a dispatch-failure
+signature. Demonstrated on all three reviewer cases at
+specs/results/scorecards/cut-the-apparatus/CA-01/false-pass-demonstration.txt.
 
-This instrument reads survivorship at KILL-SET granularity and refuses the
-unsound half of it. It has no verdict meaning "it will still die"; the
-strongest thing it says about a surviving killing node is UNDECIDED.
+THE ORIGINAL WORDING OF THIS ROW ALSO CITED CA-01-DF-01 AS BLOCKING AND CLAIMED
+THE SessionStart HOOK AND SKILL LISTING REACHED EVERY ARM. Both are corrected:
+`claude --safe-mode` removes them, CA-01-DF-01 is downgraded to minor, and the
+identity leak is not the standing objection this row once said it was.
 """
-
-  [instrument.failing]
-  kind = "pytest"
-  tier = "slow"
-  summary = "THE SHIPPED CLASSIFIER, RUN UNMODIFIED OVER A REAL REMOVAL THAT COST SOMETHING. `discriminate` reports NON-DISCRIMINATING -- 'DIES after the cut was entailed before the cut was made' -- about RM-01-RF-1, a fault measured DIES at bf0fb29~1 and SURVIVES at bf0fb29. The failing input is the sealed measurement of a real removal, not a fixture."
-  nodes = [
-    "tests/test_price_removal.py::test_the_shipped_classifier_calls_a_real_priced_removal_entailed",
-    "tests/test_price_removal.py::test_the_price_is_a_detector_that_survived_by_name_and_lost_the_kill",
-  ]
-  expect_exit = 0
-  expect_passed = 2
-
-  [instrument.passing]
-  kind = "pytest"
-  tier = "slow"
-  summary = "the ten published before/after rows of the sealed record, where the shipped classifier is right ten times and no lost kill is of the weakening class"
-  nodes = [
-    "tests/test_price_removal.py::test_the_shipped_classifier_agrees_with_every_measurement_in_the_sealed_record",
-    "tests/test_price_removal.py::test_node_granularity_does_not_rescue_the_nine_catalogue_mutants",
-  ]
-  expect_exit = 0
-  expect_passed = 2
-
-  [instrument.blind_spot]
-  kind = "declared"
-  summary = "ENTAILED-SURVIVES CANNOT SEE A KILL THE AFTER TREE ADDED. It proves the removal took away every kill the fault HAD. A removal that deletes a detector and ships a stronger replacement reads ENTAILED-SURVIVES here and DIES on a real after-run, so ENTAILED-SURVIVES is an upper bound on the price and only `price` against a measured after-table settles it."
-  reason = "Closing it would mean running the after tree, which is the cost the before-only reading exists to avoid. The bound is printed with the verdict rather than left for a sweep to find."
-
-
-[[instrument]]
-id = "altered-score-probe"
-name = "SM-04-GM-T1, driven through the shipped CLI"
-paths = ["examples/validation/gap_mutants/altered_score_probe.py"]
-family = "measurement"
-watches = "whether a tree notices a dimension score altered in a scorecard after the card was written, on an unsealed card"
-verdict_surface = "CAUGHT / UNCAUGHT by subtraction of `check`'s problem list; exit 2 when the tree's own scaffold refused, so a broken setup cannot read as UNCAUGHT"
-classification = "demonstrated-can-fail"
-note = """
-The known positive. `SM-04-GM-T1` is the only mutant in this project's history
-that went DIES -> SURVIVES, and it has only ever been produced by the file that
-asserts it, using that file's own helpers, in one process at one commit. This
-probe drives `scaffold` and `check` from a staged tree, imports nothing from
-the suite, and reproduces the finding at `6aac1ec~1` and `6aac1ec`.
-
-ITS OWN FIRST DESIGN WAS CONFOUNDED AND THE ARTIFACT IS KEPT. Raising D3 from 1
-to 3 trips a citation rule at both trees, so the probe read CAUGHT everywhere
-for a reason that has nothing to do with the checksum. Moving D3 down from a
-cited 4 is what SM-04-GM-T1 does and is what the probe does now;
-`sm04-gm-t1-*-confounded.json` are in the tree.
-"""
-
-  [instrument.failing]
-  kind = "pytest"
-  tier = "slow"
-  summary = "the version 3 tree at 6aac1ec: a dimension score altered on an unsealed card and NOTHING reports it, where the version 2 tree one commit earlier reports `total does not equal the sum of dimensions`"
-  nodes = ["tests/test_price_removal.py::test_sm04_gm_t1_reproduces_from_an_independent_implementation"]
-  expect_exit = 0
-  expect_passed = 1
-
-  [instrument.passing]
-  kind = "pytest"
-  tier = "slow"
-  summary = "the confounded first run, kept so the correction is inspectable rather than asserted"
-  nodes = ["tests/test_price_removal.py::test_the_probes_first_confounded_run_is_kept_on_the_record"]
-  expect_exit = 0
-  expect_passed = 1
-
-  [instrument.blind_spot]
-  kind = "declared"
-  summary = "IT ASKS ONE QUESTION OF ONE FIELD. It moves D3 and reads `check`. It says nothing about `audit`, about a sealed card, or about any other field of a scorecard -- and SM-04-GM-T1's own answer is that a SEALED card still dies, which this probe does not measure."
-  reason = "The sealed half was already measured and is not in dispute. Widening the probe to cover it would re-measure the free half of the removal and leave the priced half exactly as it is."
 
 
 [[retired]]
@@ -2671,3 +2604,211 @@ and reversible with `git checkout 90d0667 -- examples/validation/gap_mutants/
 tests/test_gap_mutants.py`.
 """
 
+
+[[retired]]
+id = "removal-pricer"
+retired_by = "CA-02"
+retired_at = "the CA-02 cut, issue #256"
+paths = ["examples/validation/gap_mutants/price_removal.py",
+         "tests/test_price_removal.py"]
+reason = """
+RETIRED BECAUSE IT IS NOT YET USEFUL AND ITS SUBJECT IS A FIXTURE NO ADOPTER
+RECEIVES -- NOT because it was incapable of firing. THIS ROW WAS CORRECTED after
+independent review of PR #264; the wording it replaces claimed the instrument
+"could only ever return one answer", and the sealed record refutes that. The
+correction table is `specs/results/scorecards/cut-the-apparatus/CA-02/PRICE-TABLE.md`
+section 0, and the propagation is filed as `CA-00-DF-05` (major, open) -- which
+names the origin as the epic owner's and records that CA-02 was the ticket told
+to CHECK THAT DEPENDENCY EXPLICITLY and propagated it instead. The charter and
+the GOAL-four-results-stand baseline were corrected with it at `fc39224`.
+
+WHAT THE RECORD ACTUALLY SAYS. `NEXT-EPIC.md` section 5: "A non-zero was the
+informative outcome, THE INSTRUMENT WOULD HAVE PRINTED ONE, and none appeared...
+The goal is met and THE INSTRUMENT IS NOT YET USEFUL." `RM-02` section 10.2 reads
+the same sweep as "THE INSTRUMENT CAN FIRE, history remains free." And it HAS
+fired: `CL-02`'s own headline is "`RM-01-RF-1` is still `PRICED` and is still the
+only price this project has."
+
+TWO NUMBERS THAT ARE NOT ONE NUMBER, because the superseded wording conflated
+them. `0 of 10 disagree with the measurement` is an AUDIT-AGREEMENT count -- the
+ten sealed rows did not move under the corrected instrument. `priced rows: []`
+is the separate re-pricing sweep. Nine lines below it the same transcript prints
+`PRICED RM-01-RF-1...` under "RM-01's known positive, measured (price, not
+entail)".
+
+`RM-05-DF-01` IS SCOPED AND MUST BE READ WITH ITS OWN CAVEAT. It says
+`ENTAILED-SURVIVES` follows from `git show` alone for a fault whose killing nodes
+all lie in a deleted file -- and it also says, pre-emptively, "WHAT SURVIVES,
+STATED SO THIS FINDING CANNOT BE QUOTED AS 'THE EPIC PRICED NOTHING'... The epic
+HAS a priced removal." IT ALSO DESCRIBES THE FILE BEFORE `CL-02` REPAIRED IT. The
+file retired here CONTAINS that repair -- `EXTINCT`, `resolve_head`,
+`CONTROL_EXCLUDED` -- so quoting the pre-repair defect as the reason to delete
+the repair was backwards, and is corrected here.
+
+SO THE ACTUAL REASON, which is `RM-02`'s and stands without any pricing number:
+the catalogues are `ab_quota_ledger` fixtures with NO VERSION AN ADOPTER
+RECEIVES, and that argument "survives a zero and survives a defective classifier
+producing one, BECAUSE IT IS NOT A PRICING ARGUMENT." `RM-03` had already
+recorded that `price` reads a measured after-table nothing in this repository
+produces any more. What is retired is a sound-but-unexercised `entail` over a
+fixture, not a broken instrument.
+
+WHAT GOES WITH IT, AND IT IS MORE THAN THE SUPERSEDED WORDING ADMITTED: the tree
+can no longer compute a removal price, AND `specs/results/scorecards/close-the-loop/
+GOAL-price-means-something/repriced_history.py` NO LONGER RUNS -- it loads this
+file at line 21 and now dies with `FileNotFoundError`. The sealed transcripts
+stay readable in `.../GOAL-removal-can-be-priced/` and
+`.../GOAL-price-means-something/`, so the RESULT survives; what is lost is the
+ability to RE-DERIVE it. Filed as `CA-02-DF-04`.
+
+Reversible with `git checkout 37ab155 -- examples/validation/gap_mutants/
+tests/test_price_removal.py`.
+"""
+
+[[retired]]
+id = "altered-score-probe"
+retired_by = "CA-02"
+retired_at = "the CA-02 cut, issue #256"
+paths = ["examples/validation/gap_mutants/altered_score_probe.py",
+         "examples/validation/gap_mutants/residual_faults.toml"]
+reason = """
+RETIRED ON ADOPTION GROUNDS, THE SAME ONES `references/portable_scorecard.md`
+§5.4 used to cut the mutant catalogue and its runner. `RM-02`: the catalogues
+are `ab_quota_ledger` fixtures with NO VERSION AN ADOPTER RECEIVES, and that
+argument "survives a zero and survives a defective classifier producing one,
+because it is not a pricing argument". It therefore does not depend on
+`CL-02`'s `priced rows: []` being right.
+
+`residual_faults.toml` is hand-authored faults in `ab_quota_ledger` and the
+probe has nothing to read without it, so the two retire together.
+
+WHAT GOES WITH IT: `SM-04-GM-T1` -- the only mutant in this project's history
+that went DIES -> SURVIVES -- can no longer be reproduced from an independent
+implementation. THE FINDING ITSELF IS NOT LOST: it stays readable in the sealed
+record, and the probe's own confounded first run stays on the record with it.
+What is lost is the ability to RE-RUN it, on a fixture no adopter has.
+
+Reversible with `git checkout 37ab155 -- examples/validation/gap_mutants/`.
+"""
+
+[[retired]]
+id = "removal-census"
+retired_by = "CA-02"
+retired_at = "the CA-02 cut, issue #256"
+paths = ["examples/validation/removal_census/removal_census.py",
+         "examples/validation/removal_census/removals.toml"]
+reason = """
+RETIRED WITH THE PRICER IT EXISTED TO SERVE. `removal_census.py discriminate`
+computed, up front, the condition under which a removal could be priced at all.
+Its own registry row recorded that the condition is computed over DETECTOR NAMES
+and is therefore unsound in both directions: `pytest-full` is the whole suite,
+which no removal deletes, so any fault the suite kills was classified
+NON-DISCRIMINATING before anything ran; and a detector can survive by name while
+losing the kill. THAT UNSOUNDNESS, WHICH THE INSTRUMENT DECLARED ABOUT ITSELF, IS
+THE REASON -- not a count.
+
+`RD-02` IS DELIBERATELY NOT CITED HERE, AND THE SUPERSEDED WORDING OF THIS ROW
+CITED IT. `RD-02` is the ticket that BUILT this census and REFUSED to delete the
+pricer: "It is not deleted, and the reason is `MF-020` turned on myself: removing
+the instrument that prices removals removes the ability to detect that a removal
+was harmful." It titles itself "the apparatus is load-bearing", scopes its
+`0 of 9` explicitly as NOT a statement about every mutant, and filed
+`RD-02-DF-02` (major, open) against exactly the restatement this row made.
+Citing it as authority for this removal inverted it. Corrected after review of
+PR #264; see `.../CA-02/PRICE-TABLE.md` section 0.
+
+With `removal-pricer` retired there is no consumer for a discrimination verdict,
+and `check` was pinning line counts for a manifest whose only purpose was to
+feed that verdict.
+
+ITS BEST RESULT IS KEPT AS PROSE, because it is the one this epic acts on:
+`subtract-to-measure` published `-225 lines from scripts/` while adding 1,677
+net `code_lines` across the trees it touched, because every removal shipped
+instruments, tests and demonstrations to prove the removal safe and NOBODY
+COUNTED THAT AS A COST. The census refused a total in code for that reason.
+CA-02 replaces the mechanism with a discipline: the epic's price table
+(`specs/results/scorecards/cut-the-apparatus/GOAL-apparatus-cut/PRICE-TABLE-FORMAT.md`)
+has a fixed row shape that makes a cut report what it ADDED alongside what it
+removed, and it is a markdown file, because a tool for measuring the cutting of
+apparatus is itself apparatus.
+
+WHAT GOES WITH IT: nothing now refuses a stale removal manifest, because there
+is no removal manifest. The 1,677-line figure stays in the sealed record.
+
+Reversible with `git checkout 37ab155 -- examples/validation/removal_census/`.
+"""
+[[instrument]]
+id = "epic-disposition"
+name = "CA-05 disposition requirement (epic close-out)"
+paths = ["scripts/disposition.py"]
+family = "workflow"
+watches = "every finding in `specs/desired_program_model/deferred_findings.yaml` filed by the epic being closed -- D1 a `disposition` from the closed vocabulary that is not `open`, D2 a `disposition_note` on a terminal disposition, D3 a `disposition_ticket` on a deferral"
+verdict_surface = "exit 1 with `REFUSED <scope>: N of M findings undisposed`, the count per failing clause, and the failing rows named"
+classification = "demonstrated-can-fail"
+note = """
+NOT A GATE ON ANYONE'S CODE, and the distinction is the reason this row exists
+in `workflow` rather than `repo-tripwire`. It reads ONE file in this repository
+and reports on THIS project's own epics at close-out. Nothing runs it in CI,
+nothing blocks a merge or a promotion on it, and it never looks at a subject
+artifact.
+
+THE SLOGAN, QUALIFIED -- CA-05 shipped it unqualified and it was FALSE in its own
+PR. The measured claim is "seven epics of static checking caught zero bugs IN A
+SUBJECT PROGRAM", and that stands. It is NOT the claim that no check ever catches
+anything: `registry-enumeration-coverage` caught THIS ticket shipping an
+unregistered instrument, and a set-completeness check over machine-derived
+metadata is a different class from a static gate on program content.
+
+`R1` DISCHARGED ON THE REAL LEDGER, NOT A FIXTURE. Over the sealed 225 rows it
+REFUSES `cut-the-apparatus` -- the epic that ships it -- at 10 of 15 rows
+`open`, while ACCEPTING `falsifiable-instruments` (30/30) and
+`subtract-to-measure` (30/30) and refusing `ports-as-adapters` on 2 of 28 under
+D2 alone. Two real sealed epics pass, six refuse, the refusals differ in size
+AND in clause, and `--ticket CA-05` exits 0 inside an epic that exits 1.
+
+THE DISCRIMINATION HAD TO BE DEMONSTRATED SEPARATELY. An instrument that refuses
+everything is a constant, not a measurement -- the shape of harvest class `D1`,
+where every `SURVIVED` cell was a floor. `passing` below is that check, and it
+selects its slices FROM THE REAL LEDGER AT RUN TIME rather than naming ids, so
+nothing here is fitted to a known answer (`MF-020`).
+
+Working: `references/consumption.md` and
+`specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/refusal.md`.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "fast"
+  summary = "a real epic slice carrying an undisposed row, plus each of D1/D2/D3 shown able to refuse on its own and whitespace shown not to satisfy either clause"
+  nodes = [
+    "tests/test_disposition_requirement.py::test_it_refuses_a_real_slice_that_contains_an_undisposed_row",
+    "tests/test_disposition_requirement.py::test_d1_refuses_open_and_refuses_a_word_outside_the_vocabulary",
+    "tests/test_disposition_requirement.py::test_d2_refuses_a_terminal_disposition_with_no_note",
+    "tests/test_disposition_requirement.py::test_d3_refuses_a_deferral_that_names_no_successor",
+    "tests/test_disposition_requirement.py::test_whitespace_does_not_satisfy_a_clause",
+  ]
+  expect_exit = 0
+  expect_passed = 5
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "fast"
+  summary = "A DIFFERENT RUN, deliberately -- SM-03 found two rows whose slots were byte-identical and so demonstrated one thing while reporting two. These assert ACCEPTANCE: at least one real epic in the sealed ledger passes all three clauses, and the ticket that shipped the rule obeys it."
+  nodes = [
+    "tests/test_disposition_requirement.py::test_it_accepts_a_real_slice_whose_rows_are_all_disposed",
+    "tests/test_disposition_requirement.py::test_the_ticket_that_shipped_the_rule_obeys_it",
+  ]
+  expect_exit = 0
+  expect_passed = 2
+
+  [instrument.blind_spot]
+  kind = "pytest"
+  tier = "fast"
+  summary = "IT MEASURES ROUTING, NOT CONSUMPTION -- WIDENED AFTER REVIEW, AND THE DEAD CASE IS SELF-ROUTING. The first version of this slot cited falsifiable-instruments carrying rows to issues that closed the next day; the reviewer was right that that is the NORMAL signature of an epic closing, not a dead handoff. The dead case is an epic deferring a finding to ITS OWN ticket, which routes it nowhere and passes D3 with full marks -- AND ALL THREE OF CA-05'S OWN `carried` ROWS DO IT, naming #262 = CA-08, this epic's own evaluation ticket. Three further faces: `disposition_ticket` may be any non-empty string and nothing resolves it (14 real rows name a bare ticket id); `carried` requires NO note at all (17 real rows have none); and the reviewer turned the entire backlog green with two field rewrites in one script. CA-05-DF-03, widened."
+  nodes = [
+    "tests/test_disposition_requirement.py::test_self_routing_passes_d3_and_this_ticket_does_it",
+    "tests/test_disposition_requirement.py::test_a_successor_need_not_be_an_issue_or_resolve_to_anything",
+    "tests/test_disposition_requirement.py::test_a_deferral_needs_no_note_at_all",
+  ]
+  expect_exit = 0
+  expect_passed = 3

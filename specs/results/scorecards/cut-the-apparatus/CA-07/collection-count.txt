@@ -1,0 +1,12 @@
+# CA-07 -- the tree the suite figures report on. CA-07-DF-08's cheap guard:
+# an outcome total ABOVE this number is a report about a different tree.
+# The first pytest-after.txt recorded 1498 outcomes here, because it ran while
+# specs/tickets/CA-07/ still existed and several tests parametrize over specs/tickets/*.
+
+$ uv run --with pytest --with pyyaml -m pytest tests -q --collect-only | tail -1
+1494 tests collected in 0.63s
+
+$ ls specs/tickets/
+MF-021
+MF-027
+RD-06

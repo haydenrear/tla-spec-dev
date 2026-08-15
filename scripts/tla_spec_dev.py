@@ -200,17 +200,16 @@ def run_effect_conformance_cmd(args: argparse.Namespace) -> int:
     return effect_conformance_report.run(args)
 
 
-def run_kill_test_cmd(args: argparse.Namespace) -> int:
-    """MF-016: oracle 4, the mutation kill test.
-
-    Exits 1 when the kill rate falls below ``kill_rate_floor`` and 2 when the
-    mutant catalog does not cover every declared port and every invariant.
-    There is no flag that accepts a surviving mutant or a sub-floor rate: this
-    is the value floor that keeps every cost cap in the toolchain honest.
-    """
-    from scripts import run_kill_test as run_kill_test_module
-
-    return run_kill_test_module.run(args)
+# CA-04 removed `run kill-test` (oracle 4, MF-016). It seeded one fault per
+# declared port and one per model invariant and gated the resulting kill rate
+# against `kill_rate_floor` -- the last hard static gate in this repository.
+# The finding is `RM-03-DF-05`, which identified this exact cut, declined it as
+# a model delta its own ticket forbade, and asked for "its own ticket against
+# the CLI model". The standing evidence for the lever is "static gates catch
+# nothing -- seven epics, zero bugs caught by a static check".
+#
+# The catalogue parser and the suppression scanner survive in
+# `scripts/kill_test.py` because the A/B evaluation instruments import them.
 
 
 def run_close_ticket(args: argparse.Namespace) -> int:
@@ -390,6 +389,15 @@ def run_spec_unit_tests(args: argparse.Namespace) -> int:
                 command.append("--validate-only")
             if args.validate_capabilities:
                 command.append("--validate-capabilities")
+            # CA-06-DF-03: `--no-batch` selected the per-case-program execution
+            # mode, which CA-06 deleted. Both sides of this branch now produce
+            # the same behaviour -- `--batch` is accepted and inert -- so the
+            # flag is a NO-OP rather than a choice. The branch is KEPT so the
+            # emitted command line still matches the sealed reproduction
+            # commands that captured it, and the flag is tombstoned in its help
+            # rather than removed, because removing it would break every caller
+            # that passes it. An untombstoned silent no-op is exactly the
+            # CA-04-DF-06 interface class, and a reviewer of PR #268 caught it.
             if not args.no_batch:
                 command.append("--batch")
             command.extend(
@@ -559,7 +567,18 @@ def build_parser() -> argparse.ArgumentParser:
     run_spec_units.add_argument("--limit", type=int, help="Limit generated cases.")
     run_spec_units.add_argument("--validate-only", action="store_true", help="Validate adapter coverage without executing generated cases.")
     run_spec_units.add_argument("--validate-capabilities", action="store_true", help="Ask adapters whether they can run selected cases.")
-    run_spec_units.add_argument("--no-batch", action="store_true", help="Run generated cases as one Python program per case instead of batched hooks.")
+    run_spec_units.add_argument(
+        "--no-batch",
+        action="store_true",
+        help=(
+            "ACCEPTED AND INERT (CA-06-DF-03). It used to select one Python "
+            "program per case instead of batched hooks; CA-06 deleted that mode "
+            "after finding it carried fewer oracles than the one nothing chose "
+            "against it. Batch is now the only mode, so this flag selects "
+            "nothing. Kept accepted rather than removed so callers that pass it "
+            "keep working."
+        ),
+    )
     run_spec_units.add_argument(
         "--fuzz-runs",
         type=int,
@@ -614,36 +633,6 @@ def build_parser() -> argparse.ArgumentParser:
         func=run_effect_conformance_cmd,
         command_path="tla-spec-dev run effect-conformance",
         next_step="tla-spec-dev run spec-unit-tests --ticket <ticket>",
-    )
-
-    run_kill = run_sub.add_parser(
-        "kill-test",
-        help="Seed faults at every declared boundary and gate the kill rate against the floor.",
-        description=(
-            "Oracle 4. Seeds one fault per declared effect port and one per model invariant "
-            "into real production source, runs the distilled corpus against each mutant, and "
-            "requires the resulting kill rate to meet kill_rate_floor from the manifest "
-            "budgets. A mutant that SURVIVES is not a score -- it is a pointer: the corpus "
-            "executed a deliberately broken program and could not tell it from the correct "
-            "one, so the representation is too abstract at that boundary, and the report "
-            "names the model variable and action to refine. "
-            "The required boundary set is recomputed every run from the port declarations "
-            "and the INVARIANTS block, so a newly declared port breaks the kill test until a "
-            "fault is seeded for it; an uncovered boundary exits 2 and computes NO rate. "
-            "THERE IS NO WAIVER: no --allow-below-floor, no --accept-survivors, and no "
-            "expected-to-survive annotation. This is the value floor that makes every cost "
-            "cap in this toolchain safe, because a trivial model passes every cap and kills "
-            "no mutants. Weakening it weakens all of them."
-        ),
-        allow_abbrev=False,
-    )
-    from scripts.run_kill_test import add_arguments as _add_kill_test_arguments
-
-    _add_kill_test_arguments(run_kill)
-    run_kill.set_defaults(
-        func=run_kill_test_cmd,
-        command_path="tla-spec-dev run kill-test",
-        next_step="Record the kill matrix under the ticket results/ directory as evidence.",
     )
 
     analyze_parser = subparsers.add_parser(

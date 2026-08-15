@@ -2262,3 +2262,166 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CA-01
+
+- close_scope: ticket
+- close_id: CA-01
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-13T15:35:40+00:00
+- summary: Blindness measured, not assumed: 3 of 4 dispatched agents received the operator's auto-memory and the five most recent commit subject lines before any tool call, correcting SV-05-DF-02's '4 of 4' to a tier. A memory-free path is proven on real subjects (2 REFUSED, 1 PASS) and its residual impossibility is stated as blocking finding CA-01-DF-01: blindness to our conclusions is achievable, blindness to our identity is not. No memory file and no skill edited; two diffs escalated. Costs 182 Python lines in examples/validation/.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CA-02
+
+- close_scope: ticket
+- close_id: CA-02
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-13T17:31:12+00:00
+- summary: Cut the removal-pricing machinery, an instrument RM-05-DF-01/CL-02 measured able to return only ENTAILED-SURVIVES. Removed price_removal.py (838), altered_score_probe.py (177), residual_faults.toml (193), removal_census.py (429), removals.toml (712) and their two test files (888), each deletion naming its finding. examples/validation/ 15,901 -> 14,457 (-1,444); scripts/ unchanged at 27,652 because complexity_ledger.py has NO pricer coupling (CA-02-DF-01); card unchanged at 6,281 / sha256:2d7d4a0506d9b259. Registry rows retired not deleted (FI-04-DF-04); gap_mutants/ kept as a tombstone because it is sealed subject rm04_removal_pricer's declared scope, which went UNDERIVABLE and moved the tag derivation 17->16 of 21 (numerator fell, denominator held at 21). The deliberate pricer-grep red was DELETED WITH ITS SUBJECT, not repaired. Suite 6 failed / 1526 passed on both the pre-merge and reconciled trees, zero new reds. Price-table format established as plain markdown, no new code.
+## Close-out ticket CA-05
+
+- close_scope: ticket
+- close_id: CA-05
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-13T17:53:55+00:00
+- summary: A disposition requirement an epic cannot close through, demonstrated by refusing THIS epic (10 of 15 rows open) while accepting two real sealed epics; harvest register repaired 38 -> 41 with the denominator movement named; channel/channel_note and cost{basis,value} defined and populated on CA-05's own five rows. Main finding: the disposition practice existed for three epics and lapsed silently on 2026-08-08, in exact correlation with SELF-IMPROVEMENT.md's own lapse.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CA-03
+
+- close_scope: ticket
+- close_id: CA-03
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-13T19:26:02+00:00
+- summary: CA-03: RD-03-DF-08's cut was already made at card version 4 (zero lines removed, enumeration shipped as evidence); SV-04-DF-05 repaired in cmd_scaffold by recording the [round-dir, arm-label] pair blinding makes necessary, with a demonstrated failing input on the real subject toolchain_fixture. All five checks kept and decided on the record. No new gate. Card unchanged at 6281 bytes.
+- feedback_status: none-found
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CA-04
+
+- close_scope: ticket
+- close_id: CA-04
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-13T22:04:12+00:00
+- summary: Cut oracle 4, the mutation kill test and the last hard static gate in this repository (RM-03-DF-05, which identified this cut, declined it as a model delta its own ticket forbade, and asked for 'its own ticket against the CLI model'). Removed: the kill_test variable, the RunKillTest action and the KillTestVerdictRequiresBudgets invariant; RunKillTestAdapter and its binding; kill_rate_floor, the mutation_write port and RunKillTest's port row; three kill_mutants.toml catalogues; three spec-unit adapter tests; scripts/run_kill_test.py; tests/test_kill_test.py; and the 'run kill-test' subcommand. scripts/ -1,105 lines; card unchanged at 6,281 bytes sha256:2d7d4a0506d9b259. THE DECREASE IS LICENSED AND WAS NOT WHEN THIS CLOSE WAS FIRST ATTEMPTED: the ledger REFUSED the first attempt because no TLC had been run, that refusal was correct and is kept at close-refusal.txt, and the basis was then measured -- TLC green on both models, the before-model reconstructed from the branch point and verified both by sha256 and by reproducing the 563,963-state figure the repository had already recorded for it. WHAT THE MODEL CAN NO LONGER EXPRESS: nothing validates the representation against the PROGRAM; the cost caps lost their matching value floor; coverage can drift behind the model silently; and compare_reports, which separated a legitimate simplification from a disguised deletion, is gone -- in a cutting epic. A green tlc_after is weaker evidence here than for an ordinary refactor, because it certifies self-consistency, which is exactly what the kill test existed because TLC could not check. ONE MEASUREMENT GOT WORSE AND THE FLATTERING VERSION WAS WITHDRAWN: the bound fell 1,111,320 -> 277,830, but comparable_to_cap returns None rather than True for an incomplete bound under the cap, so the model did not become compliant, it became UNMEASURABLE against the cap. TWO ORDERED DELETIONS WERE REFUSED: kill_test.py has five in-repo consumers of its parser and suppression scanner, one at module scope in the driver RD-03 used for the zero-unique-kills disproof, so the oracle-4 half was cut and the 310-line parser retained; and candidate_note_bar.py rests on a misattributed finding, holds the repository's only assertion that the card is 6,281 bytes, and is the named reproduction of the open SV-07-DF-01. THE MOST TRANSFERABLE RESULT IS CA-04-DF-06 AND IT GENERALISES BEYOND THIS CUT: the epic's REQUIRED loader check greps deleted PATHS and is structurally blind to deleted INTERFACES -- CLI subcommands, exported symbols, manifest keys, TOML sections have no basename to grep for -- so every cutting ticket runs a check that cannot see the interfaces it retires and shipped adopter instructions rot with nothing going red; demonstrated on this ticket's own cut at SKILL.md:1167 and :1174, and again from the other end in CA-04-DF-08, where the validation matrix given to all eight tickets names a 'run tlc' subcommand the CLI does not have. AND CA-04-DF-07, which this ledger produced about itself: a hard gate refused a real promotion on substance and was right, after lying dormant the whole epic because CA-04 is the first ticket to change the model at all. Eight findings against a budget of five, all disposed, the overrun recorded as one. Suite 8 failed / 1466 passed on the merged tip: six pre-existing at CA-03's tip, two this ticket's, both declared and outside its scope, none repaired.
+- feedback_status: items-recorded
+
+### SF-305
+
+- category: profile-schema-cli
+- target: `scripts/complexity_ledger.py:192` `TEMPLATE_SENTINEL = "TODO"`, applied at `:777` as `if TEMPLATE_SENTINEL in narrative: narrative = ""`
+- observed_on: tla-spec-dev, ticket CA-04, `specs/tickets/CA-04/results/complexity_ledger.yaml`
+- evidence: specs/results/scorecards/cut-the-apparatus/CA-04/close-refusal.txt, plus a second refused close whose only remaining verdict was "REJECTED -- no `narrative:` recorded" against a 5,842-character narrative that was present and parsed
+- severity: silent-data-loss
+- root_cause: tool
+- workaround_applied: paraphrased the sentence so the narrative no longer contains the sentinel substring
+- recommendation: none yet -- needs a ticket against tla-spec-dev; not filed by CA-04 because opening issues is outside a ticket agent's remit
+- status: open
+- surface: the narrative sentinel check
+- forced_workaround: paraphrase a legitimate quotation to avoid a substring
+- data_loss: yes
+- detail: THE SENTINEL IS A SUBSTRING TEST OVER THE WHOLE NARRATIVE, SO A NARRATIVE THAT QUOTES THE TEMPLATE WORD IS SILENTLY DISCARDED. CA-04's narrative recorded a load-bearing fact -- that CA-02 and CA-03 both left `validated_refactor` at its unfilled template value and closed cleanly, which is the evidence that the decrease gate had been dormant for the whole epic. Containing that quotation made the ledger treat 5,842 characters of filled narrative as an unfilled template, blank it, and refuse the close with a message pointing at ABSENCE when the cause was CONTENT. Nothing reported that the narrative had been discarded or why. The failure is worst exactly where the tool is most valuable: a narrative ABOUT the ledger's own template states cannot be written in the ledger. Fix by testing equality against the shipped default value, or a marker the scaffold writes and the author deletes, rather than `in` over free prose.
+
+### SF-306
+
+- category: profile-schema-cli
+- target: `scripts/tla_spec_dev.py` `run` subparser -- registers only `spec-unit-tests` and `effect-conformance`; there is no `tlc` target and no top-level `tlc` command
+- observed_on: tla-spec-dev, ticket CA-04, the first model-changing ticket of the cut-the-apparatus epic
+- evidence: specs/results/scorecards/cut-the-apparatus/CA-04/tlc-before.txt and tlc-after.txt (the route that does work), against `specs/desired_program_model/ticket_plan.yaml` `validation.tlc`
+- severity: manual-workaround
+- root_cause: spec
+- workaround_applied: drove TLC directly via `.skill-manager/bin/cli/tlc2 -config MC.cfg TlaSpecDevCli.tla`, and reconstructed the pre-change model from the branch point with `git show <base>:specs/current/...` into a scratch tree
+- recommendation: none yet -- needs a ticket against tla-spec-dev; also filed in the epic ledger as CA-04-DF-08
+- status: open
+- surface: the CLI's TLC entry point, and the close gate that depends on it
+- forced_workaround: bypass the documented CLI entirely and hand-roll both sides of a two-sided measurement
+- data_loss: no
+- detail: THE CLOSE GATE REQUIRES TLC EVIDENCE THE CLI CANNOT PRODUCE. The complexity ledger licenses a complexity DECREASE only on the CD-09 validated-refactor basis, whose first two members are `tlc_before` and `tlc_after` from the same run. The toolchain ships no command that runs TLC at all, and every ticket assignment in this epic says to run `tla-spec-dev --spec-root specs run tlc`, which answers "argument target: invalid choice: 'tlc'". Worse, `tlc_before` is unaddressed rather than merely unimplemented: the pre-change model does not exist in the working tree by close time, so satisfying the gate requires reconstructing it from git into a scratch directory -- a step no documentation mentions and which has an obvious wrong answer (running "before" against the post-change file). A `tla-spec-dev run tlc [--baseline <rev>]` emitting both runs in the shape `validated_refactor` expects would close the gap. Until then every model-changing ticket hand-rolls it, and the first one to try had its close refused before discovering the command did not exist.
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CA-05
+
+- close_scope: ticket
+- close_id: CA-05
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-14T00:34:31+00:00
+- summary: RECONCILED CLOSE at the epic tip e379d6b (CA-01..CA-04 merged). This is a SECOND, APPEND-ONLY history entry: ticket-004-CA-05 is the first close, taken before the promotion predecessor merged, and is preserved unedited. Requirement REFUSES cut-the-apparatus 24 of 36 (16 D1 rows from CA-00/CA-01/CA-02 outstanding). Ledger 246 = tip's 239 + this ticket's 7, verified row-by-row, nothing dropped or reordered. CA-05-DF-06: seven duplicate-key rows the check certified clean, repaired, with a structural guard whose failing input is the real pre-repair file. CA-05-DF-07: this gate's ticket delta straddles a merge and charged CA-04's model reduction to CA-05 -- basis filled BY CITATION to CA-04's TLC run on the owner's instruction, never re-measured. Discrimination argument WITHDRAWN: 10 false D2/D3 refusals, each inspected. Register 38->41 (denominator rose), then NUMERATOR 1->2 of 41 via CA-03's F3 repair, verified by hand. Suite 8/1483, exactly the epic-tip baseline measured in a detached worktree.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CA-06
+
+- close_scope: ticket
+- close_id: CA-06
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-14T02:22:47+00:00
+- summary: THE PATH IS SIMPLER AND IT IS NOT DRAMATICALLY SMALLER, AND THE MEASUREMENT TAKEN INSTEAD OF THE CUT IS THE OUTPUT. The mass this ticket was sent to cut -- --negative-cases (290 lines on a 1,043-line shared TLA+ parser and guard evaluator) and --port-cases (397) -- was measured and KEPT by SM-02 one epic ago in a still-green shipped test written expressly against this widening, so it was measured again instead. CA-06-DF-01: extract_action_signatures hardcoded the name `Next` and neither caller ever overrode it, so BOTH defended mechanisms emit ZERO cases on any model spelling its next-state relation differently -- every number defending them is taken on QuotaLedger, the one model here named `Next` -- while the run still printed `corpus gate PASS`. Fixed by calling find_next_relation, which the sibling module has shipped for three epics; 0 -> 11 cases. CA-06-DF-02: those 11 cannot execute, params keyed by TLA formal names against adapters written for recovered names, so the measured yield on a real subject is zero cases EXECUTED. CA-06-DF-05: the one-sided cap that made the zero silent is NOT repaired, filed with a subtractive fix because no_new_gates_rule forbids the obvious one. COST AND CATCH on examples/distributed_history, 128 exhaustively enumerated mutants: 39 corpus-unique kills raw, but on JOINTLY-EXERCISED CODE the corpus has ZERO semantic unique kills and the hand-written suite has ONE -- the 39 is coverage breadth, not fault-detection power, and that third discount is the independent reviewer's, adopted whole. The disproof survives; CA-06-DF-04 refutes only the UNQUALIFIED generalisation. THE CUT: one execution mode instead of two, and its "zero live callers" justification was FALSE when filed -- two live callers passed no flag at all, and A GREP CANNOT FIND AN ABSENT ARGUMENT, which is CA-04-DF-06's class from a third direction in three tickets. scripts/ moved -4 for this ticket and +209 actual, 28 of the difference being the review fixes themselves: RD-02 for the third time inside one ticket. Model delta direction=zero, TLC legitimately skipped -- but "no model delta" meant NO MODEL WORK WAS DONE and two now-dead ports remain declared, enumerated for the successor. Suite 8 failed / 1485 passed at the merged tip, identical item-for-item to the e379d6b baseline. Five findings, all disposed.
+- feedback_status: items-recorded
+
+### SF-307
+
+- category: instrument-blindness-loader-check
+- target: the epic's REQUIRED loader check -- `git grep` over deleted paths (CA-02) and deleted interfaces (CA-04-DF-06)
+- observed_on: tla-spec-dev, ticket CA-06, cut-the-apparatus epic
+- evidence: specs/results/scorecards/cut-the-apparatus/CA-06/loader-check.txt -- which ran BOTH required greps and still missed three live consumers; and CA-06-DF-03 in specs/desired_program_model/deferred_findings.yaml
+- severity: wrong-result
+- root_cause: skill
+- workaround_applied: none available -- the misses were found by an independent reviewer reading the tests, not by any grep
+- recommendation: none yet -- needs a ticket against tla-spec-dev; the ledger row is CA-06-DF-03
+- status: open
+- surface: the loader-check procedure prescribed by PRICE-TABLE-FORMAT.md section 5
+- forced_workaround: human reading of every test that invokes the changed entry point
+- data_loss: no
+- detail: A GREP CANNOT FIND AN ABSENT ARGUMENT, AND THAT IS THE THIRD DIRECTION THIS CLASS HAS ARRIVED FROM IN THREE TICKETS. CA-02 missed a deleted PATH and silently broke repriced_history.py. CA-04 established that the check is blind to deleted INTERFACES -- subcommands, exports, manifest keys, TOML sections -- because it greps paths only. CA-06 ran BOTH greps, correctly, and still missed three live consumers of the execution mode it deleted: two tests that reach the mode by passing NO execution-mode flag at all (one of them literally NAMED for the mode), and a shipped CLI flag `--no-batch` that became a silent no-op. Every one of them is characterised by the ABSENCE of a token, and a check built on `git grep` searches for tokens. This is not fixable by adding a third grep. What would catch it is a check that enumerates the CALLERS of a changed entry point and asks which defaults each one relies on -- an import/invocation graph rather than a text search. Until something like that exists, every simplification that removes a default is unaudited by the procedure the epic requires, and the procedure will keep reporting clean.
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CA-07
+
+- close_scope: ticket
+- close_id: CA-07
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-14T03:36:35+00:00
+- summary: CA-06-DF-02 consumed as an adapter conformance case: the negative corpus now names its arguments the way the module declares them, the sealed fixture is byte-identical because it declares no marker, and the 11 unlocked cases execute for the first time -- 5 of them naming a real model/implementation divergence, filed not fixed.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CA-08
+
+- close_scope: ticket
+- close_id: CA-08
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-14T05:26:52+00:00
+- summary: EVALUATION: 14 goal clauses met, 4 missed. The apparatus cut reached 14% of its target and CA-08-DF-08 measures why. scope returns 0 counted figures on the charter that credits it. Static gates adjudicated at 3:1 with the doctrine's real defect named. Eight findings filed, nothing fixed.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out workflow cut-the-apparatus-epic
+
+- close_scope: workflow
+- close_id: cut-the-apparatus-epic
+- workflow: cut-the-apparatus-epic
+- closed_at: 2026-08-14T22:46:54+00:00
+- summary: Workflow close for cut-the-apparatus-epic. Eight delivered tickets, none retired, --accept-new used nowhere. CA-05 carries two close receipts by design; the earlier one is marked superseded_by the reconciled one and is excluded from the count, not deleted. The cumulative findings ledger (278 rows) is archived at closed-snapshot/deferred_findings.yaml and recorded in this manifest under findings_ledger; disposition.py reads it from there. GOAL-apparatus-cut is MISSED and awaits the owner's recorded acceptance on PR #272.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

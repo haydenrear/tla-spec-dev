@@ -77,6 +77,7 @@ specs/.history/
     closed-snapshot/
       manifest.json
       summary.md
+      deferred_findings.yaml
       snapshots/
         program_model/
         desired_program_model/
@@ -86,6 +87,12 @@ specs/.history/
 
 `manifest.json` is the machine-readable index. `summary.md` is the human
 overview. The copied snapshots are evidence, not active state.
+
+`deferred_findings.yaml` is the cumulative findings ledger, archived here
+because the close removes the directory it lives in. It is cross-epic and
+append-only, so this copy is the record of every finding filed up to the close,
+not just this workflow's. The manifest names it under `findings_ledger`, and
+`scripts/disposition.py` reads it once the live path is gone.
 
 ## Preparing For Promotion
 

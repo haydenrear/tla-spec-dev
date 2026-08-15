@@ -1,0 +1,1021 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/CA-05",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/cut-the-apparatus-epic/ticket-004-CA-05-reconciled specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for CA-05'",
+    "message": "It is recommended to commit this history directory now: specs/.history/cut-the-apparatus-epic/ticket-004-CA-05-reconciled"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 16,
+        "before": 16,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 277830,
+        "before": 277830,
+        "bound_complete_after": false,
+        "bound_complete_before": false,
+        "comparable": false,
+        "delta": 0,
+        "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+        "percent": 0.0
+      },
+      "depth": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "generated_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "variables": {
+        "after": 8,
+        "before": 8,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "CA-05"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 16,
+          "before": 16,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 277830,
+          "before": 277830,
+          "bound_complete_after": false,
+          "bound_complete_before": false,
+          "comparable": false,
+          "delta": 0,
+          "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+          "percent": 0.0
+        },
+        "depth": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "generated_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "variables": {
+          "after": 8,
+          "before": 8,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "CA-05"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/CA-05/results/complexity_ledger.yaml",
+    "justification": "",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+      "actions": 16,
+      "actions_from_fallback_heuristic": false,
+      "bound": 277830,
+      "bound_complete": false,
+      "bound_resolved_variables": 6,
+      "bound_unresolved_variables": [
+        "lastCommand",
+        "result"
+      ],
+      "budget_utilization": {
+        "max_state_space_bound": {
+          "bound_complete": false,
+          "cap": 1000000,
+          "caveat": "the bound is a product over 6 of 8 declared variables (2 unresolved: lastCommand, result), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything",
+          "percent": null,
+          "percent_lower_bound": 27.8,
+          "used": 277830,
+          "within_cap": null
+        }
+      },
+      "depth": null,
+      "distinct_states": null,
+      "gate_passed": false,
+      "gate_violations": [
+        "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 8 declared variables (2 unresolved: lastCommand, result) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
+        "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+      ],
+      "generated_states": null,
+      "modularity": 0.002483746073489777,
+      "variables": 8
+    },
+    "narrative": "CA-05 -- the disposition requirement, at the RECONCILED epic tip e379d6b (CA-01..CA-04 all merged). Working: specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/refusal.md, .../harvest-recount.md, .../suite-CA-05.md; rule in references/consumption.md.\nWHAT SHIPPED. An epic may not close while a finding it filed is undisposed: D1 a disposition that is not `open`, D2 a note on a terminal disposition, D3 a named successor on a deferral, plus a STRUCTURAL rule that refuses duplicate YAML keys before any clause runs. NOT A GATE ON ANYONE'S CODE -- it reads one file and reports on this project's own epics.\nTHE VERDICT AT THE RECONCILED TIP, AND IT DOES NOT PASS. `--epic cut-the-apparatus` REFUSES at 24 of 35, now on all three clauses: 16 D1 rows from CA-00, CA-01 and CA-02 that are still `open`, plus 8 CA-04 rows failing D2/D3. That is what is outstanding and those are who owe it. Ledger 245 rows = the tip's 239 plus this ticket's 6, nothing dropped or reordered.\nWHAT THE REVIEW ROUNDS TOOK APART, AND IT WAS RIGHT TO. The discrimination argument this ticket first made is WITHDRAWN. subtract-to-measure was a FALSE PASS caused by seven rows of duplicate `disposition_ticket` keys that every parser silently resolved to the discarded value (CA-05-DF-06) -- CA-00-DF-04's class, shipped by an instrument in the epic that filed the class, found by a reviewer and not by me. falsifiable-instruments passes on the weakest blind spot. ports-as-adapters' 2-of-28 refusal is TWO FALSE REFUSALS, on field naming. And CA-04 added EIGHT more of the same kind. Ten false D2/D3 refusals over the record, each inspected. What survives is D1 alone: four epics filed 122 findings and routed NONE, three routed 61 cross-epic.\nTHE RULE IS DELIBERATELY NOT CHANGED to fix the D2/D3 false refusals. Demoting them after seeing this epic's own numbers is MF-020; CA-08 must not measure a rule that moved after seeing its data; and it would not rescue this epic, which refuses on 16 D1 rows either way. Recommended to CA-08.\nTHE GOOD RESULT, AND IT IS NOT MINE. CA-03 satisfied all three clauses VOLUNTARILY from the proposal alone while this PR was unmerged, and CA-03 repaired SV-04-DF-05, which carries harvest class F3 into program validation with an R1 test. Per denominator_rule: on the register repair the DENOMINATOR ROSE 38 -> 41 and the numerator held; on this one the NUMERATOR ROSE 1 -> 2 and the denominator held at 41. 2 of 41, 4.9%. Verified by hand -- the named test exists and passes, and eval_scorecard.md:769 says what RD-03-DF-08 claims.\nCONSUMPTION OR ROUTING: the instrument CANNOT TELL, which is CA-05-DF-03. A person can, and did, in two commands. Any future \"N consumed\" from this field alone is a count of CLAIMS.\nSUITE AT THE RECONCILED TIP: 8 failed / 1483 passed, EXACTLY the epic-tip baseline, item for item. The baseline moved 6 -> 8 when CA-04 merged, and CA-04 declared both new reds itself under CA-04-DF-04. CA-05 did not assume that: it checked out e379d6b in a detached worktree and ran the file, getting 2 failed / 24 passed there with this branch not involved.\nMEASURED ALTERNATIVES, REJECTED. A prose-only requirement with a grep (cannot scope to an epic or check the grammar). Hiding the instrument in tests/ where the goal metric does not count it (metric-dodging). Retro-classifying `channel` on 210 older rows (would manufacture a clean history nobody measured). Building the consumption half (apparatus measuring apparatus; declared as blindness instead). Adding a `gate-refused` channel token mid-epic after seeing which rows need it.\nTHE HONEST ALTERNATIVE, RE-ARGUED. The retirement is QUALIFIED, not defended. Nothing has been consumed BECAUSE of the requirement -- it has been complied with, never yet binding. The description the evidence supports is \"a measurement programme with a newly installed close-out requirement that three tickets have voluntarily honoured\". CA-08 is the test.\nPRICE, per surface, worse than first reported. scripts/ +213 (disposition.py; 80 of those added by review -- the duplicate-key guard and the channel advisory). examples/validation/ Python +0. tests/ +213. instruments.toml +75. Card UNCHANGED at 6,281 bytes / sha256:2d7d4a0506d9b259. Clause (a) of GOAL-apparatus-cut MOVED THE WRONG WAY and this ledger says so.",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+    ],
+    "recorded_at_utc": "2026-08-14T00:34:31.836134+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "Searched, found none. CA-05's model_delta_expectation is \"none expected\" and the ticket held to it: no Internal/External action, state variable or invariant changed, so there is no transition structure to refine. The ticket's delta is markdown registers, six appended ledger rows, one 213-line checker under scripts/ and one test file. Saying so is the honest outcome rather than manufacturing a recommendation.",
+      "measured": false,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=not_run (UNVERIFIED)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "CA-05",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "retained",
+        "evidence": "MEASURED BY CA-05, and the only member here that is. specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/suite-CA-05.md -- stated plainly rather than as a bare \"pass\": 8 FAILED / 1483 passed at the reconciled tip. ALL EIGHT ARE THE EPIC-TIP BASELINE, MEASURED DIRECTLY at e379d6b in a detached worktree with this branch not involved, rather than assumed: the 2 deliberate/inherited, the 3 test_source_citations, test_ticket_retirement, CA-00-DF-02, and the TWO CA-04 DECLARED under CA-04-DF-04. ZERO attributable to CA-05. \"pass\" means BEHAVIOR RETAINED, not a green suite.",
+        "status": "pass",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "retained",
+        "evidence": "CITED FROM CA-04, NOT PRODUCED BY CA-05. specs/results/scorecards/cut-the-apparatus/CA-04/descriptor-comparison.md -- before/after over the same two models, before side verified byte-faithful by sha256 9c0f394c28259fe67848d2b7d45323d759d29bfb8e69c916b010051c91c622ef, recording variables 9 -> 8 attributed to `kill_test`. CA-05 produced no descriptor comparison because CA-05 changed no descriptor.",
+        "status": "recorded",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "retained",
+        "evidence": "CITED FROM CA-04, NOT RUN BY CA-05. specs/results/scorecards/cut-the-apparatus/CA-04/tlc-after.txt: 2,505,440 states generated, 124,643 distinct states, 0 left on queue, depth 24, \"Model checking completed. No error has been found.\", 13 invariants hold. This is the AFTER side of the same delta -- the 8-variable model CA-05 inherited by merging CA-04 and did not modify.",
+        "status": "green",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "retained",
+        "evidence": "CITED FROM CA-04, NOT RUN BY CA-05. specs/results/scorecards/cut-the-apparatus/CA-04/tlc-before.txt (also at specs/.history/cut-the-apparatus-epic/ticket-003-CA-04/results/tlc-before.txt): 13,008,254 states generated, 563,963 distinct states, 0 left on queue, depth 25, \"Model checking completed. No error has been found.\" This is the BEFORE side of the 9-variable model -- the model CA-04 changed and CA-05 did not. CA-04 additionally reported that this figure reproduces the count recorded in TlaSpecDevCli.tla's own comment for that model, a faithfulness check stronger than a hash.",
+        "status": "green",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=green (retained)",
+      "tlc_after=green (retained)",
+      "behavior_tests=pass (retained)",
+      "descriptor_comparison=recorded (retained)"
+    ],
+    "verdict": "recorded",
+    "workflow": "cut-the-apparatus-epic"
+  },
+  "created_at_utc": "2026-08-14T00:34:31.946016+00:00",
+  "entry_name": "ticket-004-CA-05-reconciled",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/CA-05",
+    "commit": "b3fb00d",
+    "inside_work_tree": "true"
+  },
+  "guard_weakening": {
+    "bypassed": [],
+    "flags": [],
+    "model_action": "CloseTicket",
+    "note": "RC-01: a close taken under a guard-weakening flag is a different modeled state from one taken under the guard. Recorded, never refused.",
+    "weakened": false
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/CA-05/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/CA-05/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/CA-05/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/CA-05/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/CA-05/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/CA-05/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/CA-05/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/CA-05/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/CA-05/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_binding_reconciliation.py",
+            "relative": "tests/test_tla_spec_dev_binding_reconciliation.py",
+            "source": "specs/tickets/CA-05/desired/tests/test_tla_spec_dev_binding_reconciliation.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/CA-05/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/CA-05/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/CA-05/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/CA-05/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/CA-05/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/CA-05/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/CA-05/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_generation_adapter.py",
+            "relative": "tests/test_tla_spec_dev_generation_adapter.py",
+            "source": "specs/tickets/CA-05/desired/tests/test_tla_spec_dev_generation_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/CA-05/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/CA-05/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/CA-05/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/CA-05/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/CA-05/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/CA-05/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/CA-05/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/CA-05"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "Searched, found none. CA-05's model_delta_expectation is \"none expected\" and the ticket held to it: no Internal/External action, state variable or invariant changed, so there is no transition structure to refine. The ticket's delta is markdown registers, six appended ledger rows, one 213-line checker under scripts/ and one test file. Saying so is the honest outcome rather than manufacturing a recommendation.",
+    "measured": false,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/cut-the-apparatus-epic/ticket-004-CA-05-reconciled/results/refusal.md",
+      "source": "specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/refusal.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/cut-the-apparatus-epic/ticket-004-CA-05-reconciled/results/harvest-recount.md",
+      "source": "specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/harvest-recount.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/cut-the-apparatus-epic/ticket-004-CA-05-reconciled/results/disposition-all.txt",
+      "source": "specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/disposition-all.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/cut-the-apparatus-epic/ticket-004-CA-05-reconciled/results/suite-CA-05.md",
+      "source": "specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/suite-CA-05.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/cut-the-apparatus-epic/ticket-004-CA-05-reconciled/results/goal-apparatus-cut-signal.md",
+      "source": "specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/goal-apparatus-cut-signal.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/cut-the-apparatus-epic/ticket-004-CA-05-reconciled/results/spec-unit-CA-05.txt",
+      "source": "specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-05/spec-unit-CA-05.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/cut-the-apparatus-epic/ticket-004-CA-05-reconciled/results/consumption.md",
+      "source": "references/consumption.md"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 123,
+    "close_out_entry": "Close-out ticket CA-05",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/105) \u2014 scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/106) \u2014 plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/107) \u2014 promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/108) \u2014 the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/109) \u2014 a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/110) \u2014 plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/111) \u2014 three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/105) \u2014 scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/106) \u2014 plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/107) \u2014 promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/108) \u2014 the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/109) \u2014 a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/110) \u2014 plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/111) \u2014 three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex5-run4/artifacts/reexport_attack/",
+        "filed": false,
+        "id": "SF-101",
+        "observed_on": "",
+        "recommendation": "EV-03-DF-03 -- resolve first-party-ness against the project root",
+        "reference": null,
+        "root_cause": "",
+        "severity": "major",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.txt",
+        "filed": false,
+        "id": "SF-102",
+        "observed_on": "",
+        "recommendation": "EV-03-DF-02 -- a lever that treats an unused provider on a",
+        "reference": null,
+        "root_cause": "",
+        "severity": "minor",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex4-run6/scoring.md",
+        "filed": false,
+        "id": "SF-103",
+        "observed_on": "",
+        "recommendation": "EV-03-DF-04 -- write the report with an explicit \"no effect",
+        "reference": null,
+        "root_cause": "",
+        "severity": "minor",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex4-run6/scoring.md",
+        "filed": false,
+        "id": "SF-104",
+        "observed_on": "",
+        "recommendation": "EV-03-DF-05 -- name a declaration the run did not use (a fact,",
+        "reference": null,
+        "root_cause": "",
+        "severity": "minor",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex4-run4/scoring.md",
+        "filed": false,
+        "id": "SF-105",
+        "observed_on": "",
+        "recommendation": "EV-02-DF-05 -- state an absolute interpreter path, or declare",
+        "reference": null,
+        "root_cause": "",
+        "severity": "minor",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-201",
+        "observed_on": "",
+        "recommendation": "add `tlc_report:` to the scaffolded ledger input with the",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-202",
+        "observed_on": "",
+        "recommendation": "either add a scope that includes the desired tree, or stop",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-203",
+        "observed_on": "",
+        "recommendation": "owner's call whether the step is real. If it is, make the",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-301",
+        "observed_on": "",
+        "recommendation": "put the resolved spec directory and the repository root on",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-302",
+        "observed_on": "",
+        "recommendation": "call `adapter_accepts_case` and record a SKIP with its reason,",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-303",
+        "observed_on": "",
+        "recommendation": "name `--state-projector` in the cap-refusal message as a third",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-304",
+        "observed_on": "",
+        "recommendation": "ship the check (or its convention) with the scaffolded",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/results/scorecards/cut-the-apparatus/CA-04/close-refusal.txt, plus a second refused close whose only remaining verdict was \"REJECTED -- no `narrative:` recorded\" against a 5,842-character narrative that was present and parsed",
+        "filed": false,
+        "id": "SF-305",
+        "observed_on": "tla-spec-dev, ticket CA-04, `specs/tickets/CA-04/results/complexity_ledger.yaml`",
+        "recommendation": "none yet -- needs a ticket against tla-spec-dev; not filed by CA-04 because opening issues is outside a ticket agent's remit",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-data-loss",
+        "status": "open",
+        "target": "`scripts/complexity_ledger.py:192` `TEMPLATE_SENTINEL = \"TODO\"`, applied at `:777` as `if TEMPLATE_SENTINEL in narrative: narrative = \"\"`",
+        "title": ""
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/results/scorecards/cut-the-apparatus/CA-04/tlc-before.txt and tlc-after.txt (the route that does work), against `specs/desired_program_model/ticket_plan.yaml` `validation.tlc`",
+        "filed": false,
+        "id": "SF-306",
+        "observed_on": "tla-spec-dev, ticket CA-04, the first model-changing ticket of the cut-the-apparatus epic",
+        "recommendation": "none yet -- needs a ticket against tla-spec-dev; also filed in the epic ledger as CA-04-DF-08",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "`scripts/tla_spec_dev.py` `run` subparser -- registers only `spec-unit-tests` and `effect-conformance`; there is no `tlc` target and no top-level `tlc` command",
+        "title": ""
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 28,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007",
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007",
+      "SF-101",
+      "SF-102",
+      "SF-103",
+      "SF-104",
+      "SF-105",
+      "SF-201",
+      "SF-202",
+      "SF-203",
+      "SF-301",
+      "SF-302",
+      "SF-303",
+      "SF-304",
+      "SF-305",
+      "SF-306"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-05/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/cut-the-apparatus-epic/ticket-004-CA-05-reconciled/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/cut-the-apparatus-epic/ticket-004-CA-05-reconciled/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/cut-the-apparatus-epic/ticket-004-CA-05-reconciled/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/cut-the-apparatus-epic/ticket-004-CA-05-reconciled/ticket",
+      "source": "specs/tickets/CA-05"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "RECONCILED CLOSE at the epic tip e379d6b (CA-01..CA-04 merged). This is a SECOND, APPEND-ONLY history entry: ticket-004-CA-05 is the first close, taken before the promotion predecessor merged, and is preserved unedited. Requirement REFUSES cut-the-apparatus 24 of 36 (16 D1 rows from CA-00/CA-01/CA-02 outstanding). Ledger 246 = tip's 239 + this ticket's 7, verified row-by-row, nothing dropped or reordered. CA-05-DF-06: seven duplicate-key rows the check certified clean, repaired, with a structural guard whose failing input is the real pre-repair file. CA-05-DF-07: this gate's ticket delta straddles a merge and charged CA-04's model reduction to CA-05 -- basis filled BY CITATION to CA-04's TLC run on the owner's instruction, never re-measured. Discrimination argument WITHDRAWN: 10 false D2/D3 refusals, each inspected. Register 38->41 (denominator rose), then NUMERATOR 1->2 of 41 via CA-03's F3 repair, verified by hand. Suite 8/1483, exactly the epic-tip baseline measured in a detached worktree.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "A disposition requirement exists and is exercised on THIS epic''s own filed findings.",
+        "A DEMONSTRATED REFUSAL on a real input, not a fixture (R1).",
+        "The harvest register is repaired and the TRUE denominator is stated with numerator/denominator movement named.",
+        "A channel field exists on the ledger and is populated by this epic''s tickets.",
+        "A cost block with basis and value exists and is populated by this epic''s tickets.",
+        "The proposed rule is run against the sealed record before shipping and what it refuses is reported.",
+        "NO GATE on anyone''s code is added.",
+        "Anything shipped is priced in lines against GOAL-apparatus-cut."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "CA-07",
+      "CA-08"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "specs/results/scorecards/SELF-IMPROVEMENT.md",
+        "specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md",
+        "references/consumption.md",
+        "specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/"
+      ]
+    },
+    "depends_on": [
+      "CA-01"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/259",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "Clauses (a), (b) and (c) all move: a disposition requirement with a demonstrated refusal, a repaired register with the true denominator stated, and channel and cost populated by this epic's own tickets.",
+        "goal": "GOAL-consumption-obligatory",
+        "local_signal": "the disposition requirement run against this epic's own filed findings, with the refusal shown"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected, AND THE HAZARD IS REAL -- this ticket could add apparatus in the name of measuring apparatus. Prefer a documented requirement and a maintained markdown register over new code, and PRICE anything it ships.",
+        "goal": "GOAL-apparatus-cut",
+        "local_signal": "find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected -- the sealed record is appended to, never edited",
+        "goal": "GOAL-four-results-stand",
+        "local_signal": "uv run --with pytest --with pyyaml -m pytest tests -q"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-blind-dispatch",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "CA-05",
+    "implementation_scope": [
+      "references/",
+      "specs/results/scorecards/",
+      "specs/results/scorecards/cut-the-apparatus/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "GOAL 02, IN THE OWNER'S WORDS: 'Detection, filing, scoring and re-scoring all work. Consumption is 1 of 38 because nothing requires it. Either a filed finding must receive a disposition before an epic can close, or the honest description is a measurement programme rather than a self-improvement loop. Both are respectable; the current state is neither.' THE OWNER CHOSE THE FIRST, WITH THE REGISTER REPAIRED. FOUR PARTS. (1) A DISPOSITION REQUIREMENT: every filed finding gets an explicit disposition -- consumed, deferred with a named successor, or wontfix with a reason -- before an epic can close. THIS IS A CLOSE-OUT REQUIREMENT ON THIS PROJECT'S OWN EPICS AND NOT A GATE ON ANYONE'S CODE; seven epics of static checking caught zero bugs and this epic adds no gate. (2) R1 APPLIED TO IT: ship it with a DEMONSTRATED REFUSAL on a real input -- run it against THIS epic's own filed findings and show it refusing a real close-out, not a fixture. This project has shipped three instruments later found blind. (3) REPAIR THE REGISTER: HARVEST-CL-03.md carries 38 classes and was untouched last epic, and SV-01-DF-05 filed three new classes into the ledger and not into the harvest, SO 38 STOPPED GROWING ON 2026-08-11 AND UNDERSTATES THE BACKLOG. State the TRUE denominator and, per denominator_rule, SAY WHETHER THE NUMERATOR ROSE OR THE DENOMINATOR FELL. Read the 1-of-38 honestly: THREE OF THE FOUR NEWLY-NAMED CLASSES ARE THIS PROJECT CATCHING ITSELF COMMITTING THE CLASS, not consuming it. (4) THE TWO MISSING FIELDS: a channel field on the ledger, asked for six epics ago and still hand-classified from free text every single time; and CL-04's cost block with basis and value at ticket close-out, proposed three epics ago and never built -- SV-05 measured 353,816 tokens at 0.57 findings per 100k, comparable to SV-01's 0.98 on the same basis, AND THAT IS THE FIRST TIME TWO ROUNDS IN THIS PROGRAMME WERE COMPARABLE AT ALL. Populate both from this epic's own tickets. RUN YOUR OWN RULE AGAINST THE SEALED RECORD BEFORE SHIPPING IT, per the charter -- SV-07 refuted its predecessor's recommendation in one command by trying to ship it. AND KEEP THE HONEST ALTERNATIVE ON THE TABLE: if the requirement cannot be made to work, saying 'this is a measurement programme, not a self-improvement loop' IS AN ACCEPTABLE AND VALUABLE OUTCOME.",
+    "promotion_order": 50,
+    "promotion_predecessor": "CA-04",
+    "schedule_revision": 1,
+    "status": "done",
+    "title": "Make consumption obligatory: a disposition requirement, a repaired register, and the channel and cost fields six and three epics have asked for",
+    "wave": 2
+  },
+  "ticket_id": "CA-05",
+  "ticket_index": 4,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/cut-the-apparatus-epic/ticket-004-CA-05-reconciled/ticket",
+    "source": "specs/tickets/CA-05"
+  },
+  "workflow_name": "cut-the-apparatus-epic"
+}

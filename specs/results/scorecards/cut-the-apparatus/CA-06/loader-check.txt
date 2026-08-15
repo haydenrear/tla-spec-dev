@@ -1,0 +1,72 @@
+# CA-06 -- PRICE-TABLE-FORMAT.md section 5 REQUIRED loader check, run at the CA-06 branch point e379d6b.
+# Filtered to LIVE surfaces (no .history, no specs/results/, no runs/, no evidence/).
+# CA-04-DF-06: the path grep is BLIND TO INTERFACE REMOVALS, so the INTERFACE greps follow.
+
+## Part 1 -- PATHS. This cut deletes NO FILE, so there is no path row. Stated explicitly
+## rather than omitted: every removal in this ticket is a function or a branch inside a
+## file that survives.
+
+## Part 2 -- INTERFACES removed (CA-04-DF-06's class)
+### symbol: write_case_program
+    scripts/run_generated_case_adapters.py:1259:def write_case_program(
+    scripts/run_generated_case_adapters.py:1355:        write_case_program(
+
+### symbol: generate_programs
+    scripts/run_generated_case_adapters.py:1337:def generate_programs(
+    scripts/run_generated_case_adapters.py:2440:        programs = generate_programs(
+    tests/test_effect_provider_fuzzing.py:362:        generate_programs,
+    tests/test_effect_provider_fuzzing.py:437:    programs = generate_programs(
+
+### symbol: execute_programs
+    scripts/run_generated_case_adapters.py:2273:def execute_programs(programs: list[Path], python: list[str]) -> None:
+    scripts/run_generated_case_adapters.py:2449:        execute_programs(programs, args.python or [sys.executable])
+
+### symbol: validate_effect_provider_execution_mode
+    scripts/run_generated_case_adapters.py:835:def validate_effect_provider_execution_mode(
+    scripts/run_generated_case_adapters.py:2371:    validate_effect_provider_execution_mode(
+    tests/test_effect_provider_runtime.py:24:    validate_effect_provider_execution_mode,
+    tests/test_effect_provider_runtime.py:1127:        validate_effect_provider_execution_mode(plan, batch=False, validate_only=False)
+    tests/test_effect_provider_runtime.py:1129:    validate_effect_provider_execution_mode(plan, batch=True, validate_only=False)
+    tests/test_effect_provider_runtime.py:1130:    validate_effect_provider_execution_mode(plan, batch=False, validate_only=True)
+
+### CLI option: --batch   (KEPT ACCEPTED as an inert flag; batch is now the only mode)
+    README.md:77:  --batch \
+    README.md:121:  --batch \
+    README.md:129:python3 scripts/run_generated_case_adapters.py path/to/generated_cases --mapping path/to/case_adapters.toml --batch --validate-capabilities
+    SKILL.md:1049:set. Use `--batch` to execute many cases in one interpreter; combine it with
+    examples/case_modules/MEASUREMENTS.md:52:    --mapping specs/program_model/testgraph_bindings.yml --view external --batch --validate-only
+    examples/case_modules/README.md:58:  --view external --batch --validate-only --import-root .
+    examples/distributed_history/README.md:70:  --batch \
+    examples/distributed_history/README.md:78:  --batch \
+    examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:30:        "--batch",
+    examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:62:            "--batch",
+    examples/distributed_history/test_graph/sources/run_external_cases.py:60:        "--batch",
+    examples/effect_providers/atomic_publisher/README.md:52:`scripts/run_generated_case_adapters.py` with `--batch --fuzz-runs 16
+    examples/effect_providers/atomic_publisher/run_experiment.py:230:        "--batch",
+    examples/effect_providers/legacy_payment_http/README.md:53:  --spec-dir specs/program_model --import-root . --view external --batch
+    examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:642:        "--batch",
+    examples/effect_providers/legacy_payment_http/validate.py:264:            "--batch",
+    examples/effect_providers/reminder_worker/run_experiment.py:149:        "--batch",
+    examples/effect_providers/reminder_worker/validate.py:343:        "--batch",
+    examples/run_distributed_history_validation.py:112:            "--batch",
+    examples/run_distributed_history_validation.py:171:            "--batch",
+    examples/run_distributed_history_validation.py:280:                "--batch",
+    examples/validation/ex4_pipeline_coherent/README.md:295:  --spec-dir specs/program_model --view internal --batch --import-root .
+    examples/validation/ex4_pipeline_coherent/README.md:299:  --spec-dir specs/program_model --view internal --batch --import-root .
+    examples/validation/instruments/instruments.toml:119:          "--view", "internal", "--batch", "--import-root", "{tree}/dh"]
+    examples/validation/instruments/instruments.toml:138:          "--view", "internal", "--batch", "--import-root", "{tree}/dh"]
+    examples/validation/instruments/instruments.toml:200:          "--corpus-command", "{python} {repo}/scripts/run_generated_case_adapters.py {tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases --mapping {tree}/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root {tree}/dh"]
+    examples/validation/instruments/instruments.toml:213:          "--corpus-command", "{python} {repo}/scripts/run_generated_case_adapters.py {tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases --mapping {tree}/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root {tree}/dh"]
+    references/case_modules.md:233:  --mapping specs/program_model/testgraph_bindings.yml --view external --batch --validate-only
+    references/case_modules.md:408:  --spec-dir specs/program_model --view internal --batch \
+    references/case_modules.md:422:  --spec-dir specs/program_model --view internal --batch \
+
+### CLI option: --python  (KEPT AND STILL FUNCTIONAL -- reexec_batch_if_needed uses it)
+    scripts/run_generated_case_adapters.py:2308:    parser.add_argument("--python", action="append", default=[], help="Python command used to run generated programs")
+    tests/test_effect_provider_fuzzing.py:1315:        "--python",
+    tests/test_effect_provider_runtime.py:1361:        "--python",
+
+### error string: 'semantic effect providers require --batch'
+    scripts/run_generated_case_adapters.py:843:            "ERROR: semantic effect providers require --batch in V0; "
+    tests/test_effect_provider_runtime.py:1126:    with pytest.raises(SystemExit, match="semantic effect providers require --batch"):
+    tests/test_effect_provider_runtime.py:1423:    assert "semantic effect providers require --batch" in non_batch.stdout + non_batch.stderr

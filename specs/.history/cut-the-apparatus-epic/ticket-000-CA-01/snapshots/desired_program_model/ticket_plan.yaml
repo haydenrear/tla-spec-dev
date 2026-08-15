@@ -1,0 +1,479 @@
+version: 1
+name: cut-the-apparatus-epic
+schedule_revision: 1
+updated: null
+purpose: >-
+  THE RATIO IS THE SUBJECT. Seven epics produced 95 sealed scorecards and 210 findings, of which FOUR RESULTS SURVIVE ADVERSARIAL CHECKING. The machinery built to produce them is 43,553 lines of Python across scripts/ and examples/validation/ at the epic base, against a served card of 6,281 bytes and two scored dimensions -- roughly HALF OF ONE PERCENT. This epic changes that ratio without destroying the four results.
+
+
+  THREE OWNER GOALS. (1) CUT THE APPARATUS, NOT THE CARD -- the pricing instrument is entailed, the gates catch nothing, the descriptor cannot see the one simplification measured, and four checks passed a live defect. Each is a candidate for deletion ON MEASURED GROUNDS, and every cut is PRICED. (2) MAKE CONSUMPTION OBLIGATORY, OR STOP CALLING IT A LOOP -- detection, filing, scoring and re-scoring all work; consumption is 1 of 38 because nothing requires it. (3) FIX BLINDNESS BEFORE RUNNING ANOTHER JUDGED ROUND -- every scorecard number in the record was produced by a judge carrying the operator's own conclusions in context, and the owner's words are 'make sure the memory doesn't leak in, because that's been a killer'. GOAL 03 LANDS FIRST AND BEFORE THE EVALUATION.
+
+
+  AND ONE CONSTRAINT ABOVE ALL: FOUR RESULTS MUST STILL STAND. Asking for an architecture changes the architecture (D3 1 -> 4 on the prompt alone, confound killed by arm C at 1/1). D3 separates architectures on a second example (eval_toolchain, disjoint, both judge tiers both sides). D3's v5 caveat discriminates (SV-01: 4,4 held at both versions on an artifact lacking the property, against CL-03's 4,4 -> 3,3 on one that has it). A score can produce a test and the re-score sees it (SV-04: control 3,3 vs treatment 4,4, D2 flat at 2 across all four). EVERYTHING CUT MUST LEAVE THESE STANDING.
+planning_rules:
+  cut_the_apparatus_not_the_card: >-
+    serve | wc -c is the metric for the CARD -- 6,281 bytes, 9 rungs, sha256:2d7d4a0506d9b259 at the epic base. IT MUST NOT GROW. REPOSITORY LINES ARE THE METRIC FOR THE APPARATUS and they are what this epic is about. NEVER REPORT THE CARD AND THE APPARATUS AS ONE NUMBER, and never report a cut in repository lines without saying WHICH SURFACE. RM-03-DF-03: the change rule keeps old anchors and R-H4 seals the record, so a CARD removal cannot delete prose or code -- three epics called themselves simplifications and came out net-additive BECAUSE THAT OUTCOME IS REQUIRED BY CONSTRUCTION.
+  cut_on_the_record_never_on_aesthetics: >-
+    EVERY DELETION NAMES THE FINDING THAT JUSTIFIES IT, and every cut is PRICED -- what it cost, what it removed, and what it can no longer do. A cut with no finding behind it does not ship. RM-03 declined kill_test.py because it is a MODEL DELTA; that refusal was right for that ticket. A MODEL DELTA IS NOW A COST TO PRICE RATHER THAN A REASON TO STOP.
+  instruments_that_earned_their_keep: >-
+    DO NOT CUT scope, seal, contested, the blinding mechanism, R-H1/R-H2/R-H4/R3, or the version/served double seal. RM-02 called them 'the substrate's best export, and the epic should be careful not to cut them for being unglamorous'. CL-01's second seal caught a real class one ticket later. analyze_complexity.py and code_complexity.py SERVE THE SPEC WORKFLOW AND STAY -- only their role as a PRECONDITION OF A D2 SCORE is cut. The suite KEEPS its regression-guard job; it is defunded only as a FINDING CHANNEL.
+  the_tla_path_is_kept_and_simplified: >-
+    OWNER DECISION, NOT A FINDING: the TLA+ / case-generation / adapter path STAYS. 'I do want to keep parts of the TLA+ diagram, I still think generating cases, using adapters is valid, I want to make it dead simple, the regressions should tried to be included in TLA+ and adapters in the most simple validated way.' NOTE THE TENSION HONESTLY RATHER THAN RESOLVING IT QUIETLY: the measurement says the current implementation does not beat hand-written tests -- ZERO unique kills against FOUR the other way, replicated on new subjects -- and the owner's direction is to keep it and shrink it. THOSE ARE COMPATIBLE ONLY IF IT GETS DRAMATICALLY SMALLER. SIMPLIFY AGGRESSIVELY; DO NOT DELETE. If the simplified version still yields zero unique kills, SAY SO -- that is a result, and the direction was to simplify it, not to prove it works.
+  no_new_gates_rule: >-
+    Seven epics of static checking caught ZERO bugs. NOTHING IN THIS EPIC REFUSES ANYTHING ABOUT ANYONE'S CODE. The consumption obligation in GOAL-consumption-obligatory is a CLOSE-OUT DISPOSITION REQUIREMENT on this project's own epics, not a gate on an adopter's code.
+  no_diagram_rung: >-
+    diagram, mermaid, UML, C4 and .svg appear in 0 sentences across 0 of 95 cards. DO NOT ADD A DIAGRAM RUNG. Eight epics, zero evidence base.
+  do_not_restore_d1_d4_d5: >-
+    Do NOT restore D1, D4 or D5 as scored dimensions without the both-wordings re-score SV-02 says is owed first. SV-07-DF-01: ANY CARD CHANGE, NOTE OR RUNG, COSTS A VERSION BUMP, which owes a re-score under both versions, and serve | wc -c does not distinguish carriers on that axis.
+  every_research_ticket_runs_its_own_rule: >-
+    SV-05 section 6, carried forward as charter: EVERY RESEARCH TICKET RUNS ITS OWN PROPOSED RULE AGAINST THE SEALED RECORD BEFORE IT SHIPS, and reports what the rule refuses. Four tickets corrected their predecessor last epic and FOUR OF FIVE CORRECTIONS WERE AVAILABLE TO THE PARTY CORRECTED FROM DATA IT ALREADY HAD. That is R1 pointed at prose, and it is not a gate.
+  skills_are_read_never_edited: >-
+    Skills are READ from this repository and NEVER edited. Anything that must change in SKILL_MANAGER_HOME is PROPOSED AS A DIFF AND ESCALATED. NEVER run skill-manager sync -- and do NOT sync mid-epic, which moves text under tickets already running. SV-05-DF-03: two homes exist and the last epic ran on the older one; THE AUTHORITATIVE HOME FOR THIS EPIC IS THE PER-WORKTREE HOME CREATED AT PROVISIONING, and 11 units are stale against their sources at the epic base. That staleness is DECLARED, not repaired.
+  measurement_rule: >-
+    FILE FINDINGS; FIX NOTHING DURING A MEASUREMENT. SEAL PREDICTIONS BEFORE MEASURING AND SAY WHEN, in a commit with a timestamp. IF EVERY PREDICTION PASSES, REPORT IT AS AN ALARM. Never edit a target to match a result. denominator_rule: if a count moves, SAY WHETHER THE NUMERATOR ROSE OR THE DENOMINATOR FELL, including suite counts. ASK EVERY BLIND AGENT WHAT IT REJECTED -- it has produced more than any check. MF-020: never add an axis, test, rung or case fitted to a known answer.
+  operational_rules_this_project_has_paid_for: >-
+    VERIFY YOUR BRANCH POINT -- wt new branches from the LOCAL ref and has put tickets 4, 14 and 21 commits behind, and the owner's handed SHA has been wrong once. Do NOT report git archive figures as tree properties (nine of ten 'archive failures' were that). WRITE SCRATCH OUTPUT TO A TICKET-SPECIFIC PATH -- two concurrent tickets corrupted a shared baseline.txt. Do NOT hand-roll a wait loop for a run you started. NEVER kill a process by name alone and check whether a process is yours first. THE TEST COMMAND IS 'uv run --with pytest --with pyyaml -m pytest tests -q' -- README.md:35 omits --with pyyaml and yields 12 PHANTOM REDS. READ THE VALIDATOR'S OUTPUT, NOT ITS EXIT CODE. Never invoke tla-spec-dev from PATH.
+  the_two_deliberate_reds: >-
+    TWO REDS ARE INHERITED AND DELIBERATE: RM-06-DF-01 (the same-tag control cannot tell treatment from architecture) and the pricer grep tripped by narrative documents. DO NOT REPAIR THEM SILENTLY. SV-02 and SV-01 independently found a THIRD undeclared red last epic; the epic base suite figure is recorded in the GOAL-four-results-stand baseline evidence and every ticket compares against THAT, not against a recollection.
+status:
+  workflow: cut-the-apparatus-epic
+  active_ticket: null
+  active_ticket_title: null
+  desired_module: TlaSpecDevCli
+  phase: planning
+epic:
+  id: cut-the-apparatus
+  branch: epic/cut-the-apparatus
+  default_branch: main
+  base_sha: 08d1d6a90ad2638cdfceee7cc2e150732daa3438
+  base_note: >-
+    Branched from main at 08d1d6a, the merge of epic/score-drives-validation. Card served 6,281 bytes / 9 rungs / sha256:2d7d4a0506d9b259. Apparatus 43,553 Python lines (scripts 27,652 + examples/validation 15,901, excluding __pycache__). Tests 32,162 lines.
+  schedule_revision: 1
+  review_mode: epic-owner-post-merge
+  notes: >-
+    NEVER merge to main and NEVER run skill-manager sync without explicit owner say-so. Never invoke tla-spec-dev from PATH. THE PLAN MUST LOAD WITH BOTH LOADERS. Never kill a process by name alone, and check whether a process is yours before touching it. THE EPIC'S AUTHORITATIVE SKILL MANAGER HOME IS THE PER-WORKTREE HOME; 11 change-managed units are stale against their sources and are DELIBERATELY NOT SYNCED for the duration.
+deferment_policy:
+  mode: batch
+  blocking: escalate
+  budget: 5
+  backlog: specs/desired_program_model/deferred_findings.yaml
+epic_goals:
+  - id: GOAL-apparatus-cut
+    kind: quality
+    statement: >-
+      The apparatus surrounding a 6,281-byte card gets materially smaller, every deletion is justified by a finding already on the record, and every cut is priced.
+    metric: >-
+      Python lines under scripts/ and examples/validation/, reported SEPARATELY per surface and never combined with the card. Command: find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1. The card is reported separately by score_tools.py serve | wc -c and serve --digest-only.
+    harness: >-
+      The line-count command above run on the integrated epic tip, plus a per-cut price table naming, for each deletion, the finding ID that justifies it and what the tree can no longer do. Decided by CA-08.
+    baseline:
+      value: >-
+        43,553 Python lines -- scripts/ 27,652 and examples/validation/ 15,901, excluding __pycache__. Card 6,281 bytes, 9 rungs, sha256:2d7d4a0506d9b259, version 5. Tests 32,162 lines. NOTE THE DENOMINATOR: issue #254 quotes 42,446 at d038afd on a glob it did not state; this figure is THIS command at THIS tree and the two are not interchangeable.
+      measured_at: 08d1d6a90ad2638cdfceee7cc2e150732daa3438
+      evidence: specs/results/scorecards/cut-the-apparatus/GOAL-apparatus-cut/baseline.md
+    target: >-
+      MULTI-CLAUSE, EACH DECIDED SEPARATELY. (a) scripts/ + examples/validation/ Python lines fall to 30,487 or below -- a cut of at least 30% from 43,553. (b) EVERY deletion in the epic names the finding ID that justifies it; a cut with no finding behind it is a failure of this clause even if the lines fell. (c) The card does not grow: serve | wc -c is 6,281 or less at the tip. (d) The surfaces are reported SEPARATELY and the tree is named in every figure.
+    evaluation_ticket: CA-08
+    evidence_root: specs/results/scorecards/cut-the-apparatus/GOAL-apparatus-cut
+  - id: GOAL-consumption-obligatory
+    kind: quality
+    statement: >-
+      A filed finding must receive an explicit disposition before an epic can close, and the register that counts consumption is actually kept -- or the programme is honestly renamed.
+    metric: >-
+      Harvest classes CONSUMED INTO PROGRAM VALIDATION over the true denominator; the presence of a disposition requirement demonstrated with a REFUSAL on a real input; and the presence of the channel and cost fields six and three epics have asked for.
+    harness: >-
+      The disposition mechanism run against THIS epic's own filed findings, including at least one demonstrated refusal on a real input (R1); plus a recount of the harvest register with the numerator/denominator movement named. Decided by CA-08.
+    baseline:
+      value: >-
+        1 OF 38 (2.6%) consumed into program validation -- class A1, SV-04. 4 of 38 named by a ledger row, and THREE OF THOSE FOUR ARE THIS PROJECT CATCHING ITSELF COMMITTING THE CLASS rather than consuming it. HARVEST-CL-03.md carries 38 classes and was UNTOUCHED last epic; SV-01-DF-05 filed three new classes into the ledger and not into the harvest, so 38 STOPPED GROWING ON 2026-08-11 AND UNDERSTATES THE BACKLOG. The ledger has NO channel field, six epics after it was first asked for. NO cost block exists, three epics after CL-04 proposed it.
+      measured_at: 08d1d6a90ad2638cdfceee7cc2e150732daa3438
+      evidence: specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md and specs/results/scorecards/SELF-IMPROVEMENT.md
+    target: >-
+      MULTI-CLAUSE, EACH DECIDED SEPARATELY. NO TARGET ON THE RATE ITSELF -- a threshold on a consumption number before the mechanism exists would be MF-020, and the mechanism is what is being built. (a) A disposition requirement exists, is exercised on this epic's own findings, and has a DEMONSTRATED REFUSAL on a real input rather than a fixture. (b) The register is repaired: the true denominator is stated, and the numerator/denominator movement is named per denominator_rule. (c) The channel field and the cost block exist and are populated by this epic's own tickets. (d) If any clause cannot be met, THE HONEST ALTERNATIVE IS ON THE TABLE AND MUST BE STATED: describe this as a measurement programme rather than a self-improvement loop. Both are respectable; silence is not.
+    evaluation_ticket: CA-08
+    evidence_root: specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory
+  - id: GOAL-blind-dispatch
+    kind: quality
+    statement: >-
+      A judged round can run without the operator's own conclusions in the judge's context -- or the fact that it cannot is stated as a finding about the whole programme.
+    metric: >-
+      What a dispatched agent ACTUALLY receives before it reads anything, MEASURED rather than assumed; and whether a fresh agent under the new dispatch path reports receiving any of the operator's conclusions.
+    harness: >-
+      A measured inventory of the pre-read context (auto-memory, environment block, CLAUDE.md, session hooks, anything else), plus fresh agents dispatched through the candidate path and ASKED WHAT THEY RECEIVED, unprompted-disclosure style. Decided by CA-08.
+    baseline:
+      value: >-
+        NO ROUND THIS PROGRAMME HAS RUN WAS BLIND IN THE SENSE ITS OWN DISPATCHES ASSERT. 4 of 4 blind agents in SV-05's 2x2 disclosed UNPROMPTED that the operator's auto-memory and the environment block were in their context before they read anything; one quoted MEMORY.md verbatim -- 'up to 2 points per judge move on byte-identical artifacts' -- and named four prior epics. The environment block additionally hands every subagent this repository's path, branch, clean status and THE SUBJECT LINES OF ITS FIVE MOST RECENT COMMITS, several of which state epic outcomes in words. IT ARRIVES WITH NO TOOL CALL, so no forbidden-reading list in any dispatch can reach it. Applies retroactively to CL-04's adopter probe and census, SV-01's four judges, SV-04's four judges, SV-06's survey and SV-05's own four agents.
+      measured_at: 08d1d6a90ad2638cdfceee7cc2e150732daa3438
+      evidence: specs/results/scorecards/score-drives-validation/SV-05/RESULT.md -- SV-05-DF-02
+    target: >-
+      MULTI-CLAUSE, EACH DECIDED SEPARATELY. NO NUMERIC TARGET -- the instrument does not exist yet. (a) What a dispatched agent receives is MEASURED and written down, not assumed. (b) A dispatch path exists that demonstrably carries none of the operator's conclusions, PROVEN by fresh agents asked what they received rather than by inspecting configuration. (c) The cost is stated: if blindness cannot be achieved with this harness, THAT IS A FINDING ABOUT THE WHOLE PROGRAMME and it is stated rather than worked around. (d) DO NOT SOLVE THIS BY EDITING MEMORY SILENTLY AND CALLING THE PROBLEM GONE -- the record must say what every past round carried.
+    evaluation_ticket: CA-08
+    evidence_root: specs/results/scorecards/cut-the-apparatus/GOAL-blind-dispatch
+  - id: GOAL-four-results-stand
+    kind: quality
+    statement: >-
+      The four results that survived a control, a replication or a deliberate attempt to refute them are still standing after the cuts -- or the epic says exactly which one it broke.
+    metric: >-
+      For each of the four results: does it still reproduce from the sealed record, and does the instrument that produced it still run at the epic tip? Plus the suite baseline, with the two deliberate reds intact and no new red introduced silently.
+    harness: >-
+      Per-result reproduction check at the integrated tip, plus uv run --with pytest --with pyyaml -m pytest tests -q compared against the epic-base figure recorded in this baseline. Decided by CA-08.
+    baseline:
+      value: >-
+        FOUR RESULTS STANDING AT THE EPIC BASE. (1) Asking for an architecture changes the architecture -- D3 1 -> 4 on the prompt alone, replicated, confound killed directly by arm C at 1/1 with a LONGER prompt carrying no architectural vocabulary. (2) D3 separates architectures on more than one example -- eval_toolchain, effectful [0,1] vs ports-and-adapters [2,4], disjoint, both judge tiers both sides. (3) D3's v5 caveat discriminates -- SV-01, D3 held 4,4 at v4 and v5 on an artifact LACKING the property against CL-03's 4,4 -> 3,3 on one that has it, prediction sealed at a timestamped commit before any judge ran. (4) A score can produce a test and the re-score sees it -- SV-04, control 3,3 vs treatment 4,4, same bytes plus one file, D2 flat at 2 across all four. Suite at the epic base is recorded in this goal's evidence file, with the two deliberate reds named.
+      measured_at: 08d1d6a90ad2638cdfceee7cc2e150732daa3438
+      evidence: specs/results/scorecards/cut-the-apparatus/GOAL-four-results-stand/baseline.md
+    target: >-
+      MULTI-CLAUSE, EACH DECIDED SEPARATELY. (a) Each of the four results either still reproduces from the sealed record with its instrument still running at the tip, or the epic NAMES which one it broke, what cut broke it, and whether that trade was worth it. (b) The suite's two deliberate reds are intact and unrepaired; any additional red is DECLARED with its cause. (c) The instruments RM-02 called the substrate's best export -- scope, seal, contested, the blinding mechanism, R-H1/R-H2/R-H4/R3, the version/served double seal -- still run. A SILENTLY BROKEN RESULT IS THE WORST OUTCOME AVAILABLE AND FAILS THIS GOAL EVEN IF THE LINES FELL.
+    evaluation_ticket: CA-08
+    evidence_root: specs/results/scorecards/cut-the-apparatus/GOAL-four-results-stand
+tickets:
+  - id: CA-01
+    title: 'Blindness: measure what a dispatched agent actually receives, then build and prove a memory-free dispatch'
+    status: done
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/255
+    schedule_revision: 1
+    depends_on: []
+    blocks: [CA-05, CA-08]
+    wave: 1
+    promotion_order: 10
+    promotion_predecessor: null
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [examples/validation/instruments/fixtures/blinding/, references/blind_dispatch.md, specs/results/scorecards/cut-the-apparatus/GOAL-blind-dispatch/]
+    objective: >-
+      GOAL 03, AND IT LANDS BEFORE ANY JUDGED ROUND IN THIS EPIC. The owner's words: 'make sure the memory doesn't leak in, because that's been a killer.' SV-05 measured 4 of 4 blind agents disclosing UNPROMPTED that the operator's auto-memory and the environment block were in their context before they read anything; one quoted MEMORY.md verbatim, naming the exact prior on the exact question a D3 judge is asked. IT ARRIVES WITH NO TOOL CALL, so no forbidden-reading list in any dispatch can reach it, and NOTHING A DISPATCH SAYS REMOVES A BLOCK THE HARNESS INJECTS FIRST. THREE THINGS, IN ORDER. FIRST, ESTABLISH WHAT A DISPATCHED AGENT ACTUALLY RECEIVES -- auto-memory, environment block, CLAUDE.md, session hooks, skill listings, anything else -- BY MEASURING IT, NOT BY ASSUMING IT: dispatch agents that are asked only to report their own pre-read context verbatim, and record what comes back. SECOND, BUILD A DISPATCH PATH THAT DEMONSTRABLY CARRIES NONE OF THE OPERATOR'S CONCLUSIONS, and PROVE IT THE SAME WAY -- fresh agents through the new path, asked what they received, with their answers recorded verbatim. Inspecting configuration is not proof; R1 requires a demonstrated failing input on a real subject, so SHOW THE PATH REFUSING TO LEAK ON A CASE THAT LEAKED BEFORE. THIRD, SAY WHAT IT COSTS. IF BLINDNESS CANNOT BE ACHIEVED WITH THIS HARNESS, THAT IS A FINDING ABOUT THE WHOLE PROGRAMME and it must be stated rather than worked around, together with a contamination note that can be printed beside every number the way SV-01-DF-01 did. DO NOT SOLVE THIS BY EDITING THE OPERATOR'S MEMORY SILENTLY AND CALLING THE PROBLEM GONE -- the record must say what every past round carried, and any change to a memory file or a skill is PROPOSED AS A DIFF AND ESCALATED, never applied. ASK EVERY AGENT YOU DISPATCH WHAT IT REJECTED.
+    desired_actions: []
+    implementation_scope: [examples/validation/instruments/, references/, specs/results/scorecards/cut-the-apparatus/]
+    goals:
+      - goal: GOAL-blind-dispatch
+        contribution: direct
+        expected_effect: >-
+          Moves the baseline from '4 of 4 leaked, nobody measured it' to a measured inventory plus either a proven memory-free path or a stated impossibility. Either outcome decides clauses (a) and (c).
+        local_signal: fresh agents through the candidate path, asked what they received, answers recorded verbatim
+      - goal: GOAL-four-results-stand
+        contribution: guard
+        expected_effect: none expected -- this ticket ships no cut
+        local_signal: uv run --with pytest --with pyyaml -m pytest tests -q
+      - goal: GOAL-apparatus-cut
+        contribution: guard
+        expected_effect: >-
+          none expected, and NOTE THE HAZARD -- this is the one ticket in the epic that could ADD apparatus. Any mechanism it ships is counted against GOAL-apparatus-cut and must be priced like a cut.
+        local_signal: find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1
+      - goal: GOAL-consumption-obligatory
+        contribution: enabling
+        expected_effect: none -- CA-05's disposition work needs a dispatch path it can trust
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml -m pytest tests -q]
+      assertions: ['What a dispatched agent receives is MEASURED and recorded verbatim, not assumed.', 'A candidate memory-free dispatch path exists AND is proven by fresh agents asked what they received -- or its impossibility is stated as a finding.', 'A demonstrated failing input on a real subject (R1), not a fixture.', 'The cost is stated plainly, including if blindness is unachievable.', 'No memory file and no skill is edited; any such change is a proposed diff and an escalation.', 'Every dispatched agent is asked what it REJECTED and the answers are recorded.', 'Any mechanism shipped is priced in lines against GOAL-apparatus-cut.']
+    model_delta_expectation: none expected
+  - id: CA-02
+    title: 'Cut the gap-mutant / removal-pricing machinery, which was measured to be able to return only one answer'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/256
+    schedule_revision: 1
+    depends_on: []
+    blocks: [CA-03, CA-04, CA-08]
+    wave: 1
+    promotion_order: 20
+    promotion_predecessor: CA-01
+    conflict_keys:
+      production: [examples/validation/gap_mutants/, examples/validation/removal_census/, scripts/complexity_ledger.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [tests/test_price_removal.py, tests/test_removal_census.py, tests/test_complexity_ledger.py, specs/results/scorecards/cut-the-apparatus/GOAL-apparatus-cut/]
+    objective: >-
+      THE FIRST CUT, AND THE ONE WITH THE CLEANEST FINDING BEHIND IT. RM-05-DF-01 and CL-02: the normal shape of a removal here ALWAYS returns ENTAILED-SURVIVES, because that verdict follows from git show alone. RM-03's 'first PRICED removal' was WITHDRAWN when its own zero-gap control returned the same verdict. Re-priced history over kill sets returned 'priced rows: [], 0 of 10'. RM-02 adds that the catalogues are ab_quota_ledger fixtures with NO VERSION AN ADOPTER RECEIVES, and that this argument SURVIVES A ZERO AND SURVIVES A DEFECTIVE CLASSIFIER PRODUCING ONE, BECAUSE IT IS NOT A PRICING ARGUMENT. A gap mutant can price a removal only if every detector that killed it is one the removal deletes -- 0 OF 9 over the sealed table. THE INSTRUMENT COULD ONLY EVER RETURN ZERO. Cut it: price_removal.py, altered_score_probe.py, removal_census.py, their catalogues, and whatever in complexity_ledger.py exists only to feed them. PRICE THE CUT: lines removed per surface, what the tree can no longer do, and which sealed results depended on it -- and CHECK THAT DEPENDENCY EXPLICITLY, because HISTORY-toolchain_removal.md and the sealed cards must still read. ONE OF THE TWO DELIBERATE REDS IS THE PRICER GREP TRIPPED BY NARRATIVE DOCUMENTS: say what happens to that red when the pricer goes, and DO NOT quietly claim a red repaired that was actually deleted -- denominator_rule applies to suite counts. Establish the epic's PRICE TABLE FORMAT in this ticket as a plain markdown file with a fixed row shape -- NO NEW CODE; the epic is about cutting apparatus, and a tool to measure cutting apparatus is apparatus.
+    desired_actions: []
+    implementation_scope: [examples/validation/gap_mutants/, examples/validation/removal_census/, scripts/, tests/, specs/results/scorecards/cut-the-apparatus/]
+    goals:
+      - goal: GOAL-apparatus-cut
+        contribution: direct
+        expected_effect: >-
+          -1,444 lines or more from examples/validation/ (price_removal.py 838, altered_score_probe.py 177, removal_census.py 429) plus whatever in scripts/ exists only to feed them, and the epic's price-table format established.
+        local_signal: find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1
+      - goal: GOAL-four-results-stand
+        contribution: guard
+        expected_effect: >-
+          none expected -- none of the four results depends on the pricer. VERIFY THAT RATHER THAN ASSERTING IT, and say what happens to the deliberate pricer-grep red.
+        local_signal: uv run --with pytest --with pyyaml -m pytest tests -q
+      - goal: GOAL-consumption-obligatory
+        contribution: enabling
+        expected_effect: none -- this is the worked example of a finding being consumed into a deletion
+        local_signal: N/A
+      - goal: GOAL-blind-dispatch
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml -m pytest tests -q]
+      assertions: ['Every deletion names the finding ID that justifies it -- RM-05-DF-01, CL-02, RM-02, RM-03.', 'Lines removed reported PER SURFACE and never combined with the card.', 'The sealed record still reads: HISTORY-toolchain_removal.md and the affected cards open and render.', 'The fate of the deliberate pricer-grep red is stated explicitly, with numerator/denominator movement named.', 'The price-table format is a plain markdown file with a fixed row shape and NO new code.', 'The card is unchanged: serve | wc -c is still 6,281.']
+    model_delta_expectation: none expected
+  - id: CA-03
+    title: 'Stop the complexity descriptor being a precondition of a D2 score, and fix the five checks that passed a live defect'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/257
+    schedule_revision: 1
+    depends_on: [CA-02]
+    blocks: [CA-08]
+    wave: 2
+    promotion_order: 30
+    promotion_predecessor: CA-02
+    conflict_keys:
+      production: [examples/validation/scorecards/score_tools.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [tests/test_score_tools.py]
+    objective: >-
+      TWO FINDINGS, ONE OWNER, BECAUSE BOTH LIVE IN score_tools.py. FIRST, RD-03-DF-08: on THE CLEAREST SIMPLIFICATION THIS PROJECT EVER MEASURED, 19 OF 21 DESCRIPTOR AXES WERE BYTE-IDENTICAL AND ONE MOVED THE WRONG WAY, while EIGHT JUDGES FOUND THE SIMPLIFICATION INDEPENDENTLY. The descriptor cannot see the one thing it was built to see. READ THE CONSTRAINT EXACTLY: analyze_complexity.py and code_complexity.py SERVE THE SPEC WORKFLOW AND STAY -- RM-02 was explicit about this and cutting them fails the ticket. What is cut is their ROLE AS A PRECONDITION OF A D2 SCORE. Find every place the descriptor's output gates, blocks, decorates or is required by a D2 scoring path and remove that coupling; the scripts keep running for the workflow that actually uses them. SECOND, SV-04-DF-05: check, seal, audit, contested AND derive ALL PASSED ON UNREGISTERED CARDS -- a live defect in the round's own output, and the only thing that caught it was a test behind a 21-minute suite. FIVE CHECKS PASSED A LIVE DEFECT. That is not an argument for a sixth check; it is an argument that these five are not doing the job they claim. Decide, on the record, whether each of the five EARNS ITS KEEP: seal, contested and the version/served double seal are on RM-02's do-not-cut list and CL-01's second seal caught a real class one ticket later, so the likely shape is REPAIR the registration hole and CUT what is left that has never caught anything. NO NEW GATES -- seven epics, zero bugs. PRICE BOTH CUTS. And run your own rule against the sealed record before shipping it, per the charter.
+    desired_actions: []
+    implementation_scope: [examples/validation/scorecards/, tests/, specs/results/scorecards/cut-the-apparatus/]
+    goals:
+      - goal: GOAL-apparatus-cut
+        contribution: direct
+        expected_effect: >-
+          A reduction in score_tools.py (3,571 lines at base) from removing descriptor coupling and checks that have never caught anything. NO TARGET ON THE NUMBER -- the constraint is that every removal names its finding.
+        local_signal: find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1
+      - goal: GOAL-four-results-stand
+        contribution: guard
+        expected_effect: >-
+          NONE, AND THIS IS THE HIGHEST-RISK TICKET FOR THIS GOAL. score_tools.py produced all four results. seal, contested, scope and the double seal MUST still run and the sealed cards MUST still open. Verify each of the four results reproduces before opening the PR.
+        local_signal: python3 examples/validation/scorecards/score_tools.py audit && python3 examples/validation/scorecards/score_tools.py scope
+      - goal: GOAL-consumption-obligatory
+        contribution: direct
+        expected_effect: >-
+          Two more filed findings consumed into the program -- RD-03-DF-08 and SV-04-DF-05 -- which is the mechanism GOAL-consumption-obligatory exists to make routine.
+        local_signal: the finding IDs named in the price table
+      - goal: GOAL-blind-dispatch
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml -m pytest tests -q]
+      assertions: ['analyze_complexity.py and code_complexity.py STILL EXIST and still serve the spec workflow.', 'The descriptor is no longer a precondition of a D2 score, and the removed coupling is enumerated.', 'The unregistered-card hole is closed and the fix has a demonstrated failing input on a real subject.', 'Each of the five checks is decided on the record: kept with the case that it caught something, or cut with the finding that it did not.', 'NO NEW GATE is added.', 'All four standing results verified to still reproduce, each named individually.', 'The card is unchanged: serve | wc -c is still 6,281.']
+    model_delta_expectation: none expected
+  - id: CA-04
+    title: 'Cut kill_test.py and the inert shipped bytes: the largest cut available, and a model delta is a price not a veto'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/258
+    schedule_revision: 1
+    depends_on: [CA-02]
+    blocks: [CA-06, CA-08]
+    wave: 2
+    promotion_order: 40
+    promotion_predecessor: CA-03
+    conflict_keys:
+      production: [scripts/kill_test.py, scripts/run_kill_test.py, scripts/candidate_note_bar.py, scripts/fitness_functions.py]
+      tla: [specs/program_model/kill_mutants.toml, specs/current/kill_mutants.toml, specs/desired_program_model/kill_mutants.toml]
+      adapters: []
+      test_graph: []
+      workflow: [tests/test_kill_test.py, tests/test_candidate_note_bar.py, tests/test_fitness_functions.py]
+    objective: >-
+      THE LARGEST SINGLE CUT AVAILABLE, AND RM-03 ALREADY IDENTIFIED IT. kill_test.py is 1,149 lines covering both dead levers; RM-03 DECLINED IT BECAUSE IT IS A MODEL DELTA, and THAT REFUSAL WAS RIGHT FOR THAT TICKET. IT IS NOW IN SCOPE, AND A MODEL DELTA IS A COST TO PRICE RATHER THAN A REASON TO STOP -- so price it properly: the TLA+ actions, the adapters, the kill_mutants.toml entries and the spec-unit surface that go with it, and what the model can no longer express. THE FINDING BEHIND IT: model-derived cases do not catch bugs hand-written tests miss -- ZERO unique kills for the generated corpus across six trees, FOUR THE OTHER WAY, replicated on new subjects. Also cut scripts/candidate_note_bar.py: 281 lines, NOTHING IMPORTS IT, and the shortest test in its own file asserts that -- SV-06 found it and it is the first shipped-bytes finding in three epics. Examine scripts/fitness_functions.py against the same rule and cut the dead levers only. THIS TICKET IS A CUT, NOT A REDESIGN: the TLA+ / case-generation / adapter PATH is CA-06's and the owner keeps it. Do not touch generate_cases_from_tlc_dump.py or run_generated_case_adapters.py here -- CA-06 owns them and will need a tree that still builds. If removing kill_test.py breaks a spec-unit adapter or a Test Graph node, THAT IS THE PRICE: record it, do not paper over it, and DECLARE any new red rather than repairing it silently.
+    desired_actions: []
+    implementation_scope: [scripts/, specs/program_model/, specs/current/, specs/desired_program_model/, tests/, specs/results/scorecards/cut-the-apparatus/]
+    goals:
+      - goal: GOAL-apparatus-cut
+        contribution: direct
+        expected_effect: >-
+          -1,430 lines or more from scripts/ (kill_test.py 1,149 + candidate_note_bar.py 281) plus run_kill_test.py and any dead fitness levers, with the model delta priced rather than avoided.
+        local_signal: find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1
+      - goal: GOAL-four-results-stand
+        contribution: guard
+        expected_effect: >-
+          none expected -- no standing result rests on the mutation kill test. VERIFY IT, and state explicitly whether the 'zero unique kills' disproof is still reproducible from the sealed record after the instrument that produced it is gone.
+        local_signal: uv run --with pytest --with pyyaml -m pytest tests -q
+      - goal: GOAL-consumption-obligatory
+        contribution: direct
+        expected_effect: >-
+          Consumes RM-03's identified-but-declined cut and SV-06-DF-04's inert-bytes finding.
+        local_signal: the finding IDs named in the price table
+      - goal: GOAL-blind-dispatch
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml -m pytest tests -q, python3 -m py_compile scripts/analyze_complexity.py scripts/tla_spec_dev.py]
+      assertions: ['The model delta is PRICED: the TLA+ actions, adapters, kill_mutants entries and spec-unit surface removed, and what the model can no longer express.', 'candidate_note_bar.py is gone and nothing referenced it.', 'Every deletion names its finding ID.', 'Any new suite red is DECLARED with its cause; the two deliberate reds are not repaired.', 'The tree still builds for CA-06: generate_cases_from_tlc_dump.py and run_generated_case_adapters.py untouched and still importable.', 'The card is unchanged: serve | wc -c is still 6,281.']
+    model_delta_expectation: >-
+      EXPECTED AND DELIBERATE. Removing the mutation kill test removes model surface. This is the ticket's price, not its failure; record the delta in specs/current and the desired model and say what the model can no longer express.
+  - id: CA-05
+    title: 'Make consumption obligatory: a disposition requirement, a repaired register, and the channel and cost fields six and three epics have asked for'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/259
+    schedule_revision: 1
+    depends_on: [CA-01]
+    blocks: [CA-07, CA-08]
+    wave: 2
+    promotion_order: 50
+    promotion_predecessor: CA-04
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/results/scorecards/SELF-IMPROVEMENT.md, specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md, references/consumption.md, specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/]
+    objective: >-
+      GOAL 02, IN THE OWNER'S WORDS: 'Detection, filing, scoring and re-scoring all work. Consumption is 1 of 38 because nothing requires it. Either a filed finding must receive a disposition before an epic can close, or the honest description is a measurement programme rather than a self-improvement loop. Both are respectable; the current state is neither.' THE OWNER CHOSE THE FIRST, WITH THE REGISTER REPAIRED. FOUR PARTS. (1) A DISPOSITION REQUIREMENT: every filed finding gets an explicit disposition -- consumed, deferred with a named successor, or wontfix with a reason -- before an epic can close. THIS IS A CLOSE-OUT REQUIREMENT ON THIS PROJECT'S OWN EPICS AND NOT A GATE ON ANYONE'S CODE; seven epics of static checking caught zero bugs and this epic adds no gate. (2) R1 APPLIED TO IT: ship it with a DEMONSTRATED REFUSAL on a real input -- run it against THIS epic's own filed findings and show it refusing a real close-out, not a fixture. This project has shipped three instruments later found blind. (3) REPAIR THE REGISTER: HARVEST-CL-03.md carries 38 classes and was untouched last epic, and SV-01-DF-05 filed three new classes into the ledger and not into the harvest, SO 38 STOPPED GROWING ON 2026-08-11 AND UNDERSTATES THE BACKLOG. State the TRUE denominator and, per denominator_rule, SAY WHETHER THE NUMERATOR ROSE OR THE DENOMINATOR FELL. Read the 1-of-38 honestly: THREE OF THE FOUR NEWLY-NAMED CLASSES ARE THIS PROJECT CATCHING ITSELF COMMITTING THE CLASS, not consuming it. (4) THE TWO MISSING FIELDS: a channel field on the ledger, asked for six epics ago and still hand-classified from free text every single time; and CL-04's cost block with basis and value at ticket close-out, proposed three epics ago and never built -- SV-05 measured 353,816 tokens at 0.57 findings per 100k, comparable to SV-01's 0.98 on the same basis, AND THAT IS THE FIRST TIME TWO ROUNDS IN THIS PROGRAMME WERE COMPARABLE AT ALL. Populate both from this epic's own tickets. RUN YOUR OWN RULE AGAINST THE SEALED RECORD BEFORE SHIPPING IT, per the charter -- SV-07 refuted its predecessor's recommendation in one command by trying to ship it. AND KEEP THE HONEST ALTERNATIVE ON THE TABLE: if the requirement cannot be made to work, saying 'this is a measurement programme, not a self-improvement loop' IS AN ACCEPTABLE AND VALUABLE OUTCOME.
+    desired_actions: []
+    implementation_scope: [references/, specs/results/scorecards/, specs/results/scorecards/cut-the-apparatus/]
+    goals:
+      - goal: GOAL-consumption-obligatory
+        contribution: direct
+        expected_effect: >-
+          Clauses (a), (b) and (c) all move: a disposition requirement with a demonstrated refusal, a repaired register with the true denominator stated, and channel and cost populated by this epic's own tickets.
+        local_signal: the disposition requirement run against this epic's own filed findings, with the refusal shown
+      - goal: GOAL-apparatus-cut
+        contribution: guard
+        expected_effect: >-
+          none expected, AND THE HAZARD IS REAL -- this ticket could add apparatus in the name of measuring apparatus. Prefer a documented requirement and a maintained markdown register over new code, and PRICE anything it ships.
+        local_signal: find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1
+      - goal: GOAL-four-results-stand
+        contribution: guard
+        expected_effect: none expected -- the sealed record is appended to, never edited
+        local_signal: uv run --with pytest --with pyyaml -m pytest tests -q
+      - goal: GOAL-blind-dispatch
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml -m pytest tests -q]
+      assertions: ['A disposition requirement exists and is exercised on THIS epic''s own filed findings.', 'A DEMONSTRATED REFUSAL on a real input, not a fixture (R1).', 'The harvest register is repaired and the TRUE denominator is stated with numerator/denominator movement named.', 'A channel field exists on the ledger and is populated by this epic''s tickets.', 'A cost block with basis and value exists and is populated by this epic''s tickets.', 'The proposed rule is run against the sealed record before shipping and what it refuses is reported.', 'NO GATE on anyone''s code is added.', 'Anything shipped is priced in lines against GOAL-apparatus-cut.']
+    model_delta_expectation: none expected
+  - id: CA-06
+    title: 'Make the TLA+ / case-generation / adapter path dead simple -- and report what the simplified version costs and catches'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/260
+    schedule_revision: 1
+    depends_on: [CA-04]
+    blocks: [CA-07, CA-08]
+    wave: 3
+    promotion_order: 60
+    promotion_predecessor: CA-05
+    conflict_keys:
+      production: [scripts/generate_cases_from_tlc_dump.py, scripts/run_generated_case_adapters.py, scripts/case_modules.py, scripts/infer_action_params.py, scripts/corpus_diagnostics.py]
+      tla: [specs/program_model/case_adapters.toml]
+      adapters: [specs/program_model/adapter_case_runtime.py, specs/current/adapter_case_runtime.py, specs/desired_program_model/adapter_case_runtime.py]
+      test_graph: []
+      workflow: [tests/test_generate_cases_from_tlc_dump.py, tests/test_case_modules.py, tests/test_case_adapter_runtime.py, tests/test_port_case_generation.py]
+    objective: >-
+      THE OWNER'S DIRECTION, AND THE TENSION IS TO BE NOTED HONESTLY RATHER THAN QUIETLY RESOLVED EITHER WAY. The owner keeps this path: 'I do want to keep parts of the TLA+ diagram, I still think generating cases, using adapters is valid, I want to make it dead simple, the regressions should tried to be included in TLA+ and adapters in the most simple validated way.' TAKE THAT AS A DECISION. And state the tension plainly in your PR: THE MEASUREMENT SAYS THE CURRENT IMPLEMENTATION DOES NOT BEAT HAND-WRITTEN TESTS -- 0 unique kills against 4 the other way, replicated on new subjects -- while the direction is to keep it and shrink it. THOSE ARE COMPATIBLE ONLY IF IT GETS DRAMATICALLY SMALLER. generate_cases_from_tlc_dump.py (3,471) plus run_generated_case_adapters.py (2,455) is ~5,900 LINES PRODUCING A CORPUS WITH ZERO UNIQUE KILLS. THE TARGET IS NOT DELETION -- it is a version small enough that its yield is worth its size and simple enough that AN ADOPTER COULD RUN IT. SIMPLIFY AGGRESSIVELY; DO NOT DELETE. Keep the shape the owner named: a TLA+ action or an adapter conformance case is how a regression gets expressed, and SV-04 ALREADY DEMONSTRATED THE ADAPTER HALF -- a 14-case conformance suite with durability asserted OUT OF BAND moved D3 from 3 to 4 against a control. REPORT WHAT THE SIMPLIFIED VERSION COSTS AND WHAT IT CATCHES, on a real subject. IF THE SIMPLIFIED VERSION STILL YIELDS ZERO UNIQUE KILLS, SAY SO -- THAT IS A RESULT, and the owner's direction was to simplify it, not to prove it works. MF-020 applies with force here: do not fit a case, an axis or a corpus to a bug you already know about.
+    desired_actions: []
+    implementation_scope: [scripts/, specs/program_model/, specs/current/, specs/desired_program_model/, tests/, specs/results/scorecards/cut-the-apparatus/]
+    goals:
+      - goal: GOAL-apparatus-cut
+        contribution: direct
+        expected_effect: >-
+          The largest single reduction in the epic. ~5,900 lines across two scripts, plus case_modules.py, infer_action_params.py and corpus_diagnostics.py, reduced to a version an adopter could run. NO TARGET ON THE FINAL NUMBER -- the constraint is that it stays working and gets dramatically smaller.
+        local_signal: find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1
+      - goal: GOAL-four-results-stand
+        contribution: guard
+        expected_effect: >-
+          none expected. SV-04's adapter conformance result is the one closest to this surface -- verify it still reproduces, by name, before opening the PR.
+        local_signal: uv run --with pytest --with pyyaml -m pytest tests -q
+      - goal: GOAL-consumption-obligatory
+        contribution: enabling
+        expected_effect: >-
+          none directly -- but this ticket produces the SIMPLE VALIDATED WAY that CA-07 uses to land a regression as a TLA+ action or an adapter case.
+        local_signal: N/A
+      - goal: GOAL-blind-dispatch
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml -m pytest tests -q, python3 -m py_compile scripts/generate_cases_from_tlc_dump.py scripts/run_generated_case_adapters.py]
+      assertions: ['The path is SIMPLIFIED, NOT DELETED: cases still generate and adapters still run on a real subject.', 'The tension is stated plainly in the PR: 0 unique kills measured, owner direction to keep and shrink.', 'What the simplified version COSTS and what it CATCHES is reported on a real subject.', 'A zero yield is REPORTED AS A RESULT rather than worked around.', 'A regression can be expressed as a TLA+ action or an adapter conformance case, demonstrated once.', 'MF-020 respected: nothing fitted to a known answer.', 'The card is unchanged: serve | wc -c is still 6,281.']
+    model_delta_expectation: >-
+      POSSIBLE AND ACCEPTABLE. Simplification may reduce generated case surface. Record the delta in specs/current and the desired model and say what changed.
+  - id: CA-07
+    title: 'RESERVED AT PLANNING: consume one finding this epic produced into the program, as a TLA+ action or an adapter conformance case'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/261
+    schedule_revision: 1
+    depends_on: [CA-05, CA-06]
+    blocks: [CA-08]
+    wave: 4
+    promotion_order: 70
+    promotion_predecessor: CA-06
+    conflict_keys:
+      production: []
+      tla: [specs/desired_program_model/TlaSpecDevCli.tla]
+      adapters: [specs/desired_program_model/case_adapters.toml]
+      test_graph: []
+      workflow: [specs/results/scorecards/cut-the-apparatus/GOAL-consumption-obligatory/CA-07/]
+    objective: >-
+      THIS TICKET IS DELIBERATELY RESERVED AT PLANNING TIME AND ITS SUBJECT IS SUPPLIED BY ITS PREDECESSORS. That is the point: the epic is testing whether consumption can be made routine, and a consumption ticket whose defect was chosen before the epic ran would be answering an easier question. AT WAVE-3 TRIAGE THE EPIC OWNER NAMES THE SUBJECT from what CA-01 through CA-06 actually filed, and records it in this entry with a schedule_revision bump. THE RULE FOR CHOOSING: use a finding THIS EPIC FILED or one already on the harvest register -- NEVER A FRESH DEFECT INVENTED FOR THE TICKET, because inventing one dodges the thing being tested. THE SHAPE, from the owner's section 4: 'a regression, once found, should be expressible as a TLA+ action or an adapter conformance case -- the most simple validated way'. Use CA-06's simplified path to do it, which is also the first real test of whether that path is usable. SV-04 is the worked precedent and its honest caveat carries: a 14-case conformance suite with durability asserted OUT OF BAND moved D3 3 -> 4 against a control, AND THE SCORE MOVEMENT IS THE OBSERVATION, NOT THE OBJECTIVE. Tuning validation to raise a number is MF-020 and fails this ticket. IF NO SUITABLE FINDING EXISTS AT TRIAGE, THIS TICKET IS RETIRED THROUGH THE CANONICAL RECEIPT FLOW WITH ITS GOAL DISPOSITION RECORDED -- and that retirement is itself a result about GOAL-consumption-obligatory, not an embarrassment to be avoided.
+    desired_actions: []
+    implementation_scope: [specs/desired_program_model/, specs/current/, tests/, specs/results/scorecards/cut-the-apparatus/]
+    goals:
+      - goal: GOAL-consumption-obligatory
+        contribution: direct
+        expected_effect: >-
+          One more filed finding consumed into program validation, taking the epic's own consumption count above the 1-of-38 baseline -- with the true denominator stated and the numerator/denominator movement named.
+        local_signal: the new TLA+ action or adapter conformance case failing on the defect and passing after
+      - goal: GOAL-four-results-stand
+        contribution: guard
+        expected_effect: none expected
+        local_signal: uv run --with pytest --with pyyaml -m pytest tests -q
+      - goal: GOAL-apparatus-cut
+        contribution: guard
+        expected_effect: >-
+          A SMALL INCREASE IS EXPECTED AND ACCEPTED -- one action or one conformance case. Price it; it is counted against the goal like everything else.
+        local_signal: find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1
+      - goal: GOAL-blind-dispatch
+        contribution: guard
+        expected_effect: none expected
+        local_signal: N/A
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml -m pytest tests -q]
+      assertions: ['The subject is a finding THIS EPIC FILED or one already on the harvest register -- never a fresh defect invented for the ticket.', 'The regression is expressed as a TLA+ action or an adapter conformance case via CA-06''s simplified path.', 'The validation is justified BY THE DEFECT IT CATCHES; any score movement is reported as the observation and not the objective.', 'MF-020 respected.', 'Its addition is priced against GOAL-apparatus-cut.']
+    model_delta_expectation: >-
+      EXPECTED. This ticket's whole purpose is a model or adapter delta that did not exist before.
+  - id: CA-08
+    title: 'EVALUATION: did the ratio change, is consumption obligatory, was the round blind, and do the four results still stand?'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/262
+    schedule_revision: 1
+    depends_on: [CA-01, CA-02, CA-03, CA-04, CA-05, CA-06, CA-07]
+    blocks: []
+    wave: 5
+    promotion_order: 80
+    promotion_predecessor: CA-07
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/results/scorecards/cut-the-apparatus/, NEXT-EPIC.md, CUT-THE-APPARATUS-EPIC.md]
+    objective: >-
+      THE EPIC'S PRODUCT AND A MEASUREMENT. DECIDE ALL FOUR GOALS, CLAUSE BY CLAUSE, AND SAY PLAINLY WHAT IS NOT TRUE. GOAL-apparatus-cut: report scripts/ and examples/validation/ SEPARATELY against 27,652 and 15,901, the card separately at 6,281, and NEVER AS ONE NUMBER -- and check clause (b) hardest, because a cut with no finding behind it fails the goal EVEN IF THE LINES FELL. Audit the price table against the actual diff: RM-03-DF-03 says a card removal cannot delete prose or code, so verify the epic did not come out net-additive by construction the way three previous 'simplifications' did. GOAL-consumption-obligatory: exercise the disposition requirement against this epic's own findings and REPORT WHETHER IT REFUSED ANYTHING REAL; state the true harvest denominator; and if the requirement does not work, SAY SO AND PUT THE HONEST RENAMING ON THE TABLE. GOAL-blind-dispatch: this is the goal that governs your own method -- RUN YOUR JUDGED WORK THROUGH CA-01'S PATH IF IT EXISTS, AND STATE EXACTLY WHAT YOUR JUDGES RECEIVED EITHER WAY. If the path does not exist, say what the round carried, the way SV-01-DF-01 did. GOAL-four-results-stand: verify EACH of the four by name against its sealed evidence and the instrument at the tip; a silently broken result is the worst outcome available. ALSO REPORT: the served surface with --digest-only per version; FINDINGS BY CHANNEL with the per-token ratio AND THE TOKEN BASIS NAMED, saying whether the tickets recorded their own, because three consecutive epics have failed to; findings touching the SHIPPED TOOLCHAIN separately under both CL-04's narrow rule and its own caveat; whether the consumption rate moved and against what denominator; and scope over the record at the epic base and the epic tip, since last epic's own eight cards refuted four claims that previously held including one in the shipped card file. SEAL YOUR PREDICTIONS BEFORE MEASURING, IN A COMMIT, WITH A TIMESTAMP -- one evaluation declared an ALARM against itself for sealing after. IF EVERY PREDICTION PASSES, REPORT IT AS AN ALARM. FILE FINDINGS, FIX NOTHING. Then write the next epic's starter: amend NEXT-EPIC.md top-down, newest first, and say what the next owner must not repeat. A LOW OR UNFLATTERING RESULT IS THE PREFERRED OUTCOME; AN EPIC THAT CLOSES WITH ONLY GOOD NEWS ABOUT ITSELF HAS NOT BEEN MEASURED.
+    desired_actions: []
+    implementation_scope: [specs/results/scorecards/cut-the-apparatus/, NEXT-EPIC.md, CUT-THE-APPARATUS-EPIC.md]
+    goals:
+      - goal: GOAL-apparatus-cut
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-consumption-obligatory
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-blind-dispatch
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+      - goal: GOAL-four-results-stand
+        contribution: guard
+        expected_effect: decides the goal; adds no behavioural delta
+        local_signal: 'N/A: this ticket is the measurement'
+    acceptance:
+      commands: [uv run --with pytest --with pyyaml -m pytest tests -q]
+      assertions: ['All four goals decided CLAUSE BY CLAUSE, with the multi-clause targets never collapsed to one word.', 'scripts/ and examples/validation/ reported separately and the card reported separately; never combined.', 'The price table audited against the actual diff, with any deletion lacking a finding named.', 'Each of the four standing results verified BY NAME against its sealed evidence.', 'What the judges received is stated exactly, whether or not CA-01''s path exists.', 'Findings by channel with the token basis NAMED, and whether tickets recorded their own.', 'scope run at the epic base and the epic tip, each row naming its tree.', 'Predictions sealed BEFORE measuring, in a commit, with the time stated.', 'If every prediction passes, an ALARM is reported.', 'Findings FILED and NONE fixed.', 'NEXT-EPIC.md amended top-down with the next starter.']
+    model_delta_expectation: none expected
+    role: evaluation
+    owns_goals: [GOAL-apparatus-cut, GOAL-consumption-obligatory, GOAL-blind-dispatch, GOAL-four-results-stand]

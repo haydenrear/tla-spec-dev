@@ -1,0 +1,146 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CA-06",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-06/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-06/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-06/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The path is SIMPLIFIED, NOT DELETED: cases still generate and adapters still run on a real subject.",
+        "The tension is stated plainly in the PR: 0 unique kills measured, owner direction to keep and shrink.",
+        "What the simplified version COSTS and what it CATCHES is reported on a real subject.",
+        "A zero yield is REPORTED AS A RESULT rather than worked around.",
+        "A regression can be expressed as a TLA+ action or an adapter conformance case, demonstrated once.",
+        "MF-020 respected: nothing fitted to a known answer.",
+        "The card is unchanged: serve | wc -c is still 6,281."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q",
+        "python3 -m py_compile scripts/generate_cases_from_tlc_dump.py scripts/run_generated_case_adapters.py"
+      ]
+    },
+    "blocks": [
+      "CA-07",
+      "CA-08"
+    ],
+    "conflict_keys": {
+      "adapters": [
+        "specs/program_model/adapter_case_runtime.py",
+        "specs/current/adapter_case_runtime.py",
+        "specs/desired_program_model/adapter_case_runtime.py"
+      ],
+      "production": [
+        "scripts/generate_cases_from_tlc_dump.py",
+        "scripts/run_generated_case_adapters.py",
+        "scripts/case_modules.py",
+        "scripts/infer_action_params.py",
+        "scripts/corpus_diagnostics.py"
+      ],
+      "test_graph": [],
+      "tla": [
+        "specs/program_model/case_adapters.toml"
+      ],
+      "workflow": [
+        "tests/test_generate_cases_from_tlc_dump.py",
+        "tests/test_case_modules.py",
+        "tests/test_case_adapter_runtime.py",
+        "tests/test_port_case_generation.py"
+      ]
+    },
+    "depends_on": [
+      "CA-04"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/260",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "The largest single reduction in the epic. ~5,900 lines across two scripts, plus case_modules.py, infer_action_params.py and corpus_diagnostics.py, reduced to a version an adopter could run. NO TARGET ON THE FINAL NUMBER -- the constraint is that it stays working and gets dramatically smaller.",
+        "goal": "GOAL-apparatus-cut",
+        "local_signal": "find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected. SV-04's adapter conformance result is the one closest to this surface -- verify it still reproduces, by name, before opening the PR.",
+        "goal": "GOAL-four-results-stand",
+        "local_signal": "uv run --with pytest --with pyyaml -m pytest tests -q"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none directly -- but this ticket produces the SIMPLE VALIDATED WAY that CA-07 uses to land a regression as a TLA+ action or an adapter case.",
+        "goal": "GOAL-consumption-obligatory",
+        "local_signal": "N/A"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-blind-dispatch",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "CA-06",
+    "implementation_scope": [
+      "scripts/",
+      "specs/program_model/",
+      "specs/current/",
+      "specs/desired_program_model/",
+      "tests/",
+      "specs/results/scorecards/cut-the-apparatus/"
+    ],
+    "model_delta_expectation": "POSSIBLE AND ACCEPTABLE. Simplification may reduce generated case surface. Record the delta in specs/current and the desired model and say what changed.",
+    "objective": "THE OWNER'S DIRECTION, AND THE TENSION IS TO BE NOTED HONESTLY RATHER THAN QUIETLY RESOLVED EITHER WAY. The owner keeps this path: 'I do want to keep parts of the TLA+ diagram, I still think generating cases, using adapters is valid, I want to make it dead simple, the regressions should tried to be included in TLA+ and adapters in the most simple validated way.' TAKE THAT AS A DECISION. And state the tension plainly in your PR: THE MEASUREMENT SAYS THE CURRENT IMPLEMENTATION DOES NOT BEAT HAND-WRITTEN TESTS -- 0 unique kills against 4 the other way, replicated on new subjects -- while the direction is to keep it and shrink it. THOSE ARE COMPATIBLE ONLY IF IT GETS DRAMATICALLY SMALLER. generate_cases_from_tlc_dump.py (3,471) plus run_generated_case_adapters.py (2,455) is ~5,900 LINES PRODUCING A CORPUS WITH ZERO UNIQUE KILLS. THE TARGET IS NOT DELETION -- it is a version small enough that its yield is worth its size and simple enough that AN ADOPTER COULD RUN IT. SIMPLIFY AGGRESSIVELY; DO NOT DELETE. Keep the shape the owner named: a TLA+ action or an adapter conformance case is how a regression gets expressed, and SV-04 ALREADY DEMONSTRATED THE ADAPTER HALF -- a 14-case conformance suite with durability asserted OUT OF BAND moved D3 from 3 to 4 against a control. REPORT WHAT THE SIMPLIFIED VERSION COSTS AND WHAT IT CATCHES, on a real subject. IF THE SIMPLIFIED VERSION STILL YIELDS ZERO UNIQUE KILLS, SAY SO -- THAT IS A RESULT, and the owner's direction was to simplify it, not to prove it works. MF-020 applies with force here: do not fit a case, an axis or a corpus to a bug you already know about.",
+    "promotion_order": 60,
+    "promotion_predecessor": "CA-05",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Make the TLA+ / case-generation / adapter path dead simple -- and report what the simplified version costs and catches",
+    "wave": 3
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-06/specs/tickets/CA-06",
+  "ticket_id": "CA-06",
+  "ticket_index": 5,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-06/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-06/specs/tickets"
+}

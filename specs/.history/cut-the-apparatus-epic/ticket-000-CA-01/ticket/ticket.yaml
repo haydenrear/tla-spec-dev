@@ -1,0 +1,129 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CA-01",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-01/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-01/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-01/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "What a dispatched agent receives is MEASURED and recorded verbatim, not assumed.",
+        "A candidate memory-free dispatch path exists AND is proven by fresh agents asked what they received -- or its impossibility is stated as a finding.",
+        "A demonstrated failing input on a real subject (R1), not a fixture.",
+        "The cost is stated plainly, including if blindness is unachievable.",
+        "No memory file and no skill is edited; any such change is a proposed diff and an escalation.",
+        "Every dispatched agent is asked what it REJECTED and the answers are recorded.",
+        "Any mechanism shipped is priced in lines against GOAL-apparatus-cut."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "CA-05",
+      "CA-08"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "examples/validation/instruments/fixtures/blinding/",
+        "references/blind_dispatch.md",
+        "specs/results/scorecards/cut-the-apparatus/GOAL-blind-dispatch/"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/255",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "Moves the baseline from '4 of 4 leaked, nobody measured it' to a measured inventory plus either a proven memory-free path or a stated impossibility. Either outcome decides clauses (a) and (c).",
+        "goal": "GOAL-blind-dispatch",
+        "local_signal": "fresh agents through the candidate path, asked what they received, answers recorded verbatim"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected -- this ticket ships no cut",
+        "goal": "GOAL-four-results-stand",
+        "local_signal": "uv run --with pytest --with pyyaml -m pytest tests -q"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected, and NOTE THE HAZARD -- this is the one ticket in the epic that could ADD apparatus. Any mechanism it ships is counted against GOAL-apparatus-cut and must be priced like a cut.",
+        "goal": "GOAL-apparatus-cut",
+        "local_signal": "find scripts examples/validation -name '*.py' -not -path '*/__pycache__/*' | xargs wc -l | tail -1"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none -- CA-05's disposition work needs a dispatch path it can trust",
+        "goal": "GOAL-consumption-obligatory",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "CA-01",
+    "implementation_scope": [
+      "examples/validation/instruments/",
+      "references/",
+      "specs/results/scorecards/cut-the-apparatus/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "GOAL 03, AND IT LANDS BEFORE ANY JUDGED ROUND IN THIS EPIC. The owner's words: 'make sure the memory doesn't leak in, because that's been a killer.' SV-05 measured 4 of 4 blind agents disclosing UNPROMPTED that the operator's auto-memory and the environment block were in their context before they read anything; one quoted MEMORY.md verbatim, naming the exact prior on the exact question a D3 judge is asked. IT ARRIVES WITH NO TOOL CALL, so no forbidden-reading list in any dispatch can reach it, and NOTHING A DISPATCH SAYS REMOVES A BLOCK THE HARNESS INJECTS FIRST. THREE THINGS, IN ORDER. FIRST, ESTABLISH WHAT A DISPATCHED AGENT ACTUALLY RECEIVES -- auto-memory, environment block, CLAUDE.md, session hooks, skill listings, anything else -- BY MEASURING IT, NOT BY ASSUMING IT: dispatch agents that are asked only to report their own pre-read context verbatim, and record what comes back. SECOND, BUILD A DISPATCH PATH THAT DEMONSTRABLY CARRIES NONE OF THE OPERATOR'S CONCLUSIONS, and PROVE IT THE SAME WAY -- fresh agents through the new path, asked what they received, with their answers recorded verbatim. Inspecting configuration is not proof; R1 requires a demonstrated failing input on a real subject, so SHOW THE PATH REFUSING TO LEAK ON A CASE THAT LEAKED BEFORE. THIRD, SAY WHAT IT COSTS. IF BLINDNESS CANNOT BE ACHIEVED WITH THIS HARNESS, THAT IS A FINDING ABOUT THE WHOLE PROGRAMME and it must be stated rather than worked around, together with a contamination note that can be printed beside every number the way SV-01-DF-01 did. DO NOT SOLVE THIS BY EDITING THE OPERATOR'S MEMORY SILENTLY AND CALLING THE PROBLEM GONE -- the record must say what every past round carried, and any change to a memory file or a skill is PROPOSED AS A DIFF AND ESCALATED, never applied. ASK EVERY AGENT YOU DISPATCH WHAT IT REJECTED.",
+    "promotion_order": 10,
+    "promotion_predecessor": null,
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Blindness: measure what a dispatched agent actually receives, then build and prove a memory-free dispatch",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-01/specs/tickets/CA-01",
+  "ticket_id": "CA-01",
+  "ticket_index": 0,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-01/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-01/specs/tickets"
+}

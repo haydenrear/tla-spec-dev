@@ -1,0 +1,16 @@
+# CA-06 -- one regression expressed as an adapter conformance case, demonstrated once.
+# Subject: examples/distributed_history. Mutant: INT:95:35:404 (404 -> 405 in add_cart_item),
+# the first NON-STRING survivor in source order from the 36 that NEITHER instrument kills.
+# MF-020: this file is EXCLUDED from RESULTS.md section 2's kill table and was written after
+# that population was enumerated and run. It demonstrates EXPRESSIBILITY, not instrument yield.
+
+$ uv run --with pytest -m pytest regression_as_adapter_case.py -q     # PRISTINE
+..                                                                       [100%]
+2 passed in 0.01s
+
+$ <install mutant INT:95:35:404>  then the same command                 # MUTANT
+E       AssertionError: a cart mutation against an account that does not exist must be refused as not-found; got 405
+E       assert 405 == 404
+E        +  where 405 = OperationResult(status=405, body={'error': 'account_not_found'}).status
+FAILED regression_as_adapter_case.py::test_cart_mutation_on_an_unknown_account_is_refused_as_not_found
+1 failed, 1 passed in 0.02s

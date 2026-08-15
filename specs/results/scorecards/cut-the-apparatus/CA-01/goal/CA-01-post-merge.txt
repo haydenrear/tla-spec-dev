@@ -1,0 +1,44 @@
+........................................................................ [ 27%]
+........................................................................ [ 54%]
+F....................................................................... [ 81%]
+...........................................F....                         [100%]
+=================================== FAILURES ===================================
+__________ test_a_real_epic_plans_judged_baseline_cannot_be_re_opened __________
+
+classifier = <module 'sv03_baseline_is_a_card' from '/Users/hayde/IdeaProjects/wt-epic-cut-the-apparatus-CA-01/specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/baseline_is_a_card.py'>
+
+    def test_a_real_epic_plans_judged_baseline_cannot_be_re_opened(classifier):
+        """R1. THE SUBJECT IS REAL AND ITS BASELINE IS SEALED.
+    
+        `GOAL-loop-reaches-the-program` cites `specs/results/scorecards/close-the-loop/`.
+        That directory holds ZERO `scorecard.json` files -- the CL-03 cards are in
+        two sibling directories -- so the evaluation ticket is handed a folder it
+        cannot pick a card out of, and there is no card in it to pick.
+    
+        If this ever goes green, the baseline was edited after the fact. Move the
+        demonstration to another failing goal and say which; do not delete it.
+        """
+        goals = {g["id"]: g for g in
+                 yaml.safe_load(LIVE_PLAN.read_text(encoding="utf-8"))["epic_goals"]}
+>       goal = goals["GOAL-loop-reaches-the-program"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'GOAL-loop-reaches-the-program'
+
+tests/test_goal_baseline_is_a_card.py:199: KeyError
+_____ test_repository_canonical_delivered_plan_has_matching_close_receipts _____
+
+    def test_repository_canonical_delivered_plan_has_matching_close_receipts() -> None:
+        plan_path = ROOT / "specs" / "desired_program_model" / "ticket_plan.yaml"
+    
+>       assert validate_ticket_plan_closed(plan_path, repo_root=ROOT) == []
+E       AssertionError: assert ['ticket CA-0...planned', ...] == []
+E         
+E         Left contains 7 more items, first extra item: 'ticket CA-02 is not closed: status=planned'
+E         Use -v to get more diff
+
+tests/test_ticket_retirement.py:588: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_goal_baseline_is_a_card.py::test_a_real_epic_plans_judged_baseline_cannot_be_re_opened
+FAILED tests/test_ticket_retirement.py::test_repository_canonical_delivered_plan_has_matching_close_receipts
+2 failed, 262 passed in 1077.54s (0:17:57)
+EXIT=1

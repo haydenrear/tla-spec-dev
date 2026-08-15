@@ -1,0 +1,33 @@
+complexity ledger model: TlaSpecDevCli.tla + MC.cfg (spec_manifest.yaml `module:`)
+complexity ledger -- standing objective (MF-019)
+  scope:    ticket CA-04
+  measured: variables=8 actions=16 bound=277,830 (INCOMPLETE: 6/8 variables resolved)
+            max_state_space_bound: 277,830 / 1,000,000 (>= 27.8%, cap comparison UNKNOWN -- incomplete bound)
+              caveat: the bound is a product over 6 of 8 declared variables (2 unresolved: lastCommand, result), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything
+  delta:    direction=decrease (vs CA-03)
+            variables: 9 -> 8 = -1 (-11.1%)
+            actions: 17 -> 16 = -1 (-5.9%)
+            bound: 1,111,320 -> 277,830 = -833,490 (-75.0%)
+              NOT LIKE-FOR-LIKE: both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model
+  validated-refactor basis (joint requirement -- licenses a decrease, CD-09):
+            tlc_before=(absent) (UNVERIFIED)
+            tlc_after=(absent) (UNVERIFIED)
+            behavior_tests=(absent) (UNVERIFIED)
+            descriptor_comparison=(absent) (UNVERIFIED)
+  retention (fuzzing-era, experimental -- recorded, non-gating since CD-09):
+            kill_rate=not_run (UNVERIFIED)
+            effect_conformance=not_run (UNVERIFIED)
+            external_coverage=not_run (UNVERIFIED)
+  refinement: (missing)
+  coverage audit (completeness, MF-026): not_run  <-- does not pass (recorded, not refused)
+  note:     decrease proceeds past non-gating experimental retention members (CD-09): kill_rate=not_run (UNVERIFIED); effect_conformance=not_run (UNVERIFIED); external_coverage=not_run (UNVERIFIED)
+  note:     NOTE: TLC reports incomplete; comparison skipped.
+  note:     coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope.
+
+  VERDICT: REJECTED -- close refused:
+    - REJECTED -- complexity decreased but the validated-refactor basis is UNVERIFIED: tlc_before=(absent) (UNVERIFIED); tlc_after=(absent) (UNVERIFIED); behavior_tests=(absent) (UNVERIFIED); descriptor_comparison=(absent) (UNVERIFIED). A decrease is licensed only by the validated-refactor evidence set from the same run (`validated_refactor:` -- tlc_before, tlc_after, behavior_tests, descriptor_comparison). Absent evidence is not passing evidence.
+    - REJECTED -- no recursive refinement record. Every close carries either an approved recommendation with evidence, or an explicit 'searched, found none'. Set `refinement.searched: true` and record the outcome.
+    - REJECTED -- no `narrative:` recorded. The ledger's machine-checked core is deliberately narrow; the narrative carries the reasoning, the measured alternatives, and any finding the core cannot express.
+
+ERROR: close refused by the complexity ledger (MF-019 standing objective).
+Complexity is minimized under behavior retention. There is no override flag.

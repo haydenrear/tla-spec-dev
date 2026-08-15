@@ -29,6 +29,21 @@ except ImportError:  # pragma: no cover - direct script execution
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 MODEL_DIRS = ("program_model", "desired_program_model", "current")
+
+#: The CUMULATIVE findings ledger. It sits in `desired_program_model/` beside
+#: `ticket_plan.yaml` and is bookkeeping about the work rather than a statement
+#: about the program (`close_tickets.PLANNING_FILES`), but unlike the plan it is
+#: NOT per-epic: one append-only file carries every epic's findings, and
+#: `scripts/disposition.py` reads it at that live path.
+#:
+#: Workflow close removes `desired_program_model/`. The models are archived under
+#: `<entry>/snapshots/`, so the ledger has always gone with them -- but three
+#: levels down, inside a tree whose whole subject is the program model, under a
+#: directory name that records where the file HAPPENED to live rather than what
+#: it is. `snapshot_findings_ledger` also writes it at the top of the history
+#: entry and records it in the manifest under `findings_ledger`, so the archive
+#: is addressable by an index that does not know this file's accidental home.
+FINDINGS_LEDGER_NAME = "deferred_findings.yaml"
 IGNORED_COPY_NAMES = {
     ".DS_Store",
     "__pycache__",
@@ -629,6 +644,92 @@ def validate_retirement_receipt(
     return errors
 
 
+#: Key a receipt's own manifest carries when a LATER receipt for the same
+#: immutable identity replaced it. CA-09 follow-up (owner decision 2026-08-13).
+#:
+#: Two rules collided whenever a close had to be retaken: the workflow close and
+#: `validate_successful_ticket_receipt` demand exactly ONE successful-close
+#: receipt per delivered ticket, and the append-only history policy forbids ever
+#: deleting one. A retake therefore produced a permanently red repository. This
+#: marker resolves the collision WITHOUT deletion: the superseded receipt stays
+#: on disk, stays readable, and stops being counted.
+#:
+#: The marker is DIRECTIONAL BY CONSTRUCTION, not by inference:
+#: - it is written on the receipt that LOST, and it NAMES the receipt that won,
+#:   so the arrow is recorded, never derived from mtimes or entry-name sort
+#:   order. "Newest wins" would silently reorder history; this cannot.
+#: - only the superseded side carries it, so the pair is never symmetric.
+#: - it carries a `reason`, so a reader learns WHY without reading the diff.
+#:
+#: Supersession only takes effect when the named successor actually exists in
+#: the same workflow history root and shares the same terminal identity (kind,
+#: ticket id, immutable ordinal). A typo therefore cannot silently erase a
+#: receipt from the count; it leaves the pre-existing count error standing.
+#: Nothing here REFUSES anything -- this is a correction to an existing count,
+#: not a new gate.
+SUPERSEDED_MARKER_KEY = "superseded_by"
+
+
+def superseded_marker(manifest: Any) -> dict[str, Any] | None:
+    """Return the well-formed supersession marker on a receipt manifest, if any."""
+    if not isinstance(manifest, dict):
+        return None
+    marker = manifest.get(SUPERSEDED_MARKER_KEY)
+    if not isinstance(marker, dict):
+        return None
+    entry_name = marker.get("entry_name")
+    if not isinstance(entry_name, str) or not entry_name.strip():
+        return None
+    return marker
+
+
+def receipt_is_superseded(manifest_path: Path, manifest: Any) -> bool:
+    """Report whether this receipt was replaced by a later one for the same identity.
+
+    A superseded receipt is LIVE ON DISK and DEAD TO THE COUNT.
+    """
+    marker = superseded_marker(manifest)
+    if marker is None:
+        return False
+    entry_name = str(marker["entry_name"]).strip()
+    receipt_dir = manifest_path.parent
+    if entry_name == receipt_dir.name:
+        # A receipt cannot supersede itself; treat the marker as absent so the
+        # existing count still sees it.
+        return False
+    successor_path = receipt_dir.parent / entry_name / "manifest.json"
+    try:
+        successor = json.loads(successor_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    if not isinstance(successor, dict):
+        return False
+    return all(
+        successor.get(key) == manifest.get(key)
+        for key in ("kind", "ticket_id", "ticket_index")
+    )
+
+
+def live_receipt_manifests(root: Path, **match: Any) -> list[tuple[Path, dict[str, Any]]]:
+    """Load every non-superseded receipt manifest under ``root`` matching ``match``."""
+    found: list[tuple[Path, dict[str, Any]]] = []
+    if not root.is_dir():
+        return found
+    for manifest_path in sorted(root.glob("*/manifest.json")):
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(manifest, dict):
+            continue
+        if any(manifest.get(key) != value for key, value in match.items()):
+            continue
+        if receipt_is_superseded(manifest_path, manifest):
+            continue
+        found.append((manifest_path, manifest))
+    return found
+
+
 def validate_successful_ticket_receipt(
     *,
     specs_dir: Path,
@@ -639,19 +740,8 @@ def validate_successful_ticket_receipt(
     """Require one successful-close receipt for a delivered plan entry."""
     resolved_ticket_id = ticket_id(ticket, index)
     root = history_root(specs_dir, workflow)
-    candidates: list[tuple[Path, dict[str, Any]]] = []
-    if root.is_dir():
-        for manifest_path in sorted(root.glob("*/manifest.json")):
-            try:
-                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            except (OSError, json.JSONDecodeError):
-                continue
-            if (
-                isinstance(manifest, dict)
-                and manifest.get("kind") == "ticket"
-                and manifest.get("ticket_id") == resolved_ticket_id
-            ):
-                candidates.append((manifest_path, manifest))
+    # Superseded receipts stay on disk but do not count: see SUPERSEDED_MARKER_KEY.
+    candidates = live_receipt_manifests(root, kind="ticket", ticket_id=resolved_ticket_id)
 
     if len(candidates) != 1:
         return [
@@ -789,6 +879,20 @@ def write_summary(entry_dir: Path, *, title: str, summary: str, manifest: dict[s
     )
     for snapshot in manifest["snapshots"]:
         lines.append(f"- `{snapshot['role']}`: `{snapshot.get('snapshot', 'missing')}`\n")
+    ledger = manifest.get("findings_ledger")
+    if isinstance(ledger, dict):
+        lines.append("\n## Findings ledger\n\n")
+        if ledger.get("snapshot"):
+            lines.append(
+                f"The cumulative findings ledger `{ledger['source']}` was archived to "
+                f"`{ledger['snapshot']}`. The close removed the directory it lived in; "
+                "this copy is the record. Read it with "
+                f"`python3 scripts/disposition.py --ledger {ledger['snapshot']} --all`.\n"
+            )
+        else:
+            lines.append(
+                f"No cumulative findings ledger at `{ledger['source']}` when this workflow closed.\n"
+            )
     lines.extend(
         [
             "\n## Follow-up\n\n",
@@ -803,6 +907,23 @@ def snapshot_models(specs_dir: Path, entry_dir: Path) -> list[dict[str, Any]]:
     for name in MODEL_DIRS:
         add_copied_path(records, role=name, source=specs_dir / name, destination=entry_dir / "snapshots" / name)
     return records
+
+
+def snapshot_findings_ledger(specs_dir: Path, entry_dir: Path) -> dict[str, Any]:
+    """Archive the cumulative findings ledger at the TOP of the history entry.
+
+    Returns the copy record whether or not the ledger exists; `exists: false`
+    with no `snapshot` key is the honest record for a repository that keeps no
+    ledger, and is not an error. Nothing here refuses a close.
+    """
+    records: list[dict[str, Any]] = []
+    add_copied_path(
+        records,
+        role="findings_ledger",
+        source=specs_dir / "desired_program_model" / FINDINGS_LEDGER_NAME,
+        destination=entry_dir / FINDINGS_LEDGER_NAME,
+    )
+    return records[0]
 
 
 def snapshot_results(specs_dir: Path, entry_dir: Path, result_paths: list[Path]) -> list[dict[str, Any]]:
@@ -1465,6 +1586,9 @@ def _terminal_receipts_for_identity(
             type(manifest_index) is int
             and manifest_index == index
             and manifest.get("ticket_id") == resolved_ticket_id
+            # A receipt a later one replaced is history, not a live terminal
+            # disposition: see SUPERSEDED_MARKER_KEY.
+            and not receipt_is_superseded(manifest_path, manifest)
         ):
             receipts[kind].append(manifest_path)
     return receipts
@@ -1966,6 +2090,10 @@ def create_workflow_closed_snapshot(
     remove_state_directories(*(specs_dir / name for name in MODEL_DIRS))
 
     snapshots = snapshot_models(specs_dir, entry_dir)
+    # CA-09: the close removes desired_program_model/, and the cumulative
+    # findings ledger lives there. Archive it as a named artifact of the close,
+    # not only as a file inside the desired-model snapshot tree.
+    findings_ledger = snapshot_findings_ledger(specs_dir, entry_dir)
     results = snapshot_results(specs_dir, entry_dir, result_paths)
 
     # MF-017: the workflow close is the last chance to run the Phase 6 retro,
@@ -2001,6 +2129,10 @@ def create_workflow_closed_snapshot(
         "tickets": tickets,
         "summary": summary,
         "snapshots": snapshots,
+        # CA-09: where the cumulative findings ledger went. The close deletes the
+        # directory it lived in, so this record is the address a later index --
+        # or a reader running `scripts/disposition.py` after the close -- reads.
+        "findings_ledger": findings_ledger,
         "results": results,
         "complexity_ledger": complexity_record,
         "complexity_delta": (complexity_record or {}).get("delta"),

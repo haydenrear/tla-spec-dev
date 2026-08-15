@@ -1600,3 +1600,102 @@ taken in the wrong worktree; measured at the scored commit it is 34 of 48.
 **And the durable lesson is a reading habit, not a figure.** The premise that
 justified an entire epic was checkable in one command against this repository's
 own sealed cards, and five epics restated it without running it.
+
+---
+
+# CA-05 — cut-the-apparatus: consumption, and the four epics missing from this file (2026-08-13)
+
+**This is not an epic evaluation.** `CA-08` decides `cut-the-apparatus`. This
+section exists because `CA-05` went looking for why consumption is 1 in 41 and
+found the answer partly **in this file's own table of contents**.
+
+## Four epics are missing from this file, and it is the same four
+
+Scroll up. The evaluation sections end at **`SM-05`, 2026-08-07**. `git log` on
+this file agrees: last touched `73ebeb6`, 2026-08-07. **Four epics have merged
+since and none of them wrote a section here** — reading-discipline (08-10),
+portable-substrate (08-10), close-the-loop (08-11), score-drives-validation
+(08-12).
+
+Now put that beside the disposition state of the findings ledger, measured by
+`scripts/disposition.py --all` over all 220 rows:
+
+| epic | merged | section in this file | findings disposed |
+|---|---|---|---|
+| ports-as-adapters | 2026-08-05 | **yes** (`PA-06`) | 26 of 28 — *and both refusals are FALSE, the record is in another key* |
+| falsifiable-instruments | 2026-08-06 | **yes** (`FI-03`, `FI-06`) | **30 of 30** |
+| subtract-to-measure | 2026-08-07 | **yes** (`SM-05`) | **30 of 30** — *but only after `CA-05-DF-06`; it was a FALSE pass* |
+| reading-discipline | 2026-08-10 | no | **1 of 46** — `CA-03` consumed `RD-03-DF-08` |
+| portable-substrate | 2026-08-10 | no | **0 of 28** |
+| close-the-loop | 2026-08-11 | no | **0 of 17** |
+| score-drives-validation | 2026-08-12 | no | **2 of 31** — `CA-03` repaired `SV-04-DF-05` |
+| cut-the-apparatus | in flight | no | **11 of 35** — `CA-03`'s 5 and `CA-05`'s 6; `CA-04`'s 8 fail on field naming |
+
+**`CA-05` originally called this "an exact correlation across eight epics in
+both directions". THAT IS WITHDRAWN**, at the instruction of PR #265's
+independent reviewer, who was right:
+
+- **They are not two independent registers.** `d3f483d` writes
+  `deferred_findings.yaml` **and** this file **in one commit**. They are two
+  outputs of the **same close-out ritual by the same actor**, so their co-lapse
+  is *definitional*, not evidential.
+- **It is one observation, not eight** — two step functions sharing a single
+  changepoint.
+- **And the date was wrong.** "Stopped dead on 2026-08-08" named a day on which
+  nothing happened. The boundary is **2026-08-07 → 2026-08-10**.
+
+The row above is kept because it **locates the ritual that lapsed**, which is
+useful. It corroborates nothing.
+
+## So the premise behind `GOAL-consumption-obligatory` is half wrong
+
+The goal was written from *"consumption is 1 of 38 because nothing requires
+it."* The first half holds. **The second half does not.** A disposition practice
+existed, ran for three consecutive epics, routed **61 findings into successors
+OUTSIDE the filing epic** — including five purpose-built carry-forward issues,
+**#144–#148, still open today** — and then **stopped, between 2026-08-07 and
+2026-08-10, without one line of discussion in any record.**
+
+*(83 `carried` rows in total; **22 self-route** to a ticket of the epic that
+filed them and routed nothing anywhere. `CA-05` first published 83 as though it
+were all routing. The reviewer of PR #265 computed 54 from rows that
+`CA-05-DF-06` has since repaired; honouring `#188` gives 61 — PA 14, FI 29,
+SM 18.)*
+
+**A practice that lapses silently is a worse failure mode than one that never
+existed**, because the first one was working and nobody was watching. That is
+the finding, and it is not the one this ticket was sent to get.
+
+**The exact boundary, and it is slightly cruel:** `reading-discipline` is the
+epic that **consumed its predecessor's deferrals** (11 `SM` rows routed into
+`RD-02`, #189) **and deferred none of its own.** The last epic to receive a
+handoff is the first that made none.
+
+## Findings by channel — now a field, not a hand classification
+
+Six epics of tables in this file and in `NEXT-EPIC.md` have been produced by
+hand-classifying free text, because **the ledger had no `channel` field**.
+`CA-02` and `CA-05` populate one. Vocabulary and the reconciliation with
+`CA-02`'s free-text shape: `references/consumption.md`.
+
+**This does not retro-classify the 210 rows filed before the field existed**,
+and `CA-05` declined to do it — assigning a channel to somebody else's finding
+from its prose is exactly the hand classification the field exists to end, and
+doing it in bulk would manufacture a clean history that was never measured.
+**Every table above this line remains a hand count and should be quoted as one.**
+
+## The consumption rate, restated
+
+**2 of 41 (4.9%)** consumed into program validation — class `A1` by `SV-04`, and
+now class **`F3` by `CA-03`**, which made `cmd_scaffold` register a blinded round
+and shipped the R1 test for it. **Verified by hand by `CA-05`: the test exists
+and passes.** Per `denominator_rule`, on the second move **the numerator rose
+1 → 2 and the denominator held at 41**; on the first (the register repair) the
+denominator rose 38 → 41 and the numerator did not move. The denominator rose from 38 because `CA-05` appended the three
+classes `SV-01-DF-05` filed to the ledger and never to the register; **the
+numerator did not move.** Working, and its bounds:
+`specs/results/scorecards/close-the-loop/GOAL-loop-closes-once/CL-03/HARVEST-CL-03.md`,
+addendum.
+
+**And 41 is a floor.** The sweep read 83 cards; the tree holds **95**. Twelve
+cards have never been swept.

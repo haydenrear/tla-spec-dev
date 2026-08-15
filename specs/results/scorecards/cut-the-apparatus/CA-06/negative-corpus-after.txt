@@ -1,0 +1,19 @@
+# CA-06 -- the same command, the same subject, AFTER the CA-06-DF-01 fix.
+# examples/distributed_history, --negative-cases with-positive.
+negative corpus (HP-03): the DISABLED edges of every reachable state, asserted REJECTED
+  emitted:        11 case(s) from 742 candidate (state, action, argument) triples
+  negated:        AddCartItem, Checkout, CreateAccount, ProjectOrder
+  dedupe:         guard-reads collapsed 247 -> 11 (identical action, arguments, violated conjunct and every state variable that conjunct reads)
+  cross-check:    0 ENABLED edge(s) with fully recovered arguments re-evaluated at their own source state; 0 evaluated FALSE
+  verdicts:       247 proved DISABLED, 495 NOT PROVED DISABLED (guards hold, or a conjunct was unevaluable)
+  NOTE: the dump holds 141 edge(s) for these actions while 495 argument tuples were not proved disabled -- at least 354 (state, action, argument) triples have no edge of their own. A DOT dump carries one edge per (source, target, action) and collapses arguments that agree on the successor. That is why the disabled set is computed by evaluating the model and NOT by subtracting the dump's edges: the subtraction would report collapsed-but-enabled inputs as refusable, which is the one error this mode may not make.
+  outcome fields: (none -- full inertness asserted) -- variables a refusal legitimately writes, taken from the write set of this module's own refusal actions; an adapter reports these unobservable and every other variable is asserted unchanged
+    AddCartItem: 2
+    Checkout: 4
+    CreateAccount: 1
+    ProjectOrder: 4
+    reason `a \in accounts`: 4
+    reason `o \in outbox`: 4
+    reason `Len(carts[a]) > 0`: 2
+    reason `a \notin accounts`: 1
+  A suppressed or unevaluable action costs COMPLETENESS, never SOUNDNESS: this mode emits a case only where the action's own body evaluates to a definite FALSE.

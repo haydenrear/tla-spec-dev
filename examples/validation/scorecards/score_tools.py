@@ -1866,6 +1866,49 @@ def cmd_scaffold(argv: list[str]) -> int:
     for p, _ in planned:
         if p.name == "scorecard.json":
             print(f"  {p}")
+
+    # SV-04-DF-05. A BLINDED CARD WITHHOLDS ITS SUBJECT'S NAME, SO SOMETHING
+    # ELSE HAS TO CARRY IT, and until now nothing did. Written AFTER the cards,
+    # because the cards are the measurement and a bookkeeping failure must not
+    # cost a round. Only for a blinded round: an unblinded card names its own
+    # subject and `subject_of` reads it straight off the card.
+    if args.subject and not args.unblinded:
+        subjects_path = arch().DEFAULT_SUBJECTS
+        # Only a round under the scorecard root this tool walks can ever be
+        # attributed: `subject_of` keys on the round directory RELATIVE TO THAT
+        # ROOT. Registering a round scaffolded anywhere else would write an
+        # entry no reader can match, into the one file that is all declaration.
+        if scorecard_root.resolve() != DEFAULT_SCORECARD_ROOT.resolve():
+            print(f"\nNot registered: {epic_dir} is outside {DEFAULT_SCORECARD_ROOT}, "
+                  f"so no reader would ever match the entry. Cards are written.")
+        else:
+            declared = arch().load_subjects().get(args.subject, {}).get("example")
+            if declared and declared != _slug(args.example):
+                print(f"\n!! {args.subject!r} declares example {declared!r} and this "
+                      f"round is {_slug(args.example)!r}. The registration below is "
+                      f"written, and `subject_of` matches on the example too, so it "
+                      f"will not attribute these cards until one of the two moves.")
+            try:
+                added = register_round(subjects_path, args.subject,
+                                       epic_dir.name, labels)
+            except RegistrationError as exc:
+                print(f"\n!! NOT REGISTERED, AND THE CARDS ARE WRITTEN: {exc}\n"
+                      f"   These cards map to NO declared subject and are invisible to "
+                      f"every architecture-tag comparison until this is recorded. Add "
+                      f"to [subject.{args.subject}].labels in {subjects_path}:",
+                      file=sys.stderr)
+                for lb in labels:
+                    print(f'     ["{epic_dir.name}", "{lb}"],', file=sys.stderr)
+            else:
+                if added:
+                    print(f"\nregistered {len(added)} blinded card group(s) against "
+                          f"[subject.{args.subject}] in {subjects_path.name}:")
+                    for r, a in added:
+                        print(f'  ["{r}", "{a}"]')
+                else:
+                    print(f"\nalready registered against [subject.{args.subject}] "
+                          f"in {subjects_path.name}.")
+
     if args.unblinded:
         print(f"\n!! NOT BLINDED. Reason recorded in {key_path}: {args.reason}")
     else:
@@ -1903,6 +1946,132 @@ def _rubric_block(rubric: dict, card_version: int = VERSION) -> dict:
 #: nothing but an upper-case label. `artifact_T` is the shape every blind round
 #: in this repository has used.
 _LABEL_IN_PATH = re.compile(r"(?:^|[_-])([A-Z]{1,3})$")
+
+
+class RegistrationError(Exception):
+    """`subjects.toml` could not be edited to record a blinded round.
+
+    Separate from every other exception in this file because of WHEN it is
+    raised: after the cards are on disk. The round is a measurement and it is
+    not thrown away for a bookkeeping failure -- `cmd_scaffold` turns this into
+    a loud warning carrying the exact lines to paste, and the cards stand.
+    """
+
+
+def _labels_array_span(text: str, name: str) -> tuple[int, int] | None:
+    """Byte span of `labels = [...]` inside `[subject.<name>]`, or None.
+
+    Scans with a two-state reader (inside a string / not) so a `]` in a label
+    cannot end the array early, and stops at the next table header so a subject
+    with no `labels` key cannot borrow the next subject's.
+    """
+    header = f"[subject.{name}]"
+    start = text.find(header)
+    if start < 0:
+        return None
+    nxt = text.find("\n[", start + len(header))
+    end_of_section = len(text) if nxt < 0 else nxt
+    section = text[start:end_of_section]
+    m = re.search(r"^labels\s*=\s*", section, re.MULTILINE)
+    if not m:
+        return None
+    i = start + m.end()
+    if i >= len(text) or text[i] != "[":
+        return None
+    depth, quote, j = 0, "", i
+    while j < len(text):
+        c = text[j]
+        if quote:
+            if c == "\\":
+                j += 2
+                continue
+            if c == quote:
+                quote = ""
+        elif c in "\"'":
+            quote = c
+        elif c == "#":
+            j = text.find("\n", j)
+            if j < 0:
+                break
+            continue
+        elif c == "[":
+            depth += 1
+        elif c == "]":
+            depth -= 1
+            if depth == 0:
+                return (start + m.start(), j + 1)
+        j += 1
+    return None
+
+
+def register_round(subjects_path: pathlib.Path, name: str, round_dir: str,
+                   labels: list[str]) -> list[tuple[str, str]]:
+    """Record `[round-dir, arm-label]` against a declared subject. Returns what it added.
+
+    `SV-04-DF-05`, and its own first suggested fix verbatim: *"Have `scaffold`
+    append the `[round-dir, arm-label]` pairs to the named subject's `labels`
+    when it blinds `subject.name`, since it holds both values at that moment and
+    the blinding is exactly what makes them necessary."*
+
+    WHY THE HOLE EXISTS AT ALL, because it is not a slip. Blinding a card is
+    `F3`'s first defence -- a card whose own `subject` names the arm hands a
+    judge the arm before it scores -- so a blinded card carries the scope and
+    withholds the name. `architecture_tags.subject_of` therefore cannot read the
+    card and must fall back to this file, and nothing wrote the entry. Four of
+    SV-04's cards were invisible to every architecture-tag comparison while
+    `check`, `seal`, `audit`, `contested` and `derive` all reported clean.
+
+    THIS REFUSES NOTHING AND IS NOT A GATE. It records a fact the scaffold
+    already holds, at the moment it holds it. A round it cannot record still
+    scaffolds; the caller prints the lines and the operator pastes them, which is
+    exactly the manual step SV-04 performed after the fact.
+
+    `subjects.toml` opens *"Nothing here is computed and nothing here may be."*
+    That sentence is about the DECLARATION -- the scope and the
+    `declared_effect_boundary`, which exist so derivation and declaration can
+    disagree. `labels` is neither: it is the record of which cards scored the
+    subject, and the file's own comment beside `toolchain_fixture` says SV-04's
+    round *"is mapped HERE and not by its cards, and the reason is the
+    blinding."* Nothing derived is written and no declared value is touched.
+    """
+    if not labels:
+        return []
+    text = subjects_path.read_text()
+    span = _labels_array_span(text, name)
+    if span is None:
+        raise RegistrationError(
+            f"no `labels` array found under [subject.{name}] in {subjects_path}")
+    array = text[span[0]:span[1]]
+    try:
+        existing = [tuple(x) for x in
+                    tomllib.loads(array + "\n").get("labels", [])]
+    except tomllib.TOMLDecodeError as exc:
+        raise RegistrationError(f"[subject.{name}].labels does not parse: {exc}") from exc
+    have = set(existing)
+    added = [(round_dir, lb) for lb in labels if (round_dir, lb) not in have]
+    if not added:
+        return []
+    rows = existing + added
+    body = "".join(f'  [{json.dumps(r)}, {json.dumps(a)}],\n' for r, a in rows)
+    rendered = "labels = [\n" + body + "]"
+    updated = text[:span[0]] + rendered + text[span[1]:]
+    # VERIFY BEFORE COMMITTING THE EDIT. A hand-rolled edit of a declaration
+    # file that silently produced something unparseable would be the same class
+    # of defect this function exists to close, so the new text is parsed and the
+    # pairs are read back out before anything is written.
+    try:
+        back = [tuple(x) for x in
+                (tomllib.loads(updated).get("subject", {}).get(name, {})
+                 .get("labels", []))]
+    except tomllib.TOMLDecodeError as exc:
+        raise RegistrationError(
+            f"the edit would not parse and was NOT written: {exc}") from exc
+    missing = [p for p in added if p not in set(back)]
+    if missing:
+        raise RegistrationError(
+            f"the edit parsed but does not carry {missing} and was NOT written")
+    subjects_path.write_text(updated)
+    return added
 
 
 def scope_leaks_a_label(scope: list[str], published: set[str]) -> list[str]:
@@ -2615,10 +2784,62 @@ UNVERIFIED = "UNVERIFIED"
 OK = "OK"
 
 
-def _finding_ids() -> set[str]:
-    path = REPO_ROOT / "specs/desired_program_model/deferred_findings.yaml"
-    if not path.exists():
-        return set()
+#: The live findings ledger, and where a workflow close puts it instead.
+#:
+#: `CA-10-DF-11`. `_finding_ids` read ONLY the first of these and returned an
+#: EMPTY SET when it was absent -- so from the moment a workflow close removed
+#: `desired_program_model/`, R-H3 reported every `filed_as` citation in the
+#: whole scorecard record as a dangling reference to a finding that was never
+#: filed. Measured: 0 ids -> 14 VIOLATIONs, exit 1; the archived 278 ids -> 0,
+#: exit 0. Not one of those 278 findings had gone anywhere.
+#:
+#: The globs are the same two `scripts/disposition.py` resolves through
+#: (`ARCHIVE_GLOBS`), and for the same reason: the first is the named artifact
+#: the close writes and records in the entry manifest under `findings_ledger`;
+#: the second is the copy carried inside the desired-model snapshot, which is
+#: the only copy closes before `CA-09` have. Ordering is `disposition`'s too --
+#: newest by mtime, size breaking ties because the ledger is append-only and a
+#: `git checkout` flattens mtimes.
+#:
+#: DELIBERATELY NOT AN IMPORT of `scripts/disposition.py`: this tool ships
+#: standalone (`RM-05` section 3) and already refuses to hard-require siblings.
+LEDGER_LIVE = "specs/desired_program_model/deferred_findings.yaml"
+LEDGER_ARCHIVE_GLOBS = (
+    "specs/.history/*/*/deferred_findings.yaml",
+    "specs/.history/*/*/snapshots/desired_program_model/deferred_findings.yaml",
+)
+
+
+def _ledger_path() -> pathlib.Path | None:
+    """The live ledger, else the newest archived copy, else `None`.
+
+    `None` means NO LEDGER EXISTS IN THIS TREE, which is a different answer
+    from an empty one and is why this returns an option rather than a set.
+    """
+    live = REPO_ROOT / LEDGER_LIVE
+    if live.exists():
+        return live
+    seen: dict[pathlib.Path, None] = {}
+    for pattern in LEDGER_ARCHIVE_GLOBS:
+        for path in REPO_ROOT.glob(pattern):
+            seen.setdefault(path.resolve(), None)
+    if not seen:
+        return None
+    return sorted(seen, key=lambda p: (p.stat().st_mtime, p.stat().st_size, str(p)))[-1]
+
+
+def _finding_ids() -> set[str] | None:
+    """Every id in the findings ledger, or `None` if there is no ledger at all.
+
+    THE ABSENT INPUT IS NOT AN EMPTY INPUT. An empty set says "the ledger was
+    read and filed nothing"; `None` says "nothing was read". The old signature
+    could not tell those apart and answered the second with the first, which is
+    the shape `CA-10-DF-11` filed: an instrument handed an absent input and
+    returning a confident verdict over it.
+    """
+    path = _ledger_path()
+    if path is None:
+        return None
     return set(re.findall(r"^\s*-\s+id:\s*\"?([A-Za-z0-9_.-]+)\"?", path.read_text(), re.M))
 
 
@@ -2797,6 +3018,15 @@ def audit_rh3(ctx: dict) -> list[tuple[str, str]]:
     """R-H3 repair vs improvement: what a change moved, and what stays `current` across it."""
     out = []
     filed = _finding_ids()
+    if filed is None:
+        # No ledger in this tree, live or archived. The `filed_as` clause is
+        # then UNDECIDABLE, and saying so once is the whole answer: reporting
+        # every citation as dangling would be an assertion about findings this
+        # tool never read. `CA-10-DF-11`.
+        out.append((UNVERIFIED, f"no findings ledger in this tree: neither `{LEDGER_LIVE}` "
+                                f"nor any archived copy under `specs/.history/`. Every "
+                                f"`filed_as` citation below is UNCHECKED -- not verified, "
+                                f"and NOT fabricated."))
     # A repair declares how many verdicts it moved, so "nothing moved" is a
     # MEASURED statement rather than an absence. Zero is a real and important
     # answer: an instrument can get more honest without a single number
@@ -2850,7 +3080,7 @@ def audit_rh3(ctx: dict) -> list[tuple[str, str]]:
                                 f"record"))
         # `filed_as` is checked on EVERY status, not only under_review: a refuted
         # or discharged finding must stay reachable from the ledger.
-        if c.get("filed_as") and c["filed_as"] not in filed:
+        if c.get("filed_as") and filed is not None and c["filed_as"] not in filed:
             out.append((VIOLATION, f"claim `{cid}`: `filed_as = {c['filed_as']}` is not an "
                                    f"id in deferred_findings.yaml"))
         if status == "superseded" and not c.get("superseded_by"):
@@ -2861,7 +3091,7 @@ def audit_rh3(ctx: dict) -> list[tuple[str, str]]:
                 out.append((VIOLATION, f"claim `{cid}`: `under_review` with no `filed_as`. "
                                        f"That status is only legal with a filed finding; "
                                        f"otherwise it parks a number quietly."))
-            elif c["filed_as"] in filed:
+            elif filed is not None and c["filed_as"] in filed:
                 out.append((OK, f"claim `{cid}` is under review and filed as {c['filed_as']}"))
         if status != "current":
             continue

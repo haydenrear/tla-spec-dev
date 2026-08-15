@@ -1,0 +1,186 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "TODO"
+    evidence: "TODO -- path to the pre-change TLC output"
+  tlc_after:
+    status: "TODO"
+    evidence: "TODO -- path to the post-change TLC output"
+  behavior_tests:
+    status: "TODO"
+    evidence: "TODO -- path to the behavior-test output"
+  descriptor_comparison:
+    status: "TODO"
+    evidence: "TODO -- path to the before/after descriptor comparison"
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness REVIEW, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them, and this
+# is the only sweep that looks at it.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# RECORDED, NEVER REFUSING (2026-08-04, owner direction). It was a hard gate at
+# workflow close with no override; it is now an optional agent-run review whose
+# verdict is written down and read by a person. `incomplete` IS STILL NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it --
+# what was withdrawn is the refusal, not the distinction.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found none, and the reason is that this ticket changes no model.
+    CA-01's assignment declares `model_delta_expectation: none expected`; its
+    ticket-local `current` and `desired` are byte-identical (`diff -rq` clean),
+    and `specs/current/` is untouched on this branch. The measured delta agrees:
+    `direction=zero (vs SV-04)`. There is no added representation to refine and
+    no increase to justify.
+
+    What the ticket ships is a 182-line instrument under
+    `examples/validation/instruments/` and two documents. None of it is
+    reachable from Internal.tla or External.tla, none of it declares an action,
+    and none of it is a spec double. The one structure it adds to a MODELLED
+    surface is a `[[instrument]]` row in `instruments.toml`, which the registry's
+    own enumeration test requires of any executable under a declared instrument
+    root -- omitting it would have been a new suite red, not a simplification.
+
+    REFINEMENT WAS CONSIDERED IN THE OTHER DIRECTION AND REFUSED, which is worth
+    recording because it would have removed all 182 lines. `CA-01-DF-04` measured
+    that the auto-memory leak is keyed to the SESSION CWD and that no ticket
+    worktree of this repository carries a memory slug at all -- so a judge
+    dispatched from a worktree-rooted session would already miss the auto-memory
+    with no instrument whatsoever. That arm was NOT measured by this ticket, so
+    it is filed as a deferred finding for a successor rather than shipped as a
+    refinement on an untested premise. Applying it here would have been trading a
+    demonstrated path for a plausible one.
+  measured: false      # no TLC run: no model change to run it against
+  applied: false
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+  Full record: specs/results/scorecards/cut-the-apparatus/CA-01/RESULT.md.
+  Measured inventory: .../CA-01/INVENTORY.md. R1 demonstration: .../CA-01/R1-demonstration.txt.
+  Cost with its basis named: .../CA-01/COST.md. Escalated diffs: .../CA-01/PROPOSED-DIFFS.md.
+
+  WHAT THE MACHINE-CHECKED CORE ABOVE CANNOT EXPRESS, and it is the whole ticket.
+
+  The complexity delta is zero and the ticket is still net-additive: +182 Python
+  lines in `examples/validation/`, `scripts/` unchanged, card unchanged at 6,281
+  bytes. The model did not move because the thing measured is not in the model.
+  What CA-01 measured is what the HARNESS puts in a dispatched agent's context
+  before it reads anything, and no TLA+ variable can see that.
+
+  THE MEASUREMENT. Four agents dispatched, asked only to report their own
+  pre-read context verbatim and what they rejected. Three of four received the
+  operator's `MEMORY.md` in full plus the five most recent commit subject lines
+  before any tool call; one (`Explore`) received neither. That CORRECTS
+  `SV-05-DF-02`'s "4 of 4" to a tier and narrows a published figure. The half
+  that survives is the half that matters: it reaches the agent types this project
+  actually uses for judges.
+
+  MEASURED ALTERNATIVES, each refused with a reason.
+  (1) Ship `Explore` as the blinding mechanism. Cheapest result available; would
+      have closed this ticket with ZERO new apparatus and no `GOAL-apparatus-cut`
+      regression. Refused: one observation, one harness version, undocumented
+      behaviour, and the `Explore` arm shared the leaking session so cwd does not
+      explain it. `SV-05-DF-01` is this project's own precedent for what that bet
+      costs -- a version flag that served the wrong card and was accepted.
+  (2) `claude --bare`. The harness's own switch, documented to skip auto-memory,
+      hooks and CLAUDE.md discovery in one flag -- strictly better than what
+      shipped. Unusable here: it forces `ANTHROPIC_API_KEY` or an `apiKeyHelper`
+      and never reads OAuth or the keychain, and no key is set. `CA-01-DF-02`.
+  (3) `--safe-mode`. Plausible, keeps normal auth, NOT documented to disable
+      auto-memory. Not measured, so nothing is claimed in either direction.
+  (4) Write the instrument in shell. The `GOAL-apparatus-cut` command counts
+      `*.py`, so shell would have cost zero MEASURED lines for identical
+      function. Refused as gaming the denominator; written in Python and priced.
+  (5) Suppress the SessionStart hook to clear `CA-01-DF-01`. Would have turned a
+      blocking finding into a clean pass in one settings change. Refused: it is
+      the operator's machine, the charter forbids applying such a change, and it
+      was never measured to work.
+
+  THE FINDING THE CORE CANNOT CARRY. Blindness to the operator's CONCLUSIONS is
+  achievable and is proven on real subjects -- `check` REFUSES a fresh
+  repo-rooted `claude -p` (26 indicators) and a judge-shaped subagent (25), and
+  PASSES a neutral cell. Blindness to the project's IDENTITY is NOT achievable
+  with this harness: the arm that passed still received the SessionStart hook
+  naming `spec-double-compiler` and `test-graph`, and the skill listing
+  describing the TLA+ spec-double pipeline. Filed `CA-01-DF-01`, BLOCKING,
+  because it decides what `CA-08` may call its rounds.
+
+  R1 EARNED ITS KEEP HERE. Run against its first real subject the instrument
+  derived ZERO memory needles -- the ticket worktree has no memory slug while the
+  primary checkout it branched from has all 19 files -- and would have returned a
+  pass carried only by literal block labels. Fixed with `--memory` and a `WEAK
+  PASS` warning, and written up rather than quietly corrected.
+
+  NOT DONE, DELIBERATELY: no memory file and no skill was edited. `MEMORY.md`'s
+  sha256 and mtime are unchanged; two diffs are escalated instead. `skill-manager
+  sync` was never run. The inherited `PA-01` spec-unit red and all 12 suite reds
+  were left unrepaired and attributed rather than fixed.

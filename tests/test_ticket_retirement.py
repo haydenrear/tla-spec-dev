@@ -582,10 +582,133 @@ def test_delivered_ticket_refuses_a_wrong_ordinal_receipt(tmp_path: Path) -> Non
     assert "wrong immutable ordinal" in "\n".join(errors)
 
 
+def mark_superseded(receipt: Path, successor_entry: str) -> None:
+    """Record on ``receipt`` that ``successor_entry`` replaced it."""
+    manifest = json.loads(receipt.read_text(encoding="utf-8"))
+    manifest["superseded_by"] = {
+        "entry_name": successor_entry,
+        "receipt": f"specs/.history/{WORKFLOW}/{successor_entry}/manifest.json",
+        "reason": "close retaken after the promotion predecessor merged",
+        "recorded_by": "project-owner",
+        "recorded_at": "2026-08-13T00:00:00Z",
+    }
+    receipt.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+
+def clear_superseded(receipt: Path) -> None:
+    manifest = json.loads(receipt.read_text(encoding="utf-8"))
+    manifest.pop("superseded_by", None)
+    receipt.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+
+def test_superseded_receipt_is_excluded_from_the_one_receipt_count(
+    tmp_path: Path,
+) -> None:
+    plan_path = write_delivered_plan(tmp_path)
+    first = write_delivered_receipt(tmp_path, "ticket-000-DONE-001")
+    write_delivered_receipt(tmp_path, "ticket-000-DONE-001-reconciled")
+
+    mark_superseded(first, "ticket-000-DONE-001-reconciled")
+
+    assert validate_ticket_plan_closed(plan_path, repo_root=tmp_path) == []
+    # Excluded from the COUNT, never from the RECORD.
+    assert first.is_file()
+    assert json.loads(first.read_text(encoding="utf-8"))["ticket_id"] == "DONE-001"
+
+
+def test_supersession_is_directional_and_is_not_newest_wins(tmp_path: Path) -> None:
+    """Which receipt counts is what the marker SAYS, not which one sorts last."""
+    plan_path = write_delivered_plan(tmp_path)
+    good = write_delivered_receipt(tmp_path, "ticket-000-DONE-001")
+    # Later by name, and WRONG: its status disagrees with the delivered plan entry.
+    later = write_delivered_receipt(
+        tmp_path, "ticket-000-DONE-001-retaken", ticket_status="closed"
+    )
+
+    # Direction: the LATER receipt is the superseded one, so the earlier survives.
+    mark_superseded(later, "ticket-000-DONE-001")
+    assert validate_ticket_plan_closed(plan_path, repo_root=tmp_path) == []
+
+    # Reverse the arrow over the same two files and the survivor changes with it.
+    clear_superseded(later)
+    mark_superseded(good, "ticket-000-DONE-001-retaken")
+    assert "does not match the delivered plan entry" in "\n".join(
+        validate_ticket_plan_closed(plan_path, repo_root=tmp_path)
+    )
+
+
+def test_supersession_marker_naming_a_missing_receipt_does_not_drop_the_count(
+    tmp_path: Path,
+) -> None:
+    plan_path = write_delivered_plan(tmp_path)
+    first = write_delivered_receipt(tmp_path, "ticket-000-DONE-001")
+    write_delivered_receipt(tmp_path, "ticket-000-DONE-001-reconciled")
+
+    mark_superseded(first, "no-such-entry")
+
+    errors = "\n".join(validate_ticket_plan_closed(plan_path, repo_root=tmp_path))
+    assert "exactly one successful close receipt" in errors
+    assert "found 2" in errors
+
+
+def test_supersession_marker_naming_another_identity_does_not_drop_the_count(
+    tmp_path: Path,
+) -> None:
+    plan_path = write_delivered_plan(tmp_path)
+    first = write_delivered_receipt(tmp_path, "ticket-000-DONE-001")
+    write_delivered_receipt(tmp_path, "ticket-000-DONE-001-reconciled")
+    write_delivered_receipt(
+        tmp_path, "ticket-001-OTHER-002", ticket_index=1, ticket_id="OTHER-002"
+    )
+
+    mark_superseded(first, "ticket-001-OTHER-002")
+
+    assert "found 2" in "\n".join(
+        validate_ticket_plan_closed(plan_path, repo_root=tmp_path)
+    )
+
+
+def test_a_receipt_cannot_supersede_itself(tmp_path: Path) -> None:
+    plan_path = write_delivered_plan(tmp_path)
+    first = write_delivered_receipt(tmp_path, "ticket-000-DONE-001")
+    write_delivered_receipt(tmp_path, "ticket-000-DONE-001-reconciled")
+
+    mark_superseded(first, "ticket-000-DONE-001")
+
+    assert "found 2" in "\n".join(
+        validate_ticket_plan_closed(plan_path, repo_root=tmp_path)
+    )
+
+
 def test_repository_canonical_delivered_plan_has_matching_close_receipts() -> None:
     plan_path = ROOT / "specs" / "desired_program_model" / "ticket_plan.yaml"
 
     assert validate_ticket_plan_closed(plan_path, repo_root=ROOT) == []
+
+
+def test_repository_ca_05_supersession_is_recorded_and_readable() -> None:
+    """R1: the real subject -- this repository's own retaken CA-05 close."""
+    history = ROOT / "specs" / ".history" / "cut-the-apparatus-epic"
+    superseded = json.loads(
+        (history / "ticket-004-CA-05" / "manifest.json").read_text(encoding="utf-8")
+    )
+    live = json.loads(
+        (history / "ticket-004-CA-05-reconciled" / "manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    marker = superseded["superseded_by"]
+    assert marker["entry_name"] == "ticket-004-CA-05-reconciled"
+    assert marker["reason"].strip()
+    # Directional: only the superseded side carries the marker.
+    assert "superseded_by" not in live
+    # Same terminal identity, so the arrow really does point at its replacement.
+    assert (superseded["kind"], superseded["ticket_id"], superseded["ticket_index"]) == (
+        live["kind"],
+        live["ticket_id"],
+        live["ticket_index"],
+    )
 
 
 def test_success_close_refuses_to_resurrect_an_exactly_retired_ticket(

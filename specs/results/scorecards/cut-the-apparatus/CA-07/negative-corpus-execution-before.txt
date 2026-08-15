@@ -1,0 +1,19 @@
+validated 4 adapter mappings for 12 labels
+ORACLES CARRIED BY THIS MAPPING:
+  + output-conformance: 4 binding(s) return a result this run compares field by field against the case's own expectation
+ORACLES **NOT** CARRIED:
+  - projected-state-conformance: no binding declares a projector, an expected_projection or an assertion, so nothing here observes the real system's state except through the adapter's own returned after-state
+  - effect-conformance: this mapping binds no [effect_providers.<Port>] provider, so NO DURABLE-WRITE ORACLE is in this run and a kill count from it is a FLOOR
+  - mutation-kill-test: never carried by this runner. It is a separate instrument (scripts/kill_test.py) and a green run here is not evidence any fault would die
+ERROR: 11 batched case executions failed
+case_0094_add_cart_item_rejected via AddCartItem: KeyError: 'account'
+case_0095_add_cart_item_rejected via AddCartItem: KeyError: 'account'
+case_0096_checkout_rejected via Checkout: KeyError: 'account'
+case_0097_checkout_rejected via Checkout: KeyError: 'account'
+case_0098_checkout_rejected via Checkout: KeyError: 'account'
+case_0099_checkout_rejected via Checkout: KeyError: 'account'
+case_0100_create_account_rejected via CreateAccount: KeyError: 'account'
+case_0101_project_order_rejected via ProjectOrder: KeyError: 'order'
+case_0102_project_order_rejected via ProjectOrder: KeyError: 'order'
+case_0103_project_order_rejected via ProjectOrder: KeyError: 'order'
+case_0104_project_order_rejected via ProjectOrder: KeyError: 'order'
