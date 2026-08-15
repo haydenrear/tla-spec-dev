@@ -10,12 +10,12 @@ Branch `epic/stabilize-substrate`, cut from `main` at
 
 ---
 
-## 0. READ THIS BEFORE ANYTHING — three figures in your work order already moved
+## 0. READ THIS BEFORE ANYTHING — five figures in your work order already moved
 
 Issue #271 opens by telling the successor that its predecessor's cut list was
 fiction: three of four ordered targets did not exist as described and the fourth
 was load-bearing in the opposite direction. **That instruction was followed
-against issue #271 itself, and three of its own figures did not survive.**
+against issue #271 itself, and five of its own figures did not survive.**
 
 | #271 says | re-derived at `436c78c` | why it moved |
 |---|---|---|
@@ -23,8 +23,9 @@ against issue #271 itself, and three of its own figures did not survive.**
 | **0 of 18** judged goals have an openable baseline | **0 of 20** | The numerator held at zero; **the denominator rose** when `cut-the-apparatus` added four goals. 31 distinct goals, 20 judged, 0 card-backed. `denominator_rule` applies to the figure you were handed. |
 | the ledger is at a per-epic path | it is, and **the live path does not exist** | `disposition.LEDGER` and `score_tools.LEDGER_LIVE` both name `specs/desired_program_model/deferred_findings.yaml`, which the close **deletes**. Every consumer is running on the archive fallback right now. |
 | the `scope` sweep is **102 figures**, byte-identical at base and tip | **82** | **−20 REFUTED, every one of them from the ledger file the close deleted**, plus 3 `NEXT-EPIC.md` rows re-anchored by the amendment. Denominator movement caused by a file disappearing — **nothing was checked, refuted or repaired to produce it.** |
+| the suite is **7 / 1462 / 22** at collection **1491** | **17 / 1483 / 4** at collection **1504** | #271's figure is the **closed-workflow state**, which no ticket agent will ever stand in. Scaffolding this epic's workflow restores 13 collected nodes and unskips 18 of the 22. **This one changes what `SS-06` is for** — see §1. |
 
-**What survived unchanged, each re-derived on this branch:** collection **1491**;
+**What survived unchanged, each re-derived on this branch:**
 card **6,281 bytes**, `sha256:2d7d4a0506d9b259`, card version 5; `scope` reads
 **0** counted figures on `CUT-THE-APPARATUS-EPIC.md` — **and 0 on this charter,
 which is full of `<n> of <m>` sentences** — and **3, all REFUTED**, on
@@ -44,6 +45,36 @@ against in its own words.
 property of **the tree and the checkout** — quote both. And **this is the
 absent-input class one step on**: the input is not absent, it is *wrong*, and the
 instrument is equally confident either way.
+
+### Three defects were filed at kickoff, and all three are repaired before `SS-08` runs
+
+**Owner decision, and it is a `planning_rule`, not a preference.**
+
+| finding | what it is | owner |
+|---|---|---|
+| **`SS-00-DF-01`** | the archived-ledger fallback resolves by **filesystem mtime**, so a fresh checkout audits against a four-epic-old 88-id snapshot | `SS-01` |
+| **`SS-00-DF-02`** | **a goal ID reused across epics is silently collapsed into one census row** — measured on this epic's own first plan draft, which reported 35 goals where 36 exist | `SS-03` |
+| **`SS-00-DF-03`** | **the judged-instrument recogniser is a keyword matcher over harness prose** — all five of this epic's harnesses are commands and three were classified as judged | `SS-03` |
+
+**Why they are not ordinary backlog: all three are defects in the instruments
+`SS-08` must use to decide the goals, and two of the three mis-report in a
+direction.** `DF-02` shrinks a denominator and **inflates** a compliance rate;
+`DF-01` accuses **true** citations of being fabricated. **An evaluation run on
+instruments known to mis-report is not a measurement.**
+
+**Each repair carries a demonstrated failing input on a real subject**, and — once
+`SS-02` has landed — a demonstrated absent-input case. **If a repair is not
+complete when `SS-08` starts, `SS-08` reports it as an ALARM and names which
+figures are affected and in which direction. It does not repair it**, because an
+evaluation that fixes its own instrument mid-measurement has measured nothing.
+
+**`MF-020` binds on all three:** do not tune a repaired instrument until this
+epic's own goals land where the owner expects, and **do not reword this plan to
+flip a classification.** And **re-derive what a repair moves** — the `0 of 20` is
+the likely one, in either direction, and that movement is **a fact about the
+instrument** until proven otherwise.
+
+---
 
 **So: for every claim in this charter, in your issue, and in any finding either
 cites, open the source, read the sentence, and check the tree before acting on
@@ -114,10 +145,10 @@ is the result your change is aiming at, not decoration.
 | goal | baseline at `436c78c` | decided by |
 |---|---|---|
 | `GOAL-absent-input-consumed` | 48 instances across **30 of 43** verdict-producing modules; 1 fixed, 47 open. `R1` requires a demonstrated FAILING input; it does not require an ABSENT one | `SS-08` |
-| `GOAL-tree-stabilizes` | recorded in this goal's baseline evidence, measured on this branch — reds, passes, skips, collection, plus 13 uncollected nodes and 3 vacuous passes | `SS-08` |
+| `GOAL-tree-stabilizes` | **17 / 1483 / 4 / 1504**, measured on this branch — they sum. Plus **3 vacuous passes**, and 4 skips that belong to `SS-01` | `SS-08` |
 | `GOAL-judged-goals-compliant` | **0 of 20** judged goals have a baseline the evaluation can open: 8 directory, 10 summary, 1 unresolvable, 1 prose | `SS-08` |
 | `GOAL-counted-figures-reach-the-record` | `scope` reads **0** counted figures on charters, plans, baselines and price tables; **3** on `NEXT-EPIC.md`. It recognises one sentence form | `SS-08` |
-| `GOAL-four-results-stand` | four results standing at the base; two of the predecessor's four DISPROOFS did not | `SS-08` |
+| `GOAL-four-results-still-stand` | four results standing at the base; two of the predecessor's four DISPROOFS did not. **New ID, `continues:` the predecessor's** — §0 | `SS-08` |
 
 **There is no size goal, and that is a decision, not an oversight.** `#271` §3.1:
 the change rule keeps old anchors, `R-H4` seals the record, and the close-out
@@ -126,9 +157,11 @@ construction**, and four epics running have called themselves simplifications an
 come out net-additive. Setting a fifth line-count target would measure the
 close-out, not the work. **Nothing in this epic is cut for being long.**
 
-**`GOAL-four-results-stand` is carried forward unchanged** because it is the only
-goal this programme has ever run that caught an epic guarding something already
-false.
+**`GOAL-four-results-still-stand` carries the predecessor's `GOAL-four-results-stand`
+forward** — same goal, re-based baseline, **new ID**, because reusing the ID was
+tried and the census silently collapsed the two (`SS-00-DF-02`). It is kept
+because it is the only goal this programme has ever run that caught an epic
+guarding something already false.
 
 ---
 
@@ -316,9 +349,13 @@ on an adopter's code.** `SS-04`'s recogniser is **explicitly not a gate** and
   **`specs/deferred_findings.yaml`**, carrying all **296** inherited rows. Until
   `SS-01` merges, the instruments still name the dead per-epic path, so invoke
   `python3 scripts/disposition.py --ledger specs/deferred_findings.yaml`.
-- **`wt new` branches from the LOCAL ref, and `main` in the primary checkout is
-  stale at `08d1d6a` right now.** Your assignment names a resolved commit OID.
-  **Use it. Verify your branch point.**
+- **`wt new` branches from the LOCAL ref.** Your assignment names a resolved
+  commit OID. **Use it. Verify your branch point** — a ref is a symbolic name,
+  not an identity, and trusting one has put tickets 4, 14 and 21 commits behind
+  in this repository. Local `main` was stale at `08d1d6a` when this epic opened
+  and was fast-forwarded to `436c78c` on 2026-08-15 with the owner's explicit
+  approval, **after** the epic branch was cut and **after** every baseline here
+  was measured — so no figure in this epic depends on it.
 - **Never invoke `tla-spec-dev` from PATH** — use
   `python3 scripts/tla_spec_dev.py --spec-root specs …`.
 - **Skills are READ from this repository and NEVER edited.** Anything that must

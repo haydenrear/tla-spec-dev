@@ -82,6 +82,13 @@ mid-ticket snapshot with 88 ids.
 property of the tree AND the checkout.** Quote both, or the figure does not
 reproduce. `CA-10` measured **0** at a tree that audits **9** here.
 
+**`SS-01` repairs it before `SS-08` runs**, per
+`planning_rules.kickoff_defects_are_repaired_before_the_evaluation`, **and the
+proof is two independent fresh worktrees of the same commit returning the same
+count** — inspecting the sort key is not proof. Until then, this goal's `audit`
+figure carries the caveat, and `SS-08` reports an unrepaired `SS-00-DF-01` as an
+ALARM rather than repairing it.
+
 **`scope` still runs** — 82 counted figures at this tree; see
 `GOAL-counted-figures-reach-the-record`'s baseline for the attributed movement
 from `CA-08`'s 102.

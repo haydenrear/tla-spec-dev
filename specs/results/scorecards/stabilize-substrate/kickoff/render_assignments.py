@@ -149,8 +149,8 @@ overrides ordinary instructions to branch from or target the default branch.**
   it on the integrated epic. Run `local_signal` before close, record the number
   under the evidence root, and report it against `expected_effect` — **including
   "no measurable movement"**.
-- **Verify your branch point.** `wt new` branches from the **local** ref, and
-  `main` in the primary checkout is stale at `08d1d6a`. Resolve
+- **Verify your branch point.** `wt new` branches from the **local** ref, and a
+  ref is a symbolic name, not an identity. Resolve
   `origin/{epic['branch']}` to an OID once and branch from the OID.
 - Start the worktree only after every `depends_on` PR is **merged into**
   `origin/{epic['branch']}`. An open or green PR is not a satisfied dependency.

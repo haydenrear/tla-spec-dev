@@ -58,16 +58,23 @@ and the instrument is equally confident either way.
 **Filed, not fixed.** The owner does not repair code inside a ticket's slice, and
 the nine violations are part of the measured base state.
 
-## 3. A defect this kickoff committed, and its own instrument caught
+## 3. A defect this kickoff committed, and its own instrument caught — `SS-00-DF-02`
 
 The first draft of the plan **reused the predecessor's `GOAL-four-results-stand`
 ID** for the carried goal. `baseline_is_a_card.py` then reported **35** distinct
 goals where **36** exist: it **collapsed the two same-ID goals into one row**, and
-the collapse presented as a *smaller denominator* rather than as an error.
+the collapse presented as a *smaller denominator* rather than as an error. **It
+did not warn, did not refuse, and did not report an ambiguity**, and which of the
+two baselines the collapsed row reports is undefined by the code.
 
-Corrected to `GOAL-four-results-still-stand` with an explicit `continues:` field
-naming the sealed predecessor entry. **`SS-03` must check the record for other
-cross-epic ID reuse.**
+**The direction is why it matters.** This instrument exists to compute an `N of M`
+compliance rate, and an undetected collision **shrinks M**, which **inflates the
+rate**. An instrument that mis-reports in the flattering direction, on the exact
+quantity it exists to compute, is worse than one that refuses.
+
+**`GOAL-four-results-still-stand`'s `continues:` field is the workaround this
+finding forced, not the fix.** `SS-03` repairs it and checks the record for other
+cross-epic ID reuse.
 
 ## 3a. And a third: the owner edited files a running measurement reads
 
@@ -82,17 +89,43 @@ kickoff.** The run is preserved as
 because deleting it removes the record of what was measured** — and the suite was
 re-run clean on the settled tree with nothing edited for 26 minutes.
 
-## 4. And a fourth, which changed a target's wording
+## 4. And a fourth, which changed a target's wording — `SS-00-DF-03`
 
 **All five of this epic's harnesses are commands.** The census classified **three
 of the five** as naming a *judged* instrument, because its judged-instrument
-recogniser is a **keyword matcher over the harness prose**.
+recogniser is a **keyword matcher over the harness prose** — words like `card`,
+`sealed` and `scored` appearing in a description of what the command *reads*.
 
-That is `CA-08-DF-01`'s class from the other side — **a recogniser bound by
-sentence form** — and it means the denominator of 20 is strictly a claim about a
-keyword matcher. `GOAL-judged-goals-compliant` clause (a) now says so, and
+That is `CA-08-DF-01`'s class **from the other side**: there the sentence form was
+too narrow and reached nothing; here it is too loose and reaches too much. **So
+`0 of 20` is not established as the number of judged goals — only as the number of
+harness strings containing certain words**, and that denominator has been quoted
+across four epics. **This one errs in the UNFLATTERING direction, which is
+probably why nobody caught it.**
+
+`GOAL-judged-goals-compliant` clause (a) now says so, `SS-03` repairs it, and it
 **forbids fixing it by rewording the plan until the classification flips**
 (`MF-020`).
+
+## 4a. Owner decision: all three are repaired before the evaluation
+
+**Taken 2026-08-15, recorded as
+`planning_rules.kickoff_defects_are_repaired_before_the_evaluation`.**
+
+`SS-00-DF-01` is `SS-01`'s; `SS-00-DF-02` and `SS-00-DF-03` are `SS-03`'s. Both
+tickets are **wave 1** and both promote **long before** `SS-08`, so the rule costs
+the schedule nothing.
+
+**The reason is not tidiness.** All three are defects in the instruments `SS-08`
+must use to decide the goals, and **two mis-report in a direction** — `DF-02`
+inflates a compliance rate, `DF-01` accuses true citations of being fabricated.
+**An evaluation run on instruments known to mis-report is not a measurement.**
+
+**`SS-08` verifies by execution, not by reading a PR** — for `DF-01` that means
+`audit` on two independent fresh worktrees of the same commit returning the same
+count. **An unrepaired defect is an ALARM with its affected figures named, not a
+repair job**, and any baseline a repair moved is reported as **a fact about the
+instrument**, never absorbed into a goal verdict.
 
 ## 5. Decisions taken at kickoff
 
@@ -102,6 +135,8 @@ keyword matcher. `GOAL-judged-goals-compliant` clause (a) now says so, and
 | size target | **none** | §3.1 of #271: net-additive is required by construction. Four epics have called themselves simplifications and come out net-additive. **Nothing is cut for being long.** |
 | deferment | `batch`, blocking escalates, budget 5 | backlog `specs/deferred_findings.yaml` |
 | ledger path | **moved to `specs/deferred_findings.yaml`** | owner moved the data; **296 rows verified byte-identical** to the closed snapshot before and after. `SS-01` owns the consumer migration and must **verify** the inherited "10 live files" figure. The **25 archival scorecards must not be rewritten.** |
+| the three kickoff defects | **repaired before the evaluation** | Owner decision 2026-08-15, §4a. `SS-00-DF-01` -> `SS-01`; `SS-00-DF-02`, `SS-00-DF-03` -> `SS-03`. Both are wave 1, so it costs the schedule nothing. |
+| local `main` | **fast-forwarded `08d1d6a` -> `436c78c`** | Owner-approved 2026-08-15, **after** the epic branch was cut and **after** every baseline here was measured. No figure in this record depends on it, and the assignments still pin OIDs. |
 | stale units | `deploy-helm` + `debugging` synced in **both** tiers | **`spec-double-compiler` deliberately NOT synced** — it ships the whole 402 MB repository including every charter and a stale `NEXT-EPIC.md` (#271 §7.5, an unmeasured contamination channel), and syncing mid-epic moves text under running tickets |
 
 ## 6. The schedule
@@ -126,9 +161,12 @@ cost of the conflict-key rule and it is deliberate.
 
 ## 7. Hazards declared rather than repaired
 
-- **Local `main` is stale at `08d1d6a`** while `origin/main` is `436c78c`. `wt
-  new` branches from the **local** ref. Every assignment names a resolved OID.
-  The owner was blocked from fast-forwarding local `main`; it stays stale.
+- **Local `main` was stale at `08d1d6a`** while `origin/main` was `436c78c`.
+  `wt new` branches from the **local** ref, so every assignment names a resolved
+  OID. **Resolved 2026-08-15: fast-forwarded to `436c78c` with the owner's
+  explicit approval**, after the epic branch was cut and after every baseline in
+  this record was measured — **no figure here depends on it**. The assignments
+  still pin OIDs, because the hazard is the habit, not that one ref.
 - **`skt check` in the root tier reports `deploy-helm modified locally (ahead)`
   immediately after a successful sync to the remote tip.** Not chased; noted so
   a ticket agent does not read it as its own doing.

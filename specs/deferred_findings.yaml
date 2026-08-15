@@ -20438,3 +20438,149 @@ findings:
       base audits at NINE violations on a fresh worktree and ZERO on a worktree
       whose mtimes differ -- quote the tree AND the checkout, or the figure is
       not reproducible.
+  - id: SS-00-DF-02
+    found_by: the stabilize-substrate epic owner, at kickoff, when the goal census disagreed with the plan it had just read
+    found_at_commit: 436c78c
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/baseline_is_a_card.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml"]
+    channel: execution
+    cost: >-
+      One `baseline_is_a_card.py` run against a plan draft, and one comparison of
+      its distinct-goal count against the number of goals actually declared.
+      Found only because the two disagreed by one.
+    summary: >-
+      A GOAL ID REUSED ACROSS TWO EPICS IS SILENTLY COLLAPSED INTO ONE CENSUS
+      ROW, AND THE COLLAPSE PRESENTS AS A SMALLER DENOMINATOR RATHER THAN AS AN
+      ERROR. `baseline_is_a_card.py` builds its population by goal id across all
+      122 plans on disk, live and sealed. When two epics declare the same goal id
+      with DIFFERENT baselines, targets and evidence -- which is the natural thing
+      to do for a goal deliberately carried forward -- the census keys them
+      together and reports ONE goal. Measured: this epic's first plan draft reused
+      the predecessor's `GOAL-four-results-stand` for its carried goal, and the
+      census reported 35 distinct goals where 36 exist. IT DID NOT WARN, IT DID
+      NOT REFUSE, AND IT DID NOT REPORT AN AMBIGUITY -- it reported a number one
+      lower than the truth. THE DIRECTION IS THE PROBLEM: the goal this instrument
+      exists to serve is `N of M` compliance, and an undetected id collision
+      SHRINKS M, which INFLATES the rate. An instrument that mis-reports in the
+      flattering direction, on the exact quantity it exists to compute, is worse
+      than one that refuses. THIS IS THE ABSENT-INPUT CLASS'S SIBLING: the input
+      is not absent and not wrong, it is AMBIGUOUS, and the instrument resolves
+      the ambiguity silently instead of answering UNDECIDED. And which of the two
+      baselines it reports for the collapsed row is undefined by the code.
+    reproduction: >-
+      In a plan on disk, declare a goal whose `id` equals one already declared in
+      any other plan under `specs/` or `specs/.history/` with a different
+      `baseline.value`. Run `uv run --with pyyaml python3
+      specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/baseline_is_a_card.py`.
+      `distinct epic goals` reports one fewer than the number of goal entries that
+      exist, with no warning and no ambiguity line, and the row reports one of the
+      two baselines without saying which.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline.md section 6 -- the measurement, 35 reported where 36 exist"
+      - "specs/results/scorecards/stabilize-substrate/kickoff/RESULT.md section 3"
+      - "specs/desired_program_model/ticket_plan.yaml -- GOAL-four-results-still-stand and its `continues:` field, the workaround this finding forced"
+    why_out_of_scope: >-
+      IN SCOPE, and assigned: SS-03 owns judged-goal compliance and this
+      instrument. Filed rather than fixed at kickoff because the owner does not
+      repair code inside a ticket's slice.
+    suggested_fix: >-
+      Key the population by (workflow, goal id), not by goal id alone, and REPORT
+      collisions explicitly as their own verdict class rather than resolving them.
+      Where two entries share an id and disagree on baseline, target or evidence,
+      the correct answer is a NAMED AMBIGUITY, not a silently chosen row. Whatever
+      the fix, the `distinct epic goals` line must never be able to report fewer
+      goals than the plans declare. AND CHECK THE RECORD FOR EXISTING COLLISIONS
+      before deciding this is only about the future.
+    blast_radius: >-
+      Every figure this instrument produces, and it is the named harness for
+      `GOAL-judged-goals-compliant`. It also silently affects the historical
+      figures 27, 31 and 36 quoted across four epics, none of which was computed
+      with collision detection.
+    disposition: open
+    disposition_ticket: "SS-03"
+    disposition_note: >-
+      OPEN. Filed at kickoff by the owner, assigned to SS-03. REPAIRED BEFORE
+      SS-08 RUNS, per `planning_rules.kickoff_defects_are_repaired_before_the_evaluation`.
+      The `continues:` field on `GOAL-four-results-still-stand` is a WORKAROUND
+      this finding forced, not the fix.
+  - id: SS-00-DF-03
+    found_by: the stabilize-substrate epic owner, at kickoff, classifying this epic's own five goals
+    found_at_commit: 436c78c
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/baseline_is_a_card.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: execution
+    cost: >-
+      Reading the census output for this epic's own five goals against the five
+      `harness` strings that produced it.
+    summary: >-
+      THE JUDGED-INSTRUMENT RECOGNISER IS A KEYWORD MATCHER OVER HARNESS PROSE, SO
+      THE DENOMINATOR OF THE PROJECT'S OLDEST OPEN FIGURE IS A CLAIM ABOUT A
+      KEYWORD MATCHER RATHER THAN ABOUT JUDGED INSTRUMENTS. Measured: ALL FIVE of
+      this epic's goals declare COMMAND harnesses -- pytest invocations, a python
+      script, a CLI subcommand -- and the census classified THREE of the five as
+      naming a judged instrument (`GOAL-counted-figures-reach-the-record`,
+      `GOAL-four-results-still-stand`, `GOAL-judged-goals-compliant`), because
+      their harness text contains words like `card`, `sealed` and `scored` while
+      describing what the command reads. The two it classified correctly differ
+      only in vocabulary, not in kind. THIS IS `CA-08-DF-01` FROM THE OTHER SIDE:
+      a recogniser bound by SENTENCE FORM rather than by the thing it claims to
+      recognise -- there `scope` reached nothing because the form was too narrow,
+      here the census reaches too much because the form is too loose. THE
+      CONSEQUENCE IS NOT COSMETIC: `0 of 20` is the figure four epics have quoted
+      as this project's compliance rate, and its denominator is whatever a
+      keyword list happened to match. It is not established that 20 is the number
+      of judged goals; it is established that 20 harness strings contain certain
+      words. A FALSE POSITIVE ALSO INFLATES THE DENOMINATOR AND DEFLATES THE RATE,
+      so this one errs in the UNFLATTERING direction, which is why nobody caught
+      it.
+    reproduction: >-
+      `uv run --with pyyaml python3
+      specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/baseline_is_a_card.py`
+      at 436c78c or later on `epic/stabilize-substrate`. Under `### unresolvable`
+      and `### not-judged`, read this epic's five goals: three are classified as
+      judged, two as not-judged, and all five declare command harnesses. Compare
+      each against its `harness` string in
+      `specs/desired_program_model/ticket_plan.yaml`.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline_is_a_card-436c78c.txt -- the classification"
+      - "specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/baseline.md section 7"
+      - "specs/desired_program_model/ticket_plan.yaml -- the five harness strings, all commands"
+      - "CA-08-DF-01 -- the same class in the opposite direction, in scope"
+    why_out_of_scope: >-
+      IN SCOPE, and assigned: SS-03 owns judged-goal compliance. Related to SS-04,
+      which fixes the same class of bound in `scope`; the two tickets must not
+      converge on one shared recogniser without saying so.
+    suggested_fix: >-
+      Classify on a DECLARED field, not on prose. A goal that is judged should say
+      so structurally -- a `kind` or an explicit `judged: true` -- and the
+      recogniser should report UNDECIDED for a harness it cannot classify from
+      declared data, rather than guessing from vocabulary. Whatever is chosen,
+      RE-DERIVE `0 of 20` UNDER THE REPAIRED CLASSIFIER AND STATE THE MOVEMENT
+      WITH NUMERATOR AND DENOMINATOR NAMED; the figure may move in either
+      direction and both are results. MF-020 APPLIES: do not tune the classifier
+      until this epic's five goals land where the owner expects, and do not
+      reword the plan's harness strings to flip the classification.
+    blast_radius: >-
+      The denominator of `0 of 18` / `0 of 20`, quoted across SV-03, SV-05, SV-06,
+      issue #271 and this epic's own charter. Also `12 of 27`, computed by the
+      same survey family.
+    disposition: open
+    disposition_ticket: "SS-03"
+    disposition_note: >-
+      OPEN. Filed at kickoff by the owner, assigned to SS-03. REPAIRED BEFORE
+      SS-08 RUNS, per `planning_rules.kickoff_defects_are_repaired_before_the_evaluation`.
+      Note for SS-08: if the repaired classifier moves the denominator, the
+      baseline `0 of 20` is superseded and the movement is the finding, not a
+      correction to be applied silently.

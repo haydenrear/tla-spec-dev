@@ -96,9 +96,14 @@ ID** for the carried goal. The harness then reported **35** distinct goals where
 collapse presented as a *smaller denominator*.
 
 The ID was changed to `GOAL-four-results-still-stand` with an explicit
-`continues:` field naming the sealed predecessor entry. **`SS-03` must check
-whether any other cross-epic ID reuse exists in the record**, because the census
-reports that class as a lower count rather than as an error.
+`continues:` field naming the sealed predecessor entry — **a workaround this
+finding forced, not the fix.**
+
+**Filed as `SS-00-DF-02` and assigned to `SS-03`, to be repaired before `SS-08`
+runs.** The direction is why: an undetected collision **shrinks M**, which
+**inflates** the `N of M` rate this instrument exists to compute. `SS-03` must
+also **check the record for existing collisions** rather than treating this as a
+future-only concern.
 
 ## 7. And a second one, which is why clause (a) is worded the way it is
 
@@ -112,8 +117,18 @@ That is `CA-08-DF-01`'s class seen from the other side: **a recogniser bound by
 sentence form**. It means the denominator of 20 is, strictly, a claim about a
 keyword matcher rather than about judged instruments.
 
-**`SS-03` decides which is wrong, and must not fix it by rewording this plan
-until the classification flips.** That is fitting to a known answer, `MF-020`.
+**Filed as `SS-00-DF-03` and assigned to `SS-03`, to be repaired before `SS-08`
+runs.** Classify on a **declared field**, not on prose, and answer `UNDECIDED`
+for a harness that cannot be classified from declared data.
+
+**`SS-03` must not fix it by rewording this plan until the classification
+flips** — that is fitting to a known answer, `MF-020` — and **must coordinate with
+`SS-04`**, which repairs the same class of bound in `scope`. Two instruments
+quietly sharing one recogniser is how a single defect becomes two wrong figures.
+
+**If the repair moves `0 of 20`, this baseline is superseded and the movement is
+the finding** — stated with numerator and denominator named, in either direction,
+never applied silently as a correction.
 
 ## 8. The constraint that may bound the goal
 
