@@ -21857,16 +21857,27 @@ findings:
       committed at all. It is currently neither, which is why nobody noticed six
       of them going stale across two card-version bumps.
     blast_radius: >-
-      Every card tree in `specs/results/scorecards/` -- 18 trees carry sealed
-      digests and at least 9 carry or should carry an `INDEX.md`. The damage is
-      silent and is only visible to `git status`, which a verification round has
-      no reason to run. No score is affected: all six diffs preserved every value.
+      MEASURED OVER THE WHOLE RECORD, not just the eleven trees this ticket
+      verified. Running `index` over ALL 18 SEALED CARD TREES at `48f9c7e`, in a
+      throwaway detached cell and reverted: 18 sealed trees, 15 carry a committed
+      `INDEX.md`, 3 CARRY NONE, and 13 OF THE 15 ARE STALE -- only two match what
+      the current `index` emits. The three with no `INDEX.md` at all are
+      `close-the-loop-cl03-v4`, `close-the-loop-cl03-v5` and
+      `score-drives-validation-sv04`, WHICH ARE THE CARD TREES OF THIS GOAL'S
+      RESULTS 3 AND 4. The damage is silent and is visible only to `git status`,
+      which a verification round has no reason to run. NO SCORE IS AFFECTED: every
+      diff inspected -- including `architectural-coherence` and
+      `subtract-to-measure-sm05` outside the eleven -- preserved every D1..D5
+      value, and the staleness is presentational only.
     disposition: carried
     disposition_ticket: "SS-08"
     disposition_note: >-
-      OPEN. SS-08 must not run `index` over the record without reverting
+      CARRIED. SS-08 must not run `index` over the record without reverting
       afterwards, and should report whether any epic before this one committed a
-      regenerated `INDEX.md` as part of a verification round.
+      regenerated `INDEX.md` as part of a verification round. Note the shape for
+      the epic's own doctrine: this is the SELF-SEALING SHAPE one level up from
+      CA-02-DF-04 -- there an instrument's output licensed deleting the
+      instrument, here the act of verification rewrites the thing verified.
   - id: SS-07-DF-02
     found_by: "SS-07, executing every script the stranded-loader sweep flagged"
     found_at_commit: "48f9c7e"

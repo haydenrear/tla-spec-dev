@@ -394,3 +394,115 @@ in §8 are therefore reported as findings and not as confirmed predictions.**
 
 **`SS-07` repaired nothing.** It reverted every mutation its own probes caused
 and left the sealed record byte-identical to `48f9c7e`.
+
+---
+
+## 9. The reconciled tip, and the suite
+
+This branch was reconciled onto `origin/epic/stabilize-substrate` at **`eb2567b`**
+(after `SS-03` merged) at commit **`06cbcce`**. The ledger tail conflicted with
+`SS-03`'s rows and was resolved by **keeping both sets in promotion order** —
+`SS-03` (`promotion_order` 20) before `SS-07` (40). **No row was rewritten,
+reordered or removed, and the count only rose: 308 at `48f9c7e` → 317 at
+`eb2567b` → 321 here.** `disposition.py --ticket SS-07` → `DISPOSED … all three
+clauses hold`.
+
+**Every instrument figure in §1–§3 was re-run at `06cbcce` and NOTHING MOVED:**
+`serve | wc -c` 6281, digest `sha256:2d7d4a0506d9b259`, card version 5, rubric
+`sha256:b7fe75437bf68646`; `audit` 0 violations; `scope` 103 (81/0/2/20);
+`scope --path NEXT-EPIC.md` 3, all REFUTED; `contested` 9 over 39 groups;
+`derive` 16 of 21; the conformance suite `14 passed`; `check_catalogue.py --arms`
+integrity holds; `repriced_history.py` still `FileNotFoundError`;
+`stranded_loaders.py` still 8 files / 15 absent references.
+Transcript: `evidence/tip-instruments-06cbcce.txt`.
+
+### The suite — FIVE numbers that sum, and every movement attributed
+
+`failed + passed + skipped + xfailed = collection`, every time. **A four-number
+report silently stops summing** the moment an `xfail(strict=True)` exists, and
+`SS-01` added one.
+
+| tree | cell | `SS-07` workspace | failed | passed | skipped | xfailed | collection |
+|---|---|---|---:|---:|---:|---:|---:|
+| **`48f9c7e`** (base) | **A**, fresh detached, untouched | **closed** | **8** | **1509** | **0** | **1** | **1518** |
+| `48f9c7e` (base) | `WT`, before `open ticket` — **contaminated, see below** | closed | 8 | 1509 | 0 | 1 | 1518 |
+| `eb2567b` (epic tip, post-`SS-03`) | **A** | closed | — | — | — | — | **1529** (`--collect-only`) |
+| **`06cbcce`** (tip) | `WT` | **OPEN** | **7** | **1525** | **0** | **1** | **1533** |
+
+`8 + 1509 + 0 + 1 = 1518`. `7 + 1525 + 0 + 1 = 1533`. **Both sum.** Collection at
+base was also taken directly: `--collect-only` → `1518 tests collected`.
+
+**Every movement, with its numerator/denominator direction:**
+
+| movement | Δ | cause | mine? |
+|---|---:|---|---|
+| **collection** `1518 → 1529` | **+11** | **`SS-03`'s merge.** Measured directly by `--collect-only` at `eb2567b` in cell `A` with no ticket workspace open: `1529 tests collected`. `SS-03` added 339 lines to `tests/test_goal_baseline_is_a_card.py`. **Denominator rose.** | **no** |
+| **collection** `1529 → 1533` | **+4** | **`open ticket SS-07`**, widening parametrized `test_spec_yaml_valid` over the scaffolded `specs/tickets/SS-07/` tree — the +4 the assignment documents, on the OPEN side of the close. **Denominator rose.** | yes, and it reverses on close |
+| **failed** `8 → 7` | **−1** | `tests/test_goal_baseline_is_a_card.py::test_a_real_epic_plans_judged_baseline_cannot_be_re_opened` was red at base and is green at the tip. **`SS-03` rewrote that test and its subject baseline between the two trees.** **Numerator fell; NOT this ticket's repair and not claimed as one.** | **no** |
+| **passed** `1509 → 1525` | **+16** | `+15` newly collected nodes (11 `SS-03`, 4 workspace) `+1` the red `SS-03` cleared. | mixed, attributed above |
+| **skipped** `0 → 0` | 0 | the four `CA-10-DF-12` skips were already gone at the base | — |
+| **xfailed** `1 → 1` | 0 | `SS-01`'s `xfail(strict=True)` pinning `SS-01-DF-01`, unchanged | — |
+
+**Nothing is unattributed, and the remaining seven reds are BYTE-IDENTICAL sets
+at base and tip** — `test_architecture_tags::test_the_same_tag_control_holds`,
+two `test_instrument_demonstrations` rows, three `test_source_citations`
+manifest rows, and `test_ticket_retirement`, which is the expected self-clearing
+one (*"ticket … is not closed: status=planned"*). **This ticket added no red and
+repaired none.** `GOAL-tree-stabilizes` contribution: **guard, no measurable
+movement attributable to `SS-07`.**
+
+### Contamination disclosed rather than assumed
+
+**The first base run was contaminated and is published anyway.** The `WT` run at
+`48f9c7e` started before this ticket's first file was written, and
+`stranded_loaders.py` landed under `specs/results/scorecards/` about nine minutes
+into it — **the exact mistake `operational_rules_this_project_has_paid_for` names
+and that six parties made in one epic, starting with an owner.** It was caught,
+and cell `A` exists to answer it: a fresh detached worktree of the same commit,
+untouched for its whole run. **Both give `8 / 1509 / 0 / 1 / 1518` and the same
+eight failing test IDs, so the contamination moved nothing — but that is a
+measured answer, not a defence, and the contaminated run is NOT the figure
+quoted.** Cell `A` is. The contaminated transcript is kept as
+`evidence/pytest-base-48f9c7e-WT-CONTAMINATED.txt` rather than deleted, because
+deleting it removes the record of what was measured.
+
+## 10. Two things the sweep sharpened after the findings were written
+
+**`SS-07-DF-01` is worse than first measured, and the correction is here rather
+than by editing the filed row.** Running `index` over **all 18 sealed card
+trees** in throwaway cell `B` (reverted; cell `B` `git status` clean afterwards):
+
+- **18** sealed trees, **15** carry a committed `INDEX.md`, **3 carry none**.
+- **13 of the 15 are STALE** — only two match what the current `index` emits.
+- **The 3 with no `INDEX.md` at all are `close-the-loop-cl03-v4`,
+  `close-the-loop-cl03-v5` and `score-drives-validation-sv04` — the card trees of
+  results 3 and 4.**
+- Spot-checked `architectural-coherence` and `subtract-to-measure-sm05`: same
+  shape as the six in §5 — **every score identical**, only the `total` column and
+  the tier-word-vs-full-model-ID presentation differ.
+
+**`R-H4` was demonstrated with a FAILING input, not just observed at 0.** In cell
+`B`, one sealed card was drifted by a single byte and restored:
+
+```
+audit                      0 violation(s)      # before
+seal <that card>           REFUSED: these are already sealed and their contents changed.
+                             sha256:6c1d81a783050c52 -> sha256:e67426bc7d969422
+audit                      1 violation(s)      # drifted
+audit (after restore)      0 violation(s)
+```
+
+**`seal` refuses drift and names both digests; `audit` moves 0 → 1 → 0 on a
+one-byte change.** `R-H4` is executed, not asserted. `evidence/rh4-demonstrated-with-a-failing-input.txt`.
+
+**One observation deliberately NOT filed as a finding.** `check` over the whole
+`specs/results/scorecards/` root at `48f9c7e` reports **330 problems over 95
+cards**, located entirely in three trees — `reading-discipline` 180,
+`subtract-to-measure-sm05` 86, `subtract-to-measure-sm05-greenfield` 64 — and
+**none in the eleven trees of the four standing results, which report 0.** The
+classes are `RUBRIC-DRIFT`/`SERVED-DRIFT` (older cards scored against an older
+rubric, which is `R-H1`/`R-H2` reporting correctly and which `check` itself
+annotates *"a filled card is evidence and is not edited"*) and `INVALID`
+(citations not in `file:line` form). **That is not obviously a defect and it is
+outside this ticket's slice, so it is reported and not filed** — an entry with no
+established defect is a hunch.
