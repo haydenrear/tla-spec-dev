@@ -529,3 +529,43 @@ verdict and, in the same breath, tells the reader the verdict is about an empty
 observation set. It is recorded here as a POSITIVE instance beside the negative
 ones in §5, not as a red — it is not in this ticket's REQUIRED matrix and no
 corpus was supplied to it.
+
+## 12. The decomposition, MEASURED — no step of it is inferred
+
+§9 attributed the movement using a `--collect-only` at the epic tip and closed
+the arithmetic exactly. **That left the pass/fail split of `SS-03`'s +11
+inferred from the totals, and inferred is not measured**, so the full suite was
+then run at `eb2567b` too, in cell `A`, from a fresh start. **It changes no
+conclusion and it removes the inference.**
+
+| tree | cell | `SS-07` workspace | failed | passed | skipped | xfailed | collection |
+|---|---|---|---:|---:|---:|---:|---:|
+| **`48f9c7e`** epic base | **A** | closed | **8** | **1509** | **0** | **1** | **1518** |
+| **`eb2567b`** epic tip, post-`SS-03` | **A** | closed | **7** | **1521** | **0** | **1** | **1529** |
+| **`06cbcce`** this branch | `WT` | **OPEN** | **7** | **1525** | **0** | **1** | **1533** |
+
+All three sum: `8+1509+0+1 = 1518`; `7+1521+0+1 = 1529`; `7+1525+0+1 = 1533`.
+
+**Split at the boundary that matters — what `SS-03` did, and what `SS-07` did:**
+
+| segment | failed | passed | skipped | xfailed | collection |
+|---|---:|---:|---:|---:|---:|
+| `48f9c7e → eb2567b` — **`SS-03`'s merge, not this ticket** | **−1** | **+12** | 0 | 0 | **+11** |
+| `eb2567b → 06cbcce` — **`SS-07`, everything this ticket did** | **0** | **+4** | **0** | **0** | **+4** |
+
+**`SS-07`'s entire footprint on the tree is `+4` collected and `+4` passed, and
+both are `open ticket SS-07` widening parametrized `test_spec_yaml_valid` over
+`specs/tickets/SS-07/`. It reverses on close.** Zero reds added, zero reds
+repaired, zero skips, zero xfails.
+
+**`SS-03`'s segment, for the record and not for this ticket's credit:**
+numerator fell 8 → 7 (`test_goal_baseline_is_a_card::test_a_real_epic_plans_judged_baseline_cannot_be_re_opened`,
+which `SS-03` rewrote), denominator rose 1518 → 1529, and passed rose by 12 =
+11 newly collected nodes plus the one cleared red.
+
+**The seven reds are a byte-identical set at `eb2567b` and at `06cbcce`.**
+
+`GOAL-tree-stabilizes`, contribution **guard**: **no measurable movement
+attributable to `SS-07` beyond the workspace scaffold, and that is the expected
+effect stated in the plan.** Evidence: `evidence/pytest-base-48f9c7e-cellA.txt`,
+`evidence/pytest-epictip-eb2567b-cellA.txt`, `evidence/pytest-tip-06cbcce.txt`.
