@@ -279,11 +279,25 @@ published, and both were measured.
 | | failed | passed | skipped | xfailed | collection |
 |---|---:|---:|---:|---:|---:|
 | **pre-close** — what the sealed summary carries | **7** | **1548** | **0** | **1** | **1556** |
-| **post-close** — the tree this PR merges | **7** | **1544** | **0** | **1** | **1552** |
+| **post-close** at `711cd02` | **7** | **1544** | **0** | **1** | **1552** |
+| **final**, after merging owner commit `0f31cc3` — **the tree this PR merges** | **7** | **1544** | **0** | **1** | **1552** |
 
-`7 + 1544 + 0 + 1 = 1552`. **The post-close figure is the authoritative one for
+`7 + 1544 + 0 + 1 = 1552`. **The final figure is the authoritative one for
 `SS-08`**, because it describes the tree that is merged. The pre-close figure is
 authoritative for nothing except what the close itself saw.
+
+**A third full run, and it was not wasted even though it moved nothing.** The
+epic branch advanced to `0f31cc3` — an owner commit correcting
+`GOAL-four-results-still-stand/baseline.md` and amending `SS-07`'s and `SS-08`'s
+plan entries — **after** this ticket had reconciled at `eb2567b` and closed.
+Nothing in it touches `SS-02`'s entry, its goals, its conflict keys, or
+`schedule_revision`, and the assignment equality check was re-run against the
+merged plan and holds. It **does** touch a baseline and the plan, both of which
+several tests read, so the matrix was rerun rather than argued about:
+**`7 / 1544 / 0 / 1 / 1552`, byte-for-byte the same verdict set.**
+`pytest-tip-final-0f31cc3.txt`, `collect-tip-final-0f31cc3.txt`,
+`spec-unit-SS-02-final.txt` (exit 0, 56 passed). **If the epic tip moves again
+before this PR merges, that is disclosed here rather than chased.**
 
 **The whole of the `−4` is the `open ticket` inflation being removed, and it is
 identified node by node**, not inferred from the arithmetic —
