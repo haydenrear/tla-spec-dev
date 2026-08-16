@@ -36,7 +36,13 @@ step "Integration half (git-integration-repo)"
 # constituents/ and `git init`. Delegated rather than reimplemented: this skill
 # has no business owning a second copy of the integration markers.
 FRESH_MANIFEST=1; [ -f "$DIR/integration.toml" ] && FRESH_MANIFEST=0
-"$(gir_script init-integration.sh)" "$NAME" "$DIR"
+# Its trailing "Next:" block tells you to run `add-constituent.sh`, which is the
+# one command a plugin repository must never use — it would put the skill at
+# constituents/<name>, where neither skill-manager nor the plugin runtime looks.
+# Dropping it is not cosmetic: it is the first instruction a new user reads, and
+# this script prints its own correct block a few lines below.
+"$(gir_script init-integration.sh)" "$NAME" "$DIR" 2>&1 \
+  | awk '/^Next:/ { skip = 1 } !skip { print }' >&2
 
 cd "$DIR"
 

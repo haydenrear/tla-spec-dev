@@ -90,18 +90,6 @@ while IFS=$'\t' read -r name path remote branch; do
 done < <(manifest "$ROOT" constituents)
 [ "$count" -gt 0 ] || info "no constituents registered yet"
 
-# A skills/<dir> that is not a constituent is legitimate — a skill this bundle
-# owns outright, with no upstream repo of its own — but it will never receive a
-# fan-out, so say so once rather than let it be assumed.
-if [ -d skills ]; then
-  for d in skills/*/; do
-    [ -d "$d" ] || continue
-    n="$(basename "$d")"
-    case " $names " in *" $n "*) continue ;; esac
-    info "note: skills/$n is not in integration.toml — bundle-owned (refresh/propagate will skip it)"
-  done
-fi
-
 # What both greps look at. The root markers are IN, and deliberately: the whole
 # claim is that prose counts as much as shell — a PLUGIN-REPO.md or README.md
 # line telling an agent to run $SKILL_MANAGER_HOME/skills/<bundled>/… is an
@@ -123,20 +111,32 @@ done
 # yet, and a check that blocks `verify.sh` on someone else's file gets disabled
 # rather than fixed.
 step "Store-path resolvers (references/layout.md)"
+#
+# FILE-level, not line-level. The line-level form this replaced passed the very
+# idiom these docs teach — `H="${SKILL_MANAGER_HOME:-…}"` on one line and
+# `"$H/skills/<unit>/…"` on the next — because it demanded the marker and the
+# path in one line. It also flagged the plugins/*/skills rung that IS the fix.
+# So: a file that mentions a bundled unit's store path AND talks about the home
+# AND carries no plugin rung for that unit is a hit; anything with the rung is
+# already fixed and stays quiet.
 hits=0
 for n in $names; do
-  while IFS= read -r line; do
-    [ -n "$line" ] || continue
-    info "$line"
-    hits=$((hits + 1))
-  done < <(grep -rn --exclude-dir=.git "skills/$n\b" $SCAN_DIRS $SCAN_FILES 2>/dev/null \
-             | grep -E 'SKILL_MANAGER_HOME|\.skill-manager/skills/' || true)
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    grep -qE 'SKILL_MANAGER_HOME|\.skill-manager' "$f" || continue
+    grep -qE "plugins/[^[:space:]\"']*/skills/$n" "$f" && continue
+    while IFS= read -r line; do
+      [ -n "$line" ] || continue
+      info "$f:$line"
+      hits=$((hits + 1))
+    done < <(grep -nE "skills/$n/" "$f" | head -3)
+  done < <(grep -rl --exclude-dir=.git -- "skills/$n/" . 2>/dev/null || true)
 done
 if [ "$hits" -eq 0 ]; then
-  info "none — no bundled unit is resolved through the standalone \$SKILL_MANAGER_HOME/skills/<unit> path"
+  info "none — no file resolves a bundled unit at its standalone store path without a plugins/*/skills rung"
 else
-  info "^ $hits reference(s) resolve a BUNDLED unit at its standalone store path. Add a"
-  info "  plugins/*/skills/<unit> rung (references/layout.md § Store paths) before this ships."
+  info "^ $hits line(s), in files that name the home and carry no plugins/*/skills rung."
+  info "  Add one (references/layout.md § Store paths) or, in prose, say <plugin>:<skill>."
 fi
 
 # ------------------------------------------------------- the one that fails LATER
@@ -151,23 +151,74 @@ fi
 # Inside this bundle that is a defect we can see and must report; outside it, it
 # is a sweep migration.md § 2 describes and this script cannot reach.
 step "skill-imports naming a bundled skill (references/imports.md)"
+#
+# FRONTMATTER ONLY — between the first two `---` of a markdown file. A plain
+# line grep failed this repo on its own documentation: a fenced ```yaml
+# counter-example showing the WRONG form is not a wrong import, and a check that
+# fails you for documenting a hazard is a check that gets deleted. (It would
+# also have failed this very skill, whose SKILL.md frontmatter legitimately
+# imports `unit: git-integration-repo`.)
 ihits=0
 for n in $names; do
-  while IFS= read -r line; do
-    [ -n "$line" ] || continue
-    info "$line"
+  while IFS= read -r hit; do
+    [ -n "$hit" ] || continue
+    info "$hit"
     ihits=$((ihits + 1))
-  done < <(grep -rn --include='*.md' --exclude-dir=.git -E "^[[:space:]]*-?[[:space:]]*(unit|skill):[[:space:]]*[\"']?$n[\"']?[[:space:]]*$" \
-             $SCAN_DIRS $SCAN_FILES 2>/dev/null || true)
+  done < <(
+    find . -name '*.md' -not -path './.git/*' -print 2>/dev/null | while IFS= read -r f; do
+      awk -v unit="$n" -v file="$f" '
+        NR == 1 && $0 !~ /^---[[:space:]]*$/ { exit }        # no frontmatter at all
+        /^---[[:space:]]*$/ { seen++; if (seen == 2) exit; next }
+        seen == 1 && $0 ~ "^[[:space:]]*-?[[:space:]]*(unit|skill):[[:space:]]*[\"'\'']?" unit "[\"'\'']?[[:space:]]*$" {
+          printf "%s:%d:%s\n", file, NR, $0
+        }
+      ' "$f"
+    done
+  )
 done
 if [ "$ihits" -eq 0 ]; then
   info "none"
 else
-  info "^ $ihits import(s) name a bundled skill as a UNIT. Rewrite each as"
+  info "^ $ihits frontmatter import(s) name a bundled skill as a UNIT. Rewrite each as"
   info "  'unit: ${PNAME:-<plugin>}' with 'path: skills/<skill>/<file>' — the contained"
   info "  skill is not an installed unit and the validator will refuse it."
   fail=1
 fi
+
+# --------------------------------------------------- state, reported not judged
+#
+# Two questions verify.sh used to answer by accident, both wrongly:
+#   * "did the fan-out happen?" It cannot tell. It printed the MANIFEST branch
+#     and exited 0 whether propagate.sh had run or not.
+#   * "is a skills/<dir> that the manifest does not list fine?" A bundle-owned
+#     skill and the half-finished removal of a constituent look identical —
+#     except that the half-removed one still has the .git its clone left.
+step "Constituent state (evidence, not a verdict)"
+for d in skills/*/; do
+  [ -d "$d" ] || continue
+  n="$(basename "$d")"
+  case " $names " in
+    *" $n "*)
+      [ -d "$d/.git" ] || continue
+      br="$(git -C "$d" rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')"
+      dirty=""; [ -n "$(git -C "$d" status --porcelain 2>/dev/null)" ] && dirty=" DIRTY(unpropagated edits)"
+      ahead="$(git -C "$d" log --oneline "origin/$br..HEAD" 2>/dev/null | grep -c . || true)"
+      case "$ahead" in ''|0) ahead="" ;; *) ahead=" ${ahead} commit(s) not on origin/$br" ;; esac
+      info "$n: on '$br'$ahead$dirty"
+      ;;
+    *)
+      if [ -d "$d/.git" ]; then
+        info "$n: NOT in integration.toml but still has its own .git — a half-finished removal"
+        info "  (a genuinely bundle-owned skill has no .git). Finish it: rm -rf $d and drop nothing else,"
+        info "  or re-register it. Left as is, it ships to every consumer and receives no refresh or fan-out."
+      else
+        info "note: skills/$n is not in integration.toml — bundle-owned (refresh/propagate skip it)"
+      fi
+      ;;
+  esac
+done
+info "this step never fails the run: 'DIRTY' before a fan-out is work in progress, and"
+info "  verify.sh cannot tell a completed propagation from a dry run — lifecycle.md § C can."
 
 step "Result (plugin repository: both halves)"
 if [ "$fail" -eq 0 ]; then info "PASS"; else info "FAIL"; fi

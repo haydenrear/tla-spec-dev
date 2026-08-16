@@ -21,11 +21,22 @@ merged). Bring them into the bundle as **one** change:
 S="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts"  # dependency
 P="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/plugin-repository/scripts"     # here
 git checkout -b feature/pull-upstream
+
+# PRE-FLIGHT. refresh.sh will skip a dirty constituent and hard-reset a clean
+# one, so ask both questions first — there is no other moment at which the
+# answer is visible:
+for d in skills/*/; do
+  printf '%s: ' "$d"
+  git -C "$d" status --porcelain | head -1
+  git -C "$d" log --oneline "origin/$(git -C "$d" rev-parse --abbrev-ref HEAD)..HEAD" | head -3
+done
+
 $S/refresh.sh                    # fetch + reset --hard per constituent; SKIPS any that is dirty
 git status                       # the parent now shows exactly what moved upstream
 git add -A && git commit -m "pull skills to upstream tips"
 $P/release.sh minor              # bump plugin.json + skill-manager-plugin.toml together
-$P/verify.sh
+git add -A && git commit -m "release <version>"   # release.sh does NOT commit
+$P/verify.sh                     # would FAIL on the uncommitted bump above
 # PR → review the whole cross-skill delta in one place → merge
 ```
 
@@ -44,12 +55,26 @@ believe you performed covered a subset, and `release.sh` then cuts a version on
 it. Nothing downstream can tell. So: read every SKIPPING line refresh prints,
 run flow C for each one, and refresh again — do not skim past them.
 
+**And the hazard that is genuinely destructive**, which the "dirty is safe"
+rule does *not* cover: after `propagate.sh` the constituent is **clean** — its
+work is a commit on a local `feature/<T>` branch. `refresh.sh` then checks out
+the default branch and resets it, so the parent tree shows those files as
+modified, indistinguishable from upstream drift — and the next line of this flow
+tells you to `git add -A && git commit`. That commits the revert. It is
+recoverable (the commit is still on `feature/<T>` inside the constituent), but
+only if you know to look. The pre-flight above is what tells you: a constituent
+with commits not on `origin/<branch>` is propagated-but-unmerged, so let the MR
+merge before refreshing.
+
 Refresh one skill rather than the whole bundle with the same script, which keeps
 the dirty-tree guard and resolves the branch from origin's HEAD:
 
 ```bash
 $S/refresh.sh alpha-skill
 ```
+
+Do **not** hand-roll that as `git -C skills/<name> reset --hard origin/<branch>`:
+it has no dirty-tree guard and destroys an unpropagated edit silently. Measured.
 
 ## B. Change several skills at once, in the parent
 
@@ -95,6 +120,16 @@ restated here. Two things are specific to a plugin repo:
 - **Order: propagate, then refresh.** After the MRs merge, flow A brings the
   merge commits back and the parent tree should end up clean — that round trip
   is the evidence the fan-out was complete.
+- **`verify.sh` cannot witness a fan-out.** It reports each constituent against
+  the *manifest* branch, so it exits 0 whether propagate ran or not. Its
+  "Constituent state" step prints the evidence (branch, commits not on origin,
+  dirty) but never judges it. The three questions that actually answer it:
+
+  ```bash
+  git -C skills/<n> rev-parse --abbrev-ref HEAD          # on feature/<T>?
+  git -C skills/<n> log --oneline origin/<branch>..HEAD  # pushed? merged?
+  git -C skills/<n> status --porcelain                   # anything left uncommitted?
+  ```
 
 ## D. Consumers
 
@@ -104,6 +139,16 @@ skt check                       # ONE notification for the whole bundle
 skill-manager sync my-plugin --git-latest
 skill-manager list              # SHA column must match the pushed parent HEAD
 ```
+
+**`SKILL_MANAGER_HOME` does not sandbox the CLI.** Every path in these pages is
+written `${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/…`, which invites the
+assumption that exporting it redirects `skill-manager install` too. It does not:
+an install run that way still writes the real home's `plugins/`, `installed/`,
+`units.lock.toml` and the harness's `enabledPlugins`. Measured twice, once
+during authoring and once during review. To rehearse flow D, use a throwaway
+checkout home created by `git-issue-workflow`'s `bootstrap-home.sh` and the
+launch shims it writes — or accept that you are installing for real, and know
+that `skill-manager remove <name>` is the undo.
 
 A sync that exits 0 is not evidence the bytes moved — the store pulls from the
 **remote**, so an unpushed commit leaves it on the old bytes with a green
@@ -154,25 +199,35 @@ integration repo has, for the same reason.
 agree and hand-editing one is the standard way to make them not. Guidance:
 
 - **patch** — one skill's wording, a fix inside a skill.
-- **minor** — a skill added to or removed from the bundle, new hooks/commands,
-  a routine upstream pull.
-- **major** — a contained skill's `name` changes (its invocation name changes
-  for every consumer), a skill leaves the bundle, or a convention lands that
-  consumers must act on.
+- **minor** — a skill **joins** the bundle, new hooks/commands, a routine
+  upstream pull.
+- **major** — a skill **leaves** the bundle, or a contained skill's `name`
+  changes. Both change what consumers can invoke, and a caller of
+  `<plugin>:<skill>` gets nothing afterwards.
 
-Tag if the consumers pin refs; nothing here requires it — `sync --git-latest`
-follows the installed `gitRef`.
+Tags: a git-coord install or `sync --git-latest` never needs one. A registry
+`skill-manager publish` **refuses a version with no matching tag** (`no git tag
+matching version '1.0.0' (looked for v1.0.0, 1.0.0)`), so tag when you publish
+that way. `release.sh` prints the line and does not run it.
 
 ## Removing a skill from the bundle
 
 Not scripted, because it is three deletions and a version, and a script that
 deleted a skill's directory on one argument is a worse trade than a checklist:
 
+The half-finished version is the dangerous one, and it **passes** the
+integration checks: drop the `[[constituent]]` block but leave the directory,
+and the skill keeps shipping to every consumer forever while receiving no
+refresh and no fan-out. `verify.sh`'s "Constituent state" step calls it out —
+an unregistered `skills/<n>/` that still has its own `.git` is a half-removal,
+because a genuinely bundle-owned skill never had one.
+
 ```bash
 git rm -r --cached skills/<name> && rm -rf skills/<name>   # includes its .git
 # then delete the [[constituent]] block for <name> from integration.toml by hand
-#   (_manifest.py has `constituents`, `get` and `add` — there is no `rm`)
-$P/release.sh minor          # major if consumers invoke <plugin>:<name> today
+#   (_manifest.py has `constituents`, `get` and `add` — `rm` is "unknown command")
+# .claude-plugin/plugin.json needs NO edit: it carries no list of skills
+$P/release.sh major          # consumers lose <plugin>:<name> — that is a major
 $P/verify.sh                 # asserts nothing still points at the removed skill
 git add -A && git commit -m "drop <name> from the bundle"
 ```

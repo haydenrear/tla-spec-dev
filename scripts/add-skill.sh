@@ -83,10 +83,22 @@ step "Checking it can be a contained skill"
 
 # The frontmatter `name:` is the invocation name. A directory that disagrees
 # with it gives `<plugin>:<one>` for a skill everything else calls <other>.
+# RAW: everything after `name:` except the quotes, with NO trailing-space trim.
+# The trim that used to be here normalized away exactly what this check exists
+# to find — `name: "gamma-skill "` was accepted, committed, finalized, verified
+# and installed, and the store copy still carried the space.
 DECLARED="$(awk '
   /^---[[:space:]]*$/ { seen++; if (seen == 2) exit; next }
-  seen == 1 && /^name:[[:space:]]*/ { sub(/^name:[[:space:]]*/, ""); gsub(/["'"'"']/, ""); print; exit }
-' "$REL/SKILL.md" | tr -d '\r' | sed 's/[[:space:]]*$//')"
+  seen == 1 && /^name:[[:space:]]*/ { sub(/^name:[[:space:]]+/, ""); gsub(/["'"'"']/, ""); print; exit }
+' "$REL/SKILL.md" | tr -d '\r')"
+case "$DECLARED" in
+  *[![:space:]]*[[:space:]] | [[:space:]]*)
+    bail "whitespace in the declared name: SKILL.md says name: ['$DECLARED'] (brackets mark the ends).
+  skill-manager stores that name verbatim, so the space travels into the store
+  and into '<plugin>:<name>'. Fix the SKILL.md in $REMOTE first — this cannot be
+  worked around from here, and re-running with a trimmed argument would only
+  hide it." ;;
+esac
 if [ -z "$DECLARED" ]; then
   info "WARNING: $REL/SKILL.md declares no frontmatter name: — skill-manager will not install it"
 elif [ "$DECLARED" != "$NAME" ]; then

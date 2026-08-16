@@ -205,6 +205,41 @@ PYX
   git -C "$PR" checkout -- skills/demo-skill/SKILL.md 2>/dev/null || true
   rmdir "$PR/skills/demo-skill/.selftest" 2>/dev/null || true
 
+  # The three verdicts the first cut of these checks got wrong, in a sandbox
+  # exercise: a two-line resolver idiom passed, the plugins/*/skills rung that
+  # IS the fix was flagged, and a fenced counter-example in documentation
+  # FAILED the run.
+  mkdir -p "$PR/skills/demo-skill/scripts"
+  printf '#!/bin/sh\nH="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"\nLIB="$H/skills/demo-skill/scripts/go.sh"\n' \
+    > "$PR/skills/demo-skill/scripts/two-line.sh"
+  vout="$( ( cd "$PR" && "$HERE/verify.sh" ) 2>&1 || true )"
+  case "$vout" in
+    *two-line.sh*) ok "verify.sh catches the TWO-LINE store-path idiom" ;;
+    *) bad "verify.sh missed a two-line store-path resolver (marker and path on separate lines)" ;;
+  esac
+  printf '#!/bin/sh\nH="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"\nfor c in "$H/skills/demo-skill/x" "$H"/plugins/*/skills/demo-skill/x; do :; done\n' \
+    > "$PR/skills/demo-skill/scripts/two-line.sh"
+  vout="$( ( cd "$PR" && "$HERE/verify.sh" ) 2>&1 || true )"
+  case "$vout" in
+    *two-line.sh*) bad "verify.sh flagged a resolver that already carries the plugins/*/skills rung" ;;
+    *) ok "verify.sh stays quiet on a resolver that is already fixed" ;;
+  esac
+  rm -rf "$PR/skills/demo-skill/scripts"
+
+  mkdir -p "$PR/skills/demo-skill/references"
+  printf 'Do NOT write this:\n\n```yaml\nskill-imports:\n  - unit: demo-skill\n    path: SKILL.md\n```\n' \
+    > "$PR/skills/demo-skill/references/dont.md"
+  # Exit code is the wrong signal here: the new file is untracked, so the
+  # DELEGATED half fails on a dirty tree for reasons that have nothing to do
+  # with imports. Ask the import step itself.
+  vout="$( ( cd "$PR" && "$HERE/verify.sh" ) 2>&1 || true )"
+  case "$vout" in
+    *"import(s) name a bundled skill"*)
+      bad "verify.sh flagged a fenced counter-example in documentation (frontmatter scoping is broken)" ;;
+    *) ok "verify.sh does not flag a fenced counter-example in documentation" ;;
+  esac
+  rm -rf "$PR/skills/demo-skill/references"
+
   # The guard the DEPENDENCY cannot enforce here: its finalize refuses on a
   # `constituents` pathspec that a plugin repo does not have, so finalize.sh
   # re-asks against the manifest's real paths. If this ever stops refusing, an

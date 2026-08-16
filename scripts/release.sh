@@ -14,9 +14,10 @@ usage() {
 usage: release.sh <patch|minor|major|X.Y.Z>
 
   patch   a skill's wording, a fix inside a skill
-  minor   a skill joins or leaves the bundle, new hooks/commands, an upstream pull
-  major   a contained skill's name changes (every consumer's invocation changes),
-          or a convention lands that consumers must act on
+  minor   a skill JOINS the bundle, new hooks/commands, a routine upstream pull
+  major   a skill LEAVES the bundle, or a contained skill's name changes (both
+          change what every consumer can invoke), or a convention lands that
+          consumers must act on
   X.Y.Z   an explicit version
   -h, --help  This message.
 
@@ -110,6 +111,9 @@ Version is $NEW in both manifests. Nothing was committed.
 
 Next:
   git add -A && git commit -m "release $NEW"
+  git tag "v$NEW"     # only needed for `skill-manager publish` (the registry
+                      # path refuses a version with no matching tag). A plain
+                      # git-coord install/sync does not use tags.
   # push, then consumers: skill-manager sync $(plugin_json_get "$ROOT" name) --git-latest
   #   (a green sync is NOT evidence the bytes moved — compare gitHash in
   #    \$SKILL_MANAGER_HOME/installed/<plugin>.json against the pushed HEAD)

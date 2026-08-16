@@ -185,9 +185,12 @@ $P/finalize.sh                                                   # guard the inv
 $P/verify.sh                                                     # plugin checks + the dependency's
 
 # --- pull every skill's upstream in, as one change ---
-$S/refresh.sh
-git checkout -b feature/pull-upstream && git add -A && git commit -m "pull skills to upstream tips"
-$P/release.sh minor                                              # bump plugin.json + toml together
+git checkout -b feature/pull-upstream
+$S/refresh.sh                                                    # READ its SKIPPING lines
+git add -A && git commit -m "pull skills to upstream tips"
+$P/release.sh minor                                              # bumps both manifests; does NOT commit
+git add -A && git commit -m "release <version>"
+$P/verify.sh
 #   ...PR, merge, then consumers: skill-manager sync my-plugin --git-latest
 
 # --- change several skills at once, then fan out ---

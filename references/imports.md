@@ -164,7 +164,9 @@ What to do about it:
 
 `install --dry-run` does not run this validation at all (only `publish
 --dry-run`, and the real `install`/`sync`), so a dry-run install is not evidence
-that a bundle's imports are sound.
+that a bundle's imports are sound. And `publish --dry-run` **prints the
+violations while exiting 0** — read its output; do not gate CI on its exit
+code.
 
 ## Summary table
 

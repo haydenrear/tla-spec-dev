@@ -63,6 +63,22 @@ invariant is unchanged and unforgiving: **`git add` + commit the skill's files
 while it has no `.git`, and only then finalize.** See `git-integration-repo`'s
 `references/git-model.md`.
 
+## Two manifest fields to set right after scaffolding
+
+`init-plugin-repo.sh` writes `[integration] host = "github"` and turns the
+`spec_double_compiler` / `test_graph` compositions off, because the dependency's
+scaffold defaults to GitLab and to both compositions on — defaults that are
+wrong for a bundle of skills and are otherwise discovered at the first fan-out.
+Two things it cannot decide for you:
+
+- **`host`** — flip it back to `"gitlab"` if these skill repos live there.
+  `propagate.sh` picks `glab` or `gh` from it. With the wrong value it pushes
+  the branches and silently opens no MRs at all.
+- **`tracker = "owner/repo"`** — where the one tracking issue is filed. Unset,
+  `propagate.sh --mr` writes the issue body to
+  `.integration/tmp/<TICKET>-issue.md` and reports "no tracker configured",
+  which reads like a flag error and is not one.
+
 ## Store paths, and the resolvers they break
 
 The disk half of a bigger subject: **everything that addresses a bundled skill
@@ -104,9 +120,11 @@ done
 ```
 
 `scripts/plugin-repo-lib.sh` here ships that search as `unit_dir <name>` — use
-it rather than writing a fourth copy — and `scripts/verify.sh` greps the bundled
-skills for the bare `skills/<unit>` form and reports each hit, because the whole
-point is to find them before a consumer does.
+it rather than writing a fourth copy. `scripts/verify.sh` reports each file in
+the repo that names a bundled unit's store path, mentions the home, and carries
+no `plugins/*/skills/` rung; a file that already has the rung stays quiet. The
+check is per **file**, not per line, because the idiom above spans two lines and
+a line-level grep passed it.
 
 ## The two manifests must agree
 
