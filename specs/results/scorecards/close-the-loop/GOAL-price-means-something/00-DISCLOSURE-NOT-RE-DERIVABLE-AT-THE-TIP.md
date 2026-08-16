@@ -24,9 +24,18 @@ FileNotFoundError: [Errno 2] No such file or directory:
 ```
 
 Line 21 loads `examples/validation/gap_mutants/price_removal.py` and line 22
-loads `examples/validation/removal_census/removals.toml`. **`CA-02` deleted
-both**, at `37ab155`, and priced the deletion in its own price table. Filed as
-`CA-02-DF-04` by the ticket that caused it, against itself.
+loads `examples/validation/removal_census/removals.toml`. **`CA-02` deleted both
+in commit `1d87302`** — *"CA-02: cut the removal pricer, an instrument whose
+answer git show already gave"* — and priced the deletion in its own price table.
+Filed as `CA-02-DF-04` by the ticket that caused it, against itself.
+
+> **CORRECTED 2026-08-16. The first version of this page said the deletion was
+> at `37ab155`. It was not: `37ab155` is `1d87302`'s PARENT, which is precisely
+> why §3 restores FROM `37ab155` — the last tree that still had the files.**
+> Re-derived here rather than asserted:
+> `git log --diff-filter=D -- examples/validation/gap_mutants/price_removal.py`
+> → `1d87302`. A page whose whole subject is re-derivability had the commit
+> wrong in its second paragraph.
 
 **What survives and what does not, checked file by file at `48f9c7e`:**
 
@@ -57,9 +66,16 @@ would edit a sealed measurement script and make this transcript no longer the
 one that produced the published figure. **So the only honest moves are DISCLOSE
 or DO-NOT-CUT.**
 
-**`SS-07` takes DISCLOSE.** DO-NOT-CUT was not available to it: the cut landed
-four commits before this epic branched, and taking it now would mean reverting
-another ticket's priced, closed work under cover of a verification ticket.
+**`SS-07` takes DISCLOSE.** DO-NOT-CUT was not available to it: **the cut
+`1d87302` is 61 commits before this epic's base `436c78c`, 17 of them merges,
+spanning an entire epic** (`git rev-list --count 1d87302..436c78c` = 61,
+`--merges` = 17). Taking DO-NOT-CUT now would mean reverting another ticket's
+priced, closed work under cover of a verification ticket.
+
+> **CORRECTED 2026-08-16: this said "four commits", a figure that was never
+> re-derived, in the one document arguing that figures must be re-derived at a
+> named tree. The distance is an order of magnitude larger and the conclusion is
+> therefore stronger, not weaker.**
 
 ## 3. And DISCLOSE is worth more than it was, because the re-derivation was RUN
 
@@ -92,8 +108,19 @@ zero lines of difference.**
 **What that does and does not buy.**
 
 - It **does** give a doubter a runnable route: three commands, no edit to any
-  sealed file, no trust in the transcript required. That is the property
-  `CA-08` said a transcript alone cannot provide, and it now exists.
+  sealed file, no trust in the transcript required. **What that establishes,
+  stated narrowly:** the sealed transcript is genuine output of that instrument
+  on those inputs — it is AUTHENTICATED rather than merely asserted.
+- **It is a PURE REPLAY and byte-identity was guaranteed.** Every input —
+  `price_removal.py`, `removals.toml` and all four before-tables — is frozen at
+  or before `37ab155`, and the instrument is deterministic, so the diff being
+  empty was the only possible outcome once the run completed. **It is a check
+  that nothing has silently rotted, not a new measurement.**
+- **It does NOT show the claim holds against today's record.** No removal made
+  after `37ab155` is in the census — including `CA-02`'s own cut. **`CA-08`'s
+  decision is untouched and is not overturned here**: the standing requirement
+  is an instrument that runs at the tip against the current record, and that
+  still does not exist.
 - It **does not** make the result re-derivable *at the tip*, and `SS-07` does
   not claim it does. The route depends on `37ab155` remaining reachable in this
   repository's history. **If that history is ever rewritten or shallow-cloned,

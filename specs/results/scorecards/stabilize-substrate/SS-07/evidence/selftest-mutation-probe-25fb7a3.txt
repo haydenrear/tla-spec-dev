@@ -1,0 +1,19 @@
+[PASS] absent-input 1: record root does not exist
+         expected: exit 2 + REFUSED
+         observed: exit=2 REFUSED=True
+[PASS] absent-input 2: record root holds no *.py
+         expected: UNDECIDED, and no clean verdict
+         observed: exit=0 UNDECIDED=True clean_claimed=False
+[PASS] absent-input 3: file names zero repository paths
+         expected: counted as NO-PATHS, reported separately from 'resolves'
+         observed: exit=0 no_paths_counted=True
+[PASS] failing-input: file names a really-deleted file
+         expected: STRANDED, counted in the census
+         observed: exit=0 STRANDED=True
+
+selftest: PASS -- every case invoked main(); none restates the predicate
+
+MUTATION PROBE -- seed a mutant in the branch case 1 claims to cover:
+replace main()'s `if not root.exists(): ... return 2` with `if False: pass`
+-> selftest: FAIL   (the pre-review self-test printed PASS on the same mutant)
+restore -> selftest: PASS, exit 0

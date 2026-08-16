@@ -19,10 +19,24 @@ this ticket. Neither cell was named after the ticket.
 
 ## 0. Headline
 
-**All four results stand at `48f9c7e`. Three were re-verified BY EXECUTION and
-the fourth by execution of the instrument that computes its numbers. Result 2 is
-damaged exactly as recorded and no worse. The stranded disproof instrument is
-DECIDED: DISCLOSE.**
+**All four results stand at `48f9c7e` and at `06cbcce`. Result 2 is damaged
+exactly as recorded and no worse. The stranded disproof instrument is DECIDED:
+DISCLOSE.**
+
+**AND THE WORD "EXECUTION" IS NARROWED, BECAUSE THE FIRST VERSION OF THIS FILE
+OVER-READ IT.** Two different things were done and they are not equally strong:
+
+| | what ran | which results |
+|---|---|---|
+| **RE-EXECUTION** — the measurement is recomputed from the subject | `test_journal_conformance.py` (`14 passed`), `check_catalogue.py --arms`, `architecture_tags.py derive` | **result 4's test half, result 1's confound half, result 2's tag half** |
+| **RE-RENDER** — a renderer reads the sealed `scorecard.json` and reprints it | `score_tools.py index`, `history` | **result 1's score half, result 2's separation half, result 3 ENTIRELY, result 4's re-score half** |
+
+**A re-render proves the sealed card still parses and still says what the record
+claims. It is not a re-derivation, and no judge was re-run.** **Result 3 has no
+re-execution available at all** — its subject is a pair of judge scores under two
+card versions, and re-deriving it means re-scoring, which this ticket must not
+do. **Result 4 is the one with a genuine re-run.** The first version of this
+headline said the opposite way round.
 
 **And the disclosure came out stronger than the record said it could.**
 `CA-02-DF-04` names a restore command that nobody had ever run. `SS-07` ran it
@@ -43,16 +57,21 @@ was reverted; `git status` is quoted in §5.
 
 ## 1. The four results, each verified individually
 
-| # | result | verified by | verdict at `48f9c7e` |
-|---|---|---|---|
-| 1 | Asking for an architecture changes the architecture | **execution** — `check_catalogue.py --arms` re-derives the confound control; `index` re-derives every score | **STANDS** |
-| 2 | D3 separates architectures on more than one example | **execution** — `architecture_tags.py derive`; `index`; `contested` | **STANDS, DAMAGED** exactly as priced |
-| 3 | D3's v5 caveat discriminates | **execution** — `index` and `history` over four sealed trees | **STANDS** |
-| 4 | A score can produce a test and the re-score sees it | **execution** — the conformance suite re-run, `14 passed` | **STANDS, VERIFIED BY EXECUTION** |
+| # | result | RE-EXECUTED (recomputed from the subject) | RE-RENDERED (sealed card reparsed) | verdict |
+|---|---|---|---|---|
+| 1 | Asking for an architecture changes the architecture | **yes, the confound half** — `check_catalogue.py --arms` recomputes the length match and the vocabulary count from the prompts on disk | the score half — `index` | **STANDS** |
+| 2 | D3 separates architectures on more than one example | **yes, the tag half** — `architecture_tags.py derive` walks the subject ASTs | the separation half — `index`, `contested` | **STANDS, DAMAGED** exactly as priced |
+| 3 | D3's v5 caveat discriminates | **NO — none is available.** Re-deriving it means re-scoring, which this ticket must not do | entirely — `index`, `history` | **STANDS on the record** |
+| 4 | A score can produce a test and the re-score sees it | **yes, the test half** — the conformance suite re-run, `14 passed`, 70/70 | the re-score half — `index` | **STANDS, RE-EXECUTED** |
+
+**Read that table before the sections below.** A re-render proves the sealed
+card still opens, parses and says what the record claims — which is exactly what
+clause (a) asks — but it recomputes nothing and no judge was re-run.
 
 ### Result 1 — asking for an architecture changes the architecture
 
-Two halves, both re-derived at `48f9c7e` in `WT`.
+Two halves at `48f9c7e` in `WT`: **the scores are re-rendered from the sealed
+cards; the confound kill is genuinely recomputed.**
 
 **The effect.** `score_tools.py index specs/results/scorecards/hexagonal-prompting`:
 
@@ -203,8 +222,17 @@ sealed baseline figure. **Named, not inherited.**
 `planning_rules.blindness_is_re_probed_every_round`:
 
 - `cell` on a path containing `-Users-hayde-IdeaProjects-tla-spec-dev` prints
-  `PROBLEM path component ... names the project under test` — **and exits 0**.
-  Read the output, not the exit code.
+  `PROBLEM path component ... names the project under test` **and exits 1**
+  (`blind_dispatch.py:199-200` returns 1 whenever `problems` is non-empty).
+  **CORRECTED 2026-08-16, and the correction is the point.** The first version of
+  this file said it *"exits 0 — read the output, not the exit code"*. **That was
+  false, and it was false because of HOW I MEASURED IT**: the command was run
+  through `| tail -4`, so `$?` was `tail`'s status and not the instrument's.
+  **The instrument was reporting correctly and my pipeline threw the answer
+  away.** Filed as `SS-07-DF-05`. Re-measured unpiped: `cell` exits **1** on a
+  project-naming path, `check` exits **1** on `REFUSED` and **2** on
+  `UNDECIDED`. **The blinding mechanism's exit codes are usable and a caller may
+  gate on them** — the opposite of what this document previously told `SS-08`.
 - `check` on an **empty** report: `UNDECIDED: the subject is empty. … This is
   NOT a pass.` The absent-input case is repaired and the `UNDECIDED` branch is
   live, not dead code.
@@ -215,8 +243,9 @@ sealed baseline figure. **Named, not inherited.**
 - **A hazard every ticket on this epic inherits, stated because it is not
   obvious:** `check --repo .` from a ticket worktree derives **0 memory
   needles**, because a worktree has no memory slug of its own, and returns
-  **WEAK PASS**. The strongest needle class is silently unavailable. The source
-  documents this at `blind_dispatch.py:99-105`; pass `--memory` with the
+  **WEAK PASS** — **and it says so loudly**, printing a two-line `WARNING` that
+  names the missing memory path and the remedy. It is not silent; it is easy to
+  scroll past. The source documents the cause at `blind_dispatch.py:99-105`; pass `--memory` with the
   **dispatching session's** file. With it, 20 memory needles were derived and
   the refusal above fired.
 
@@ -242,8 +271,13 @@ Summary of what it records:
   `examples/validation/removal_census/removals.toml` is absent too. **The four
   sealed before-tables it reads all survive** — the data lives, the instrument
   does not.
-- **DO-NOT-CUT was not available**: the cut landed four commits before this
-  epic branched. **`R-H4` forbids repairing.** So: **DISCLOSE.**
+- **DO-NOT-CUT was not available**: the cut is `1d87302`, and
+  `git rev-list --count 1d87302..436c78c` = **61 commits, 17 of them merges**,
+  spanning an entire epic before this one branched. **CORRECTED: the first
+  version of this file said "four commits", which is not any reading of the
+  distance and was never re-derived — inside the document whose thesis is that
+  figures must be re-derived at a named tree.** The reasoning is unchanged and
+  strengthened. **`R-H4` forbids repairing.** So: **DISCLOSE.**
 - **New, and it is the useful part:** `CA-02-DF-04`'s `reproduction` names a
   restore command that had never been run. Run at `48f9c7e` in cell `B` with
   `examples/validation/{gap_mutants,removal_census}` restored from `37ab155`:
@@ -255,8 +289,14 @@ Summary of what it records:
   ```
 
   **`diff` against the sealed `repriced-history-sweep.txt`: byte-identical.**
-  A doubter now has a runnable route that requires trusting no transcript —
-  the property `CA-08` said a transcript alone cannot supply.
+  **Stated narrowly, because the first version over-read it:** this
+  AUTHENTICATES the sealed transcript as genuine output of that instrument on
+  those inputs. It is a **pure replay** — every input is frozen at or before
+  `37ab155` and the instrument is deterministic, so byte-identity was the only
+  possible outcome. **It does not show the claim holds against today's record**
+  (no removal after `37ab155` is in the census, including `CA-02`'s own cut),
+  and **`CA-08`'s decision stands unchanged**: an instrument that runs at the
+  tip against the current record still does not exist.
 - **What it does not buy**: the route depends on `37ab155` staying reachable.
   Checked: reachable in this repository and in the installed
   `spec-double-compiler` unit (not a shallow clone). A shallow or rewritten
@@ -266,6 +306,33 @@ Summary of what it records:
 them by name and uses `NEXT-EPIC.md` §5's wording: *"a non-zero was the
 informative outcome, the instrument would have printed one, and none appeared —
 the goal is met and the instrument is not yet useful."*
+
+### And the placement is ROUTING, not consumption — said plainly
+
+**By this ticket's own `SS-07-DF-04` standard, writing a disclosure into one
+directory is routing.** Measured, not assumed:
+`grep -rln "00-DISCLOSURE-NOT-RE-DERIVABLE"` over the repository returns
+**exactly one file — this one.** Every other document that carries the claim
+still says nothing about it:
+
+| document | carries the claim | points at the disclosure | in `SS-07`'s conflict keys |
+|---|---|---|---|
+| `NEXT-EPIC.md` §5 | yes | **no** | **no** |
+| `specs/results/scorecards/cut-the-apparatus/CA-02/PRICE-TABLE.md` | yes | **no** | no — and it is a closed ticket's sealed price table |
+| `.../CA-04/PRICE-TABLE.md` | yes | **no** | no — same |
+| `.../CA-08/RESULT.md` | yes | **no** | no — same |
+| `.../close-the-loop/CL-04/RESULT.md`, `RESULT-CL-02.md` | yes | **no** | `RESULT-CL-02.md` only, and `R-H4` forbids editing it |
+| `specs/results/skill_feedback.md` | yes | **no** | **no** |
+
+**`SS-07` did not point them at it, and states that rather than implying
+coverage it does not have.** Two reasons, and the first is binding: **every one
+of those paths is outside this ticket's declared conflict keys**, and editing
+them would collide with siblings and, for the price tables and `CA-08/RESULT.md`,
+edit sealed results of closed tickets. The one place in scope that a reader of
+this goal will actually land — `GOAL-four-results-still-stand/` — **does** now
+carry a pointer: `SS-07-POINTERS.md`. **Everything else is the epic owner's
+call, and it is listed above so the call can be made from a table rather than a
+memory.**
 
 ## 5. Not stopping — what the sweep found
 
@@ -391,6 +458,9 @@ in §8 are therefore reported as findings and not as confirmed predictions.**
 | `SS-07-DF-02` | two sealed-record classifiers overwrite their own committed evidence when re-run, with different content at this tree | carried -> SS-08 |
 | `SS-07-DF-03` | `SV-03`'s no-card instrument is stranded by success and prints `IDENTICAL: True` in its body while the treatment never applied | carried -> SS-08 |
 | `SS-07-DF-04` | the mechanical check `CA-02-DF-04` asked for now exists and is demonstrated, and **nothing executes it** | carried -> SS-08 |
+| `SS-07-DF-05` | **the `cell` exit-code claim in this ticket's own first draft was false** — it exits 1, not 0; the 0 was `tail`'s status. **Fifth instance in this epic of a figure wrong because of HOW it was measured** | carried -> SS-08 |
+| `SS-07-DF-06` | **this ticket's own `--selftest` was partly vacuous** — two of four cases restated the predicate instead of calling the entry point — **and the vacuity was hiding a crash** on any `--root` outside the repository | carried -> SS-08 |
+| `SS-07-DF-07` | `disposition.py --ticket` silently drops rows a ticket filed but did not personally find, then reports `all three clauses hold`. **`SS-01` owns 7 rows and it reports 2; 35 of 324 rows repo-wide are invisible.** `--epic` is unaffected | carried -> SS-08 |
 
 **`SS-07` repaired nothing.** It reverted every mutation its own probes caused
 and left the sealed record byte-identical to `48f9c7e`.
@@ -436,7 +506,7 @@ base was also taken directly: `--collect-only` → `1518 tests collected`.
 
 | movement | Δ | cause | mine? |
 |---|---:|---|---|
-| **collection** `1518 → 1529` | **+11** | **`SS-03`'s merge.** Measured directly by `--collect-only` at `eb2567b` in cell `A` with no ticket workspace open: `1529 tests collected`. `SS-03` added 339 lines to `tests/test_goal_baseline_is_a_card.py`. **Denominator rose.** | **no** |
+| **collection** `1518 → 1529` | **+11** | **`SS-03`'s merge**, and the split is **+10 / +1**, not 11 from one file: `test_goal_baseline_is_a_card.py` **19 → 29** and `test_spec_yaml_valid.py` **26 → 27**, the parametrized sweep picking up `SS-03`'s new `baseline_resolution_index.yaml`. Measured per file with `--collect-only` in cells `A` and `B`. **CORRECTED after review, which was right: the first version said all 11 came from the test file. Note the coincidence worth naming — `test_spec_yaml_valid` is the SAME parametrized test that `open ticket` widens by +4 below.** **Denominator rose.** | **no** |
 | **collection** `1529 → 1533` | **+4** | **`open ticket SS-07`**, widening parametrized `test_spec_yaml_valid` over the scaffolded `specs/tickets/SS-07/` tree — the +4 the assignment documents, on the OPEN side of the close. **Denominator rose.** | yes, and it reverses on close |
 | **failed** `8 → 7` | **−1** | `tests/test_goal_baseline_is_a_card.py::test_a_real_epic_plans_judged_baseline_cannot_be_re_opened` was red at base and is green at the tip. **`SS-03` rewrote that test and its subject baseline between the two trees.** **Numerator fell; NOT this ticket's repair and not claimed as one.** | **no** |
 | **passed** `1509 → 1525` | **+16** | `+15` newly collected nodes (11 `SS-03`, 4 workspace) `+1` the red `SS-03` cleared. | mixed, attributed above |
@@ -518,8 +588,16 @@ established defect is a hunch.
 | **spec graph / graphs** | — | none declared; this ticket changes no `External.tla` surface |
 
 **One extra, run although not required, because it is this epic's own subject
-matter.** `run effect-conformance` with no `--cases-dir` exits 1 reporting two
-DEAD MODEL SURFACEs — **and then names its own absent input unprompted**:
+matter.** `run effect-conformance` with no `--cases-dir` exits 1 reporting
+**14** `DEAD MODEL SURFACE` lines — **and then names its own absent input
+unprompted**:
+
+> **CORRECTED 2026-08-16: this said "two", and the committed transcript beside
+> it, `evidence/effect-conformance-no-cases-dir-06cbcce.txt`, says 14. The prose
+> contradicted its own sealed evidence by a factor of seven** — I quoted the two
+> lines I had tailed instead of counting the file I had saved. `grep -c` on the
+> transcript and a fresh re-run both give **14**. Same class as `SS-07-DF-05`:
+> the figure was wrong because of how it was read, not what was there.
 
 > *"NOTE: no `--cases-dir` supplied, so no adapter was executed and nothing was
 > observed. The dead-surface finding above reflects an empty observation set."*
@@ -569,3 +647,76 @@ which `SS-03` rewrote), denominator rose 1518 → 1529, and passed rose by 12 =
 attributable to `SS-07` beyond the workspace scaffold, and that is the expected
 effect stated in the plan.** Evidence: `evidence/pytest-base-48f9c7e-cellA.txt`,
 `evidence/pytest-epictip-eb2567b-cellA.txt`, `evidence/pytest-tip-06cbcce.txt`.
+
+---
+
+## 13. Independent review refuted this ticket, and eleven things changed
+
+**PR #283 went to a reviewer instructed to REFUTE. Verdict: CHANGES, eleven
+findings, three high. Every one was re-derived here by execution before being
+accepted, and every one held.** Recorded in full rather than summarised, because
+this ticket's own subject is what happens to claims nobody re-checks.
+
+| # | what review said | re-derived here | outcome |
+|---|---|---|---|
+| **1 HIGH** | `cell` exits **1**, not 0; the 0 was `tail`'s status | `cell …; echo $?` → **1**; same command `\| tail -4` → **0**. `check` → **1** REFUSED, **2** UNDECIDED | **accepted.** The false claim told `SS-08` to distrust a *working* safety signal. `SS-07-DF-05` |
+| **2 HIGH** | the deletion is `1d87302`, not `37ab155` | `git log --diff-filter=D -- …/price_removal.py` → **`1d87302`**; `1d87302^` = `37ab155` | **accepted.** Fixed in the disclosure |
+| **3 HIGH** | "four commits before this epic branched" is wrong | `git rev-list --count 1d87302..436c78c` = **61**, `--merges` = **17** | **accepted.** The conclusion is *stronger*; the figure was never re-derived |
+| **4 MOD** | "verified by execution" over-reads results 1–3, and the concession named the wrong result | `evidence/tip-instruments-06cbcce.txt` really has no `index`/`history` | **accepted.** §1 now separates RE-EXECUTED from RE-RENDERED, and the tip run is measured in `evidence/tip-index-history-06cbcce.txt` instead of inferred |
+| **5 MOD** | it is **14** dead surfaces, not two, and the committed transcript says so | `grep -c` on my own evidence → **14**; fresh run → **14** | **accepted.** Prose contradicted its own sealed transcript sevenfold |
+| **6 MOD** | two of four `--selftest` cases restate the predicate | confirmed in source | **accepted, and worse than reported** — see below |
+| **7** | owner ruling: the scope expansion is allowed, state it | — | stated, §14 |
+| low | "silently unavailable" | it prints a two-line `WARNING` | **accepted**, struck |
+| low | PR table labels the wrong commit for the suite transcript | — | **accepted**, relabelled `06cbcce` |
+| low | `SS-03`'s +11 is **+10 / +1** | `test_goal_baseline_is_a_card.py` 19→29, `test_spec_yaml_valid.py` 26→27 | **accepted** |
+| low | `SS-07-DF-01`'s summary under-reads its own `blast_radius` | 16 of 18 trees mutate, not 9 of 11 | **accepted**, summary now leads with 16 of 18 |
+
+**Nothing here was rejected. The reviewer was right eleven times out of eleven.**
+
+### Fixing finding 6 found a crash that the vacuous version could not reach
+
+Rewriting `--selftest` so all four cases invoke `main()` and assert on **its exit
+code and its output** made it **fail immediately**: `render()` called
+`.relative_to(REPO_ROOT)` unconditionally, so **any `--root` outside this
+repository died with `ValueError`** — and a foreign root is precisely the case
+`SS-01-DF-03` says a caller will exercise. **The predicate-restating self-test
+could never have reached that line.** Both are repaired; `SS-07-DF-06`.
+
+**And the repaired self-test was checked against a seeded mutant**, which is
+what `CA-10-DF-14` asks and what the first version could not survive:
+
+```
+replace main()'s `if not root.exists(): … return 2` with `if False: pass`
+  -> selftest: FAIL          (the pre-review self-test printed PASS on this mutant)
+restore
+  -> selftest: PASS, exit 0
+```
+
+### One more, found while filing review's own findings
+
+`disposition.py --ticket SS-07` reported **4 findings** immediately after six had
+been written. It selects on the free-text `found_by` field as well as the id, and
+this project's convention — set by `SS-01` — credits reviewers there. **`SS-01`
+owns 7 rows and the check reports 2. 35 of 324 rows repo-wide are invisible to
+their own ticket's check, and it prints `all three clauses hold` anyway.**
+`--epic` and `--all` are unaffected, and `--epic SS` correctly REFUSES on the six
+open `SS-00-DF-*`. `SS-07-DF-07`. **`SS-08` should quote `--epic`, not
+`--ticket`.**
+
+## 14. Scope expansion, approved by the epic owner and stated plainly
+
+**This ticket's declared `expected_effect` is *"files findings and fixes nothing"*,
+and it CREATED a 198-line instrument, `stranded_loaders.py`.** That is a scope
+expansion. It is disclosed here, not buried:
+
+- it lives **inside** `SS-07`'s conflict key `.../stabilize-substrate/SS-07/`;
+- it is **not a gate** — it asserts nothing and exits 0 on any finding;
+- **nothing in `tests/` runs it**, and binding it in is explicitly a successor's
+  call, not this ticket's;
+- the tension was filed **against itself** as `SS-07-DF-04` before review saw it.
+
+**The epic owner reviewed it and allowed it, amending the plan rather than asking
+for a revert.** Recorded so the deviation is legible to `SS-08` without needing
+the PR thread. It found two previously unknown stranded instruments
+(`SS-07-DF-02`, `SS-07-DF-03`); it also shipped a vacuous self-test hiding a
+crash (`SS-07-DF-06`). **Both halves belong in the record.**

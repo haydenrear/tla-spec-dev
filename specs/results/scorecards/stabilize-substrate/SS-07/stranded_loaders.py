@@ -106,8 +106,19 @@ def render(report: dict) -> str:
     no_paths = [r for r in rows if not r["unparsed"] and not r["refs"]]
     unparsed = [r for r in rows if r["unparsed"]]
     for r in stranded:
-        rel = r["file"].resolve().relative_to(REPO_ROOT)
-        lines.append(f"STRANDED  {rel}")
+        # A `--root` outside this repository is legitimate -- `SS-01-DF-03`: a
+        # verdict is a joint property of the file AND the tree it is swept in,
+        # so sweeping a foreign tree is a thing a caller will do. The first
+        # version called `.relative_to(REPO_ROOT)` unconditionally and CRASHED
+        # with `ValueError` on any such root. FOUND BY MAKING THE SELF-TEST CALL
+        # THE ENTRY POINT: the predicate-restating version could never reach
+        # this line. `SS-07-DF-06`.
+        resolved = r["file"].resolve()
+        try:
+            shown = resolved.relative_to(REPO_ROOT)
+        except ValueError:
+            shown = resolved
+        lines.append(f"STRANDED  {shown}")
         for m in r["missing"]:
             lines.append(f"            ABSENT  {m}")
     if not stranded:
@@ -128,48 +139,75 @@ def render(report: dict) -> str:
 
 
 def selftest() -> int:
-    """R1 as extended by SS-02: a demonstrated FAILING input and a demonstrated
-    ABSENT input, each with the correct answer printed."""
-    import tempfile
-    ok = True
+    """R1 as extended by SS-02: a demonstrated FAILING input and demonstrated
+    ABSENT inputs -- and EVERY CASE CALLS THE ENTRY POINT.
 
-    # (1) ABSENT record root -> REFUSED, not "0 stranded".
-    missing_root = REPO_ROOT / "specs" / "results" / "__no_such_root__"
-    verdict = "REFUSED" if not missing_root.exists() else "exists?!"
-    print(f"[absent-input 1] record root absent -> {verdict} (expected REFUSED)")
-    ok &= verdict == "REFUSED"
+    CORRECTED 2026-08-16 (`SS-07-DF-06`). The first version of this self-test
+    computed `"REFUSED" if not missing_root.exists() else "exists?!"` and
+    asserted on `rep["files"]` directly. Those two cases RESTATED THE PREDICATE
+    INSTEAD OF RUNNING THE INSTRUMENT: they would have printed PASS even if the
+    refusal branch had been deleted. That is the `CA-10-DF-14` vacuous-check
+    shape, inside the instrument written to police vacuity, and review caught it.
+    Every case below now invokes `main()` and asserts on ITS EXIT CODE AND ITS
+    OUTPUT, so deleting a branch turns the self-test red.
+    """
+    import contextlib, io, tempfile
+
+    def run(argv: list[str]) -> tuple[int, str]:
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = main(argv)
+        return code, out.getvalue() + err.getvalue()
+
+    results = []
+
+    # (1) ABSENT record root -> REFUSED, exit 2. Never "0 stranded".
+    code, text = run(["--root", str(REPO_ROOT / "specs" / "results" / "__no_such_root__")])
+    results.append(("absent-input 1: record root does not exist",
+                    code == 2 and "REFUSED" in text,
+                    f"exit={code} REFUSED={'REFUSED' in text}", "exit 2 + REFUSED"))
 
     with tempfile.TemporaryDirectory() as td:
-        # (2) EMPTY record root -> UNDECIDED, not "clean".
+        # (2) EMPTY record root -> UNDECIDED, and NOT a clean report.
         empty = pathlib.Path(td) / "empty"
         empty.mkdir()
-        rep = sweep(empty)
-        v2 = "UNDECIDED: nothing swept" if not rep["files"] else "swept something"
-        print(f"[absent-input 2] record root has no *.py -> {v2} (expected UNDECIDED)")
-        ok &= not rep["files"]
+        code, text = run(["--root", str(empty)])
+        results.append(("absent-input 2: record root holds no *.py",
+                        "UNDECIDED" in text and "no stranded" not in text,
+                        f"exit={code} UNDECIDED={'UNDECIDED' in text} "
+                        f"clean_claimed={'no stranded' in text}",
+                        "UNDECIDED, and no clean verdict"))
 
-        # (3) A file with NO path literals is NO-PATHS, not "all resolve".
-        d = pathlib.Path(td) / "nopaths"
-        d.mkdir()
-        (d / "a.py").write_text("x = 1\n", encoding="utf-8")
-        rep3 = sweep(d)
-        row = rep3["rows"][0]
-        v3 = "NO-PATHS" if not row["refs"] and not row["missing"] else "?"
-        print(f"[absent-input 3] file names zero paths -> {v3} (expected NO-PATHS)")
-        ok &= v3 == "NO-PATHS"
+        # (3) A file naming ZERO paths is NO-PATHS, not "all its paths resolve".
+        d3 = pathlib.Path(td) / "nopaths"
+        d3.mkdir()
+        (d3 / "a.py").write_text("x = 1\n", encoding="utf-8")
+        code, text = run(["--root", str(d3)])
+        results.append(("absent-input 3: file names zero repository paths",
+                        "1 file(s) NO-PATHS" in text and "no stranded literal path reference found" in text,
+                        f"exit={code} no_paths_counted={'1 file(s) NO-PATHS' in text}",
+                        "counted as NO-PATHS, reported separately from 'resolves'"))
 
-        # (4) FAILING input on a REAL subject shape: a file that names a path
-        #     this repository does not have must be reported STRANDED.
+        # (4) FAILING input on a REAL subject shape: a file naming a file this
+        #     repository genuinely deleted must come back STRANDED.
         d4 = pathlib.Path(td) / "failing"
         d4.mkdir()
         (d4 / "b.py").write_text(
             'p = "examples/validation/gap_mutants/price_removal.py"\n', encoding="utf-8")
-        rep4 = sweep(d4)
-        v4 = "STRANDED" if rep4["rows"][0]["missing"] else "clean"
-        print(f"[failing-input]  file names a deleted real file -> {v4} (expected STRANDED)")
-        ok &= v4 == "STRANDED"
+        code, text = run(["--root", str(d4)])
+        results.append(("failing-input: file names a really-deleted file",
+                        "STRANDED" in text and "1 file(s) name at least one ABSENT path" in text,
+                        f"exit={code} STRANDED={'STRANDED' in text}",
+                        "STRANDED, counted in the census"))
 
-    print("selftest:", "PASS" if ok else "FAIL")
+    ok = True
+    for name, passed, observed, expected in results:
+        print(f"[{'PASS' if passed else 'FAIL'}] {name}")
+        print(f"         expected: {expected}")
+        print(f"         observed: {observed}")
+        ok &= passed
+    print("\nselftest:", "PASS" if ok else "FAIL",
+          "-- every case invoked main(); none restates the predicate")
     return 0 if ok else 1
 
 

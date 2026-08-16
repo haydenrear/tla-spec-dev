@@ -21807,12 +21807,17 @@ findings:
       followed by `print(text)`; there is no `--check`, no `--stdout` and no dry
       run. `GOAL-four-results-still-stand`'s own harness says "the sealed cards
       OPEN AND RENDER", and the command that renders them is this one.
-      MEASURED: running `index` over the eleven sealed card trees of the four
-      standing results MODIFIED SIX COMMITTED `INDEX.md` FILES
-      (hexagonal-prompting, hexagonal-prompting-rerun, ports-as-adapters,
-      portable-substrate-rm04-GG/JJ/LL) AND CREATED THREE THAT HAD NEVER EXISTED
-      (close-the-loop-cl03-v4, close-the-loop-cl03-v5,
-      score-drives-validation-sv04).
+      MEASURED OVER THE WHOLE RECORD: 16 OF THE 18 SEALED CARD TREES MUTATE WHEN
+      `index` IS RUN OVER THEM -- 13 committed `INDEX.md` files REWRITTEN and 3
+      CREATED THAT HAD NEVER EXISTED (close-the-loop-cl03-v4,
+      close-the-loop-cl03-v5, score-drives-validation-sv04, which are the card
+      trees of this goal's own results 3 and 4). Only 2 of the 15 committed
+      `INDEX.md` files match what the current `index` emits. Within the eleven
+      trees of the four standing results specifically, six were rewritten and
+      three created. THE FIRST VERSION OF THIS SUMMARY QUOTED ONLY THE
+      SIX-AND-THREE-OF-ELEVEN FIGURE while this row's own `blast_radius` carried
+      the 16-of-18 measurement, so a triage pass reading the summary
+      UNDER-READ THE FINDING BY HALF. Corrected here; caught by review.
       THE REASSURING HALF, STATED FIRST BECAUSE IT IS WHY THE FOUR RESULTS
       VERIFY: EVERY SCORE VALUE IN EVERY DIFF IS IDENTICAL. The committed files
       are stale only in PRESENTATION -- they carry the `total` column that
@@ -22130,3 +22135,255 @@ findings:
       OPEN. SS-07 delivers the instrument and states plainly that delivering it is
       NOT consumption -- the substrate still checks nothing. Reported that way on
       purpose.
+  - id: SS-07-DF-05
+    found_by: "independent review of PR #283, instructed to REFUTE; re-derived and confirmed by SS-07"
+    found_at_commit: "25fb7a3"
+    schedule_revision: 1
+    severity: high
+    channel: independent-review
+    channel_note: >-
+      the reviewer re-ran the command WITHOUT the pipe SS-07 had used, and the answer changed
+    cost:
+      basis: "one unpiped re-invocation of `blind_dispatch.py cell`, plus reading four lines of its source"
+      value: >-
+        seconds. The class it names has now cost this epic five figures, and every
+        one of them was cheap to catch the same way.
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/stabilize-substrate/SS-07/RESULT.md"
+    summary: >-
+      A FIGURE ABOUT A SAFETY INSTRUMENT WAS WRONG BECAUSE OF THE PIPELINE IT WAS
+      MEASURED THROUGH, AND THE ERROR POINTED AT DISTRUSTING A WORKING SIGNAL.
+      SS-07's RESULT.md and PR body stated that `blind_dispatch.py cell` refuses a
+      project-naming path "and exits 0 -- read the output, not the exit code".
+      IT EXITS 1. `blind_dispatch.py:199-200` returns 1 whenever `problems` is
+      non-empty. SS-07 ran the command through `| tail -4`, so the `$?` it read
+      was TAIL'S status, not the instrument's. Re-measured unpiped: `cell` exits
+      1 on a project-naming path; `check` exits 1 on REFUSED and 2 on UNDECIDED.
+      WHY THIS IS HIGH AND NOT COSMETIC: the false claim was an instruction to
+      SS-08 and to every future ticket to DISTRUST A WORKING SAFETY SIGNAL on the
+      blinding mechanism, and it would have justified never wiring `cell` into
+      anything that gates. It inverted the operational advice attached to the one
+      instrument `planning_rules.blindness_is_re_probed_every_round` says must be
+      verified rather than trusted.
+      THE CLASS, AND IT IS THE REASON THIS IS A ROW OF ITS OWN: THIS IS THE FIFTH
+      FIGURE IN THIS EPIC THAT WAS WRONG BECAUSE OF HOW IT WAS MEASURED RATHER
+      THAN WHAT WAS MEASURED. The predecessors: SS-00-DF-01's filed mechanism,
+      where the owner's probe printed mtimes with `:.0f` and collapsed four
+      distinct seconds into one; the owner's `scope` cross-tab, read off two
+      marginal totals that were never jointly computed; SS-01's over-correction
+      of that; and SS-07's own "two DEAD MODEL SURFACEs" where its committed
+      transcript says 14 and it had quoted a `tail`. FIVE INSTANCES, FOUR
+      DISTINCT PARTIES, ONE MECHANISM: THE INSTRUMENT WAS RIGHT AND THE HARNESS
+      AROUND THE READING THREW THE ANSWER AWAY. A `tail`, a pipe, a format
+      string and a marginal total are all the same defect.
+    reproduction: >-
+      `python3 examples/validation/instruments/blind_dispatch.py cell
+      /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/x-cell; echo "EXIT=$?"`
+      -> `EXIT=1`. Now add `| tail -4` before the `echo` -> `EXIT=0`. Same
+      instrument, same input, two different reported exit codes. Also
+      `check <empty file> --repo .` -> exit 2; `check <leaking report> --repo .
+      --memory <real MEMORY.md>` -> exit 1.
+    evidence:
+      - "examples/validation/instruments/blind_dispatch.py:199-200 -- `if problems: return 1`"
+      - "specs/results/scorecards/stabilize-substrate/SS-07/RESULT.md -- the corrected paragraph, with the cause named"
+      - "specs/results/scorecards/stabilize-substrate/SS-07/evidence/exit-codes-unpiped-25fb7a3.txt"
+    why_out_of_scope: >-
+      The DOCUMENT defect is in scope and is repaired in this PR. What is out of
+      scope is the CLASS: nothing in the substrate distinguishes "the instrument
+      returned N" from "the last stage of my pipeline returned N", and no rule
+      tells a ticket to take exit codes unpiped.
+    suggested_fix: >-
+      Land a rule, not a reminder, because four parties have now hit this and
+      each was told afterwards to be careful. The cheapest executable form:
+      any figure an epic publishes about an INSTRUMENT'S EXIT CODE must be
+      captured with the command run alone -- `cmd > file 2>&1; echo $?` -- and
+      the epic's evidence convention should require the exit line be IN the
+      committed transcript rather than retyped into prose. That is checkable by
+      reading the evidence file, which is exactly the shape SS-07-DF-02 argues
+      for on the write side. AND THE DEEPER ONE: three of the five instances were
+      caught by a party re-running the command rather than re-reading the claim.
+      `every_research_ticket_runs_its_own_rule` should be extended -- re-derive
+      your own headline figure by a DIFFERENT route than the one that produced
+      it, because the same route reproduces the same artifact.
+    blast_radius: >-
+      One paragraph in one RESULT.md and one PR body, both corrected before merge.
+      The wider radius is the class: five figures across four parties in one epic,
+      and the instruments were correct in every instance. Any epic figure derived
+      through a pipe, a `tail`, a format string or a marginal total is suspect
+      until re-taken by another route.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      CARRIED. SS-08 should report the FIVE-INSTANCE COUNT as a finding about the
+      programme's measurement practice rather than as five unrelated slips, and
+      should say plainly that in all five the instrument was right. SS-07 filed
+      this against its own published claim after review refuted it.
+  - id: SS-07-DF-06
+    found_by: "independent review of PR #283; the crash it hid was then found by SS-07 repairing it"
+    found_at_commit: "25fb7a3"
+    schedule_revision: 1
+    severity: moderate
+    channel: independent-review
+    channel_note: >-
+      review read the self-test's source and saw it restate its own predicate; repairing it then crashed the instrument
+    cost:
+      basis: "one reading of 20 lines, plus one run of the repaired self-test which failed immediately"
+      value: >-
+        minutes, and it converted a self-test that could not fail into one that
+        kills a seeded mutant -- and found a real crash on the way
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/stabilize-substrate/SS-07/stranded_loaders.py"
+    summary: >-
+      THE VACUITY-POLICING INSTRUMENT SHIPPED A PARTLY VACUOUS SELF-TEST, AND THE
+      VACUITY WAS HIDING A CRASH.
+      `stranded_loaders.py` was written to find instruments that answer confidently
+      on absent input, and it advertised `--selftest` with three absent-input cases
+      and one failing input. TWO OF THE FOUR NEVER CALLED THE INSTRUMENT. Case 1
+      computed `verdict = "REFUSED" if not missing_root.exists() else "exists?!"`
+      -- a restatement of the predicate that would print REFUSED even if the
+      refusal branch had been deleted -- and case 2 asserted on `sweep()`'s return
+      value rather than exercising the `UNDECIDED` path through the entry point.
+      THAT IS THE `CA-10-DF-14` VACUOUS-PASS SHAPE, INSIDE THE INSTRUMENT BUILT TO
+      POLICE IT, filed by SS-07's own `SS-07-DF-04` reasoning one document away.
+      AND THE VACUITY WAS LOAD-BEARING. Rewriting all four cases to invoke `main()`
+      and assert on its EXIT CODE AND OUTPUT made the self-test CRASH on the spot:
+      `render()` called `.relative_to(REPO_ROOT)` unconditionally, so any `--root`
+      outside the repository died with `ValueError`. A `--root` outside the
+      repository is exactly the case `SS-01-DF-03` says a caller will exercise --
+      a verdict is a joint property of the file and the tree it is swept in -- and
+      the shipped instrument could not do it. THE PREDICATE-RESTATING SELF-TEST
+      COULD NEVER HAVE REACHED THAT LINE. Both are repaired in this PR, and the
+      repaired self-test now goes FAIL when the refusal branch is deleted,
+      demonstrated by seeding that mutant.
+    reproduction: >-
+      At `25fb7a3`, before the repair:
+      `sed -n '137,149p' specs/results/scorecards/stabilize-substrate/SS-07/stranded_loaders.py`
+      shows both predicate restatements. After the repair, seed the mutant:
+      replace the `if not root.exists(): ... return 2` block in `main()` with
+      `if False: pass`, then run `... stranded_loaders.py --selftest` -> `selftest:
+      FAIL`. Restore and it returns PASS with exit 0. For the crash: at `25fb7a3`
+      run `... stranded_loaders.py --root /tmp/anything-outside-the-repo` holding a
+      `*.py` that names an absent repository path -> `ValueError: ... is not in the
+      subpath of ...`.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-07/stranded_loaders.py -- the rewritten `selftest()` and the guarded `render()`"
+      - "specs/results/scorecards/stabilize-substrate/SS-07/evidence/selftest-mutation-probe-25fb7a3.txt"
+    why_out_of_scope: >-
+      IN SCOPE and repaired here: the file is SS-07's own, inside its conflict key,
+      and a self-test that cannot fail is not evidence for anything the ticket
+      claims. Recorded as a finding rather than a silent fix because SS-07 wrote
+      the defect and published it as an R1 demonstration.
+    suggested_fix: >-
+      Done for this instrument. The general rule worth landing, and it is the same
+      one `CA-10-DF-14` asked for and nobody executed: A SELF-TEST THAT DOES NOT
+      CALL THE ENTRY POINT IS NOT A SELF-TEST, and the cheap check is to seed a
+      mutant in the branch it claims to cover and confirm the self-test goes red.
+      SS-02's extended `R1` should say that outright: an absent-input demonstration
+      must invoke the shipped entry point and assert on its exit code, not on a
+      helper's return value and not on a restatement of the condition.
+    blast_radius: >-
+      One instrument, 198 lines, which nothing in `tests/` runs -- so the vacuity
+      never produced a false green in the suite. The finding matters because the
+      instrument's whole purpose is to catch this shape, and because repairing it
+      surfaced a real crash on a legitimate input.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      CARRIED. Note the sequence for the record: review found the vacuity by
+      READING, and the crash was found by REPAIRING it -- neither the suite nor
+      the instrument's own self-test would ever have reported either.
+  - id: SS-07-DF-07
+    found_by: "SS-07, filing the review's own findings and noticing the count came back wrong"
+    found_at_commit: "25fb7a3"
+    schedule_revision: 1
+    severity: moderate
+    channel: operator-running-a-shipped-instrument
+    channel_note: >-
+      found because the instrument reported 4 when the ticket had just written 6, and the ticket checked instead of assuming
+    cost:
+      basis: "one `disposition --ticket` invocation whose count disagreed with a `grep -c`, plus one 6-line script over the ledger"
+      value: "under five minutes, and it re-prices every per-ticket disposition figure in this epic"
+    surface:
+      production:
+        - "scripts/disposition.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      `disposition.py --ticket <T>` SILENTLY DROPS EVERY ROW THAT TICKET FILED BUT
+      DID NOT PERSONALLY FIND, AND THEN REPORTS `all three clauses hold` ON WHAT
+      IS LEFT. `disposition.py:365-366` selects rows with
+      `str(r.get("found_by") or r.get("id","")).startswith(ticket) AND
+      id.startswith(ticket + "-")`. The second conjunct is the correct key. THE
+      FIRST IS A FREE-TEXT PROSE FIELD, and this project's own convention -- set
+      by `SS-01` and followed here -- writes review-found rows as
+      `found_by: independent reviewer of PR #282 instructed to REFUTE`. Those rows
+      are then invisible to their own ticket's check.
+      MEASURED AT THIS TREE: `SS-01` owns 7 rows by id and
+      `disposition --ticket SS-01` reports 2. `SS-07` owns 7 and it reported 4
+      before this row was added. ACROSS THE WHOLE LEDGER, 35 OF 323 ROWS ARE
+      INVISIBLE TO THEIR OWN TICKET'S DISPOSITION CHECK -- including all five
+      `CA-00-DF-*`, four `CA-07-DF-*` and `CA-08-DF-07`, which is the best finding
+      the predecessor epic produced.
+      THIS IS THE ABSENT-INPUT CLASS ON THE INSTRUMENT THAT POLICES CONSUMPTION:
+      a silently-narrowed input set produces a confident PASS, and the correct
+      answer to "I could not see some of this ticket's rows" is UNDECIDED or a
+      refusal, never `DISPOSED ... all three clauses hold`. `SS-02`'s extended
+      `R1` names exactly this shape.
+      SCOPE, STATED SO IT IS NOT OVER-READ: `--epic` and `--all` are NOT affected.
+      `--epic SS` selects on `epic_of(row)` and sees all 27 rows of this epic,
+      and it correctly REFUSES here on the six open `SS-00-DF-*`. Only the
+      per-ticket path under-counts. No epic-level figure published by this epic is
+      wrong because of it.
+    reproduction: >-
+      `uv run --with pyyaml python3 scripts/disposition.py --ledger
+      specs/deferred_findings.yaml --ticket SS-01` -> "2 findings"; then
+      `grep -c '^  - id: SS-01-DF' specs/deferred_findings.yaml` -> 7. And the
+      whole-ledger count:
+      `python3 -c "import yaml;rows=yaml.safe_load(open('specs/deferred_findings.yaml'))['findings'];print(sum(1 for r in rows if not str(r.get('found_by','')).startswith(r['id'].rsplit('-DF-',1)[0])))"`
+      -> 35.
+    evidence:
+      - "scripts/disposition.py:365-366 -- the `found_by` conjunct"
+      - "specs/deferred_findings.yaml -- SS-01-DF-04..07, `found_by: independent reviewer of PR #282 instructed to REFUTE`"
+      - "specs/results/scorecards/stabilize-substrate/SS-07/evidence/disposition-undercount-25fb7a3.txt"
+    why_out_of_scope: >-
+      `scripts/` is explicitly outside SS-07's conflict keys and its assignment says
+      defects there are DEFERRED, NOT FIXED. SS-07 is also a measurement ticket and
+      repairing the instrument it is reporting through is the move
+      `planning_rules.measurement_rule` refuses.
+    suggested_fix: >-
+      Drop the `found_by` conjunct: the id prefix already identifies the filing
+      ticket and is structured, while `found_by` is prose that this project
+      deliberately uses to credit the DISCOVERER rather than the filer. Keeping
+      both means the check silently narrows whenever a ticket does the right thing
+      and credits a reviewer. AND MAKE THE NARROWING VISIBLE RATHER THAN SILENT:
+      when the id-prefix set and the found_by set differ, print both counts and
+      report UNDECIDED rather than a clause verdict -- that is `SS-02`'s absent-input
+      rule applied to a selection instead of to a lookup, and it is the half that
+      generalises. NOTE FOR WHOEVER TAKES IT: do not "fix" this by rewriting 35
+      `found_by` fields; that would destroy the discoverer attribution, which is
+      the more valuable of the two facts and is the one the channel table is built
+      from.
+    blast_radius: >-
+      35 of 323 ledger rows, and every per-ticket disposition figure this epic or
+      its predecessors published. Epic-level and whole-ledger figures are unaffected
+      and were re-checked. The practical risk is that a ticket reads `DISPOSED` and
+      concludes its review-found rows are routed when the check never looked at them.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      CARRIED. SS-08 uses this instrument to decide consumption clauses and should
+      quote `--epic`, not `--ticket`, until this is repaired -- and should say so.
+      Filed by the ticket whose own count came back wrong; the discrepancy was
+      visible only because SS-07 had just written six rows and the tool said four.
