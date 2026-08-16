@@ -31,8 +31,16 @@ unchanged.
    the skill's own repo with `propagate.sh`, is destroyed by it with no diff to
    recover from.
 4. **A skill edit published from an agent's home lands HERE, not in the skill's
-   own repo** — the store copy of a plugin is a checkout of this repo. It is not
-   finished until it has been propagated.
+   own repo** — the store copy of a plugin is a checkout of this repo, and that
+   is correct: this repo is the unit, so it is what `skt publish` pushes to and
+   what `skt check` notifies about. It is not *finished*, though, until
+   `propagate.sh` has carried it to the skill's own repo (see rule 3).
+
+5. **A contained skill is not an installed unit.** `<plugin>:<skill>` invokes
+   it; `skill-manager show <skill>` answers "unit not found". Anything naming it
+   as a `skill-imports: unit:` must address the plugin instead
+   (`unit: <plugin>`, `path: skills/<skill>/…`), or that importing unit's next
+   publish/sync fails validation.
 
 ## The two directions
 

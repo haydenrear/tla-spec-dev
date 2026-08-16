@@ -58,13 +58,19 @@ set of changes is coherent enough to be cut as a version. Full argument in
 
 ## The three facts that bite
 
-1. A contained skill's store path is `plugins/<plugin>/skills/<skill>/`, so
-   siblings that resolve it as `$SKILL_MANAGER_HOME/skills/<unit>/…` break.
-2. A contained skill is invoked `<plugin>:<skill>` and is no longer installable
-   on its own.
-3. `refresh.sh` is `reset --hard` per skill. Propagate first, or lose the edit.
+1. **Bundling changes a skill's identity.** It is invoked `<plugin>:<skill>`,
+   `skill-manager show <skill>` answers "unit not found", its bytes are at
+   `plugins/<plugin>/skills/<skill>/`, and a `skill-imports: unit: <skill>`
+   elsewhere now fails validation. A git-coord reference to it does *not* fail —
+   it installs a duplicate standalone copy, which is worse.
+2. **Change management is fine, at plugin granularity.** `skt` sees one unit,
+   one version, one notification; `skt publish` pushes to the plugin repo, which
+   is the point.
+3. **`refresh.sh` is `reset --hard` per skill.** Propagate first, or lose the
+   edit that only exists in the parent.
 
-`references/layout.md` and `references/migration.md` have the fixes.
+`references/imports.md` has fact 1 with measured evidence and one known
+skill-manager bug; `references/lifecycle.md` has 2 and 3.
 
 ## Layout
 
@@ -76,6 +82,7 @@ plugin-repository-skill/
 ├── references/
 │   ├── why.md                  # the argument, and which skills belong together
 │   ├── layout.md               # the two identities, paths, manifests, ignores
+│   ├── imports.md              # what bundling does to a skill's identity (+ a known bug)
 │   ├── lifecycle.md            # the four flows + releases + integrating agent
 │   └── migration.md            # standalone skills or a harness -> a bundle
 ├── scripts/
