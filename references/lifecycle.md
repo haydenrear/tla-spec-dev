@@ -18,7 +18,8 @@ The skills' own repos moved (someone published from a home, or a fan-out was
 merged). Bring them into the bundle as **one** change:
 
 ```bash
-S="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts"
+S="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts"  # dependency
+P="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/plugin-repository/scripts"     # here
 git checkout -b feature/pull-upstream
 $S/refresh.sh                    # fetch --all + reset --hard per constituent — DESTRUCTIVE
 git status                       # the parent now shows exactly what moved upstream
