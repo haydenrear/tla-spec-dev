@@ -89,21 +89,54 @@ it is untouched — `specs/deferred_findings.yaml` is not under `.history`, and
 `specs/desired_program_model/*.yaml` entry is kept: it still reaches
 `ticket_plan.yaml` while a workflow is open.
 
-### 20 / 21 / 18 / 17, reconciled exactly
+### 20 / 21 / 18 / 17 — WITHDRAWN AND REPLACED. #271 was right and I was not
 
-| figure | what it actually is |
+**An earlier version of this section said the ledger "cannot account for" the
+102 → 82 drop and that #271's *"17 REFUTED figures currently unswept"* was
+"wrong twice". Both statements are false, the reviewer of PR #282 refuted them,
+the epic owner re-derived it, and I have re-derived it again. `SS-01-DF-03`.**
+
+The cross-tab on `(file × verdict)` over the 23 rows that left the sweep —
+**which I never ran, and which decides the whole question**:
+
+| | count | verdict | file |
+|---|---:|---|---|
+| gone | **17** | REFUTED | `specs/desired_program_model/deferred_findings.yaml` |
+| gone | **3** | UNREACHABLE | `specs/desired_program_model/deferred_findings.yaml` |
+| gone | 3 | REFUTED | `NEXT-EPIC.md` |
+| added | 3 | REFUTED | `NEXT-EPIC.md` (re-anchored) |
+
+**20 of the 23 gone rows are ledger rows. The ledger accounts for the −20
+exactly, and it carried precisely 17 REFUTED rows, precisely unswept.**
+
+| figure | what it is |
 |---|---|
-| **82** | counted figures over `DEFAULT_SWEEP` at `25600fa`: 63 REFUTED, 17 UNREACHABLE, 2 HOLDS |
-| **17** | the **UNREACHABLE** count in that 82. #271 calls it *"17 REFUTED figures currently **unswept**"* — **wrong twice**: they are UNREACHABLE, not REFUTED, and they are inside the sweep, not outside it |
-| **21** | what the ledger carries, and what was genuinely unswept: `scope --path specs/deferred_findings.yaml` |
-| **18 / 3** | that 21 split REFUTED / UNREACHABLE |
-| **20** | the drop from #271's `102` at `ea624b9` to `82` at `436c78c`. **The ledger cannot account for it**: the same file scoped at three versions — `ea624b9` (259 rows), the closed snapshot (296) and live today (299) — returns **21 / 18 REFUTED / 3 UNREACHABLE every time**. A `−20 REFUTED` attributed entirely to the ledger is off by one figure and misclassifies three; the residue is the `NEXT-EPIC.md` re-anchoring the charter mentions in the same sentence, which I did not re-derive at `ea624b9` and do not claim |
+| **82** | the sweep at `25600fa`: 63 REFUTED, 17 UNREACHABLE, 2 HOLDS |
+| **17** | **the ledger's REFUTED contribution at `ea624b9`** — #271's figure, correct as written |
+| **20** | the ledger's whole contribution there: 17 REFUTED + 3 UNREACHABLE. **The −20 exactly** |
+| **21 / 18** | the ledger at **this** tree, which grew by one counted figure as rows were appended |
 
-**Measured cost of the decision, at this tip:** `scope` moves **82 → 103**.
-REFUTED 63 → 81 (+18), UNREACHABLE 17 → 20 (+3), HOLDS 2 → 2. **+21 denominator,
-caused by a file entering the sweep — nothing was checked, refuted or repaired to
-produce it.** `GOAL-counted-figures-reach-the-record`'s baseline of 82 is
-superseded at the tip and this is the cause.
+**The error is worth more than the figure, and it is the one this ticket
+exists to fix, committed by this ticket.** `scope`'s verdict is a joint property
+of the **file** and the **tree it is swept in**. I measured the `ea624b9` ledger
+under `--root <a bare directory holding only the ledger>` — a root I had built
+for the measurement — got `21 / 18 REFUTED / 3 UNREACHABLE`, and reported it as
+a property of the file. The same bytes in the full `ea624b9` tree return
+`20 / 17 / 3`. **That is `SS-00-DF-01`'s own lesson — quote the tree, not just
+the file — broken by the ticket that repaired `SS-00-DF-01`, in the paragraph
+where it corrected someone else.** Reproduction in `scope-crosstab.txt`.
+
+**One coincidence made the wrong reading plausible and is worth recording:** the
+whole-record UNREACHABLE count at `25600fa` is **also 17**. Two different 17s,
+and I matched #271's to the wrong one.
+
+**What does NOT change:** the decision to add `specs/deferred_findings.yaml` to
+`DEFAULT_SWEEP`, and the measured cost of it — **`scope` 82 → 103**, +18 REFUTED
+and +3 UNREACHABLE. The corrected reading makes that decision *better* supported,
+not worse: #271 had already measured what it was worth.
+
+**The false version was also inside `score_tools.py`'s `DEFAULT_SWEEP`
+docstring — the file that executes the reading rules — and is corrected there.**
 
 ## 5. `SS-00-DF-01` — repaired, and its stated mechanism refuted
 
@@ -267,3 +300,80 @@ only `spec-unit-tests` and `effect-conformance`.** Recorded as
 (the assignment template carries it on all eight issues; `SS-03` hit the same
 thing). Refusal output and the no-op model determination:
 `tlc-and-model-delta.txt`.
+
+---
+
+## 11. Disclosures. Each of these was raised in review, not by me
+
+**11.1 — The sealed history entry carries a superseded figure, and `R-H4` says
+leave it.** `specs/.history/stabilize-substrate-epic/ticket-000-SS-01/summary.md`
+and that entry's `results/RESULT.md` record **`8 / 1508 / 0 / 1516`**. That was
+true of `61fc43c`, the tree at the moment of `close ticket`, when the ticket
+workspace `open ticket` had scaffolded was still present and contributed 4
+parametrized nodes. `close ticket` removed the workspace *as part of the same
+operation that sealed the entry*, so the entry cannot describe the tree it
+produced. **The authoritative figure is `8 / 1504 / 0 / 1512`** — this document
+§9, `pytest-tip-final.txt`, measured on the committed tip. **The entry is not
+edited**; both runs are sealed here and the difference is 4 parametrized nodes,
+in the denominator, in the passing column. **`SS-08` should read §9, not the
+entry.** `specs/results/skill_feedback.md` is live rather than sealed and has
+been corrected in place.
+
+**And this is a property of the close, not a mistake I made — it will recur on
+all eight tickets.** `close ticket` removes the ticket workspace and seals the
+history entry **in one operation**, so *the entry can never describe the tree it
+produces*. Any ticket whose figures are measured before its close records a
+number its own close then invalidates, and **`SS-08` will meet eight of them**.
+The general repair is for the close to record the figure's tree, or for every
+ticket to publish the pre-close/post-close pair as this one does; the narrow
+fact is that the ticket-workspace delta is **+4 parametrized nodes, every time**.
+Raised with the owner rather than filed — this ticket has already spent its
+deferment budget of 5 (seven rows, `SS-01-DF-01` … `-07`).
+
+**11.2 — Five files were edited outside my declared `implementation_scope`.**
+`references/consumption.md` (`SS-02`'s), `examples/validation/instruments/instruments.toml`
+(`SS-05`/`06`/`07`'s), `specs/desired_program_model/ticket_plan.yaml` (**`SS-03`'s,
+in flight** — my edit is the single-word status flip `close ticket` requires),
+and `specs/results/complexity_ledger.json` + `specs/results/skill_feedback.md`
+(both written by the close itself). The first two are one-string repoints of
+statements *about the instrument this ticket changed*; leaving them would have
+left the rule and the register naming a file that does not exist. **They are
+small and I believe correct, and they were undisclosed, which is the defect.**
+
+**11.3 — I ran a stray `git checkout 25600fa -- .` in the worktree.** While
+diffing collection I chained `git stash -q -u; git checkout 25600fa -- .;
+git stash pop` into one command. The tree was clean and fully committed at
+`61fc43c`, so the stash was empty; the `checkout` staged `25600fa`'s content over
+my working tree, and the `pop` collided with a pre-existing unrelated stash from
+another branch. **`git reset --hard HEAD` restored the tree, and every figure in
+this document was re-derived from the committed tree afterwards** — the reviewer
+independently re-derived them from the commits and confirmed nothing moved.
+**It affected no measurement: the suite run had already completed and the
+collect-only had already been written before the chain ran.** It is disclosed
+here because it was disclosed nowhere in the record, and a disclosure that lives
+only in a chat transcript is not a disclosure. **The rule it breaks is the one
+this epic's §8 already pays for** — do not chain a destructive git command behind
+a `;`.
+
+**11.4 — `two-checkouts-tip.txt` is measured at `61fc43c`, not at the tip.** The
+two-clone proof was run before the ticket close and the file says so. The
+reviewer re-ran it at `587d46c` on two fresh clones and got **0 / 0**, so the
+claim holds at the tip; the artifact is labelled rather than re-run.
+
+**11.5 — "No filename is enumerated anywhere" overstated it.** `disposition.LEDGER`
+names `specs/deferred_findings.yaml` and `test_card_has_one_home.LEDGER_NAME`
+names `deferred_findings.yaml`. What was removed is the *enumeration of that
+filename at historical directory depths* — the two archive-glob tuples — which is
+what made each new path need a new exception. **The substantive claim holds; the
+sentence was wider than the fact.**
+
+## 12. What the review changed in the code
+
+| finding | change |
+|---|---|
+| `SS-01-DF-03` | `RESULT.md` §4 and the `DEFAULT_SWEEP` docstring corrected |
+| `SS-01-DF-04` | `_finding_ids` returns `None` when the ledger names no findings; the UNVERIFIED line says which state it hit; 4 parametrized cases |
+| `SS-01-DF-05` | the UNVERIFIED refusal exits **2**, not 1; the docstring states both non-zero outcomes |
+| `SS-01-DF-06` | `created_at_utc` is parsed, not string-compared; unparseable sorts oldest; a three-entry ordering test |
+| `SS-01-DF-01` | re-routed to the **owner** — no ticket on this epic carries `scripts/spec_evolution.py`; and now an `xfail(strict=True)` that flips when it is fixed |
+| `SS-01-DF-07` | `SS-01-DF-02`'s broken evidence citation corrected before merge |

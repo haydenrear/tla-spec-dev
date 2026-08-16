@@ -2432,7 +2432,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - close_id: SS-01
 - workflow: stabilize-substrate-epic
 - closed_at: 2026-08-15T22:04:02+00:00
-- summary: SS-01: the cumulative ledger moves to specs/deferred_findings.yaml, a path a workflow close does not remove; both archive-glob fallbacks are replaced by deterministic resolution from the close's own manifest record (SS-00-DF-01 repaired, audit 9 -> 0 and identical on two fresh worktrees); CA-10-DF-10 and DEFAULT_SWEEP decided on the record; suite 17/1483/4/1504 -> 8/1508/0/1516, every movement attributed.
+- summary: SS-01: the cumulative ledger moves to specs/deferred_findings.yaml, a path a workflow close does not remove; both archive-glob fallbacks are replaced by deterministic resolution from the close's own manifest record (SS-00-DF-01 repaired, audit 9 -> 0 and identical on two fresh worktrees); CA-10-DF-10 and DEFAULT_SWEEP decided on the record; suite 17/1483/4/1504 -> 8/1504/0/1512, every movement attributed. (CORRECTED after PR #282 review: the close-time figure was 8/1508/0/1516, measured at 61fc43c while the ticket workspace still contributed 4 parametrized nodes; close ticket removed it. The sealed history entry carries the pre-close figure and R-H4 leaves it there -- see SS-01/RESULT.md 11.1.)
 - feedback_status: unreviewed
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.

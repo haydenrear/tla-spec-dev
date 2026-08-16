@@ -42,6 +42,13 @@ ROUTING, never CONSUMPTION.
 Exit 0 = disposed, 1 = REFUSED, 2 = usage/parse error. A STRUCTURAL fault
 (duplicate keys) refuses before any clause is evaluated.
 
+TWO DIFFERENT OUTCOMES LEAVE THROUGH A NON-ZERO EXIT AND A CALLER MUST BE ABLE
+TO TELL THEM APART, so read the output rather than the code (`SS-01-DF-05`).
+`REFUSED <scope>: N of M findings undisposed` is a CLAUSE verdict over a ledger
+that was read. A message containing `UNVERIFIED` means NO LEDGER COULD BE
+IDENTIFIED, no clause was evaluated, and nothing has been shown about anything
+-- it exits 2, as a usage fault, precisely so it is not mistaken for a verdict.
+
     python3 scripts/disposition.py --epic cut-the-apparatus     # refuses
     python3 scripts/disposition.py --ticket CA-05               # accepts
     python3 scripts/disposition.py --all                        # every epic
@@ -129,8 +136,29 @@ def duplicate_keys(text: str) -> list[tuple[str, str, list[int]]]:
     return out
 
 
+def _closed_at(stamp: object) -> tuple[int, float]:
+    """A close's timestamp as a sortable instant. Unparseable sorts OLDEST.
+
+    `(1, epoch)` for anything that parses, `(0, 0.0)` otherwise, so a manifest
+    with a missing or malformed `created_at_utc` can never outrank one that
+    carries a real time -- the failure mode is "ignored", never "wins".
+    """
+    import datetime
+
+    text = str(stamp or "").strip()
+    if not text:
+        return (0, 0.0)
+    try:
+        parsed = datetime.datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return (0, 0.0)
+    if parsed.tzinfo is None:  # a naive stamp in a field named `_utc` is UTC
+        parsed = parsed.replace(tzinfo=datetime.timezone.utc)
+    return (1, parsed.timestamp())
+
+
 def archived_ledgers(root: pathlib.Path = pathlib.Path(".")) -> list[pathlib.Path]:
-    """Every archived ledger a workflow close RECORDED, oldest close last-but-one.
+    """Every archived ledger a workflow close RECORDED, BEST LAST (newest close).
 
     RESOLVED FROM THE TREE, NEVER FROM THE FILESYSTEM. `SS-00-DF-01`: this used
     to glob for the FILENAME and order the hits by `(st_mtime, st_size, path)`.
@@ -153,8 +181,18 @@ def archived_ledgers(root: pathlib.Path = pathlib.Path(".")) -> list[pathlib.Pat
     identified as the ledger any close kept, and identifying one anyway is what
     produced the wrong answer. That leaves `resolve_ledger` with nothing to
     return in some trees, which is the correct answer and not a gap.
+
+    `created_at_utc` IS NOW THE SOLE ARBITER, SO IT IS PARSED RATHER THAN
+    STRING-COMPARED (`SS-01-DF-06`, found by an independent reviewer). Exactly
+    ONE of this repository's 123 entry manifests qualifies today, so the
+    ordering has never been exercised against a competitor and a lexicographic
+    compare would have gone unnoticed: `...T11:29:00Z` sorts BELOW
+    `...T11:29:00+00:00` as text and they are the same instant, and a manifest
+    written with different precision would sort by its digits. The tie-break on
+    the manifest path keeps the answer total when two closes share a timestamp,
+    and an unparseable stamp sorts oldest rather than winning by accident.
     """
-    found: list[tuple[str, str, pathlib.Path]] = []
+    found: list[tuple[tuple[int, float], str, pathlib.Path]] = []
     for manifest_path in root.glob(HISTORY_MANIFESTS):
         try:
             manifest = json.loads(manifest_path.read_text())
@@ -166,7 +204,7 @@ def archived_ledgers(root: pathlib.Path = pathlib.Path(".")) -> list[pathlib.Pat
         snapshot = pathlib.Path(str(record["snapshot"]))
         for candidate in (root / snapshot, manifest_path.parent / snapshot.name):
             if candidate.is_file():
-                found.append((str(manifest.get("created_at_utc") or ""),
+                found.append((_closed_at(manifest.get("created_at_utc")),
                               str(manifest_path), candidate.resolve()))
                 break
     return [path for _, _, path in sorted(found)]
@@ -200,13 +238,18 @@ def resolve_ledger(path: pathlib.Path, *, explicit: bool,
         raise SystemExit(f"{path}: no such ledger (--ledger was given explicitly, so no archive is searched)")
     archives = archived_ledgers(root if root is not None else pathlib.Path("."))
     if not archives:
-        raise SystemExit(
+        print(
             f"{path}: no ledger there, and no workflow close under specs/.history "
             f"RECORDS one in its manifest under `findings_ledger`. UNVERIFIED -- "
             f"refusing to report a verdict against whichever archived copy happens "
             f"to be biggest, or newest on this checkout (`SS-00-DF-01`). Name one "
-            f"with --ledger if you know which it is."
+            f"with --ledger if you know which it is.",
+            file=sys.stderr,
         )
+        # EXIT 2, NOT 1: this is not a clause verdict, it is the absence of one.
+        # Exit 1 would read as `REFUSED ... N of M undisposed` to any caller that
+        # checks the code instead of the output (`SS-01-DF-05`).
+        raise SystemExit(2)
     newest = archives[-1]
     print(
         f"NOTE: {path} is absent. Reading the archived ledger {newest} -- the copy "

@@ -153,7 +153,7 @@ def test_the_decoy_is_a_real_decoy_and_the_recorded_copy_is_the_real_ledger():
     assert "CL-03-DF-04" in _ids(LIVE)
 
 
-def test_an_unrecorded_archive_is_not_a_candidate(tmp_path):
+def test_an_unrecorded_archive_is_not_a_candidate(tmp_path, capsys):
     """THE ABSENT-INPUT CASE. No close recorded a ledger -> UNVERIFIED, not a guess.
 
     `GOAL-absent-input-consumed`: the correct answer to an input the instrument
@@ -175,7 +175,12 @@ def test_an_unrecorded_archive_is_not_a_candidate(tmp_path):
     # rather than from the tree under test. Found by this test failing.
     with pytest.raises(SystemExit) as refusal:
         D.resolve_ledger(root / "specs" / "deferred_findings.yaml", explicit=False, root=root)
-    assert "UNVERIFIED" in str(refusal.value)
+    # EXIT 2, and the word on stderr. `SS-01-DF-05`: exit 1 is the CLAUSE verdict
+    # `REFUSED <scope>: N of M findings undisposed`, so a caller that checks the
+    # code rather than the output cannot otherwise tell "undisposed" from "no
+    # ledger could be identified at all".
+    assert refusal.value.code == 2
+    assert "UNVERIFIED" in capsys.readouterr().err
 
 
 def test_audit_says_unchecked_rather_than_fabricated_when_it_has_no_ledger(tmp_path):
@@ -237,3 +242,140 @@ def test_audit_reports_the_same_count_from_a_second_process_in_a_second_root(tmp
                              "audit"], cwd=copy, capture_output=True, text=True)
     tail = lambda text: [ln for ln in text.splitlines() if "violation(s)" in ln]
     assert tail(first.stdout) == tail(second.stdout), (first.stdout[-400:], second.stdout[-400:])
+
+
+# -- the three findings an independent reviewer of PR #282 raised here --------
+
+
+@pytest.mark.parametrize("label,body", [
+    ("empty list", "findings: []\n"),
+    ("zero bytes", ""),
+    ("malformed", "findings:\n  - id: [unclosed\n"),
+    ("no findings key", "notes:\n  - hello\n"),
+])
+def test_a_ledger_that_names_no_findings_is_not_an_answer(tmp_path, label, body):
+    """`SS-01-DF-04`. THE THIRD STATE, and `SS-01` shipped without it.
+
+    THE FAILING INPUT, MEASURED END-TO-END ON `587d46c` BEFORE THIS REPAIR:
+    `findings: []` -> `_finding_ids()` returned an empty SET, R-H3 read that as
+    "the ledger was read and lists nothing", and reported ALL 14 real `filed_as`
+    citations as fabrications. Zero bytes and malformed YAML did the same.
+    **14 violation(s) against a tree whose ledger was merely unreadable.**
+
+    That is `CA-10-DF-11`'s exact failure moved one input over -- and this
+    epic's `GOAL-absent-input-consumed` names that move as NOT a fix in its own
+    words: "a fallback that merely moves the false PASS to a rarer input has NOT
+    fixed the class." `CA-10-DF-11` repaired ABSENT, `SS-01` repaired WRONG, and
+    EMPTY was still answering with full confidence.
+
+    Found by an independent reviewer instructed to refute PR #282, not by this
+    suite and not by the ticket that wrote the goal line.
+    """
+    root = tmp_path / "tree"
+    (root / "specs").mkdir(parents=True)
+    (root / "specs" / "deferred_findings.yaml").write_text(body, encoding="utf-8")
+
+    module = _score_tools()
+    module.REPO_ROOT = root
+
+    assert module._ledger_path() is not None, "the file is there; resolution should find it"
+    assert module._finding_ids() is None, (
+        f"a ledger that is {label} yielded a confident empty set; every `filed_as` "
+        f"citation in the record is then reported as a fabrication (SS-01-DF-04)"
+    )
+
+    ctx = {"changes": [], "claims": [{"id": "c", "status": "sealed",
+                                      "filed_as": "CL-03-DF-04"}]}
+    out = module.audit_rh3(ctx)
+    levels = [level for level, _ in out]
+    assert module.VIOLATION not in levels, (
+        "R-H3 called a real filed finding a fabrication over an unreadable ledger"
+    )
+    assert levels.count(module.UNVERIFIED) == 1
+    assert "names no findings" in " ".join(m for _, m in out), (
+        "the UNVERIFIED line must say WHICH of the two states it hit -- an absent "
+        "ledger and an empty one are different repairs"
+    )
+
+
+def test_two_recorded_archives_order_by_close_time_not_by_text(tmp_path):
+    """`SS-01-DF-06`. The ordering that replaced mtime, exercised against a rival.
+
+    EXACTLY ONE of this repository's 123 entry manifests records a
+    `findings_ledger` today, so `sorted()` has never had to choose and a
+    lexicographic compare on `created_at_utc` would have gone unnoticed
+    indefinitely -- `SS-01-DF-01` keeps it at one candidate, because every close
+    from here on records `exists: false`.
+
+    The two stamps below are THE SAME INSTANT written two legal ways. As text
+    `...Z` sorts BELOW `...+00:00`, so a string compare picks the older close.
+    """
+    root = tmp_path / "tree"
+    same_instant = ("2026-08-05T11:29:00Z", "2026-08-05T11:29:00+00:00")
+    later = "2026-08-12T09:00:00Z"
+
+    def entry(name: str, stamp: str, rows: str) -> None:
+        d = root / "specs" / ".history" / name / "closed-snapshot"
+        d.mkdir(parents=True)
+        (d / "deferred_findings.yaml").write_text(rows, encoding="utf-8")
+        (d / "manifest.json").write_text(json.dumps({
+            "created_at_utc": stamp,
+            "findings_ledger": {
+                "exists": True,
+                "snapshot": f"specs/.history/{name}/closed-snapshot/deferred_findings.yaml",
+            },
+        }), encoding="utf-8")
+
+    entry("older-epic", same_instant[1], "findings:\n  - id: OLD-01\n")
+    entry("newer-epic", later, "findings:\n  - id: NEW-01\n")
+    entry("tie-epic", same_instant[0], "findings:\n  - id: TIE-01\n")
+
+    resolved = D.archived_ledgers(root)
+    assert len(resolved) == 3
+    assert resolved[-1].parent.parent.name == "newer-epic", (
+        "the latest close did not win; ordering is not on the instant"
+    )
+    # The two equal instants must compare equal, whichever spelling they use.
+    assert D._closed_at(same_instant[0]) == D._closed_at(same_instant[1])
+    assert D._closed_at(later) > D._closed_at(same_instant[0])
+    # A missing or malformed stamp is IGNORED, never a winner.
+    assert D._closed_at(None) < D._closed_at(same_instant[0])
+    assert D._closed_at("not a date") < D._closed_at(same_instant[0])
+
+    # AND BOTH INSTRUMENTS, on the same three-way tree. The duplication is
+    # deliberate (score_tools ships standalone, RM-05 section 3), so the pin has
+    # to be exercised where they could actually diverge -- on THIS repository
+    # they cannot, because only one manifest qualifies, which is precisely why
+    # `test_the_two_instruments_resolve_to_the_same_ledger` could not see it.
+    module = _score_tools()
+    module.REPO_ROOT = root
+    assert module._ledger_path() == resolved[-1], (
+        "score_tools picked a different archive than disposition.py on a tree "
+        "with more than one recorded close (SS-01-DF-06)"
+    )
+    assert module._closed_at(same_instant[0]) == module._closed_at(same_instant[1])
+    assert module._closed_at(later) > module._closed_at(same_instant[0])
+
+
+@pytest.mark.xfail(
+    reason="SS-01-DF-01: spec_evolution.snapshot_findings_ledger still sources the "
+           "archive from desired_program_model/, which SS-01 emptied, so every close "
+           "from here records findings_ledger.exists=false and archives nothing. "
+           "Outside SS-01's conflict keys; routed to the epic owner because no "
+           "ticket on this epic carries scripts/spec_evolution.py. WHEN THIS GOES "
+           "XPASS THE FINDING IS FIXED -- do not delete it, close the finding.",
+    strict=True,
+)
+def test_the_close_still_archives_the_ledger_it_no_longer_deletes():
+    """`SS-01-DF-01`, executable in BOTH directions.
+
+    An independent reviewer of PR #282 observed that dropping the old
+    `assert record["exists"] is True` left the finding untested either way:
+    nothing failed while it was broken and nothing would flip when it was fixed.
+    An xfail is the smallest thing that does both.
+    """
+    source = (REPO / "scripts" / "spec_evolution.py").read_text(encoding="utf-8")
+    marker = 'source=specs_dir / "desired_program_model" / FINDINGS_LEDGER_NAME'
+    assert marker not in " ".join(source.split()), (
+        "the close still looks for the ledger inside the directory it removes"
+    )
