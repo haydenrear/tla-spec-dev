@@ -22,7 +22,7 @@ against issue #271 itself, and five of its own figures did not survive.**
 | apparatus is **41,691** py lines | **41,971** | #271's figure is measured at `ea624b9`, the pre-merge epic tip. The four post-close commits added **+280** to `scripts/` (`disposition.py`, `spec_evolution.py`, `complexity_ledger.py`, `close_tickets.py`). |
 | **0 of 18** judged goals have an openable baseline | **0 of 20** | The numerator held at zero; **the denominator rose** when `cut-the-apparatus` added four goals. 31 distinct goals, 20 judged, 0 card-backed. `denominator_rule` applies to the figure you were handed. |
 | the ledger is at a per-epic path | it is, and **the live path does not exist** | `disposition.LEDGER` and `score_tools.LEDGER_LIVE` both name `specs/desired_program_model/deferred_findings.yaml`, which the close **deletes**. Every consumer is running on the archive fallback right now. |
-| the `scope` sweep is **102 figures**, byte-identical at base and tip | **82** | **−20 REFUTED, every one of them from the ledger file the close deleted**, plus 3 `NEXT-EPIC.md` rows re-anchored by the amendment. Denominator movement caused by a file disappearing — **nothing was checked, refuted or repaired to produce it.** |
+| the `scope` sweep is **102 figures**, byte-identical at base and tip | **82** at `436c78c`, **103** at `50046b2` | −20 net, all ledger rows: **17 REFUTED + 3 UNREACHABLE** from the deleted ledger, plus a 3-REFUTED wash in `NEXT-EPIC.md`. **The row's verdict split was CORRECTED 2026-08-16 — see below — and #271's "17 REFUTED unswept" was right.** `SS-01` then added the relocated ledger to `DEFAULT_SWEEP`, taking it to 103 and superseding the sealed baseline. |
 | the suite is **7 / 1462 / 22** at collection **1491** | **17 / 1483 / 4** at collection **1504** | #271's figure is the **closed-workflow state**, which no ticket agent will ever stand in. Scaffolding this epic's workflow restores 13 collected nodes and unskips 18 of the 22. **This one changes what `SS-06` is for** — see §1. |
 
 **What survived unchanged, each re-derived on this branch:**
@@ -32,19 +32,66 @@ which is full of `<n> of <m>` sentences** — and **3, all REFUTED**, on
 `NEXT-EPIC.md`.
 
 **And the kickoff found a live one, filed as `SS-00-DF-01` and assigned to
-`SS-01`.** `score_tools.py audit` reports **9 violations** on this worktree and
-**0** on the worktree `CA-10` measured, **at the same commit**. Cause: the
-archived-ledger fallback orders candidates by `(mtime, size, path)`, **git does
-not preserve mtimes**, so on a fresh checkout all 85 candidates share one mtime,
-the ordering degenerates to size, and **the largest file wins** — a four-epic-old
-mid-ticket snapshot with 88 ids. **`CA-10-DF-11`'s repair moved the wrong answer
-from "no ledger" to "wrong ledger"**, which that repair's own write-up warns
-against in its own words.
+`SS-01` — which repaired it, and refuted the mechanism I filed.** `score_tools.py
+audit` reported **9 violations** on a fresh worktree at the epic base, against a
+four-epic-old 88-id mid-ticket snapshot. **`CA-10-DF-11`'s repair had moved the
+wrong answer from "no ledger" to "wrong ledger"**, which that repair's own
+write-up warns against in its own words. **Repaired at `50046b2`: `audit` is 0 on
+a fresh checkout, proven on four independent fresh clones rather than by
+inspecting the sort key.**
+
+> **CORRECTED 2026-08-16. THIS SECTION PREVIOUSLY SAID all 85 candidates share
+> one mtime, the ordering "degenerates to SIZE", and "THE LARGEST FILE WINS", and
+> that `audit` gives "9 on this worktree and 0 on another at the same commit".
+> ALL THREE ARE WRONG, and the first came out of my own diagnostic.**
+>
+> There are **85 distinct mtimes** — my probe printed them with `:.0f` and
+> collapsed four distinct seconds into one. Size is **never consulted**, because
+> no tie exists. And **the largest file is the *correct* one**, so had my account
+> been right the instrument would have been right. Both fresh clones give **9** at
+> the base and **0** at the tip; the instability is **fresh-vs-touched**, not
+> checkout-vs-checkout.
+>
+> **The real mechanism is worse than the one I filed:** mtimes reflect **git
+> checkout order**, which carries no historical information at all. Not a tiebreak
+> accident — an ordering that is meaningless by construction. `SS-01-DF-02`.
+>
+> **The symptom was real, the repair is real, and the stated cause was an
+> artifact of the instrument I used to state it.** That is this epic's own subject
+> matter, committed by its owner, in the finding that opens it.
 
 **Two consequences you inherit.** Every `audit` figure in this epic is a joint
 property of **the tree and the checkout** — quote both. And **this is the
 absent-input class one step on**: the input is not absent, it is *wrong*, and the
 instrument is equally confident either way.
+
+### And my `scope` attribution was wrong too, in a way three parties then compounded
+
+**CORRECTED 2026-08-16.** The `102 → 82` row above previously read *"−20 REFUTED,
+every one of them from the ledger file the close deleted, plus 3 UNREACHABLE from
+`NEXT-EPIC.md`."* **I had two marginal totals — by file `20/3`, by verdict
+`20 REFUTED / 3 UNREACHABLE` — and assumed they cross-tabulated. They do not.**
+The cross-tab, which nobody ran until an `SS-01` review forced it:
+
+```
+gone   17  REFUTED      specs/desired_program_model/deferred_findings.yaml
+gone    3  UNREACHABLE  specs/desired_program_model/deferred_findings.yaml
+gone    3  REFUTED      NEXT-EPIC.md
+added   3  REFUTED      NEXT-EPIC.md
+```
+
+**So the ledger accounts for the −20 exactly, and issue #271's *"17 REFUTED
+figures currently unswept"* was right all along** — `CA-10-DF-18` instance 5 had
+already measured and written both numbers. **I corrected a correct figure.** That
+wrong correction reached this charter, the plan, issue #273, and — via `SS-01`, in
+good faith — a comment inside `score_tools.py`. `SS-01` then over-corrected on
+top of it, and its reviewer refuted that in turn.
+
+**`SS-01` found the cause, and it is the useful part:** a `scope` verdict is a
+joint property of the file **and the tree it is swept in** — the same ledger bytes
+score `21/18/3` under a bare `--root` and `20/17/3` inside the repository — **and
+`scope`'s output records nothing about which root it swept.** `SS-01-DF-03`,
+carried to `SS-04`. **Name the tree on every figure you publish.**
 
 ### Three defects were filed at kickoff, and all three are repaired before `SS-08` runs
 
@@ -107,10 +154,15 @@ named — or a movement that cannot be attributed, **which is the finding.**
 
 ### And the kickoff measurement already moved two of the three populations
 
-**The epic base is `17 failed / 1483 passed / 4 skipped / collection 1504`**, on
-the tree with this epic's workflow scaffolded — **the tree you will actually
-stand in.** They sum. Compare against **that**, in
-`GOAL-tree-stabilizes`'s baseline evidence, never against #271's figure.
+**The epic base is `17 failed / 1483 passed / 4 skipped / collection 1504`.**
+**After wave 1, at `50046b2`, it is `8 / 1509 / 0 / 1 xfailed / 1518`** — measured
+by the owner independently, in a fresh worktree. **Compare against the tree you
+actually branched from**, in `GOAL-tree-stabilizes`'s baseline evidence, and name
+which one you used.
+
+**THERE ARE FIVE BUCKETS, NOT FOUR.** `SS-01` added an `xfail(strict=True)`
+pinning `SS-01-DF-01`, and a four-number report **silently stops summing** the
+moment one exists. `failed + passed + skipped + xfailed = collection`.
 
 | | #271 (closed state) | **epic base** | |
 |---|---:|---:|---|
@@ -360,11 +412,20 @@ on an adopter's code.** `SS-04`'s recogniser is **explicitly not a gate** and
   `python3 scripts/tla_spec_dev.py --spec-root specs …`.
 - **Skills are READ from this repository and NEVER edited.** Anything that must
   change in a `SKILL_MANAGER_HOME` is **proposed as a diff and escalated**.
-  **`spec-double-compiler` is deliberately NOT synced for the duration** —
-  owner's decision, recorded: it ships the whole 402 MB repository including every
-  charter and a stale `NEXT-EPIC.md`, and syncing it mid-epic would move text
-  under tickets already running and load the predecessor's conclusions onto disk.
-  `deploy-helm` and `debugging` **were** synced in both tiers at kickoff.
+  **ALL UNITS WERE SYNCED IN BOTH TIERS ON 2026-08-15 by owner decision**,
+  superseding the kickoff freeze — `spec-double-compiler` now ships at `436c78c`,
+  so **the installed unit carries every charter and `NEXT-EPIC.md` on disk. That
+  is the contamination channel `#271` §7.5 names, and it is now live by
+  decision, not by accident.** Any agent you dispatch may be reading this epic's
+  conclusions from the installed unit; **say so rather than claiming a blindness
+  the round does not have.** Wave 1 ran before the sync, waves 2+ after it —
+  **that is a difference between tickets and `SS-08` must not average across it.**
+- **DO NOT run `skill-manager home close-out`, `home sync`, `skt sync` or
+  `skt publish`.** Change management is the **epic owner's** job, in one place:
+  the owner merges your PR, then merges your worktree home's changes into the
+  project home, and only then removes the worktree. **Your obligation is
+  disclosure** — say in your PR body whether anything in your home changed, or
+  state plainly that nothing did.
 - **Scratch to a ticket-specific path.** Two concurrent tickets corrupted a shared
   `baseline.txt`.
 - **Never hand-roll a wait loop. Never kill a process by name alone**, and check

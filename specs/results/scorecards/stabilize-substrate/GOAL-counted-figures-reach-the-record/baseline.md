@@ -41,21 +41,59 @@ UNREACHABLE over 37 files**.
 **At this tree it is 82 / 63 / 0 / 2 / 17 over 36 files.** Diffed against the
 sealed `CA-08/goal/scope-tip.json` by `(file, line, span)`:
 
+> **CORRECTED 2026-08-16, after SS-01's review. THE ROW BELOW PREVIOUSLY READ
+> "20 REFUTED, all from the ledger; plus 3 UNREACHABLE from `NEXT-EPIC.md`".
+> THAT WAS AN INFERENCE, NOT A MEASUREMENT.** I had two marginal totals — by
+> file `20/3` and by verdict `20 REFUTED / 3 UNREACHABLE` — and **assumed they
+> cross-tabulated. They do not.** The cross-tab was never run until the SS-01
+> review forced it. Corrected figures below; the totals, the file attribution
+> and `102 − 23 + 3 = 82` were all correct and are unchanged.
+>
+> **The consequence is that I corrected a figure that was right.** Issue #271's
+> *"17 REFUTED figures currently unswept"* is **exactly right** — the ledger
+> carried precisely 17 REFUTED rows and they were unswept — and `CA-10-DF-18`
+> instance 5 had already measured and written both numbers. My wrong version
+> reached the charter, the plan, issue #273 and, via SS-01, a comment inside
+> `score_tools.py`. `SS-01` then over-corrected on top of it and its reviewer
+> refuted that in turn. **Three parties, one un-run cross-tab.**
+
 | movement | count | attribution |
 |---|---:|---|
-| **gone** | **23** | **20 REFUTED, all from `specs/desired_program_model/deferred_findings.yaml`** — the live ledger the workflow close **deleted**; plus 3 UNREACHABLE from `NEXT-EPIC.md` |
-| **added** | **3** | `NEXT-EPIC.md`, re-anchored by the `0-AAAAAAAAAA` amendment, and now **REFUTED** where the three they replace were UNREACHABLE |
-| net | **−20** | `102 − 23 + 3 = 82` ✓ |
+| **gone** | **23** | **17 REFUTED + 3 UNREACHABLE from `specs/desired_program_model/deferred_findings.yaml`** — the live ledger the workflow close **deleted** — plus **3 REFUTED** from `NEXT-EPIC.md` |
+| **added** | **3** | `NEXT-EPIC.md`, re-anchored by the `0-AAAAAAAAAA` amendment, **REFUTED**, a net wash against the 3 REFUTED it lost |
+| net | **−20** | `102 − 23 + 3 = 82` ✓ — **and all 20 net-lost rows are ledger rows, so the ledger accounts for the movement exactly** |
+
+> **SUPERSEDED 2026-08-16 by `SS-01` at `50046b2`.** `SS-01` added the relocated
+> ledger to `DEFAULT_SWEEP`, and `scope` now reads **103** (81 REFUTED, 2 HOLDS,
+> 20 UNREACHABLE). **The baseline of 82 is superseded and the cause is a ticket,
+> not a claim being resolved** — `SS-04` measures against 103 at `50046b2`, and
+> `SS-08` reports the movement as denominator, named.
 
 **This is denominator movement caused by a file disappearing, not by any claim
 being resolved.** No figure was checked, refuted or repaired to produce it.
 
-**It also prices open decision #3 concretely.** Issue #271 §7.3 says the cost of
-leaving `DEFAULT_SWEEP` globbing the dead directory is *"17 REFUTED figures
-currently unswept"*. Re-derived: `scope --path specs/deferred_findings.yaml`
-reaches **21 counted figures — 18 REFUTED, 3 UNREACHABLE**. **17 is the current
-whole-record UNREACHABLE count, not the unswept-REFUTED count**, and the two look
-alike. `SS-01` owns the exact reconciliation.
+**It also prices open decision #3 — and my pricing of it was wrong too.** Issue
+#271 §7.3 says the cost of leaving `DEFAULT_SWEEP` globbing the dead directory is
+*"17 REFUTED figures currently unswept"*.
+
+> **CORRECTED 2026-08-16. I wrote that "17 is the current whole-record
+> UNREACHABLE count, not the unswept-REFUTED count". #271 WAS RIGHT: the ledger
+> carried exactly 17 REFUTED rows and they were unswept.** The whole-record
+> UNREACHABLE count is *also* 17, and that coincidence is what made the
+> misreading plausible — it misled me and then misled `SS-01`, which repeated a
+> sharper version of it into `score_tools.py`.
+>
+> **And `SS-01` found why the counts looked inconsistent, which is the useful
+> part:** `scope --path` on the ledger reaches **21 (18 REFUTED, 3 UNREACHABLE)**
+> when run against a bare root, and **20 (17 REFUTED, 3 UNREACHABLE)** when the
+> same bytes are swept inside the repository. **A `scope` verdict is a joint
+> property of the file and the tree it is swept in, and the output records
+> nothing about which root was used** — `SS-01-DF-03`, carried to `SS-04`.
+
+The residual point stands and is unaffected: **21, 20 and 17 are three different
+readings that look alike**, and `SS-01` reconciled them on the record — 21 under
+a bare root, 20 in the repository, 17 of those REFUTED. **`SS-01` also acted on
+it**, adding the relocated ledger to `DEFAULT_SWEEP` and taking `scope` to 103.
 
 ## 3. Why this matters more than its size suggests
 

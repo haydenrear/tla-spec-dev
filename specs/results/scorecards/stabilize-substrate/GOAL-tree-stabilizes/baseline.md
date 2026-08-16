@@ -4,8 +4,9 @@
 with the epic workflow scaffolded and the ledger relocated** — that is, the tree
 every ticket agent will actually stand in.
 
-**Every ticket compares against the four numbers in §1, not against issue #271's
-figure and not against a recollection.**
+**Every ticket compares against the figures in §1 — five numbers that sum, at the
+tree it actually branched from — not against issue #271's figure and not against
+a recollection.** After wave 1 that tree is `50046b2`, not the epic base.
 
 **Sealed evidence in this directory and in `../kickoff/`:**
 
@@ -25,11 +26,33 @@ $ uv run --with pytest --with pyyaml -m pytest tests -q --collect-only
 1504 tests collected
 ```
 
-| | failed | passed | skipped | collected |
-|---|---:|---:|---:|---:|
-| **epic base, this branch** | **17** | **1483** | **4** | **1504** |
+| | failed | passed | skipped | xfailed | collected |
+|---|---:|---:|---:|---:|---:|
+| **epic base `436c78c`** | **17** | **1483** | **4** | 0 | **1504** |
+| **after wave 1, `50046b2`** | **8** | **1509** | **0** | **1** | **1518** |
 
-`17 + 1483 + 4 = 1504` ✓
+`17 + 1483 + 4 + 0 = 1504` ✓  `8 + 1509 + 0 + 1 = 1518` ✓
+
+> **AMENDED 2026-08-16, and the amendment is itself a finding. THERE ARE FIVE
+> BUCKETS, NOT FOUR.** `SS-01` added an `xfail(strict=True)` pinning
+> `SS-01-DF-01` — correctly, since its review required the finding be testable in
+> *both* directions — and the moment one exists, **a four-number report silently
+> stops summing.** This goal's metric said "four numbers that sum" and would have
+> been satisfied by a report that no longer accounted for the tree. `SS-08`
+> reports five.
+>
+> The `50046b2` row was measured by the **owner**, independently, in a fresh
+> worktree at `741f7ca` — not quoted from the ticket. **Every later ticket
+> compares against `50046b2`, not against the epic base**, and names which of the
+> two it used.
+>
+> **Two artifacts of the machinery, now measured, that are nobody's slice:**
+> `open ticket` inflates collection by **+4** and `close ticket` removes it again,
+> on every ticket; and `close ticket` **seals the history entry and deletes the
+> workspace in one operation**, so a sealed entry can never describe the tree it
+> produces — `SS-01`'s sealed summary says `8/1508/0/1516` while its live
+> `RESULT.md` says `8/1504/0/1512`, and `R-H4` forbids reconciling them.
+> **`SS-08` will meet that eight times.**
 
 ## 2. Issue #271's baseline is a different tree, and the difference is the whole point
 
@@ -76,12 +99,24 @@ absent"*, *"no promoted `spec_manifest.yaml`"*:
 **The four survivors are `CA-10-DF-12`** — *"`CA-09`'s own proof that the close
 preserves the ledger skips itself out on a closed repository."* Their guard reads
 `specs/desired_program_model/deferred_findings.yaml … is absent`, and this epic's
-ledger is at `specs/deferred_findings.yaml`. **They unskip when `SS-01`
-repoints.** Verified by targeted run: `145 passed, 4 skipped`, all four from that
-one line.
+ledger is at `specs/deferred_findings.yaml`. Verified by targeted run:
+`145 passed, 4 skipped`, all four from that one line.
 
-**So clause (c) has a population of four, not 22, and all four belong to
-`SS-01`.**
+> **CORRECTED 2026-08-16. This paragraph previously ended "THEY UNSKIP WHEN
+> `SS-01` REPOINTS." That was a prediction stated as a mechanism, and it is
+> false.** The `SS-01` reviewer repointed `LIVE_LEDGER` alone in a throwaway
+> clone and ran the file: **4 failed**, not 4 passed, every one on
+> `cannot close ticket workflow: - ticket SS-01 is not closed: status=planned`.
+> **The skip was covering a second, unfiled reason** — the subject was the live
+> spec tree, which refuses its own close while a workflow is open.
+>
+> They are gone at `50046b2`, so the population is zero, **but not for the reason
+> this baseline gave.** `SS-01` moved the subject to the sealed `cut-the-apparatus`
+> snapshot. **A prediction that comes true by a different mechanism is not a
+> confirmed prediction**, and `SS-08` should score it that way.
+
+**So clause (c) had a population of four, not 22 — and the four were `SS-01`'s
+for a reason this baseline got wrong.**
 
 ### 2.3 The ten new reds, each attributed
 
