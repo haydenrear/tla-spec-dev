@@ -85,9 +85,9 @@ justification: ""
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
+  searched: true
+  outcome: "none"
+  detail: "Searched and found none, and the one real candidate was REFUSED for a recorded reason. The candidate: SS-03 and SS-04 both repair a recogniser bound by prose, so a SHARED recogniser looks like the refinement. It is refused because two instruments quietly sharing one recogniser is how a single defect becomes two wrong figures -- the epic's own SS-03 objective says so in those words, and CA-08-DF-01 and SS-00-DF-03 are the same defect seen from opposite sides precisely because they were written independently. The instruments are kept separate and the non-sharing is stated as a PREDICTION rather than a fact, because SS-04 does not exist yet and cannot be checked against. A second candidate -- collapsing keyword_judged() into instrument_kind() now that prose only vetoes -- was refused because keeping the retired recogniser callable is what lets the census print all 13 declared-vs-prose disagreements by name, which is the residual risk this repair does not remove. No TLC run supports either decision and none is claimed; the ticket adds no TLA+ surface and the model delta is zero against SS-01."
   measured: false      # true only if a real TLC run produced the figure
   applied: false       # if true, approved_by is required
   approved_by: ""
@@ -99,4 +99,4 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: "specs/results/scorecards/stabilize-substrate/SS-03/RESULT.md"

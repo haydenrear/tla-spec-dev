@@ -21471,10 +21471,93 @@ findings:
       rewritten. Unknown how many other sealed pointers name paths that have
       since moved -- SS-03 did not sweep for that and says so.
     disposition: carried
-    disposition_ticket: "SS-01 for the relocation decision; unassigned for the R-H4 doctrine line"
+    disposition_ticket: "unassigned -- SS-01 is merged and did NOT resolve this; the R-H4 doctrine line has no owner"
     disposition_note: >-
-      CARRIED. Reported by SS-03 with a reproduction, not repaired by it. The
-      deferment budget of 5 is exceeded by this row and SS-03-DF-05/-06: seven
-      rows against a budget of five, filed on the epic owner's explicit
+      CARRIED, AND RE-CHECKED AGAINST SS-01'S MERGED WORK RATHER THAN ASSUMED --
+      `do_not_assume_a_filed_finding_is_open` cuts both ways, so this was run,
+      not guessed. VERDICT AT 50046b2: NOT RESOLVED, and the check is one line:
+      `test -e specs/desired_program_model/deferred_findings.yaml` is still
+      FALSE, and `git log 25600fa..50046b2 -- specs/desired_program_model/deferred_findings.yaml`
+      is EMPTY, so nothing was ever restored or shimmed at the old path. WHAT
+      SS-01 DID FIX IS THE OTHER HALF: `disposition.LEDGER` and
+      `score_tools.LEDGER_LIVE` both name `specs/deferred_findings.yaml` at the
+      merged tip, so every LIVE CONSUMER now reads the ledger where it is, and
+      all four finding ids `GOAL-instruments-can-fail`'s baseline cites resolve
+      there. THE CONTENT IS REACHABLE; THE SEALED POINTER IS NOT. That is
+      precisely the half this row names, and it is the half R-H4 makes
+      unfixable in place. SS-01-DF-01 is the same address problem seen from the
+      close's side and is also carried, so the pair should be triaged together.
+      The deferment budget of 5 is exceeded by this row and SS-03-DF-05/-06:
+      seven rows against a budget of five, filed on the epic owner's explicit
       instruction after independent review, and declared here rather than
       trimmed to fit.
+  - id: SS-03-DF-08
+    found_by: "SS-03, at reconciliation onto the merged epic tip"
+    found_at_commit: "faa98d3"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_goal_baseline_is_a_card.py"]
+    channel: execution
+    cost: >-
+      One red appearing on merge, in a test SS-03 wrote three commits earlier.
+    summary: >-
+      SS-03 FILED SS-03-DF-01 ABOUT A TEST WHOSE SUBJECT MOVES UNDER IT, AND THEN
+      WROTE A TEST WHOSE SUBJECT COUNT MOVES UNDER IT.
+      `test_a_reused_goal_id_is_named_and_never_collapsed` reconstructs the
+      kickoff's id collision by renaming `GOAL-four-results-still-stand` in every
+      plan declaring workflow `stabilize-substrate-epic`, and asserted
+      `renamed == 1`. EVERY `close ticket` WRITES A SNAPSHOT OF THE LIVE PLAN
+      UNDER `specs/.history`, and each snapshot declares the same workflow and
+      carries the same goal -- so the count is 1 while zero tickets have closed,
+      2 once SS-01 merged, and 9 by the end of this epic. The test went red on
+      the merge with `assert 2 == 1`, having tested nothing about the defect it
+      exists to demonstrate.
+      THE DEFECT WAS NOT IN THE DEMONSTRATION, IT WAS IN WHAT WAS PINNED: the
+      collapse figure -- OLD key 35 where 36 goals exist -- is UNCHANGED on the
+      merged tree and reproduces exactly. What moved was an incidental count of
+      how many plan FILES happen to carry the subject, which is a property of the
+      epic's progress and not of the instrument. SS-03-DF-01 says a subject must
+      be addressed by (workflow, id) over the whole record rather than by
+      whatever is live; THIS ROW ADDS THE SECOND HALF -- a demonstration must
+      assert the PROPERTY IT DEMONSTRATES and nothing incidental, because the
+      record around it grows.
+    reproduction: >-
+      At 25600fa the assertion passes with `renamed == 1`. At the merged tip
+      50046b2, or any tree where a ticket of this epic has closed,
+      `uv run --with pytest --with pyyaml -m pytest
+      tests/test_goal_baseline_is_a_card.py::test_a_reused_goal_id_is_named_and_never_collapsed -q`
+      fails with `AssertionError: assert 2 == 1`. Count the plans directly:
+      two files declare `status.workflow: stabilize-substrate-epic` at the merged
+      tip -- the live plan and
+      `specs/.history/stabilize-substrate-epic/ticket-000-SS-01/snapshots/desired_program_model/ticket_plan.yaml`.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-03/pytest-reconciled-preclose.txt -- the red, on the reconciled tree before the repair"
+      - "specs/results/scorecards/stabilize-substrate/SS-03/baseline_is_a_card-reconciled.txt -- the 35-where-36 collapse figure, unchanged on the same tree"
+      - "tests/test_goal_baseline_is_a_card.py -- the repaired assertion and the comment naming why"
+    why_out_of_scope: >-
+      IN SCOPE and REPAIRED by SS-03 at reconciliation: the assertion now pins
+      the subject's PRESENCE and the collapse, and no longer pins a count that is
+      a function of how many tickets have closed.
+    suggested_fix: >-
+      Landed for this instance. THE RULE, named rather than claimed: a
+      demonstration test asserts the property it demonstrates and nothing
+      incidental to the record's size or the epic's progress. The substrate check
+      that would catch the class is the one SS-03-DF-01 already names and SS-03
+      still has not built -- a sweep over `tests/` for assertions on counts
+      derived from walking `specs/`. TWO INSTANCES NOW, BOTH IN THE SAME FILE,
+      BOTH FOUND BY THE RECORD MOVING RATHER THAN BY ANY CHECK.
+    blast_radius: >-
+      One test. Zero figures: the collapse demonstration itself is unaffected and
+      reproduces identically at 25600fa and at the merged tip.
+    disposition: repaired
+    disposition_ticket: "SS-03"
+    disposition_note: >-
+      REPAIRED at reconciliation with the failing input recorded above. The class
+      sweep is still not built, and this is the SECOND instance of it in this
+      ticket -- which is the argument for building it, and SS-03 is not the
+      ticket that will.

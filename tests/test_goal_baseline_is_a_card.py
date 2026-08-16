@@ -434,7 +434,14 @@ def test_a_reused_goal_id_is_named_and_never_collapsed(classifier):
                 goal.pop("continues", None)
                 renamed += 1
         drafted.append((path, draft))
-    assert renamed == 1, "the live plan no longer carries this demonstration's subject"
+    # `renamed` GROWS AS TICKETS CLOSE, and pinning it to 1 was this test's own
+    # instance of `SS-03-DF-01`. Every `close ticket` writes a snapshot of this
+    # epic's plan under `specs/.history`; each snapshot declares the same
+    # workflow and carries the same goal, so `renamed` was 1 when SS-03 wrote
+    # this line and 2 the moment SS-01 merged. Filed as `SS-03-DF-08`. The
+    # demonstration is about the COLLAPSE, not about how many plan files happen
+    # to carry the subject, so only the subject's presence is pinned here.
+    assert renamed >= 1, "no plan on disk carries this demonstration's subject any more"
 
     collided = classifier.distinct_goals(drafted)
     old_key = {gid for _wf, gid in collided}

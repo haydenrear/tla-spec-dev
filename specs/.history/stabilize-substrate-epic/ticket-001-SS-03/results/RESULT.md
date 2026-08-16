@@ -378,94 +378,62 @@ claims, and the epic currently asserts the first while relying on the second.
 
 ---
 
-## 8. The tree — FIVE numbers that sum, and they sum at three points
-
-**SS-01 added an `xfail(strict=True)`, so the tree has five buckets, not four.**
-The base this ticket compares against is no longer its own `17/1483/4/1504`;
-that figure is historical. **The comparison base is the merged epic tip.**
+## 8. The tree — four numbers that sum, at both ends
 
 ```
 $ uv run --with pytest --with pyyaml -m pytest tests -q
-epic tip 50046b2      8 failed / 1509 passed / 0 skipped / 1 xfailed   collection 1518
-SS-03 pre-close       8 failed / 1524 passed / 0 skipped / 1 xfailed   collection 1533
-SS-03 POST-CLOSE      7 failed / 1521 passed / 0 skipped / 1 xfailed   collection 1529
+base 25600fa      17 failed / 1483 passed / 4 skipped     collection 1504
+tip  (amended)    16 failed / 1499 passed / 4 skipped     collection 1519
 ```
 
-`8+1509+0+1 = 1518` ✓  `8+1524+0+1 = 1533` ✓  `7+1521+0+1 = 1529` ✓
+`17 + 1483 + 4 = 1504` ✓  `16 + 1499 + 4 = 1519` ✓
 
-**`7 / 1521 / 0 / 1 / 1529` IS THE AUTHORITATIVE FIGURE** — it is the tree this
-branch actually ships and the one `SS-08` will stand in. §8.2 explains why a
-different figure is sealed inside the history entry.
+**The base figure reproduces the epic base exactly** — `17 / 1483 / 4 / 1504`,
+`GOAL-tree-stabilizes`' baseline — measured independently in this worktree
+rather than quoted.
 
-### 8.1 Epic tip → SS-03 pre-close: every movement attributed
-
-| | tip | pre-close | movement | attribution |
+| | base | tip | movement | attribution |
 |---|---:|---:|---:|---|
-| failed | 8 | 8 | **0** | **and that is not "nothing happened"** — see below |
-| passed | 1509 | **1524** | **+15** | all 15 newly collected nodes are green |
-| skipped | 0 | 0 | **0** | SS-01 cleared all four; nothing here re-introduces one |
-| xfailed | 1 | 1 | **0** | SS-01's strict xfail, untouched |
-| collected | 1518 | **1533** | **+15, DENOMINATOR ROSE** | `+17/−2`: `+10` SS-03 tests, `+1` the YAML sweep picking up the resolution index on its own, `+6/−2` from `open ticket SS-03` re-parametrising four sweeps |
+| failed | 17 | **16** | **−1, NUMERATOR FELL** | `test_a_real_epic_plans_judged_baseline_cannot_be_re_opened`. Exactly one red cleared and **zero new reds**, verified by diffing the two `FAILED` lists rather than comparing counts. |
+| passed | 1483 | **1499** | **+16** | `+15` newly collected nodes, all green; `+1` the repaired red. |
+| skipped | 4 | **4** | **0** | The four `test_workflow_close_keeps_the_ledger.py:92` survivors, `CA-10-DF-12`, which are `SS-01`'s. Untouched. |
+| collected | 1504 | **1519** | **+15, DENOMINATOR ROSE** | itemised below, `+17 / −2` node for node |
 
-**The flat red count hides a swap and is reported rather than left flat.** One red
-cleared — `test_a_real_epic_plans_judged_baseline_cannot_be_re_opened`, the `R1`
-subject this ticket moved — and **one new red appeared, mine**:
-`test_a_reused_goal_id_is_named_and_never_collapsed`, which asserted
-`renamed == 1` when the merge made it 2. **A red count that does not move is not
-evidence that nothing moved**, which is this epic's own thesis pointed at its own
-report.
+**Every node, named** — the diff is `+17 / −2`, net `+15`:
 
-**That new red is `SS-03-DF-08`, and it is my own `SS-03-DF-01` committed a
-second time**: every `close ticket` snapshots the live plan under
-`specs/.history`, each snapshot declares the same workflow and carries the same
-goal, so the count was 1 when I wrote it and 2 the moment SS-01 merged.
-**The collapse figure it demonstrates — OLD key 35 where 36 goals exist — is
-unchanged on the merged tree.** What I had pinned was incidental to the record's
-size. Repaired; two instances of this class in one ticket, both in one file,
-**both found by the record moving rather than by any check.**
+- **`+10`** — SS-03's tests in `tests/test_goal_baseline_is_a_card.py`. Five from
+  the original ticket (the `SS-00-DF-02` collision demonstration, the
+  existing-collision check, the `SS-00-DF-03` declared-field test, the
+  absent-input `UNDECIDED` test, the index-is-never-a-card test) and **five added
+  by the review**: what the rule refuses is `SV-03-DF-02`'s own list,
+  wrong-shaped input never raises, unkeyable goals in a parsed plan are named, an
+  unreadable index is named, and the two verdict columns are not interchangeable.
+- **`+1`** — `test_spec_yaml_valid.py::test_spec_yaml_parses[baseline_resolution_index.yaml]`.
+  The repository's own YAML sweep picked the index up; SS-03 did not wire it in.
+- **`+6 / −2`** — `python3 scripts/tla_spec_dev.py --spec-root specs open ticket SS-03`
+  scaffolding `specs/tickets/SS-03/`, which re-parametrises four sweeps:
+  `complexity_ledger.yaml` → `…0`/`…1`, `ticket.yaml` → `…0`/`…1`,
+  `spec_manifest.yaml6`, `spec_manifest.yaml7`. Net `+4`.
 
-### 8.2 The close changes the tree it seals — disclosed, not left for `SS-08`
+`10 + 1 + 4 = 15` ✓
 
-`close ticket` **seals the history entry and removes the ticket workspace in one
-operation**, so the sealed entry can never describe the tree it produces. `SS-01`
-hit this and disclosed it; so does this ticket.
-
-| | sealed inside `…/ticket-001-SS-03/results/` | live tree after close |
-|---|---|---|
-| figure | `8 / 1524 / 0 / 1 / 1533` | **`7 / 1521 / 0 / 1 / 1529`** |
-
-**The `−4 / −3 / −1` between them has TWO causes, and attributing all of it to
-the close would be wrong:**
-
-1. **`SS-03-DF-08`'s repair: `−1 failed`, `+1 passed`, collection flat.** The
-   pre-close run was taken before I fixed the `renamed == 1` assertion.
-2. **The close's workspace removal: `−4 collected`, `−4 passed`.** Deleting
-   `specs/tickets/SS-03/` collapses six re-parametrised ids back into two —
-   `complexity_ledger.yaml0/1` and `ticket.yaml0/1` become
-   `complexity_ledger.yaml` and `ticket.yaml`, and `spec_manifest.yaml6/7`
-   disappear. `−6/+2 = −4`, node for node.
-
-`1524 + 1 − 4 = 1521` ✓  `8 − 1 = 7` ✓  `1533 − 4 = 1529` ✓
-
-**Which is authoritative: the POST-CLOSE figure**, `7 / 1521 / 0 / 1 / 1529`.
-The sealed one describes a tree that no longer exists on any branch. It is not
-wrong — it is a faithful record of what was measured — but it is not the tree
-anyone can stand in, and `SS-08` must use the post-close figure.
-
-### 8.3 The 7 reds at the tip, enumerated so they sum
+**The 16 reds at the tip, enumerated so they sum**, none repaired by this ticket:
 
 | file | rows | owner / cause |
 |---|---:|---|
+| `test_disposition_requirement.py` | 5 | `SS-00-DF-01`, `SS-01`'s |
 | `test_source_citations.py` | **3** | two from the scaffolded manifests (`SS-06`'s), one inherited (`specs/program_model/spec_manifest.yaml`) |
+| `test_score_tools.py` | 3 | `SS-00-DF-01`, `SS-01`'s — `CA-10` repaired these and they are red again, which is the finding |
 | `test_instrument_demonstrations.py` | 2 | **deliberate**, `CA-04-DF-04` |
+| `test_card_has_one_home.py` | 1 | the ledger relocation, `SS-01`'s; issue #271 §7.1's prediction firing |
 | `test_architecture_tags.py` | 1 | **deliberate**, `RM-06-DF-01` |
-| `test_ticket_retirement.py` | 1 | seven tickets still `planned`; clears as they close |
-| | **7** | |
+| `test_ticket_retirement.py` | 1 | expected and self-clearing; measured **before** this ticket's close flips its status |
+| | **16** | |
 
-`3 + 2 + 1 + 1 = 7` ✓ — **three are deliberate and were not repaired silently.**
-**The nine reds that were `SS-01`'s at my base are all gone**, and `audit` now
-reads **0 violations on this checkout** where it read 9: `SS-00-DF-01` is
-repaired upstream and I did not touch it.
+`5 + 3 + 3 + 2 + 1 + 1 + 1 = 16` ✓ — **an earlier version of this enumeration
+summed to 15 because it called `test_source_citations` two rows when it is
+three.** The three deliberate reds were left alone; the nine belonging to
+`SS-01`/`SS-06` were filed, not fixed, as the plan instructs.
 
 ## 9. What this ticket did NOT do
 
@@ -482,32 +450,17 @@ repaired upstream and I did not touch it.
 - **It added no gate.** `baseline_is_a_card.py` still has no failing exit path,
   is imported by nothing in `scripts/`, and exits 0 on every input including the
   failing one — executed at the end of every run, not asserted.
-- **`SS-03-DF-07` is NOT resolved by SS-01, and I checked rather than assumed.**
-  `do_not_assume_a_filed_finding_is_open` cuts both ways. At the merged tip
-  `test -e specs/desired_program_model/deferred_findings.yaml` is still false and
-  `git log 25600fa..50046b2` on that path is empty — nothing was restored or
-  shimmed. **What SS-01 did fix is the other half**: `disposition.LEDGER` and
-  `score_tools.LEDGER_LIVE` both name the new path, so every live consumer reads
-  the ledger where it is. **The content is reachable; the sealed pointer is not**,
-  and that is exactly the half `R-H4` makes unfixable in place.
-- **It did not re-run `skill-manager home close-out --into`**, per the owner's
-  instruction. **Nothing was changed inside this worktree's Skill Manager home**
-  at any point in this ticket — the last gate run before the instruction reported
-  `safe: true`, zero blockers, all 22 units `unchanged`, and no edit has been made
-  to it since.
-
-## 9.1 Reconciliation onto the merged epic tip
-
-Merged `50046b2` (SS-01) into `feature/SS-03`. **One conflict, in
-`specs/deferred_findings.yaml`, resolved mechanically and verified:** both
-branches are pure appends onto a **byte-identical 299-row base** — checked by
-extracting all three merge stages and comparing, not assumed — so the resolution
-is SS-01's seven rows then mine. **313 rows**, then **314** once `SS-03-DF-08`
-was filed at reconciliation. Nothing dropped, reordered or renumbered;
-`disposition.py --ticket SS-03` reports `DISPOSED`.
-
-Everything else auto-merged. My five `baseline.evidence` pointers survived intact
-and `SS-01`'s `status: closed` was preserved.
+- **It did NOT close or promote the spec ticket, and that is deliberate.**
+  `promotion_predecessor` for `SS-03` is `SS-01`, and at the time this PR opened
+  `origin/epic/stabilize-substrate` was still `25600fa` — the commit this branch
+  was cut from — with no ticket PR merged into it. The epic's serialized
+  promotion rule forbids closing ahead of the predecessor, so the plan entry
+  stays `planned` and `specs/current` is unpromoted. The close is one command
+  once `SS-01` merges and this branch is reconciled:
+  `python3 scripts/tla_spec_dev.py --spec-root specs close ticket SS-03
+  --summary "…" --result specs/results/scorecards/stabilize-substrate/SS-03/RESULT.md …`.
+  `test_ticket_retirement`'s red is the visible consequence and is the
+  self-clearing one.
 
 ---
 
