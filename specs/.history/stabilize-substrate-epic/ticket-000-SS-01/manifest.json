@@ -1,0 +1,600 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/SS-01",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/stabilize-substrate-epic/ticket-000-SS-01 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for SS-01'",
+    "message": "It is recommended to commit this history directory now: specs/.history/stabilize-substrate-epic/ticket-000-SS-01"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 16,
+        "before": 16,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 277830,
+        "before": 277830,
+        "bound_complete_after": false,
+        "bound_complete_before": false,
+        "comparable": false,
+        "delta": 0,
+        "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+        "percent": 0.0
+      },
+      "depth": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "generated_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "variables": {
+        "after": 8,
+        "before": 8,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "cut-the-apparatus-epic"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 16,
+          "before": 16,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 277830,
+          "before": 277830,
+          "bound_complete_after": false,
+          "bound_complete_before": false,
+          "comparable": false,
+          "delta": 0,
+          "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+          "percent": 0.0
+        },
+        "depth": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "generated_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "variables": {
+          "after": 8,
+          "before": 8,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "cut-the-apparatus-epic"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/SS-01/results/complexity_ledger.yaml",
+    "justification": "Complexity did not increase at the model: direction=zero. In Python the diff is +294/-127 across six files, and it is NET-ADDITIVE FOR ONE REASON WORTH NAMING -- the code shrank and the record grew. Two archive-glob tuples and two mtime sorts were DELETED from disposition.py and score_tools.py and replaced by one manifest read each; what is added is the comment that says why an mtime sort cannot be repaired by sorting on something else, plus tests/test_ledger_resolution_is_deterministic.py (8 tests), which is the R1 obligation for SS-00-DF-01 and carries the absent-input case GOAL-absent-input-consumed asks for. NO NEW GATE SHIPPED: nothing added here refuses anything it did not refuse before -- the only new refusal replaces a CONFIDENT WRONG ANSWER with UNVERIFIED.",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+      "actions": 16,
+      "actions_from_fallback_heuristic": false,
+      "bound": 277830,
+      "bound_complete": false,
+      "bound_resolved_variables": 6,
+      "bound_unresolved_variables": [
+        "lastCommand",
+        "result"
+      ],
+      "budget_utilization": {
+        "max_state_space_bound": {
+          "bound_complete": false,
+          "cap": 1000000,
+          "caveat": "the bound is a product over 6 of 8 declared variables (2 unresolved: lastCommand, result), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything",
+          "percent": null,
+          "percent_lower_bound": 27.8,
+          "used": 277830,
+          "within_cap": null
+        }
+      },
+      "depth": null,
+      "distinct_states": null,
+      "gate_passed": false,
+      "gate_violations": [
+        "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 8 declared variables (2 unresolved: lastCommand, result) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
+        "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+      ],
+      "generated_states": null,
+      "modularity": 0.002483746073489777,
+      "variables": 8
+    },
+    "narrative": "specs/results/scorecards/stabilize-substrate/SS-01/RESULT.md",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+    ],
+    "recorded_at_utc": "2026-08-15T22:04:02.535607+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "Searched and found none. The candidate was to share ONE ledger resolver between scripts/disposition.py and examples/validation/scorecards/score_tools.py, which now carry the same 15 lines twice -- the obvious refinement, and REFUSED for a recorded reason: score_tools.py ships standalone (RM-05 section 3) and deliberately refuses to hard-require a sibling under scripts/. Importing it would re-couple the export the portable-substrate epic paid to separate. The duplication is pinned instead: tests/test_ledger_resolution_is_deterministic.py::test_the_two_instruments_resolve_to_the_same_ledger fails if the two ever disagree, which is the property the shared function would have bought. No TLC run supports this and none is claimed.",
+      "measured": false,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=not_run (UNVERIFIED)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "SS-01",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "retained",
+        "evidence": "specs/results/scorecards/stabilize-substrate/SS-01/pytest-tip.txt -- 8 failed / 1508 passed / 0 skipped, collection 1516, against 17 / 1483 / 4 / 1504 at the base (pytest-base-25600fa.txt). NINE reds repaired, ZERO new, four skips removed; every movement attributed in RESULT.md section 9. The eight survivors are the deliberate reds (RM-06-DF-01, CA-04-DF-04) and other tickets' rows.",
+        "status": "pass",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "retained",
+        "evidence": "specs/results/scorecards/stabilize-substrate/SS-01/tlc-and-model-delta.txt -- no model surface changed, so there is no descriptor to compare; the empty diff IS the comparison and is recorded rather than claimed.",
+        "status": "recorded",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "unverified",
+        "evidence": "specs/results/scorecards/stabilize-substrate/SS-01/tlc-and-model-delta.txt -- same. AND THE MODEL DID NOT MOVE: SS-01 changes no .tla and no .cfg outside its own scaffolded ticket workspace, whose current and desired are byte-identical. A no-op model result, determined rather than assumed.",
+        "status": "absent",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "unverified",
+        "evidence": "specs/results/scorecards/stabilize-substrate/SS-01/tlc-and-model-delta.txt -- the REQUIRED matrix names `run tlc` and THAT VERB DOES NOT EXIST in this repository's CLI (`run` supports spec-unit-tests and effect-conformance only). Reported rather than substituted.",
+        "status": "absent",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=absent (UNVERIFIED)",
+      "tlc_after=absent (UNVERIFIED)",
+      "behavior_tests=pass (retained)",
+      "descriptor_comparison=recorded (retained)"
+    ],
+    "verdict": "recorded",
+    "workflow": "stabilize-substrate-epic"
+  },
+  "created_at_utc": "2026-08-15T22:04:02.620359+00:00",
+  "entry_name": "ticket-000-SS-01",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/SS-01",
+    "commit": "61fc43c",
+    "inside_work_tree": "true"
+  },
+  "guard_weakening": {
+    "bypassed": [],
+    "flags": [],
+    "model_action": "CloseTicket",
+    "note": "RC-01: a close taken under a guard-weakening flag is a different modeled state from one taken under the guard. Recorded, never refused.",
+    "weakened": false
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/SS-01/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/SS-01/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/SS-01/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/SS-01/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/SS-01/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/SS-01/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/SS-01/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/SS-01/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/SS-01/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_binding_reconciliation.py",
+            "relative": "tests/test_tla_spec_dev_binding_reconciliation.py",
+            "source": "specs/tickets/SS-01/desired/tests/test_tla_spec_dev_binding_reconciliation.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/SS-01/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/SS-01/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/SS-01/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/SS-01/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/SS-01/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/SS-01/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/SS-01/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_generation_adapter.py",
+            "relative": "tests/test_tla_spec_dev_generation_adapter.py",
+            "source": "specs/tickets/SS-01/desired/tests/test_tla_spec_dev_generation_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/SS-01/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/SS-01/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/SS-01/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/SS-01/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/SS-01/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/SS-01/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/SS-01/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/SS-01"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "Searched and found none. The candidate was to share ONE ledger resolver between scripts/disposition.py and examples/validation/scorecards/score_tools.py, which now carry the same 15 lines twice -- the obvious refinement, and REFUSED for a recorded reason: score_tools.py ships standalone (RM-05 section 3) and deliberately refuses to hard-require a sibling under scripts/. Importing it would re-couple the export the portable-substrate epic paid to separate. The duplication is pinned instead: tests/test_ledger_resolution_is_deterministic.py::test_the_two_instruments_resolve_to_the_same_ledger fails if the two ever disagree, which is the property the shared function would have bought. No TLC run supports this and none is claimed.",
+    "measured": false,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-000-SS-01/results/RESULT.md",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-01/RESULT.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-000-SS-01/results/pytest-tip.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-01/pytest-tip.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-000-SS-01/results/two-checkouts-tip.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-01/two-checkouts-tip.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-000-SS-01/results/audit-tip.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-01/audit-tip.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-000-SS-01/results/scope-tip.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-01/scope-tip.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-000-SS-01/results/tlc-and-model-delta.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-01/tlc-and-model-delta.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-000-SS-01/results/spec-unit-SS-01.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-01/spec-unit-SS-01.txt"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 128,
+    "close_out_entry": "Close-out ticket SS-01",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [],
+    "findings_filed": 0,
+    "findings_total": 0,
+    "findings_unfiled": [],
+    "path": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-01/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-000-SS-01/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-000-SS-01/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-000-SS-01/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-000-SS-01/ticket",
+      "source": "specs/tickets/SS-01"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "SS-01: the cumulative ledger moves to specs/deferred_findings.yaml, a path a workflow close does not remove; both archive-glob fallbacks are replaced by deterministic resolution from the close's own manifest record (SS-00-DF-01 repaired, audit 9 -> 0 and identical on two fresh worktrees); CA-10-DF-10 and DEFAULT_SWEEP decided on the record; suite 17/1483/4/1504 -> 8/1508/0/1516, every movement attributed.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "specs/deferred_findings.yaml is the live path for every live consumer, and the row count is 296 or higher -- NEVER lower.",
+        "The real consumer count at this tree is MEASURED and reported against the inherited claim of 10, whichever way it lands.",
+        "The 25 archival scorecards citing the old path are UNCHANGED. R-H4.",
+        "The two single-filename exceptions are removed and no third is carved.",
+        "CA-10-DF-10 is decided on the record with a stated reason.",
+        "DEFAULT_SWEEP at :3448 is decided on the record; if changed, the overridden written decision is named; and 20 / 21 / 18 / 17 are reconciled exactly.",
+        "SS-00-DF-01 is repaired: archive resolution is deterministic from the tree, never from filesystem mtime, and an unidentifiable archive answers UNVERIFIED rather than auditing against the largest file.",
+        "audit reports the SAME violation count on two independent fresh worktrees of the same commit -- demonstrated, not asserted.",
+        "Every suite movement is attributed with numerator/denominator direction named.",
+        "The card is unchanged: serve | wc -c is still 6,281 and the digest is stated."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "SS-02",
+      "SS-07",
+      "SS-08"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/disposition.py",
+        "examples/validation/scorecards/score_tools.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "tests/test_workflow_close_keeps_the_ledger.py",
+        "tests/test_disposition_requirement.py",
+        "tests/test_score_tools.py",
+        "specs/results/scorecards/stabilize-substrate/SS-01/"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/273",
+    "goals": [
+      {
+        "contribution": "enabling",
+        "expected_effect": "none directly -- but the class's own worked example IS a ledger-absence bug (CA-10-DF-11), and a ledger the instruments can actually find is the precondition for measuring consumption at all. Note the hazard honestly: a fallback that merely moves the false PASS to a rarer input has NOT fixed the class.",
+        "goal": "GOAL-absent-input-consumed",
+        "local_signal": "python3 examples/validation/scorecards/score_tools.py audit"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "MOVEMENT IS EXPECTED HERE AND MUST BE ATTRIBUTED. Repointing the ledger will change what several ledger-reading tests see. Report every red, pass, skip and collection movement with its cause and its numerator/denominator direction. A red that appears because the substrate now reports truthfully is NOT a regression -- say which it is.",
+        "goal": "GOAL-tree-stabilizes",
+        "local_signal": "uv run --with pytest --with pyyaml -m pytest tests -q"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected -- but score_tools.py produced all four results; verify seal, contested, scope and the double seal still run rather than asserting it",
+        "goal": "GOAL-four-results-still-stand",
+        "local_signal": "python3 examples/validation/scorecards/score_tools.py scope --path NEXT-EPIC.md"
+      }
+    ],
+    "id": "SS-01",
+    "implementation_scope": [
+      "scripts/disposition.py",
+      "examples/validation/scorecards/score_tools.py",
+      "tests/",
+      "specs/deferred_findings.yaml",
+      "specs/results/scorecards/stabilize-substrate/SS-01/"
+    ],
+    "model_delta_expectation": "possible -- if the workflow close's treatment of the ledger is modelled, the path change is a model delta. Determine it rather than assuming; if there is no delta, record the no-op model result and its evidence rather than skipping ticket closeout.",
+    "objective": "THE PRECONDITION FOR EVERY OTHER TICKET, AND THREE INHERITED DECISIONS LIVE HERE. THE STATE YOU ARE INHERITING: disposition.LEDGER and score_tools.LEDGER_LIVE BOTH NAME specs/desired_program_model/deferred_findings.yaml, WHICH THE WORKFLOW CLOSE DELETES. Every consumer in the repository is currently running on an ARCHIVE-GLOB FALLBACK. THE OWNER HAS ALREADY MOVED THE DATA: specs/deferred_findings.yaml exists on this branch carrying all 296 rows, verified byte-identical to the closed snapshot before and after. YOUR SLICE IS THE CONSUMER MIGRATION AND THE DECISIONS, NOT THE DATA. FIRST, VERIFY THE BLAST RADIUS RATHER THAN INHERITING IT -- issue",
+    "promotion_order": 10,
+    "promotion_predecessor": null,
+    "role": "implementation",
+    "schedule_revision": 1,
+    "status": "closed",
+    "title": "Move the cumulative ledger to a path that survives a close, and decide the three findings that live at that path",
+    "wave": 1
+  },
+  "ticket_id": "SS-01",
+  "ticket_index": 0,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "closed",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/stabilize-substrate-epic/ticket-000-SS-01/ticket",
+    "source": "specs/tickets/SS-01"
+  },
+  "workflow_name": "stabilize-substrate-epic"
+}

@@ -1,0 +1,31 @@
+SS-01-DF-03 -- the cross-tab SS-01 never ran, and #271 was right
+date: 2026-08-16T19:10:10Z
+
+Claims keyed on (file, line, dim, n, m, value); scope --format json run in a
+full clone at each commit.
+
+  ea624b9 total  102   {'REFUTED': 80, 'UNREACHABLE': 20, 'HOLDS': 2}
+  436c78c total   82   {'REFUTED': 63, 'UNREACHABLE': 17, 'HOLDS': 2}
+  gone 23, added 3, net 20
+
+  GONE (verdict x file):
+      3  REFUTED      NEXT-EPIC.md
+     17  REFUTED      specs/desired_program_model/deferred_findings.yaml
+      3  UNREACHABLE  specs/desired_program_model/deferred_findings.yaml
+  ADDED (verdict x file):
+      3  REFUTED      NEXT-EPIC.md
+
+READING: 20 of the 23 gone rows are LEDGER rows -- 17 REFUTED + 3 UNREACHABLE.
+The ledger accounts for the -20 EXACTLY. Issue #271's '17 REFUTED figures
+currently unswept' is EXACTLY RIGHT. RESULT.md's earlier claim that the
+ledger 'cannot account for it' and that #271 was 'wrong twice' is WITHDRAWN.
+
+THE ERROR THAT PRODUCED IT -- scope's verdict is a joint property of the
+FILE and the TREE IT IS SWEPT IN:
+  same 259-row ledger bytes, full ea624b9 tree, real path:
+    20 {'REFUTED': 17, 'UNREACHABLE': 3}
+  same bytes, --root <bare dir holding only the ledger>  (what SS-01 did):
+    21 {'REFUTED': 18, 'UNREACHABLE': 3}
+
+A COINCIDENCE THAT MADE THE WRONG READING PLAUSIBLE: the whole-record
+UNREACHABLE count at 25600fa is ALSO 17. Two different 17s.

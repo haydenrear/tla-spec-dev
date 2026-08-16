@@ -57,8 +57,11 @@ never **targeted**.
 
 ## The rule
 
-Scope: the findings in `specs/desired_program_model/deferred_findings.yaml`
-whose id prefix belongs to the epic being closed.
+Scope: the findings in `specs/deferred_findings.yaml` whose id prefix belongs to
+the epic being closed. (It was
+`specs/desired_program_model/deferred_findings.yaml` until `SS-01`. A workflow
+close removes that directory, so the record of what an epic filed disappeared at
+exactly the moment someone wanted to read it — `CA-10-DF-10`.)
 
 | clause | requirement |
 |---|---|

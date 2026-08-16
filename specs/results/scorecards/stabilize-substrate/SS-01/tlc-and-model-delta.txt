@@ -1,0 +1,26 @@
+TLC entry of the REQUIRED matrix, as declared in issue #273:
+  python3 scripts/tla_spec_dev.py --spec-root specs run tlc
+
+RESULT: THE VERB DOES NOT EXIST in this repository's CLI.
+usage: tla-spec-dev run [-h] target ...
+tla-spec-dev run: error: argument target: invalid choice: 'tlc' (choose from 'spec-unit-tests', 'effect-conformance')
+
+Run 'tla-spec-dev run --help' to see the next supported workflow step.
+
+'run' supports exactly: spec-unit-tests, effect-conformance. Reported, not
+worked around: SS-01 does not invent a substitute command for a REQUIRED entry.
+
+MODEL DELTA, determined rather than assumed (model_delta_expectation: 'possible'):
+
+$ git diff 25600fa..HEAD --stat -- '*.tla' '*.cfg'   [outside specs/tickets/SS-01]
+  (no output above = NO existing TLA+ module or model config changed)
+
+The only .tla/.cfg in the diff are the ticket workspace 'open ticket' scaffolded,
+and its current and desired are byte-identical -- a NO-OP model result:
+  TlaSpecDevCli.tla    current==desired: YES
+  MC.cfg               current==desired: YES
+  MCsmall.cfg          current==desired: YES
+
+The workflow close's treatment of the findings ledger is not modelled in
+Internal.tla or External.tla, so relocating the ledger's live path has no
+model surface. Recorded rather than skipped.

@@ -20584,3 +20584,433 @@ findings:
       Note for SS-08: if the repaired classifier moves the denominator, the
       baseline `0 of 20` is superseded and the movement is the finding, not a
       correction to be applied silently.
+  - id: SS-01-DF-01
+    found_by: SS-01, repointing the ledger's live path
+    found_at_commit: 25600fa
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: [scripts/spec_evolution.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [tests/test_workflow_close_keeps_the_ledger.py]
+    channel: operator-doing-the-work
+    cost:
+      basis: one probe close over the sealed cut-the-apparatus snapshot, run while repointing the consumers
+      value: every future close records `findings_ledger.exists = false` and archives nothing
+    summary: >-
+      THE CLOSE STILL LOOKS FOR THE LEDGER WHERE IT NO LONGER IS.
+      `spec_evolution.snapshot_findings_ledger` sources the archive from
+      `specs_dir / "desired_program_model" / "deferred_findings.yaml"` -- a path
+      built from parts, which is why a grep for the literal dead path does not
+      find it and why it is not in SS-01's conflict keys. SS-01 moved the live
+      ledger to `specs/deferred_findings.yaml`, OUTSIDE the directory the close
+      removes. The good consequence is the point of the ticket: the ledger now
+      SURVIVES a close, so no reader needs the archive fallback and no writer
+      needs to append to an archive (CA-10-DF-10's cause). The bad consequence
+      is unclaimed: every close from here on writes
+      `findings_ledger: {exists: false}` into its manifest, writes "No cumulative
+      findings ledger at ..." into its summary, and archives NO frozen per-epic
+      snapshot of the ledger at all. That also means the deterministic archive
+      resolution SS-01 shipped gains no new candidates: it is pinned forever to
+      the one entry `cut-the-apparatus-epic` recorded.
+    reproduction: >-
+      Build a subject from
+      `specs/.history/cut-the-apparatus-epic/closed-snapshot/snapshots/`, move
+      its `desired_program_model/deferred_findings.yaml` to
+      `specs/deferred_findings.yaml`, run
+      `close_tickets.close_ticket_workflow(root, Path("specs"), dry_run=False)`,
+      then read `specs/.history/cut-the-apparatus-epic/closed-snapshot/manifest.json`
+      -> `findings_ledger.exists` is `false` and no `snapshot` key. The live
+      ledger is still at `specs/deferred_findings.yaml`, complete.
+    evidence:
+      - "scripts/spec_evolution.py:912-926 -- snapshot_findings_ledger, source path built from `desired_program_model`"
+      - "scripts/spec_evolution.py:882-895 -- the summary branch that now writes the `No cumulative findings ledger` sentence"
+      - "tests/test_workflow_close_keeps_the_ledger.py -- the rewritten test asserts the ledger SURVIVES and deliberately does not assert the archive, because of this row"
+    why_out_of_scope: >-
+      OUT. `scripts/spec_evolution.py` is in nobody's conflict keys and is not in
+      SS-01's implementation_scope (production: scripts/disposition.py,
+      examples/validation/scorecards/score_tools.py). NOT BLOCKING: SS-01's
+      REQUIRED matrix passes without it, because the property that matters --
+      the ledger outlives the close -- is now true by ADDRESS rather than by
+      archive. Widening SS-01 into the close machinery would put it in the way of
+      SS-06 and SS-07 for a one-line change nothing is waiting on.
+    suggested_fix: >-
+      One line: source the archive from `specs_dir / FINDINGS_LEDGER_NAME`,
+      falling back to the old location so a repository that has not migrated is
+      still archived. Then the close records a frozen copy of a ledger it no
+      longer deletes, which is the honest version of the freeze claim
+      CA-10-DF-10 falsified -- and, unlike today, that copy really is frozen,
+      because nobody has to write into it.
+    blast_radius: >-
+      Every workflow close after SS-01 merges. Nothing breaks; a record stops
+      being written. Silent, which is the reason to file it rather than leave it
+      to be noticed four epics later the way CA-10-DF-10 was.
+    disposition: carried
+    disposition_ticket: "epic owner, stabilize-substrate -- issue #273 review thread"
+    disposition_note: >-
+      RE-ROUTED TO THE OWNER, and the first routing was wrong in a way this
+      backlog cannot catch. It said SS-07, on the reasoning that SS-07 "owns
+      close machinery". An independent reviewer of PR #282 checked the scope
+      instead of the reasoning: SS-07's conflict keys are
+      specs/results/scorecards/ and examples/validation/, and the fix is one
+      line in scripts/spec_evolution.py. NO TICKET ON THIS EPIC CARRIES
+      scripts/spec_evolution.py IN ITS CONFLICT KEYS, so there is no ticket to
+      route this to and picking one would have produced a deferral that passes
+      D3 with full marks and reaches nobody -- CA-05-DF-03's exact blind spot,
+      committed while citing it. The owner assigns it or schedules a ticket for
+      it. D3 CANNOT SEE THIS CLASS OF ERROR: it asks that a successor be named,
+      never that the successor can reach the surface.
+  - id: SS-01-DF-02
+    found_by: SS-01, re-deriving SS-00-DF-01's mechanism before repairing it
+    found_at_commit: 25600fa
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/deferred_findings.yaml, STABILIZE-SUBSTRATE-EPIC.md]
+    channel: operator-running-own-instrument
+    cost:
+      basis: two `git clone --local` checkouts of 25600fa and one stat of the 85 candidates
+      value: a stated cause that would have made "sort by size" look like a fix
+    summary: >-
+      SS-00-DF-01's SYMPTOM REPRODUCES EXACTLY AND ITS STATED CAUSE DOES NOT.
+      The row and the charter both say all 85 archive candidates share ONE mtime
+      on a fresh checkout, so `(mtime, size, path)` "degenerates to SIZE" and
+      "THE LARGEST FILE WINS". Measured on two independent fresh clones of
+      `25600fa`: the 85 candidates carry 85 DISTINCT mtimes, spanning 3.597
+      seconds of checkout time, so the size term never breaks a tie. MTIME ALONE
+      DECIDES, and it lands on whatever git wrote last -- `specs/.history` is
+      checked out in name order and `subtract-to-measure-epic` sorts last, which
+      is why the winner is `ticket-005-SM-05`. AND THE LARGEST CANDIDATE IS THE
+      CORRECT ONE: `cut-the-apparatus-epic/closed-snapshot/deferred_findings.yaml`
+      at 1,152,237 bytes against the decoy's 345,400. HAD THE ORDERING REALLY
+      DEGENERATED TO SIZE, THE INSTRUMENT WOULD HAVE BEEN RIGHT. Also corrected:
+      "9 on this worktree and 0 on another, at the same commit" -- both fresh
+      clones report 9, deterministically. The divergence is not between two fresh
+      checkouts; it is between a fresh checkout and one whose files have been
+      touched. Demonstrated: in one clone, `touch
+      specs/.history/cut-the-apparatus-epic/closed-snapshot/deferred_findings.yaml`
+      moves `audit` from 9 violations to 0 with no byte of the tree changed.
+    reproduction: >-
+      `git clone --local --no-checkout <repo> ck && cd ck && git checkout 25600fa`,
+      then `python3 -c "import sys; sys.path.insert(0,'examples/validation/scorecards');
+      import score_tools as S; c=[p for g in S.LEDGER_ARCHIVE_GLOBS for p in
+      S.REPO_ROOT.glob(g)]; print(len(c), len({p.stat().st_mtime for p in c}),
+      max(p.stat().st_size for p in c))"` -> `85 85 1152237`. Then
+      `python3 examples/validation/scorecards/score_tools.py audit` -> 9; `touch`
+      the closed-snapshot ledger; re-run -> 0.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-01/two-checkouts-base.txt -- both clones at 25600fa, 9 violations each"
+      - "specs/results/scorecards/stabilize-substrate/SS-01/two-checkouts-base.txt -- both clones at 25600fa report 9, and the 9 -> 0 touch transcript is inline in the same file. CITATION CORRECTED before merge: this row first named touch-moves-the-answer.txt, which was never written (SS-01-DF-07)."
+      - "specs/deferred_findings.yaml SS-00-DF-01 summary -- the one-mtime / largest-file claim"
+      - "STABILIZE-SUBSTRATE-EPIC.md section 0 -- the same claim, in the charter"
+    why_out_of_scope: >-
+      IN SCOPE and already acted on: SS-01's repair removes the mtime term
+      entirely, so it is correct under either cause. Filed because the RECORD is
+      wrong in a way that survives the repair -- a reader who trusts it would
+      conclude that ordering by size is a fix, and it is not. R-H4 seals the
+      charter's section 0, so this row is the correction rather than an edit to
+      it.
+    suggested_fix: >-
+      Do not edit STABILIZE-SUBSTRATE-EPIC.md section 0 or the SS-00-DF-01 row;
+      both are records. SS-08 quotes this row instead when it verifies the
+      kickoff repairs, per its obligation (8) to check each by RUNNING it.
+    blast_radius: >-
+      The record only. No instrument reads either sentence.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      CARRIED to SS-08, which is required to verify the three kickoff defects by
+      running them and which quotes SS-00-DF-01 when it does.
+  - id: SS-01-DF-03
+    found_by: independent reviewer of PR #282 instructed to REFUTE, confirmed by the epic owner and re-derived by SS-01
+    found_at_commit: 587d46c
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: [examples/validation/scorecards/score_tools.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/results/scorecards/stabilize-substrate/SS-01/RESULT.md, specs/results/scorecards/stabilize-substrate/GOAL-counted-figures-reach-the-record/baseline.md]
+    channel: independent-review
+    cost:
+      basis: one cross-tab on (file x verdict) over the 23 rows that left the sweep, which nobody had run
+      value: a published correction that was itself wrong, in the file that executes the reading rules
+    summary: >-
+      SS-01 "CORRECTED" ISSUE #271 AND #271 WAS RIGHT. RESULT.md section 4 said
+      the ledger "cannot account for" the 102 -> 82 drop and that #271's "17
+      REFUTED figures currently unswept" was "wrong twice -- they are
+      UNREACHABLE not REFUTED, and inside the sweep not outside it". THE
+      CROSS-TAB SAYS OTHERWISE. Of the 23 counted figures that left the sweep
+      between ea624b9 and 436c78c: 17 REFUTED and 3 UNREACHABLE come from
+      specs/desired_program_model/deferred_findings.yaml, and 3 REFUTED from
+      NEXT-EPIC.md which return re-anchored. THE LEDGER ACCOUNTS FOR THE -20
+      EXACTLY (20 of 23 gone rows), and it carried PRECISELY 17 REFUTED rows,
+      which were precisely unswept. THE ROOT CAUSE IS AN INSTRUMENT-CONTEXT
+      ERROR AND IT IS WORTH MORE THAN THE FIGURE: `scope`'s verdict is a joint
+      property of the FILE AND THE TREE IT IS SWEPT IN. SS-01 measured the
+      ea624b9 ledger under `--root <a bare directory containing only the
+      ledger>` -- a root it had constructed for the measurement -- got 21 (18
+      REFUTED, 3 UNREACHABLE), and reported that as a property of the file. The
+      same bytes in the full ea624b9 tree return 20 (17 REFUTED, 3 UNREACHABLE).
+      THAT IS THE SS-00-DF-01 LESSON -- quote the tree AND the checkout -- MADE
+      BY THE TICKET THAT REPAIRED SS-00-DF-01, in the document where it
+      corrected someone else for a neighbouring error. A COINCIDENCE MADE IT
+      PLAUSIBLE AND IS WORTH RECORDING: the whole-record UNREACHABLE count at
+      25600fa is ALSO 17, so a 17 was available to misread as the one #271 meant.
+      THE OWNER'S BASELINE IS THE PARENT ERROR and the owner has claimed it: it
+      carried two marginal totals, by-file 20/3 and by-verdict 20/3, and assumed
+      they lined up without cross-tabulating. Issue #273 then handed SS-01 that
+      inference as fact.
+    reproduction: >-
+      Clone at ea624b9 and at 25600fa; run `score_tools.py scope --format json`
+      in each (102 and 82); key the claims on (file, line, dim, n, m, value) and
+      diff. GONE: 17 REFUTED + 3 UNREACHABLE from the ledger, 3 REFUTED from
+      NEXT-EPIC.md. ADDED: 3 REFUTED NEXT-EPIC.md. Then, for the context error:
+      `scope --path specs/desired_program_model/deferred_findings.yaml` inside
+      the full ea624b9 tree -> 20 {17 REFUTED, 3 UNREACHABLE}; the same bytes via
+      `scope --root <bare dir> --path specs/deferred_findings.yaml` -> 21 {18
+      REFUTED, 3 UNREACHABLE}.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-01/scope-crosstab.txt -- the cross-tab and both context runs"
+      - "examples/validation/scorecards/score_tools.py DEFAULT_SWEEP docstring -- corrected in place, because that file executes the reading rules"
+      - "specs/results/scorecards/stabilize-substrate/SS-01/RESULT.md section 4 -- corrected"
+    why_out_of_scope: >-
+      IN SCOPE and repaired in this PR: RESULT.md section 4 and the DEFAULT_SWEEP
+      docstring are both corrected. Filed rather than silently fixed because a
+      published figure was WRONG and the correction of a correction has to be on
+      the record, and because the owner is correcting the baseline, the charter
+      and issue #273 at merge time and needs one row to cite.
+    suggested_fix: >-
+      SUBSTRATE CHANGE, not just a text fix. `scope` reports a verdict per claim
+      and NOTHING IN ITS OUTPUT RECORDS THE ROOT IT SWEPT. A figure copied out of
+      a `--root` run is indistinguishable from one measured on the repository.
+      Have `scope --format json` emit the resolved root and the commit alongside
+      the claims, so a quoted figure carries its tree the way this epic requires
+      every audit figure to. That is SS-04's surface, not SS-01's.
+    blast_radius: >-
+      Every figure this programme quotes from `scope`. Two published documents
+      carried the wrong version (RESULT.md, the DEFAULT_SWEEP docstring) plus the
+      owner's baseline, the charter and issue #273.
+    disposition: carried
+    disposition_ticket: "SS-04"
+    disposition_note: >-
+      CARRIED to SS-04 for the substrate change only -- `scope` output should
+      name the root it swept. The factual corrections are already applied here.
+  - id: SS-01-DF-04
+    found_by: independent reviewer of PR #282 instructed to REFUTE
+    found_at_commit: 587d46c
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: [examples/validation/scorecards/score_tools.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [tests/test_ledger_resolution_is_deterministic.py]
+    channel: independent-review
+    cost:
+      basis: four end-to-end audit runs on a copy of the SS-01 tip with the ledger replaced
+      value: the absent-input class, still open one input over, in the ticket that reported it closed
+    summary: >-
+      A LEDGER THAT EXISTS AND YIELDS ZERO IDS WAS STILL A CONFIDENT ANSWER.
+      CA-10-DF-11 repaired the ABSENT ledger (`set[str] | None`). SS-01 repaired
+      the WRONG ledger (mtime -> manifest). NEITHER COVERED THE EMPTY ONE.
+      Measured end-to-end on 587d46c: `findings: []` -> 14 violation(s); a
+      zero-byte file -> 14 violation(s); malformed YAML -> 14 violation(s) -- in
+      every case `_finding_ids()` returned an EMPTY SET, R-H3 read that as "read
+      it, it lists nothing", and reported every real `filed_as` citation in the
+      whole scorecard record as a fabrication. THIS IS THE HAZARD SS-01 WROTE
+      INTO ITS OWN GOAL REPORT AND THEN DID NOT CHECK FOR: GOAL-absent-input-
+      consumed's expected_effect says in as many words that "a fallback that
+      merely moves the false PASS to a rarer input has NOT fixed the class", and
+      SS-01 quoted that line while shipping exactly that.
+    reproduction: >-
+      On a clone at 587d46c: `printf 'findings: []\n' > specs/deferred_findings.yaml
+      && python3 examples/validation/scorecards/score_tools.py audit` -> `14
+      violation(s)`. Same for `: > specs/deferred_findings.yaml` and for
+      `printf 'findings:\n  - id: [unclosed\n'`. Direct probe: `_finding_ids()`
+      -> `set()` (not None) in all three.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py _finding_ids -- `return ids or None`, with the measurement in the docstring"
+      - "tests/test_ledger_resolution_is_deterministic.py::test_a_ledger_that_names_no_findings_is_not_an_answer -- four bodies, parametrized"
+      - "specs/results/scorecards/stabilize-substrate/SS-01/empty-ledger-before-after.txt"
+    why_out_of_scope: >-
+      IN SCOPE and repaired in this PR: `_finding_ids` returns None when the
+      ledger names no findings, and the UNVERIFIED line now says WHICH of the two
+      states it hit. Filed because it is a fourth instance of the class this epic
+      exists to consume, found by review rather than by the check, and because
+      GOAL-absent-input-consumed's clause (d) requires every repair to carry its
+      own demonstrated absent-input case.
+    suggested_fix: >-
+      Done here for R-H3. THE CLASS IS NOT DONE: the same three-state question
+      (absent / unreadable / read-and-empty) applies to `load_log` and to every
+      other reader in the 48-instance sweep, and NOTHING IN THE SUBSTRATE ASKS IT.
+      SS-02's absent-input check should require the EMPTY case as well as the
+      absent one, or it will certify instruments with this exact hole.
+    blast_radius: >-
+      Every `audit` run in any tree whose ledger is empty, truncated or malformed
+      -- including a partially-written file and a bad merge -- in the direction of
+      ACCUSING TRUE CITATIONS OF BEING FABRICATED.
+    disposition: carried
+    disposition_ticket: "SS-02"
+    disposition_note: >-
+      REPAIRED HERE for R-H3; CARRIED to SS-02 for the rule, which must demand the
+      READ-AND-EMPTY case and not only the ABSENT one.
+  - id: SS-01-DF-05
+    found_by: independent reviewer of PR #282 instructed to REFUTE
+    found_at_commit: 587d46c
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: [scripts/disposition.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [tests/test_ledger_resolution_is_deterministic.py]
+    channel: independent-review
+    cost:
+      basis: reading the docstring's exit contract against the code SS-01 added
+      value: two different outcomes indistinguishable to any caller that checks the exit code
+    summary: >-
+      THE UNVERIFIED REFUSAL SS-01 ADDED EXITED 1, THE SAME CODE AS A CLAUSE
+      VERDICT. `disposition.py`'s documented contract is `0 = disposed, 1 =
+      REFUSED, 2 = usage/parse error`, and SS-01's new "no ledger could be
+      identified" refusal raised `SystemExit(<message>)`, which is exit 1. A
+      caller reading the code rather than the output therefore cannot tell
+      `REFUSED <scope>: N of M findings undisposed` -- a verdict over a ledger
+      that was read -- from "no ledger exists and nothing was evaluated". That is
+      the same conflation SS-00-DF-01 produced at the other end of this script.
+    reproduction: >-
+      Before the fix, in a tree with no live ledger and no recorded archive:
+      `python3 scripts/disposition.py --all; echo $?` -> 1, identical to a real
+      refusal over undisposed rows.
+    evidence:
+      - "scripts/disposition.py resolve_ledger -- now prints to stderr and raises SystemExit(2)"
+      - "scripts/disposition.py module docstring -- the exit contract states both outcomes"
+      - "tests/test_ledger_resolution_is_deterministic.py::test_an_unrecorded_archive_is_not_a_candidate -- asserts code 2 AND the word on stderr"
+    why_out_of_scope: >-
+      IN SCOPE and repaired in this PR.
+    suggested_fix: >-
+      Done: exit 2, with the message on stderr and the contract in the docstring.
+    blast_radius: >-
+      Any automation that shells out to disposition.py. Nothing in this repository
+      does today, which is why it was invisible.
+    disposition: repaired
+    disposition_note: >-
+      REPAIRED in this PR: the UNVERIFIED refusal exits 2, the docstring states
+      both non-zero outcomes, and a test pins the code and the message.
+  - id: SS-01-DF-06
+    found_by: independent reviewer of PR #282 instructed to REFUTE
+    found_at_commit: 587d46c
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: [scripts/disposition.py, examples/validation/scorecards/score_tools.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [tests/test_ledger_resolution_is_deterministic.py]
+    channel: independent-review
+    cost:
+      basis: counting how many manifests qualify (1 of 123) and reading the compare
+      value: the sole arbiter of the new ordering, never exercised against a rival
+    summary: >-
+      THE ORDERING THAT REPLACED MTIME IS UNTESTED AGAINST A COMPETITOR AND WAS
+      A RAW STRING COMPARE. SS-01 replaced the mtime sort with `created_at_utc`
+      from the entry manifest -- but EXACTLY ONE of this repository's 123 entry
+      manifests records a `findings_ledger`, and SS-01's own test installs
+      exactly one candidate, so `sorted()` never had to choose. SS-01-DF-01 keeps
+      it at one indefinitely, because every close from here records
+      `exists: false`. The compare was lexicographic on the raw field, so
+      `2026-08-05T11:29:00Z` sorts BELOW `2026-08-05T11:29:00+00:00` -- the same
+      instant, opposite order -- and differing precision sorts by digits. A
+      defect in the sole arbiter of the answer, invisible until a second close
+      records a ledger.
+    reproduction: >-
+      `ls specs/.history/*/*/manifest.json | wc -l` -> 123; filter on
+      `findings_ledger.exists` -> 1. Before the fix:
+      `sorted(["2026-08-05T11:29:00Z", "2026-08-05T11:29:00+00:00"])` puts the
+      `+00:00` spelling last, so the older close wins when the two are the same
+      instant.
+    evidence:
+      - "scripts/disposition.py _closed_at -- parses the stamp; unparseable sorts OLDEST, never wins"
+      - "tests/test_ledger_resolution_is_deterministic.py::test_two_recorded_archives_order_by_close_time_not_by_text -- three entries, two spellings of one instant"
+    why_out_of_scope: >-
+      IN SCOPE and repaired in this PR.
+    suggested_fix: >-
+      DONE IN BOTH INSTRUMENTS in this PR. The review asked only for a
+      two-manifest test; fixing disposition.py alone would have left
+      score_tools.py -- which is in SS-01's own conflict keys -- string-comparing
+      the same field, and the existing pin
+      (test_the_two_instruments_resolve_to_the_same_ledger) could not have caught
+      the divergence because it binds them on THIS tree, where only one candidate
+      exists. So score_tools gets the same parse (duplicated, not imported, per
+      RM-05 section 3) and the new ordering test asserts BOTH instruments against
+      a three-entry tree.
+    blast_radius: >-
+      Zero today at one candidate. The moment a second close records a ledger, the
+      wrong archive can win in either instrument, silently.
+    disposition: repaired
+    disposition_note: >-
+      REPAIRED in both instruments with a three-entry ordering test that binds
+      them to one answer. NOTE FOR SS-04, which owns score_tools.py next: the two
+      copies of this resolution are now identical by hand and nothing enforces
+      that beyond one test -- if SS-04 touches either, run that test.
+  - id: SS-01-DF-07
+    found_by: independent reviewer of PR #282 instructed to REFUTE
+    found_at_commit: 587d46c
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [specs/deferred_findings.yaml]
+    channel: independent-review
+    cost:
+      basis: resolving the evidence paths of the two findings SS-01 filed
+      value: a finding whose named artifact does not exist
+    summary: >-
+      SS-01-DF-02 CITED AN ARTIFACT THAT WAS NEVER WRITTEN. Its evidence named
+      `specs/results/scorecards/stabilize-substrate/SS-01/touch-moves-the-answer.txt`.
+      No such file exists in the tree; the 9 -> 0 touch transcript it refers to is
+      inline in `two-checkouts-base.txt`. The CLAIM is true and reproducible and
+      the reviewer confirmed it independently -- what failed is the pointer. The
+      rule this violates is the one this project keeps as its best single line:
+      "an entry with no reproduction is not a finding, it is a hunch." A
+      reproduction that resolves to nothing is the same failure wearing a path.
+    reproduction: >-
+      `grep -n touch-moves-the-answer specs/deferred_findings.yaml` -> the
+      citation; `ls specs/results/scorecards/stabilize-substrate/SS-01/` -> the
+      file is absent.
+    evidence:
+      - "specs/deferred_findings.yaml SS-01-DF-02 evidence -- citation corrected to two-checkouts-base.txt before merge"
+    why_out_of_scope: >-
+      IN SCOPE and corrected in this PR, before merge, on a row this same PR filed
+      -- not an edit to sealed or inherited history. Filed because a broken
+      citation in a findings ledger is exactly the failure the deferment rule is
+      written to prevent, and because NOTHING CHECKS IT: no instrument resolves
+      the `evidence:` paths in this file.
+    suggested_fix: >-
+      SUBSTRATE CHANGE, and it is the consumable part: add a check that every
+      `evidence:` path in specs/deferred_findings.yaml which looks like a repo
+      path RESOLVES in the tree, reporting UNVERIFIED for the ones that do not.
+      That is a check over this project's own record -- the population the
+      static-gates doctrine explicitly permits -- and it would have caught this
+      row on the commit that filed it.
+    blast_radius: >-
+      Unmeasured across the 301 rows. Nobody has ever resolved the evidence paths
+      in this ledger; this one was found by a reviewer reading a single row.
+    disposition: carried
+    disposition_ticket: "SS-02"
+    disposition_note: >-
+      CITATION CORRECTED here; CARRIED to SS-02, which lands executed checks over
+      this project's own record, for the evidence-path resolver.

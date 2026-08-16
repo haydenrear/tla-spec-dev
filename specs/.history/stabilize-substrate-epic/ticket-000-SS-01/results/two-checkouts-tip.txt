@@ -1,0 +1,21 @@
+SS-00-DF-01 AT THE SS-01 TIP -- the two-worktree proof
+commit: 61fc43cdf13c73dc9f49ee357b85d0caaf4128c1  (feature/SS-01)
+date:   2026-08-15T21:37:25Z
+
+Two INDEPENDENT fresh checkouts of the SAME commit, each
+'git clone --local --no-checkout' + 'git checkout 61fc43c':
+  tip-A: 0 violation(s)
+    live ledger read: True | ids: 301
+  tip-B: 0 violation(s)
+    live ledger read: True | ids: 301
+
+SAME COUNT. At the base the same pair of clones both reported 9.
+
+AND THE STRONGER FORM -- the touch that moved the base from 9 to 0 now moves nothing.
+In a root holding ONLY specs/.history (no live ledger), mtimes inverted:
+    recorded oldest  -> cut-the-apparatus-epic/closed-snapshot/deferred_findings.y  ids=296
+    recorded newest  -> cut-the-apparatus-epic/closed-snapshot/deferred_findings.y  ids=296
+    sizes: recorded 1152237 decoy 345400
+
+The answer now depends on the entry manifest's findings_ledger record and
+its created_at_utc -- both stored in the tree, identical in every checkout.
