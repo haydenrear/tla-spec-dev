@@ -273,17 +273,47 @@ disclosed rather than absorbed.**
 
 `close ticket` **seals the history entry and deletes the workspace in one
 operation**, so the sealed entry can never describe the tree it produces, and
-`R-H4` forbids editing the entry afterwards.
+`R-H4` forbids editing the entry afterwards. Both figures are therefore
+published, and both were measured.
 
-- **The sealed summary describes the PRE-CLOSE tree: `7 / 1548 / 0 / 1 / 1556`.**
-- **The post-close tree is in `collect-tip-postclose.txt` and
-  `pytest-tip-postclose.txt` in this directory**, measured after the close.
-- **The post-close figure is the authoritative one for `SS-08`**, because it
-  describes the tree that is merged. The pre-close figure is the one the sealed
-  entry carries and is authoritative for nothing except what the close saw.
+| | failed | passed | skipped | xfailed | collection |
+|---|---:|---:|---:|---:|---:|
+| **pre-close** — what the sealed summary carries | **7** | **1548** | **0** | **1** | **1556** |
+| **post-close** — the tree this PR merges | **7** | **1544** | **0** | **1** | **1552** |
 
-The whole of the difference is the **`+4` from `open ticket`** identified node by
-node in §6.1, plus `test_ticket_retirement` losing one of its seven complaints.
+`7 + 1544 + 0 + 1 = 1552`. **The post-close figure is the authoritative one for
+`SS-08`**, because it describes the tree that is merged. The pre-close figure is
+authoritative for nothing except what the close itself saw.
+
+**The whole of the `−4` is the `open ticket` inflation being removed, and it is
+identified node by node**, not inferred from the arithmetic —
+`collect-tip-postclose.txt` diffed against `collect-tip-preclose.txt`:
+
+```
+removed  test_spec_yaml_valid[complexity_ledger.yaml0]  [ticket.yaml0]
+         test_spec_yaml_valid[complexity_ledger.yaml1]  [ticket.yaml1]
+         test_spec_yaml_valid[spec_manifest.yaml6]      [spec_manifest.yaml7]
+added    test_spec_yaml_valid[complexity_ledger.yaml]   [ticket.yaml]
+```
+
+Six out, two back in: the parametrisation de-duplicates its ids only while two
+files share a basename, so removing `specs/tickets/SS-02/` collapses the pairs
+back to the single ids the base tree carried. **Net `−4`, exactly the `+4` §6.1
+attributed to `open ticket`. Passes fall by the same 4. No red moves.**
+
+**`test_ticket_retirement` is still red and correctly so:** it now complains
+about five planned tickets instead of six, `SS-02` having dropped off the list.
+
+### 7.1 The sealed copy and this file have diverged, on purpose
+
+`specs/.history/stabilize-substrate-epic/ticket-002-SS-02/results/RESULT.md` is
+the byte-frozen copy the close took, and it stops at §6 — it cannot contain the
+post-close measurement, because that measurement did not exist until the close
+had already happened. **`R-H4` leaves it there.** This file, at
+`specs/results/scorecards/stabilize-substrate/SS-02/RESULT.md`, is the live one
+and is the one to read. `SS-01` hit the same divergence one ticket ago
+(`8/1508/0/1516` sealed against `8/1504/0/1512` live) and it is structural, not
+a mistake either of us made.
 
 ---
 
