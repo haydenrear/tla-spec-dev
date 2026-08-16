@@ -10,8 +10,21 @@ uv run --with pyyaml python3 \
   specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/baseline_is_a_card.py
 ```
 
-**Raw output, sealed:** `baseline_is_a_card-436c78c.txt` in this directory. Every
-figure below is re-readable from that file; nothing here is a recollection.
+**Raw output, sealed:** `baseline_is_a_card-436c78c-CLEAN.txt` in this directory,
+measured by `SS-03` in a **detached worktree at `436c78c` with an empty
+`git status --porcelain`**. Every figure in §1 is re-readable from that file.
+
+> **CORRECTED BY `SS-03`.** These two lines used to name
+> `baseline_is_a_card-436c78c.txt` and claim *"every figure below is re-readable
+> from that file"*. **That sentence was false.** The file it named was produced
+> at kickoff on a working tree that **already carried this epic's
+> `ticket_plan.yaml` and three uncommitted `baseline.md` files**, and it reports
+> **123 plans, 36 goals, 23 judged** — not the `122 / 31 / 20` in §1. **No sealed
+> artifact anywhere in the record produced `0 of 20`** until `SS-03` measured
+> one. The mislabelled file is kept, renamed
+> `baseline_is_a_card-KICKOFF-MISLABELLED-post-plan-population.txt`, headed with
+> what it actually is, and cited by nothing. **`SS-03-DF-05`**, found by the
+> `SS-03` independent reviewer; source: this epic's own kickoff.
 
 ---
 
@@ -25,7 +38,10 @@ distinct epic goals                                        : 31
 sealed scorecard.json files under specs/results/scorecards : 95
 ```
 
-**`0 of 20`.**
+**`0 of 20`. SUPERSEDED — see §7.1.** The numerator holds at zero everywhere; the
+denominator reads `24` at the epic tip and `17` under the repaired instrument.
+This figure remains correct **at `436c78c`, on a clean tree**, and is kept
+unedited for that reason.
 
 | verdict | count | meaning |
 |---|---:|---|
@@ -51,7 +67,8 @@ raw output.
 
 ## 3. What the two counts of *this* measurement are, so they are not confused later
 
-- **`0 of 20`** is the goal's figure: judged goals with an openable baseline.
+- **`0 of 20`** is the goal's figure at `436c78c`: judged goals with an openable
+  baseline. **`SS-03` supersedes it — §7.1.**
 - **`0 of 31`** is a different figure — `baseline.evidence` pointing at a
   `scorecard.json` — unchanged across `SV-06`, `SV-03`, `SV-05` and this tree.
   It is a **string test**; the `0 of 20` **resolves against the filesystem**.
@@ -129,6 +146,50 @@ quietly sharing one recogniser is how a single defect becomes two wrong figures.
 **If the repair moves `0 of 20`, this baseline is superseded and the movement is
 the finding** — stated with numerator and denominator named, in either direction,
 never applied silently as a correction.
+
+### 7.1 It moved. `SS-03` records the movement here, in the file that owns it
+
+**THIS BASELINE IS SUPERSEDED. The numerator never left zero; the denominator
+moved three times.**
+
+| tree | recogniser | figure |
+|---|---|---|
+| `436c78c` (§1, clean) | keyword over four fields | **`0 of 20`** |
+| `25600fa` (epic tip) | keyword over four fields | **`0 of 24`** |
+| `25600fa` (`SS-03`, stage one) | declared `kind` alone | **`0 of 23`** |
+| `25600fa` (`SS-03`, **shipped**) | declared `kind`, prose may only withhold | **`0 of 17`, 6 `UNDECIDED`** |
+
+- **`20 → 24` is CORPUS movement with no repair in it.** Scaffolding this epic's
+  own workflow added five goals to the live plan and four matched the keyword
+  list. `0 of 20` is therefore already stale for every ticket agent on this
+  branch, which is `denominator_rule` applied to this epic's own figure.
+- **`24 → 23` is `SS-00-DF-03`'s repair** — judged-ness from the declared `kind`
+  rather than harness prose. Net `−1`, but the **composition changed on 13 of 36
+  goals** (7 out, 6 in), so the net understates it badly.
+- **`23 → 17` is the `SS-03` independent review's amendment.** Where a goal
+  declares `kind: eval` *and* names no judge, rubric, card or dimension anywhere
+  in its statement, metric, harness or target, the record's two signals disagree
+  and the answer is `UNDECIDED`. **The six refused are exactly the six goals
+  `SV-03-DF-02` already named** as naming no judged instrument while declaring
+  `kind: eval` — so the veto reproduces a filed finding's list rather than
+  inventing one.
+
+**By verdict at the tip:** `card 0`, `card-via-index 8`, `directory 3`,
+`summary 5`, `unresolvable 0`, `prose 1`, `no-evidence 0`, `not-judged 13`,
+`undecided 6`, `id-collision 0`. **Without the additive index** the same 17 read
+`directory 8 / summary 7 / unresolvable 1 / prose 1`, and **that is the column
+comparable to `0 of 20`** — `card-via-index` is drawn from those classes, not
+added beside them.
+
+**Clause (c), counted: every judged goal is declared only under
+`specs/.history`.** `23 of 23` under stage one, `17 of 17` under the shipped
+rule. **Not one can be made compliant without editing a sealed record, and none
+was edited.** And for **15 of the 23 examined, no card produced the number at
+all** — the rule is unsatisfiable for them, not merely unmet (`SS-03-DF-03`).
+
+Raw output: `baseline_is_a_card-436c78c-CLEAN.txt` here, and
+`../SS-03/baseline_is_a_card-SS-03-tip.txt` and
+`../SS-03/baseline_is_a_card-25600fa-PRE-REPAIR.txt`.
 
 ## 8. The constraint that may bound the goal
 
