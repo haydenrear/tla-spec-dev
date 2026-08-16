@@ -48,8 +48,17 @@ case "$BUMP" in
       patch) NEW="$MAJOR.$MINOR.$((PATCH + 1))" ;;
     esac
     ;;
-  [0-9]*.[0-9]*.[0-9]*) NEW="$BUMP" ;;
-  *) usage; die "'$BUMP' is neither a bump kind (patch|minor|major) nor an X.Y.Z version" ;;
+  *)
+    # Exactly three numeric fields. The old glob accepted 1.2.3.4, which then
+    # reached `$(( 3.4 + 1 ))` on the NEXT bump and aborted in bash arithmetic
+    # instead of refusing here.
+    _n="$BUMP"
+    case "$_n" in
+      *.*.*.*|*[!0-9.]*|.*|*.) usage; die "'$BUMP' is neither a bump kind (patch|minor|major) nor an X.Y.Z version" ;;
+      *.*.*) NEW="$BUMP" ;;
+      *) usage; die "'$BUMP' is neither a bump kind (patch|minor|major) nor an X.Y.Z version" ;;
+    esac
+    ;;
 esac
 
 step "Version"
@@ -67,7 +76,9 @@ root = Path(root)
 p = root / pjson
 data = json.loads(p.read_text(encoding="utf-8"))
 data["version"] = new
-p.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+# ensure_ascii=False: every description in this ecosystem carries an em dash,
+# and the default would ship it to the marketplace UI as \u2014.
+p.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 print(f"  wrote {pjson}")
 
 t = root / ptoml

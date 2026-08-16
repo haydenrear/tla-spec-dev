@@ -99,8 +99,10 @@ Be honest about these before bundling; two of them are irreversible-ish.
    from the bundle now takes all of them.
 2. **Store paths move**, so sibling skills that resolve each other as
    `$SKILL_MANAGER_HOME/skills/<unit>/…` break. See `layout.md` § *Store paths*.
-3. **Two directions of git flow to keep straight**, and one of them
-   (`refresh.sh`) is destructive. `lifecycle.md` exists because of this.
+3. **Two directions of git flow to keep straight**, and the inbound one
+   (`refresh.sh`) silently *skips* a skill whose parent-side edit was never
+   fanned out — so a pull you believe was atomic can be partial.
+   `lifecycle.md` exists because of this.
 4. **The bundle's granularity becomes the consumer's granularity.** A consumer
    that needs one skill pays for all of them: install size, MCP/CLI dependency
    union, and every future change to any of them.
@@ -140,6 +142,13 @@ though every bundle carrying it must fan its changes back to it, or they drift.
 They are not competitors along their whole length; the overlap is only the
 "several units travel together" part.
 
+Before either, note what the *docs* already sanction: `skt`'s
+`references/coords-and-distribution.md` says to put exactly one installable unit
+at a git repo root, and then — in the same section — "if units must ship
+together, use a plugin or a harness." A plugin repository is that escape clause
+taken literally, with each member keeping its own repo upstream. It is not a
+workaround of the one-unit-per-repo rule; it is the shape the rule points at.
+
 | Need | Shape |
 |---|---|
 | Several skills version, install, sync and change as one thing | **plugin repo** |
@@ -154,5 +163,11 @@ project-binding and instance parts — often shrinking to `units =
 ["github:owner/the-plugin-repo"]` plus its docs. When the harness has no docs
 and no instances, it disappears into the plugin repo entirely, which can also
 carry the `hooks/`, `commands/` and `agents/` a harness never could.
+
+A caution against over-reading that: in *this* home every installed harness
+template declares `units = []` and `docs = []` and says in its own header that
+it is a test fixture. So there is no list here waiting to be collapsed — the
+harness case is a real shape, not an observed backlog. Do not bundle in order to
+shrink a harness that does not exist yet.
 
 The migration is `migration.md`.

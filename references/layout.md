@@ -30,15 +30,26 @@ list. They never collide.
 ## Constituents must be at `skills/<name>/`
 
 The contained-skill path is not a convention, it is where the plugin runtime and
-`skill-manager` look. `integration.toml` records `path` per constituent and
-every `git-integration-repo` script reads it from there — `finalize-constituents.sh`,
-`verify.sh`, `refresh.sh` and `propagate.sh` are all path-agnostic and work
-unmodified.
+`skill-manager` look. `integration.toml` records `path` per constituent, and
+`verify.sh`, `refresh.sh` and `propagate.sh` read it from there — those three are
+path-agnostic and work unmodified.
 
-The single exception is `add-constituent.sh`, which hardcodes
-`constituents/$NAME`. That is why `scripts/add-skill.sh` exists here: it does
-the same clone → strip `.git` → register, into `skills/<name>`, and additionally
-refuses input a plugin cannot carry:
+**Two of the dependency's scripts are not**, and both are wrapped here:
+
+- `add-constituent.sh` hardcodes `constituents/$NAME` for the directory it
+  creates. Use `scripts/add-skill.sh`.
+- `finalize-constituents.sh` reads the manifest for the work, but its *guard* —
+  "are the constituent files committed yet?" — is the pathspec
+  `git status --porcelain -- constituents`, a directory a plugin repo does not
+  have. The guard therefore matches nothing and never fires, and finalizing
+  before committing gives every `skills/<name>/` a `.git`, after which the
+  parent's next `git add -A` records **gitlinks** — the submodule failure the
+  whole model exists to prevent. Use `scripts/finalize.sh`, which re-asks the
+  same question against the manifest's real paths and then delegates.
+
+`scripts/add-skill.sh` does the same clone → strip `.git` → register as the
+dependency's script, into `skills/<name>`, and additionally refuses input a
+plugin cannot carry:
 
 - no `SKILL.md` at the cloned repo's root (a plugin's contained skill needs one
   *there*, not nested);
@@ -49,8 +60,8 @@ refuses input a plugin cannot carry:
 
 Everything after that is the dependency's ordinary onboarding, and its ordering
 invariant is unchanged and unforgiving: **`git add` + commit the skill's files
-while it has no `.git`, and only then run `finalize-constituents.sh`.** See
-`git-integration-repo`'s `references/git-model.md`.
+while it has no `.git`, and only then finalize.** See `git-integration-repo`'s
+`references/git-model.md`.
 
 ## Store paths, and the resolvers they break
 
@@ -118,10 +129,26 @@ short version:
   the property a plugin repo is trying not to destroy upstream.
 - Move a dep **to the plugin** only when two contained skills share one MCP
   server (registering it twice races on init params) or one CLI.
+- **`skill-script:` CLI deps are the exception to that default**: they belong in
+  `skill-manager-plugin.toml` with the installer under the *plugin root's*
+  `skill-scripts/`, which is how `skt` ships its own CLI. Two bundled skills
+  that each owned a `skill-scripts/` installer therefore merge into one
+  namespace at the plugin root, and `sync <plugin> --force-scripts` replays the
+  whole bundle's scripts rather than one skill's. Check for this before bundling
+  any skill that ships a private CLI.
 - `skill_references` on a contained skill still work and are still unioned at
   install; a reference to a skill that is *also* a member of this bundle is
   redundant at best and an install-time cycle at worst — drop it and rely on the
   bundle.
+
+## Hooks address contained skills through the plugin root
+
+`hooks/`, `commands/` and `agents/` are the harness surface a bare skill cannot
+ship, and they are a real reason to bundle. When a hook needs a file from a
+contained skill, address it as `${CLAUDE_PLUGIN_ROOT}/skills/<skill>/…` — the
+harness exports that, and it is what the installed plugins in this home do.
+Never reach through `$SKILL_MANAGER_HOME`: the harness runs hooks in its own
+environment and does not export it.
 
 ## `.gitignore`, and where it may not go
 
@@ -149,6 +176,20 @@ skills/**/__pycache__/
 A constituent's own `.gitignore` is *more specific* than the root's, so a
 negation inside it beats a root rule. Confirm with `git check-ignore -v <path>`
 and read which file it names.
+
+## Two things the scaffolder leaves to you
+
+- **`skill-project.toml`.** A plugin repo is a checkout agents work in, so it
+  wants one, declaring at least `git-issue-workflow` (every ticket worktree in
+  it) and `plugin-repository` + `git-integration-repo` (the scripts its agents
+  run). `init-plugin-repo.sh` does not write one — the right contents depend on
+  what the bundle contains. `git-integration-repo`'s `references/onboarding.md`
+  step 9 is the same obligation for any integration repo, and the per-checkout
+  home that goes with it is `git-issue-workflow`'s `bootstrap-home.sh`.
+- **`verify.sh` runs in the MAIN working tree.** The delegated half requires
+  every constituent to have its own `.git`, which a fresh clone and a `skt
+  ticket` worktree do not — a worktree deliberately holds plain files. A FAIL
+  there is the wrong question, not a broken bundle.
 
 ## Homes carry no constituent `.git`
 

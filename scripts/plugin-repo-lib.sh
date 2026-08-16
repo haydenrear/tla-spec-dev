@@ -7,7 +7,7 @@
 # A plugin repository IS an integration repository, so nothing here reimplements
 # the git model, the constituent manifest, or the fan-out:
 #
-#   plugin-repository -> git-integration-repo -> git-issue-workflow
+#   plugin-repository -> git-integration-repo -> git-issue-workflow -> git-issue
 #
 # This file resolves and sources ONE file — git-integration-repo's
 # `integration-lib.sh` — which in turn resolves and sources git-issue-workflow's
@@ -119,7 +119,7 @@ PLUGIN_TOML="skill-manager-plugin.toml"
 require_plugin_repo() {
   local root="$1"
   [ -f "$root/$PLUGIN_JSON" ] || die_fix 1 \
-    "$PLUGIN_REPO_LIB_DIR/init-plugin-repo.sh <plugin-name> $root" \
+    "$PLUGIN_REPO_LIB_DIR/init-plugin-repo.sh NAME $root" \
     "not a plugin repository: no $PLUGIN_JSON at $root
   It may be a plain integration repo. A plugin repository needs BOTH markers:
   integration.toml (constituents) and $PLUGIN_JSON (skill-manager plugin)."
@@ -164,7 +164,7 @@ for line in text.splitlines():
         k, _, v = s.partition("=")
         if k.strip() == key:
             v = v.strip()
-            if v[:1] in "\"'" and v.count(v[0]) > 1:
+            if v and v[0] in "\"'" and v.count(v[0]) > 1:
                 print(v[1:v.index(v[0], 1)])
             else:
                 print(v.split("#")[0].strip().strip("\"'"))
@@ -179,4 +179,21 @@ PY
 # the directory name, so it is checked rather than assumed.
 is_contained_skill_path() {
   case "$1" in skills/*) return 0 ;; *) return 1 ;; esac
+}
+
+# A unit name, checked the way skill-manager spells one. Not cosmetic: both
+# scaffolders feed $NAME to `sed` as a REPLACEMENT, where `&` means "the whole
+# match" and a backslash escapes — so an unvalidated name writes REPLACE_NAME
+# straight into plugin.json and the plugin installs under a name nobody chose.
+# It is also the directory under skills/ and the `<plugin>:<skill>` invocation
+# name, neither of which tolerates anything outside this class.
+require_unit_name() {
+  local name="$1" what="${2:-name}"
+  case "$name" in
+    [a-z0-9]*) : ;;
+    *) die "'$name' is not a valid $what: must start with a lowercase letter or digit" ;;
+  esac
+  case "$name" in
+    *[!a-z0-9._-]*) die "'$name' is not a valid $what: only lowercase letters, digits, '.', '_' and '-' (it is a directory name, a unit name, and half of an invocation)" ;;
+  esac
 }

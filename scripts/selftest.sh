@@ -106,10 +106,15 @@ if [ -z "$DEP" ]; then
   printf '    (or GIT_INTEGRATION_REPO_SCRIPTS=/path/to/scripts %s)\n' "$0" >&2
 else
   phase "LIVE: scaffold -> add-skill -> commit -> finalize -> verify"
+  PY_BIN="$(command -v python3 || command -v python)" || { bad "no python interpreter for the LIVE phase"; PY_BIN=false; }
   TMP="$(mktemp -d)"
   trap 'rm -rf "$TMP"' EXIT
   export GIT_AUTHOR_NAME=selftest GIT_AUTHOR_EMAIL=selftest@example.com
   export GIT_COMMITTER_NAME=selftest GIT_COMMITTER_EMAIL=selftest@example.com
+  # Neutralize the operator's global git config. Without this, a machine with
+  # commit.gpgsign=true or an init.templateDir hook fails these commits and the
+  # suite reports failures that are not about this skill.
+  export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
 
   # An upstream "skill repo" to onboard, local so this needs no network.
   UP="$TMP/upstream/demo-skill"
@@ -152,8 +157,8 @@ else
     ok "parent tracks blobs, not gitlinks"
   fi
 
-  ( cd "$PR" && "$DEP/finalize-constituents.sh" ) >/dev/null 2>&1 \
-    && ok "finalize-constituents.sh restored the constituent" || bad "finalize-constituents.sh failed"
+  ( cd "$PR" && "$HERE/finalize.sh" ) >/dev/null 2>&1 \
+    && ok "finalize.sh restored the constituent" || bad "finalize.sh failed"
 
   if ( cd "$PR" && "$HERE/verify.sh" ) >/dev/null 2>&1; then
     ok "verify.sh PASSES on a freshly built plugin repo"
@@ -161,6 +166,54 @@ else
     bad "verify.sh fails on a freshly built plugin repo"
     ( cd "$PR" && "$HERE/verify.sh" ) 2>&1 | sed 's/^/      /'
   fi
+
+  # --- the checks verify.sh EXISTS for. Without these, a regression in any of
+  #     them ships green: the happy path above passes either way. Each mutation
+  #     is reverted before the next, so they stay independent.
+  vfail() { ( cd "$PR" && "$HERE/verify.sh" ) >/dev/null 2>&1; }
+
+  cp "$PR/.claude-plugin/plugin.json" "$TMP/plugin.json.bak"
+  "$PY_BIN" - "$PR/.claude-plugin/plugin.json" <<'PYX'
+import json, sys
+p = sys.argv[1]
+d = json.load(open(p)); d["version"] = "9.9.9"
+json.dump(d, open(p, "w"), indent=2)
+PYX
+  vfail && bad "verify.sh passed with plugin.json/toml version drift" || ok "verify.sh catches version drift"
+  cp "$TMP/plugin.json.bak" "$PR/.claude-plugin/plugin.json"
+
+  printf -- '---\nname: stray\ndescription: d\n---\n' > "$PR/SKILL.md"
+  vfail && bad "verify.sh passed with a SKILL.md at the plugin root" || ok "verify.sh catches a root SKILL.md"
+  rm -f "$PR/SKILL.md"
+
+  printf 'See $SKILL_MANAGER_HOME/skills/demo-skill/scripts/x.sh\n' >> "$PR/PLUGIN-REPO.md"
+  # Captured, not piped into `grep -q`: under `pipefail` an early-exiting grep
+  # SIGPIPEs the writer and the pipeline reports failure even on a match. That
+  # is the same defect this suite checks for elsewhere, and it produced a false
+  # FAIL here first.
+  vout="$( ( cd "$PR" && "$HERE/verify.sh" ) 2>&1 || true )"
+  case "$vout" in
+    *PLUGIN-REPO.md*) ok "verify.sh scans ROOT prose for store-path resolvers" ;;
+    *) bad "verify.sh missed a store-path resolver in root-level prose" ;;
+  esac
+  git -C "$PR" checkout -- PLUGIN-REPO.md 2>/dev/null || true
+
+  mkdir -p "$PR/skills/demo-skill/.selftest" 2>/dev/null || true
+  printf -- '---\nname: demo-skill\ndescription: d\nskill-imports:\n  - unit: demo-skill\n    path: SKILL.md\n    reason: r\n---\n' > "$PR/skills/demo-skill/SKILL.md"
+  vfail && bad "verify.sh passed with a bare-name skill-import of a bundled skill" \
+        || ok "verify.sh catches a bare-name skill-import"
+  git -C "$PR" checkout -- skills/demo-skill/SKILL.md 2>/dev/null || true
+  rmdir "$PR/skills/demo-skill/.selftest" 2>/dev/null || true
+
+  # The guard the DEPENDENCY cannot enforce here: its finalize refuses on a
+  # `constituents` pathspec that a plugin repo does not have, so finalize.sh
+  # re-asks against the manifest's real paths. If this ever stops refusing, an
+  # uncommitted bundle becomes gitlinks.
+  printf 'uncommitted\n' > "$PR/skills/demo-skill/UNCOMMITTED.md"
+  ( cd "$PR" && "$HERE/finalize.sh" ) >/dev/null 2>&1 \
+    && bad "finalize.sh ran with uncommitted skill files — the gitlink invariant is unguarded" \
+    || ok "finalize.sh refuses while skill files are uncommitted"
+  rm -f "$PR/skills/demo-skill/UNCOMMITTED.md"
 
   # release.sh moves both manifests together, which is its only reason to exist.
   ( cd "$PR" && "$HERE/release.sh" minor ) >/dev/null 2>&1 || bad "release.sh failed"

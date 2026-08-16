@@ -5,9 +5,15 @@ addresses it by the old identity has to be rewritten. This page is the complete
 list, with the evidence, because two of these fail at a distance and one of them
 is a genuine skill-manager bug you should know about rather than design around.
 
-Everything below was measured on a live home (skill-manager 0.20.x, the `skt`
-plugin at 0.5.0). Re-measure before trusting it against a newer CLI; the
-commands that produced each verdict are shown.
+Everything below was measured on a live home with **skill-manager 0.23.0** and
+the `skt` plugin at 0.5.0. Each verdict shows the command that produced it, so
+re-measure rather than trust the page against a newer CLI:
+
+```bash
+skill-manager --version                       # what these verdicts are about
+skill-manager show <contained-skill>          # "unit not found" is fact 1
+skill-manager publish <a-unit-dir> --dry-run  # the import validator (install --dry-run does NOT validate)
+```
 
 ## The one sentence
 

@@ -6,10 +6,12 @@ description: >-
   bundle of skills versions, installs, syncs, reviews and improves as ONE unit
   while each skill keeps its own repo and its own history. Use when several
   skill-manager skills always ship together, when a change spans more than one
-  skill and you do not want N repos / N PRs / N syncs that land out of order,
-  when an agent needs a single self-improvement substrate it can PR against, or
-  when a harness's `units = [...]` list should become one installable bundle
-  with hooks/commands/agents attached. It is a SPECIALIZATION of
+  skill and you do not want N repos / N PRs / N syncs that land out of order, or
+  when a set of skills should install, sync and be improved as ONE unit that can
+  also carry hooks, commands and agents. NOT for editing or publishing a single
+  skill (`skt` / `skill-dev`), and not for authoring one unit from scratch
+  (`skt:unit-authoring`) — this is for bundling existing skill REPOS with
+  fan-out back to them. It is a SPECIALIZATION of
   `git-integration-repo`: that skill owns the git model (no submodules, strip
   `.git` before the first commit, fan-out with `propagate.sh`) and this one owns
   what makes the parent a valid plugin at the same time.
@@ -90,14 +92,39 @@ only decision here that is expensive to reverse.
 Nothing in those rows is restated on this page. When a step is theirs, run their
 script.
 
+## Not this skill
+
+An agent picks a skill by its description, and four neighbours own jobs that
+sound adjacent. Take the narrowest one that fits:
+
+| The task | The skill |
+|---|---|
+| Ship an edit I made to one skill in my home | `skt` — `skt publish` |
+| A deliberate editing session on one installed unit | `skill-dev` |
+| Author or fix a unit's SKILL.md / manifests / deps | `skt:unit-authoring` |
+| Onboard several repos into one parent, no plugin involved | `git-integration-repo` |
+| A ticket, a worktree, a per-checkout home | `git-issue-workflow` — `skt ticket new` |
+| **Bundle existing skill repos into one installable, improvable unit** | **here** |
+
+The trap worth naming: "put these skill repos into one repo" also matches
+`git-integration-repo`'s description, and running its `add-constituent.sh` gives
+you `constituents/<name>/` — a repo that is not a plugin and cannot become one
+without moving every directory. That is the same failure mode that skill records
+for `wt`: an agent that never opens a page cannot learn the rule inside it. The
+companion edit — a row in *its* workflow table pointing here — is listed in this
+repo's README under "Companion edits".
+
 ## The four rules that are only true here
 
-1. **Constituents live at `skills/<name>/`, not `constituents/<name>/`.**
-   skill-manager and the harness plugin runtime find contained skills only
-   under `skills/`. Every other `git-integration-repo` script reads the path
-   from `integration.toml`, so they are indifferent — but `add-constituent.sh`
-   hardcodes `constituents/`, which is exactly why `scripts/add-skill.sh` exists
-   here. Use it; do not hand-run `add-constituent.sh` in a plugin repo.
+1. **Constituents live at `skills/<name>/`, not `constituents/<name>/`** —
+   that is where skill-manager and the plugin runtime look. `verify.sh`,
+   `refresh.sh` and `propagate.sh` read the path from `integration.toml` and are
+   indifferent; **two dependency scripts are not**, and both are wrapped here:
+   `add-constituent.sh` hardcodes the directory (use `scripts/add-skill.sh`),
+   and `finalize-constituents.sh` guards the commit-before-`.git` invariant with
+   the pathspec `-- constituents`, which in a plugin repo matches nothing and
+   therefore **never fires** — so finalizing early silently produces gitlinks.
+   Use `scripts/finalize.sh`, which re-asks against the manifest's real paths.
 
 2. **The plugin is a unit; the skills inside it are not.** Change management
    works, at plugin granularity and on purpose — `skt` sees one unit, one
@@ -117,13 +144,15 @@ script.
    and `skill-project.toml` entries move to the plugin coord —
    `references/migration.md`.
 
-4. **Propagate before you refresh.** This is the *second* hop, and it is the
-   integration-repo rule rather than anything about change management: the
+4. **Propagate before you refresh — because refresh SKIPS, not clobbers.** The
    plugin repo is also a cache of the upstream skill repos, so an edit that
    landed in the parent — by hand, or by `skt publish` from a consumer's home —
-   reaches `alpha-skill`'s own repo only through `propagate.sh`. `refresh.sh` is
-   `reset --hard` per constituent and reverts whatever has not made that trip.
-   `references/lifecycle.md` sequences both directions.
+   reaches `alpha-skill`'s own repo only through `propagate.sh`. Until it does,
+   that constituent's tree is dirty and `refresh.sh` prints `has local changes
+   — … SKIPPING` and leaves it alone (measured; it does **not** destroy the
+   edit). The cost is subtler than data loss: the pull you thought was atomic
+   silently covered a subset, and you cut a version on it. Read refresh's
+   SKIPPING lines. `references/lifecycle.md` sequences both directions.
 
 ## Workflows
 
@@ -131,7 +160,7 @@ script.
 |---|---|---|
 | Decide whether a bundle is right, and which skills | `references/why.md` | — |
 | Create a plugin repo | `references/layout.md` | `scripts/init-plugin-repo.sh`, then `scripts/add-skill.sh` per skill |
-| Add a skill to an existing bundle | `references/layout.md` | `scripts/add-skill.sh` → commit → `finalize-constituents.sh` (dependency) → `scripts/verify.sh` |
+| Add a skill to an existing bundle | `references/layout.md` | `scripts/add-skill.sh` → commit → `scripts/finalize.sh` → `scripts/verify.sh` |
 | Pull every skill's upstream changes in, atomically | `references/lifecycle.md` | `refresh.sh` (dependency) → commit → `scripts/release.sh` |
 | Change several skills at once and push it back out | `references/lifecycle.md` | `skt ticket new` → edit → merge → `propagate.sh` (dependency) |
 | Cut a version consumers will be notified about | `references/lifecycle.md` | `scripts/release.sh` |
@@ -152,7 +181,7 @@ cd ~/IdeaProjects/my-plugin-repo
 $P/add-skill.sh alpha-skill git@github.com:owner/alpha-skill.git main
 $P/add-skill.sh beta-skill  git@github.com:owner/beta-skill.git  main
 git add -A && git commit -m "bundle alpha-skill, beta-skill"     # BEFORE finalize — the invariant
-$S/finalize-constituents.sh                                      # restore each skill's .git + remote
+$P/finalize.sh                                                   # guard the invariant, then restore each skill's .git
 $P/verify.sh                                                     # plugin checks + the dependency's
 
 # --- pull every skill's upstream in, as one change ---

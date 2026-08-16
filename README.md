@@ -15,9 +15,10 @@ branches and MRs.
 
 ```bash
 skill-manager install github:haydenrear/plugin-repository-skill --yes
-# or, locally during development:
-skill-manager install file:///Users/hayde/IdeaProjects/plugin-repository-skill --yes
-skill-manager sync plugin-repository
+
+# or, to validate a working copy before it is pushed (dry-run/local only):
+skill-manager install "file://$PWD" --dry-run
+skill-manager sync plugin-repository --git-latest
 ```
 
 Requires `git-integration-repo`
@@ -66,11 +67,30 @@ set of changes is coherent enough to be cut as a version. Full argument in
 2. **Change management is fine, at plugin granularity.** `skt` sees one unit,
    one version, one notification; `skt publish` pushes to the plugin repo, which
    is the point.
-3. **`refresh.sh` is `reset --hard` per skill.** Propagate first, or lose the
-   edit that only exists in the parent.
+3. **`refresh.sh` skips a skill with local changes** rather than clobbering it,
+   so an unpropagated edit *blocks* that skill's pull instead of dying. Read the
+   SKIPPING lines, or you cut a version on a partial pull.
 
 `references/imports.md` has fact 1 with measured evidence and one known
 skill-manager bug; `references/lifecycle.md` has 2 and 3.
+
+## Companion edits this skill implies
+
+Shipping a skill does not update its neighbours, and two of them now describe
+the world incompletely. Neither is required for this skill to work; both are
+required for an agent to *find* it:
+
+1. **`git-integration-repo`** — an agent asked to "put these skill repos in one
+   repo" matches its description, runs `add-constituent.sh`, and gets
+   `constituents/<name>/`: not a plugin, and not convertible without moving
+   every directory. It needs one row in its workflow table and one clause in its
+   description pointing here — the same fix that skill applied to itself when
+   `wt` moved to `git-issue-workflow`.
+2. **`git-integration-repo`'s `finalize-constituents.sh`** — its
+   commit-before-`.git` guard is the pathspec `-- constituents`, so it cannot
+   fire for any integration repo that puts constituents elsewhere. The real fix
+   is upstream: derive the pathspec from the manifest's `path` values.
+   `scripts/finalize.sh` here is the local guard until that lands.
 
 ## Layout
 

@@ -26,10 +26,12 @@ unchanged.
    `add-constituent.sh`, which hardcodes `constituents/`.
 2. **`plugin.json` and `skill-manager-plugin.toml` must agree** on `name` and
    `version`. Change them only with `scripts/release.sh`.
-3. **Propagate before you refresh.** `refresh.sh` is `reset --hard` per
-   constituent: any skill edit made in this parent, and not yet fanned out to
-   the skill's own repo with `propagate.sh`, is destroyed by it with no diff to
-   recover from.
+3. **Propagate before you refresh.** `refresh.sh` hard-resets each constituent
+   to upstream but **skips** any whose tree is dirty (`has local changes — …
+   SKIPPING`). An un-propagated skill edit is therefore not destroyed — it
+   silently *blocks that skill's pull*, so the refresh you thought was
+   everything was a subset. Read the SKIPPING lines and fan those out with
+   `propagate.sh`.
 4. **A skill edit published from an agent's home lands HERE, not in the skill's
    own repo** — the store copy of a plugin is a checkout of this repo, and that
    is correct: this repo is the unit, so it is what `skt publish` pushes to and

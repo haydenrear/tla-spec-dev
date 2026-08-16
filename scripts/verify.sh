@@ -102,6 +102,17 @@ if [ -d skills ]; then
   done
 fi
 
+# What both greps look at. The root markers are IN, and deliberately: the whole
+# claim is that prose counts as much as shell — a PLUGIN-REPO.md or README.md
+# line telling an agent to run $SKILL_MANAGER_HOME/skills/<bundled>/… is an
+# instruction that will fail, and no validator anywhere checks prose.
+SCAN_DIRS=""
+for d in skills hooks commands agents; do [ -d "$d" ] && SCAN_DIRS="$SCAN_DIRS $d"; done
+SCAN_FILES=""
+for f in PLUGIN-REPO.md INTEGRATION.md README.md skill-manager-plugin.toml; do
+  [ -f "$f" ] && SCAN_FILES="$SCAN_FILES $f"
+done
+
 # ------------------------------------------------------------ the silent one
 #
 # A contained skill's bytes live at plugins/<plugin>/skills/<unit>/, so any
@@ -118,7 +129,7 @@ for n in $names; do
     [ -n "$line" ] || continue
     info "$line"
     hits=$((hits + 1))
-  done < <(grep -rn --exclude-dir=.git "skills/$n\b" skills hooks commands agents 2>/dev/null \
+  done < <(grep -rn --exclude-dir=.git "skills/$n\b" $SCAN_DIRS $SCAN_FILES 2>/dev/null \
              | grep -E 'SKILL_MANAGER_HOME|\.skill-manager/skills/' || true)
 done
 if [ "$hits" -eq 0 ]; then
@@ -147,7 +158,7 @@ for n in $names; do
     info "$line"
     ihits=$((ihits + 1))
   done < <(grep -rn --include='*.md' --exclude-dir=.git -E "^[[:space:]]*-?[[:space:]]*(unit|skill):[[:space:]]*[\"']?$n[\"']?[[:space:]]*$" \
-             skills hooks commands agents 2>/dev/null || true)
+             $SCAN_DIRS $SCAN_FILES 2>/dev/null || true)
 done
 if [ "$ihits" -eq 0 ]; then
   info "none"

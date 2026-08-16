@@ -26,7 +26,7 @@ cd ~/IdeaProjects/my-plugin-repo
 $P/add-skill.sh alpha-skill git@github.com:owner/alpha-skill.git main
 $P/add-skill.sh beta-skill  git@github.com:owner/beta-skill.git  main
 git add -A && git commit -m "bundle alpha-skill, beta-skill"    # BEFORE finalize
-$S/finalize-constituents.sh
+$P/finalize.sh
 $P/verify.sh
 ```
 

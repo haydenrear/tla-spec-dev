@@ -27,9 +27,7 @@ EOF
 help_guard "$@"
 
 NAME="${1:-}"; [ -n "$NAME" ] || { usage; die "a plugin name is required"; }
-case "$NAME" in
-  */*|*' '*) die "'$NAME' is not a plugin name: no slashes or spaces (it is a unit name, not a path)" ;;
-esac
+require_unit_name "$NAME" "plugin name"
 DIR="${2:-.}"
 mkdir -p "$DIR"; DIR="$(cd "$DIR" && pwd)"
 
@@ -37,9 +35,42 @@ step "Integration half (git-integration-repo)"
 # Its scaffold owns integration.toml, INTEGRATION.md, the root .gitignore,
 # constituents/ and `git init`. Delegated rather than reimplemented: this skill
 # has no business owning a second copy of the integration markers.
+FRESH_MANIFEST=1; [ -f "$DIR/integration.toml" ] && FRESH_MANIFEST=0
 "$(gir_script init-integration.sh)" "$NAME" "$DIR"
 
 cd "$DIR"
+
+# --- correct the inherited defaults, but only on a manifest WE just created ---
+#
+# The dependency's scaffold is written for its own common case and two of its
+# defaults are wrong for a bundle of skills:
+#
+#   host = "gitlab"            propagate.sh maps this to `glab` and opens MRs
+#                              with it. A plugin repo of skill repos is a GitHub
+#                              shape here; getting it wrong is discovered at the
+#                              first fan-out, which is the worst time.
+#   spec_double_compiler=true  composition.md then tells the agent to scaffold a
+#   test_graph = true          specs/ tree and a test_graph project across every
+#                              constituent. A bundle of markdown-and-shell
+#                              skills has no use for either, and pulling
+#                              test-graph transitively drags deploy-helm's
+#                              several-hundred-MB venvs into the home.
+#
+# Both are still ordinary manifest fields: edit integration.toml to switch a
+# bundle to GitLab or to turn a composition back on. Never touched on a re-run
+# over an existing manifest — that file is the operator's by then.
+if [ "$FRESH_MANIFEST" -eq 1 ]; then
+  "$PY" - integration.toml <<'PY'
+import re, sys
+from pathlib import Path
+p = Path(sys.argv[1]); t = p.read_text(encoding="utf-8")
+t = re.sub(r'(?m)^host\s*=\s*"gitlab"', 'host = "github"', t, count=1)
+for flag in ("spec_double_compiler", "test_graph"):
+    t = re.sub(r'(?m)^%s\s*=\s*true' % flag, '%s = false' % flag, t, count=1)
+p.write_text(t, encoding="utf-8")
+PY
+  info "integration.toml: host=github, compositions off (bundle defaults)"
+fi
 
 step "Plugin half"
 
@@ -93,6 +124,6 @@ Next:
                    (both descriptions; keep name/version in agreement)
   2. Add skills:   $SCRIPT_DIR/add-skill.sh <skill-name> <remote-url> [branch]
   3. Commit them:  git add -A && git commit -m "bundle <skills>"      # BEFORE finalize
-  4. Finalize:     $(gir_script finalize-constituents.sh)
+  4. Finalize:     $SCRIPT_DIR/finalize.sh
   5. Verify:       $SCRIPT_DIR/verify.sh
 EOF
