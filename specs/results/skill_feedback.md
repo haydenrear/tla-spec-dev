@@ -2437,3 +2437,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket SS-03
+
+- close_scope: ticket
+- close_id: SS-03
+- workflow: stabilize-substrate-epic
+- closed_at: 2026-08-16T20:31:52+00:00
+- summary: 0 of 20 had no sealed artifact behind it until this ticket made one; 0 of 23 is 0 of 17 under the repaired instrument, and every judged goal is sealed
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
