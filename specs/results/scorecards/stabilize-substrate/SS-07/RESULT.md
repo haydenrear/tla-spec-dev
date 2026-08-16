@@ -720,3 +720,29 @@ for a revert.** Recorded so the deviation is legible to `SS-08` without needing
 the PR thread. It found two previously unknown stranded instruments
 (`SS-07-DF-02`, `SS-07-DF-03`); it also shipped a vacuous self-test hiding a
 crash (`SS-07-DF-06`). **Both halves belong in the record.**
+
+## 15. The suite after the review round, at the head that carries it
+
+**Tree `88765b3`**, `feature/SS-07`, cell `WT`, `SS-07` workspace **OPEN**.
+Command exactly `uv run --with pytest --with pyyaml -m pytest tests -q`.
+
+| tree | cell | workspace | failed | passed | skipped | xfailed | collection |
+|---|---|---|---:|---:|---:|---:|---:|
+| `48f9c7e` epic base | **A** | closed | 8 | 1509 | 0 | 1 | 1518 |
+| `eb2567b` epic tip, post-`SS-03` | **A** | closed | 7 | 1521 | 0 | 1 | 1529 |
+| `06cbcce` pre-review tip | `WT` | OPEN | 7 | 1525 | 0 | 1 | 1533 |
+| **`88765b3` HEAD, after the review round** | `WT` | **OPEN** | **7** | **1525** | **0** | **1** | **1533** |
+
+`7 + 1525 + 0 + 1 = 1533`. **They sum.**
+
+**Movement from `06cbcce` to `88765b3`: ZERO in all five buckets, and the
+`FAILED` list is byte-identical** (`diff` of the two sorted sets is empty).
+**The review round changed prose, one self-test, one guard clause in
+`render()`, and the ledger — and moved nothing in the tree.** Every instrument
+figure also re-checked unchanged at `88765b3`: `serve | wc -c` **6281**, digest
+`sha256:2d7d4a0506d9b259`, `audit` **0 violations exit 0** (taken **unpiped**,
+per `SS-07-DF-05`), `scope` **103 (81/0/2/20)**, `derive` **16 of 21**.
+
+`GOAL-tree-stabilizes`, **guard**: **`SS-07`'s entire footprint on the tree
+remains `+4` collected and `+4` passed from `open ticket`, which reverses on
+close.** Evidence: `evidence/pytest-tip-88765b3.txt`.
