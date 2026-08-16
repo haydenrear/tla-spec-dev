@@ -1,0 +1,130 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket SS-02",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-02/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-02/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-02/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "R1's absent-input extension is written where R1 lives, and is EXECUTED by a check rather than only stated.",
+        "The check has a demonstrated refusal on a REAL instrument in this repository, failing before and passing after.",
+        "The check's OWN absent-input behaviour is demonstrated: absent register, empty register, unparseable register -- and none of them answers PASS.",
+        "The check refuses nothing about any code outside this repository. NO NEW GATE OVER SUBJECT-PROGRAM CONTENT.",
+        "NO INSTANCE OF THE CLASS IS REPAIRED BY THIS TICKET; the class is left at its measured size for SS-05 and SS-08.",
+        "Collection movement is reported as denominator movement.",
+        "The card is unchanged: serve | wc -c is still 6,281 and the digest is stated."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "SS-04",
+      "SS-05",
+      "SS-06",
+      "SS-08"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "examples/validation/scorecards/score_tools.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "tests/test_absent_input_demonstrations.py",
+        "references/eval_scorecard.md",
+        "specs/results/scorecards/stabilize-substrate/GOAL-absent-input-consumed/",
+        "specs/results/scorecards/stabilize-substrate/SS-02/"
+      ]
+    },
+    "depends_on": [
+      "SS-01"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/275",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "Moves clauses (a), (b) and (e) from 'no check exists' to 'an executed check with a demonstrated refusal on a real instrument'. NO EFFECT ON THE INSTANCE COUNT -- that is SS-05's, deliberately, so the class is measured before it is shrunk.",
+        "goal": "GOAL-absent-input-consumed",
+        "local_signal": "the new check run against the instrument register, with its refusal transcript recorded"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "collection RISES by the new demonstrations. THAT IS DENOMINATOR MOVEMENT AND MUST BE REPORTED AS SUCH -- a pass rate that improves because you added passing tests is not a stabilized tree.",
+        "goal": "GOAL-tree-stabilizes",
+        "local_signal": "uv run --with pytest --with pyyaml -m pytest tests -q --collect-only"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected -- score_tools.py produced all four results; verify each still reproduces rather than asserting it",
+        "goal": "GOAL-four-results-still-stand",
+        "local_signal": "python3 examples/validation/scorecards/score_tools.py audit"
+      }
+    ],
+    "id": "SS-02",
+    "implementation_scope": [
+      "examples/validation/scorecards/",
+      "references/",
+      "tests/",
+      "specs/results/scorecards/stabilize-substrate/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "THE CONSUMPTION THIS PROGRAMME OWES, AND THE REASON THE EPIC EXISTS. R1 REQUIRES A DEMONSTRATED FAILING INPUT ON A REAL SUBJECT. IT DOES NOT REQUIRE A DEMONSTRATED ABSENT ONE. THAT SINGLE GAP IS WHY ALL 48 INSTANCES SHIPPED -- each satisfied R1 IN FULL and still answered PASS to the question it was built to refuse. YOUR SLICE IS THE RULE AND THE INSTRUMENT, NOT THE REPAIRS -- SS-05 does the repairs, and if you start fixing instances you will both blow your slice and shrink the class SS-08 has to measure. EXTEND R1: every instrument ships a demonstrated ABSENT-INPUT case, and THE CORRECT ANSWER TO AN ABSENT INPUT IS UNDECIDED OR A REFUSAL, NEVER PASS. THE WORKED SHAPE IS A SIGNATURE CHANGE: score_tools._finding_ids went set[str] -> set[str] | None, because THE OLD TYPE COULD NOT DISTINGUISH 'READ AND FOUND NOTHING' FROM 'READ NOTHING' AND ANSWERED THE SECOND WITH THE FIRST. That is the class in one line, and the third state was demonstrated too -- against a tree with no ledger live or archived, audit_rh3 emits ONE UNVERIFIED LINE instead of 14 fabrication claims, and UNVERIFIED does not increment the violation count. NOW LAND IT AS AN EXECUTED CHECK. A DOCTRINE LINE WITH NO INSTRUMENT IS A PREFERENCE, and the predecessor measured 1-of-41 consumption and then filed 57 findings while consuming almost none. THE CHECK RUNS OVER THIS PROJECT'S OWN INSTRUMENT REGISTER, and it is IN THE PERMITTED POPULATION under the adjudicated static-gates doctrine: static checks over this project's own record, metadata and method have 3 catches : 1 false refusal, and the doctrine MAY NOT refuse them. IT IS NOT A GATE ON AN ADOPTER'S CODE AND MUST NOT BECOME ONE. R1 APPLIES TO YOUR OWN CHECK: demonstrate it REFUSING A REAL INSTRUMENT IN THIS REPOSITORY -- failing before, passing after -- not a fixture. AND THE OBVIOUS SELF-REFERENTIAL TRAP, WHICH YOU MUST NOT FALL INTO: YOUR CHECK IS ITSELF AN INSTRUMENT THAT CAN BE HANDED AN ABSENT INPUT. An empty register, an absent register, a register that parses to nothing -- what does your check answer? If it answers PASS you have shipped the 49th instance INSIDE the fix for the class. DEMONSTRATE THE ANSWER. THE SUB-SHAPES ARE ENUMERATED FOR YOU in CA-10-absent-input/RESULT.md section 3.2 and the next sweep is cheaper because of it: absent-path-returns-empty; vacuous all()/not any(); one-sided threshold trivially satisfied by zero; .get() collapsing both sides of a comparison; unparseable becoming indistinguishable from absent; default-named lookup missing silently; empty selection reported as a satisfied population.",
+    "promotion_order": 30,
+    "promotion_predecessor": "SS-03",
+    "role": "implementation",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Extend R1 to require a demonstrated ABSENT input, and land it as an executed check with a demonstrated refusal",
+    "wave": 2
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-02/specs/tickets/SS-02",
+  "ticket_id": "SS-02",
+  "ticket_index": 2,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-02/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-02/specs/tickets"
+}

@@ -1,0 +1,55 @@
+SS-02 -- THE CHECK'S OWN ANSWER TO AN ABSENT INPUT
+date: 2026-08-16T22:08:56Z
+tree: worktree at feature/SS-02, parent 48f9c7e, SS-02 in flight
+
+The self-referential trap: absent-input is itself an instrument that can be handed
+an absent input. If any run below exited 0 it would be the 49th instance of the
+class, shipped inside the fix for the class. All six exit 2 and all six SAY WHICH
+STATE THEY HIT, which is the property this check demands of everything else.
+
+NOTE THE COLLISION, disclosed rather than hidden: argparse also exits 2 for a
+usage error, so the CODE alone does not separate 'UNDECIDED' from 'you typed the
+command wrong'. The first line of output always does. Filed as SS-02-DF-02.
+
+=== absent -- no file at the path ===
+$ score_tools.py absent-input --registry /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/ss02/selfprobe/no-such-file.toml
+UNVERIFIED: [absent] no instrument register at /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/ss02/selfprobe/no-such-file.toml. Nothing was read, so nothing is satisfied and nothing is violated.
+
+absent-input is UNDECIDED over this register: not clean, not refused, and NOT 0. exit 2.
+exit: 2
+
+=== unreadable -- zero-byte register ===
+$ score_tools.py absent-input --registry /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/ss02/selfprobe/zero.toml
+UNVERIFIED: [unreadable] the instrument register at /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/ss02/selfprobe/zero.toml is EMPTY (0 byte(s)). It parses as valid TOML declaring nothing, which is why this is asked before parsing rather than after.
+
+absent-input is UNDECIDED over this register: not clean, not refused, and NOT 0. exit 2.
+exit: 2
+
+=== unreadable -- register that does not parse ===
+$ score_tools.py absent-input --registry /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/ss02/selfprobe/broken.toml
+UNVERIFIED: [unreadable] the instrument register at /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/ss02/selfprobe/broken.toml DOES NOT PARSE: Expected ']]' at the end of an array declaration (at line 1, column 13). An unparseable register is not an empty one and must not be answered with the same verdict (`SS-01-DF-04`).
+
+absent-input is UNDECIDED over this register: not clean, not refused, and NOT 0. exit 2.
+exit: 2
+
+=== empty -- parses, declares no instruments ===
+$ score_tools.py absent-input --registry /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/ss02/selfprobe/hollow.toml
+UNVERIFIED: [empty] the instrument register at /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/ss02/selfprobe/hollow.toml PARSES AND DECLARES 0 instruments. `0 of 0 satisfied` is an empty selection reported as a satisfied population, which is the seventh sub-shape of the very class this command checks for.
+
+absent-input is UNDECIDED over this register: not clean, not refused, and NOT 0. exit 2.
+exit: 2
+
+=== empty -- every row is not-an-instrument ===
+$ score_tools.py absent-input --registry /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/ss02/selfprobe/only_non.toml
+UNVERIFIED: [empty] the register at /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/ss02/selfprobe/only_non.toml declares 1 row(s) and EVERY ONE is `family = "not-an-instrument"`. There is no instrument to ask, so there is nothing to satisfy.
+
+absent-input is UNDECIDED over this register. exit 2.
+exit: 2
+
+=== empty selection -- --only matches nothing ===
+$ score_tools.py absent-input --only no-such-instrument-anywhere
+UNVERIFIED: [empty] --only ['no-such-instrument-anywhere'] selected 0 of 56 instrument(s). An empty selection reported as a satisfied population is the seventh sub-shape of this very class (`CA-10-DF-24`, `demonstrate.py:505`). Known ids: ['absent-input-check', 'action-parameter-recovery', 'architecture-demonstration-table', 'architecture-tag-derivation', 'arm-swap-driver', 'arms-length-match']...
+
+absent-input is UNDECIDED over this selection. exit 2.
+exit: 2
+

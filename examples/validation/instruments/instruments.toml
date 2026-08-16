@@ -33,6 +33,45 @@
 #   [instrument.passing]     the subject is sound and it must stay green
 #   [instrument.blind_spot]  the subject is GENUINELY BROKEN and it must NOT
 #                            report -- a demonstrated inability, per R2
+#   [instrument.absent_input] SS-02. THE INPUT IS NOT THERE, and the instrument
+#                            must answer UNDECIDED or REFUSE -- see below.
+#
+# SS-02: R1 EXTENDED, AND WHY THIS BLOCK EXISTS AT ALL.
+#
+# The three slots above ask what an instrument says about a subject that is
+# BROKEN and about a subject that is SOUND. `CA-10` asked the third question --
+# what does it say about a subject that is NOT THERE -- and swept 43
+# verdict-producing modules for the answer: 48 instances across 30 of them
+# return a confident PASS, clean, disposed, `0 violation(s)`, exit 0. EVERY ONE
+# OF THE 48 SATISFIED R1 IN FULL. An instrument can carry a passing
+# demonstration, a failing demonstration, and still answer PASS to the question
+# it was built to refuse, because the third input was never in the contract.
+#
+#     [instrument.absent_input.absent]      not in the tree at all
+#     [instrument.absent_input.unreadable]  there, and unreadable as itself:
+#                                           empty, truncated, malformed
+#     [instrument.absent_input.empty]       reads and parses perfectly and
+#                                           genuinely names nothing
+#
+# THREE, NOT TWO, AND WAVE 1 OF THIS EPIC PAID FOR THE DIFFERENCE. `CA-10-DF-11`
+# repaired the ABSENT ledger; `SS-01` repaired the WRONG one; an independent
+# reviewer then handed the result a ledger that EXISTED and named nothing and
+# got 14 confident fabrication accusations against real citations
+# (`SS-01-DF-04`). A fallback that merely moves the false PASS to a rarer input
+# has not fixed the class.
+#
+# Each state declares `answer = "refusal"` or `answer = "undecided"`. THERE IS NO
+# THIRD ANSWER: `pass` is not available and a contract naming it is refused. A
+# state that genuinely cannot be constructed declares `unreachable = "<reason>"`
+# and is COUNTED AND PRINTED, never folded into the satisfied population.
+#
+# Run it -- it is executed, not documentation:
+#
+#     python3 examples/validation/scorecards/score_tools.py absent-input
+#     python3 examples/validation/scorecards/score_tools.py absent-input --contract-only
+#
+# and it REFUSES this register today, on this repository's own instruments. That
+# count is its product and there is no target on it.
 #
 # `tier = "slow"` marks a demonstration the fast pass skips: one that shells out
 # to pytest, or needs `uv`, or needs a corpus that has to be generated first.
@@ -782,6 +821,146 @@ it is what the failing input below exercises.
   kind = "declared"
   summary = "OPEN and UNVERIFIED findings are printed and then not counted -- only VIOLATION increments the exit code, so a claim whose commit does not resolve, and a repair that declares neither verdicts_moved nor verdicts_unmeasurable, both leave a green audit"
   reason = "Deliberate in the shipped design (an unverifiable fact is not a violation) and recorded here so a green audit is not read as a clean one."
+
+  # SS-02. THE WORKED SHAPE OF THE WHOLE CLASS, DEMONSTRATED ON THE REAL
+  # INSTRUMENT RATHER THAN ON A FIXTURE.
+  #
+  # `_finding_ids()` returned `set[str]` and hard-coded the live ledger, so from
+  # the moment a workflow close removed it, R-H3 reported EVERY `filed_as`
+  # citation in the whole scorecard record as naming a finding that was never
+  # filed -- 14 violations, exit 1, over 287 findings that had gone nowhere
+  # (`CA-10-DF-11`). The repair was a SIGNATURE CHANGE, `set[str] | None`,
+  # because the old type could not distinguish "read and found nothing" from
+  # "read nothing" and answered the second with the first. That is the class in
+  # one line.
+  #
+  # HOW THE THREE TREES ARE BUILT, AND WHY IT IS `link` AND NOT `stage`. This
+  # instrument verifies 133 sealed digests against paths under `REPO_ROOT`, so a
+  # demonstration that COPIES the repository to move one file produces 133 seal
+  # violations that say nothing about the ledger. Symlinking every sibling and
+  # substituting only the input under test leaves every other answer
+  # byte-identical, which is the only way the three states are comparable to
+  # each other.
+  [instrument.absent_input]
+  note = """
+ALL THREE STATES ANSWER UNDECIDED AND ALL THREE EXIT 0. That is recorded here as
+a fact about the instrument rather than smoothed over: `UNVERIFIED` does not
+increment the violation count, which is correct -- an unverifiable fact is not a
+violation -- but it means the ANSWER IS IN THE TEXT AND NOT ON THE EXIT CODE, and
+a caller reading only the code cannot tell UNDECIDED from clean.
+"""
+
+    [instrument.absent_input.absent]
+    summary = "no `specs/deferred_findings.yaml` and no workflow close under `specs/.history/` recording one: R-H3's `filed_as` clause is UNDECIDABLE and says so in one line instead of accusing 14 real citations"
+    answer = "undecided"
+    cwd = "{repo}"
+    env = { SCORECARD_REPO_ROOT = "{tree}" }
+    argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "audit",
+            "--root", "{repo}/specs/results/scorecards",
+            "--rubric", "{repo}/references/eval_scorecard.md", "--quiet-ok"]
+    expect_exit = 0
+    expect_output = [
+      "no findings ledger this tool can READ ids from",
+      "no `specs/deferred_findings.yaml`, and no workflow close under",
+      "Every `filed_as` citation below is UNCHECKED -- not verified, and NOT fabricated",
+    ]
+    expect_absent = ["VIOLATION"]
+    exit_code_cannot_carry_the_answer = """
+`UNVERIFIED` is printed and deliberately not counted, so this run exits 0 with
+`0 violation(s)`. A caller that reads the exit code and not the text gets a PASS
+over a tree with no ledger in it. Declared rather than repaired: making it exit
+non-zero is a change to what a violation MEANS, and that belongs to SS-05.
+"""
+
+      [[instrument.absent_input.absent.link]]
+      from = "."
+      to = "."
+      children = true
+      except = ["specs"]
+
+      [[instrument.absent_input.absent.link]]
+      from = "specs"
+      to = "specs"
+      children = true
+      except = ["deferred_findings.yaml", ".history"]
+
+    [instrument.absent_input.unreadable]
+    summary = "the ledger is there and does not parse as itself -- `SS-01-DF-04`'s malformed-YAML body, which produced 14 fabrication accusations before wave 1"
+    answer = "undecided"
+    cwd = "{repo}"
+    env = { SCORECARD_REPO_ROOT = "{tree}" }
+    argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "audit",
+            "--root", "{repo}/specs/results/scorecards",
+            "--rubric", "{repo}/references/eval_scorecard.md", "--quiet-ok"]
+    expect_exit = 0
+    expect_output = [
+      "no findings ledger this tool can READ ids from",
+      "exists but names no findings (empty, unreadable or malformed)",
+    ]
+    expect_absent = ["VIOLATION"]
+    exit_code_cannot_carry_the_answer = "As above: UNDECIDED in the text, 0 on the exit code."
+
+      [[instrument.absent_input.unreadable.link]]
+      from = "."
+      to = "."
+      children = true
+      except = ["specs"]
+
+      [[instrument.absent_input.unreadable.link]]
+      from = "specs"
+      to = "specs"
+      children = true
+      except = ["deferred_findings.yaml"]
+
+      [[instrument.absent_input.unreadable.write]]
+      file = "specs/deferred_findings.yaml"
+      content = "findings:\n  - id: [unclosed\n"
+
+    [instrument.absent_input.empty]
+    summary = "the ledger parses perfectly and names nothing -- `findings: []`, the body an independent reviewer of PR #282 used to refute the repair that had just shipped"
+    answer = "undecided"
+    cwd = "{repo}"
+    env = { SCORECARD_REPO_ROOT = "{tree}" }
+    argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "audit",
+            "--root", "{repo}/specs/results/scorecards",
+            "--rubric", "{repo}/references/eval_scorecard.md", "--quiet-ok"]
+    expect_exit = 0
+    expect_output = [
+      "no findings ledger this tool can READ ids from",
+      "exists but names no findings (empty, unreadable or malformed)",
+    ]
+    expect_absent = ["VIOLATION"]
+    exit_code_cannot_carry_the_answer = "As above: UNDECIDED in the text, 0 on the exit code."
+
+      [[instrument.absent_input.empty.link]]
+      from = "."
+      to = "."
+      children = true
+      except = ["specs"]
+
+      [[instrument.absent_input.empty.link]]
+      from = "specs"
+      to = "specs"
+      children = true
+      except = ["deferred_findings.yaml"]
+
+      [[instrument.absent_input.empty.write]]
+      file = "specs/deferred_findings.yaml"
+      content = "findings: []\n"
+
+    [[instrument.absent_input.indistinguishable]]
+    states = ["unreadable", "empty"]
+    reason = """
+MEASURED, NOT ASSUMED: both states produce the identical line, `exists but names
+no findings (empty, unreadable or malformed)`. `_finding_ids` reads ids with a
+REGEX and never parses the file, so a truncated ledger, a zero-byte one and a
+correct `findings: []` are one state to it. That is DEFENSIBLE here -- all three
+mean "this file cannot verify a citation", and answering UNVERIFIED to all three
+is right -- but it is not free: a half-written ledger from an interrupted merge
+is reported in exactly the wording of a deliberately empty one, and nothing tells
+a reader which happened. Filed as SS-02-DF-01, routed to SS-05, NOT repaired
+here.
+"""
 
 [[instrument]]
 id = "scorecard-seal"
@@ -2812,3 +2991,99 @@ Working: `references/consumption.md` and
   ]
   expect_exit = 0
   expect_passed = 3
+
+# ===========================================================================
+# SS-02. THE CHECK FOR THE CLASS IS ITSELF AN INSTRUMENT THAT CAN BE HANDED AN
+# ABSENT INPUT, AND IF IT ANSWERED PASS IT WOULD BE THE 49TH INSTANCE OF THE
+# CLASS, SHIPPED INSIDE THE FIX FOR THE CLASS.
+# ===========================================================================
+
+[[instrument]]
+id = "absent-input-check"
+name = "R1-absent: the absent-input contract over this project's instrument register"
+paths = [
+  "examples/validation/scorecards/score_tools.py",
+  "examples/validation/instruments/instruments.toml",
+]
+family = "measurement"
+watches = "whether every instrument in this repository's own register has ever been shown what it answers when the thing it watches is absent, unreadable or genuinely empty"
+verdict_surface = "exit 1 REFUSED with a problem per instrument; exit 2 UNDECIDED when the register itself cannot be read"
+classification = "demonstrated-can-fail"
+note = """
+IN THE PERMITTED POPULATION AND SCOPED TO IT. Under the adjudicated static-gates
+doctrine, static checks over THIS PROJECT'S OWN RECORD, METADATA AND METHOD have
+3 catches : 1 false refusal and the doctrine may not refuse them; a gate over
+SUBJECT-PROGRAM CONTENT is the population it may refuse. This reads one file --
+the register beside it -- decides nothing about any adopter's code, and no close
+path consults it. It must never become a gate.
+
+THE THIRD EXIT CODE IS THE POINT. 0 means every selected instrument complied, 1
+means one did not, and 2 means NOTHING WAS MEASURED: no register, a register
+that does not parse, a zero-byte one, one that parses and declares no
+instruments, or a `--only` that matched nothing. `0 of 0 satisfied` is the
+seventh sub-shape in CA-10's own list and it is answered UNDECIDED here, never 0.
+"""
+
+  [instrument.failing]
+  summary = "THE REAL REGISTER, NOT A FIXTURE: 53 of 55 shipped instruments have never been shown what they answer when their input is absent, and the check refuses on that"
+  argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py",
+          "absent-input", "--contract-only"]
+  cwd = "{repo}"
+  expect_exit = 1
+  expect_output = ["NO CONTRACT", "WITHOUT one", "REFUSED --"]
+
+  [instrument.passing]
+  summary = "A DIFFERENT RUN, deliberately, and an EXECUTING one: the check pointed at its own row, all three states staged and run. `scorecard-audit`'s contract is executed too -- by tests/test_absent_input_demonstrations.py and by SS-02's recorded signal run -- and is not in this slot because six staged audits cost 2m41s and the fast pass is meant to stay fast."
+  argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py",
+          "absent-input", "--only", "absent-input-check"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["SATISFIED", "Every selected instrument carries a three-state absent-input contract"]
+  expect_absent = ["NO CONTRACT"]
+
+  [instrument.absent_input]
+  note = """
+ALL THREE STATES EXIT 2 AND EACH NAMES WHICH ONE IT HIT, which is the property
+`scorecard-audit` does NOT have and the reason both rows are here. The three
+messages are pairwise distinct, so no `indistinguishable` declaration is
+available to this row -- if it ever needed one, that would be the check itself
+acquiring the defect it checks for.
+"""
+
+    [instrument.absent_input.absent]
+    summary = "--registry names a path with no file at it: nothing was read, so nothing is satisfied and nothing is violated"
+    answer = "undecided"
+    cwd = "{repo}"
+    argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py",
+            "absent-input", "--registry", "{tree}/instruments.toml"]
+    expect_exit = 2
+    expect_output = ["[absent]", "no instrument register at", "UNDECIDED over this register"]
+    expect_absent = ["SATISFIED", "0 of 0"]
+
+    [instrument.absent_input.unreadable]
+    summary = "the register is there and is not TOML: an unparseable register is not an empty one and must not be answered with the same verdict"
+    answer = "undecided"
+    cwd = "{repo}"
+    argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py",
+            "absent-input", "--registry", "{tree}/instruments.toml"]
+    expect_exit = 2
+    expect_output = ["[unreadable]", "DOES NOT PARSE"]
+    expect_absent = ["SATISFIED", "no instrument register at"]
+
+      [[instrument.absent_input.unreadable.write]]
+      file = "instruments.toml"
+      content = "[[instrument]\nid = \"unclosed\n"
+
+    [instrument.absent_input.empty]
+    summary = "the register parses perfectly and declares zero instruments -- the empty-selection sub-shape, reported UNDECIDED instead of as a satisfied population"
+    answer = "undecided"
+    cwd = "{repo}"
+    argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py",
+            "absent-input", "--registry", "{tree}/instruments.toml"]
+    expect_exit = 2
+    expect_output = ["[empty]", "PARSES AND DECLARES 0", "seventh sub-shape"]
+    expect_absent = ["SATISFIED", "no instrument register at", "DOES NOT PARSE"]
+
+      [[instrument.absent_input.empty.write]]
+      file = "instruments.toml"
+      content = "schema_version = 1\n\n[registry]\nid = \"a register that declares nothing\"\n"

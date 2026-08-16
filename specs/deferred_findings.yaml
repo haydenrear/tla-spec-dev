@@ -21146,3 +21146,241 @@ findings:
       OPEN. Corrected in the template; filed so SS-08 reports that the epic
       dispatched eight assignments carrying an unrunnable required command, and
       that the dispatch discipline caught it twice rather than working around it.
+  - id: SS-02-DF-01
+    found_by: SS-02, by executing the absent-input contract it was landing
+    found_at_commit: 48f9c7e
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["examples/validation/scorecards/score_tools.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: execution
+    cost: Three staged trees and three real `audit` runs -- the check's own first output.
+    summary: >-
+      `score_tools.py audit` CANNOT TELL A MALFORMED LEDGER FROM A DELIBERATELY
+      EMPTY ONE, and reports both in the wording of the second. `_finding_ids`
+      reads ids with a REGEX (`re.findall(r"^\s*-\s+id:...")`) and never parses
+      the file, so a truncated ledger from an interrupted write, a bad merge, a
+      zero-byte file and a correct `findings: []` are ONE STATE to it: all four
+      produce the identical line, "`specs/deferred_findings.yaml` exists but
+      names no findings (empty, unreadable or malformed)". THE VERDICT IS RIGHT
+      IN ALL FOUR CASES -- none of them can verify a citation, and UNVERIFIED is
+      the honest answer -- so this is NOT the false-PASS class. What it costs is
+      DIAGNOSIS: a half-written ledger is reported in the exact words of an
+      intentionally empty one and nothing tells a reader which happened. Found
+      by SS-02's own distinguishability check, which is executed rather than read
+      off the contract, and DECLARED in the register rather than left for the
+      next reviewer.
+    reproduction: >-
+      `python3 examples/validation/scorecards/score_tools.py absent-input --only
+      scorecard-audit` -> exit 0, and the report prints the pair under "STATES AN
+      INSTRUMENT CANNOT TELL APART": `['unreadable', 'empty'] (the two states
+      declare the SAME expected output)`. Directly: stage two trees per
+      `[instrument.absent_input.unreadable]` and `[...empty]` in
+      `examples/validation/instruments/instruments.toml` and diff the two audit
+      outputs -- the R-H3 line is byte-identical.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-02/R1-refusal-on-a-real-instrument.txt -- the declared pair, printed"
+      - "examples/validation/instruments/instruments.toml -- [[instrument.absent_input.indistinguishable]] on scorecard-audit"
+    why_out_of_scope: >-
+      SS-02's slice is the RULE and the INSTRUMENT, not the repairs. Separating
+      the two states means parsing the ledger where today it is scanned, which is
+      a change to how `_finding_ids` reads its input and belongs with the rest of
+      the class.
+    suggested_fix: >-
+      Distinguish PRESENT-AND-UNPARSEABLE from PRESENT-AND-EMPTY: attempt a YAML
+      parse and report "the ledger at <path> does not parse: <exc>" separately
+      from "the ledger at <path> parses and lists no findings". Both stay
+      UNVERIFIED; only the sentence changes. NOTE THE COST BEFORE DOING IT --
+      `score_tools.py` ships standalone (RM-05 section 3) and deliberately does
+      not hard-require `yaml`, so the parse has to be optional and its absence is
+      a fourth state.
+    blast_radius: >-
+      Diagnosis only. No verdict moves in any of the four inputs.
+    disposition: carried
+    disposition_ticket: "SS-05"
+    disposition_note: >-
+      CARRIED to SS-05, which owns the repairs to this class. DECLARED in the
+      register at SS-02 so the collapse is on the record and the check reports it
+      on every run rather than passing over it.
+  - id: SS-02-DF-02
+    found_by: SS-02, while recording its own check's absent-input transcript
+    found_at_commit: 48f9c7e
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["examples/validation/scorecards/score_tools.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: execution
+    cost: One mis-quoted shell loop, which produced six argparse errors that read as six UNDECIDED verdicts.
+    summary: >-
+      `absent-input`'s UNDECIDED EXIT CODE IS 2, AND SO IS ARGPARSE'S USAGE
+      ERROR. A caller that reads the code and not the output cannot separate
+      "nothing was measured, this is undecided" from "you typed the command
+      wrong". Found the way it will be found in the field: a transcript loop
+      passed `--registry <path>` as one quoted word, argparse refused it, every
+      run exited 2, and the transcript looked like six correct UNDECIDED answers
+      until the output was read. THE SHAPE IS THE ONE THIS COMMAND EXISTS TO
+      REPORT -- a verdict surface that cannot carry the verdict -- and it is
+      recorded against the command that reports it rather than quietly given a
+      different number.
+    reproduction: >-
+      `python3 examples/validation/scorecards/score_tools.py absent-input
+      --registry /nonexistent.toml` -> exit 2, first line `UNVERIFIED: [absent]
+      ...`. `python3 examples/validation/scorecards/score_tools.py absent-input
+      --no-such-flag` -> exit 2, first line `usage: ...`. Same code, different
+      first line.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-02/the-checks-own-absent-input.txt -- six UNDECIDED runs, all exit 2, all naming their state on line 1"
+      - "examples/validation/scorecards/score_tools.py -- the collision is stated at ABSENT_UNDECIDED"
+    why_out_of_scope: >-
+      NOT out of scope so much as deliberately not repaired: every candidate
+      repair is a change to what an exit code means. Giving UNDECIDED a fourth
+      code (3, as `seal` uses for REFUSED) makes this command disagree with the
+      registry preamble, which already declares that "pure argparse usage errors
+      are not verdicts about a subject and are not counted as failing inputs
+      anywhere". Every contract in the register asserts on the output line, so
+      nothing in this repository reads the bare code today.
+    suggested_fix: >-
+      Either accept it and keep asserting on the first output line -- which is
+      what ships -- or give the three verdicts codes that no library can produce
+      (0 / 1 / 3) and say so in the preamble. Do not do it silently: the code is
+      the interface.
+    blast_radius: >-
+      Any future caller of `absent-input` that branches on the exit code alone.
+      Zero callers today; `tests/test_absent_input_demonstrations.py` asserts the
+      code AND the text on every one of the six.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      CARRIED to SS-08 as a fact about the instrument it will run. Not repaired
+      at SS-02 because the repair is a choice about the interface, not a defect
+      fix, and MF-020 binds: it would be made after seeing this ticket's own
+      transcript.
+  - id: SS-02-DF-03
+    found_by: SS-02, from the contract it wrote for scorecard-audit
+    found_at_commit: 48f9c7e
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["examples/validation/scorecards/score_tools.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: execution
+    cost: Writing down what the three demonstrations actually exit with.
+    summary: >-
+      `score_tools.py audit` ANSWERS UNDECIDED IN ITS TEXT AND PASS ON ITS EXIT
+      CODE. Against a tree with no findings ledger -- live or archived -- it
+      prints one UNVERIFIED line and then `0 violation(s)` and EXITS 0, because
+      UNVERIFIED deliberately does not increment the violation count. That
+      deliberate choice is right about violations and wrong about the verdict
+      surface: a caller reading the exit code gets a clean audit over a tree the
+      tool could not audit. THIS IS THE ABSENT-INPUT CLASS SURVIVING ITS OWN
+      REPAIR, one layer out: `CA-10-DF-11` and `SS-01-DF-04` moved the ANSWER
+      from wrong to undecided and left the CARRIER unable to say so. Related to,
+      but not the same as, the already-recorded blind spot on this row (OPEN and
+      UNVERIFIED are printed and not counted) -- that entry is about which
+      findings are counted; this is about what the exit code then means.
+    reproduction: >-
+      Build a tree that symlinks every repository entry except
+      `specs/deferred_findings.yaml` and `specs/.history`, then
+      `SCORECARD_REPO_ROOT=<tree> python3
+      examples/validation/scorecards/score_tools.py audit --root
+      specs/results/scorecards --rubric references/eval_scorecard.md --quiet-ok`
+      -> `0 violation(s)`, exit 0, with `UNVERIFIED no findings ledger this tool
+      can READ ids from` in the body. The staging is declared verbatim in
+      `[instrument.absent_input.absent]` on the `scorecard-audit` row.
+    evidence:
+      - "examples/validation/instruments/instruments.toml -- `exit_code_cannot_carry_the_answer` on all three states of scorecard-audit"
+      - "specs/results/scorecards/stabilize-substrate/SS-02/R1-refusal-on-a-real-instrument.txt -- the AFTER run, exit 0 with the UNVERIFIED line"
+      - "tests/test_absent_input_demonstrations.py::test_an_UNDECIDED_answer_that_exits_zero_must_say_so"
+    why_out_of_scope: >-
+      Repairing it means deciding what `audit`'s exit code means when a rule
+      could not be evaluated, which changes the verdict of every caller of a
+      shipped instrument. SS-02's slice is the rule and the check. The check
+      REFUSES a contract that hides this -- `exit_code_cannot_carry_the_answer`
+      is mandatory whenever a state answers `undecided` and exits 0 -- so it is
+      declared on every affected state rather than discovered later.
+    suggested_fix: >-
+      Give `audit` a distinct exit code for "at least one reading rule could not
+      be evaluated in this tree" (UNVERIFIED > 0 with violations == 0), leaving 0
+      for "every rule evaluated and none violated" and 1 for violations. That is
+      a verdict-surface change to a shipped instrument and owes a demonstrated
+      failing input, a demonstrated absent input, and a note in
+      `INSTRUMENT-LOG.toml` recording the era boundary.
+    blast_radius: >-
+      Every `audit` invocation in a tree with no readable ledger -- a fresh
+      clone before `specs/.history` is populated, a workflow close in progress, a
+      partially checked-out tree -- in the direction of REPORTING CLEAN.
+    disposition: carried
+    disposition_ticket: "SS-05"
+    disposition_note: >-
+      CARRIED to SS-05 with the rest of the class. DECLARED in the register at
+      SS-02, and the check refuses any future contract that answers `undecided`
+      with exit 0 and does not say so.
+  - id: SS-02-DF-04
+    found_by: SS-02, checking whether the sibling guards would police its new block
+    found_at_commit: 48f9c7e
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_instrument_demonstrations.py", "examples/validation/instruments/demonstrate.py"]
+    channel: reading
+    cost: One grep of `SLOTS` and the four guards that iterate it.
+    summary: >-
+      THE REGISTER'S OWN GUARDS CANNOT SEE `[instrument.absent_input]`.
+      `demonstrate.py` defines `SLOTS = ("failing", "passing", "blind_spot")` and
+      four tests in `tests/test_instrument_demonstrations.py` iterate that literal
+      -- `test_every_pytest_slot_declares_an_executable_count`,
+      `test_no_pytest_slot_runs_the_same_command_as_its_own_passing_slot`,
+      `test_every_cited_pytest_node_exists`, and the runner itself. A contract
+      added under the new fourth slot is invisible to all of them: it can cite a
+      pytest node that does not exist, or assert only an exit code, and no
+      sibling guard notices. SS-02's own check imposes the equivalent rules
+      itself, so nothing is unpoliced TODAY -- but the obligation now lives in
+      two places and only one of them is named in the file a contributor edits.
+      This is the shape `FI-04-DF-04` was confirmed four times for: a literal
+      that must be edited by the same person who forgot the thing it lists.
+    reproduction: >-
+      `grep -n 'SLOTS = ' examples/validation/instruments/demonstrate.py` ->
+      `("failing", "passing", "blind_spot")`. `grep -n 'for slot in'
+      tests/test_instrument_demonstrations.py` -> four loops over the same three
+      names. Then add `kind = "pytest"` with `nodes = ["tests/nope.py::nope"]` to
+      any `[instrument.absent_input.<state>]` and run `uv run --with pytest
+      --with pyyaml -m pytest tests/test_instrument_demonstrations.py -q` -- green.
+    evidence:
+      - "examples/validation/instruments/demonstrate.py -- SLOTS"
+      - "examples/validation/scorecards/score_tools.py -- absent_contract_problems, which imposes the same two rules for the new slot"
+    why_out_of_scope: >-
+      `tests/test_instrument_demonstrations.py` is SS-06's conflict key, not
+      SS-02's, and widening `SLOTS` changes what `demonstrate.py` executes for
+      every row.
+    suggested_fix: >-
+      Either derive the slot names from the register (every sub-table of an
+      `[[instrument]]` that carries `expect_exit` or `kind`) so a fifth slot
+      cannot arrive unpoliced, or have the four guards iterate a single exported
+      constant. The first is the shape SM-03 already chose for the enumeration
+      itself and is the better precedent.
+    blast_radius: >-
+      Any absent-input contract added after SS-02 that cites a nonexistent pytest
+      node or declares no executable count. Two contracts exist today and both
+      are `cli`.
+    disposition: carried
+    disposition_ticket: "SS-06"
+    disposition_note: >-
+      CARRIED to SS-06, which owns tests/test_instrument_demonstrations.py.
+      Reported rather than fixed from this branch: editing another ticket's
+      conflict key is how two agents produce one merge conflict and two
+      half-repairs.
