@@ -506,3 +506,26 @@ annotates *"a filled card is evidence and is not edited"*) and `INVALID`
 (citations not in `file:line` form). **That is not obviously a defect and it is
 outside this ticket's slice, so it is reported and not filed** — an entry with no
 established defect is a hunch.
+
+## 11. The rest of the validation matrix
+
+| entry | command | result at `06cbcce` |
+|---|---|---|
+| **spec unit** | `python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests` | **`56 passed`**, `spec-unit validation passed for 1 target(s)` |
+| **spec unit, ticket-scoped** | `… run spec-unit-tests --ticket SS-07` | **`spec-unit validation passed for 2 target(s)`** — project `current` and `specs/tickets/SS-07/current` |
+| **model delta** | `diff -rq specs/tickets/SS-07/{current,desired}` | **byte-identical**, so `model_delta_expectation: none expected` holds and the close-time equality gate would pass |
+| **tlc** | — | **`N/A`: no TLC target exists at this tree**, verified by invocation: `run` accepts only `spec-unit-tests` and `effect-conformance`. Owner error in the dispatch template, already filed as `SS-00-DF-05`; nothing was substituted for it |
+| **spec graph / graphs** | — | none declared; this ticket changes no `External.tla` surface |
+
+**One extra, run although not required, because it is this epic's own subject
+matter.** `run effect-conformance` with no `--cases-dir` exits 1 reporting two
+DEAD MODEL SURFACEs — **and then names its own absent input unprompted**:
+
+> *"NOTE: no `--cases-dir` supplied, so no adapter was executed and nothing was
+> observed. The dead-surface finding above reflects an empty observation set."*
+
+**That is the absent-input class answered correctly**: the instrument prints a
+verdict and, in the same breath, tells the reader the verdict is about an empty
+observation set. It is recorded here as a POSITIVE instance beside the negative
+ones in §5, not as a red — it is not in this ticket's REQUIRED matrix and no
+corpus was supplied to it.
