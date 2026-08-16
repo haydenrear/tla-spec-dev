@@ -124,7 +124,7 @@ ticket:
 goals:
 {chr(10).join(goal_lines)}
 validation:
-  tlc: "python3 scripts/tla_spec_dev.py --spec-root specs run tlc"
+  tlc: "N/A: no TLC target exists at this tree. `run` accepts only `spec-unit-tests` and `effect-conformance` — verified. Earlier assignments declared `run tlc`; that was an owner error, and SS-01 and SS-03 correctly reported it rather than substituting something else."
   spec_unit: "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests"
   repository_unit: "uv run --with pytest --with pyyaml -m pytest tests -q"
   graphs: []
@@ -166,19 +166,27 @@ overrides ordinary instructions to branch from or target the default branch.**
   hidden, and never justifies weakening the REQUIRED matrix or chasing a metric
   outside this ticket's conflict keys.
 - Defects outside your conflict keys are **deferred, not fixed**: append to
-  `{dp['backlog']}` and keep working your slice. **Until `SS-01` merges, the
-  instruments still name the dead per-epic path**, so invoke
-  `python3 scripts/disposition.py --ledger {dp['backlog']}` explicitly. **Append;
-  never rewrite, truncate, reorder or reset it.** An entry with no reproduction
-  is not a finding, it is a hunch — do not file it.
+  `{dp['backlog']}` and keep working your slice. **Append; never rewrite,
+  truncate, reorder or reset it.** An entry with no reproduction is not a
+  finding, it is a hunch — do not file it. Expect a tail conflict with any
+  sibling ticket and resolve it by **keeping both sets in promotion order**;
+  confirm the row count only ever rises.
 - **Skills are READ from this repository and NEVER edited.** Anything that must
-  change in a Skill Manager home is **proposed as a diff and escalated**.
-  `spec-double-compiler` is **deliberately unsynced** for this epic's duration.
-- Your worktree has its own Skill Manager home (`<worktree>/.skill-manager`,
-  gitignored), and **nothing you change inside it is in this PR**. Before
-  stopping, run `skill-manager home close-out --home <worktree>/.skill-manager
-  --into /Users/hayde/IdeaProjects/tla-spec-dev/.skill-manager` and state the
-  verdict in the PR body. Leave the worktree standing; the finalizer removes it.
+  change in a Skill Manager home is **proposed as a diff and escalated** in your
+  PR body. **All units were synced in both tiers on 2026-08-15 by owner
+  decision** and are current as of that date; `spec-double-compiler` now ships at
+  `436c78c`, which means the installed unit carries every charter and
+  `NEXT-EPIC.md` on disk — **an open contamination channel for any agent you
+  dispatch** (`#271` §7.5). Say so if you dispatch one.
+- **DO NOT RUN `skill-manager home close-out`, `home sync`, `skt sync` or
+  `skt publish`.** Your worktree has its own Skill Manager home
+  (`<worktree>/.skill-manager`, gitignored) and **nothing you change inside it is
+  in this PR**. **Change management is the epic owner's job, in one place:** the
+  owner merges your PR, then merges your worktree home's changes into the project
+  home, and only then removes the worktree. Your obligation is **disclosure** —
+  state in the PR body whether anything inside your home changed, naming the unit
+  and the change, or state plainly that nothing did. **Leave the worktree
+  standing.**
 - **Write scratch output to a ticket-specific path.** Two concurrent tickets
   corrupted a shared `baseline.txt`. Never hand-roll a wait loop; never kill a
   process by name alone.
@@ -216,29 +224,71 @@ mirrors it; the plan is canonical). **Prior record:** `NEXT-EPIC.md`
 
 ## Discovery notes
 
-**Verify every claim in this issue before acting on it.** Issue #271 handed this
-epic four figures and **four of them moved** — 41,691 py lines was measured at a
-different tree, `0 of 18` judged goals is `0 of 20` here, the "live" ledger path
-does not exist, and the `scope` sweep is 82 figures rather than 102. The
-predecessor's cut list had **three of four items that did not exist as
-described**. `scope` cannot do this checking for you: it returns **zero** counted
-figures on charters, plans, baselines and price tables (`CA-08-DF-01`).
+**Verify every claim in this issue before acting on it, INCLUDING THE
+CORRECTIONS.** Issue #271 handed this epic five figures and five moved. **Then
+the owner's own corrections were themselves corrected, twice, by tickets and
+reviewers — and one of those corrections was wrong in the opposite direction.**
+The chain is the point:
 
-**And one live defect was found at kickoff and is already filed:**
-`SS-00-DF-01` — `score_tools.py audit` reports **9 violations on a fresh worktree
-and 0 on another**, at the same commit, because the archived-ledger fallback
-orders by filesystem mtime and git does not preserve mtimes. **Every `audit`
-figure you quote is a joint property of the tree AND the checkout.**
+- **`scope` 102 → 82.** The owner attributed the −20 as *"20 REFUTED, all from
+  the ledger, plus 3 UNREACHABLE from `NEXT-EPIC.md`"* — **read off two marginal
+  totals that were never cross-tabulated.** `SS-01` then argued the ledger could
+  not account for it and that #271 was *"wrong twice"*. The cross-tab settles it:
+  **17 REFUTED + 3 UNREACHABLE from the ledger, 3 REFUTED from `NEXT-EPIC.md`.**
+  The ledger accounts for the −20 exactly, and **#271's "17 REFUTED figures
+  currently unswept" was right all along.** `scope` is **103** at `50046b2` after
+  `SS-01` added `DEFAULT_SWEEP`, superseding the sealed baseline of 82.
+- **`SS-00-DF-01`'s filed mechanism was wrong.** The owner's probe printed mtimes
+  with `:.0f`, collapsing four distinct seconds into one, and *"all 85 candidates
+  tie, so the largest file wins"* became a filed finding. **There are 85 distinct
+  mtimes.** The defect was real and is repaired; the stated cause was an artifact
+  of the diagnostic. `SS-01-DF-02`.
+- **`0 of 18` → `0 of 20` → `0 of 24` → `0 of 17`.** The charter's correction was
+  right at `436c78c` and stale at the tree you branch from; the census then
+  changed again when `SS-03` repaired its recogniser. Read
+  `GOAL-judged-goals-compliant`'s baseline for the current figure and its tree.
+- **The four skips did NOT unskip by repointing**, as the plan and the charter
+  both claimed. Repointing alone converts them to four reds on
+  `status=planned`. They are gone at `50046b2` for a different reason.
+
+**`scope` cannot do this checking for you:** it returns **zero** counted figures
+on charters, plans, baselines and price tables (`CA-08-DF-01`), and it records
+nothing about the root it swept (`SS-01-DF-03`). **Until `SS-04` lands, you are
+the recogniser — and so far the record shows every party in this epic getting a
+figure wrong at least once, including both reviewers' subjects and the owner
+three times.**
 
 ## Regression & close-out
 
-Run the full REQUIRED matrix above. Report **reds, passes, skips and collection
-as four numbers that sum**, at the base and at your tip, with **every movement
-attributed** and its numerator/denominator direction named. The epic-base figure
-is in `GOAL-tree-stabilizes`' baseline evidence — compare against **that**, not
-against a recollection. Test command:
+Run the full REQUIRED matrix above. Report **failed, passed, skipped, xfailed and
+collection as numbers THAT SUM**, at the base and at your tip, with **every
+movement attributed** and its numerator/denominator direction named. Test command:
 `uv run --with pytest --with pyyaml -m pytest tests -q` — **without
 `--with pyyaml`, 12 tests go phantom red.**
+
+**Compare against the tree you actually branch from, not against the charter.**
+Wave 1 moved it, and four artifacts of this epic's own machinery are now known.
+**Do not rediscover them; do not attribute them to your own slice.**
+
+1. **There are FIVE buckets, not four.** `SS-01` added an `xfail(strict=True)`
+   pinning `SS-01-DF-01`, so `failed + passed + skipped + xfailed = collection`.
+   At `50046b2`, verified independently by the owner in a fresh worktree:
+   **8 / 1509 / 0 / 1 / 1518**. A four-number report silently stops summing.
+2. **`open ticket` inflates collection by +4 and `close ticket` removes it
+   again**, by widening parametrized `test_spec_yaml_valid` over the scaffolded
+   `specs/tickets/<id>/` tree. **Every ticket on this epic sees this.** Say which
+   side of the close your figure was taken on.
+3. **`close ticket` seals the history entry and deletes the workspace in ONE
+   operation, so the sealed entry can never describe the tree it produces.**
+   `SS-01`'s sealed summary says `8/1508/0/1516` and its live `RESULT.md` says
+   `8/1504/0/1512`; `R-H4` forbids editing the entry. **Expect the divergence,
+   disclose it in your live `RESULT.md` and PR body, and say which is
+   authoritative** — do not leave `SS-08` two numbers and no explanation.
+4. **A figure is a joint property of the artifact AND the tree it was measured
+   in.** `SS-01-DF-03`: the same ledger bytes score `21/18/3` under a bare
+   `--root` and `20/17/3` inside the repository, and `scope`'s output records
+   nothing about which root it swept. **Name the tree on every figure you
+   publish.** The owner has already been caught by this once and so has `SS-01`.
 
 Close **only** spec ticket `{tid}` with evidence, push, and open a PR with base
 `{epic['branch']}`. Report goal contribution in a `## Goal contribution` section.

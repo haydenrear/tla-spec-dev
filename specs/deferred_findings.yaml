@@ -21014,6 +21014,138 @@ findings:
     disposition_note: >-
       CITATION CORRECTED here; CARRIED to SS-02, which lands executed checks over
       this project's own record, for the evidence-path resolver.
+  - id: SS-00-DF-04
+    found_by: the SS-01 independent reviewer, confirmed by the epic owner's own cross-tab
+    found_at_commit: 50046b2
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["STABILIZE-SUBSTRATE-EPIC.md", "specs/results/scorecards/stabilize-substrate/GOAL-counted-figures-reach-the-record/baseline.md", "https://github.com/haydenrear/tla-spec-dev/issues/273"]
+    channel: review
+    cost: >-
+      One cross-tabulation of 23 rows on (file, verdict), run by the reviewer and
+      re-run by the owner. Roughly ten lines of Python. It was available to the
+      owner at kickoff from data already in hand.
+    summary: >-
+      THE EPIC OWNER CORRECTED A FIGURE THAT WAS RIGHT, BY READING A CROSS-TAB OFF
+      TWO MARGINAL TOTALS THAT WERE NEVER CROSS-TABULATED -- AND THE WRONG
+      CORRECTION PROPAGATED INTO FOUR DOCUMENTS AND ONE PRODUCTION FILE. Diffing
+      the `scope` sweep at the epic base against `CA-08`'s sealed `scope-tip.json`
+      gave two marginals: BY FILE, 20 rows from the ledger and 3 from
+      `NEXT-EPIC.md`; BY VERDICT, 20 REFUTED and 3 UNREACHABLE. The owner wrote
+      "20 REFUTED, all from the ledger, plus 3 UNREACHABLE from NEXT-EPIC.md",
+      WHICH IS AN INFERENCE THAT THE TWO MARGINALS LINE UP. THEY DO NOT. The
+      cross-tab is 17 REFUTED + 3 UNREACHABLE from the ledger and 3 REFUTED from
+      `NEXT-EPIC.md`. CONSEQUENCE: issue #271's "17 REFUTED figures currently
+      unswept" WAS EXACTLY RIGHT, and `CA-10-DF-18` instance 5 had already
+      measured and written both numbers. The owner's "correction" -- that 17 was
+      the whole-record UNREACHABLE count rather than the unswept-REFUTED count --
+      was FALSE, and the coincidence that the whole-record UNREACHABLE count IS
+      ALSO 17 is what made it plausible. IT REACHED: the charter section 0, the
+      GOAL-counted-figures-reach-the-record baseline, issue #273's work order, and
+      -- via SS-01 acting in good faith on the issue text -- A COMMENT INSIDE
+      `examples/validation/scorecards/score_tools.py`, the file that executes the
+      reading rules. SS-01 then OVER-corrected on top of it, claiming the ledger
+      could not account for the -20 at all, and its reviewer refuted that in turn.
+      THREE PARTIES, ONE UN-RUN CROSS-TAB, AND THE ERROR ORIGINATED AT THE
+      ALTITUDE THAT DIRECTS EIGHT TICKETS.
+    reproduction: >-
+      `python3 -c` over the two sealed JSON sweeps at
+      `specs/results/scorecards/cut-the-apparatus/CA-08/goal/scope-tip.json` and
+      `specs/results/scorecards/stabilize-substrate/GOAL-counted-figures-reach-the-record/scope-whole-record-436c78c.json`,
+      keying rows on `(file, line, span)` and counting `collections.Counter((row['file'], row['verdict']))`
+      over the set difference. Returns: 17 REFUTED and 3 UNREACHABLE for
+      `specs/desired_program_model/deferred_findings.yaml`, 3 REFUTED for
+      `NEXT-EPIC.md` gone, 3 REFUTED for `NEXT-EPIC.md` added.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/GOAL-counted-figures-reach-the-record/baseline.md section 2 -- the corrected table and the CORRECTED block above it"
+      - "STABILIZE-SUBSTRATE-EPIC.md section 0 -- the corrected charter row"
+      - "specs/results/scorecards/stabilize-substrate/SS-01/ -- SS-01's over-correction and its own reversal"
+      - "CA-10-DF-18 instance 5 -- had already published both numbers before this epic opened"
+    why_out_of_scope: >-
+      IN SCOPE for the owner, not for a ticket. The four documents are corrected at
+      50046b2; the `score_tools.py` comment was corrected by SS-01 in the same
+      round. Filed because the CLASS is the finding, not the arithmetic.
+    suggested_fix: >-
+      THE SUBSTRATE CHANGE THIS EARNS, and it is SS-04's: a counted figure derived
+      from a diff must state the CROSS-TAB, not two marginals. Two marginal totals
+      that happen to share their values are indistinguishable from a cross-tab
+      until one is run, and this record now contains a worked example of the
+      failure. More generally: NEVER PUBLISH A JOINT CLAIM ("20 REFUTED, ALL from
+      file X") FROM SEPARATE MARGINAL COUNTS. Where the joint distribution was not
+      computed, the honest answer is the two marginals stated as marginals.
+    blast_radius: >-
+      Four work-directing documents and one production comment, all corrected. The
+      wider radius is method: every "N of M, all from X" sentence this project has
+      published from a diff is suspect until its cross-tab is shown, and `scope`
+      cannot check any of them (CA-08-DF-01).
+    disposition: open
+    disposition_ticket: "SS-04"
+    disposition_note: >-
+      OPEN. The arithmetic is corrected everywhere; the CLASS is routed to SS-04,
+      which is building the counted-figure recogniser and is the only ticket
+      positioned to make a marginal-vs-joint claim checkable. NOTE FOR SS-08: this
+      row exists because a reviewer instructed to REFUTE found it, and the owner
+      re-derived it rather than accepting the report -- both halves are the
+      mechanism, and the second half is what caught SS-01's over-correction.
+  - id: SS-00-DF-05
+    found_by: the epic owner, dispatching wave 1
+    found_at_commit: 50046b2
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/stabilize-substrate/kickoff/render_assignments.py"]
+    channel: execution
+    cost: One `--help` invocation, after two ticket agents had each hit it and reported it.
+    summary: >-
+      EVERY ONE OF THE EIGHT DISPATCHED ASSIGNMENTS DECLARED A REQUIRED VALIDATION
+      COMMAND THAT DOES NOT EXIST. The rendered matrix carried
+      `tlc: python3 scripts/tla_spec_dev.py --spec-root specs run tlc`; `run`
+      accepts only `spec-unit-tests` and `effect-conformance`. The owner wrote the
+      template and never ran the command. BOTH TICKET AGENTS THAT REACHED IT
+      REPORTED IT HONESTLY AND NEITHER SUBSTITUTED ANYTHING, which is the outcome
+      the charter asks for and is worth recording as a positive result about the
+      dispatch discipline rather than only as a defect. THE CLASS: an assignment
+      can require a command nobody executed when writing it, and NOTHING VALIDATES
+      THE VALIDATION MATRIX -- `validate_epic_plan.py` checks the schedule graph
+      and never checks that a declared command runs.
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py --spec-root specs run tlc` ->
+      `invalid choice: 'tlc' (choose from 'spec-unit-tests', 'effect-conformance')`,
+      exit 2. Compare against the `validation.tlc` field in any of issues #273-#280
+      as originally dispatched.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/kickoff/render_assignments.py -- the template, corrected at 50046b2"
+      - "SS-01 and SS-03 PR bodies -- both report `N/A: no TLC target exists at this tree` rather than substituting"
+    why_out_of_scope: >-
+      IN SCOPE for the owner. Template corrected at 50046b2 to state the N/A and
+      why. The six undispatched issues are re-rendered from the corrected template.
+    suggested_fix: >-
+      A declared validation command should be executed once, at kickoff, against
+      the epic base -- the same discipline the goals get. The cheapest form is a
+      dry-run of each `validation.*` entry when the assignments are rendered, and
+      it belongs in `render_assignments.py`, which already refuses on unknown goal
+      ids and empty ticket lists. NOTE THE SHAPE: this is the absent-input class
+      pointed at a work order rather than at an instrument -- a matrix that names
+      a nonexistent command reports nothing and is indistinguishable from one that
+      names a passing command, until an agent runs it.
+    blast_radius: >-
+      Eight dispatched assignments; two agents reached it and both reported it.
+      No measurement was affected because nothing was substituted.
+    disposition: open
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      OPEN. Corrected in the template; filed so SS-08 reports that the epic
+      dispatched eight assignments carrying an unrunnable required command, and
+      that the dispatch discipline caught it twice rather than working around it.
   - id: SS-03-DF-01
     found_by: "SS-03"
     found_at_commit: "25600fa"

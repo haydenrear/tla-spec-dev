@@ -447,6 +447,13 @@ the close would be wrong:**
 
 `1524 + 1 − 4 = 1521` ✓  `8 − 1 = 7` ✓  `1533 − 4 = 1529` ✓
 
+**The `+4` and the `−4` are the epic's own machinery and NET TO ZERO across the
+pair, so neither belongs to this ticket's slice.** `open ticket` inflates
+collection by 4 and `close ticket` removes it again, on every ticket — the owner
+has since measured the same thing and amended the plan to say so. **This
+ticket's real contribution to collection is `+11`**: 10 tests and the one node
+the YAML sweep added by finding the resolution index on its own.
+
 **Which is authoritative: the POST-CLOSE figure**, `7 / 1521 / 0 / 1 / 1529`.
 The sealed one describes a tree that no longer exists on any branch. It is not
 wrong — it is a faithful record of what was measured — but it is not the tree
