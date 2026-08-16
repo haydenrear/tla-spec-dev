@@ -128,6 +128,36 @@ else
   info "  plugins/*/skills/<unit> rung (references/layout.md § Store paths) before this ships."
 fi
 
+# ------------------------------------------------------- the one that fails LATER
+#
+# `skill-imports: unit: <name>` resolves against INSTALLED UNITS, and a contained
+# skill is not one — `skill-manager show <contained>` answers "unit not found".
+# So an import naming a bundled skill fails validation on the IMPORTING unit's
+# next publish or sync, with:
+#
+#   skill-imports[0] references missing unit `<name>`; install it or fix the `unit` value
+#
+# Inside this bundle that is a defect we can see and must report; outside it, it
+# is a sweep migration.md § 2 describes and this script cannot reach.
+step "skill-imports naming a bundled skill (references/imports.md)"
+ihits=0
+for n in $names; do
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    info "$line"
+    ihits=$((ihits + 1))
+  done < <(grep -rn --include='*.md' --exclude-dir=.git -E "^[[:space:]]*-?[[:space:]]*(unit|skill):[[:space:]]*[\"']?$n[\"']?[[:space:]]*$" \
+             skills hooks commands agents 2>/dev/null || true)
+done
+if [ "$ihits" -eq 0 ]; then
+  info "none"
+else
+  info "^ $ihits import(s) name a bundled skill as a UNIT. Rewrite each as"
+  info "  'unit: ${PNAME:-<plugin>}' with 'path: skills/<skill>/<file>' — the contained"
+  info "  skill is not an installed unit and the validator will refuse it."
+  fail=1
+fi
+
 step "Result (plugin repository: both halves)"
 if [ "$fail" -eq 0 ]; then info "PASS"; else info "FAIL"; fi
 exit $fail

@@ -54,7 +54,11 @@ while it has no `.git`, and only then run `finalize-constituents.sh`.** See
 
 ## Store paths, and the resolvers they break
 
-This is the one migration hazard that is silent.
+The disk half of a bigger subject: **everything that addresses a bundled skill
+by its old identity** — store paths, `skill-imports`, git-coord references, the
+invocation name — is `references/imports.md`, with measured evidence and one
+real skill-manager bug. This section is the path part, because it is the part
+this skill's own scripts have to survive.
 
 | | standalone skill | contained in a plugin |
 |---|---|---|

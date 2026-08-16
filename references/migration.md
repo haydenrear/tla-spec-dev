@@ -90,11 +90,19 @@ Then update the files that name them:
 | Prose / skill invocation | `alpha-skill` | `my-plugin:alpha-skill` |
 | `skill-imports:` frontmatter | `unit: alpha-skill, path: SKILL.md` | `unit: my-plugin, path: skills/alpha-skill/SKILL.md` |
 
-The `skill-imports` row follows the shape `skt`'s own contained skills take
-(`unit: skt, path: skills/unit-authoring/SKILL.md`) — the import is against the
-installed **unit**, and the path is relative to that unit's root. Confirm with
-`skill-manager project resolve` on a real project before relying on it: resolve
-validates imports against installed units and will name what it cannot find.
+The `skill-imports` row is the one that fails at a distance, and it is measured,
+not assumed. Left un-rewritten it produces, on the *importing* unit's next
+publish or sync:
+
+```
+✗ skill-imports[0] references missing unit `alpha-skill`; install it or fix the `unit` value
+```
+
+— even though `alpha-skill` is installed, inside the plugin. The rewritten form
+(`unit: my-plugin`, `path: skills/alpha-skill/SKILL.md`) validates clean.
+`references/imports.md` has the full matrix, including the git-coord row that
+does **not** error and instead installs a duplicate standalone copy, and the
+known bug about a bundle importing its own siblings.
 
 ## 4. Keep the upstream repos alive
 

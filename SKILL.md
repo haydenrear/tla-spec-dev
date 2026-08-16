@@ -99,26 +99,31 @@ script.
    hardcodes `constituents/`, which is exactly why `scripts/add-skill.sh` exists
    here. Use it; do not hand-run `add-constituent.sh` in a plugin repo.
 
-2. **A contained skill's store path is `plugins/<plugin>/skills/<skill>/`, not
-   `skills/<skill>/`.** Moving a skill into a plugin repo therefore *breaks
-   every sibling that resolves it as
-   `$SKILL_MANAGER_HOME/skills/<unit>/...`* — a live pattern, e.g. how
-   `git-integration-repo` reaches `git-issue-workflow`'s `lib.sh`. Resolvers
-   need a plugin rung. `scripts/plugin-repo-lib.sh` ships `unit_dir` as the
-   one correct search, `scripts/verify.sh` greps the bundle for the broken
-   pattern, and `references/layout.md` § *Store paths* has the full story.
+2. **The plugin is a unit; the skills inside it are not.** Change management
+   works, at plugin granularity and on purpose — `skt` sees one unit, one
+   `gitHash`, one notification, and `skt publish` on a home-edited contained
+   skill pushes to the **plugin repo**, which is the whole point. What breaks is
+   anything that addressed the skill by its *old* identity: a
+   `skill-imports: unit: <skill>` now fails validation (measured), a git-coord
+   reference silently installs a duplicate standalone copy, and a hardcoded
+   `$SKILL_MANAGER_HOME/skills/<unit>/…` stops existing because the bytes are at
+   `plugins/<plugin>/skills/<unit>/`. All three, with evidence, rewrites, and
+   one real skill-manager bug about intra-bundle imports:
+   **`references/imports.md`**. `scripts/verify.sh` greps for the first and
+   third inside the bundle.
 
-3. **A contained skill is invoked `plugin:skill`, and is no longer installable
-   on its own.** `skt:unit-authoring`, not `unit-authoring`. Cross-references in
-   prose, harness `units = [...]` lists and `skill-project.toml` entries all
-   have to move to the plugin coord — `references/migration.md`.
+3. **A contained skill is invoked `plugin:skill`.** `skt:unit-authoring`, not
+   `unit-authoring`. Cross-references in prose, harness `units = [...]` lists
+   and `skill-project.toml` entries move to the plugin coord —
+   `references/migration.md`.
 
-4. **Propagate before you refresh.** An edit made in the parent (or published
-   into the plugin's store copy by `skt publish`, which pushes to the *plugin*
-   repo — the store copy is a checkout of it) exists nowhere else until
-   `propagate.sh` sends it to the skill's own repo. `refresh.sh` is
-   `reset --hard` per constituent and will discard it. `references/lifecycle.md`
-   sequences both directions.
+4. **Propagate before you refresh.** This is the *second* hop, and it is the
+   integration-repo rule rather than anything about change management: the
+   plugin repo is also a cache of the upstream skill repos, so an edit that
+   landed in the parent — by hand, or by `skt publish` from a consumer's home —
+   reaches `alpha-skill`'s own repo only through `propagate.sh`. `refresh.sh` is
+   `reset --hard` per constituent and reverts whatever has not made that trip.
+   `references/lifecycle.md` sequences both directions.
 
 ## Workflows
 
@@ -132,6 +137,7 @@ script.
 | Cut a version consumers will be notified about | `references/lifecycle.md` | `scripts/release.sh` |
 | Check the repo is a valid plugin *and* a valid integration repo | — | `scripts/verify.sh` |
 | Move today's standalone skills or a harness into a bundle | `references/migration.md` | — |
+| An import, reference or path that names a bundled skill | `references/imports.md` | `scripts/verify.sh` |
 
 ## Quick reference
 

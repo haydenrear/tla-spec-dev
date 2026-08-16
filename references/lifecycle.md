@@ -108,18 +108,25 @@ consuming end.
 An agent edits `plugins/my-plugin/skills/alpha-skill/SKILL.md` in its own home
 and wants it to survive. `skt publish` moves the home edit one tier up and then
 publishes the **unit** — and the unit here is the *plugin*, whose store copy is
-a checkout of the **plugin repo**. So:
+a checkout of the **plugin repo**. So the edit lands on the plugin repo.
 
-- the edit lands on the **plugin repo**, not on `alpha-skill`'s own repo;
-- `alpha-skill`'s repo knows nothing about it;
-- the next `refresh.sh` in the plugin repo will **revert it**, because
-  `reset --hard` restores upstream's version of those files.
+**That is the design working, not a gap.** Change management is at plugin
+granularity throughout: `skt`'s `_store_dir` resolves `skills|plugins|docs|
+harnesses`, so a plugin is a first-class unit with one origin, one `gitHash` and
+one notification, and a self-improvement PR against the substrate is a PR
+against this one repo. Nothing about that wants to be per-contained-skill.
 
-The completion step is therefore flow C: in a development checkout of the plugin
-repo, `propagate.sh` the change out to `alpha-skill`. Until that happens the
-edit lives in exactly one place and is one refresh away from gone. Treat
-"unpropagated skill edits in the plugin repo" as work-in-progress, and check for
-them before flow A.
+What the edit has *not* done is reach `alpha-skill`'s own repo — the plugin repo
+is also a cache of the upstreams, and only flow C empties that queue. So:
+
+- `alpha-skill`'s repo knows nothing about it yet;
+- `refresh.sh` (flow A) would **revert it**, because `reset --hard` restores
+  upstream's version of those files.
+
+The completion step is flow C in a development checkout of the plugin repo.
+Treat unpropagated skill edits as work in progress, and look for them before
+flow A — the same "propagate first, then refresh" ordering any integration repo
+has, for the same reason.
 
 ## Releases
 
