@@ -85,9 +85,9 @@ justification: ""
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
+  searched: true
+  outcome: "none"
+  detail: "Searched and found none, and the two real candidates were REFUSED for recorded reasons. CANDIDATE 1: examples/validation/instruments/demonstrate.py already stages trees, judges expect_exit/expect_output and runs pytest slots, so `absent-input` looks like duplicated machinery that should import it. REFUSED for a reason already written into this repository: score_tools.py SHIPS STANDALONE (RM-05 section 3) and deliberately refuses to hard-require siblings -- `_closed_at` is duplicated from scripts/disposition.py on that exact ground, with tests/test_ledger_resolution_is_deterministic.py pinning the two to one answer. Importing a sibling under examples/ would be a new hard dependency in the one tool that has none. The duplication is also not total: the absent-input runner adds `link` and `remove`, which demonstrate.py has no equivalent of and which exist because `audit` verifies 133 sealed digests against REPO_ROOT paths, so a staging strategy that COPIES produces 133 violations that say nothing about the state under test. That was measured, not predicted. CANDIDATE 2: widen demonstrate.py's SLOTS literal to four so the existing register guards police the new block. REFUSED because tests/test_instrument_demonstrations.py is SS-06's conflict key and widening SLOTS changes what demonstrate.py EXECUTES for every one of 66 rows. Filed instead as SS-02-DF-04 with the derive-from-the-register repair named, which is the shape SM-03 already chose for the enumeration itself. No TLC run supports either decision and none is claimed: this ticket adds no TLA+ surface, ticket-local desired and current are byte-identical, and the model delta is zero against SS-03."
   measured: false      # true only if a real TLC run produced the figure
   applied: false       # if true, approved_by is required
   approved_by: ""
@@ -99,4 +99,4 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: "specs/results/scorecards/stabilize-substrate/SS-02/RESULT.md"

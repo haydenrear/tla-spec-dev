@@ -1,0 +1,164 @@
+SS-02 -- the declared local_signal: the new check EXECUTED against the whole instrument register
+date: 2026-08-16T22:09:23Z
+tree: worktree at feature/SS-02, parent 48f9c7e, SS-02 in flight
+$ python3 examples/validation/scorecards/score_tools.py absent-input
+(54 rows have no contract and execute nothing; the 2 that do are staged and run,
+ six trees, six real invocations, about 2m40s)
+
+R1-absent -- what every instrument answers when the input is not there
+==============================================================================
+
+register     /Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-02/examples/validation/instruments/instruments.toml
+rows         66 (10 declared not-an-instrument)
+instruments  56
+selected     56
+executed     yes
+
+instrument                         absent   unread   empty    verdict
+------------------------------------------------------------------------------
+corpus-runner                      -        -        -        NO CONTRACT
+effect-oracle                      -        -        -        NO CONTRACT
+kill-test-floor                    -        -        -        NO CONTRACT
+kill-test-boundary-coverage        -        -        -        NO CONTRACT
+corpus-diagnostics                 -        -        -        NO CONTRACT
+tla-complexity-descriptor          -        -        -        NO CONTRACT
+produced-code-instrument           -        -        -        NO CONTRACT
+catalogue-integrity                -        -        -        NO CONTRACT
+control-property-probe             -        -        -        NO CONTRACT
+port-scoped-control-check          -        -        -        NO CONTRACT
+arms-length-match                  -        -        -        NO CONTRACT
+suite-verification                 -        -        -        NO CONTRACT
+control-decision-driver            -        -        -        NO CONTRACT
+port-swap-driver                   -        -        -        NO CONTRACT
+divergence-reachability            -        -        -        NO CONTRACT
+scorecard-check                    -        -        -        NO CONTRACT
+scorecard-audit                    ok       ok       ok       SATISFIED
+scorecard-seal                     -        -        -        NO CONTRACT
+candidate-note-bar                 -        -        -        NO CONTRACT
+architecture-tag-derivation        -        -        -        NO CONTRACT
+architecture-demonstration-table   -        -        -        NO CONTRACT
+blinding-sanitiser                 -        -        -        NO CONTRACT
+thermometer-tripwire               -        -        -        NO CONTRACT
+twin-fixture-integrity             -        -        -        NO CONTRACT
+source-citation-tripwire           -        -        -        NO CONTRACT
+one-home-tripwire                  -        -        -        NO CONTRACT
+spec-yaml-tripwire                 -        -        -        NO CONTRACT
+manifest-self-records-tripwire     -        -        -        NO CONTRACT
+skill-root-tripwire                -        -        -        NO CONTRACT
+port-declaration-tripwire          -        -        -        NO CONTRACT
+complexity-ledger                  -        -        -        NO CONTRACT
+close-promotion-preconditions      -        -        -        NO CONTRACT
+external-channel-enforcement       -        -        -        NO CONTRACT
+spec-unit-adapter-conformance      -        -        -        NO CONTRACT
+case-modules-validate              -        -        -        NO CONTRACT
+test-graph-nodes                   -        -        -        NO CONTRACT
+ticket-state-agreement             -        -        -        NO CONTRACT
+dispatch-record                    -        -        -        NO CONTRACT
+prediction-seal                    -        -        -        NO CONTRACT
+enumeration-runner                 -        -        -        NO CONTRACT
+registry-enumeration-coverage      -        -        -        NO CONTRACT
+manifest-validator                 -        -        -        NO CONTRACT
+cli-facade                         -        -        -        NO CONTRACT
+generation-refusal                 -        -        -        NO CONTRACT
+docs-generation-refusal            -        -        -        NO CONTRACT
+tlc-dump-case-generation           -        -        -        NO CONTRACT
+scaffold-overwrite-refusal         -        -        -        NO CONTRACT
+workflow-convergence               -        -        -        NO CONTRACT
+arm-swap-driver                    -        -        -        NO CONTRACT
+onboarding-scaffold                -        -        -        NO CONTRACT
+scorecard-scope                    -        -        -        NO CONTRACT
+scorecard-contested                -        -        -        NO CONTRACT
+scorecard-contested-drift          -        -        -        NO CONTRACT
+blind-dispatch-check               -        -        -        NO CONTRACT
+epic-disposition                   -        -        -        NO CONTRACT
+absent-input-check                 ok       ok       ok       SATISFIED
+
+THE COUNT -- this command's product
+------------------------------------------------------------------------------
+  instruments in the register                 56
+  selected                                    56
+  contract EXECUTED and holding               2
+  contract declared, not executed             0
+  contract executed over a SUBSET of states   0
+  WITHOUT one                                 54
+  with a contract that did not hold           0
+  states declared unreachable, with a reason  0
+  DECLARED indistinguishable state pairs      1
+
+  The first five sum to `selected`, in that order, always.
+  No target is set on that ratio. A high `WITHOUT` count is the honest
+  outcome: the class was measured at 48 instances across 30 of 43
+  verdict-producing modules before anything was repaired, and a count
+  that fell because rows were deleted is denominator movement, not a
+  repair.
+
+STATES AN INSTRUMENT CANNOT TELL APART -- declared, not discovered
+------------------------------------------------------------------------------
+  scorecard-audit  ['unreadable', 'empty']  (the two states declare the SAME expected output)
+      MEASURED, NOT ASSUMED: both states produce the identical line, `exists but names
+no findings (empty, unreadable or malformed)`. `_finding_ids` reads ids with a
+REGEX and never parses the file, so a truncated ledger, a zero-byte one and a
+correct `findings: []` are one state to it. That is DEFENSIBLE here -- all three
+mean "this file cannot verify a citation", and answering UNVERIFIED to all three
+is right -- but it is not free: a half-written ledger from an interrupted merge
+is reported in exactly the wording of a deliberately empty one, and nothing tells
+a reader which happened. Filed as SS-02-DF-01, routed to SS-05, NOT repaired
+here.
+
+REFUSED -- 54 problem(s) over 54 of 56 selected instrument(s)
+------------------------------------------------------------------------------
+  corpus-runner: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  effect-oracle: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  kill-test-floor: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  kill-test-boundary-coverage: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  corpus-diagnostics: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  tla-complexity-descriptor: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  produced-code-instrument: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  catalogue-integrity: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  control-property-probe: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  port-scoped-control-check: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  arms-length-match: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  suite-verification: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  control-decision-driver: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  port-swap-driver: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  divergence-reachability: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  scorecard-check: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  scorecard-seal: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  candidate-note-bar: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  architecture-tag-derivation: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  architecture-demonstration-table: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  blinding-sanitiser: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  thermometer-tripwire: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  twin-fixture-integrity: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  source-citation-tripwire: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  one-home-tripwire: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  spec-yaml-tripwire: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  manifest-self-records-tripwire: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  skill-root-tripwire: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  port-declaration-tripwire: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  complexity-ledger: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  close-promotion-preconditions: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  external-channel-enforcement: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  spec-unit-adapter-conformance: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  case-modules-validate: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  test-graph-nodes: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  ticket-state-agreement: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  dispatch-record: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  prediction-seal: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  enumeration-runner: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  registry-enumeration-coverage: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  manifest-validator: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  cli-facade: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  generation-refusal: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  docs-generation-refusal: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  tlc-dump-case-generation: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  scaffold-overwrite-refusal: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  workflow-convergence: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  arm-swap-driver: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  onboarding-scaffold: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  scorecard-scope: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  scorecard-contested: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  scorecard-contested-drift: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  blind-dispatch-check: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+  epic-disposition: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+exit: 1
