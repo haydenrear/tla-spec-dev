@@ -21146,3 +21146,341 @@ findings:
       OPEN. Corrected in the template; filed so SS-08 reports that the epic
       dispatched eight assignments carrying an unrunnable required command, and
       that the dispatch discipline caught it twice rather than working around it.
+  - id: SS-07-DF-01
+    found_by: "SS-07, running the do-not-cut instruments over the four standing results"
+    found_at_commit: "48f9c7e"
+    schedule_revision: 1
+    severity: high
+    channel: execution
+    channel_note: >-
+      found by `git status` after running the instrument this goal's own harness names, not by reading the source
+    cost:
+      basis: "one `git status --short` after eleven `index` invocations, plus one `git diff` to check whether any SCORE had moved"
+      value: "under two minutes; it would have cost nothing at any point in eight epics and nobody ran it"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "examples/validation/scorecards/score_tools.py"
+        - "specs/results/scorecards/**/INDEX.md"
+    summary: >-
+      `score_tools.py index` WRITES `INDEX.md` INTO THE CARD TREE IT IS POINTED
+      AT AND HAS NO READ-ONLY MODE, SO VERIFYING THE SEALED RECORD MUTATES IT.
+      `score_tools.py:1657` is an unconditional `(root / "INDEX.md").write_text(text)`
+      followed by `print(text)`; there is no `--check`, no `--stdout` and no dry
+      run. `GOAL-four-results-still-stand`'s own harness says "the sealed cards
+      OPEN AND RENDER", and the command that renders them is this one.
+      MEASURED: running `index` over the eleven sealed card trees of the four
+      standing results MODIFIED SIX COMMITTED `INDEX.md` FILES
+      (hexagonal-prompting, hexagonal-prompting-rerun, ports-as-adapters,
+      portable-substrate-rm04-GG/JJ/LL) AND CREATED THREE THAT HAD NEVER EXISTED
+      (close-the-loop-cl03-v4, close-the-loop-cl03-v5,
+      score-drives-validation-sv04).
+      THE REASSURING HALF, STATED FIRST BECAUSE IT IS WHY THE FOUR RESULTS
+      VERIFY: EVERY SCORE VALUE IN EVERY DIFF IS IDENTICAL. The committed files
+      are stale only in PRESENTATION -- they carry the `total` column that
+      `scorecard_version 3` abolished, or the tier words `opus`/`sonnet` where
+      `RM-04` requires the FULL MODEL ID. No number moved.
+      THE ALARMING HALF: `R-H4` says a sealed measurement is annotated beside
+      itself and never rewritten, and the documented way to check that it renders
+      rewrites it. A verifier who does not run `git status` afterwards commits the
+      rewrite along with their evidence and nothing goes red. THIS IS THE
+      SELF-SEALING SHAPE AGAIN, one level up from `CA-02-DF-04`: there, an
+      instrument's output licensed deleting the instrument; here, the act of
+      verification destroys the thing verified.
+      SS-07 reverted all nine and its tree is byte-identical to `48f9c7e` outside
+      its own evidence root.
+    reproduction: >-
+      At `48f9c7e`, from a clean tree:
+      `python3 examples/validation/scorecards/score_tools.py index specs/results/scorecards/ports-as-adapters`
+      then `git status --short` -> ` M specs/results/scorecards/ports-as-adapters/INDEX.md`.
+      `git diff` shows the `total` column removed and `judge`/`model` columns
+      added, with every D1-D5 value unchanged. Repeat with
+      `specs/results/scorecards/close-the-loop-cl03-v4` to see an untracked
+      `INDEX.md` created where none was committed. Revert with
+      `git checkout -- <path>` / `rm`.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py:1657 -- the unconditional write"
+      - "specs/results/scorecards/stabilize-substrate/SS-07/RESULT.md section 5 -- the nine paths and the reverted `git status`"
+      - "specs/results/scorecards/stabilize-substrate/SS-07/evidence/index-generated-cl03v4.md.txt -- one generated file, kept OUTSIDE the card tree as evidence of what was produced"
+    why_out_of_scope: >-
+      SS-07's conflict keys do not include `examples/validation/scorecards/score_tools.py`
+      and its assignment says defects there are DEFERRED, NOT FIXED. It is also a
+      measurement ticket: adding a flag to the instrument it is measuring with is
+      the move `planning_rules.measurement_rule` forbids.
+    suggested_fix: >-
+      Two separable changes, and the first is the cheap one. (1) Give `index` a
+      read-only path -- either default to stdout and require `--write`, or add
+      `--check` that exits non-zero when the rendered text differs from the
+      committed file. `seal` already has exactly this shape: it REFUSES on drift
+      rather than overwriting, and `index` should not be weaker than the command
+      whose digests it sits beside. (2) DECIDE what a committed `INDEX.md` is. If
+      it is a sealed artifact, `audit` should cover it and the six stale ones are
+      a finding in their own right; if it is a derived view, it should not be
+      committed at all. It is currently neither, which is why nobody noticed six
+      of them going stale across two card-version bumps.
+    blast_radius: >-
+      Every card tree in `specs/results/scorecards/` -- 18 trees carry sealed
+      digests and at least 9 carry or should carry an `INDEX.md`. The damage is
+      silent and is only visible to `git status`, which a verification round has
+      no reason to run. No score is affected: all six diffs preserved every value.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      OPEN. SS-08 must not run `index` over the record without reverting
+      afterwards, and should report whether any epic before this one committed a
+      regenerated `INDEX.md` as part of a verification round.
+  - id: SS-07-DF-02
+    found_by: "SS-07, executing every script the stranded-loader sweep flagged"
+    found_at_commit: "48f9c7e"
+    schedule_revision: 1
+    severity: moderate
+    channel: execution
+    channel_note: >-
+      found by running the scripts rather than reading them; both exit 0 and look like successes
+    cost:
+      basis: "one 240-second-capped batch run of eight sealed-record scripts, plus one `git diff --stat`"
+      value: "~4 minutes, and it is the run that separated three real strandings from five false positives"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/coverage-audit-hexagonal-prompting-raw/classify_scope_v2.py"
+        - "specs/results/finalization/sweep-raw-close2/cac2_classify.py"
+    summary: >-
+      TWO SEALED-RECORD CLASSIFIERS OVERWRITE THEIR OWN COMMITTED EVIDENCE WHEN
+      RE-RUN, AND AT THIS TREE THEY WRITE DIFFERENT CONTENT. Both advertise
+      themselves as the recorded rule application -- "a reader running it against
+      <dir> reproduces every row" -- so re-running them is the documented way to
+      check the report. Doing that at `48f9c7e` REPLACED five committed files:
+      `classify_scope_v2.py` rewrote `reverify-flagged-in-wins.txt`,
+      `reverify-flagged-specific-wins.txt`, `reverify-sweep1-table-in-wins.md` and
+      `reverify-sweep1-table-specific-wins.md`; `cac2_classify.py` rewrote
+      `destructive_sites.txt`.
+      THE OUTPUT IS NOT THE SAME. `reverify-flagged-in-wins.txt` went from empty to
+      two ESCALATION rows, one of them `specs/deferred_findings.yaml` -- THE LEDGER
+      SS-01 RELOCATED, which no `representation_scope` line covers at its new path.
+      `destructive_sites.txt` moved by 41 lines, all line-number drift plus new
+      sites in `scripts/effect_conformance.py` and `generate_cases_from_tlc_dump.py`.
+      NONE OF THAT IS A DEFECT IN THE CLASSIFIERS: a classifier re-run over a
+      DIFFERENT TREE correctly reports a different answer, and the sealed reports
+      describe the trees they were run on. THE DEFECT IS THAT THERE IS NO WAY TO
+      ASK. Neither script has a `--stdout`, a `--check` or a `--out`; the only
+      available action is to overwrite the evidence. So the reader who does the
+      diligent thing destroys the artifact, and if they then commit, the sealed
+      report and its raw files describe two different trees with nothing recording
+      the substitution. SAME CLASS AS `SS-07-DF-01`, in a second surface, found by
+      the same sweep.
+    reproduction: >-
+      At `48f9c7e` from a clean tree:
+      `python3 specs/results/finalization/sweep-raw-close2/cac2_classify.py`
+      then `git diff --stat specs/results/finalization/` -> 41 changed lines in
+      `destructive_sites.txt`, exit 0, no warning. And
+      `python3 specs/results/coverage-audit-hexagonal-prompting-raw/classify_scope_v2.py .`
+      then `git diff --stat specs/results/coverage-audit-hexagonal-prompting-raw/`
+      -> four files changed. Revert with `git checkout -- <dir>`.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-07/evidence/stranded-loaders-executed-48f9c7e.txt -- the batch run, all eight candidates"
+      - "specs/results/scorecards/stabilize-substrate/SS-07/RESULT.md section 5 -- the triage table"
+    why_out_of_scope: >-
+      Both files are under `specs/results/`, which `R-H4` seals, and SS-07's
+      assignment forbids repairing anything sealed. Adding an `--out` flag to a
+      sealed measurement script would change the bytes a published report was
+      produced by, which is the same objection that made repairing
+      `repriced_history.py` unavailable.
+    suggested_fix: >-
+      Do not edit these two. Write the CONVENTION instead, once, in the place a
+      future evidence script is authored from: a script committed beside its own
+      output writes to a path given on the command line and defaults to stdout,
+      NEVER to the committed file. Then the diligent reader's default action is
+      non-destructive and the destructive one has to be asked for. The class this
+      belongs to is `consumption_is_changing_what_the_substrate_checks`: the rule
+      that would have caught it is a convention on evidence scripts, and nothing
+      in the substrate states one.
+    blast_radius: >-
+      Two scripts and five committed evidence files, all reverted by SS-07. The
+      wider radius is that no evidence script in `specs/results/` has been audited
+      for this shape -- 160 `*.py` files live there and SS-07 executed only the
+      eight its sweep flagged.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      OPEN. Filed with the reverted diffs named. SS-08 should treat any
+      `specs/results/` script as write-capable until shown otherwise, and should
+      say so if it re-runs one.
+  - id: SS-07-DF-03
+    found_by: "SS-07, executing every script the stranded-loader sweep flagged"
+    found_at_commit: "48f9c7e"
+    schedule_revision: 1
+    severity: moderate
+    channel: execution
+    channel_note: >-
+      the instrument reported its own failure honestly in its exit code and certified in its body; both halves are the finding
+    cost:
+      basis: "one 12-second run of the instrument, plus one `grep` of the installed skill text to establish the cause"
+      value: "negligible, and it is the second stranded disproof instrument in a record that believed it had one"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/no_card_project_unaffected.py"
+    summary: >-
+      A SECOND SEALED INSTRUMENT IS STRANDED, AND IT IS STRANDED BY SUCCESS.
+      `SV-03`'s `no_card_project_unaffected.py` demonstrates
+      `the_card_is_never_mandatory` by copying three installed skill units twice,
+      applying four proposed diffs to one copy, and comparing the epic-plan
+      validator's behaviour PRISTINE vs PATCHED. At `48f9c7e` ALL FOUR PATCHES
+      FAIL TO APPLY -- `exit 1` on each -- because the four escalated diffs were
+      MERGED UPSTREAM and the installed text already carries them. Verified: the
+      added sentence "instrument existing is not a baseline" is present in both
+      `~/.claude/skills/git-epic-workflow/references/goals-and-evaluation.md` and
+      the worktree home's copy.
+      SO THE COMPARISON HAS NO TREATMENT ARM LEFT. There is no pristine text to
+      compare against, and the claim cannot be re-derived by running the
+      instrument that was built to demonstrate it.
+      AND THE INSTRUMENT CERTIFIES IN ITS BODY WHILE REFUSING AT ITS EXIT CODE.
+      With all four patches failed it still prints
+      "pristine: exit 1 / patched : exit 1 / IDENTICAL: True" for `no_card_plan.yaml`
+      and the same for this repository's live plan, then "words a project with no
+      card must obey: 0", and only at the very end a FAILURES block. A reader who
+      stops at the headline reads a confirmed result from a run in which the
+      treatment was never applied. THAT IS THE ABSENT-INPUT CLASS EXACTLY: the
+      treatment input is absent, the comparison finds agreement, and agreement is
+      printed as the answer. `exit 1` is the half that is right and it is the half
+      a reader does not see.
+      IT IS ALSO A FIGURE THAT IS A JOINT PROPERTY OF THE TREE AND THE SKILL HOME
+      (`SS-01-DF-03` in a new surface): this instrument's verdict depends on which
+      `SKILL_MANAGER_HOME` it reads, and it reads `~/.claude` -- the OPERATOR's,
+      not the worktree's.
+    reproduction: >-
+      At `48f9c7e`:
+      `python3 specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/no_card_project_unaffected.py`
+      -> exit 1, four `apply ... -> exit 1` lines, then `IDENTICAL: True` twice,
+      then a FAILURES block naming all four patches. Confirm the cause with
+      `grep -c "instrument existing is not a baseline" "$HOME/.claude/skills/git-epic-workflow/references/goals-and-evaluation.md"`
+      -> 1.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-07/evidence/stranded-loaders-executed-48f9c7e.txt"
+      - "STABILIZE-SUBSTRATE-EPIC.md section 4 -- 'the four escalated diffs are now merged upstream and the installed text carries them'"
+      - "specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/proposed-skill-diffs/ -- the four patches"
+    why_out_of_scope: >-
+      Under `specs/results/`, sealed by `R-H4`, and outside SS-07's conflict keys.
+      Repairing it would mean either re-deriving the pristine text from git and
+      changing what the sealed script does, or editing the four patches -- both
+      change the bytes the published demonstration was produced by.
+    suggested_fix: >-
+      Two things, and they are independent. (1) THE BODY MUST NOT CERTIFY WHEN THE
+      TREATMENT DID NOT APPLY: a comparison whose treatment arm failed to build
+      should print UNDECIDED for every row rather than `IDENTICAL: True`, which is
+      `r1_now_requires_an_absent_input` applied to a comparison instead of to a
+      lookup. (2) A demonstration that patches a MOVING external text should pin
+      the text it patches -- by digest, recorded in the sealed evidence -- so that
+      "the patch no longer applies" is distinguishable from "the patch was
+      adopted". Right now they are the same output. THE GENERAL RULE, which is the
+      part worth landing: AN INSTRUMENT WHOSE SUBJECT IS AN EXTERNAL ARTIFACT THAT
+      CAN BE ADOPTED WILL BE STRANDED BY ITS OWN SUCCESS, and the record should
+      say so at the moment the escalation is merged, not four epics later.
+    blast_radius: >-
+      One sealed demonstration and the claim `the_card_is_never_mandatory`. The
+      claim itself is not refuted -- SS-07 has no evidence against it and does not
+      offer any -- only its re-derivation is gone. Wider: any future
+      escalate-a-skill-diff demonstration has the same shape, and this epic's
+      section 4 integration point is built on exactly that pattern.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      OPEN. SS-08 should count this as the SECOND stranded instrument in the
+      record, not the first, when it decides `GOAL-four-results-still-stand`
+      clause (d) -- the epic was handed one and there are two.
+  - id: SS-07-DF-04
+    found_by: "SS-07, computing the check CA-02-DF-04 asked for"
+    found_at_commit: "48f9c7e"
+    schedule_revision: 1
+    severity: moderate
+    channel: operator-doing-the-work
+    channel_note: >-
+      raised by the ticket against its own deliverable: the instrument exists and nothing runs it
+    cost:
+      basis: "one sweep of 160 files plus one 240-second-capped execution batch over the eight it flagged"
+      value: "~10 minutes to build and run; it found two previously unknown stranded instruments"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/stabilize-substrate/SS-07/stranded_loaders.py"
+        - "tests/"
+    summary: >-
+      THE MECHANICAL CHECK `CA-02-DF-04` NAMED NOW EXISTS, IS DEMONSTRATED, AND
+      NOTHING EXECUTES IT -- WHICH IS THE FINDING THIS EPIC'S OWN
+      `consumption_is_changing_what_the_substrate_checks` RULE PREDICTS.
+      `CA-02-DF-04`'s `suggested_fix` asked for "a cut must GREP THE SEALED RECORD
+      for loaders of every file it deletes". Filing it routed it; for two epics
+      nothing computed it. SS-07 computed it from the loaders outward --
+      `stranded_loaders.py`, an `ast` sweep of every `*.py` under `specs/results`
+      that reports which repository-relative path literals are ABSENT at the tree
+      it runs in -- and the first run found EIGHT files naming FIFTEEN absent
+      paths, of which execution confirmed THREE real strandings: the known
+      `repriced_history.py`, plus `SS-07-DF-02`'s two rewriters and
+      `SS-07-DF-03`'s stranded-by-success demonstration. Five were false positives
+      and are named as such.
+      IT IS NOT A GATE AND MUST NOT BECOME ONE WITHOUT A DECISION: it exits 0 on
+      any finding, asserts nothing, and its clean report is explicitly A FLOOR --
+      a path assembled at runtime, read from a manifest or globbed is invisible to
+      a literal sweep, and the tool prints that limit in its own output rather
+      than leaving it to a reader.
+      IT SHIPS `R1` AS EXTENDED BY `SS-02`: `--selftest` demonstrates one FAILING
+      input on a real subject shape (a file naming the deleted `price_removal.py`
+      -> STRANDED) and THREE ABSENT-INPUT cases whose correct answers are REFUSED
+      (record root absent), UNDECIDED (root holds no `*.py`) and NO-PATHS (a file
+      that names zero paths is NOT the same answer as "all its paths resolve") --
+      never PASS. That third case is the `set[str] -> set[str] | None` shape the
+      charter names, in a counter instead of a set.
+      WHAT IS MISSING IS THE BINDING. No test imports it, no ticket runs it, and
+      the next cut will strand the next instrument exactly as the last two did.
+    reproduction: >-
+      At `48f9c7e`:
+      `python3 specs/results/scorecards/stabilize-substrate/SS-07/stranded_loaders.py`
+      -> "160 file(s) swept / 8 file(s) name at least one ABSENT path / 15 absent
+      reference(s) in total / 135 file(s) NO-PATHS". And
+      `... stranded_loaders.py --selftest` -> the four demonstrated inputs, PASS.
+      Then `grep -rn stranded_loaders tests/` -> no match: nothing runs it.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-07/stranded_loaders.py"
+      - "specs/results/scorecards/stabilize-substrate/SS-07/evidence/stranded-loaders-48f9c7e.txt"
+      - "specs/deferred_findings.yaml -- CA-02-DF-04 `suggested_fix`, the request this answers"
+    why_out_of_scope: >-
+      SS-07's assignment says it FILES FINDINGS AND FIXES NOTHING beyond its own
+      disclosure work, and `tests/` is not in its conflict keys. Binding a new
+      check into the suite during a measurement ticket is also the move
+      `planning_rules.measurement_rule` refuses.
+    suggested_fix: >-
+      Bind it, and decide its authority at the same time. The cheapest binding is
+      a test that runs the sweep and asserts the ABSENT-reference set equals a
+      committed expected set, so a NEW stranding turns the suite red while the
+      three known ones stay green and named -- that is a check over THIS PROJECT'S
+      OWN RECORD, which
+      `planning_rules.the_static_gates_doctrine_as_adjudicated` explicitly permits
+      and which the doctrine may NOT refuse. The alternative, weaker and also
+      defensible, is to run it in the price table of every cutting ticket and
+      require the output be pasted. SS-04 is the closer owner if the sweep is
+      generalised to recognise references it currently cannot; SS-08 should at
+      minimum report whether the count moved.
+    blast_radius: >-
+      160 scripts under `specs/results/`, of which 8 currently name an absent path
+      and 3 are really stranded. Every future cut is exposed: two of the three
+      known strandings were found only because SS-07 went looking, and one of them
+      had been sitting undetected across two epics.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      OPEN. SS-07 delivers the instrument and states plainly that delivering it is
+      NOT consumption -- the substrate still checks nothing. Reported that way on
+      purpose.

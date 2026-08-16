@@ -1,0 +1,115 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket SS-07",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-07/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-07/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-07/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Each of the four results is verified INDIVIDUALLY and BY EXECUTION where execution is possible; a sealed transcript alone is not a verification.",
+        "The sealed cards open and render, and the do-not-cut instruments still run.",
+        "The stranded disproof instrument is DECIDED as disclose or do-not-cut, and the disclosure is written where a reader of the claim will meet it.",
+        "NOTHING SEALED IS REPAIRED. R-H4.",
+        "Result 2's damage is confirmed at this tree with numerator/denominator direction named.",
+        "The two withdrawn overstatements are NOT restored, and the defensible wording is used."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "SS-08"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "specs/results/scorecards/close-the-loop/GOAL-price-means-something/",
+        "specs/results/scorecards/stabilize-substrate/GOAL-four-results-still-stand/",
+        "specs/results/scorecards/stabilize-substrate/SS-07/"
+      ]
+    },
+    "depends_on": [
+      "SS-01"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/276",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "Decides clauses (a), (b) and (d). Expected outcome is four results standing and one stranded instrument disclosed -- but a result found broken is the PREFERRED outcome and must be reported as such, not worked around.",
+        "goal": "GOAL-four-results-still-stand",
+        "local_signal": "python3 examples/validation/scorecards/score_tools.py audit && python3 examples/validation/scorecards/score_tools.py scope --path NEXT-EPIC.md"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected -- this ticket files findings and fixes nothing",
+        "goal": "GOAL-tree-stabilizes",
+        "local_signal": "uv run --with pytest --with pyyaml -m pytest tests -q"
+      }
+    ],
+    "id": "SS-07",
+    "implementation_scope": [
+      "specs/results/scorecards/",
+      "examples/validation/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "THE ONLY GOAL THIS PROGRAMME HAS EVER RUN THAT CAUGHT AN EPIC GUARDING SOMETHING ALREADY FALSE. KEEP THE METHOD; DO NOT RE-LITIGATE THE RESULTS. FIRST, RE-VERIFY EACH OF THE FOUR BY EXECUTION WHERE EXECUTION IS POSSIBLE. The precedent is exact: CA-06 re-ran SV-04's result and got '14 passed', matching the sealed figure. A sealed transcript is not a re-verification. Check that the sealed cards OPEN AND RENDER and that scope, seal, contested, the blinding mechanism and the version/served double seal STILL RUN. SECOND, AND THIS IS THE REAL WORK: TWO OF THE FOUR DISPROOFS DID NOT STAND, AND BOTH OVERSTATEMENTS CAME FROM A CHARTER. 'The pricing instrument could only ever return zero' and 'zero unique kills' were both refuted on review. THE DEFENSIBLE SENTENCE IS NEXT-EPIC section 5's: 'a non-zero was the informative outcome, the instrument would have printed one, and none appeared -- the goal is met and the instrument is not yet useful.' USE THAT WORDING; DO NOT RESTORE THE STRONGER ONE. THIRD, DECIDE THE STRANDED INSTRUMENT. repriced_history.py at specs/results/scorecards/close-the-loop/GOAL-price-means-something/ loads two files CA-02 deleted and dies with FileNotFoundError. The sealed transcripts read; THE CLAIM CANNOT BE RE-DERIVED. CA-08 already decided the general question -- A SEALED TRANSCRIPT DOES NOT SUFFICE, because a transcript proves what a run printed and only a runnable instrument proves the claim can be checked BY SOMEONE WHO DOES NOT TRUST THE TRANSCRIPT. R-H4 FORBIDS REPAIRING A STRANDED SCRIPT, so THE ONLY HONEST MOVES ARE DISCLOSE OR DO-NOT-CUT. Take one, say which, and write the disclosure where a reader of the claim will meet it. FOURTH, RESULT 2 IS DAMAGED BUT STANDING and the damage is priced: derive moves 17 of 21 decided -> 16 of 21, NUMERATOR FELL, DENOMINATOR HELD AT 21. Confirm that at this tree; a replicate was lost, not the result. AND NOTE THE CLASS DISPROOF 1 ESCAPED BY MEASUREMENT RATHER THAN CAUTION: CA-04 was told to delete kill_test.py, measured that run_controls.py:165 imports it at module scope, retained 310 lines -- AND REVIEW THEN FOUND THREE MORE CONSUMERS IT HAD MISSED, because it verified the two it found and stopped looking. DO NOT STOP LOOKING.",
+    "promotion_order": 40,
+    "promotion_predecessor": "SS-02",
+    "role": "implementation",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Verify the four standing results at the tip, and decide the stranded disproof instrument",
+    "wave": 2
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-07/specs/tickets/SS-07",
+  "ticket_id": "SS-07",
+  "ticket_index": 3,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-07/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-07/specs/tickets"
+}
