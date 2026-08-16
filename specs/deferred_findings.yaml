@@ -21693,3 +21693,91 @@ findings:
       sweep is still not built, and this is the SECOND instance of it in this
       ticket -- which is the argument for building it, and SS-03 is not the
       ticket that will.
+  - id: SS-00-DF-06
+    found_by: the epic owner, performing the owner-owned home merge and worktree teardown after wave 1
+    found_at_commit: baf50f2
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["skill-manager home close-out", "skt ticket close"]
+    channel: execution
+    cost: >-
+      One refused teardown, then four comparisons across two ticket homes and the
+      project home. Found only because the owner refused to run the fix the tool
+      printed.
+    summary: >-
+      THE WORKTREE CLOSE GATE CANNOT DISTINGUISH "THIS HOME WAS EDITED" FROM "THE
+      HOME IT COMPARES AGAINST MOVED", AND THE REMEDY IT PRINTS WOULD HAVE
+      DESTROYED THE THING THE OPERATOR JUST DID. `skt ticket close SS-01` refused
+      with `note: edited unit(s) in this home before close: deploy-helm,
+      git-epic-workflow, git-issue-workflow, spec-double-compiler` and
+      `error: close refused -- this worktree holds work that removing it would
+      destroy.` NOTHING IN THAT HOME WAS EDITED. Measured: across all four named
+      units, the two independent ticket homes are BYTE-IDENTICAL TO EACH OTHER
+      once `.git` and `.venv` are excluded -- 0 diffs, 0 diffs, 0 diffs, 0 diffs
+      -- and both pin deploy-helm at e22cbe8a while the project home pins
+      a367aa00. The homes are exactly what they were cloned as. TWO INDEPENDENT
+      AGENTS DID NOT MAKE IDENTICAL EDITS TO HELM CHART TEMPLATES NEITHER OF THEM
+      TOUCHED. The 48 files the diff reports for deploy-helm are ALL under
+      `.venv/bin/`, virtualenv scripts that embed the home's own absolute path
+      and therefore differ BY CONSTRUCTION between any two homes. AND THE PRINTED
+      FIX IS THE DANGEROUS PART: `home sync --from <ticket home> --to <project
+      home> --merge` would have pushed the STALE units back down into the project
+      home, silently reverting the all-units sync the operator had authorised
+      minutes earlier. AN INSTRUMENT THAT REFUSES ON A DIFFERENCE IT DID NOT
+      CAUSE, AND WHOSE REMEDY UNDOES THE OPERATOR'S LAST DELIBERATE ACT, IS WORSE
+      THAN ONE THAT PASSES.
+    reproduction: >-
+      Create a ticket worktree with its own home from a project home. Sync any
+      change-managed unit in the project home (`skt sync <unit>`) so the two
+      tiers diverge. Then `skt ticket close <ticket>`. It reports the unit as
+      "edited in this home" and refuses, naming a `home sync --merge` fix whose
+      direction is ticket -> project. Verify no edit occurred by diffing two
+      independently-created ticket homes against each other with
+      `diff -rq --exclude=.git --exclude=.venv`, and by comparing
+      `installed/<unit>.json` gitHash across all three tiers.
+    evidence:
+      - "installed/deploy-helm.json gitHash: e22cbe8a in BOTH ticket homes, a367aa00 in the project home"
+      - "diff -rq --exclude=.git --exclude=.venv across deploy-helm, git-epic-workflow, git-issue-workflow, spec-double-compiler between the two ticket homes: 0 differing files in every case"
+      - "the 48 deploy-helm diffs between ticket homes are 48 of 48 under .venv/bin/, absolute-path-embedding virtualenv scripts"
+      - "skill-manager home drift in the same homes reports the SAME units as changed UPSTREAM ('changed in /Users/hayde/.skill-manager (project sync) and have not been read') -- the two instruments describe the same fact with opposite attributions"
+    why_out_of_scope: >-
+      OUT of every ticket's slice -- this is tooling in the Skill Manager, not in
+      this repository, and skills are read here and never edited. Filed and
+      escalated to the owner, who worked around it by removing the worktrees
+      directly after PROVING nothing would be lost.
+    suggested_fix: >-
+      Three things, and the third is the class. (1) EXCLUDE `.venv` AND `.git`
+      from the edited-in-this-home comparison; both differ by construction in any
+      copied home and neither carries authored work. (2) COMPARE AGAINST THE
+      RECORDED INSTALL POINT, NOT AGAINST THE CURRENT DESTINATION: each home
+      records `installed/<unit>.json` gitHash, so "edited here" is
+      home-content-vs-its-own-recorded-hash, and "the destination moved" is
+      destination-hash-vs-this-hash. They are different questions and the gate
+      currently answers the second while reporting the first. (3) A REMEDY THAT
+      MOVES DATA MUST NAME ITS DIRECTION AND WHAT IT WILL OVERWRITE. The printed
+      fix would have reverted a just-authorised sync; a gate may refuse, but it
+      must not hand the operator a command that silently undoes their last act.
+    blast_radius: >-
+      Every ticket worktree in every epic in every repository, whenever a unit is
+      synced in the project home while a ticket worktree is open -- which is
+      exactly what this epic's own owner decision made routine. Blocks teardown,
+      and its printed remedy regresses the shared home. Both wave-1 worktrees hit
+      it.
+    disposition: escalated
+    disposition_ticket: "owner -- escalated out of this repository"
+    disposition_note: >-
+      ESCALATED, not carried: the defect is in the Skill Manager tooling, and
+      skills are READ from this repository and never edited. The owner removed
+      the two wave-1 worktrees directly after proving byte-identity, and did NOT
+      run the printed fix. NOTE FOR SS-08: this is the fourth instrument in this
+      epic caught answering confidently about something it did not measure --
+      after SS-00-DF-01 (mtime), SS-00-DF-02 (id collision) and SS-00-DF-03
+      (keyword recogniser) -- and the first one found in the toolchain the epic
+      RUNS ON rather than the toolchain it SHIPS. It also refutes, by example,
+      the comfortable reading of GOAL-absent-input-consumed as a repository-local
+      class.
