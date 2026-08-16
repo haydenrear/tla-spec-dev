@@ -54,8 +54,10 @@ none of the `specs/results/` files were rewritten.** `R-H4`.
 **The two exceptions #271 predicted a third of were the two archive-glob
 blocks** — one per instrument, each enumerating `deferred_findings.yaml` at two
 historical depths. Both are gone: a close NAMES the archive it wrote, in that
-entry's `manifest.json` under `findings_ledger`. No filename is enumerated
-anywhere, so there is no series for a third to join. The third was already being
+entry's `manifest.json` under `findings_ledger`. **The filename is no longer
+enumerated at historical directory depths**, which is what made each new path
+need a new exception, so there is no series for a third to join. (`disposition.LEDGER`
+and `test_card_has_one_home.LEDGER_NAME` still each name the file once — §11.5.) The third was already being
 demanded, red, at `tests/test_card_has_one_home.py:126`, and it was answered with
 a rule on the ledger's name rather than a second path.
 
@@ -229,68 +231,48 @@ served-digest and frozen-bar fixtures pass.
 
 ---
 
-## 9. `GOAL-tree-stabilizes` — four numbers that sum, at both ends
+## 9. `GOAL-tree-stabilizes` — the numbers that sum, and there are now FIVE
 
-Both runs are `uv run --with pytest --with pyyaml -m pytest tests -q` in this
-worktree; collection is `--collect-only`. Sealed beside this file:
-`pytest-base-25600fa.txt` / `pytest-tip-final.txt`, and the node lists
-`collection-base-25600fa.txt` / `collection-tip-final.txt`.
+Runs are `uv run --with pytest --with pyyaml -m pytest tests -q`; collection is
+`--collect-only`. Sealed here: `pytest-base-25600fa.txt`, `pytest-tip-final.txt`
+(pre-review tip) and `pytest-tip-review.txt` (this tip), with the matching node
+lists.
 
-| | failed | passed | skipped | collected |
-|---|---:|---:|---:|---:|
-| **base** `25600fa` | **17** | **1483** | **4** | **1504** |
-| **tip** `e36da5b` | **8** | **1504** | **0** | **1512** |
-| movement | **−9** | **+21** | **−4** | **+8** |
+| | failed | passed | skipped | **xfailed** | collected |
+|---|---:|---:|---:|---:|---:|
+| **base** `25600fa` | **17** | **1483** | **4** | 0 | **1504** |
+| pre-review tip `587d46c` | 8 | 1504 | 0 | 0 | 1512 |
+| **tip** `<this commit>` | **8** | **1509** | **0** | **1** | **1518** |
 
-`17 + 1483 + 4 = 1504` ✓  `8 + 1504 + 0 = 1512` ✓
+`17 + 1483 + 4 + 0 = 1504` ✓  `8 + 1509 + 0 + 1 = 1518` ✓
 
-**The base reproduces the epic baseline exactly** — `17 / 1483 / 4 / 1504`, the
-figure in `GOAL-tree-stabilizes`' baseline evidence, measured on my own worktree
-before any edit.
+**I INTRODUCED THE FIFTH CATEGORY AND IT HAS TO BE DECLARED.** The goal says
+"four numbers that sum". After this ticket they do not: the `xfail(strict=True)`
+pinning `SS-01-DF-01` is a fifth bucket, and a reader adding only four will be
+one short. It is one node, it is deliberate, and `strict=True` means **it becomes
+a FAILURE the moment `SS-01-DF-01` is fixed** — which is the point, and why an
+`xfail` was the right answer to "the finding is untested in both directions".
+**`SS-08` should report five numbers, or three tickets from now the sum will
+quietly stop working.**
 
-### −9 reds. NUMERATOR, all of it, and no red appeared
+### Against the base: −9 failed, +26 passed, −4 skipped, +1 xfailed, +14 collected
 
-Node-for-node diff of the two FAILED lists: **9 removed, 0 added.**
+- **−9 failed, numerator, 9 removed and 0 added** — 5 `test_disposition_requirement`
+  + 3 `test_score_tools` (`SS-00-DF-01`), 1 `test_card_has_one_home` (the third
+  exception, predicted by #271 §7.1). **The same 8 survive at every measurement
+  point and none was touched**: the deliberate reds (`RM-06-DF-01`,
+  `CA-04-DF-04`) and `SS-03`/`SS-06`'s rows. `test_ticket_retirement` now names
+  **seven** planned tickets rather than eight, which is `SS-01` closing.
+- **−4 skipped**, the entire population; §6 for the second cause.
+- **+14 collected, denominator**: **+8** the original `R1` demonstration file,
+  **+6** the review round — 4 parametrized empty/zero-byte/malformed/no-key
+  ledger bodies (`SS-01-DF-04`), 1 three-entry archive-ordering case
+  (`SS-01-DF-06`), 1 `xfail` (`SS-01-DF-01`).
+- **+26 passed** = 9 reds repaired + 4 skips now running + 13 new passing nodes.
+  ✓ (the 14th new node is the `xfail`).
 
-| red, at the base | cause | why it is green |
-|---|---|---|
-| `test_disposition_requirement` × 5 | `SS-00-DF-01`, `assert 88 > 200` | `D.LEDGER` resolves to the live 301-row ledger, not an 88-id mid-ticket snapshot |
-| `test_score_tools` × 3 | `SS-00-DF-01` via `_finding_ids` | `audit` 9 violations → 0 |
-| `test_card_has_one_home::test_only_the_card_states_…` | #271 §7.1's prediction firing — the third exception, demanded live | answered with a rule keyed on the ledger's name |
-
-**The eight survivors are all other people's or deliberate**, and none was
-touched: `test_architecture_tags` (deliberate, `RM-06-DF-01`),
-`test_instrument_demonstrations` × 2 (declared, `CA-04-DF-04`),
-`test_source_citations` × 3 (`SS-06`), `test_goal_baseline_is_a_card` (`SS-03`),
-`test_ticket_retirement` (self-clearing; it now names the seven tickets still
-`planned` rather than eight, which is `SS-01` closing).
-
-### −4 skips. The population is zero, and the second cause is filed
-
-All four were `test_workflow_close_keeps_the_ledger.py:92` (`CA-10-DF-12`).
-**They did not unskip by repointing alone** — §6: their subject was the live spec
-tree, which refuses its own close while a workflow is open. **No skip remains
-anywhere in the suite.**
-
-### +8 collected. DENOMINATOR, and it is the R1 obligation
-
-`tests/test_ledger_resolution_is_deterministic.py` — the demonstrated failing
-input for `SS-00-DF-01` plus its absent-input case. Nothing else was added.
-
-**A movement that appeared mid-ticket and is gone at the tip, recorded because it
-will happen to every ticket on this epic:** `open ticket SS-01` scaffolded
-`specs/tickets/SS-01/`, which widened the parametrized
-`test_spec_yaml_valid::test_spec_yaml_parses` by **+4** (a second `ticket.yaml`,
-a second `complexity_ledger.yaml`, two more `spec_manifest.yaml`). Measured at
-`61fc43c`: `8 / 1508 / 0 / 1516`, sealed as `pytest-tip.txt` and
-`collection-tip.txt`. `close ticket` removes the workspace, so the tip is
-`1512`. **Pure denominator, caused by scaffolding and unscaffolding a ticket
-workspace — nothing was checked, repaired or lost.**
-
-### +21 passes, and they reconcile exactly
-
-**9** reds turned green **+ 4** skips that now run and pass **+ 8** new nodes,
-all passing **= 21.** ✓ **No pass moved for an unattributed reason.**
+**No pass, red, skip or collected node moved for an unattributed reason, at
+either measurement point.**
 
 ## 10. The REQUIRED TLC entry does not exist, and it was not worked around
 
