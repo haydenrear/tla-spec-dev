@@ -1,0 +1,124 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket SS-03",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-03/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-03/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-03/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The census is RE-DERIVED at this tree with its own denominator; the inherited 0-of-18 is corrected explicitly rather than repeated.",
+        "This epic's own five goals are each resolvable to their evidence by the harness, or carry an honest unmeasured with a reason.",
+        "NOT ONE SEALED CARD OR SEALED PLAN IS EDITED. R-H4.",
+        "The count of the 20 that cannot be made compliant without editing history is STATED, with the reason.",
+        "baseline_is_a_card.py still exits 0 on every input including the failing one -- no new gate.",
+        "The ticket's own proposed rule was run against the sealed record before shipping, and what it refuses is reported.",
+        "SS-00-DF-02 IS REPAIRED: a goal id shared across two plans is reported as a named collision, never collapsed, and the distinct-goal count can no longer be lower than the number of goals the plans declare. Demonstrated with a failing input on the real record, and the record is checked for existing collisions.",
+        "SS-00-DF-03 IS REPAIRED: judged classification comes from a DECLARED field, an unclassifiable harness answers UNDECIDED, and this epic own five command harnesses are no longer classified as judged by their vocabulary.",
+        "The 0-of-20 baseline is RE-DERIVED under both repairs, and any movement is reported as a fact about the instrument with numerator and denominator named -- in either direction, never applied silently.",
+        "Neither repair was tuned until this plan own goals landed where the owner expected, and no harness string in the plan was reworded to flip a classification (MF-020)."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q",
+        "uv run --with pyyaml python3 specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/baseline_is_a_card.py"
+      ]
+    },
+    "blocks": [
+      "SS-08"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/",
+        "specs/results/scorecards/stabilize-substrate/SS-03/"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/274",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "Moves the numerator off zero for the goals that can be made resolvable WITHOUT editing a sealed record, and produces a counted statement of how many cannot. Decides clauses (a), (b) and (c). NO NUMBER IS PROMISED for clause (b) -- clause (c) may bound it, and the bound is the finding.",
+        "goal": "GOAL-judged-goals-compliant",
+        "local_signal": "uv run --with pyyaml python3 specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/baseline_is_a_card.py"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected -- this ticket must not edit any sealed card or sealed plan",
+        "goal": "GOAL-four-results-still-stand",
+        "local_signal": "uv run --with pytest --with pyyaml -m pytest tests -q"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected -- report any movement with its cause",
+        "goal": "GOAL-tree-stabilizes",
+        "local_signal": "uv run --with pytest --with pyyaml -m pytest tests -q"
+      }
+    ],
+    "id": "SS-03",
+    "implementation_scope": [
+      "specs/results/scorecards/stabilize-substrate/",
+      "specs/desired_program_model/ticket_plan.yaml",
+      "specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "THE OLDEST OPEN WOUND, AND THE HIGHEST-VALUE NON-CUT WORK AVAILABLE. 0 OF 20 judged goals have a baseline the evaluation can open -- 8 point at a DIRECTORY, 10 at a SUMMARY DOCUMENT, 1 at a path that does not resolve, 1 at PROSE with no path at all. RE-DERIVE THAT CENSUS FIRST: issue",
+    "promotion_order": 20,
+    "promotion_predecessor": "SS-01",
+    "role": "implementation",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Bring this project's own judged goals into compliance with the text that already ships",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-03/specs/tickets/SS-03",
+  "ticket_id": "SS-03",
+  "ticket_index": 1,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-03/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-03/specs/tickets"
+}

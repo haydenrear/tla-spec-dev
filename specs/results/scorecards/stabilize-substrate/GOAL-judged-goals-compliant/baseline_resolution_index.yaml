@@ -1,0 +1,300 @@
+# SS-03 -- the additive baseline resolution index.
+#
+# WHAT THIS IS, AND WHAT IT IS NOT.
+#
+# `R-H4` seals `specs/.history`. Every judged goal in this record -- 23 of 23,
+# counted at 25600fa -- is declared ONLY in a plan under `specs/.history`, so
+# not one of them can be made compliant by editing the goal. Editing a sealed
+# plan is forbidden and would be the worse outcome anyway: a baseline that can
+# be edited after the fact is exactly the property the seal exists to remove.
+#
+# So this file says, BESIDE the record, which sealed cards produced which sealed
+# number. It is SS-03's assertion about somebody else's baseline. A COMPLIANT
+# GOAL IS THE EPIC THAT WROTE THE NUMBER SAYING SO ITSELF, and this is not that.
+# `baseline_is_a_card.py` reports a goal located this way as `card-via-index`,
+# a verdict class of its own that is NEVER added to `card`. The `0 card-backed`
+# numerator is unmoved by anything in this file, by construction.
+#
+# EVERY ENTRY CARRIES ITS CORROBORATION. A card is listed only where a field in
+# the card itself -- `example`, `arm`, `commit`, `judge.pass`, a dimension score
+# -- reproduces part of the goal's `baseline.value`. Where the value is an
+# ABSENCE CLAIM ("NOT MEASURED", "NO TAGS EXIST", "0 FOR 7 EPICS", "ZERO"), no
+# card can carry it and the entry says so and lists no cards. That is the
+# finding, not a gap in this file: a judged goal whose baseline is a survey or
+# an absence has nothing for an evaluation ticket to re-open, and the
+# card-backed rule cannot be satisfied by it at all.
+#
+# `cards:` is read by the instrument. `corroborating_cards:` is NOT read by it:
+# those cards support a sub-clause of the value, not the headline figure, and
+# counting them would overstate what was resolved.
+# A CIRCULARITY IN THIS FILE, NAMED BY THE SS-03 INDEPENDENT REVIEW AND NOT
+# REPAIRED BY IT. The entries verdicted `no-card-produced-it` are exactly the
+# entries with `cards: []`, and both were decided by the SAME pass -- the one
+# that went looking for cards and did not find them. NOTHING HERE INDEPENDENTLY
+# SEPARATES "no card could carry this claim" FROM "I could not attribute it".
+# The distinction is argued per entry in each `note:`, and an argument is not a
+# test. A reader who doubts a particular row should read its note and contest
+# it; a reader who doubts the SPLIT should treat 15 as an upper bound on the
+# unsatisfiable population, not as a measurement.
+version: 1
+determined_by: SS-03 (stabilize-substrate)
+determined_at: 25600fa04ef26eb352cf3e6db5990e7f36a20ea8
+entries:
+  - workflow: hexagonal-prompting-epic
+    goal: GOAL-catch-bugs
+    verdict: resolved
+    basis: "the ten architectural-coherence cards the goal's directory points at"
+    note: "D1 = 2/2/2/1/0 on ex1/ex3/ex4/ex5/ex6 reads off these ten cards cell for cell, and max D1 = 2 over all ten, which is the value's 'NOTHING REACHED 3'. Every card carries commit ab0dfee51c52f65f7c175307dff1a8a65eb56dfa == baseline.measured_at. The value's second sentence (guard relaxation 0 of 3, ordering 0 of 2) comes from the seeded-fault kill tables, NOT from these cards."
+    cards:
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex1_scaffold_only/20260803-j1/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex1_scaffold_only/20260803-j2/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j1/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j2/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex4_pipeline_coherent/20260803-j1/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex4_pipeline_coherent/20260803-j2/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex5_pipeline_divergent/20260803-j1/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex5_pipeline_divergent/20260803-j2/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex6_jenga/20260803-j1/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex6_jenga/20260803-j2/scorecard.json
+  - workflow: hexagonal-prompting-epic
+    goal: GOAL-hexagonal-in-fact
+    verdict: resolved
+    basis: "the same ten cards"
+    note: "D3 = 1 / 1-2 / 3 / 1 / 0-1 reads off the same ten: ex1 1,1; ex3 1,2; ex4 3,3; ex5 1,1; ex6 0,1. 'Only ex4 reaches 3 and NOTHING reaches 4' holds exactly."
+    cards:
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex1_scaffold_only/20260803-j1/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex1_scaffold_only/20260803-j2/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j1/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j2/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex4_pipeline_coherent/20260803-j1/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex4_pipeline_coherent/20260803-j2/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex5_pipeline_divergent/20260803-j1/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex5_pipeline_divergent/20260803-j2/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex6_jenga/20260803-j1/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex6_jenga/20260803-j2/scorecard.json
+  - workflow: hexagonal-prompting-epic
+    goal: GOAL-simpler-same-behavior
+    verdict: resolved
+    basis: "the two ex3_over_complex cards"
+    note: "D2 = 3 on both, and BOTH judges' rationales withhold 4 for the reason the value states ('anchor 4 requires the simplification be SHOWN behavior-preserving'; 'no check existed that could have caught an external reader'). THE GOAL'S DECLARED PATH IS WRONG BY ONE SEGMENT: it says .../results/scorecards/ex3_over_complex/, and the cards are at .../results/scorecards/architectural-coherence/ex3_over_complex/. That is why the census verdict is `unresolvable`."
+    cards:
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j1/scorecard.json
+      - specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j2/scorecard.json
+  - workflow: portable-substrate-epic
+    goal: GOAL-dimensions-replicate
+    verdict: resolved
+    basis: "RD-03 arm M -- the only arm whose D2 judge tiers are disjoint"
+    note: "D2 opus [4,4] against sonnet [3,3]: p1/p2 are claude-opus-5[1m] with D2=4, p3/p4 are claude-sonnet-5 with D2=3. RD-03's own RESULT.md names arm M as the disjoint row; arm D is [3,4] vs [3,3] and overlaps, so the attribution is unique. THIS COVERS THE D2 CLAUSE ONLY -- the D3 threshold clause and the D4/D5 tier clauses of the same baseline are not card-derived."
+    cards:
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03M-M-p1/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03M-M-p2/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03M-M-p3/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03M-M-p4/scorecard.json
+  - workflow: falsifiable-instruments-epic
+    goal: GOAL-scorecard-carries-a-delta
+    verdict: resolved
+    basis: "four sealed EVAL-RERUN cards and the four ports-as-adapters re-scores of the byte-identical artifacts"
+    note: "arm A = P -> U and arm B = Q -> T, per ports-as-adapters/UNBLINDING.md ('byte-identical to the one EVAL-RERUN judged as P'). D4 2/2 -> 4/4 and D5 3/2 -> 4/4 on A; D4 3/2 -> 4/4 and D5 4/3 -> 4/4 on B; D1 3/3 -> 4/3 on both. Every cell reproduces. Arm C (W) has no sealed predecessor and is deliberately not part of the delta."
+    cards:
+      - specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-P-p1/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-P-p2/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-Q-p1/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-Q-p2/scorecard.json
+      - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-U-p1/scorecard.json
+      - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-U-p2/scorecard.json
+      - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-T-p1/scorecard.json
+      - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-T-p2/scorecard.json
+  - workflow: score-drives-validation-epic
+    goal: GOAL-caveat-discriminates
+    verdict: resolved
+    basis: "the four CL-03 cards, card version 4 and card version 5, same artifact and same commit"
+    note: "D3 4,4 under version 4 and 3,3 under version 5, on example toolchain_removal, arm CL, commit a73186d in all four; the card version is the only mover. The 'blind adopter' clause of this baseline is NOT card-backed: that probe was self-judged in a disposable tree and no card from it is sealed here."
+    cards:
+      - specs/results/scorecards/close-the-loop-cl03-v4/toolchain_removal/20260811-cl03v4-CL-p1/scorecard.json
+      - specs/results/scorecards/close-the-loop-cl03-v4/toolchain_removal/20260811-cl03v4-CL-p2/scorecard.json
+      - specs/results/scorecards/close-the-loop-cl03-v5/toolchain_removal/20260811-cl03v5-CL-p1/scorecard.json
+      - specs/results/scorecards/close-the-loop-cl03-v5/toolchain_removal/20260811-cl03v5-CL-p2/scorecard.json
+  - workflow: subtract-to-measure-epic
+    goal: GOAL-D2-can-move
+    verdict: population-figure
+    basis: "the 27 ab_quota_ledger cards that existed at 3f58aca -- five rounds, two card versions, three arms, an owner tracking pass"
+    note: "Verified independently by SS-03: 27 cards, D2 = 2 on all 27, zero exceptions. THE FIGURE IS ALREADY REFUTED AS STATED AND THIS INDEX DOES NOT REPAIR THAT: RD-01 re-derived it as 35 of 35 once SM-04's rescores and SM-05's greenfield round added eight more cards about the same example. This entry says which cards produced the SEALED number; it does not say the sealed number still holds."
+    cards:
+      - specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p1/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p2/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-U-p1/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-U-p2/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-W-p1/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-W-p2/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-T-p1/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-T-p2/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-U-p1/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-U-p2/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-W-p1/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-W-p2/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-P-p1/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-P-p2/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-Q-p1/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-Q-p2/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-X-p1/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-X-p2/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-Y-p1/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-Y-p2/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-owner-pre/scorecard.json
+      - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-T-p1/scorecard.json
+      - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-T-p2/scorecard.json
+      - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-U-p1/scorecard.json
+      - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-U-p2/scorecard.json
+      - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-W-p1/scorecard.json
+      - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-W-p2/scorecard.json
+  - workflow: close-the-loop-epic
+    goal: GOAL-loop-closes-once
+    verdict: no-card-produced-it
+    basis: "none -- no card produced this number. RECLASSIFIED by the SS-03 independent review, and the review is right."
+    note: "THE BASELINE VALUE BEGINS LITERALLY 'ZERO.' -- an absence claim about how many loops this project has closed, and no card carries an absence. SS-03 originally filed this as population-figure on the strength of a SUPPORTING clause (22 ab_quota_ledger cards reading D3 = 4 at run_id date <= 20260810, re-derived independently and correct), while this file's own header says a card list is listed only where it produces THE HEADLINE. That is the criterion, and by it the 22 cards are corroboration, not attribution. They are recorded here in prose rather than in `cards:` so that they cannot be counted: specs/results/scorecards/{falsifiable-instruments-rescore-v1,falsifiable-instruments-rescore-v2,hexagonal-prompting,hexagonal-prompting-rerun,ports-as-adapters}/ab_quota_ledger/*/scorecard.json filtered to D3 == 4 and run_id date <= 20260810. Moving this row takes the located population from 9 to 8 and the unsatisfiable population from 14 to 15."
+    cards: []
+  - workflow: score-drives-validation-epic
+    goal: GOAL-validation-is-scorable
+    verdict: population-figure
+    basis: "the 55 of 59 ab_quota_ledger cards reading D1 = 3 at the time of measurement (run_id date <= 20260809)"
+    note: "Verified independently by SS-03: 59 cards in the slice, D1 distribution {3:55, 4:2, 2:1, 0:1}. The four exceptions are ports-as-adapters T-p1 and U-p1 (D1=4), hexagonal-prompting Y-p2 (D1=2) and owner-pre (D1=0). The rationale-analysis percentages in the same baseline are text analysis over the corpus, not card scores, and the figure is already stale: SV-06 re-derives 56 of 63 one tree later."
+    cards:
+      - specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p1/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-T-p2/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-U-p1/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-U-p2/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-W-p1/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v1/ab_quota_ledger/20260806-v1-W-p2/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-T-p1/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-T-p2/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-U-p1/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-U-p2/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-W-p1/scorecard.json
+      - specs/results/scorecards/falsifiable-instruments-rescore-v2/ab_quota_ledger/20260806-v2-W-p2/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-P-p1/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-P-p2/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-Q-p1/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-Q-p2/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-X-p1/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-X-p2/scorecard.json
+      - specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-Y-p1/scorecard.json
+      - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-T-p2/scorecard.json
+      - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-U-p2/scorecard.json
+      - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-W-p1/scorecard.json
+      - specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-W-p2/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03D-D-p1/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03D-D-p2/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03D-D-p3/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03D-D-p4/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03E-E-p1/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03E-E-p2/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03E-E-p3/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03E-E-p4/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03F-F-p1/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03F-F-p2/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03F-F-p3/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03F-F-p4/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03M-M-p1/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03M-M-p2/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03M-M-p3/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03M-M-p4/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03N-N-p1/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03N-N-p2/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03N-N-p3/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03N-N-p4/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03Z-Z-p1/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03Z-Z-p2/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03Z-Z-p3/scorecard.json
+      - specs/results/scorecards/reading-discipline/ab_quota_ledger/20260809-rd03Z-Z-p4/scorecard.json
+      - specs/results/scorecards/subtract-to-measure-sm04-rescore-v2/ab_quota_ledger/20260806-sm04v2-H-p1/scorecard.json
+      - specs/results/scorecards/subtract-to-measure-sm04-rescore-v2/ab_quota_ledger/20260806-sm04v2-H-p2/scorecard.json
+      - specs/results/scorecards/subtract-to-measure-sm04-rescore-v3/ab_quota_ledger/20260806-sm04v3-R-p1/scorecard.json
+      - specs/results/scorecards/subtract-to-measure-sm04-rescore-v3/ab_quota_ledger/20260806-sm04v3-R-p2/scorecard.json
+      - specs/results/scorecards/subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p1/scorecard.json
+      - specs/results/scorecards/subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p2/scorecard.json
+      - specs/results/scorecards/subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p3/scorecard.json
+      - specs/results/scorecards/subtract-to-measure-sm05-greenfield/ab_quota_ledger/20260807-sm05gf-S-p4/scorecard.json
+  - workflow: reading-discipline-epic
+    goal: GOAL-product-round
+    verdict: no-card-produced-it
+    basis: "none -- no card produced this number"
+    note: "The baseline opens 'NOT MEASURED SINCE ports-as-adapters'. An absence cannot be produced by a card. The supporting 'D3 1 -> 4' is not attributable either: 1->4 fits only W->T inside PA-06, while the 'replicated' claim needs the 2->4 pairs from HP-06 and EVAL-RERUN, and the record never says which."
+    cards: []
+  - workflow: reading-discipline-epic
+    goal: GOAL-tags-earn-their-place
+    verdict: no-card-produced-it
+    basis: "none -- no card produced this number"
+    note: "The declared value is 'NO TAGS EXIST' -- a schema inspection, not a score. Two sub-clauses ARE card-derived (SM-05 greenfield arm S D2 2,2,2,2; SM-05 removal arm K D2 3,3,4,3 and D3 2,2,4,3) but they support clauses rather than the headline, so they are deliberately NOT listed in `cards`. The declared path also does not resolve to cards: specs/results/scorecards/subtract-to-measure/ holds zero scorecard.json at any depth and has no SM-05 subdirectory."
+    cards: []
+  - workflow: score-drives-validation-epic
+    goal: GOAL-loop-reaches-the-program
+    verdict: no-card-produced-it
+    basis: "none -- no card produced this number"
+    note: "'0 FOR 7 EPICS ... NO SCORE HAS EVER PRODUCED A TEST' is a survey over seven epic closures. No dimension score carries it. The cited directory holds zero cards and its 'CL-03 and CL-04' hint points at prose RESULT.md files; CL-03's real cards live in two sibling round directories and score nothing relevant to this figure."
+    cards: []
+  - workflow: score-drives-validation-epic
+    goal: GOAL-scored-at-goal-time
+    verdict: no-card-produced-it
+    basis: "none -- no card produced this number"
+    note: "'ZERO ... THREE SKILLS AND FOUR FILES' is a grep survey of a Skill Manager home. The evidence field names no path in this repository at all, and no scorecard has a field that could carry it."
+    cards: []
+  - workflow: close-the-loop-epic
+    goal: GOAL-change-rule-runnable
+    verdict: no-card-produced-it
+    basis: "none -- no card produced this number"
+    note: "The value is a source-literal reading (SUPPORTED_VERSIONS), an argparse refusal transcript and a byte count from `serve | wc -c`. No judged card carries any of the three."
+    cards: []
+  - workflow: close-the-loop-epic
+    goal: GOAL-price-means-something
+    verdict: no-card-produced-it
+    basis: "none -- no card produced this number"
+    note: "Every figure is `price_removal.py entail` output over gap-mutant JSON tables plus a source reading. RM-05-DF-01's own evidence list names four artifacts, all JSON or .py, and zero scorecards."
+    cards: []
+  - workflow: falsifiable-instruments-epic
+    goal: GOAL-fixture-can-diverge
+    verdict: no-card-produced-it
+    basis: "none -- no card produced this number"
+    note: "'10 of 11 mutated rows', '64 of 64' and '88 of 88' are per-mutant cell counts over kill-table JSON and an exhaustive observational fingerprint. A judged card carries no per-mutant cell."
+    cards: []
+  - workflow: falsifiable-instruments-epic
+    goal: GOAL-instruments-can-fail
+    verdict: no-card-produced-it
+    basis: "none -- no card produced this number"
+    note: "The value is a survey enumerating shipped instruments and classifying five as known-incapable. No card carries an instrument enumeration. THE DECLARED EVIDENCE PATH IS ALSO BROKEN AT THIS TREE: specs/desired_program_model/deferred_findings.yaml does not exist; the ledger moved to specs/deferred_findings.yaml, where all four cited finding ids do resolve."
+    cards: []
+  - workflow: portable-substrate-epic
+    goal: GOAL-portable
+    verdict: no-card-produced-it
+    basis: "none -- no card produced this number"
+    note: "'NEVER ASKED' is an absence claim about what the card has ever been pointed at. The supporting population ('the 73 sealed cards') is named by COUNT with no path; it happens to reproduce exactly as the cards with run_id date <= 20260809, but nothing in the record says that is the rule."
+    cards: []
+  - workflow: portable-substrate-epic
+    goal: GOAL-removal-can-be-priced
+    verdict: no-card-produced-it
+    basis: "none -- no card produced this number"
+    note: "'0 OF 9 gap mutants over the sealed before-table' is removal_census.py set-differencing over SM-01's before-table. The declared directory resolves and holds 24 cards; none corroborates the value, and RD-02's artifacts sit one level down under GOAL-apparatus-priced/."
+    cards: []
+  - workflow: ports-as-adapters-epic
+    goal: GOAL-cases-drive-ports
+    verdict: no-card-produced-it
+    basis: "none -- no card produced this number"
+    note: "'56 OF 56 strictly comparable cells' is a per-mutant kill-table count. A card carries no per-mutant cell. The four EVAL-RERUN cards do all read D1 = 3, which corroborates the 'structure arrived and caught nothing' clause only."
+    cards: []
+  - workflow: ports-as-adapters-epic
+    goal: GOAL-port-reach
+    verdict: no-card-produced-it
+    basis: "none -- no card produced this number"
+    note: "The load-bearing claim -- BA-B14, a fault in arm B's in-memory journal adapter, survives every instrument including the hand-written suite -- came from the blind author's independently-authored catalogue kill table and appears in no card's JSON. The two arm-X cards corroborate only the trailing 'the fake that earned the D3 = 4' clause."
+    cards: []
+  - workflow: reading-discipline-epic
+    goal: GOAL-scope-loss-catchable
+    verdict: no-card-produced-it
+    basis: "none -- no card produced this number"
+    note: "'ZERO. Nothing has ever refused an unscoped claim' is an absence claim about an instrument. THE DECLARED PATH IS A DIRECTORY WITH ZERO CARDS at any depth. One quoted sub-figure was checked and does reproduce: `contested` reads [] on 129 of 129 cards on disk."
+    cards: []
+  - workflow: subtract-to-measure-epic
+    goal: GOAL-removal-is-measured
+    verdict: no-card-produced-it
+    basis: "none -- no card produced this number"
+    note: "'ZERO. This project has never removed a shipped mechanism and measured what the removal cost' is a pure absence claim about project history. No card existed under this metric at 3f58aca."
+    cards: []
