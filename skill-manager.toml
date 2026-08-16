@@ -1,0 +1,50 @@
+# plugin-repository — skill-manager unit manifest.
+#
+# ONE HARD REFERENCE, AND IT IS A RUNTIME FILE DEPENDENCY.
+#
+# A plugin repository IS an integration repository — the same parent-tracks-plain-
+# files git model, the same constituent manifest, the same fan-out — laid out so
+# the parent is ALSO a valid skill-manager plugin. So this unit is a
+# specialization, and the dependency runs specialized -> general:
+#
+#   plugin-repository -> git-integration-repo -> git-issue-workflow -> git-issue
+#
+# Every script here sources `integration-lib.sh` from git-integration-repo
+# through the single resolver in scripts/plugin-repo-lib.sh (which is also how
+# it gets `die`/`info`/`step`/`help_guard`, `$PY` and `manifest`, one rung
+# further down). init-plugin-repo.sh and verify.sh additionally SHELL OUT to
+# that unit's init-integration.sh and verify.sh, and the two flows this skill
+# describes but does not own — `refresh.sh` and `propagate.sh` — are its
+# scripts, run directly by the operator.
+#
+# So this is not a semantic edge and not an optional composition: without the
+# reference, `install plugin-repository` SUCCEEDS and then every entry point
+# here refuses at source time with a missing integration-lib.sh.
+#
+# The coordinate is a git repo ROOT, NOT the installed unit name — the resolver
+# clones the repo and detects the unit from its root markers, and the two names
+# differ here as they usually do:
+#
+#   github:haydenrear/git-integration-skill -> skill "git-integration-repo"
+#
+# git-issue-workflow is deliberately NOT listed. It is git-integration-repo's
+# own hard reference and arrives transitively; naming it again here would put a
+# second owner on an edge this unit does not manage.
+#
+# skt (unit-authoring, plugin schemas) is not listed either: it is the authority
+# an AGENT reads while authoring, declared in skill-project.toml where an
+# agent's working set belongs, not an install-time file dependency of these
+# scripts.
+skill_references = [
+  "github:haydenrear/git-integration-skill",
+]
+
+# git is assumed on PATH. The git host CLI (gh / glab) matters only for
+# propagate.sh, which belongs to the dependency and degrades gracefully without
+# one. Nothing here needs python beyond the stdlib interpreter lib.sh already
+# picks as $PY.
+
+[skill]
+name = "plugin-repository"
+version = "0.1.0"
+description = "Create and operate plugin repositories: skill repos bundled as the contained skills of one skill-manager plugin, versioned and changed as a single unit, with fan-out back to each skill's own repo."
