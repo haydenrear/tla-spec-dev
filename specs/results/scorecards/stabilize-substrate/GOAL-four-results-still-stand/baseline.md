@@ -70,28 +70,40 @@ card version             5
 rubric file              sha256:b7fe75437bf68646
 ```
 
-**`audit` reports 9 violations at this tree — and that is a defect in the
-instrument, not in the record.** All nine are `filed_as = CL-03-DF-04 is not an
-id in deferred_findings.yaml`, and `CL-03-DF-04` **is** filed. Cause:
-`SS-00-DF-01`, filed at kickoff — the archived-ledger fallback orders candidates
-by `(mtime, size, path)`, git does not preserve mtimes, **so on a fresh worktree
-all 85 candidates share one mtime and the largest file wins**: a four-epic-old
-mid-ticket snapshot with 88 ids.
+**`audit` reported 9 violations at the epic base — and that was a defect in the
+instrument, not in the record.** All nine were `filed_as = CL-03-DF-04 is not an
+id in deferred_findings.yaml`, and `CL-03-DF-04` **is** filed. `SS-00-DF-01`.
 
-**Consequence for every figure in this epic: `audit`'s violation count is a joint
-property of the tree AND the checkout.** Quote both, or the figure does not
-reproduce. `CA-10` measured **0** at a tree that audits **9** here.
+> **CORRECTED AND SUPERSEDED 2026-08-16. This block previously stated the cause
+> as "all 85 candidates share one mtime and the largest file wins". THAT
+> MECHANISM IS WITHDRAWN — it was an artifact of the owner's own diagnostic,
+> which printed mtimes with `:.0f` and collapsed four distinct seconds into one.**
+> There are **85 distinct mtimes**; size is never consulted because no tie
+> exists; and **the largest file is the *correct* one**, so had the filed account
+> been right the instrument would have been right. The real cause is worse:
+> **mtimes reflect git checkout order, which carries no historical information
+> at all.** `SS-01-DF-02`. The withdrawn wording is quoted here rather than
+> deleted, per `R-H4`'s spirit.
+>
+> **Also withdrawn: "`CA-10` measured 0 at a tree that audits 9 here."** Both
+> fresh clones give **9** at the base and **0** at the tip; the instability is
+> **fresh-vs-touched**, not checkout-vs-checkout.
+>
+> **REPAIRED AT `50046b2`.** `audit` is **0** on a fresh checkout, proven on four
+> independent fresh clones rather than by inspecting the sort key. **The current
+> figure for this goal is 0, not 9.**
 
-**`SS-01` repairs it before `SS-08` runs**, per
-`planning_rules.kickoff_defects_are_repaired_before_the_evaluation`, **and the
-proof is two independent fresh worktrees of the same commit returning the same
-count** — inspecting the sort key is not proof. Until then, this goal's `audit`
-figure carries the caveat, and `SS-08` reports an unrepaired `SS-00-DF-01` as an
-ALARM rather than repairing it.
+**The consequence that survives, and it is the durable one:** `audit`'s violation
+count is a joint property of **the tree AND the checkout** — quote both, or the
+figure does not reproduce.
 
-**`scope` still runs** — 82 counted figures at this tree; see
-`GOAL-counted-figures-reach-the-record`'s baseline for the attributed movement
-from `CA-08`'s 102.
+**`scope` runs and reads 103** at `50046b2` (81 REFUTED, 2 HOLDS, 20 UNREACHABLE)
+— **not the 82 this baseline originally recorded.** `SS-01` added the relocated
+ledger to `DEFAULT_SWEEP`; the 82 is superseded and the cause is a ticket, not a
+claim being resolved. And `SS-01-DF-03`: **a `scope` verdict is a joint property
+of the file and the tree it is swept in**, and the output records nothing about
+which root it used. See `GOAL-counted-figures-reach-the-record`'s baseline for
+the full attribution, including the owner's corrected cross-tab.
 
 ## 6. What this goal has that the others do not
 
