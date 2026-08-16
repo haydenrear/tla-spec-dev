@@ -1,0 +1,17 @@
+SS-01-DF-04 -- a ledger that exists and yields zero ids, before and after
+date: 2026-08-16T19:12:37Z
+
+BEFORE (clone at 587d46c, the commit the reviewer read):
+    real ledger      _finding_ids=301    R-H3 VIOLATIONs on a REAL filed id: 0
+    findings: []     _finding_ids=0      R-H3 VIOLATIONs on a REAL filed id: 1
+    zero bytes       _finding_ids=0      R-H3 VIOLATIONs on a REAL filed id: 1
+    malformed YAML   _finding_ids=0      R-H3 VIOLATIONs on a REAL filed id: 1
+  Full audit, same clone, ledger = 'findings: []':
+    14 violation(s)
+
+AFTER (this branch):
+    findings: []     _finding_ids=None   VIOLATIONs: 0   UNVERIFIED: 1
+    zero bytes       _finding_ids=None   VIOLATIONs: 0   UNVERIFIED: 1
+    malformed YAML   _finding_ids=None   VIOLATIONs: 0   UNVERIFIED: 1
+  and the real ledger still resolves and still audits clean:
+    0 violation(s)

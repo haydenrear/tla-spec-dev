@@ -123,9 +123,24 @@ OUT_OF_SCOPE = {
     "specs/.history/": "append-only close records",
     "examples/validation/PREDICTIONS": "sealed pre-dispatch predictions; "
                                        "check_prediction_seal.py reads them as written",
-    "specs/desired_program_model/deferred_findings.yaml": "findings quote the text they "
-                                                          "are findings about",
 }
+
+#: The cumulative findings ledger, WHEREVER it is, keyed on the file's own name
+#: rather than on one path. `CA-10-DF-16` filed this entry as a scope exemption
+#: that had gone inert, and issue #271 section 7.1 predicted what would happen
+#: next: "both fixes so far are exceptions carved for one filename, and the next
+#: path will need a third." It did. The key here read
+#: `specs/desired_program_model/deferred_findings.yaml`, `SS-01` moved the ledger
+#: to `specs/deferred_findings.yaml`, and ten rows quoting card anchors went
+#: unguarded -- the prediction firing on schedule, red in the base tree.
+#:
+#: A THIRD PATH IS NOT THE ANSWER. This file has now had the ledger at two live
+#: addresses and it exists at 85 more under `specs/.history/`, and the reason for
+#: the exemption is a property of the FILE -- findings quote the text they are
+#: findings about -- not of the directory it is parked in. So the rule is keyed
+#: on the ledger's identity and the series ends here.
+LEDGER_NAME = "deferred_findings.yaml"
+LEDGER_REASON = "findings quote the text they are findings about"
 
 #: Under `specs/results/`, records are out and generators are in.
 RESULTS = "specs/results/"
@@ -279,6 +294,8 @@ def in_scope(rel: str) -> bool:
     if not rel.endswith(TEXTY):
         return False
     if any(rel == k or rel.startswith(k) for k in OUT_OF_SCOPE):
+        return False
+    if rel.rsplit("/", 1)[-1] == LEDGER_NAME:  # LEDGER_REASON, at any address
         return False
     if rel.startswith(RESULTS) and not rel.endswith(GENERATOR_SUFFIX):
         return False

@@ -2793,39 +2793,87 @@ OK = "OK"
 #: filed. Measured: 0 ids -> 14 VIOLATIONs, exit 1; the archived 278 ids -> 0,
 #: exit 0. Not one of those 278 findings had gone anywhere.
 #:
-#: The globs are the same two `scripts/disposition.py` resolves through
-#: (`ARCHIVE_GLOBS`), and for the same reason: the first is the named artifact
-#: the close writes and records in the entry manifest under `findings_ledger`;
-#: the second is the copy carried inside the desired-model snapshot, which is
-#: the only copy closes before `CA-09` have. Ordering is `disposition`'s too --
-#: newest by mtime, size breaking ties because the ledger is append-only and a
-#: `git checkout` flattens mtimes.
+#: `SS-01` MOVED THE LIVE PATH out of `desired_program_model/`, the directory a
+#: workflow close removes, so the address itself now survives a close and the
+#: fallback below is the rare case rather than the normal one.
+#:
+#: AND `SS-00-DF-01` REPLACED THE FALLBACK'S ORDERING. It used to glob for the
+#: FILENAME and take the newest by `(st_mtime, st_size, path)`. Git does not
+#: carry mtimes, so the answer was a property of the CHECKOUT: on a fresh clone
+#: of this repository it read a four-epic-old MID-TICKET snapshot with 88 ids
+#: instead of the 296-id copy the close recorded, and R-H3 then reported nine
+#: TRUE `filed_as` citations as fabrications. One `touch` moved the same tree
+#: from nine violations to zero. That is `CA-10-DF-11`'s own warning coming
+#: true -- the repair moved the wrong answer from "no ledger" to "wrong ledger".
+#:
+#: A close NAMES the archive it wrote, in that history entry's `manifest.json`
+#: under `findings_ledger`, ordered by the manifest's `created_at_utc`. Both are
+#: in the tree, so both read the same in every checkout. A copy no manifest
+#: points at is not a candidate: it cannot be identified as the ledger any close
+#: kept, and identifying one anyway is the defect.
 #:
 #: DELIBERATELY NOT AN IMPORT of `scripts/disposition.py`: this tool ships
 #: standalone (`RM-05` section 3) and already refuses to hard-require siblings.
-LEDGER_LIVE = "specs/desired_program_model/deferred_findings.yaml"
-LEDGER_ARCHIVE_GLOBS = (
-    "specs/.history/*/*/deferred_findings.yaml",
-    "specs/.history/*/*/snapshots/desired_program_model/deferred_findings.yaml",
-)
+#: `tests/test_ledger_resolution_is_deterministic.py` pins the two to one answer.
+LEDGER_LIVE = "specs/deferred_findings.yaml"
+LEDGER_HISTORY_MANIFESTS = "specs/.history/*/*/manifest.json"
+
+
+def _closed_at(stamp: object) -> tuple[int, float]:
+    """A close's timestamp as a sortable instant. Unparseable sorts OLDEST.
+
+    `SS-01-DF-06`. `created_at_utc` became the SOLE arbiter of which archive
+    wins when `SS-01` removed the mtime sort, and it was compared as raw text.
+    `...T11:29:00Z` sorts BELOW `...T11:29:00+00:00` as strings and they are the
+    same instant. Exactly ONE of this repository's 123 entry manifests qualifies
+    today, so the compare has never had a rival and the defect was invisible.
+
+    DELIBERATELY DUPLICATED from `scripts/disposition.py` rather than imported:
+    this tool ships standalone (`RM-05` section 3). The two are pinned to one
+    answer by `tests/test_ledger_resolution_is_deterministic.py`.
+    """
+    import datetime
+
+    text = str(stamp or "").strip()
+    if not text:
+        return (0, 0.0)
+    try:
+        parsed = datetime.datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return (0, 0.0)
+    if parsed.tzinfo is None:  # a naive stamp in a field named `_utc` is UTC
+        parsed = parsed.replace(tzinfo=datetime.timezone.utc)
+    return (1, parsed.timestamp())
 
 
 def _ledger_path() -> pathlib.Path | None:
-    """The live ledger, else the newest archived copy, else `None`.
+    """The live ledger, else the one the latest close RECORDED, else `None`.
 
-    `None` means NO LEDGER EXISTS IN THIS TREE, which is a different answer
-    from an empty one and is why this returns an option rather than a set.
+    `None` means NO LEDGER CAN BE IDENTIFIED IN THIS TREE, which is a different
+    answer from an empty one and is why this returns an option rather than a
+    set. An archived copy that no close claims is not an answer either -- the
+    honest verdict there is UNVERIFIED, not a confident audit against whichever
+    file happened to be biggest.
     """
     live = REPO_ROOT / LEDGER_LIVE
     if live.exists():
         return live
-    seen: dict[pathlib.Path, None] = {}
-    for pattern in LEDGER_ARCHIVE_GLOBS:
-        for path in REPO_ROOT.glob(pattern):
-            seen.setdefault(path.resolve(), None)
-    if not seen:
-        return None
-    return sorted(seen, key=lambda p: (p.stat().st_mtime, p.stat().st_size, str(p)))[-1]
+    found: list[tuple[tuple[int, float], str, pathlib.Path]] = []
+    for manifest_path in REPO_ROOT.glob(LEDGER_HISTORY_MANIFESTS):
+        try:
+            manifest = json.loads(manifest_path.read_text())
+        except (OSError, ValueError):
+            continue
+        record = manifest.get("findings_ledger")
+        if not isinstance(record, dict) or not record.get("exists") or not record.get("snapshot"):
+            continue
+        snapshot = pathlib.Path(str(record["snapshot"]))
+        for candidate in (REPO_ROOT / snapshot, manifest_path.parent / snapshot.name):
+            if candidate.is_file():
+                found.append((_closed_at(manifest.get("created_at_utc")),
+                              str(manifest_path), candidate.resolve()))
+                break
+    return sorted(found)[-1][2] if found else None
 
 
 def _finding_ids() -> set[str] | None:
@@ -2836,11 +2884,28 @@ def _finding_ids() -> set[str] | None:
     could not tell those apart and answered the second with the first, which is
     the shape `CA-10-DF-11` filed: an instrument handed an absent input and
     returning a confident verdict over it.
+
+    AND A LEDGER THAT YIELDS NOTHING IS THE THIRD STATE, WHICH `SS-01` SHIPPED
+    WITHOUT AND AN INDEPENDENT REVIEWER FOUND (`SS-01-DF-04`). `CA-10-DF-11`
+    repaired the ABSENT ledger; `SS-01` repaired the WRONG one; both left the
+    EMPTY one answering with full confidence. Measured end-to-end on `587d46c`:
+    `findings: []`, a zero-byte file, and malformed YAML each returned an empty
+    SET, and R-H3 then reported all 14 real `filed_as` citations as fabrications
+    -- `CA-10-DF-11`'s exact failure moved one input over, which is what this
+    epic's own goal warns is NOT a fix: "a fallback that merely moves the false
+    PASS to a rarer input has NOT fixed the class."
+
+    So zero ids is `None`. A file that names no findings cannot verify a
+    citation against anything, and the honest verdict over it is UNVERIFIED --
+    the same line `scripts/disposition.py` already took ("no `findings` --
+    refusing to report 0 of 0"). This is not a claim that an empty ledger is
+    absent; it is a refusal to report a fabrication count derived from nothing.
     """
     path = _ledger_path()
     if path is None:
         return None
-    return set(re.findall(r"^\s*-\s+id:\s*\"?([A-Za-z0-9_.-]+)\"?", path.read_text(), re.M))
+    ids = set(re.findall(r"^\s*-\s+id:\s*\"?([A-Za-z0-9_.-]+)\"?", path.read_text(), re.M))
+    return ids or None
 
 
 def audit_rh1(ctx: dict) -> list[tuple[str, str]]:
@@ -3023,10 +3088,15 @@ def audit_rh3(ctx: dict) -> list[tuple[str, str]]:
         # then UNDECIDABLE, and saying so once is the whole answer: reporting
         # every citation as dangling would be an assertion about findings this
         # tool never read. `CA-10-DF-11`.
-        out.append((UNVERIFIED, f"no findings ledger in this tree: neither `{LEDGER_LIVE}` "
-                                f"nor any archived copy under `specs/.history/`. Every "
-                                f"`filed_as` citation below is UNCHECKED -- not verified, "
-                                f"and NOT fabricated."))
+        which = ("`%s` exists but names no findings (empty, unreadable or malformed): a "
+                 "file that lists nothing cannot verify a citation against anything "
+                 "(`SS-01-DF-04`)" % LEDGER_LIVE) if (REPO_ROOT / LEDGER_LIVE).exists() else (
+                 "no `%s`, and no workflow close under `specs/.history/` records one in "
+                 "its manifest under `findings_ledger`. An unclaimed archived copy is not "
+                 "used: reading one anyway is `SS-00-DF-01`" % LEDGER_LIVE)
+        out.append((UNVERIFIED, f"no findings ledger this tool can READ ids from: {which}. "
+                                f"Every `filed_as` citation below is UNCHECKED -- not "
+                                f"verified, and NOT fabricated."))
     # A repair declares how many verdicts it moved, so "nothing moved" is a
     # MEASURED statement rather than an absence. Zero is a real and important
     # answer: an instrument can get more honest without a single number
@@ -3442,9 +3512,42 @@ _OPEN_QUALIFIERS = {"ever", "written", "judged", "blind", "sealed", "the", "all"
 #: its own specification. That is the correct outcome rather than an oversight:
 #: exempting the document that declares a rule from the rule is how three
 #: unexecuted declarations got written into this repository already.
+#: `specs/deferred_findings.yaml` IS THE LEDGER THE FIRST SENTENCE ABOVE NAMES.
+#: It was reached by `specs/desired_program_model/*.yaml` until the close deleted
+#: that directory and `SS-01` moved the ledger out of it. Adding its new address
+#: is NOT an override of the decision `CA-10-DF-18` instance 5 protected -- that
+#: decision is `specs/.history/**`, and it is untouched here and still enforced
+#: by `sweep_paths` below. `CA-10-DF-18`'s own `suggested_fix` says so: "Instance
+#: 5 waits on CA-10-DF-10; whatever address that decides is the address
+#: DEFAULT_SWEEP should name." `SS-01` decided the address, and this is it.
+#:
+#: MEASURED COST OF NOT ADDING IT, at `25600fa`: the ledger carries 21 counted
+#: figures -- 18 REFUTED and 3 UNREACHABLE -- and none of them were being read.
+#:
+#: ISSUE #271'S "17 REFUTED FIGURES CURRENTLY UNSWEPT" IS EXACTLY RIGHT, AND AN
+#: EARLIER VERSION OF THIS COMMENT SAID IT WAS "NEITHER". THE CORRECTION IS
+#: `SS-01-DF-03` AND IT IS RECORDED HERE BECAUSE THIS FILE EXECUTES THE READING
+#: RULES AND A FALSE STATEMENT INSIDE IT IS READ FORWARD. Cross-tabbed on
+#: `(file x verdict)` over the 23 rows that left the sweep between `ea624b9`
+#: (102) and `436c78c` (82): 17 REFUTED and 3 UNREACHABLE from the ledger, 3
+#: REFUTED from `NEXT-EPIC.md` which came back re-anchored. The ledger accounts
+#: for the -20 exactly, and it carried precisely 17 REFUTED rows at `ea624b9`.
+#:
+#: THE ERROR THAT PRODUCED THE WRONG VERSION IS WORTH MORE THAN THE FIGURE:
+#: `scope`'s verdict is a joint property of the FILE AND THE TREE IT IS SWEPT
+#: IN. The same 259-row ledger bytes return 20 (17 REFUTED, 3 UNREACHABLE) in
+#: the full `ea624b9` tree and 21 (18 REFUTED, 3 UNREACHABLE) under
+#: `--root <a bare directory holding only the ledger>`. The 21/18 was measured
+#: in a root that had been constructed for the measurement and then reported as
+#: a property of the file -- the same mistake `SS-00-DF-01` is about, made in
+#: the ticket that repaired `SS-00-DF-01`.
+#:
+#: The old pattern stays: it still reaches `ticket_plan.yaml` while a workflow
+#: is open, so it is not dead.
 DEFAULT_SWEEP = (
     "*.md",
     "references/*.md",
+    "specs/deferred_findings.yaml",
     "specs/desired_program_model/*.yaml",
     "specs/results/scorecards/**/*.md",
     "specs/results/scorecards/INSTRUMENT-LOG.toml",

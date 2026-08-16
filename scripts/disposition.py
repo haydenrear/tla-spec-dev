@@ -3,10 +3,21 @@
 
 THIS IS NOT A GATE ON ANYONE'S CODE. It is a close-out requirement on THIS
 project's own epics, run by hand at epic close and by `CA-08`. It reads one file
--- `specs/desired_program_model/deferred_findings.yaml` -- and reports whether
-the findings an epic filed were routed anywhere. Once a workflow close has
-removed `desired_program_model/`, it reads the copy that close archived under
-`specs/.history/` instead, and says on stderr which one (`resolve_ledger`).
+-- `specs/deferred_findings.yaml` -- and reports whether the findings an epic
+filed were routed anywhere.
+
+`SS-01` MOVED THAT ADDRESS, and the move is the point rather than a detail. The
+ledger used to live at `specs/desired_program_model/deferred_findings.yaml`,
+inside the directory `scripts/close_tickets.py` REMOVES at workflow close -- so
+the cumulative, cross-epic record of every finding this project has filed
+vanished at exactly the moment someone wanted to read what the closed epic had
+filed. It lived there by accident of scaffolding, not because it belongs to one
+workflow (`CA-10-DF-10`). It now lives beside the workflow directories instead
+of inside one, and survives their removal.
+
+The read fallback stays, because a tree with no live ledger is still a tree an
+adopter can hand this script -- but `resolve_ledger` no longer GUESSES which
+archived copy is the ledger. See `archived_ledgers`.
 
 The slogan this file used to carry unqualified, now qualified because it was
 FALSE in this ticket's own PR: seven epics of static checking caught zero bugs
@@ -31,6 +42,13 @@ ROUTING, never CONSUMPTION.
 Exit 0 = disposed, 1 = REFUSED, 2 = usage/parse error. A STRUCTURAL fault
 (duplicate keys) refuses before any clause is evaluated.
 
+TWO DIFFERENT OUTCOMES LEAVE THROUGH A NON-ZERO EXIT AND A CALLER MUST BE ABLE
+TO TELL THEM APART, so read the output rather than the code (`SS-01-DF-05`).
+`REFUSED <scope>: N of M findings undisposed` is a CLAUSE verdict over a ledger
+that was read. A message containing `UNVERIFIED` means NO LEDGER COULD BE
+IDENTIFIED, no clause was evaluated, and nothing has been shown about anything
+-- it exits 2, as a usage fault, precisely so it is not mistaken for a verdict.
+
     python3 scripts/disposition.py --epic cut-the-apparatus     # refuses
     python3 scripts/disposition.py --ticket CA-05               # accepts
     python3 scripts/disposition.py --all                        # every epic
@@ -38,30 +56,19 @@ Exit 0 = disposed, 1 = REFUSED, 2 = usage/parse error. A STRUCTURAL fault
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import pathlib
 import sys
 
-LEDGER = "specs/desired_program_model/deferred_findings.yaml"
+LEDGER = "specs/deferred_findings.yaml"
 
-# WHERE THE LEDGER GOES WHEN THE WORKFLOW CLOSES. `LEDGER` is a path inside
-# `desired_program_model/`, and `scripts/close_tickets.py` REMOVES that directory
-# at workflow close -- by design; the close is supposed to take the workflow
-# directories with it. So the live path is not a stable address: it exists
-# during an epic and is gone the moment the epic is closed, which is exactly
-# when someone wants to read what the epic filed. Before CA-09 this script
-# answered that with a bare `FileNotFoundError` traceback.
-#
-# The close archives the ledger into the history entry (`spec_evolution.
-# snapshot_findings_ledger`, recorded in the entry manifest as
-# `findings_ledger`). These globs find those archives, newest first. The first
-# form is the named artifact the close writes; the second is the same file
-# carried along inside the desired-model snapshot, which is where closes BEFORE
-# CA-09 left it and the only copy those entries have.
-ARCHIVE_GLOBS = (
-    "specs/.history/*/*/deferred_findings.yaml",
-    "specs/.history/*/*/snapshots/desired_program_model/deferred_findings.yaml",
-)
+# WHERE AN ARCHIVED LEDGER IS FOUND, AND WHY IT IS FOUND BY READING RATHER THAN
+# BY GLOBBING. A workflow close writes the ledger at the top of its history entry
+# (`spec_evolution.snapshot_findings_ledger`) and RECORDS THE ADDRESS in that
+# entry's `manifest.json`, under `findings_ledger`, beside `created_at_utc`.
+# Those are facts stored IN THE TREE, so they read the same in every checkout.
+HISTORY_MANIFESTS = "specs/.history/*/*/manifest.json"
 
 # Ticket-id prefix -> epic, a fact of the record rather than a configuration.
 EPICS = {
@@ -129,46 +136,126 @@ def duplicate_keys(text: str) -> list[tuple[str, str, list[int]]]:
     return out
 
 
-def archived_ledgers(root: pathlib.Path = pathlib.Path(".")) -> list[pathlib.Path]:
-    """Every archived copy of the ledger under `specs/.history`, best last.
+def _closed_at(stamp: object) -> tuple[int, float]:
+    """A close's timestamp as a sortable instant. Unparseable sorts OLDEST.
 
-    Ordered by (mtime, size). Size breaks mtime ties -- and it is not arbitrary:
-    the ledger is APPEND-ONLY by rule, so of two copies the larger one carries
-    the later state. A `git checkout` flattens mtimes, which is exactly when the
-    tie-break is needed.
+    `(1, epoch)` for anything that parses, `(0, 0.0)` otherwise, so a manifest
+    with a missing or malformed `created_at_utc` can never outrank one that
+    carries a real time -- the failure mode is "ignored", never "wins".
     """
-    seen: dict[pathlib.Path, None] = {}
-    for pattern in ARCHIVE_GLOBS:
-        for path in root.glob(pattern):
-            seen.setdefault(path.resolve(), None)
-    return sorted(seen, key=lambda p: (p.stat().st_mtime, p.stat().st_size, str(p)))
+    import datetime
+
+    text = str(stamp or "").strip()
+    if not text:
+        return (0, 0.0)
+    try:
+        parsed = datetime.datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return (0, 0.0)
+    if parsed.tzinfo is None:  # a naive stamp in a field named `_utc` is UTC
+        parsed = parsed.replace(tzinfo=datetime.timezone.utc)
+    return (1, parsed.timestamp())
 
 
-def resolve_ledger(path: pathlib.Path, *, explicit: bool) -> pathlib.Path:
-    """The live ledger if it is there; otherwise the newest archived copy.
+def archived_ledgers(root: pathlib.Path = pathlib.Path(".")) -> list[pathlib.Path]:
+    """Every archived ledger a workflow close RECORDED, BEST LAST (newest close).
 
-    THIS IS A READ FALLBACK, NOT AN EXEMPTION. The close still removes
-    `desired_program_model/` and the live ledger with it. What changed is that
-    this script can still answer afterwards, and says out loud which copy it
-    read -- an archived ledger is frozen at the close, so a verdict from one is
-    a verdict about a closed epic, never about work done since.
+    RESOLVED FROM THE TREE, NEVER FROM THE FILESYSTEM. `SS-00-DF-01`: this used
+    to glob for the FILENAME and order the hits by `(st_mtime, st_size, path)`.
+    Git does not carry mtimes, so that order was a property of the CHECKOUT. On
+    a fresh clone of this repository it selected a four-epic-old MID-TICKET
+    snapshot with 88 ids over the 296-id copy the close recorded, and `audit`
+    then reported nine TRUE `filed_as` citations as fabrications. One `touch` on
+    the correct file moved the same tree from nine violations to zero.
+
+    (Two details of that finding are corrected by `SS-01-DF-02`, because they
+    change what a fix would have to be: the 85 candidates do NOT share one
+    mtime -- they carry 85 distinct ones -- so the order never fell through to
+    size, and the LARGEST candidate is the CORRECT one. "Sort by size" reads
+    like a repair and is not one.)
+
+    So the filename is not the question. A close writes the ledger at the top of
+    its history entry and NAMES it in that entry's `manifest.json` under
+    `findings_ledger`; ordering is by the manifest's own `created_at_utc`. A
+    copy no manifest points at is not a candidate at all -- it cannot be
+    identified as the ledger any close kept, and identifying one anyway is what
+    produced the wrong answer. That leaves `resolve_ledger` with nothing to
+    return in some trees, which is the correct answer and not a gap.
+
+    `created_at_utc` IS NOW THE SOLE ARBITER, SO IT IS PARSED RATHER THAN
+    STRING-COMPARED (`SS-01-DF-06`, found by an independent reviewer). Exactly
+    ONE of this repository's 123 entry manifests qualifies today, so the
+    ordering has never been exercised against a competitor and a lexicographic
+    compare would have gone unnoticed: `...T11:29:00Z` sorts BELOW
+    `...T11:29:00+00:00` as text and they are the same instant, and a manifest
+    written with different precision would sort by its digits. The tie-break on
+    the manifest path keeps the answer total when two closes share a timestamp,
+    and an unparseable stamp sorts oldest rather than winning by accident.
+    """
+    found: list[tuple[tuple[int, float], str, pathlib.Path]] = []
+    for manifest_path in root.glob(HISTORY_MANIFESTS):
+        try:
+            manifest = json.loads(manifest_path.read_text())
+        except (OSError, ValueError):
+            continue
+        record = manifest.get("findings_ledger")
+        if not isinstance(record, dict) or not record.get("exists") or not record.get("snapshot"):
+            continue
+        snapshot = pathlib.Path(str(record["snapshot"]))
+        for candidate in (root / snapshot, manifest_path.parent / snapshot.name):
+            if candidate.is_file():
+                found.append((_closed_at(manifest.get("created_at_utc")),
+                              str(manifest_path), candidate.resolve()))
+                break
+    return [path for _, _, path in sorted(found)]
+
+
+def resolve_ledger(path: pathlib.Path, *, explicit: bool,
+                   root: pathlib.Path | None = None) -> pathlib.Path:
+    """The live ledger if it is there; otherwise the one the latest close RECORDED.
+
+    THIS IS A READ FALLBACK, NOT AN EXEMPTION, and after `SS-01` it is the RARE
+    case rather than the normal one: the live ledger now sits beside the
+    workflow directories instead of inside one, so a close no longer removes it.
+    The fallback remains because it is the path an adopter's tree takes, and
+    `SS-00-DF-01` was a defect in the fallback, not in the address.
+
+    NOTHING HERE PROMISES A FREEZE. It used to -- "an archived ledger is FROZEN
+    at that close" -- and this repository's own record falsifies it: the copy
+    `cut-the-apparatus-epic` archived carries 296 rows against the 278 its own
+    close snapshot took, because the close had left nowhere else to write
+    (`CA-10-DF-10`). What is promised is what can be checked: this is the copy
+    that close RECORDED, chosen from the tree.
+
+    `root` is WHICH tree, and it used to be missing: the archive search ran
+    against the process's working directory whatever ledger it was asked about,
+    so a caller pointing at another checkout was answered from this one. It
+    defaults to the working directory, which is what the CLI means.
     """
     if path.exists():
         return path
     if explicit:
         raise SystemExit(f"{path}: no such ledger (--ledger was given explicitly, so no archive is searched)")
-    archives = archived_ledgers()
+    archives = archived_ledgers(root if root is not None else pathlib.Path("."))
     if not archives:
-        raise SystemExit(
-            f"{path}: no ledger there and no archived copy under specs/.history. "
-            f"If a workflow close removed it, the archive is "
-            f"specs/.history/<workflow>/closed-snapshot/deferred_findings.yaml "
-            f"(entry manifest key `findings_ledger`)."
+        print(
+            f"{path}: no ledger there, and no workflow close under specs/.history "
+            f"RECORDS one in its manifest under `findings_ledger`. UNVERIFIED -- "
+            f"refusing to report a verdict against whichever archived copy happens "
+            f"to be biggest, or newest on this checkout (`SS-00-DF-01`). Name one "
+            f"with --ledger if you know which it is.",
+            file=sys.stderr,
         )
+        # EXIT 2, NOT 1: this is not a clause verdict, it is the absence of one.
+        # Exit 1 would read as `REFUSED ... N of M undisposed` to any caller that
+        # checks the code instead of the output (`SS-01-DF-05`).
+        raise SystemExit(2)
     newest = archives[-1]
     print(
-        f"NOTE: {path} is absent -- a workflow close removes desired_program_model/. "
-        f"Reading the archived ledger {newest}, which is FROZEN at that close.",
+        f"NOTE: {path} is absent. Reading the archived ledger {newest} -- the copy "
+        f"the LATEST workflow close recorded under `findings_ledger`, chosen from "
+        f"the tree and not from file timestamps. A verdict from it is a verdict "
+        f"about that closed epic.",
         file=sys.stderr,
     )
     return newest
@@ -250,8 +337,8 @@ def main(argv: list[str] | None = None) -> int:
         "--ledger",
         default=None,
         type=pathlib.Path,
-        help=f"ledger to read (default {LEDGER}, falling back to the newest archived copy "
-             f"under specs/.history once a workflow close has removed the live one)",
+        help=f"ledger to read (default {LEDGER}, falling back to the archived copy the "
+             f"latest workflow close recorded under specs/.history when there is no live one)",
     )
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--epic", help="epic name or ticket-id prefix, e.g. cut-the-apparatus or CA")
