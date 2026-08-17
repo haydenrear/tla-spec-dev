@@ -10,10 +10,19 @@ section 1 and it is checkable: section 1's evidence file records
 
 **Suite at the branch point, five buckets, sealed before any change:**
 `7 failed / 1598 passed / 0 skipped / 1 xfailed / collection 1606`.
-They sum: `7 + 1598 + 0 + 1 = 1606`. Raw:
-`evidence/pytest-base-f45a245.txt`, `evidence/collect-base-f45a245.txt`.
-Taken **with the workflow OPEN** (`specs/tickets/SS-05/` scaffolded), which is
-the `+4` side of the `open ticket` / `close ticket` swing the assignment names.
+**At the tip: `7 / 1645 / 0 / 1 / 1653`.** They sum at both ends. Both taken
+**with the workflow OPEN** (`specs/tickets/SS-05/` scaffolded), which is the `+4`
+side of the `open ticket` / `close ticket` swing the assignment names. §5.
+
+**The three figures in this ticket's own work order that did not survive
+measurement, all in the unflattering direction, all before or independent of any
+repair I made:**
+
+| the work order says | measured | §|
+|---|---|---|
+| the class is **47 open** | **48 open**; `CA-10`'s table enumerates 48 sites and the fixed one is not among them | 1.1 |
+| **two shipped examples** carry the vacuous state oracle | **three** live manifests, four live generated packages, 13 tracked files | 1.6 |
+| the register goes 56 → 58 **"with two more instruments FAILING"** | 58 with **one** failing; `vacuity_probe`'s contract is SATISFIED and `SS-06-DF-05` is `disposition: repaired` | 1.7, 3 |
 
 ---
 
@@ -484,7 +493,102 @@ the figure `SS-08` should carry forward, with the denominator named.
 
 ## 5. SUITE MOVEMENT, FIVE BUCKETS THAT SUM
 
-*(filled in from the single full-suite run at the tip — see §5.1)*
+Command: `uv run --with pytest --with pyyaml -m pytest tests -q`, both figures
+taken **with the workflow OPEN** (`specs/tickets/SS-05/` scaffolded), which is the
+`+4` side of the `open ticket` / `close ticket` swing. Raw:
+`evidence/pytest-base-f45a245.txt`, `evidence/pytest-tip-FINAL.txt`,
+`evidence/collect-base-f45a245.txt`, `evidence/collect-tip-FINAL.txt`.
+
+| | failed | passed | skipped | xfailed | **collection** |
+|---|---:|---:|---:|---:|---:|
+| **base** `f45a245` | 7 | 1598 | 0 | 1 | **1606** |
+| **tip** `c054345` | **7** | **1645** | **0** | **1** | **1653** |
+| movement | **0** | **+47** | 0 | 0 | **+47** |
+
+They sum at both ends: `7 + 1598 + 0 + 1 = 1606` and
+`7 + 1645 + 0 + 1 = 1653`.
+
+**Collection: +47, ALL NUMERATOR, ZERO DENOMINATOR MOVEMENT.** `comm` over the
+sorted `--collect-only` node lists: **47 nodes added, 0 removed.** Attributed to
+the file that added them:
+
+| nodes | file | what they demonstrate |
+|---:|---|---|
+| 13 | `tests/test_absent_invariants_refuse.py` | `generate_python.py:238`, three states + the control |
+| 10 | `tests/test_disposition_absent_input.py` | `disposition.py:126`, duplicates at any depth + three states |
+| 10 | `tests/test_score_tools_absent_input.py` | `CA-10-DF-18` items 1, 2, 3, 5 |
+| 7 | `tests/test_corpus_gate_absent_input.py` | the corpus gate's three entrances |
+| 4 | `tests/test_blind_dispatch_absent_input.py` | the dead `UNDECIDED` branch |
+| 2 | `tests/test_testgraph_channels.py` | the empty selection, and the module never opened |
+| 1 | `tests/test_absent_input_demonstrations.py` | `SS-05-DF-07`'s non-vacuity guard |
+| **47** | | |
+
+**No node was deleted, renamed away, or skipped.** The one test whose *meaning*
+changed — `test_spec_unit_adapters_may_import_production` (§2.5) — kept its node
+id, so it appears in neither column and its rewrite is disclosed in prose rather
+than hidden in a collection delta.
+
+**Reds: 7 → 7, and `diff` over the two sorted `FAILED` lists is EMPTY.** The same
+seven nodes, node for node:
+
+| red | cause | mine? |
+|---|---|---|
+| `test_architecture_tags::test_the_same_tag_control_holds` | `RM-06-DF-01`, **deliberate** | no |
+| `test_instrument_demonstrations::test_every_declared_path_exists` | `CA-04-DF-04` (`scripts/run_kill_test.py`) | no |
+| `test_instrument_demonstrations::test_every_fast_demonstration_reproduces` | `CA-04-DF-04` | no |
+| `test_source_citations…[specs/current/spec_manifest.yaml]` | scaffolded manifests, base cause | no |
+| `test_source_citations…[specs/desired_program_model/spec_manifest.yaml]` | same | no |
+| `test_source_citations…[specs/program_model/spec_manifest.yaml]` | same | no |
+| `test_ticket_retirement::…matching_close_receipts` | `ticket SS-05 is not closed: status=planned` — **self-clearing** | no |
+
+**No deliberate red was repaired and no new red was left standing.**
+
+### 5.1 The red this ticket DID cause, and did not leave
+
+**The first full run at the tip was `8 / 1643 / 0 / 1 / 1652`** — one red MORE
+than the base — and that run is sealed **unedited** at
+`evidence/pytest-tip-FIRST-RUN-with-the-false-refusal.txt`. Deleting it would
+remove the record of what was measured.
+
+The extra red was
+`test_absent_input_demonstrations::test_the_check_gates_nothing`, the guard that
+decides `GOAL-absent-input-consumed` **clause (e)**. It searches every program
+surface for the tokens `absent-input` / `absent_input` / `cmd_absent_input`, and
+**it is a substring match over raw source text**. I repaired six instances of the
+class and **cited the check by name in the comments explaining each repair**, in
+`scripts/disposition.py` and `scripts/generate_python.py`. The guard reported both
+as callers wiring the check into a close path. **Nothing was wired.** Every match
+is on a `#` line.
+
+**That is a false refusal by a recogniser bound to surface form** — the same class
+as `CA-08-DF-01` (bound by sentence form) and `SS-00-DF-03` (a keyword matcher
+over harness prose). **Three for three in this project's own recognisers.** And
+its incentive runs backwards: the cheapest way to make it green is to stop citing
+finding IDs in the code that implements them.
+
+**What I did not do, and it was available in one minute: reword my own comments.**
+That is editing the artifact to make the check pass. **What I did:** repaired the
+guard to measure the property it states — `.py` searched with comments and
+docstrings removed via `ast.unparse`, non-`.py` and untokenisable files searched
+**whole**, because unreadable is not clean. **The narrowing is the risk and it is
+demonstrated against:** `test_the_gate_guard_still_catches_a_real_caller` runs an
+import, a `subprocess.run` with the CLI spelling, an attribute call and the
+comment-only mention through the same code path, and asserts the first three are
+still caught, the fourth is not, and the **unnarrowed** search does flag the
+fourth. Filed and repaired as `SS-05-DF-07`.
+
+**So the honest sequence is: base 7 → 8 (my false refusal) → 7 (guard repaired,
++1 node).** The intermediate 8 is reported rather than smoothed into a flat 7.
+
+### 5.2 The other REQUIRED matrix items
+
+| item | result |
+|---|---|
+| `repository_unit` | `7 / 1645 / 0 / 1 / 1653`, above |
+| `spec_unit` — `python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests` | **56 passed, exit 0**, `spec-unit validation passed for 1 target(s)`. `evidence/spec-unit-tests-tip.txt` |
+| `tlc` | **N/A at this tree** — `run` accepts only `spec-unit-tests` and `effect-conformance`. Reported, not substituted. |
+| `spec_graph` | **no-op model result.** This ticket changes instruments, three example manifests and four generated `validators.py`; it declares no new `External.tla` surface and no action. `model_delta_expectation` asked me to *determine* whether repairing the absent-invariants path is a model delta rather than assume: **it is not.** The generator's output changed for manifests that declare no invariants, and the three examples now declare the invariant names their `.cfg` already gave TLC — so the MODEL is unchanged in all four cases and only the double's fidelity to it moved. |
+| `graphs` | none declared for `SS-05`. |
 
 ---
 
@@ -535,7 +639,24 @@ are in the **generator**, which refuses to emit an oracle it cannot write, and i
 the **corpus gate and channel gate**, which already refused adjacent inputs and
 now refuse symmetrically.
 
-**`GOAL-tree-stabilizes` — guard.** §5.
+**`GOAL-tree-stabilizes` — guard.** `expected_effect` is *"collection RISES by
+every demonstration added; reds may move as instruments start refusing inputs
+they used to pass. BOTH ARE ATTRIBUTED."* Measured: **collection +47, all
+numerator, zero removed, attributed to seven files**; **reds unchanged at 7, the
+same seven nodes**. The prediction that reds would move was **half right and I am
+saying which half**: no instrument that used to pass started failing on a real
+input, but one red DID appear and it was the epic's own anti-gate guard raising a
+false refusal against my comments (§5.1), not an instrument refusing an input.
+It is repaired, filed as `SS-05-DF-07`, and the intermediate `8` is reported
+rather than smoothed away. Clause (c) — the skips — is unaffected: **0 at the
+base and 0 at the tip**.
+
+**AND AN ALARM, per `planning_rules.measurement_rule`.** The expected effect for
+this ticket was *"instances remaining falls from 47"* and *"collection rises"*,
+and both happened. **They did not all happen for the predicted reasons**, and the
+three corrections in the table at the top of this file are the reason the run is
+not simply flattering: the count I was handed was wrong in my favour to report and
+I moved it the other way before touching anything.
 
 **`GOAL-four-results-still-stand` — guard.** `local_signal` is
 `score_tools.py audit`. At the tip it reports **`0 violation(s)`, exit 0** on the
