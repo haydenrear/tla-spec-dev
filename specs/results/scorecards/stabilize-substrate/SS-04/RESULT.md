@@ -407,6 +407,13 @@ the same reason the noun window was not. Added to `SS-04-DF-03`.
    ledger. Repaired inside the conflict key, demonstrated before and after in
    `d5-keyerror-demo.txt`, pinned by a test, and the semantic question it opens
    is filed as `SS-04-DF-05`.
+**The reviewer's judgement on `FINAL-FIGURES.txt`, recorded because it is
+right: *"a real insight, but on the evidence here, a dodge."*** §8 of this file
+refused to transcribe the miss table — for exactly the reason that `.txt`
+exists — **and stayed right**, while the file declaring itself authoritative
+transcribed it and got all six numbers wrong. **An unswept location makes a
+figure stable. It does not make it true, and I confused the two.**
+
 4. **I RAISED THE PYTHON FLOOR FROM 3.11 TO 3.12, UNDECLARED, IN THE TICKET THAT
    FILED THE FINDING ABOUT INTERPRETER FLOORS — on the line that consumes
    `SS-01-DF-03`.** A multi-line implicit string concatenation *inside* an

@@ -23608,15 +23608,18 @@ findings:
       RM-06-DF-03 is still closed for bound figures, every reach limit is still
       named, and movement notation is still not read as a count.
     disposition: carried
-    disposition_ticket: "SS-08"
+    disposition_ticket: "SS-06"
     disposition_note: >-
-      ROUTING CORRECTED AFTER REVIEW OF PR #285. This row first said "routed to
-      SS-06 as the owner of existing test files", which came from SS-04's
-      dispatch note. THE PLAN SAYS OTHERWISE: `tests/test_score_tools.py` is
-      assigned to SS-01, WHICH IS CLOSED, so the file has NO LIVE OWNER and the
-      three reds are the EPIC OWNER'S to assign -- the owner has confirmed this
-      and is amending the plan. SS-04 still does not edit the file: it is
-      outside SS-04's conflict keys either way, and a closed ticket's key is not
-      a free-for-all. SS-08 SHOULD COUNT THESE AS THREE ATTRIBUTED REDS, NOT AS
+      ROUTING CORRECTED TWICE, AND THE SECOND CORRECTION IS THE OWNER'S. This row
+      first said "routed to SS-06 as the owner of existing test files", which
+      came from SS-04's dispatch note and WAS WRONG: at schedule_revision 1 the
+      plan assigned `tests/test_score_tools.py` to SS-01, WHICH IS CLOSED, so the
+      file had NO LIVE OWNER and these three reds sat in a file no open ticket
+      could claim. THE OWNER HAS SINCE REASSIGNED IT TO SS-06 AT
+      schedule_revision 2 (epic branch `98674f1`) and told SS-06 directly, so the
+      destination is SS-06 after all -- BUT NOT FOR THE REASON FIRST GIVEN. The
+      reason is the reassignment, not "SS-06 owns existing test files". SS-04
+      still does not edit the file: it is outside SS-04's conflict keys under
+      either revision. SS-08 SHOULD COUNT THESE AS THREE ATTRIBUTED REDS, NOT AS
       AN UNEXPLAINED MOVEMENT -- clause (f) of GOAL-tree-stabilizes is satisfied
       by this row.

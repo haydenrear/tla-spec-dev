@@ -12,6 +12,15 @@ becoming one.
 `SS-01-DF-03`: a figure is a joint property of the artifact AND THE TREE IT WAS
 MEASURED IN. Every number below names its tree.
 
+AND THE REVIEWER'S JUDGEMENT ON THIS FILE, RECORDED BECAUSE IT IS RIGHT:
+"a real insight, but on the evidence here, a dodge." RESULT.md section 8 REFUSED
+to transcribe the miss table -- for exactly the reason this .txt exists -- AND
+STAYED RIGHT, while the file declaring itself authoritative transcribed it and
+got all six numbers wrong, summing to 2483 against the 2496 printed two lines
+above. THE INSIGHT STANDS; THE CONTENT DISCIPLINE THAT WAS SUPPOSED TO TRAVEL
+WITH IT DID NOT. An unswept location makes a figure STABLE. It does not make it
+TRUE, and this file confused the two.
+
 
 1. THE SUITE -- FIVE NUMBERS THAT SUM
 ------------------------------------------------------------------------------
@@ -21,44 +30,36 @@ MEASURED IN. Every number below names its tree.
   base 8dd0442, CLEAN CLONE, workflow closed         7   1550    0     1       1558
   tip  97d70ed, ticket workspace OPEN                -      -    -     -       1598
   tip  97d70ed, workspace CLOSED (pre-review)       10   1583    0     1       1594
-  REVIEW HEAD, workspace CLOSED                    PENDING -- re-run in progress
+  REVIEW HEAD f8f2891, workspace CLOSED             10   1584    0     1       1595
 
-  7 + 1550 + 0 + 1 = 1558.      10 + 1583 + 0 + 1 = 1594.
+  7 + 1550 + 0 + 1 = 1558.  10 + 1583 + 0 + 1 = 1594.  10 + 1584 + 0 + 1 = 1595.
 
-  THE PRE-REVIEW ROW DOES NOT DESCRIBE THIS HEAD. The review fixes changed
-  score_tools.py (the f-string hoist and the cross-tab key) and the test file
-  (four more assertions and one new test), so the suite is being re-run rather
-  than carried forward. A figure quoted across a code change is not a
-  measurement.
+  BASE -> REVIEW HEAD, every unit attributed:
+    collected  +37   DENOMINATOR. 36 nodes from
+                     tests/test_counted_figure_recogniser.py, plus 1 at the
+                     review head: the interpreter-floor check. It PASSED here
+                     (python3.11 is on PATH); on a machine without one it SKIPS
+                     WITH ITS REASON rather than passing, which would move the
+                     skipped column off 0. Declared.
+    failed      +3   ALL THREE MINE, all in tests/test_score_tools.py, all
+                     DECLARED, all filed as SS-04-DF-06. Not repaired: not this
+                     ticket's conflict key under either schedule revision.
+    passed     +34   37 new nodes minus those 3.
+    skipped      0   0 -> 0.
+    xfailed      1   1 -> 1.
 
-  command:  uv run --with pytest --with pyyaml -m pytest tests -q
-  exits:    1 at both ends, read UNPIPED.
-  base run: 1673.81s in a clean clone with nothing else in it.
-  tip run:  1685.87s in the ticket worktree after `close ticket`.
+  PRE-REVIEW TIP -> REVIEW HEAD: passed +1, collected +1, and THE FAILURE SET IS
+  IDENTICAL -- verified by diffing the two FAILED lists, empty in both
+  directions. The review fixes repaired a syntax floor, a colliding table key
+  and an under-asserting test, and moved no verdict.
 
-  EVERY UNIT ATTRIBUTED
-    collected +36   DENOMINATOR. tests/test_counted_figure_recogniser.py.
-    (the 1598)      +4 more that `open ticket` adds by widening
-                    test_spec_yaml_valid over specs/tickets/SS-04/, and that
-                    `close ticket` removed again. Both sides measured.
-    failed    +3    NUMERATOR, AND ALL THREE ARE MINE:
-                      tests/test_score_tools.py::test_a_scoped_claim_whose_
-                        denominator_moved_is_stale_and_not_refuted
-                      tests/test_score_tools.py::test_what_the_sweep_cannot_
-                        reach_is_counted_and_named
-                      tests/test_score_tools.py::test_a_movement_notation_is_
-                        not_read_as_a_count
-                    DECLARED, not discovered. Filed as SS-04-DF-06 with the
-                    minimal edit for each. NOT REPAIRED: that file is SS-06's
-                    conflict key, not this ticket's.
-    passed    +33   36 new nodes minus those 3.
-    skipped    0    0 -> 0.
-    xfailed    1    1 -> 1.
+  ZERO INHERITED REDS REPAIRED, ZERO CHANGED THEIR REASON, at either end.
 
-  ZERO INHERITED REDS REPAIRED, ZERO CHANGED THEIR REASON. The tip FAILED list
-  is the base FAILED list plus exactly those three -- verified by diffing the
-  two -- and both test_instrument_demonstrations assertions are byte-identical
-  at either end even though this ticket added a row to the register.
+  MEASURED AT f8f2891. The commits after it are DOCUMENTATION ONLY -- this file,
+  RESULT.md, the register row's prose, and four amended ledger rows of my own.
+  No test node was added or removed and no assertion input changed, which is why
+  the figure is carried rather than re-run. That reasoning is stated so a reader
+  can reject it rather than guess whether I checked.
 
   THE FIRST BASE RUN WAS CONTAMINATED, BY ME. I started it in the ticket
   worktree and then edited score_tools.py and instruments.toml while it ran --
@@ -362,10 +363,26 @@ MEASURED IN. Every number below names its tree.
   byte-unchanged since; the reviewer widened FORM P twice independently and EACH
   WIDENING BROKE EXACTLY ONE DECLARED-MISS TEST.
 
-  TWO THINGS WERE THE OWNER'S, NOT MINE, AND ARE RECORDED SO THE NEXT TICKET
-  DOES NOT INHERIT THE ERROR: tests/test_score_tools.py is assigned in the plan
-  to SS-01, WHICH IS CLOSED -- it is not SS-06's key, so SS-04-DF-06's routing
-  was wrong and is corrected. And instruments.toml IS IN NO TICKET'S CONFLICT
-  KEYS ANYWHERE IN THE PLAN, while SS-02's mechanism requires every registering
-  ticket to write there -- EVERY REGISTERING TICKET IS FORCED OUTSIDE ITS KEYS
-  BY DESIGN. The owner is amending the plan for both.
+  TWO THINGS WERE THE OWNER'S, NOT MINE, AND BOTH ARE NOW FIXED IN THE PLAN AT
+  schedule_revision 2 (epic branch `98674f1`). My assignment says revision 1;
+  the owner has confirmed the mismatch is expected and not a stale assignment,
+  and neither change touches this ticket's slice.
+
+    1. tests/test_score_tools.py was assigned to SS-01, WHICH IS CLOSED, so my
+       three declared reds sat in a file no open ticket could claim. REASSIGNED
+       TO SS-06 at revision 2, and SS-06 has the three minimal edits. Note the
+       destination is the same one my dispatch note gave -- BUT NOT FOR THE
+       REASON IT GAVE. The reason is the reassignment, not "SS-06 owns existing
+       test files", and SS-04-DF-06 now says so.
+
+    2. instruments.toml WAS IN NO TICKET'S CONFLICT KEYS ANYWHERE IN THE PLAN,
+       while SS-02's mechanism REQUIRES every registering ticket to write there
+       -- so EVERY REGISTERING TICKET WAS FORCED OUTSIDE ITS KEYS BY DESIGN. It
+       is now a DECLARED SHARED APPEND SURFACE (own row only, disclosed in the
+       PR, never another's row), and my edit is RETROACTIVELY IN-KEY. The
+       deviation below is downgraded accordingly; the disclosure stays.
+
+  THE OWNER'S OWN FINDING, RECORDED HERE BECAUSE IT IS WORTH MORE THAN EITHER
+  FIX: files were partitioned at kickoff, and this epic then built a mechanism
+  whose USE REQUIRES writing to an unpartitioned one. A CONFLICT-KEY SCHEME A
+  LATER TICKET'S MECHANISM CAN FORCE YOU TO VIOLATE IS NOT A PARTITION.
