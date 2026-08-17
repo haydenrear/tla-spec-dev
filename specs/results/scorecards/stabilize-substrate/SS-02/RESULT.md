@@ -296,11 +296,22 @@ published, and both were measured.
 |---|---:|---:|---:|---:|---:|
 | **pre-close** — what the sealed summary carries | **7** | **1548** | **0** | **1** | **1556** |
 | **post-close** at `711cd02` | **7** | **1544** | **0** | **1** | **1552** |
-| **final**, after merging owner commit `0f31cc3` — **the tree this PR merges** | **7** | **1544** | **0** | **1** | **1552** |
+| after merging owner commit `0f31cc3` — the head the reviewer read, `cbb6761` | **7** | **1544** | **0** | **1** | **1552** |
+| **review round 2**, reconciled with epic tip `a27aeae` — **the tree this PR merges** | **7** | **1550** | **0** | **1** | **1558** |
 
-`7 + 1544 + 0 + 1 = 1552`. **The final figure is the authoritative one for
-`SS-08`**, because it describes the tree that is merged. The pre-close figure is
-authoritative for nothing except what the close itself saw.
+`7 + 1544 + 0 + 1 = 1552`. `7 + 1550 + 0 + 1 = 1558`. **The review-round figure
+is the authoritative one for `SS-08`**, because it describes the tree that is
+merged. The pre-close figure is authoritative for nothing except what the close
+itself saw.
+
+**Review round 2 moved collection `1552 → 1558`, and all six are mine.** Node
+diff, not arithmetic (`review-round-2/collection-attribution-review-round-2.txt`):
+**6 added, 0 removed**, every one in `tests/test_absent_input_demonstrations.py`
+— three pinning `SS-02-DF-05` (all-waived, one-waived, the bucket identity), two
+pinning `SS-02-DF-06` (declared and observed), and one pinning the reviewer's
+`KeyError`. **Passes +6, reds flat at 7, skips 0, xfailed 1. Pure denominator
+movement, and it is a bad sign rather than a good one that it is: six passing
+tests were added because two defects got past the first round.**
 
 **A third full run, and it was not wasted even though it moved nothing.** The
 epic branch advanced to `0f31cc3` — an owner commit correcting
@@ -515,3 +526,29 @@ ticket's own thesis turned on the ticket.**
 One refinement rather than a disagreement, on F6/F7: the footer half could not
 be left standing while `SS-02-DF-05` was repaired, because the fix makes the
 sentence false rather than merely weak. It is closed here and the row says so.
+
+### 10.7 The tree at the review-round head
+
+Measured at this head, reconciled with epic tip `a27aeae` (two further owner
+commits, both amending `SS-08`'s obligation 9a — the one §10.5 feeds):
+
+| | failed | passed | skipped | xfailed | collection |
+|---|---:|---:|---:|---:|---:|
+| head the reviewer read, `cbb6761` | 7 | 1544 | 0 | 1 | 1552 |
+| **this head — authoritative** | **7** | **1550** | **0** | **1** | **1558** |
+
+`7 + 1550 + 0 + 1 = 1558`. **`+6` collection, `+6` passes, reds flat, and all six
+are the tests that pin the two HIGH findings and the `KeyError`** — node diff,
+6 added / 0 removed. `review-round-2/pytest-review-round-2.txt`,
+`review-round-2/collect-review-round-2.txt`.
+
+`spec-unit` exit 0. `audit` **0 violation(s)**, exit 0. `serve | wc -c` **6,281**,
+digest **`sha256:2d7d4a0506d9b259`** — still byte-identical to the base. The
+local signal re-runs to the same **2 of 56**, exit 1
+(`review-round-2/absent-input-whole-register-executed.txt`).
+
+**The epic tip has now moved under this ticket three times** (`eb2567b`,
+`0f31cc3`, `a27aeae`) and the matrix was rerun each time rather than argued
+about. Each merge was verified against the assignment: `schedule_revision` is
+still 1 and `SS-02`'s entry, goals and conflict keys are unchanged. **If it moves
+a fourth time before this merges, that is disclosed, not chased.**
