@@ -52,10 +52,10 @@ none of the nine findings was about a number I measured by running.
 
 ## 0. Headline
 
-- **The five numbers sum at every tree this ticket stood in — four of them.**
+- **The five numbers sum at every tree this ticket stood in — five of them.**
   BASE `8dd0442`, workspace not open: **7 / 1550 / 0 / 1 / 1558**.
-  POST-CLOSE `64c2f91`, the authoritative tip: **7 / 1596 / 0 / 1 / 1604**.
-  **`failed` did not move at any of the four**, and every unit of the +46 in
+  REVIEW TIP `5c06db8`, the authoritative one: **7 / 1598 / 0 / 1 / 1606**.
+  **`failed` did not move at any of the five**, and every unit of the +48 in
   `collected` is attributed by node.
 - **Clause (d) is verified BY EXPERIMENT and the published number is wrong.**
   The "13 uncollected nodes" population is **12 at this tree**, measured by
@@ -98,14 +98,19 @@ uv run --with pytest --with pyyaml -m pytest tests -q --collect-only
 | **TIP `8fa4626`**, workspace **OPEN**, before reconciling | **7** | **1563** | **0** | **1** | **1571** | `7+1563+0+1=1571` ✓ |
 | **TIP `6ee1532`**, workspace **OPEN**, `SS-04` reconciled | **7** | **1600** | **0** | **1** | **1608** | `7+1600+0+1=1608` ✓ |
 | **TIP `64c2f91`**, workspace **CLOSED** (post-close) | **7** | **1596** | **0** | **1** | **1604** | `7+1596+0+1=1604` ✓ |
+| **TIP `5c06db8`**, workspace CLOSED, **review round — authoritative** | **7** | **1598** | **0** | **1** | **1606** | `7+1598+0+1=1606` ✓ |
 
-**Four rows, because a figure is a joint property of the artifact AND the tree,
-and this ticket stood in four different trees.** The middle two are both real
+**Five rows, because a figure is a joint property of the artifact AND the tree,
+and this ticket stood in five different trees.** The middle two are both real
 measurements and neither is discarded: `8fa4626` is this ticket's work before its
 promotion predecessor landed, `6ee1532` is the same work with `SS-04` merged in.
 
 **THE AUTHORITATIVE FIGURE FOR A READER STANDING IN THE MERGED TREE IS THE LAST
-ROW: `7 / 1596 / 0 / 1 / 1604` at `64c2f91`.**
+ROW: `7 / 1598 / 0 / 1 / 1606` at `5c06db8`**, the review round.
+**`failed` did not move at any of the five trees** — the same seven nodes by name
+throughout. The review round's `+2` is the two directions of the `SS-06-DF-06`
+withdrawal marker, both passing, attributed by node in
+`evidence/collection-attribution.txt` §D→E.
 
 **And the divergence the plan told every ticket to expect is here, disclosed
 rather than discovered.** `close ticket` seals the history summary and deletes
