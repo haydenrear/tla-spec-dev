@@ -7,6 +7,49 @@ disagree, both are printed and the disagreement is reported as the result.
 
 ---
 
+## 0A. Review round of PR #286 — what I got wrong
+
+**An independent reviewer instructed to REFUTE returned CHANGES with nine
+findings, two high. Every one was re-derived here by execution before being
+accepted, and every one held.** Nothing was rejected.
+
+**The reviewer's summary of me is the finding, and it is the sentence to keep:
+every figure I produced by RUNNING re-derived exactly — two of them better than I
+claimed — and every figure I produced by READING rather than running is wrong.**
+
+| # | what | where it is corrected |
+|---|---|---|
+| **F1** high | **My headline diagnosis is refuted by executing the check I said could not see it.** The escalated clause is **withdrawn**; the cause is register coverage, which `SS-07-DF-08` had already diagnosed | §5A, `SS-06-DF-05` |
+| **F2** high | My new check **could not tell a declaration from a quotation of one** — a time bomb that fires when the next ticket disposes `CA-10-DF-15` | §7.0, `SS-06-DF-06` |
+| **F3** | I inflated the `or True` population **2 → 3**, in the ticket about population inflation | §3.5, `SS-06-DF-01` |
+| **F4** | **My repair for `SS-06-DF-05` committed `SS-06-DF-05`'s mechanism** | §7.0, `SS-06-DF-07` |
+| **F5** | The wall-clock figure was a cold run against a warm one. **Deleted; nothing moved at all** | §3.3 |
+| **F6** | The battery's table **did not support the sentence it sat under** for 1 of 6 nodes. Seventh case added | §3.3 |
+| **F7** | The widened guard still missed `stage.from`, `stage.to`, `remove` — and `SS-02-DF-09` named `stage.from` | §5.2 |
+| **F8** | "three of the six shipped states" — there are **nine** states; 6 was the link-entry count | §5.2, §5.3 |
+| **F9** | Two `close ticket` products in this PR are outside my keys and were not disclosed | §8.8 |
+
+**What held, and where I under-claimed.** The uncollected-node list is
+**byte-identical** to the reviewer's independently derived one. The six-site
+vacuous population is **not inflation** — `CA-10-DF-14`'s own reproduction grep
+returns all six at its own `found_at_commit`, so **the finding under-counted by
+its own method**. The deletion battery reproduced verbatim; `CA-10-DF-15` at three
+confirmed and the new check **genuinely refuses pre-repair, verified by running**;
+`SS-02-DF-09`'s widen confirmed in both directions; the suite
+`7/1596/0/1/1604` confirmed independently with an identical seven-name FAILED set.
+
+**And three of the nine are not mine.** The owner has ruled that **13 was wrong at
+`436c78c` too** (1491 → 1503 scaffold → 1504 ledger move; the 13th node is
+`test_spec_yaml_parses[deferred_findings.yaml]`, from the owner's own ledger
+relocation — so my 12 is right at both trees); that my plan entry's
+`schedule_revision: 1` against the plan's 2 is theirs; and that `SF-309` is real
+and its resolution is theirs.
+
+**The figures in §1 are unchanged by this round** except for the new tip, because
+none of the nine findings was about a number I measured by running.
+
+---
+
 ## 0. Headline
 
 - **The five numbers sum at every tree this ticket stood in — four of them.**
@@ -27,9 +70,10 @@ disagree, both are printed and the disagreement is reported as the result.
   are repaired. **None of them turned red**, and the deletion battery says
   exactly why: they discriminate on CONTENT and were blind only to ABSENCE.
 - **The sweep found a second sub-shape the finding does not name** — the
-  tautological assertion `X or True`, at three sites in three modules. One is
-  repaired here; two are filed (`SS-06-DF-01`) and the class is **not** closed
-  at six.
+  tautological assertion `X or True`, at **two** sites: one repaired here, one
+  filed. A **third, weaker** non-falsifiable assertion of a different shape is
+  filed beside it. The class is **not** closed at six. (This bullet said "three
+  sites" until review; see §3.5.)
 - **`CA-10-DF-15` decided: CONFIRMED, and its population is three, not two.**
 - **`SS-02-DF-09` decided: WIDEN.** Both guards widened, and the reviewer's own
   hypothetical evasion executed to prove the widening discriminates.
@@ -179,6 +223,16 @@ matters for clause (d) is the one at the tree the clause is decided on — but
 the movement is denominator: the population of nodes-that-depend-on-an-open-
 workflow, not a count of defects.
 
+> **RESOLVED BY THE EPIC OWNER after review, and 13 was wrong at `436c78c` too.**
+> The owner measured it: **1491 → 1503 (the scaffold, +12) → 1504 (the ledger
+> relocation, +1)**. The 13th node is
+> `test_spec_yaml_parses[deferred_findings.yaml]`, and it appeared because the
+> owner **moved the ledger**, not because the workflow was scaffolded. So the
+> scaffold restored **12** at `436c78c` as well, the two causes had been summed
+> into one number, and the owner is correcting it in five places. **My 12 is
+> right at both trees; the difference was never mine to chase, and the reviewer
+> confirmed my node list is byte-identical to theirs.**
+
 Clause (d) is satisfied at my base and my tip **by collection, not by
 explanation**: all 12 are collected in both.
 
@@ -257,13 +311,31 @@ prints `NOTICED` or `PASSES-UNCHANGED`. Six cases, sealed at
 | `subject-changed-setup-phase` | the `setup_phase` declaration in the live model | `3 passed` → `2 failed, 1 passed` — NOTICED | same |
 | `subject-changed-mc-cfg` | the `INVARIANT` name in the live `MC.cfg` | `3 passed` → `1 failed, 2 passed` — NOTICED | same |
 
+| `subject-changed-example-next-relation` **(added in review)** | one disjunct removed from the example's `ExternalNext` | — | `3 passed` → `1 failed, 2 passed` — NOTICED, and it is the **only** case that reaches `test_cd06` |
+
 **The finding this produces is more precise than the one it was aimed at, and
 less alarming.** `CA-07-DF-05` established that *nothing in that suite would ever
-have gone red in either direction*. **That is not true here.** These six nodes
-notice every change to the code and to the model they cover; what they could not
-notice was the input **not being there at all**. Deleting `specs/current/`
-entirely — the whole subject of three of them — moved nothing in the report but
-the wall clock, 5.48s to 1.28s.
+have gone red in either direction*. **That is not true here.** What these nodes
+could not notice was the input **not being there at all**.
+
+> **CORRECTED in review, twice, and both corrections are against me.**
+>
+> **The wall-clock figure is deleted.** This section said *"moved nothing in the
+> report but the wall clock, 5.48s to 1.28s"*. Under controlled repetition
+> (`evidence/f5-timing.txt`) the module runs **1.28s present vs 1.27s deleted**
+> warm, and the three-node list **0.03s vs 0.02s**. `5.48s` was a **cold-cache
+> first run** compared against a warm one. **Nothing moved at all — not the
+> counts and not the clock — and the vacuity claim is STRONGER without the
+> figure**, which is why the figure is gone rather than adjusted.
+>
+> **And the sentence "these six notice every change to the code and the model
+> they cover" was not supported by the table it sat under.** Measured node by
+> node, `test_cd06_real_distributed_history_external_matrix_lists_the_next_
+> disjuncts` **PASSES under both code mutations** (it asserts an action list, not
+> a bound or a cfg invariant) and appears in neither subject-change node list.
+> **Five of six were established by execution and the sixth was asserted** — in a
+> ticket whose subject is checks that assert more than they establish. A seventh
+> case now reaches it (row above), so all six are established.
 
 So the honest reading of clause (e): **the six were real tests with one blind
 spot, not six tests that could never fail.** Reporting them as "six passes that
@@ -286,17 +358,31 @@ passed, skipped, xfailed or collected attributable to it. The class as a whole i
 
 ### 3.5 A second sub-shape, found by sweeping for the class instead of the instances
 
-`grep -rn "or True" tests/` at `8dd0442` returns three sites. `X or True` is
+> **CORRECTED in review: I inflated a named sub-shape 2 → 3, in the ticket whose
+> subject is population inflation.** This section said the `or True` population
+> was **three**. My own stated command at the tree I named returns **two**
+> (`grep -rn "or True" tests/` at `8dd0442`). The third row —
+> `tests/test_code_complexity.py:856`, `assert value >= 0` — is a **different
+> shape**, and my own ledger row said so honestly while this narrative did not.
+> **Folding it in was exactly the error `CA-10-DF-14` made in the other
+> direction**, and it is worse here because I had the correct statement written
+> down one document away.
+
+`grep -rn "or True" tests/` at `8dd0442` returns **two** sites. `X or True` is
 `True` for every `X`: **the assertion cannot fail.**
 
-| site | line | disposition |
+| site | shape | disposition |
 |---|---|---|
-| `tests/test_score_tools.py:2204` | `assert "R-H6" in ... or True` | **REPAIRED HERE** — inside the test `CA-10-DF-15` routed to me |
-| `tests/test_falsifiable_controls.py:524` | `assert shutil.which("python3") or True` | **FILED** (`SS-06-DF-01`) — outside my conflict keys |
-| `tests/test_code_complexity.py:856` | `assert value >= 0` over counts | **FILED** (`SS-06-DF-01`) — weaker, and named as weaker |
+| `tests/test_score_tools.py:2204` | `assert "R-H6" in … or True` — a **tautology** | **REPAIRED HERE** |
+| `tests/test_falsifiable_controls.py:524` | `assert shutil.which("python3") or True` — a **tautology** | **FILED** (`SS-06-DF-01`) |
+| `tests/test_code_complexity.py:856` | `assert value >= 0` over counts — **a different, weaker shape**: non-falsifiable by any input the test can produce, but not a tautology | **FILED** (`SS-06-DF-01`), and counted separately |
+
+**The honest statement: `or True` = 2 (one repaired, one filed). Non-falsifiable
+assertions across both shapes = 3.** Two numbers, because they are two
+populations.
 
 After the six guards and this one line, `tests/` contains **no bare-return guard
-and no `or True` assertion** other than the two filed rows.
+and no `or True` assertion** other than the one filed row.
 
 ---
 
@@ -398,10 +484,23 @@ nothing" are different answers.
 
 ### 5.2 `test_the_register_is_the_only_thing_the_check_reads`
 
-Widened from `argv` alone to **every path-bearing field**: `argv`, `cwd`, every
-`env` value, `link.from`, `link.to`, `write.file`. `link.from` is the field the
-reviewer singled out, and it is `.` in three of the six shipped states. All 30
-fields across the two contracted instruments pass.
+Widened from `argv` alone to **every path-bearing field `score_tools._absent_stage`
+actually reads**: `argv`, `cwd`, every `env` value, `stage.from`, `stage.to`,
+`link.from`, `link.to`, `write.file` and every `remove` entry.
+
+> **CORRECTED TWICE in review, and both against me.**
+>
+> **F7.** The first widening **still missed `stage.from`, `stage.to` and
+> `remove`** — all three read by `_absent_stage` (`score_tools.py:4686`,
+> `:4721`), and **`SS-02-DF-09` named `stage.from` explicitly.** I widened the
+> guard from one field to five while the reviewer's own worked example stayed
+> outside it. The field list is now derived from that function's own
+> `spec.get(...)` calls, which is the only source that cannot drift from the code.
+>
+> **F8.** I wrote *"`link.from` … is `.` in three of the six shipped states"*.
+> There are **nine** shipped states (three contracted instruments × three), and
+> **6 was the link-ENTRY count**: 3 of 6 link entries carry `from = "."`, in 3 of
+> the 9 states. Verified by counting the register.
 
 Because a green guard over clean data is exactly the state the narrow version was
 in, the discriminating power is **demonstrated rather than assumed**:
@@ -414,9 +513,10 @@ asserts the reader sees it.
 - A text search cannot see a call assembled at runtime, dispatched through a
   registry, or spelled by a shell fragment. **A clean result is a floor, never a
   proof.**
-- `link.from = "."` is legitimately the whole repository in three of six shipped
-  states, so the widened guard bounds **absolute and escaping** paths and
-  **cannot bound reach within the repository**.
+- `link.from = "."` is legitimately the whole repository in **3 of the register's
+  6 link entries** (occurring in 3 of its 9 declared states), so the widened guard
+  bounds **absolute and escaping** paths and **cannot bound reach within the
+  repository**.
 - The clause (NO NEW GATE OVER SUBJECT-PROGRAM CONTENT) therefore still holds
   partly **by inspection**. The reviewer's core point — *it holds, but not
   because these tests establish it* — is now less true, not untrue.
@@ -425,66 +525,101 @@ Filed as `SS-06-DF-04`.
 
 ---
 
-## 5A. `SS-06-DF-05` — the best thing the method found, and it is in MY OWN instrument
+## 5A. `SS-06-DF-05` — WITHDRAWN AND RESTATED. My diagnosis was refuted by running the check I said could not see it.
 
-The owner's `schedule_revision 2` note said that if the deletion method turned up
-anything of the shape `SS-07` hit — *a vacuous check does not merely fail to
-inform; it conceals* — it would be worth more than the three vacuous passes I was
-scoped on. **It did, and the subject is the instrument this ticket ships.**
+> **CORRECTION, review round of PR #286, and it is the most important thing in
+> this document.** What follows replaces the section that stood here. The
+> DEFECT was real and is repaired; **the CAUSE I published was wrong, and the
+> clause I escalated to the epic owner is withdrawn.**
+>
+> **The sealed `specs/.history/…/ticket-005-SS-06/summary.md` still carries the
+> refuted sentence.** `R-H4` forbids editing it, so it is not edited. **A reader
+> who trusts that sealed summary over this document will be reading a claim this
+> section refutes**, and there is no mechanism in this repository that would tell
+> them so — which is itself the shape of `SF-308`.
 
-Following `SS-07`'s precedent at `ab9a244` — *measure the states, file the answer,
-do not register a row* — I staged every absent-input state against
-`vacuity_probe.py` instead of reasoning about it
-(`evidence/would-my-own-instrument-pass.txt`). Seven states, each with its exit
-code. **Two of them answered wrongly.**
+### What I found, and it stands
 
-1. **A directory this process may not READ answered in the EMPTY state's exact
-   words.** The guard was `(root / "tests").is_dir()`, and `Path.is_dir()`
-   returns `False` on a `PermissionError` — so *"I was not allowed to look"* was
-   reported as *"there is nothing there"*: `root is not a checkout of this
-   repository (no tests/ or scripts/)`.
-2. **A case whose subject was absent before mutation exited 1** — the code a
-   *failing* battery uses — when "nothing to take away" is not "taking it away
-   changed nothing".
+`vacuity_probe.py` guarded `--root` with `(root / "tests").is_dir()`, and
+`Path.is_dir()` returns `False` on a `PermissionError`. A directory the process
+may not READ therefore answered in the EMPTY state's exact words —
+*"root is not a checkout of this repository (no tests/ or scripts/)"*. The verdict
+was already correct (a refusal, exit 2); the stated **cause** was a fabrication.
+A second, smaller one: a case whose subject was absent before mutation exited 1,
+the code a *failing* battery uses. **Both repaired, the first pinned by a seeded
+mutant** (`evidence/selftest-mutants.txt`, mutant C).
 
-**Both are repaired, and the first is pinned by a seeded mutant** (mutant C:
-delete the permission branch → `--selftest` reports FAIL).
+### What I claimed about it, and it is false
 
-### Why this is a finding about the RULE, not about me
+I wrote that `SS-02`'s absent-input clause **cannot** see this class "because the
+clause is stated on the verdict", that "the mechanism exists and the rule does not
+require it", and that "nothing in this repository's doctrine separates them". I
+then escalated a proposed doctrine clause to the epic owner.
 
-**`SS-02`'s clause was already satisfied.** Every one of those states REFUSED,
-with exit 2. The rule is stated on the **verdict**, and this defect lives in the
-**message**.
+**All of it is refuted by execution** (`evidence/f1-my-diagnosis-refuted.txt`).
+Build a throwaway register entry for the probe and run the **shipped** check:
 
-**And it is the third instance in this one epic**, each inside an instrument
-built by the ticket that was policing the class:
+```
+--only vacuity-probe-pre    absent ok   unread ok   empty ok    REFUSED   exit 1
+    vacuity-probe-pre ['unreadable','empty'] are INDISTINGUISHABLE … UNDECLARED
+--only vacuity-probe-post   absent ok   unread ok   empty ok    SATISFIED exit 0
+```
 
-| | instrument | mechanism |
-|---|---|---|
-| `SS-01-DF-04` | the ledger reader | an unreadable ledger → **14 confident fabrication accusations against real citations** |
-| `SS-07-DF-08` | `stranded_loaders.py` | `rglob` swallows `PermissionError` → "not allowed to look" reported as "nothing there" |
-| **`SS-06-DF-05`** | **`vacuity_probe.py`** | `Path.is_dir()` returns `False` on `PermissionError` → the same substitution, in the same words as a different state |
+**All three states report `ok` on the verdict and the check refuses anyway, on the
+message.** `absent_measure` calls `absent_indistinguishable` unconditionally
+(`score_tools.py:4818`, `:4938-4946`); an undeclared collapse becomes a problem and
+sets `verdict = REFUSED`. **The substrate already computes exactly the property I
+said it could not see.**
 
-Three instruments, three tickets, one mechanism: **`PermissionError`,
-`FileNotFoundError` and "parsed and found nothing" all collapse to the same falsy
-value in Python, and nothing in this repository's doctrine separates them.**
+And "one sentence in the plan would have caught all three" is refuted by this
+epic's own `planning_rules.consumption_is_changing_what_the_substrate_checks`:
+**a doctrine line with no instrument is a preference.** I proposed a doctrine line
+for a property that already has an instrument — the same error the rule names,
+committed by the ticket citing the rule.
 
-**The clause the class needs, which I did not ship because I do not own
-`planning_rules`:** extend `r1_now_requires_an_absent_input` so an instrument's
-declared absent-input states must be **pairwise distinguishable in their output**,
-or else carry an `indistinguishable` block naming which two it cannot tell apart
-and why. **`instruments.toml` already supports that block and `scorecard-audit`
-already uses it — the mechanism exists and the rule does not require it.** One
-sentence in the plan would have caught all three. Routed to the owner and to
-`SS-08`.
+### The real cause: REGISTER COVERAGE — and my own cited precedent says so
 
-**Not registered in `examples/validation/instruments/instruments.toml`.** `SS-07`
-was ruled not to register the instrument it shipped; I follow that ruling rather
-than reinterpret it, and `schedule_revision 2` says registering is not required.
-**I did not touch that file at all**, so the new shared-append rule does not
-apply to this PR.
+**`SS-07-DF-08`, the row I cited as my precedent, opens with it:** *"`stranded_
+loaders.py` is NOT registered in `instruments.toml`, so `score_tools.py
+absent-input` does not sweep it."* Its `suggested_fix` already names the clause the
+class needs: *"a NEW instrument shipped by a ticket should be run through
+`absent-input` BEFORE it is published … because registration is manual and nothing
+notices an unregistered instrument."*
 
----
+**I read that row, cited it, and then proposed a different clause for a cause it
+had already diagnosed correctly.**
+
+And the three-instrument table I published is wrong in the direction that
+flattered my claim:
+
+| | instrument | registered? | what the substrate did |
+|---|---|---|---|
+| `SS-01-DF-04` | the ledger reader inside `scorecard-audit` | **yes** | **The substrate REQUIRED a declaration and got one** — the contract carries an `[[instrument.absent_input.indistinguishable]]` block with a reason. |
+| `SS-07-DF-08` | `stranded_loaders.py` | **no** | never swept |
+| `SS-06-DF-05` | `vacuity_probe.py` | **no** | never swept |
+
+**One mechanism, yes — but the substrate handled the one instrument it could see,
+and the other two were simply never shown to it.** "Nothing in this repository's
+doctrine separates them" was a claim about two files nobody had pointed the check
+at.
+
+### What is withdrawn, and what replaces it
+
+- **WITHDRAWN:** the proposed clause "declared absent-input states must be
+  pairwise distinguishable in their output, or carry an `indistinguishable`
+  block". The shipped check already enforces precisely that.
+- **RESTATED:** the finding is **register coverage**. An instrument that is not in
+  `examples/validation/instruments/instruments.toml` is never swept, registration
+  is manual, and nothing notices an unregistered instrument. **The proposal to
+  adopt is `SS-07-DF-08`'s existing one**, not a new one of mine.
+- **The registration question is the epic owner's**, who has said they will rule
+  on it. I did not register `vacuity_probe.py` and I did not touch
+  `instruments.toml`.
+
+**Why I got it wrong, stated plainly:** I read `absent_measure`'s clause text and
+reasoned about it instead of running it, in a ticket whose entire subject is that
+reading a check is not the same as executing it. Every figure in this document that
+came from running reproduced; **this one came from reading.**
 
 ## 5B. `SS-04-DF-06` — the three reds `SS-04` shipped into a file that is now mine
 
@@ -582,10 +717,30 @@ rows and nothing was rewritten, reordered or removed.
 | `SS-06-DF-02` | **my own instrument read its subject's prose as its subject's result** — `summarise` grepped the whole pytest report and published `3 failed, 3 passed` for a three-node run | `repaired`, mutant-demonstrated |
 | `SS-06-DF-03` | `CA-10-DF-15` confirmed; population is three, not two; cause is `RM-06-DF-02` settled by `RM-04` with the declarations left standing | `repaired` |
 | `SS-06-DF-04` | `SS-02-DF-09` adjudicated: both guards widened, evasion executed, residual limit stated | `repaired` |
-| `SS-06-DF-05` | **"I was not allowed to look" reported as "there is nothing there"**, in this ticket's own instrument — the third instance of one mechanism in one epic, and the rule that would catch it is about the MESSAGE while `SS-02`'s clause is about the VERDICT | `repaired`; the clause is routed to the owner |
+| `SS-06-DF-05` | **"I was not allowed to look" reported as "there is nothing there"**, in this ticket's own instrument. **Defect real; my stated CAUSE refuted in review** — the shipped check DOES compute it and the real cause is register coverage, which `SS-07-DF-08` had already diagnosed. §5A | `repaired`; **the escalated clause is WITHDRAWN** |
+| `SS-06-DF-06` | **the declared-red check could not tell a declaration from a QUOTATION of one** — a time bomb that went red exactly when the next ticket disposed `CA-10-DF-15`. Third instance of `SS-06-DF-02`'s class, in the check written to police the class | `repaired`, structurally, pinned both ways |
+| `SS-06-DF-07` | **my repair for `SS-06-DF-05` committed `SS-06-DF-05`'s mechanism** — deleting only `specs/current/MC.cfg` turned `2 failed, 1 passed` into `3 skipped` saying *"no spec workflow is open"* while one was. Fourth instance in this ticket | `repaired` |
 
 `scripts/disposition.py --ledger specs/deferred_findings.yaml --ticket SS-06` →
 `DISPOSED ticket SS-06: 5 findings, all three clauses hold`, exit 0.
+
+### 7.0 Four instances of ONE mechanism, all in this ticket's own work
+
+The reviewer's summary of me is the finding: **every figure I produced by running
+re-derived exactly, and every figure I produced by reading rather than running is
+wrong.** The same split runs through the findings:
+
+| # | where | what it read as what |
+|---:|---|---|
+| `DF-02` | my census | `pytest`'s echoed source read as `pytest`'s result |
+| `DF-05` | my instrument | `PermissionError` read as "nothing there" |
+| `DF-06` | my new check | a **quotation** of a declaration read as a declaration |
+| `DF-07` | my repair for `DF-05` | one missing file read as "no workflow is open" |
+
+**Four recognisers, four times reading a subject's surface as the subject's state,
+in the ticket whose whole subject is that.** `DF-06` and `DF-07` were found by the
+reviewer, not by me — and `DF-07` in particular only surfaced because they deleted
+a *different file* than the one I tested with.
 
 ### 7.1 `SS-06-DF-02` is the one worth reading
 
@@ -639,3 +794,17 @@ seen from the other side.
 7. **`score_tools.py index` was never invoked** by this ticket. `SS-07-DF-01`
    says it mutates `INDEX.md` in 16 of 18 sealed trees; `git status` is clean of
    any `INDEX.md` in this branch.
+8. **Two files in this PR are `close ticket` PRODUCTS, not edits of mine, and
+   both are outside my conflict keys** (disclosed after review, F9):
+   `specs/results/complexity_ledger.json` (written by the close) and
+   `specs/results/skill_feedback.md` (the close appends the entry; I filled in
+   its `feedback_status` and added `SF-308`/`SF-309`). Every ticket in this epic
+   writes both, and neither is in any ticket's keys — the same unpartitioned-
+   surface shape `schedule_revision 2` recorded for `instruments.toml`.
+9. **I did not register `vacuity_probe.py`** in
+   `examples/validation/instruments/instruments.toml` and did not touch that
+   file. §5A: the registration question is the epic owner's and they have said
+   they will rule on it.
+10. **The sealed `summary.md` carries a claim §5A refutes**, and `R-H4` forbids
+    editing it. Stated here because nothing in the substrate would tell a reader
+    otherwise.

@@ -1,0 +1,17 @@
+# F2: does the declared-red check survive CA-10-DF-15 being disposed?
+# Flip CA-10-DF-15 from 'carried' to 'repaired' in a THROWAWAY copy of the ledger.
+
+  flipped CA-10-DF-15 -> repaired in the throwaway ledger
+  PASSED tests/test_declared_reds_cite_an_open_finding.py::test_the_recogniser_is_not_matching_nothing
+  PASSED tests/test_declared_reds_cite_an_open_finding.py::test_every_declaration_names_a_finding
+  PASSED tests/test_declared_reds_cite_an_open_finding.py::test_it_refuses_a_real_stale_declaration
+  PASSED tests/test_declared_reds_cite_an_open_finding.py::test_it_accepts_a_real_standing_declaration
+  PASSED tests/test_declared_reds_cite_an_open_finding.py::test_a_declaration_with_no_citation_is_refused
+  PASSED tests/test_declared_reds_cite_an_open_finding.py::test_the_recogniser_does_not_reach_into_a_neighbouring_test
+  PASSED tests/test_declared_reds_cite_an_open_finding.py::test_an_empty_module_is_no_declarations_not_a_clean_bill
+  FAILED tests/test_declared_reds_cite_an_open_finding.py::test_no_declaration_of_deliberate_redness_outlives_its_finding
+  1 failed, 7 passed in 1.22s
+
+## and the message it prints:
+  E           tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red: every finding it cites is closed (['CA-10-DF-15=repaired', 'RM-06-DF-02=settled']), so the red it declares was settled and the declaration was not
+  E           tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit: every finding it cites is closed (['CA-10-DF-15=repaired', 'RM-06-DF-02=settled']), so the red it declares was settled and the declaration was not

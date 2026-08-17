@@ -64,31 +64,59 @@ TESTS_DIR = ROOT / "tests"
 DECLARATION_FORMS = ("deliberately red", "deliberate red", "expected red",
                      "declared red", "this test is red on purpose")
 
+#: THE WITHDRAWAL MARKER, and it is a TOKEN rather than a phrase on purpose.
+#:
+#: `SS-06-DF-06`, found by the independent reviewer of PR #286 and not by me. The
+#: first version of this file matched `DECLARATION_FORMS` as a lowercase substring
+#: over the whole function source -- so a docstring saying *"this USED TO declare
+#: itself red, here is when the red was settled and by what"* still counted as a
+#: LIVE declaration. The three corrected `test_score_tools.py` docstrings passed
+#: only because they now cite `CA-10-DF-15`, which is still `carried`. Flipping it
+#: to `repaired` in a throwaway ledger turns two named tests RED -- and
+#: `SS-06-DF-03` is filed `repaired`, so **this check went red exactly when the
+#: next ticket did the right thing.** A time bomb for `SS-05` and `SS-08`.
+#:
+#: THE CHECK COULD NOT TELL A DECLARATION FROM A QUOTATION OF ONE, which is
+#: `SS-06-DF-02`'s class -- a recogniser reading its subject's prose as its
+#: subject's state -- third instance in this ticket, this time inside the check
+#: written to police the class.
+#:
+#: A phrase cannot fix a phrase-matching bug, so this is a literal token no
+#: ordinary prose produces. And it is NOT a mute button: a withdrawal must be
+#: CORROBORATED by a cited finding whose disposition is terminal, so it cannot be
+#: used to silence a declaration whose subject is still live.
+WITHDRAWN_MARKER = "SS-06:WITHDRAWN-DECLARATION"
+
 #: A finding id as this project writes them: `RM-06-DF-02`, `CA-10-DF-15`,
 #: `SS-00-DF-01`.
 FINDING_ID = re.compile(r"\b[A-Z]{2,3}-\d{2}-DF-\d{2}\b")
 
 
 class Declaration:
-    def __init__(self, path: pathlib.Path, name: str, cited: set[str]) -> None:
+    def __init__(self, path: pathlib.Path, name: str, cited: set[str],
+                 withdrawn: bool = False) -> None:
         self.path = path
         self.name = name
         self.cited = cited
+        self.withdrawn = withdrawn
 
     @property
     def where(self) -> str:
         return f"{self.path.relative_to(ROOT)}::{self.name}"
 
     def __repr__(self) -> str:  # pragma: no cover - failure messages only
-        return f"{self.where} cites {sorted(self.cited) or 'NOTHING'}"
+        state = "WITHDRAWN" if self.withdrawn else "live"
+        return f"{self.where} [{state}] cites {sorted(self.cited) or 'NOTHING'}"
 
 
 def declarations_in(text: str, path: pathlib.Path) -> list[Declaration]:
-    """Every `test_*` in `text` that declares itself red, with the ids it cites.
+    """Every `test_*` in `text` that mentions being red, with the ids it cites.
 
     Reads the function's own source segment, so a declaration in the docstring
     and a declaration in an assertion message are both seen, and a declaration
-    in a NEIGHBOURING test is not attributed here.
+    in a NEIGHBOURING test is not attributed here. Whether the mention is a LIVE
+    declaration or a QUOTATION of a withdrawn one is decided by
+    `WITHDRAWN_MARKER`, structurally -- never by trying to read the prose.
     """
     found: list[Declaration] = []
     tree = ast.parse(text)
@@ -101,33 +129,50 @@ def declarations_in(text: str, path: pathlib.Path) -> list[Declaration]:
         lowered = source.lower()
         if not any(form in lowered for form in DECLARATION_FORMS):
             continue
-        found.append(Declaration(path, node.name, set(FINDING_ID.findall(source))))
+        found.append(Declaration(path, node.name,
+                                 set(FINDING_ID.findall(source)),
+                                 withdrawn=WITHDRAWN_MARKER in source))
     return found
 
 
 def stale(declaration: Declaration, dispositions: dict[str, str]) -> str | None:
     """Why this declaration no longer stands, or `None` if it does.
 
-    THE PREDICATE, and the only place the verdict is computed. A declaration
-    stands while at least one finding it cites is still live. `TERMINAL` and
-    `DEFERRAL` come from `scripts/disposition.py` so this file cannot drift
-    into a second opinion about what "closed" means.
+    THE PREDICATE, and the only place the verdict is computed. `TERMINAL` and
+    `DEFERRAL` come from `scripts/disposition.py` so this file cannot drift into
+    a second opinion about what "closed" means.
+
+    A LIVE declaration stands while at least one finding it cites is still live.
+    A WITHDRAWN one is the opposite requirement: it must cite a finding that is
+    CLOSED, because that closure is the whole evidence that the withdrawal was
+    earned. Both directions are asserted, so the marker cannot silence anything.
     """
     if not declaration.cited:
-        return ("declares itself red and cites no finding id at all -- a "
-                "declaration with nothing behind it is a hunch")
+        return ("mentions being red and cites no finding id at all -- a "
+                "declaration with nothing behind it is a hunch, and so is a "
+                "withdrawal with nothing behind it")
     unknown = sorted(i for i in declaration.cited if i not in dispositions)
     if unknown and len(unknown) == len(declaration.cited):
         return (f"cites {unknown}, and no such row is in the ledger -- the "
                 "declaration points at nothing")
     live = sorted(i for i in declaration.cited
                   if dispositions.get(i) in D.DEFERRAL | {"open"})
+    closed = sorted(i for i in declaration.cited
+                    if dispositions.get(i) in D.TERMINAL)
+    if declaration.withdrawn:
+        if closed:
+            return None
+        return (f"carries {WITHDRAWN_MARKER} but every finding it cites is "
+                f"still live ({sorted(declaration.cited)}). A withdrawal has to "
+                f"be corroborated by a settled finding; the marker is not a way "
+                f"to stop a live declaration being checked (`SS-06-DF-06`)")
     if live:
         return None
-    closed = sorted(f"{i}={dispositions.get(i, 'ABSENT')}"
-                    for i in declaration.cited)
-    return (f"every finding it cites is closed ({closed}), so the red it "
-            "declares was settled and the declaration was not")
+    shown = sorted(f"{i}={dispositions.get(i, 'ABSENT')}"
+                   for i in declaration.cited)
+    return (f"every finding it cites is closed ({shown}), so the red it "
+            f"declares was settled and the declaration was not. If the "
+            f"declaration WAS withdrawn, say so with {WITHDRAWN_MARKER}")
 
 
 @pytest.fixture(scope="module")
@@ -162,12 +207,22 @@ def test_the_recogniser_is_not_matching_nothing(declared):
     vacuously and forever. That is `CA-10-DF-14`'s shape applied to this file,
     and it is the failure this whole ticket exists to remove, so it is refused
     here rather than trusted.
+
+    BOTH populations are refused when empty, not just the total. A tree with
+    only withdrawn quotations left would satisfy a bare `assert declared` while
+    nothing live was being checked at all.
     """
     assert declared, (
-        "no test in tests/ declares itself red. Either every declaration was "
+        "no test in tests/ mentions being red. Either every declaration was "
         f"removed -- in which case DELETE THIS FILE -- or the recogniser "
         f"({DECLARATION_FORMS}) stopped matching the form this repository "
         "writes. It must not silently report clean."
+    )
+    assert [d for d in declared if not d.withdrawn], (
+        "every mention of redness in tests/ now carries "
+        f"{WITHDRAWN_MARKER}, so this check has no LIVE declaration left to "
+        "adjudicate and its central assertion is vacuous. Delete this file, or "
+        "find out why the deliberate reds stopped declaring themselves."
     )
 
 
@@ -208,6 +263,52 @@ def test_it_refuses_a_real_stale_declaration(dispositions):
     assert [d.name for d in found] == ["test_example"]
     why = stale(found[0], dispositions)
     assert why is not None and "was settled and the declaration was not" in why
+
+
+def test_a_withdrawn_declaration_survives_its_finding_being_disposed(dispositions):
+    """`SS-06-DF-06`, pinned in the direction that produced the time bomb.
+
+    The three `test_score_tools.py` docstrings QUOTE a declaration they say was
+    withdrawn. They cite `CA-10-DF-15` and `RM-06-DF-02`, and `SS-06-DF-03` is
+    filed `repaired` -- so the moment `CA-10-DF-15` is disposed, every id they
+    cite is closed. Before the marker existed that turned two named tests RED
+    when the next ticket did the right thing.
+    """
+    terminal = sorted(i for i, d in dispositions.items() if d in D.TERMINAL)
+    if not terminal:
+        pytest.skip("no terminal-disposition row exists in the ledger, so a "
+                    "corroborated withdrawal cannot be built from real data")
+    text = (
+        'def test_example():\n'
+        f'    """Was **DELIBERATELY RED**; withdrawn. {WITHDRAWN_MARKER}.\n'
+        f'    Settled, see `{terminal[0]}`."""\n'
+        '    assert True\n'
+    )
+    found = declarations_in(text, TESTS_DIR / "synthetic.py")
+    assert len(found) == 1 and found[0].withdrawn, found
+    assert stale(found[0], dispositions) is None
+
+
+def test_the_withdrawal_marker_cannot_silence_a_live_declaration(dispositions):
+    """The other direction, so the marker is evidence and not a mute button.
+
+    A withdrawal whose cited findings are ALL still live is refused: nothing in
+    the record says the red it describes was settled, so the withdrawal is
+    asserted rather than earned.
+    """
+    live = sorted(i for i, d in dispositions.items() if d in D.DEFERRAL | {"open"})
+    if not live:
+        pytest.skip("every row in the ledger is disposed -- there is no live "
+                    "finding to build an unearned withdrawal from")
+    text = (
+        'def test_example():\n'
+        f'    """**DELIBERATELY RED**, and withdrawn. {WITHDRAWN_MARKER}.\n'
+        f'    See `{live[0]}`."""\n'
+        '    assert False\n'
+    )
+    found = declarations_in(text, TESTS_DIR / "synthetic.py")
+    why = stale(found[0], dispositions)
+    assert why is not None and "is not a way" in why, why
 
 
 def test_it_accepts_a_real_standing_declaration(dispositions):

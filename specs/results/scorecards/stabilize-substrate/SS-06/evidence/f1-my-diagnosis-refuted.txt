@@ -1,0 +1,61 @@
+# F1: MY OWN DIAGNOSIS, REFUTED BY RUNNING THE CHECK I SAID COULD NOT SEE IT.
+#
+# SS-06 published, in RESULT.md, in SS-06-DF-05.summary and in the SEALED
+# specs/.history/.../summary.md, the claim that SS-02's absent-input clause CANNOT
+# see a message-level collapse 'because the clause is stated on the verdict'.
+# The reviewer of PR #286 refuted it by building a register entry for the
+# pre-repair probe and running the SHIPPED check. Reproduced here independently.
+#
+# Method: a THROWAWAY register (not examples/validation/instruments/instruments.toml,
+# which this ticket never touched) with two rows -- the probe BEFORE the SS-06-DF-05
+# repair and AFTER it. Each state declares ITS OWN real output marker, so a
+# collapse is a fact about the instrument rather than about the contract.
+
+## PRE-repair probe (unreadable and empty both answer 'not a checkout'):
+  instrument                         absent   unread   empty    verdict
+  ------------------------------------------------------------------------------
+  vacuity-probe-pre                  ok       ok       ok       REFUSED
+  
+  THE COUNT -- this command's product
+  ------------------------------------------------------------------------------
+    vacuity-probe-pre: states ['unreadable', 'empty'] are INDISTINGUISHABLE -- the two states declare the SAME expected output -- and nothing declares it. Add an `[[instrument.absent_input.indistinguishable]]` entry with a reason, or make the instrument tell them apart (`SS-01-DF-04`).
+  exit 1
+
+## POST-repair probe (a file -> 'not a directory'; an empty dir -> 'not a checkout'):
+  instrument                         absent   unread   empty    verdict
+  ------------------------------------------------------------------------------
+  vacuity-probe-post                 ok       ok       ok       SATISFIED
+  
+  THE COUNT -- this command's product
+  ------------------------------------------------------------------------------
+  exit 0
+
+## WHAT THIS SHOWS
+  ALL THREE STATES REPORT ok ON THE VERDICT IN BOTH ROWS. The check refuses the
+  pre-repair row anyway, ON THE MESSAGE, and satisfies the post-repair row.
+  absent_measure calls absent_indistinguishable UNCONDITIONALLY
+  (score_tools.py:4818, :4938-4946) and an undeclared collapse becomes a problem,
+  which sets verdict = REFUSED.
+
+  SO THREE PUBLISHED SENTENCES OF MINE ARE FALSE ABOUT THE EXECUTED SUBSTRATE:
+    - 'SS-02's clause cannot see it because it is stated on the verdict'
+    - 'the mechanism exists and the rule does not require it'
+    - 'nothing in this repository's doctrine separates them'
+  And 'one sentence in the plan would have caught all three' is refuted by this
+  epic's own planning_rules.consumption_is_changing_what_the_substrate_checks:
+  A DOCTRINE LINE WITH NO INSTRUMENT IS A PREFERENCE. I proposed a doctrine line
+  for a property the substrate ALREADY COMPUTES.
+
+  THE REAL CAUSE IS REGISTER COVERAGE, and SS-07-DF-08 -- the row I cited as my
+  own precedent -- says so in its FIRST SENTENCE: 'stranded_loaders.py is NOT
+  registered in instruments.toml, so score_tools.py absent-input does not sweep
+  it.' Its suggested_fix already names the clause the class needs: 'a NEW
+  instrument shipped by a ticket should be run through absent-input BEFORE it is
+  published ... because registration is manual and nothing notices an
+  unregistered instrument.'
+
+  AND THE ONE REGISTERED INSTRUMENT OF THE THREE HANDLED IT CORRECTLY:
+  scorecard-audit's contract DECLARES its unreadable/empty collapse in an
+  [[instrument.absent_input.indistinguishable]] block with a reason. The
+  substrate did not merely have the mechanism -- it required the declaration and
+  got one. The other two instruments were simply never swept.

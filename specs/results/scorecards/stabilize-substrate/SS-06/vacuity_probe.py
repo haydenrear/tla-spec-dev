@@ -185,6 +185,28 @@ CASES: list[Case] = [
         expectation="red -- the node asserts the first configured invariant IS "
         "TypeInvariant.",
     ),
+    # THE SEVENTH CASE, added after the independent reviewer of PR #286 showed the
+    # first six DID NOT SUPPORT THE SENTENCE THEY WERE CITED FOR. The claim was
+    # "these six notice every change to the code and the model they cover";
+    # measured node by node,
+    # `test_cd06_real_distributed_history_external_matrix_lists_the_next_disjuncts`
+    # PASSES under BOTH code mutations -- it asserts an action list, not a bound
+    # and not a cfg invariant -- and it is not in either subject-change node list
+    # at all. So five of six were established by execution and the sixth was
+    # asserted. This case reaches it, and it is the only one that does.
+    Case(
+        name="subject-changed-example-next-relation",
+        what_is_taken_away="one disjunct -- RunFulfillmentWorkerNoop -- from the "
+        "shipped example's ExternalNext",
+        nodes=EXAMPLE_NODES,
+        mutate=lambda root: _sub(
+            root, EXAMPLE_TLA,
+            "  \\/ \\E c \\in Clients : RunFulfillmentWorkerNoop(c)\n",
+            "",
+        ),
+        expectation="red on test_cd06 -- it asserts the exact twelve-disjunct "
+        "action list, so removing a disjunct must be visible to it.",
+    ),
 ]
 
 # `pytest -q`'s LAST line, and only that line: `3 failed, 2 passed in 0.07s`.

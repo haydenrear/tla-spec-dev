@@ -682,10 +682,14 @@ def test_contract_only_over_a_clean_register_is_UNDECIDED_not_PASS(tmp_path):
 #     spellings: ZERO hits, so the guard now passes for a reason rather than by
 #     construction.
 #   * the register search read `argv` and nothing else. `cwd`, `env`,
-#     `link.from`, `link.to` and `write.file` all name paths, and `link.from`
-#     in particular decides WHICH TREE A DEMONSTRATION REACHES INTO -- it is
-#     `.` in three of the six shipped states. Widened to every path-bearing
-#     field.
+#     `stage.from`, `stage.to`, `link.from`, `link.to`, `write.file` and
+#     `remove` all name paths, and `link.from` in particular decides WHICH TREE
+#     A DEMONSTRATION REACHES INTO -- it is `.` in THREE OF THE SIX LINK
+#     ENTRIES the register ships, which occur in 3 of its 9 declared states.
+#     (An earlier version of this comment said "three of the six shipped
+#     states"; there are NINE shipped states across three contracted
+#     instruments, and 6 was the link-entry count. Corrected by the reviewer of
+#     PR #286.) Widened to every field `_absent_stage` reads.
 #
 # STATED LIMIT, because widening does not remove it: a text search cannot see a
 # call assembled at runtime, dispatched through a registry, or spelled by a
@@ -745,9 +749,18 @@ def test_the_check_gates_nothing():
     )
 
 
-#: Every field of a state spec that can name a path. `SS-02-DF-09`: the guard
-#: below used to read the first of these and none of the rest.
-PATH_BEARING = ("argv", "cwd", "env", "link", "write")
+#: Every field of a state spec that can name a path, taken from what
+#: `score_tools._absent_stage` actually READS rather than from what the shipped
+#: contracts happen to use today.
+#:
+#: `SS-02-DF-09` named `stage.from` explicitly and the FIRST version of this
+#: widening still missed it, along with `stage.to` and `remove` -- so the guard
+#: went from one field to five while the reviewer's own example stayed outside
+#: it. Caught by the independent reviewer of PR #286 against
+#: `score_tools.py:4686` and `:4721`. The list is now derived from that staging
+#: function's own `spec.get(...)` calls, which is the only source for it that
+#: cannot drift away from the code.
+PATH_BEARING = ("argv", "cwd", "env", "stage", "link", "write", "remove")
 
 
 def paths_declared(spec: dict) -> list[tuple[str, str]]:
@@ -764,25 +777,38 @@ def paths_declared(spec: dict) -> list[tuple[str, str]]:
         out.append(("cwd", str(spec["cwd"])))
     for name, value in (spec.get("env") or {}).items():
         out.append((f"env.{name}", str(value)))
+    # `stage` COPIES out of the repository into the throwaway tree, `link`
+    # SYMLINKS into it. Both name a repository-relative source, and `stage.from`
+    # is the field `SS-02-DF-09` named first.
+    for entry in spec.get("stage", []):
+        out.append(("stage.from", str(entry.get("from", ""))))
+        out.append(("stage.to", str(entry.get("to", ""))))
     for entry in spec.get("link", []):
         out.append(("link.from", str(entry.get("from", ""))))
         out.append(("link.to", str(entry.get("to", ""))))
     for entry in spec.get("write", []):
         out.append(("write.file", str(entry.get("file", ""))))
+    # `remove` is a bare list of tree-relative paths deleted inside the staged
+    # tree. Read as a path too: an absolute one would delete outside that tree.
+    for relative in spec.get("remove", []):
+        out.append(("remove", str(relative)))
     return out
 
 
 def test_the_register_is_the_only_thing_the_check_reads(register):
     """Scoped to this project's own instrument register, by construction.
 
-    Every path a contract can reach through -- `argv`, `cwd`, every `env`
-    value, every `link.from`/`link.to` and every `write.file` -- names either
-    the repository (`{repo}`), the throwaway tree the state was staged into
-    (`{tree}`), or a path relative to one of those. Nothing points at a subject
-    program and no field would let it.
+    Every path a contract can reach through -- `argv`, `cwd`, every `env` value,
+    every `stage.from`/`stage.to`, every `link.from`/`link.to`, every
+    `write.file` and every `remove` entry -- names either the repository
+    (`{repo}`), the throwaway tree the state was staged into (`{tree}`), or a
+    path relative to one of those. Nothing points at a subject program and no
+    field `_absent_stage` reads would let it.
 
     `SS-02-DF-09`: this used to inspect `argv` alone, while `link.from` is the
-    field that decides which tree a demonstration reaches into.
+    field that decides which tree a demonstration reaches into. The widening
+    then missed `stage.from`, `stage.to` and `remove` until the reviewer of
+    PR #286 checked it against `score_tools._absent_stage` itself.
     """
 
     contracted = [r for r in register["instrument"] if "absent_input" in r]

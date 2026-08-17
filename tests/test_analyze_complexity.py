@@ -71,15 +71,22 @@ from scripts.analyze_complexity import (  # noqa: E402
 # MEASURED, by deleting the input and re-running the same three nodes
 # (`vacuity_probe.py --case input-absent-specs-current`, tree `8dd0442`):
 # `3 passed` with `specs/current/` present and `3 passed` with the whole
-# directory removed. The only trace was the wall clock.
+# directory removed. NOTHING MOVED -- not the counts and not the clock. An
+# earlier version of this comment said "the only trace was the wall clock,
+# 5.48s -> 1.28s"; that compared a COLD first run against a warm one and the
+# reviewer of PR #286 refuted it by repetition (1.28s vs 1.27s warm, and 0.03s
+# vs 0.02s over the three-node list). The claim is stronger without it.
 #
 # There are TWO absent-input answers here and they are not the same answer,
 # which is why there are two helpers instead of one:
 #
-#   * `specs/current/` is WORKFLOW STATE. It exists while a spec workflow is
-#     open and is legitimately absent after a close, so its absence is
-#     UNDECIDED -- an announced skip, the idiom the rest of this suite already
-#     uses (`tests/test_spec_manifest_records.py:52`).
+#   * `specs/current/` is WORKFLOW STATE, and it has THREE states, not two:
+#     absent (the workflow is closed -- UNDECIDED, an announced skip, the idiom
+#     the rest of this suite already uses at
+#     `tests/test_spec_manifest_records.py:52`); present and complete (measure
+#     it); and PRESENT BUT INCOMPLETE, which is a defect and gets a REFUSAL.
+#     The first version of this repair collapsed the third into the first and
+#     printed "no spec workflow is open" while one was -- `SS-06-DF-07`.
 #   * `examples/distributed_history/**` is a COMMITTED FIXTURE. There is no
 #     state of this repository in which it is legitimately absent, so its
 #     absence is a DEFECT and the honest answer is a REFUSAL.
@@ -89,18 +96,46 @@ from scripts.analyze_complexity import (  # noqa: E402
 # ---------------------------------------------------------------------------
 
 
-def _workflow_state_or_skip(*paths: Path) -> None:
-    """UNDECIDED: the live spec workflow is not open, so there is nothing to read.
+#: The workflow root itself. Whether it exists is what decides which of the two
+#: absent answers is the true one, and reading it is the whole repair below.
+WORKFLOW_ROOT = REPO_ROOT / "specs" / "current"
 
-    Announced in the summary line, with the path named. Never a silent pass.
+
+def _workflow_state_or_skip(*paths: Path) -> None:
+    """Two different absent states, and they do NOT get the same answer.
+
+    `SS-06-DF-07`, found by the independent reviewer of PR #286 by deleting
+    `specs/current/MC.cfg` ALONE. The first version of this helper skipped on any
+    missing named path with one hard-coded cause -- *"no spec workflow is open in
+    this checkout"* -- so with the workflow OPEN and one file of it missing it
+    printed a sentence that was FALSE, over two tests that had been honestly RED
+    before this ticket touched them: `2 failed, 1 passed` at `8dd0442` became
+    `3 skipped` at the first tip.
+
+    THAT IS THE `SS-06-DF-05` MECHANISM, COMMITTED INSIDE THE REPAIR FOR IT: a
+    refusal whose verdict is defensible and whose stated CAUSE is invented. It is
+    the fourth instance in this one ticket, and the only reason it was caught is
+    that a reviewer deleted a different file than the one I tested with.
     """
-    for path in paths:
-        if not path.is_file():
-            pytest.skip(
-                f"{path.relative_to(REPO_ROOT)} is absent -- no spec workflow is "
-                "open in this checkout, so the repository's own live model "
-                "cannot be measured here. UNDECIDED, not a pass."
-            )
+    missing = [p.relative_to(REPO_ROOT).as_posix() for p in paths if not p.is_file()]
+    if not missing:
+        return
+    if not WORKFLOW_ROOT.is_dir():
+        # The workflow is CLOSED. A legitimate state; nothing to measure.
+        pytest.skip(
+            f"{WORKFLOW_ROOT.relative_to(REPO_ROOT).as_posix()} does not exist, "
+            f"so no spec workflow is open in this checkout and the repository's "
+            f"own live model cannot be measured here (missing: {missing}). "
+            f"UNDECIDED, not a pass."
+        )
+    # The workflow is OPEN and its state is incomplete. A defect, not a state.
+    raise AssertionError(
+        f"{WORKFLOW_ROOT.relative_to(REPO_ROOT).as_posix()} EXISTS, so a spec "
+        f"workflow IS open, and {missing} is missing from it. Incomplete "
+        f"workflow state is a defect in the tree -- not a closed workflow, and "
+        f"not something this test may skip over. Reporting it as 'no spec "
+        f"workflow is open' states a cause that is false (`SS-06-DF-07`)."
+    )
 
 
 def _committed_fixture(*paths: Path) -> None:
@@ -108,7 +143,7 @@ def _committed_fixture(*paths: Path) -> None:
 
     Deleting the example this asserts about must turn the test RED. Before
     `SS-06` it turned it green (`vacuity_probe.py --case
-    input-absent-example-model`, tree `8dd0442`: `3 passed` either way).
+    input-absent-example-model`, tree `8dd0442`: 3 passed either way).
     """
     for path in paths:
         assert path.is_file(), (

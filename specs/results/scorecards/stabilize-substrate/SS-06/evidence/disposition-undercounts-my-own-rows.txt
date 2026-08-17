@@ -1,0 +1,18 @@
+# SS-06: disposition.py under-counts THIS ticket's own rows, live.
+# SS-07-DF-07 says --ticket filters on the free-text found_by field and this
+# project credits REVIEWERS there. Two of my seven rows are credited to the
+# PR #286 reviewer, so --ticket SS-06 sees five and prints 'all three clauses
+# hold' over a population it under-counted by 2 of 7 -- 29%.
+
+$ python3 scripts/disposition.py --ledger specs/deferred_findings.yaml --ticket SS-06
+DISPOSED ticket SS-06: 5 findings, all three clauses hold
+
+# The true population, by id prefix:
+  7 rows
+    SS-06-DF-01  carried    found_by: SS-06, sweeping tests/ for CA-10-DF-14's class after repairi
+    SS-06-DF-02  repaired   found_by: SS-06, by RUNNING the deletion battery it wrote rather than 
+    SS-06-DF-03  repaired   found_by: SS-06, re-measuring CA-10-DF-15 before acting on it
+    SS-06-DF-04  repaired   found_by: SS-06, adjudicating SS-02-DF-09 by seeding the evasion its a
+    SS-06-DF-05  repaired   found_by: SS-06, MEASURING its own instrument against SS-02's rule ins
+    SS-06-DF-06  repaired   found_by: independent reviewer of PR #286 instructed to REFUTE
+    SS-06-DF-07  repaired   found_by: independent reviewer of PR #286 instructed to REFUTE

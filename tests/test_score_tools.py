@@ -1783,7 +1783,10 @@ def test_the_shipped_rh5_demonstration_still_goes_red(st):
     is the class of artifact this epic is about.
 
     THIS DOCSTRING USED TO DECLARE THE TEST RED, AND THE DECLARATION OUTLIVED
-    THE RED (`CA-10-DF-15`, re-measured and corrected by `SS-06`). It read
+    THE RED (`CA-10-DF-15`, re-measured and corrected by `SS-06`).
+    `SS-06:WITHDRAWN-DECLARATION` -- the structural marker
+    `tests/test_declared_reds_cite_an_open_finding.py` reads, so the quotation
+    below is not mistaken for a live declaration (`SS-06-DF-06`). It read
     "DELIBERATELY RED (`RM-06`, group 2)": the two R-H5 breaks both fired, but
     the script's FIRST step -- it declines to trust its own result unless the
     unmodified copy is green -- inherited the one standing R-H1 violation on the
@@ -1842,7 +1845,9 @@ def test_the_repo_ledger_passes_its_own_audit(st, capsys):
 
     THIS DOCSTRING USED TO READ "**DELIBERATELY RED (`RM-06`, group 2). DO NOT
     MAKE IT GREEN HERE.**" -- and it was green. `CA-10-DF-15`; re-measured and
-    corrected by `SS-06`.
+    corrected by `SS-06`. `SS-06:WITHDRAWN-DECLARATION` -- the structural marker
+    `tests/test_declared_reds_cite_an_open_finding.py` reads, so the quotation
+    above is not mistaken for a live declaration (`SS-06-DF-06`).
 
     The declaration described `audit` exiting 1 on exactly ONE violation, the
     same one at `2c0d94e`, `95b2c79` and `356ffe8`: the single
@@ -2195,6 +2200,7 @@ def test_the_repo_ledger_passes_its_own_audit_with_rh6(st, capsys):
     same single R-H1 violation as `test_the_repo_ledger_passes_its_own_audit`,
     while passing. `CA-10-DF-15`; `RM-06-DF-02` was settled by `RM-04` and the
     declaration was not withdrawn. See that test's docstring for the record.
+    `SS-06:WITHDRAWN-DECLARATION` (`SS-06-DF-06`).
     """
     assert st.main(["audit", "--root", str(SCORECARDS), "--quiet-ok"]) == 0, (
         "the record no longer passes its own audit; RM-06-DF-02 is settled, so "
