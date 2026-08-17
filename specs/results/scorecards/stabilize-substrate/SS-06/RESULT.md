@@ -49,34 +49,53 @@ uv run --with pytest --with pyyaml -m pytest tests -q --collect-only
 
 | | failed | passed | skipped | xfailed | collected | sums? |
 |---|---:|---:|---:|---:|---:|---|
-| **BASE `8dd0442`**, ticket workspace **not open** | **7** | **1550** | **0** | **1** | **1558** | `7+1550+0+1=1558` ✓ |
-| **TIP `8fa4626`**, ticket workspace **OPEN** (pre-close) | **7** | **1563** | **0** | **1** | **1571** | `7+1563+0+1=1571` ✓ |
-| **TIP `__POST_SHA__`**, ticket workspace **CLOSED** (post-close) | `__POST_F__` | `__POST_P__` | `__POST_S__` | `__POST_X__` | `__POST_C__` | ✓ |
+| **BASE `8dd0442`**, workspace **not open**, before `SS-04` | **7** | **1550** | **0** | **1** | **1558** | `7+1550+0+1=1558` ✓ |
+| **TIP `8fa4626`**, workspace **OPEN**, before reconciling | **7** | **1563** | **0** | **1** | **1571** | `7+1563+0+1=1571` ✓ |
+| **TIP `6ee1532`**, workspace **OPEN**, `SS-04` reconciled | **7** | **1600** | **0** | **1** | **1608** | `7+1600+0+1=1608` ✓ |
+| **TIP `__POST_SHA__`**, workspace **CLOSED** (post-close) | `__POST_F__` | `__POST_P__` | `__POST_S__` | `__POST_X__` | `__POST_C__` | ✓ |
+
+**Four rows, because a figure is a joint property of the artifact AND the tree,
+and this ticket stood in four different trees.** The middle two are both real
+measurements and neither is discarded: `8fa4626` is this ticket's work before its
+promotion predecessor landed, `6ee1532` is the same work with `SS-04` merged in.
 
 Sealed raw output: `evidence/pytest-base-8dd0442.txt`,
 `evidence/collect-base-8dd0442.txt`, `evidence/pytest-preclose-8fa4626.txt`,
-`evidence/collect-preclose-8fa4626.txt`, `evidence/pytest-postclose-*.txt`,
+`evidence/collect-preclose-8fa4626.txt`, `evidence/pytest-preclose-6ee1532.txt`,
+`evidence/collect-preclose-6ee1532.txt`, `evidence/pytest-postclose-*.txt`,
 `evidence/collect-postclose-*.txt`.
 
 ### 1.0 Every movement, attributed, with the direction named
 
-**failed: 7 → 7. No movement in either direction.** The same seven nodes, by
-name, at base and at the pre-close tip. **This ticket produced no new red and
-removed none** — §3.4 explains why the repair could not produce one at this tree,
-and §6 attributes all seven.
+**failed: 7 → 7 → 7. No movement in either direction, at any of the three trees.**
+The same seven nodes, by name, at the base and at both tips. **This ticket
+produced no new red**, and the only reds it removed are `SS-04`'s three, which
+arrived through the reconcile and were repaired in the same commit that brought
+them in — so they are never counted as a red here and never counted as a repair
+that moved this ticket's number. §3.4 explains why the vacuous-pass repair could
+not produce a red at this tree, and §6 attributes all seven.
 
 **skipped: 0 → 0**, **xfailed: 1 → 1** (`SS-01`'s strict xfail, untouched).
 
 **passed: 1550 → 1563, +13. Numerator movement, all of it new nodes**, none of it
 a red turning green: `+9 mine`, `+4 machinery`.
 
-**collected: 1558 → 1571, +13**, attributed **by node**, not inferred
-(`evidence/collection-attribution-preclose.txt`):
+**collected: 1558 → 1608, +50**, attributed **by node**, not inferred
+(`evidence/collection-attribution.txt`):
 
 | | nodes | cause |
 |---|---:|---|
 | **mine** | **+9** | 8 in the new `tests/test_declared_reds_cite_an_open_finding.py` (the `CA-10-DF-15` check) and 1 in `test_absent_input_demonstrations.py` (the `SS-02-DF-09` path-reader demonstration). All 9 pass. |
-| **machinery, not mine** | **+4** | 6 added − 2 removed in `test_spec_yaml_valid`'s parametrisation: `open ticket` scaffolds `specs/tickets/SS-06/`, and the un-suffixed ids `complexity_ledger.yaml` and `ticket.yaml` become suffixed `0`/`1` pairs. **This is the documented +4 that `close ticket` removes again**, and it is why the third row of the table exists. |
+| **`SS-04`, not mine** | **+37** | `tests/test_counted_figure_recogniser.py`, `SS-04`'s new module, arriving through the reconcile. Not attributable to this ticket in either direction. |
+| **machinery, not mine** | **+4** | 6 added − 2 removed in `test_spec_yaml_valid`'s parametrisation: `open ticket` scaffolds `specs/tickets/SS-06/`, and the un-suffixed ids `complexity_ledger.yaml` and `ticket.yaml` become suffixed `0`/`1` pairs. **This is the documented +4 that `close ticket` removes again**, and it is why the last row of the table exists. |
+
+**passed 1550 → 1600, +50**: the same three groups, none of it a red turning
+green — **except three that are exactly that, and they are declared**: `SS-04`'s
+three `test_score_tools.py` reds (`SS-04-DF-06`) arrive red through the reconcile
+and are repaired by this ticket in the same commit, so they never appear as reds
+in any figure published here. **§5B is where they are accounted for**, and
+`SS-08` should read them as three attributed reds repaired, not as an unexplained
++3.
 
 The six guards I repaired moved **nothing** in any of the five buckets. That is
 the correct outcome and it is stated as such rather than dressed up: the repair
