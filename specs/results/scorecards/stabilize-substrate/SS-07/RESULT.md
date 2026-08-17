@@ -803,3 +803,74 @@ What the defect costs is the sweep's *floor*: a `specs/results/` script that
 cannot be parsed is silently absent from the census, so **"8 files name 15 absent
 paths" is a floor for a second reason I did not state before** — the stated one
 (runtime-assembled paths are invisible) and this one.
+
+---
+
+## 17. Reconciled onto `SS-02`, closed, and the divergence I predicted for everyone else
+
+`SS-02` merged; the epic tip is **`8c3d258`**. This branch reconciled onto it at
+**`8b9a556`**, the ledger tail conflicted and was resolved by **keeping both sets
+in promotion order** (`SS-02` po 30 before `SS-07` po 40), **prefix verified
+byte-identical to the epic tip**, count rising **326 → 333 → 334**.
+
+### The suite, five numbers, both sides of the close
+
+| tree | `SS-07` workspace | failed | passed | skipped | xfailed | collection |
+|---|---|---:|---:|---:|---:|---:|
+| `48f9c7e` epic base (cell A) | closed | 8 | 1509 | 0 | 1 | 1518 |
+| `eb2567b` epic tip after `SS-03` (cell A) | closed | 7 | 1521 | 0 | 1 | 1529 |
+| **`ab9a244`** reconciled, **PRE-CLOSE** | **OPEN** | **7** | **1554** | **0** | **1** | **1562** |
+| **`2d674a8`** **POST-CLOSE — AUTHORITATIVE** | **gone** | **7** | **1550** | **0** | **1** | **1558** |
+
+`7+1554+0+1 = 1562`. `7+1550+0+1 = 1558`. **Both sum.**
+
+**Movement across the close: `−4` collected, `−4` passed, and NOTHING ELSE.**
+Reds held at 7, skips at 0, xfails at 1, and the `FAILED` list is
+**byte-identical** on both sides (`diff` of the sorted sets is empty). That is
+`open ticket`'s `+4` on `test_spec_yaml_valid` being handed back, exactly as the
+issue said every ticket would see. **`SS-07`'s entire footprint on the tree was
+that +4, and after the close it is ZERO.**
+
+**Movement from the epic tip, none of it mine:** `1529 → 1558` is `+29`
+collected — `SS-02`'s merge, which added `tests/test_absent_input_demonstrations.py`
+(29 nodes). Reds held at 7 across it.
+
+### The divergence, applied to myself
+
+**I told every other ticket to expect this, so here it is against my own close.**
+`close ticket` seals the history entry **and deletes `specs/tickets/SS-07/` in
+one operation**, so the figure that could go into the sealed summary was
+necessarily the **PRE-CLOSE** one:
+
+- **Sealed** at `specs/.history/stabilize-substrate-epic/ticket-003-SS-07/summary.md`:
+  **`7/1554/0/1/1562`** — and the seal says, in its own text, that it *"CANNOT
+  DESCRIBE THE TREE THIS CLOSE PRODUCES"*.
+- **Live, here:** **`7/1550/0/1/1558`**.
+- **AUTHORITATIVE for anyone standing in the merged tree: the POST-CLOSE figure,
+  `7 / 1550 / 0 / 1 / 1558` at `2d674a8`.** The sealed one is authoritative only
+  as the record of what was measured before the workspace was destroyed.
+
+**And the divergence is wider than a number.** The close copied `RESULT.md` into
+the sealed entry, so `specs/.history/…/ticket-003-SS-07/results/RESULT.md` is
+frozen **without this section**. The two files were byte-identical at the instant
+of the close and diverge from the moment this paragraph landed. **`R-H4` forbids
+editing the sealed copy, and it is not edited.** A reader wanting the complete
+account reads the live file; a reader wanting to know what was true at close
+reads the sealed one. **Both are correct; neither is complete alone. That is the
+cost of sealing and deleting in one operation, and it is now on the record from
+the ticket that predicted it.**
+
+### Disposition, both figures, per the owner's obligation 9a
+
+| command | result |
+|---|---|
+| `disposition.py --epic SS` | **REFUSED: 6 of 38 undisposed** — and **all six are the owner's open `SS-00-DF-*`; none is `SS-07`'s** |
+| `disposition.py --ticket SS-07` | `DISPOSED … all three clauses hold`, **6 findings** |
+| id-prefix count | **8** |
+
+**The gap is 2 and it is named, not silent:** `SS-07-DF-05` and `SS-07-DF-06` are
+credited to the PR #283 reviewer in `found_by`, and `--ticket` filters on that
+free-text field. **This is `SS-07-DF-07` firing on `SS-07`'s own row set** — the
+same shape that hid `SS-02`'s five reviewer-found rows. **Quote `--epic`.** The
+`--ticket` figure is not under-filing; it is the instrument under-counting, and
+the instrument is one this ticket filed against.
