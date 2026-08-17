@@ -1,0 +1,62 @@
+# SS-06: would vacuity_probe.py -- the instrument THIS ticket ships -- satisfy SS-02's
+# absent-input rule? MEASURED, not reasoned about, following SS-07's precedent at
+# ab9a244: measure the states, file the answer, do not register a row.
+# Tree: 8dd0442 + this PR. Every state must answer UNDECIDED or REFUSE. None may PASS.
+
+## no argument: --root omitted entirely
+$ python3 vacuity_probe.py 
+  vacuity_probe: REFUSED: --root is required and must name a THROWAWAY checkout. This battery mutates the tree it is pointed at.
+  exit: 2
+
+## absent: --root names a path with no file at it
+$ python3 vacuity_probe.py --root /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.sbZzbL0rkF/nope
+  vacuity_probe: REFUSED: root does not exist: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.sbZzbL0rkF/nope
+  exit: 2
+
+## not-a-directory: --root is a FILE
+$ python3 vacuity_probe.py --root /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.sbZzbL0rkF/afile
+  vacuity_probe: REFUSED: root is not a directory: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.sbZzbL0rkF/afile
+  exit: 2
+
+## empty: --root is an EMPTY directory
+$ python3 vacuity_probe.py --root /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.sbZzbL0rkF/emptydir
+  vacuity_probe: REFUSED: root is not a checkout of this repository (no tests/ or scripts/): /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.sbZzbL0rkF/emptydir
+  exit: 2
+
+## UNREADABLE: --root is a directory with NO READ PERMISSION
+$ python3 vacuity_probe.py --root /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.sbZzbL0rkF/noperm
+  vacuity_probe: REFUSED: root cannot be READ (permission denied): /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.sbZzbL0rkF/noperm. This is NOT the same answer as 'not a checkout' -- nothing was looked at, so nothing is known about what is there.
+  exit: 2
+
+## own repository: --root is the tree this script lives in
+$ python3 vacuity_probe.py --root /Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-06
+  vacuity_probe: REFUSED: root is this instrument's own repository: /Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-06. Clone it first.
+  exit: 2
+
+## no subject: a checkout-shaped tree with no specs/current to take away
+$ python3 vacuity_probe.py --root /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.sbZzbL0rkF/fakecheckout --case input-absent-specs-current
+  vacuity_probe: REFUSED: case target absent before mutation: specs/current. Nothing was taken away, so nothing is known about this case.
+  vacuity_probe: root /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.sbZzbL0rkF/fakecheckout
+  vacuity_probe: tree UNKNOWN (not a git checkout)
+  exit: 2
+
+## VERDICT
+  Every state REFUSES with exit 2 and names which one it hit. None answers PASS,
+  none answers 0, and no two of them answer in the same words. The battery would
+  satisfy SS-02's rule as written.
+
+  TWO OF THOSE STATES DID NOT ANSWER CORRECTLY BEFORE THIS MEASUREMENT.
+  (1) The UNREADABLE state answered in the exact words of the EMPTY state --
+      'no tests/ or scripts/' -- because Path.is_dir() returns False on a
+      PermissionError, so 'I was not allowed to look' was reported as 'there is
+      nothing there'. The verdict was already a refusal; the CAUSE was a
+      fabrication. Same shape as SS-07-DF-08 in the sweep SS-07 shipped, and as
+      SS-01-DF-04, where an unreadable ledger produced 14 fabrication accusations.
+  (2) The no-subject state exited 1 with a bare message, which is the code a
+      FAILING battery uses. 'Nothing to take away' is not 'taking it away changed
+      nothing', and it now exits 2 like every other absent input here.
+  Filed as SS-06-DF-05, both repaired here, and the first pinned by a seeded mutant.
+
+  NOT REGISTERED in examples/validation/instruments/instruments.toml. SS-07 was
+  ruled not to register the instrument it shipped; that ruling is followed rather
+  than reinterpreted, and schedule_revision 2 says registering is not required.

@@ -1,0 +1,59 @@
+# SS-06 / SS-04-DF-06: the three reds SS-04 shipped into tests/test_score_tools.py,
+# which schedule_revision 2 made SS-06's file. DECIDED BY SIMULATION, because SS-04's
+# PR #285 was still OPEN when this was measured and the edits cannot land before it.
+# Probe: a throwaway clone with feature/SS-04 merged into feature/SS-06 by hand.
+
+## 1. Reproduced, before any edit:
+$ pytest -q tests/test_score_tools.py -k 'denominator_moved_is_stale or cannot_reach_is_counted or movement_notation'
+  =========================== short test summary info ============================
+  FAILED tests/test_score_tools.py::test_a_scoped_claim_whose_denominator_moved_is_stale_and_not_refuted
+  FAILED tests/test_score_tools.py::test_what_the_sweep_cannot_reach_is_counted_and_named
+  FAILED tests/test_score_tools.py::test_a_movement_notation_is_not_read_as_a_count
+  3 failed, 113 deselected in 3.12s
+
+## 2. EACH CHARACTERISATION RE-DERIVED FROM DATA, not accepted from the finding:
+  (1) COUNT-MOVED lines in the shipped record : 39
+      every one is form P                     : True
+      every one has dim is None               : True
+      DIMENSION-BOUND COUNT-MOVED lines       : 0
+  (2) UNREACHABLE reasons present             : ['anaphoric scope', 'arm-scoped', 'no counted noun', 'non-card noun', 'numerator has no predicate', 'unresolved qualifier']
+      new since SS-04                         : ['no counted noun', 'numerator has no predicate']
+  (3) the failing row is line 2 of the test's OWN fixture, form P:
+      {'line': 2, 'form': 'P', 'dim': None} -- 'worst 1, 2 of 6 moved in each arm'
+      line 1, the movement notation '2/2 -> 4/4 -> 3/4', yields NOTHING both before
+      and after SS-04, so the test's stated subject was never in question.
+
+## 3. After the three edits, in the same simulated tree:
+  ...                                                                      [100%]
+  3 passed, 113 deselected in 3.07s
+
+## 4. And the whole module, so the edits are not local wins:
+  ............................................                             [100%]
+  116 passed in 823.85s (0:13:43)
+
+## 5. Held, not applied to feature/SS-06 in this PR, and why
+  Edit (3) CANNOT land before SS-04 merges: without FORM P, line 2 of that fixture
+  yields nothing and asserting it UNREACHABLE would go RED. Edits (1) and (2) are
+  harmless without SS-04 and would land silently. All three are therefore held
+  together -- a partial application would leave the file in a state neither ticket
+  ever measured. The decision is made and verified above; applying it is one commit
+  the moment PR #285 lands.
+
+## 6. The decision, per red
+  (1) APPLY the minimal edit, PLUS an assertion that justifies it. Scoping the
+      census to non-P forms is right -- RM-06-DF-03 is about a DIMENSION-BOUND
+      claim and form P cannot carry a dimension -- but narrowing a control to a
+      form label on trust is the move RM-06-DF-01 refuses. So the exclusion is
+      now GUARDED: every COUNT-MOVED row is asserted to have `dim is None` on
+      every run, so a dimension-bound COUNT-MOVED can never hide behind it.
+  (2) APPLY as written. The requirement is that every reach limit be NAMED and
+      the assertion is `<=` over a named set, so extending the set satisfies the
+      requirement more fully; shrinking the reason list would be the wrong move
+      and is stated as such in the docstring.
+  (3) APPLY the STRONGER of the two options SS-04 offered: assert the right
+      ANSWER rather than an absence. The movement line still yields nothing --
+      the test subject was never in question -- and the counted line is now
+      asserted to be UNREACHABLE with its reason named. A test that asserts a
+      whole file yields nothing goes red whenever the recogniser learns anything,
+      correctly or not.
+  NONE deleted; each one caught something.

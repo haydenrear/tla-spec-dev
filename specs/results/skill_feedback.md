@@ -2485,3 +2485,46 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket SS-06
+
+- close_scope: ticket
+- close_id: SS-06
+- workflow: stabilize-substrate-epic
+- closed_at: 2026-08-17T07:21:15+00:00
+- summary: SS-06: the vacuous-pass population is SIX not three, all six repaired, and the deletion method says the finding overstated them. 7/1550/0/1/1558 at base 8dd0442; 7/1600/0/1/1608 at the reconciled tip 6ee1532; both sum, failed unmoved at 7 by name, +50 collected attributed BY NODE (+37 SS-04, +9 mine, +4 open-ticket machinery). Clause (d) MEASURED at 12 uncollected nodes, not the published 13. Clause (c) 0 skips, and the plan's mechanism for the last four was false. CA-10-DF-15 confirmed with population THREE not two, docstrings corrected AND the relation now computed by a new check. SS-02-DF-09 decided WIDEN, the reviewer's own evasion executed. SS-04-DF-06's three reds decided by simulated merge and applied once #285 landed. Five findings filed including SS-06-DF-05: my own instrument reported 'not allowed to look' as 'nothing there' -- the third instance of that mechanism in this epic, and SS-02's clause cannot see it because it is stated on the verdict while the defect is in the message.
+- feedback_status: items-recorded
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+### SF-308
+
+- category: profile-schema-cli
+- target: `python3 scripts/tla_spec_dev.py --spec-root specs close ticket <id>` -- the single operation that seals `specs/.history/<workflow>/ticket-NNN-<id>/summary.md` AND deletes `specs/tickets/<id>/`
+- observed_on: tla-spec-dev, ticket SS-06 on epic/stabilize-substrate, closed 2026-08-17
+- evidence: specs/.history/stabilize-substrate-epic/ticket-005-SS-06/summary.md against specs/results/scorecards/stabilize-substrate/SS-06/RESULT.md section 1
+- severity: wrong-result
+- root_cause: spec
+- surface: `close ticket`, the seal-and-delete step
+- forced_workaround: every ticket in this epic writes "this sealed summary cannot describe the tree this close produces, see the live RESULT.md" INTO the sealed summary
+- data_loss: no
+- workaround_applied: the same sentence, written by SS-01, SS-02, SS-04, SS-07 and now SS-06 -- five tickets independently patching the same structural fact in prose
+- recommendation: PROPOSED, NOT FILED. This epic forbids ticket agents from filing against the skill repositories or editing a Skill Manager home; the proposal is escalated in the PR body for issue #278 instead of created as a URL. THE PROPOSAL: `close ticket` should either (a) write the summary AFTER the workspace is removed, or (b) accept a `--summary-file` re-read at seal time, or (c) emit the post-close five-number figure itself so the sealed entry can carry a figure that is true of the tree it produced. Any of the three ends a workaround five tickets have now written by hand.
+- status: open
+
+### SF-309
+
+- category: profile-schema-cli
+- target: `git-issue-workflow` skill, `references/epic-ticket.md` section 7 "Your worktree survives, so its home has to be dealt with here" -- it instructs the epic ticket agent to run `skill-manager home close-out --home ... --json` before stopping
+- observed_on: SS-06 on epic/stabilize-substrate, 2026-08-17
+- evidence: references/epic-ticket.md lines 377-381 against specs/desired_program_model/ticket_plan.yaml planning_rules.skills_are_read_never_edited ("NO TICKET AGENT RUNS home close-out, home sync, skt sync OR skt publish")
+- severity: friction
+- root_cause: spec
+- surface: the epic-ticket close-out checklist
+- forced_workaround: the epic policy was obeyed and the skill instruction was not; home cleanliness was established by inspecting file mtimes under `<worktree>/.skill-manager` instead
+- data_loss: no
+- workaround_applied: verified 0 files modified after bootstrap and disclosed that in the PR body, rather than running the gate the skill names
+- recommendation: PROPOSED, NOT FILED, for the same reason as SF-308. THE PROPOSAL: the skill's epic-ticket flow should say that an epic whose plan centralises change management may forbid the gate, and should name the DISCLOSURE the agent owes instead -- otherwise every agent on such an epic must choose between two written instructions with no rule for which wins.
+- status: open
+

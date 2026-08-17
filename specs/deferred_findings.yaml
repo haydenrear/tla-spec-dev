@@ -23692,3 +23692,584 @@ findings:
       either revision. SS-08 SHOULD COUNT THESE AS THREE ATTRIBUTED REDS, NOT AS
       AN UNEXPLAINED MOVEMENT -- clause (f) of GOAL-tree-stabilizes is satisfied
       by this row.
+
+  - id: SS-06-DF-01
+    found_by: "SS-06, sweeping tests/ for CA-10-DF-14's class after repairing the six guards it names three of"
+    found_at_commit: "8dd0442"
+    schedule_revision: 1
+    severity: minor
+    channel: the-suite
+    channel_note: >-
+      found by grep over the suite, then confirmed by reading the two lines; not by a run,
+      because neither line can produce a run that differs.
+    cost:
+      basis: "one grep for `or True` over tests/, plus two reads"
+      value: "two assertions that cannot fail, in two modules, one of them commented as deliberate"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "tests/test_falsifiable_controls.py"
+        - "tests/test_code_complexity.py"
+    summary: >-
+      A SECOND SUB-SHAPE OF `CA-10-DF-14`: NOT AN EARLY RETURN BUT A TAUTOLOGICAL
+      ASSERTION. `CA-10-DF-14` names three tests that return before asserting.
+      Sweeping for the CLASS rather than the instances finds a different shape with
+      the same consequence -- a line that is counted as an executed assertion and
+      cannot fail. `tests/test_falsifiable_controls.py:524` is
+      `assert shutil.which("python3") or True`, and `X or True` is `True` for every
+      X; the trailing comment ("the run is recorded, not re-run here") shows the
+      author knew the line asserts nothing and left it in the report anyway.
+      `tests/test_code_complexity.py:856` is `assert value >= 0` over integer and
+      float TOTALS -- counts, which are non-negative by construction; weaker than a
+      tautology but not distinguishable from one by any input the test can produce.
+      A THIRD INSTANCE, AND IT IS THE `or True` SHAPE, WAS FOUND IN
+      `tests/test_score_tools.py:2204` (`assert "R-H6" in ... or True`) AND IS
+      REPAIRED IN THIS PR, because that test is the subject `CA-10-DF-15` routed to
+      SS-06; the two rows above are outside SS-06's conflict keys and are FILED,
+      not fixed, under the deferment policy.
+      CORRECTED IN THE PR #286 REVIEW ROUND, AND THE CORRECTION IS AGAINST SS-06'S
+      OWN NARRATIVE: `RESULT.md` published an `or True` population of THREE by
+      folding `test_code_complexity.py:856` in with the two tautologies. `grep -rn
+      "or True" tests/` at `8dd0442` returns TWO. THE TWO POPULATIONS ARE: `or
+      True` TAUTOLOGIES = 2 (one repaired here, one filed), and NON-FALSIFIABLE
+      ASSERTIONS ACROSS BOTH SHAPES = 3. This row always said the `>= 0` line was
+      a different and weaker shape; the narrative did not, and inflating a named
+      sub-shape 2 -> 3 is the same error `CA-10-DF-14` made in the other direction,
+      committed by the ticket whose subject is population inflation.
+    reproduction: >-
+      At `8dd0442`: `grep -rn "or True" tests/` returns exactly TWO lines in
+      total -- `test_falsifiable_controls.py:524` and `test_score_tools.py:2204`,
+      the second of which is repaired in this PR -- and does NOT return
+      `test_code_complexity.py:856`, which is a separate shape found by reading
+      rather than by that grep. Replace `shutil.which("python3")` with `False` in
+      `tests/test_falsifiable_controls.py:524` and run
+      `uv run --with pytest --with pyyaml -m pytest tests/test_falsifiable_controls.py -q`:
+      the test still passes, because the `or True` makes the operand irrelevant.
+    evidence:
+      - "tests/test_falsifiable_controls.py:524"
+      - "tests/test_code_complexity.py:856"
+      - "specs/results/scorecards/stabilize-substrate/SS-06/RESULT.md section 4"
+    why_out_of_scope: >-
+      Both files are outside SS-06's conflict keys at BOTH schedule revisions.
+      `schedule_revision 2` added `tests/test_score_tools.py` to them -- which is
+      why the third instance of this shape IS repaired here -- but neither
+      `tests/test_falsifiable_controls.py` nor `tests/test_code_complexity.py` is
+      in any ticket's keys. The deferment policy says defects outside the keys are
+      deferred rather than fixed, and a one-line edit is not an exception to it.
+    suggested_fix: >-
+      Delete the line in `test_falsifiable_controls.py` -- the test's other six
+      assertions carry it and the deleted one adds nothing -- or, if the intent was
+      "python3 is on PATH", assert that without the `or True`. For
+      `test_code_complexity.py`, assert the totals against a property the analyzer
+      could get WRONG (a count that matches a re-derivation, a key set) rather than
+      against non-negativity.
+    blast_radius: >-
+      Two lines. The class is the number that matters: `CA-10-DF-14` was filed as
+      three instances of one shape in one module, and the class has at least two
+      shapes across at least four modules. Any figure of the form "N passed" in this
+      programme is an upper bound on the number of assertions that were executed and
+      could have failed, and nothing in the substrate computes the difference.
+    disposition: carried
+    disposition_ticket: "SS-05 -- the absent-input class; these are the same class seen from the test side"
+    disposition_note: >-
+      OPEN and ROUTED, not carried silently. Both lines are outside SS-06's conflict
+      keys and each is a one-line edit; the reason they are not made here is the
+      deferment policy, not difficulty. If SS-05 declines them they belong to the
+      owner at finalisation, and SS-08 should count them against the vacuous-pass
+      clause of GOAL-tree-stabilizes rather than treating that clause as closed at
+      six.
+
+  - id: SS-06-DF-02
+    found_by: "SS-06, by RUNNING the deletion battery it wrote rather than by reading it"
+    found_at_commit: "8dd0442"
+    schedule_revision: 1
+    severity: minor
+    channel: operator-running-own-instrument
+    cost:
+      basis: "one battery run whose census printed an arithmetically impossible row"
+      value: "a three-node run reported as `3 failed, 3 passed`"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/stabilize-substrate/SS-06/vacuity_probe.py"
+    summary: >-
+      A RECOGNISER THAT READ ITS SUBJECT'S PROSE AS ITS SUBJECT'S RESULT, INSIDE THE
+      INSTRUMENT SS-06 WROTE TO POLICE VACUOUS CHECKS. The first version of
+      `vacuity_probe.summarise` grepped the WHOLE pytest report for `(\d+) passed`
+      and took the last match. `pytest` echoes the source of a failing assertion,
+      and the helper the battery had just repaired carries the string
+      "`3 passed` either way" in its docstring -- so a THREE-NODE run whose real
+      summary line was `3 failed in 0.07s` was published by the census as
+      `3 failed, 3 passed`. The impossibility of the row is what exposed it; a
+      plausible wrong number would have shipped. SAME CLASS AS `CA-08-DF-01` -- a
+      recogniser bound by the form of the text it sweeps rather than by the fact it
+      is trying to read -- seen from the other side.
+    reproduction: >-
+      Restore the whole-report grep and run the shipped self-test:
+      `python3 specs/results/scorecards/stabilize-substrate/SS-06/vacuity_probe.py
+      --selftest` reports
+      `summarise/summary line wins over echoed prose: got '3 failed, 3 passed',
+      wanted '3 failed'` and exits 1. The mutant and its output are sealed at
+      `specs/results/scorecards/stabilize-substrate/SS-06/evidence/selftest-mutants.txt`.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-06/evidence/selftest-mutants.txt"
+      - "specs/results/scorecards/stabilize-substrate/SS-06/vacuity_probe.py -- SUMMARY_LINE_RE and its comment"
+    why_out_of_scope: >-
+      IN scope and REPAIRED in this PR, and filed anyway because the finding is not
+      the line. It is that an instrument written BY this ticket, ABOUT this class,
+      shipped an instance of a neighbouring class within the hour, and that the only
+      reason it was caught is that the wrong answer happened to be arithmetically
+      impossible.
+    suggested_fix: >-
+      Anchor a report recogniser on the report's own summary line, never on a grep
+      over the whole text, and give it an UNPARSED answer distinct from a zero.
+      Both are in the shipped version. The general rule -- a recogniser over a
+      document that quotes other documents must anchor on structure, not on a token
+      that can appear in the quotation -- is the one `CA-08-DF-01` also needs and
+      neither row states.
+    blast_radius: >-
+      One census, corrected before publication. The class is wider: every instrument
+      in this repository that greps a captured report -- and several do -- can read a
+      figure out of the text it is quoting.
+    disposition: repaired
+    disposition_note: >-
+      Repaired in this PR with a demonstrated failing input in both directions
+      (`--selftest` FAILs on the seeded mutant, PASSes on the shipped version).
+
+  - id: SS-06-DF-03
+    found_by: "SS-06, re-measuring CA-10-DF-15 before acting on it"
+    found_at_commit: "8dd0442"
+    schedule_revision: 1
+    severity: minor
+    channel: the-suite
+    cost:
+      basis: "one targeted three-node run (5m30s, dominated by the rh5 subprocess) and one ledger lookup"
+      value: "a filed population of 2 that is 3"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "tests/test_score_tools.py"
+    summary: >-
+      `CA-10-DF-15`'S POPULATION IS THREE, NOT TWO, AND THE THIRD IS THE ONE THAT
+      MATTERS MOST. The finding names `test_the_repo_ledger_passes_its_own_audit`
+      and `..._with_rh6`. `test_the_shipped_rh5_demonstration_still_goes_red`
+      carries the same `**DELIBERATELY RED (RM-06, group 2)**` declaration, cites
+      the same `RM-06-DF-02`, and is also GREEN -- and it is the row that runs
+      `demonstrate_rh5.py`, the shipped R1 demonstration, so a reader trusting its
+      declaration would believe the demonstration cannot currently certify itself.
+      MEASURED AT `8dd0442`: all three pass (`3 passed in 329.75s`), `audit` reports
+      `0 violation(s)` and exits 0, `RM-06-DF-02`'s ledger disposition is `settled`,
+      and the `[[demonstration]]` row in `specs/results/scorecards/INSTRUMENT-LOG.toml`
+      carries `settled_by = "RM-04"` with the stale `ranges`/`tiers_measured` fields
+      WITHDRAWN rather than edited into agreement. The declarations describe a
+      violation settled two epics ago.
+    reproduction: >-
+      `uv run --with pytest --with pyyaml -m pytest -q
+      tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit
+      tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit_with_rh6
+      tests/test_score_tools.py::test_the_shipped_rh5_demonstration_still_goes_red`
+      -> `3 passed`. `grep -rn "DELIBERATELY RED" tests/` before this PR -> four
+      sites in two modules; the fourth,
+      `tests/test_architecture_tags.py::test_the_same_tag_control_holds`, cites
+      `RM-06-DF-01`, which is `open`, and IS red.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-06/evidence/declared-reds-were-green-8dd0442.txt"
+      - "specs/results/scorecards/stabilize-substrate/SS-06/evidence/audit-0-violations-8dd0442.txt"
+      - "tests/test_declared_reds_cite_an_open_finding.py"
+    why_out_of_scope: >-
+      IN scope: `CA-10-DF-15` was routed to SS-06 by the work order to be DECIDED.
+      Filed as its own row because the correction is a fact about the record -- the
+      filed population was wrong -- and `R-H4` forbids editing `CA-10-DF-15` itself.
+    suggested_fix: >-
+      Done in this PR, in both halves. The three docstrings now say WHEN the
+      violation was settled and BY WHAT, per `CA-10-DF-15`'s own suggested_fix, and
+      `tests/test_declared_reds_cite_an_open_finding.py` COMPUTES the relation --
+      every test declaring itself red must cite at least one finding that is still
+      `open` or `carried` in the ledger. That check refuses the three stale
+      declarations before the repair and accepts the live one throughout, which is
+      the demonstrated failing input on a real subject.
+    blast_radius: >-
+      Three docstrings and one new check. The class -- a declaration of deliberate
+      redness that outlives the red -- makes every "declared red" count in this
+      programme slightly less trustworthy than it reads, and it survived from
+      `RM-06` through `CA-10` to here because nothing computed it. That is
+      `planning_rules.consumption_is_changing_what_the_substrate_checks` measured on
+      a live example: the finding was routed twice and consumed zero times.
+    disposition: repaired
+    disposition_ticket: "SS-06"
+    disposition_note: >-
+      REPAIRED in both halves and measured at `8dd0442`: the three stale docstrings
+      now state WHEN the violation was settled (`RM-04`) and BY WHAT (the row's
+      `ranges`/`tiers_measured` fields withdrawn, replaced by prose naming the
+      49-card population plus an executed assertion), and
+      `tests/test_declared_reds_cite_an_open_finding.py` COMPUTES the relation the
+      finding describes -- it refuses the three stale declarations before the repair
+      and accepts the live `RM-06-DF-01` one throughout. The edit is in
+      `tests/test_score_tools.py`. That file was OUTSIDE SS-06's conflict keys
+      when the edit was made and is INSIDE them at `schedule_revision 2`, which
+      the owner amended mid-flight after the SS-04 review found it assigned to a
+      closed ticket. Both facts are stated in the PR body rather than only the
+      convenient one; `CA-10-DF-15` was routed to SS-06 by the work order to be
+      decided either way.
+
+  - id: SS-06-DF-04
+    found_by: "SS-06, adjudicating SS-02-DF-09 by seeding the evasion its author named"
+    found_at_commit: "8dd0442"
+    schedule_revision: 1
+    severity: minor
+    channel: independent-review
+    channel_note: >-
+      the finding is the reviewer's (SS-02-DF-09); this row records the ADJUDICATION and
+      the measurement that decided it.
+    cost:
+      basis: "one seeded caller file and two guard runs"
+      value: "the exact evasion named in the finding, executed"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "tests/test_absent_input_demonstrations.py"
+    summary: >-
+      `SS-02-DF-09` IS CORRECT ON BOTH GUARDS AND BOTH CAN BE WIDENED HONESTLY.
+      SS-06's remit was to widen or to file that widening is not honest; the answer
+      is widen, and the evidence is the reviewer's own hypothetical, executed.
+      Seeding `scripts/_probe_gate_caller.py` containing
+      `from score_tools import cmd_absent_input` -- the evasion the finding names --
+      leaves the SHIPPED `test_the_check_gates_nothing` GREEN and turns the widened
+      one RED, which is a demonstrated failing input on a real subject in both
+      directions. Widened from one directory and one spelling to five program
+      surfaces (`scripts`, `skill-scripts`, `templates`, `test_graph`,
+      `spec_double_compiler`) and three spellings (`absent-input`, `absent_input`,
+      `cmd_absent_input`): ZERO hits at this tree, so the clause now passes for a
+      reason rather than by construction. `test_the_register_is_the_only_thing_the_
+      check_reads` widened from `argv` alone to every path-bearing field --
+      `argv`, `cwd`, every `env` value, `link.from`, `link.to`, `write.file` -- and
+      all 30 fields across the two contracted instruments pass.
+      WHAT COULD NOT BE WIDENED, STATED RATHER THAN LEFT IMPLIED: a text search
+      cannot see a call assembled at runtime, dispatched through a registry, or
+      spelled by a shell fragment, and `link.from = "."` is legitimately the whole
+      repository in three of the six shipped states, so the widened guard bounds
+      ABSOLUTE and ESCAPING paths and cannot bound reach within the repository. A
+      clean result is a floor, never a proof, and the clause is still established by
+      reading as well as by execution.
+    reproduction: >-
+      At `8dd0442`, in a throwaway clone: write `scripts/_probe_gate_caller.py`
+      containing `from score_tools import cmd_absent_input`. The shipped guard --
+      `[p for p in (REPO_ROOT/"scripts").rglob("*.py") if "absent-input" in p.read_text()]`
+      -- returns `[]` and PASSES. `uv run --with pytest --with pyyaml -m pytest -q
+      tests/test_absent_input_demonstrations.py::test_the_check_gates_nothing`
+      against the widened version FAILS naming `scripts/_probe_gate_caller.py`.
+      Sealed at `specs/results/scorecards/stabilize-substrate/SS-06/evidence/ss02-df09-seeded-evasion.txt`.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-06/evidence/ss02-df09-seeded-evasion.txt"
+      - "tests/test_absent_input_demonstrations.py -- PROGRAM_SURFACES, CALLER_TOKENS, paths_declared"
+    why_out_of_scope: >-
+      `tests/test_absent_input_demonstrations.py` is SS-02's conflict key and not
+      SS-06's; the work order routed `SS-02-DF-09` to SS-06 explicitly and SS-02's
+      PR #284 is merged, so no concurrent owner holds the file. Disclosed as an
+      out-of-key edit in the PR body rather than performed silently.
+    suggested_fix: >-
+      Done in this PR. The general rule the class needs and nothing states: a guard
+      cited for a doctrine clause must be able to FAIL on the evasion the clause is
+      about, and the way to establish that is to seed the evasion, not to read the
+      guard.
+    blast_radius: >-
+      Two guards in one file. The wider point is that the PR that shipped them cited
+      them for a clause they did not compute, and the reviewer who caught it was
+      instructed to REFUTE -- which is the only reason it was caught.
+    disposition: repaired
+    disposition_ticket: "SS-06"
+    disposition_note: >-
+      REPAIRED. Both guards widened and both widenings demonstrated by execution:
+      the caller search now reaches five program surfaces and three spellings and
+      goes RED on the seeded `from score_tools import cmd_absent_input` that the
+      shipped guard could not see, and the register search now reads every
+      path-bearing field with a synthetic spec pinning that `link.from` is visible.
+      WHAT REMAINS UNWIDENED IS STATED IN THE FILE: a text search cannot see a call
+      assembled at runtime, and `link.from = "."` is legitimately the whole
+      repository, so the guard bounds absolute and escaping paths and cannot bound
+      reach within the repository. The edit is in
+      `tests/test_absent_input_demonstrations.py`, SS-02's conflict key and not
+      SS-06's; SS-02's PR #284 is merged so no concurrent owner holds it, and the
+      out-of-key edit is disclosed in the PR body.
+
+  - id: SS-06-DF-05
+    found_by: "SS-06, MEASURING its own instrument against SS-02's rule instead of reasoning about it"
+    found_at_commit: "b547cb9"
+    schedule_revision: 2
+    severity: minor
+    channel: operator-running-own-instrument
+    channel_note: >-
+      found by staging the five absent-input states against the instrument this ticket
+      ships, exactly as SS-07 was asked to do for stranded_loaders.py at ab9a244
+    cost:
+      basis: "one mktemp -d, one chmod 000, five invocations"
+      value: "two states answering in another state's words, in an instrument about vacuous checks"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/stabilize-substrate/SS-06/vacuity_probe.py"
+    summary: >-
+      "I WAS NOT ALLOWED TO LOOK" WAS REPORTED IN THE EXACT WORDS OF "THERE IS
+      NOTHING THERE", INSIDE THE INSTRUMENT THIS TICKET SHIPPED TO POLICE CHECKS
+      THAT CANNOT FAIL. `vacuity_probe.py` guarded `--root` with
+      `(root / "tests").is_dir()`, and `Path.is_dir()` returns False on a
+      `PermissionError` -- so a directory this process may not READ answered
+      `root is not a checkout of this repository (no tests/ or scripts/)`, which
+      is the EMPTY state's message. The VERDICT was already correct (a refusal,
+      exit 2), so `SS-02`'s rule as written was satisfied and the defect was in
+      the CAUSE, which is a fabrication. THIS IS THE SAME SHAPE AS `SS-07-DF-08`
+      -- `rglob` swallowing `PermissionError` so "not allowed to look" reads as
+      "nothing there", in the sweep `SS-07` shipped -- AND THE SAME AS
+      `SS-01-DF-04`, where an unreadable ledger produced 14 confident fabrication
+      accusations against real citations. SECOND, SMALLER: a case whose subject was absent before mutation
+      exited 1 with a bare message -- the code a FAILING battery uses -- when
+      "nothing to take away" is not "taking it away changed nothing".
+      ================================================================
+      CORRECTED IN THE PR #286 REVIEW ROUND. THE DEFECT IS REAL AND REPAIRED; THE
+      CAUSE THIS ROW ORIGINALLY GAVE IS REFUTED AND THE CLAUSE IT ESCALATED IS
+      WITHDRAWN. It said: "THREE INSTRUMENTS, THREE EPIC TICKETS, ONE MECHANISM,
+      AND THE RULE THAT CATCHES IT IS ABOUT THE MESSAGE RATHER THAN THE VERDICT --
+      `SS-02`'s clause requires UNDECIDED-or-REFUSE and all three REFUSED, so a
+      rule stated on the verdict alone cannot see this class." THAT IS FALSE ABOUT
+      THE EXECUTED SUBSTRATE. The reviewer built a throwaway register entry for the
+      pre-repair probe and ran the SHIPPED check; SS-06 reproduced it
+      independently. All three states report `ok` ON THE VERDICT and the check
+      REFUSES ANYWAY, ON THE MESSAGE: `--only vacuity-probe-pre` ->
+      `ok ok ok  REFUSED`, exit 1, naming `['unreadable','empty'] are
+      INDISTINGUISHABLE ... UNDECLARED`; `--only vacuity-probe-post` ->
+      `SATISFIED`, exit 0. `absent_measure` calls `absent_indistinguishable`
+      UNCONDITIONALLY (`score_tools.py:4818`, `:4938-4946`) and an undeclared
+      collapse sets `verdict = REFUSED`.
+      THE REAL CAUSE IS REGISTER COVERAGE, AND `SS-07-DF-08` -- THE ROW THIS ONE
+      CITED AS ITS PRECEDENT -- SAYS SO IN ITS FIRST SENTENCE:
+      "`stranded_loaders.py` is NOT registered in `instruments.toml`, so
+      `score_tools.py absent-input` does not sweep it." AND THE THREE-INSTRUMENT
+      COMPARISON WAS WRONG IN THE DIRECTION THAT FLATTERED THE CLAIM: of the three,
+      only `scorecard-audit` is REGISTERED, and for that one the substrate DID
+      separate the states and REQUIRED a declaration, which its contract carries.
+      The other two were never swept. "Nothing in this repository's doctrine
+      separates them" was a claim about two files nobody had pointed the check at.
+    reproduction: >-
+      Before the repair: `mkdir /tmp/locked && chmod 000 /tmp/locked && python3
+      specs/results/scorecards/stabilize-substrate/SS-06/vacuity_probe.py --root
+      /tmp/locked` prints `root is not a checkout of this repository (no tests/
+      or scripts/)`, byte-identical to the message for an EMPTY directory. After
+      the repair it prints `root cannot be READ (permission denied) ... nothing
+      was looked at, so nothing is known about what is there`. Pinned in both
+      directions: seed mutant C (replace `next(root.iterdir(), None)` with
+      `pass`) and `--selftest` reports FAIL; restore it and it reports PASS.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-06/evidence/would-my-own-instrument-pass.txt -- all seven states, each with its exit code"
+      - "specs/results/scorecards/stabilize-substrate/SS-06/evidence/selftest-mutants.txt -- mutant C"
+    why_out_of_scope: >-
+      IN scope and REPAIRED here. Filed because the instance is not the finding.
+      The finding is that `SS-02`'s clause is stated on the VERDICT and this class
+      lives in the MESSAGE, so an instrument can satisfy the rule in full while
+      telling a caller something false about why it refused -- and that has now
+      happened three times in this one epic, each time inside an instrument built
+      by the ticket that was policing the class.
+    suggested_fix: >-
+      Repaired here for this instrument. THE CLAUSE THIS ROW ORIGINALLY PROPOSED
+      IS WITHDRAWN: it asked `r1_now_requires_an_absent_input` to require declared
+      states to be pairwise distinguishable in their output, and THE SHIPPED CHECK
+      ALREADY ENFORCES EXACTLY THAT, unconditionally. Proposing a doctrine line for
+      a property that already has an instrument is the error
+      `planning_rules.consumption_is_changing_what_the_substrate_checks` names in
+      one sentence -- A DOCTRINE LINE WITH NO INSTRUMENT IS A PREFERENCE --
+      committed by the ticket citing the rule. WHAT TO ADOPT INSTEAD IS ALREADY
+      FILED: `SS-07-DF-08`'s suggested_fix, "a NEW instrument shipped by a ticket
+      should be run through `absent-input` BEFORE it is published ... because
+      registration is manual and nothing notices an unregistered instrument." The
+      gap is REGISTER COVERAGE, not the rule's wording, and the registration
+      decision is the epic owner's.
+    blast_radius: >-
+      One instrument, repaired before it was ever used for a published figure.
+      The class is three known instruments in one epic and an unknown number
+      outside it, and the reason it keeps recurring is that `PermissionError`,
+      `FileNotFoundError` and "parsed and found nothing" all collapse into the
+      same falsy value in Python. WHAT DOES NOT HOLD is the claim that nothing
+      separates them: the substrate separates them for every instrument it can
+      SEE, and the exposure is the instruments it cannot. 2 of 56 register entries
+      carried a contract at SS-02 and 3 of 56 after SS-04; every unregistered
+      instrument is outside the sweep entirely.
+    disposition: repaired
+    disposition_ticket: "SS-06"
+    disposition_note: >-
+      REPAIRED in the instrument and pinned by a seeded mutant. THE ESCALATED
+      CLAUSE IS WITHDRAWN after the PR #286 review refuted the cause BY EXECUTION.
+      SS-08 should read this row as evidence about REGISTER COVERAGE, and must NOT
+      read the withdrawn sentence still standing in
+      `specs/.history/stabilize-substrate-epic/ticket-005-SS-06/summary.md`, which
+      `R-H4` protects. The live
+      `specs/results/scorecards/stabilize-substrate/SS-06/RESULT.md` section 5A is
+      authoritative.
+
+  - id: SS-06-DF-06
+    found_by: "independent reviewer of PR #286 instructed to REFUTE"
+    found_at_commit: "97e1c42"
+    schedule_revision: 2
+    severity: medium
+    channel: independent-review
+    channel_note: >-
+      found by flipping a disposition in a throwaway ledger -- an input SS-06 never
+      tried on its own check, because SS-06 only ever ran it against the ledger it
+      had just written
+    cost:
+      basis: "one disposition flipped in a throwaway copy of the ledger, one targeted run"
+      value: "a check that goes RED exactly when the next ticket does the right thing"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "tests/test_declared_reds_cite_an_open_finding.py"
+        - "tests/test_score_tools.py"
+    summary: >-
+      THE CHECK SS-06 SHIPPED TO POLICE STALE DECLARATIONS COULD NOT TELL A
+      DECLARATION FROM A QUOTATION OF ONE, AND THAT MADE IT A TIME BOMB FOR THE
+      TWO REMAINING TICKETS. `declarations_in` matched `DECLARATION_FORMS` as a
+      lowercase substring over the WHOLE function source, so the three
+      `tests/test_score_tools.py` docstrings SS-06 had just CORRECTED -- which
+      quote the withdrawn declaration in order to say when it was settled and by
+      what -- still counted as LIVE declarations. They passed only because they
+      now also cite `CA-10-DF-15`, which is still `carried`. MEASURED: flip
+      `CA-10-DF-15` to `repaired` in a throwaway ledger and
+      `test_no_declaration_of_deliberate_redness_outlives_its_finding` goes RED
+      naming two of them. `SS-06-DF-03` is filed `repaired`, so DISPOSING
+      `CA-10-DF-15` -- the correct next action, and the one this ticket's own work
+      invites -- IS WHAT BREAKS IT. `SS-05` and `SS-08` inherit a check that
+      refuses when they do the right thing.
+      THIS IS `SS-06-DF-02`'s CLASS: a recogniser reading its subject's PROSE as
+      its subject's STATE. Third instance in this one ticket, and this time inside
+      the check written to police the class.
+    reproduction: >-
+      At `97e1c42` in a throwaway clone: in `specs/deferred_findings.yaml` change
+      `CA-10-DF-15`'s `disposition: carried` to `repaired`, then
+      `uv run --with pytest --with pyyaml -m pytest -q
+      tests/test_declared_reds_cite_an_open_finding.py` -> `1 failed, 7 passed`,
+      naming `test_the_shipped_rh5_demonstration_still_goes_red` and
+      `test_the_repo_ledger_passes_its_own_audit` with
+      `every finding it cites is closed (['CA-10-DF-15=repaired',
+      'RM-06-DF-02=settled'])`. After the repair the same flip gives `10 passed`.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-06/evidence/f2-declared-reds-timebomb.txt -- reproduced before the fix"
+      - "specs/results/scorecards/stabilize-substrate/SS-06/evidence/f2-timebomb-defused.txt -- the same flip after it, plus the flip SS-05/SS-08 will actually make"
+    why_out_of_scope: >-
+      IN scope and REPAIRED here. `tests/test_declared_reds_cite_an_open_finding.py`
+      is this ticket's own new file and `tests/test_score_tools.py` is in its
+      conflict keys at `schedule_revision 2`.
+    suggested_fix: >-
+      Done, and STRUCTURALLY rather than with better prose, because a phrase cannot
+      fix a phrase-matching bug. A literal token `SS-06:WITHDRAWN-DECLARATION`
+      marks a quotation, and it is NOT a mute button: a withdrawal is only accepted
+      when at least one finding it cites is TERMINAL, so it cannot silence a
+      declaration whose subject is still live. Both directions are asserted --
+      `test_a_withdrawn_declaration_survives_its_finding_being_disposed` and
+      `test_the_withdrawal_marker_cannot_silence_a_live_declaration` -- and
+      `test_the_recogniser_is_not_matching_nothing` now refuses an empty LIVE
+      population as well as an empty total, so a tree of nothing but withdrawn
+      quotations cannot pass vacuously.
+      THE GENERAL RULE, WHICH IS THE PART WORTH MORE THAN THE FIX: a check over
+      this project's own PROSE must be tested against the prose THIS TICKET IS
+      ABOUT TO WRITE, not only against the prose that exists when it is written.
+      SS-06 wrote the check and the corrected docstrings in the same PR and never
+      ran the one against a disposed ledger.
+    blast_radius: >-
+      One check and three docstrings. The consequence avoided is larger: `SS-08`
+      is the evaluation ticket, it will dispose findings, and a red it did not
+      cause in a check it did not write would have been attributed to the wrong
+      thing -- which is exactly what `CA-10-DF-15` says happened the last time
+      this class fired.
+    disposition: repaired
+    disposition_ticket: "SS-06"
+    disposition_note: >-
+      REPAIRED in the PR #286 review round and pinned in both directions against
+      the real ledger. Verified with `CA-10-DF-15` flipped to `repaired`: `10
+      passed`.
+
+  - id: SS-06-DF-07
+    found_by: "independent reviewer of PR #286 instructed to REFUTE"
+    found_at_commit: "97e1c42"
+    schedule_revision: 2
+    severity: medium
+    channel: independent-review
+    channel_note: >-
+      found by deleting a DIFFERENT file than the one SS-06 tested with -- one file
+      out of specs/current instead of the whole directory
+    cost:
+      basis: "one `rm specs/current/MC.cfg` and one targeted run at each of two trees"
+      value: "two honest reds converted into three skips stating a false cause"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "tests/test_analyze_complexity.py"
+    summary: >-
+      SS-06'S REPAIR FOR `SS-06-DF-05` COMMITTED `SS-06-DF-05`'s MECHANISM.
+      `_workflow_state_or_skip` skipped on ANY missing named path with ONE
+      hard-coded cause -- "no spec workflow is open in this checkout" -- so with
+      the workflow OPEN and one file of it missing it printed a sentence that was
+      FALSE. MEASURED by deleting `specs/current/MC.cfg` alone and leaving
+      `TlaSpecDevCli.tla` in place: at `8dd0442`, with the bare-return guards, the
+      three nodes report `2 failed, 1 passed` -- the tree telling the truth by
+      failing on the missing file. At SS-06's tip they report `3 skipped`,
+      announcing that no spec workflow is open WHILE ONE IS.
+      SO THE REPAIR MADE THE REPORT WORSE FOR THAT INPUT: it replaced two honest
+      reds with a fabricated cause, which is the same verdict-defensible /
+      cause-invented shape as `SS-06-DF-05` and `SS-07-DF-08`. FOURTH INSTANCE OF
+      THE MECHANISM IN THIS ONE TICKET, and the only reason it was caught is that
+      a reviewer deleted a different file than the one SS-06 tested with.
+      THE MISSING DISTINCTION IS THAT WORKFLOW STATE HAS THREE STATES, NOT TWO:
+      absent (closed -- UNDECIDED), present and complete (measure it), and PRESENT
+      BUT INCOMPLETE, which is a DEFECT and gets a refusal.
+    reproduction: >-
+      In a throwaway clone: `rm specs/current/MC.cfg`, then run the three nodes
+      `test_repository_own_model_reproduces_the_recorded_state_space_bound`,
+      `test_cm01df02_the_repository_own_cfg_is_unchanged_by_the_fix` and
+      `test_repository_own_model_has_landed_the_setup_phase_collapse`. With
+      `tests/test_analyze_complexity.py` at `8dd0442`: `2 failed, 1 passed`. With
+      it at `97e1c42`: `3 skipped`, reason `specs/current/MC.cfg is absent -- no
+      spec workflow is open in this checkout`.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-06/evidence/f4-incomplete-workflow-state.txt -- both trees, same deletion"
+    why_out_of_scope: >-
+      IN scope and REPAIRED here; `tests/test_analyze_complexity.py` is SS-06's own
+      conflict key and the defect is in SS-06's own repair.
+    suggested_fix: >-
+      Done. The helper now reads the WORKFLOW ROOT to decide which absent answer is
+      true: `specs/current/` absent -> skip, naming the root and the missing files;
+      `specs/current/` present with a named file missing -> AssertionError, because
+      incomplete workflow state is a defect and reporting it as a closed workflow
+      states a false cause.
+      THE GENERAL POINT: an absent-input repair must be tested against EVERY
+      granularity of absence, not just the one that motivated it. SS-06 tested by
+      deleting a whole directory and never by deleting one file out of it, and the
+      distinction it shipped was exactly the one that granularity exposes.
+    blast_radius: >-
+      One helper guarding three tests. The direction matters more than the count:
+      this is a repair that made a report LESS true for an input nobody tried, in
+      the ticket whose subject is reports that are less true than they look.
+    disposition: repaired
+    disposition_ticket: "SS-06"
+    disposition_note: >-
+      REPAIRED in the PR #286 review round. Both branches exercised: the closed
+      workflow still skips with the root named, and the incomplete workflow now
+      refuses.

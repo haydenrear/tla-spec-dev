@@ -1,0 +1,79 @@
+# SS-06: every unit of the collection movement, attributed BY NODE at each of the
+# three trees this ticket measured. Nothing here is inferred.
+
+## A. base 8dd0442 (workspace NOT open, before SS-04 merged) -> 1558
+## B. tip 8fa4626 (workspace OPEN, before reconciling)          -> 1571  (+13)
+## C. tip 6ee1532 (workspace OPEN, SS-04 reconciled)            -> 1608  (+50 from A)
+
+### A -> B, +13
+  ADDED (16):
+    tests/test_absent_input_demonstrations.py::test_the_path_reader_sees_every_field_and_not_only_argv
+    tests/test_declared_reds_cite_an_open_finding.py::test_a_declaration_with_no_citation_is_refused
+    tests/test_declared_reds_cite_an_open_finding.py::test_an_empty_module_is_no_declarations_not_a_clean_bill
+    tests/test_declared_reds_cite_an_open_finding.py::test_every_declaration_names_a_finding
+    tests/test_declared_reds_cite_an_open_finding.py::test_it_accepts_a_real_standing_declaration
+    tests/test_declared_reds_cite_an_open_finding.py::test_it_refuses_a_real_stale_declaration
+    tests/test_declared_reds_cite_an_open_finding.py::test_no_declaration_of_deliberate_redness_outlives_its_finding
+    tests/test_declared_reds_cite_an_open_finding.py::test_the_recogniser_does_not_reach_into_a_neighbouring_test
+    tests/test_declared_reds_cite_an_open_finding.py::test_the_recogniser_is_not_matching_nothing
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[complexity_ledger.yaml0]
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[complexity_ledger.yaml1]
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[spec_manifest.yaml6]
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[spec_manifest.yaml7]
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[ticket.yaml0]
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[ticket.yaml1]
+  REMOVED (2):
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[complexity_ledger.yaml]
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[ticket.yaml]
+  ATTRIBUTION
+    +9  MINE      : 8 in the new tests/test_declared_reds_cite_an_open_finding.py
+                    plus 1 in test_absent_input_demonstrations.py. All 9 PASS.
+    +4  MACHINERY : 6 added minus 2 removed in test_spec_yaml_valid, because
+                    'open ticket' scaffolds specs/tickets/SS-06/ and two un-suffixed
+                    ids become suffixed 0/1 pairs. The documented +4 that
+                    'close ticket' removes again. NOT MINE.
+
+### A -> C, +50
+  ADDED, by module:
+      1 tests/test_absent_input_demonstrations.py
+     37 tests/test_counted_figure_recogniser.py
+      8 tests/test_declared_reds_cite_an_open_finding.py
+      6 tests/test_spec_yaml_valid.py
+  REMOVED, by module:
+      2 tests/test_spec_yaml_valid.py
+  ATTRIBUTION
+    +37 SS-04     : tests/test_counted_figure_recogniser.py, SS-04's new module.
+                    NOT MINE and not attributable to this ticket in either direction.
+    +9  MINE      : as above.
+    +4  MACHINERY : as above.
+    ---
+    +50 total, and 1558 + 50 = 1608.
+
+### C -> D, the close: 1608 -> 1604, exactly -4
+  REMOVED (6):
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[complexity_ledger.yaml0]
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[complexity_ledger.yaml1]
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[spec_manifest.yaml6]
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[spec_manifest.yaml7]
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[ticket.yaml0]
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[ticket.yaml1]
+  ADDED (2):
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[complexity_ledger.yaml]
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[ticket.yaml]
+  ATTRIBUTION
+    -4 MACHINERY : the exact inverse of the +4 at A -> B. 'close ticket' deletes
+                   specs/tickets/SS-06/ and the suffixed 0/1 pairs collapse back to
+                   the un-suffixed ids. NOT MINE, and predicted before it happened.
+  D. post-close 64c2f91 (workspace CLOSED) -> 1604, and 7+1596+0+1 = 1604.
+
+### D -> E, the review round: 1604 -> 1606, +2
+  ADDED (2), both mine, both passing:
+    tests/test_declared_reds_cite_an_open_finding.py::test_a_withdrawn_declaration_survives_its_finding_being_disposed
+    tests/test_declared_reds_cite_an_open_finding.py::test_the_withdrawal_marker_cannot_silence_a_live_declaration
+  REMOVED: none.
+  ATTRIBUTION
+    +2 MINE : the two directions of the SS-06-DF-06 withdrawal marker --
+              a withdrawn declaration survives its finding being disposed, and
+              the marker cannot silence a live one. Both added because the
+              PR #286 reviewer showed the check was a time bomb without them.
+  E. review tip 5c06db8 (workspace CLOSED) -> 1606, and 7+1598+0+1 = 1606.

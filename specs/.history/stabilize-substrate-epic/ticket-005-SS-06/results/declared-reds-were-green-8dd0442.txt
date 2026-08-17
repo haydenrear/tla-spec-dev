@@ -1,0 +1,34 @@
+# SS-06 / CA-10-DF-15: the three tests that DECLARE THEMSELVES RED, at 8dd0442, unmodified.
+# Throwaway clone at 8dd044230a09013b3ea912bfead2cc97e0f8a321.
+
+## Every DELIBERATELY RED / EXPECTED RED declaration in tests/, before this PR:
+  tests/test_architecture_tags.py:453:    **THIS TEST IS DELIBERATELY RED (`RM-06`, group 2). DO NOT MAKE IT GREEN.**
+  tests/test_architecture_tags.py:480:        f"EXPECTED RED -- see this test's docstring and RM-06-DF-01. The control "
+  tests/test_score_tools.py:1785:    **DELIBERATELY RED (`RM-06`, group 2), AND FOR A REASON WORTH READING.** The
+  tests/test_score_tools.py:1801:        "EXPECTED RED: the unmodified copy carries the standing R-H1 violation, "
+  tests/test_score_tools.py:1832:    """**DELIBERATELY RED (`RM-06`, group 2). DO NOT MAKE IT GREEN HERE.**
+  tests/test_score_tools.py:1849:        "EXPECTED RED on one standing R-H1 violation -- see this test's "
+  tests/test_score_tools.py:2171:    """**DELIBERATELY RED (`RM-06`, group 2).** Same single R-H1 violation as
+  tests/test_score_tools.py:2175:        "EXPECTED RED on one standing R-H1 violation -- see RM-06-DF-02:\n"
+
+## The three that cite RM-06-DF-02, run:
+...                                                                      [100%]
+3 passed in 293.06s (0:04:53)
+exit: 0
+
+## RM-06-DF-02's disposition in the live ledger:
+      disposition: settled
+## RM-06-DF-01's, cited by the FOURTH declaration (test_architecture_tags), which IS red:
+      disposition: open
+
+## The subject row, in specs/results/scorecards/INSTRUMENT-LOG.toml:
+  id = "effect_boundary-ab_quota_ledger-D3-effectful-vs-ports-and-adapters"
+  axis = "effect_boundary"
+  example = "ab_quota_ledger"
+  dimension = "D3"
+  values = ["effectful", "ports-and-adapters"]
+  separates = true
+  found_by = "RD-04"
+  implemented_by = "RD-05"
+  settled_by = "RM-04"
+  why = """

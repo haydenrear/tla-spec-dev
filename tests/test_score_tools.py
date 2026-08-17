@@ -1782,25 +1782,37 @@ def test_the_shipped_rh5_demonstration_still_goes_red(st):
     suite is what stops the demonstration from quietly stopping working, which
     is the class of artifact this epic is about.
 
-    **DELIBERATELY RED (`RM-06`, group 2), AND FOR A REASON WORTH READING.** The
-    two R-H5 breaks it exists to demonstrate BOTH STILL FIRE -- the stale-row
-    break and the unrecorded-practice break each produce exactly one R-H5
-    violation, as designed. What fails is the script's FIRST step: it refuses to
-    trust its own result unless the unmodified copy is green first, and the copy
-    inherits the one standing R-H1 violation on the `[[demonstration]]` row
-    (`RM-06-DF-02`). So the harness is reporting, correctly, that it cannot
-    certify a green baseline it does not have. Suppressing that precondition to
-    reach green here would remove the only thing that makes the demonstration
-    mean anything.
+    THIS DOCSTRING USED TO DECLARE THE TEST RED, AND THE DECLARATION OUTLIVED
+    THE RED (`CA-10-DF-15`, re-measured and corrected by `SS-06`).
+    `SS-06:WITHDRAWN-DECLARATION` -- the structural marker
+    `tests/test_declared_reds_cite_an_open_finding.py` reads, so the quotation
+    below is not mistaken for a live declaration (`SS-06-DF-06`). It read
+    "DELIBERATELY RED (`RM-06`, group 2)": the two R-H5 breaks both fired, but
+    the script's FIRST step -- it declines to trust its own result unless the
+    unmodified copy is green -- inherited the one standing R-H1 violation on the
+    `[[demonstration]]` row, `RM-06-DF-02`.
+
+    THAT VIOLATION WAS SETTLED BY `RM-04` AND NOBODY UPDATED THIS PARAGRAPH.
+    `specs/results/scorecards/INSTRUMENT-LOG.toml` carries `settled_by =
+    "RM-04"` on that row: the stale `ranges`/`tiers_measured` fields were
+    withdrawn in favour of prose naming the 49-card population they were true
+    of, plus an executed assertion (`tests/test_architecture_tags.py::
+    test_the_committed_demonstration_re_derives_from_the_cards`). The ledger
+    disposition of `RM-06-DF-02` is `settled`. MEASURED BY `SS-06` AT
+    `8dd0442`: `audit` reports 0 violations, exit 0, and this test PASSES.
+    `tests/test_declared_reds_cite_an_open_finding.py` now computes that
+    relation instead of leaving it to a paragraph.
     """
     script = (SCORECARDS / "falsifiable-instruments/GOAL-scorecard-carries-a-delta"
               / "measure/demonstrate_rh5.py")
     assert script.exists(), script
     proc = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
     assert proc.returncode == 0, (
-        "EXPECTED RED: the unmodified copy carries the standing R-H1 violation, "
-        "so the harness declines to certify a baseline. Both R-H5 breaks still "
-        "fire. See RM-06-DF-02.\n" + proc.stdout + proc.stderr)
+        "the demonstration did not certify itself. Until SS-06 this failure was "
+        "expected and attributed to the standing R-H1 violation on the "
+        "[[demonstration]] row; RM-06-DF-02 is settled and that attribution is "
+        "no longer available, so read the output below on its own terms.\n"
+        + proc.stdout + proc.stderr)
     assert "goes RED on both of the inputs it exists to catch" in proc.stdout
 
 
@@ -1829,25 +1841,39 @@ def test_the_audit_fails_when_the_doc_declares_a_rule_with_no_check(st, tmp_path
 # --------------------------------------------------------------------------
 
 def test_the_repo_ledger_passes_its_own_audit(st, capsys):
-    """**DELIBERATELY RED (`RM-06`, group 2). DO NOT MAKE IT GREEN HERE.**
+    """The repository's own record passes the audit it ships.
 
-    `audit` exits 1 over this repository on exactly ONE violation, and it is the
-    same one at `2c0d94e`, at `95b2c79` and at `356ffe8`: the ledger's single
-    `[[demonstration]]` row declares a D3 range and a tier list that the 73-card
-    record no longer supports. That is a DECLARED REFUSAL AUTHORITY disagreeing
-    with the cards, which is the one thing this audit exists to say out loud.
+    THIS DOCSTRING USED TO READ "**DELIBERATELY RED (`RM-06`, group 2). DO NOT
+    MAKE IT GREEN HERE.**" -- and it was green. `CA-10-DF-15`; re-measured and
+    corrected by `SS-06`. `SS-06:WITHDRAWN-DECLARATION` -- the structural marker
+    `tests/test_declared_reds_cite_an_open_finding.py` reads, so the quotation
+    above is not mistaken for a live declaration (`SS-06-DF-06`).
 
-    Editing the declaration into agreement would make the row certify whatever
-    the record happens to say and would silently widen what the axis may refuse
-    a comparison on. RM-06 made that edit and reverted it on the epic owner's
-    instruction; settling the row belongs with RM-04's threshold work.
-    `RM-06-DF-02`, and `tests/test_architecture_tags.py::
-    test_the_committed_demonstration_re_derives_from_the_cards` carries the
-    evidence that the row is SCOPED rather than wrong.
+    The declaration described `audit` exiting 1 on exactly ONE violation, the
+    same one at `2c0d94e`, `95b2c79` and `356ffe8`: the single
+    `[[demonstration]]` row declared a D3 range and a tier list the 73-card
+    record no longer supported -- a declared refusal authority disagreeing with
+    the cards. `RM-06` edited the row into agreement and REVERTED that edit on
+    the epic owner's instruction, because a row edited to match the record
+    certifies whatever the record happens to say.
+
+    IT WAS SETTLED BY `RM-04`, NOT BY THAT EDIT. The row in
+    `specs/results/scorecards/INSTRUMENT-LOG.toml` now carries `settled_by =
+    "RM-04"`: the `ranges` and `tiers_measured` fields were WITHDRAWN and
+    replaced with prose naming the 49-card population they were true of, plus
+    an executed assertion (`tests/test_architecture_tags.py::
+    test_the_committed_demonstration_re_derives_from_the_cards`). `RM-06-DF-02`
+    is `settled` in the ledger. MEASURED AT `8dd0442`: 0 violations, exit 0.
+
+    A red declared in prose and adjudicated nowhere is what let this paragraph
+    outlive its subject by two epics. `tests/test_declared_reds_cite_an_open_
+    finding.py` computes the relation now.
     """
     assert st.main(["audit", "--root", str(SCORECARDS), "--quiet-ok"]) == 0, (
-        "EXPECTED RED on one standing R-H1 violation -- see this test's "
-        "docstring and RM-06-DF-02:\n" + capsys.readouterr().out
+        "the record no longer passes its own audit. This was expected until "
+        "SS-06 and attributed to RM-06-DF-02, which is now settled, so this is "
+        "a NEW violation and the output below is the whole of the evidence:\n"
+        + capsys.readouterr().out
     )
     capsys.readouterr()
 
@@ -2168,15 +2194,25 @@ def test_the_shipped_record_records_every_contested_dimension_it_computes(st):
 
 
 def test_the_repo_ledger_passes_its_own_audit_with_rh6(st, capsys):
-    """**DELIBERATELY RED (`RM-06`, group 2).** Same single R-H1 violation as
-    `test_the_repo_ledger_passes_its_own_audit`; R-H6 itself is clean. See
-    `RM-06-DF-02`."""
+    """R-H6 is clean and so is the rest of the audit.
+
+    This used to read "**DELIBERATELY RED (`RM-06`, group 2).**" and cite the
+    same single R-H1 violation as `test_the_repo_ledger_passes_its_own_audit`,
+    while passing. `CA-10-DF-15`; `RM-06-DF-02` was settled by `RM-04` and the
+    declaration was not withdrawn. See that test's docstring for the record.
+    `SS-06:WITHDRAWN-DECLARATION` (`SS-06-DF-06`).
+    """
     assert st.main(["audit", "--root", str(SCORECARDS), "--quiet-ok"]) == 0, (
-        "EXPECTED RED on one standing R-H1 violation -- see RM-06-DF-02:\n"
-        + capsys.readouterr().out
+        "the record no longer passes its own audit; RM-06-DF-02 is settled, so "
+        "this is a NEW violation:\n" + capsys.readouterr().out
     )
-    assert "R-H6" in "".join(l for l in capsys.readouterr().out.splitlines()
-                             if l.startswith("##")) or True
+    # `... or True` MADE THIS ASSERTION UNFALSIFIABLE. Found by SS-06's sweep
+    # for `CA-10-DF-14`'s class -- a second sub-shape, a TAUTOLOGICAL ASSERTION
+    # rather than an early return, and it sat inside the same test as the stale
+    # DELIBERATELY RED declaration. `--quiet-ok` suppresses the OK lines, so
+    # `##` section headers are what remains, and R-H6 must have one.
+    headers = [l for l in capsys.readouterr().out.splitlines() if l.startswith("##")]
+    assert any(l.startswith("## R-H6") for l in headers), headers
 
 
 # ---- R3: a claim carries its scope ---------------------------------------
@@ -2326,23 +2362,53 @@ def test_a_scoped_claim_whose_denominator_moved_is_stale_and_not_refuted(st, tmp
     assert "the denominator rose" in moved[0]["detail"]
 
     # And the finding itself, asserted so it cannot quietly stop being true:
-    # no line in the shipped record reaches COUNT-MOVED any more.
+    # no DIMENSION-BOUND line in the shipped record reaches COUNT-MOVED.
+    #
+    # SS-04-DF-06 (1), decided by SS-06. `RM-06-DF-03` is about a claim of the
+    # form `D<n> = <v> on <n> of <m>` going stale, and SS-04's FORM P reads
+    # ordinary `<n> of <m>` prose, which cannot carry a dimension at all. Before
+    # SS-04 this line asserted over EVERY form because there was only one; after
+    # it, 39 form-P lines reach COUNT-MOVED and every one is a real figure whose
+    # card population moved.
+    #
+    # THE EXCLUSION IS ASSERTED, NOT ASSUMED. SS-06 re-derived the claim rather
+    # than accepting it: all 39 carry `dim is None`, so excluding form P cannot
+    # hide a dimension-bound COUNT-MOVED, and the loop below says so on every
+    # run. Narrowing this to a form label without that check would be exactly
+    # the "scope the control until it is quiet" move RM-06-DF-01 refuses.
     whole = st.run_scope(REPO_ROOT, SCORECARDS)
-    assert [r for r in whole if r["verdict"] == st.COUNT_MOVED] == [], (
-        "a shipped line is COUNT-MOVED again; RM-06-DF-03 is closed and this "
-        "demonstration should move back onto the record"
+    moved_now = [r for r in whole if r["verdict"] == st.COUNT_MOVED]
+    for r in moved_now:
+        assert r.get("form") == "P" and r.get("dim") is None, (
+            "a COUNT-MOVED line carries a dimension, so the form-P exclusion "
+            f"below would hide it: {r}"
+        )
+    assert [r for r in moved_now if r.get("form") != "P"] == [], (
+        "a shipped DIMENSION-BOUND line is COUNT-MOVED again; RM-06-DF-03 is "
+        "closed and this demonstration should move back onto the record"
     )
 
 
 def test_what_the_sweep_cannot_reach_is_counted_and_named(st):
     """`absent` and `checked, none found` are different claims, and this project
-    has been caught conflating them. Four reach limits are reported by name."""
+    has been caught conflating them. Every reach limit is reported BY NAME.
+
+    SS-04-DF-06 (2), decided by SS-06. The requirement is that no reach limit is
+    anonymous, and the assertion is `<=` over a NAMED set -- so when SS-04 added
+    two more named reasons the requirement was satisfied MORE fully and the
+    assertion still failed. **Extending the set is the correct response and
+    shrinking the reason list would be the wrong one**: a smaller list would make
+    the sweep report fewer distinct limits, which is the conflation this test
+    exists to prevent.
+    """
     results = st.run_scope(REPO_ROOT, SCORECARDS)
     unreachable = [r for r in results if r["verdict"] == st.UNREACHABLE]
     assert unreachable
     reasons = {r["reason"] for r in unreachable}
     assert reasons <= {"anaphoric scope", "arm-scoped", "unresolved qualifier",
-                       "non-card noun", "empty scope"}, reasons
+                       "non-card noun", "empty scope",
+                       # SS-04's two, added rather than the list shrunk:
+                       "no counted noun", "numerator has no predicate"}, reasons
     assert "anaphoric scope" in reasons and "arm-scoped" in reasons
     for r in unreachable:
         assert r["detail"], r
@@ -2352,11 +2418,33 @@ def test_a_movement_notation_is_not_read_as_a_count(st, tmp_path):
     """`D4 2/2 -> 4/4` is this repository's notation for a movement between two
     judge passes. Reading it as "D4 = 4 on 2 of 2 cards" would have manufactured
     a dozen refutations out of nothing, and a count inflated by a parser bug is
-    worse than no count."""
+    worse than no count.
+
+    SS-04-DF-06 (3), decided by SS-06. THE SUBJECT OF THIS TEST STILL HOLDS AND
+    ALWAYS DID: `2/2 -> 4/4 -> 3/4` is not read as a count, before SS-04 or
+    after. What went red is the SECOND line of its own two-line fixture --
+    `worst 1, 2 of 6 moved in each arm` -- which contains a genuine counted
+    figure that SS-04's FORM P now reads and reports UNREACHABLE. **The fixture
+    asserted more than the docstring claimed.**
+
+    Fixed by asserting the right ANSWER rather than an ABSENCE, which is the
+    stronger of the two repairs SS-04 offered: the movement line yields nothing,
+    and the counted line yields UNREACHABLE with its reason named. A test that
+    asserts a whole file yields nothing goes red the moment the recogniser
+    learns anything new, whether or not it learned it correctly.
+    """
     f = tmp_path / "movement.md"
     f.write_text("| **D4** | **MUST STOP BEING CITED.** `2/2 -> 4/4 -> 3/4` |\n"
                  "| **D1** | worst 1, 2 of 6 moved in each arm |\n")
-    assert st.run_scope(REPO_ROOT, SCORECARDS, [f]) == []
+    results = st.run_scope(REPO_ROOT, SCORECARDS, [f])
+    # The subject: line 1's movement notation is not a count.
+    assert [r for r in results if r["line"] == 1] == [], results
+    # Line 2 IS a counted figure, and the right answer to it is UNREACHABLE --
+    # not silence, and never a verdict on a scope the sweep cannot resolve.
+    line2 = [r for r in results if r["line"] == 2]
+    assert len(line2) == 1, results
+    assert line2[0]["verdict"] == st.UNREACHABLE, line2[0]
+    assert line2[0]["reason"], line2[0]
 
 
 def test_the_sweep_over_the_real_record_refuses_something(st, capsys):
