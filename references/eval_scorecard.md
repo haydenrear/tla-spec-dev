@@ -697,6 +697,59 @@ consults it. It exits non-zero on this repository's own record, and that is its
 demonstrated failing input rather than a defect in it — see
 `examples/validation/instruments/instruments.toml`.
 
+## An instrument's absent input (`R1`, extended by `SS-02`)
+
+`R1` says **an instrument ships with a demonstrated failing input on a real
+subject**. It says nothing about an input that is **not there**, and `CA-10`
+measured what that costs: **48 instances across 30 of 43 verdict-producing
+modules** answer PASS — clean, disposed, `0 violation(s)`, exit 0 — when handed
+an input that is absent, empty or unparseable, and **every one of the 48
+satisfied `R1` in full**. An instrument can carry a passing demonstration, a
+failing demonstration, and still answer PASS to the question it was built to
+refuse, because the third input was never in the contract.
+
+**So `R1` now has a third clause: every instrument ships a demonstrated
+absent-input case, and the correct answer is UNDECIDED or a refusal — never
+PASS.** Three states, not two:
+
+| state | the input is |
+|---|---|
+| `absent` | not in the tree at all |
+| `unreadable` | there, and unreadable as itself — empty, truncated, malformed |
+| `empty` | read and parsed perfectly, and genuinely naming nothing |
+
+**Two is not enough, and that is measured rather than asserted.**
+`CA-10-DF-11` repaired the absent ledger with a signature change,
+`set[str]` → `set[str] | None`, *because the old type could not distinguish
+"read and found nothing" from "read nothing" and answered the second with the
+first*. `SS-01` then repaired the **wrong** ledger. An independent reviewer
+handed the result a ledger that **existed and named nothing** and got **14
+confident fabrication accusations against real citations** (`SS-01-DF-04`). **A
+fallback that merely moves the false PASS to a rarer input has not fixed the
+class.**
+
+**It is executed, not cited** — a doctrine line with no instrument is a
+preference:
+
+```
+python3 examples/validation/scorecards/score_tools.py absent-input
+python3 examples/validation/scorecards/score_tools.py absent-input --contract-only
+```
+
+It reads **this project's own instrument register**,
+`examples/validation/instruments/instruments.toml`, where each contract lives
+beside the `failing` and `passing` demonstrations of the same instrument. It
+**refuses that register today**, and the count of instruments with no
+absent-input case is its product; there is **no target on that ratio**. Two
+things it does deliberately: it reports **states an instrument cannot tell
+apart**, found by executing them rather than by reading the contract, and it
+answers **UNDECIDED (exit 2), never 0**, when handed an absent, unreadable or
+instrument-less register of its own — a check for this class that answered PASS
+to an empty input would be the next instance of it.
+
+**It gates nothing.** No close path consults it, it decides nothing about any
+subject program, and it must not become a check over an adopter's code.
+
 ## Changing this card
 
 Bump `scorecard_version`, keep the old anchors in the file, and re-score at

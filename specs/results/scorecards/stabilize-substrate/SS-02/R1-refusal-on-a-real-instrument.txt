@@ -1,0 +1,94 @@
+SS-02 -- R1 applied to SS-02's own check: a demonstrated refusal on a REAL instrument
+date: 2026-08-16T22:05:21Z
+tree: worktree at feature/SS-02, parent 48f9c7e, SS-02 in flight
+subject: registry row `scorecard-audit` == examples/validation/scorecards/score_tools.py audit
+NOT A FIXTURE: both runs read the shipped register; the BEFORE run removes exactly one block from it.
+
+=== BEFORE -- scorecard-audit's [instrument.absent_input] block REMOVED ===
+$ score_tools.py absent-input --contract-only --only scorecard-audit --registry <register minus that block>
+R1-absent -- what every instrument answers when the input is not there
+==============================================================================
+
+register     /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/ss02/register-without-contract.toml
+rows         66 (10 declared not-an-instrument)
+instruments  56
+selected     1
+executed     no (--contract-only)
+
+instrument                         absent   unread   empty    verdict
+------------------------------------------------------------------------------
+scorecard-audit                    -        -        -        NO CONTRACT
+
+THE COUNT -- this command's product
+------------------------------------------------------------------------------
+  instruments in the register                 56
+  selected                                    1
+  contract EXECUTED and holding               0
+  contract declared, not executed             0
+  contract executed over a SUBSET of states   0
+  WITHOUT one                                 1
+  with a contract that did not hold           0
+  states declared unreachable, with a reason  0
+  DECLARED indistinguishable state pairs      0
+
+  The first five sum to `selected`, in that order, always.
+  No target is set on that ratio. A high `WITHOUT` count is the honest
+  outcome: the class was measured at 48 instances across 30 of 43
+  verdict-producing modules before anything was repaired, and a count
+  that fell because rows were deleted is denominator movement, not a
+  repair.
+
+REFUSED -- 1 problem(s) over 1 of 1 selected instrument(s)
+------------------------------------------------------------------------------
+  scorecard-audit: NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever shown what this instrument answers when the thing it watches is not there, which is exactly how all 48 instances of the class shipped with `R1` satisfied in full.
+exit: 1
+
+=== AFTER -- the register as shipped, all three states STAGED AND EXECUTED ===
+$ score_tools.py absent-input --only scorecard-audit
+R1-absent -- what every instrument answers when the input is not there
+==============================================================================
+
+register     /Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-02/examples/validation/instruments/instruments.toml
+rows         66 (10 declared not-an-instrument)
+instruments  56
+selected     1
+executed     yes
+
+instrument                         absent   unread   empty    verdict
+------------------------------------------------------------------------------
+scorecard-audit                    ok       ok       ok       SATISFIED
+
+THE COUNT -- this command's product
+------------------------------------------------------------------------------
+  instruments in the register                 56
+  selected                                    1
+  contract EXECUTED and holding               1
+  contract declared, not executed             0
+  contract executed over a SUBSET of states   0
+  WITHOUT one                                 0
+  with a contract that did not hold           0
+  states declared unreachable, with a reason  0
+  DECLARED indistinguishable state pairs      1
+
+  The first five sum to `selected`, in that order, always.
+  No target is set on that ratio. A high `WITHOUT` count is the honest
+  outcome: the class was measured at 48 instances across 30 of 43
+  verdict-producing modules before anything was repaired, and a count
+  that fell because rows were deleted is denominator movement, not a
+  repair.
+
+STATES AN INSTRUMENT CANNOT TELL APART -- declared, not discovered
+------------------------------------------------------------------------------
+  scorecard-audit  ['unreadable', 'empty']  (the two states declare the SAME expected output)
+      MEASURED, NOT ASSUMED: both states produce the identical line, `exists but names
+no findings (empty, unreadable or malformed)`. `_finding_ids` reads ids with a
+REGEX and never parses the file, so a truncated ledger, a zero-byte one and a
+correct `findings: []` are one state to it. That is DEFENSIBLE here -- all three
+mean "this file cannot verify a citation", and answering UNVERIFIED to all three
+is right -- but it is not free: a half-written ledger from an interrupted merge
+is reported in exactly the wording of a deliberately empty one, and nothing tells
+a reader which happened. Filed as SS-02-DF-01, routed to SS-05, NOT repaired
+here.
+
+Every selected instrument carries a three-state absent-input contract and every state reproduced.
+exit: 0

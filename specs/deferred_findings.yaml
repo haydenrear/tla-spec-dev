@@ -21781,6 +21781,579 @@ findings:
       RUNS ON rather than the toolchain it SHIPS. It also refutes, by example,
       the comfortable reading of GOAL-absent-input-consumed as a repository-local
       class.
+  - id: SS-02-DF-01
+    found_by: SS-02, by executing the absent-input contract it was landing
+    found_at_commit: 48f9c7e
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["examples/validation/scorecards/score_tools.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: execution
+    cost: Three staged trees and three real `audit` runs -- the check's own first output.
+    summary: >-
+      `score_tools.py audit` CANNOT TELL A MALFORMED LEDGER FROM A DELIBERATELY
+      EMPTY ONE, and reports both in the wording of the second. `_finding_ids`
+      reads ids with a REGEX (`re.findall(r"^\s*-\s+id:...")`) and never parses
+      the file, so a truncated ledger from an interrupted write, a bad merge, a
+      zero-byte file and a correct `findings: []` are ONE STATE to it: all four
+      produce the identical line, "`specs/deferred_findings.yaml` exists but
+      names no findings (empty, unreadable or malformed)". THE VERDICT IS RIGHT
+      IN ALL FOUR CASES -- none of them can verify a citation, and UNVERIFIED is
+      the honest answer -- so this is NOT the false-PASS class. What it costs is
+      DIAGNOSIS: a half-written ledger is reported in the exact words of an
+      intentionally empty one and nothing tells a reader which happened. Found
+      by SS-02's own distinguishability check, which is executed rather than read
+      off the contract, and DECLARED in the register rather than left for the
+      next reviewer.
+    reproduction: >-
+      `python3 examples/validation/scorecards/score_tools.py absent-input --only
+      scorecard-audit` -> exit 0, and the report prints the pair under "STATES AN
+      INSTRUMENT CANNOT TELL APART": `['unreadable', 'empty'] (the two states
+      declare the SAME expected output)`. Directly: stage two trees per
+      `[instrument.absent_input.unreadable]` and `[...empty]` in
+      `examples/validation/instruments/instruments.toml` and diff the two audit
+      outputs -- the R-H3 line is byte-identical.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-02/R1-refusal-on-a-real-instrument.txt -- the declared pair, printed"
+      - "examples/validation/instruments/instruments.toml -- [[instrument.absent_input.indistinguishable]] on scorecard-audit"
+    why_out_of_scope: >-
+      SS-02's slice is the RULE and the INSTRUMENT, not the repairs. Separating
+      the two states means parsing the ledger where today it is scanned, which is
+      a change to how `_finding_ids` reads its input and belongs with the rest of
+      the class.
+    suggested_fix: >-
+      Distinguish PRESENT-AND-UNPARSEABLE from PRESENT-AND-EMPTY: attempt a YAML
+      parse and report "the ledger at <path> does not parse: <exc>" separately
+      from "the ledger at <path> parses and lists no findings". Both stay
+      UNVERIFIED; only the sentence changes. NOTE THE COST BEFORE DOING IT --
+      `score_tools.py` ships standalone (RM-05 section 3) and deliberately does
+      not hard-require `yaml`, so the parse has to be optional and its absence is
+      a fourth state.
+    blast_radius: >-
+      Diagnosis only. No verdict moves in any of the four inputs.
+    disposition: carried
+    disposition_ticket: "SS-05"
+    disposition_note: >-
+      CARRIED to SS-05, which owns the repairs to this class. DECLARED in the
+      register at SS-02 so the collapse is on the record and the check reports it
+      on every run rather than passing over it.
+  - id: SS-02-DF-02
+    found_by: SS-02, while recording its own check's absent-input transcript
+    found_at_commit: 48f9c7e
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["examples/validation/scorecards/score_tools.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: execution
+    cost: One mis-quoted shell loop, which produced six argparse errors that read as six UNDECIDED verdicts.
+    summary: >-
+      `absent-input`'s UNDECIDED EXIT CODE IS 2, AND SO IS ARGPARSE'S USAGE
+      ERROR. A caller that reads the code and not the output cannot separate
+      "nothing was measured, this is undecided" from "you typed the command
+      wrong". Found the way it will be found in the field: a transcript loop
+      passed `--registry <path>` as one quoted word, argparse refused it, every
+      run exited 2, and the transcript looked like six correct UNDECIDED answers
+      until the output was read. THE SHAPE IS THE ONE THIS COMMAND EXISTS TO
+      REPORT -- a verdict surface that cannot carry the verdict -- and it is
+      recorded against the command that reports it rather than quietly given a
+      different number.
+    reproduction: >-
+      `python3 examples/validation/scorecards/score_tools.py absent-input
+      --registry /nonexistent.toml` -> exit 2, first line `UNVERIFIED: [absent]
+      ...`. `python3 examples/validation/scorecards/score_tools.py absent-input
+      --no-such-flag` -> exit 2, first line `usage: ...`. Same code, different
+      first line.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-02/the-checks-own-absent-input.txt -- six UNDECIDED runs, all exit 2, all naming their state on line 1"
+      - "examples/validation/scorecards/score_tools.py -- the collision is stated at ABSENT_UNDECIDED"
+    why_out_of_scope: >-
+      NOT out of scope so much as deliberately not repaired: every candidate
+      repair is a change to what an exit code means. Giving UNDECIDED a fourth
+      code (3, as `seal` uses for REFUSED) makes this command disagree with the
+      registry preamble, which already declares that "pure argparse usage errors
+      are not verdicts about a subject and are not counted as failing inputs
+      anywhere". Every contract in the register asserts on the output line, so
+      nothing in this repository reads the bare code today.
+    suggested_fix: >-
+      Either accept it and keep asserting on the first output line -- which is
+      what ships -- or give the three verdicts codes that no library can produce
+      (0 / 1 / 3) and say so in the preamble. Do not do it silently: the code is
+      the interface.
+    blast_radius: >-
+      Any future caller of `absent-input` that branches on the exit code alone.
+      Zero callers today; `tests/test_absent_input_demonstrations.py` asserts the
+      code AND the text on every one of the six.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      CARRIED to SS-08 as a fact about the instrument it will run. Not repaired
+      at SS-02 because the repair is a choice about the interface, not a defect
+      fix, and MF-020 binds: it would be made after seeing this ticket's own
+      transcript.
+  - id: SS-02-DF-03
+    found_by: SS-02, from the contract it wrote for scorecard-audit
+    found_at_commit: 48f9c7e
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["examples/validation/scorecards/score_tools.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: execution
+    cost: Writing down what the three demonstrations actually exit with.
+    summary: >-
+      `score_tools.py audit` ANSWERS UNDECIDED IN ITS TEXT AND PASS ON ITS EXIT
+      CODE. Against a tree with no findings ledger -- live or archived -- it
+      prints one UNVERIFIED line and then `0 violation(s)` and EXITS 0, because
+      UNVERIFIED deliberately does not increment the violation count. That
+      deliberate choice is right about violations and wrong about the verdict
+      surface: a caller reading the exit code gets a clean audit over a tree the
+      tool could not audit. THIS IS THE ABSENT-INPUT CLASS SURVIVING ITS OWN
+      REPAIR, one layer out: `CA-10-DF-11` and `SS-01-DF-04` moved the ANSWER
+      from wrong to undecided and left the CARRIER unable to say so. Related to,
+      but not the same as, the already-recorded blind spot on this row (OPEN and
+      UNVERIFIED are printed and not counted) -- that entry is about which
+      findings are counted; this is about what the exit code then means.
+    reproduction: >-
+      Build a tree that symlinks every repository entry except
+      `specs/deferred_findings.yaml` and `specs/.history`, then
+      `SCORECARD_REPO_ROOT=<tree> python3
+      examples/validation/scorecards/score_tools.py audit --root
+      specs/results/scorecards --rubric references/eval_scorecard.md --quiet-ok`
+      -> `0 violation(s)`, exit 0, with `UNVERIFIED no findings ledger this tool
+      can READ ids from` in the body. The staging is declared verbatim in
+      `[instrument.absent_input.absent]` on the `scorecard-audit` row.
+    evidence:
+      - "examples/validation/instruments/instruments.toml -- `exit_code_cannot_carry_the_answer` on all three states of scorecard-audit"
+      - "specs/results/scorecards/stabilize-substrate/SS-02/R1-refusal-on-a-real-instrument.txt -- the AFTER run, exit 0 with the UNVERIFIED line"
+      - "tests/test_absent_input_demonstrations.py::test_an_UNDECIDED_answer_that_exits_zero_must_say_so"
+    why_out_of_scope: >-
+      Repairing it means deciding what `audit`'s exit code means when a rule
+      could not be evaluated, which changes the verdict of every caller of a
+      shipped instrument. SS-02's slice is the rule and the check. The check
+      REFUSES a contract that hides this -- `exit_code_cannot_carry_the_answer`
+      is mandatory whenever a state answers `undecided` and exits 0 -- so it is
+      declared on every affected state rather than discovered later.
+    suggested_fix: >-
+      Give `audit` a distinct exit code for "at least one reading rule could not
+      be evaluated in this tree" (UNVERIFIED > 0 with violations == 0), leaving 0
+      for "every rule evaluated and none violated" and 1 for violations. That is
+      a verdict-surface change to a shipped instrument and owes a demonstrated
+      failing input, a demonstrated absent input, and a note in
+      `INSTRUMENT-LOG.toml` recording the era boundary.
+    blast_radius: >-
+      Every `audit` invocation in a tree with no readable ledger -- a fresh
+      clone before `specs/.history` is populated, a workflow close in progress, a
+      partially checked-out tree -- in the direction of REPORTING CLEAN.
+    disposition: carried
+    disposition_ticket: "SS-05"
+    disposition_note: >-
+      CARRIED to SS-05 with the rest of the class. DECLARED in the register at
+      SS-02, and the check refuses any future contract that answers `undecided`
+      with exit 0 and does not say so.
+  - id: SS-02-DF-04
+    found_by: SS-02, checking whether the sibling guards would police its new block
+    found_at_commit: 48f9c7e
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_instrument_demonstrations.py", "examples/validation/instruments/demonstrate.py"]
+    channel: reading
+    cost: One grep of `SLOTS` and the guards that iterate it.
+    summary: >-
+      THE REGISTER'S OWN GUARDS CANNOT SEE `[instrument.absent_input]`.
+      `demonstrate.py` defines `SLOTS = ("failing", "passing", "blind_spot")`,
+      iterates it at `:557`, and TWO tests in
+      `tests/test_instrument_demonstrations.py` iterate the same literal --
+      `test_every_pytest_slot_declares_an_executable_count` (`:674`) and
+      `test_every_cited_pytest_node_exists` (`:751`). A third,
+      `test_every_row_is_classified_and_every_gap_carries_a_reason`, names
+      `failing` and `passing` individually rather than looping, and is blind for
+      the same reason. A contract added under the new fourth slot is invisible to
+      all of them: it can cite a pytest node that does not exist, or assert only
+      an exit code, and no sibling guard notices. SS-02's own check imposes the
+      equivalent rules itself, so nothing is unpoliced TODAY -- but the
+      obligation now lives in two places and only one of them is named in the
+      file a contributor edits. This is the shape `FI-04-DF-04` was confirmed
+      four times for: a literal that must be edited by the same person who forgot
+      the thing it lists.
+      CORRECTION, 2026-08-16, by an independent reviewer of PR #284: this row
+      first said "four tests iterate that literal" and named three of them plus
+      "the runner itself". THE FIGURE IS TWO, and the row's own reproduction
+      command returns 2. Corrected in place, before merge, with the original
+      wording quoted here. The substance -- the guards cannot see the new slot --
+      was and is correct; the count was 2x.
+    reproduction: >-
+      `grep -n 'SLOTS' examples/validation/instruments/demonstrate.py` -> the
+      definition at `:118` and one loop at `:557`. `grep -n 'for slot in'
+      tests/test_instrument_demonstrations.py` -> `674` and `751`, TWO loops over
+      the same three literal names. Then add `kind = "pytest"` with
+      `nodes = ["tests/nope.py::nope"]` to any
+      `[instrument.absent_input.<state>]` and run `uv run --with pytest --with
+      pyyaml -m pytest tests/test_instrument_demonstrations.py -q` -- green.
+    evidence:
+      - "examples/validation/instruments/demonstrate.py -- SLOTS"
+      - "examples/validation/scorecards/score_tools.py -- absent_contract_problems, which imposes the same two rules for the new slot"
+    why_out_of_scope: >-
+      `tests/test_instrument_demonstrations.py` is SS-06's conflict key, not
+      SS-02's, and widening `SLOTS` changes what `demonstrate.py` executes for
+      every row.
+    suggested_fix: >-
+      Either derive the slot names from the register (every sub-table of an
+      `[[instrument]]` that carries `expect_exit` or `kind`) so a fifth slot
+      cannot arrive unpoliced, or have the four guards iterate a single exported
+      constant. The first is the shape SM-03 already chose for the enumeration
+      itself and is the better precedent.
+    blast_radius: >-
+      Any absent-input contract added after SS-02 that cites a nonexistent pytest
+      node or declares no executable count. Two contracts exist today and both
+      are `cli`.
+    disposition: carried
+    disposition_ticket: "SS-06"
+    disposition_note: >-
+      CARRIED to SS-06, which owns tests/test_instrument_demonstrations.py.
+      Reported rather than fixed from this branch: editing another ticket's
+      conflict key is how two agents produce one merge conflict and two
+      half-repairs.
+  - id: SS-02-DF-05
+    found_by: independent reviewer of PR #284 instructed to REFUTE
+    found_at_commit: cbb6761
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["examples/validation/scorecards/score_tools.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_absent_input_demonstrations.py", "examples/validation/instruments/instruments.toml", "references/eval_scorecard.md"]
+    channel: independent-review
+    cost:
+      basis: one hand-written register with a single row and three waived states, run against the shipped check
+      value: a vacuous pass inside the anti-vacuity check, in the ticket that landed the anti-vacuity rule
+    summary: >-
+      AN ALL-WAIVED CONTRACT WAS REPORTED SATISFIED AND COUNTED AS EXECUTED.
+      `unreachable = "<reason>"` is the escape hatch for a state that genuinely
+      cannot be constructed, and it is documented in THREE places as "counted and
+      printed separately, NEVER as satisfied" -- `score_tools.py` one line above
+      the code that did the opposite, `instruments.toml:66`, and
+      `GOAL-absent-input-consumed/SS-02-the-check-exists.md:31`. The code fell
+      through anyway: `absent_measure` marked the states waived, the execution
+      loop skipped them, and an empty `problems` list reached the final `else`
+      and returned SATISFIED. One row, three states, each waived with the
+      free-text reason "cannot be constructed", nothing else -> `SATISFIED`,
+      `contract EXECUTED and holding 1`, the footer "every state reproduced", and
+      EXIT 0, with ZERO DEMONSTRATIONS RUN. THIS IS SUB-SHAPE 7 OF THE CLASS THIS
+      COMMAND EXISTS TO NAME -- an empty selection reported as a satisfied
+      population -- INSIDE THE FIX FOR THE CLASS. It shipped because `unreachable`
+      had no test: the only coverage was the no-reason branch at
+      tests/test_absent_input_demonstrations.py:199, and a free-text excuse
+      therefore bought a green run. No published figure was wrong (nothing in the
+      register uses `unreachable` today) but SS-05, SS-06 and SS-08 will add
+      contracts and would have inherited it.
+      AND A SECOND FACE, FOUND BY THE SAME REVIEWER WHILE REPRODUCING THIS ONE: a
+      register row with no `id` reached `entry["id"]` and died with `KeyError:
+      'id'` and a traceback. A traceback is not one of the three answers, and a
+      register that cannot be read AS A REGISTER is an absent-input case for this
+      check like any other.
+    reproduction: >-
+      Write a register with `[registry]`, one `[[instrument]]` carrying
+      `family = "measurement"` and `classification = "demonstrated-can-fail"`,
+      and three `[instrument.absent_input.<state>]` tables whose only key is
+      `unreachable = "cannot be constructed"`. Then
+      `python3 examples/validation/scorecards/score_tools.py absent-input
+      --registry <that file>`. BEFORE: `SATISFIED`, `contract EXECUTED and
+      holding 1`, "Every selected instrument carries a three-state absent-input
+      contract and every state reproduced.", exit 0. AFTER: `WAIVED (3 of 3)`,
+      `contract EXECUTED and holding 0`, `contract with a WAIVED state, nothing
+      run 1`, a printed STATES DECLARED UNREACHABLE section, "A reason is not a
+      demonstration", exit 2. For the second face, a row with `name` and `family`
+      and no `id`: BEFORE a `KeyError: 'id'` traceback, AFTER
+      `UNVERIFIED: [unreadable] ... row #0 declares no `id``, exit 2.
+    evidence:
+      - "tests/test_absent_input_demonstrations.py::test_a_WAIVED_state_can_never_buy_SATISFIED"
+      - "tests/test_absent_input_demonstrations.py::test_one_WAIVED_state_is_enough_to_stop_SATISFIED"
+      - "tests/test_absent_input_demonstrations.py::test_the_bucket_identity_holds_with_a_waived_row"
+      - "tests/test_absent_input_demonstrations.py::test_a_register_row_with_no_id_is_UNDECIDED_and_not_a_TRACEBACK"
+      - "specs/results/scorecards/stabilize-substrate/SS-02/review-round-2/waived-before-after.txt"
+    why_out_of_scope: >-
+      IN SCOPE and repaired in the review round: a waived state now produces its
+      own verdict `WAIVED (n of 3)`, its own bucket `waived_rows` INSIDE the
+      identity assertion that all buckets sum to `selected`, its own printed
+      section, and exit 2 -- nothing was refused and nothing was demonstrated
+      either. The affirmative footer now prints only when EVERY selected row is
+      SATISFIED. Filed because it is the most on-thesis defect this epic has
+      produced and the record must carry it: the ticket that landed the
+      anti-vacuity rule shipped a vacuous pass inside it, and a reviewer
+      instructed to refute found it in one hand-written register.
+    suggested_fix: >-
+      Done here. THE GENERALISATION IS NOT DONE and is the part worth carrying: a
+      bucket that is not in the sum is how the fall-through survived. The report
+      printed an identity ("the first five sum to selected") that the buckets
+      did not actually satisfy for a waived row, and NOTHING COMPARED THEM. Every
+      report in this repository that prints a bucket breakdown should assert the
+      identity where it is computed, as `cmd_absent_input` now does.
+    blast_radius: >-
+      Any contract added after SS-02 that waives a state. Zero today. Every
+      figure SS-02 published was measured on contracts that waive nothing, so
+      none of them moves.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      REPAIRED HERE, with four tests pinning it in both directions. CARRIED to
+      SS-08 as a fact about the instrument it will run and as the epic's clearest
+      instance of its own thesis: the check for a class contained the class.
+  - id: SS-02-DF-06
+    found_by: independent reviewer of PR #284 instructed to REFUTE
+    found_at_commit: cbb6761
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["examples/validation/scorecards/score_tools.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_absent_input_demonstrations.py"]
+    channel: independent-review
+    cost:
+      basis: deleting one line from a contract in the shipped register and re-running the check
+      value: the rule SS-02 called mandatory was opt-in, and opting out also disabled exit-code checking
+    summary: >-
+      THE "MANDATORY" `exit_code_cannot_carry_the_answer` WAS EVADED BY DELETING
+      ONE LINE. SS-02 requires a contract that answers `undecided` while exiting
+      0 to declare `exit_code_cannot_carry_the_answer`, because that is
+      SS-02-DF-03's own shape -- an instrument whose verdict surface cannot carry
+      its verdict. The rule read the DECLARED exit code
+      (`spec.get("expect_exit") == 0`), and `_absent_judge` compares the exit
+      code only `if expected is not None`. So OMITTING `expect_exit` turned off
+      the exit-code comparison AND the rule that depends on it in one stroke:
+      three states printing `UNVERIFIED ...` and exiting 0 with no `expect_exit`
+      reported SATISFIED, exit 0. Adding `expect_exit = 0` back to the same file
+      produced exit 1, INCOMPLETE, correctly diagnosed -- so the instrument was
+      right about the input it was shown and blind to the input it was not.
+      THE SHAPE IS THE ONE THIS COMMAND EXISTS TO REPORT, in the clause that
+      reports it: an absent field read as a permissive one.
+    reproduction: >-
+      Copy `examples/validation/instruments/instruments.toml`, delete the single
+      line `    expect_exit = 0` from `[instrument.absent_input.absent]` on the
+      `scorecard-audit` row, and run `python3
+      examples/validation/scorecards/score_tools.py absent-input --only
+      scorecard-audit --registry <copy>`. BEFORE: exit 0, SATISFIED. AFTER: exit
+      1, "`absent`: declares no `expect_exit`. An omitted exit code is not a
+      permissive one -- it disables the comparison, and the
+      UNDECIDED-and-exits-0 rule with it."
+    evidence:
+      - "tests/test_absent_input_demonstrations.py::test_a_state_that_declares_no_expect_exit_is_REFUSED"
+      - "tests/test_absent_input_demonstrations.py::test_the_UNDECIDED_and_exits_zero_rule_reads_what_HAPPENED"
+      - "examples/validation/scorecards/score_tools.py absent_observed_problems"
+    why_out_of_scope: >-
+      IN SCOPE and repaired in the review round, in BOTH directions rather than
+      the one the reviewer found. Statically: `expect_exit` is now required on
+      every state, so an omitted code is a refusal instead of a permission. By
+      execution: `absent_observed_problems` applies the UNDECIDED-and-exits-0
+      rule to the OBSERVED exit code, so a contract that DECLARES a nonzero exit
+      and then observes 0 -- the same false PASS with a truthful-looking contract
+      in front of it -- is also refused.
+    suggested_fix: >-
+      Done here. The general rule for the rest of the sweep: A CONTRACT FIELD
+      THAT IS ONLY CHECKED WHEN PRESENT IS NOT A REQUIREMENT, IT IS A SUGGESTION,
+      and `demonstrate.py`'s `judge` has the same shape at `expect_exit` and at
+      every `expect_*` list. That is not repaired here -- it is SS-05/SS-06
+      surface -- but it is the same defect one file over and should be checked
+      when either of them touches it.
+    blast_radius: >-
+      Any absent-input contract written after SS-02. The two shipped contracts
+      both declare `expect_exit` and both were measured with it, so no published
+      figure moves.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      REPAIRED HERE in both directions, with two tests. CARRIED to SS-08 as a
+      fact about the instrument it will run.
+  - id: SS-02-DF-07
+    found_by: independent reviewer of PR #284 instructed to REFUTE
+    found_at_commit: cbb6761
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["examples/validation/scorecards/score_tools.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: independent-review
+    cost: Two invocations of the shipped check with flags it declares in its own --help.
+    summary: >-
+      THE CHECK'S OWN SELECTION IS SOFTER THAN THE RULE IT ENFORCES, IN TWO
+      PLACES. (1) `--only known-name --only zzz-typo` selects 1 instrument,
+      reports SATISFIED and exits 0: the refusal at the empty-selection branch
+      fires only when the selection is FULLY empty, so a typo'd id is dropped in
+      silence and the run reports on a smaller population than the caller asked
+      for. That is sub-shape 7 again, partially applied. (2) The affirmative
+      footer "Every selected instrument carries a three-state absent-input
+      contract and every state reproduced" printed whenever `problems` was empty
+      -- including under `--contract-only`, where NOTHING RAN, and under
+      `--state`, where a SUBSET ran -- and then exited 2. A sentence asserting a
+      demonstration that did not happen, in the command that files SS-02-DF-03
+      about exactly that.
+      PARTIALLY CLOSED ALREADY, AND SAY SO: repairing SS-02-DF-05 required the
+      footer to become conditional on every selected row being SATISFIED, so
+      face (2) is closed as a side effect. FACE (1) IS OPEN and is what this row
+      carries.
+    reproduction: >-
+      `python3 examples/validation/scorecards/score_tools.py absent-input --only
+      absent-input-check --only zzz-no-such-instrument` -> `selected 1`,
+      SATISFIED, exit 0; the unmatched name appears nowhere in the output. For
+      the closed face, at cbb6761: `... absent-input --contract-only --only
+      absent-input-check` -> "every state reproduced" followed by exit 2.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py cmd_absent_input -- the --only branch refuses only a fully empty selection"
+      - "specs/results/scorecards/stabilize-substrate/SS-02/review-round-2/only-typo.txt"
+    why_out_of_scope: >-
+      ROUTED ON OWNER INSTRUCTION rather than repaired: it is inside SS-02's own
+      thesis and the owner directed F5/F6/F7/F11 of the PR #284 review to SS-05
+      and SS-06 rather than to a second repair round in the ticket that filed
+      them.
+    suggested_fix: >-
+      Refuse any `--only` name that matches no row, naming it, and exit UNDECIDED
+      -- the same answer the fully-empty selection already gets. A caller who
+      typed a name that selected nothing has not narrowed a population, they have
+      misspelled one, and the two are not the same input.
+    blast_radius: >-
+      Any operator or successor ticket running the check with an `--only` list.
+      No published SS-02 figure used `--only` with an unmatched name.
+    disposition: carried
+    disposition_ticket: "SS-05"
+    disposition_note: >-
+      CARRIED to SS-05 on owner instruction. Face (2) closed here as a
+      consequence of SS-02-DF-05's repair; face (1) is open and is the reason the
+      row exists.
+  - id: SS-02-DF-08
+    found_by: independent reviewer of PR #284 instructed to REFUTE
+    found_at_commit: cbb6761
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["examples/validation/scorecards/score_tools.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md", "examples/validation/instruments/instruments.toml"]
+    channel: independent-review
+    cost: Reading `absent_indistinguishable` against the property it claims to establish.
+    summary: >-
+      COLLAPSE DETECTION COMPARES AUTHOR-DECLARED MARKERS AGAINST REAL OUTPUT,
+      NEVER VERDICTS OR EXIT CODES. SS-02's distinguishability check is executed
+      rather than static, which is the right instinct -- but what it executes is
+      each state's output against the OTHER STATE'S DECLARED `expect_output`
+      strings. Those strings are chosen by the same author who wrote the answer.
+      Three states whose verdicts are IDENTICAL, differing only in an echoed
+      path or a temp-directory name, produce three different marker sets and are
+      reported as distinguished: SATISFIED, 0 collapses. The rule that
+      `SS-01-DF-04` paid for -- an instrument must be able to TELL THE STATES
+      APART -- is therefore satisfiable by writing markers off something that is
+      not the verdict.
+    reproduction: >-
+      Take any contract whose three states print the same verdict line and add to
+      each state's `expect_output` a substring unique to its staged tree (the
+      state name in a path, for instance). `absent_indistinguishable` computes
+      `markers_left == markers_right` as False and finds no cross-satisfaction,
+      so it reports no collapse -- while the three verdicts are byte-identical
+      apart from the path.
+    evidence:
+      - "examples/validation/scorecards/score_tools.py absent_indistinguishable"
+      - "specs/results/scorecards/stabilize-substrate/SS-02/R1-refusal-on-a-real-instrument.txt -- the real collapse it DOES catch, on scorecard-audit"
+    why_out_of_scope: >-
+      ROUTED ON OWNER INSTRUCTION. Deciding what part of an output IS the verdict
+      is a rubric question, not a code question, and SS-05 is writing the
+      contracts that would exploit the gap.
+    suggested_fix: >-
+      Cheapest useful step, and the owner's own suggestion: a sentence in the
+      rubric telling a contract author that per-state markers must name what the
+      instrument CONCLUDED, never an echoed path or a temp directory. Stronger:
+      have the check compare the states' outputs with volatile substrings
+      (the staged tree path, timestamps) masked out, and report identity of the
+      MASKED outputs as a collapse regardless of what the markers say.
+    blast_radius: >-
+      Contracts written after SS-02. Neither shipped contract exploits it, and
+      the one real collapse in the register (scorecard-audit's unreadable/empty
+      pair) is caught and declared.
+    disposition: carried
+    disposition_ticket: "SS-05"
+    disposition_note: >-
+      CARRIED to SS-05 on owner instruction, as the rubric sentence that stops
+      the first contract author from buying a free pass.
+  - id: SS-02-DF-09
+    found_by: independent reviewer of PR #284 instructed to REFUTE
+    found_at_commit: cbb6761
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_absent_input_demonstrations.py"]
+    channel: independent-review
+    cost: Reading the two guards against the two claims they are cited for.
+    summary: >-
+      SS-02'S TWO DOCTRINE-BOUNDARY GUARDS ARE NARROWER THAN THE CLAIMS THEY
+      BACK, AND THE PR BODY CITES THEM AS IF THEY WERE NOT.
+      `test_the_check_gates_nothing` greps `scripts/**` for the LITERAL STRING
+      `absent-input`, so `from score_tools import cmd_absent_input` -- the
+      obvious way a close path would actually call it -- evades it entirely, and
+      `skill-scripts/`, `templates/`, `test_graph/` and any hook are outside the
+      directory it walks. `test_the_register_is_the_only_thing_the_check_reads`
+      inspects ONLY `argv`, never `env`, `cwd`, `stage.from`, `link.from`,
+      `write.file` or a pytest slot's `nodes` -- and `link.from` in particular is
+      the field that decides which tree a demonstration reaches into. The clause
+      they are cited for (NO NEW GATE OVER SUBJECT-PROGRAM CONTENT) still holds
+      at this tip -- verified by reading, and there are two contracts -- but IT
+      HOLDS BY INSPECTION, NOT BECAUSE THESE TESTS ESTABLISH IT.
+    reproduction: >-
+      `grep -n "scripts" tests/test_absent_input_demonstrations.py` -> the guard
+      walks `REPO_ROOT / "scripts"` only and matches the literal `absent-input`.
+      Add `from examples.validation.scorecards.score_tools import
+      cmd_absent_input` to any file under `scripts/` and the test stays green.
+      `grep -n 'spec.get("argv"' tests/test_absent_input_demonstrations.py` ->
+      the second guard reads `argv` and nothing else.
+    evidence:
+      - "tests/test_absent_input_demonstrations.py::test_the_check_gates_nothing"
+      - "tests/test_absent_input_demonstrations.py::test_the_register_is_the_only_thing_the_check_reads"
+    why_out_of_scope: >-
+      ROUTED ON OWNER INSTRUCTION rather than widened here. Widening the first
+      guard means deciding which directories carry close and promotion paths,
+      which is SS-06's surface, and widening the second means enumerating every
+      path-bearing field in a schema SS-05 is about to extend.
+    suggested_fix: >-
+      First guard: match an IMPORT of the module or a call to the subcommand,
+      over every directory that carries an executable, rather than one literal
+      over one directory. Second guard: walk every string in a state's spec and
+      require it to resolve under `{repo}` or `{tree}`, rather than naming
+      `argv`; a field added to the schema is then covered on the day it is added
+      instead of the day someone remembers.
+    blast_radius: >-
+      The strength of SS-02's clause (e) evidence, not the truth of clause (e).
+      SS-08 should read the clause as established by inspection over two
+      contracts, and re-inspect rather than re-run these two tests.
+    disposition: carried
+    disposition_ticket: "SS-06"
+    disposition_note: >-
+      CARRIED to SS-06 on owner instruction. SS-08 must not quote either test as
+      proof of clause (e) without this row beside it.
   - id: SS-07-DF-01
     found_by: "SS-07, running the do-not-cut instruments over the four standing results"
     found_at_commit: "48f9c7e"
