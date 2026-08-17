@@ -10,9 +10,17 @@ section 1 and it is checkable: section 1's evidence file records
 
 **Suite at the branch point, five buckets, sealed before any change:**
 `7 failed / 1598 passed / 0 skipped / 1 xfailed / collection 1606`.
-**At the tip: `7 / 1645 / 0 / 1 / 1653`.** They sum at both ends. Both taken
-**with the workflow OPEN** (`specs/tickets/SS-05/` scaffolded), which is the `+4`
-side of the `open ticket` / `close ticket` swing the assignment names. §5.
+**At the tip: `7 / 1645 / 0 / 1 / 1653`.** They sum at both ends. §5.
+
+**CORRECTION, CAUGHT BY CHECKING MY OWN SENTENCE BEFORE SHIPPING IT.** An earlier
+draft of this file said both figures were taken *"with the workflow OPEN
+(`specs/tickets/SS-05/` scaffolded)"*. **That is false.** `specs/tickets/` holds
+`MF-021`, `MF-027` and `RD-06` and no `SS-05`; `ticket_plan.yaml` says
+`active_ticket: null`. **I did not run `open ticket SS-05`** — see §6.6. Both
+figures are therefore taken on the SAME footing, with the spec ticket unopened,
+and the `+4` `open ticket` swing the assignment names has been applied in neither
+direction. The base/tip comparison is unaffected; the sentence about which side
+of the swing they sit on was wrong and is withdrawn.
 
 **The three figures in this ticket's own work order that did not survive
 measurement, all in the unflattering direction, all before or independent of any
@@ -493,9 +501,10 @@ the figure `SS-08` should carry forward, with the denominator named.
 
 ## 5. SUITE MOVEMENT, FIVE BUCKETS THAT SUM
 
-Command: `uv run --with pytest --with pyyaml -m pytest tests -q`, both figures
-taken **with the workflow OPEN** (`specs/tickets/SS-05/` scaffolded), which is the
-`+4` side of the `open ticket` / `close ticket` swing. Raw:
+Command: `uv run --with pytest --with pyyaml -m pytest tests -q`. **Both figures
+are taken with the SS-05 spec ticket UNOPENED** — `specs/tickets/SS-05/` does not
+exist and `active_ticket` is `null` — so the `+4` `open ticket` swing is applied
+to neither and the two are directly comparable. Raw:
 `evidence/pytest-base-f45a245.txt`, `evidence/pytest-tip-FINAL.txt`,
 `evidence/collect-base-f45a245.txt`, `evidence/collect-tip-FINAL.txt`.
 
@@ -621,7 +630,20 @@ fourth. Filed and repaired as `SS-05-DF-07`.
    examples carrying the vacuous oracle to be named **and fixed** and two of the
    three live in `examples/effect_providers/`. Disclosed rather than assumed.
 5. **No skill was edited.** Nothing under `.skill-manager/skills/` was touched
-   and no diff is proposed against one.
+   and no diff is proposed against one. **Nothing in this worktree's Skill Manager
+   home changed** — no `skill-manager`, `skt`, `home sync`, `home close-out`,
+   `skt sync` or `skt publish` command was run at any point.
+6. **I did not run `open ticket SS-05`, and the spec ticket is not open.** The
+   assignment lists it; I did not do it, and I am naming that rather than letting
+   it pass. Two consequences, both stated: `test_ticket_retirement` is red for
+   `ticket SS-05 is not closed: status=planned` — which it would be either way —
+   and **both suite figures sit on the unopened side of the `+4` swing**, so they
+   compare to each other but a figure taken after `open ticket` would be `1657`,
+   not `1653`. `SS-08` should apply the swing rather than assume it. I have not
+   flipped `status: planned` and have not run any close, per the assignment.
+7. **`specs/.history` was not touched**, and the four `.cfg` files the
+   `ex4`/`ex5` architecture experiment requires to stay byte-identical are
+   unchanged — `spec_manifest.yaml` is not one of the four.
 
 ---
 
