@@ -606,15 +606,26 @@ to neither and the two are directly comparable. Raw:
 | | failed | passed | skipped | xfailed | **collection** |
 |---|---:|---:|---:|---:|---:|
 | **base** `f45a245` | 7 | 1598 | 0 | 1 | **1606** |
-| **tip** `bf094c3` | **7** | **1645** | **0** | **1** | **1653** |
-| movement | **0** | **+47** | 0 | 0 | **+47** |
+| tip before the review, `bf094c3` | 7 | 1645 | 0 | 1 | 1653 |
+| **tip after the amendment round** | **7** | **1649** | **0** | **1** | **1657** |
+| movement, base → tip | **0** | **+51** | 0 | 0 | **+51** |
 
-They sum at both ends: `7 + 1598 + 0 + 1 = 1606` and
-`7 + 1645 + 0 + 1 = 1653`.
+They sum at all three: `7 + 1598 + 0 + 1 = 1606`, `7 + 1645 + 0 + 1 = 1653`,
+`7 + 1649 + 0 + 1 = 1657`. Raw for the amendment tip:
+`evidence/pytest-tip-AMENDMENT.txt`, `evidence/collect-tip-AMENDMENT.txt`.
 
-**Collection: +47, ALL NUMERATOR, ZERO DENOMINATOR MOVEMENT.** `comm` over the
-sorted `--collect-only` node lists: **47 nodes added, 0 removed.** Attributed to
-the file that added them:
+**The amendment round's `+4`**, `comm`-verified as 4 added / 0 removed, all
+demonstrations of `F5` and `F13`:
+`test_a_root_that_is_a_FILE_is_UNDECIDED_unreadable_and_not_a_traceback`,
+`test_the_audit_states_are_now_THREE_LABELS_and_pairwise_distinct`,
+`test_a_ledger_path_that_is_a_DIRECTORY_is_UNDECIDED_not_a_traceback`,
+`test_the_three_corpus_gate_labels_name_the_right_states`.
+**Reds unchanged at 7 and `diff` against the base's `FAILED` list is still
+empty.**
+
+**Collection: +51, ALL NUMERATOR, ZERO DENOMINATOR MOVEMENT.** `comm` over the
+sorted `--collect-only` node lists: **51 nodes added, 0 removed** (47 in the main
+round, 4 in the amendment round). Attributed to the file that added them:
 
 | nodes | file | what they demonstrate |
 |---:|---|---|
@@ -625,7 +636,11 @@ the file that added them:
 | 4 | `tests/test_blind_dispatch_absent_input.py` | the dead `UNDECIDED` branch |
 | 2 | `tests/test_testgraph_channels.py` | the empty selection, and the module never opened |
 | 1 | `tests/test_absent_input_demonstrations.py` | `SS-05-DF-07`'s non-vacuity guard |
-| **47** | | |
+| **47** | *(main round)* | |
+| +2 | `tests/test_score_tools_absent_input.py` | `SS-05-DF-08` — the missing `unreadable` state, and all three labels reachable |
+| +1 | `tests/test_disposition_absent_input.py` | `SS-05-DF-08`, the weaker half |
+| +1 | `tests/test_corpus_gate_absent_input.py` | `SS-05-DF-09` — `empty` and `absent` name different states |
+| **51** | **total** | |
 
 **No node was deleted, renamed away, or skipped.** The one test whose *meaning*
 changed — `test_spec_unit_adapters_may_import_production` (§2.5) — kept its node
