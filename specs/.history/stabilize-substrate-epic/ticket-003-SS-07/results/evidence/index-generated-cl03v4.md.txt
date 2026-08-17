@@ -1,0 +1,45 @@
+# Scorecards — close-the-loop-cl03-v4
+
+scorecard_version 4. See `references/eval_scorecard.md`.
+
+**Never average across examples.** `ex6_jenga` is a deliberately
+incoherent fixture and is supposed to score low on D3; averaging it
+with `ex4` produces a number about nothing. Nothing in this file is
+computed across two examples.
+
+**No total, from scorecard_version 3.** Four of its five terms cannot
+carry a delta, so a sum over them moves most where the card reads
+worst. Read a dimension.
+
+**`contested` is computed, never declared.** Scoring rule 5 — a spread
+greater than 1 across the judges of one artifact — is re-derived from the
+cards on every run. A card's own `contested` field is a declaration and
+cannot manufacture one or erase one; where the two differ, the difference
+is printed below the table.
+
+**The judge column is the FULL MODEL ID, not a tier word.** `RM-04`
+measured four judge models wearing two labels and no two rounds of that
+epic using the same pair, so a table keyed on `opus`/`sonnet` invites a
+reader to add two rounds that measured different programs. The family
+word is still derived and still policed against a declared `tier`; what
+changed is that it is no longer what a printed comparison is keyed on.
+
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+|---|---|---|---|---|---|---|---|---|---|
+| toolchain_removal | CL | pass 1 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+| toolchain_removal | CL | pass 2 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+
+### Contested — rule 5, computed
+
+None. No dimension has a spread greater than 1 in any judge group here.
+
+### Tier splits
+
+A dimension where two judge tiers do not overlap at all on the same
+artifact. Reported only where the ranges are DISJOINT — an overlap is two
+tiers agreeing as far as this can tell.
+
+None.
+
+- **toolchain_removal** (20260811-cl03v4-CL-p1): The boundary is real at runtime and the second composition point measurably closes the adapter blind region -- a fake-side fault dies under the fake wiring and only there -- but the suite that earns rung 4 is structurally the suite that cannot assert durability, and the domain has its own unreached region: `outstanding_ids()` is lexicographic, so it violates FEATURE.md:29 from `r10` onward and all 28 cases pass under both wirings anyway.
+- **toolchain_removal** (20260811-cl03v4-CL-p2): The port is real at runtime and not merely in the import graph -- I proved it by killing a fault on each side of it independently -- but the shared suite is the only oracle over both adapters and it is thinner than it looks: an id-reuse fault, the lexicographic `outstanding_ids()` ordering, and a one-line edit that silently points the fake wiring at the real adapter all survive 28/28 cases in both wirings.

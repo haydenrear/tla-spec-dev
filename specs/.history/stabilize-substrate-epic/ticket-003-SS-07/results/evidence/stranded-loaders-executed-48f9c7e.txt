@@ -1,0 +1,72 @@
+==== specs/results/coverage-audit-arch-coherence-raw/cac_ac_classify.py
+     exit=0
+SWEEP3 errorpaths: raw=1431 groups=5 {'EP-RAISE': 876, 'EP-CATCH-SILENT': 190, 'EP-CATCH': 77, 'EP-TRY': 288, 'EP-N': 0}
+SWEEP3 retries: raw=528 groups=2 {'RT-S': 3, 'RT-N': 525}
+SWEEP3 timeouts: raw=275 groups=2 {'TO-S': 110, 'TO-N': 165}
+SWEEP3 fallbacks: raw=314 groups=4 {'FB-IMPORT': 33, 'FB-SILENT': 12, 'FB-DEFAULT': 232, 'FB-N': 37}
+SWEEP3 concurrency: raw=29 groups=2 {'CC-S': 10, 'CC-N': 19}
+SWEEP3 configbranches: raw=1160 groups=4 {'CB-ENV': 124, 'CB-FLAG': 42, 'CB-KEY': 825, 'CB-N': 169}
+
+==== specs/results/coverage-audit-hexagonal-prompting-raw/classify_scope_v2.py
+     exit=0
+   OUT         specs/desired_program_model/ticket_plan.yaml                 ticket_plan.yaml:143 (NEW, ESC-1)
+   OUT         specs/program_model/architecture_components.yaml             ticket_plan.yaml:142 (NEW, ESC-1)
+   OUT         specs/program_model/architecture_map.yaml                    ticket_plan.yaml:142 (NEW, ESC-1)
+   IN          specs/program_model/case_adapters.toml                       ticket_plan.yaml:126 (NEW, ESC-1)
+   IN          specs/program_model/kill_mutants.toml                        ticket_plan.yaml:127 (NEW, ESC-1)
+Still unclassified from round 1: 0 []
+
+==== specs/results/epic-close/sweep-raw-run4/ca4_classify.py
+     exit=0
+   test_graph/sources/spec_workflow_failure_cleanup_probe.py:47:        shutil.rmtree(target)
+   tests/test_effect_conformance.py:129:            victim.unlink()
+   tests/test_effect_conformance.py:824:            subprocess.run([sys.executable, "-c", f"import os; os.remove({str(victim)!r})"], check=True)
+   tests/test_kill_test.py:943:        (spec_dir / "MC.cfg").unlink()
+   tests/test_new_ticket_workflow.py:201:        (ticket_dir / model_dir / "seeded_stale_adapter.py").unlink()
+   tests/test_promotion_preserves_current.py:4:``shutil.rmtree``'d ``specs/current`` before copying the ticket's ``desired/``
+
+==== specs/results/finalization/sweep-raw-close2/cac2_classify.py
+     exit=0
+behaviors_timeout 287 {'testgraph': 173, 'effect-providers': 75, 'examples-other': 14, 'adapters': 12, 'lifecycle': 5, 'spec-tests': 4, 'audit-tooling': 2, 'repo-tests': 2}
+behaviors_fallback 241 {'lifecycle': 86, 'testgraph': 56, 'other-scripts': 44, 'effect-providers': 17, 'repo-tests': 15, 'audit-tooling': 9, 'adapters': 6, 'examples-other': 5, 'templates': 2, 'spec-tests': 1}
+behaviors_concurrency 27 {'testgraph': 16, 'effect-providers': 6, 'audit-tooling': 2, 'other-scripts': 1, 'lifecycle': 1, 'repo-tests': 1}
+behaviors_config 866 {'lifecycle': 265, 'adapters': 162, 'testgraph': 145, 'effect-providers': 91, 'other-scripts': 78, 'examples-other': 60, 'repo-tests': 32, 'validation-evidence': 13, 'spec-tests': 12, 'audit-tooling': 5, 'prod-runtime': 3}
+destructive-primitive lines: 55
+destructive by area: {'testgraph': 21, 'repo-tests': 9, 'other-scripts': 8, 'effect-providers': 7, 'lifecycle': 6, 'examples-other': 3, 'validation-evidence': 1}
+
+==== specs/results/scorecards/close-the-loop/GOAL-price-means-something/repriced_history.py
+     exit=1
+    m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m); return m
+                                               ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "<frozen importlib._bootstrap_external>", line 755, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 892, in get_code
+  File "<frozen importlib._bootstrap_external>", line 950, in get_data
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-07/examples/validation/gap_mutants/price_removal.py'
+
+==== specs/results/scorecards/cut-the-apparatus/CA-06/mutation_probe.py
+     exit=1
+Traceback (most recent call last):
+  File "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-07/specs/results/scorecards/cut-the-apparatus/CA-06/mutation_probe.py", line 35, in <module>
+    WORKTREE = Path(os.environ["CA06_WORKTREE"])
+                    ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 709, in __getitem__
+KeyError: 'CA06_WORKTREE'
+
+==== specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py
+     exit=0
+mutant.
+options:
+  -h, --help            show this help message and exit
+  --subject {arm_a,arm_b,arm_c,reference_ports,reference_ports_prerepair}
+  --cases CASES         Generated port corpus package
+  --out OUT
+
+==== specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/no_card_project_unaffected.py
+     exit=1
+  UNCHANGED  git-issue/references/regression-close.md
+FAILURES:
+  - patch 01-git-epic-workflow-goals-and-evaluation-third-branch.patch did not apply
+  - patch 02-git-epic-workflow-goals-and-evaluation-evidence-is-a-card.patch did not apply
+  - patch 03-git-issue-workflow-goal-signal-subtraction.patch did not apply
+  - patch 04-git-issue-regression-close-loop-outlet.patch did not apply
+

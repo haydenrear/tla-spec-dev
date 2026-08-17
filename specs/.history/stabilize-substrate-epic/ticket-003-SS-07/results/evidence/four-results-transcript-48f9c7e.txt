@@ -1,0 +1,235 @@
+tree 48f9c7e, branch feature/SS-07, cell WT (the ticket worktree); run 2026-08-16
+all commands run from the repository root
+
+=================== RESULT 1 -- the confound kill, re-derived ===================
+$ python3 examples/validation/ab/check_catalogue.py --arms
+catalogue: /Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-07/examples/validation/ab/seeded_faults.toml
+root:      /Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-07/examples/validation/ab
+15 mutant(s)
+
+id                                         class              occurs  revert  parses
+--------------------------------------------------------------------------------------
+M01-guard-zero-amount                      guard_relaxation     1      ok      ok  
+M02-guard-over-quota                       guard_relaxation     1      ok      ok  
+M03-guard-close-with-outstanding           guard_relaxation     1      ok      ok  
+M04-durable-stale-total                    durable_content      1      ok      ok  
+M05-durable-close-line-zero-and-swallowed  durable_content      1      ok      ok  
+M08-cross-aspect-commit-refunds-the-hold   cross_aspect         1      ok      ok  
+M06-wrong-status-on-release                output_oracle        1      ok      ok  
+M10-apply-only-double-refund               wrong_value          1      ok      ok  
+M07-positive-control-wrong-hold            wrong_value          1      ok      ok  
+M09-negative-control-ledger-order          ordering             1      ok      ok  
+PA-M11-real-adapter-drops-close-lines      adapter_internal     1      ok      ok  
+PA-M12-fake-adapter-drops-close-lines      adapter_internal     1      ok      ok  
+PA-M13-fake-drifts-from-real-on-write      adapter_internal     1      ok      ok  
+PA-M14-positive-control-accepted-hold-too-large wrong_value          1      ok      ok  
+FI-M15-positive-control-commit-total-too-large wrong_value          1      ok      ok  
+
+class coverage:
+  adapter_internal     3  PA-M11-real-adapter-drops-close-lines, PA-M12-fake-adapter-drops-close-lines, PA-M13-fake-drifts-from-real-on-write
+  cross_aspect         1  M08-cross-aspect-commit-refunds-the-hold
+  durable_content      2  M04-durable-stale-total, M05-durable-close-line-zero-and-swallowed
+  guard_relaxation     3  M01-guard-zero-amount, M02-guard-over-quota, M03-guard-close-with-outstanding
+  ordering             1  M09-negative-control-ledger-order
+  output_oracle        1  M06-wrong-status-on-release
+  wrong_value          4  M10-apply-only-double-refund, M07-positive-control-wrong-hold, PA-M14-positive-control-accepted-hold-too-large, FI-M15-positive-control-commit-total-too-large
+
+controls: 3 positive (2 anchor tree(s)), 1 negative
+adapter-internal mutants: 3 across 2 adapter file(s)
+  PA-M11-real-adapter-drops-close-lines      reference_ports/journal_file.py
+  PA-M12-fake-adapter-drops-close-lines      reference_ports/journal_memory.py
+  PA-M13-fake-drifts-from-real-on-write      reference_ports/journal_memory.py
+
+  NO DISPATCH RECORD REQUESTED. Every number below is measured on the
+  bytes ON DISK. PA-06-DF-10: the bytes on disk were not the bytes sent,
+  and the difference moved the headline from +3.8% to +18.1%. Pass
+  --dispatch-dir <dir> to measure what a round actually dispatched.
+
+arms:
+  examples/validation/ab/arm_a/PROMPT.md  (73 lines, 54 distinct)  <- on disk
+  examples/validation/ab/arm_b/PROMPT.md  (194 lines, 143 distinct)  <- on disk
+  examples/validation/ab/arm_c/PROMPT.md  (198 lines, 146 distinct)  <- on disk
+
+  shared by all three: 36 lines (the controlled envelope)
+
+  UNIQUE CONTENT -- distinct non-blank stripped lines in the row's arm
+  that appear nowhere in the column's arm:
+
+                vs arm_a    vs arm_b    vs arm_c
+  arm_a               --          16          17
+  arm_b              105          --          89
+  arm_c              109          92          --
+
+  LENGTH MATCH, measured against arm A as the common control:
+    arm B unique vs arm A: 105 lines   (6.56x arm A's 16 -- the predecessor's 6.6x)
+    arm C unique vs arm A: 109 lines
+    arm C / arm B:         1.038  (+3.8%), tolerance +/-10%
+
+  ARCHITECTURAL VOCABULARY in content not shared with arm A:
+    arm B: 44 of 105 unique lines
+    arm C: 0 of 109 unique lines
+    (A vocabulary probe, not a semantic judgement. It cannot detect
+     structural guidance phrased without any of these words.)
+
+  ARM B SLOT: filled.
+  ARM C SLOT: filled.
+
+Catalogue integrity holds: every pattern occurs exactly once, every
+mutant applies and reverts cleanly, and every declared gap is seeded.
+
+=================== RESULT 2 -- derive ===================
+$ python3 examples/validation/scorecards/architecture_tags.py derive
+# effect_boundary -- derived over 21 declared scope(s)
+# state_colocation threshold = 0.5 (RD-04 §9.2: CHOSEN, NOT MEASURED -- `RD-04-DF-04`)
+
+arm_a                    derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=1/1 state_coloc=1.0
+arm_b                    derived=ports-and-adapters                 declared=ports-and-adapters   agree
+                           iface=1 eff_mods=1/4 state_coloc=0.125
+arm_c                    derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=1/1 state_coloc=1.0
+ex1_scaffold_only        derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=1/1 state_coloc=None
+ex3_over_complex         derived=UNDERIVABLE:no-effect-surface      declared=effectful            UNDERIVABLE
+                           iface=0 eff_mods=0/1 state_coloc=None
+ex4_pipeline_coherent    derived=ports-and-adapters                 declared=ports-and-adapters   agree
+                           iface=1 eff_mods=1/21 state_coloc=0.1
+ex5_pipeline_divergent   derived=UNDERIVABLE:no-effect-surface      declared=ports-and-adapters   UNDERIVABLE
+                           iface=1 eff_mods=0/16 state_coloc=0.0
+ex6_jenga                derived=UNDERIVABLE:no-effect-surface      declared=effectful            UNDERIVABLE
+                           iface=0 eff_mods=0/6 state_coloc=0.0
+rd06_artifact_D          derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=2/2 state_coloc=1.0
+rd06_artifact_E          derived=ports-and-adapters                 declared=ports-and-adapters   agree
+                           iface=1 eff_mods=1/4 state_coloc=0.167
+rd06_artifact_F          derived=ports-and-adapters                 declared=ports-and-adapters   agree
+                           iface=1 eff_mods=1/4 state_coloc=0.167
+rd06_artifact_M          derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=1/1 state_coloc=1.0
+rd06_artifact_N          derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=2/2 state_coloc=1.0
+rd06_artifact_Z          derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=1/1 state_coloc=1.0
+rm04_eval_harness        derived=ports-and-adapters                 declared=ports-and-adapters   agree
+                           iface=3 eff_mods=30/83 state_coloc=0.412
+rm04_removal_pricer      derived=UNDERIVABLE:no-effect-surface      declared=effectful            UNDERIVABLE
+                           iface=0 eff_mods=0/0 state_coloc=None
+rm04_scripts             derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=30/33 state_coloc=1.0
+sv01_negative_control    derived=ports-and-adapters                 declared=ports-and-adapters   agree
+                           iface=1 eff_mods=1/4 state_coloc=0.125
+toolchain                derived=effectful                          declared=effectful            agree
+                           iface=0 eff_mods=30/33 state_coloc=1.0
+toolchain_compiler       derived=UNDERIVABLE:no-effect-surface      declared=ports-and-adapters   UNDERIVABLE
+                           iface=2 eff_mods=0/3 state_coloc=None
+toolchain_fixture        derived=ports-and-adapters                 declared=ports-and-adapters   agree
+                           iface=1 eff_mods=1/5 state_coloc=0.111
+
+16 of 21 subject(s) decided; 5 refused. A refusal is REPORTED as a refusal and is comparable to everything.
+
+=================== RESULT 4 -- re-run by execution ===================
+$ QUOTA_LEDGER_PORTS_DIR=examples/validation/ab/reference_ports pytest .../test_journal_conformance.py -q
+..............                                                           [100%]
+14 passed in 5.03s
+$ QUOTA_LEDGER_IMPL=quota_ledger      pytest .../test_behavior.py -q
+............................                                             [100%]
+28 passed in 0.09s
+$ QUOTA_LEDGER_IMPL=quota_ledger_fake pytest .../test_behavior.py -q
+............................                                             [100%]
+28 passed in 0.07s
+
+=================== DO-NOT-CUT INSTRUMENTS ===================
+$ score_tools.py serve | wc -c
+    6281
+$ score_tools.py serve  (stderr header)
+served digest sha256:2d7d4a0506d9b259 (card version 5, rubric file sha256:b7fe75437bf68646)
+$ score_tools.py serve --digest-only
+sha256:2d7d4a0506d9b259
+$ score_tools.py audit | tail -2
+
+0 violation(s)
+$ score_tools.py scope | tail -2
+103 counted figure(s): 81 REFUTED, 0 COUNT-MOVED, 2 HOLDS, 20 UNREACHABLE
+A claim this cannot reach is NOT a claim that holds. The two counts are separate on purpose.
+$ score_tools.py scope --path NEXT-EPIC.md | tail -2
+3 counted figure(s): 3 REFUTED, 0 COUNT-MOVED, 0 HOLDS, 0 UNREACHABLE
+A claim this cannot reach is NOT a claim that holds. The two counts are separate on purpose.
+$ score_tools.py contested | tail -1
+9 contested dimension(s) over 39 judge group(s), 0 unrecorded
+$ score_tools.py seal <the 11 sealed trees of the four results>
+nothing new to seal
+$ score_tools.py check <same 11 trees> --require-filled
+  ports-as-adapters                      6 scorecard(s) checked, 6 filled, 0 unfilled skeleton(s), 0 problem(s)
+  hexagonal-prompting                    5 scorecard(s) checked, 5 filled, 0 unfilled skeleton(s), 0 problem(s)
+  hexagonal-prompting-rerun              4 scorecard(s) checked, 4 filled, 0 unfilled skeleton(s), 0 problem(s)
+  portable-substrate-rm04-GG             2 scorecard(s) checked, 2 filled, 0 unfilled skeleton(s), 0 problem(s)
+  portable-substrate-rm04-JJ             2 scorecard(s) checked, 2 filled, 0 unfilled skeleton(s), 0 problem(s)
+  portable-substrate-rm04-LL             2 scorecard(s) checked, 2 filled, 0 unfilled skeleton(s), 0 problem(s)
+  score-drives-validation-sv01-v4        2 scorecard(s) checked, 2 filled, 0 unfilled skeleton(s), 0 problem(s)
+  score-drives-validation-sv01-v5        2 scorecard(s) checked, 2 filled, 0 unfilled skeleton(s), 0 problem(s)
+  close-the-loop-cl03-v4                 2 scorecard(s) checked, 2 filled, 0 unfilled skeleton(s), 0 problem(s)
+  close-the-loop-cl03-v5                 2 scorecard(s) checked, 2 filled, 0 unfilled skeleton(s), 0 problem(s)
+  score-drives-validation-sv04           4 scorecard(s) checked, 4 filled, 0 unfilled skeleton(s), 0 problem(s)
+
+=================== THE STRANDED INSTRUMENT, AT THE TIP ===================
+$ python3 specs/results/scorecards/close-the-loop/GOAL-price-means-something/repriced_history.py
+  File "<frozen importlib._bootstrap_external>", line 892, in get_code
+  File "<frozen importlib._bootstrap_external>", line 950, in get_data
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-07/examples/validation/gap_mutants/price_removal.py'
+
+=================== THE SCORE TABLES (index; see SS-07-DF-01 -- index WRITES) ===================
+--- hexagonal-prompting
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| ab_quota_ledger | A-control-reference | pass 0 | claude-opus-5[1m] | 0 | 2 | 1 | 2 | 3 | — |
+| ab_quota_ledger | X | pass 1 | claude-opus-5[1m] | 3 | 2 | 4 | 3 | 3 | — |
+| ab_quota_ledger | X | pass 2 | claude-opus-5[1m] | 3 | 2 | 4 | 3 | 3 | — |
+| ab_quota_ledger | Y | pass 1 | claude-opus-5[1m] | 3 | 2 | 2 | 2 | 4 | — |
+| ab_quota_ledger | Y | pass 2 | claude-opus-5[1m] | 2 | 2 | 2 | 2 | 3 | — |
+--- hexagonal-prompting-rerun
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| ab_quota_ledger | P | pass 1 | claude-opus-5[1m] | 3 | 2 | 2 | 2 | 3 | — |
+| ab_quota_ledger | P | pass 2 | claude-opus-5[1m] | 3 | 2 | 2 | 2 | 2 | — |
+| ab_quota_ledger | Q | pass 1 | claude-opus-5[1m] | 3 | 2 | 4 | 3 | 4 | — |
+| ab_quota_ledger | Q | pass 2 | claude-opus-5[1m] | 3 | 2 | 4 | 2 | 3 | — |
+--- ports-as-adapters
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| ab_quota_ledger | T | pass 1 | claude-opus-5[1m] | 4 | 2 | 4 | 4 | 4 | — |
+| ab_quota_ledger | T | pass 2 | claude-opus-5[1m] | 3 | 2 | 4 | 4 | 4 | — |
+| ab_quota_ledger | U | pass 1 | claude-opus-5[1m] | 4 | 2 | 2 | 4 | 4 | — |
+| ab_quota_ledger | U | pass 2 | claude-opus-5[1m] | 3 | 2 | 2 | 4 | 4 | — |
+| ab_quota_ledger | W | pass 1 | claude-opus-5[1m] | 3 | 2 | 1 | 3 | 4 | — |
+| ab_quota_ledger | W | pass 2 | claude-opus-5[1m] | 3 | 2 | 1 | 3 | 4 | — |
+--- portable-substrate-rm04-GG
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| eval_toolchain | GG | pass 1 | claude-opus-4 | — | 2 | 2 | — | — | D3 |
+| eval_toolchain | GG | pass 2 | claude-sonnet-4-5 | — | 1 | 4 | — | — | D3 |
+--- portable-substrate-rm04-JJ
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| eval_toolchain | JJ | pass 1 | claude-opus-4 | — | 1 | 1 | — | — | — |
+| eval_toolchain | JJ | pass 2 | claude-sonnet-4-5 | — | 2 | 0 | — | — | — |
+--- portable-substrate-rm04-LL
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| eval_toolchain | LL | pass 1 | claude-opus-4 | — | 1 | 1 | — | — | — |
+| eval_toolchain | LL | pass 2 | claude-sonnet-4-5 | — | 2 | 0 | — | — | — |
+--- score-drives-validation-sv01-v4
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| ab_quota_ledger | GL | pass 1 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+| ab_quota_ledger | GL | pass 2 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+--- score-drives-validation-sv01-v5
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| ab_quota_ledger | GL | pass 1 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+| ab_quota_ledger | GL | pass 2 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+--- close-the-loop-cl03-v4
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| toolchain_removal | CL | pass 1 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+| toolchain_removal | CL | pass 2 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+--- close-the-loop-cl03-v5
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| toolchain_removal | CL | pass 1 | claude-opus-5[1m] | — | 2 | 3 | — | — | D2 |
+| toolchain_removal | CL | pass 2 | claude-opus-5[1m] | — | 0 | 3 | — | — | D2 |
+--- score-drives-validation-sv04
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| toolchain_removal | GL | pass 1 | claude-opus-5[1m] | — | 2 | 3 | — | — | — |
+| toolchain_removal | GL | pass 2 | claude-opus-5[1m] | — | 2 | 3 | — | — | — |
+| toolchain_removal | LG | pass 1 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+| toolchain_removal | LG | pass 2 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |

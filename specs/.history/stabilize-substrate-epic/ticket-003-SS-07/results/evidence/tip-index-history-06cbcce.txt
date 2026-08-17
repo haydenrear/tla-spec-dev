@@ -1,0 +1,82 @@
+index and history AT THE TIP -- run 2026-08-16 to remove an inference.
+The first version of this ticket claimed the four results were re-rendered
+'at both trees' but evidence/tip-instruments-06cbcce.txt contained NO index
+and NO history invocation, so the tip half was inferred. RESULT.md's own
+rule is that inferred is not measured. This file is the measurement.
+tree: HEAD of feature/SS-07 (post-06cbcce; the card trees are byte-identical
+to 06cbcce -- no commit since touches specs/results/scorecards/<card trees>).
+NOTE: running index WRITES INDEX.md into each card tree (SS-07-DF-01).
+Every write below was reverted; git status is quoted at the end.
+
+--- index hexagonal-prompting
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| ab_quota_ledger | A-control-reference | pass 0 | claude-opus-5[1m] | 0 | 2 | 1 | 2 | 3 | — |
+| ab_quota_ledger | X | pass 1 | claude-opus-5[1m] | 3 | 2 | 4 | 3 | 3 | — |
+| ab_quota_ledger | X | pass 2 | claude-opus-5[1m] | 3 | 2 | 4 | 3 | 3 | — |
+| ab_quota_ledger | Y | pass 1 | claude-opus-5[1m] | 3 | 2 | 2 | 2 | 4 | — |
+| ab_quota_ledger | Y | pass 2 | claude-opus-5[1m] | 2 | 2 | 2 | 2 | 3 | — |
+--- index hexagonal-prompting-rerun
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| ab_quota_ledger | P | pass 1 | claude-opus-5[1m] | 3 | 2 | 2 | 2 | 3 | — |
+| ab_quota_ledger | P | pass 2 | claude-opus-5[1m] | 3 | 2 | 2 | 2 | 2 | — |
+| ab_quota_ledger | Q | pass 1 | claude-opus-5[1m] | 3 | 2 | 4 | 3 | 4 | — |
+| ab_quota_ledger | Q | pass 2 | claude-opus-5[1m] | 3 | 2 | 4 | 2 | 3 | — |
+--- index ports-as-adapters
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| ab_quota_ledger | T | pass 1 | claude-opus-5[1m] | 4 | 2 | 4 | 4 | 4 | — |
+| ab_quota_ledger | T | pass 2 | claude-opus-5[1m] | 3 | 2 | 4 | 4 | 4 | — |
+| ab_quota_ledger | U | pass 1 | claude-opus-5[1m] | 4 | 2 | 2 | 4 | 4 | — |
+| ab_quota_ledger | U | pass 2 | claude-opus-5[1m] | 3 | 2 | 2 | 4 | 4 | — |
+| ab_quota_ledger | W | pass 1 | claude-opus-5[1m] | 3 | 2 | 1 | 3 | 4 | — |
+| ab_quota_ledger | W | pass 2 | claude-opus-5[1m] | 3 | 2 | 1 | 3 | 4 | — |
+--- index portable-substrate-rm04-GG
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| eval_toolchain | GG | pass 1 | claude-opus-4 | — | 2 | 2 | — | — | D3 |
+| eval_toolchain | GG | pass 2 | claude-sonnet-4-5 | — | 1 | 4 | — | — | D3 |
+--- index portable-substrate-rm04-JJ
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| eval_toolchain | JJ | pass 1 | claude-opus-4 | — | 1 | 1 | — | — | — |
+| eval_toolchain | JJ | pass 2 | claude-sonnet-4-5 | — | 2 | 0 | — | — | — |
+--- index portable-substrate-rm04-LL
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| eval_toolchain | LL | pass 1 | claude-opus-4 | — | 1 | 1 | — | — | — |
+| eval_toolchain | LL | pass 2 | claude-sonnet-4-5 | — | 2 | 0 | — | — | — |
+--- index score-drives-validation-sv01-v4
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| ab_quota_ledger | GL | pass 1 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+| ab_quota_ledger | GL | pass 2 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+--- index score-drives-validation-sv01-v5
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| ab_quota_ledger | GL | pass 1 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+| ab_quota_ledger | GL | pass 2 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+--- index close-the-loop-cl03-v4
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| toolchain_removal | CL | pass 1 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+| toolchain_removal | CL | pass 2 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+--- index close-the-loop-cl03-v5
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| toolchain_removal | CL | pass 1 | claude-opus-5[1m] | — | 2 | 3 | — | — | D2 |
+| toolchain_removal | CL | pass 2 | claude-opus-5[1m] | — | 0 | 3 | — | — | D2 |
+--- index score-drives-validation-sv04
+| example | arm | judge | model | D1 bug detection | D2 complexity | D3 modularity | D4 behavior preservation | D5 honesty | contested |
+| toolchain_removal | GL | pass 1 | claude-opus-5[1m] | — | 2 | 3 | — | — | — |
+| toolchain_removal | GL | pass 2 | claude-opus-5[1m] | — | 2 | 3 | — | — | — |
+| toolchain_removal | LG | pass 1 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+| toolchain_removal | LG | pass 2 | claude-opus-5[1m] | — | 2 | 4 | — | — | — |
+--- history --example ab_quota_ledger (last lines)
+
+> **`sm04-d2-thirty-one-of-thirty-one`.** `FI-06-DF-05` at 27; SM-04's four judges are the 28th to the 31st and they were the first served a card that told them nothing about how D2 has scored. All four gave anchor 3's unreachability as the reason, independently and unprompted. THIS IS NOT EVIDENCE THAT D2 IS STABLE. A dimension that has never taken a second value cannot be shown stable by failing to move. It is evidence that the anchor, not the artifacts, is what pins it -- from above by `FI-06-DF-05` and, newly, from below by `SM-04-DF-06`. `SM-05` gives it the first subject with a real before and after and DECIDES it. Nothing before then may cite this row as stability.
+
+--- history --example eval_toolchain (last lines)
+
+_(no rows measured in this era)_
+
+--- history --example toolchain_removal (last lines)
+| `20260812-sv04conf-LG-p1` | score-drives-validation-sv04 | LG | 1 | 5 | ? | 2 | 4 | ? | ? | `60f2699` | — |
+| `20260812-sv04conf-LG-p2` | score-drives-validation-sv04 | LG | 2 | 5 | ? | 2 | 4 | ? | ? | `60f2699` | — |
+
+git status --short (after revert):
+ M specs/results/scorecards/close-the-loop/GOAL-price-means-something/00-DISCLOSURE-NOT-RE-DERIVABLE-AT-THE-TIP.md
+ M specs/results/scorecards/stabilize-substrate/SS-07/RESULT.md
+ M specs/results/scorecards/stabilize-substrate/SS-07/stranded_loaders.py
+?? specs/results/scorecards/stabilize-substrate/SS-07/evidence/tip-index-history-06cbcce.txt

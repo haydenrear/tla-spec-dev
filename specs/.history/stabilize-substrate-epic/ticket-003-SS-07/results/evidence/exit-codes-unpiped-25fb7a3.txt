@@ -1,0 +1,25 @@
+EXIT CODES TAKEN UNPIPED -- the correction behind SS-07-DF-05. tree: feature/SS-07 tip.
+Each command is run ALONE and $? is read immediately. No pipe, no tail.
+
+$ blind_dispatch.py cell <path naming the project>; echo EXIT=$?
+cell         /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/x-cell3
+memory slug  -private-tmp-claude-501--Users-hayde-IdeaProjects-tla-spec-dev-x-cell3  (no memory dir)
+PROBLEM      path component '-Users-hayde-IdeaProjects-tla-spec-dev' names the project under test
+EXIT=1
+
+SAME COMMAND WITH THE PIPE THAT PRODUCED THE FALSE CLAIM:
+$ blind_dispatch.py cell <same path> | tail -4; echo EXIT=$?
+cell         /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/x-cell3
+memory slug  -private-tmp-claude-501--Users-hayde-IdeaProjects-tla-spec-dev-x-cell3  (no memory dir)
+PROBLEM      path component '-Users-hayde-IdeaProjects-tla-spec-dev' names the project under test
+EXIT=0
+  ^^ 0, because $? is tail's status. The instrument was right; the pipeline lied.
+
+$ blind_dispatch.py check <empty file> --repo . ; echo EXIT=$?
+EXIT=2 (UNDECIDED)
+$ blind_dispatch.py check <leaking report> --repo . --memory <real MEMORY.md>; echo EXIT=$?
+EXIT=1 (REFUSED)
+
+$ effect-conformance with no --cases-dir: count of DEAD MODEL SURFACE lines
+14
+  (the committed transcript effect-conformance-no-cases-dir-06cbcce.txt says the same)
