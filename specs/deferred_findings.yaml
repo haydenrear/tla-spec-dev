@@ -24273,3 +24273,97 @@ findings:
       REPAIRED in the PR #286 review round. Both branches exercised: the closed
       workflow still skips with the root named, and the incomplete workflow now
       refuses.
+  - id: SS-00-DF-08
+    found_by: "the epic owner, cross-tabbing its own status script before quoting it"
+    found_at_commit: "69ca005"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/stabilize-substrate/kickoff/epic_state.py"
+        - "specs/deferred_findings.yaml"
+    channel: "operator-running-own-instrument"
+    cost: >-
+      No published figure was wrong, because the cross-tab was run BEFORE the
+      number reached the pre-evaluation artifact. Had it not been, the artifact
+      would have carried a headline "N of 52 found by independent review" with a
+      channel table beside it that does not decompose into N.
+    summary: >-
+      THE EPIC'S OWN STATUS SCRIPT REPORTS A REVIEW COUNT FROM ONE COLUMN AND A
+      CHANNEL BREAKDOWN FROM A DIFFERENT COLUMN, PRINTED ADJACENT AS THOUGH THE
+      SECOND DECOMPOSED THE FIRST. `epic_state.py:99` computes
+      `reviewer = [r for r in mine if "review" in str(r.get("found_by","")).lower()]`
+      and reports it as `found_by_independent_review` (19, 36.5%). Two lines above,
+      `by_channel` counts `r.get("channel")`. `found_by` and `channel` ARE NOT THE
+      SAME FIELD AND DO NOT ANSWER THE SAME QUESTION: `found_by` names WHO FOUND
+      IT, `channel` names WHICH CHANNEL THE CAUSE IS OWNED BY. The printed
+      channel table sums 15+3=18 review-ish rows against a headline of 19, and
+      the two disagree on which rows.
+
+      THE JOINT DISTRIBUTION, WHICH IS WHAT SHOULD HAVE BEEN READ:
+        found_by~review & channel=independent-review                    14
+        found_by~review & channel=review                                 3
+        found_by~review & channel=operator-doing-the-work                1
+        found_by~review & channel=operator-running-a-shipped-instrument  1
+        found_by!~review & channel=independent-review                    1
+      THREE ROWS DISAGREE BETWEEN THE TWO COLUMNS, each for a different reason:
+        - SS-07-DF-07: `found_by` contains the word "review" only because the row
+          describes SS-07 FILING THE REVIEW'S OWN FINDINGS. The finder was the
+          ticket agent running a shipped instrument. A SUBSTRING FALSE POSITIVE.
+        - SS-00-DF-07: found by the SS-04 independent reviewer -- genuinely a
+          reviewer -- but `channel` is operator-doing-the-work because the CAUSE
+          is the epic owner's. Here the two columns are both right and still
+          disagree, which is the clearest proof they measure different things.
+        - SS-06-DF-04: `channel` is independent-review but `found_by` is SS-06
+          itself, adjudicating another ticket's finding. Cross-ticket, so
+          arguably independent of SS-02; not independent of SS-06. CONTESTED.
+
+      AND THE VOCABULARY IS UNNORMALISED: `channel` carries BOTH "review" (3) and
+      "independent-review" (15) as distinct values for what no one has ever
+      claimed are distinct channels.
+
+      CONSEQUENCE FOR THE RECORD: THERE IS NO SINGLE DEFENSIBLE "FOUND BY
+      INDEPENDENT REVIEW" FIGURE FOR THIS EPIC AS THE LEDGER STANDS. The range is
+      14 (strict: both columns agree AND channel is independent-review) to 19
+      (loose: substring on found_by). ANY ONE OF THOSE NUMBERS QUOTED ALONE IS A
+      CHOICE OF DEFINITION PRESENTED AS A MEASUREMENT.
+    reproduction: >-
+      `/usr/bin/python3 specs/results/scorecards/stabilize-substrate/kickoff/epic_state.py`
+      -> prints `by_channel` with independent-review=15, review=3, and
+      `found_by_independent_review 19` immediately below. 15+3=18 != 19. Then
+      cross-tab the two fields directly over rows matching `^SS-\d+-DF` to obtain
+      the joint table above and the three named disagreeing ids.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/kickoff/epic_state.py:99"
+      - "specs/results/scorecards/stabilize-substrate/kickoff/epic_state.py:113"
+      - "specs/results/scorecards/stabilize-substrate/kickoff/epic_state.py:115"
+      - "specs/deferred_findings.yaml"
+    class_note: >-
+      THIS IS THE SAME SHAPE AS SS-00-DF-04, AND IT IS THE FOURTH INSTANCE IN THIS
+      EPIC OF READING A JOINT DISTRIBUTION OFF MARGINALS. The prior three:
+      the scope cross-tab ("20 REFUTED, all from the ledger" -- actually 17+3 and
+      3), the disposition denominator, and the 13-vs-12 uncollected nodes. IN
+      EVERY CASE THE TOTAL WAS RIGHT AND THE DECOMPOSITION WAS INFERRED RATHER
+      THAN MEASURED. The recurrence is the finding; a fourth instance in one epic
+      means the discipline is not yet carried by anything except the operator
+      remembering, which is exactly the failure mode
+      GOAL-counted-figures-reach-the-record exists to close.
+    blast_radius: >-
+      One status script and one ledger column vocabulary. But the script exists
+      specifically so the pre-evaluation artifact's figures are GENERATED RATHER
+      THAN TRANSCRIBED, so a defect here defeats the control it was built to be.
+    disposition: repaired
+    disposition_ticket: "SS-00"
+    disposition_note: >-
+      REPAIRED IN THE INSTRUMENT, NOT IN THE LEDGER. `epic_state.py` now reports
+      the JOINT of `found_by` against `channel` and a STATED RANGE with both
+      definitions spelled out, and refuses to print any single review headline.
+      THE THREE DISAGREEING ROWS ARE LEFT AS THEY STAND AND ARE NOT RECLASSIFIED:
+      reclassifying them would be fitting the data to make one number come out,
+      which is MF-020. The unnormalised `review`/`independent-review` vocabulary
+      is LEFT OPEN and carried -- normalising it retroactively would rewrite rows
+      sealed by closed tickets.

@@ -96,8 +96,25 @@ def findings() -> dict:
     if rows is None:
         return {"undecided": "no `findings` key"}
     mine = [r for r in rows if TICKET_RE.match(str(r.get("id", "")))]
-    reviewer = [r for r in mine
-                if "review" in str(r.get("found_by", "")).lower()]
+
+    # SS-00-DF-08. This used to report `len(reviewer)` as
+    # `found_by_independent_review` -- a substring test on `found_by` -- printed
+    # directly beneath a `by_channel` table counting a DIFFERENT FIELD. The two
+    # do not decompose into each other (15+3 != 19) and three rows disagree.
+    # `found_by` names WHO FOUND IT; `channel` names WHOSE CAUSE IT IS. So there
+    # is no single review headline to print, and this refuses to print one.
+    def is_rev_found(r) -> bool:
+        return "review" in str(r.get("found_by", "")).lower()
+
+    def is_rev_chan(r) -> bool:
+        return "review" in str(r.get("channel", "")).lower()
+
+    joint = collections.Counter(
+        (is_rev_found(r), str(r.get("channel"))) for r in mine)
+    disagree = [r["id"] for r in mine if is_rev_found(r) != is_rev_chan(r)]
+    strict = [r for r in mine
+              if is_rev_found(r) and str(r.get("channel")) == "independent-review"]
+    loose = [r for r in mine if is_rev_found(r)]
     return {
         "ledger_rows": len(rows),
         "inherited_rows": EPIC_INHERITED_LEDGER_ROWS,
@@ -112,8 +129,18 @@ def findings() -> dict:
             str(r.get("severity")) for r in mine).items())),
         "by_channel": dict(sorted(collections.Counter(
             str(r.get("channel")) for r in mine).items())),
-        "found_by_independent_review": len(reviewer),
-        "found_by_review_pct": round(100 * len(reviewer) / len(mine), 1) if mine else None,
+        "review_JOINT_found_by_x_channel": {
+            f"found_by~review={f} channel={c}": n
+            for (f, c), n in sorted(joint.items(), key=lambda x: (not x[0][0], x[0][1]))
+        },
+        "review_columns_disagree_on": disagree,
+        "review_RANGE_not_a_figure": (
+            f"{len(strict)}..{len(loose)} of {len(mine)} "
+            f"({round(100 * len(strict) / len(mine), 1)}%..{round(100 * len(loose) / len(mine), 1)}%) "
+            f"-- strict = found_by AND channel both say review; "
+            f"loose = substring on found_by only. QUOTE THE RANGE AND THE "
+            f"DEFINITION, NEVER ONE END OF IT ALONE."
+        ),
     }
 
 
