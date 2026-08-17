@@ -1,0 +1,32 @@
+SS-02's absent-input contract, pointed by hand at SS-07's own instrument.
+tree: 8b9a556 (feature/SS-07 reconciled onto epic tip 8c3d258). Each run UNPIPED.
+stranded_loaders.py is NOT in examples/validation/instruments/instruments.toml,
+so score_tools.py absent-input does not sweep it. These are hand probes.
+
+--- state ABSENT: --root names nothing
+REFUSED: record root /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.n4OAYqrOE8/nope does not exist. An absent record is not a clean record.
+exit=2  -> refusal + non-zero: WOULD SATISFY
+
+--- state EMPTY: root exists, holds no *.py
+UNDECIDED: no *.py under /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.n4OAYqrOE8/empty. Nothing was swept, which is not the same answer as nothing is stranded.
+exit=0  -> UNDECIDED but exit 0: WOULD FAIL (needs exit_code_cannot_carry_the_answer)
+
+--- state UNREADABLE (a): a *.py that will not parse
+repo root   : /Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-07
+
+no stranded literal path reference found
+0 file(s) name at least one ABSENT path
+0 absent reference(s) in total
+0 file(s) NO-PATHS (parsed, zero repository path literals) -- NOT the same answer as 'every path resolves'
+exit=0  -> CLEAN HEADLINE over a file that was never read: WOULD FAIL
+
+--- state UNREADABLE (b): --root is a FILE, not a directory
+UNDECIDED: no *.py under /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.n4OAYqrOE8/afile. Nothing was swept, which is not the same answer as nothing is stranded.
+  ^ wrong reason: not empty, not a directory
+
+--- state UNREADABLE (c): directory with no read permission
+UNDECIDED: no *.py under /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.n4OAYqrOE8/np. Nothing was swept, which is not the same answer as nothing is stranded.
+  ^ rglob swallows PermissionError: 'not allowed to look' reported as 'nothing there'
+    == set[str] vs set[str] | None, the charter's own one-line definition of the class
+
+VERDICT: 1 of 3 states would satisfy. SS-07-DF-08. Filed, not repaired.

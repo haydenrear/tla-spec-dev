@@ -746,3 +746,60 @@ per `SS-07-DF-05`), `scope` **103 (81/0/2/20)**, `derive` **16 of 21**.
 `GOAL-tree-stabilizes`, **guard**: **`SS-07`'s entire footprint on the tree
 remains `+4` collected and `+4` passed from `open ticket`, which reverses on
 close.** Evidence: `evidence/pytest-tip-88765b3.txt`.
+
+---
+
+## 16. `SS-02`'s `absent-input` check, pointed at the instrument I shipped
+
+**The epic owner asked whether `stranded_loaders.py` would satisfy
+`score_tools.py absent-input` if it were registered, and told me to say why if I
+already knew it would not. It would NOT. Measured at the reconciled tree, not
+reasoned about.**
+
+It is **not** in `examples/validation/instruments/instruments.toml`, so it is not
+among the 56 the check sweeps and it is not one of the 2 carrying a contract.
+**Registering it is a successor's call and I have not done it. Neither have I
+written a contract, because a contract written by the author of the instrument to
+describe what it already does is the thing `R1` exists to stop.**
+
+The check requires three states — `absent`, `unreadable`, `empty` — each
+answering **refusal** or **undecided**, never PASS, each with an `expect_output`
+and a mandatory `expect_exit`.
+
+| state | input | what my instrument actually answers | verdict |
+|---|---|---|---|
+| **absent** | `--root` names nothing | `REFUSED: record root … does not exist. An absent record is not a clean record.` **exit 2** | **would satisfy** |
+| **empty** | root exists, holds no `*.py` | `UNDECIDED: no *.py under … Nothing was swept, which is not the same answer as nothing is stranded.` **exit 0** | **would FAIL** — the check refuses UNDECIDED-with-exit-0 unless `exit_code_cannot_carry_the_answer` is declared with a reason |
+| **unreadable** | a `*.py` that will not parse | **exit 0 and a clean census**: `0 file(s) name at least one ABSENT path`, with `1 file(s) UNPARSED` in a footer line | **would FAIL, and this is the bad one** |
+
+**The `unreadable` state is where my own instrument commits the class it was
+written to find.** Three different unreadable inputs, three wrong answers:
+
+- **An unparseable `*.py`** is counted in an `UNPARSED` footer and the headline
+  still reads *"0 file(s) name at least one ABSENT path"* at **exit 0**. A reader
+  taking the headline gets a **clean report over a file that was never read.**
+  The `unparsed` bucket exists in `sweep()` and **`main()` never escalates on
+  it** — the datum is collected and thrown away, which is the same shape as
+  `NO-PATHS` that I was careful to get right two lines above it.
+- **A root that is a file, not a directory** → `UNDECIDED: no *.py under …`.
+  Wrong reason. It is not empty; it is not a directory.
+- **A directory with no read permission** (`chmod 000`) → the same
+  `UNDECIDED: no *.py under …`. **`rglob` swallows the `PermissionError` and
+  returns nothing, so "I was not allowed to look" is reported as "there is
+  nothing there."** That is `set[str]` versus `set[str] | None` exactly — the
+  signature shape the charter names as the whole class in one line — **in the
+  instrument this ticket built to police it.**
+
+**So: one of three states satisfies, one fails on an exit code, and one fails on
+the substance.** `SS-07-DF-08`, filed rather than fixed, because fixing it here
+is scope the owner has already told me not to take and because the measurement is
+worth more unrepaired than a same-session repair by the author.
+
+**What that does and does not say about this ticket's results.** `stranded_loaders.py`
+produced §5's sweep, and that sweep was **executed row by row** — all eight
+flagged files were run, and the three real strandings were confirmed by their own
+tracebacks, not by the sweep's say-so. **None of §1–§4's verdicts depends on it.**
+What the defect costs is the sweep's *floor*: a `specs/results/` script that
+cannot be parsed is silently absent from the census, so **"8 files name 15 absent
+paths" is a floor for a second reason I did not state before** — the stated one
+(runtime-assembled paths are invisible) and this one.

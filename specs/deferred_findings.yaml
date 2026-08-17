@@ -22960,3 +22960,104 @@ findings:
       quote `--epic`, not `--ticket`, until this is repaired -- and should say so.
       Filed by the ticket whose own count came back wrong; the discrepancy was
       visible only because SS-07 had just written six rows and the tool said four.
+  - id: SS-07-DF-08
+    found_by: "SS-07, pointing SS-02's new absent-input check at the instrument SS-07 itself shipped"
+    found_at_commit: "8b9a556"
+    schedule_revision: 1
+    severity: moderate
+    channel: operator-running-a-shipped-instrument
+    channel_note: >-
+      the epic owner asked whether SS-07's own instrument would pass SS-02's new check; it does not, and the measurement is the answer
+    cost:
+      basis: "five invocations of stranded_loaders.py against five hand-made roots, and one reading of _absent_contract_problems"
+      value: "under five minutes, and it found the policed class inside the policing instrument"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/stabilize-substrate/SS-07/stranded_loaders.py"
+    summary: >-
+      THE INSTRUMENT SS-07 BUILT TO FIND ABSENT-INPUT DEFECTS FAILS TWO OF THE
+      THREE ABSENT-INPUT STATES `SS-02` NOW REQUIRES, AND ONE OF THE FAILURES IS
+      THE EXACT SIGNATURE SHAPE THE CHARTER USES TO DEFINE THE CLASS.
+      `stranded_loaders.py` is NOT registered in `instruments.toml`, so
+      `score_tools.py absent-input` does not sweep it. Pointed at it by hand:
+      ABSENT (root does not exist) -> `REFUSED ... An absent record is not a clean
+      record`, exit 2 -- WOULD SATISFY.
+      EMPTY (root exists, no `*.py`) -> `UNDECIDED: no *.py under ...`, EXIT 0 --
+      WOULD FAIL the rule that an UNDECIDED answer exiting 0 hands a caller
+      reading only the exit code a PASS, unless
+      `exit_code_cannot_carry_the_answer` is declared with a reason.
+      UNREADABLE -> WOULD FAIL ON THE SUBSTANCE, THREE DIFFERENT WAYS. (a) A
+      `*.py` that will not parse is counted into an `UNPARSED` footer while the
+      HEADLINE still reads `0 file(s) name at least one ABSENT path` at exit 0 --
+      a clean report over a file that was never read. `sweep()` collects the
+      datum and `main()` never escalates on it. (b) A `--root` that is a FILE
+      answers `UNDECIDED: no *.py under ...` -- wrong reason; it is not empty and
+      not a directory. (c) A directory with no read permission answers the SAME
+      `no *.py under ...`, because `rglob` swallows `PermissionError` and returns
+      nothing -- SO "I WAS NOT ALLOWED TO LOOK" IS REPORTED AS "THERE IS NOTHING
+      THERE". That is `set[str]` versus `set[str] | None`, the signature change
+      the charter calls the class in one line, committed inside the instrument
+      written to police it -- and it is the SECOND time this instrument has
+      contained its own subject matter (`SS-07-DF-06` was the first).
+      CONSEQUENCE FOR SS-07'S OWN FIGURES, STATED SO IT IS NOT OVER-READ: none of
+      the four standing results depends on this instrument, and every one of the
+      eight files its sweep flagged was independently EXECUTED. What the defect
+      costs is the sweep's floor -- an unparseable script under `specs/results/`
+      is silently absent from the census, so `8 files / 15 absent references` is a
+      floor for a second reason beyond the runtime-path one already printed.
+    reproduction: >-
+      `SL=specs/results/scorecards/stabilize-substrate/SS-07/stranded_loaders.py`
+      then: `python3 $SL --root /tmp/does-not-exist; echo $?` -> REFUSED, 2.
+      `mkdir /tmp/e && python3 $SL --root /tmp/e; echo $?` -> UNDECIDED, 0.
+      `mkdir /tmp/b && printf 'def f(\n' > /tmp/b/broken.py && python3 $SL --root /tmp/b; echo $?`
+      -> `1 file(s) UNPARSED` in the footer, `0 file(s) name at least one ABSENT
+      path` in the headline, exit 0.
+      `touch /tmp/f && python3 $SL --root /tmp/f` -> `no *.py under ...`.
+      `mkdir /tmp/p && touch /tmp/p/a.py && chmod 000 /tmp/p && python3 $SL --root /tmp/p`
+      -> `no *.py under ...`; `chmod 755 /tmp/p` to restore.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-07/RESULT.md section 16 -- the state table"
+      - "specs/results/scorecards/stabilize-substrate/SS-07/evidence/absent-input-states-8b9a556.txt"
+      - "examples/validation/scorecards/score_tools.py -- `_absent_contract_problems`, the three required states and the mandatory `expect_exit`"
+    why_out_of_scope: >-
+      THE EPIC OWNER RULED IT OUT EXPLICITLY: SS-07 was asked to say whether its
+      instrument would satisfy the check and why not, and was told that adding the
+      contract is a successor's call and that the ticket must not expand scope
+      again. Repairing the instrument in the same session that measured it would
+      also make the author the only witness, which is the objection SS-07 raised
+      against its own self-test one finding earlier.
+    suggested_fix: >-
+      Three separable repairs, smallest first. (1) `main()` must escalate on
+      `unparsed`: a census containing a file that could not be read is UNDECIDED
+      about that file and must not print a clean headline. (2) Distinguish the
+      three not-a-sweepable-root cases -- absent, not-a-directory, and
+      unreadable-by-permission -- instead of collapsing the last two into "no
+      *.py". The mechanism is that `rglob` returns an empty iterator for a
+      permission error exactly as it does for an empty directory, so the fix is to
+      probe the root before sweeping rather than infer from the result. (3) Decide
+      the EMPTY exit code deliberately: either make it non-zero or declare
+      `exit_code_cannot_carry_the_answer` with the reason. AND THE GENERAL POINT
+      WORTH MORE THAN THE THREE: a NEW instrument shipped by a ticket should be
+      run through `absent-input` BEFORE it is published, not after -- the check
+      existed at the tip this ticket reconciled onto and nothing pointed it at the
+      new file, because registration is manual and nothing notices an unregistered
+      instrument.
+    blast_radius: >-
+      One unregistered 198-line instrument that nothing in `tests/` runs and that
+      no verdict in this ticket depends on. The figure affected is the sweep's own
+      census, which is a floor and is printed as a floor. The wider point is that
+      the register is opt-in, so an instrument can be shipped and never swept --
+      2 of 56 registered entries carry a contract today and this one is a 57th
+      that is not counted at all.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      CARRIED. Filed at the owner's request as disclosure rather than repair.
+      SS-08 should count this as an instrument that would FAIL the epic's own new
+      doctrine, shipped by the epic itself, and should say so when reporting the
+      absent-input goal -- it is the least flattering available reading and it is
+      the correct one.
