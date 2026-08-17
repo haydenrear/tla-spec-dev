@@ -386,6 +386,67 @@ Filed as `SS-06-DF-04`.
 
 ---
 
+## 5A. `SS-06-DF-05` — the best thing the method found, and it is in MY OWN instrument
+
+The owner's `schedule_revision 2` note said that if the deletion method turned up
+anything of the shape `SS-07` hit — *a vacuous check does not merely fail to
+inform; it conceals* — it would be worth more than the three vacuous passes I was
+scoped on. **It did, and the subject is the instrument this ticket ships.**
+
+Following `SS-07`'s precedent at `ab9a244` — *measure the states, file the answer,
+do not register a row* — I staged every absent-input state against
+`vacuity_probe.py` instead of reasoning about it
+(`evidence/would-my-own-instrument-pass.txt`). Seven states, each with its exit
+code. **Two of them answered wrongly.**
+
+1. **A directory this process may not READ answered in the EMPTY state's exact
+   words.** The guard was `(root / "tests").is_dir()`, and `Path.is_dir()`
+   returns `False` on a `PermissionError` — so *"I was not allowed to look"* was
+   reported as *"there is nothing there"*: `root is not a checkout of this
+   repository (no tests/ or scripts/)`.
+2. **A case whose subject was absent before mutation exited 1** — the code a
+   *failing* battery uses — when "nothing to take away" is not "taking it away
+   changed nothing".
+
+**Both are repaired, and the first is pinned by a seeded mutant** (mutant C:
+delete the permission branch → `--selftest` reports FAIL).
+
+### Why this is a finding about the RULE, not about me
+
+**`SS-02`'s clause was already satisfied.** Every one of those states REFUSED,
+with exit 2. The rule is stated on the **verdict**, and this defect lives in the
+**message**.
+
+**And it is the third instance in this one epic**, each inside an instrument
+built by the ticket that was policing the class:
+
+| | instrument | mechanism |
+|---|---|---|
+| `SS-01-DF-04` | the ledger reader | an unreadable ledger → **14 confident fabrication accusations against real citations** |
+| `SS-07-DF-08` | `stranded_loaders.py` | `rglob` swallows `PermissionError` → "not allowed to look" reported as "nothing there" |
+| **`SS-06-DF-05`** | **`vacuity_probe.py`** | `Path.is_dir()` returns `False` on `PermissionError` → the same substitution, in the same words as a different state |
+
+Three instruments, three tickets, one mechanism: **`PermissionError`,
+`FileNotFoundError` and "parsed and found nothing" all collapse to the same falsy
+value in Python, and nothing in this repository's doctrine separates them.**
+
+**The clause the class needs, which I did not ship because I do not own
+`planning_rules`:** extend `r1_now_requires_an_absent_input` so an instrument's
+declared absent-input states must be **pairwise distinguishable in their output**,
+or else carry an `indistinguishable` block naming which two it cannot tell apart
+and why. **`instruments.toml` already supports that block and `scorecard-audit`
+already uses it — the mechanism exists and the rule does not require it.** One
+sentence in the plan would have caught all three. Routed to the owner and to
+`SS-08`.
+
+**Not registered in `examples/validation/instruments/instruments.toml`.** `SS-07`
+was ruled not to register the instrument it shipped; I follow that ruling rather
+than reinterpret it, and `schedule_revision 2` says registering is not required.
+**I did not touch that file at all**, so the new shared-append rule does not
+apply to this PR.
+
+---
+
 ## 6. Every red, attributed, with the direction named
 
 Seven at the base. Numerator/denominator direction is stated for each.
@@ -427,7 +488,7 @@ its job — so there is no class to consume, only an unfixed defect to name.
 
 ## 7. Findings filed
 
-Four rows appended to `specs/deferred_findings.yaml`; the ledger goes 334 → 338
+Five rows appended to `specs/deferred_findings.yaml`; the ledger goes 334 → 339
 rows and nothing was rewritten, reordered or removed.
 
 | id | what | disposition |
@@ -436,9 +497,10 @@ rows and nothing was rewritten, reordered or removed.
 | `SS-06-DF-02` | **my own instrument read its subject's prose as its subject's result** — `summarise` grepped the whole pytest report and published `3 failed, 3 passed` for a three-node run | `repaired`, mutant-demonstrated |
 | `SS-06-DF-03` | `CA-10-DF-15` confirmed; population is three, not two; cause is `RM-06-DF-02` settled by `RM-04` with the declarations left standing | `repaired` |
 | `SS-06-DF-04` | `SS-02-DF-09` adjudicated: both guards widened, evasion executed, residual limit stated | `repaired` |
+| `SS-06-DF-05` | **"I was not allowed to look" reported as "there is nothing there"**, in this ticket's own instrument — the third instance of one mechanism in one epic, and the rule that would catch it is about the MESSAGE while `SS-02`'s clause is about the VERDICT | `repaired`; the clause is routed to the owner |
 
 `scripts/disposition.py --ledger specs/deferred_findings.yaml --ticket SS-06` →
-`DISPOSED ticket SS-06: 4 findings, all three clauses hold`, exit 0.
+`DISPOSED ticket SS-06: 5 findings, all three clauses hold`, exit 0.
 
 ### 7.1 `SS-06-DF-02` is the one worth reading
 
@@ -457,16 +519,22 @@ seen from the other side.
 
 ## 8. What I could not do, and what I chose not to do
 
-1. **I edited two files outside my conflict keys and created a third**, and I
-   disclose them rather than burying them. Both edits were **routed to me by the
-   work order** to be decided: `tests/test_score_tools.py` (`CA-10-DF-15`) —
-   docstrings, failure messages and one `or True`; **the assertions are
-   untouched** — and `tests/test_absent_input_demonstrations.py`
-   (`SS-02-DF-09`) — the two guards widened. `SS-02`'s PR #284 is merged, so no
-   concurrent owner holds the second. `tests/test_declared_reds_cite_an_open_
-   finding.py` is new and collides with nobody.
-   **`examples/validation/scorecards/score_tools.py` was not touched**: `SS-04`
-   owns it and runs concurrently, and its defects are deferred, not fixed.
+1. **Conflict keys, stated at BOTH schedule revisions rather than only the
+   convenient one.** I edited `tests/test_score_tools.py` (`CA-10-DF-15`, routed
+   to me to decide) while it was **outside** my keys — it was assigned to `SS-01`,
+   which is closed, so no open ticket could claim it. **`schedule_revision 2`
+   moved it INTO my keys**, after the `SS-04` review found the same gap. The edit
+   was out-of-key when made and is in-key now; both are true and both are
+   recorded. It is docstrings, failure messages and one `or True`; **the
+   assertions are untouched.**
+   `tests/test_absent_input_demonstrations.py` (`SS-02-DF-09`, also routed to me)
+   is `SS-02`'s key and is **still outside mine at revision 2**; `SS-02`'s PR #284
+   is merged, so no concurrent owner holds it.
+   `tests/test_declared_reds_cite_an_open_finding.py` is new and collides with
+   nobody. **`examples/validation/scorecards/score_tools.py` was not touched**:
+   `SS-04` owns it and its defects are deferred, not fixed. **I did not touch
+   `examples/validation/instruments/instruments.toml`**, so revision 2's new
+   shared-append rule does not apply to this PR.
 2. **I did not repair the `test_source_citations` reds** (§6.1), the deliberate
    reds, the declared `CA-04-DF-04` demonstrations, or anything in
    `score_tools.py`.

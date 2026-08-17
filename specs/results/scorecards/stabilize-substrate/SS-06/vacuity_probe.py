@@ -92,15 +92,29 @@ def _rm(root: pathlib.Path, rel: str) -> None:
         shutil.rmtree(target)
     elif target.exists():
         target.unlink()
-    else:  # pragma: no cover - the battery names paths that exist
-        raise SystemExit(f"vacuity_probe: case target absent before mutation: {rel}")
+    else:
+        # A case whose subject is not there cannot say anything about the tree,
+        # and "nothing to take away" is not "taking it away changed nothing".
+        # Exit 2, the same refusal code as every other absent input here.
+        print(
+            f"vacuity_probe: REFUSED: case target absent before mutation: {rel}. "
+            f"Nothing was taken away, so nothing is known about this case.",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
 
 
 def _sub(root: pathlib.Path, rel: str, old: str, new: str) -> None:
     path = root / rel
     text = path.read_text(encoding="utf-8")
     if old not in text:
-        raise SystemExit(f"vacuity_probe: mutation site not found in {rel}: {old!r}")
+        print(
+            f"vacuity_probe: REFUSED: mutation site not found in {rel}: {old!r}. "
+            f"The code this case is about has moved; nothing was mutated, so "
+            f"nothing is known about this case.",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
     path.write_text(text.replace(old, new, 1), encoding="utf-8")
 
 
@@ -267,6 +281,31 @@ def main(argv: list[str] | None = None) -> int:
     if not root.exists():
         print(f"vacuity_probe: REFUSED: root does not exist: {root}", file=sys.stderr)
         return 2
+    if not root.is_dir():
+        print(
+            f"vacuity_probe: REFUSED: root is not a directory: {root}",
+            file=sys.stderr,
+        )
+        return 2
+    # SS-06-DF-05, found by MEASURING this instrument against SS-02's own rule
+    # rather than reasoning about it. Before this branch existed, a directory
+    # this process is not allowed to READ answered "no tests/ or scripts/" --
+    # `Path.is_dir()` returns False on a PermissionError, so "I was not allowed
+    # to look" was reported in the exact words of "there is nothing there". The
+    # VERDICT was already correct (a refusal, exit 2) and the CAUSE was a
+    # fabrication, which is the same defect `SS-07-DF-08` found in the sweep it
+    # shipped and the same one `SS-01-DF-04` found when an unreadable ledger
+    # produced 14 fabrication accusations. Distinguishing them costs one branch.
+    try:
+        next(root.iterdir(), None)
+    except PermissionError:
+        print(
+            f"vacuity_probe: REFUSED: root cannot be READ (permission denied): "
+            f"{root}. This is NOT the same answer as 'not a checkout' -- nothing "
+            f"was looked at, so nothing is known about what is there.",
+            file=sys.stderr,
+        )
+        return 2
     if not (root / "tests").is_dir() or not (root / "scripts").is_dir():
         print(
             f"vacuity_probe: REFUSED: root is not a checkout of this repository "
@@ -345,6 +384,27 @@ def selftest() -> int:
         missing = pathlib.Path(tmp) / "nope"
         check("absent root", ["--root", str(missing)], 2, "root does not exist")
         check("empty root", ["--root", tmp], 2, "not a checkout of this repository")
+        a_file = pathlib.Path(tmp) / "afile"
+        a_file.write_text("not a directory\n", encoding="utf-8")
+        check("root is a file", ["--root", str(a_file)], 2, "root is not a directory")
+        # SS-06-DF-05, pinned. "I was not allowed to look" must not be reported
+        # in the words of "there is nothing there". Skipped, with a printed
+        # reason, when the process can read anything regardless of mode.
+        locked = pathlib.Path(tmp) / "locked"
+        locked.mkdir()
+        locked.chmod(0o000)
+        try:
+            try:
+                next(locked.iterdir(), None)
+            except PermissionError:
+                check("unreadable root", ["--root", str(locked)], 2,
+                      "cannot be READ (permission denied)")
+            else:
+                print("selftest: SKIPPED unreadable-root case -- this process can "
+                      "read a 0o000 directory (running as root?), so the state "
+                      "cannot be staged here. NOT counted as a pass.")
+        finally:
+            locked.chmod(0o755)
     check("own repository", ["--root", str(REPO_ROOT)], 2, "REFUSED")
     check("--list", ["--list"], 0, "input-absent-specs-current")
 

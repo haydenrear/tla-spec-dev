@@ -23110,13 +23110,12 @@ findings:
       - "tests/test_code_complexity.py:856"
       - "specs/results/scorecards/stabilize-substrate/SS-06/RESULT.md section 4"
     why_out_of_scope: >-
-      Both files are outside SS-06's conflict keys, which are
-      tests/test_analyze_complexity.py, tests/test_instrument_demonstrations.py,
-      tests/test_source_citations.py, tests/test_ticket_retirement.py,
-      tests/test_port_case_generation.py, tests/test_architecture_tags.py and
-      tests/test_goal_baseline_is_a_card.py. The deferment policy says defects
-      outside the keys are deferred rather than fixed, and a one-line edit is not
-      an exception to it.
+      Both files are outside SS-06's conflict keys at BOTH schedule revisions.
+      `schedule_revision 2` added `tests/test_score_tools.py` to them -- which is
+      why the third instance of this shape IS repaired here -- but neither
+      `tests/test_falsifiable_controls.py` nor `tests/test_code_complexity.py` is
+      in any ticket's keys. The deferment policy says defects outside the keys are
+      deferred rather than fixed, and a one-line edit is not an exception to it.
     suggested_fix: >-
       Delete the line in `test_falsifiable_controls.py` -- the test's other six
       assertions carry it and the deleted one adds nothing -- or, if the intent was
@@ -23272,9 +23271,12 @@ findings:
       `tests/test_declared_reds_cite_an_open_finding.py` COMPUTES the relation the
       finding describes -- it refuses the three stale declarations before the repair
       and accepts the live `RM-06-DF-01` one throughout. The edit is in
-      `tests/test_score_tools.py`, which is outside SS-06's conflict keys and is
-      disclosed as such in the PR body; `CA-10-DF-15` was routed to SS-06 by the
-      work order to be decided.
+      `tests/test_score_tools.py`. That file was OUTSIDE SS-06's conflict keys
+      when the edit was made and is INSIDE them at `schedule_revision 2`, which
+      the owner amended mid-flight after the SS-04 review found it assigned to a
+      closed ticket. Both facts are stated in the PR body rather than only the
+      convenient one; `CA-10-DF-15` was routed to SS-06 by the work order to be
+      decided either way.
 
   - id: SS-06-DF-04
     found_by: "SS-06, adjudicating SS-02-DF-09 by seeding the evasion its author named"
@@ -23358,3 +23360,86 @@ findings:
       `tests/test_absent_input_demonstrations.py`, SS-02's conflict key and not
       SS-06's; SS-02's PR #284 is merged so no concurrent owner holds it, and the
       out-of-key edit is disclosed in the PR body.
+
+  - id: SS-06-DF-05
+    found_by: "SS-06, MEASURING its own instrument against SS-02's rule instead of reasoning about it"
+    found_at_commit: "b547cb9"
+    schedule_revision: 2
+    severity: minor
+    channel: operator-running-own-instrument
+    channel_note: >-
+      found by staging the five absent-input states against the instrument this ticket
+      ships, exactly as SS-07 was asked to do for stranded_loaders.py at ab9a244
+    cost:
+      basis: "one mktemp -d, one chmod 000, five invocations"
+      value: "two states answering in another state's words, in an instrument about vacuous checks"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/stabilize-substrate/SS-06/vacuity_probe.py"
+    summary: >-
+      "I WAS NOT ALLOWED TO LOOK" WAS REPORTED IN THE EXACT WORDS OF "THERE IS
+      NOTHING THERE", INSIDE THE INSTRUMENT THIS TICKET SHIPPED TO POLICE CHECKS
+      THAT CANNOT FAIL. `vacuity_probe.py` guarded `--root` with
+      `(root / "tests").is_dir()`, and `Path.is_dir()` returns False on a
+      `PermissionError` -- so a directory this process may not READ answered
+      `root is not a checkout of this repository (no tests/ or scripts/)`, which
+      is the EMPTY state's message. The VERDICT was already correct (a refusal,
+      exit 2), so `SS-02`'s rule as written was satisfied and the defect was in
+      the CAUSE, which is a fabrication. THIS IS THE SAME SHAPE AS `SS-07-DF-08`
+      -- `rglob` swallowing `PermissionError` so "not allowed to look" reads as
+      "nothing there", in the sweep `SS-07` shipped -- AND THE SAME AS
+      `SS-01-DF-04`, where an unreadable ledger produced 14 confident fabrication
+      accusations against real citations. THREE INSTRUMENTS, THREE EPIC TICKETS,
+      ONE MECHANISM, AND THE RULE THAT CATCHES IT IS ABOUT THE MESSAGE RATHER
+      THAN THE VERDICT: `SS-02`'s clause requires UNDECIDED-or-REFUSE, and all
+      three of these REFUSED. A rule stated on the verdict alone cannot see this
+      class. SECOND, SMALLER: a case whose subject was absent before mutation
+      exited 1 with a bare message -- the code a FAILING battery uses -- when
+      "nothing to take away" is not "taking it away changed nothing".
+    reproduction: >-
+      Before the repair: `mkdir /tmp/locked && chmod 000 /tmp/locked && python3
+      specs/results/scorecards/stabilize-substrate/SS-06/vacuity_probe.py --root
+      /tmp/locked` prints `root is not a checkout of this repository (no tests/
+      or scripts/)`, byte-identical to the message for an EMPTY directory. After
+      the repair it prints `root cannot be READ (permission denied) ... nothing
+      was looked at, so nothing is known about what is there`. Pinned in both
+      directions: seed mutant C (replace `next(root.iterdir(), None)` with
+      `pass`) and `--selftest` reports FAIL; restore it and it reports PASS.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-06/evidence/would-my-own-instrument-pass.txt -- all seven states, each with its exit code"
+      - "specs/results/scorecards/stabilize-substrate/SS-06/evidence/selftest-mutants.txt -- mutant C"
+    why_out_of_scope: >-
+      IN scope and REPAIRED here. Filed because the instance is not the finding.
+      The finding is that `SS-02`'s clause is stated on the VERDICT and this class
+      lives in the MESSAGE, so an instrument can satisfy the rule in full while
+      telling a caller something false about why it refused -- and that has now
+      happened three times in this one epic, each time inside an instrument built
+      by the ticket that was policing the class.
+    suggested_fix: >-
+      Repaired here for this instrument. THE CLASS NEEDS A CLAUSE, NOT A PATCH:
+      extend `r1_now_requires_an_absent_input` so that the absent-input states an
+      instrument declares must be PAIRWISE DISTINGUISHABLE IN THEIR OUTPUT, or
+      else declare an `indistinguishable` block saying which two it cannot tell
+      apart and why -- which `examples/validation/instruments/instruments.toml`
+      ALREADY SUPPORTS and which `scorecard-audit` already uses. The mechanism
+      exists; the rule does not require it. That is one sentence in the plan and
+      it would have caught all three instances.
+    blast_radius: >-
+      One instrument, repaired before it was ever used for a published figure.
+      The class is three known instruments in one epic and an unknown number
+      outside it, and the reason it keeps recurring is that `PermissionError`,
+      `FileNotFoundError` and "parsed and found nothing" all collapse into the
+      same falsy value in Python and nothing in this repository's doctrine
+      separates them.
+    disposition: repaired
+    disposition_ticket: "SS-06"
+    disposition_note: >-
+      REPAIRED in the instrument and pinned by a seeded mutant. THE CLAUSE THE
+      CLASS NEEDS IS NOT SHIPPED: SS-06 does not own `planning_rules`, and adding
+      a doctrine clause to the epic plan mid-flight is the owner's call. Routed to
+      the owner and to SS-08, which should read three instances in one epic as
+      evidence about the RULE rather than about the three tickets.
