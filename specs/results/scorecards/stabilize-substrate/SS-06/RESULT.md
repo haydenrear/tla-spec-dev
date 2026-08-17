@@ -308,6 +308,22 @@ nobody runs. The limit is in the module docstring, not discovered later.
 
 Filed as `SS-06-DF-03`.
 
+### 4.1 `CA-10-DF-13` — DECIDED: gone, and not by me
+
+The plan's acceptance asks for `CA-10-DF-13` to be decided on the record and the
+issue warns not to chase it as written. **It is not red at my base.**
+`tests/test_goal_baseline_is_a_card.py` is collected (29 nodes) and does not
+appear in the failure list at `8dd0442`, at the pre-close tip, or post-close.
+
+`SS-03` repaired it, and the repair matches the docstring's own remedy — *"move
+the demonstration to another failing goal and say which; do not delete it"* — by
+a better route than the one suggested: the demonstration now reads the whole
+record keyed by `(workflow, id)` rather than by live-plan lookup, so the subject
+is pinned where it actually lives instead of where the live plan happens to point.
+The general defect is filed as `SS-03-DF-01`. **Nothing for `SS-06` to do; the
+decision is that it was decided elsewhere, and this is stated so `SS-08` does not
+find an unexplained absence.**
+
 ---
 
 ## 5. `SS-02-DF-09` — DECIDED: widen, and the widening is demonstrated
@@ -441,13 +457,16 @@ seen from the other side.
 
 ## 8. What I could not do, and what I chose not to do
 
-1. **I edited three files outside my conflict keys**, both under explicit
-   routing in the work order, and I disclose them rather than burying them:
-   `tests/test_score_tools.py` (`CA-10-DF-15`, routed to me to decide) and
-   `tests/test_absent_input_demonstrations.py` (`SS-02-DF-09`, routed to me to
-   decide). `SS-02`'s PR #284 is merged, so no concurrent owner holds the second.
-   The third file, `tests/test_declared_reds_cite_an_open_finding.py`, is new and
-   collides with nobody.
+1. **I edited two files outside my conflict keys and created a third**, and I
+   disclose them rather than burying them. Both edits were **routed to me by the
+   work order** to be decided: `tests/test_score_tools.py` (`CA-10-DF-15`) —
+   docstrings, failure messages and one `or True`; **the assertions are
+   untouched** — and `tests/test_absent_input_demonstrations.py`
+   (`SS-02-DF-09`) — the two guards widened. `SS-02`'s PR #284 is merged, so no
+   concurrent owner holds the second. `tests/test_declared_reds_cite_an_open_
+   finding.py` is new and collides with nobody.
+   **`examples/validation/scorecards/score_tools.py` was not touched**: `SS-04`
+   owns it and runs concurrently, and its defects are deferred, not fixed.
 2. **I did not repair the `test_source_citations` reds** (§6.1), the deliberate
    reds, the declared `CA-04-DF-04` demonstrations, or anything in
    `score_tools.py`.
