@@ -24367,3 +24367,97 @@ findings:
       which is MF-020. The unnormalised `review`/`independent-review` vocabulary
       is LEFT OPEN and carried -- normalising it retroactively would rewrite rows
       sealed by closed tickets.
+  - id: SS-00-DF-09
+    found_by: "the epic owner, watching its own throwaway probes fail the epic's own rule three times in one session"
+    found_at_commit: "f45a245"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "epic owner measurement practice"
+        - "specs/desired_program_model/ticket_plan.yaml"
+    channel: "operator-running-own-instrument"
+    cost: >-
+      Zero published cost -- all three were caught before their answers reached a
+      document, two of them because the answer looked implausible rather than
+      because anything checked it. THAT IS THE COST: the only control was the
+      operator noticing.
+    summary: >-
+      THE ABSENT-INPUT CLASS IS NOT CONFINED TO THE 43 REGISTERED VERDICT-PRODUCING
+      MODULES. IT IS IN THE UNREGISTERED ONE-OFF PROBES THE OPERATOR WRITES TO
+      MEASURE THE CLASS, AND IT FIRED THREE TIMES IN A SINGLE SESSION OF EPIC
+      OWNER WORK. All three answered DEFINITIVELY on input they could not resolve,
+      which is precisely the shape GOAL-absent-input-consumed exists to close:
+
+      (1) `git merge-base --is-ancestor <ticket-sha> <epic-sha>` run inside the
+      EPIC's clone of a skill, to decide whether ticket-home skill commits needed
+      merging back. Separate clones have separate object stores, so the sha WAS
+      NOT PRESENT and the command exited non-zero. The probe reported "DIVERGED".
+      The truth was the opposite of the conclusion drawn from it: the epic home
+      was BEHIND on every one of the five skills. ABSENT OBJECT READ AS A
+      NEGATIVE ANSWER.
+
+      (2) and (3) A regex sweep of `baseline.evidence` prose for
+      `[A-Za-z0-9_./-]+\.(txt|json|md|yaml|py)`, resolving every hit against the
+      repository root. It reported "evidence paths: 16, missing: 2". BOTH
+      MISSES WERE FALSE. `baseline_is_a_card-KICKOFF-MISLABELLED-post-plan-population.txt`
+      EXISTS, in the goal directory -- the regex captured a BARE FILENAME out of
+      prose and the probe resolved it against the wrong root.
+      `baseline_is_a_card-436c78c.txt` is named in that prose SPECIFICALLY AS THE
+      FILE THAT NO LONGER EXISTS UNDER THAT NAME, so a checker that flags it has
+      inverted the sentence it is reading. UNRESOLVABLE PATH FORM READ AS A
+      MISSING FILE.
+
+      THE COMMON SHAPE: a probe given input outside the form it can interpret
+      returned the CONFIDENT NEGATIVE rather than UNDECIDED. Note the direction --
+      unlike the registered instances, which fail toward false PASS, these failed
+      toward false ALARM. THE CLASS IS NOT "INSTRUMENTS SAY PASS TOO EASILY". IT
+      IS "INSTRUMENTS ANSWER AT ALL WHEN THEY SHOULD ABSTAIN", and a false alarm
+      is the same defect wearing the flattering face -- it looks like diligence,
+      so nothing challenges it.
+    reproduction: >-
+      (1) In two separate clones of the same skill repo, `git -C <clone-A>
+      merge-base --is-ancestor $(git -C <clone-B> rev-parse HEAD) $(git -C
+      <clone-A> rev-parse HEAD)`; exit 1. Then `git -C <clone-A> cat-file -e
+      <clone-B-sha>` -> also fails, proving the object is ABSENT, not unrelated.
+      (2) Extract `[A-Za-z0-9_./-]+\.(txt|json|md|yaml|py)` from
+      `epic_goals[GOAL-judged-goals-compliant].baseline.evidence` and test each
+      hit with `pathlib.Path(p).exists()` from the repo root -> 2 reported
+      missing; `ls specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/`
+      shows one of the two present.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/GOAL-judged-goals-compliant/"
+      - "specs/desired_program_model/ticket_plan.yaml"
+    class_note: >-
+      BEARS DIRECTLY ON GOAL-absent-input-consumed AND ON WHAT SS-08 CAN CONCLUDE
+      FROM IT. The goal's denominator is 43 verdict-producing MODULES -- files
+      that live in the tree and can be registered. Every probe above produced a
+      verdict that steered epic owner action and NONE of them is a module, is
+      registered, is sweepable, or survived the session. SO A REPORTED FIGURE OF
+      "N of 47 repaired" IS TRUE ABOUT THE REGISTERED POPULATION AND SAYS NOTHING
+      ABOUT THE RATE AT WHICH THE CLASS IS BEING CREATED FRESH IN UNREGISTERED
+      ONE-OFF MEASUREMENT. That is a REACHABILITY LIMIT ON THE GOAL, not a reason
+      to widen the denominator: widening it to "every command anyone ever runs"
+      makes it unmeasurable. IT IS RECORDED SO THE EVALUATION STATES THE LIMIT
+      RATHER THAN GENERALISING PAST IT.
+    blast_radius: >-
+      No shipped artifact. The reach is the epic owner's own measurements, which
+      are the input to the charter, the plan, and every figure in the
+      pre-evaluation artifact -- so the blast radius is the record itself rather
+      than the code.
+    disposition: open
+    disposition_ticket: "SS-00"
+    disposition_note: >-
+      OPEN, AND DELIBERATELY NOT REPAIRED. There is no honest repair available at
+      epic scope: a check over ad-hoc shell probes would have to intercept every
+      command the operator runs, and building one to make this row close would be
+      fitting an instrument to a known answer (MF-020). WHAT IS OWED IS
+      DISCLOSURE, NOT A FIX -- SS-08 must state the registered-population limit on
+      GOAL-absent-input-consumed rather than reporting the repaired count as if it
+      described the class. Carried forward as a candidate for a successor epic,
+      where the honest form is a DISCIPLINE with a demonstrated failing case, not
+      a scanner.
