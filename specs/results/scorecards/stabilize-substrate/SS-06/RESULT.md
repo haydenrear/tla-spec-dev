@@ -447,6 +447,52 @@ apply to this PR.
 
 ---
 
+## 5B. `SS-04-DF-06` — the three reds `SS-04` shipped into a file that is now mine
+
+`schedule_revision 2` moved `tests/test_score_tools.py` into my conflict keys,
+because it was assigned to `SS-01`, which is closed, so **no open ticket could
+claim it** while `SS-04` was turning three of its tests red. **`SS-04`'s PR #285
+was still OPEN when I measured this**, so the three reds are not in my tree and
+the edits cannot land in this PR.
+
+**Decided by simulation rather than deferred**: a throwaway clone with
+`feature/SS-04` merged into `feature/SS-06` by hand
+(`evidence/ss04-df06-three-reds-decided.txt`, patch at
+`evidence/ss04-df06-three-edits.patch`).
+
+**Reproduced:** `3 failed, 113 deselected`, exactly the three `SS-04-DF-06`
+names. **Every characterisation re-derived from data rather than accepted:**
+
+- 39 lines reach `COUNT-MOVED`; **all 39 are form `P` and all 39 carry
+  `dim is None`**; dimension-bound `COUNT-MOVED` lines: **0**.
+- The `UNREACHABLE` reason set gained exactly two: `no counted noun` and
+  `numerator has no predicate`.
+- The failing row in the third is **line 2 of the test's own two-line fixture**
+  (`worst 1, 2 of 6 moved in each arm`). Line 1, the movement notation the test
+  is *about*, yields nothing before and after. **The fixture asserted more than
+  the docstring claimed.**
+
+**Decision: apply all three, none deleted, and one of them strengthened.**
+
+| red | decision |
+|---|---|
+| (1) census | Apply the minimal edit **plus an assertion that justifies it**. Scoping to non-P is right — `RM-06-DF-03` is about a dimension-bound claim and form P cannot carry a dimension — but narrowing a control to a form label **on trust** is the move `RM-06-DF-01` refuses. The exclusion is now guarded: every `COUNT-MOVED` row is asserted `dim is None` on every run, so a dimension-bound one can never hide behind it. |
+| (2) reasons | Apply as written. The requirement is that every reach limit be **named**, the assertion is `<=` over a named set, so **extending** it satisfies the requirement more fully. Shrinking the reason list would be the wrong move and the docstring now says so. |
+| (3) fixture | Apply the **stronger** of `SS-04`'s two options: assert the right **answer**, not an absence. The movement line still yields nothing; the counted line is asserted `UNREACHABLE` with its reason named. A test that asserts a whole file yields nothing goes red whenever the recogniser learns anything, correctly or not. |
+
+**Verified:** `3 passed` on the three, and **`116 passed`** over the whole module
+in the simulated merge — the same node count as before `SS-04`, so nothing was
+deleted to reach green.
+
+**Held rather than applied**, and the reason is not caution: edit (3)
+**cannot** land before `SS-04` merges, because without form `P` line 2 of that
+fixture yields nothing and asserting it `UNREACHABLE` would go red. Edits (1) and
+(2) are harmless without `SS-04` and would land silently. **Applying two of three
+would leave the file in a state neither ticket ever measured**, so all three are
+held together. Applying them is one commit the moment #285 lands.
+
+---
+
 ## 6. Every red, attributed, with the direction named
 
 Seven at the base. Numerator/denominator direction is stated for each.
