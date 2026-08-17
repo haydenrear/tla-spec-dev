@@ -49,13 +49,38 @@ uv run --with pytest --with pyyaml -m pytest tests -q --collect-only
 
 | | failed | passed | skipped | xfailed | collected | sums? |
 |---|---:|---:|---:|---:|---:|---|
-| **BASE `8dd0442`**, ticket workspace **not open** | **7** | **1550** | **0** | **1** | **1558** | ✓ |
-| **TIP `__TIP_SHA__`**, ticket workspace **open** (pre-close) | `__PRE_F__` | `__PRE_P__` | `__PRE_S__` | `__PRE_X__` | `__PRE_C__` | ✓ |
-| **TIP `__TIP_SHA__`**, ticket workspace **closed** (post-close) | `__POST_F__` | `__POST_P__` | `__POST_S__` | `__POST_X__` | `__POST_C__` | ✓ |
+| **BASE `8dd0442`**, ticket workspace **not open** | **7** | **1550** | **0** | **1** | **1558** | `7+1550+0+1=1558` ✓ |
+| **TIP `8fa4626`**, ticket workspace **OPEN** (pre-close) | **7** | **1563** | **0** | **1** | **1571** | `7+1563+0+1=1571` ✓ |
+| **TIP `__POST_SHA__`**, ticket workspace **CLOSED** (post-close) | `__POST_F__` | `__POST_P__` | `__POST_S__` | `__POST_X__` | `__POST_C__` | ✓ |
 
 Sealed raw output: `evidence/pytest-base-8dd0442.txt`,
-`evidence/collect-base-8dd0442.txt`, `evidence/pytest-preclose-*.txt`,
-`evidence/pytest-postclose-*.txt`, `evidence/collect-*.txt`.
+`evidence/collect-base-8dd0442.txt`, `evidence/pytest-preclose-8fa4626.txt`,
+`evidence/collect-preclose-8fa4626.txt`, `evidence/pytest-postclose-*.txt`,
+`evidence/collect-postclose-*.txt`.
+
+### 1.0 Every movement, attributed, with the direction named
+
+**failed: 7 → 7. No movement in either direction.** The same seven nodes, by
+name, at base and at the pre-close tip. **This ticket produced no new red and
+removed none** — §3.4 explains why the repair could not produce one at this tree,
+and §6 attributes all seven.
+
+**skipped: 0 → 0**, **xfailed: 1 → 1** (`SS-01`'s strict xfail, untouched).
+
+**passed: 1550 → 1563, +13. Numerator movement, all of it new nodes**, none of it
+a red turning green: `+9 mine`, `+4 machinery`.
+
+**collected: 1558 → 1571, +13**, attributed **by node**, not inferred
+(`evidence/collection-attribution-preclose.txt`):
+
+| | nodes | cause |
+|---|---:|---|
+| **mine** | **+9** | 8 in the new `tests/test_declared_reds_cite_an_open_finding.py` (the `CA-10-DF-15` check) and 1 in `test_absent_input_demonstrations.py` (the `SS-02-DF-09` path-reader demonstration). All 9 pass. |
+| **machinery, not mine** | **+4** | 6 added − 2 removed in `test_spec_yaml_valid`'s parametrisation: `open ticket` scaffolds `specs/tickets/SS-06/`, and the un-suffixed ids `complexity_ledger.yaml` and `ticket.yaml` become suffixed `0`/`1` pairs. **This is the documented +4 that `close ticket` removes again**, and it is why the third row of the table exists. |
+
+The six guards I repaired moved **nothing** in any of the five buckets. That is
+the correct outcome and it is stated as such rather than dressed up: the repair
+changes what the suite says when an input is ABSENT, and no input is absent here.
 
 ### 1.1 The base I branched from, re-derived rather than quoted
 
