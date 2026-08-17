@@ -2560,8 +2560,99 @@ reported figure rather than a number to be driven to zero.
 
   [instrument.blind_spot]
   kind = "declared"
-  summary = "IT CANNOT REACH A FIGURE THAT DOES NOT COUNT. `D2 has never left 2`, `D3 is the one dimension that discriminates and holds still`, and `every subject this project has ever scored was greenfield` are the same generalisation with no `N of M` in them -- and the second of those is one of the three instances that opened this epic. Of the 44 counted figures the sweep finds in this tree, it reports 8 it cannot evaluate and names the reason for each; of the uncounted ones it finds zero, because it is not looking. IT ALSO CANNOT SEE A FIGURE BROKEN ACROSS A LINE BREAK -- matching is line-based, deliberately, because a paragraph-wide window is what would let a figure bind to a scope three sentences away."
-  reason = "Deliberate. A parser that guessed at the population behind a prose claim would be inventing the subject, which is the failure `prediction-seal` declined to commit one layer down. The uncounted forms are RD-03's material and are written here rather than left for the next sweep."
+  summary = "IT CANNOT REACH A FIGURE THAT DOES NOT COUNT. `D2 has never left 2`, `D3 is the one dimension that discriminates and holds still`, and `every subject this project has ever scored was greenfield` are the same generalisation with no `N of M` in them -- and the second of those is one of the three instances that opened this epic. AMENDED BY SS-04, WHICH REMOVED HALF OF THIS AND MEASURED THE OTHER HALF. `FORM P` now reads `<n> of <m>` in ORDINARY PROSE, so the sweep moved from 103 counted figures to roughly three thousand at the SS-04 tip and this repository's charters moved off zero. THE DECLARED MISSES ARE UNCHANGED and are now measured against a deliberately over-broad superset scanner which takes a little over half of the candidate shapes; the misses are dominated by `n/m` ratio-or-movement notation and the `n:m` colon form, then figures SPLIT ACROSS A LINE BREAK, the distributive `every one of the N` this recogniser deliberately refuses, `n in m`, and spelled-out numbers above twenty, with ZERO unclassified. NO FIGURE IS TRANSCRIBED INTO THIS ROW ON PURPOSE: the first version of this amendment corrected a set of stale figures AND SHIPPED A FRESH SET OF STALE ONES, in a file `DEFAULT_SWEEP` does not read, so `scope` structurally cannot catch it -- the defect the correction was for, inside the correction, where this project's own instrument is blind. Caught by the reviewer of PR #285. AND NOTE WHAT THAT MEANS FOR ANY FIGURE WRITTEN HERE: THIS FILE IS NOT IN `DEFAULT_SWEEP`, SO NOTHING IN THIS ROW IS CHECKABLE BY THIS PROJECT'S OWN INSTRUMENT -- which is why it now carries none. Adding this file to `DEFAULT_SWEEP` would be the wrong fix and is not authorised: it would change `scope`'s own denominator inside the ticket that measures it. The live figures, with the commit they were measured at, are in `specs/results/scorecards/stabilize-substrate/SS-04/FINAL-FIGURES.txt` and in the sealed raw output beside it. IT STILL CANNOT SEE A COUNTED FIGURE WITH NO `<n> of <m>` IN IT AT ALL -- `8 failed, 1490 passed` and `seven epics, zero bugs` are two counts and an unnamed denominator, and reaching them means INVENTING the population."
+  reason = "Deliberate. A parser that guessed at the population behind a prose claim would be inventing the subject, which is the failure `prediction-seal` declined to commit one layer down. SS-04 keeps that line and pays for it in the other direction: FORM P CAN NEVER RETURN REFUTED OR HOLDS, so the large majority of what it reaches is UNREACHABLE with a named reason. Line-based matching is also unchanged and deliberate: a paragraph-wide window is what would let a figure bind to a scope three sentences away."
+
+  # SS-04. THIS ROW GETS THE CONTRACT BECAUSE ITS OWN TICKET CHANGED THE
+  # INSTRUMENT, not because someone swept for the class afterwards -- which is
+  # what `SS-02`'s extension is for.
+  #
+  # `scope --scorecards /nonexistent` printed `0 REFUTED, 82 UNREACHABLE` and
+  # EXITED 0 at the epic base: one of `CA-10`'s 48, inside the instrument this
+  # project names as its durable fix for unchecked claims. FIVE DISTINCT ABSENT
+  # INPUTS PRODUCED FIVE BYTE-IDENTICAL CONFIDENT PASSES -- an absent document, a
+  # zero-byte document, a document that does not decode, an absent scorecard
+  # corpus, and a sweep selecting zero files. The base tool cannot tell any of
+  # them from `checked, none found`.
+  #
+  # THE FOURTH INPUT IS THE CONTROL AND IT IS DELIBERATELY NOT IN THIS BLOCK: a
+  # document that reads, is not empty, and genuinely counts nothing exits 0 and
+  # prints `CHECKED, NONE FOUND`. Without it, "answer UNDECIDED to everything"
+  # would satisfy this contract, and an instrument that refuses every input has
+  # not been repaired. It is pinned in
+  # `tests/test_counted_figure_recogniser.py`.
+  #
+  # WHY THE CORPUS AND NOT THE DOCUMENT IS THE STAGED INPUT: TOML `write` emits
+  # UTF-8 text, so the unreadable DOCUMENT state -- bytes that do not decode --
+  # cannot be staged from this register at all. The corpus can be made unreadable
+  # in text (a file that is not JSON), so all three states move the SAME input,
+  # which is what makes them comparable to each other. The document's own three
+  # states are demonstrated in the pytest file above and sealed in
+  # `specs/results/scorecards/stabilize-substrate/SS-04/absent-input-demo.txt`.
+  [instrument.absent_input]
+  note = """
+ALL THREE STATES EXIT 2 AND NAME THE STATE ON THE FIRST LINE. The exit code does
+carry the answer here, unlike `scorecard-audit` one row up -- but the FIRST LINE
+is still what these contracts assert on, because argparse also exits 2 and the
+code alone cannot separate UNDECIDED from a usage error (`SS-02-DF-02`).
+"""
+
+    [instrument.absent_input.absent]
+    summary = "no scorecard corpus at the path given: every figure would report UNREACHABLE and the run would exit 0, saying `nothing is refuted` about a corpus that was never read"
+    answer = "undecided"
+    cwd = "{repo}"
+    argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "scope",
+            "--scorecards", "{tree}/corpus",
+            "--path", "{repo}/CUT-THE-APPARATUS-EPIC.md"]
+    expect_exit = 2
+    expect_output = [
+      "UNDECIDED: [absent]",
+      "no scorecard corpus at",
+      "about a tree that was never read",
+    ]
+    expect_absent = ["counted figure(s)"]
+
+      [[instrument.absent_input.absent.write]]
+      file = "placeholder"
+      content = "the tree exists; `corpus/` inside it deliberately does not\n"
+
+    [instrument.absent_input.unreadable]
+    summary = "the corpus path is there and does not read AS A CORPUS -- a file that is not JSON, which `load()` reaches through `json.loads` and dies on"
+    answer = "undecided"
+    cwd = "{repo}"
+    argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "scope",
+            "--scorecards", "{tree}/corpus",
+            "--path", "{repo}/CUT-THE-APPARATUS-EPIC.md"]
+    expect_exit = 2
+    expect_output = [
+      "UNDECIDED: [unreadable]",
+      "does not read as cards",
+      "An unparseable corpus is not an empty one",
+    ]
+    expect_absent = ["counted figure(s)"]
+
+      [[instrument.absent_input.unreadable.write]]
+      file = "corpus"
+      content = "this is not a scorecard and it is not JSON\n"
+
+    [instrument.absent_input.empty]
+    summary = "the corpus reads perfectly as a directory and holds 0 filled cards -- `0 REFUTED over 0 cards` is CA-10's seventh sub-shape, an empty selection reported as a satisfied population"
+    answer = "undecided"
+    cwd = "{repo}"
+    argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py", "scope",
+            "--scorecards", "{tree}/corpus",
+            "--path", "{repo}/CUT-THE-APPARATUS-EPIC.md"]
+    expect_exit = 2
+    expect_output = [
+      "UNDECIDED: [empty]",
+      "reads and holds 0 filled cards",
+      "an empty selection reported as a satisfied population",
+    ]
+    expect_absent = ["counted figure(s)"]
+
+      [[instrument.absent_input.empty.write]]
+      file = "corpus/README.md"
+      content = "a real directory with no scorecard.json anywhere under it\n"
 
 [[instrument]]
 id = "scorecard-contested"

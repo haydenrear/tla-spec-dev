@@ -1,0 +1,398 @@
+SS-04 -- THE AUTHORITATIVE FIGURES, AND WHY THEY ARE IN A .txt
+==============================================================================
+
+This file is `.txt`. `DEFAULT_SWEEP` reads `*.md`, `references/*.md`,
+`specs/results/scorecards/**/*.md`, one `.toml`, one `.json`, one `.yaml` and
+one `.md` under `specs/results/` -- IT DOES NOT READ THIS. That is the whole
+reason the numbers live here: `RESULT.md` is inside the corpus it measures, so
+writing a counted figure into it CHANGES the count it is reporting. This ticket
+watched that happen four times. Here a figure can be written down without
+becoming one.
+
+`SS-01-DF-03`: a figure is a joint property of the artifact AND THE TREE IT WAS
+MEASURED IN. Every number below names its tree.
+
+AND THE REVIEWER'S JUDGEMENT ON THIS FILE, RECORDED BECAUSE IT IS RIGHT:
+"a real insight, but on the evidence here, a dodge." RESULT.md section 8 REFUSED
+to transcribe the miss table -- for exactly the reason this .txt exists -- AND
+STAYED RIGHT, while the file declaring itself authoritative transcribed it and
+got all six numbers wrong, summing to 2483 against the 2496 printed two lines
+above. THE INSIGHT STANDS; THE CONTENT DISCIPLINE THAT WAS SUPPOSED TO TRAVEL
+WITH IT DID NOT. An unswept location makes a figure STABLE. It does not make it
+TRUE, and this file confused the two.
+
+
+1. THE SUITE -- FIVE NUMBERS THAT SUM
+------------------------------------------------------------------------------
+
+  tree                                          failed passed skip xfail  collected
+  ------------------------------------------------------------------------------
+  base 8dd0442, CLEAN CLONE, workflow closed         7   1550    0     1       1558
+  tip  97d70ed, ticket workspace OPEN                -      -    -     -       1598
+  tip  97d70ed, workspace CLOSED (pre-review)       10   1583    0     1       1594
+  REVIEW HEAD f8f2891, workspace CLOSED             10   1584    0     1       1595
+  MERGED HEAD 587e75e (epic tip merged in)          10   1584    0     1       1595
+
+  7 + 1550 + 0 + 1 = 1558.  10 + 1583 + 0 + 1 = 1594.  10 + 1584 + 0 + 1 = 1595.
+
+  BASE -> REVIEW HEAD, every unit attributed:
+    collected  +37   DENOMINATOR. 36 nodes from
+                     tests/test_counted_figure_recogniser.py, plus 1 at the
+                     review head: the interpreter-floor check. It PASSED here
+                     (python3.11 is on PATH); on a machine without one it SKIPS
+                     WITH ITS REASON rather than passing, which would move the
+                     skipped column off 0. Declared.
+    failed      +3   ALL THREE MINE, all in tests/test_score_tools.py, all
+                     DECLARED, all filed as SS-04-DF-06. Not repaired: not this
+                     ticket's conflict key under either schedule revision.
+    passed     +34   37 new nodes minus those 3.
+    skipped      0   0 -> 0.
+    xfailed      1   1 -> 1.
+
+  PRE-REVIEW TIP -> REVIEW HEAD: passed +1, collected +1, and THE FAILURE SET IS
+  IDENTICAL -- verified by diffing the two FAILED lists, empty in both
+  directions. The review fixes repaired a syntax floor, a colliding table key
+  and an under-asserting test, and moved no verdict.
+
+  ZERO INHERITED REDS REPAIRED, ZERO CHANGED THEIR REASON, at either end.
+
+  AND THE EPIC TIP WAS MERGED IN AND THE SUITE RE-RUN RATHER THAN CARRIED. The
+  PR went CONFLICTING when the epic advanced to 5a8ce0a; the tail conflict in
+  specs/deferred_findings.yaml is the one this ticket's assignment names in
+  advance, and it is resolved the way the assignment says -- BOTH SETS KEPT, IN
+  PROMOTION ORDER, ROW COUNT ONLY RISING: base 334 + the owner's SS-00-DF-07 +
+  SS-04's six = 341, zero duplicate ids, no inherited row edited or reordered.
+  The ledger and the ticket plan are BOTH SWEPT AND BOTH READ BY TESTS, so the
+  figures were re-derived after the merge rather than quoted across it.
+  RESULT: IDENTICAL. Same five numbers, same failure set (diffed, empty both
+  ways), and the whole-record `scope` total UNCHANGED at 3018 -- because the
+  owner's 70-line finding and the plan amendment between them contain ZERO
+  `<n> of <m>` counted figures. That is checked, not assumed, and it is a small
+  incidental confirmation of this ticket's own headline: THE FORM THAT DOMINATES
+  THIS RECORD IS THE ONE WITH NO `<n> of <m>` IN IT AT ALL.
+
+  THE FIRST BASE RUN WAS CONTAMINATED, BY ME. I started it in the ticket
+  worktree and then edited score_tools.py and instruments.toml while it ran --
+  the rule section 8 of the charter states. It is preserved, labelled, and is
+  NOT the baseline: pytest-BASE-CONTAMINATED-edits-landed-mid-run.txt.
+
+
+2. `scope` OVER THE WHOLE RECORD
+------------------------------------------------------------------------------
+
+  measured at:  base = a clean clone of 8dd0442
+                tip  = the review head, in the ticket worktree
+
+                                        base 8dd0442      tip
+  counted figures                                103            3018
+    REFUTED                                       81              81
+    COUNT-MOVED                                    0              39
+    HOLDS                                          2               2
+    UNREACHABLE                                   20            2896
+  files swept (DEFAULT_SWEEP)                    367             369
+  files carrying a figure                         37             258
+  process exit code                                1               1
+
+  by form at the tip:  A=100  B=3  P=2915
+
+  `scope --form bound` AT THE TIP REPRODUCES THE BASE EXACTLY:
+    103 counted figures, 81 REFUTED, 0 COUNT-MOVED, 2 HOLDS, 20 UNREACHABLE,
+    UNREACHABLE by reason: anaphoric scope 3, arm-scoped 3, unresolved
+    qualifier 14.
+  NO FIGURE THAT HAD A VERDICT BEFORE FORM P EXISTED HAS A DIFFERENT ONE. An
+  independent reviewer confirmed this by EXHAUSTIVE SET COMPARISON of all 103
+  bound figures on (file, line, n, m, verdict, reason): 0 in base not in tip,
+  0 in tip not in base.
+
+  QUOTE THIS ONE: THE RECORD'S OWN FIGURE IS 2946, OVER 256 FILES.
+  72 of the 3018 are in documents THIS TICKET ADDED -- RESULT.md,
+  PROSE-FORM-SPEC.md and the six ledger rows -- and all 72 are UNREACHABLE. The
+  2946 is the stable number: it does not move when this ticket edits its own
+  write-up, and the 3018 does. (The earlier published split, 61/2941, was wrong:
+  the line cutoff used to separate my ledger rows from the previous ticket's was
+  a guess and swept in five of SS-07's. Corrected after review; re-derived from
+  the line where SS-04-DF-01 actually begins.)
+  The +2 in `files swept` is the two documents this ticket added.
+
+  FORM P's 2876 UNREACHABLE rows, by named reason:
+    non-card noun                1894   65.9%
+    no counted noun               955   33.2%
+    unresolved qualifier           19    0.7%
+    numerator has no predicate      5    0.2%
+    anaphoric scope                 3    0.1%
+  FORM P's other 39 rows are COUNT-MOVED, and an independent reviewer audited
+  ALL 39 and found ZERO false positives. FORM P HAS NO OTHER VERDICTS: it can
+  return neither REFUTED nor HOLDS, and that is asserted over all 2915 of its
+  rows by tests/test_counted_figure_recogniser.py rather than promised.
+
+  AND A REACH LIMIT THE SEAL DID NOT DESCRIBE. `find_claims` dedups FORM P
+  against the DIMENSION-BOUND forms on (line, n, m) -- necessary, described, and
+  what stops a bound figure being re-reported under a weaker form. The same key
+  ALSO dedups FORM P against ITSELF, so two different prose figures sharing
+  (n, m) on one line collapse into one. MEASURED AT THIS HEAD: 3319 raw matches
+  survive the number and distributive filters, 2915 are emitted, 404 suppressed. Many are
+  genuine duplicates (`| 11 of 15 | 11 of 15 |` across two table columns); not
+  all are (`guard relaxation 0 of 3, ordering 0 of 3` is two claims collapsed to
+  one). DIRECTION IS UNDERCOUNT, so every reach figure here is conservative --
+  but PROSE-FORM-SPEC.md should have said so, and the seal is the MF-020
+  artifact. Not widened after measuring. SS-04-DF-03.
+
+
+3. THE TEN NAMED WORK-DIRECTING DOCUMENTS
+------------------------------------------------------------------------------
+
+  list:     work-directing-documents.txt (committed; unchanged after measuring)
+  harness:  measure-documents.sh, same script, same list, same tree, tool swapped
+
+                                                         base      tip
+  STABILIZE-SUBSTRATE-EPIC.md   (this epic's charter)        0       15
+  CUT-THE-APPARATUS-EPIC.md     (the predecessor's)          0        7
+  NEXT-EPIC.md                                               3      157
+  specs/desired_program_model/ticket_plan.yaml               0       48
+  GOAL-four-results-still-stand/baseline.md                  0        4
+  cut-the-apparatus/CA-02/PRICE-TABLE.md                     0       12
+  GOAL-counted-figures-reach-the-record/baseline.md          0        3
+  GOAL-tree-stabilizes/baseline.md                           0        3
+  GOAL-absent-input-consumed/baseline.md                     0        4
+  GOAL-judged-goals-compliant/baseline.md                    0       18
+  ------------------------------------------------------------------------
+  TOTAL                                                      3      271
+
+  documents reading ZERO:                            9 of 10   0 of 10
+  exit codes:                       identical at both ends (0 everywhere
+                                    except NEXT-EPIC.md, 1 at both)
+
+
+4. WHAT IT MISSES
+------------------------------------------------------------------------------
+
+  Measured by recall_audit.py against a SEPARATE, deliberately over-broad
+  superset scanner. A superset hit is not necessarily a counted figure; the
+  denominator is "shapes a reader might have to check".
+
+  whole default sweep     3316 of 5814 taken = 57.0%     2498 missed
+  the three charters       180 of  256 taken = 70.3%       76 missed
+
+  THE PER-CATEGORY SPLIT IS NOT TRANSCRIBED HERE, AND THAT IS THE CORRECTION.
+  The first version of this file copied the six-row table out of the sealed
+  output and got ALL SIX ROWS WRONG -- 1400/843/123/63/38/16, summing to 2483
+  against the 2496 printed two lines above it, in the file this ticket declares
+  AUTHORITATIVE. RESULT.md section 8 had already refused to transcribe that
+  table, for exactly this reason, and stayed right. The location was defensible;
+  the content discipline that was supposed to travel with it was dropped. Caught
+  by the reviewer of PR #285.
+
+    THE TABLE LIVES IN ONE PLACE:  recall-whole-record.txt
+    It is regenerated by the script, it sums by construction, and it does not
+    go stale the way a transcription does.
+
+  What is safe to say about it in prose, because it is ordinal rather than
+  numeric: `n/m` ratio-or-movement notation is the largest category by a wide
+  margin, then the `n:m` colon form; between them they are roughly nine tenths
+  of the misses. Then figures SPLIT ACROSS A LINE BREAK, then the distributive
+  `every one of the N` this recogniser DELIBERATELY REFUSES, then `n in m`, then
+  spelled-out numbers above twenty. UNCLASSIFIED: ZERO.
+
+  FOUR OF THOSE SIX WERE DECLARED IN THE SEALED SPEC, NOT SIX. PROSE-FORM-SPEC.md
+  section 5 names: a figure with no `<n> of <m>` in it, spelled-out numbers above
+  twenty, a figure split across a line break, a percentage or ratio, `N in M`,
+  and specs/.history/**. IT DOES NOT NAME the `n:m` colon form, and it DOES NOT
+  NAME the distributive -- which section 8 of RESULT.md itself says was found by
+  hand audit AFTER measuring. Both are honest categories and both are refusals
+  rather than reaches, but neither was sealed in advance, and the "declared
+  before measuring? yes" column that said otherwise was wrong on two of six rows.
+
+  AND THE 57.0% IS DELIBERATELY PESSIMISTIC. Around nine tenths of what it counts
+  as a "miss" is notation the sealed spec says IS NOT A COUNT -- `2/2 -> 4` is
+  this repository's movement notation between two judge passes, not a figure. The
+  superset over-matches ON PURPOSE, so that the denominator is not chosen by the
+  author of the thing being measured. Read the number as a floor.
+
+  AND THE LARGEST MISS IS IN NO SUPERSET AT ALL: a counted figure with no
+  `<n> of <m>` in it. `8 failed, 1490 passed` is two counts and a denominator
+  that must be added; `seven epics, zero bugs` is a numerator over a population
+  named nowhere; `four rounds' claims` has no denominator. Reaching those means
+  INVENTING the population.
+
+  PRECISION, HAND-AUDITED AND NOW RE-DERIVABLE:
+
+      python3 specs/results/scorecards/stabilize-substrate/SS-04/recall_audit.py \
+              --precision-sample 40 --seed 277
+
+  39 OF 40 at the review head, each adjudicated against its source line; the
+  sample is sealed in precision-sample-40.txt. The one failure is an ORDINAL
+  POSITION -- `CA-02 established the format at ticket 2 of 7`, the second of
+  seven, exactly like `page 3 of 10` -- which lands UNREACHABLE, so no false
+  claim comes out of it. Filed into SS-04-DF-02, not repaired: `ticket 2 of 7`
+  and `2 of 7 tickets shipped` are the same shape.
+
+  THE PUBLISHED `38 of 40` WAS SUPERSEDED AND IT WAS WRONG IN MY OWN DISFAVOUR.
+  It was drawn BEFORE this ticket's own `_DISTRIBUTIVE` repair landed, and its
+  sample lived in a throwaway shell heredoc while recall_audit.py's docstring
+  advertised a `--sample N` flag THAT DID NOT EXIST. A precision figure a
+  reviewer cannot regenerate is a figure nobody can check -- which is the
+  complaint this whole ticket is about, committed by this ticket. The sampler is
+  committed now. An independent reviewer's own systematic sample found 40 OF 40
+  and put the residual known-false-positive rate at 0.21% over the whole record,
+  five-sixths of it this write-up quoting the defect.
+
+
+5. THE FIVE FIGURES THE ISSUE NAMES, LOOKED AT LAST
+------------------------------------------------------------------------------
+
+  PARSES   0 of 9
+  PARSES   1 of 38
+  MISSES   four rounds' claims        <- declared miss, sealed at 2933549
+  MISSES   8 failed, 1490 passed      <- declared miss, sealed at 2933549
+  MISSES   seven epics, zero bugs     <- declared miss, sealed at 2933549
+
+  2 of 5. All three misses were written down BEFORE the recogniser existed and
+  a test asserts they still miss. A recogniser fitted to that list would have
+  five.
+
+
+6. THE EIGHT SEALED PREDICTIONS -- 6 PASSED, 2 FAILED
+------------------------------------------------------------------------------
+
+  sealed 2026-08-17T03:25:10Z at commit 2933549, before any code existed
+
+  P1  FAILED   >20 and <400 FORM P figures        -> 2915, an order of magnitude
+  P2  FAILED   >85% `non-card noun`               -> 65.9%; the bucket I did not
+                                                     anticipate is `no counted
+                                                     noun`, a third of the rows
+  P3  passed   zero REFUTED from FORM P
+  P4  passed   charter off 0 and >10              -> 15
+  P5  passed   CUT-THE-APPARATUS off 0            -> 7
+  P6  passed   whole-record REFUTED and exit code unchanged -> 81 and 1
+  P7  passed   superset >=15% more than taken     -> 75% more
+  P8  passed   >=2 of the five do not parse       -> 3
+
+  NOT AN ALARM. An ALARM is every prediction passing. Both failures are about
+  how much counted prose this record carries and both fail in the direction
+  that says the blindness was worse than I estimated.
+
+
+7. THE REST OF THE MATRIX
+------------------------------------------------------------------------------
+
+  tlc                 N/A. `python3 scripts/tla_spec_dev.py --spec-root specs
+                      run` accepts only `spec-unit-tests` and
+                      `effect-conformance` -- verified with `run --help`. NOT
+                      substituted.
+  spec_unit           PASS. 56 + 53 passed over 2 targets, exit 0 unpiped.
+  spec_graph          N/A per the assignment. Model delta ZERO; ticket-local
+                      current and desired byte-identical (`diff -rq` empty).
+  card                serve | wc -c = 6281, unchanged.
+                      serve --digest-only = sha256:2d7d4a0506d9b259, version 5.
+  audit               0 violation(s), exit 0 unpiped.
+  contested           9 contested dimension(s) over 39 judge groups, 0
+                      unrecorded, exit 0.
+  seal                exit 0, `git status` clean afterwards.
+  absent-input        --only scorecard-scope: SATISFIED, exit 0, contract
+                      EXECUTED and holding = 1.
+                      --contract-only over all 56: 3 declared (was 2), 53
+                      without, exit 1. Register population 2 of 56 -> 3 of 56,
+                      NUMERATOR ONLY -- no row added, none deleted.
+  index               NEVER INVOKED. SS-07-DF-01: it rewrites INDEX.md
+                      unconditionally and 16 of 18 sealed trees mutate under
+                      it. `git status` is clean and no INDEX.md is in this PR.
+  ledger              334 -> 340 rows, append-only, count only rose. SIX rows
+                      against a deferment budget of FIVE -- disclosed, not
+                      trimmed; the sixth could not have been foreseen at
+                      dispatch. FOUR of the six were AMENDED after review
+                      (DF-02 ordinal class, DF-03 self-dedup, DF-04 floor
+                      correction, DF-06 routing correction). Those are rows THIS
+                      TICKET WROTE and that have never been merged; no inherited
+                      row was touched.
+  interpreter floor   py_compile under Python 3.11.6 over every .py in
+                      scripts/, examples/, tests/, spec_double_compiler/:
+                      CLEAN at the base, CLEAN at this head. It was BROKEN at
+                      exactly one file at the pre-review head -- see section 8.
+                      Now an EXECUTED check in
+                      tests/test_counted_figure_recogniser.py.
+  cross-tab keys      0 colliding keys over 258 rows. Was 36 keys colliding
+                      across 130 rows -- see section 8.
+
+
+8. WHAT INDEPENDENT REVIEW FOUND, AND WHAT IT COST
+------------------------------------------------------------------------------
+
+  PR #285 went to a reviewer instructed to REFUTE. Verdict CHANGES: two must-fix
+  and one should-fix, all three real, none of them caught by me.
+
+  M1. I RAISED THE PYTHON FLOOR FROM 3.11 TO 3.12, UNDECLARED, IN THE TICKET
+      THAT FILED THE FINDING ABOUT INTERPRETER FLOORS -- on the line that
+      consumes SS-01-DF-03. A multi-line implicit string concatenation INSIDE an
+      f-string expression is PEP 701, so it needs 3.12; score_tools.py imports
+      tomllib, so its floor is 3.11, and the file was 3.11-clean until this
+      ticket. Base compiles under 3.11.6; the pre-review tip did not
+      (`SyntaxError: unterminated string literal`). AND THE FAILURE GOT WORSE,
+      NOT JUST EARLIER: ModuleNotFoundError names its cause, a SyntaxError means
+      the module cannot import at all and even --help dies. NOTHING HERE COULD
+      HAVE CAUGHT IT -- no requires-python, and uv runs 3.13. AND THE OBVIOUS
+      IN-PROCESS SUBSTITUTE DOES NOT WORK: ast.parse(feature_version=(3, 11))
+      ACCEPTS the construct, verified, because feature_version gates a few
+      AST-level features and PEP 701 is a TOKENIZER change. Repaired by hoisting
+      the string; now an executed check.
+
+  M2. THE MISS TABLE WAS PUBLISHED WRONG IN THREE PLACES AND RIGHT IN ONE, AND
+      THE WRONG COPIES DID NOT SUM. Section 4 above is the repair, and it is a
+      pointer rather than a transcription.
+
+  M3. THE REGISTER ROW I REWROTE TO CORRECT STALE FIGURES SHIPPED A FRESH SET OF
+      STALE FIGURES -- and instruments.toml is NOT in DEFAULT_SWEEP, so `scope`
+      structurally cannot catch it: the defect the correction was for, inside
+      the correction, where this project's own instrument is blind. That row
+      carries no figures at all now; it points here.
+
+  F4. THE SEALED manifest.json DISCLAIMER NAMED THE WRONG MECHANISM. It says the
+      summary was "sealed before the workspace is deleted", which is TRUE FOR
+      THE SUITE NUMBERS AND FALSE FOR THE SCOPE FIGURES. Those drifted because I
+      kept editing RESULT.md -- A SWEPT FILE -- after the seal, and because I
+      appended a sixth finding after it, so the sealed "334 -> 339, five
+      findings" is short by one. R-H4 forbids editing the sealed entry, so it
+      stands; this paragraph is the correction, and RESULT.md carries it too.
+
+  NOT BLOCKING, ALL ADDRESSED: the precision sampler now exists and the figure
+  is re-derivable (section 4); the cross-tab key is elided from the left and no
+  longer collides; test_no_bound_figure_changed_its_verdict asserts all four
+  verdict counts and the population instead of two of four; the "declared before
+  measuring" column is corrected on the two rows where it was wrong; the
+  mine/record split is re-derived (section 2); the self-dedup is disclosed
+  (section 2).
+
+  WHAT THE REVIEW CONFIRMED, in several places more strongly than I published:
+  the sealed base sweep is BYTE-IDENTICAL to the reviewer's independent
+  clean-worktree run; all 103 bound figures match on an exhaustive set
+  comparison; all 15 charter figures are real with all 15 verdicts right; all 39
+  COUNT-MOVED rows audited with ZERO false positives -- so RESULT.md's earlier
+  "one of those 39 is wrong" was STALE IN MY OWN DISFAVOUR, naming a sentence
+  that begins "EVERY ONE OF THOSE 25" and is therefore refused by this ticket's
+  own _DISTRIBUTIVE guard before it is ever evaluated. And 2933549 is the first
+  commit on the branch, adds only PROSE-FORM-SPEC.md, carries no regex, and is
+  byte-unchanged since; the reviewer widened FORM P twice independently and EACH
+  WIDENING BROKE EXACTLY ONE DECLARED-MISS TEST.
+
+  TWO THINGS WERE THE OWNER'S, NOT MINE, AND BOTH ARE NOW FIXED IN THE PLAN AT
+  schedule_revision 2 (epic branch `98674f1`). My assignment says revision 1;
+  the owner has confirmed the mismatch is expected and not a stale assignment,
+  and neither change touches this ticket's slice.
+
+    1. tests/test_score_tools.py was assigned to SS-01, WHICH IS CLOSED, so my
+       three declared reds sat in a file no open ticket could claim. REASSIGNED
+       TO SS-06 at revision 2, and SS-06 has the three minimal edits. Note the
+       destination is the same one my dispatch note gave -- BUT NOT FOR THE
+       REASON IT GAVE. The reason is the reassignment, not "SS-06 owns existing
+       test files", and SS-04-DF-06 now says so.
+
+    2. instruments.toml WAS IN NO TICKET'S CONFLICT KEYS ANYWHERE IN THE PLAN,
+       while SS-02's mechanism REQUIRES every registering ticket to write there
+       -- so EVERY REGISTERING TICKET WAS FORCED OUTSIDE ITS KEYS BY DESIGN. It
+       is now a DECLARED SHARED APPEND SURFACE (own row only, disclosed in the
+       PR, never another's row), and my edit is RETROACTIVELY IN-KEY. The
+       deviation below is downgraded accordingly; the disclosure stays.
+
+  THE OWNER'S OWN FINDING, RECORDED HERE BECAUSE IT IS WORTH MORE THAN EITHER
+  FIX: files were partitioned at kickoff, and this epic then built a mechanism
+  whose USE REQUIRES writing to an unpartitioned one. A CONFLICT-KEY SCHEME A
+  LATER TICKET'S MECHANISM CAN FORCE YOU TO VIOLATE IS NOT A PARTITION.

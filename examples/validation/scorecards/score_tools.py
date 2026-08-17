@@ -14,7 +14,7 @@ surface. Putting it here keeps the model's surface unchanged.
   python3 score_tools.py audit [--root DIR]
   python3 score_tools.py seal <dir>...
   python3 score_tools.py contested [--root DIR] [--example E]
-  python3 score_tools.py scope [--path P ...] [--format text|json]
+  python3 score_tools.py scope [--path P ...] [--format text|json] [--form all|bound|prose]
   python3 score_tools.py absent-input [--registry F] [--only ID] [--contract-only]
 
 `absent-input` is `SS-02`'s addition and it executes an extension to `R1`:
@@ -45,6 +45,19 @@ was computed over, THE CLAIM IS WRONG EVEN WHEN EVERY NUMBER IN IT IS RIGHT.
 `scope` re-derives every such figure it can find against the cards on disk and
 names the counterexamples. IT EXITS 1 ON THIS REPOSITORY'S OWN RECORD, and that
 is its demonstrated failing input rather than a defect in it.
+
+`SS-04` added FORM P, and the reason is `CA-08-DF-01`: that one sentence form is
+RARE, so `scope` read ZERO counted figures on the charters, the ticket plan, the
+goal baselines and a price table -- including the charter whose own correction
+block says "R3/scope WOULD HAVE CAUGHT THIS AND NOBODY RAN IT AGAINST THIS
+CHARTER". FORM P reads `<n> of <m>` in ORDINARY PROSE. IT IS NOT A GATE and it
+CANNOT RETURN REFUTED OR HOLDS: UNREACHABLE is its default and COUNT-MOVED its
+only other answer, so no exit code changes for any input that resolves and no
+figure that had a verdict before it existed has a different one. Every run now
+also prints THE TREE IT WAS SWEPT IN (`SS-01-DF-03`) and the file x verdict
+JOINT distribution rather than two marginals (`SS-00-DF-04`), and an absent,
+unreadable or empty input is answered UNDECIDED at exit 2 rather than
+`0 REFUTED` at exit 0 (`SS-02`'s extension to `R1`).
 
 `serve` is the version 3 answer to a defect measured at FI-03: four judges were
 dispatched with "references/eval_scorecard.md -- the rubric. Read it", and that
@@ -3502,6 +3515,110 @@ _NONCARD_NOUN = re.compile(
     r"predictions?|controls?|findings?|tickets?|epics?|dimension-points?|points?|"
     r"movements?|kills?|figures?|fixtures?|examples?|instruments?|subjects?)\b", re.I)
 _CARD_NOUN = re.compile(r"^(cards?|scorecards?|judge-scores?|judges|rows?)$", re.I)
+
+# --------------------------------------------------------------------------
+# FORM P -- a counted figure in ORDINARY PROSE, with no dimension binding it
+# --------------------------------------------------------------------------
+#
+# `SS-04`. THE BOUND WAS THE SENTENCE FORM, NOT THE CORPUS. The two forms above
+# require a dimension token and a value bound to it, and that binding is what
+# makes them re-derivable -- it is also what makes them RARE. `CA-08-DF-01`
+# measured the consequence: `scope` returns ZERO counted figures on the charters,
+# the ticket plan, a goal baseline and a price table, all of which were being
+# swept the whole time. The charter's own correction block says *"R3/scope WOULD
+# HAVE CAUGHT THIS AND NOBODY RAN IT AGAINST THIS CHARTER"* -- and when someone
+# finally ran it, IT COULD NOT READ THE CHARTER.
+#
+# FORM P recognises `<n> of <m> <noun>` WITHOUT the dimension. The shape and the
+# verdict rules were fixed in
+# `specs/results/scorecards/stabilize-substrate/SS-04/PROSE-FORM-SPEC.md`,
+# committed BEFORE this code existed and before its demonstration corpus was
+# opened, because `MF-020` binds here harder than anywhere else in this epic: the
+# issue that ordered this recogniser NAMES FIVE FIGURES AND THEIR ANSWERS, and
+# one tuned until those five parse is fitted to a known answer and fails the goal
+# even if it works. THREE OF THOSE FIVE ARE DECLARED MISSES in that document,
+# written down before measuring -- `seven epics, zero bugs`, `8 failed, 1490
+# passed` and `four rounds' claims` have no `<n> of <m>` in them at all, and
+# reaching them means INVENTING the denominator.
+#
+# UNREACHABLE IS THE DEFAULT AND `FORM P` CAN NEVER RETURN `REFUTED`. That is a
+# property of `evaluate_prose_claim` below and it is pinned by
+# `tests/test_counted_figure_recogniser.py`, not left as an intention. A prose
+# figure carries no predicate this repository can evaluate -- `0 of 9 content
+# bugs` names no card, no dimension and no value -- so there is nothing to refute
+# and nothing to confirm. A FALSE `REFUTED` IS WORSE THAN AN `UNREACHABLE`: a
+# claim the instrument cannot reach is NOT a claim that holds, and the two counts
+# stay separate on purpose.
+#
+# `HOLDS` IS NOT AVAILABLE TO IT EITHER, and that asymmetry is deliberate. Where
+# the counted noun IS a card noun the DENOMINATOR is re-derivable, so a
+# denominator that moved is reported as `COUNT-MOVED` -- but a denominator that
+# re-derives exactly is still `UNREACHABLE`, reason `numerator has no predicate`.
+# The denominator was checked; the numerator was not; calling that HOLDS would be
+# the instrument claiming to have checked a claim it only half-read.
+#
+# BECAUSE IT CANNOT REFUSE, IT CANNOT GATE. `cmd_scope` exits 1 iff some figure
+# is REFUTED, FORM P cannot produce one, so every invocation over every tree
+# exits exactly what it exited before this form existed.
+_NUMBER_WORDS = {
+    "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
+    "seven": 7, "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12,
+    "thirteen": 13, "fourteen": 14, "fifteen": 15, "sixteen": 16,
+    "seventeen": 17, "eighteen": 18, "nineteen": 19, "twenty": 20,
+}
+#: Longest-first so `seventeen` is not eaten as `seven`.
+_WORD_ALT = "|".join(sorted(_NUMBER_WORDS, key=len, reverse=True))
+#: `1,490` is one number. `1.5` is not a count and is refused by the guards.
+_ANY_NUM = rf"(?:\d{{1,3}}(?:,\d{{3}})+|\d+|{_WORD_ALT})"
+#: ONE determiner, from a closed list. Open-ended filler is how `3 of the first
+#: four rounds we ran of 9` would bind a numerator to the wrong denominator.
+_DET = r"(?:the|a|an|its|their|our|my|these|those|all|every)"
+#: THE NOUN IS A LOOKAHEAD AND THAT IS NOT A STYLE CHOICE. Captured normally it
+#: is consumed, and `finditer` is non-overlapping, so
+#: `44 of 105, and two of those four are paths` matched once with the noun eating
+#: `and two of` -- and the SECOND figure on the line was never tried. Measured by
+#: the recall audit as four unclassified misses over the whole record, every one
+#: of them a second figure on a line whose first figure had swallowed it.
+CLAIM_FORM_P = re.compile(
+    r"(?<![\w.,/-])(?P<n>" + _ANY_NUM + r")\s+(?:out\s+of|of)\s+"
+    r"(?:" + _DET + r"\s+)?"
+    r"(?P<m>" + _ANY_NUM + r")(?!\.?\d)(?![\w-])"
+    r"(?=[\s`*)\]:,]{0,4}(?P<noun>[A-Za-z][A-Za-z-]*(?:[ \t]+[A-Za-z-]+){0,2})?)",
+    re.I)
+
+
+#: FORM P's card nouns are NARROWER than the dimension-bound forms', and this
+#: was forced by measurement rather than chosen: the first run of FORM P over the
+#: whole record returned 88 COUNT-MOVED rows and **42 of them counted LEDGER
+#: ROWS, PRICE-TABLE ROWS OR JUDGES** -- `39 of 49 rows`, `57 of 173 rows`,
+#: `THREE OF THE FOUR JUDGES` -- each answered with "the population is 95 rather
+#: than 49", which is a category error stated in the voice of a re-derivation.
+#:
+#: WHY THE WIDER SET IS RIGHT FOR `FORM A`/`FORM B` AND WRONG HERE: there, a
+#: `D<n> = <v>` token has already established that the thing being counted is a
+#: scored row of a card. In bare prose nothing has. `row` and `judge` are the
+#: two words in `_CARD_NOUN` that mean something else in almost every sentence
+#: of this record, so FORM P does not claim them. A figure it declines here is
+#: UNREACHABLE, which is the direction this instrument is allowed to move in.
+_PROSE_CARD_NOUN = re.compile(r"^(cards?|scorecards?)$", re.I)
+
+
+#: `every one of the 10 was inspected` is not `1 of 10` -- it is 10 of 10, said
+#: distributively, and reading its numerator as 1 inverts the claim. Found by a
+#: hand audit of 40 sampled matches (2 were this shape and its partitive cousin),
+#: not by looking for it. THE COUSIN IS NOT REPAIRED AND IS REPORTED INSTEAD:
+#: `one of the two highest honesty scores` is a MEMBERSHIP statement, not a count
+#: over a population, and no rule this ticket could write separates it from
+#: `one of the two rounds that failed` without guessing at the sentence.
+_DISTRIBUTIVE = re.compile(r"(?:\b(?:every|each|any|neither)\s+)$", re.I)
+
+
+def _as_count(token: str) -> int | None:
+    """`1,490` -> 1490, `seventeen` -> 17, anything else -> None."""
+    t = token.strip().lower().replace(",", "")
+    if t.isdigit():
+        return int(t)
+    return _NUMBER_WORDS.get(t)
 # Words that may sit beside a card noun without narrowing the population.
 _OPEN_QUALIFIERS = {"ever", "written", "judged", "blind", "sealed", "the", "all", "filled",
                     "and", "so", "in", "of", "about", "with", "under", "that", "every",
@@ -3569,6 +3686,11 @@ COUNT_MOVED = "COUNT-MOVED"
 HOLDS = "HOLDS"
 UNREACHABLE = "UNREACHABLE"
 
+#: `SS-02`'s three states, answered on `scope`'s own input. 0 stays "nothing is
+#: refuted" and 1 stays "something is", so NO EXIT CODE CHANGES FOR AN INPUT
+#: THAT RESOLVES -- the new code is reachable only when nothing was measured.
+SCOPE_UNDECIDED = 2
+
 
 def sweep_paths(root: pathlib.Path, patterns=DEFAULT_SWEEP) -> list[pathlib.Path]:
     seen, out = set(), []
@@ -3582,12 +3704,84 @@ def sweep_paths(root: pathlib.Path, patterns=DEFAULT_SWEEP) -> list[pathlib.Path
     return out
 
 
-def find_claims(path: pathlib.Path, root: pathlib.Path) -> list[dict]:
-    """Every counted figure of the form `D<n> = k on N of M` in one file."""
+class ScopeUndecided(Exception):
+    """The thing to be swept could not be read AS ITSELF, so nothing was read.
+
+    `SS-02`'s extension to `R1`, applied to this instrument: absent, unreadable
+    and empty are THREE DIFFERENT FACTS and each is carried here by name. A
+    caller that cannot tell them apart is the defect the extension exists to
+    name, and `scope --scorecards /nonexistent` printing `0 REFUTED, 82
+    UNREACHABLE` and exiting 0 was one of `CA-10`'s 48 instances.
+    """
+
+    def __init__(self, state: str, message: str) -> None:
+        super().__init__(message)
+        self.state = state
+
+
+def read_document(path: pathlib.Path) -> list[str]:
+    """One document's lines, or an UNDECIDED refusal naming which state it hit.
+
+    Four branches and not one. `read_text(errors="replace")` inside a `try` that
+    returns `[]` answers "not in the tree", "there and not decodable", "zero
+    bytes" and "genuinely has no figures in it" with the SAME ANSWER -- and the
+    last of those is a real result while the first three are not. AN EMPTY
+    DOCUMENT MUST NOT READ AS "no figures, all clear".
+    """
+
+    if not path.exists():
+        raise ScopeUndecided(
+            "absent",
+            f"no document at {path}. Nothing was read, so no figure is reached "
+            f"and no figure is absent -- those are different claims.",
+        )
+    if not path.is_file():
+        raise ScopeUndecided(
+            "unreadable",
+            f"{path} is not a file ({'directory' if path.is_dir() else 'special'}). "
+            f"It cannot be read as a document.",
+        )
     try:
-        lines = path.read_text(errors="replace").splitlines()
-    except OSError:
-        return []
+        raw = path.read_bytes()
+    except OSError as exc:
+        raise ScopeUndecided(
+            "unreadable", f"{path} cannot be read: {exc}") from exc
+    if not raw:
+        raise ScopeUndecided(
+            "empty",
+            f"{path} is ZERO BYTES. `0 counted figures` here would say "
+            f"'checked, none found' about a document that was never written.",
+        )
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ScopeUndecided(
+            "unreadable",
+            f"{path} does not decode as UTF-8 text ({exc}). An unparseable "
+            f"document is not an empty one and must not get the same verdict "
+            f"(`SS-01-DF-04`).",
+        ) from exc
+    if not text.strip():
+        raise ScopeUndecided(
+            "empty",
+            f"{path} is {len(raw)} byte(s) of whitespace and nothing else. It "
+            f"parses perfectly and says nothing, which is not the same fact as "
+            f"a document that says things and counts none of them.",
+        )
+    return text.splitlines()
+
+
+def find_claims(path: pathlib.Path, root: pathlib.Path,
+                lines: list[str] | None = None) -> list[dict]:
+    """Every counted figure in one file: `D<n> = k on N of M`, and FORM P prose.
+
+    `lines` is passed by `run_scope`, which has already read the document
+    through `read_document` and therefore already knows it is not absent, not
+    unreadable and not empty. Reading it again here would re-open the very
+    three-state question that reader exists to answer.
+    """
+    if lines is None:
+        lines = read_document(path)
     rel = str(path.relative_to(root)) if _under(path, root) else str(path)
     out = []
     for i, line in enumerate(lines, 1):
@@ -3621,6 +3815,31 @@ def find_claims(path: pathlib.Path, root: pathlib.Path) -> list[dict]:
                     "near": line[m.start(): m.end() + 40],
                     "window": window,
                 })
+        # FORM P, second and never first. A figure the dimension-bound forms
+        # already took keeps THEIR verdict: `(n, m)` on the same line is the
+        # same figure, and re-reporting it under a weaker form would move a
+        # REFUTED row into the UNREACHABLE pile, which is the one direction this
+        # ticket must never move anything.
+        bound = {(c["n"], c["m"]) for c in out if c["line"] == i}
+        for m in CLAIM_FORM_P.finditer(line):
+            n, mm_ = _as_count(m.group("n")), _as_count(m.group("m"))
+            if n is None or mm_ is None or (n, mm_) in bound:
+                continue
+            if _DISTRIBUTIVE.search(line[:m.start()]):
+                continue
+            bound.add((n, mm_))
+            window = "\n".join(lines[max(0, i - 2):i + 1])
+            out.append({
+                "file": rel, "line": i, "form": "P",
+                "dim": None, "value": None, "n": n, "m": mm_,
+                "noun": (m.group("noun") or "").strip(),
+                # `m.group(0)` stops at the denominator now that the noun is a
+                # lookahead, so the span a reader sees is rebuilt from the line.
+                "span": " ".join(line[m.start(): (m.end("noun") if m.group("noun")
+                                                  else m.end())].split()),
+                "near": line[m.start(): m.end() + 40],
+                "window": window,
+            })
     return out
 
 
@@ -3630,8 +3849,75 @@ def _qualifiers(noun: str) -> list[str]:
             if not _CARD_NOUN.match(w) and w.lower() not in _OPEN_QUALIFIERS]
 
 
+#: The only verdicts FORM P may ever carry. `REFUTED` and `HOLDS` are BOTH
+#: absent, for the two different reasons set out in `PROSE-FORM-SPEC.md` S3, and
+#: `test_counted_figure_recogniser.py` asserts this tuple against the whole
+#: record rather than trusting the branches below to stay honest.
+PROSE_VERDICTS = (UNREACHABLE, COUNT_MOVED)
+
+
+def evaluate_prose_claim(claim: dict, cards: list[dict], examples: set[str]) -> dict:
+    """A counted figure with nothing binding it to a value this can evaluate.
+
+    UNREACHABLE unless the counted noun resolves to the card corpus AND the
+    denominator moved. Never REFUTED; never HOLDS. Every UNREACHABLE row names
+    WHICH form defeated it, because "it reaches few, and here are exactly the
+    forms it misses" is only a result if the forms can be counted.
+    """
+    noun, near, window = claim["noun"], claim["near"], claim["window"]
+    if not noun:
+        return dict(claim, verdict=UNREACHABLE, reason="no counted noun",
+                    detail=f"`{claim['n']} of {claim['m']}` counts nothing this can "
+                           f"name. A denominator with no population beside it is a "
+                           f"figure a reader cannot re-derive either.")
+    if not any(_PROSE_CARD_NOUN.match(w) for w in noun.split()):
+        return dict(claim, verdict=UNREACHABLE, reason="non-card noun",
+                    detail=f"the counted noun is {noun!r}; this reads cards. Reaching "
+                           f"it would mean inventing the population behind the "
+                           f"sentence, which is the failure `prediction-seal` "
+                           f"declined to commit one layer down.")
+    quals = _qualifiers(noun)
+    if quals:
+        return dict(claim, verdict=UNREACHABLE, reason="unresolved qualifier",
+                    detail=f"the counted noun narrows the population with {quals}, which "
+                           f"names no example in this corpus")
+    named = sorted(e for e in examples if e in window)
+    if named:
+        population = [c for c in cards if c["example"] in named]
+        scope = f"example {', '.join(named)}"
+    else:
+        if _ARM.search(near):
+            return dict(claim, verdict=UNREACHABLE, reason="arm-scoped",
+                        detail="the figure names an arm label. Arm labels are round-local "
+                               "and opaque by design, so they cannot be resolved to a "
+                               "card set here.")
+        if _ANAPHOR.search(window):
+            return dict(claim, verdict=UNREACHABLE, reason="anaphoric scope",
+                        detail="the scope is carried by 'this example' or the like. It is a "
+                               "scope, and it is not one this can resolve.")
+        population = list(cards)
+        scope = "UNSCOPED — read over every card, which is what its words say"
+    if not population:
+        return dict(claim, verdict=UNREACHABLE, reason="empty scope",
+                    detail=f"no cards for {scope}")
+    out = dict(claim, scope=scope, examples=named, population=len(population),
+               hits=None, counterexamples=[], off_value=None)
+    if len(population) != claim["m"]:
+        return dict(out, verdict=COUNT_MOVED, reason="denominator",
+                    detail=f"the population its words denote is {len(population)} rather "
+                           f"than {claim['m']} — the denominator moved. THE NUMERATOR IS "
+                           f"NOT CHECKED: no value is bound to this figure, so this is "
+                           f"not a refutation of it.")
+    return dict(out, verdict=UNREACHABLE, reason="numerator has no predicate",
+                detail=f"the denominator re-derives at {len(population)}, and the "
+                       f"numerator names no property of a card that this can evaluate. "
+                       f"HALF-CHECKED IS NOT `HOLDS`.")
+
+
 def evaluate_claim(claim: dict, cards: list[dict], examples: set[str]) -> dict:
     """Read the figure at the scope its own words carry, then re-derive it."""
+    if claim.get("form") == "P":
+        return evaluate_prose_claim(claim, cards, examples)
     noun, near, window = claim["noun"], claim["near"], claim["window"]
     if noun and _NONCARD_NOUN.search(noun):
         return dict(claim, verdict=UNREACHABLE, reason="non-card noun",
@@ -3697,16 +3983,144 @@ def evaluate_claim(claim: dict, cards: list[dict], examples: set[str]) -> dict:
     return dict(out, verdict=HOLDS, reason="re-derived", detail="")
 
 
+def load_scope_cards(scorecard_root: pathlib.Path) -> list[dict]:
+    """The card corpus every verdict is re-derived against, or UNDECIDED.
+
+    `scope --scorecards /nonexistent` printed `0 REFUTED, 82 UNREACHABLE` and
+    EXITED 0 -- a confident clean answer over a corpus that was never there,
+    which is `CA-10`'s class exactly, in `scope`, today. The three states are
+    separated here because they are three different facts about the tree.
+    """
+    if not scorecard_root.exists():
+        raise ScopeUndecided(
+            "absent",
+            f"no scorecard corpus at {scorecard_root}. Every figure would report "
+            f"UNREACHABLE and the run would exit 0, which says 'nothing is "
+            f"refuted' about a tree that was never read.",
+        )
+    if not scorecard_root.is_dir() and not scorecard_root.is_file():
+        raise ScopeUndecided(
+            "unreadable", f"{scorecard_root} is not a corpus this can read.")
+    try:
+        loaded = load(scorecard_root)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ScopeUndecided(
+            "unreadable",
+            f"the scorecard corpus at {scorecard_root} does not read as cards: "
+            f"{exc}. An unparseable corpus is not an empty one.",
+        ) from exc
+    cards = [c for _, c in loaded if c.get("status") != "unfilled"]
+    if not cards:
+        raise ScopeUndecided(
+            "empty",
+            f"the scorecard corpus at {scorecard_root} reads and holds 0 filled "
+            f"cards ({len(loaded)} file(s) found). `0 REFUTED over 0 cards` is an "
+            f"empty selection reported as a satisfied population.",
+        )
+    return cards
+
+
+def sweep_provenance(root: pathlib.Path, scorecard_root: pathlib.Path,
+                     cards: list[dict], files: list[pathlib.Path],
+                     explicit: bool) -> dict:
+    """WHICH TREE THIS WAS SWEPT IN. `SS-01-DF-03`, consumed rather than cited.
+
+    The same 259-row ledger bytes score `21/18/3` under a bare `--root` and
+    `20/17/3` inside the repository, and until this existed `scope`'s output
+    recorded NOTHING about which root it swept -- so a `--root` figure and a
+    repository figure were indistinguishable on the page. The owner was caught
+    by that once and so was `SS-01`. A FIGURE IS A JOINT PROPERTY OF THE
+    ARTIFACT AND THE TREE IT WAS MEASURED IN, and the tree now travels with it.
+    """
+    head, dirty = None, None
+    try:
+        head = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                              capture_output=True, text=True, timeout=10)
+        head = head.stdout.strip() if head.returncode == 0 else None
+        if head:
+            st = subprocess.run(["git", "-C", str(root), "status", "--porcelain"],
+                                capture_output=True, text=True, timeout=30)
+            dirty = bool(st.stdout.strip()) if st.returncode == 0 else None
+    except (OSError, subprocess.SubprocessError):
+        head = None
+    return {
+        "root": str(root.resolve()),
+        "root_is_git_checkout": head is not None,
+        "root_head": head,
+        "root_dirty": dirty,
+        "scorecard_root": str(scorecard_root.resolve()),
+        "cards": len(cards),
+        "files_swept": len(files),
+        "file_selection": "explicit --path" if explicit else "DEFAULT_SWEEP",
+    }
+
+
 def run_scope(root: pathlib.Path, scorecard_root: pathlib.Path,
               paths: list[pathlib.Path] | None = None) -> list[dict]:
-    cards = [c for _, c in load(scorecard_root) if c.get("status") != "unfilled"]
+    return run_scope_full(root, scorecard_root, paths)["figures"]
+
+
+def run_scope_full(root: pathlib.Path, scorecard_root: pathlib.Path,
+                   paths: list[pathlib.Path] | None = None) -> dict:
+    """Figures, the tree they were read in, and the file x verdict cross-tab."""
+    cards = load_scope_cards(scorecard_root)
     examples = {str(c.get("example")) for c in cards}
-    files = paths if paths is not None else sweep_paths(root)
-    out = []
+    explicit = paths is not None
+    files = paths if explicit else sweep_paths(root)
+    if not files:
+        raise ScopeUndecided(
+            "empty",
+            f"the sweep selected 0 files under {root}. `0 counted figures, 0 "
+            f"REFUTED` over an empty selection is a satisfied population that "
+            f"was never populated.",
+        )
+    out, unread = [], []
     for f in files:
-        for claim in find_claims(f, root):
+        try:
+            lines = read_document(f)
+        except ScopeUndecided as exc:
+            # An EXPLICITLY NAMED document that cannot be read is the caller's
+            # question going unanswered, and it is refused. A member of the
+            # DEFAULT sweep is a document the sweep chose, so it is counted and
+            # NAMED rather than refused -- but never silently dropped.
+            if explicit:
+                raise
+            unread.append({"file": str(f), "state": exc.state, "detail": str(exc)})
+            continue
+        for claim in find_claims(f, root, lines):
             out.append(evaluate_claim(claim, cards, examples))
-    return out
+    if unread and len(unread) == len(files):
+        raise ScopeUndecided(
+            "unreadable",
+            f"all {len(files)} swept file(s) under {root} are absent, unreadable "
+            f"or empty. Nothing was read.",
+        )
+    return {
+        "figures": out,
+        "sweep": sweep_provenance(root, scorecard_root, cards, files, explicit),
+        "unreadable_inputs": unread,
+        "cross_tab": cross_tabulate(out),
+    }
+
+
+def cross_tabulate(figures: list[dict]) -> list[dict]:
+    """The `file x verdict` JOINT distribution. `SS-00-DF-04`, consumed.
+
+    The owner had two MARGINAL totals -- by file `20/3`, by verdict
+    `20 REFUTED / 3 UNREACHABLE` -- assumed they cross-tabulated, and published
+    "20 REFUTED, all from the ledger". They do not: it is 17+3 / 3. THE CLASS IS
+    "NEVER PUBLISH A JOINT CLAIM FROM SEPARATE MARGINALS", and where the joint
+    distribution CAN be computed the honest move is to compute it rather than
+    leave two margins on the page for a reader to multiply.
+    """
+    cross: dict[str, dict[str, int]] = {}
+    for r in figures:
+        row = cross.setdefault(r["file"], {})
+        row[r["verdict"]] = row.get(r["verdict"], 0) + 1
+    return [{"file": f, **{v: c.get(v, 0) for v in
+                           (REFUTED, COUNT_MOVED, HOLDS, UNREACHABLE)},
+             "total": sum(c.values())}
+            for f, c in sorted(cross.items())]
 
 
 def _card_id(card: dict) -> str:
@@ -3721,46 +4135,156 @@ def cmd_scope(argv: list[str]) -> int:
     ap.add_argument("--path", action="append", default=[],
                     help="sweep this file instead of the default record")
     ap.add_argument("--format", choices=("text", "json"), default="text")
+    ap.add_argument("--form", choices=("all", "bound", "prose"), default="all",
+                    help="report only the dimension-bound forms, or only FORM P")
     args = ap.parse_args(argv)
     root = pathlib.Path(args.root)
     paths = [pathlib.Path(p) for p in args.path] or None
-    results = run_scope(root, pathlib.Path(args.scorecards), paths)
+    try:
+        run = run_scope_full(root, pathlib.Path(args.scorecards), paths)
+    except ScopeUndecided as exc:
+        # THE FIRST LINE CARRIES THE ANSWER, not the exit code. `SS-02-DF-02`:
+        # `argparse` also exits 2, so the code alone cannot separate UNDECIDED
+        # from "you typed the command wrong", and every contract that asserts on
+        # this behaviour asserts on this line.
+        print(f"UNDECIDED: [{exc.state}] {exc}")
+        print("Nothing was measured, so nothing is refuted and nothing holds. "
+              "`absent` and `checked, none found` are different claims.")
+        return SCOPE_UNDECIDED
+    results = run["figures"]
+
+    if args.form != "all":
+        # `--form bound` reproduces exactly what `scope` reported before FORM P
+        # existed, which is how "no figure changed its verdict" gets CHECKED
+        # rather than asserted.
+        prose_only = args.form == "prose"
+        results = [r for r in results if (r.get("form") == "P") is prose_only]
+        run = dict(run, cross_tab=cross_tabulate(results))
 
     if args.format == "json":
-        print(json.dumps([{k: v for k, v in r.items() if k != "counterexamples"}
-                          | {"counterexamples": [_card_id(c) for c in
-                                                 r.get("counterexamples", [])]}
-                          for r in results], indent=2, default=str))
+        print(json.dumps({
+            "sweep": run["sweep"],
+            "unreadable_inputs": run["unreadable_inputs"],
+            "cross_tab": run["cross_tab"],
+            "figures": [{k: v for k, v in r.items() if k != "counterexamples"}
+                        | {"counterexamples": [_card_id(c) for c in
+                                               r.get("counterexamples", [])]}
+                        for r in results],
+        }, indent=2, default=str))
         return 1 if any(r["verdict"] == REFUTED for r in results) else 0
 
     order = (REFUTED, COUNT_MOVED, HOLDS, UNREACHABLE)
     print("# R3 — a claim carries its scope")
     print("# A figure `D<n> = k on N of M cards` is read at the scope ITS OWN WORDS carry")
     print("# and re-derived against the cards on disk. Nothing here gates the product.")
+    print("# FORM P (SS-04) also reads `<n> of <m>` in ORDINARY PROSE, and can return")
+    print("# neither REFUTED nor HOLDS: UNREACHABLE is its default and COUNT-MOVED its")
+    print("# only other answer. A claim it cannot reach is NOT a claim that holds.")
+    sw = run["sweep"]
+    # HOISTED, AND THE HOIST IS THE POINT. This was an implicit string
+    # concatenation INSIDE the f-string expression below, which is PEP 701 and
+    # therefore Python 3.12+. `score_tools.py` needs `tomllib` (3.11+) and was
+    # 3.11-clean until `SS-04` -- so this ONE line raised the floor of the whole
+    # file from 3.11 to 3.12, silently, in the ticket that filed `SS-04-DF-04`
+    # ABOUT INTERPRETER FLOORS, on the line that consumes `SS-01-DF-03`. The
+    # failure also got WORSE: `ModuleNotFoundError: tomllib` names its cause,
+    # while a `SyntaxError` means the module cannot import at all and even
+    # `--help` dies. NOTHING IN THIS REPOSITORY COULD HAVE CAUGHT IT -- there is
+    # no `requires-python` and `uv` runs 3.13. Verified with `py_compile` under
+    # 3.11.6: fails before, passes after. Found by the reviewer of PR #285.
+    _no_checkout = ("NOT A GIT CHECKOUT — this figure is about a constructed "
+                    "directory, not a tree")
+    print("\n## The tree this was swept in — SS-01-DF-03")
+    print(f"  root            {sw['root']}")
+    print(f"  root HEAD       {sw['root_head'] or _no_checkout}"
+          + ("  (WORKING TREE DIRTY)" if sw["root_dirty"] else ""))
+    print(f"  scorecard root  {sw['scorecard_root']}")
+    print(f"  cards           {sw['cards']}")
+    print(f"  files swept     {sw['files_swept']}  ({sw['file_selection']})")
+    for u in run["unreadable_inputs"]:
+        print(f"  UNREAD [{u['state']}] {u['file']}")
     for verdict in order:
         rows = [r for r in results if r["verdict"] == verdict]
         print(f"\n## {verdict} — {len(rows)}")
         for r in rows:
-            print(f"  {r['file']}:{r['line']}  {r['dim']} = {r['value']} on "
+            bound = (f"{r['dim']} = {r['value']} on " if r.get("form") != "P"
+                     else "[prose, FORM P] ")
+            print(f"  {r['file']}:{r['line']}  {bound}"
                   f"{r['n']} of {r['m']} {r['noun']}".rstrip())
             print(f"      as written: {r['span']!r}")
             if verdict == UNREACHABLE:
                 print(f"      cannot reach: {r['reason']} — {r['detail']}")
                 continue
-            print(f"      scope: {r['scope']}  (population {r['population']}, "
-                  f"{r['hits']} carry {r['dim']} = {r['value']})")
+            hits = ("the numerator is NOT checked — no value is bound to it"
+                    if r.get("hits") is None
+                    else f"{r['hits']} carry {r['dim']} = {r['value']}")
+            print(f"      scope: {r['scope']}  (population {r['population']}, {hits})")
             if r["detail"]:
                 print(f"      {r['detail']}")
             for c in r.get("counterexamples", [])[:12]:
+                # `.get`, NOT `[...]`. Card version 5 abolished D1, D4 and D5, so
+                # a figure naming one of them reaches this line with a card that
+                # has no such key and THE WHOLE COMMAND DIES with `KeyError:
+                # 'D5'` -- not a refusal, not a verdict, a traceback, taking
+                # every other figure's answer down with it. The defect predates
+                # SS-04; SS-04 surfaced it by writing a finding that quotes such
+                # a figure into the swept record. `SS-04-DF-05`.
+                scored = (c.get("dimensions") or {}).get(r["dim"])
+                value = ((scored or {}).get("score") if scored is not None
+                         else f"ABSENT — this card carries no {r['dim']}")
                 print(f"      counterexample: {_card_id(c)} "
-                      f"{r['dim']} = {(c['dimensions'][r['dim']] or {}).get('score')} "
+                      f"{r['dim']} = {value} "
                       f"({(c.get('judge') or {}).get('model')}, "
                       f"tier {judge_tier(c.get('judge'))})")
             if len(r.get("counterexamples", [])) > 12:
                 print(f"      ... and {len(r['counterexamples']) - 12} more")
+
+    # SS-00-DF-04, CONSUMED. The owner published "20 REFUTED, all from the
+    # ledger" by reading two MARGINAL totals -- by file `20/3`, by verdict
+    # `20 REFUTED / 3 UNREACHABLE` -- and assuming they cross-tabulated. They do
+    # not: it is 17+3 from the ledger and 3 from `NEXT-EPIC.md`. NEVER PUBLISH A
+    # JOINT CLAIM FROM SEPARATE MARGINALS. Here the joint distribution can be
+    # computed, so it is computed and printed, and nobody has to multiply two
+    # margins to get a sentence like that one.
+    # AND THE KEY IS ELIDED FROM THE LEFT, WHICH IS NOT COSMETIC. Truncating
+    # with `path[:58]` made 36 keys COLLIDE across 130 of 258 rows -- every card
+    # tree under `specs/results/scorecards/<epic>/<example>/...` shares its first
+    # 58 characters with its siblings, so the printed table showed the SAME key
+    # carrying DIFFERENT counts, and a reader adding two of those rows together
+    # would be doing the exact thing `SS-00-DF-04` is about. The JSON was always
+    # correct; the text is what people read. Found by the reviewer of PR #285.
+    print(f"\n## file × verdict — the JOINT distribution, not two marginals "
+          f"(SS-00-DF-04)")
+    print(f"  {'file':<70} {'REF':>4} {'MOV':>4} {'HLD':>4} {'UNR':>4} {'tot':>5}")
+    for row in run["cross_tab"]:
+        key = row["file"] if len(row["file"]) <= 70 else "…" + row["file"][-69:]
+        print(f"  {key:<70} {row[REFUTED]:>4} {row[COUNT_MOVED]:>4} "
+              f"{row[HOLDS]:>4} {row[UNREACHABLE]:>4} {row['total']:>5}")
+
     counts = {v: sum(1 for r in results if r["verdict"] == v) for v in order}
+    by_form = {}
+    for r in results:
+        by_form[r.get("form")] = by_form.get(r.get("form"), 0) + 1
     print(f"\n{len(results)} counted figure(s): "
           + ", ".join(f"{counts[v]} {v}" for v in order))
+    if by_form:
+        print("  by form: " + ", ".join(f"{k}={v}" for k, v in
+                                        sorted(by_form.items(), key=lambda kv: str(kv[0]))))
+    if not results:
+        # THE ONE ZERO THAT IS A REAL ANSWER, and it says so, because the other
+        # four ways of arriving at zero are UNDECIDED and a reader has to be able
+        # to tell this one from those without checking the exit code.
+        print(f"  CHECKED, NONE FOUND — {sw['files_swept']} file(s) were read in "
+              f"full and carry no counted figure this recognises. That is NOT the "
+              f"same answer as an absent, unreadable or empty input, each of which "
+              f"is UNDECIDED with exit {SCOPE_UNDECIDED} and says which it was.")
+    reasons = {}
+    for r in results:
+        if r["verdict"] == UNREACHABLE:
+            reasons[r["reason"]] = reasons.get(r["reason"], 0) + 1
+    if reasons:
+        print("  UNREACHABLE by reason: "
+              + ", ".join(f"{k}={v}" for k, v in sorted(reasons.items())))
     print("A claim this cannot reach is NOT a claim that holds. The two counts are "
           "separate on purpose.")
     return 1 if counts[REFUTED] else 0

@@ -1,0 +1,132 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket SS-04",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-04/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-04/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-04/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "scope reaches counted figures written as ordinary '<n> of <m>' prose, demonstrated on a NAMED COMMITTED LIST of work-directing documents including this epic's charter and the predecessor's.",
+        "UNREACHABLE IS THE DEFAULT. An uncertain sentence is UNREACHABLE, never HOLDS and never REFUTED.",
+        "NOT A GATE: nothing refuses, nothing blocks a close, no exit code changes.",
+        "MF-020 is honoured: the recogniser is demonstrated on prose whose answer was not known when it was written, and WHAT IT MISSES IS REPORTED.",
+        "The recogniser's own absent-input behaviour is demonstrated on an empty document, an absent path and a figure-free document, per SS-02's extension.",
+        "The whole-record sweep is re-run and every movement attributed with numerator/denominator named.",
+        "The card is unchanged: serve | wc -c is still 6,281 and the digest is stated."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "SS-05",
+      "SS-08"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "examples/validation/scorecards/score_tools.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "tests/test_counted_figure_recogniser.py",
+        "specs/results/scorecards/stabilize-substrate/GOAL-counted-figures-reach-the-record/",
+        "specs/results/scorecards/stabilize-substrate/SS-04/"
+      ]
+    },
+    "depends_on": [
+      "SS-02"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/277",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "Moves the charter figure off zero and the work-directing-document population off zero. NO NUMERIC TARGET -- a threshold on figures reached before the recogniser exists would be MF-020, and the honest outcome may be 'it reaches few and here is exactly which forms it misses'.",
+        "goal": "GOAL-counted-figures-reach-the-record",
+        "local_signal": "python3 examples/validation/scorecards/score_tools.py scope --path STABILIZE-SUBSTRATE-EPIC.md"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none on the instance count -- but this ticket ships a NEW instrument and is therefore the first real test of SS-02's extension. Its absent-input case is REQUIRED, not optional.",
+        "goal": "GOAL-absent-input-consumed",
+        "local_signal": "the recogniser run on an empty document, an absent path and a figure-free document"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "collection RISES by the recogniser's tests -- denominator movement, report it as such",
+        "goal": "GOAL-tree-stabilizes",
+        "local_signal": "uv run --with pytest --with pyyaml -m pytest tests -q --collect-only"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected -- scope is on the do-not-cut list; extend it, do not replace it",
+        "goal": "GOAL-four-results-still-stand",
+        "local_signal": "python3 examples/validation/scorecards/score_tools.py scope"
+      }
+    ],
+    "id": "SS-04",
+    "implementation_scope": [
+      "examples/validation/scorecards/",
+      "tests/",
+      "specs/results/scorecards/stabilize-substrate/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "NAMED BY THE PREDECESSOR'S EVALUATION AS 'THE SUCCESSOR EPIC'S FIRST CANDIDATE', AND IT IS THE MOST USEFUL THING THAT EVALUATION FOUND. CA-08-DF-01: scope returns ZERO counted figures on the charter, the ticket plan, a goal baseline and a price table. THE CHARTER'S OWN CORRECTION BLOCK SAYS 'R3/scope WOULD HAVE CAUGHT THIS AND NOBODY RAN IT AGAINST THIS CHARTER' -- and when someone finally ran it, IT COULD NOT READ THE CHARTER. THE BOUND IS THE SENTENCE FORM, NOT THE CORPUS, AND THIS IS REVIEWER-CONFIRMED: those files ARE swept. scope recognises ONE form, 'D<n> = <v> on <n> of <m>', and '0 of 9 over the sealed table' is not in it. EVERY COUNTED FIGURE THAT HAS EVER HURT THIS PROJECT -- '0 of 9', '1 of 38', 'four rounds' claims', '8 failed, 1490 passed', 'seven epics, zero bugs' -- IS INVISIBLE TO THE INSTRUMENT NAMED TO CATCH IT. THE SHAPE IS GIVEN: a recogniser for '<n> of <m>' in ordinary prose THAT REPORTS UNREACHABLE BY DEFAULT. NOT A GATE. Nothing refuses, nothing blocks a close, nothing changes an exit code -- and note that the predecessor's own starter printed FOUR of five scope rows and carried a heading the dropped row refuted, so BE MORE CAREFUL WITH YOUR OWN OUTPUT TABLE THAN THE RECORD WAS WITH ITS. MF-020 IS THE HIGHEST RISK IN THIS TICKET AND IT APPLIES DIRECTLY: NEVER ADD AN AXIS, TEST, RUNG OR CASE FITTED TO A KNOWN ANSWER. Five figures are named above and you know their answers. A recogniser tuned until those five parse is fitted to a known answer and fails clause (d) even if it works. BUILD IT AGAINST PROSE WHOSE ANSWER YOU DO NOT KNOW, DEMONSTRATE IT ON THIS EPIC'S OWN CHARTER AND THE PREDECESSOR'S, AND REPORT WHAT IT MISSES. A FALSE REFUTED IS WORSE THAN AN UNREACHABLE: a claim the instrument cannot reach is NOT a claim that holds, the two counts stay separate on purpose, and if you cannot tell, say UNREACHABLE. R1 AND THE NEW ABSENT-INPUT EXTENSION BOTH APPLY: demonstrate a failing input on a real subject, AND demonstrate what your recogniser answers on an empty document, an absent path and a document with no figures at all -- if any of those answers 'no figures, all clear' rather than UNREACHABLE or a refusal, you have shipped the class SS-02 just wrote the rule against. RUN YOUR OWN RULE AGAINST THE SEALED RECORD BEFORE SHIPPING and report what it refuses. AND RE-RUN THE WHOLE-RECORD SWEEP: it was byte-for-byte identical at the predecessor's base and tip -- 102 figures, 80 REFUTED, 0 COUNT-MOVED, 2 HOLDS, 20 UNREACHABLE over 37 files -- so any movement you produce is YOURS and must be attributed with numerator/denominator named.",
+    "promotion_order": 50,
+    "promotion_predecessor": "SS-07",
+    "role": "implementation",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Make counted figures in ordinary prose reachable, so the instrument can read the documents that direct the work",
+    "wave": 3
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-04/specs/tickets/SS-04",
+  "ticket_id": "SS-04",
+  "ticket_index": 4,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-04/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-04/specs/tickets"
+}
