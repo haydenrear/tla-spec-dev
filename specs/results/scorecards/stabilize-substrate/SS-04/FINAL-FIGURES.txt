@@ -1,0 +1,220 @@
+SS-04 -- THE AUTHORITATIVE FIGURES, AND WHY THEY ARE IN A .txt
+==============================================================================
+
+This file is `.txt`. `DEFAULT_SWEEP` reads `*.md`, `references/*.md`,
+`specs/results/scorecards/**/*.md`, one `.toml`, one `.json`, one `.yaml` and
+one `.md` under `specs/results/` -- IT DOES NOT READ THIS. That is the whole
+reason the numbers live here: `RESULT.md` is inside the corpus it measures, so
+writing a counted figure into it CHANGES the count it is reporting. This ticket
+watched that happen four times. Here a figure can be written down without
+becoming one.
+
+`SS-01-DF-03`: a figure is a joint property of the artifact AND THE TREE IT WAS
+MEASURED IN. Every number below names its tree.
+
+
+1. THE SUITE -- FIVE NUMBERS THAT SUM
+------------------------------------------------------------------------------
+
+  tree                                          failed passed skip xfail  collected
+  ------------------------------------------------------------------------------
+  base 8dd0442, CLEAN CLONE, workflow closed         7   1550    0     1       1558
+  tip  97d70ed, ticket workspace OPEN                -      -    -     -       1598
+  tip  97d70ed, workspace CLOSED (this PR leaves)   10   1583    0     1       1594
+
+  7 + 1550 + 0 + 1 = 1558.      10 + 1583 + 0 + 1 = 1594.
+
+  command:  uv run --with pytest --with pyyaml -m pytest tests -q
+  exits:    1 at both ends, read UNPIPED.
+  base run: 1673.81s in a clean clone with nothing else in it.
+  tip run:  1685.87s in the ticket worktree after `close ticket`.
+
+  EVERY UNIT ATTRIBUTED
+    collected +36   DENOMINATOR. tests/test_counted_figure_recogniser.py.
+    (the 1598)      +4 more that `open ticket` adds by widening
+                    test_spec_yaml_valid over specs/tickets/SS-04/, and that
+                    `close ticket` removed again. Both sides measured.
+    failed    +3    NUMERATOR, AND ALL THREE ARE MINE:
+                      tests/test_score_tools.py::test_a_scoped_claim_whose_
+                        denominator_moved_is_stale_and_not_refuted
+                      tests/test_score_tools.py::test_what_the_sweep_cannot_
+                        reach_is_counted_and_named
+                      tests/test_score_tools.py::test_a_movement_notation_is_
+                        not_read_as_a_count
+                    DECLARED, not discovered. Filed as SS-04-DF-06 with the
+                    minimal edit for each. NOT REPAIRED: that file is SS-06's
+                    conflict key, not this ticket's.
+    passed    +33   36 new nodes minus those 3.
+    skipped    0    0 -> 0.
+    xfailed    1    1 -> 1.
+
+  ZERO INHERITED REDS REPAIRED, ZERO CHANGED THEIR REASON. The tip FAILED list
+  is the base FAILED list plus exactly those three -- verified by diffing the
+  two -- and both test_instrument_demonstrations assertions are byte-identical
+  at either end even though this ticket added a row to the register.
+
+  THE FIRST BASE RUN WAS CONTAMINATED, BY ME. I started it in the ticket
+  worktree and then edited score_tools.py and instruments.toml while it ran --
+  the rule section 8 of the charter states. It is preserved, labelled, and is
+  NOT the baseline: pytest-BASE-CONTAMINATED-edits-landed-mid-run.txt.
+
+
+2. `scope` OVER THE WHOLE RECORD
+------------------------------------------------------------------------------
+
+  measured at:  base = a clean clone of 8dd0442
+                tip  = 10abd1a in the ticket worktree
+
+                                        base 8dd0442      tip 10abd1a
+  counted figures                                103            3002
+    REFUTED                                       81              81
+    COUNT-MOVED                                    0              39
+    HOLDS                                          2               2
+    UNREACHABLE                                   20            2880
+  files swept (DEFAULT_SWEEP)                    367             369
+  files carrying a figure                         37             258
+  process exit code                                1               1
+
+  by form at the tip:  A=100  B=3  P=2899
+
+  `scope --form bound` AT THE TIP REPRODUCES THE BASE EXACTLY:
+    103 counted figures, 81 REFUTED, 0 COUNT-MOVED, 2 HOLDS, 20 UNREACHABLE,
+    UNREACHABLE by reason: anaphoric scope 3, arm-scoped 3, unresolved
+    qualifier 14.
+  NO FIGURE THAT HAD A VERDICT BEFORE FORM P EXISTED HAS A DIFFERENT ONE.
+
+  WHOSE FIGURES THEY ARE. 61 of the 3002 are in documents THIS TICKET ADDED --
+  RESULT.md, PROSE-FORM-SPEC.md and the six ledger rows -- and all 61 are
+  UNREACHABLE. The record's own figure is 2941 over 256 files. The +2 in
+  `files swept` is those two new documents.
+
+  FORM P's 2860 UNREACHABLE rows, by named reason:
+    non-card noun                1882   65.8%
+    no counted noun               951   33.3%
+    unresolved qualifier           19    0.7%
+    numerator has no predicate      5    0.2%
+    anaphoric scope                 3    0.1%
+  FORM P's other 39 rows are COUNT-MOVED. FORM P HAS NO OTHER VERDICTS: it can
+  return neither REFUTED nor HOLDS, and that is asserted over all 2899 of its
+  rows by tests/test_counted_figure_recogniser.py rather than promised.
+
+
+3. THE TEN NAMED WORK-DIRECTING DOCUMENTS
+------------------------------------------------------------------------------
+
+  list:     work-directing-documents.txt (committed; unchanged after measuring)
+  harness:  measure-documents.sh, same script, same list, same tree, tool swapped
+
+                                                         base      tip
+  STABILIZE-SUBSTRATE-EPIC.md   (this epic's charter)        0       15
+  CUT-THE-APPARATUS-EPIC.md     (the predecessor's)          0        7
+  NEXT-EPIC.md                                               3      157
+  specs/desired_program_model/ticket_plan.yaml               0       48
+  GOAL-four-results-still-stand/baseline.md                  0        4
+  cut-the-apparatus/CA-02/PRICE-TABLE.md                     0       12
+  GOAL-counted-figures-reach-the-record/baseline.md          0        3
+  GOAL-tree-stabilizes/baseline.md                           0        3
+  GOAL-absent-input-consumed/baseline.md                     0        4
+  GOAL-judged-goals-compliant/baseline.md                    0       18
+  ------------------------------------------------------------------------
+  TOTAL                                                      3      271
+
+  documents reading ZERO:                            9 of 10   0 of 10
+  exit codes:                       identical at both ends (0 everywhere
+                                    except NEXT-EPIC.md, 1 at both)
+
+
+4. WHAT IT MISSES
+------------------------------------------------------------------------------
+
+  Measured by recall_audit.py against a SEPARATE, deliberately over-broad
+  superset scanner. A superset hit is not necessarily a counted figure; the
+  denominator is "shapes a reader might have to check".
+
+  whole default sweep     3297 of 5793 taken = 56.9%     2496 missed
+  the three charters       180 of  256 taken = 70.3%       76 missed
+
+  missed over the whole sweep, by category (all DECLARED before measuring, in
+  PROSE-FORM-SPEC.md section 5):
+
+    1400   `n/m` ratio or movement notation      (17 / 1483,  2/2 -> 4)
+     843   `n:m` colon form                      (3 : 1)
+     123   SPLIT ACROSS A LINE BREAK
+      63   distributive `every one of the N`     (deliberately refused)
+      38   `n in m` rather than `n of m`         (1 in 38)
+      16   spelled-out numbers above twenty      (thirty-one of forty)
+       0   unclassified
+
+  AND THE LARGEST MISS IS IN NO SUPERSET AT ALL: a counted figure with no
+  `<n> of <m>` in it. `8 failed, 1490 passed` is two counts and a denominator
+  that must be added; `seven epics, zero bugs` is a numerator over a population
+  named nowhere; `four rounds' claims` has no denominator. Reaching those means
+  INVENTING the population.
+
+  PRECISION, HAND-AUDITED: 38 of 40 deterministically sampled matches
+  (random.seed(277)) are genuine counted figures, adjudicated one at a time
+  against their source lines. The two failures are one class, the
+  partitive/distributive `one of the N`; the distributive half is repaired and
+  pinned, the partitive half is filed as SS-04-DF-02 and NOT patched.
+
+
+5. THE FIVE FIGURES THE ISSUE NAMES, LOOKED AT LAST
+------------------------------------------------------------------------------
+
+  PARSES   0 of 9
+  PARSES   1 of 38
+  MISSES   four rounds' claims        <- declared miss, sealed at 2933549
+  MISSES   8 failed, 1490 passed      <- declared miss, sealed at 2933549
+  MISSES   seven epics, zero bugs     <- declared miss, sealed at 2933549
+
+  2 of 5. All three misses were written down BEFORE the recogniser existed and
+  a test asserts they still miss. A recogniser fitted to that list would have
+  five.
+
+
+6. THE EIGHT SEALED PREDICTIONS -- 6 PASSED, 2 FAILED
+------------------------------------------------------------------------------
+
+  sealed 2026-08-17T03:25:10Z at commit 2933549, before any code existed
+
+  P1  FAILED   >20 and <400 FORM P figures        -> 2899, an order of magnitude
+  P2  FAILED   >85% `non-card noun`               -> 65.8%; the bucket I did not
+                                                     anticipate is `no counted
+                                                     noun`, a third of the rows
+  P3  passed   zero REFUTED from FORM P
+  P4  passed   charter off 0 and >10              -> 15
+  P5  passed   CUT-THE-APPARATUS off 0            -> 7
+  P6  passed   whole-record REFUTED and exit code unchanged -> 81 and 1
+  P7  passed   superset >=15% more than taken     -> 76% more
+  P8  passed   >=2 of the five do not parse       -> 3
+
+  NOT AN ALARM. An ALARM is every prediction passing. Both failures are about
+  how much counted prose this record carries and both fail in the direction
+  that says the blindness was worse than I estimated.
+
+
+7. THE REST OF THE MATRIX
+------------------------------------------------------------------------------
+
+  tlc                 N/A. `python3 scripts/tla_spec_dev.py --spec-root specs
+                      run` accepts only `spec-unit-tests` and
+                      `effect-conformance` -- verified with `run --help`. NOT
+                      substituted.
+  spec_unit           PASS. 56 + 53 passed over 2 targets, exit 0 unpiped.
+  spec_graph          N/A per the assignment. Model delta ZERO; ticket-local
+                      current and desired byte-identical (`diff -rq` empty).
+  card                serve | wc -c = 6281, unchanged.
+                      serve --digest-only = sha256:2d7d4a0506d9b259, version 5.
+  audit               0 violation(s), exit 0 unpiped.
+  contested           9 contested dimension(s) over 39 judge groups, 0
+                      unrecorded, exit 0.
+  seal                exit 0, `git status` clean afterwards.
+  absent-input        --only scorecard-scope: SATISFIED, exit 0, contract
+                      EXECUTED and holding = 1.
+                      --contract-only over all 56: 3 declared (was 2), 53
+                      without, exit 1. Register population 2 of 56 -> 3 of 56,
+                      NUMERATOR ONLY -- no row added, none deleted.
+  index               NEVER INVOKED. SS-07-DF-01: it rewrites INDEX.md
+                      unconditionally and 16 of 18 sealed trees mutate under
+                      it. `git status` is clean and no INDEX.md is in this PR.
+  ledger              334 -> 340 rows, append-only, count only rose.

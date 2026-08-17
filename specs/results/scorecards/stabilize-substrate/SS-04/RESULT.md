@@ -13,11 +13,11 @@ and because this epic has now caught four parties quoting one without the other.
 
 | | base `8dd0442`, re-derived here | tip |
 |---|---:|---:|
-| whole-record counted figures | **103** | **3,004** |
+| whole-record counted figures | **103** | **3,002** |
 | — REFUTED | **81** | **81** |
 | — COUNT-MOVED | **0** | **39** |
 | — HOLDS | **2** | **2** |
-| — UNREACHABLE | **20** | **2,882** |
+| — UNREACHABLE | **20** | **2,880** |
 | files swept | 367 | 369 |
 | files carrying a figure | **37** | **258** |
 | `scope` process exit code | **1** | **1** |
@@ -28,13 +28,13 @@ and because this epic has now caught four parties quoting one without the other.
 aside: `FORM P` **cannot produce either verdict**, so nothing that had an answer
 before has a different one, and no exit code anywhere changed.
 
-**The 3,004 − 103 = 2,901 new figures are all FORM P's, and 61 of them are
+**The 3,002 − 103 = 2,899 new figures are all FORM P's, and 61 of them are
 mine.** This ticket's own documents are inside `DEFAULT_SWEEP` —
 `specs/results/scorecards/**/*.md` matches `PROSE-FORM-SPEC.md` and this file,
 and `specs/deferred_findings.yaml` matches the five findings I appended — so a
 write-up about counted figures adds counted figures to the corpus it is
 measuring. **All 61 are UNREACHABLE. Excluding them, the record's own figure is
-2,943 over 256 files**, and `files swept` rises 367 → 369 for the two documents
+2,941 over 256 files**, and `files swept` rises 367 → 369 for the two documents
 this ticket added.
 
 **AND THREE OF MY OWN SENTENCES BRIEFLY BECAME REFUTED CLAIMS ABOUT THIS
@@ -74,7 +74,7 @@ ledger rows this ticket appended — is the stable one to quote.
 
 ## 1. What moved, with numerator and denominator named
 
-- **Whole-record figures 103 → 3,004, of which 2,943 are the record's and 61 are
+- **Whole-record figures 103 → 3,002, of which 2,941 are the record's and 61 are
   this ticket's own documents.** *Numerator and denominator both, and they are
   the same movement*: the recogniser reads a form it could not read before, so
   figures that were always in those files are now counted. **No pattern was added
@@ -130,7 +130,7 @@ except `NEXT-EPIC.md`, which was 1 and is 1).
 
 **FORM P's verdicts are `{UNREACHABLE, COUNT-MOVED}`.** Not "we were careful":
 `test_form_p_never_refutes_and_never_holds_over_the_whole_record` computes the
-verdict set over all 2,901 FORM P rows in this tree and asserts it against
+verdict set over all 2,899 FORM P rows in this tree and asserts it against
 `PROSE_VERDICTS`.
 
 - **`REFUTED` is unavailable** because a prose figure binds no value to a
@@ -142,12 +142,12 @@ verdict set over all 2,901 FORM P rows in this tree and asserts it against
   numerator was not, and calling that HOLDS would be the instrument claiming to
   have checked a claim it only half-read.
 
-FORM P's 2,862 UNREACHABLE rows, by named reason:
+FORM P's 2,860 UNREACHABLE rows, by named reason:
 
 | reason | count | share |
 |---|---:|---:|
-| `non-card noun` | 1,883 | 65.8% |
-| `no counted noun` | 952 | 33.3% |
+| `non-card noun` | 1,882 | 65.8% |
+| `no counted noun` | 951 | 33.3% |
 | `unresolved qualifier` | 19 | 0.7% |
 | `numerator has no predicate` | 5 | 0.2% |
 | `anaphoric scope` | 3 | 0.1% |
@@ -272,13 +272,13 @@ it works*. Four things, in order:
 
 | | prediction | outcome |
 |---|---|---|
-| P1 | FORM P finds >20 and <400 figures over the default sweep | **FAILED** — 2,901. I was wrong by an order of magnitude about how much counted prose this record carries. |
+| P1 | FORM P finds >20 and <400 figures over the default sweep | **FAILED** — 2,899. I was wrong by an order of magnitude about how much counted prose this record carries. |
 | P2 | >85% of them are `non-card noun` | **FAILED** — 65.8%. The bucket I did not anticipate is `no counted noun`, a third of the rows: the figure ends a line, or its noun sits outside the three-token window. `SS-04-DF-03`. |
 | P3 | FORM P produces zero REFUTED | passed |
 | P4 | the charter moves off 0 and reads >10 | passed — 15 |
 | P5 | `CUT-THE-APPARATUS-EPIC.md` moves off 0 | passed — 7 |
 | P6 | whole-record REFUTED and the exit code are unchanged | passed — 81 and 1 |
-| P7 | the superset finds ≥15% more shapes than FORM P takes | passed — 76% more (5,800 vs 3,299) |
+| P7 | the superset finds ≥15% more shapes than FORM P takes | passed — 76% more (5,793 vs 3,297) |
 | P8 | ≥2 of the five named figures do not parse | passed — 3 |
 
 **6 of 8. Not an ALARM** (`measurement_rule`: an ALARM is every prediction
@@ -293,7 +293,7 @@ Measured by `recall_audit.py` against a separate over-broad scanner. **A superse
 hit is not necessarily a counted figure**; the denominator is "shapes a reader
 might have to check" and the numerator is "shapes the recogniser reaches".
 
-**Over the whole default sweep: 3,299 of 5,800 = 56.9%. It misses 2,501, and
+**Over the whole default sweep: 3,297 of 5,793 = 56.9%. It misses 2,496, and
 every one of them is in a declared category — the exact per-shape split is in
 `recall-whole-record.txt`, which is regenerated by the script and does not go
 stale the way a table transcribed into this file does.**
