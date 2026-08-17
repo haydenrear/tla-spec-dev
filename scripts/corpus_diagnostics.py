@@ -276,6 +276,20 @@ class CorpusReport:
     manifest_path: Path | None = None
     source: str = ""
 
+    #: `CA-10-DF-19`, second entrance, repaired by `SS-05`. WHERE THE CAP CAME
+    #: FROM, carried alongside the cap itself.
+    #:
+    #: `analyze_corpus` called `load_budgets(Path("__missing__"), warn=False)` when
+    #: the upward walk found no `spec_manifest.yaml`, which SUPPRESSES
+    #: `budgets.py`'s own *"no readable spec manifest"* warning on exactly the
+    #: path where it is load-bearing. The report then printed
+    #: `cap max_external_cases_per_action = 50` with nothing saying the 50 was a
+    #: documented default rather than the project's negotiated 10. A number whose
+    #: provenance is not on the page is read as measured.
+    #:
+    #: `False` means the caps are DOCUMENTED DEFAULTS and no manifest was found.
+    cap_from_manifest: bool = True
+
     @property
     def passed(self) -> bool:
         return not self.over_cap
@@ -539,8 +553,21 @@ def analyze_corpus(
     cap_budget = CAP_BUDGET_FOR_VIEW[view]
     scope = CAP_SCOPE_FOR_VIEW[view]
 
+    # `CA-10-DF-19`, second entrance, repaired by `SS-05`. The `warn=False` on the
+    # no-manifest branch silenced `budgets.py`'s own "no readable spec manifest"
+    # warning at exactly the point where it is load-bearing, and the report then
+    # printed the documented default as though it had been read from the project.
+    # The suppression stays -- `budgets.py` is outside this ticket's conflict keys
+    # and duplicating its warning here would double-report for callers that pass a
+    # manifest -- but the FACT now travels with the number, in the report, on the
+    # page, where the verdict is read.
+    cap_from_manifest = True
     if budgets is None:
-        budgets = load_budgets(manifest_path, warn=warn) if manifest_path else load_budgets(Path("__missing__"), warn=False)
+        if manifest_path:
+            budgets = load_budgets(manifest_path, warn=warn)
+        else:
+            budgets = load_budgets(Path("__missing__"), warn=False)
+            cap_from_manifest = False
     cap = int(budgets[cap_budget])
 
     groups: dict[str, list[Any]] = {}
@@ -588,6 +615,7 @@ def analyze_corpus(
         regression_cases=tuple(sorted(case_name(c) for c in cases if is_regression_case(c))),
         manifest_path=Path(manifest_path) if manifest_path else None,
         source=source,
+        cap_from_manifest=cap_from_manifest,
     )
 
 
@@ -650,6 +678,17 @@ def render_report(report: CorpusReport) -> str:
         f"corpus gate {verdict}: {report.total_cases} {report.view} case(s), cap "
         f"{report.cap_budget} = {report.cap} per {report.scope}"
     )
+    if not report.cap_from_manifest:
+        # `CA-10-DF-19`, second entrance. The cap is a DOCUMENTED DEFAULT and the
+        # page now says so, next to the number, rather than presenting it as the
+        # project's negotiated threshold.
+        lines.append(
+            f"cap provenance: DOCUMENTED DEFAULT -- no spec_manifest.yaml was "
+            f"found above this corpus, so {report.cap_budget} = {report.cap} is "
+            f"the fallback in references/modular_fuzzing.md and NOT this "
+            f"project's negotiated cap. A verdict against a default is a verdict "
+            f"about the default (CA-10-DF-19)."
+        )
     if report.source:
         lines.append(f"source: {report.source}")
     lines.append("")
@@ -896,6 +935,23 @@ def load_corpus(cases_dir: Path) -> tuple[list[Any], str | None]:
             from run_generated_case_adapters import load_cases  # type: ignore[no-redef]
         module = load_cases(cases_dir)
         cases = list(module.CASES)
+        # `CA-10-DF-19` / `CA-06-DF-05`, repaired by `SS-05`. AN EMPTY GENERATED
+        # PACKAGE USED TO BE ACCEPTED WHILE AN EMPTY TRACE DIRECTORY EIGHT LINES
+        # BELOW REFUSED. `cases.py` carrying `CASES = []` returned `[]`, the cap
+        # comparison then held vacuously, and the gate printed
+        # `corpus gate PASS: 0 internal case(s)` at exit 0. That asymmetry is the
+        # sink `CA-06-DF-01` drained into: the generator emitted `CASES = []` and
+        # this accepted it. The refusal to copy was already in this same
+        # function, and this is the copy.
+        if not cases:
+            raise SystemExit(
+                f"UNDECIDED [empty]: {cases_dir}/cases.py declares CASES = [] -- "
+                f"zero cases. `corpus gate PASS: 0 case(s)` would be a cap "
+                f"satisfied by a corpus that was never generated. Nothing was "
+                f"measured, so nothing is over cap and nothing is under it "
+                f"(CA-06-DF-05 / CA-10-DF-19, and this is the same refusal an "
+                f"empty TRACE directory has always given)."
+            )
         return cases, getattr(module, "SOURCE_VIEW", None) or infer_view(cases_dir, cases)
 
     traces = sorted(p for p in cases_dir.glob("*.json") if p.name != "manifest.json")
@@ -913,7 +969,26 @@ def run(args: Any) -> int:
         return EXIT_USAGE
 
     cases, package_view = load_corpus(cases_dir)
-    view = args.view or package_view or "internal"
+    # `CA-10-DF-19`, third entrance, repaired by `SS-05`. THIS READ
+    # `args.view or package_view or "internal"`. `infer_view` returns `None` when
+    # the package declares no `SOURCE_VIEW` and no directory name matches, so an
+    # EXTERNAL corpus fell through to the INTERNAL cap -- 200 instead of 50 -- and
+    # a 120-case external corpus PASSED AT FOUR TIMES ITS REAL CAP. The default
+    # was silent and it was applied at exactly the point where it decides the
+    # verdict. An unattributable corpus has no cap, so it gets no verdict.
+    view = args.view or package_view
+    if view is None:
+        print(
+            f"UNDECIDED [empty]: {cases_dir} declares no SOURCE_VIEW, no case "
+            f"carries a `view`/`layer`, and no directory on its path names one, "
+            f"so WHICH CAP APPLIES IS UNKNOWN. `internal` is capped by "
+            f"`{CAP_BUDGET_FOR_VIEW['internal']}` and `external` by "
+            f"`{CAP_BUDGET_FOR_VIEW['external']}`, the two differ, and defaulting "
+            f"to `internal` gated external corpora at four times their real cap "
+            f"(CA-10-DF-19). Pass --view explicitly.",
+            file=__import__("sys").stderr,
+        )
+        return EXIT_USAGE
     if view not in CAP_BUDGET_FOR_VIEW:
         print(f"ERROR: unsupported view {view!r}", file=__import__("sys").stderr)
         return EXIT_USAGE
