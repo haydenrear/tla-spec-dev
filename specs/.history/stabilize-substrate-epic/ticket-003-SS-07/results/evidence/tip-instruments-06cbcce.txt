@@ -1,0 +1,37 @@
+tree 06cbcce (feature/SS-07 reconciled onto epic tip eb2567b), cell WT, 2026-08-16
+$ serve | wc -c
+    6281
+$ serve (stderr)
+served digest sha256:2d7d4a0506d9b259 (card version 5, rubric file sha256:b7fe75437bf68646)
+$ audit | tail -2
+
+0 violation(s)
+$ scope | tail -2
+103 counted figure(s): 81 REFUTED, 0 COUNT-MOVED, 2 HOLDS, 20 UNREACHABLE
+A claim this cannot reach is NOT a claim that holds. The two counts are separate on purpose.
+$ scope --path NEXT-EPIC.md | tail -2
+3 counted figure(s): 3 REFUTED, 0 COUNT-MOVED, 0 HOLDS, 0 UNREACHABLE
+A claim this cannot reach is NOT a claim that holds. The two counts are separate on purpose.
+$ contested | tail -1
+9 contested dimension(s) over 39 judge group(s), 0 unrecorded
+$ architecture_tags.py derive | tail -1
+16 of 21 subject(s) decided; 5 refused. A refusal is REPORTED as a refusal and is comparable to everything.
+$ check_catalogue.py --arms | tail -3
+
+Catalogue integrity holds: every pattern occurs exactly once, every
+mutant applies and reverts cleanly, and every declared gap is seeded.
+$ conformance suite
+14 passed in 3.55s
+$ repriced_history.py | tail -1
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-07/examples/validation/gap_mutants/price_removal.py'
+$ stranded_loaders.py | tail -8
+------------------------------------------------------------------------------------------------
+160 file(s) swept
+8 file(s) name at least one ABSENT path
+15 absent reference(s) in total
+135 file(s) NO-PATHS (parsed, zero repository path literals) -- NOT the same answer as 'every path resolves'
+0 file(s) UNPARSED
+UNREACHABLE-BY-CONSTRUCTION: any path built at runtime, read from a manifest,
+or globbed is invisible to a literal sweep. A clean report is a FLOOR.
+$ disposition.py --ticket SS-07
+DISPOSED ticket SS-07: 4 findings, all three clauses hold

@@ -1,0 +1,23 @@
+R-H4 DEMONSTRATED WITH A FAILING INPUT -- tree 48f9c7e, throwaway detached cell B, 2026-08-16
+(a sealed card was drifted by ONE BYTE in the cell only, never on the ticket branch, and restored)
+
+$ python3 examples/validation/scorecards/score_tools.py audit          # before
+0 violation(s)
+
+# drift: one space added inside scorecard.json of
+# specs/results/scorecards/score-drives-validation-sv04/toolchain_removal/20260812-sv04conf-LG-p1/
+
+$ python3 examples/validation/scorecards/score_tools.py seal <that card>
+REFUSED: these are already sealed and their contents changed. A sealed card is never edited -- record the correction beside it instead.
+  .../20260812-sv04conf-LG-p1/scorecard.json: sha256:6c1d81a783050c52 -> sha256:e67426bc7d969422
+
+$ python3 examples/validation/scorecards/score_tools.py audit          # drifted
+1 violation(s)
+
+$ git checkout of the card, then:
+$ python3 examples/validation/scorecards/score_tools.py audit          # restored
+0 violation(s)
+
+VERDICT: R-H4 is EXECUTED, not asserted. `seal` refuses drift and names both digests;
+`audit` re-verifies the seal and moves 0 -> 1 -> 0 on a one-byte change to one sealed card.
+Cell B `git status` is clean afterwards.
