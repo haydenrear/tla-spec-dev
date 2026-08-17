@@ -85,11 +85,22 @@ justification: ""
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
-  measured: false      # true only if a real TLC run produced the figure
-  applied: false       # if true, approved_by is required
+  searched: true
+  outcome: "none"
+  detail: >-
+    SEARCHED, FOUND NONE. Model delta is ZERO: this ticket changes a measurement
+    instrument (`examples/validation/scorecards/score_tools.py`) and adds one
+    repository test file. It adds no state, no action and no invariant, and
+    ticket-local `current` and `desired` are byte-identical (`diff -rq` empty).
+    `model_delta_expectation` in the plan says `none expected` and none occurred,
+    so there is no representation to refine. The refinement search was run over
+    the ticket's declared surface anyway and returned nothing: `direction=zero
+    (vs SS-07)`, variables 8, actions 16, bound 277,830 -- unchanged.
+    NOTE THE MEASURED BOUND IS INCOMPLETE, 6 of 8 variables resolved, so
+    `within_cap` is UNKNOWN rather than green. That is recorded here rather than
+    read as a pass.
+  measured: false      # no TLC run exists at this tree; `run` accepts only spec-unit-tests and effect-conformance
+  applied: false
   approved_by: ""
 
 # Required only if a generated-states drop at constant distinct states is
@@ -99,4 +110,4 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: "specs/results/scorecards/stabilize-substrate/SS-04/RESULT.md -- the full write-up. In brief: SS-04 adds FORM P to `scope`, a recogniser for `<n> of <m>` counted figures in ORDINARY PROSE, because `CA-08-DF-01` measured the instrument at ZERO counted figures on the charters, the ticket plan, four goal baselines and a price table, all of which were being swept the whole time -- the bound was the SENTENCE FORM, not the corpus. COMPLEXITY: the model delta is ZERO and the added representation is entirely inside an eval-harness file that `representation_scope` places OUT of model, so nothing here widens the program surface. WHAT LICENSES THE ADDED CODE: `scope` is on the do-not-cut list and the plan says EXTEND IT, DO NOT REPLACE IT, so the addition is additive by construction -- FORM P cannot return REFUTED and cannot return HOLDS, its verdict set is asserted over all 2,887 of its rows rather than promised, and `scope --form bound` reproduces the base output byte-for-byte at 103 / 81 / 0 / 2 / 20. MEASURED ALTERNATIVES CONSIDERED AND REJECTED: (1) a paragraph-wide matching window, rejected because it is exactly what lets a figure bind to a scope three sentences away, which is the defect R3 exists to refuse; (2) letting FORM P re-derive numerators and return REFUTED, rejected because a prose figure binds no value to a dimension, so a REFUTED would be invented -- and A FALSE REFUTED IS WORSE THAN AN UNREACHABLE; (3) widening the recogniser until the five figures the issue names all parse, REFUSED AS MF-020 and pinned by a test that fails if a later hand does it. FINDINGS THE MACHINE-CHECKED CORE CANNOT EXPRESS: five, `SS-04-DF-01` through `SS-04-DF-05`, ledger 334 -> 339. Two of them are defects in this ticket own deliverable found by hand-auditing its output (42 of 88 COUNT-MOVED rows were counting ledger rows, not cards; a greedy noun capture ate the next figure numerator), one is a latent crash that predates the ticket by five card versions (`KeyError: D5` killed the whole command, taking every other figure answer with it), and one is that every documented `python3 score_tools.py` invocation dies with a traceback under a python3 below 3.11 -- which made this ticket own document sweep report ten zeroes before it was caught, and A ZERO FROM A CRASHED INTERPRETER IS INDISTINGUISHABLE FROM A ZERO FROM A BLIND RECOGNISER. TWO OF EIGHT SEALED PREDICTIONS FAILED, both about how much counted prose this record carries, both in the direction that says the blindness was worse than estimated. Recall against a separate deliberately over-broad scanner is 3,305 of 5,790 = 57.1%, with every miss in a category declared BEFORE measuring."

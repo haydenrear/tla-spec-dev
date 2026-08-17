@@ -1,0 +1,34 @@
+R1-absent -- what every instrument answers when the input is not there
+==============================================================================
+
+register     /Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-04/examples/validation/instruments/instruments.toml
+rows         66 (10 declared not-an-instrument)
+instruments  56
+selected     1
+executed     yes
+
+instrument                         absent   unread   empty    verdict
+------------------------------------------------------------------------------
+scorecard-scope                    ok       ok       ok       SATISFIED
+
+THE COUNT -- this command's product
+------------------------------------------------------------------------------
+  instruments in the register                 56
+  selected                                    1
+  contract EXECUTED and holding               1
+  contract declared, not executed             0
+  contract executed over a SUBSET of states   0
+  contract with a WAIVED state, nothing run    0
+  WITHOUT one                                 0
+  with a contract that did not hold           0
+  states declared unreachable, with a reason  0
+  DECLARED indistinguishable state pairs      0
+
+  The first six sum to `selected`, in that order, always.
+  No target is set on that ratio. A high `WITHOUT` count is the honest
+  outcome: the class was measured at 48 instances across 30 of 43
+  verdict-producing modules before anything was repaired, and a count
+  that fell because rows were deleted is denominator movement, not a
+  repair.
+
+Every selected instrument carries a three-state absent-input contract and every state reproduced.

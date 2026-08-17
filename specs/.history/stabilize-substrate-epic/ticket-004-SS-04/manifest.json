@@ -1,0 +1,653 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/SS-04",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/stabilize-substrate-epic/ticket-004-SS-04 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for SS-04'",
+    "message": "It is recommended to commit this history directory now: specs/.history/stabilize-substrate-epic/ticket-004-SS-04"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 16,
+        "before": 16,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 277830,
+        "before": 277830,
+        "bound_complete_after": false,
+        "bound_complete_before": false,
+        "comparable": false,
+        "delta": 0,
+        "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+        "percent": 0.0
+      },
+      "depth": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "generated_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "variables": {
+        "after": 8,
+        "before": 8,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "SS-07"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 16,
+          "before": 16,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 277830,
+          "before": 277830,
+          "bound_complete_after": false,
+          "bound_complete_before": false,
+          "comparable": false,
+          "delta": 0,
+          "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+          "percent": 0.0
+        },
+        "depth": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "generated_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "variables": {
+          "after": 8,
+          "before": 8,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "SS-07"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/SS-04/results/complexity_ledger.yaml",
+    "justification": "",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+      "actions": 16,
+      "actions_from_fallback_heuristic": false,
+      "bound": 277830,
+      "bound_complete": false,
+      "bound_resolved_variables": 6,
+      "bound_unresolved_variables": [
+        "lastCommand",
+        "result"
+      ],
+      "budget_utilization": {
+        "max_state_space_bound": {
+          "bound_complete": false,
+          "cap": 1000000,
+          "caveat": "the bound is a product over 6 of 8 declared variables (2 unresolved: lastCommand, result), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything",
+          "percent": null,
+          "percent_lower_bound": 27.8,
+          "used": 277830,
+          "within_cap": null
+        }
+      },
+      "depth": null,
+      "distinct_states": null,
+      "gate_passed": false,
+      "gate_violations": [
+        "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 8 declared variables (2 unresolved: lastCommand, result) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
+        "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+      ],
+      "generated_states": null,
+      "modularity": 0.002483746073489777,
+      "variables": 8
+    },
+    "narrative": "specs/results/scorecards/stabilize-substrate/SS-04/RESULT.md -- the full write-up. In brief: SS-04 adds FORM P to `scope`, a recogniser for `<n> of <m>` counted figures in ORDINARY PROSE, because `CA-08-DF-01` measured the instrument at ZERO counted figures on the charters, the ticket plan, four goal baselines and a price table, all of which were being swept the whole time -- the bound was the SENTENCE FORM, not the corpus. COMPLEXITY: the model delta is ZERO and the added representation is entirely inside an eval-harness file that `representation_scope` places OUT of model, so nothing here widens the program surface. WHAT LICENSES THE ADDED CODE: `scope` is on the do-not-cut list and the plan says EXTEND IT, DO NOT REPLACE IT, so the addition is additive by construction -- FORM P cannot return REFUTED and cannot return HOLDS, its verdict set is asserted over all 2,887 of its rows rather than promised, and `scope --form bound` reproduces the base output byte-for-byte at 103 / 81 / 0 / 2 / 20. MEASURED ALTERNATIVES CONSIDERED AND REJECTED: (1) a paragraph-wide matching window, rejected because it is exactly what lets a figure bind to a scope three sentences away, which is the defect R3 exists to refuse; (2) letting FORM P re-derive numerators and return REFUTED, rejected because a prose figure binds no value to a dimension, so a REFUTED would be invented -- and A FALSE REFUTED IS WORSE THAN AN UNREACHABLE; (3) widening the recogniser until the five figures the issue names all parse, REFUSED AS MF-020 and pinned by a test that fails if a later hand does it. FINDINGS THE MACHINE-CHECKED CORE CANNOT EXPRESS: five, `SS-04-DF-01` through `SS-04-DF-05`, ledger 334 -> 339. Two of them are defects in this ticket own deliverable found by hand-auditing its output (42 of 88 COUNT-MOVED rows were counting ledger rows, not cards; a greedy noun capture ate the next figure numerator), one is a latent crash that predates the ticket by five card versions (`KeyError: D5` killed the whole command, taking every other figure answer with it), and one is that every documented `python3 score_tools.py` invocation dies with a traceback under a python3 below 3.11 -- which made this ticket own document sweep report ten zeroes before it was caught, and A ZERO FROM A CRASHED INTERPRETER IS INDISTINGUISHABLE FROM A ZERO FROM A BLIND RECOGNISER. TWO OF EIGHT SEALED PREDICTIONS FAILED, both about how much counted prose this record carries, both in the direction that says the blindness was worse than estimated. Recall against a separate deliberately over-broad scanner is 3,305 of 5,790 = 57.1%, with every miss in a category declared BEFORE measuring.",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+    ],
+    "recorded_at_utc": "2026-08-17T04:04:04.761529+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "SEARCHED, FOUND NONE. Model delta is ZERO: this ticket changes a measurement instrument (`examples/validation/scorecards/score_tools.py`) and adds one repository test file. It adds no state, no action and no invariant, and ticket-local `current` and `desired` are byte-identical (`diff -rq` empty). `model_delta_expectation` in the plan says `none expected` and none occurred, so there is no representation to refine. The refinement search was run over the ticket's declared surface anyway and returned nothing: `direction=zero (vs SS-07)`, variables 8, actions 16, bound 277,830 -- unchanged. NOTE THE MEASURED BOUND IS INCOMPLETE, 6 of 8 variables resolved, so `within_cap` is UNKNOWN rather than green. That is recorded here rather than read as a pass.",
+      "measured": false,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=not_run (UNVERIFIED)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "SS-04",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the behavior-test output",
+        "status": "",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the before/after descriptor comparison",
+        "status": "",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the post-change TLC output",
+        "status": "",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the pre-change TLC output",
+        "status": "",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=(absent) (UNVERIFIED)",
+      "tlc_after=(absent) (UNVERIFIED)",
+      "behavior_tests=(absent) (UNVERIFIED)",
+      "descriptor_comparison=(absent) (UNVERIFIED)"
+    ],
+    "verdict": "recorded",
+    "workflow": "stabilize-substrate-epic"
+  },
+  "created_at_utc": "2026-08-17T04:04:04.822540+00:00",
+  "entry_name": "ticket-004-SS-04",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/SS-04",
+    "commit": "5353a16",
+    "inside_work_tree": "true"
+  },
+  "guard_weakening": {
+    "bypassed": [],
+    "flags": [],
+    "model_action": "CloseTicket",
+    "note": "RC-01: a close taken under a guard-weakening flag is a different modeled state from one taken under the guard. Recorded, never refused.",
+    "weakened": false
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/SS-04/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/SS-04/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/SS-04/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/SS-04/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/SS-04/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/SS-04/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/SS-04/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/SS-04/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/SS-04/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_binding_reconciliation.py",
+            "relative": "tests/test_tla_spec_dev_binding_reconciliation.py",
+            "source": "specs/tickets/SS-04/desired/tests/test_tla_spec_dev_binding_reconciliation.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/SS-04/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/SS-04/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/SS-04/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/SS-04/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/SS-04/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/SS-04/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/SS-04/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_generation_adapter.py",
+            "relative": "tests/test_tla_spec_dev_generation_adapter.py",
+            "source": "specs/tickets/SS-04/desired/tests/test_tla_spec_dev_generation_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/SS-04/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/SS-04/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/SS-04/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/SS-04/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/SS-04/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/SS-04/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/SS-04/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/SS-04"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "SEARCHED, FOUND NONE. Model delta is ZERO: this ticket changes a measurement instrument (`examples/validation/scorecards/score_tools.py`) and adds one repository test file. It adds no state, no action and no invariant, and ticket-local `current` and `desired` are byte-identical (`diff -rq` empty). `model_delta_expectation` in the plan says `none expected` and none occurred, so there is no representation to refine. The refinement search was run over the ticket's declared surface anyway and returned nothing: `direction=zero (vs SS-07)`, variables 8, actions 16, bound 277,830 -- unchanged. NOTE THE MEASURED BOUND IS INCOMPLETE, 6 of 8 variables resolved, so `within_cap` is UNKNOWN rather than green. That is recorded here rather than read as a pass.",
+    "measured": false,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/results/RESULT.md",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-04/RESULT.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/results/PROSE-FORM-SPEC.md",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-04/PROSE-FORM-SPEC.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/results/scope-whole-record-TIP.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-04/scope-whole-record-TIP.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/results/scope-whole-record-BASE-8dd0442.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-04/scope-whole-record-BASE-8dd0442.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/results/docs-base.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-04/docs-base.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/results/docs-tip.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-04/docs-tip.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/results/recall-whole-record.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-04/recall-whole-record.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/results/recall-charters.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-04/recall-charters.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/results/absent-input-demo.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-04/absent-input-demo.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/results/absent-input-base.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-04/absent-input-base.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/results/absent-input-register.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-04/absent-input-register.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/results/d5-keyerror-demo.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-04/d5-keyerror-demo.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/results/five-named-figures.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-04/five-named-figures.txt"
+    },
+    {
+      "exists": false,
+      "role": "result",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-04/do-not-cut-instruments-tip.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/results/spec-unit-SS-04.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-04/spec-unit-SS-04.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/results/work-directing-documents.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-04/work-directing-documents.txt"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 132,
+    "close_out_entry": "Close-out ticket SS-04",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [],
+    "findings_filed": 0,
+    "findings_total": 0,
+    "findings_unfiled": [],
+    "path": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-04/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/ticket",
+      "source": "specs/tickets/SS-04"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "SS-04: FORM P reads <n> of <m> counted figures in ORDINARY PROSE, so scope can read the documents that direct the work. Whole record 103 -> 2,990 figures (2,930 the record's, 60 this ticket's own documents) over 369 swept files, 258 carrying a figure; the 10 named work-directing documents 3 -> 271, and 9-of-10-reading-zero -> 0-of-10; this epic's own charter 0 -> 15, the predecessor's 0 -> 7. UNREACHABLE IS THE DEFAULT AND FORM P CAN RETURN NEITHER REFUTED NOR HOLDS -- verdict set asserted over all 2,887 of its rows, not promised -- so REFUTED held at 81, HOLDS at 2, the bound forms are byte-identical to base at 103/81/0/2/20, and NO EXIT CODE CHANGED for any input that resolves. SS-02's extension EXECUTED on this instrument: seven absent/unreadable/empty inputs answer UNDECIDED at exit 2 naming the state, against five byte-identical confident PASSes at exit 0 before, with a figure-free control that still exits 0 and says CHECKED, NONE FOUND; register population 2 of 56 -> 3 of 56, numerator only. SS-01-DF-03 CONSUMED: every run prints the tree it was swept in. SS-00-DF-04 CONSUMED AS A CLASS: scope computes and prints the file x verdict JOINT distribution, so the sentence that came from multiplying two marginals cannot be written from this output. MF-020: the shape was SEALED IN A COMMIT BEFORE THE CODE EXISTED, three of the five named figures are DECLARED MISSES with a test asserting they still miss, and 2 of 8 sealed predictions FAILED. Recall against a separate over-broad scanner 3,305 of 5,790 = 57.1%, every miss in a declared category. Five findings filed, ledger 334 -> 339, two of them defects in this ticket's own deliverable and one a latent crash that predates it by five card versions. NOTE: this summary is sealed BEFORE the workspace is deleted, so it CANNOT describe the post-close tree -- RESULT.md and FINAL-FIGURES.txt are authoritative for that.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "scope reaches counted figures written as ordinary '<n> of <m>' prose, demonstrated on a NAMED COMMITTED LIST of work-directing documents including this epic's charter and the predecessor's.",
+        "UNREACHABLE IS THE DEFAULT. An uncertain sentence is UNREACHABLE, never HOLDS and never REFUTED.",
+        "NOT A GATE: nothing refuses, nothing blocks a close, no exit code changes.",
+        "MF-020 is honoured: the recogniser is demonstrated on prose whose answer was not known when it was written, and WHAT IT MISSES IS REPORTED.",
+        "The recogniser's own absent-input behaviour is demonstrated on an empty document, an absent path and a figure-free document, per SS-02's extension.",
+        "The whole-record sweep is re-run and every movement attributed with numerator/denominator named.",
+        "The card is unchanged: serve | wc -c is still 6,281 and the digest is stated."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "SS-05",
+      "SS-08"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "examples/validation/scorecards/score_tools.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "tests/test_counted_figure_recogniser.py",
+        "specs/results/scorecards/stabilize-substrate/GOAL-counted-figures-reach-the-record/",
+        "specs/results/scorecards/stabilize-substrate/SS-04/"
+      ]
+    },
+    "depends_on": [
+      "SS-02"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/277",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "Moves the charter figure off zero and the work-directing-document population off zero. NO NUMERIC TARGET -- a threshold on figures reached before the recogniser exists would be MF-020, and the honest outcome may be 'it reaches few and here is exactly which forms it misses'.",
+        "goal": "GOAL-counted-figures-reach-the-record",
+        "local_signal": "python3 examples/validation/scorecards/score_tools.py scope --path STABILIZE-SUBSTRATE-EPIC.md"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none on the instance count -- but this ticket ships a NEW instrument and is therefore the first real test of SS-02's extension. Its absent-input case is REQUIRED, not optional.",
+        "goal": "GOAL-absent-input-consumed",
+        "local_signal": "the recogniser run on an empty document, an absent path and a figure-free document"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "collection RISES by the recogniser's tests -- denominator movement, report it as such",
+        "goal": "GOAL-tree-stabilizes",
+        "local_signal": "uv run --with pytest --with pyyaml -m pytest tests -q --collect-only"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected -- scope is on the do-not-cut list; extend it, do not replace it",
+        "goal": "GOAL-four-results-still-stand",
+        "local_signal": "python3 examples/validation/scorecards/score_tools.py scope"
+      }
+    ],
+    "id": "SS-04",
+    "implementation_scope": [
+      "examples/validation/scorecards/",
+      "tests/",
+      "specs/results/scorecards/stabilize-substrate/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "NAMED BY THE PREDECESSOR'S EVALUATION AS 'THE SUCCESSOR EPIC'S FIRST CANDIDATE', AND IT IS THE MOST USEFUL THING THAT EVALUATION FOUND. CA-08-DF-01: scope returns ZERO counted figures on the charter, the ticket plan, a goal baseline and a price table. THE CHARTER'S OWN CORRECTION BLOCK SAYS 'R3/scope WOULD HAVE CAUGHT THIS AND NOBODY RAN IT AGAINST THIS CHARTER' -- and when someone finally ran it, IT COULD NOT READ THE CHARTER. THE BOUND IS THE SENTENCE FORM, NOT THE CORPUS, AND THIS IS REVIEWER-CONFIRMED: those files ARE swept. scope recognises ONE form, 'D<n> = <v> on <n> of <m>', and '0 of 9 over the sealed table' is not in it. EVERY COUNTED FIGURE THAT HAS EVER HURT THIS PROJECT -- '0 of 9', '1 of 38', 'four rounds' claims', '8 failed, 1490 passed', 'seven epics, zero bugs' -- IS INVISIBLE TO THE INSTRUMENT NAMED TO CATCH IT. THE SHAPE IS GIVEN: a recogniser for '<n> of <m>' in ordinary prose THAT REPORTS UNREACHABLE BY DEFAULT. NOT A GATE. Nothing refuses, nothing blocks a close, nothing changes an exit code -- and note that the predecessor's own starter printed FOUR of five scope rows and carried a heading the dropped row refuted, so BE MORE CAREFUL WITH YOUR OWN OUTPUT TABLE THAN THE RECORD WAS WITH ITS. MF-020 IS THE HIGHEST RISK IN THIS TICKET AND IT APPLIES DIRECTLY: NEVER ADD AN AXIS, TEST, RUNG OR CASE FITTED TO A KNOWN ANSWER. Five figures are named above and you know their answers. A recogniser tuned until those five parse is fitted to a known answer and fails clause (d) even if it works. BUILD IT AGAINST PROSE WHOSE ANSWER YOU DO NOT KNOW, DEMONSTRATE IT ON THIS EPIC'S OWN CHARTER AND THE PREDECESSOR'S, AND REPORT WHAT IT MISSES. A FALSE REFUTED IS WORSE THAN AN UNREACHABLE: a claim the instrument cannot reach is NOT a claim that holds, the two counts stay separate on purpose, and if you cannot tell, say UNREACHABLE. R1 AND THE NEW ABSENT-INPUT EXTENSION BOTH APPLY: demonstrate a failing input on a real subject, AND demonstrate what your recogniser answers on an empty document, an absent path and a document with no figures at all -- if any of those answers 'no figures, all clear' rather than UNREACHABLE or a refusal, you have shipped the class SS-02 just wrote the rule against. RUN YOUR OWN RULE AGAINST THE SEALED RECORD BEFORE SHIPPING and report what it refuses. AND RE-RUN THE WHOLE-RECORD SWEEP: it was byte-for-byte identical at the predecessor's base and tip -- 102 figures, 80 REFUTED, 0 COUNT-MOVED, 2 HOLDS, 20 UNREACHABLE over 37 files -- so any movement you produce is YOURS and must be attributed with numerator/denominator named.",
+    "promotion_order": 50,
+    "promotion_predecessor": "SS-07",
+    "role": "implementation",
+    "schedule_revision": 1,
+    "status": "closed",
+    "title": "Make counted figures in ordinary prose reachable, so the instrument can read the documents that direct the work",
+    "wave": 3
+  },
+  "ticket_id": "SS-04",
+  "ticket_index": 4,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "closed",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/stabilize-substrate-epic/ticket-004-SS-04/ticket",
+    "source": "specs/tickets/SS-04"
+  },
+  "workflow_name": "stabilize-substrate-epic"
+}
