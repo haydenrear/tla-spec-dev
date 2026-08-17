@@ -11,7 +11,8 @@ from .types import ReminderState, ReadClock, ClaimJob, LookupOutbox, StageMessag
 
 
 def validate_state(state: ReminderState) -> None:
-    return None
+    validate_type_invariant(state)
+    validate_delivery_invariant(state)
 
 
 def explain_state_failure(state: ReminderState) -> str:
@@ -36,6 +37,14 @@ def validate_trace(initial_state: ReminderState, commands: list[object], port: o
         result = getattr(port, _COMMAND_METHODS[method_name])(command)
         after = port.snapshot()
         _validate_transition(before, command, result, after)
+
+
+def validate_type_invariant(state: ReminderState) -> None:
+    raise NotImplementedError("No invariant template configured for TypeInvariant")
+
+
+def validate_delivery_invariant(state: ReminderState) -> None:
+    raise NotImplementedError("No invariant template configured for DeliveryInvariant")
 
 
 def validate_now_transition(

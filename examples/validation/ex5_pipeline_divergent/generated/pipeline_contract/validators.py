@@ -9,7 +9,9 @@ from .types import PipelineState, PersistLedger
 
 
 def validate_state(state: PipelineState) -> None:
-    return None
+    validate_type_invariant(state)
+    validate_delivery_exclusive(state)
+    validate_ledger_is_downstream(state)
 
 
 def explain_state_failure(state: PipelineState) -> str:
@@ -34,6 +36,18 @@ def validate_trace(initial_state: PipelineState, commands: list[object], port: o
         result = getattr(port, _COMMAND_METHODS[method_name])(command)
         after = port.snapshot()
         _validate_transition(before, command, result, after)
+
+
+def validate_type_invariant(state: PipelineState) -> None:
+    raise NotImplementedError("No invariant template configured for TypeInvariant")
+
+
+def validate_delivery_exclusive(state: PipelineState) -> None:
+    raise NotImplementedError("No invariant template configured for DeliveryExclusive")
+
+
+def validate_ledger_is_downstream(state: PipelineState) -> None:
+    raise NotImplementedError("No invariant template configured for LedgerIsDownstream")
 
 
 def validate_persist_transition(

@@ -70,7 +70,18 @@ ports:
         command: DeleteFile
         result: DeleteFileResult
 
-invariants: []
+# CA-10-DF-21, repaired by SS-05. THE THIRD CARRIER, AND THE RECORD NAMED ONLY
+# TWO. This said `invariants: []` while `Internal.cfg` hands TLC
+# `InternalInvariant` and `External.cfg` hands it `ExternalInvariant`, so the
+# generated `validate_state` was `return None` and accepted every state. Both
+# names are declared because one manifest generates the double for both models.
+# No `invariant_templates:` entry exists for either, so each generated
+# `validate_*` raises NotImplementedError -- a refusal, which is the correct
+# answer to "this oracle was never written" and is what
+# `legacy_payment_http` has always shipped.
+invariants:
+  - InternalInvariant
+  - ExternalInvariant
 finite_model: {}
 budgets:
   tlc_seconds: 120

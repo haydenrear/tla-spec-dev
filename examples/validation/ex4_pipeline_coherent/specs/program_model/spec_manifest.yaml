@@ -54,6 +54,27 @@ case_modules:
 
 types: {}
 
+# CA-10-DF-21, repaired by SS-05. THIS KEY WAS ABSENT ENTIRELY while
+# `Pipeline.cfg` hands TLC THREE invariants, so the generated `validate_state`
+# was `return None` -- a state oracle that accepts every state -- and
+# `validate_manifest` reported zero errors about it. `ex5_pipeline_divergent`
+# has no manifest of its own and its package is generated from this one, so the
+# same vacuous oracle shipped in two packages from this one omission.
+#
+# THE FOUR ARCHITECTURE-EXPERIMENT INPUTS ARE UNTOUCHED. `Pipeline.tla`,
+# `Pipeline.cfg`, `architecture_components.yaml` and `architecture_map.yaml`
+# must stay byte-identical across this fixture and its divergent twin -- see
+# the header above and `check_twins.py`. This file is NOT one of the four, and
+# `diff` over the four is still empty.
+#
+# No `invariant_templates:` entry exists for any of the three, so each generated
+# `validate_*` raises NotImplementedError. That is a refusal, and a refusal is
+# the correct answer where the oracle was never written.
+invariants:
+  - TypeInvariant
+  - DeliveryExclusive
+  - LedgerIsDownstream
+
 state:
   PipelineState:
     fields:

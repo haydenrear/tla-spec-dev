@@ -223,6 +223,91 @@ def to_snake(name: str) -> str:
     return "".join(chars).replace("__", "_")
 
 
+#: `CA-10-DF-21`, repaired by `SS-05`. THE THREE STATES OF `invariants:`, KEPT
+#: APART BECAUSE THE OLD CODE ANSWERED ALL THREE WITH `return None`.
+#:
+#: `manifest.get("invariants", []) or []` collapsed four different facts into
+#: one: the key is not in the manifest at all; the key is there and parsed to
+#: `None`; the key is there and is an empty list; the key is there and names
+#: invariants. The first three all emitted
+#: `def validate_state(state) -> None: return None` -- A STATE ORACLE THAT
+#: ACCEPTS EVERY STATE -- while `extract_spec_manifest.validate_manifest`
+#: reported ZERO ERRORS, so nothing anywhere said the double had no oracle.
+#:
+#: THIS IS THE ONE INSTANCE OF THE ABSENT-INPUT CLASS THAT LEAVES THIS
+#: REPOSITORY: the generator scaffolds it into every repo the toolchain touches.
+#: Three live manifests in this tree carried it (`ex4_pipeline_coherent`, key
+#: absent; `reminder_worker` and `atomic_publisher`, `invariants: []`) while
+#: their own `.cfg` files hand TLC seven invariants between them.
+#:
+#: THE ANSWER IS A REFUSAL, NEVER A PASS, and the shape was already shipped in
+#: this file: the per-invariant body below emits `raise NotImplementedError` for
+#: an invariant with no template, the per-transition body does the same, and
+#: `_validate_transition` ends in `raise AssertionError`. ONLY `validate_state`
+#: WAS GIVEN A PASS. `examples/effect_providers/legacy_payment_http` ships the
+#: refusing form today and is the control that it is livable.
+INVARIANTS_ABSENT = "absent"
+INVARIANTS_UNREADABLE = "unreadable"
+INVARIANTS_EMPTY = "empty"
+
+#: Every generated refusal opens with this, so a caller -- or a test -- can
+#: recognise one without matching a whole sentence.
+NO_STATE_ORACLE = "NO STATE ORACLE WAS GENERATED"
+
+_NO_ORACLE_BECAUSE = {
+    INVARIANTS_ABSENT: (
+        "`invariants:` is ABSENT from the manifest, so the manifest never said "
+        "whether this state machine has invariants at all"
+    ),
+    INVARIANTS_UNREADABLE: (
+        "`invariants:` is present and did NOT read as a list of names -- a key "
+        "that would not parse is not the same fact as a model with no "
+        "invariants and must not get the same answer"
+    ),
+    INVARIANTS_EMPTY: (
+        "`invariants:` is present and EMPTY -- it parses perfectly and names "
+        "nothing, which is a claim about the manifest and not a licence to "
+        "accept every state"
+    ),
+}
+
+
+def invariants_absence_state(manifest: dict[str, Any]) -> str | None:
+    """Which of the three absent-input states `invariants:` is in, or `None`.
+
+    `None` means the key is there and names at least one invariant, which is the
+    only input a state oracle can be generated from. The signature is the point:
+    a bare list could not tell "read nothing" from "read and found nothing", and
+    answered the second with the first.
+    """
+    if "invariants" not in manifest:
+        return INVARIANTS_ABSENT
+    declared = manifest["invariants"]
+    if declared is None or not isinstance(declared, (list, tuple)):
+        return INVARIANTS_UNREADABLE
+    if len(declared) == 0:
+        return INVARIANTS_EMPTY
+    return None
+
+
+def no_state_oracle_body(state: str, manifest_path: Path) -> str:
+    """The body of a `validate_state` that REFUSES, naming which state it hit."""
+    because = _NO_ORACLE_BECAUSE[state]
+    message = (
+        f"{NO_STATE_ORACLE} [{state}]: {because}. "
+        f"Source: {manifest_path.name}. Declare `invariants:` with the names the "
+        f"model's .cfg gives TLC, and an `invariant_templates:` entry for each. "
+        f"There is deliberately no way to ask for an oracle that accepts every "
+        f"state: that is not a weaker check, it is no check "
+        f"(CA-10-DF-21, repaired by SS-05)."
+    )
+    return (
+        "    raise NotImplementedError(\n"
+        f"        {message!r}\n"
+        "    )\n"
+    )
+
+
 def render_validators(manifest: dict[str, Any], manifest_path: Path) -> str:
     module = str(manifest["module"])
     state = state_class(manifest)
@@ -232,11 +317,13 @@ def render_validators(manifest: dict[str, Any], manifest_path: Path) -> str:
     mapping = command_to_method(manifest)
 
     lines = [header(module, manifest_path), f"from .types import {imports}\n\n\n"]
+    absence = invariants_absence_state(manifest)
     lines.append(f"def validate_state(state: {state}) -> None:\n")
-    for invariant in manifest.get("invariants", []) or []:
-        lines.append(f"    validate_{invariant_function_name(str(invariant))}(state)\n")
-    if not manifest.get("invariants"):
-        lines.append("    return None\n")
+    if absence is None:
+        for invariant in manifest["invariants"]:
+            lines.append(f"    validate_{invariant_function_name(str(invariant))}(state)\n")
+    else:
+        lines.append(no_state_oracle_body(absence, manifest_path))
     lines.append("\n\n")
 
     lines.extend(
