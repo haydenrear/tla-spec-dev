@@ -25262,3 +25262,114 @@ findings:
       handed to a successor with the live-versus-sealed question UNANSWERED rather
       than guessed; answering it by inspection now would be the owner deciding a
       ticket's finding from outside the ticket.
+  - id: SS-00-DF-13
+    found_by: "the epic owner, checking the user's own precondition that the kickoff defects be repaired before the evaluation"
+    found_at_commit: "c5b7c2a"
+    schedule_revision: 2
+    severity: high
+    surface:
+      production:
+        - "scripts/disposition.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/deferred_findings.yaml"
+        - "specs/desired_program_model/ticket_plan.yaml"
+    channel: "operator-running-a-shipped-instrument"
+    cost: >-
+      Nothing lost yet, and one false alarm PREVENTED: SS-08's obligation 8 orders
+      it to report an ALARM if any kickoff defect is unrepaired, and the ledger
+      says all three are `open`. An evaluator reading the ledger rather than
+      running the instruments would have raised three false alarms against three
+      repairs that work.
+    summary: >-
+      THE LEDGER IS APPEND-ONLY, SO A ROW'S `disposition` IS A CLAIM FROZEN AT
+      AUTHORING TIME AND CAN NEVER BE CORRECTED. THE THREE KICKOFF DEFECTS ARE
+      REPAIRED AND ALL THREE ROWS STILL READ `open`.
+
+      `SS-00-DF-01` (assigned SS-01), `SS-00-DF-02` and `SS-00-DF-03` (assigned
+      SS-03) were filed by the owner at kickoff with `disposition: open`. Both
+      tickets merged, and both RESULT.md files record the repairs:
+      SS-01 §5 "`SS-00-DF-01` -- repaired, and its stated mechanism refuted";
+      SS-03 §2 "`SS-00-DF-02` -- the id collision, repaired, with its failing
+      input"; SS-03 §3 "`SS-00-DF-03` -- the keyword matcher, retired, and what
+      replaced it".
+
+      VERIFIED BY RUNNING, NOT BY READING THE PRS. `baseline_is_a_card.py` at the
+      tip prints, as its own demonstration output, `undecided: kind is 'vibes':
+      not one of ['eval','integration','perf','quality'] -- this instrument cannot
+      classify the harness from declared data and refuses to guess from prose
+      (SS-00-DF-03)`, and, for DF-02's direction, `a plan that declares no
+      workflow -> keyed [('UNDECLARED','GOAL-x')] (counted, never dropped)`. The
+      repairs are live, executable and self-citing.
+
+      AND YET: `disposition.py --epic SS` exits 1 with `REFUSED epic SS: 10 of 67
+      findings undisposed`, listing `SS-00-DF-01`, `-02` and `-03` as
+      `disposition: open -- filed and routed nowhere`. THE CONSUMPTION INSTRUMENT
+      REPORTS "ROUTED NOWHERE" ABOUT WORK THAT WAS DONE, EXECUTED AND DEMONSTRATED.
+
+      THE MECHANISM IS THE DISCIPLINE ITSELF. Append-only is enforced here by a
+      byte-identical-prefix check at every merge, which is exactly what makes the
+      ledger trustworthy -- and it means NO EXISTING ROW CAN EVER BE AMENDED. A
+      finding's disposition is therefore a prediction made when it is filed, not a
+      record of what happened to it. Every row filed `open` stays `open` forever,
+      however thoroughly it is repaired.
+
+      THIS DEFEATS THIS EPIC'S OWN THESIS ON ITS OWN RECORD. The thesis is that
+      filing a finding is ROUTING and consumption means changing what the
+      substrate CHECKS. Here the substrate was changed -- three times, with
+      demonstrations -- and the instrument built to prove consumption cannot see
+      it, because the only field it reads is one nothing is permitted to update.
+    reproduction: >-
+      `uv run --with pyyaml python scripts/disposition.py --epic SS` -> exit 1,
+      `REFUSED epic SS: 10 of 67 findings undisposed`, naming SS-00-DF-01/-02/-03
+      among them. Then `uv run --with pyyaml python
+      specs/results/scorecards/score-drives-validation/GOAL-scored-at-goal-time/SV-03/analysis/baseline_is_a_card.py`
+      -> its demonstration block cites SS-00-DF-03 by id as the repair it
+      implements. Then read SS-01/RESULT.md §5 and SS-03/RESULT.md §2-§3.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-01/RESULT.md"
+      - "specs/results/scorecards/stabilize-substrate/SS-03/RESULT.md"
+      - "scripts/disposition.py"
+      - "specs/deferred_findings.yaml"
+    class_note: >-
+      NOT THE ABSENT-INPUT CLASS, AND WORTH SAYING SO -- this epic has a strong
+      pull toward reading every defect as an instance of its own thesis. This is a
+      different shape: not a verdict produced from input that was not there, but a
+      verdict produced from input that IS there, IS read correctly, and IS
+      STRUCTURALLY INCAPABLE OF BEING CURRENT. `disposition.py` is not wrong about
+      the bytes. The bytes are wrong about the world, and the append-only rule is
+      what keeps them that way.
+
+      THE TENSION IS REAL AND HAS NO FREE ANSWER. Making dispositions mutable
+      would destroy the property that makes the ledger evidence at all -- this
+      epic has verified a byte-identical prefix at every single merge precisely
+      because a record that can be edited to look better is not a record. The
+      resolution is a SEPARATE APPENDED DISPOSITION EVENT that `disposition.py`
+      folds over, so the history stays immutable AND the current state is
+      derivable. That is a design change, not a repair, and it belongs to a
+      successor epic rather than to a hurried edit before an evaluation.
+    blast_radius: >-
+      Every `disposition` field in a 363-row ledger, and the one instrument this
+      programme built to demonstrate that findings get consumed. The 10 undisposed
+      rows include at least 3 that are demonstrably disposed, so THE REFUSAL COUNT
+      ITSELF IS WRONG IN THE UNFLATTERING DIRECTION -- the instrument under-reports
+      consumption, which is the direction that makes this programme look worse
+      than it is, and it is still a defect.
+    disposition: open
+    disposition_ticket: "SS-00"
+    disposition_note: >-
+      OPEN, AND DELIBERATELY NOT REPAIRED BEFORE SS-08. I will not edit three rows
+      to `repaired` -- that breaks the append-only prefix this epic has verified at
+      every merge, and doing it days before an evaluation, to three rows that make
+      the epic look better, is indefensible whatever the intent. NOR will I build
+      a disposition-event fold now: an instrument changed so a known count comes
+      out right is MF-020.
+
+      WHAT IS OWED IS AN INSTRUCTION TO SS-08, and it is recorded in the plan:
+      DO NOT READ `disposition: open` AS UNREPAIRED. Obligation 8 orders an alarm
+      if a kickoff defect is unrepaired; all three ARE repaired and their rows say
+      otherwise. VERIFY BY RUNNING THE INSTRUMENT, WHICH IS WHAT OBLIGATION 8
+      ALREADY SAYS, and report the ledger/reality gap as a finding rather than
+      reporting the three repairs as failures.
