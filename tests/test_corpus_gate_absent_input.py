@@ -163,9 +163,29 @@ def test_a_corpus_that_declares_no_view_refuses_instead_of_defaulting(tmp_path, 
     code = CD.run(_Args(str(pkg)))
     captured = capsys.readouterr()
     assert code == CD.EXIT_USAGE
-    assert "UNDECIDED [empty]" in captured.err
+    # `SS-05-DF-09`: this asserted `UNDECIDED [empty]` and the corpus is NOT
+    # empty -- it has two cases. What is absent is the VIEW ATTRIBUTION. The label
+    # was the class arriving in the vocabulary rather than in the logic, inside the
+    # ticket whose whole subject is those three words not collapsing.
+    assert "UNDECIDED [absent]" in captured.err
+    assert "UNDECIDED [empty]" not in captured.err
     assert "WHICH CAP APPLIES IS UNKNOWN" in captured.err
     assert "four times their real cap" in captured.err
+
+
+def test_the_three_corpus_gate_labels_name_the_right_states(tmp_path, capsys) -> None:
+    """`SS-05-DF-09`. An empty corpus and an unattributable one are different facts
+    and must not share a label, even though both answer UNDECIDED."""
+    empty_pkg = write_package(tmp_path / "e" / "empty_cases",
+                              "SOURCE_VIEW = 'internal'\nCASES = []\n")
+    with pytest.raises(SystemExit) as excinfo:
+        CD.load_corpus(empty_pkg)
+    assert "UNDECIDED [empty]" in str(excinfo.value)
+
+    unattributed = write_package(tmp_path / "u" / "mystery_cases",
+                                 "CASES = [{'name': 'c1'}]\n")
+    CD.run(_Args(str(unattributed)))
+    assert "UNDECIDED [absent]" in capsys.readouterr().err
 
 
 def test_an_explicit_view_still_decides_the_run(tmp_path, capsys) -> None:

@@ -312,7 +312,23 @@ def resolve_ledger(path: pathlib.Path, *, explicit: bool,
 def load(path: pathlib.Path) -> list[dict]:
     import yaml  # deferred: the ledger is the only reason this script needs it
 
-    text = path.read_text()
+    # `SS-05-DF-08`, the weaker half. `resolve_ledger` returns any path that
+    # EXISTS, and `read_text()` on a directory raised `IsADirectoryError` at exit
+    # 1 -- a traceback, which is not a verdict, and exit 1 is the code a CLAUSE
+    # VERDICT uses. Same shape as the `audit --root <a file>` crash the reviewer of
+    # PR #290 found: `SS-05` repaired the parse-failure form of `unreadable` and
+    # left the not-a-file form crashing in both instruments it touched.
+    try:
+        text = path.read_text()
+    except OSError as exc:
+        print(
+            f"UNDECIDED [unreadable] {path}: cannot be read as a file "
+            f"({type(exc).__name__}: {exc}). Nothing was read, so no clause holds "
+            f"and no clause is violated. A path that is there and is not a readable "
+            f"file is not an absent ledger and is not an empty one.",
+            file=sys.stderr,
+        )
+        raise SystemExit(2) from exc
     try:
         dups = duplicate_keys(text)
     except LedgerUnreadable as exc:

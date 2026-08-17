@@ -185,6 +185,27 @@ def test_state_empty_refuses_with_exit_2_not_1(tmp_path) -> None:
     assert "never populated" in combined
 
 
+def test_a_ledger_path_that_is_a_DIRECTORY_is_UNDECIDED_not_a_traceback(tmp_path) -> None:
+    """`SS-05-DF-08`, the weaker half, found by the reviewer of PR #290.
+
+    `resolve_ledger` returns any path that EXISTS, and `path.read_text()` on a
+    directory raised `IsADirectoryError` at exit 1 -- a traceback, which is not a
+    verdict, and exit 1 is the code a CLAUSE VERDICT uses (`SS-01-DF-05`). `SS-05`
+    repaired the parse-failure form of `unreadable` in this module and left the
+    not-a-file form crashing, in both instruments it touched.
+    """
+    a_directory = tmp_path / "ledger-is-a-directory"
+    a_directory.mkdir()
+
+    done = run("--ledger", str(a_directory), "--epic", "XX")
+    combined = done.stdout + done.stderr
+    assert done.returncode == 2, combined
+    assert "UNDECIDED [unreadable]" in combined
+    assert "cannot be read as a file" in combined
+    assert "Traceback" not in combined
+    assert "IsADirectoryError: [Errno" not in combined.split("cannot be read as a file")[0]
+
+
 def test_the_three_states_do_not_answer_in_the_same_words(tmp_path) -> None:
     """The property `SS-07-DF-08` and `SS-06-DF-05` are both instances of losing.
 

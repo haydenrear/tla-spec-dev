@@ -129,6 +129,63 @@ def test_audit_over_a_path_that_does_not_exist_is_UNDECIDED_in_ITS_OWN_WORDS(tmp
 # ---------------------------------------------------------------------------
 
 
+def test_a_root_that_is_a_FILE_is_UNDECIDED_unreadable_and_not_a_traceback(tmp_path) -> None:
+    """`SS-05-DF-08`. THE STATE `SS-05` CLAIMED TO HAVE CLOSED AND HAD NOT.
+
+    `RESULT.md` §2.6 said `audit_input_state` gives "three states, three
+    sentences". It shipped with FOUR branches returning TWO labels -- `absent`
+    three times, `empty` once -- and NO `unreadable` branch at all. Against
+    `SS-05`'s own operationalisation of that state (`--root` names a FILE, the
+    definition it used to register `stranded-loaders` and `vacuity-probe`),
+    `audit --root <a file>` died with a `json.decoder.JSONDecodeError` traceback at
+    EXIT 1. A traceback is not a verdict, and exit 1 is the code a violation uses.
+
+    IDENTICAL AT `f45a245`, so `SS-05` did not introduce it -- it claimed to have
+    closed it. Found by the independent reviewer of PR #290, applying `SS-05`'s own
+    definition to `SS-05`'s own repair.
+    """
+    subject = tmp_path / "not-a-directory"
+    subject.write_text("this is a file where a scorecard root should be\n",
+                       encoding="utf-8")
+
+    done = run("audit", "--root", str(subject))
+    combined = done.stdout + done.stderr
+    assert done.returncode == ST.AUDIT_UNDECIDED, combined
+    assert "UNDECIDED [unreadable]" in combined
+    assert "is not a directory" in combined
+    assert "Traceback" not in combined
+    assert "JSONDecodeError" not in combined
+
+
+def test_the_audit_states_are_now_THREE_LABELS_and_pairwise_distinct(tmp_path) -> None:
+    """The claim `RESULT.md` §2.6 made, now executed rather than asserted.
+
+    `absent`, `unreadable` and `empty` must each be reachable and must not answer
+    in each other's words. Before the amendment round only two labels existed, and
+    nothing in the suite would have noticed.
+    """
+    missing = tmp_path / "nope"
+
+    a_file = tmp_path / "afile"
+    a_file.write_text("x\n", encoding="utf-8")
+
+    empty_dir = tmp_path / "cards"
+    empty_dir.mkdir()
+    (empty_dir / "INSTRUMENT-LOG.toml").write_text("", encoding="utf-8")
+
+    states = {
+        "absent": ST.audit_input_state(missing),
+        "unreadable": ST.audit_input_state(a_file),
+        "empty": ST.audit_input_state(empty_dir),
+    }
+    for expected, got in states.items():
+        assert got is not None, expected
+        assert got[0] == expected, f"{expected} answered as {got[0]}"
+
+    messages = [got[1].replace(str(tmp_path), "<tmp>") for got in states.values()]
+    assert len(set(messages)) == 3, messages
+
+
 def test_rh6_says_UNVERIFIED_rather_than_OK_over_zero_cards(tmp_path) -> None:
     """`run_audit` is called directly by other code, so the clause-level repair
     has to hold independently of `cmd_audit`'s refusal."""

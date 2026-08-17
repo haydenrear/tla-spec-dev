@@ -3490,16 +3490,44 @@ def audit_input_state(root: pathlib.Path) -> tuple[str, str] | None:
     """Whether `audit` has anything to audit, and if not, WHICH state it is in.
 
     `CA-10-DF-18` items 1-3, repaired by `SS-05`. Returns `(state, message)` or
-    `None` when there is something to read. Three states, three sentences, because
-    a caller cannot act on "undecided" without being told which fact made it so
-    (`SS-01-DF-04`, and `SS-06-DF-05`, where a refusal reported "I was not allowed
-    to look" in the words of "there is nothing there").
+    `None` when there is something to read. Every branch names WHICH state it hit,
+    because a caller cannot act on "undecided" without being told which fact made
+    it so (`SS-01-DF-04`, and `SS-06-DF-05`, where a refusal reported "I was not
+    allowed to look" in the words of "there is nothing there").
+
+    THE `unreadable` BRANCH IS `SS-05-DF-08` AND IT WAS MISSING FROM THE FIRST
+    VERSION OF THIS FUNCTION. `SS-05` shipped this with FOUR branches returning
+    TWO labels -- `absent` three times and `empty` once -- while its own `RESULT.md`
+    claimed "three states, three sentences". Against `SS-05`'s own definition of
+    the `unreadable` state (`--root` names a FILE, the definition it used to
+    register `stranded-loaders` and `vacuity-probe`), `audit --root <a file>` died
+    with a `json.decoder.JSONDecodeError` traceback at EXIT 1 -- a crash, which is
+    not a verdict, and which answers in the words of nothing at all. The crash was
+    identical at `f45a245`, so `SS-05` did not introduce it; it claimed to have
+    closed it and had not. Found by the independent reviewer of PR #290, who
+    applied `SS-05`'s own operationalisation to `SS-05`'s own repair.
     """
     log_path = root / LOG_NAME
     if not root.exists():
         return ("absent", f"no scorecard root at {root}. Nothing was read, so no "
                           f"reading rule holds and none is violated.")
-    cards = collect_cards(root, None)
+    if not root.is_dir():
+        return ("unreadable",
+                f"{root} is there and is not a directory "
+                f"({'symlink' if root.is_symlink() else 'file or special'}), so it "
+                f"cannot be read AS a scorecard root. This is not the same fact as "
+                f"a root that is absent and not the same fact as one that holds no "
+                f"cards, and it must not get either of their answers.")
+    try:
+        cards = collect_cards(root, None)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        # A root that IS a directory and holds something this cannot read as a
+        # card. Reported as its own state rather than crashing: a traceback is not
+        # a verdict, and `0 violation(s)` would be worse.
+        return ("unreadable",
+                f"{root} is a directory and something under it cannot be read as a "
+                f"scorecard ({type(exc).__name__}: {exc}). A corpus that will not "
+                f"parse is not an empty corpus.")
     if load_log(root) is None and not cards:
         return ("absent",
                 f"{root} holds no {LOG_NAME} and no scorecard. All six R-H checks "

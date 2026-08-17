@@ -978,8 +978,16 @@ def run(args: Any) -> int:
     # verdict. An unattributable corpus has no cap, so it gets no verdict.
     view = args.view or package_view
     if view is None:
+        # `SS-05-DF-09`, corrected in the amendment round: this label read
+        # `[empty]`. THE CORPUS IS NOT EMPTY -- it has cases -- what is missing is
+        # the VIEW ATTRIBUTION, which is declared nowhere the loader looks. That is
+        # the `absent` state. Mislabelling it `empty` inside the ticket whose whole
+        # subject is those three words not collapsing is the class arriving in the
+        # VOCABULARY rather than in the logic, and it is exactly the half of
+        # `SS-06-DF-05` that survived: the verdict was already right and the CAUSE
+        # was named wrong. Found by the independent reviewer of PR #290.
         print(
-            f"UNDECIDED [empty]: {cases_dir} declares no SOURCE_VIEW, no case "
+            f"UNDECIDED [absent]: {cases_dir} declares no SOURCE_VIEW, no case "
             f"carries a `view`/`layer`, and no directory on its path names one, "
             f"so WHICH CAP APPLIES IS UNKNOWN. `internal` is capped by "
             f"`{CAP_BUDGET_FOR_VIEW['internal']}` and `external` by "
