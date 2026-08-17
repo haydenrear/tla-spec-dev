@@ -258,8 +258,10 @@ are asserted **pairwise distinct**.
 
 **`F3`, CORRECTED.** An earlier draft said *"every assertion fails against
 `f45a245`"*. **It does not.** Transplanted onto a clean base worktree by the PR
-#290 reviewer, my five new demonstration files run **30 failed / 14 passed of 44
-nodes**, and this file specifically is **11 failed / 2 passed of 13**. Every one
+#290 reviewer **at `bf094c3`**, my five new demonstration files run **30 failed /
+14 passed of 44 nodes**, and this file specifically is **11 failed / 2 passed of
+13**. *(That figure is the reviewer's, at that commit; the amendment round added
+four more nodes, so the denominator at the current tip is 48, not 44.)* Every one
 of the 14 base-passing nodes is a **control, a pin, or a non-vacuity guard** —
 they are *supposed* to pass on the base, that is what makes them controls, and
 several say so in their own names. The design is right and the sentence was
