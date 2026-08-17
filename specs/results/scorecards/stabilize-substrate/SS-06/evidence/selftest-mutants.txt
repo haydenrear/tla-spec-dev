@@ -1,0 +1,20 @@
+# SS-06: the battery's own R1 -- a demonstrated failing input on a real subject, in BOTH directions.
+# Two mutants seeded into copies of the shipped script; the self-test must go FAIL on each.
+
+$ python3 vacuity_probe.py --selftest        # as shipped
+selftest: PASS
+exit: 0
+
+$ python3 <mutant A>/vacuity_probe.py --selftest   # the 'root does not exist' REFUSAL deleted
+selftest: absent root: output did not contain 'root does not exist': 'vacuity_probe: REFUSED: root is not a checkout of this repository (no tests/ or scripts/): /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmpunmd1hny/nope\n'
+selftest: FAIL
+exit: 1
+
+# NOTE: mutant A still exits 2 on that argv, because the NEXT refusal catches it.
+# The exit code alone would not have seen this; the TEXT assertion did. An exit-code-only
+# self-test would itself have been vacuous here, which is the same lesson as SS-07-DF-06.
+
+$ python3 <mutant B>/vacuity_probe.py --selftest   # the whole-report grep restored (SS-06-DF-02)
+selftest: summarise/summary line wins over echoed prose: got '3 failed, 3 passed', wanted '3 failed'
+selftest: FAIL
+exit: 1

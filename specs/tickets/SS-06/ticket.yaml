@@ -1,0 +1,132 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket SS-06",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-06/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-06/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-06/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Reds, passes, skips and collection are reported as four numbers that SUM, at every measurement point.",
+        "The skip population is VERIFIED at 4, all one line, and named -- not chased as 22.",
+        "The 13 uncollected nodes are VERIFIED as already restored by the scaffold, and close-caused absence is distinguished from defect-caused absence rather than reported as one number.",
+        "Each of the 3 vacuous passes is made real or deleted, and a resulting red is reported as truthful reporting rather than as a regression.",
+        "CA-10-DF-15 and CA-10-DF-13 are decided on the record.",
+        "The deliberate reds are not repaired silently.",
+        "At least one node was tested by DELETING THE CODE IT COVERS to see whether it goes red, and the result is reported."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q",
+        "uv run --with pytest --with pyyaml -m pytest tests -q --collect-only"
+      ]
+    },
+    "blocks": [
+      "SS-05",
+      "SS-08"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "tests/test_analyze_complexity.py",
+        "tests/test_instrument_demonstrations.py",
+        "tests/test_source_citations.py",
+        "tests/test_ticket_retirement.py",
+        "tests/test_port_case_generation.py",
+        "tests/test_architecture_tags.py",
+        "tests/test_goal_baseline_is_a_card.py",
+        "specs/results/scorecards/stabilize-substrate/GOAL-tree-stabilizes/",
+        "specs/results/scorecards/stabilize-substrate/SS-06/"
+      ]
+    },
+    "depends_on": [
+      "SS-02"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/278",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "skips fall from 22 toward 0 with every removal attributed; uncollected nodes fall from 13 toward 0 or are explained; the 3 vacuous passes reach 0. REDS MAY RISE and that is an acceptable outcome when a vacuous pass becomes a real failing test -- report it as numerator movement caused by this ticket, never hide it.",
+        "goal": "GOAL-tree-stabilizes",
+        "local_signal": "uv run --with pytest --with pyyaml -m pytest tests -q"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none on the instance count -- but a vacuous pass and an absent-input PASS are the same defect seen from two sides, so any instance you meet is FILED, not fixed. SS-05 owns the repairs.",
+        "goal": "GOAL-absent-input-consumed",
+        "local_signal": "N/A - this ticket files, it does not repair the class"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected -- verify the four still reproduce after any test change",
+        "goal": "GOAL-four-results-still-stand",
+        "local_signal": "python3 examples/validation/scorecards/score_tools.py audit"
+      }
+    ],
+    "id": "SS-06",
+    "implementation_scope": [
+      "tests/",
+      "examples/validation/",
+      "scripts/",
+      "specs/results/scorecards/stabilize-substrate/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "THE THESIS OF THE EPIC, AND THE ONE TICKET THAT DECIDES WHETHER THE TREE CONVERGED. READ YOUR GOAL BASELINE BEFORE ANYTHING: THE KICKOFF MEASUREMENT ALREADY RESOLVED TWO OF THE THREE POPULATIONS THIS TICKET WAS SCOPED ON, AND SHRINKING YOUR OWN SLICE IS THE FIRST THING YOU MUST VERIFY RATHER THAN ASSUME. (1) THE '13 UNCOLLECTED NODES' WERE NOT A DEFECT, THEY WERE THE CLOSED STATE -- scaffolding this epic's workflow restored all 13 and collection returned to the pre-close 1504. VERIFY THAT AND DO NOT RE-DERIVE A PROBLEM THAT IS ALREADY GONE; clause (d) is satisfied at the base by explanation, and the explanation is 'the workflow was closed'. (2) THE 22 SKIPS ARE 4. Eighteen were one shape -- 'specs/current is absent', 'specs/desired_program_model is absent', 'no promoted spec_manifest.yaml' -- and now run. THE FOUR SURVIVORS ARE ALL tests/test_workflow_close_keeps_the_ledger.py:92, WHICH IS CA-10-DF-12, AND THEY BELONG TO SS-01, NOT TO YOU: they unskip when the live ledger path moves. Verify the count, name the four, and say so. AN UNEXPLAINED SKIP AT THE TIP STILL FAILS THE CLAUSE. (3) SO YOUR REAL SLICE IS THE 3 VACUOUS PASSES AND THE ATTRIBUTION OF THE 17 REDS, PLUS THE TWO test_source_citations ROWS THE SCAFFOLDED MANIFESTS PRODUCED, WHICH ARE YOURS. THE 3 VACUOUS PASSES, CA-10-DF-14, ARE THE WORST OF THE THREE BECAUSE UNLIKE A SKIP THEY ARE INVISIBLE: a test that cannot fail is not a pass. Make each real or delete it -- and if you make it real AND IT GOES RED, THAT IS THE SUBSTRATE REPORTING TRUTHFULLY FOR THE FIRST TIME AND IS NOT A REGRESSION. SAY WHICH. THE PRECEDENT THAT MAKES THIS TICKET WORTH RUNNING IS CA-07-DF-05: a cross-check compared key sets that could never match, so it passed vacuously on every input, and the reviewer established that NOTHING IN THE SUITE WOULD EVER HAVE GONE RED IN EITHER DIRECTION. That was found by DELETING CODE TO SEE WHETHER ANYTHING WENT RED -- a method nobody has institutionalized and which found one of the three genuine shipped-code bugs the last epic caught. USE IT. ALSO DECIDE CA-10-DF-15 (two tests declare themselves deliberately red and were GREEN). CA-10-DF-13 IS SUPERSEDED AND YOU MUST NOT CHASE IT AS WRITTEN: test_goal_baseline_is_a_card now fails with KeyError GOAL-loop-reaches-the-program because ITS R1 SUBJECT MOVED OUT FROM UNDER IT when the live plan became this epic's -- that is SS-03's, and the test's own docstring gives the remedy ('move the demonstration to another failing goal and say which; do not delete it'). DO NOT REPAIR THE DELIBERATE REDS SILENTLY: RM-06-DF-01 and the declared instrument-demonstration reds under CA-04-DF-04 stay unless you state why. NEITHER ARE THE FIVE test_disposition_requirement REDS NOR test_card_has_one_home YOURS -- both are SS-00-DF-01 and the ledger relocation, and by the time you start SS-01 will have decided them; if they are still red, FILE THAT, do not fix it. REPORT FAILED, PASSED, SKIPPED, XFAILED AND COLLECTION AS NUMBERS THAT SUM, EVERY TIME. AMENDED AFTER WAVE 1: THE BASE YOU BRANCH FROM IS NOT 17/1483/4/1504. At 50046b2, verified independently by the owner in a fresh worktree, it is 8 FAILED / 1509 PASSED / 0 SKIPPED / 1 XFAILED / COLLECTION 1518. THE FOUR SKIPS ARE GONE AND THE PLAN'S CLAIM THAT THEY 'UNSKIP WHEN SS-01 REPOINTS' WAS WRONG -- repointing alone converts them to four REDS on `ticket SS-01 is not closed: status=planned`, demonstrated by experiment; they cleared for a different reason. TWO FURTHER ARTIFACTS ARE NOW KNOWN AND ARE NOT YOURS: `open ticket` inflates collection by +4 and `close ticket` removes it again, on EVERY ticket; and `close ticket` seals the history entry and deletes the workspace in ONE operation, so the sealed entry CAN NEVER DESCRIBE THE TREE IT PRODUCES -- SS-01's sealed summary says 8/1508/0/1516 while its live RESULT says 8/1504/0/1512. Disclose that divergence; do not attribute it to your slice.",
+    "promotion_order": 60,
+    "promotion_predecessor": "SS-04",
+    "role": "implementation",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "The tree, not the count: the 3 vacuous passes, and verifying the two populations the kickoff already resolved",
+    "wave": 3
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-06/specs/tickets/SS-06",
+  "ticket_id": "SS-06",
+  "ticket_index": 5,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-06/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-06/specs/tickets"
+}

@@ -1,0 +1,62 @@
+# SS-06 deletion battery, AFTER the repair.
+# Probe tree: a throwaway clone at 4d8a4f3d1c972729b4ff2d13cff874c1fb564d03 = 8dd0442 + this PR's test changes.
+# Command: python3 specs/results/scorecards/stabilize-substrate/SS-06/vacuity_probe.py --root <throwaway>
+
+vacuity_probe: root /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/SS-06/probe
+vacuity_probe: tree 4d8a4f3d1c972729b4ff2d13cff874c1fb564d03
+
+case        input-absent-specs-current
+  takes away  the whole of specs/current/ -- the model the three nodes are ABOUT
+  nodes       3
+  unmutated   3 passed  (exit 0)
+  mutated     3 skipped  (exit 0)
+  revert      clean
+  expectation 3 skipped -- UNDECIDED and visible in the summary line. Before this ticket: 3 passed, indistinguishable from a real pass.
+  verdict     NOTICED
+
+case        input-absent-example-model
+  takes away  examples/distributed_history/.../External.tla and .cfg -- committed files with no legitimate absent state
+  nodes       3
+  unmutated   3 passed  (exit 0)
+  mutated     3 failed  (exit 1)
+  revert      clean
+  expectation 3 failed -- a REFUSAL, because a committed fixture that has vanished is a defect, not a configuration. Before this ticket: 3 passed.
+  verdict     NOTICED
+
+case        code-deleted-state-space-bound
+  takes away  the multiplication in state_space_bound() -- the product becomes 1 for every model
+  nodes       6
+  unmutated   6 passed  (exit 0)
+  mutated     3 failed, 3 passed  (exit 1)
+  revert      clean
+  expectation red -- these nodes assert exact bounds, so deleting the product must be visible to them.
+  verdict     NOTICED
+
+case        code-deleted-parse-cfg-invariants
+  takes away  the body of parse_cfg_invariants() -- it answers 'no invariants' for every .cfg
+  nodes       6
+  unmutated   6 passed  (exit 0)
+  mutated     3 failed, 3 passed  (exit 1)
+  revert      clean
+  expectation red -- the two cfg nodes read real invariant names out of a real .cfg.
+  verdict     NOTICED
+
+case        subject-changed-setup-phase
+  takes away  the setup_phase variable declaration in the repository's own live model
+  nodes       3
+  unmutated   3 passed  (exit 0)
+  mutated     2 failed, 1 passed  (exit 1)
+  revert      clean
+  expectation red -- the node exists to say the MF-022 collapse is still landed in the live model.
+  verdict     NOTICED
+
+case        subject-changed-mc-cfg
+  takes away  the INVARIANT name in the repository's own MC.cfg
+  nodes       3
+  unmutated   3 passed  (exit 0)
+  mutated     1 failed, 2 passed  (exit 1)
+  revert      clean
+  expectation red -- the node asserts the first configured invariant IS TypeInvariant.
+  verdict     NOTICED
+
+exit: 0

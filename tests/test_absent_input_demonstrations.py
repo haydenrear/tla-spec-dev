@@ -46,7 +46,7 @@ import json
 import subprocess
 import sys
 import tomllib
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import pytest
 
@@ -665,44 +665,173 @@ def test_contract_only_over_a_clean_register_is_UNDECIDED_not_PASS(tmp_path):
 # ---------------------------------------------------------------------------
 
 
+# WIDENED BY `SS-06` UNDER `SS-02-DF-09`, WHICH WAS RIGHT ABOUT BOTH GUARDS.
+#
+# An independent reviewer of PR #284, instructed to refute, found that these two
+# tests were NARROWER THAN THE CLAIMS THE PR CITED THEM FOR. The clause held --
+# by inspection -- but not because these tests established it, and a guard cited
+# for more than it computes is the same shape as a check that cannot fail.
+# `SS-06`'s remit was to widen them or to file that they cannot be widened
+# honestly; measured at `8dd0442`, they can:
+#
+#   * the caller search matched the LITERAL `absent-input` under `scripts/`
+#     only, so `from score_tools import cmd_absent_input` -- the obvious way a
+#     close path would actually call it -- evaded it, and `skill-scripts/`,
+#     `templates/`, `test_graph/` and `spec_double_compiler/` were outside the
+#     directory it walked. Widened to five program surfaces and three
+#     spellings: ZERO hits, so the guard now passes for a reason rather than by
+#     construction.
+#   * the register search read `argv` and nothing else. `cwd`, `env`,
+#     `link.from`, `link.to` and `write.file` all name paths, and `link.from`
+#     in particular decides WHICH TREE A DEMONSTRATION REACHES INTO -- it is
+#     `.` in three of the six shipped states. Widened to every path-bearing
+#     field.
+#
+# STATED LIMIT, because widening does not remove it: a text search cannot see a
+# call assembled at runtime, dispatched through a registry, or spelled by a
+# shell fragment. A clean result here is a FLOOR, never a proof, and the clause
+# it supports is still established by reading as well as by this.
+
+#: Program surfaces -- where a close or promotion path can live. `tests/` is
+#: excluded because a test referencing the check is the check being tested, and
+#: `examples/validation/scorecards/` because that is where it is DEFINED.
+PROGRAM_SURFACES = ("scripts", "skill-scripts", "templates", "test_graph",
+                    "spec_double_compiler")
+#: Every spelling a caller can use. The hyphen is the CLI subcommand; the
+#: underscores are the import and the function.
+CALLER_TOKENS = ("absent-input", "absent_input", "cmd_absent_input")
+CALLER_SUFFIXES = (".py", ".sh", ".kts", ".toml", ".json", ".yaml", ".yml")
+
+
 def test_the_check_gates_nothing():
     """Clause (e): NO NEW GATE OVER SUBJECT-PROGRAM CONTENT.
 
     The check is in the permitted population -- a static check over this
     project's own record and metadata, 3 catches : 1 false refusal -- and it
     stays there by reading one file and being wired into no close path. A
-    reference to it from `scripts/**`, which is the program surface and carries
-    the close and promotion paths, would be it becoming a gate.
+    reference to it from a PROGRAM SURFACE, which carries the close and
+    promotion paths, would be it becoming a gate.
+
+    `SS-02-DF-09`: this used to walk one directory for one spelling.
     """
 
-    callers = [
-        path.relative_to(REPO_ROOT).as_posix()
-        for path in sorted((REPO_ROOT / "scripts").rglob("*.py"))
-        if "absent-input" in path.read_text(encoding="utf-8", errors="ignore")
-    ]
-    assert callers == [], (
-        f"{callers} reference the absent-input check. It reads this project's own "
-        f"instrument register and decides nothing about an adopter's code; wiring "
-        f"it into a close or promotion path makes it the gate the static-gates "
-        f"doctrine refuses."
+    searched: list[str] = []
+    callers: list[str] = []
+    for surface in PROGRAM_SURFACES:
+        root = REPO_ROOT / surface
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*")):
+            if not path.is_file() or path.suffix not in CALLER_SUFFIXES:
+                continue
+            searched.append(path.relative_to(REPO_ROOT).as_posix())
+            text = path.read_text(encoding="utf-8", errors="ignore")
+            if any(token in text for token in CALLER_TOKENS):
+                callers.append(path.relative_to(REPO_ROOT).as_posix())
+
+    # ABSENT INPUT: "swept nothing" and "found nothing" are different answers,
+    # and a guard that reports the second when it means the first passes
+    # forever. `score_tools._finding_ids` is the worked shape of exactly this.
+    assert len(searched) > 50, (
+        f"the caller search read {len(searched)} files across {PROGRAM_SURFACES}. "
+        f"A search that reaches almost nothing cannot certify that nothing "
+        f"references the check; that is UNDECIDED, not clean."
     )
+    assert callers == [], (
+        f"{callers} reference the absent-input check ({CALLER_TOKENS}). It reads "
+        f"this project's own instrument register and decides nothing about an "
+        f"adopter's code; wiring it into a close or promotion path makes it the "
+        f"gate the static-gates doctrine refuses."
+    )
+
+
+#: Every field of a state spec that can name a path. `SS-02-DF-09`: the guard
+#: below used to read the first of these and none of the rest.
+PATH_BEARING = ("argv", "cwd", "env", "link", "write")
+
+
+def paths_declared(spec: dict) -> list[tuple[str, str]]:
+    """(field, value) for every path a state spec can reach through.
+
+    Returns a LIST, and an EMPTY one means "this state declares no path",
+    which the caller distinguishes from "this state was never read". The two
+    answers are the whole subject of this file and they stay separable here.
+    """
+    out: list[tuple[str, str]] = []
+    for part in spec.get("argv", []):
+        out.append(("argv", str(part)))
+    if "cwd" in spec:
+        out.append(("cwd", str(spec["cwd"])))
+    for name, value in (spec.get("env") or {}).items():
+        out.append((f"env.{name}", str(value)))
+    for entry in spec.get("link", []):
+        out.append(("link.from", str(entry.get("from", ""))))
+        out.append(("link.to", str(entry.get("to", ""))))
+    for entry in spec.get("write", []):
+        out.append(("write.file", str(entry.get("file", ""))))
+    return out
 
 
 def test_the_register_is_the_only_thing_the_check_reads(register):
     """Scoped to this project's own instrument register, by construction.
 
-    Every contract's `argv` names either the repository (`{repo}`) or the
-    throwaway tree the state was staged into (`{tree}`). Nothing points at a
-    subject program, and there is no flag that would let it.
+    Every path a contract can reach through -- `argv`, `cwd`, every `env`
+    value, every `link.from`/`link.to` and every `write.file` -- names either
+    the repository (`{repo}`), the throwaway tree the state was staged into
+    (`{tree}`), or a path relative to one of those. Nothing points at a subject
+    program and no field would let it.
+
+    `SS-02-DF-09`: this used to inspect `argv` alone, while `link.from` is the
+    field that decides which tree a demonstration reaches into.
     """
 
     contracted = [r for r in register["instrument"] if "absent_input" in r]
     assert contracted, "no instrument declares a contract -- this test would be vacuous"
+    checked = 0
     for entry in contracted:
         for state in ("absent", "unreadable", "empty"):
             spec = entry["absent_input"][state]
-            for part in spec.get("argv", []):
-                assert not part.startswith("/") or part == sys.executable or "{" in part, (
-                    f"{entry['id']}/{state}: absolute path {part!r} outside the "
-                    f"staged tree"
+            declared = paths_declared(spec)
+            assert declared, (
+                f"{entry['id']}/{state}: declares no path in any of "
+                f"{PATH_BEARING}; every shipped state names at least argv and cwd"
+            )
+            for field, value in declared:
+                checked += 1
+                assert not value.startswith("/") or value == sys.executable or "{" in value, (
+                    f"{entry['id']}/{state}.{field}: absolute path {value!r} "
+                    f"outside the repository and outside the staged tree"
                 )
+                assert not value.startswith("~") and ".." not in PurePosixPath(value).parts, (
+                    f"{entry['id']}/{state}.{field}: {value!r} escapes the "
+                    f"repository and the staged tree"
+                )
+    assert checked > len(contracted) * 3, (
+        f"only {checked} path fields were inspected across {len(contracted)} "
+        f"contracted instruments; this guard is reading less than it claims"
+    )
+
+
+def test_the_path_reader_sees_every_field_and_not_only_argv():
+    """`SS-02-DF-09` pinned in both directions, on a synthetic spec.
+
+    The guard above passes today because the shipped contracts are clean. That
+    is exactly the state the narrow version was in, so the discriminating power
+    is demonstrated here instead of assumed: a spec whose `argv` is impeccable
+    and whose `link.from` reaches out of the tree must be SEEN.
+    """
+    spec = {
+        "argv": ["{python}", "{repo}/examples/validation/scorecards/score_tools.py"],
+        "cwd": "{repo}",
+        "env": {"SCORECARD_REPO_ROOT": "{tree}"},
+        "link": [{"from": "/Users/someone/their-app", "to": "."}],
+        "write": [{"file": "specs/deferred_findings.yaml"}],
+    }
+    fields = dict(paths_declared(spec))
+    assert "link.from" in fields and fields["link.from"] == "/Users/someone/their-app"
+    assert {"argv", "cwd", "env.SCORECARD_REPO_ROOT", "link.to", "write.file"} <= set(fields)
+    offending = [(f, v) for f, v in paths_declared(spec)
+                 if v.startswith("/") and v != sys.executable and "{" not in v]
+    assert offending == [("link.from", "/Users/someone/their-app")]
+    # And the empty answer stays distinguishable from a clean one.
+    assert paths_declared({}) == []

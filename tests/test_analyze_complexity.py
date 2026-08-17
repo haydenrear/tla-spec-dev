@@ -60,6 +60,65 @@ from scripts.analyze_complexity import (  # noqa: E402
     strip_frame_conditions,
 )
 
+# ---------------------------------------------------------------------------
+# CA-10-DF-14 / SS-06: how this module answers an ABSENT input
+#
+# Six tests in this module read a file off disk rather than building one in
+# `tmp_path`, and every one of them used to guard that read with a bare
+# `if not path.is_file(): return`. A bare `return` is counted as a PASS, and
+# unlike a skip it says nothing in the summary line -- so a test that executed
+# no assertion at all was indistinguishable from one that executed all of them.
+# MEASURED, by deleting the input and re-running the same three nodes
+# (`vacuity_probe.py --case input-absent-specs-current`, tree `8dd0442`):
+# `3 passed` with `specs/current/` present and `3 passed` with the whole
+# directory removed. The only trace was the wall clock.
+#
+# There are TWO absent-input answers here and they are not the same answer,
+# which is why there are two helpers instead of one:
+#
+#   * `specs/current/` is WORKFLOW STATE. It exists while a spec workflow is
+#     open and is legitimately absent after a close, so its absence is
+#     UNDECIDED -- an announced skip, the idiom the rest of this suite already
+#     uses (`tests/test_spec_manifest_records.py:52`).
+#   * `examples/distributed_history/**` is a COMMITTED FIXTURE. There is no
+#     state of this repository in which it is legitimately absent, so its
+#     absence is a DEFECT and the honest answer is a REFUSAL.
+#
+# Neither answer is PASS. That is `planning_rules.r1_now_requires_an_absent_input`
+# as `SS-02` executed it, applied to a test rather than to an instrument.
+# ---------------------------------------------------------------------------
+
+
+def _workflow_state_or_skip(*paths: Path) -> None:
+    """UNDECIDED: the live spec workflow is not open, so there is nothing to read.
+
+    Announced in the summary line, with the path named. Never a silent pass.
+    """
+    for path in paths:
+        if not path.is_file():
+            pytest.skip(
+                f"{path.relative_to(REPO_ROOT)} is absent -- no spec workflow is "
+                "open in this checkout, so the repository's own live model "
+                "cannot be measured here. UNDECIDED, not a pass."
+            )
+
+
+def _committed_fixture(*paths: Path) -> None:
+    """REFUSAL: a committed fixture that is not on disk is a defect, not a state.
+
+    Deleting the example this asserts about must turn the test RED. Before
+    `SS-06` it turned it green (`vacuity_probe.py --case
+    input-absent-example-model`, tree `8dd0442`: `3 passed` either way).
+    """
+    for path in paths:
+        assert path.is_file(), (
+            f"{path.relative_to(REPO_ROOT)} is a COMMITTED fixture and is not on "
+            "disk. There is no state of this repository in which it is "
+            "legitimately absent, so this is a defect in the tree, not a "
+            "configuration this test may skip over."
+        )
+
+
 # A deliberately small, tractable model: two latching booleans in a chain and
 # one bounded counter.
 SMALL_TLA = """---------------------------- MODULE Small ----------------------------
@@ -329,8 +388,7 @@ def test_rp04_shipped_example_no_longer_reports_a_partial_bound_within_cap() -> 
     """The exact reproduction from the ticket, on the checked-in example."""
     root = REPO_ROOT / "examples" / "distributed_history" / "specs" / "program_model"
     tla = root / "External.tla"
-    if not tla.is_file():
-        return
+    _committed_fixture(tla, root / "External.cfg", root / "spec_manifest.yaml")
     result = analyze(tla, root / "External.cfg", root / "spec_manifest.yaml")
     assert result.bound == 4
     assert len(result.variables) == 10
@@ -449,8 +507,9 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     """
     tla = REPO_ROOT / "specs" / "current" / "TlaSpecDevCli.tla"
     cfg = REPO_ROOT / "specs" / "current" / "MC.cfg"
-    if not tla.is_file():
-        return
+    # The old guard tested `tla` only and the body reads BOTH: with the .cfg
+    # missing this raised instead of answering. Both are named now.
+    _workflow_state_or_skip(tla, cfg)
     result = analyze(tla, cfg, None)
     # 2026-08-04 (owner direction): THE BOUND WENT DOWN, for the first time in
     # this project's history. Every prior entry in the chain below is a
@@ -581,8 +640,7 @@ def test_cm01df02_shipped_example_cfg_yields_only_its_invariant() -> None:
         / "program_model"
         / "External.cfg"
     )
-    if not cfg.is_file():
-        return
+    _committed_fixture(cfg)
     # Pre-fix: ['Invariant', 'CONSTANTS'].
     assert parse_cfg_invariants(cfg.read_text(encoding="utf-8")) == ["Invariant"]
 
@@ -628,8 +686,7 @@ def test_cm01df02_a_keyword_with_a_value_closes_the_constants_block() -> None:
 
 def test_cm01df02_the_repository_own_cfg_is_unchanged_by_the_fix() -> None:
     cfg = REPO_ROOT / "specs" / "current" / "MC.cfg"
-    if not cfg.is_file():
-        return
+    _workflow_state_or_skip(cfg)
     names = parse_cfg_invariants(cfg.read_text(encoding="utf-8"))
     assert names[0] == "TypeInvariant"
     assert not any(n.isupper() for n in names), names
@@ -881,8 +938,7 @@ def test_repository_own_model_has_landed_the_setup_phase_collapse() -> None:
     """
     tla = REPO_ROOT / "specs" / "current" / "TlaSpecDevCli.tla"
     cfg = REPO_ROOT / "specs" / "current" / "MC.cfg"
-    if not tla.is_file():
-        return
+    _workflow_state_or_skip(tla, cfg)
     result = analyze(tla, cfg, None)
     assert "setup_phase" in result.variables
     for removed in (
@@ -2060,8 +2116,7 @@ def test_cd06_real_distributed_history_external_matrix_lists_the_next_disjuncts(
     """
     tla = REPO_ROOT / "examples" / "distributed_history" / "specs" / "program_model" / "External.tla"
     cfg = REPO_ROOT / "examples" / "distributed_history" / "specs" / "program_model" / "External.cfg"
-    if not tla.is_file():
-        return
+    _committed_fixture(tla, cfg)
     result = analyze(tla, cfg, None)
     names = [a.name for a in result.actions]
     assert names == [
