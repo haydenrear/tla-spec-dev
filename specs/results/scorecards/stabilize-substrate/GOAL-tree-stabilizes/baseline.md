@@ -63,7 +63,7 @@ Scaffolding the successor workflow — `specs/current` and
 
 | | #271 (closed state) | epic base (scaffolded) | movement |
 |---|---:|---:|---|
-| collected | 1491 | **1504** | **+13 DENOMINATOR** |
+| collected | 1491 | **1504** | **+13 DENOMINATOR — but TWO operations: +12 scaffold, +1 ledger move. See 2.1** |
 | skipped | 22 | **4** | **−18** |
 | passed | 1462 | **1483** | **+21** |
 | failed | 7 | **17** | **+10 NUMERATOR** |
@@ -71,14 +71,37 @@ Scaffolding the successor workflow — `specs/current` and
 **Every unit of it is attributed below. None of it is a repair and none of it is
 a regression.**
 
-### 2.1 The "13 uncollected nodes" were not a defect. They were the closed state.
+### 2.1 The uncollected nodes were not a defect — and there were TWELVE, not 13
 
-**+13 collected, exactly.** The nodes were uncollected because the workflow close
+> **CORRECTED 2026-08-17 after the SS-06 review, and the correction applies at
+> `436c78c` too, not only here.** This section said *"+13 collected, exactly …
+> scaffolding this epic's workflow restored all 13"*. **Scaffolding restores 12.**
+> Measured in a throwaway clone of `436c78c`, one operation at a time:
+>
+> ```
+> as committed (workflow closed)          1491
+> + scaffold workflow                     1503   (+12, the same 12 nodes)
+> + ledger relocated to specs/            1504   (+1)
+> ```
+>
+> **The 13th node is `test_spec_yaml_parses[deferred_findings.yaml]` and it comes
+> from the OWNER'S LEDGER RELOCATION — a separate operation with nothing to do
+> with the workflow close.** `SS-06` measured 12 by deleting the workflow
+> directories and diffing node lists; the reviewer then chased it into `436c78c`
+> and found 13 was never right at any tree.
+>
+> **And the reason I got it wrong is the useful part:** the sealed evidence for
+> this figure, `collection-436c78c.txt`, is four lines and **no node list**. I had
+> a total and inferred a decomposition I never measured — the third instance in
+> this epic of publishing a joint claim from a marginal. **A `--collect-only`
+> figure published without its node list cannot be attributed.**
+
+**+12 from the scaffold, +1 from the ledger move.** The nodes were uncollected because the workflow close
 deleted `specs/current` and `specs/desired_program_model`. **Scaffolding this
 epic's workflow restored all 13 and collection returned to 1504 — the pre-close
 figure.**
 
-**So `SS-06` does not have 13 uncollected nodes to chase.** Clause (d) is
+**So `SS-06` does not have 12 uncollected nodes to chase.** Clause (d) is
 satisfied at the base by explanation, and the explanation is *the workflow was
 closed*. **`SS-06` verifies this and does not re-derive a problem that is
 already gone.**

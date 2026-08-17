@@ -166,12 +166,12 @@ moment one exists. `failed + passed + skipped + xfailed = collection`.
 
 | | #271 (closed state) | **epic base** | |
 |---|---:|---:|---|
-| collected | 1491 | **1504** | **+13 denominator** |
+| collected | 1491 | **1504** | **+13 denominator, from TWO operations: +12 scaffold, +1 ledger move** |
 | skipped | 22 | **4** | −18 |
 | passed | 1462 | **1483** | +21 |
 | failed | 7 | **17** | +10 numerator |
 
-- **The "13 uncollected nodes" were not a defect. They were the closed state.**
+- **The uncollected nodes were not a defect — and there were TWELVE, not 13.**
   Scaffolding restored all 13 and collection returned to its pre-close value.
 - **Eighteen of the 22 skips were one shape** — *"`specs/current` is absent"* —
   and now run. **The four survivors are all one line**,
