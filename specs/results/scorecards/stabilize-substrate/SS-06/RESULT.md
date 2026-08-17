@@ -9,10 +9,11 @@ disagree, both are printed and the disagreement is reported as the result.
 
 ## 0. Headline
 
-- **The five numbers sum at both ends.**
-  BASE, tree `8dd0442`, ticket workspace NOT open:
-  **7 failed / 1550 passed / 0 skipped / 1 xfailed / 1558 collected.**
-  `7 + 1550 + 0 + 1 = 1558` ✓
+- **The five numbers sum at every tree this ticket stood in — four of them.**
+  BASE `8dd0442`, workspace not open: **7 / 1550 / 0 / 1 / 1558**.
+  POST-CLOSE `64c2f91`, the authoritative tip: **7 / 1596 / 0 / 1 / 1604**.
+  **`failed` did not move at any of the four**, and every unit of the +46 in
+  `collected` is attributed by node.
 - **Clause (d) is verified BY EXPERIMENT and the published number is wrong.**
   The "13 uncollected nodes" population is **12 at this tree**, measured by
   deleting `specs/current/` and `specs/desired_program_model/` in a throwaway
@@ -52,22 +53,41 @@ uv run --with pytest --with pyyaml -m pytest tests -q --collect-only
 | **BASE `8dd0442`**, workspace **not open**, before `SS-04` | **7** | **1550** | **0** | **1** | **1558** | `7+1550+0+1=1558` ✓ |
 | **TIP `8fa4626`**, workspace **OPEN**, before reconciling | **7** | **1563** | **0** | **1** | **1571** | `7+1563+0+1=1571` ✓ |
 | **TIP `6ee1532`**, workspace **OPEN**, `SS-04` reconciled | **7** | **1600** | **0** | **1** | **1608** | `7+1600+0+1=1608` ✓ |
-| **TIP `__POST_SHA__`**, workspace **CLOSED** (post-close) | `__POST_F__` | `__POST_P__` | `__POST_S__` | `__POST_X__` | `__POST_C__` | ✓ |
+| **TIP `64c2f91`**, workspace **CLOSED** (post-close) | **7** | **1596** | **0** | **1** | **1604** | `7+1596+0+1=1604` ✓ |
 
 **Four rows, because a figure is a joint property of the artifact AND the tree,
 and this ticket stood in four different trees.** The middle two are both real
 measurements and neither is discarded: `8fa4626` is this ticket's work before its
 promotion predecessor landed, `6ee1532` is the same work with `SS-04` merged in.
 
+**THE AUTHORITATIVE FIGURE FOR A READER STANDING IN THE MERGED TREE IS THE LAST
+ROW: `7 / 1596 / 0 / 1 / 1604` at `64c2f91`.**
+
+**And the divergence the plan told every ticket to expect is here, disclosed
+rather than discovered.** `close ticket` seals the history summary and deletes
+the workspace in ONE operation, so the sealed entry at
+`specs/.history/stabilize-substrate-epic/ticket-005-SS-06/summary.md` carries
+`7 / 1600 / 0 / 1 / 1608` — the **pre-close** tree — while this document carries
+`7 / 1596 / 0 / 1 / 1604`. **`R-H4` forbids editing the sealed entry, and this
+one at least SAYS which tree its figure is of**, which `SS-01`'s did not. The
+difference is exactly `-4` and it is the machinery, not a movement: `close
+ticket` deletes `specs/tickets/SS-06/` and `test_spec_yaml_valid`'s six suffixed
+ids collapse back to two un-suffixed ones. **Attributed by node in
+`evidence/collection-attribution.txt` §C→D, and predicted before it happened.**
+Filed as `SF-308` in `specs/results/skill_feedback.md` — five tickets have now
+written this same sentence by hand, which makes it a defect in `close ticket`
+rather than a fact of life.
+
 Sealed raw output: `evidence/pytest-base-8dd0442.txt`,
 `evidence/collect-base-8dd0442.txt`, `evidence/pytest-preclose-8fa4626.txt`,
 `evidence/collect-preclose-8fa4626.txt`, `evidence/pytest-preclose-6ee1532.txt`,
-`evidence/collect-preclose-6ee1532.txt`, `evidence/pytest-postclose-*.txt`,
-`evidence/collect-postclose-*.txt`.
+`evidence/collect-preclose-6ee1532.txt`,
+`evidence/pytest-postclose-64c2f91.txt`,
+`evidence/collect-postclose-64c2f91.txt`.
 
 ### 1.0 Every movement, attributed, with the direction named
 
-**failed: 7 → 7 → 7. No movement in either direction, at any of the three trees.**
+**failed: 7 → 7 → 7 → 7. No movement in either direction, at any of the four trees.**
 The same seven nodes, by name, at the base and at both tips. **This ticket
 produced no new red**, and the only reds it removed are `SS-04`'s three, which
 arrived through the reconcile and were repaired in the same commit that brought
