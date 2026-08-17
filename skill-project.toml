@@ -44,14 +44,27 @@ name = "git-epic-workflow"
 version = "0.2.0"
 description = "Plan, schedule, resume and finalize multi-ticket Git epics on an epic/* branch backed by one shared spec-double-compiler workflow, with dependency-aware parallel tickets and serialized integration."
 
-# --- authoring: skill-publisher is the authority on SKILL.md frontmatter, the
-#     description field, skill-manager.toml, references/ pages, and on the
-#     install/bind/sync round trip that ships an edit into a store ---
+# --- authoring: `skt:unit-authoring` is the authority on SKILL.md frontmatter,
+#     the description field, skill-manager.toml, references/ pages, and on the
+#     install/bind/sync round trip that ships an edit into a store. Its sibling
+#     `skt` skill is the lifecycle front door — home tier, staleness checks, and
+#     the `skt ticket new|close` worktree pair this unit's own SKILL.md and
+#     references instruct epics to use.
+#
+#     THIS WAS `[skills.skill-publisher]` AND IT NO LONGER RESOLVES. The repo
+#     `haydenrear/skill-publisher-skill` now ships ONE unit and it is a PLUGIN
+#     named `skt` (installed metadata: unitKind PLUGIN, 0.2.0), which carries
+#     both skills plus the `skt` CLI. Declared as a skill, `project resolve`
+#     stops the whole realization with
+#
+#         project dependency skill-publisher expected SKILL but installed PLUGIN
+#
+#     so the table it is declared in is load-bearing, not cosmetic. ---
 
-[skills.skill-publisher]
+[plugins.skt]
 source = "github:haydenrear/skill-publisher-skill"
 
-# --- required BY skill-publisher, not chosen here: its SKILL.md `skill-imports`
+# --- required BY the authoring unit, not chosen here: its SKILL.md `skill-imports`
 #     names `skill-manager` (references/skill-imports.md), and `project resolve`
 #     refuses the whole resolve with "references missing unit" until the
 #     imported unit is declared. Unit `skill_references` are followed
@@ -74,9 +87,10 @@ source = "github:haydenrear/skill-manager-skill"
 #     Those are the skills an epic COMPOSES while it is being run in someone
 #     else's repository. They are not what an agent EDITING this skill needs.
 #     The only executable content in this repo is scripts/validate_epic_plan.py
-#     and its pytest beside it in scripts/tests/; both are stdlib-only and
-#     neither imports another unit. There is no test_graph project and no
-#     specs/ tree here.
+#     and scripts/validate_assignment.py, with their suites beside them in
+#     scripts/tests/; all four are PEP 723 single-file scripts depending only on
+#     PyYAML, and none imports another unit. There is no test_graph project and
+#     no specs/ tree here.
 #
 #     Confirmed empirically: `project resolve` validates `skill-imports` against
 #     INSTALLED units, and this repo's own unit is deliberately not installed

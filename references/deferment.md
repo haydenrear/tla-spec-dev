@@ -136,7 +136,10 @@ agent does not make that call, and does not "unblock itself" by widening scope.
 Triage the backlog at two points.
 
 **Between waves, when recommending the next issue.** Present pending findings
-alongside the ready issue list so the owner sees defects and schedule together:
+alongside the ready issue list so the owner sees defects and schedule together.
+That presentation is a section of the wave review artifact, not a separate
+message — `references/human-review.md` §3.5, where it sits next to the hot
+spots, the overrides, and the goal trajectory that give each finding its weight:
 
 | ID | Found by | Severity | Summary | Blast radius | Disposition |
 | --- | --- | --- | --- | --- | --- |

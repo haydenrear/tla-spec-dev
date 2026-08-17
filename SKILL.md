@@ -10,11 +10,20 @@ description: >-
   evaluation/perf/integration ticket that decides them, and composes git-issue
   issue authoring, git-issue-workflow ticket execution, tla-spec-dev ticket
   promotion, and Test Graph validation while allowing dependency-aware parallel
-  work and serialized integration. Epic and ticket worktrees are branched by
+  work and serialized integration. Merges each wave into the epic branch itself
+  and then stops at the wave boundary to hand the user a committed review
+  artifact, a rendered diff, and a short walkthrough covering hot spots,
+  decisions made implicitly, guardrails overridden, suspected bugs,
+  architectural changes worth making to the epic's own machinery, and
+  recommended next steps. Epic and ticket worktrees are branched by
   hand from the declared epic branch and then given their own per-checkout Skill
   Manager home with git-issue-workflow's `scripts/bootstrap-home.sh`; teardown
   is that skill's `scripts/wt close <ticket>`. A bare `git worktree add` with no
-  home step leaves the ticket agent writing the operator's global home.
+  home step leaves the ticket agent writing the operator's global home. The epic
+  agent owns change management for those homes, reconciling each ticket's home
+  into the project home at wave close, and sweeps every worktree it created in
+  one pass once the epic's merge is verified, so the disk cost of an epic goes
+  back to zero instead of onto the next one.
 skill-imports:
   - unit: git-issue
     path: SKILL.md
@@ -49,9 +58,15 @@ This skill has three roles:
 - **Perform one ticket:** detect the epic assignment in an issue and apply its
   overrides to `git-issue-workflow`. Read `references/epic-ticket.md` before
   creating a worktree.
+- **Integrate and review a wave:** merge the wave's ticket PRs into the epic
+  branch in promotion order, reconcile each ticket worktree's Skill Manager home
+  into the project home, then stop and hand the user the review artifact, the
+  rendered diff, and the walkthrough. Read `references/human-review.md` and
+  `references/worktree-lifecycle.md`.
 - **Finalize:** validate the integrated epic, promote the accepted program
-  model, close the shared spec workflow, and open the epic PR. Read
-  `references/finalize.md`.
+  model, close the shared spec workflow, open the epic PR, and — once its merge
+  is verified — sweep every worktree the epic created. Read
+  `references/finalize.md` and `references/worktree-lifecycle.md`.
 
 ## Load-bearing rules
 
@@ -79,9 +94,17 @@ This skill has three roles:
    may rebase onto the latest epic tip, close/promote its ticket, and enter the
    epic branch. The promotion order must be a topological extension of
    `depends_on`; two ticket promotions never integrate concurrently.
-7. **External review is the default.** A ticket agent stops after pushing a
-   sealed branch and opening a PR whose base is the epic branch. It does not
-   merge the PR, merge to the default branch, or close the GitHub issue.
+7. **Ticket agents stop at PR open; the epic agent merges the wave.** A ticket
+   agent stops after pushing a sealed branch and opening a PR whose base is the
+   epic branch. It does not merge its own PR, merge to the default branch, or
+   close the GitHub issue — it cannot see the wave, so it cannot know whether
+   the promotion lane held or a sibling landed on the same file. The **epic
+   agent** merges those PRs into `epic/<slug>` in promotion order, one at a
+   time, without waiting for a human: the epic branch is an integration branch,
+   the merge is reversible, and finalize.md §3 still gates everything before it
+   reaches the default branch. A merge conflict is a stop, not a task — it means
+   the ticket closed against a tree that no longer exists, so it goes back to
+   its agent to reconcile. Read `references/human-review.md` §1.
 8. **Only finalization closes the workflow.** After all delivered ticket PRs are
    on the epic branch and every retired ticket has its verified no-delivery
    receipt, the finalizer runs integrated validation, promotes the accepted
@@ -99,6 +122,16 @@ This skill has three roles:
     `skill-manager unit publish`. An epic cannot finalize until every ticket
     worktree has been through `skill-manager home close-out` — see
     `references/plan-and-schedule.md` §2 and `references/finalize.md` §1b.
+
+    **The epic agent owns that change management.** A ticket agent runs the
+    read-only gate and reports its verdict; it never syncs into the project
+    home, because that is one shared destination and a ticket agent cannot see
+    the tickets it would be racing. The epic agent reconciles each worktree's
+    home into `<main-working-tree>/.skill-manager` at wave close — serialized, one
+    worktree at a time, reading `held-back` and `conflicted` as decisions rather
+    than retries — and is responsible for every worktree being emptied of
+    unmerged work before anything is deleted. Read
+    `references/worktree-lifecycle.md`.
 
     **That home does not appear on its own.** The epic branch and every ticket
     worktree path are *declared* by the plan and the assignment — the one case
@@ -182,6 +215,33 @@ This skill has three roles:
     give every other ticket an explicit contribution, expected effect, and local
     signal. The goal relation is the context a ticket agent aims at, so keep it
     specific. Read `references/goals-and-evaluation.md`.
+13. **Every wave boundary produces a review, and by default it is a gate.**
+    After merging a wave and before handing out any issue URL from the next one,
+    write a committed review artifact and walk the user through it: hot spots in
+    what landed, decisions made implicitly and guardrails overridden, where the
+    bugs probably are, architectural changes worth making — including to the
+    epic's own machinery, which lives in gitignored homes and reaches nothing by
+    being merged — and the recommended next steps read together with the
+    deferred-findings backlog. Then stop and wait. The user may change the
+    cadence, drop the gate, or take the merges back; that answer is recorded as
+    `review_policy` in the canonical plan, because at finalization a review
+    nobody chose to skip is indistinguishable from one that never happened.
+    Read `references/human-review.md`.
+14. **Worktrees stand until the epic ends, then all of them go in one sweep.**
+    Keep every ticket worktree through review — that is what makes the review
+    model work — and then remove all of them in one deliberate pass once the
+    default-branch merge is verified. The two clocks are deliberate and
+    opposite: unit state merges **early**, at wave close, while its author is
+    reachable; worktrees are deleted **late**, together. Removal must never be
+    the step that carries the merge, because `git worktree remove` deletes a
+    gitignored home without asking and succeeds just as quietly whether it held
+    a week of skill edits or nothing. Size the disk cost honestly: a home is
+    cloned copy-on-write, so a new worktree is nearly free (measured here, 33.7
+    MB real for a home `du` calls 1.1 GB), and the real space goes to per-home
+    venvs, tools, and divergence as work happens in it. Measure the sweep with
+    free space, never with `du`. The epic is not finished while a worktree it
+    created is still standing without a recorded reason. Read
+    `references/worktree-lifecycle.md`.
 
 ## Preconditions
 
@@ -215,8 +275,9 @@ Every planned ticket declares:
   local signal that predicts the final measurement.
 
 A ticket is ready to **start** only when every dependency PR is merged into
-`origin/epic/<slug>`. Tickets may share a wave only when neither reaches the
-other in the dependency DAG and their conflict keys are disjoint. A ticket is
+`origin/epic/<slug>` and the review gate on the preceding wave has been answered
+(`references/human-review.md` §2). Tickets may share a wave only when neither
+reaches the other in the dependency DAG and their conflict keys are disjoint. A ticket is
 ready to **promote** only when its promotion predecessor is merged into the
 epic branch and the ticket branch has reconciled against that latest tip.
 
@@ -250,9 +311,19 @@ canonical plan entry before starting and again before promotion.
 3. Use `git-issue` for discovery and issue authoring. For existing issues,
    preserve their bodies and replace only the marker-delimited epic assignment.
 4. Agree the deferment policy with the user before dispatch and record it in
-   the canonical plan (`references/deferment.md`).
-5. Commit and push the epic branch before handing out any issue URL.
-6. Report the epic branch/tip, workflow name, the goal table, and a table of
+   the canonical plan (`references/deferment.md`). In the same conversation,
+   agree the review cadence, whether the wave review gates the next wave, and
+   who merges ticket PRs into the epic branch; record that as `review_policy`
+   (`references/human-review.md` §2).
+5. Validate every rendered assignment before handing out its issue URL —
+   `scripts/validate_assignment.py`, against the issue body as GitHub now holds
+   it, with `--expect-ticket` and `--expect-epic-branch`. The schema is
+   specified here, rendered by `git-issue`, and parsed by `git-issue-workflow`,
+   so an unrendered placeholder, a `pr_base` that is not the epic branch, or a
+   policy block the renderer omitted is caught here rather than by the ticket
+   agent not having it.
+6. Commit and push the epic branch before handing out any issue URL.
+7. Report the epic branch/tip, workflow name, the goal table, and a table of
    issue URL, ticket ID, dependencies, wave, promotion predecessor, and goals
    served. Hand out only ready issue URLs. When recommending the next ticket,
    present pending deferred findings alongside it and triage them with the user.
@@ -272,9 +343,29 @@ canonical plan entry before starting and again before promotion.
 3. Wait for the declared promotion predecessor, reconcile the latest epic tip,
    close only the assigned spec ticket with evidence, push, and open the PR
    against the epic branch.
-4. Stop for external review. Treat the committed close record and evidence as
-   sealed; a semantic review change becomes an explicit amendment ticket rather
-   than an edit to append-only history.
+4. Stop at PR open. Treat the committed close record and evidence as sealed; a
+   semantic review change becomes an explicit amendment ticket rather than an
+   edit to append-only history.
+
+### Integrate and review a wave
+
+1. Merge the wave's ticket PRs into `epic/<slug>` in promotion order, one at a
+   time, verifying checks and assignment/plan equality before each merge. Stop
+   and return the ticket to its agent on a conflict, a failing REQUIRED matrix
+   entry, or a pending blocking finding.
+2. Reconcile each ticket worktree's Skill Manager home into the project home,
+   one worktree at a time, and check every worktree for uncommitted, stashed,
+   unpushed, or epic-unmerged work. Update the worktree ledger
+   (`references/worktree-lifecycle.md` §3–§4). Leave the worktrees standing.
+3. Build the review artifact over the whole wave range and commit it under the
+   plan's `review_policy.artifact_root`, with the diff stat, the patch, the
+   merge record, and the ledger beside it.
+4. Render the diff visualization and walk the user through it quickly — what the
+   wave was for, the design decisions, the intuition, where the bugs probably
+   are, what was decided for them, and the ask.
+5. Wait for the user's answer unless the plan waived the gate, then record that
+   answer in the artifact and dispatch the next wave — amended if the review
+   changed the plan. Read `references/human-review.md`.
 
 ### Finalize an epic
 
@@ -302,7 +393,19 @@ acceptable close.
   current and desired explicitly so validation proves the promoted state.
 - Do not use closing keywords in ticket PRs. Use `Refs #<issue>` and reserve
   issue-closing references for the final epic PR.
-- Do not bypass branch protection or external review gates.
+- Do not bypass branch protection or external review gates. Merging a ticket PR
+  into the epic branch is the epic agent's job; merging the epic PR into the
+  default branch is the user's, and needs their explicit authorization.
+- Do not dispatch the next wave before the review the plan's `review_policy`
+  declares, and do not treat silence as approval.
+- Do not fix on the epic branch what a review surfaces, and do not implement the
+  architectural changes a review recommends. Both re-enter as tickets.
+- Do not remove a worktree before the epic's default-branch merge is verified,
+  and do not remove one whose home has not been reconciled or whose tree still
+  holds uncommitted, stashed, unpushed, or epic-unmerged work. Never `rm -rf` a
+  worktree, and never reach for `wt close --force` to finish faster.
+- Do not leave the sweep undone. An epic that skips it has moved its disk cost
+  onto the next epic, which is the one that will run out of space.
 
 ## Reference map
 
@@ -311,5 +414,7 @@ acceptable close.
 | Create/resume branch, workflow, DAG, and issues | `references/plan-and-schedule.md` |
 | Agree goals, baselines, and evaluation tickets | `references/goals-and-evaluation.md` |
 | Author or execute the epic assignment | `references/epic-ticket.md` |
+| Merge a wave, build the review artifact, walk the user through it | `references/human-review.md` |
+| Reconcile ticket homes, keep the ledger, sweep the worktrees | `references/worktree-lifecycle.md` |
 | Validate, promote, close, and open the epic PR | `references/finalize.md` |
 | Classify, defer, batch, and triage failure cases | `references/deferment.md` |

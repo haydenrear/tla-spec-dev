@@ -59,8 +59,11 @@ validation:
   toolchain_spec_workflow: "N/A unless this repository is tla-spec-dev"
   evidence_root: "<ticket-results-path>"
 review:
-  mode: "external"
+  mode: "external"          # external TO THIS AGENT — do not change this value
   ticket_agent_stops_after: "pr_open"
+  merged_by: "epic-owner"   # never this agent; never the default branch
+  cadence: "wave"           # when the human review happens, epic-side
+  artifact_root: "results/epic-<slug>/review"
 deferment:
   mode: "batch"          # batch | ask | inline
   blocking: "escalate"   # escalate | ask
@@ -70,6 +73,13 @@ deferment:
 
 This issue belongs to an existing shared spec workflow. The epic assignment
 overrides ordinary instructions to branch from or target the default branch.
+
+`review.mode` stays `external` because that is what the field means to the
+ticket agent — the review is not this agent's, and `git-issue-workflow`'s
+`references/epic-ticket.md` §1 refuses an assignment whose mode is anything
+else. `merged_by` and `cadence` are additive: they say who performs the merge
+the ticket agent is already forbidden to perform, and when the human sees the
+result. Do not encode the cadence in `mode`.
 
 - Read `goals` before implementing. The `expected_effect` is the result this
   change is aiming at; the named evaluation ticket decides the goal on the
@@ -94,15 +104,60 @@ overrides ordinary instructions to branch from or target the default branch.
 - Your worktree has its own Skill Manager home
   (`<worktree>/.skill-manager`, gitignored, a real copy of the project home), and
   **nothing you change inside it is in this PR**. Before stopping, run
-  `skill-manager home close-out --home <worktree>/.skill-manager --into <repo-root>/.skill-manager`
-  and state the verdict in the PR body. Clear any blocker with the remedy it
-  prints — `unit publish` for a skill improvement, `home sync --merge` to survive
-  the teardown. Leave the worktree standing; the finalizer removes it.
+  `skill-manager home close-out --home <worktree>/.skill-manager --into <main-working-tree>/.skill-manager`
+  (the **main working tree's** home, not `$PWD`'s nearest git toplevel, which
+  from inside your worktree names your own home)
+  and state the verdict in the PR body, then list every unit you changed and why
+  under `## Review input` → *Machinery friction*. You may
+  `skill-manager unit publish <unit> --ticket <ticket>` your own edits — that
+  reaches the unit's own repository and contends with nothing. Do **not** run
+  `home sync` into the project home: that is one shared destination, you cannot
+  see the other tickets writing it, and the epic agent reconciles every
+  worktree's home there in serial at wave close.
+- Commit and push everything you want kept — evidence, backlog entries, close
+  history. Leave the worktree standing; the epic agent removes every worktree in
+  one sweep at the end of the epic, after checking that nothing uncommitted,
+  stashed, unpushed, or unmerged is left in yours.
+- Your PR body is **review input**, not only a delivery record. The epic owner
+  merges it and then builds one review over the whole wave for a human, so write
+  the `## Review input` section described below: the hot spots you created, the
+  decisions you made that nobody asked for, any guardrail you had to override,
+  where you would look for bugs in your own change, and what about the tooling
+  or skills slowed you down. You are the only one who still knows the last two.
 - Push the sealed ticket branch and open its PR with base `epic/<slug>` and
-  `Refs #<issue-number>`. Stop for external review; do not merge to the default
-  branch or close the GitHub issue.
+  `Refs #<issue-number>`. Stop there. The epic owner merges this PR into the
+  epic branch; you do not merge it, do not merge to the default branch, and do
+  not close the GitHub issue.
 <!-- git-epic-workflow:assignment:end -->
 ````
+
+## This block has one owning schema and one mechanical check
+
+Three skills touch this block: it is **specified here**, rendered into an issue
+body by `git-issue` (`references/epic-assignment.md`), and parsed by
+`git-issue-workflow` (`references/epic-ticket.md` §1). Three prose copies of one
+schema drift silently and have — a field added here and not to the renderer
+produces issues that parse cleanly and just omit a policy, which the ticket
+agent discovers by not having it.
+
+So this file is the schema's owner, and `scripts/validate_assignment.py` is the
+check. Run it on the rendered issue body, not on the plan and not on this
+template:
+
+```bash
+gh issue view <issue-number> --json body -q .body \
+  | uv run <git-epic-workflow-skill>/scripts/validate_assignment.py \
+      --expect-ticket <stable-ticket-id> --expect-epic-branch epic/<slug>
+```
+
+It rejects an unrendered `<placeholder>`, a `pr_base` that is not the epic
+branch, an epic branch that is the default branch, a ticket that depends on or
+promotes after itself, a REQUIRED matrix entry excused as `N/A`, an `N/A`
+without a reason, a non-evaluation ticket that decides its own goal, a
+`review.mode` other than `external`, a `merged_by` other than `epic-owner`, and
+a missing `deferment` block. Adding a field to the block above means adding it
+to the validator and to the renderer in the same change; the validator is what
+makes "and to the renderer" impossible to forget.
 
 ## Evaluation-ticket variant
 
@@ -389,12 +444,33 @@ The PR body contains:
   and the evaluation ticket that decides it;
 - a `## Deferred findings` section listing each backlog ID filed by this ticket
   with its severity and one-line summary, or `None`;
-- the `home close-out` verdict for this ticket's worktree, and — if it blocked —
-  which units were published with `unit publish` or lifted with
-  `home sync --merge`. The finalizer removes this worktree and cannot see inside
-  its home; this line is the only place that fact is recorded.
+- the `home close-out` verdict for this ticket's worktree, naming every blocking
+  unit and any you published with `unit publish`. The epic agent reconciles this
+  home into the project home and later deletes the worktree without being able
+  to see inside it; this line and the *Machinery friction* list below are the
+  only places that fact survives;
+- a `## Review input` section, written for a human who has ten minutes and did
+  not read the ticket. Four short lists, evidence-cited, no padding — the epic
+  owner composes the wave review from these rather than re-deriving them from
+  the diff (`human-review.md` §3):
+  - **Hot spots** — what you changed that carries the most risk or the most
+    meaning, with paths. Say when you wrote a file another ticket in your wave
+    also touches;
+  - **Decisions and overrides** — choices you made that the assignment did not
+    specify and that another ticket would be needed to reverse, plus every
+    guardrail you weakened (`--allow-open`, a skipped test, a matrix entry that
+    became `N/A`, an inline out-of-scope fix). Report them even where they were
+    obviously right;
+  - **Where I'd look for bugs** — your own change, ranked, with the cheapest
+    experiment that would settle each. Reproducible defects are backlog entries
+    instead; this list is allowed to be suspicion, labelled as such;
+  - **Machinery friction** — what about the skills, scripts, validators, or
+    instruments cost you time, and what you changed in your own Skill Manager
+    home to get around it. That home is gitignored and dies with this worktree,
+    so a fix you do not name here reaches nobody.
 
-Stop for external review. Do not self-merge, target the default branch, run
+Stop there. The epic owner merges this PR into the epic branch and reviews the
+wave with the user. Do not self-merge, target the default branch, run
 whole-workflow promotion, sync the primary checkout to the default branch, or
 close the GitHub issue. The closed PR head is sealed; semantic review changes
 require an explicit amendment ticket so append-only evidence stays truthful.

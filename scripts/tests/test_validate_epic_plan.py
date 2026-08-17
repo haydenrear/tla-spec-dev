@@ -55,6 +55,14 @@ def valid_plan() -> dict:
             "budget": 5,
             "backlog": "specs/desired_program_model/deferred_findings.yaml",
         },
+        "review_policy": {
+            "cadence": "wave",
+            "gate": True,
+            "merges": "owner",
+            "milestones": [],
+            "artifact_root": "results/epic/review",
+            "walkthrough": "required",
+        },
         "epic_goals": [
             {
                 "id": "GOAL-1",
@@ -538,6 +546,70 @@ class EpicPlanValidatorTests(unittest.TestCase):
         plan = valid_plan()
         plan["deferment_policy"]["backlog"] = ""
         self.assert_invalid(plan, "deferment_policy.backlog must be a non-empty path")
+
+    def test_warns_when_no_review_policy_is_declared(self) -> None:
+        plan = valid_plan()
+        del plan["review_policy"]
+        self.assert_warns(plan, "plan declares no review_policy")
+
+    def test_rejects_unknown_review_cadence(self) -> None:
+        plan = valid_plan()
+        plan["review_policy"]["cadence"] = "occasionally"
+        self.assert_invalid(plan, "review_policy.cadence must be one of")
+
+    def test_rejects_non_boolean_review_gate(self) -> None:
+        plan = valid_plan()
+        plan["review_policy"]["gate"] = "yes"
+        self.assert_invalid(plan, "review_policy.gate must be a boolean")
+
+    def test_rejects_unknown_review_merge_authority(self) -> None:
+        plan = valid_plan()
+        plan["review_policy"]["merges"] = "ticket-agent"
+        self.assert_invalid(plan, "review_policy.merges must be one of")
+
+    def test_rejects_missing_review_artifact_root(self) -> None:
+        plan = valid_plan()
+        plan["review_policy"]["artifact_root"] = "   "
+        self.assert_invalid(plan, "review_policy.artifact_root must be a non-empty")
+
+    def test_rejects_unknown_walkthrough_mode(self) -> None:
+        plan = valid_plan()
+        plan["review_policy"]["walkthrough"] = "maybe"
+        self.assert_invalid(plan, "review_policy.walkthrough must be one of")
+
+    def test_rejects_milestone_cadence_with_no_milestones(self) -> None:
+        plan = valid_plan()
+        plan["review_policy"]["cadence"] = "milestone"
+        self.assert_invalid(plan, "must name at least one wave when cadence is")
+
+    def test_rejects_milestones_declared_under_another_cadence(self) -> None:
+        plan = valid_plan()
+        plan["review_policy"]["milestones"] = [2]
+        self.assert_invalid(plan, "only meaningful when cadence is")
+
+    def test_rejects_non_wave_milestone_entries(self) -> None:
+        plan = valid_plan()
+        plan["review_policy"]["cadence"] = "milestone"
+        plan["review_policy"]["milestones"] = [0]
+        self.assert_invalid(plan, "must be a list of positive wave numbers")
+
+    def test_accepts_a_milestone_cadence_with_named_waves(self) -> None:
+        plan = valid_plan()
+        plan["review_policy"]["cadence"] = "milestone"
+        plan["review_policy"]["milestones"] = [1, 3]
+        report = validator.validate_plan(plan)
+        self.assertEqual(report.errors, [])
+        self.assertEqual(report.warnings, [])
+
+    def test_warns_when_the_between_waves_gate_is_waived(self) -> None:
+        plan = valid_plan()
+        plan["review_policy"]["gate"] = False
+        self.assert_warns(plan, "waives the between-waves review gate")
+
+    def test_warns_when_review_is_deferred_to_finalization(self) -> None:
+        plan = valid_plan()
+        plan["review_policy"]["cadence"] = "finalization-only"
+        self.assert_warns(plan, "waives the between-waves review gate")
 
     def test_reports_deferment_error_even_when_tickets_are_missing(self) -> None:
         self.assert_invalid({"tickets": []}, "plan must declare deferment_policy")

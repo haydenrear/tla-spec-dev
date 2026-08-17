@@ -122,15 +122,31 @@ Then note two things about the schedule you are about to write:
   — production, TLA, adapters, test_graph, workflow. A skill unit lives in a home,
   which is gitignored, so two tickets in the same wave can have perfectly disjoint
   conflict keys and still both improve `test-graph` in their own homes. Neither
-  edit is in either PR. Both will later try to reconcile into the one project home,
-  and the second one is **held back and reported** rather than overwritten — a
-  conflict a human resolves, not a silent loss. That is the designed outcome, but
-  it is work you scheduled without meaning to. If you expect a wave to touch the
-  same unit, say so in the assignment and have one ticket own it.
+  edit is in either PR. **You** reconcile both into the one project home at that
+  wave's close (`references/worktree-lifecycle.md` §3), in serial, and the second
+  one comes back **held back** rather than overwritten — a conflict you resolve,
+  not a silent loss. That is the designed outcome, but it is work you scheduled
+  without meaning to. If you expect a wave to touch the same unit, say so in the
+  assignment and have one ticket own it.
 - **Publishing beats chaining.** `home sync` only moves an edit up one tier. An
   improvement that should reach other repositories has to go to the unit's own
   git repo via `skill-manager unit publish`; a chain-only route would need the same
   merge performed twice and would still never reach a sibling project.
+- **The schedule has a disk cost, but not the one `du` reports.** Homes are
+  cloned copy-on-write, so a wave of six worktrees does not cost six project
+  homes — measured here, cloning a home `du` calls 1.1 GB moved free space by
+  33.7 MB. The space goes instead to per-home venvs and tools and to divergence
+  as each worktree is worked in, so the cost grows with *activity*, not with
+  wave width, and it accrues until the epic's final sweep. Check headroom with
+  free space before writing the waves, and never size a schedule off `du`:
+
+  ```bash
+  df -h <repo-root>
+  ```
+
+  If the headroom is thin, the answer is a narrower wave or an earlier sweep of
+  delivered tickets, decided with the user
+  (`references/worktree-lifecycle.md` §1, §6).
 
 ## 3. Discover the whole change
 
@@ -196,6 +212,7 @@ Then replace the placeholder planning data with the complete epic:
   edges, waves, promotion order, conflict ownership, or validation scope changes;
 - add the `epic_goals` block agreed in step 3a;
 - add the `deferment_policy` block agreed in step 4a;
+- add the `review_policy` block agreed in step 4b;
 - remove placeholder actions, scopes, commands, and assertions.
 
 Do not run `open ticket` on the epic branch. Each ticket agent opens exactly its
@@ -280,6 +297,43 @@ cumulative ledger at a fresh file.
 Read `references/deferment.md` for scope classification, entry format, agent
 behavior, and triage.
 
+## 4b. Agree the review cadence
+
+The third required decision, asked in the same conversation as the goals and the
+deferment policy. It settles who merges ticket PRs into the epic branch and when
+the user is handed a review — which is also when they get their only look at the
+epic while it can still be steered cheaply.
+
+Ask once, concretely:
+
+> Between waves I'll merge the wave's ticket PRs into the epic branch, then stop
+> and hand you a review — hot spots in what landed, the decisions I made without
+> asking and any guardrail that got overridden, where I think the bugs are, what
+> the epic's own machinery should become, and what I recommend next — with a
+> rendered diff and a short walkthrough. Should I stop for you at every wave
+> boundary (recommended), only after named waves, or only at finalization? And
+> do you want to do the merges yourself instead?
+
+Record the answer next to `deferment_policy`:
+
+```yaml
+review_policy:
+  cadence: wave                 # wave | ticket | milestone | finalization-only
+  gate: true                    # false: produce the artifact and keep dispatching
+  merges: owner                 # owner | human
+  milestones: []                # waves to review after, when cadence is milestone
+  artifact_root: "results/epic-<slug>/review"
+  walkthrough: required         # required | on-request
+```
+
+`cadence: finalization-only` and `gate: false` are legitimate for a small or
+exploratory epic, and both are decisions on the record rather than silence — the
+epic PR states which policy was in force. The validator warns when the block is
+missing and errors on a malformed one.
+
+Read `references/human-review.md` for what the artifact carries, how the diff is
+rendered, and what a review may and may not change.
+
 ## 5. Validate the schedule
 
 Treat `depends_on` as a directed graph and reject the plan unless:
@@ -310,6 +364,24 @@ goal set, a missing evaluation ticket, an `unmeasured` baseline, or a `direct`
 contribution with no local signal. Treat those as prompts to go back to the
 user, not as noise. Inconsistencies inside a declared goal set are errors and
 exit non-zero.
+
+A valid plan is not a valid dispatch. The plan is this skill's; the assignment
+block that reaches a ticket agent is rendered by `git-issue` into a GitHub issue
+body, and a field this plan carries can simply fail to arrive. Validate what
+GitHub actually holds, per issue, before handing out its URL:
+
+```bash
+gh issue view <issue-number> --json body -q .body \
+  | uv run <git-epic-workflow-skill>/scripts/validate_assignment.py \
+      --expect-ticket <stable-ticket-id> --expect-epic-branch epic/<slug>
+```
+
+Exit 2 means there is no parseable assignment block at all; exit 1 lists what is
+wrong with the one there is. It catches the failures that are invisible in
+review of the plan: a placeholder nobody rendered, a `pr_base` that is not the
+epic branch, a `review.mode` other than `external`, a `deferment` block the
+renderer never learned to emit. Re-run it after any resume that rewrites
+assignments, because a resume edits issues rather than the plan.
 
 The total promotion order is an integration lane, not an implementation
 dependency. Agents in one wave may implement and validate concurrently, but
@@ -499,7 +571,10 @@ An issue is ready to hand off only when every dependency PR is merged into the
 remote epic branch. An open or green PR is not a satisfied dependency.
 
 Whenever you recommend the next ticket — at dispatch and on every resume — read
-the deferred-findings backlog and present pending entries in the same report:
+the deferred-findings backlog and present pending entries in the same report.
+From the first wave boundary onward that report is a section of the wave review
+artifact rather than a separate message (`references/human-review.md` §3.5); the
+table and the three outcomes are the same either way:
 
 | ID | Found by | Severity | Summary | Blast radius | Disposition |
 | --- | --- | --- | --- | --- | --- |
@@ -511,5 +586,7 @@ wave, promotion order, conflict keys, revalidated schedule, bumped
 `schedule_revision`, new issue. Never retrofit it into a dispatched ticket.
 
 This version does not start agents or poll them. The user passes ready issue
-URLs to ticket agents, then invokes the epic workflow again to refresh readiness
-or finalize.
+URLs to ticket agents, then invokes the epic workflow again to integrate and
+review the finished wave, refresh readiness, or finalize. Merging those tickets'
+PRs into the epic branch is this skill's work, not the user's, unless
+`review_policy.merges` says `human` (`references/human-review.md` §1).

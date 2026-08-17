@@ -78,15 +78,22 @@ without asking and succeeds exactly as quietly whether it held a week of skill
 edits or nothing.
 
 Step 1's audit proves the *repository* state is integrated. This proves the *unit*
-state is. Do it now, while the tickets' authors are still reachable — not in §5
-when you are cleaning up.
+state is.
+
+Most of it should already be done: the epic agent reconciles each wave's homes
+at wave close (`references/worktree-lifecycle.md` §3), which is the point of
+doing it there rather than here. What is left at finalization is the **audit** —
+every worktree, including ones used again after their wave, including the epic's
+own, including retired and undelivered tickets whose worktrees still stand.
+Treat a remaining blocker as an exception to investigate, not as the normal
+end-of-epic backlog.
 
 ```bash
 git -C <repo-root> worktree list --porcelain | awk '/^worktree /{print $2}'
 
 # per worktree, including ../wt-epic-<slug>
 skill-manager home close-out --home <worktree>/.skill-manager \
-                             --into <repo-root>/.skill-manager --json
+                             --into <main-working-tree>/.skill-manager --json
 ```
 
 `--into` is the project home every one of them was cloned from. Reading the
@@ -102,20 +109,32 @@ verdict:
   ```bash
   # up a tier: survives the teardown, stays on this machine
   skill-manager home sync --from <worktree>/.skill-manager \
-                          --to <repo-root>/.skill-manager --merge
+                          --to <main-working-tree>/.skill-manager --merge
 
   # to the unit's own git repo: the only route that reaches another project
   skill-manager unit publish <unit> --ticket <ticket>
   ```
 
-  A skill improvement made during a ticket is `unit publish` work and belongs to
-  that ticket's author, exactly like a deferred finding belongs to the backlog.
-  Return the worktree to them, or settle it with the user; a blocker cleared by
-  the wrong remedy is an improvement that reaches the project home and nowhere
-  else, forever.
+  Clearing it is yours to do — the epic agent owns this change management — but
+  not yours to *guess*: a blocker cleared by the wrong remedy is an improvement
+  that reaches the project home and nowhere else, forever. The ticket PR's
+  `## Review input` → *Machinery friction* list says what the author changed and
+  why; where it does not settle which remedy was intended, ask the author or the
+  user rather than picking one.
 
 An epic must not close with an unexplained blocker, for the same reason §1a will
 not let it close with a pending finding.
+
+Also confirm, per worktree, that nothing else is stranded — uncommitted,
+stashed, unpushed, or epic-unmerged commits. §6 is about to delete all of these
+directories, so this audit and that sweep are one obligation split in two:
+
+```bash
+git -C <worktree> status --porcelain
+git -C <worktree> stash list
+git -C <worktree> log --oneline @{u}..
+git -C <worktree> log --oneline origin/epic/<slug>..HEAD
+```
 
 You can audit every worktree in any order, including concurrently: `close-out`
 **writes nothing**, so there is nothing for two of them to corrupt and no
@@ -192,12 +211,37 @@ result. Report the explicit disposition instead:
 Every retired ticket affecting the same goal must agree. These dispositions are
 the user's decision record, not evidence that the target was met.
 
+## 2b. Collect the wave reviews
+
+Read every wave artifact under `review_policy.artifact_root` and the recorded
+user decision at the end of each (`references/human-review.md` §6). Two things
+carry forward into the epic PR and nothing else recovers them:
+
+- **guardrail overrides and implicit decisions the user never answered.** A
+  wave review that was produced and not responded to leaves those unaccepted;
+  list them for the user now, exactly as §1a will not let a pending finding
+  through. An override the user has already accepted is cited with the wave
+  artifact that carried it, not re-litigated.
+- **the architectural recommendations aimed at the epic's own machinery.** Those
+  ship through `skill-manager unit publish`, not through this PR, and §1b's
+  worktree gate is the last moment any of them can still be published. Settle
+  each one as published, filed as an issue, or deliberately dropped.
+
+Name any wave with no artifact, and say whether the plan's `review_policy`
+waived it or nobody produced it. Those are different facts and the epic PR
+reports which one happened.
+
 ## 3. Pass the external semantic-review gate
 
 Push the fully integrated, still-open workflow state and open or update a draft
 epic PR against the default branch. Include the integrated validation evidence
 and request external semantic review while `current` and
 `desired_program_model` still exist and can accept review changes normally.
+
+The wave reviews are inputs to this gate, never substitutes for it. Each one
+reviewed an increment against the plan as it stood at that moment; this gate
+reviews the whole against the default branch, with the promoted model, the
+schedule amendments, and the retirement receipts in front of it.
 
 Do not write the irreversible closed snapshot until that review is approved.
 The review must include every schedule-revision amendment and retirement
@@ -256,8 +300,15 @@ tip and the close commit changed workflow artifacts only. Its body includes:
 - the workflow closed-snapshot path;
 - the deferred-findings disposition: tickets opened, `wontfix` reasons, and
   issues carried to the default branch;
+- the `review_policy` that was in force, a link to every wave review artifact in
+  order, and any wave whose review was waived or never produced;
+- the guardrail overrides and implicit decisions from §2b that the user had not
+  already accepted, with their disposition, and the machinery recommendations
+  that were published, filed, or dropped;
 - issue-closing references for delivered child issues and explicit not-planned
-  or carried dispositions for retired child issues.
+  or carried dispositions for retired child issues;
+- the worktree sweep from §6 — how many were removed, how much space that
+  reclaimed, and anything retained with its reason.
 
 Do not bypass branch protection or merge the epic PR unless the user explicitly
 authorizes that final action. A semantic change requested after close requires a
@@ -265,11 +316,34 @@ successor workflow; never rewrite the closed snapshot. Keep the epic
 worktree/branch until the default-branch merge is verified; clean them up only
 afterward.
 
-### Teardown: the gate runs before every removal
+## 6. Sweep every worktree the epic created, in one pass
 
-When you do clean up, each worktree removal is the irreversible step for its home,
+The epic kept every worktree standing through review on purpose. This is where
+that ends: once the default-branch merge is verified, remove **all** of them in
+one deliberate sweep — every ticket worktree, including retired and undelivered
+tickets, and the epic's own worktree last, because you cannot remove the one you
+are standing in. Work from the primary checkout and from the ledger at
+`<artifact_root>/worktrees.md` (`references/worktree-lifecycle.md` §4), so the
+sweep is driven by a list rather than by what you happen to remember.
+
+This is not tidying. Each standing worktree accumulated private venvs, tools,
+and diverged unit content for the epic's whole duration, and an epic that skips
+the sweep hands that residue to the next one — which is the epic that runs out
+of disk. Measure it with **free space**, before and after: `du` counts
+copy-on-write blocks against every copy and will overstate the reclaim by an
+order of magnitude (`references/worktree-lifecycle.md` §1).
+
+```bash
+git -C <repo-root> worktree list --porcelain | awk '/^worktree /{print $2}'
+df -k <repo-root>          # before the sweep, and again after
+```
+
+Each worktree removal is the irreversible step for its home,
 so re-run §1b's gate immediately before it rather than trusting the earlier pass —
-a worktree can be used again between the audit and the teardown.
+a worktree can be used again between the audit and the teardown. Re-run the four
+git checks from §1b too; uncommitted, stashed, unpushed, or epic-unmerged work
+stops that one removal and only that one. Carry on with the rest and report what
+you left standing.
 
 ```bash
 # One command, every repo shape, and for a declared epic/ticket worktree too:
@@ -286,7 +360,7 @@ WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/script
 # on separate lines the removal runs whatever the gate returned, which is the
 # exact loss the gate exists to prevent.
 skill-manager home close-out --home <worktree>/.skill-manager \
-                             --into <repo-root>/.skill-manager \
+                             --into <main-working-tree>/.skill-manager \
   && git -C <repo-root> worktree remove <worktree>
 ```
 
@@ -298,3 +372,20 @@ this check and every other one. `skill-manager home close-out` itself has no
 `--force`: the CLI owns the verdict, the script owns whether to obey it. Do not use
 it to finish an epic faster — a blocker at this point is an improvement somebody
 made and nobody published.
+
+Finish the sweep and account for it:
+
+```bash
+git -C <repo-root> worktree prune            # drop stale administrative entries
+git -C <repo-root> worktree list             # expect the primary checkout alone
+git -C <repo-root> branch --merged epic/<slug>
+df -h <repo-root>
+```
+
+Delete a local ticket branch only after its worktree is gone — git refuses while
+the branch is checked out in one — and only when it is merged. Remote branches
+follow the repository's own policy; the merged PRs hold that history either way.
+
+Update every ledger row to `removed` with the space it returned, and report the
+totals in the epic PR (§5). An epic is not finished while a worktree it created
+is still standing without a recorded reason.

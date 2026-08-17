@@ -25,6 +25,10 @@ STABLE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\Z")
 MISSING = object()
 DEFERMENT_MODES = ("batch", "ask", "inline")
 DEFERMENT_BLOCKING = ("escalate", "ask")
+REVIEW_CADENCES = ("wave", "ticket", "milestone", "finalization-only")
+REVIEW_MERGES = ("owner", "human")
+REVIEW_WALKTHROUGH = ("required", "on-request")
+MILESTONE = "milestone"
 GOAL_KINDS = ("perf", "eval", "integration", "quality")
 GOAL_TEXT_FIELDS = ("statement", "metric", "harness", "target", "evidence_root")
 CONTRIBUTIONS = ("direct", "enabling", "guard")
@@ -1171,6 +1175,79 @@ def _validate_deferment_policy(plan: object, errors: list[str]) -> None:
         errors.append("deferment_policy.backlog must be a non-empty path string")
 
 
+def _validate_review_policy(
+    plan: object, errors: list[str], warnings: list[str]
+) -> None:
+    """Warn on an absent policy; reject a malformed one.
+
+    Absence warns rather than fails because an epic planned before this block
+    existed is not invalid. It still warns every run: at finalization a review
+    nobody chose to skip cannot be told apart from one that never happened, and
+    this block is the only place that choice is recorded.
+    """
+    if not isinstance(plan, dict):
+        return
+
+    policy = plan.get("review_policy", MISSING)
+    if policy is MISSING:
+        warnings.append(
+            "plan declares no review_policy; agree the review cadence, the gate, "
+            "and who merges ticket PRs with the user "
+            "(see references/human-review.md)"
+        )
+        return
+    if not isinstance(policy, dict):
+        errors.append("review_policy must be a mapping")
+        return
+
+    cadence = policy.get("cadence", MISSING)
+    if cadence not in REVIEW_CADENCES:
+        errors.append(f"review_policy.cadence must be one of {list(REVIEW_CADENCES)}")
+
+    gate = policy.get("gate", MISSING)
+    if type(gate) is not bool:
+        errors.append("review_policy.gate must be a boolean")
+
+    merges = policy.get("merges", MISSING)
+    if merges not in REVIEW_MERGES:
+        errors.append(f"review_policy.merges must be one of {list(REVIEW_MERGES)}")
+
+    artifact_root = policy.get("artifact_root", MISSING)
+    if not isinstance(artifact_root, str) or not artifact_root.strip():
+        errors.append("review_policy.artifact_root must be a non-empty path string")
+
+    walkthrough = policy.get("walkthrough", MISSING)
+    if walkthrough not in REVIEW_WALKTHROUGH:
+        errors.append(
+            f"review_policy.walkthrough must be one of {list(REVIEW_WALKTHROUGH)}"
+        )
+
+    milestones = policy.get("milestones", [])
+    if not isinstance(milestones, list) or any(
+        type(wave) is not int or wave < 1 for wave in milestones
+    ):
+        errors.append(
+            "review_policy.milestones must be a list of positive wave numbers"
+        )
+    elif cadence == MILESTONE and not milestones:
+        errors.append(
+            "review_policy.milestones must name at least one wave when cadence is "
+            f"{MILESTONE!r}"
+        )
+    elif cadence != MILESTONE and milestones:
+        errors.append(
+            "review_policy.milestones is only meaningful when cadence is "
+            f"{MILESTONE!r}"
+        )
+
+    if gate is False or cadence == "finalization-only":
+        warnings.append(
+            "review_policy waives the between-waves review gate; the epic PR must "
+            "say so, and every implicit decision and guardrail override still "
+            "needs the user's answer before close"
+        )
+
+
 def validate_plan(plan: object) -> PlanReport:
     """Return deterministic diagnostics; no errors means the plan is valid.
 
@@ -1181,6 +1258,7 @@ def validate_plan(plan: object) -> PlanReport:
     warnings: list[str] = []
     schedule_revision = _schedule_revision(plan, errors)
     _validate_deferment_policy(plan, errors)
+    _validate_review_policy(plan, errors, warnings)
     goals = _parse_goals(plan, errors, warnings)
     tickets = _parse_tickets(plan, errors)
     if not tickets:
