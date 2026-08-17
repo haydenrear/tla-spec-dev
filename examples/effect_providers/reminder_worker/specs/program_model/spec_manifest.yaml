@@ -114,7 +114,22 @@ ports:
       send:
         command: SendMessage
         result: str
-invariants: []
+# CA-10-DF-21, repaired by SS-05. THIS SAID `invariants: []` WHILE BOTH .cfg
+# FILES BESIDE IT HAND TLC TWO INVARIANTS. The generated `validate_state` was
+# `return None` -- a state oracle that accepts every state -- so the double was
+# not a double of the model it was generated from, and `validate_manifest`
+# reported zero errors about it. The names below are read off `Internal.cfg` and
+# `External.cfg`; `tests/test_absent_invariants_refuse.py` re-derives them from
+# those files rather than trusting this list.
+#
+# THERE IS NO `invariant_templates:` ENTRY FOR EITHER, SO THE GENERATED
+# `validate_type_invariant` AND `validate_delivery_invariant` RAISE
+# NotImplementedError. That is the correct answer and it is not a regression:
+# the double never checked these invariants, it silently claimed every state was
+# fine. `legacy_payment_http` has shipped exactly this form since it was written.
+invariants:
+  - TypeInvariant
+  - DeliveryInvariant
 finite_model: {}
 generators: {}
 fake:

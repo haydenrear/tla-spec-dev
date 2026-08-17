@@ -1,0 +1,101 @@
+SS-05 RE-MEASUREMENT OF THE ABSENT-INPUT CLASS -- RAW OUTPUT, BEFORE ANY REPAIR
+tree: feature/SS-05 at f45a2458e11e607073db87c48f62b5e64000bf33
+worktree: /Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-05
+git status --porcelain (excluding this evidence dir):
+  (clean)
+
+== 1. THE ENUMERATION, COUNTED FROM CA-10's OWN TABLE ==
+  section 3.3 data rows          44
+  distinct file:line references  48
+  rows naming TWO sites:
+    row 10: `testgraph_channels.py:336`, `:341`
+    row 15: `scaffold_spec.py:651` / `onboard_program_model.py:824`
+    row 33: `divergence.py:133`, `:141`
+    row 41: `spec_evolution.py:790` / `close_tickets.py:238`
+  `score_tools._finding_ids` (the FIXED instance, section 1) is NOT in the table: True
+
+== 2. WHICH FILES CARRYING THE CLASS HAVE CHANGED SINCE THE EPIC BASE 436c78c ==
+ examples/validation/instruments/instruments.toml |  372 +++++-
+ examples/validation/scorecards/score_tools.py    | 1474 +++++++++++++++++++++-
+ scripts/disposition.py                           |  191 ++-
+ 3 files changed, 1935 insertions(+), 102 deletions(-)
+
+== 3. score_tools.py -- audit over a root with no INSTRUMENT-LOG.toml and no cards ==
+  exit=0
+# Reading-rule audit over specs/results/scorecards/cut-the-apparatus
+# 0 card(s), 0 instrument change(s), 0 claim(s), 0 sealed digest(s)
+
+## R-H1 comparability: era boundaries must be real, and rows across one annotated.
+
+## R-H2 scope: nothing is asserted across more than one example.
+
+## R-H3 repair vs improvement: what a change moved, and what stays `current` across it.
+
+## R-H4 seals: a sealed card is never edited.
+  OPEN       no sealed digests recorded; run `score_tools.py seal` so an edit to a sealed card can be detected at all
+
+## R-H5 movement: a movement is a measurement only if the judging practice is recorded.
+  OPEN       no `[[movement]]` is declared. D1, D4 and D5 are demonstrated to move on unchanged input, so a cross-round movement that is not recorded here is a number nothing re-derives.
+
+## R-H6 contested: computed from the cards, never declared, and never dropped.
+  OK         no judge group has a spread greater than 1 on any dimension
+
+0 violation(s)
+
+== 4. score_tools.py -- scope over an absent card corpus ==
+  exit=2
+UNDECIDED: [absent] no scorecard corpus at /nonexistent/scorecards. Every figure would report UNREACHABLE and the run would exit 0, which says 'nothing is refuted' about a tree that was never read.
+Nothing was measured, so nothing is refuted and nothing holds. `absent` and `checked, none found` are different claims.
+
+== 5. disposition.py -- two top-level `findings:` keys (CA-10-DF-22's named half) ==
+  exit=0
+DISPOSED epic XX: 1 findings, all three clauses hold
+  (the ledger declares TWO rows in two blocks; one was reported, and no STRUCTURAL line was printed)
+
+== 6. generate_python.py:238 -- EVERY live spec_manifest.yaml, not the two the record names ==
+  examples/distributed_history/specs/program_model/spec_manifest.yaml :: no state class (ValueError)
+  examples/effect_providers/atomic_publisher/specs/program_model/spec_manifest.yaml
+      invariants=[]  validate_manifest=[]  body='return None'
+  examples/effect_providers/legacy_payment_http/specs/program_model/spec_manifest.yaml
+      invariants=['TypeInvariant', 'ResultInvariant']  validate_manifest=[]  body='validate_type_invariant(state)'
+  examples/effect_providers/reminder_worker/specs/program_model/spec_manifest.yaml
+      invariants=[]  validate_manifest=[]  body='return None'
+  examples/validation/ab/model/spec_manifest.yaml :: no state class (ValueError)
+  examples/validation/ex3_over_complex/order_hub/specs/program_model/spec_manifest.yaml :: no state class (ValueError)
+  examples/validation/ex4_pipeline_coherent/specs/program_model/spec_manifest.yaml
+      invariants=None  validate_manifest=[]  body='return None'
+  specs/current/spec_manifest.yaml :: no state class (ValueError)
+  specs/desired_program_model/spec_manifest.yaml :: no state class (ValueError)
+  specs/program_model/spec_manifest.yaml :: no state class (ValueError)
+  specs/results/scorecards/hexagonal-prompting/measure/effects/spec_manifest.yaml
+      invariants=None  validate_manifest=[]  body='return None'
+  specs/tickets/RD-06/current/spec_manifest.yaml :: no state class (ValueError)
+  specs/tickets/RD-06/desired/spec_manifest.yaml :: no state class (ValueError)
+
+== 7. tracked generated validators.py carrying the vacuous oracle ==
+  VACUOUS examples/effect_providers/atomic_publisher/specs/program_model/generated/atomic_publisher_contract/validators.py
+  VACUOUS examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/reminder_contract/validators.py
+  VACUOUS examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/reminder_contract/validators.py
+  VACUOUS examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/reminder_contract/validators.py
+  VACUOUS examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/reminder_contract/validators.py
+  VACUOUS examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/reminder_contract/validators.py
+  VACUOUS examples/effect_providers/reminder_worker/generated/reminder_contract/validators.py
+  VACUOUS examples/validation/ex4_pipeline_coherent/generated/pipeline_contract/validators.py
+  VACUOUS examples/validation/ex5_pipeline_divergent/generated/pipeline_contract/validators.py
+  VACUOUS specs/.history/hexagonal-prompting-epic/closed-snapshot/results/scorecards/hexagonal-prompting/measure/generated/quota_ledger_effects/validators.py
+  VACUOUS specs/.history/hexagonal-prompting-epic/ticket-004-HP-05/ticket/measure/generated/quota_ledger_effects/validators.py
+  VACUOUS specs/.history/hexagonal-prompting-epic/ticket-005-HP-06/results/measure/generated/quota_ledger_effects/validators.py
+  VACUOUS specs/results/scorecards/hexagonal-prompting/measure/generated/quota_ledger_effects/validators.py
+
+== 8. what those examples' .cfg files hand TLC ==
+  examples/effect_providers/reminder_worker/specs/program_model/External.cfg:2:INVARIANT TypeInvariant
+  examples/effect_providers/reminder_worker/specs/program_model/External.cfg:3:INVARIANT DeliveryInvariant
+  examples/effect_providers/reminder_worker/specs/program_model/Internal.cfg:2:INVARIANT TypeInvariant
+  examples/effect_providers/reminder_worker/specs/program_model/Internal.cfg:3:INVARIANT DeliveryInvariant
+  examples/validation/ex4_pipeline_coherent/specs/program_model/Pipeline.cfg:2:INVARIANT TypeInvariant
+  examples/validation/ex4_pipeline_coherent/specs/program_model/Pipeline.cfg:3:INVARIANT DeliveryExclusive
+  examples/validation/ex4_pipeline_coherent/specs/program_model/Pipeline.cfg:4:INVARIANT LedgerIsDownstream
+  examples/effect_providers/atomic_publisher/specs/program_model/External.cfg:2:INVARIANT ExternalInvariant
+  examples/effect_providers/atomic_publisher/specs/program_model/Internal.cfg:2:INVARIANT InternalInvariant
+  examples/effect_providers/legacy_payment_http/specs/program_model/External.cfg:2:INVARIANTS TypeInvariant ResultInvariant
+  examples/effect_providers/legacy_payment_http/specs/program_model/Internal.cfg:2:INVARIANTS TypeInvariant ResultInvariant

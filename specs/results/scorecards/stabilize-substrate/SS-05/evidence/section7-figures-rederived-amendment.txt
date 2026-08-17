@@ -1,0 +1,23 @@
+SS-05 AMENDMENT ROUND: the section 7 figures RE-DERIVED after the PR #290 review.
+Tree: dbf6f1dcc32b2ef05df70b5f4daf9a849671ba13, clean.
+
+== F7: tests/test_architecture_tags.py -- RESULT.md said 41 passed / 1 failed ==
+FAILED tests/test_architecture_tags.py::test_the_same_tag_control_holds - Ass...
+1 failed, 31 passed in 23.69s
+   The file collects 32 nodes. 41 + 1 = 42 is not a possible total.
+
+== F8: contested / history / seal RUN, not --help ==
+-- contested (bare, needs no argument) --
+   exit=0
+-- history --example ab_quota_ledger --
+   exit=0
+-- history (bare) --
+   exit=2   <- argparse usage error, NOT a run
+-- seal (bare) --
+   exit=2   <- argparse usage error, NOT a run
+
+   seal WAS exercised once during this amendment round and it EXITED 0,
+   sealing 381 files -- AND IT MUTATED specs/results/scorecards/INSTRUMENT-LOG.toml,
+   which was reverted with git checkout immediately and is clean above.
+   Recorded rather than hidden: verifying seal 'still runs' is itself a WRITE
+   to the record, which is why the sealed evidence had only --help in it.

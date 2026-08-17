@@ -45,6 +45,17 @@ HARNESS_MARKERS = (
     "Recent commits:",
 )
 
+#: `CA-10-DF-24`, repaired by `SS-05`. THE NEEDLE CLASSES THAT ARE READ FROM
+#: SOMETHING, as opposed to the one that is a tuple of literals in this file.
+#:
+#: The UNDECIDED guard below used to be `if not any(groups.values())`, and
+#: `groups["harness block label"]` is `list(HARNESS_MARKERS)` -- four hard-coded
+#: strings that are never empty -- so THE BRANCH WAS DEAD CODE and a round in
+#: which both live classes derived nothing still returned `WEAK PASS`, exit 0.
+#: A constant cannot witness that anything was looked up. Only these two can, so
+#: only these two decide whether the run is decidable at all.
+DERIVED_NEEDLE_CLASSES = ("operator memory entry", "repository commit subject")
+
 # A subject that is not a self-report cannot be judged. No needles found in an
 # empty file is absence of EVIDENCE, not evidence of absence, and returning PASS
 # for it is a FALSE PASS in an instrument whose entire job is refusing. Found by
@@ -140,8 +151,20 @@ def cmd_check(args: argparse.Namespace) -> int:
     for kind, needles in groups.items():
         print(f"needles      {len(needles):>3}  {kind}")
 
-    if not any(groups.values()):
-        print("\nUNDECIDED: no needles could be derived. Not a pass.")
+    # `CA-10-DF-24`, repaired by `SS-05`. The guard tests the DERIVED classes
+    # only -- see `DERIVED_NEEDLE_CLASSES`. It used to test all three, one of
+    # which is a tuple of literals in this file, so it could never fire.
+    derived = {kind: needles for kind, needles in groups.items()
+               if kind in DERIVED_NEEDLE_CLASSES}
+    if not any(derived.values()):
+        print("\nUNDECIDED: no needles could be derived from this tree. Not a pass.")
+        print("Every needle class that is READ FROM SOMETHING came back empty: "
+              + ", ".join(sorted(derived)) + ".")
+        print("The harness block labels are hard-coded literals in this file and "
+              "cannot witness that anything was looked up, so a pass carried by "
+              "them alone is absence of EVIDENCE, not evidence of absence. Point "
+              "--memory at the DISPATCHING SESSION's memory file and --repo at a "
+              "real checkout, and re-run.")
         return 2
 
     # A pass carried only by literal block labels is a weak pass, and saying so

@@ -24367,6 +24367,578 @@ findings:
       which is MF-020. The unnormalised `review`/`independent-review` vocabulary
       is LEFT OPEN and carried -- normalising it retroactively would rewrite rows
       sealed by closed tickets.
+  - id: SS-05-DF-01
+    found_by: SS-05, counting the class off CA-10's own table before repairing anything
+    found_at_commit: f45a245
+    schedule_revision: 2
+    severity: moderate
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/cut-the-apparatus/CA-10-absent-input/RESULT.md"]
+    channel: operator-doing-the-work
+    cost:
+      basis: one script over the RESULT.md table, run before any source file was edited
+      value: under two minutes, and it moved the epic's headline figure in the unflattering direction
+    summary: >-
+      THE ABSENT-INPUT CLASS'S HEADLINE UNDERCOUNTS ITS OWN TABLE BY ONE, AND THE
+      CLASS IS 48 OPEN RATHER THAN 47. `CA-10-absent-input/RESULT.md` section 3.3
+      carries 44 data rows naming 48 DISTINCT `file:line` references -- rows 10, 15,
+      33 and 41 each name two sites. The FIXED instance,
+      `score_tools._finding_ids` at the old `:2788`, is NOT among them: it is
+      described in section 1 and never entered the table. So the table enumerates 48
+      OPEN sites and the fixed one is a 49th. The headline "48 instances, 1 fixed, 47
+      open" -- repeated verbatim in `STABILIZE-SUBSTRATE-EPIC.md` section 2, in
+      `ticket_plan.yaml`'s `GOAL-absent-input-consumed` baseline, and in issues #271
+      and #279 -- either subtracts the fixed instance from a total that never
+      contained it, or silently drops one table row. `CA-10` section 3.1 settles
+      which artifact is authoritative in its own words: "the sweep is the authority,
+      not the exemplar list". THE NUMERATOR IS 48, NOT 47, AND THE DIRECTION MATTERS:
+      this is the one direction the ticket that found it was explicitly told not to
+      move quietly.
+    reproduction: >-
+      `python3 -c "import re,pathlib; lines=pathlib.Path('specs/results/scorecards/cut-the-apparatus/CA-10-absent-input/RESULT.md').read_text().split(chr(10)); rows=[l for l in lines[175:222] if l.startswith('| `')]; refs=[m for l in rows for m in re.findall(r'`([A-Za-z_0-9]+[.]py:[0-9]+|:[0-9]+)`', l.split('|')[1])]; print(len(rows), len(refs))"`
+      -> `44 48`. Then grep the same file for `2788` or for `_finding_ids` inside the
+      table block: neither occurs.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-05/evidence/remeasure-f45a245.txt section 1"
+      - "specs/results/scorecards/stabilize-substrate/SS-05/RESULT.md section 1.1"
+      - "specs/results/scorecards/cut-the-apparatus/CA-10-absent-input/RESULT.md section 3.3 and section 4"
+    blast_radius: >-
+      Every figure this epic publishes about the absent-input class, including
+      `GOAL-absent-input-consumed`'s clause (c), which asks for the remaining count
+      "over the measured denominator of 48". The denominator 48 is right; what was
+      wrong is that 48 is the OPEN count and not the total. SS-08 must not quote "47
+      open at the base" without this row beside it.
+    disposition: carried
+    disposition_ticket: SS-08
+    disposition_note: >-
+      CARRIED to the evaluation rather than repaired here. Repairing it means editing
+      `CA-10-absent-input/RESULT.md`, a SEALED scorecard of a closed epic, which R-H4
+      forbids and which SS-05 will not do. The live correction is stated in SS-05's
+      own RESULT.md with the count re-derived, and SS-08 decides which figure the
+      epic publishes. NOTE THE SHAPE: the total was right and the DECOMPOSITION was
+      inferred rather than measured, which SS-00-DF-04's class_note already names as
+      this epic's recurring error. This is the fifth instance.
+  - id: SS-05-DF-02
+    found_by: SS-05, while repairing CA-10-DF-21 in the generator
+    found_at_commit: f45a245
+    schedule_revision: 2
+    severity: moderate
+    surface:
+      production: ["scripts/extract_spec_manifest.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: operator-doing-the-work
+    cost:
+      basis: one call to validate_manifest on three real manifests with no invariants
+      value: under a minute; it is the half of CA-10-DF-21 that SS-05's conflict keys do not reach
+    summary: >-
+      `validate_manifest` STILL REPORTS ZERO ERRORS FOR A MANIFEST THAT DECLARES NO
+      STATE INVARIANTS, SO THE REFUSAL SS-05 LANDED FIRES AT GENERATION TIME AND
+      NOTHING FIRES AT VALIDATION TIME. `CA-10-DF-21` names two halves:
+      `generate_python.py:238` emitting `def validate_state(state): return None`, and
+      `extract_spec_manifest.validate_manifest:322-357` not listing `invariants` among
+      the required keys, so generation exited 0 with zero errors and nothing anywhere
+      said the double had no oracle. SS-05 repaired the first half -- the generated
+      oracle now raises, naming which of absent/unreadable/empty it hit -- and CANNOT
+      repair the second: `scripts/extract_spec_manifest.py` is not in SS-05's conflict
+      keys. The consequence is a real gap and not a cosmetic one: an adopter running
+      `validate` on a manifest with no invariants is told it is valid, and only
+      discovers at generation that no state oracle can be produced from it. The
+      related instance `extract_spec_manifest.py:352` -- `for invariant in
+      manifest.get("invariants", []) or []`, zero invariants checked, exit 0 PASS --
+      is the same key one layer up and is also unreached.
+    reproduction: >-
+      `python3 -c "import sys; sys.path.insert(0,'scripts'); from extract_spec_manifest import load_manifest, validate_manifest; from pathlib import Path; p=Path('examples/validation/ex4_pipeline_coherent/specs/program_model/spec_manifest.yaml'); m=load_manifest(p); m.pop('invariants', None); print(validate_manifest(m,p))"`
+      -> `[]`. Pinned in the suite by
+      `tests/test_absent_invariants_refuse.py::test_validate_manifest_still_reports_zero_errors_and_that_is_FILED_NOT_FIXED`,
+      which goes RED the day it is repaired and becomes its regression pin.
+    evidence:
+      - "tests/test_absent_invariants_refuse.py"
+      - "specs/results/scorecards/stabilize-substrate/SS-05/evidence/remeasure-f45a245.txt section 6"
+      - "specs/deferred_findings.yaml -- CA-10-DF-21, second paragraph"
+    blast_radius: >-
+      Every repository this toolchain scaffolds. The generator half is repaired, so a
+      vacuous oracle can no longer SHIP; what remains is that `validate` says nothing
+      about it, so the author learns late rather than never.
+    disposition: carried
+    disposition_ticket: SS-08
+    disposition_note: >-
+      CARRIED. Outside SS-05's conflict keys and deferred per the epic's batch policy
+      rather than fixed. The gap is EXECUTED by a test rather than remembered, which
+      is the only form of disclosure this project has found that survives a ticket
+      boundary.
+  - id: SS-05-DF-03
+    found_by: SS-05, reading the register row SS-02 wrote and the tests that pin its literal text
+    found_at_commit: f45a245
+    schedule_revision: 2
+    severity: moderate
+    surface:
+      production: ["examples/validation/scorecards/score_tools.py", "examples/validation/instruments/instruments.toml"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: operator-doing-the-work
+    cost:
+      basis: reading SS-02's contract note and grepping the three tests that mutate the register's literal text
+      value: ten minutes, and the answer was to decline with a reason rather than to widen the ticket
+    summary: >-
+      `audit` STILL ANSWERS UNDECIDED IN THE TEXT AND 0 ON THE EXIT CODE FOR ALL THREE
+      LEDGER STATES, AND SS-02 HANDED THAT DECISION TO SS-05, WHICH DECLINED IT. The
+      registered contract for `scorecard-audit` declares
+      `exit_code_cannot_carry_the_answer` on its `absent`, `unreadable` and `empty`
+      states with the reason: "UNVERIFIED is printed and deliberately not counted, so
+      this run exits 0 with 0 violation(s). A caller that reads the exit code and not
+      the text gets a PASS over a tree with no ledger in it. Declared rather than
+      repaired: making it exit non-zero is a change to what a violation MEANS, and
+      that belongs to SS-05." SS-05 REPAIRED A DIFFERENT AND NARROWER THING -- `audit`
+      now exits 2 when NOTHING WAS READ AT ALL (no `INSTRUMENT-LOG.toml`, or zero
+      cards, or a root that does not exist) -- and left the ledger states alone. THE
+      REASON IS STATED SO IT IS A CHOICE ON THE RECORD RATHER THAN AN OMISSION: (1) an
+      unresolvable ledger over a real corpus of cards is a genuinely partial
+      measurement -- 133 sealed digests were still verified and five of six reading
+      rules still ran -- so calling it "no verdict" would be false where calling the
+      empty-tree case "no verdict" is true; (2) repairing it changes what VIOLATION
+      means for every caller of `audit`, which is a doctrine change and not an
+      absent-input repair; (3) it requires amending another ticket's registered
+      contract plus three tests in `tests/test_absent_input_demonstrations.py` that
+      mutate the register's LITERAL TEXT by string replacement on
+      `expect_exit = 0` and on the key name `exit_code_cannot_carry_the_answer`.
+    reproduction: >-
+      `python3 -c "import tomllib,pathlib; d=tomllib.loads(pathlib.Path('examples/validation/instruments/instruments.toml').read_text()); r=[x for x in d['instrument'] if x['id']=='scorecard-audit'][0]; print({s: (r['absent_input'][s]['expect_exit'], bool(r['absent_input'][s].get('exit_code_cannot_carry_the_answer'))) for s in ('absent','unreadable','empty')})"`
+      -> every state `(0, True)`. Pinned in the suite by
+      `tests/test_score_tools_absent_input.py::test_the_ledger_states_still_exit_0_and_that_is_FILED_NOT_FIXED`.
+    evidence:
+      - "examples/validation/instruments/instruments.toml -- the scorecard-audit row's absent_input note and its three exit_code_cannot_carry_the_answer declarations"
+      - "tests/test_score_tools_absent_input.py"
+      - "tests/test_absent_input_demonstrations.py lines 337, 357 and 422 -- the three string replacements over the register's literal text"
+    blast_radius: >-
+      One instrument's exit code in three staged trees. It does not affect any figure
+      this epic publishes, because every `audit` figure here is read from the TEXT.
+      What it affects is a caller that checks only the code, which is the population
+      SS-01-DF-05 is about.
+    disposition: carried
+    disposition_ticket: SS-08
+    disposition_note: >-
+      CARRIED, AND DECLINED WITH A REASON RATHER THAN MISSED. SS-08 should decide
+      whether the epic wants the doctrine change; if it does, the test named above
+      goes red and becomes its regression pin. NOTE FOR WHOEVER TAKES IT: three tests
+      pin the register by string replacement on literal text, so ANY row added above
+      the `scorecard-audit` row carrying a four-space `expect_exit = 0` silently
+      changes which contract those tests mutate. SS-05's two new rows are appended at
+      the END of the register for exactly that reason, and that fragility is worth a
+      finding of its own if anyone hits it.
+  - id: SS-05-DF-04
+    found_by: SS-05, asking WHY neither instrument this epic shipped was ever required to register
+    found_at_commit: f45a245
+    schedule_revision: 2
+    severity: moderate
+    surface:
+      production: ["examples/validation/instruments/instruments.toml", "examples/validation/instruments/demonstrate.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: operator-doing-the-work
+    cost:
+      basis: reading registry.enumeration.roots against the paths of the two instruments the epic shipped
+      value: one minute, and it is the cause underneath SS-07-DF-08 and SS-06-DF-05 rather than another instance of them
+    summary: >-
+      THE REGISTER'S OWN DISCOVERY SCAN CANNOT SEE AN INSTRUMENT SHIPPED UNDER
+      `specs/results/`, SO "NOTHING IS SILENTLY OMITTED" HOLDS ONLY FOR TWO
+      DIRECTORIES. `registry.enumeration.roots` is `["scripts", "examples/validation"]`
+      and `SM-03` replaced a literal list of thirteen paths with this DECLARED SCOPE
+      precisely so that "adding a file cannot satisfy it; only adding a row can". That
+      is true INSIDE the scope and vacuous outside it: `SS-07`'s
+      `stranded_loaders.py` and `SS-06`'s `vacuity_probe.py` both live under
+      `specs/results/scorecards/stabilize-substrate/`, so neither was ever discovered,
+      neither was ever required, and `test_the_named_instruments_are_all_enumerated`
+      passed while two shipped instruments sat outside the count. BOTH WERE THEN FOUND
+      BY HAND TO CARRY THE ABSENT-INPUT DEFECT (`SS-07-DF-08`, `SS-06-DF-05`), and the
+      owner ruling that ordered them registered treats that as a coverage failure --
+      correctly -- without naming the mechanism that produced it. THIS IS THE
+      MECHANISM, and it will recur: the natural home for an instrument a TICKET ships
+      is that ticket's evidence directory, which is exactly where the scan does not
+      look.
+    reproduction: >-
+      `python3 -c "import tomllib,pathlib; d=tomllib.loads(pathlib.Path('examples/validation/instruments/instruments.toml').read_text()); print(d['registry']['enumeration']['roots'])"`
+      -> `['scripts', 'examples/validation']`. Both instruments are at
+      `specs/results/scorecards/stabilize-substrate/SS-07/stranded_loaders.py` and
+      `.../SS-06/vacuity_probe.py`, neither under either root. Before SS-05's
+      registration the whole-register sweep read `56` instruments with both files
+      shipped and running.
+    evidence:
+      - "examples/validation/instruments/instruments.toml -- [registry.enumeration] and the SS-05 retro-registration header"
+      - "specs/results/scorecards/stabilize-substrate/SS-05/evidence/register-after-retro-registration.txt"
+      - "specs/deferred_findings.yaml -- SS-07-DF-08 first sentence, SS-06-DF-05 blast_radius"
+    blast_radius: >-
+      Every instrument any future ticket ships into its own evidence directory. The
+      two known ones are now registered by hand; the scan that is supposed to make
+      hand-registration unnecessary still cannot see that class of location.
+    disposition: carried
+    disposition_ticket: SS-08
+    disposition_note: >-
+      CARRIED. NOT REPAIRED HERE ON PURPOSE: widening `roots` to include
+      `specs/results/**` would sweep the FROZEN measurement archives the register
+      already declares deliberately out of scope, so the fix is a scoping decision
+      about which parts of `specs/results/` are toolchain and which are record, and
+      that is the owner's. Naming the mechanism is what this row is for; SS-07-DF-08
+      and SS-06-DF-05 are its instances.
+  - id: SS-05-DF-05
+    found_by: SS-05, tracing the callers of the empty-selection refusal it added to the channel gate
+    found_at_commit: f45a245
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: ["scripts/run_generated_case_adapters.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: operator-doing-the-work
+    cost:
+      basis: one grep over the two callers of enforce_external_bindings
+      value: two minutes; it is the half of CA-10-DF-20 that SS-05's conflict keys do not reach
+    summary: >-
+      THE ENFORCING CALLER RETURNS BEFORE IT CAN BE REFUSED, SO THE EMPTY-SELECTION
+      REPAIR REACHES ONE OF THE TWO CALL SITES. `CA-10-DF-20` names
+      `testgraph_channels.py:410`: an empty external corpus yields `actions=set()`,
+      every binding is skipped, and `external channel enforcement passed` is printed
+      over a gate that checked nothing. SS-05 repaired that INSIDE
+      `enforce_external_bindings`, which is the right place, and it fires for
+      `export_testgraph_cases.py:237`, which passes
+      `actions={case.input.action for case in all_external}` with no guard. It does
+      NOT fire for `run_generated_case_adapters.py:968`, which reads
+      `if not external_actions: return` and leaves BEFORE calling the gate at all --
+      so the enforcing path answers an empty external corpus by silently doing
+      nothing, which is the same false PASS one frame earlier. The two callers already
+      disagreed and CA-10-DF-19 records the same asymmetry in the other direction:
+      "the enforcing copy passes where the reporting copy refuses".
+    reproduction: >-
+      `sed -n '965,975p' scripts/run_generated_case_adapters.py` -> `if not
+      external_actions:` / `    return`, immediately above the
+      `enforce_external_bindings(...)` call. Compare
+      `sed -n '234,240p' scripts/export_testgraph_cases.py`, which has no such guard
+      and now refuses:
+      `pytest tests/test_testgraph_channels.py::test_an_empty_action_selection_is_refused_rather_than_passed`
+      demonstrates the refusal the guarded caller never reaches.
+    evidence:
+      - "scripts/testgraph_channels.py -- the empty-selection refusal in enforce_external_bindings"
+      - "tests/test_testgraph_channels.py::test_an_empty_action_selection_is_refused_rather_than_passed"
+      - "specs/deferred_findings.yaml -- CA-10-DF-20, CA-10-DF-19 final sentence"
+    blast_radius: >-
+      One call site on the enforcing path. Narrow, and it is exactly the path that
+      decides a run, which is why it is filed rather than left as a note.
+    disposition: carried
+    disposition_ticket: SS-08
+    disposition_note: >-
+      CARRIED. `scripts/run_generated_case_adapters.py` is outside SS-05's conflict
+      keys and is deferred per the epic's batch policy. The refusal it needs already
+      exists one function away and the change is deleting an early return.
+  - id: SS-05-DF-06
+    found_by: SS-05, after two MISS rows while retro-registering an instrument
+    found_at_commit: f45a245
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: ["examples/validation/instruments/demonstrate.py", "examples/validation/scorecards/score_tools.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: operator-doing-the-work
+    cost:
+      basis: two MISS rows and one grep for the staging primitives each runner supports
+      value: fifteen minutes, and the same trap is waiting for every ticket that registers an instrument
+    summary: >-
+      ONE REGISTER, TWO STAGING VOCABULARIES, AND THE UNSUPPORTED ONE IS IGNORED IN
+      SILENCE. `instruments.toml` is executed by TWO runners.
+      `demonstrate.py` stages an `[instrument.failing]` / `[instrument.passing]` slot
+      with `stage` and `mutate` ONLY. `score_tools.py absent-input` stages an
+      `[instrument.absent_input.<state>]` with `stage`, `link`, `remove` AND `write`.
+      A `[[instrument.failing.write]]` block is therefore VALID TOML, sits in the same
+      file six lines from a `[[instrument.absent_input.empty.write]]` block that
+      works, and is DROPPED WITHOUT A WORD -- the demonstration then runs against an
+      empty tree and the instrument refuses it, so the failure surfaces as the
+      instrument misbehaving rather than as the register being misread. MEASURED: two
+      `MISS` rows reading `stranded-loaders / failing: exit 2, declared 0` before the
+      cause was found. This is the absent-input class pointed at a config reader: a key
+      that was never read and a key that was read and empty produce the same result,
+      and nothing distinguishes them. `demonstrate.py` already refuses a `mutate` that
+      seeds nothing (`test_the_runner_refuses_a_mutation_that_seeds_nothing`), so the
+      refusal shape is present in the same file.
+    reproduction: >-
+      `grep -n 'spec.get("stage"\|spec.get("mutate"\|spec.get("write"\|spec.get("link"\|spec.get("remove"' examples/validation/instruments/demonstrate.py`
+      -> `stage` and `mutate` only. Compare `_absent_stage` in
+      `examples/validation/scorecards/score_tools.py`, which reads all five. Add
+      `[[instrument.failing.write]]` to any row and run
+      `python3 examples/validation/instruments/demonstrate.py --only <id>`: the block
+      is ignored, no warning is printed, and the slot reports MISS for whatever the
+      instrument says about an empty tree.
+    evidence:
+      - "examples/validation/instruments/instruments.toml -- the SS-05 note above the stranded-loaders failing slot"
+      - "examples/validation/instruments/fixtures/stranded_loaders/README.md"
+      - "examples/validation/instruments/demonstrate.py -- the stage/mutate loop"
+    blast_radius: >-
+      Every ticket that registers an instrument from now on, which the owner ruling
+      makes every ticket that ships one. The cost is minutes and a misattributed
+      failure, not a wrong verdict, which is why it is minor rather than moderate.
+    disposition: carried
+    disposition_ticket: SS-08
+    disposition_note: >-
+      CARRIED. The repair is one refusal in `demonstrate.py` -- an unknown staging key
+      inside a slot is an error, not a no-op -- and it is outside SS-05's conflict
+      keys. NOTE THE BUDGET: this is the SIXTH row SS-05 filed against a batch budget
+      of 5. It is filed rather than dropped because it carries a reproduction and
+      because dropping it would leave the next registering ticket to pay the same cost
+      again, which is the argument `deferment.md` makes for filing at all. The overrun
+      is disclosed in SS-05's RESULT.md rather than hidden by folding two rows
+      together.
+  - id: SS-05-DF-07
+    found_by: SS-05, by the suite -- the epic's own new guard went red on the ticket repairing the class it guards
+    found_at_commit: a0b5f96
+    schedule_revision: 2
+    severity: moderate
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_absent_input_demonstrations.py"]
+    channel: the-suite
+    cost:
+      basis: one full-suite run at the tip, one red, and one reading of the guard
+      value: it is the epic's own anti-gate guard mis-reporting, found by the only mechanism that could find it
+    summary: >-
+      `SS-02`'S ANTI-GATE GUARD IS A SUBSTRING MATCH OVER RAW SOURCE TEXT AND CANNOT
+      TELL A CALL FROM A MENTION IN A COMMENT, SO IT RAISED A FALSE REFUSAL AGAINST
+      THE TICKET THAT WAS REPAIRING THE CLASS IT GUARDS. `test_the_check_gates_nothing`
+      exists for `GOAL-absent-input-consumed` clause (e) -- NO NEW GATE OVER
+      SUBJECT-PROGRAM CONTENT -- and proves it by searching every program surface for
+      the tokens `absent-input`, `absent_input` and `cmd_absent_input`. `SS-05`
+      repaired six instances of the absent-input class and CITED THE CHECK BY NAME in
+      the comments explaining each repair, in `scripts/disposition.py` and
+      `scripts/generate_python.py`. The guard reported both as callers wiring the
+      check into a close path. NOTHING WAS WIRED: the clause the guard defends was
+      still TRUE and it reported a violation anyway. THAT IS A FALSE REFUSAL BY A
+      RECOGNISER BOUND TO SURFACE FORM, and it is the same class as `CA-08-DF-01` (a
+      recogniser bound by sentence form, which reads zero counted figures on charters)
+      and `SS-00-DF-03` (a keyword matcher over harness prose, which classified three
+      of five commands as judged instruments). THE SHAPE IS NOW THREE FOR THREE IN
+      THIS PROJECT'S OWN RECOGNISERS. Worse, the incentive it creates is exactly
+      backwards: the cheapest way to make it green is to STOP CITING THE FINDING ID
+      AND THE RULE IN THE CODE THAT IMPLEMENTS THEM, which is the documentation habit
+      this epic exists to strengthen.
+    reproduction: >-
+      At `a0b5f96`, `uv run --with pytest --with pyyaml -m pytest
+      tests/test_absent_input_demonstrations.py::test_the_check_gates_nothing -q`
+      -> `AssertionError: ['scripts/disposition.py', 'scripts/generate_python.py']
+      reference the absent-input check`. Both matches are in COMMENTS; neither file
+      imports, invokes or shells out to it. `grep -n "absent" scripts/generate_python.py`
+      shows every hit on a `#` line.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-05/evidence/pytest-tip-FIRST-RUN-with-the-false-refusal.txt"
+      - "tests/test_absent_input_demonstrations.py -- `_code_only` and `test_the_gate_guard_still_catches_a_real_caller`"
+      - "specs/deferred_findings.yaml -- CA-08-DF-01, SS-00-DF-03"
+    blast_radius: >-
+      One test, and the clause it decides. It fails CLOSED, so it never granted a
+      false clean; what it costs is a red that pressures the next author to remove a
+      citation from a comment.
+    disposition: repaired
+    disposition_ticket: SS-05
+    disposition_note: >-
+      REPAIRED, AND THE ALTERNATIVE IS NAMED SO THE CHOICE IS ON THE RECORD.
+      REWORDING MY OWN COMMENTS WOULD HAVE MADE IT GREEN IN ONE MINUTE and would have
+      been editing the artifact to make the check pass -- the exact move `MF-020` and
+      `measurement_rule` forbid, available here in its most tempting form because the
+      artifact was only a comment. Instead the GUARD was repaired to measure the
+      property it states: `.py` files are searched with comments and docstrings
+      removed via `ast.unparse`, and non-`.py` files and untokenisable files are
+      searched WHOLE, because unreadable is not clean. THE NARROWING IS THE RISK AND
+      IT IS DEMONSTRATED AGAINST: `test_the_gate_guard_still_catches_a_real_caller`
+      puts four subjects through the same code path -- an import, a `subprocess.run`
+      with the CLI spelling, an attribute call, and the comment-only mention -- and
+      asserts the first three are still caught and the fourth is not, plus that the
+      UNNARROWED search does flag the fourth, which is the finding itself executed.
+      The guard is strictly stronger on its stated claim than it was.
+  - id: SS-05-DF-08
+    found_by: the independent reviewer of PR #290, applying SS-05's own definition of `unreadable` to SS-05's own repair
+    found_at_commit: bf094c3
+    schedule_revision: 2
+    severity: moderate
+    surface:
+      production: ["examples/validation/scorecards/score_tools.py", "scripts/disposition.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: independent-review
+    cost:
+      basis: two invocations, each pointing --root or --ledger at a path of the wrong TYPE
+      value: it found an instance of the absent-input class INSIDE the ticket that repairs the absent-input class
+    summary: >-
+      SS-05'S OWN ABSENT-INPUT REPAIR SHIPPED WITHOUT THE `unreadable` STATE, AND ITS
+      RESULT.md CLAIMED OTHERWISE. `score_tools.audit_input_state` was written to give
+      "three states, three sentences" and shipped with FOUR BRANCHES RETURNING TWO
+      LABELS -- `absent` three times and `empty` once. There was no `unreadable`
+      branch. Under SS-05's OWN operationalisation of that state -- `--root` names a
+      FILE, the definition it used to write the `stranded-loaders` and
+      `vacuity-probe` register contracts -- `score_tools.py audit --root <a file>`
+      died with a `json.decoder.JSONDecodeError` TRACEBACK AT EXIT 1. A traceback is
+      not a verdict, exit 1 is the code a VIOLATION uses, and no test in
+      `tests/test_score_tools_absent_input.py` covered it. THE SAME SHAPE, WEAKER, IN
+      THE OTHER INSTRUMENT THE SAME TICKET TOUCHED: `resolve_ledger` returns any path
+      that EXISTS, so `scripts/disposition.py --ledger <a directory>` raised
+      `IsADirectoryError` at exit 1 -- and that module had just been given an
+      `unreadable` state for the PARSE-FAILURE form while the NOT-A-FILE form was left
+      crashing. THE CRASH IS IDENTICAL AT `f45a245`, SO SS-05 DID NOT INTRODUCE IT; IT
+      CLAIMED TO HAVE CLOSED IT AND HAD NOT. That is the more useful finding: the
+      class was not caught by the ticket that swept for the class, in the instrument
+      the ticket had just rewritten, because the claim was checked against the
+      author's intent rather than against the code.
+    reproduction: >-
+      `touch /tmp/f && python3 examples/validation/scorecards/score_tools.py audit
+      --root /tmp/f; echo $?` -> `json.decoder.JSONDecodeError` traceback, exit 1
+      (at `bf094c3` and at `f45a245`).
+      `python3 scripts/disposition.py --ledger /tmp --epic SS; echo $?` ->
+      `IsADirectoryError: [Errno 21] Is a directory: '/tmp'`, exit 1. After the
+      repair both print `UNDECIDED [unreadable] ...` and exit 2. Pinned by
+      `tests/test_score_tools_absent_input.py::test_a_root_that_is_a_FILE_is_UNDECIDED_unreadable_and_not_a_traceback`,
+      `::test_the_audit_states_are_now_THREE_LABELS_and_pairwise_distinct` and
+      `tests/test_disposition_absent_input.py::test_a_ledger_path_that_is_a_DIRECTORY_is_UNDECIDED_not_a_traceback`.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-05/RESULT.md section 2.6, the F5 correction"
+      - "tests/test_score_tools_absent_input.py"
+      - "tests/test_disposition_absent_input.py"
+    blast_radius: >-
+      Two instruments, on inputs of the wrong TYPE rather than of the wrong content.
+      Neither produced a false PASS -- both crashed -- so no verdict was ever wrong;
+      what was wrong is that a crash was counted as a closed state, and that SS-05's
+      own count of its states was taken from its intent instead of from its code.
+    disposition: repaired
+    disposition_ticket: SS-05
+    disposition_note: >-
+      REPAIRED IN THE AMENDMENT ROUND, AND THE EVASION IS NAMED BECAUSE IT WAS
+      AVAILABLE AND CHEAP. SS-05 could have weakened section 1.7's definition of
+      `unreadable` until the claim became true -- it is SS-05's own definition, in
+      SS-05's own document, and nothing outside this ticket depends on it. THAT IS
+      MF-020 AND IT WAS NOT TAKEN. `audit_input_state` now has a not-a-directory
+      branch and catches OSError/ValueError/JSONDecodeError from `collect_cards`;
+      `disposition.load` refuses an unreadable path at exit 2; and a new test asserts
+      each of the three labels is REACHABLE and that the three messages differ, which
+      is the check that would have caught two-labels-for-three-states and did not
+      exist.
+  - id: SS-05-DF-09
+    found_by: the independent reviewer of PR #290
+    found_at_commit: bf094c3
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: ["scripts/corpus_diagnostics.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: independent-review
+    cost:
+      basis: reading the label against the state it names
+      value: the class arriving in the vocabulary of the ticket written to keep those three words apart
+    summary: >-
+      AN ABSENT VIEW ATTRIBUTION WAS LABELLED `UNDECIDED [empty]`. `corpus_diagnostics.run`
+      refuses a corpus whose view cannot be attributed -- no `SOURCE_VIEW`, no
+      `view`/`layer` on any case, no directory name that matches -- and SS-05 gave
+      that refusal the `[empty]` label. THE CORPUS IS NOT EMPTY: it has cases. What is
+      absent is the ATTRIBUTION. The messages were distinct and the VERDICT was
+      correct, so nothing was mis-decided; the STATE NAME was wrong, inside the ticket
+      whose entire subject is `absent`, `unreadable` and `empty` not collapsing into
+      one answer. IT IS THE SURVIVING HALF OF `SS-06-DF-05`'S SHAPE -- there the
+      verdict was already a refusal and the CAUSE was a fabrication -- reproduced one
+      ticket later by the ticket that cited `SS-06-DF-05` while writing it.
+    reproduction: >-
+      A generated package declaring no `SOURCE_VIEW`, whose cases carry no
+      `view`/`layer`, under a directory named neither `spec-unit` nor `testgraph`:
+      `python3 scripts/tla_spec_dev.py analyze corpus <dir>` printed
+      `UNDECIDED [empty]: ... declares no SOURCE_VIEW ...`. Now prints
+      `UNDECIDED [absent]`. Pinned by
+      `tests/test_corpus_gate_absent_input.py::test_the_three_corpus_gate_labels_name_the_right_states`,
+      which asserts the empty and absent labels name different states.
+    evidence:
+      - "scripts/corpus_diagnostics.py -- the SS-05-DF-09 comment at the refusal"
+      - "tests/test_corpus_gate_absent_input.py"
+    blast_radius: >-
+      One label on one refusal. No verdict moved. It matters because a reader
+      triaging by state name would look for an empty corpus and find a populated one.
+    disposition: repaired
+    disposition_ticket: SS-05
+    disposition_note: >-
+      REPAIRED. Worth keeping on the record rather than fixing silently: three
+      instruments in this epic have now named a state wrongly while deciding it
+      correctly -- SS-06-DF-05, SS-07-DF-08 and this -- and in all three the verdict
+      was right and the CAUSE was not. A rule stated on the verdict alone does not see
+      this class; SS-02's check sees it only because it compares the MESSAGES.
+  - id: SS-05-DF-10
+    found_by: the independent reviewer of PR #290, checking what SS-05-DF-05 actually files
+    found_at_commit: bf094c3
+    schedule_revision: 2
+    severity: moderate
+    surface:
+      production: ["scripts/run_generated_case_adapters.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: independent-review
+    cost:
+      basis: comparing SS-05-DF-05's cited line against CA-10's enumerated site in the same module
+      value: an enumerated site of the class that SS-05 left both unrepaired and unfiled while claiming otherwise
+    summary: >-
+      THE EFFECT ORACLE SWITCHES ITSELF OFF SILENTLY, AND SS-05 FILED THE ADJACENT
+      LINE INSTEAD. `CA-10-DF-19` enumerates `run_generated_case_adapters.py:1571`:
+      when no `effects:` block is found -- absent file, or a block that parses falsy --
+      `load_effect_declarations(None)` yields zero ports, `effects_active` is False, NO
+      `EffectSandbox` IS EVER CONSTRUCTED, `diff_effects` is never called, THE
+      `--effect-report` FILE IS NEVER WRITTEN, and `main` prints `executed N cases in
+      batch` and returns 0. Three things make it a defect rather than a design: the
+      function's own docstring asserts the opposite ("a program with no declared ports
+      is checked as such, and any effect it emits is a gap" -- false, because with zero
+      ports nothing is observed so nothing can be a gap); a comment says "the report is
+      written unconditionally" and it is written under `if effects_active:`; and the
+      standalone twin `effect_conformance_report.py:80-87` REFUSES this exact input
+      with exit 2. THE ENFORCING COPY PASSES WHERE THE REPORTING COPY REFUSES. SS-05
+      filed `SS-05-DF-05` about `:968` in the same module -- an ADJACENT site it found
+      itself -- and described that row in its RESULT.md as one of "the two
+      highest-value filed by name" of the 32 sites outside its conflict keys. `:1571`,
+      the site CA-10 actually enumerated, was neither repaired nor filed nor mentioned.
+    reproduction: >-
+      `python3 scripts/run_generated_case_adapters.py --cases-dir <pkg>/cases --mapping
+      <pkg>/case_adapters.toml --effect-report /tmp/effects.json` with no `actions.yml`
+      or `spec_manifest.yaml` beside the mapping -> exit 0, `/tmp/effects.json` never
+      created, nothing printed about why. Verbatim from `CA-10-DF-19`'s own
+      reproduction field, which is where it has been since that sweep.
+    evidence:
+      - "specs/deferred_findings.yaml -- CA-10-DF-19, fourth paragraph"
+      - "specs/results/scorecards/stabilize-substrate/SS-05/RESULT.md section 4, the F12 correction"
+    blast_radius: >-
+      The effect-conformance path on any corpus whose effects block is absent or
+      falsy. It is one of the 32 sites outside SS-05's conflict keys and is carried
+      with them; what this row adds is that it now has an id of its own rather than
+      being covered by a claim that pointed at a different line.
+    disposition: carried
+    disposition_ticket: SS-08
+    disposition_note: >-
+      CARRIED. `scripts/run_generated_case_adapters.py` is outside SS-05's conflict
+      keys. FILED RATHER THAN LEFT INSIDE A SENTENCE THAT WAS NOT TRUE: SS-05's claim
+      that two of the 32 were "filed by name" was correct for `SS-05-DF-02` and wrong
+      for `SS-05-DF-05`, which files an adjacent site. With this row the count is one
+      enumerated site filed by SS-05-DF-02, one adjacent site by SS-05-DF-05, and this
+      one; the remaining 30 are carried by `CA-10-DF-17`..`DF-25` and by nothing of
+      SS-05's.
   - id: SS-00-DF-09
     found_by: "the epic owner, watching its own throwaway probes fail the epic's own rule three times in one session"
     found_at_commit: "f45a245"

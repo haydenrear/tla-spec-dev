@@ -11,7 +11,8 @@ from .types import FilePath, FileBytes, FilesystemState, ReadFile, WriteFile, Re
 
 
 def validate_state(state: FilesystemState) -> None:
-    return None
+    validate_internal_invariant(state)
+    validate_external_invariant(state)
 
 
 def explain_state_failure(state: FilesystemState) -> str:
@@ -36,6 +37,14 @@ def validate_trace(initial_state: FilesystemState, commands: list[object], port:
         result = getattr(port, _COMMAND_METHODS[method_name])(command)
         after = port.snapshot()
         _validate_transition(before, command, result, after)
+
+
+def validate_internal_invariant(state: FilesystemState) -> None:
+    raise NotImplementedError("No invariant template configured for InternalInvariant")
+
+
+def validate_external_invariant(state: FilesystemState) -> None:
+    raise NotImplementedError("No invariant template configured for ExternalInvariant")
 
 
 def validate_read_transition(

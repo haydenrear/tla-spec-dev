@@ -102,6 +102,17 @@ def off_vocabulary_channels(rows: list[dict]) -> list[tuple[str, str]]:
             if r.get("channel") and r["channel"] not in CHANNELS]
 
 
+class LedgerUnreadable(Exception):
+    """The ledger is THERE and will not read as itself. `SS-05`, `SS-02`'s third state.
+
+    `SS-01-DF-04` is the whole reason this exists as its own name: an independent
+    reviewer handed the repaired scorecard audit a ledger that EXISTED and named
+    nothing and got 14 confident fabrication accusations against real citations,
+    because "absent", "unreadable" and "read and found nothing" were one value.
+    Here they are three, and each exits 2 with its own sentence.
+    """
+
+
 def duplicate_keys(text: str) -> list[tuple[str, str, list[int]]]:
     """Rows carrying the same key twice, which YAML resolves SILENTLY to the last.
 
@@ -116,24 +127,61 @@ def duplicate_keys(text: str) -> list[tuple[str, str, list[int]]]:
     A structural fault is reported SEPARATELY from a clause violation and always
     refuses: a clause verdict computed over silently-discarded input is not a
     verdict at all.
+
+    THE NAMED HALF, REPAIRED BY `SS-05`. `CA-10-DF-22`: the refusal
+    `CA-05-DF-06` earned was a LINE SCAN that only ever saw keys at EXACTLY
+    four-space indent inside a `  - id:` block. A duplicate at any other level
+    was invisible, and the most important one is A DUPLICATED TOP-LEVEL
+    `findings:` -- exactly what concatenating two ledgers produces.
+    `yaml.safe_load` keeps the LAST block, `doc.get("findings")` returns only
+    its rows, and `report` printed `DISPOSED <label>: N findings, all three
+    clauses hold` with exit 0 over a document half of which the parser had
+    thrown away. THE EXACT DEFECT THE REFUSAL WAS WRITTEN TO PREVENT, ONE
+    NESTING LEVEL UP.
+
+    `CA-10-DF-22` names the correct answer and it is what this now is: a
+    DUPLICATE-REJECTING LOADER. Every mapping node in the document is examined,
+    at every depth, so the level a duplicate sits at stops mattering. A row is
+    labelled by its own `id` where it has one and `<document>` where it does not,
+    which is how a top-level collision now gets reported at all.
+
+    Raises `LedgerUnreadable` when the text will not parse. That is the THIRD
+    absent-input state (`SS-02`): "there and unreadable as itself" is not
+    "absent" and is not "read and found nothing", and answering all three the
+    same way is the class this ticket exists to repair.
     """
-    out: list[tuple[str, str, list[int]]] = []
-    rid = "?"
-    seen: dict[str, list[int]] = {}
+    import yaml  # deferred, as everywhere else in this module
 
-    def flush() -> None:
-        for k, ns in seen.items():
+    found: list[tuple[str, str, list[int]]] = []
+
+    class _DuplicateRejectingLoader(yaml.SafeLoader):
+        """A SafeLoader that RECORDS duplicate keys instead of dropping them."""
+
+    def _construct_mapping(loader, node, deep=False):  # type: ignore[no-untyped-def]
+        lines: dict[str, list[int]] = {}
+        mapping: dict = {}
+        for key_node, value_node in node.value:
+            key = loader.construct_object(key_node, deep=deep)
+            lines.setdefault(str(key), []).append(key_node.start_mark.line + 1)
+            mapping[key] = loader.construct_object(value_node, deep=deep)
+        label = str(mapping.get("id") or "<document>")
+        for key, ns in lines.items():
             if len(ns) > 1:
-                out.append((rid, k, ns))
+                found.append((label, key, ns))
+        return mapping
 
-    for n, line in enumerate(text.split("\n"), 1):
-        if re.match(r"^  - id: ", line):
-            flush()
-            rid, seen = line.split("id: ", 1)[1].strip(), {}
-        elif m := re.match(r"^    ([A-Za-z_][A-Za-z0-9_]*):", line):
-            seen.setdefault(m.group(1), []).append(n)
-    flush()
-    return out
+    _DuplicateRejectingLoader.add_constructor(
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_mapping
+    )
+
+    try:
+        yaml.load(text, Loader=_DuplicateRejectingLoader)
+    except yaml.YAMLError as exc:
+        raise LedgerUnreadable(str(exc)) from exc
+
+    # Deepest-first is the useful order to read: the row that carries the
+    # duplicate before the document that contains the row.
+    return sorted(found, key=lambda item: (item[0] == "<document>", item[2][0]))
 
 
 def _closed_at(stamp: object) -> tuple[int, float]:
@@ -264,20 +312,63 @@ def resolve_ledger(path: pathlib.Path, *, explicit: bool,
 def load(path: pathlib.Path) -> list[dict]:
     import yaml  # deferred: the ledger is the only reason this script needs it
 
-    text = path.read_text()
-    if dups := duplicate_keys(text):
+    # `SS-05-DF-08`, the weaker half. `resolve_ledger` returns any path that
+    # EXISTS, and `read_text()` on a directory raised `IsADirectoryError` at exit
+    # 1 -- a traceback, which is not a verdict, and exit 1 is the code a CLAUSE
+    # VERDICT uses. Same shape as the `audit --root <a file>` crash the reviewer of
+    # PR #290 found: `SS-05` repaired the parse-failure form of `unreadable` and
+    # left the not-a-file form crashing in both instruments it touched.
+    try:
+        text = path.read_text()
+    except OSError as exc:
+        print(
+            f"UNDECIDED [unreadable] {path}: cannot be read as a file "
+            f"({type(exc).__name__}: {exc}). Nothing was read, so no clause holds "
+            f"and no clause is violated. A path that is there and is not a readable "
+            f"file is not an absent ledger and is not an empty one.",
+            file=sys.stderr,
+        )
+        raise SystemExit(2) from exc
+    try:
+        dups = duplicate_keys(text)
+    except LedgerUnreadable as exc:
+        # STATE 2 of THREE (`SS-02`). The file is there and will not read as
+        # itself. Exit 2, not 1: this is the ABSENCE of a clause verdict, not a
+        # clause verdict (`SS-01-DF-05`), and it must not answer in the words of
+        # either of the other two states.
+        print(
+            f"UNDECIDED [unreadable] {path}: does not parse as YAML -- {exc}. "
+            f"Nothing was read, so no clause holds and no clause is violated. "
+            f"An unparseable ledger is not an absent one and is not an empty one "
+            f"(`SS-01-DF-04`).",
+            file=sys.stderr,
+        )
+        raise SystemExit(2) from exc
+    if dups:
         for rid, key, ns in dups:
-            print(f"STRUCTURAL {rid}: `{key}` appears {len(ns)}x at lines "
+            where = "the document root" if rid == "<document>" else rid
+            print(f"STRUCTURAL {where}: `{key}` appears {len(ns)}x at lines "
                   f"{', '.join(map(str, ns))} -- YAML keeps the LAST and discards "
                   f"the rest without a word", file=sys.stderr)
         raise SystemExit(
             f"{path}: {len(dups)} duplicate key(s) -- REFUSING to report a clause "
-            f"verdict over input a parser has silently discarded (CA-05-DF-06)"
+            f"verdict over input a parser has silently discarded (CA-05-DF-06, and "
+            f"at any nesting level since CA-10-DF-22)"
         )
     doc = yaml.safe_load(text) or {}
     rows = doc.get("findings") or []
     if not rows:
-        raise SystemExit(f"{path}: no `findings` -- refusing to report 0 of 0")
+        # STATE 3 of THREE. It parsed perfectly and names nothing. Exit 2 for the
+        # same reason as above -- this used to exit 1, which reads as
+        # `REFUSED ... N of M undisposed` to any caller that checks the code
+        # rather than the text (`SS-01-DF-05`, applied to its sibling).
+        print(
+            f"UNDECIDED [empty] {path}: parses perfectly and declares no "
+            f"`findings`. `0 of 0 disposed` is a satisfied population that was "
+            f"never populated -- refusing to report one.",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
     return rows
 
 

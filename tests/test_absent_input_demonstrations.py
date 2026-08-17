@@ -707,6 +707,50 @@ CALLER_TOKENS = ("absent-input", "absent_input", "cmd_absent_input")
 CALLER_SUFFIXES = (".py", ".sh", ".kts", ".toml", ".json", ".yaml", ".yml")
 
 
+def _code_only(path, text: str) -> str:
+    """A `.py` file with COMMENTS AND DOCSTRINGS REMOVED. `SS-05-DF-07`.
+
+    THIS GUARD ACQUIRED THE SHAPE IT GUARDS. The search below is a SUBSTRING
+    MATCH OVER RAW SOURCE TEXT, so it cannot tell a CALL from a MENTION. `SS-05`
+    repaired six absent-input instances and cited `absent-input` by name in the
+    comments explaining each repair, in `scripts/disposition.py` and
+    `scripts/generate_python.py` -- two program surfaces -- and this test went RED
+    reporting them as callers wiring the check into a close path. NOTHING WAS
+    WIRED. The guard's claim was still TRUE and it reported a violation anyway: a
+    FALSE REFUSAL by a recogniser bound to surface form, which is the same class
+    as `CA-08-DF-01` (a recogniser bound by sentence form) and `SS-00-DF-03` (a
+    keyword matcher over harness prose).
+
+    Rewording the comments would have been editing the artifact to make the check
+    pass. Repairing the check to measure the property it states is the other
+    option and it is this one. The guard is now STRICTLY STRONGER on its stated
+    claim, and `test_the_gate_guard_still_catches_a_real_caller` demonstrates that
+    it still catches a genuine wiring.
+
+    NON-`.py` FILES ARE RETURNED UNCHANGED: a shell fragment or a TOML value is
+    where a real wiring hides, and the stated limit above already says a clean
+    result is a floor. AN UNTOKENISABLE FILE IS ALSO RETURNED WHOLE -- unreadable
+    is not clean, and the conservative direction is the one this rule requires.
+    """
+    if path.suffix != ".py":
+        return text
+    import ast
+
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return text
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Module, ast.ClassDef,
+                             ast.FunctionDef, ast.AsyncFunctionDef)):
+            doc = ast.get_docstring(node, clean=False)
+            if doc:
+                # Blank the docstring in place, keeping every other node intact.
+                node.body[0].value.value = ""
+    # `ast.unparse` drops comments by construction, which is the other half.
+    return ast.unparse(tree)
+
+
 def test_the_check_gates_nothing():
     """Clause (e): NO NEW GATE OVER SUBJECT-PROGRAM CONTENT.
 
@@ -730,6 +774,8 @@ def test_the_check_gates_nothing():
                 continue
             searched.append(path.relative_to(REPO_ROOT).as_posix())
             text = path.read_text(encoding="utf-8", errors="ignore")
+            # `SS-05-DF-07`: a MENTION is not a CALL. See `_code_only`.
+            text = _code_only(path, text)
             if any(token in text for token in CALLER_TOKENS):
                 callers.append(path.relative_to(REPO_ROOT).as_posix())
 
@@ -747,6 +793,64 @@ def test_the_check_gates_nothing():
         f"adopter's code; wiring it into a close or promotion path makes it the "
         f"gate the static-gates doctrine refuses."
     )
+
+
+def test_the_gate_guard_still_catches_a_real_caller(tmp_path):
+    """NON-VACUITY FOR `SS-05-DF-07`'s REPAIR, and it is the whole risk in it.
+
+    `test_the_check_gates_nothing` stopped matching comments and docstrings. A
+    narrowing that ALSO stopped matching real callers would turn a guard into a
+    formality and satisfy itself forever -- which is the vacuous-pass shape this
+    whole file is about, acquired while repairing a false refusal.
+
+    So: four subjects, all `.py`, run through the same `_code_only` the guard
+    uses. Three are genuine wirings in three different spellings and MUST still
+    be found; one is the comment-only mention that caused the false refusal and
+    MUST NOT be.
+    """
+    real_import = tmp_path / "close_path_a.py"
+    real_import.write_text(
+        "from score_tools import cmd_absent_input\n\n"
+        "def close():\n    return cmd_absent_input([])\n",
+        encoding="utf-8")
+
+    real_subprocess = tmp_path / "close_path_b.py"
+    real_subprocess.write_text(
+        "import subprocess\n\n"
+        "def close():\n"
+        "    subprocess.run(['python', 'score_tools.py', 'absent-input'])\n",
+        encoding="utf-8")
+
+    real_attribute = tmp_path / "close_path_c.py"
+    real_attribute.write_text(
+        "import score_tools\n\n"
+        "def close():\n    return score_tools.absent_input()\n",
+        encoding="utf-8")
+
+    mention_only = tmp_path / "repaired_module.py"
+    mention_only.write_text(
+        '"""Repaired under the absent-input rule SS-02 landed."""\n\n'
+        "# CA-10-DF-99, repaired by SS-05. The absent_input class in one line:\n"
+        "# cmd_absent_input is the check; this module does not call it.\n"
+        "def unrelated():\n    return 1\n",
+        encoding="utf-8")
+
+    def hits(path):
+        return any(token in _code_only(path, path.read_text(encoding="utf-8"))
+                   for token in CALLER_TOKENS)
+
+    assert hits(real_import), "a real import stopped being caught"
+    assert hits(real_subprocess), "a real subprocess call stopped being caught"
+    assert hits(real_attribute), "a real attribute call stopped being caught"
+    assert not hits(mention_only), (
+        "the comment-only mention is still reported as a caller; the repair did "
+        "not take"
+    )
+
+    # And the un-narrowed search DOES flag the mention, which is the finding:
+    # without `_code_only` this file is indistinguishable from the three above.
+    assert any(token in mention_only.read_text(encoding="utf-8")
+               for token in CALLER_TOKENS)
 
 
 #: Every field of a state spec that can name a path, taken from what

@@ -1451,7 +1451,7 @@ def cmd_contested(argv: list[str]) -> int:
     root = pathlib.Path(args.root)
     groups = judge_groups(root, args.example)
     recorded = {(str(e.get("round")), str(e.get("example")), str(e.get("arm")),
-                 str(e.get("dimension"))) for e in load_log(root)["contested"]}
+                 str(e.get("dimension"))) for e in load_log_or_empty(root)["contested"]}
 
     unrecorded = []
     report = []
@@ -2501,17 +2501,70 @@ def _touched(commit: str, paths: list[str]) -> list[str]:
     return hits
 
 
-def load_log(root: pathlib.Path) -> dict:
+#: `CA-10-DF-18` items 1-3, repaired by `SS-05`. WHY `audit` NEEDS AN UNDECIDED
+#: EXIT CODE OF ITS OWN.
+#:
+#: `load_log` returned a FULLY-POPULATED EMPTY SKELETON when `INSTRUMENT-LOG.toml`
+#: was absent under `--root`, and `collect_cards` returns `[]` for a root holding
+#: no cards. All six `R-H` checks then iterated empty lists and `audit` printed
+#: `0 violation(s)` and exited 0 -- a clean bill of health over a tree it had not
+#: read. `--root` is free text and the per-round directories are the natural thing
+#: to point it at, while only the top-level `specs/results/scorecards/` carries a
+#: log, so this was reachable by typing the obvious thing. MEASURED:
+#: `audit --root specs/results/scorecards/cut-the-apparatus` printed
+#: `# 0 card(s), 0 instrument change(s), 0 claim(s), 0 sealed digest(s)` and
+#: `0 violation(s)`, exit 0.
+#:
+#: SCOPED DELIBERATELY, AND THIS IS THE HALF `SS-02` HANDED FORWARD. `SS-02`'s
+#: registered contract for `scorecard-audit` declares
+#: `exit_code_cannot_carry_the_answer` for the three LEDGER states and says, in
+#: the register, that making those exit non-zero *"is a change to what a violation
+#: MEANS, and that belongs to SS-05"*. THIS CHANGE DOES NOT TOUCH THEM: an
+#: unresolvable ledger over a real corpus of cards still prints `UNVERIFIED` and
+#: still exits 0, because an unverifiable fact genuinely is not a violation and
+#: 133 sealed digests were still checked. What changes is the case where NOTHING
+#: WAS READ AT ALL, which is not a weaker verdict but the absence of one.
+AUDIT_UNDECIDED = 2
+
+#: The shape `load_log` returns for a root that HAS no log. Callers that legitimately
+#: want "absent means nothing recorded" ask for it by name, at the call site, so the
+#: substitution is visible where it is made rather than hidden in the reader.
+EMPTY_LOG: dict = {"changes": [], "notes": [], "claims": [], "sealed": [],
+                   "movements": [], "contested": [], "demonstrations": []}
+
+
+def load_log(root: pathlib.Path) -> dict | None:
+    """The instrument log under `root`, or `None` when THERE IS NO LOG THERE.
+
+    `CA-10-DF-18` item 1, and the signature IS the repair. This returned an empty
+    skeleton, so *"read the log and it records nothing"* and *"there is no log"*
+    were one value and every caller answered the second with the first. `None` is
+    the third state the old return type could not express -- the same shape as
+    `_finding_ids`' `set[str]` -> `set[str] | None`, which is the worked example
+    of this whole class.
+    """
     path = root / LOG_NAME
     if not path.exists():
-        return {"path": path, "changes": [], "notes": [], "claims": [], "sealed": [],
-                "movements": [], "contested": [], "demonstrations": []}
+        return None
     data = tomllib.loads(path.read_text())
     return {"path": path, "changes": data.get("change", []), "notes": data.get("note", []),
             "claims": data.get("claim", []), "sealed": data.get("sealed", []),
             "movements": data.get("movement", []),
             "contested": data.get("contested", []),
             "demonstrations": data.get("demonstration", [])}
+
+
+def load_log_or_empty(root: pathlib.Path) -> dict:
+    """`load_log`, with "no log" spelled out as "nothing recorded" BY THE CALLER.
+
+    Three call sites want exactly that and are right to: `contested`'s
+    cross-check, `history`'s change list and `seal`'s known-digest map all treat
+    an absent log as an empty one on purpose, and none of them prints a verdict
+    about the tree. They now say so here instead of being handed it silently.
+    `cmd_audit`, which DOES print a verdict, calls `load_log` and refuses.
+    """
+    log = load_log(root)
+    return dict(EMPTY_LOG, path=root / LOG_NAME) if log is None else log
 
 
 def card_date(card: dict) -> str | None:
@@ -2577,7 +2630,7 @@ def cmd_history(argv: list[str]) -> int:
     args = ap.parse_args(argv)
 
     root = pathlib.Path(args.root)
-    log = load_log(root)
+    log = load_log_or_empty(root)
     changes = [c for c in _order_changes(log["changes"])
                if not c.get("affects") or args.example in c.get("affects", [])]
     rows = collect_cards(root, args.example)
@@ -3015,6 +3068,29 @@ def audit_rh1_architecture(ctx: dict) -> list[tuple[str, str]]:
                                 f"{sorted(unmeasurable)} in this tree -- their declared "
                                 f"scope is absent, so nothing about them is checked here"))
     rows = module.card_rows(ctx["root"])
+    if not rows:
+        # `CA-10-DF-18` item 3, repaired by `SS-05`. THIS CLAUSE USED TO EMIT
+        # NOTHING AT ALL over a root with zero cards. It guards an uninstalled
+        # axis, an undeclared subject and an unresolvable scope, and had NO guard
+        # for an empty CARD corpus -- so `entries` was `{}`, the loop below never
+        # ran, and the `## R-H1 comparability` heading printed with no lines under
+        # it. A CLAUSE THAT PRINTS NOTHING IS INDISTINGUISHABLE FROM A CLAUSE THAT
+        # PASSED, and unlike a skip it does not announce itself: `CA-10-DF-14`'s
+        # vacuous-pass shape, inside the instrument that executes the reading
+        # rules.
+        #
+        # GUARDED ON `rows`, NOT ON `ctx["rows"]`. The first draft of this repair
+        # tested the context key and turned three `test_architecture_tags` tests
+        # red, because they call this function directly with a ctx carrying only
+        # `root` and `demonstrations` and let it read the cards itself -- which is
+        # the supported way to call it. The guard belongs on the population the
+        # clause actually derives from.
+        out.append((UNVERIFIED,
+                    "zero cards under this root, so the demonstration table is "
+                    "re-derived from nothing and R-H1's third comparability clause "
+                    "checks nothing. It used to print no line at all here, which "
+                    "reads exactly like a clause that held."))
+        return out
     entries = {e["id"]: e for e in module.demonstration_table(rows, derived, subjects)}
     if len(unmeasurable) == len(derived):
         out.append((UNVERIFIED, "no declared scope resolves in this tree; the demonstration "
@@ -3383,7 +3459,20 @@ def audit_rh6(ctx: dict) -> list[tuple[str, str]]:
                             f"asks for a third pass citing NEW evidence; the flag firing "
                             f"with nothing beside it is the rule going unexecuted again."))
     if not computed:
-        out.append((OK, "no judge group has a spread greater than 1 on any dimension"))
+        # `CA-10-DF-18` item 2, repaired by `SS-05`. THIS USED TO BE `OK`.
+        # `computed` is derived from the cards, so with zero cards this asserted a
+        # MEASURED PROPERTY OF A CORPUS THAT WAS NEVER READ. `UNVERIFIED` is the
+        # answer the record prescribes and it does not increment the violation
+        # count, so nothing that was passing starts failing -- what changes is
+        # that a reader can tell "computed, no spread found" from "nothing to
+        # compute over".
+        if not ctx.get("rows"):
+            out.append((UNVERIFIED,
+                        "zero cards in this tree, so no judge group could be "
+                        "computed at all. `no group has a spread greater than 1` "
+                        "would be a claim about a corpus that was never read."))
+        else:
+            out.append((OK, "no judge group has a spread greater than 1 on any dimension"))
     return out
 
 
@@ -3397,8 +3486,73 @@ AUDIT_CHECKS = {
 }
 
 
+def audit_input_state(root: pathlib.Path) -> tuple[str, str] | None:
+    """Whether `audit` has anything to audit, and if not, WHICH state it is in.
+
+    `CA-10-DF-18` items 1-3, repaired by `SS-05`. Returns `(state, message)` or
+    `None` when there is something to read. Every branch names WHICH state it hit,
+    because a caller cannot act on "undecided" without being told which fact made
+    it so (`SS-01-DF-04`, and `SS-06-DF-05`, where a refusal reported "I was not
+    allowed to look" in the words of "there is nothing there").
+
+    THE `unreadable` BRANCH IS `SS-05-DF-08` AND IT WAS MISSING FROM THE FIRST
+    VERSION OF THIS FUNCTION. `SS-05` shipped this with FOUR branches returning
+    TWO labels -- `absent` three times and `empty` once -- while its own `RESULT.md`
+    claimed "three states, three sentences". Against `SS-05`'s own definition of
+    the `unreadable` state (`--root` names a FILE, the definition it used to
+    register `stranded-loaders` and `vacuity-probe`), `audit --root <a file>` died
+    with a `json.decoder.JSONDecodeError` traceback at EXIT 1 -- a crash, which is
+    not a verdict, and which answers in the words of nothing at all. The crash was
+    identical at `f45a245`, so `SS-05` did not introduce it; it claimed to have
+    closed it and had not. Found by the independent reviewer of PR #290, who
+    applied `SS-05`'s own operationalisation to `SS-05`'s own repair.
+    """
+    log_path = root / LOG_NAME
+    if not root.exists():
+        return ("absent", f"no scorecard root at {root}. Nothing was read, so no "
+                          f"reading rule holds and none is violated.")
+    if not root.is_dir():
+        return ("unreadable",
+                f"{root} is there and is not a directory "
+                f"({'symlink' if root.is_symlink() else 'file or special'}), so it "
+                f"cannot be read AS a scorecard root. This is not the same fact as "
+                f"a root that is absent and not the same fact as one that holds no "
+                f"cards, and it must not get either of their answers.")
+    try:
+        cards = collect_cards(root, None)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        # A root that IS a directory and holds something this cannot read as a
+        # card. Reported as its own state rather than crashing: a traceback is not
+        # a verdict, and `0 violation(s)` would be worse.
+        return ("unreadable",
+                f"{root} is a directory and something under it cannot be read as a "
+                f"scorecard ({type(exc).__name__}: {exc}). A corpus that will not "
+                f"parse is not an empty corpus.")
+    if load_log(root) is None and not cards:
+        return ("absent",
+                f"{root} holds no {LOG_NAME} and no scorecard. All six R-H checks "
+                f"would iterate empty lists and print `0 violation(s)` about a "
+                f"tree nothing was read from. `--root` is free text and only the "
+                f"top-level scorecard directory carries a log.")
+    if load_log(root) is None:
+        return ("absent",
+                f"no {LOG_NAME} under {root}, so R-H3, R-H4 and R-H5 have no "
+                f"declared changes, seals or movements to check {len(cards)} "
+                f"card(s) against. `0 violation(s)` here would mean `0 rules "
+                f"executed`.")
+    if not cards:
+        return ("empty",
+                f"{log_path} reads, and {root} holds ZERO CARDS. Every R-H check "
+                f"is computed FROM the cards, so all six are vacuous: R-H6's `OK "
+                f"no judge group has a spread greater than 1` asserted a measured "
+                f"property of a corpus that was never read, and R-H1's third "
+                f"comparability clause printed nothing at all, which is "
+                f"indistinguishable from a clause that passed.")
+    return None
+
+
 def run_audit(root: pathlib.Path) -> tuple[dict[str, list[tuple[str, str]]], dict]:
-    log = load_log(root)
+    log = load_log_or_empty(root)
     all_rows = collect_cards(root, None)
     ctx = {
         "root": root,
@@ -3424,6 +3578,20 @@ def cmd_audit(argv: list[str]) -> int:
     ap.add_argument("--quiet-ok", action="store_true", help="hide the OK lines")
     args = ap.parse_args(argv)
     root = pathlib.Path(args.root)
+
+    # `CA-10-DF-18` items 1-3, repaired by `SS-05`. BEFORE ANY RULE IS RUN: is
+    # there anything here to audit? See `AUDIT_UNDECIDED` for why this is scoped
+    # to "nothing was read at all" and deliberately does NOT touch the three
+    # ledger states `SS-02` registered a contract for.
+    undecidable = audit_input_state(root)
+    if undecidable is not None:
+        state, why = undecidable
+        print(f"UNDECIDED [{state}] {why}")
+        print("A reading-rule audit is a verdict about a record. `0 violation(s)` "
+              "over a record that was never read says `nothing is wrong` where the "
+              "truth is `nothing was checked`, and the two are different claims.")
+        return AUDIT_UNDECIDED
+
     try:
         declared = [r["id"] for r in load_rubric(pathlib.Path(args.rubric))["reading_rules"]]
     except RubricError:
@@ -3693,15 +3861,44 @@ SCOPE_UNDECIDED = 2
 
 
 def sweep_paths(root: pathlib.Path, patterns=DEFAULT_SWEEP) -> list[pathlib.Path]:
-    seen, out = set(), []
+    return sweep_paths_by_pattern(root, patterns)[0]
+
+
+def sweep_paths_by_pattern(
+    root: pathlib.Path, patterns=DEFAULT_SWEEP
+) -> tuple[list[pathlib.Path], list[str]]:
+    """The swept files, AND the patterns that matched nothing.
+
+    `CA-10-DF-18` item 5, the mechanism half, repaired by `SS-05`. The named harm
+    is already gone -- `SS-01` added `specs/deferred_findings.yaml` to
+    `DEFAULT_SWEEP` after the close deleted the old address and 17 REFUTED figures
+    went unreported. THE MECHANISM WAS NOT TOUCHED: this loop simply never enters
+    its body for a pattern matching zero files, so the denominator fell in silence
+    and `sweep_provenance` published `files_swept` with nothing about WHICH
+    PATTERNS CONTRIBUTED. `CA-10-DF-18`'s stated correct answer is *"report
+    `swept 0 of N patterns`"*, and this is it.
+
+    Reported, NOT REFUSED. A `DEFAULT_SWEEP` entry that matches nothing is often
+    correct -- `specs/desired_program_model/*.yaml` matches three files while a
+    workflow is open and none after a close, and both are legitimate trees. What
+    was wrong was that nothing said so. `run_scope_full` already refuses when the
+    WHOLE selection is empty.
+    """
+    seen: set[pathlib.Path] = set()
+    out: list[pathlib.Path] = []
+    barren: list[str] = []
     for pat in patterns:
+        matched = 0
         for p in sorted(root.glob(pat)):
             if not p.is_file() or ".history" in p.parts:
                 continue
+            matched += 1
             if p not in seen:
                 seen.add(p)
                 out.append(p)
-    return out
+        if matched == 0:
+            barren.append(pat)
+    return out, barren
 
 
 class ScopeUndecided(Exception):
@@ -4022,7 +4219,8 @@ def load_scope_cards(scorecard_root: pathlib.Path) -> list[dict]:
 
 def sweep_provenance(root: pathlib.Path, scorecard_root: pathlib.Path,
                      cards: list[dict], files: list[pathlib.Path],
-                     explicit: bool) -> dict:
+                     explicit: bool, barren: list[str] | None = None,
+                     patterns: tuple[str, ...] | None = None) -> dict:
     """WHICH TREE THIS WAS SWEPT IN. `SS-01-DF-03`, consumed rather than cited.
 
     The same 259-row ledger bytes score `21/18/3` under a bare `--root` and
@@ -4052,6 +4250,12 @@ def sweep_provenance(root: pathlib.Path, scorecard_root: pathlib.Path,
         "cards": len(cards),
         "files_swept": len(files),
         "file_selection": "explicit --path" if explicit else "DEFAULT_SWEEP",
+        # `CA-10-DF-18` item 5, the mechanism half. A `DEFAULT_SWEEP` pattern that
+        # matches zero files used to contribute silently, so the denominator could
+        # fall without anyone noticing -- which is exactly how 17 REFUTED figures
+        # went unswept when a close deleted the address one pattern named.
+        "patterns_total": len(patterns) if patterns is not None else None,
+        "patterns_matching_nothing": list(barren),
     }
 
 
@@ -4066,7 +4270,10 @@ def run_scope_full(root: pathlib.Path, scorecard_root: pathlib.Path,
     cards = load_scope_cards(scorecard_root)
     examples = {str(c.get("example")) for c in cards}
     explicit = paths is not None
-    files = paths if explicit else sweep_paths(root)
+    if explicit:
+        files, barren = paths, []
+    else:
+        files, barren = sweep_paths_by_pattern(root)
     if not files:
         raise ScopeUndecided(
             "empty",
@@ -4097,7 +4304,9 @@ def run_scope_full(root: pathlib.Path, scorecard_root: pathlib.Path,
         )
     return {
         "figures": out,
-        "sweep": sweep_provenance(root, scorecard_root, cards, files, explicit),
+        "sweep": sweep_provenance(root, scorecard_root, cards, files, explicit,
+                                  barren=barren,
+                                  patterns=None if explicit else DEFAULT_SWEEP),
         "unreadable_inputs": unread,
         "cross_tab": cross_tabulate(out),
     }
@@ -4201,6 +4410,15 @@ def cmd_scope(argv: list[str]) -> int:
     print(f"  scorecard root  {sw['scorecard_root']}")
     print(f"  cards           {sw['cards']}")
     print(f"  files swept     {sw['files_swept']}  ({sw['file_selection']})")
+    if sw.get("patterns_total"):
+        barren_patterns = sw.get("patterns_matching_nothing") or []
+        print(f"  patterns        swept {sw['patterns_total'] - len(barren_patterns)} "
+              f"of {sw['patterns_total']}")
+        for pat in barren_patterns:
+            # `CA-10-DF-18` item 5. Printed rather than refused: a pattern matching
+            # nothing is often correct, and what was wrong was that nothing said so.
+            print(f"    MATCHED NOTHING  {pat}  -- 0 files. Not an error, but the "
+                  f"figures it would have reached are UNSWEPT, not HOLDING.")
     for u in run["unreadable_inputs"]:
         print(f"  UNREAD [{u['state']}] {u['file']}")
     for verdict in order:
@@ -4300,7 +4518,7 @@ def cmd_seal(argv: list[str]) -> int:
     ap.add_argument("--root", default=str(DEFAULT_SCORECARD_ROOT))
     args = ap.parse_args(argv)
     root = pathlib.Path(args.root)
-    log = load_log(root)
+    log = load_log_or_empty(root)
     known = {s["path"]: s for s in log["sealed"]}
     new, drifted = [], []
     for arg in args.paths:

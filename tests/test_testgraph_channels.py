@@ -408,24 +408,141 @@ def test_unresolvable_third_party_import_is_not_followed(tmp_path: Path) -> None
     """Only first-party modules are walked; stdlib/third-party are left alone."""
     spec = _spec_dir(tmp_path)
     (spec / "adapters.py").write_text("import json\nimport urllib.request\n", encoding="utf-8")
-    assert (
-        production_imports_for_module(
-            "adapters", package=PRODUCTION_PACKAGE, roots=[spec, tmp_path]
-        )
-        == []
+    # SS-05: the signature is now `(offenders, unreadable)` -- `CA-10-DF-20`. A
+    # bare list could not tell "opened it and found no production import" from
+    # "never opened it", and the gate answered CLEAN for the second. `json` and
+    # `urllib.request` resolve to no file under these roots and are third party,
+    # so they are not walked, and they must NOT be reported unreadable either:
+    # only modules the walk actually tried to open are.
+    offenders, unreadable = production_imports_for_module(
+        "adapters", package=PRODUCTION_PACKAGE, roots=[spec, tmp_path]
     )
+    assert offenders == []
+    assert unreadable == []
 
 
 def test_spec_unit_adapters_may_import_production(tmp_path: Path) -> None:
-    """Internal bindings are in-process by contract; the gate must not touch them."""
+    """Internal bindings are in-process by contract; the gate must not touch them.
+
+    REWRITTEN BY `SS-05`, AND WHY -- this is the only test in the repository this
+    ticket changed the meaning of, so it is disclosed here rather than in a diff.
+
+    It used to prove its point by calling the gate with `actions=set()` and
+    asserting that it returned a contract, with the comment *"Restricting
+    `actions` to an empty set checks nothing external"*. That is exactly the input
+    `CA-10-DF-20` filed as a defect: an empty selection skipped every binding and
+    the caller printed `external channel enforcement passed` over a gate that had
+    checked nothing. **The test was using the defect as its mechanism**, so a
+    green run of it was evidence for the wrong proposition, and the sentence
+    *"checks nothing external"* was the tell.
+
+    The claim it exists to make is *"an adapter that is not in the external
+    selection may import the production package"*, which is about NARROWING, not
+    about emptiness. It is asserted with a REAL, NON-EMPTY selection now: two
+    bindings, one selected and clean over its declared channel, one unselected
+    whose adapter imports production -- and the gate passes. That is the same
+    property, demonstrated without the defect. The empty selection is pinned
+    separately as a refusal in
+    `test_an_empty_action_selection_is_refused_rather_than_passed`.
+    """
     spec = _spec_dir(tmp_path)
     (spec / "adapters.py").write_text(
+        "class ShipHttpAdapter:\n    pass\n", encoding="utf-8"
+    )
+    (spec / "unit_adapters.py").write_text(
         f"import {PRODUCTION_PACKAGE}\n\nclass UnitAdapter:\n    pass\n", encoding="utf-8"
     )
+    unit_binding = (
+        "  UnitOnly:\n"
+        "    view: external\n"
+        "    channel: http\n"
+        "    layer: external\n"
+        "    controllability: e2e_direct\n"
+        "    adapter: unit_adapters:UnitAdapter\n"
+    )
+    path = _bindings(spec, actions=_binding_block() + unit_binding)
+
+    contract = enforce_external_bindings(
+        path, import_roots=[tmp_path, spec], actions={"SubmitShip"}
+    )
+    assert contract.production_package == PRODUCTION_PACKAGE
+
+    # And the narrowing is real rather than vacuous: the unselected binding IS a
+    # violation when it is selected, so the pass above is a fact about the
+    # selection and not about the gate having stopped working.
+    with pytest.raises(ChannelEnforcementError) as excinfo:
+        enforce_external_bindings(
+            path, import_roots=[tmp_path, spec], actions={"UnitOnly"}
+        )
+    assert "imports production package" in str(excinfo.value)
+
+
+def test_an_empty_action_selection_is_refused_rather_than_passed(tmp_path: Path) -> None:
+    """`CA-10-DF-20`, second entrance, repaired by `SS-05`.
+
+    `export_testgraph_cases` derives the selection from the external corpus, so an
+    EMPTY CORPUS produced `actions=set()`, every binding was `continue`d, and zero
+    violations printed as `external channel enforcement passed`. The gate had
+    checked nothing and said so to nobody.
+
+    `actions=None` -- "check everything" -- is a different input and is untouched;
+    the second half of this test is the non-vacuity guard that says so.
+    """
+    spec = _spec_dir(tmp_path)
+    (spec / "adapters.py").write_text("class ShipHttpAdapter:\n    pass\n", encoding="utf-8")
     path = _bindings(spec, actions=_binding_block())
-    # Restricting `actions` to an empty set checks nothing external; the
-    # spec-unit path never calls this gate at all.
-    contract = enforce_external_bindings(path, import_roots=[tmp_path, spec], actions=set())
+
+    with pytest.raises(ChannelEnforcementError) as excinfo:
+        enforce_external_bindings(path, import_roots=[tmp_path, spec], actions=set())
+    message = str(excinfo.value)
+    assert "ISOLATION UNDECIDED" in message
+    assert "the action selection is EMPTY" in message
+    assert "0 of 1 declared binding(s) were checked" in message
+
+    # NON-VACUITY: `None` still means "check every binding", and this table is
+    # clean, so it must still pass.
+    contract = enforce_external_bindings(path, import_roots=[tmp_path, spec])
+    assert contract.production_package == PRODUCTION_PACKAGE
+
+
+def test_a_module_that_was_never_opened_is_UNDECIDED_not_clean(tmp_path: Path) -> None:
+    """`CA-10-DF-20`, first entrance, repaired by `SS-05`.
+
+    `production_imports_for_module` returned `[]` when the adapter module resolved
+    to no file and again on `SyntaxError`, and `enforce_external_bindings` reads
+    zero offenders as compliance -- so the gate whose whole purpose is proving
+    *"this adapter does not import the program under test"* ANSWERED CLEAN FOR A
+    MODULE IT NEVER OPENED. The module's own docstring names the shape: *"a gate
+    that disables itself on the input it exists to police"*.
+
+    Two states, two sentences (`SS-01-DF-04`): a module that is not there, and a
+    module that is there and will not parse.
+    """
+    spec = _spec_dir(tmp_path)
+    path = _bindings(spec, actions=_binding_block())
+
+    # State 1: `adapters.py` was never written at all.
+    with pytest.raises(ChannelEnforcementError) as absent:
+        enforce_external_bindings(path, import_roots=[tmp_path, spec])
+    absent_message = str(absent.value)
+    assert "ISOLATION UNDECIDED" in absent_message
+    assert "resolves to no file under the declared import roots" in absent_message
+    assert "is NOT a finding that it imports the production package" in absent_message
+
+    # State 2: it is there and will not parse. A DIFFERENT sentence.
+    (spec / "adapters.py").write_text("class ShipHttpAdapter(\n", encoding="utf-8")
+    with pytest.raises(ChannelEnforcementError) as unreadable:
+        enforce_external_bindings(path, import_roots=[tmp_path, spec])
+    unreadable_message = str(unreadable.value)
+    assert "ISOLATION UNDECIDED" in unreadable_message
+    assert "could not be read as a module" in unreadable_message
+    assert "SyntaxError" in unreadable_message
+    assert absent_message != unreadable_message
+
+    # NON-VACUITY: a readable, clean adapter still passes. Without this, a gate
+    # that refused every module would satisfy both states above.
+    (spec / "adapters.py").write_text("class ShipHttpAdapter:\n    pass\n", encoding="utf-8")
+    contract = enforce_external_bindings(path, import_roots=[tmp_path, spec])
     assert contract.production_package == PRODUCTION_PACKAGE
 
 
