@@ -319,27 +319,56 @@ def production_imports_for_module(
     package: str,
     roots: list[Path],
     _visited: set[str] | None = None,
-) -> list[tuple[str, str]]:
+    _unreadable: list[tuple[str, str]] | None = None,
+) -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
     """Transitively collect production imports reachable from ``dotted``.
 
-    Returns ``(importing_module, imported_name)`` pairs. Transitive because an
-    adapter that imports a local helper which imports the production package is
-    running production code in-process just the same; only following direct
-    imports would make the gate trivially evadable.
+    Returns ``(offenders, unreadable)``: ``(importing_module, imported_name)``
+    pairs, and ``(module, why)`` pairs for every module on the walk that could
+    NOT BE OPENED. Transitive because an adapter that imports a local helper
+    which imports the production package is running production code in-process
+    just the same; only following direct imports would make the gate trivially
+    evadable.
+
+    `CA-10-DF-20`, repaired by `SS-05`. THE SECOND RETURN VALUE IS THE REPAIR.
+    This used to return a bare list, and returned `[]` both when a module was
+    read and imported nothing production and when the module RESOLVED TO NO FILE
+    or would not parse. `enforce_external_bindings` reads zero offenders as
+    compliance, so the gate whose entire purpose is proving *"this adapter does
+    not import the program under test"* ANSWERED CLEAN FOR A MODULE IT NEVER
+    OPENED. The module's own docstring already named this shape: *"a gate that
+    disables itself on the input it exists to police"*.
+
+    A bare `list` could not distinguish "opened it, found nothing" from "never
+    opened it" and answered the second with the first. That is the class in one
+    line and the fix is the same one `score_tools._finding_ids` took: change the
+    type so the two facts can be told apart. It is threaded out rather than
+    raised because the walk is transitive, and one unreadable helper must not
+    discard the offenders already found in the modules that DID open.
     """
     visited = _visited if _visited is not None else set()
+    unreadable = _unreadable if _unreadable is not None else []
     if dotted in visited:
-        return []
+        return [], unreadable
     visited.add(dotted)
 
     path = resolve_module_file(dotted, roots)
     if path is None:
-        return []
+        unreadable.append(
+            (dotted, "resolves to no file under the declared import roots")
+        )
+        return [], unreadable
 
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-    except (OSError, SyntaxError):
-        return []
+    except (OSError, SyntaxError) as exc:
+        # The same defect through a second door, and it gets its OWN sentence:
+        # "there and unreadable as itself" is not "not there" (`SS-01-DF-04`).
+        unreadable.append(
+            (dotted, f"{path} could not be read as a module "
+                     f"({type(exc).__name__}: {exc})")
+        )
+        return [], unreadable
 
     offenders: list[tuple[str, str]] = []
     for imported in sorted(imported_modules(tree)):
@@ -349,12 +378,12 @@ def production_imports_for_module(
         # Follow first-party imports only: a module we can resolve to a file
         # under the same roots is part of this repository's adapter code.
         if resolve_module_file(imported, roots) is not None:
-            offenders.extend(
-                production_imports_for_module(
-                    imported, package=package, roots=roots, _visited=visited
-                )
+            deeper, _ = production_imports_for_module(
+                imported, package=package, roots=roots,
+                _visited=visited, _unreadable=unreadable,
             )
-    return offenders
+            offenders.extend(deeper)
+    return offenders, unreadable
 
 
 # --------------------------------------------------------------------------
@@ -408,6 +437,37 @@ def enforce_external_bindings(
         )
 
     wanted = set(actions) if actions is not None else None
+    if wanted is not None and not wanted:
+        # `CA-10-DF-20`, second entrance, repaired by `SS-05`. AN EMPTY ACTION
+        # SELECTION SKIPPED EVERY BINDING AND THE CALLER PRINTED
+        # `external channel enforcement passed`. `export_testgraph_cases` derives
+        # this set from the external corpus, so an EMPTY CORPUS produced
+        # `actions=set()`, the loop below `continue`d on all N bindings, and zero
+        # violations was read as compliance over a gate that checked nothing.
+        #
+        # `actions=None` means "check every binding" and is untouched. An empty
+        # SET is a different fact: the caller had a selection and it was empty.
+        raise ChannelEnforcementError(
+            source,
+            [
+                ChannelViolation(
+                    action="<selection>",
+                    adapter=source,
+                    problem=(
+                        f"ISOLATION UNDECIDED: the action selection is EMPTY, so 0 "
+                        f"of {len(action_table)} declared binding(s) were checked. "
+                        f"`external channel enforcement passed` over an empty "
+                        f"selection is a satisfied population that was never "
+                        f"populated (CA-10-DF-20)"
+                    ),
+                    remediation=(
+                        "pass actions=None to check every binding, or generate a "
+                        "non-empty external corpus first -- an empty corpus is the "
+                        "input this used to answer PASS to"
+                    ),
+                )
+            ],
+        )
     violations: list[ChannelViolation] = []
 
     for name, spec in sorted(action_table.items()):
@@ -457,9 +517,38 @@ def enforce_external_bindings(
             if not isinstance(reference, str) or not reference:
                 continue
             dotted = module_of(reference)
-            offenders = production_imports_for_module(
+            offenders, unreadable = production_imports_for_module(
                 dotted, package=contract.production_package, roots=roots
             )
+            for module, why in unreadable:
+                # `CA-10-DF-20`. ISOLATION IS UNDECIDED, NOT CLEAN. This is a
+                # ChannelViolation because the gate's answer is a list of
+                # violations and there is nowhere else for an undecided verdict to
+                # go -- and because "I could not check" must cost the same as "I
+                # checked and it failed" for a gate that exists to police exactly
+                # this. It is NOT an accusation of importing production code, and
+                # the text says so.
+                via = "" if module == dotted else f" (reached from {dotted})"
+                violations.append(
+                    ChannelViolation(
+                        action=action,
+                        adapter=reference,
+                        problem=(
+                            f"ISOLATION UNDECIDED: {role} module {module}{via} was "
+                            f"never opened -- {why}. This is NOT a finding that it "
+                            f"imports the production package; it is the absence of "
+                            f"one. Zero offenders from a module that was never "
+                            f"read is how a gate reports CLEAN about input it "
+                            f"never saw (CA-10-DF-20)"
+                        ),
+                        remediation=(
+                            "make the module resolvable and parseable under the "
+                            "declared import roots, or pass --import-root so it "
+                            "is, and re-run: an unreadable adapter cannot be "
+                            "shown to respect the channel"
+                        ),
+                    )
+                )
             for importing, imported in offenders:
                 via = "" if importing == dotted else f" (via {importing})"
                 violations.append(
