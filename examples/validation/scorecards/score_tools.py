@@ -4181,10 +4181,22 @@ def cmd_scope(argv: list[str]) -> int:
     print("# neither REFUTED nor HOLDS: UNREACHABLE is its default and COUNT-MOVED its")
     print("# only other answer. A claim it cannot reach is NOT a claim that holds.")
     sw = run["sweep"]
+    # HOISTED, AND THE HOIST IS THE POINT. This was an implicit string
+    # concatenation INSIDE the f-string expression below, which is PEP 701 and
+    # therefore Python 3.12+. `score_tools.py` needs `tomllib` (3.11+) and was
+    # 3.11-clean until `SS-04` -- so this ONE line raised the floor of the whole
+    # file from 3.11 to 3.12, silently, in the ticket that filed `SS-04-DF-04`
+    # ABOUT INTERPRETER FLOORS, on the line that consumes `SS-01-DF-03`. The
+    # failure also got WORSE: `ModuleNotFoundError: tomllib` names its cause,
+    # while a `SyntaxError` means the module cannot import at all and even
+    # `--help` dies. NOTHING IN THIS REPOSITORY COULD HAVE CAUGHT IT -- there is
+    # no `requires-python` and `uv` runs 3.13. Verified with `py_compile` under
+    # 3.11.6: fails before, passes after. Found by the reviewer of PR #285.
+    _no_checkout = ("NOT A GIT CHECKOUT — this figure is about a constructed "
+                    "directory, not a tree")
     print("\n## The tree this was swept in — SS-01-DF-03")
     print(f"  root            {sw['root']}")
-    print(f"  root HEAD       {sw['root_head'] or 'NOT A GIT CHECKOUT — this figure is '
-                                                 'about a constructed directory, not a tree'}"
+    print(f"  root HEAD       {sw['root_head'] or _no_checkout}"
           + ("  (WORKING TREE DIRTY)" if sw["root_dirty"] else ""))
     print(f"  scorecard root  {sw['scorecard_root']}")
     print(f"  cards           {sw['cards']}")
@@ -4234,11 +4246,19 @@ def cmd_scope(argv: list[str]) -> int:
     # JOINT CLAIM FROM SEPARATE MARGINALS. Here the joint distribution can be
     # computed, so it is computed and printed, and nobody has to multiply two
     # margins to get a sentence like that one.
+    # AND THE KEY IS ELIDED FROM THE LEFT, WHICH IS NOT COSMETIC. Truncating
+    # with `path[:58]` made 36 keys COLLIDE across 130 of 258 rows -- every card
+    # tree under `specs/results/scorecards/<epic>/<example>/...` shares its first
+    # 58 characters with its siblings, so the printed table showed the SAME key
+    # carrying DIFFERENT counts, and a reader adding two of those rows together
+    # would be doing the exact thing `SS-00-DF-04` is about. The JSON was always
+    # correct; the text is what people read. Found by the reviewer of PR #285.
     print(f"\n## file × verdict — the JOINT distribution, not two marginals "
           f"(SS-00-DF-04)")
-    print(f"  {'file':<58} {'REF':>4} {'MOV':>4} {'HLD':>4} {'UNR':>4} {'tot':>5}")
+    print(f"  {'file':<70} {'REF':>4} {'MOV':>4} {'HLD':>4} {'UNR':>4} {'tot':>5}")
     for row in run["cross_tab"]:
-        print(f"  {row['file'][:58]:<58} {row[REFUTED]:>4} {row[COUNT_MOVED]:>4} "
+        key = row["file"] if len(row["file"]) <= 70 else "…" + row["file"][-69:]
+        print(f"  {key:<70} {row[REFUTED]:>4} {row[COUNT_MOVED]:>4} "
               f"{row[HOLDS]:>4} {row[UNREACHABLE]:>4} {row['total']:>5}")
 
     counts = {v: sum(1 for r in results if r["verdict"] == v) for v in order}

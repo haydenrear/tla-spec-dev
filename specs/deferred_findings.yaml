@@ -23178,6 +23178,15 @@ findings:
       distributively, and reading its numerator as 1 INVERTS THE CLAIM. That one
       is refused by `_DISTRIBUTIVE` and pinned by a test; it fired 59 times over
       the record.
+      AND A SECOND, DIFFERENT FALSE-POSITIVE CLASS WAS FOUND WHEN THE SAMPLE WAS
+      RE-DRAWN AT THE REVIEW HEAD WITH A COMMITTED SAMPLER: AN ORDINAL POSITION.
+      `CA-02 established the format at ticket 2 of 7` is not two tickets out of
+      seven -- it is the SECOND of seven, an index, exactly like `page 3 of 10`.
+      FORM P reads its numerator as a count. It is 1 of 40 in that sample and
+      lands UNREACHABLE (`non-card noun`), so no false claim comes out of it, and
+      it is NOT repaired for the same reason as the partitive: `ticket 2 of 7`
+      and `2 of 7 tickets shipped` are the same shape and only the sentence
+      separates them.
       THIS HALF IS FILED RATHER THAN REPAIRED BECAUSE NO RULE SEPARATES IT FROM A
       REAL FIGURE. `one of the two rounds that failed` is a genuine counted
       figure and is syntactically identical to `one of the two highest scores`.
@@ -23215,9 +23224,13 @@ findings:
       measuring against the record before it is trusted, because it will also
       refuse `three of the four highest-scoring cards`, a real figure.
     blast_radius: >-
-      2 of 40 audited matches, and both landed UNREACHABLE, so no published
-      figure in this epic is affected. The exposure is a possible false
-      COUNT-MOVED if the partitive's noun is `cards`; none exists in this tree.
+      1 of 40 in the sample drawn at the review head with the committed sampler
+      (the partitive did not recur; the ordinal did), and it landed UNREACHABLE,
+      so no published figure in this epic is affected. The exposure is a possible
+      false COUNT-MOVED if such a figure's noun is `cards`; none exists in this
+      tree. AN INDEPENDENT REVIEWER'S OWN SYSTEMATIC SAMPLE FOUND NO FALSE
+      POSITIVES AT ALL and put the residual known-FP rate at 0.21% over the whole
+      record, five-sixths of it SS-04's own write-up quoting the defect.
     disposition: carried
     disposition_ticket: "SS-08"
     disposition_note: >-
@@ -23261,6 +23274,21 @@ findings:
       figure whose population this cannot name, and no false REFUTED or
       COUNT-MOVED comes out of it. It is a REACH limit that is reported as if it
       were a claim about the sentence.
+      A SECOND REACH LIMIT IS DISCLOSED HERE AFTER REVIEW OF PR #285, BECAUSE THE
+      SEAL DID NOT DESCRIBE IT AND THE SEAL IS THE MF-020 ARTIFACT. `find_claims`
+      dedups FORM P against the DIMENSION-BOUND forms on `(line, n, m)` -- which
+      is necessary, is described, and is what stops a bound figure being
+      re-reported under a weaker form -- but the same key ALSO dedups FORM P
+      AGAINST ITSELF, so two DIFFERENT figures on one line that happen to share
+      `(n, m)` collapse into one. MEASURED AT THE REVIEW HEAD: 3,300 raw FORM P
+      matches survive the number and distributive filters, 2,899 are emitted, so
+      401 ARE SUPPRESSED. Many are genuine duplicates -- a table row printing
+      `11 of 15` in two columns -- but not all: `guard relaxation 0 of 3,
+      ordering 0 of 3` is two distinct claims collapsed to one. THE DIRECTION IS
+      UNDERCOUNT, so it is not an MF-020 breach and it makes every reach figure
+      SS-04 publishes conservative rather than flattering -- but it was not in
+      PROSE-FORM-SPEC.md and it should have been. NOT WIDENED AFTER MEASURING,
+      for the same reason the noun window was not.
     reproduction: >-
       At `5fb0c45`:
       `python3 examples/validation/scorecards/score_tools.py scope --format json --form prose
@@ -23289,10 +23317,13 @@ findings:
       the cost of a wrong noun is a wrong verdict, not a missing one. SEAL THE
       PREDICTION BEFORE RUNNING IT.
     blast_radius: >-
-      931 of 2,939 figures at this tree carry a reason that under-describes why
-      they were not reached. No verdict is wrong; the taxonomy is. A reader
-      counting "figures whose population this project cannot name" from this
-      output would over-count by up to 931.
+      Roughly a third of the figures at this tree carry a reason that
+      under-describes why they were not reached, and 401 more figures are never
+      emitted at all. No verdict is wrong; the taxonomy is, and the count is
+      conservative. A reader counting "figures whose population this project
+      cannot name" from this output would over-count; a reader counting FIGURES
+      would under-count. Exact per-reason figures are in the sealed
+      `scope-whole-record-TIP.txt`, never transcribed.
     disposition: carried
     disposition_ticket: "SS-08"
     disposition_note: >-
@@ -23322,7 +23353,30 @@ findings:
         - "specs/desired_program_model/ticket_plan.yaml"
     summary: >-
       EVERY DOCUMENTED `python3 …score_tools.py …` COMMAND IN THIS REPOSITORY
-      DIES WITH A TRACEBACK, NOT A REFUSAL, UNDER A `python3` OLDER THAN 3.11.
+      DIES WITH A TRACEBACK, NOT A REFUSAL, UNDER A `python3` BELOW THIS FILE'S
+      FLOOR.
+      CORRECTED AFTER REVIEW OF PR #285, AND THE CORRECTION IS THE BEST PART OF
+      THIS ROW: THE FLOOR STATED HERE WAS WRONG AT THIS ROW'S OWN TIP. SS-04
+      SHIPPED A PEP 701 CONSTRUCT -- an implicit string concatenation INSIDE an
+      f-string expression -- which raised the floor of `score_tools.py` from
+      3.11 to 3.12, SILENTLY, IN THE TICKET THAT FILED THIS FINDING ABOUT
+      INTERPRETER FLOORS, ON THE LINE THAT PRINTS `NOT A GIT CHECKOUT` -- that
+      is, on SS-04's consumption of `SS-01-DF-03`. The base compiles under
+      3.11.6 and the tip did not: `SyntaxError: unterminated string literal`.
+      AND THE FAILURE GOT WORSE, NOT JUST EARLIER: `ModuleNotFoundError:
+      tomllib` names its cause, while a `SyntaxError` means the module cannot
+      import AT ALL and even `--help` dies. REPAIRED at the review head by
+      hoisting the string; a `py_compile` sweep over every `.py` under
+      `scripts/`, `examples/`, `tests/` and `spec_double_compiler/` is clean at
+      3.11.6 at BOTH ends now, and was clean at the base and broken at exactly
+      one file at the tip.
+      NOTHING IN THIS REPOSITORY COULD HAVE CAUGHT IT, WHICH IS THE FINDING: no
+      `requires-python` is declared and `uv` runs 3.13. AND THE OBVIOUS
+      IN-PROCESS SUBSTITUTE DOES NOT WORK -- `ast.parse(src,
+      feature_version=(3, 11))` ACCEPTS the construct, verified, because
+      `feature_version` gates a few AST-level features and PEP 701 is a
+      TOKENIZER change. Only a real floor interpreter catches it, and SS-04 now
+      ships that as an executed check for this one file.
       `score_tools.py` imports `tomllib`, which is 3.11+. On this machine
       `python3` resolves to 3.14.6 in the interactive shell and to
       `/usr/bin/python3`, 3.9.6, under `/bin/bash` -- so the epic's own
@@ -23554,10 +23608,15 @@ findings:
       RM-06-DF-03 is still closed for bound figures, every reach limit is still
       named, and movement notation is still not read as a count.
     disposition: carried
-    disposition_ticket: "SS-06"
+    disposition_ticket: "SS-08"
     disposition_note: >-
-      ROUTED TO SS-06 as the owner of existing test files, and to SS-08 as
-      declared reds it must not read as a regression. If SS-06 has already
-      promoted when this lands, it is the epic owner's call. SS-08 SHOULD COUNT
-      THESE AS THREE ATTRIBUTED REDS, NOT AS AN UNEXPLAINED MOVEMENT -- clause
-      (f) of GOAL-tree-stabilizes is satisfied by this row.
+      ROUTING CORRECTED AFTER REVIEW OF PR #285. This row first said "routed to
+      SS-06 as the owner of existing test files", which came from SS-04's
+      dispatch note. THE PLAN SAYS OTHERWISE: `tests/test_score_tools.py` is
+      assigned to SS-01, WHICH IS CLOSED, so the file has NO LIVE OWNER and the
+      three reds are the EPIC OWNER'S to assign -- the owner has confirmed this
+      and is amending the plan. SS-04 still does not edit the file: it is
+      outside SS-04's conflict keys either way, and a closed ticket's key is not
+      a free-for-all. SS-08 SHOULD COUNT THESE AS THREE ATTRIBUTED REDS, NOT AS
+      AN UNEXPLAINED MOVEMENT -- clause (f) of GOAL-tree-stabilizes is satisfied
+      by this row.

@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import importlib.util
 import pathlib
+import shutil
 import subprocess
 import sys
 
@@ -163,8 +164,15 @@ def test_no_bound_figure_changed_its_verdict():
     counts = {v: sum(1 for r in bound if r["verdict"] == v)
               for v in (st.REFUTED, st.COUNT_MOVED, st.HOLDS, st.UNREACHABLE)}
     assert sum(counts.values()) == len(bound)
+    # ALL FOUR ASSERTED, AND THE POPULATION TOO. The first version of this test
+    # COMPUTED `counts` and then asserted only two of the four, so `REFUTED
+    # 81 -> 80` would have passed the test whose entire purpose is that no bound
+    # verdict moved — the check for the class not checking. Reviewer, PR #285.
+    assert len(bound) == 103, len(bound)
+    assert counts[st.REFUTED] == 81, counts
     assert counts[st.COUNT_MOVED] == 0, counts
     assert counts[st.HOLDS] == 2, counts
+    assert counts[st.UNREACHABLE] == 20, counts
 
 
 # --------------------------------------------------------------------------
@@ -354,3 +362,44 @@ def test_a_figure_naming_an_abolished_dimension_does_not_kill_the_command(tmp_pa
     assert "Traceback" not in r.stdout + r.stderr, r.stderr[-400:]
     assert "1 counted figure(s): 1 REFUTED" in r.stdout, r.stdout[-400:]
     assert "ABSENT" in r.stdout, "the missing dimension is not named in the output"
+
+
+# --------------------------------------------------------------------------
+# The interpreter floor — SS-04-DF-04, made executable for the file that broke
+# --------------------------------------------------------------------------
+
+#: `score_tools.py` imports `tomllib`, so its floor is 3.11. `SS-04` shipped a
+#: PEP 701 construct — an implicit string concatenation INSIDE an f-string
+#: expression — which raised the floor to 3.12 silently, in the ticket that
+#: filed the finding about interpreter floors, on the line that consumes
+#: `SS-01-DF-03`. This is that finding as an EXECUTED check rather than prose.
+INTERPRETER_FLOOR = (3, 11)
+
+
+def test_the_tool_compiles_at_its_declared_interpreter_floor():
+    """`SS-04-DF-04`, executed.
+
+    THERE IS NO IN-PROCESS SUBSTITUTE FOR THIS, and I checked before writing it:
+    `ast.parse(src, feature_version=(3, 11))` ACCEPTS the PEP 701 construct that
+    breaks a real 3.11, because `feature_version` gates a handful of AST-level
+    features and this is a TOKENIZER change. So the floor can only be checked by
+    a floor interpreter, and where there is none this SKIPS WITH ITS REASON
+    rather than passing — an absent interpreter is an absent input, and the
+    correct answer to one is not PASS.
+    """
+    exe = shutil.which("python%d.%d" % INTERPRETER_FLOOR)
+    if exe is None:
+        pytest.skip(
+            "no python%d.%d on PATH, so the declared floor cannot be checked "
+            "here. NOT A PASS: `ast.parse(feature_version=...)` does not catch "
+            "PEP 701 (verified), so there is no in-process substitute, and this "
+            "repository declares no `requires-python` while `uv` runs 3.13 — "
+            "which is exactly why SS-04 raised the floor without noticing."
+            % INTERPRETER_FLOOR
+        )
+    done = subprocess.run([exe, "-m", "py_compile", str(TOOL)],
+                          capture_output=True, text=True, cwd=REPO)
+    assert done.returncode == 0, (
+        f"{TOOL.name} does not compile under {exe}, the floor its own "
+        f"`import tomllib` declares:\n{done.stderr}"
+    )

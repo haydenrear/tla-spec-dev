@@ -9,11 +9,22 @@ connector, spelled or not, across a line break or not -- and every occurrence
 FORM P did not take is bucketed by a rule, so the answer is a numerator and a
 denominator rather than an impression.
 
-    python3 recall_audit.py [--doc PATH ...] [--sample N]
+    python3 recall_audit.py [--doc PATH ...] [--show N]
+    python3 recall_audit.py --precision-sample N [--seed S]
 
 It reports, per document: SUPERSET, TAKEN, MISSED, and the missed rows grouped
 by which declared category defeated them. The categories come from
 `PROSE-FORM-SPEC.md` S5, which was sealed BEFORE any of this ran.
+
+`--precision-sample` is the OTHER half and it exists because the first version of
+this file ADVERTISED A `--sample N` FLAG THAT WAS NEVER IMPLEMENTED, while the
+write-up published a hand-audited `38 of 40` whose sample lived only in a
+throwaway shell heredoc. A precision figure a reviewer cannot regenerate is a
+figure nobody can check -- which is the whole complaint this ticket is about,
+committed by the ticket. It draws a seeded sample of FORM P matches over the
+default sweep and prints each with its source line, so the adjudication can be
+repeated by someone who does not trust the adjudicator. Found by the reviewer of
+PR #285.
 """
 from __future__ import annotations
 
@@ -21,6 +32,7 @@ import argparse
 import collections
 import pathlib
 import re
+import subprocess
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[5]
@@ -103,13 +115,57 @@ def audit(paths: list[pathlib.Path], root: pathlib.Path) -> dict:
     return out
 
 
+def precision_sample(root: pathlib.Path, size: int, seed: int) -> list[dict]:
+    """A seeded sample of FORM P matches, each with the line it was read from.
+
+    Deterministic given (tree, size, seed): `sweep_paths` sorts, `find_claims`
+    walks lines in order, so the population is ordered before it is sampled.
+    THE POPULATION IS A PROPERTY OF THE TREE, so a sample drawn at one commit
+    does not regenerate at another -- which is why the figure this produces is
+    published WITH ITS COMMIT, per `SS-01-DF-03`.
+    """
+    import random
+
+    population, sources = [], {}
+    for path in st.sweep_paths(root):
+        try:
+            lines = st.read_document(path)
+        except st.ScopeUndecided:
+            continue
+        for claim in st.find_claims(path, root, lines):
+            if claim["form"] != "P":
+                continue
+            population.append(claim)
+            sources[(claim["file"], claim["line"])] = lines[claim["line"] - 1]
+    rng = random.Random(seed)
+    picked = rng.sample(population, min(size, len(population)))
+    return [dict(c, source=sources[(c["file"], c["line"])].strip()) for c in picked]
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=str(st.REPO_ROOT))
     ap.add_argument("--doc", action="append", default=[])
     ap.add_argument("--show", type=int, default=8)
+    ap.add_argument("--precision-sample", type=int, default=0,
+                    help="draw N FORM P matches for hand adjudication and stop")
+    ap.add_argument("--seed", type=int, default=277)
     args = ap.parse_args(argv)
     root = pathlib.Path(args.root)
+    if args.precision_sample:
+        rows = precision_sample(root, args.precision_sample, args.seed)
+        head = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                              capture_output=True, text=True)
+        print(f"# PRECISION SAMPLE -- {len(rows)} FORM P matches, seed {args.seed}")
+        print(f"# root {root.resolve()}")
+        print(f"# HEAD {head.stdout.strip() or 'NOT A GIT CHECKOUT'}")
+        print("# Adjudicate each: is it a COUNTED FIGURE -- a numerator over a")
+        print("# denominator counting a population -- or is it not?\n")
+        for i, r in enumerate(rows, 1):
+            print(f"{i:>3}. {r['file']}:{r['line']}  match={r['span']!r}")
+            print(f"     noun={r['noun']!r}")
+            print(f"     LINE: {r['source'][:180]}")
+        return 0
     paths = ([pathlib.Path(d) for d in args.doc]
              if args.doc else st.sweep_paths(root))
     res = audit(paths, root)
