@@ -23131,6 +23131,567 @@ findings:
       reviewer's own disclosure in the same round that it nearly published a
       6,373-byte card figure by merging stderr into the capture -- BOTH PARTIES IN
       THAT REVIEW HIT THE MEASUREMENT APPARATUS, AND BOTH DISCLOSED IT.
+  - id: SS-04-DF-01
+    found_by: "SS-04, hand-auditing the first whole-record run of the prose recogniser it shipped"
+    found_at_commit: "5fb0c45"
+    schedule_revision: 1
+    severity: medium
+    channel: execution
+    channel_note: >-
+      found by reading all 88 COUNT-MOVED rows of the first run rather than the
+      summary line; the summary said `88 COUNT-MOVED` and nothing in it said that
+      48% of them were counting something other than cards
+    cost:
+      basis: "one `--format json` run plus a grouping by counted-noun head, about ten minutes"
+      value: "it would have shipped an instrument that answers a ledger-row figure with a card population"
+    surface:
+      production:
+        - "examples/validation/scorecards/score_tools.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      `_CARD_NOUN` COUNTS `rows` AND `judges` AS CARD NOUNS, AND IN ORDINARY
+      PROSE THEY ALMOST NEVER MEAN CARDS IN THIS RECORD. SS-04's FORM P used the
+      shared `_CARD_NOUN` in its first run and returned 88 COUNT-MOVED rows, of
+      which 42 counted LEDGER ROWS, PRICE-TABLE ROWS OR JUDGES -- `39 of 49
+      rows`, `57 of 173 rows`, `THREE OF THE FOUR JUDGES OF THAT` -- each
+      answered with "the population its words denote is 95 rather than 49". That
+      is a category error stated in the voice of a re-derivation. SS-04 REPAIRED
+      ITS OWN HALF by giving FORM P a narrower `_PROSE_CARD_NOUN` of
+      `cards?|scorecards?`, taking 88 to 39.
+      WHAT IS LEFT, AND WHY IT IS FILED RATHER THAN FIXED: the DIMENSION-BOUND
+      forms A and B still use the wide `_CARD_NOUN`, and they can return
+      `REFUTED` -- the verdict FORM P is forbidden. A figure of the shape
+      `D<n> = <v> on 39 of 49 rows` would be re-derived against the 95-card corpus
+      and REPORTED AS REFUTED. Over this tree exactly ONE bound figure has such a
+      noun -- `falsifiable-instruments/channels/ADVERSARIAL.md:218`, a D5 figure
+      counting `blind judges`, currently UNREACHABLE -- so the exposure is latent
+      rather than live -- but the wide
+      set is only defensible for the bound forms because a `D<n>` token has
+      already established that the counted thing is a scored row, and `judges`
+      breaks even that.
+    reproduction: >-
+      At `5fb0c45`, in this worktree:
+      `python3 -c "import sys; sys.path.insert(0,'examples/validation/scorecards');
+      import score_tools as st, pathlib, tempfile;
+      d=pathlib.Path(tempfile.mkdtemp()); p=d/'x.md';
+      p.write_text('D' + '2 = 2 on 39 of 49 rows\n');
+      cards=st.run_scope.__globals__; print([ (c['dim'],c['n'],c['m'],c['noun']) for c in st.find_claims(p,d)])"`
+      shows the figure recognised with noun `rows`; evaluating it against the
+      95-card corpus returns REFUTED with `re-derives as N of 95, not 39 of 49`.
+      The FORM P equivalent, `39 of 49 rows are undisposed`, returns UNREACHABLE
+      `non-card noun` -- the two forms disagree about the same noun, in the same
+      file, at the same commit. Pinned in the passing direction by
+      `tests/test_counted_figure_recogniser.py::test_row_and_judge_nouns_are_refused_by_form_p`.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-04/RESULT.md section 8 -- the 88 -> 39 measurement and the 42"
+      - "examples/validation/scorecards/score_tools.py -- `_PROSE_CARD_NOUN` and the comment above it"
+      - "tests/test_counted_figure_recogniser.py::test_row_and_judge_nouns_are_refused_by_form_p"
+    why_out_of_scope: >-
+      Narrowing `_CARD_NOUN` for the BOUND forms changes the verdict of an
+      existing figure, and SS-04's whole clause (c) is that no figure which had a
+      verdict before FORM P existed has a different one. Repairing this inside
+      SS-04 would have moved a REFUTED, which is the one direction this ticket
+      was told never to move anything.
+    suggested_fix: >-
+      Decide `rows` and `judges` deliberately rather than by inheritance. Either
+      (1) narrow `_CARD_NOUN` for the bound forms too and re-derive the whole
+      sweep, reporting whatever REFUTED count moves and why -- that is a fact
+      about the instrument, per the epic's own rule; or (2) keep the wide set for
+      the bound forms and DECLARE the reason in the code, which is that a `D<n>`
+      token establishes the subject and a bare prose sentence does not. Option 2
+      is one comment and is probably right; what is not acceptable is leaving two
+      recognisers in one file disagreeing about the same word with nothing saying
+      so.
+    blast_radius: >-
+      One latent bound figure at this tree, currently UNREACHABLE for an
+      unrelated reason, so no published figure in this epic is affected. The live
+      half was repaired before it shipped: FORM P's COUNT-MOVED count is 39 and
+      would have been 88.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      CARRIED. Not a defect SS-04 introduced -- `_CARD_NOUN` predates it -- but
+      one SS-04 is the first to have executed against a corpus wide enough to
+      show it.
+
+  - id: SS-04-DF-02
+    found_by: "SS-04, hand-adjudicating 40 sampled matches of the recogniser it shipped"
+    found_at_commit: "5fb0c45"
+    schedule_revision: 1
+    severity: low
+    channel: execution
+    channel_note: >-
+      found by reading 40 deterministically sampled matches one at a time with
+      their source lines, not by reading the recogniser
+    cost:
+      basis: "one seeded sample of 40 and one pass of hand adjudication, about twenty minutes"
+      value: "measured precision at 38 of 40 and named the only class that failed"
+    surface:
+      production:
+        - "examples/validation/scorecards/score_tools.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      THE PARTITIVE `one of the N` IS READ AS A NUMERATOR OF 1 WHEN IT IS A
+      MEMBERSHIP STATEMENT, NOT A COUNT. `one of the two highest honesty scores
+      in the tree` says the subject is AMONG the top two; it does not say that 1
+      of 2 scores has some property. FORM P records it as `1 of 2`, and where the
+      counted noun resolves to cards it could reach `COUNT-MOVED`.
+      THE DISTRIBUTIVE COUSIN WAS REPAIRED IN THE SAME PASS AND IS NOT THIS
+      FINDING: `every one of the 10 was inspected` is 10 of 10 said
+      distributively, and reading its numerator as 1 INVERTS THE CLAIM. That one
+      is refused by `_DISTRIBUTIVE` and pinned by a test; it fired 59 times over
+      the record.
+      AND A SECOND, DIFFERENT FALSE-POSITIVE CLASS WAS FOUND WHEN THE SAMPLE WAS
+      RE-DRAWN AT THE REVIEW HEAD WITH A COMMITTED SAMPLER: AN ORDINAL POSITION.
+      `CA-02 established the format at ticket 2 of 7` is not two tickets out of
+      seven -- it is the SECOND of seven, an index, exactly like `page 3 of 10`.
+      FORM P reads its numerator as a count. It is 1 of 40 in that sample and
+      lands UNREACHABLE (`non-card noun`), so no false claim comes out of it, and
+      it is NOT repaired for the same reason as the partitive: `ticket 2 of 7`
+      and `2 of 7 tickets shipped` are the same shape and only the sentence
+      separates them.
+      THIS HALF IS FILED RATHER THAN REPAIRED BECAUSE NO RULE SEPARATES IT FROM A
+      REAL FIGURE. `one of the two rounds that failed` is a genuine counted
+      figure and is syntactically identical to `one of the two highest scores`.
+      Any rule that refuses the second refuses the first, and refusing real
+      figures to avoid a false one is the trade `scope` is explicitly not
+      supposed to make in that direction -- but it is also two of the forty
+      matches audited, so the honest number is a 95% precision estimate with its
+      one failure class named.
+    reproduction: >-
+      At `5fb0c45`:
+      `python3 -c "import sys; sys.path.insert(0,'examples/validation/scorecards');
+      import score_tools as st, pathlib, tempfile;
+      d=pathlib.Path(tempfile.mkdtemp()); p=d/'x.md';
+      p.write_text('it earns one of the two highest honesty scores in the tree\n');
+      print([(c['n'],c['m'],c['noun']) for c in st.find_claims(p,d)])"`
+      -> `[(1, 2, 'highest honesty scores')]`. The same command with
+      `every one of the 10 was inspected` returns `[]`, which is the repaired
+      half.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-04/RESULT.md section 8 -- the 40-match hand audit"
+      - "examples/validation/scorecards/score_tools.py -- `_DISTRIBUTIVE` and the comment naming this cousin"
+      - "specs/results/scorecards/architectural-coherence/INDEX.md:30 -- the real sentence"
+    why_out_of_scope: >-
+      A repair here means guessing at whether a sentence is a count or a
+      membership claim, which is the failure `prediction-seal` declined to commit
+      one layer down and which SS-04's own specification refuses in its section 2.
+      It is also the shape MF-020 warns about: the only handle available is the
+      superlative in the ONE example found, and writing a rule around one known
+      sentence is fitting.
+    suggested_fix: >-
+      Probably nothing, and the honest move may be to CLOSE this as declared
+      behaviour rather than repair it -- but decide it rather than inherit it. If
+      a repair is attempted, the only defensible handle is a superlative or
+      ordinal in the counted noun (`highest`, `best`, `first`), which would need
+      measuring against the record before it is trusted, because it will also
+      refuse `three of the four highest-scoring cards`, a real figure.
+    blast_radius: >-
+      1 of 40 in the sample drawn at the review head with the committed sampler
+      (the partitive did not recur; the ordinal did), and it landed UNREACHABLE,
+      so no published figure in this epic is affected. The exposure is a possible
+      false COUNT-MOVED if such a figure's noun is `cards`; none exists in this
+      tree. AN INDEPENDENT REVIEWER'S OWN SYSTEMATIC SAMPLE FOUND NO FALSE
+      POSITIVES AT ALL and put the residual known-FP rate at 0.21% over the whole
+      record, five-sixths of it SS-04's own write-up quoting the defect.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      CARRIED, and SS-08 should read it as the PRECISION half of SS-04's report:
+      the ticket measured its own instrument at 38 of 40 by hand and published
+      the two failures rather than the ratio alone.
+
+  - id: SS-04-DF-03
+    found_by: "SS-04, running the recall audit over the whole record"
+    found_at_commit: "5fb0c45"
+    schedule_revision: 1
+    severity: medium
+    channel: execution
+    channel_note: >-
+      found by the reason histogram of the recogniser's own UNREACHABLE rows, not
+      by inspection: `no counted noun` was the second-largest bucket and nothing
+      predicted it
+    cost:
+      basis: "one grouping of 2,797 UNREACHABLE rows by reason"
+      value: "identified 931 figures reached but unreadable for a reason about the WINDOW rather than about the claim"
+    surface:
+      production:
+        - "examples/validation/scorecards/score_tools.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      931 OF FORM P'S 2,797 UNREACHABLE ROWS SAY `no counted noun`, AND THAT IS A
+      FACT ABOUT THE THREE-TOKEN WINDOW, NOT ABOUT THE SENTENCE. The counted noun
+      is looked for in up to three word tokens FOLLOWING the denominator, so
+      `directory 8, summary 10, unresolvable 1, prose 1, not-judged 11 -- `0 of
+      20`.` reaches the figure and reports that it counts nothing nameable, when
+      the population is named earlier in the same sentence. A third of what the
+      recogniser reaches is reported with a reason that a reader will take as a
+      property of the record and that is really a property of the parser.
+      SS-04's SEALED PREDICTION P2 FAILED ON EXACTLY THIS: it predicted that over
+      85% of FORM P's rows would be `non-card noun`; the measured figure is 64.9%
+      and this bucket is where the rest went.
+      IT IS NOT A CORRECTNESS DEFECT -- UNREACHABLE is the right verdict for a
+      figure whose population this cannot name, and no false REFUTED or
+      COUNT-MOVED comes out of it. It is a REACH limit that is reported as if it
+      were a claim about the sentence.
+      A SECOND REACH LIMIT IS DISCLOSED HERE AFTER REVIEW OF PR #285, BECAUSE THE
+      SEAL DID NOT DESCRIBE IT AND THE SEAL IS THE MF-020 ARTIFACT. `find_claims`
+      dedups FORM P against the DIMENSION-BOUND forms on `(line, n, m)` -- which
+      is necessary, is described, and is what stops a bound figure being
+      re-reported under a weaker form -- but the same key ALSO dedups FORM P
+      AGAINST ITSELF, so two DIFFERENT figures on one line that happen to share
+      `(n, m)` collapse into one. MEASURED AT THE REVIEW HEAD: 3,300 raw FORM P
+      matches survive the number and distributive filters, 2,899 are emitted, so
+      401 ARE SUPPRESSED. Many are genuine duplicates -- a table row printing
+      `11 of 15` in two columns -- but not all: `guard relaxation 0 of 3,
+      ordering 0 of 3` is two distinct claims collapsed to one. THE DIRECTION IS
+      UNDERCOUNT, so it is not an MF-020 breach and it makes every reach figure
+      SS-04 publishes conservative rather than flattering -- but it was not in
+      PROSE-FORM-SPEC.md and it should have been. NOT WIDENED AFTER MEASURING,
+      for the same reason the noun window was not.
+    reproduction: >-
+      At `5fb0c45`:
+      `python3 examples/validation/scorecards/score_tools.py scope --format json --form prose
+      | python3 -c "import json,sys,collections; d=json.load(sys.stdin);
+      print(collections.Counter(r['reason'] for r in d['figures'] if r['verdict']=='UNREACHABLE'))"`
+      -> `no counted noun` 931 of 2,797. Individual cases:
+      `specs/deferred_findings.yaml:21433` (`0 of 20`, population named earlier in
+      the line), `specs/results/scorecards/SELF-IMPROVEMENT.md:538` (`10 of 15`,
+      noun on the following line).
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-04/scope-whole-record-TIP.txt -- the reason histogram on the last lines"
+      - "specs/results/scorecards/stabilize-substrate/SS-04/RESULT.md sections 3 and 7 -- the histogram and the failed prediction P2"
+    why_out_of_scope: >-
+      Widening the noun window is a change to the recogniser's shape, and SS-04's
+      shape was SEALED IN A COMMIT BEFORE THE CODE EXISTED specifically so that it
+      could not be widened after seeing what it caught. Widening it here, after
+      measuring, is the MF-020 move the seal exists to prevent -- even though the
+      change would look like an improvement.
+    suggested_fix: >-
+      Look for the counted noun BEFORE the numerator as well as after it, bounded
+      by the same three tokens, and prefer the following one where both exist.
+      MEASURE IT AGAINST THE SEALED SUPERSET FIRST
+      (`specs/results/scorecards/stabilize-substrate/SS-04/recall_audit.py`) and
+      report what the change moves in BOTH directions -- a rule that reads
+      backwards will also pick up nouns that belong to the previous clause, and
+      the cost of a wrong noun is a wrong verdict, not a missing one. SEAL THE
+      PREDICTION BEFORE RUNNING IT.
+    blast_radius: >-
+      Roughly a third of the figures at this tree carry a reason that
+      under-describes why they were not reached, and 401 more figures are never
+      emitted at all. No verdict is wrong; the taxonomy is, and the count is
+      conservative. A reader counting "figures whose population this project
+      cannot name" from this output would over-count; a reader counting FIGURES
+      would under-count. Exact per-reason figures are in the sealed
+      `scope-whole-record-TIP.txt`, never transcribed.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      CARRIED. SS-08 should not treat `no counted noun` as a fact about the record
+      when reporting SS-04's reach.
+
+  - id: SS-04-DF-04
+    found_by: "SS-04, running its own documented commands under /bin/bash instead of the interactive shell"
+    found_at_commit: "5fb0c45"
+    schedule_revision: 1
+    severity: medium
+    channel: execution
+    channel_note: >-
+      found by a measurement script failing, not by reading anything: the script
+      ran `python3` from bash and got ten identical tracebacks where the same
+      command in the session shell had worked all day
+    cost:
+      basis: "one confused debugging pass, about ten minutes, on a script that had just been written"
+      value: "the whole ticket's document measurement silently produced ten zeroes before it was caught"
+    surface:
+      production:
+        - "examples/validation/scorecards/score_tools.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/desired_program_model/ticket_plan.yaml"
+    summary: >-
+      EVERY DOCUMENTED `python3 …score_tools.py …` COMMAND IN THIS REPOSITORY
+      DIES WITH A TRACEBACK, NOT A REFUSAL, UNDER A `python3` BELOW THIS FILE'S
+      FLOOR.
+      CORRECTED AFTER REVIEW OF PR #285, AND THE CORRECTION IS THE BEST PART OF
+      THIS ROW: THE FLOOR STATED HERE WAS WRONG AT THIS ROW'S OWN TIP. SS-04
+      SHIPPED A PEP 701 CONSTRUCT -- an implicit string concatenation INSIDE an
+      f-string expression -- which raised the floor of `score_tools.py` from
+      3.11 to 3.12, SILENTLY, IN THE TICKET THAT FILED THIS FINDING ABOUT
+      INTERPRETER FLOORS, ON THE LINE THAT PRINTS `NOT A GIT CHECKOUT` -- that
+      is, on SS-04's consumption of `SS-01-DF-03`. The base compiles under
+      3.11.6 and the tip did not: `SyntaxError: unterminated string literal`.
+      AND THE FAILURE GOT WORSE, NOT JUST EARLIER: `ModuleNotFoundError:
+      tomllib` names its cause, while a `SyntaxError` means the module cannot
+      import AT ALL and even `--help` dies. REPAIRED at the review head by
+      hoisting the string; a `py_compile` sweep over every `.py` under
+      `scripts/`, `examples/`, `tests/` and `spec_double_compiler/` is clean at
+      3.11.6 at BOTH ends now, and was clean at the base and broken at exactly
+      one file at the tip.
+      NOTHING IN THIS REPOSITORY COULD HAVE CAUGHT IT, WHICH IS THE FINDING: no
+      `requires-python` is declared and `uv` runs 3.13. AND THE OBVIOUS
+      IN-PROCESS SUBSTITUTE DOES NOT WORK -- `ast.parse(src,
+      feature_version=(3, 11))` ACCEPTS the construct, verified, because
+      `feature_version` gates a few AST-level features and PEP 701 is a
+      TOKENIZER change. Only a real floor interpreter catches it, and SS-04 now
+      ships that as an executed check for this one file.
+      `score_tools.py` imports `tomllib`, which is 3.11+. On this machine
+      `python3` resolves to 3.14.6 in the interactive shell and to
+      `/usr/bin/python3`, 3.9.6, under `/bin/bash` -- so the epic's own
+      `local_signal`, `python3 examples/validation/scorecards/score_tools.py scope
+      --path STABILIZE-SUBSTRATE-EPIC.md`, produces
+      `ModuleNotFoundError: No module named 'tomllib'` and exit 1 in any bash
+      script, CI step or Makefile that runs it as written.
+      WHY IT IS FILED HERE RATHER THAN SHRUGGED AT: SS-04's own
+      `measure-documents.sh` ran the ten work-directing documents and reported
+      `TOTAL counted figures over the list: 0` for BOTH the base tool and the
+      tip tool, because a traceback's first line is not a figure and the script
+      counted what it could parse. A ZERO THAT COMES FROM A CRASHED INTERPRETER
+      IS INDISTINGUISHABLE FROM A ZERO THAT COMES FROM A BLIND RECOGNISER, and
+      the second of those is this ticket's entire subject. That is the
+      absent-input class one axis over: the INSTRUMENT is absent, not the input,
+      and exit 1 with a traceback is not one of the three permitted answers.
+    reproduction: >-
+      At `5fb0c45`, on macOS 15 with Homebrew python@3.14 installed:
+      `/bin/bash -c 'cd <repo> && python3 examples/validation/scorecards/score_tools.py scope --path CUT-THE-APPARATUS-EPIC.md; echo EXIT=$?'`
+      -> `Traceback … line 114, in <module> import tomllib` … `EXIT=1`, while
+      `python3 -V` in the session shell reports 3.14.6 and the same command
+      succeeds. `/usr/bin/python3 -V` -> `Python 3.9.6`.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-04/measure-documents.sh -- the `PYTHON` variable and the comment explaining why it exists"
+      - "examples/validation/scorecards/score_tools.py:114 -- `import tomllib`"
+      - "specs/desired_program_model/ticket_plan.yaml -- SS-04's `local_signal`, written as bare `python3`"
+    why_out_of_scope: >-
+      The fix is a version guard at import time plus a correction to every
+      documented invocation in the plan, the charters and the instrument
+      register, and the register is outside SS-04's conflict keys. SS-04 also has
+      no way to know which interpreter any other agent's shell resolves, so
+      choosing the remedy is a decision about the toolchain rather than about
+      this ticket.
+    suggested_fix: >-
+      Two changes, and the first is four lines. (1) Guard the import: catch
+      `ModuleNotFoundError` for `tomllib` and REFUSE with a named message and a
+      dedicated exit code, so the answer is "this interpreter cannot run this
+      instrument" rather than a traceback -- a traceback is not one of R1's three
+      answers and every absent-input contract in the register asserts on the FIRST
+      LINE of output. (2) Decide whether the documented commands should name
+      `python3` at all. The instrument register already substitutes `{python}`
+      with `sys.executable` for exactly this reason; the plan's `local_signal`
+      fields and the charters do not.
+    blast_radius: >-
+      Every documented command in this repository that starts `python3
+      examples/validation/scorecards/score_tools.py` or
+      `python3 scripts/…`, when run from a non-interactive shell on a machine
+      whose `python3` is older than 3.11. No figure in this ticket is affected --
+      every measurement here was re-run under the explicit 3.14.6 interpreter and
+      the contaminated zeroes were discarded, which is why this is filed rather
+      than absorbed.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      CARRIED. SS-08 runs the epic's harnesses from scripts; if any of them shell
+      out with a bare `python3`, this is the shape that will produce a clean-looking
+      zero.
+
+  - id: SS-04-DF-05
+    found_by: "SS-04, when its own filed finding quoted a D5 figure into the swept record and the whole command died"
+    found_at_commit: "540d558"
+    schedule_revision: 1
+    severity: high
+    channel: execution
+    channel_note: >-
+      found by a traceback, not by reading: appending a finding to the ledger put
+      a `D5 = <v> on <n> of <m>` figure into DEFAULT_SWEEP and `scope` stopped
+      producing any output at all
+    cost:
+      basis: "one `scope` run after an append to the ledger"
+      value: "zero to find, and it had been reachable from any sentence naming D1, D4 or D5 since card version 5"
+    surface:
+      production:
+        - "examples/validation/scorecards/score_tools.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      A REFUTED FIGURE NAMING A DIMENSION THE CARDS NO LONGER CARRY KILLS THE
+      WHOLE `scope` COMMAND WITH A TRACEBACK. The counterexample printer used
+      `c['dimensions'][r['dim']]`, a subscript, and card version 5 ABOLISHED D1,
+      D4 and D5 -- so any counted figure in the record that binds one of those
+      three, and that re-derives as REFUTED, reaches that line with a card that
+      has no such key and raises `KeyError: 'D5'`. NOT A REFUSAL AND NOT A
+      VERDICT: a traceback, on exit 1, WITH EVERY OTHER FIGURE'S ANSWER LOST WITH
+      IT -- the 102 other figures in the same run are never printed. A reader who
+      sees exit 1 and does not read the output cannot tell this from the normal
+      "something is REFUTED" exit 1, which is the same code.
+      THE DEFECT PREDATES SS-04 by five card versions; what SS-04 did was write a
+      finding whose text quoted such a figure into a swept file, which is the
+      only reason anyone met it. SS-04 REPAIRED IT INSIDE ITS OWN CONFLICT KEY --
+      `.get` instead of the subscript, printing `ABSENT -- this card carries no
+      D5` -- because the alternative was shipping a `scope` that dies on this
+      repository's own ledger.
+      WHAT IS FILED RATHER THAN FIXED IS THE WIDER QUESTION: a figure about a
+      dimension that NO LONGER EXISTS is being re-derived against the current
+      corpus at all. A figure binding an abolished dimension to a value over all 95
+      cards re-derives as a numerator of zero and is reported REFUTED (the literal
+      is not written here: see the reproduction), when the honest answer is that the claim is about a card
+      version this corpus cannot speak to. That is a scope question, in the exact
+      sense R3 is about, and it belongs to whoever owns the card-version rule.
+    reproduction: >-
+      At `8dd0442`, in any checkout, write ONE line into a scratch directory: the
+      letter D, the digit 5, then ` = 4 on 95 of 95 cards`. (Spelled out rather
+      than quoted, because writing the literal into a file the DEFAULT_SWEEP
+      reads adds an invented figure to this repository's record forever -- SS-04
+      did exactly that twice before noticing, and reverted both.) Then
+      `python3 examples/validation/scorecards/score_tools.py scope --root <that dir>`
+      -> `KeyError: 'D5'` at `score_tools.py:3756`, exit 1, NO verdict printed.
+      The same command at SS-04's tip prints
+      `1 counted figure(s): 1 REFUTED ...` and names the counterexample as
+      `ABSENT -- this card carries no D5`, exit 1. Sealed in
+      `specs/results/scorecards/stabilize-substrate/SS-04/d5-keyerror-demo.txt`.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-04/d5-keyerror-demo.txt -- the traceback and the repaired output side by side"
+      - "examples/validation/scorecards/score_tools.py -- the counterexample printer and the comment above it"
+      - "tests/test_counted_figure_recogniser.py::test_a_figure_naming_an_abolished_dimension_does_not_kill_the_command"
+    why_out_of_scope: >-
+      The REPAIR is in scope and is done -- the file is SS-04's conflict key and
+      leaving it would have shipped a `scope` that cannot read this repository's
+      own ledger. What is out of scope is the SEMANTIC question underneath: what
+      a counted figure about an abolished dimension MEANS, and whether REFUTED is
+      the right answer for it. Deciding that changes verdicts, and SS-04's clause
+      (c) is that no figure which had a verdict gets a different one.
+    suggested_fix: >-
+      Decide the card-version scope rule. A figure binding D1, D4 or D5 is a claim
+      about a card version this corpus no longer contains, and re-deriving it
+      against version 5 cards produces a REFUTED that says "0 of 95 carry D5",
+      which is true and useless. The candidate answer is a fifth reach limit --
+      `UNREACHABLE, reason: dimension abolished at card version N` -- alongside
+      `arm-scoped` and `anaphoric scope`. MEASURE WHAT IT MOVES FIRST: over this
+      tree it would move some existing REFUTED rows into UNREACHABLE, and that is
+      a fact about the instrument that must be reported with numerator and
+      denominator named, not a cleanup.
+    blast_radius: >-
+      Every `scope` invocation over any tree containing a refutable D1/D4/D5
+      figure -- which is every tree the moment anyone writes one into a swept
+      file, as SS-04 did by accident. At `8dd0442` the record happens to contain
+      none that reach the printer, so no figure published by this epic before now
+      is affected; the exposure was one sentence away the whole time.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      CARRIED. The crash is repaired at SS-04's tip. SS-08 inherits only the
+      semantic question, and should note that the epic's own instrument was one
+      appended ledger row away from producing no output at all.
+
+  - id: SS-04-DF-06
+    found_by: "SS-04, running the full repository suite on its own post-close tree"
+    found_at_commit: "97d70ed"
+    schedule_revision: 1
+    severity: medium
+    channel: execution
+    channel_note: >-
+      found by the suite, not by inspection, and reported here rather than
+      repaired because the file is another ticket's conflict key
+    cost:
+      basis: "one full suite run at the tip compared line by line against a clean-clone run at the base"
+      value: "three reds, every one attributed, zero unattributed movement in any of the five buckets"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "tests/test_score_tools.py"
+    summary: >-
+      THREE EXISTING TESTS IN `tests/test_score_tools.py` PIN THE OLD
+      RECOGNISER'S EXHAUSTIVE ANSWER AND GO RED WHEN `FORM P` IS ADDED. All
+      three are SS-04's, all three are DECLARED rather than discovered, and in
+      all three the test's STATED PURPOSE STILL HOLDS -- what has gone stale is a
+      closed enumeration written when one sentence form was the only one.
+      (1) `test_a_scoped_claim_whose_denominator_moved_is_stale_and_not_refuted`
+      asserts that NO shipped line reaches COUNT-MOVED, as a live check that
+      `RM-06-DF-03` stays closed. FORM P reaches 39, every one a real
+      `<n> of <m> cards` figure whose card population moved.
+      (2) `test_what_the_sweep_cannot_reach_is_counted_and_named` asserts the
+      UNREACHABLE reason set is a SUBSET of five named reasons. SS-04 adds two
+      more named reasons -- `no counted noun` and `numerator has no predicate` --
+      so the test's actual requirement (every reach limit is REPORTED BY NAME) is
+      satisfied MORE fully than before and the assertion still fails.
+      (3) `test_a_movement_notation_is_not_read_as_a_count` writes a two-line
+      fixture and asserts the whole file yields nothing. Its subject, `2/2 -> 4/4`,
+      is STILL not read as a count -- that is the point of the test and it holds.
+      What fires is the SECOND line of its own fixture, `worst 1, 2 of 6 moved in
+      each arm`, which contains a genuine counted figure that FORM P now reads
+      and reports UNREACHABLE, reason `non-card noun`. The fixture asserts more
+      than the docstring claims.
+      NO INHERITED RED WAS REPAIRED AND NO INHERITED RED CHANGED ITS REASON:
+      base 7 reds and tip 10 reds, the tip set is the base set plus exactly these
+      three, verified by diffing the two FAILED lists.
+    reproduction: >-
+      At `97d70ed`:
+      `uv run --with pytest --with pyyaml -m pytest tests/test_score_tools.py -q -k
+      "denominator_moved_is_stale or cannot_reach_is_counted or movement_notation"`
+      -> 3 failed, 113 deselected. At `8dd0442` the same command passes. The full
+      suite is `7 / 1550 / 0 / 1 / 1558` at the base in a clean clone and
+      `10 / 1583 / 0 / 1 / 1594` at the tip after the close; both sum, and the
+      +33 passed is 36 new nodes minus these 3.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-04/FINAL-FIGURES.txt -- the five-number tables and the failure-set diff"
+      - "specs/results/scorecards/stabilize-substrate/SS-04/RESULT.md section 10"
+      - "tests/test_counted_figure_recogniser.py -- the same properties asserted against the NEW verdict set"
+    why_out_of_scope: >-
+      `tests/test_score_tools.py` IS NOT IN SS-04'S CONFLICT KEYS. SS-04's
+      workflow keys are `tests/test_counted_figure_recogniser.py` and two
+      evidence roots; SS-06 RUNS CONCURRENTLY AND OWNS EXISTING TEST FILES, and
+      SS-04's assignment says in terms that defects outside its keys are
+      DEFERRED, NOT FIXED. Editing three assertions in a file another live ticket
+      owns would also risk a merge conflict in exactly the place a reviewer
+      cannot see it.
+    suggested_fix: >-
+      Three edits, all small, and NONE of them should weaken what the test is
+      for. (1) Scope the COUNT-MOVED census to the dimension-bound forms --
+      `[r for r in whole if r.get("form") != "P" and r["verdict"] == COUNT_MOVED]`
+      -- because `RM-06-DF-03` is about a DIMENSION-BOUND claim going stale and
+      FORM P cannot make that claim at all. (2) Add the two new reasons to the
+      permitted set; the assertion is `<=` over a NAMED set and the requirement
+      is that every reason be named, so extending the set is the correct
+      response and shrinking the reason list would be the wrong one. (3) Either
+      restrict the assertion to the movement-notation line, or accept the second
+      figure and assert its verdict is UNREACHABLE -- the second is better,
+      because it turns a test that asserts ABSENCE into one that asserts the
+      right ANSWER. DO NOT delete any of the three: each one caught something.
+    blast_radius: >-
+      Three reds on the epic branch until they are updated. No production
+      behaviour is affected and no verdict any of the three protects has changed:
+      RM-06-DF-03 is still closed for bound figures, every reach limit is still
+      named, and movement notation is still not read as a count.
+    disposition: carried
+    disposition_ticket: "SS-06"
+    disposition_note: >-
+      ROUTING CORRECTED TWICE, AND THE SECOND CORRECTION IS THE OWNER'S. This row
+      first said "routed to SS-06 as the owner of existing test files", which
+      came from SS-04's dispatch note and WAS WRONG: at schedule_revision 1 the
+      plan assigned `tests/test_score_tools.py` to SS-01, WHICH IS CLOSED, so the
+      file had NO LIVE OWNER and these three reds sat in a file no open ticket
+      could claim. THE OWNER HAS SINCE REASSIGNED IT TO SS-06 AT
+      schedule_revision 2 (epic branch `98674f1`) and told SS-06 directly, so the
+      destination is SS-06 after all -- BUT NOT FOR THE REASON FIRST GIVEN. The
+      reason is the reassignment, not "SS-06 owns existing test files". SS-04
+      still does not edit the file: it is outside SS-04's conflict keys under
+      either revision. SS-08 SHOULD COUNT THESE AS THREE ATTRIBUTED REDS, NOT AS
+      AN UNEXPLAINED MOVEMENT -- clause (f) of GOAL-tree-stabilizes is satisfied
+      by this row.
 
   - id: SS-06-DF-01
     found_by: "SS-06, sweeping tests/ for CA-10-DF-14's class after repairing the six guards it names three of"
