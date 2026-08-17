@@ -25033,3 +25033,232 @@ findings:
       described the class. Carried forward as a candidate for a successor epic,
       where the honest form is a DISCIPLINE with a demonstrated failing case, not
       a scanner.
+  - id: SS-00-DF-10
+    found_by: "SS-05, measuring the epic owner's own ruling before acting on it"
+    found_at_commit: "d6805f8"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/desired_program_model/ticket_plan.yaml"
+        - "epic owner rulings"
+    channel: "operator-doing-the-work"
+    cost: >-
+      None to the tree. The wrong number reached the plan, issue #279, and a
+      report to the user, and was corrected by the ticket it was given to before
+      it reached any result.
+    summary: >-
+      THE EPIC OWNER WROTE A PREDICTION IN THE GRAMMAR OF A MEASUREMENT, INTO A
+      RULING, AND THE TICKET RECEIVING THE RULING REFUTED IT BY RUNNING THE THING.
+      `planning_rules.an_instrument_a_ticket_SHIPS_must_be_REGISTERED` and SS-05's
+      objective both carried: "the population goes 56 -> 58 with two more
+      instruments FAILING, which is denominator movement in the UNFLATTERING
+      direction and is the point."
+
+      MEASURED BY SS-05 BEFORE REGISTERING EITHER, and independently reproduced by
+      the SS-05 reviewer running the register at both ends:
+        - `vacuity_probe.py` REFUSES ALL THREE STATES CORRECTLY -- three distinct
+          messages, exit 2. `--only vacuity-probe` exits 0, SATISFIED.
+        - `stranded_loaders.py` answers UNDECIDED-and-exit-0 in IDENTICAL WORDS
+          for unreadable and empty. `--only stranded-loaders` exits 1, 2 problems.
+      Register at both ends: `REFUSED -- 53 problem(s) over 53 of 56` ->
+      `REFUSED -- 55 over 54 of 58`. So 58 WITH ONE FAILING, not two.
+
+      THE RULING ITSELF STANDS AND IS UNAFFECTED: registering was right, the
+      denominator did move unflatteringly, and SS-05's measurement is precisely
+      what registering was for. ONLY THE NUMBER INSIDE IT WAS WRONG, AND IT WAS
+      WRONG IN THE DIRECTION THAT MADE THE ARGUMENT LAND HARDER. That is the part
+      worth recording: "both fail" was rhetorically load-bearing for a point about
+      unflattering movement, and neither contract was run before both outcomes
+      were asserted.
+    reproduction: >-
+      At `f45a245`, before SS-05's registration: run each instrument's three-state
+      contract by hand. `vacuity_probe.py` against absent, unreadable and empty
+      subjects returns three distinct refusals at exit 2. `stranded_loaders.py`
+      returns byte-identical UNDECIDED text at exit 0 for unreadable and empty.
+      Then at the tip, `--only vacuity-probe` -> exit 0; `--only stranded-loaders`
+      -> exit 1.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-05/RESULT.md"
+      - "specs/desired_program_model/ticket_plan.yaml"
+    class_note: >-
+      ELEVENTH CORRECTED FIGURE IN THIS EPIC AND THE THIRD OF THIS EXACT SHAPE,
+      after "four skips unskip when SS-01 repoints" (false; repointing alone made
+      them four reds) and "13 uncollected nodes" (12; the 13th was the owner's own
+      ledger relocation). ALL THREE ARE THE SAME ERROR: a consequence reasoned out
+      and then written in the past tense. The distinguishing feature is not
+      carelessness -- each was plausible and each was load-bearing for a point
+      being made at the time.
+    blast_radius: >-
+      The plan, one rendered issue body, and one report to the user. No result and
+      no instrument.
+    disposition: repaired
+    disposition_ticket: "SS-00"
+    disposition_note: >-
+      REPAIRED IN THE PLAN at the SS-05 merge; the ruling's text now carries the
+      measured figure with SS-05 named as its source. The general defect is NOT
+      repaired and no mechanism is proposed: the honest statement is that the epic
+      owner writes predictions in the past tense and the only thing that has ever
+      caught it is somebody running the command.
+
+  - id: SS-00-DF-11
+    found_by: "the epic owner, comparing a bogus exit code against a real one minutes apart"
+    found_at_commit: "3005c12"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "epic owner measurement practice"
+        - "specs/desired_program_model/ticket_plan.yaml"
+    channel: "operator-running-a-shipped-instrument"
+    cost: >-
+      No published figure. The crash was visible in the captured output, so the
+      false zero was caught by reading the text rather than by the exit code that
+      was supposed to be the check.
+    summary: >-
+      A CRASHED INTERPRETER AND A CLEAN AUDIT BOTH REPORTED EXIT 0, MINUTES APART,
+      ON THE SAME COMMAND. Obligation 9b exists in SS-08 because the owner read an
+      exit code through a pipe while verifying SS-07's identical error. The owner
+      then did it a THIRD time:
+
+        piped:   `python3 .../score_tools.py audit 2>&1 | tail -25; echo $?`
+                 -> ModuleNotFoundError: No module named 'tomllib'
+                 -> AUDIT_EXIT=0          <- this is `tail`'s status
+        unpiped: `uv run --with pyyaml python .../score_tools.py audit > f 2>&1; echo $?`
+                 -> AUDIT_EXIT=0          <- real, and the file says `0 violation(s)`
+
+      THE TWO ARE INDISTINGUISHABLE FROM THE NUMBER ALONE, and the failing form is
+      the one that LOOKS LIKE A PASS. This is the epic's own class with the absent
+      input being the subprocess's exit status, discarded by the shell before
+      anyone reads it.
+
+      AND A SUBSTRATE FACT FOUND ALONGSIDE IT: `/usr/bin/python3` has `pyyaml` but
+      NO `tomllib` (needs 3.11+); the default `python3` (3.14) has `tomllib` but
+      NO `pyyaml`. NEITHER BARE INTERPRETER ON THIS MACHINE CAN RUN THIS PROJECT'S
+      OWN INSTRUMENTS. Only `uv run --with pyyaml python` can. Every agent that
+      reaches for a bare `python3` hits one half of this, and the failure mode
+      differs by which half.
+    reproduction: >-
+      `python3 examples/validation/scorecards/score_tools.py audit 2>&1 | tail -5;
+      echo "EXIT=$?"` -> prints a ModuleNotFoundError traceback and `EXIT=0`.
+      Then `uv run --with pyyaml python examples/validation/scorecards/score_tools.py
+      audit > /tmp/a.txt 2>&1; echo "EXIT=$?"` -> `EXIT=0` and `/tmp/a.txt` ends
+      `0 violation(s)`.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/GOAL-four-results-still-stand/audit-tip-3005c12.txt"
+      - "specs/results/scorecards/stabilize-substrate/kickoff/owner-pending-findings.md"
+    class_note: >-
+      SS-08's obligation 9b is currently worded "read exit codes unpiped". THAT
+      WORDING IS TOO WEAK FOR WHAT WAS MEASURED. The stronger and correct form is
+      NEVER PIPE A COMMAND WHOSE EXIT CODE YOU INTEND TO READ -- redirect to a
+      file, read `$?`, then read the file. The difference matters because the weak
+      form invites `cmd | tee f; echo $?`, which fails identically.
+    blast_radius: >-
+      Every exit-code check any agent in this project performs at a shell. Nothing
+      in the tree.
+    disposition: open
+    disposition_ticket: "SS-00"
+    disposition_note: >-
+      OPEN. Obligation 9b is strengthened in the plan to the "never pipe" form. No
+      mechanism is proposed and none should be invented to close this row -- a
+      shell-wrapper check built so a known finding closes is MF-020. The
+      interpreter fact is recorded in the charter's operational rules where agents
+      will meet it before reaching for a bare python3.
+
+  - id: SS-00-DF-12
+    found_by: "the epic owner, sweeping its own record and getting every figure back doubled"
+    found_at_commit: "dabb608"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "epic owner measurement practice"
+        - "examples/validation/scorecards/score_tools.py"
+    channel: "operator-running-own-instrument"
+    cost: >-
+      None published. Every figure in the first sweep was exactly twice the truth
+      and the error was caught only because 262 cards looked implausibly large.
+    summary: >-
+      A SWEEP OF THIS REPOSITORY'S OWN RECORD RETURNED EVERY FIGURE EXACTLY
+      DOUBLED, BECAUSE `.skill-manager/skills/spec-double-compiler/` IS A VENDORED
+      CHECKOUT OF THIS SAME REPOSITORY. `pathlib.Path('.').rglob('scorecard.json')`
+      reported 262 cards, 112 carrying a rubric `file_sha256`, 150 without, 16 on a
+      stale sha. Excluding the vendored tree: 131 live cards, 56 with, 75 without,
+      8 stale. 131 live and 131 vendored -- EXACTLY DOUBLED. The "stale" shas found
+      first were the vendored copy's, at an older pinned commit.
+
+      THIS IS THE SAME MECHANISM FOUND BY HAND IN BOTH INSTRUMENTS THIS EPIC
+      SHIPPED -- `SS-07-DF-08` (`stranded_loaders.py`) and `SS-06-DF-05`
+      (`vacuity_probe.py`). THREE INDEPENDENT AUTHORS, ONE DEFECT, ONE EPIC. The
+      population a sweep walks is a CONTRACT and none of the three declared one.
+
+      A SECOND, INDEPENDENT FINDING SURFACED BY THE SAME WORK, AND IT IS ABOUT A
+      SHIPPED INSTRUMENT RATHER THAN THE OPERATOR: `score_tools.check`'s
+      `PROSE-DRIFT` prompt is guarded by
+      `elif block.get("file_sha256") and rubric.get("file_sha256") and ...`. An
+      absent field is falsy, so the branch is SKIPPED SILENTLY and produces output
+      identical to no-drift. Over the live tree: 131 cards, 56 record a rubric sha,
+      75 RECORD NONE, 8 carry the stale value, ZERO carry the current one. So the
+      prompt can reach at most 56 of 131 (42.7%).
+
+      NOT ESTABLISHED, deliberately: whether those 75 predate the field (in which
+      case the honest repair is that `check` says "cannot tell" instead of nothing)
+      or whether a live scaffold path drops it (a real defect). THE DISTINCTION
+      DECIDES DISCLOSURE VERSUS REPAIR AND IT IS A TICKET'S WORK, NOT AN OWNER'S
+      GUESS.
+    reproduction: >-
+      `python3 -c "import pathlib; print(len(list(pathlib.Path('.').rglob('scorecard.json'))))"`
+      -> 262. Repeat excluding paths containing `.skill-manager` -> 131. Then walk
+      each live card for a `file_sha256` key -> 56 present, 75 absent, and compare
+      against the rubric sha in `serve`'s stderr header (`674d497884fc124c` at the
+      tip) -> zero matches.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/kickoff/owner-pending-findings.md"
+      - "examples/validation/scorecards/score_tools.py"
+    class_note: >-
+      RECORDED BESIDE A POSITIVE RESULT THAT IS THE STRONGER HALF AND MUST NOT BE
+      LOST: `score_tools.check` ALREADY IMPLEMENTS WHAT THIS EPIC IS REPAIRING
+      TOWARD. SS-02 added 53 lines to `references/eval_scorecard.md`; measured at
+      the tip the SERVED DIGEST IS UNCHANGED (`sha256:2d7d4a0506d9b259`, card v5)
+      and the served bytes are 6281 at both ends, while the rubric FILE sha moved
+      `b7fe75437bf68646` -> `674d497884fc124c`. `served_rubric` renders from parsed
+      structure only, so prose outside the anchor ladder cannot reach a judge. And
+      `check` names all three states distinctly: `SERVED-DRIFT`, `PROSE-DRIFT`
+      ("a prompt to go and look, NEVER A VIOLATION"), and silence. THREE STATES
+      KEPT APART, THE HARMLESS ONE LABELLED HARMLESS RATHER THAN SUPPRESSED OR
+      ESCALATED. Same shape as SS-02's `set[str] | None` and SS-05's
+      `invariants_absence_state()`. THE FIX SHAPE THIS EPIC IS CONVERGING ON IS
+      NOT NOVEL TO THE EPIC -- one instrument had it before we started, and that
+      is evidence for the thesis rather than against it.
+
+      ALSO RECORDED, because it is the same class in the same session: the owner
+      nearly filed the ZERO `PROSE-DRIFT` count as a defect, having run `audit`
+      when the check lives in `check()`. Wrong command, uniform output read as a
+      finding. A FALSE ALARM, which `SS-00-DF-09` names as the more dangerous
+      direction because it looks like diligence.
+    blast_radius: >-
+      (a) The owner's own sweeps -- no shipped artifact. (b) `score_tools.check`'s
+      drift prompt over 75 of 131 live cards, which is a shipped instrument and a
+      real coverage limit.
+    disposition: open
+    disposition_ticket: "SS-00"
+    disposition_note: >-
+      OPEN, and split deliberately. The operator half needs no mechanism -- a sweep
+      declares its root and excludes vendored trees BY CONTRACT, and the fact that
+      three authors missed it independently says the contract belongs in the
+      instrument register rather than in anybody's habits. The `check` half is
+      handed to a successor with the live-versus-sealed question UNANSWERED rather
+      than guessed; answering it by inspection now would be the owner deciding a
+      ticket's finding from outside the ticket.
