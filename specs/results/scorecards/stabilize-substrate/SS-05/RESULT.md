@@ -658,7 +658,57 @@ three corrections in the table at the top of this file are the reason the run is
 not simply flattering: the count I was handed was wrong in my favour to report and
 I moved it the other way before touching anything.
 
-**`GOAL-four-results-still-stand` — guard.** `local_signal` is
-`score_tools.py audit`. At the tip it reports **`0 violation(s)`, exit 0** on the
-real scorecard root, and `test_score_tools.py` is **116 passed / 0 failed**.
-`scope` still reaches its figures. **No result was broken.**
+**`GOAL-four-results-still-stand` — guard.** `expected_effect`: *"none expected —
+but `score_tools.py` carries three instances and produced all four results; verify
+each still reproduces."* `score_tools.py` is the file this ticket changed most, so
+this was the real exposure. Measured at the tip
+(`evidence/four-results-local-signals-tip.txt`):
+
+| signal | at the tip |
+|---|---|
+| `score_tools.py audit` (the declared `local_signal`) | **`0 violation(s)`, exit 0** |
+| `serve \| wc -c` — clause (c), *the card must not grow*, 6,281 at the base | **6,281** — byte-identical |
+| `scope` | 95 cards, 371 files swept, `patterns swept 8 of 8`, **81 REFUTED / 2 HOLDS** — still reaching its figures |
+| `contested`, `seal`, `history` — `RM-02`'s *"substrate's best export"* | all still run, exit 0 |
+| `tests/test_score_tools.py` | **116 passed, 0 failed** |
+| `tests/test_architecture_tags.py` | 41 passed, 1 failed — `RM-06-DF-01`, deliberate and red at the base |
+
+**No result was broken, and the card did not grow.** Stated as measured, not as
+expected: I changed `load_log`'s signature, three audit clauses and `sweep_paths`
+inside the instrument that produced all four results, and every signal above is
+either byte-identical or unchanged in verdict.
+
+---
+
+## 8. WHAT AN INDEPENDENT REVIEWER SHOULD ATTACK FIRST
+
+Named by me, because a ticket that only lists its strengths has not been
+reviewed.
+
+1. **`13 repaired` is a count of SITES, not of behaviours.** Three of the 13 are
+   `corpus_diagnostics.py` and three are `testgraph_channels.py`, and within each
+   file they share a call path. If you count *behaviours a caller can observe*
+   the number is smaller. I counted sites because `CA-10`'s denominator is sites;
+   **say so if you think the two should not be compared.**
+2. **`generate_python.py`'s repair moves nothing in this tree.** `validate_state`
+   is called only from inside the generated packages themselves (§2.1). I claim
+   its value is entirely outward, into repositories this toolchain scaffolds.
+   **That claim is unverified here and I have labelled it so** — no adopter
+   repository was measured.
+3. **The `vacuity-probe` contract passes on three states I chose.** The state
+   `SS-06` actually repaired — a directory with no read permission — **is not
+   among them**, because `chmod 000` is not expressible in the register's
+   staging vocabulary. The row says so in its own note. A green `vacuity-probe`
+   row is **not** evidence about the permission case.
+4. **`SS-05-DF-07` is a test I repaired after it went red on my own work.** That
+   is the exact shape of fitting a check to a known answer. My defence is the
+   non-vacuity demonstration (§5.1) and the fact that the guard is now *stricter*
+   on its stated claim — **check it rather than take it.**
+5. **Two sites inside my own conflict keys are untouched** —
+   `generate_cases_from_tlc_dump.py:2912` and `:1336`. No procedural cover; I did
+   not reach them.
+6. **Six of my seven findings are `carried` to `SS-08`.** `GOAL-consumption-obligatory`
+   measured 1-of-41 on exactly this pattern. The one I *consumed* rather than
+   routed is `SS-05-DF-07`, and 13 class repairs changed what the substrate
+   checks — but **the ratio of filed-to-consumed is still 6:1 and that is the
+   less flattering way to say it.**
