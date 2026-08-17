@@ -23061,3 +23061,73 @@ findings:
       doctrine, shipped by the epic itself, and should say so when reporting the
       absent-input goal -- it is the least flattering available reading and it is
       the correct one.
+  - id: SS-00-DF-07
+    found_by: the SS-04 independent reviewer, reporting that its own measurement had been destroyed; cause owned by the epic owner
+    found_at_commit: de717d8
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["epic owner cleanup procedure"]
+    channel: operator-doing-the-work
+    cost: One 30-minute suite run destroyed mid-flight and restarted; the cross-check it was completing was closed by other means at no extra cost.
+    summary: >-
+      THE EPIC OWNER DELETED A REVIEWER'S WORKTREES WHILE A MEASUREMENT WAS
+      RUNNING IN ONE OF THEM, KILLING IT WITH FileNotFoundError. The charter's own
+      operational rules carry BOTH halves of this: "do not edit files a running
+      measurement reads" and "never kill a process by name alone and CHECK
+      WHETHER A PROCESS IS YOURS FIRST". The owner did neither -- it removed three
+      detached worktrees on the strength of the reviewer's own sentence "for the
+      owner to remove", without checking whether anything was still running in
+      them. THE REVIEWER'S FOLLOW-UP MESSAGE SAYING "rv-SS04-base still has a
+      pytest running in it, so it should not be removed until that exits" ARRIVED
+      AFTER THE REMOVAL. So the sequencing hazard is real and is not the
+      reviewer's fault: an invitation to clean up and a caveat about a running
+      process were sent as two messages, and the first was acted on before the
+      second was read. NO FIGURE WAS LOST -- the outstanding cross-check (base
+      FAILED list vs tip FAILED list) was closed by combining the owner's own
+      independent base measurement at 8dd0442 with the reviewer's independent tip
+      measurement at 65d9dde: base 7 is a subset of tip 10 and all three
+      additions are in SS-04's own test file. THIS IS THE EPIC'S OWN SUBJECT
+      MATTER IN ITS CRUDEST FORM: the apparatus interfering with the measurement,
+      committed by the owner, against a reviewer, while cleaning up after a review
+      about instruments that answer confidently about conditions they did not
+      check.
+    reproduction: >-
+      `git worktree remove --force <path>` against a worktree with a live pytest
+      process in it. The process dies with FileNotFoundError on its rootdir. There
+      is no guard: `git worktree remove` does not check for running processes, and
+      `--force` suppresses the dirty-tree refusal that would otherwise be the only
+      incidental protection.
+    evidence:
+      - "the SS-04 reviewer's close-out: 'An external process deleted all three of my review worktrees mid-run, killing the base suite with a FileNotFoundError'"
+      - "the same reviewer's prior message: 'rv-SS04-base still has a pytest running in it, so it should not be removed until that exits'"
+      - "specs/results/scorecards/stabilize-substrate/GOAL-tree-stabilizes/baseline.md -- the owner's earlier instance of the same class, scaffolding specs/current three minutes into a 26-minute run"
+    why_out_of_scope: >-
+      OUT of every ticket's slice; it is an owner procedure, not repository code.
+      Filed because the class is the epic's own and the owner has now committed it
+      TWICE -- once against its own baseline at kickoff, once against a reviewer's.
+    suggested_fix: >-
+      Before removing any worktree, check for processes with a cwd or open file
+      under it, and refuse rather than force. Cheaply: `lsof +D <path>` or, for
+      this repository's shape, check for a running pytest whose rootdir is that
+      path. THE STRUCTURAL FIX IS SEQUENCING, NOT TOOLING: a review's teardown
+      instruction and its caveats must arrive as ONE statement, and the owner
+      should not act on a cleanup invitation until the reviewer has reported
+      itself finished. THE OWNER'S RULE, EARNED TWICE: a measurement in flight is
+      a file a running measurement reads, and the tree it runs in is part of it.
+    blast_radius: >-
+      Any review or verification running in a scratch worktree during an owner
+      cleanup pass. On this epic: one run, restarted, no figure lost.
+    disposition: open
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      OPEN. The owner's second instance of interfering with a running measurement,
+      the first being the kickoff contamination recorded in GOAL-tree-stabilizes'
+      baseline. NOTE FOR SS-08: report it as an owner-caused event, alongside the
+      reviewer's own disclosure in the same round that it nearly published a
+      6,373-byte card figure by merging stderr into the capture -- BOTH PARTIES IN
+      THAT REVIEW HIT THE MEASUREMENT APPARATUS, AND BOTH DISCLOSED IT.
