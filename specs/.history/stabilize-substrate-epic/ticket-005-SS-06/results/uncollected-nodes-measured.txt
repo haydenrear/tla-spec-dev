@@ -1,0 +1,24 @@
+# SS-06 clause (d): the 'uncollected nodes' population, MEASURED at 8dd0442 rather than quoted.
+# Method: in a throwaway clone at 8dd0442, delete specs/current/ and specs/desired_program_model/
+# (which is precisely what a workflow close does) and diff the --collect-only node lists.
+
+collection with the epic workflow SCAFFOLDED :     1558
+collection with the workflow CLOSED         :     1546
+difference                                  : 12 nodes
+
+# THE CHARTER AND THE PLAN BOTH SAY 13. AT THIS TREE IT IS 12.
+# The 12, every one a parametrisation over a path that exists only while a workflow is open:
+  tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml]
+  tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/current/TlaSpecDevCli.tla]
+  tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/spec_manifest.yaml]
+  tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/TlaSpecDevCli.tla]
+  tests/test_source_citations.py::test_no_citation_leaves_its_file_to_the_reader[specs/current/spec_manifest.yaml]
+  tests/test_source_citations.py::test_no_citation_leaves_its_file_to_the_reader[specs/current/TlaSpecDevCli.tla]
+  tests/test_source_citations.py::test_no_citation_leaves_its_file_to_the_reader[specs/desired_program_model/spec_manifest.yaml]
+  tests/test_source_citations.py::test_no_citation_leaves_its_file_to_the_reader[specs/desired_program_model/TlaSpecDevCli.tla]
+  tests/test_spec_yaml_valid.py::test_spec_yaml_parses[desired_state.yaml]
+  tests/test_spec_yaml_valid.py::test_spec_yaml_parses[spec_manifest.yaml4]
+  tests/test_spec_yaml_valid.py::test_spec_yaml_parses[spec_manifest.yaml5]
+  tests/test_spec_yaml_valid.py::test_spec_yaml_parses[ticket_plan.yaml]
+
+# Nodes collected ONLY in the closed state: none.

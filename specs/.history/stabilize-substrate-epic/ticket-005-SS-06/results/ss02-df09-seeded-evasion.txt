@@ -1,0 +1,25 @@
+# SS-06 / SS-02-DF-09: the reviewer's own hypothetical evasion, EXECUTED.
+# Throwaway clone at 8dd0442 + this PR's widened guard.
+# Seeded: scripts/_probe_gate_caller.py containing 'from score_tools import cmd_absent_input'.
+
+## The guard AS SHIPPED BY SS-02 (literal 'absent-input' under scripts/*.py):
+  callers == []
+  assert callers == [] -> PASSES -- the evasion is invisible to it
+
+## The WIDENED guard, same tree, same seeded file:
+            f"gate the static-gates doctrine refuses."
+        )
+E       AssertionError: ['scripts/_probe_gate_caller.py'] reference the absent-input check (('absent-input', 'absent_input', 'cmd_absent_input')). It reads this project's own instrument register and decides nothing about an adopter's code; wiring it into a close or promotion path makes it the gate the static-gates doctrine refuses.
+E       assert ['scripts/_pr...te_caller.py'] == []
+E         
+E         Left contains one more item: 'scripts/_probe_gate_caller.py'
+E         Use -v to get more diff
+
+tests/test_absent_input_demonstrations.py:740: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_absent_input_demonstrations.py::test_the_check_gates_nothing
+1 failed in 0.06s
+
+## And with the seeded file removed, the widened guard is green:
+...                                                                      [100%]
+3 passed in 0.03s

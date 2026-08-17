@@ -85,11 +85,25 @@ justification: ""
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
-  measured: false      # true only if a real TLC run produced the figure
-  applied: false       # if true, approved_by is required
+  searched: true
+  outcome: "none"
+  detail: >-
+    SEARCHED, FOUND NONE, AND THE SEARCH IS RECORDED RATHER THAN ASSERTED.
+    SS-06 touches no TLA+ surface: `model_delta_expectation` is `none expected`,
+    the measured delta is `direction=zero (vs SS-04)`, and
+    `diff -rq specs/tickets/SS-06/{current,desired}` is EMPTY at open and at
+    close. The bound is unchanged at 277,830 over 6 of 8 resolved variables --
+    the same figure `tests/test_analyze_complexity.py` asserts, and one of the
+    tests this ticket repaired is the one that asserts it. There is no
+    representation to refine here because none was added: the whole delta is
+    six absent-input guards, three docstrings, two widened test guards, one new
+    test module, one measurement instrument, and evidence.
+    WHAT THE SEARCH DID TURN UP IS NOT A REFINEMENT AND IS FILED INSTEAD:
+    `SS-06-DF-01` (a second vacuous-assertion sub-shape in two modules outside
+    this ticket's conflict keys) and `SS-06-DF-05` (an absent-input message that
+    named the wrong cause, in this ticket's own instrument, repaired here).
+  measured: false      # no TLC run: `run` accepts only spec-unit-tests and effect-conformance
+  applied: false
   approved_by: ""
 
 # Required only if a generated-states drop at constant distinct states is
@@ -99,4 +113,4 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: "specs/results/scorecards/stabilize-substrate/SS-06/RESULT.md"

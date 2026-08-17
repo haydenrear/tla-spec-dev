@@ -1,0 +1,30 @@
+# SS-06: the three test_source_citations reds carry the IDENTICAL 15 stale citations.
+# Measured at 8dd0442. The charter attributes two of them to 'the scaffold created a
+# manifest whose citations do not all resolve'. The scaffold COPIED specs/program_model's
+# manifest, which was already red for the same 15 citations, so this is ONE defect counted
+# THREE times -- not one inherited red plus two new ones.
+
+specs/current/spec_manifest.yaml : 15 stale citations
+specs/desired_program_model/spec_manifest.yaml : 15 stale citations
+specs/program_model/spec_manifest.yaml : 15 stale citations
+
+# Normalised (path prefix stripped), the three sets are byte-identical:
+#   diff current vs program_model  -> no difference
+#   diff current vs desired        -> no difference
+
+# The 15, as the test reports them for specs/current:
+  specs/current/spec_manifest.yaml:242: scripts/tla_spec_dev.py:353 does not contain the anchor 'run_generated_case_adapters.py' -- the anchor is at scripts/tla_spec_dev.py:369
+  specs/current/spec_manifest.yaml:243: scripts/tla_spec_dev.py:408 does not contain the anchor 'subprocess.run' -- the anchor is at scripts/tla_spec_dev.py:433
+  specs/current/spec_manifest.yaml:247: scripts/tla_spec_dev.py:335-342 does not contain the anchor '--with' -- the anchor is at scripts/tla_spec_dev.py:353
+  specs/current/spec_manifest.yaml:255: scripts/spec_evolution.py:154 does not contain the anchor 'shutil.rmtree'
+  specs/current/spec_manifest.yaml:256: scripts/spec_evolution.py:994 does not contain the anchor 'remove_state_directories'
+  specs/current/spec_manifest.yaml:257: scripts/spec_evolution.py:1143 does not contain the anchor 'remove_state_directories'
+  specs/current/spec_manifest.yaml:259: scripts/spec_evolution.py:385 does not contain the anchor 'shutil.rmtree'
+  specs/current/spec_manifest.yaml:260: scripts/spec_evolution.py:580 does not contain the anchor 'replace_tree'
+  specs/current/spec_manifest.yaml:262: scripts/spec_evolution.py:477 does not contain the anchor 'target.unlink' -- the anchor is at scripts/spec_evolution.py:1119
+  specs/current/spec_manifest.yaml:286: scripts/run_generated_case_adapters.py:2276 does not contain the anchor 'subprocess.run' -- the anchor is at scripts/run_generated_case_adapters.py:2170
+  specs/current/spec_manifest.yaml:297: scripts/run_generated_case_adapters.py:2392 does not contain the anchor 'mkdtemp' -- the anchor is at scripts/run_generated_case_adapters.py:2339
+  specs/current/spec_manifest.yaml:299: scripts/run_generated_case_adapters.py:1353 does not contain the anchor 'program_path'
+  specs/current/spec_manifest.yaml:306: scripts/spec_evolution.py:99 does not contain the anchor 'subprocess.run' -- the anchor is at scripts/spec_evolution.py:121
+  specs/current/spec_manifest.yaml:307: scripts/spec_evolution.py:1093 does not contain the anchor 'git_metadata'
+  specs/current/spec_manifest.yaml:308: scripts/spec_evolution.py:1195 does not contain the anchor 'git_metadata'
