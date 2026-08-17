@@ -1,0 +1,45 @@
+### 1. ABSENT document
+UNDECIDED: [absent] no document at /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/SS-04/absent/nope.md. Nothing was read, so no figure is reached and no figure is absent -- those are different claims.
+Nothing was measured, so nothing is refuted and nothing holds. `absent` and `checked, none found` are different claims.
+EXIT_UNPIPED=2
+
+### 2. EMPTY document (0 bytes)
+UNDECIDED: [empty] /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/SS-04/absent/empty.md is ZERO BYTES. `0 counted figures` here would say 'checked, none found' about a document that was never written.
+Nothing was measured, so nothing is refuted and nothing holds. `absent` and `checked, none found` are different claims.
+EXIT_UNPIPED=2
+
+### 2b. WHITESPACE-ONLY document
+UNDECIDED: [empty] /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/SS-04/absent/whitespace.md is 7 byte(s) of whitespace and nothing else. It parses perfectly and says nothing, which is not the same fact as a document that says things and counts none of them.
+Nothing was measured, so nothing is refuted and nothing holds. `absent` and `checked, none found` are different claims.
+EXIT_UNPIPED=2
+
+### 3. UNREADABLE document (not UTF-8)
+UNDECIDED: [unreadable] /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/SS-04/absent/binary.md does not decode as UTF-8 text ('utf-8' codec can't decode byte 0xff in position 1: invalid start byte). An unparseable document is not an empty one and must not get the same verdict (`SS-01-DF-04`).
+Nothing was measured, so nothing is refuted and nothing holds. `absent` and `checked, none found` are different claims.
+EXIT_UNPIPED=2
+
+### 4. FIGURE-FREE document -- the one that IS a real answer
+## UNREACHABLE — 0
+
+## file × verdict — the JOINT distribution, not two marginals (SS-00-DF-04)
+  file                                                        REF  MOV  HLD  UNR   tot
+
+0 counted figure(s): 0 REFUTED, 0 COUNT-MOVED, 0 HOLDS, 0 UNREACHABLE
+  by form: 
+A claim this cannot reach is NOT a claim that holds. The two counts are separate on purpose.
+EXIT_UNPIPED(piped-is-wrong-see-below)
+
+### 5. ABSENT scorecard corpus
+UNDECIDED: [absent] no scorecard corpus at /nonexistent. Every figure would report UNREACHABLE and the run would exit 0, which says 'nothing is refuted' about a tree that was never read.
+Nothing was measured, so nothing is refuted and nothing holds. `absent` and `checked, none found` are different claims.
+EXIT_UNPIPED=2
+
+### 6. EMPTY scorecard corpus (a real directory holding no cards)
+UNDECIDED: [empty] the scorecard corpus at /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/SS-04/absent/emptycorpus reads and holds 0 filled cards (0 file(s) found). `0 REFUTED over 0 cards` is an empty selection reported as a satisfied population.
+Nothing was measured, so nothing is refuted and nothing holds. `absent` and `checked, none found` are different claims.
+EXIT_UNPIPED=2
+
+### 7. EMPTY SWEEP -- a root with none of the swept patterns in it
+UNDECIDED: [empty] the sweep selected 0 files under /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/SS-04/absent/emptycorpus. `0 counted figures, 0 REFUTED` over an empty selection is a satisfied population that was never populated.
+Nothing was measured, so nothing is refuted and nothing holds. `absent` and `checked, none found` are different claims.
+EXIT_UNPIPED=2
