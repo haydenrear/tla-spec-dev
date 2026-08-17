@@ -86,3 +86,84 @@ stronger than "read exit codes unpiped".
 `[[movement]]` readable and all nine `[[contested]]` entries re-derived on a
 third pass. That is `GOAL-four-results-still-stand`'s guard holding at
 f45a245 + the owner's two commits, measured independently of SS-07.
+
+---
+
+## PENDING-3 — the rubric-drift prompt reaches 56 of 131 cards, and I reproduced the epic's own `rglob` defect finding it
+
+### (a) THE POSITIVE RESULT FIRST, because it is the stronger one
+
+SS-02 added 53 lines to `references/eval_scorecard.md` (commit `07b075c`) —
+R1's third clause. Measured at the tip:
+
+- **served digest UNCHANGED**: `sha256:2d7d4a0506d9b259`, card version 5
+- **served bytes UNCHANGED**: 6281 at the tip, 6281 recorded at the baseline
+- **rubric FILE sha CHANGED**: `b7fe75437bf68646` -> `674d497884fc124c`
+
+`served_rubric` renders **from parsed structure only**, so doctrine prose added
+outside the anchor ladder cannot reach a judge — and the digest correctly did
+not move. `score_tools.check` already separates the three states by name:
+`SERVED-DRIFT` ("the bar this judge read is not the bar in the tree"),
+`PROSE-DRIFT` ("the rubric file changed in a part NO JUDGE IS SERVED — the
+served digest is unchanged. **This is a prompt to go and look, never a
+violation**"), and silence.
+
+**THAT IS THE EPIC'S THESIS ALREADY IMPLEMENTED SOMEWHERE.** Three states kept
+distinct, each with its own message, and the harmless one explicitly labelled
+harmless instead of being either suppressed or escalated. It is the same shape
+as SS-02's `set[str] | None` and SS-05's `invariants_absence_state()`. Worth
+saying plainly: the fix shape this epic is repairing toward is not novel to the
+epic — one instrument had it before we started.
+
+### (b) THE COVERAGE LIMIT, which is the actual finding
+
+`PROSE-DRIFT` is guarded by `elif block.get("file_sha256") and rubric.get(...)`.
+An absent field is falsy, so the branch is skipped **silently**. Measured over
+the live tree:
+
+| | count |
+|---|---|
+| live cards (`.skill-manager` excluded) | 131 |
+| record a rubric `file_sha256` | 56 |
+| record NONE — drift prompt unreachable | **75** |
+| carry the stale `b7fe…` | 8 |
+| carry the current `674d…` | **0** |
+
+So the prompt can fire for at most **56 of 131 (42.7%)**, and for the other 75
+an absent field produces the same output as no drift. Zero cards carry the
+current sha, so every live card predates SS-02's rubric change.
+
+NOT YET ESTABLISHED, and I am not going to establish it as epic owner: whether
+those 75 are cards sealed before the field existed (legitimate, and then the
+honest fix is that `check` should say "cannot tell" rather than nothing), or
+whether the field is being dropped by a live scaffold path (a real defect).
+**The distinction decides whether this is a disclosure or a repair, and it is a
+ticket's work, not an artifact's.**
+
+### (c) TWO OWN-GOALS WHILE MEASURING IT, both this session
+
+**I nearly filed a false finding.** I expected `audit` to emit `PROSE-DRIFT`,
+saw zero, and started writing it up as a defect. The drift check is in
+`check()`, not `audit()` — wrong command. Had I filed it, it would have been a
+FALSE ALARM, the direction `SS-00-DF-09` names as the dangerous one because it
+looks like diligence.
+
+**And I reproduced the epic's own `rglob` defect.** My first sweep used
+`pathlib.Path('.').rglob('scorecard.json')` and reported 262 cards, 112 with a
+sha, 150 without, 16 stale. **Every one of those figures was exactly doubled**:
+131 live cards and 131 vendored copies inside
+`.skill-manager/skills/spec-double-compiler/`, which is a checkout of THIS
+REPOSITORY at an older commit. The stale shas I first found were the vendored
+copy's, not the record's.
+
+That is the same mechanism found BY HAND in both instruments this epic shipped
+(`SS-07-DF-08`, `SS-06-DF-05`) — an unbounded `rglob` that walks vendored
+copies of the tree it is measuring. Three independent authors, same defect, same
+session. **The population being swept is a contract, and none of the three of us
+declared one.**
+
+Severity: major (b), minor (c). Channel: `operator-running-own-instrument`.
+Disposition: (a) no action, recorded as a positive result; (b) open, and the
+live-vs-sealed question handed to a successor rather than guessed at; (c) open,
+and the honest fix is that a sweep declares its root and excludes vendored
+trees by contract, not by the author remembering.
