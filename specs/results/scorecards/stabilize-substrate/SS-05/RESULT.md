@@ -55,9 +55,24 @@ specs/results/scorecards/cut-the-apparatus/CA-10-absent-input/RESULT.md §3.3
 
 So the table enumerates **48 OPEN sites**, and the fixed instance is a **49th**
 site that sits outside it. Either the headline undercounts its own table by one,
-or one table row was silently not counted. `CA-10` §3.1 settles which is
-authoritative in its own words — *"the sweep is the authority, not the exemplar
-list"* — so **the open class at the epic base is 48, not 47**.
+or one table row was silently not counted.
+
+**`F1`, CORRECTED IN THE AMENDMENT ROUND.** An earlier draft warranted the 48 by
+quoting `CA-10` §3.1 as saying *"the sweep is the authority, not the exemplar
+list"*. **That phrase is not in `CA-10`'s `RESULT.md` at all** —
+`grep -c` returns **0**. It lives at
+`specs/desired_program_model/ticket_plan.yaml:88`, inside
+`GOAL-absent-input-consumed`'s baseline, **in the same sentence that says
+"47 OPEN"**; and `CA-10` §3.1's actual subject is *"three of the five are already
+repaired"*, i.e. the exemplar list overstating the live count. The quotation is
+withdrawn and the conclusion does not rest on it.
+
+**The 48 is warranted by the re-derivation instead, and it replicates.** Counting
+§3.3 mechanically gives 44 rows, 48 distinct `file:line` references, rows 10, 15,
+33 and 41 naming two sites each, **zero duplicates**, and `score_tools._finding_ids`
+absent from the table. The independent reviewer of PR #290 re-derived the same
+figures in a detached worktree. **The open class at the epic base is 48, not 47**,
+and the warrant is a count anyone can re-run, not a sentence.
 
 **Numerator +1 against the figure in my work order.** Filed as `SS-05-DF-01`.
 This is the arithmetic direction the ticket exists to prevent moving the other
@@ -73,9 +88,11 @@ git diff --stat 436c78c..HEAD -- scripts/ examples/validation/
   scripts/disposition.py                             191 +++
 ```
 
-All 28 files carrying the 48 sites live under `scripts/` or
-`examples/validation/`. **26 of them are byte-identical to `436c78c`**, so their
-**42 sites are unchanged code**. The remaining six sites are in
+All **29** files carrying the 48 sites live under `scripts/` or
+`examples/validation/`. **27 of them are byte-identical to `436c78c`**, so their
+**42 sites are unchanged code**. *(`F2`, corrected in the amendment round: this
+said 28 files and 26 byte-identical. Re-derived mechanically — 48 refs span 29
+distinct files, 2 of which had changed. The 42-site figure was right.)* The remaining six sites are in
 `score_tools.py` (5) and `disposition.py` (1) and were re-measured by running
 them.
 
@@ -188,11 +205,25 @@ edited.** `git show --stat d6805f8` touches only this directory.
 
 ## 2. THE REPAIRS, BY SUB-SHAPE, EACH WITH ITS DEMONSTRATED CASE
 
-Six commits, `4df1875`…`65e378e`. Every repair carries a demonstrated
-absent-input case that fails before and passes after **on a real subject**, and
-in every one the correct answer is **UNDECIDED or a refusal**. Where the shape
-has a third state, all three are demonstrated and **asserted to answer in
-different words** — a fallback that moves the false PASS to a rarer input has
+Six commits, `4df1875`…`65e378e`, plus `dbf6f1d` in the amendment round. Every
+repair carries a demonstrated absent-input case that fails before and passes after
+**on a real subject**. Where the shape has a third state, all three are
+demonstrated and **asserted to answer in different words**
+
+**`F4`, CORRECTED. IT IS 11 OF 13 THAT ANSWER UNDECIDED-OR-REFUSE, NOT ALL 13.**
+An earlier draft said *"in every one the correct answer is UNDECIDED or a
+refusal"*. Two of the 13 **report** instead of refusing, and the verdict stays
+`PASS`:
+
+| site | what it actually does | why |
+|---|---|---|
+| `corpus_diagnostics.py:543` | still prints `corpus gate PASS` with `passed = True`; what changed is that the page now says the cap is a **documented default** | `CA-10`'s prescribed answer is *"name the fallback, or refuse"* — I took *name the fallback* |
+| `score_tools.py:3448` | still returns the swept files; what changed is that barren patterns are **named** | `CA-10`'s prescribed answer is *"report `swept 0 of N patterns`"*, and my own docstring says **"Reported, NOT REFUSED."** |
+
+Both are within `CA-10`'s prescribed answers and both were already described
+accurately in §2.4 and §2.6. **The summary sentence was the thing that was
+wrong**, and a reader who stopped at §2 would have been told all 13 refuse. **11
+of 13 answer UNDECIDED or refuse; 2 report and leave the verdict at PASS.** — a fallback that moves the false PASS to a rarer input has
 not fixed the class, and two states answering identically is the defect
 `SS-07-DF-08`, `SS-06-DF-05` and `SS-01-DF-04` are each instances of.
 
@@ -221,9 +252,19 @@ template. Only `validate_state` had been given a pass.
 | `legacy_payment_http` (declares two) | `validate_type_invariant(state)` | **unchanged** |
 
 **Demonstrated case:** `tests/test_absent_invariants_refuse.py`, 13 nodes, all
-green; every assertion fails against `f45a245`. The three states are asserted
-separately, the **control** (`legacy_payment_http` still generates calls) is
-asserted, and the three refusals are asserted **pairwise distinct**.
+green. The three states are asserted separately, the **control**
+(`legacy_payment_http` still generates calls) is asserted, and the three refusals
+are asserted **pairwise distinct**.
+
+**`F3`, CORRECTED.** An earlier draft said *"every assertion fails against
+`f45a245`"*. **It does not.** Transplanted onto a clean base worktree by the PR
+#290 reviewer, my five new demonstration files run **30 failed / 14 passed of 44
+nodes**, and this file specifically is **11 failed / 2 passed of 13**. Every one
+of the 14 base-passing nodes is a **control, a pin, or a non-vacuity guard** —
+they are *supposed* to pass on the base, that is what makes them controls, and
+several say so in their own names. The design is right and the sentence was
+wrong. **The precise claim: 30 of 44 new nodes fail on the base; the other 14 are
+labelled controls and pins that must pass on both sides.**
 
 **The examples half.** All three live manifests now declare the invariant names
 their own `.cfg` hands TLC, and `tests/test_absent_invariants_refuse.py`
@@ -293,6 +334,20 @@ guard reads only those.
 | | before | after |
 |---|---|---|
 | `check <400B> --repo /tmp/notarepo --memory /nonexistent` | `WEAK PASS`, **exit 0** | `UNDECIDED: no needles could be derived from this tree. Not a pass.`, **exit 2**, naming which classes were empty |
+
+**THE TRADE, STATED SO `SS-08` DECIDES IT RATHER THAN INHERITS IT (`F10`).** This
+repair **does move the false PASS to a rarer input**, and that is deliberate. The
+`UNDECIDED` branch requires **both** derived classes empty, so
+`check <400B> --repo <a real repository> --memory /nonexistent` still returns
+`WEAK PASS` at **exit 0** with zero memory needles. `CA-10`'s prescribed answer
+for this site is *"test the derived classes only"*, which is exactly what shipped,
+so the surviving case is **inside** the prescription rather than an escape from
+it. **The alternative — refuse whenever ANY class is empty — was considered and
+rejected**, because it refuses every honest run by an operator with no memory
+index, trading a false PASS for a false REFUSAL; `test_ONE_derivable_class_still_decides_the_round`
+pins that alternative as *not* taken. **`SS-08` may reasonably judge that the
+class is only half repaired here. The evidence for both readings is in the two
+tests and this paragraph, and I am not claiming the stronger one.**
 
 **Demonstrated case:** `tests/test_blind_dispatch_absent_input.py`, 4 nodes.
 **Non-vacuity was the real risk here and it is asserted:** a guard that refused
@@ -376,7 +431,7 @@ re-repaired**.
 
 | item | before | after |
 |---|---|---|
-| 1 `load_log` | empty skeleton for an absent `INSTRUMENT-LOG.toml`; `audit --root …/cut-the-apparatus` → `0 violation(s)`, **exit 0** | `dict \| None`; `audit_input_state` refuses with **exit 2**, three states, three sentences |
+| 1 `load_log` | empty skeleton for an absent `INSTRUMENT-LOG.toml`; `audit --root …/cut-the-apparatus` → `0 violation(s)`, **exit 0** | `dict \| None`; `audit_input_state` refuses with **exit 2** — see the `F5` correction below |
 | 2 `audit_rh6` | `OK  no judge group has a spread greater than 1` over **zero cards** | `UNVERIFIED`, which does not increment the violation count |
 | 3 `audit_rh1_architecture` | **no line at all** over zero cards | `UNVERIFIED` naming that a silent clause reads exactly like one that held |
 | 5 `sweep_paths` | a pattern matching zero files contributed **in silence** | `patterns  swept N of M`, every barren pattern named |
@@ -386,6 +441,33 @@ the relocated ledger to `DEFAULT_SWEEP` after 17 REFUTED figures went unswept),
 and the mechanism was untouched. It is **reported, not refused** —
 `specs/desired_program_model/*.yaml` legitimately matches three files while a
 workflow is open and none after a close. On this tree: `patterns swept 8 of 8`.
+
+**`F5`, AND IT IS THE WORST THING IN THIS TICKET: MY OWN ABSENT-INPUT REPAIR
+SHIPPED AN INSTANCE OF THE CLASS IT REPAIRS.** An earlier draft of this section
+said `audit_input_state` gives *"three states, three sentences"*. **It shipped
+with four branches returning TWO labels** — `absent` three times, `empty` once —
+**and no `unreadable` branch at all.** Applying **my own** operationalisation of
+that state from §1.7 (`--root` names a FILE — the definition I used to register
+both `stranded-loaders` and `vacuity-probe`), `audit --root <a file>` died with a
+`json.decoder.JSONDecodeError` **traceback at exit 1**. A traceback is not a
+verdict, and exit 1 is the code a violation uses. **No test covered it.** The same
+shape, weaker, in the other instrument I touched: `disposition.py --ledger <a
+directory>` → `IsADirectoryError`, exit 1.
+
+**The crash is identical at `f45a245`, so I did not introduce it — I claimed to
+have closed it and had not.** Found by the independent reviewer of PR #290, by
+applying my own definition to my own repair.
+
+**Repaired in the amendment round at `dbf6f1d`, NOT redefined.** The evasion
+available here was to weaken §1.7's definition of `unreadable` until the claim
+became true; that is `MF-020` and I did not take it. `audit_input_state` now has a
+not-a-directory branch **and** catches `OSError`/`ValueError`/`JSONDecodeError`
+from `collect_cards`, both returning `("unreadable", …)` with their own sentences;
+`disposition.load` refuses an unreadable path at exit 2. Three new demonstrations,
+including `test_the_audit_states_are_now_THREE_LABELS_and_pairwise_distinct`,
+which asserts each of the three labels is **reachable** and that the three
+messages differ — **nothing in the suite would have caught two labels before.**
+Filed as `SS-05-DF-08`.
 
 **I got item 3 wrong first and the suite caught it.** My first guard tested
 `ctx["rows"]` and turned three `test_architecture_tags` tests red, because they
@@ -486,12 +568,23 @@ denominator                                48   sites enumerated by CA-10 §3.3
 
 | count | reason |
 |---:|---|
-| **32** | **Outside `SS-05`'s `conflict_keys.production`.** The plan gives `SS-05` seven production files; these 32 sites live in 21 other modules — `extract_spec_manifest.py`, `scaffold_spec.py`, `onboard_program_model.py`, `infer_action_params.py`, `analyze_complexity.py`, `complexity_ledger.py`, `code_complexity.py`, `check_prediction_seal.py`, `demonstrate.py`, `dispatch_record.py`, `divergence.py`, `run_controls.py`, `run_arm_swap.py`, `architecture_tags.py`, `fitness_functions.py`, `budgets.py`, `effect_conformance.py`, `spec_evolution.py`, `close_tickets.py`, `new_ticket_workflow.py`, `run_generated_case_adapters.py`. The epic's deferment policy is explicit: *"defects outside your conflict keys are deferred, not fixed"*. The two highest-value ones are filed by name: `SS-05-DF-02` (`extract_spec_manifest`, the other half of `CA-10-DF-21`) and `SS-05-DF-05` (`run_generated_case_adapters`, the other half of `CA-10-DF-20`). |
+| **32** | **Outside `SS-05`'s `conflict_keys.production`.** The plan gives `SS-05` seven production files; these 32 sites live in **22** other modules, with their site counts, and they sum to 32: `analyze_complexity.py` 3, `check_prediction_seal.py` 2, `close_tickets.py` 2, `demonstrate.py` 2, `divergence.py` 2, `extract_spec_manifest.py` 2, `fitness_functions.py` 2, `new_ticket_workflow.py` 2, `onboard_program_model.py` 2, `architecture_tags.py` 1, `budgets.py` 1, **`case_modules.py` 1**, `code_complexity.py` 1, `complexity_ledger.py` 1, `dispatch_record.py` 1, `effect_conformance.py` 1, `infer_action_params.py` 1, `run_arm_swap.py` 1, `run_controls.py` 1, `run_generated_case_adapters.py` 1, `scaffold_spec.py` 1, `spec_evolution.py` 1. The epic's deferment policy is explicit: *"defects outside your conflict keys are deferred, not fixed"*. `SS-05-DF-02` (`extract_spec_manifest`, the other half of `CA-10-DF-21`) and `SS-05-DF-05` (`run_generated_case_adapters`) are filed by name — **but see `F12` below on what `DF-05` actually files.** **`F2`, CORRECTED:** an earlier draft named **21** modules with no counts, and those 21 sum to **31**. **The one missing was `scripts/case_modules.py:552`** — zero corpora or an empty `actions.yml` yields `UNCOVERED: none — every view action is entered`, full coverage certified over zero actions — and it appeared **nowhere** in this file. A list that does not sum is not an enumeration, and this is the fifth instance in this epic of a right total with an unmeasured decomposition (`SS-00-DF-04`'s `class_note`). The headline totals **32 / 34 / 42 / 48 are unaffected**. |
 | **2** | `generate_cases_from_tlc_dump.py:2912` and `:1336`. **These are INSIDE my conflict keys and I simply did not reach them.** No reason beyond time. I am naming them here rather than letting them disappear into the 32, because "outside my keys" is an excuse the 32 have and these two do not. |
 
 **`generate_cases_from_tlc_dump.py` is in this ticket's conflict keys and I
 shipped nothing for it.** That is the honest statement of what this ticket left
 undone in the one place it had no procedural cover.
+
+**`F12`, CORRECTED.** I called `SS-05-DF-05` one of *"the two highest-value filed
+by name"* of the 32. **`DF-05` does not file an enumerated site.** It files
+`run_generated_case_adapters.py:968`, an **adjacent site I found myself** while
+tracing the callers of my own repair. **The enumerated site in that module,
+`:1571`** — no `effects:` block found, so `effects_active=False`, no sandbox, no
+diff, **no report even with `--effect-report`**, exit 0 — **is unfiled and was
+unmentioned anywhere in this file.** It is now filed as `SS-05-DF-10`. So of the
+32, **one** enumerated site is filed by name (`SS-05-DF-02`), plus one adjacent
+site (`DF-05`), plus `:1571` newly (`DF-10`). **The remaining 30 are carried by
+the class rows `CA-10-DF-17`…`DF-25` and by nothing of mine.**
 
 **Nothing was reported smaller than it is.** The class moved from a filed 47 to a
 measured 48 (§1.1), and 34 of those 48 are open at my tip. **34 of 48 open** is
@@ -511,7 +604,7 @@ to neither and the two are directly comparable. Raw:
 | | failed | passed | skipped | xfailed | **collection** |
 |---|---:|---:|---:|---:|---:|
 | **base** `f45a245` | 7 | 1598 | 0 | 1 | **1606** |
-| **tip** `c054345` | **7** | **1645** | **0** | **1** | **1653** |
+| **tip** `bf094c3` | **7** | **1645** | **0** | **1** | **1653** |
 | movement | **0** | **+47** | 0 | 0 | **+47** |
 
 They sum at both ends: `7 + 1598 + 0 + 1 = 1606` and
@@ -566,8 +659,15 @@ surface for the tokens `absent-input` / `absent_input` / `cmd_absent_input`, and
 **it is a substring match over raw source text**. I repaired six instances of the
 class and **cited the check by name in the comments explaining each repair**, in
 `scripts/disposition.py` and `scripts/generate_python.py`. The guard reported both
-as callers wiring the check into a close path. **Nothing was wired.** Every match
-is on a `#` line.
+as callers wiring the check into a close path. **Nothing was wired.**
+
+**`F-sub`, CORRECTED:** an earlier draft said *"every match is on a `#` line"*.
+**Both matches are inside function DOCSTRINGS** — `scripts/disposition.py:149` and
+`scripts/generate_python.py:276` — not `#` comments. **Comment-stripping alone
+would not have cleared them**; the docstring-blanking half of `_code_only` did the
+work, and I credited the wrong half. The finding and the repair are unaffected
+(the reviewer confirmed both independently); the sentence describing them was
+wrong.
 
 **That is a false refusal by a recogniser bound to surface form** — the same class
 as `CA-08-DF-01` (bound by sentence form) and `SS-00-DF-03` (a keyword matcher
@@ -608,8 +708,10 @@ fourth. Filed and repaired as `SS-05-DF-07`.
    unresolvable ledger. I declined it and filed `SS-05-DF-03` with three reasons
    and an executed test. **The owner or `SS-08` should decide it, not inherit
    it.**
-2. **Six ledger rows against a batch budget of five.** `SS-05-DF-06` is the
-   sixth. It is filed rather than dropped because it carries a reproduction and
+2. **NINE ledger rows against a batch budget of five.** *(`F6`: this said "six",
+   written before `SS-05-DF-07` was filed and again before the amendment round
+   added `DF-08` and `DF-09`. §8.6 already said seven, so it was discoverable —
+   the number here was simply stale, twice.)* `SS-05-DF-06` was the sixth. It is filed rather than dropped because it carries a reproduction and
    because dropping it leaves the next registering ticket — which the owner
    ruling makes *every* ticket that ships an instrument — to pay the same cost
    again. **Disclosed, not hidden by folding two rows together.**
@@ -624,11 +726,15 @@ fourth. Filed and repaired as `SS-05-DF-07`.
 4. **Files touched outside `implementation_scope`.** The ticket's
    `implementation_scope` is `scripts/`, `examples/validation/`, `tests/`,
    `specs/results/scorecards/stabilize-substrate/`. I also edited
-   `examples/effect_providers/reminder_worker/specs/program_model/spec_manifest.yaml`
-   and `.../atomic_publisher/...spec_manifest.yaml` and regenerated
-   `atomic_publisher`'s `validators.py`, because issue #279 orders the shipped
-   examples carrying the vacuous oracle to be named **and fixed** and two of the
-   three live in `examples/effect_providers/`. Disclosed rather than assumed.
+   **four** files outside it, all under `examples/effect_providers/`:
+   `reminder_worker/specs/program_model/spec_manifest.yaml`,
+   `atomic_publisher/specs/program_model/spec_manifest.yaml`,
+   `atomic_publisher/specs/program_model/generated/atomic_publisher_contract/validators.py`
+   **and `reminder_worker/generated/reminder_contract/validators.py`**. Issue #279
+   orders the shipped examples carrying the vacuous oracle to be named **and
+   fixed**, and two of the three live there. *(`F9`: an earlier draft named three
+   of the four and omitted `reminder_worker`'s regenerated package. Disclosing
+   three of four is not disclosure.)*
 5. **No skill was edited.** Nothing under `.skill-manager/skills/` was touched
    and no diff is proposed against one. **Nothing in this worktree's Skill Manager
    home changed** — no `skill-manager`, `skt`, `home sync`, `home close-out`,
@@ -654,8 +760,16 @@ remaining falls from 47, each repair carrying its own demonstrated absent-input
 case"*. Measured: the denominator is **48**, not 47 (§1.1); remaining is **34**;
 **13 sites repaired by this ticket**, each with a demonstrated case, plus 1
 repaired earlier. Clause (d) — *every repair this epic ships carries its own
-demonstrated absent-input case* — is satisfied for all 13 and the demonstrations
-are executed by the suite rather than described. Clause (e) — no new gate over
+demonstrated absent-input case* — **is satisfied for all 13**, and the
+demonstrations are executed by the suite rather than described.
+
+**But the neighbouring claim needed correcting (`F4`): 11 of the 13 answer
+UNDECIDED-or-refuse, not 13.** `corpus_diagnostics.py:543` and
+`score_tools.py:3448` **report** and leave the verdict at `PASS` — both within
+`CA-10`'s own prescribed answers for those two sites (*"name the fallback, or
+refuse"* and *"report `swept 0 of N patterns`"*), both described accurately in
+§2.4 and §2.6, and both misdescribed by the summary sentence in §2. **`SS-08`
+should read the class metric as 11 refusals + 2 reports, not 13 refusals.** Clause (e) — no new gate over
 subject-program content — holds: the only new refusals over an adopter's material
 are in the **generator**, which refuses to emit an oracle it cannot write, and in
 the **corpus gate and channel gate**, which already refused adjacent inputs and
@@ -691,9 +805,11 @@ this was the real exposure. Measured at the tip
 | `score_tools.py audit` (the declared `local_signal`) | **`0 violation(s)`, exit 0** |
 | `serve \| wc -c` — clause (c), *the card must not grow*, 6,281 at the base | **6,281** — byte-identical |
 | `scope` | 95 cards, 371 files swept, `patterns swept 8 of 8`, **81 REFUTED / 2 HOLDS** — still reaching its figures |
-| `contested`, `seal`, `history` — `RM-02`'s *"substrate's best export"* | all still run, exit 0 |
+| `contested` | **genuinely runs**, bare, exit 0 |
+| `history` | **`--example ab_quota_ledger` → exit 0.** `F8`: an earlier draft said all three *"still run, exit 0"* while the sealed evidence recorded only `--help exit=0`. Bare, `history` exits **2** on argparse. Re-run properly here. |
+| `seal` | **argparse reached, and exercising it further is a WRITE.** `F8`: run for real it exits 0 and seals 381 files — **and mutates `specs/results/scorecards/INSTRUMENT-LOG.toml`**, which I did once in this amendment round and reverted with `git checkout` immediately. Recorded rather than hidden: *verifying that `seal` still runs is itself a write to the record*, which is why the original evidence had only `--help` in it. **Restated: argparse reached; the write path was exercised once and reverted, not left as standing evidence.** |
 | `tests/test_score_tools.py` | **116 passed, 0 failed** |
-| `tests/test_architecture_tags.py` | 41 passed, 1 failed — `RM-06-DF-01`, deliberate and red at the base |
+| `tests/test_architecture_tags.py` | **31 passed, 1 failed of 32** — `RM-06-DF-01`, deliberate and red at the base. `F7`: an earlier draft published **41 passed / 1 failed**, which is not a possible total for a 32-node file, was narrative-only and absent from the sealed evidence. **That is `GOAL-four-results-still-stand` clause (e) — *any figure this epic publishes about a standing result is re-derived, not quoted* — failing on my own page.** Re-derived: `evidence/section7-figures-rederived-amendment.txt`. |
 
 **No result was broken, and the card did not grow.** Stated as measured, not as
 expected: I changed `load_log`'s signature, three audit clauses and `sweep_paths`
@@ -729,8 +845,23 @@ reviewed.
 5. **Two sites inside my own conflict keys are untouched** —
    `generate_cases_from_tlc_dump.py:2912` and `:1336`. No procedural cover; I did
    not reach them.
-6. **Six of my seven findings are `carried` to `SS-08`.** `GOAL-consumption-obligatory`
+6. **Six of my ten findings are `carried` to `SS-08`.** `GOAL-consumption-obligatory`
    measured 1-of-41 on exactly this pattern. The one I *consumed* rather than
-   routed is `SS-05-DF-07`, and 13 class repairs changed what the substrate
-   checks — but **the ratio of filed-to-consumed is still 6:1 and that is the
-   less flattering way to say it.**
+   routed are `SS-05-DF-07`, `DF-08` and `DF-09` — all three found by pointing a
+   check at my own work — and 13 class repairs changed what the substrate checks.
+   **The ratio is 7 carried to 3 consumed. `GOAL-consumption-obligatory` measured
+   1-of-41 on exactly this pattern, and 7:3 is better than that and still not
+   good.**
+
+7. **THE AMENDMENT ROUND ITSELF IS THE LEAST FLATTERING FACT HERE.** An
+   independent review returned **13 findings**, of which **eight were
+   inaccuracies in my own `RESULT.md` and six of those eight ran in my favour**.
+   One (`F5`) was an instance of the absent-input class **inside my repair for the
+   absent-input class**, claimed closed and not closed. Another (`F7`) was a
+   figure about a standing result that **cannot arithmetically be true** — 41+1
+   over a 32-node file — published on a page whose own goal clause (e) requires
+   every such figure to be re-derived. **The core work survived: the reviewer
+   re-derived every headline figure exactly, in four detached worktrees, and
+   confirmed the 7→8→7 adjudication by running the base guard against my tip tree
+   and seeding the evasion four ways.** The pattern is consistent and worth
+   stating plainly: **my code was measured and my prose was not.**

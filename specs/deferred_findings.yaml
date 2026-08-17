@@ -24767,3 +24767,175 @@ findings:
       asserts the first three are still caught and the fourth is not, plus that the
       UNNARROWED search does flag the fourth, which is the finding itself executed.
       The guard is strictly stronger on its stated claim than it was.
+  - id: SS-05-DF-08
+    found_by: the independent reviewer of PR #290, applying SS-05's own definition of `unreadable` to SS-05's own repair
+    found_at_commit: bf094c3
+    schedule_revision: 2
+    severity: moderate
+    surface:
+      production: ["examples/validation/scorecards/score_tools.py", "scripts/disposition.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: independent-review
+    cost:
+      basis: two invocations, each pointing --root or --ledger at a path of the wrong TYPE
+      value: it found an instance of the absent-input class INSIDE the ticket that repairs the absent-input class
+    summary: >-
+      SS-05'S OWN ABSENT-INPUT REPAIR SHIPPED WITHOUT THE `unreadable` STATE, AND ITS
+      RESULT.md CLAIMED OTHERWISE. `score_tools.audit_input_state` was written to give
+      "three states, three sentences" and shipped with FOUR BRANCHES RETURNING TWO
+      LABELS -- `absent` three times and `empty` once. There was no `unreadable`
+      branch. Under SS-05's OWN operationalisation of that state -- `--root` names a
+      FILE, the definition it used to write the `stranded-loaders` and
+      `vacuity-probe` register contracts -- `score_tools.py audit --root <a file>`
+      died with a `json.decoder.JSONDecodeError` TRACEBACK AT EXIT 1. A traceback is
+      not a verdict, exit 1 is the code a VIOLATION uses, and no test in
+      `tests/test_score_tools_absent_input.py` covered it. THE SAME SHAPE, WEAKER, IN
+      THE OTHER INSTRUMENT THE SAME TICKET TOUCHED: `resolve_ledger` returns any path
+      that EXISTS, so `scripts/disposition.py --ledger <a directory>` raised
+      `IsADirectoryError` at exit 1 -- and that module had just been given an
+      `unreadable` state for the PARSE-FAILURE form while the NOT-A-FILE form was left
+      crashing. THE CRASH IS IDENTICAL AT `f45a245`, SO SS-05 DID NOT INTRODUCE IT; IT
+      CLAIMED TO HAVE CLOSED IT AND HAD NOT. That is the more useful finding: the
+      class was not caught by the ticket that swept for the class, in the instrument
+      the ticket had just rewritten, because the claim was checked against the
+      author's intent rather than against the code.
+    reproduction: >-
+      `touch /tmp/f && python3 examples/validation/scorecards/score_tools.py audit
+      --root /tmp/f; echo $?` -> `json.decoder.JSONDecodeError` traceback, exit 1
+      (at `bf094c3` and at `f45a245`).
+      `python3 scripts/disposition.py --ledger /tmp --epic SS; echo $?` ->
+      `IsADirectoryError: [Errno 21] Is a directory: '/tmp'`, exit 1. After the
+      repair both print `UNDECIDED [unreadable] ...` and exit 2. Pinned by
+      `tests/test_score_tools_absent_input.py::test_a_root_that_is_a_FILE_is_UNDECIDED_unreadable_and_not_a_traceback`,
+      `::test_the_audit_states_are_now_THREE_LABELS_and_pairwise_distinct` and
+      `tests/test_disposition_absent_input.py::test_a_ledger_path_that_is_a_DIRECTORY_is_UNDECIDED_not_a_traceback`.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-05/RESULT.md section 2.6, the F5 correction"
+      - "tests/test_score_tools_absent_input.py"
+      - "tests/test_disposition_absent_input.py"
+    blast_radius: >-
+      Two instruments, on inputs of the wrong TYPE rather than of the wrong content.
+      Neither produced a false PASS -- both crashed -- so no verdict was ever wrong;
+      what was wrong is that a crash was counted as a closed state, and that SS-05's
+      own count of its states was taken from its intent instead of from its code.
+    disposition: repaired
+    disposition_ticket: SS-05
+    disposition_note: >-
+      REPAIRED IN THE AMENDMENT ROUND, AND THE EVASION IS NAMED BECAUSE IT WAS
+      AVAILABLE AND CHEAP. SS-05 could have weakened section 1.7's definition of
+      `unreadable` until the claim became true -- it is SS-05's own definition, in
+      SS-05's own document, and nothing outside this ticket depends on it. THAT IS
+      MF-020 AND IT WAS NOT TAKEN. `audit_input_state` now has a not-a-directory
+      branch and catches OSError/ValueError/JSONDecodeError from `collect_cards`;
+      `disposition.load` refuses an unreadable path at exit 2; and a new test asserts
+      each of the three labels is REACHABLE and that the three messages differ, which
+      is the check that would have caught two-labels-for-three-states and did not
+      exist.
+  - id: SS-05-DF-09
+    found_by: the independent reviewer of PR #290
+    found_at_commit: bf094c3
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: ["scripts/corpus_diagnostics.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: independent-review
+    cost:
+      basis: reading the label against the state it names
+      value: the class arriving in the vocabulary of the ticket written to keep those three words apart
+    summary: >-
+      AN ABSENT VIEW ATTRIBUTION WAS LABELLED `UNDECIDED [empty]`. `corpus_diagnostics.run`
+      refuses a corpus whose view cannot be attributed -- no `SOURCE_VIEW`, no
+      `view`/`layer` on any case, no directory name that matches -- and SS-05 gave
+      that refusal the `[empty]` label. THE CORPUS IS NOT EMPTY: it has cases. What is
+      absent is the ATTRIBUTION. The messages were distinct and the VERDICT was
+      correct, so nothing was mis-decided; the STATE NAME was wrong, inside the ticket
+      whose entire subject is `absent`, `unreadable` and `empty` not collapsing into
+      one answer. IT IS THE SURVIVING HALF OF `SS-06-DF-05`'S SHAPE -- there the
+      verdict was already a refusal and the CAUSE was a fabrication -- reproduced one
+      ticket later by the ticket that cited `SS-06-DF-05` while writing it.
+    reproduction: >-
+      A generated package declaring no `SOURCE_VIEW`, whose cases carry no
+      `view`/`layer`, under a directory named neither `spec-unit` nor `testgraph`:
+      `python3 scripts/tla_spec_dev.py analyze corpus <dir>` printed
+      `UNDECIDED [empty]: ... declares no SOURCE_VIEW ...`. Now prints
+      `UNDECIDED [absent]`. Pinned by
+      `tests/test_corpus_gate_absent_input.py::test_the_three_corpus_gate_labels_name_the_right_states`,
+      which asserts the empty and absent labels name different states.
+    evidence:
+      - "scripts/corpus_diagnostics.py -- the SS-05-DF-09 comment at the refusal"
+      - "tests/test_corpus_gate_absent_input.py"
+    blast_radius: >-
+      One label on one refusal. No verdict moved. It matters because a reader
+      triaging by state name would look for an empty corpus and find a populated one.
+    disposition: repaired
+    disposition_ticket: SS-05
+    disposition_note: >-
+      REPAIRED. Worth keeping on the record rather than fixing silently: three
+      instruments in this epic have now named a state wrongly while deciding it
+      correctly -- SS-06-DF-05, SS-07-DF-08 and this -- and in all three the verdict
+      was right and the CAUSE was not. A rule stated on the verdict alone does not see
+      this class; SS-02's check sees it only because it compares the MESSAGES.
+  - id: SS-05-DF-10
+    found_by: the independent reviewer of PR #290, checking what SS-05-DF-05 actually files
+    found_at_commit: bf094c3
+    schedule_revision: 2
+    severity: moderate
+    surface:
+      production: ["scripts/run_generated_case_adapters.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    channel: independent-review
+    cost:
+      basis: comparing SS-05-DF-05's cited line against CA-10's enumerated site in the same module
+      value: an enumerated site of the class that SS-05 left both unrepaired and unfiled while claiming otherwise
+    summary: >-
+      THE EFFECT ORACLE SWITCHES ITSELF OFF SILENTLY, AND SS-05 FILED THE ADJACENT
+      LINE INSTEAD. `CA-10-DF-19` enumerates `run_generated_case_adapters.py:1571`:
+      when no `effects:` block is found -- absent file, or a block that parses falsy --
+      `load_effect_declarations(None)` yields zero ports, `effects_active` is False, NO
+      `EffectSandbox` IS EVER CONSTRUCTED, `diff_effects` is never called, THE
+      `--effect-report` FILE IS NEVER WRITTEN, and `main` prints `executed N cases in
+      batch` and returns 0. Three things make it a defect rather than a design: the
+      function's own docstring asserts the opposite ("a program with no declared ports
+      is checked as such, and any effect it emits is a gap" -- false, because with zero
+      ports nothing is observed so nothing can be a gap); a comment says "the report is
+      written unconditionally" and it is written under `if effects_active:`; and the
+      standalone twin `effect_conformance_report.py:80-87` REFUSES this exact input
+      with exit 2. THE ENFORCING COPY PASSES WHERE THE REPORTING COPY REFUSES. SS-05
+      filed `SS-05-DF-05` about `:968` in the same module -- an ADJACENT site it found
+      itself -- and described that row in its RESULT.md as one of "the two
+      highest-value filed by name" of the 32 sites outside its conflict keys. `:1571`,
+      the site CA-10 actually enumerated, was neither repaired nor filed nor mentioned.
+    reproduction: >-
+      `python3 scripts/run_generated_case_adapters.py --cases-dir <pkg>/cases --mapping
+      <pkg>/case_adapters.toml --effect-report /tmp/effects.json` with no `actions.yml`
+      or `spec_manifest.yaml` beside the mapping -> exit 0, `/tmp/effects.json` never
+      created, nothing printed about why. Verbatim from `CA-10-DF-19`'s own
+      reproduction field, which is where it has been since that sweep.
+    evidence:
+      - "specs/deferred_findings.yaml -- CA-10-DF-19, fourth paragraph"
+      - "specs/results/scorecards/stabilize-substrate/SS-05/RESULT.md section 4, the F12 correction"
+    blast_radius: >-
+      The effect-conformance path on any corpus whose effects block is absent or
+      falsy. It is one of the 32 sites outside SS-05's conflict keys and is carried
+      with them; what this row adds is that it now has an id of its own rather than
+      being covered by a claim that pointed at a different line.
+    disposition: carried
+    disposition_ticket: SS-08
+    disposition_note: >-
+      CARRIED. `scripts/run_generated_case_adapters.py` is outside SS-05's conflict
+      keys. FILED RATHER THAN LEFT INSIDE A SENTENCE THAT WAS NOT TRUE: SS-05's claim
+      that two of the 32 were "filed by name" was correct for `SS-05-DF-02` and wrong
+      for `SS-05-DF-05`, which files an adjacent site. With this row the count is one
+      enumerated site filed by SS-05-DF-02, one adjacent site by SS-05-DF-05, and this
+      one; the remaining 30 are carried by `CA-10-DF-17`..`DF-25` and by nothing of
+      SS-05's.
