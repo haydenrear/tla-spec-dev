@@ -3178,3 +3178,267 @@ acquiring the defect it checks for.
       [[instrument.absent_input.empty.write]]
       file = "instruments.toml"
       content = "schema_version = 1\n\n[registry]\nid = \"a register that declares nothing\"\n"
+
+
+# ===========================================================================
+# SS-05: RETRO-REGISTRATION OF THE TWO INSTRUMENTS THIS EPIC SHIPPED
+# ===========================================================================
+#
+# OWNER RULING, `planning_rules.an_instrument_a_ticket_SHIPS_must_be_REGISTERED`,
+# 2026-08-17, and it REVERSES the owner's earlier instinct. `SS-07` shipped
+# `stranded_loaders.py` and `SS-06` shipped `vacuity_probe.py`, NEITHER WAS
+# REGISTERED, so `absent-input` never swept them -- and both were then found BY
+# HAND to carry the very defect it checks for (`SS-07-DF-08`, `SS-06-DF-05`). THE
+# EPIC WAS COUNTING A CLASS WHILE ITS OWN NEW INSTRUMENTS SAT OUTSIDE THE COUNT.
+#
+# WHY THE EARLIER REFUSAL WAS WRONG, in the ruling's own words: `SS-07` was told
+# not to register so it could not "make itself pass", complied by measuring its
+# three states BY HAND, and reported that it would fail -- honest, but it left the
+# disclosure in prose. AN UNSWEPT LOCATION MAKES A FIGURE STABLE, IT DOES NOT MAKE
+# IT TRUE. The disclosure belongs where the check can read it.
+#
+# NEITHER INSTRUMENT WAS REPAIRED TO MAKE ITS CONTRACT PASS. That is the ruling's
+# other half and it is what keeps this from being `MF-020` in either direction:
+# you cannot tune the instrument to pass, because passing is not required; and you
+# cannot leave it unswept, because registering is. `stranded_loaders.py` and
+# `vacuity_probe.py` are BYTE-IDENTICAL at this commit to the tickets that shipped
+# them -- `git diff` over both is empty.
+#
+# THE DENOMINATOR MOVEMENT IS DECLARED, NOT ABSORBED: 56 -> 58 instruments.
+#
+# AND ONE CORRECTION TO THE RULING, MEASURED RATHER THAN ASSUMED. The plan says
+# the population goes "56 -> 58 WITH TWO MORE INSTRUMENTS FAILING". IT IS ONE.
+# `SS-06-DF-05` is `disposition: repaired` in the ledger and `SS-06` repaired its
+# probe before shipping it: all three states REFUSE with exit 2 in three distinct
+# sentences, so `vacuity-probe`'s contract is SATISFIED. `SS-07-DF-08` is
+# `carried` and was not repaired: `stranded-loaders`' contract is REFUSED, twice
+# over. Measured before either row was written --
+# `specs/results/scorecards/stabilize-substrate/SS-05/evidence/instrument-states-before-registration-f45a245.txt`.
+#
+# BOTH ROWS ARE OUTSIDE `registry.enumeration.roots` (`scripts`,
+# `examples/validation`), which is WHY neither was ever required. That is the
+# finding underneath both `DF`s and it is `SS-05-DF-04`: the register's own
+# discovery scan cannot see an instrument shipped under `specs/results/`, so
+# "nothing is silently omitted" holds only for the two roots it walks.
+
+[[instrument]]
+id = "stranded-loaders"
+name = "SS-07 stranded-loader sweep over the sealed record"
+paths = ["specs/results/scorecards/stabilize-substrate/SS-07/stranded_loaders.py"]
+family = "record"
+watches = "every `*.py` under the record root for string-literal repository paths the tree no longer has -- the class `repriced_history.py` is one instance of"
+verdict_surface = "a printed census; NOT A GATE -- exit 0 on any finding, exit 2 only when the record root does not exist"
+classification = "demonstrated-can-fail"
+note = """
+REGISTERED BY `SS-05`, NOT WRITTEN BY IT, AND NOT REPAIRED BY IT. `CA-02-DF-04`'s
+own `suggested_fix` named the mechanical check that would have caught the stranded
+pricing instrument -- *"a cut must GREP THE SEALED RECORD for loaders of every
+file it deletes"* -- and filing it routed it while nothing computed it. `SS-07`
+computed it.
+
+Its absent-input contract below is the SS-02 check's first sight of it and IT
+FAILS. That is the point of the ruling: the failure was known by hand and is now
+known by the substrate.
+"""
+
+  # NOTE FOR THE NEXT AUTHOR, PAID FOR IN TWO `MISS` ROWS: `demonstrate.py`
+  # stages with `stage` and `mutate` ONLY. The `write` primitive belongs to
+  # `score_tools.py absent-input`'s staging and is SILENTLY IGNORED here, so a
+  # `[[instrument.failing.write]]` block produces an empty tree and the
+  # instrument refuses it. The absent-input block further down DOES use `write`,
+  # correctly, because a different runner executes it -- the two staging
+  # vocabularies are not the same and nothing says so where you look first.
+  [instrument.failing]
+  summary = "a record root holding one `*.py` that names a repository path the tree does not have -- the class the instrument exists to find"
+  argv = ["{python}", "{repo}/specs/results/scorecards/stabilize-substrate/SS-07/stranded_loaders.py",
+          "--root", "{tree}/record"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["STRANDED", "scripts/no_such_file_this_repository_has.py",
+                   "1 file(s) name at least one ABSENT path"]
+
+    [[instrument.failing.stage]]
+    from = "examples/validation/instruments/fixtures/stranded_loaders/stranded"
+    to = "record"
+
+  [instrument.passing]
+  summary = "the same shape over a path that DOES resolve: `scripts/disposition.py`, which this repository ships"
+  argv = ["{python}", "{repo}/specs/results/scorecards/stabilize-substrate/SS-07/stranded_loaders.py",
+          "--root", "{tree}/record"]
+  cwd = "{repo}"
+  expect_exit = 0
+  expect_output = ["no stranded literal path reference found",
+                   "0 file(s) name at least one ABSENT path"]
+  # NOT `expect_absent = ["STRANDED"]`: the report's own banner reads "STRANDED
+  # LOADERS IN THE SEALED RECORD", so that bar is satisfied by no run at all and
+  # would have made the passing slot unfalsifiable in the other direction.
+  expect_absent = ["no_such_file_this_repository_has", "ABSENT  scripts/"]
+
+    [[instrument.passing.stage]]
+    from = "examples/validation/instruments/fixtures/stranded_loaders/resolves"
+    to = "record"
+
+  [instrument.blind_spot]
+  kind = "declared"
+  summary = "it reads STRING LITERALS, so a path assembled at runtime, read from a manifest, or globbed is invisible; a clean report is a FLOOR and never a proof"
+  reason = "Declared in the instrument's own docstring and printed in its footer as UNREACHABLE-BY-CONSTRUCTION, so it is disclosed rather than discovered later. SS-07-DF-08 adds a SECOND reason the floor is a floor: an unparseable `*.py` is counted into an UNPARSED footer while the headline still reads `0 file(s) name at least one ABSENT path` at exit 0."
+
+  [instrument.absent_input]
+  note = """
+THIS CONTRACT FAILS, AND IT IS FILED RATHER THAN REPAIRED. `SS-07-DF-08`, found by
+`SS-07` pointing `SS-02`'s new check at the instrument `SS-07` itself shipped, and
+measured again by `SS-05` before this row was written.
+
+TWO INDEPENDENT REASONS, both visible to the check:
+
+ 1. `unreadable` and `empty` BOTH answer `UNDECIDED` and BOTH exit 0, with no
+    `exit_code_cannot_carry_the_answer` declared. A caller reading only the exit
+    code gets a PASS over a record that was never swept.
+ 2. The two messages are BYTE-IDENTICAL apart from the path, so the states are
+    INDISTINGUISHABLE -- and no `[[instrument.absent_input.indistinguishable]]`
+    declaration is written here ON PURPOSE. Declaring the collapse is what makes
+    the check accept it, and `SS-05` is forbidden from repairing this instrument to
+    make its contract pass; declaring the collapse would be the same act by
+    another route. An undeclared collapse sets the verdict to REFUSED, which is
+    the honest answer.
+
+`rglob` swallowing `PermissionError` is the same mechanism one layer down -- "I was
+not allowed to look" reported as "there is nothing there", which is `set[str]`
+versus `set[str] | None`, the signature change the charter calls the class in one
+line, committed inside the instrument written to police it. It is not reachable
+through a `write`-staged tree, so it is recorded here and in `SS-07-DF-08` rather
+than demonstrated.
+"""
+
+    [instrument.absent_input.absent]
+    summary = "the record root does not exist -- the ONE state this instrument answers correctly"
+    answer = "refusal"
+    cwd = "{repo}"
+    argv = ["{python}", "{repo}/specs/results/scorecards/stabilize-substrate/SS-07/stranded_loaders.py",
+            "--root", "{tree}/no-such-record-root"]
+    expect_exit = 2
+    expect_output = ["REFUSED", "does not exist", "An absent record is not a clean record"]
+    expect_absent = ["file(s) swept"]
+
+    [instrument.absent_input.unreadable]
+    summary = "the record root is a FILE, not a directory: it is there and cannot be read AS a record root, and the instrument answers in the EMPTY state's words at exit 0"
+    answer = "undecided"
+    cwd = "{repo}"
+    argv = ["{python}", "{repo}/specs/results/scorecards/stabilize-substrate/SS-07/stranded_loaders.py",
+            "--root", "{tree}/record-is-a-file"]
+    expect_exit = 0
+    expect_output = ["UNDECIDED", "no *.py under"]
+
+      [[instrument.absent_input.unreadable.write]]
+      file = "record-is-a-file"
+      content = "this is a file where a record root should be\n"
+
+    [instrument.absent_input.empty]
+    summary = "the record root exists, reads perfectly and holds no `*.py`: UNDECIDED at exit 0, in the same sentence the unreadable state uses"
+    answer = "undecided"
+    cwd = "{repo}"
+    argv = ["{python}", "{repo}/specs/results/scorecards/stabilize-substrate/SS-07/stranded_loaders.py",
+            "--root", "{tree}/empty-record"]
+    expect_exit = 0
+    expect_output = ["UNDECIDED", "no *.py under",
+                     "not the same answer as nothing is stranded"]
+
+      [[instrument.absent_input.empty.write]]
+      file = "empty-record/.keep"
+      content = ""
+
+
+[[instrument]]
+id = "vacuity-probe"
+name = "SS-06 vacuity battery over this repository's own checks"
+paths = ["specs/results/scorecards/stabilize-substrate/SS-06/vacuity_probe.py"]
+family = "method"
+watches = "whether a check in this repository can fail at all -- it removes the subject a check reads and reports whether the check notices"
+verdict_surface = "exit 0 all cases decided, exit 1 a case FAILED to notice, exit 2 REFUSED (any absent or unusable --root, or a case whose subject was already absent before mutation)"
+classification = "demonstrated-can-fail"
+note = """
+REGISTERED BY `SS-05`, NOT WRITTEN BY IT, AND NOT REPAIRED BY IT.
+
+`--root` must name a THROWAWAY CHECKOUT because the battery MUTATES the tree it is
+pointed at, and it refuses its own repository by name. That is why the failing and
+passing slots below are `kind = "declared"` rather than executed: constructing them
+means cloning this repository inside a demonstration harness, and `SS-06` already
+demonstrated them with three seeded mutants against a real throwaway clone --
+`specs/results/scorecards/stabilize-substrate/SS-06/evidence/selftest-mutants.txt`.
+Declared and pointed at that evidence is the honest form; a slot that quietly did
+something cheaper would be worse than one that says what it is.
+"""
+
+  [instrument.failing]
+  kind = "declared"
+  summary = "seed mutant C -- replace `next(root.iterdir(), None)` with `pass` -- and `--selftest` reports FAIL; restore it and it reports PASS. Pinned in BOTH directions by SS-06."
+  reason = "Executing it here requires a throwaway clone of this repository, which the battery demands by design (it mutates the tree and refuses its own repository by name). SS-06 ran it against one and sealed the transcript; re-running it inside `demonstrate.py` would clone the repository per demonstration."
+  no_failing_demonstration = "Not constructible inside this harness without cloning the repository: `vacuity_probe.py --root` MUTATES the tree it is given and REFUSES its own repository by name, so a `stage`/`write` tree cannot host it. Demonstrated by SS-06 against a real throwaway clone with three seeded mutants and sealed at specs/results/scorecards/stabilize-substrate/SS-06/evidence/selftest-mutants.txt. Recorded here rather than left blank so the omission is on the record."
+
+  [instrument.passing]
+  kind = "declared"
+  summary = "the unmutated battery against a throwaway clone: every case decided, exit 0"
+  reason = "Same reason as the failing slot."
+
+  [instrument.absent_input]
+  note = """
+THIS CONTRACT PASSES, AND THAT IS THE CORRECTION TO THE WORK ORDER. The plan
+predicted "two more instruments FAILING"; it is one. `SS-06-DF-05` is
+`disposition: repaired`: the probe guarded `--root` with `(root / "tests").is_dir()`
+and `Path.is_dir()` returns False on a `PermissionError`, so a directory this
+process may not READ answered in the EMPTY state's words -- "I was not allowed to
+look" reported as "there is nothing there", the same mechanism as `SS-07-DF-08` and
+`SS-01-DF-04`. The VERDICT was already a refusal; the CAUSE was a fabrication.
+`SS-06` repaired it and pinned it with a seeded mutant BEFORE shipping.
+
+Registering it here is not a favour to it. It is the thing that makes the pass
+CHECKABLE instead of asserted in a ticket's prose, and it is what turns
+`SS-06-DF-05`'s real finding -- REGISTER COVERAGE, not the verdict rule -- into
+something the substrate reads.
+
+THE PERMISSION STATE IS THE ONE THAT WAS BROKEN AND IT IS NOT THE STATE STAGED
+HERE: `chmod 000` is not expressible in a `write`/`link`/`stage` tree. The
+`unreadable` state below is `--root` naming a FILE, which is the other way the
+input is there and unreadable as itself. `SS-06`'s own seven-state measurement
+covers the permission case and is sealed at
+`specs/results/scorecards/stabilize-substrate/SS-06/evidence/would-my-own-instrument-pass.txt`.
+Stated so a green row here is not read as a claim about a state it does not run.
+"""
+
+    [instrument.absent_input.absent]
+    summary = "--root names a path with no file at it"
+    answer = "refusal"
+    cwd = "{repo}"
+    argv = ["{python}", "{repo}/specs/results/scorecards/stabilize-substrate/SS-06/vacuity_probe.py",
+            "--root", "{tree}/no-such-checkout"]
+    expect_exit = 2
+    expect_output = ["REFUSED", "root does not exist"]
+    expect_absent = ["not a checkout of this repository", "cannot be READ"]
+
+    [instrument.absent_input.unreadable]
+    summary = "--root is a FILE: there, and not readable AS a checkout. A DIFFERENT sentence from both other states."
+    answer = "refusal"
+    cwd = "{repo}"
+    argv = ["{python}", "{repo}/specs/results/scorecards/stabilize-substrate/SS-06/vacuity_probe.py",
+            "--root", "{tree}/checkout-is-a-file"]
+    expect_exit = 2
+    expect_output = ["REFUSED", "root is not a directory"]
+    expect_absent = ["root does not exist", "not a checkout of this repository"]
+
+      [[instrument.absent_input.unreadable.write]]
+      file = "checkout-is-a-file"
+      content = "this is a file where a checkout should be\n"
+
+    [instrument.absent_input.empty]
+    summary = "--root is a directory that reads perfectly and is not a checkout -- no `tests/` and no `scripts/`"
+    answer = "refusal"
+    cwd = "{repo}"
+    argv = ["{python}", "{repo}/specs/results/scorecards/stabilize-substrate/SS-06/vacuity_probe.py",
+            "--root", "{tree}/empty-checkout"]
+    expect_exit = 2
+    expect_output = ["REFUSED", "not a checkout of this repository", "no tests/ or scripts/"]
+    expect_absent = ["root does not exist", "root is not a directory"]
+
+      [[instrument.absent_input.empty.write]]
+      file = "empty-checkout/.keep"
+      content = ""

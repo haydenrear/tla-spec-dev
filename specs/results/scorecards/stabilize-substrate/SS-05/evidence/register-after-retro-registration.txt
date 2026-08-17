@@ -1,0 +1,52 @@
+SS-05: THE REGISTER AFTER RETRO-REGISTRATION.
+Tree: worktree feature/SS-05 at 1d38aba243ae029175340b2d501ae2011b3b4fe3 plus the uncommitted instruments.toml
+and fixtures this file is the evidence for. Re-run at the tip to confirm.
+
+== contract-only over the whole register ==
+R1-absent -- what every instrument answers when the input is not there
+==============================================================================
+
+register     /Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-05/examples/validation/instruments/instruments.toml
+rows         68 (10 declared not-an-instrument)
+instruments  58
+selected     58
+executed     no (--contract-only)
+
+instrument                         absent   unread   empty    verdict
+stranded-loaders                   -        -        -        INCOMPLETE
+vacuity-probe                      declared declared declared DECLARED (not executed)
+  instruments in the register                 58
+  selected                                    58
+  contract EXECUTED and holding               0
+  contract declared, not executed             4
+  contract executed over a SUBSET of states   0
+  contract with a WAIVED state, nothing run    0
+  WITHOUT one                                 53
+  with a contract that did not hold           1
+  states declared unreachable, with a reason  0
+  DECLARED indistinguishable state pairs      0
+REFUSED -- 55 problem(s) over 54 of 58 selected instrument(s)
+
+== EXECUTED: absent-input --only stranded-loaders ==
+exit=1
+  selected                                    1
+  contract EXECUTED and holding               0
+  with a contract that did not hold           1
+REFUSED -- 2 problem(s) over 1 of 1 selected instrument(s)
+  stranded-loaders: `unreadable`: answers UNDECIDED and exits 0, so a caller reading only the exit code gets a PASS. Declare `exit_code_cannot_carry_the_answer` with the reason, or make the exit code carry it.
+  stranded-loaders: `empty`: answers UNDECIDED and exits 0, so a caller reading only the exit code gets a PASS. Declare `exit_code_cannot_carry_the_answer` with the reason, or make the exit code carry it.
+
+== EXECUTED: absent-input --only vacuity-probe ==
+exit=0
+  selected                                    1
+  contract EXECUTED and holding               1
+  with a contract that did not hold           0
+Every selected instrument carries a three-state absent-input contract and every state reproduced.
+
+== FI-02 demonstrations for the new rows ==
+stranded-loaders                   ok     ok     skip   demonstrated-can-fail
+Every declared demonstration reproduced.
+(vacuity-probe declares both slots with a reason; see its row)
+
+== neither instrument file was touched ==
+(nothing printed above = both byte-identical to the tickets that shipped them)
