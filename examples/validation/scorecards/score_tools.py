@@ -4095,19 +4095,32 @@ def run_scope_full(root: pathlib.Path, scorecard_root: pathlib.Path,
             f"all {len(files)} swept file(s) under {root} are absent, unreadable "
             f"or empty. Nothing was read.",
         )
-    cross = {}
-    for r in out:
-        cross.setdefault(r["file"], {})[r["verdict"]] = \
-            cross.setdefault(r["file"], {}).get(r["verdict"], 0) + 1
     return {
         "figures": out,
         "sweep": sweep_provenance(root, scorecard_root, cards, files, explicit),
         "unreadable_inputs": unread,
-        "cross_tab": [{"file": f, **{v: c.get(v, 0) for v in
-                                     (REFUTED, COUNT_MOVED, HOLDS, UNREACHABLE)},
-                       "total": sum(c.values())}
-                      for f, c in sorted(cross.items())],
+        "cross_tab": cross_tabulate(out),
     }
+
+
+def cross_tabulate(figures: list[dict]) -> list[dict]:
+    """The `file x verdict` JOINT distribution. `SS-00-DF-04`, consumed.
+
+    The owner had two MARGINAL totals -- by file `20/3`, by verdict
+    `20 REFUTED / 3 UNREACHABLE` -- assumed they cross-tabulated, and published
+    "20 REFUTED, all from the ledger". They do not: it is 17+3 / 3. THE CLASS IS
+    "NEVER PUBLISH A JOINT CLAIM FROM SEPARATE MARGINALS", and where the joint
+    distribution CAN be computed the honest move is to compute it rather than
+    leave two margins on the page for a reader to multiply.
+    """
+    cross: dict[str, dict[str, int]] = {}
+    for r in figures:
+        row = cross.setdefault(r["file"], {})
+        row[r["verdict"]] = row.get(r["verdict"], 0) + 1
+    return [{"file": f, **{v: c.get(v, 0) for v in
+                           (REFUTED, COUNT_MOVED, HOLDS, UNREACHABLE)},
+             "total": sum(c.values())}
+            for f, c in sorted(cross.items())]
 
 
 def _card_id(card: dict) -> str:
@@ -4141,9 +4154,12 @@ def cmd_scope(argv: list[str]) -> int:
     results = run["figures"]
 
     if args.form != "all":
-        want = "P" if args.form == "prose" else None
-        results = [r for r in results
-                   if (r.get("form") == "P") == (want == "P")]
+        # `--form bound` reproduces exactly what `scope` reported before FORM P
+        # existed, which is how "no figure changed its verdict" gets CHECKED
+        # rather than asserted.
+        prose_only = args.form == "prose"
+        results = [r for r in results if (r.get("form") == "P") is prose_only]
+        run = dict(run, cross_tab=cross_tabulate(results))
 
     if args.format == "json":
         print(json.dumps({
@@ -4194,8 +4210,18 @@ def cmd_scope(argv: list[str]) -> int:
             if r["detail"]:
                 print(f"      {r['detail']}")
             for c in r.get("counterexamples", [])[:12]:
+                # `.get`, NOT `[...]`. Card version 5 abolished D1, D4 and D5, so
+                # a figure naming one of them reaches this line with a card that
+                # has no such key and THE WHOLE COMMAND DIES with `KeyError:
+                # 'D5'` -- not a refusal, not a verdict, a traceback, taking
+                # every other figure's answer down with it. The defect predates
+                # SS-04; SS-04 surfaced it by writing a finding that quotes such
+                # a figure into the swept record. `SS-04-DF-05`.
+                scored = (c.get("dimensions") or {}).get(r["dim"])
+                value = ((scored or {}).get("score") if scored is not None
+                         else f"ABSENT — this card carries no {r['dim']}")
                 print(f"      counterexample: {_card_id(c)} "
-                      f"{r['dim']} = {(c['dimensions'][r['dim']] or {}).get('score')} "
+                      f"{r['dim']} = {value} "
                       f"({(c.get('judge') or {}).get('model')}, "
                       f"tier {judge_tier(c.get('judge'))})")
             if len(r.get("counterexamples", [])) > 12:
@@ -4208,16 +4234,12 @@ def cmd_scope(argv: list[str]) -> int:
     # JOINT CLAIM FROM SEPARATE MARGINALS. Here the joint distribution can be
     # computed, so it is computed and printed, and nobody has to multiply two
     # margins to get a sentence like that one.
-    files_in_view = {r["file"] for r in results}
-    cross = [row for row in run["cross_tab"] if row["file"] in files_in_view]
     print(f"\n## file × verdict — the JOINT distribution, not two marginals "
           f"(SS-00-DF-04)")
     print(f"  {'file':<58} {'REF':>4} {'MOV':>4} {'HLD':>4} {'UNR':>4} {'tot':>5}")
-    for row in cross:
-        sub = [r for r in results if r["file"] == row["file"]]
-        c = {v: sum(1 for r in sub if r["verdict"] == v) for v in order}
-        print(f"  {row['file'][:58]:<58} {c[REFUTED]:>4} {c[COUNT_MOVED]:>4} "
-              f"{c[HOLDS]:>4} {c[UNREACHABLE]:>4} {sum(c.values()):>5}")
+    for row in run["cross_tab"]:
+        print(f"  {row['file'][:58]:<58} {row[REFUTED]:>4} {row[COUNT_MOVED]:>4} "
+              f"{row[HOLDS]:>4} {row[UNREACHABLE]:>4} {row['total']:>5}")
 
     counts = {v: sum(1 for r in results if r["verdict"] == v) for v in order}
     by_form = {}

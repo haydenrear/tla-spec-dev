@@ -337,3 +337,20 @@ def test_the_joint_distribution_is_computed_not_inferred():
         marginal = sum(1 for r in run["figures"] if r["verdict"] == verdict)
         assert joint == marginal, (verdict, joint, marginal)
     assert sum(row["total"] for row in run["cross_tab"]) == len(run["figures"])
+
+
+def test_a_figure_naming_an_abolished_dimension_does_not_kill_the_command(tmp_path):
+    """`SS-04-DF-05`. Card version 5 abolished D1, D4 and D5, and the
+    counterexample printer used a SUBSCRIPT, so one refutable `D5 = …` sentence
+    anywhere in the swept record raised `KeyError: 'D5'` and took every other
+    figure's answer down with it — a traceback on exit 1, indistinguishable from
+    the normal "something is REFUTED" exit 1 to anyone reading only the code.
+
+    Found because a finding this ticket filed quoted such a figure into the
+    ledger. The defect predates the ticket by five card versions.
+    """
+    (tmp_path / "doc.md").write_text("D" + "5 = 4 on 95 of 95 cards\n")
+    r = _scope("--root", str(tmp_path))
+    assert "Traceback" not in r.stdout + r.stderr, r.stderr[-400:]
+    assert "1 counted figure(s): 1 REFUTED" in r.stdout, r.stdout[-400:]
+    assert "ABSENT" in r.stdout, "the missing dimension is not named in the output"

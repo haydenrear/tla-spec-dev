@@ -13,13 +13,13 @@ and because this epic has now caught four parties quoting one without the other.
 
 | | base `8dd0442`, re-derived here | tip |
 |---|---:|---:|
-| whole-record counted figures | **103** | **2,939** |
+| whole-record counted figures | **103** | **2,990** |
 | — REFUTED | **81** | **81** |
 | — COUNT-MOVED | **0** | **39** |
 | — HOLDS | **2** | **2** |
-| — UNREACHABLE | **20** | **2,817** |
-| files swept | 367 | 368 |
-| files carrying a figure | **37** | **257** |
+| — UNREACHABLE | **20** | **2,868** |
+| files swept | 367 | 369 |
+| files carrying a figure | **37** | **258** |
 | `scope` process exit code | **1** | **1** |
 | counted figures over the 10 named work-directing documents | **3** | **271** |
 | documents in that list reading ZERO | **9 of 10** | **0 of 10** |
@@ -28,28 +28,63 @@ and because this epic has now caught four parties quoting one without the other.
 aside: `FORM P` **cannot produce either verdict**, so nothing that had an answer
 before has a different one, and no exit code anywhere changed.
 
-**The 2,939 − 103 = 2,836 new figures are all FORM P's, and 6 of them are mine.**
-`PROSE-FORM-SPEC.md`, which this ticket added, is matched by
-`specs/results/scorecards/**/*.md` and contributes 6 UNREACHABLE rows and the
-+1 in `files swept` (367 → 368). **2,933 of the 2,939 are the record's.**
+**The 2,990 − 103 = 2,887 new figures are all FORM P's, and 60 of them are
+mine.** This ticket's own documents are inside `DEFAULT_SWEEP` —
+`specs/results/scorecards/**/*.md` matches `PROSE-FORM-SPEC.md` and this file,
+and `specs/deferred_findings.yaml` matches the five findings I appended — so a
+write-up about counted figures adds counted figures to the corpus it is
+measuring. **All 60 are UNREACHABLE. Excluding them, the record's own figure is
+2,930 over 256 files**, and `files swept` rises 367 → 369 for the two documents
+this ticket added.
+
+**AND THREE OF MY OWN SENTENCES BRIEFLY BECAME REFUTED CLAIMS ABOUT THIS
+PROJECT.** A finding I filed contained the literal `D2 = 2 on 39 of 49 rows` as
+a HYPOTHETICAL and another quoted a real `D5 …` figure; the sweep read all three
+as claims, re-derived them against the 95-card corpus, and REFUTED went 81 → 84.
+**An invented figure written into a swept file is indistinguishable from a claim
+somebody made.** All three were rewritten as placeholders — the shape is stated,
+the literal is not — and the first draft of §5 of this file transcribed 39 real
+card figures verbatim, which double-counted every one of them and took
+COUNT-MOVED from 39 to 55. **Both were caught by running the instrument on the
+ticket's own output, which is the only reason they are in this paragraph rather
+than in the epic's figures.**
+
+### The figure in that table is measured at a named commit, and it has to be
+
+**This document is inside the corpus it measures.** `DEFAULT_SWEEP` matches
+`specs/results/scorecards/**/*.md`, so every counted figure in this write-up is
+read by the next `scope` run — and editing this paragraph changes the number in
+the table above it. That is not a defect to be engineered away; it is
+`SS-01-DF-03` pointed at itself. **A figure is a joint property of the artifact
+and the tree it was measured in**, and this one is measured at the commit named
+in `FINAL-FIGURES.txt`, which is a `.txt` and therefore **not swept** — the one
+place in this evidence root where a figure can be written down without changing
+itself.
+
+Anyone re-deriving the whole-record number will get a different total from the
+one in the table if they run it at a different commit, and **the difference will
+be this file.** The record's own figure — everything outside
+`specs/results/scorecards/stabilize-substrate/SS-04/` and outside the five
+ledger rows this ticket appended — is the stable one to quote.
 
 ---
 
 ## 1. What moved, with numerator and denominator named
 
-- **Whole-record figures 103 → 2,939.** *Numerator and denominator both, and
-  they are the same movement*: the recogniser reads a form it could not read
-  before, so figures that were always in those files are now counted. **No file
-  was added to `DEFAULT_SWEEP`** and `sweep_paths` is untouched.
-- **Files carrying a figure 37 → 257** over a swept population of 367 → 368.
-  The **denominator** rose by 1 (my own spec document). The **numerator** rose by
-  220 because the recogniser reaches those files' sentence forms now.
+- **Whole-record figures 103 → 2,990, of which 2,930 are the record's and 60 are
+  this ticket's own documents.** *Numerator and denominator both, and they are
+  the same movement*: the recogniser reads a form it could not read before, so
+  figures that were always in those files are now counted. **No pattern was added
+  to `DEFAULT_SWEEP`** and `sweep_paths` is untouched.
+- **Files carrying a figure 37 → 258** over a swept population of 367 → 369.
+  The **denominator** rose by 2 (this ticket's two new documents). The
+  **numerator** rose by 221, of which 219 are the record's.
 - **REFUTED 81 → 81, HOLDS 2 → 2, exit code 1 → 1.** Flat by construction and
   asserted by `test_no_bound_figure_changed_its_verdict` and
   `test_the_exit_code_is_unchanged_for_an_input_that_resolves`.
-- **COUNT-MOVED 0 → 39.** All 39 are FORM P's, all name cards, and **none is a
-  refutation**: the finding is that the card population moved under a figure, not
-  that the figure is false. See §5 for the 39.
+- **COUNT-MOVED 0 → 39.** All 39 are FORM P's, all name cards, all in documents
+  this ticket did not write, and **none is a refutation**: the finding is that
+  the card population moved under a figure, not that the figure is false. §5.
 - **The register's absent-input population 2 of 56 → 3 of 56.** **Numerator
   only** — no row was added or deleted, `scorecard-scope` gained a contract.
 - **The base whole-record figure is 103 at `8dd0442`, and its REFUTED split is
@@ -92,7 +127,7 @@ except `NEXT-EPIC.md`, which was 1 and is 1).
 
 **FORM P's verdicts are `{UNREACHABLE, COUNT-MOVED}`.** Not "we were careful":
 `test_form_p_never_refutes_and_never_holds_over_the_whole_record` computes the
-verdict set over all 2,836 FORM P rows in this tree and asserts it against
+verdict set over all 2,887 FORM P rows in this tree and asserts it against
 `PROSE_VERDICTS`.
 
 - **`REFUTED` is unavailable** because a prose figure binds no value to a
@@ -104,15 +139,15 @@ verdict set over all 2,836 FORM P rows in this tree and asserts it against
   numerator was not, and calling that HOLDS would be the instrument claiming to
   have checked a claim it only half-read.
 
-FORM P's 2,797 UNREACHABLE rows, by named reason:
+FORM P's 2,848 UNREACHABLE rows, by named reason:
 
-| reason | count |
-|---|---:|
-| `non-card noun` | 1,841 |
-| `no counted noun` | 931 |
-| `unresolved qualifier` | 18 |
-| `numerator has no predicate` | 4 |
-| `anaphoric scope` | 3 |
+| reason | count | share |
+|---|---:|---:|
+| `non-card noun` | 1,872 | 64.8% |
+| `no counted noun` | 949 | 32.9% |
+| `unresolved qualifier` | 19 | 0.7% |
+| `numerator has no predicate` | 5 | 0.2% |
+| `anaphoric scope` | 3 | 0.1% |
 
 ---
 
@@ -138,17 +173,21 @@ requires. **FORM P's only non-UNREACHABLE answer fires 39 times**, every one a
 `COUNT-MOVED` on a figure counting **cards**, in documents this ticket did not
 write:
 
-- `27 of 27 cards ever written` (3 places), `35 of 35 cards` (4), `12 of 12
-  cards` (2), `10 of 10 cards` (7), `0 of 87 cards` (4), `52 of 87 cards`,
-  `55 of 59 cards` (2), `56 of 63 cards of` (2), `58 of 59 cards`,
-  `59 of the 73 sealed cards`, `44 of 49 sealed cards`, `37 of 37 cards` (2),
-  `Two of the four cards`, `three of four cards` (2), `0 of 95 cards`,
-  `ONE OF THOSE 25 IS A CARD`, and the `wrap_probe` fixtures (4).
+The 39 are listed in full, with file and line, in the sealed sweep at
+`scope-whole-record-TIP.txt` under `## COUNT-MOVED`. **They are deliberately not
+transcribed here.** Copying 39 real `<n> of <m> cards` figures into a file that
+`DEFAULT_SWEEP` reads would report every one of them TWICE for every future
+reader — this write-up did exactly that in its first draft and inflated
+COUNT-MOVED from 39 to 55 with its own prose. **The instrument's own output is
+the citation.**
 
 **One of those 39 is wrong and it is named rather than patched.**
-`ONE OF THOSE 25 IS A CARD` is not `1 of 25 cards`; the counted noun heuristic
-took `IS A CARD` as a noun phrase. **1 of 39 = 2.6%.** Special-casing it would
-be a rule written around a single known sentence.
+`specs/deferred_findings.yaml:6700` is a sentence of the shape *"one of those 25
+… is a card"* — a membership statement whose predicate the noun heuristic read
+as a noun phrase, giving a numerator of 1 over a denominator of 25 with `cards`
+as the counted noun. **1 of 39 = 2.6%.** Special-casing it
+would be a rule written around a single known sentence. (Quoted by path rather
+than verbatim, for the reason in the paragraph above.)
 
 The full sweep is sealed at `scope-whole-record-TIP.txt` /
 `scope-whole-record-TIP.json`; the base at `scope-whole-record-BASE-8dd0442.txt`.
@@ -230,13 +269,13 @@ it works*. Four things, in order:
 
 | | prediction | outcome |
 |---|---|---|
-| P1 | FORM P finds >20 and <400 figures over the default sweep | **FAILED** — 2,836. I was wrong by an order of magnitude about how much counted prose this record carries. |
-| P2 | >85% of them are `non-card noun` | **FAILED** — 64.9% (1,841 of 2,836). The bucket I did not anticipate is `no counted noun`, 931 of them: the figure ends a line, or its noun sits outside the three-token window. |
+| P1 | FORM P finds >20 and <400 figures over the default sweep | **FAILED** — 2,887. I was wrong by an order of magnitude about how much counted prose this record carries. |
+| P2 | >85% of them are `non-card noun` | **FAILED** — 64.8% (1,872 of 2,887). The bucket I did not anticipate is `no counted noun`, 949 of them: the figure ends a line, or its noun sits outside the three-token window. `SS-04-DF-03`. |
 | P3 | FORM P produces zero REFUTED | passed |
 | P4 | the charter moves off 0 and reads >10 | passed — 15 |
 | P5 | `CUT-THE-APPARATUS-EPIC.md` moves off 0 | passed — 7 |
 | P6 | whole-record REFUTED and the exit code are unchanged | passed — 81 and 1 |
-| P7 | the superset finds ≥15% more shapes than FORM P takes | passed — 76% more (5,697 vs 3,234) |
+| P7 | the superset finds ≥15% more shapes than FORM P takes | passed — 75% more (5,790 vs 3,305) |
 | P8 | ≥2 of the five named figures do not parse | passed — 3 |
 
 **6 of 8. Not an ALARM** (`measurement_rule`: an ALARM is every prediction
@@ -251,17 +290,17 @@ Measured by `recall_audit.py` against a separate over-broad scanner. **A superse
 hit is not necessarily a counted figure**; the denominator is "shapes a reader
 might have to check" and the numerator is "shapes the recogniser reaches".
 
-**Over the whole default sweep: 3,234 of 5,697 = 56.8%. It misses 2,463, and
+**Over the whole default sweep: 3,305 of 5,790 = 57.1%. It misses 2,485, and
 every one of them is in a declared category.**
 
 | missed | shape | declared? |
 |---:|---|---|
-| 1,394 | `n/m` ratio or movement notation — `17 / 1483`, `2/2 -> 4` | §5, yes |
-| 842 | `n:m` colon form — `3 : 1` | §5, yes |
-| 117 | **split across a line break** | §5, yes |
-| 59 | distributive `every one of the N` — **deliberately refused** | §5, yes |
-| 37 | `n in m` rather than `n of m` — `1 in 38` | §5, yes |
-| 14 | spelled-out numbers above twenty — `thirty-one of forty` | §5, yes |
+| 1,404 | `n/m` ratio or movement notation — `17 / 1483`, `2/2 -> 4` | §5, yes |
+| 843 | `n:m` colon form — `3 : 1` | §5, yes |
+| 122 | **split across a line break** | §5, yes |
+| 62 | distributive `every one of the N` — **deliberately refused** | §5, yes |
+| 38 | `n in m` rather than `n of m` — `1 in 38` | §5, yes |
+| 16 | spelled-out numbers above twenty — `thirty-one of forty` | §5, yes |
 | **0** | unclassified | — |
 
 **Over the three charters: 180 of 256 = 70.3%**, missing 39 `n/m`, 17 `n:m`,
@@ -289,7 +328,7 @@ figures.** The two failures are one class:
   no rule I can write separates it from `one of the two rounds that failed`
   without guessing at the sentence.
 
-### Two defects in my own recogniser, both found by measurement
+### Three defects in my own recogniser, all found by measurement
 
 1. **42 of the first 88 COUNT-MOVED rows counted LEDGER ROWS, not cards.**
    `39 of 49 rows` was answered with *"the population is 95 rather than 49"* — a
@@ -303,6 +342,16 @@ figures.** The two failures are one class:
    of`, and `finditer` never tried the second figure. Four whole-record misses,
    found by the recall audit as its only unclassified rows. The noun is a
    lookahead now.
+3. **A `REFUTED` figure naming an abolished dimension killed the whole command.**
+   `c['dimensions'][r['dim']]` is a subscript, card version 5 abolished D1, D4
+   and D5, and one such sentence in any swept file produced `KeyError: 'D5'` —
+   **a traceback on exit 1, taking every other figure's answer with it**, and
+   indistinguishable from the ordinary "something is REFUTED" exit 1 to anyone
+   reading only the code. **The defect predates this ticket by five card
+   versions**; I met it because a finding I filed quoted such a figure into the
+   ledger. Repaired inside the conflict key, demonstrated before and after in
+   `d5-keyerror-demo.txt`, pinned by a test, and the semantic question it opens
+   is filed as `SS-04-DF-05`.
 
 ---
 
@@ -359,10 +408,10 @@ The base figure quoted anywhere in this ticket comes from a **clean clone of
 - **`run tlc` does not exist.** `scripts/tla_spec_dev.py run` accepts only
   `spec-unit-tests` and `effect-conformance`. Reported as `N/A`, not substituted.
 - **The partitive `one of the N` false positive is not repaired**, §8.
-- **`ONE OF THOSE 25 IS A CARD` is one wrong COUNT-MOVED of 39**, §5.
+- **One wrong COUNT-MOVED of 39**, `specs/deferred_findings.yaml:6700`, §5.
 - **The charter is not a clean held-out document.** The assignment requires
   reading it before touching git, so it was read before the recogniser was
   written. `CUT-THE-APPARATUS-EPIC.md` and the baselines were genuinely unopened.
-- **`n:m` and `n/m` are 2,236 of the 2,463 misses and both are declared.**
+- **`n:m` and `n/m` are 2,247 of the 2,485 misses and both are declared.**
   Reaching them means deciding that `7 / 1462` is a count rather than a ratio,
   which is a judgement about the sentence, not about the numbers.

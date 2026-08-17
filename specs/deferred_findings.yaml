@@ -23095,10 +23095,11 @@ findings:
       WHAT IS LEFT, AND WHY IT IS FILED RATHER THAN FIXED: the DIMENSION-BOUND
       forms A and B still use the wide `_CARD_NOUN`, and they can return
       `REFUTED` -- the verdict FORM P is forbidden. A figure of the shape
-      `D2 = 2 on 39 of 49 rows` would be re-derived against the 95-card corpus
+      `D<n> = <v> on 39 of 49 rows` would be re-derived against the 95-card corpus
       and REPORTED AS REFUTED. Over this tree exactly ONE bound figure has such a
-      noun (`D5 is 4 on 4 of 4 blind judges`, ADVERSARIAL.md:218, currently
-      UNREACHABLE), so the exposure is latent rather than live -- but the wide
+      noun -- `falsifiable-instruments/channels/ADVERSARIAL.md:218`, a D5 figure
+      counting `blind judges`, currently UNREACHABLE -- so the exposure is latent
+      rather than live -- but the wide
       set is only defensible for the bound forms because a `D<n>` token has
       already established that the counted thing is a scored row, and `judges`
       breaks even that.
@@ -23107,7 +23108,7 @@ findings:
       `python3 -c "import sys; sys.path.insert(0,'examples/validation/scorecards');
       import score_tools as st, pathlib, tempfile;
       d=pathlib.Path(tempfile.mkdtemp()); p=d/'x.md';
-      p.write_text('D2 = 2 on 39 of 49 rows\n');
+      p.write_text('D' + '2 = 2 on 39 of 49 rows\n');
       cards=st.run_scope.__globals__; print([ (c['dim'],c['n'],c['m'],c['noun']) for c in st.find_claims(p,d)])"`
       shows the figure recognised with noun `rows`; evaluating it against the
       95-card corpus returns REFUTED with `re-derives as N of 95, not 39 of 49`.
@@ -23379,3 +23380,93 @@ findings:
       CARRIED. SS-08 runs the epic's harnesses from scripts; if any of them shell
       out with a bare `python3`, this is the shape that will produce a clean-looking
       zero.
+
+  - id: SS-04-DF-05
+    found_by: "SS-04, when its own filed finding quoted a D5 figure into the swept record and the whole command died"
+    found_at_commit: "540d558"
+    schedule_revision: 1
+    severity: high
+    channel: execution
+    channel_note: >-
+      found by a traceback, not by reading: appending a finding to the ledger put
+      a `D5 = <v> on <n> of <m>` figure into DEFAULT_SWEEP and `scope` stopped
+      producing any output at all
+    cost:
+      basis: "one `scope` run after an append to the ledger"
+      value: "zero to find, and it had been reachable from any sentence naming D1, D4 or D5 since card version 5"
+    surface:
+      production:
+        - "examples/validation/scorecards/score_tools.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      A REFUTED FIGURE NAMING A DIMENSION THE CARDS NO LONGER CARRY KILLS THE
+      WHOLE `scope` COMMAND WITH A TRACEBACK. The counterexample printer used
+      `c['dimensions'][r['dim']]`, a subscript, and card version 5 ABOLISHED D1,
+      D4 and D5 -- so any counted figure in the record that binds one of those
+      three, and that re-derives as REFUTED, reaches that line with a card that
+      has no such key and raises `KeyError: 'D5'`. NOT A REFUSAL AND NOT A
+      VERDICT: a traceback, on exit 1, WITH EVERY OTHER FIGURE'S ANSWER LOST WITH
+      IT -- the 102 other figures in the same run are never printed. A reader who
+      sees exit 1 and does not read the output cannot tell this from the normal
+      "something is REFUTED" exit 1, which is the same code.
+      THE DEFECT PREDATES SS-04 by five card versions; what SS-04 did was write a
+      finding whose text quoted such a figure into a swept file, which is the
+      only reason anyone met it. SS-04 REPAIRED IT INSIDE ITS OWN CONFLICT KEY --
+      `.get` instead of the subscript, printing `ABSENT -- this card carries no
+      D5` -- because the alternative was shipping a `scope` that dies on this
+      repository's own ledger.
+      WHAT IS FILED RATHER THAN FIXED IS THE WIDER QUESTION: a figure about a
+      dimension that NO LONGER EXISTS is being re-derived against the current
+      corpus at all. A figure binding an abolished dimension to a value over all 95
+      cards re-derives as a numerator of zero and is reported REFUTED (the literal
+      is not written here: see the reproduction), when the honest answer is that the claim is about a card
+      version this corpus cannot speak to. That is a scope question, in the exact
+      sense R3 is about, and it belongs to whoever owns the card-version rule.
+    reproduction: >-
+      At `8dd0442`, in any checkout, write ONE line into a scratch directory: the
+      letter D, the digit 5, then ` = 4 on 95 of 95 cards`. (Spelled out rather
+      than quoted, because writing the literal into a file the DEFAULT_SWEEP
+      reads adds an invented figure to this repository's record forever -- SS-04
+      did exactly that twice before noticing, and reverted both.) Then
+      `python3 examples/validation/scorecards/score_tools.py scope --root <that dir>`
+      -> `KeyError: 'D5'` at `score_tools.py:3756`, exit 1, NO verdict printed.
+      The same command at SS-04's tip prints
+      `1 counted figure(s): 1 REFUTED ...` and names the counterexample as
+      `ABSENT -- this card carries no D5`, exit 1. Sealed in
+      `specs/results/scorecards/stabilize-substrate/SS-04/d5-keyerror-demo.txt`.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-04/d5-keyerror-demo.txt -- the traceback and the repaired output side by side"
+      - "examples/validation/scorecards/score_tools.py -- the counterexample printer and the comment above it"
+      - "tests/test_counted_figure_recogniser.py::test_a_figure_naming_an_abolished_dimension_does_not_kill_the_command"
+    why_out_of_scope: >-
+      The REPAIR is in scope and is done -- the file is SS-04's conflict key and
+      leaving it would have shipped a `scope` that cannot read this repository's
+      own ledger. What is out of scope is the SEMANTIC question underneath: what
+      a counted figure about an abolished dimension MEANS, and whether REFUTED is
+      the right answer for it. Deciding that changes verdicts, and SS-04's clause
+      (c) is that no figure which had a verdict gets a different one.
+    suggested_fix: >-
+      Decide the card-version scope rule. A figure binding D1, D4 or D5 is a claim
+      about a card version this corpus no longer contains, and re-deriving it
+      against version 5 cards produces a REFUTED that says "0 of 95 carry D5",
+      which is true and useless. The candidate answer is a fifth reach limit --
+      `UNREACHABLE, reason: dimension abolished at card version N` -- alongside
+      `arm-scoped` and `anaphoric scope`. MEASURE WHAT IT MOVES FIRST: over this
+      tree it would move some existing REFUTED rows into UNREACHABLE, and that is
+      a fact about the instrument that must be reported with numerator and
+      denominator named, not a cleanup.
+    blast_radius: >-
+      Every `scope` invocation over any tree containing a refutable D1/D4/D5
+      figure -- which is every tree the moment anyone writes one into a swept
+      file, as SS-04 did by accident. At `8dd0442` the record happens to contain
+      none that reach the printer, so no figure published by this epic before now
+      is affected; the exposure was one sentence away the whole time.
+    disposition: carried
+    disposition_ticket: "SS-08"
+    disposition_note: >-
+      CARRIED. The crash is repaired at SS-04's tip. SS-08 inherits only the
+      semantic question, and should note that the epic's own instrument was one
+      appended ledger row away from producing no output at all.
