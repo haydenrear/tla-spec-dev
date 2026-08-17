@@ -1,0 +1,49 @@
+SS-02-DF-07 face (1) -- an --only name that matches nothing is dropped in silence
+date: 2026-08-17T01:05:11Z
+tree: feature/SS-02 at cbb6761. ROUTED TO SS-05, NOT REPAIRED HERE.
+
+$ score_tools.py absent-input --only absent-input-check --only zzz-no-such-instrument
+R1-absent -- what every instrument answers when the input is not there
+==============================================================================
+
+register     /Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-02/examples/validation/instruments/instruments.toml
+rows         66 (10 declared not-an-instrument)
+instruments  56
+selected     1
+executed     yes
+
+instrument                         absent   unread   empty    verdict
+------------------------------------------------------------------------------
+absent-input-check                 ok       ok       ok       SATISFIED
+
+THE COUNT -- this command's product
+------------------------------------------------------------------------------
+  instruments in the register                 56
+  selected                                    1
+  contract EXECUTED and holding               1
+  contract declared, not executed             0
+  contract executed over a SUBSET of states   0
+  contract with a WAIVED state, nothing run    0
+  WITHOUT one                                 0
+  with a contract that did not hold           0
+  states declared unreachable, with a reason  0
+  DECLARED indistinguishable state pairs      0
+
+  The first six sum to `selected`, in that order, always.
+  No target is set on that ratio. A high `WITHOUT` count is the honest
+  outcome: the class was measured at 48 instances across 30 of 43
+  verdict-producing modules before anything was repaired, and a count
+  that fell because rows were deleted is denominator movement, not a
+  repair.
+
+Every selected instrument carries a three-state absent-input contract and every state reproduced.
+exit: 0
+
+The typo'd name appears nowhere in the output above. Compare with a FULLY empty
+selection, which IS refused:
+
+$ score_tools.py absent-input --only zzz-no-such-instrument
+UNVERIFIED: [empty] --only ['zzz-no-such-instrument'] selected 0 of 56 instrument(s). An empty selection reported as a satisfied population is the seventh sub-shape of this very class (`CA-10-DF-24`, `demonstrate.py:505`). Known ids: ['absent-input-check', 'action-parameter-recovery', 'architecture-demonstration-table', 'architecture-tag-derivation', 'arm-swap-driver', 'arms-length-match']...
+
+absent-input is UNDECIDED over this selection. exit 2.
+exit: 2

@@ -1,0 +1,628 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/SS-02",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/stabilize-substrate-epic/ticket-002-SS-02 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for SS-02'",
+    "message": "It is recommended to commit this history directory now: specs/.history/stabilize-substrate-epic/ticket-002-SS-02"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 16,
+        "before": 16,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 277830,
+        "before": 277830,
+        "bound_complete_after": false,
+        "bound_complete_before": false,
+        "comparable": false,
+        "delta": 0,
+        "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+        "percent": 0.0
+      },
+      "depth": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "generated_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "variables": {
+        "after": 8,
+        "before": 8,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "SS-03"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 16,
+          "before": 16,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 277830,
+          "before": 277830,
+          "bound_complete_after": false,
+          "bound_complete_before": false,
+          "comparable": false,
+          "delta": 0,
+          "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+          "percent": 0.0
+        },
+        "depth": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "generated_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "variables": {
+          "after": 8,
+          "before": 8,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "SS-03"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/SS-02/results/complexity_ledger.yaml",
+    "justification": "",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+      "actions": 16,
+      "actions_from_fallback_heuristic": false,
+      "bound": 277830,
+      "bound_complete": false,
+      "bound_resolved_variables": 6,
+      "bound_unresolved_variables": [
+        "lastCommand",
+        "result"
+      ],
+      "budget_utilization": {
+        "max_state_space_bound": {
+          "bound_complete": false,
+          "cap": 1000000,
+          "caveat": "the bound is a product over 6 of 8 declared variables (2 unresolved: lastCommand, result), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything",
+          "percent": null,
+          "percent_lower_bound": 27.8,
+          "used": 277830,
+          "within_cap": null
+        }
+      },
+      "depth": null,
+      "distinct_states": null,
+      "gate_passed": false,
+      "gate_violations": [
+        "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 8 declared variables (2 unresolved: lastCommand, result) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
+        "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+      ],
+      "generated_states": null,
+      "modularity": 0.002483746073489777,
+      "variables": 8
+    },
+    "narrative": "specs/results/scorecards/stabilize-substrate/SS-02/RESULT.md",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+    ],
+    "recorded_at_utc": "2026-08-16T22:49:54.819021+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "Searched and found none, and the two real candidates were REFUSED for recorded reasons. CANDIDATE 1: examples/validation/instruments/demonstrate.py already stages trees, judges expect_exit/expect_output and runs pytest slots, so `absent-input` looks like duplicated machinery that should import it. REFUSED for a reason already written into this repository: score_tools.py SHIPS STANDALONE (RM-05 section 3) and deliberately refuses to hard-require siblings -- `_closed_at` is duplicated from scripts/disposition.py on that exact ground, with tests/test_ledger_resolution_is_deterministic.py pinning the two to one answer. Importing a sibling under examples/ would be a new hard dependency in the one tool that has none. The duplication is also not total: the absent-input runner adds `link` and `remove`, which demonstrate.py has no equivalent of and which exist because `audit` verifies 133 sealed digests against REPO_ROOT paths, so a staging strategy that COPIES produces 133 violations that say nothing about the state under test. That was measured, not predicted. CANDIDATE 2: widen demonstrate.py's SLOTS literal to four so the existing register guards police the new block. REFUSED because tests/test_instrument_demonstrations.py is SS-06's conflict key and widening SLOTS changes what demonstrate.py EXECUTES for every one of 66 rows. Filed instead as SS-02-DF-04 with the derive-from-the-register repair named, which is the shape SM-03 already chose for the enumeration itself. No TLC run supports either decision and none is claimed: this ticket adds no TLA+ surface, ticket-local desired and current are byte-identical, and the model delta is zero against SS-03.",
+      "measured": false,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=not_run (UNVERIFIED)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "SS-02",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the behavior-test output",
+        "status": "",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the before/after descriptor comparison",
+        "status": "",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the post-change TLC output",
+        "status": "",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the pre-change TLC output",
+        "status": "",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=(absent) (UNVERIFIED)",
+      "tlc_after=(absent) (UNVERIFIED)",
+      "behavior_tests=(absent) (UNVERIFIED)",
+      "descriptor_comparison=(absent) (UNVERIFIED)"
+    ],
+    "verdict": "recorded",
+    "workflow": "stabilize-substrate-epic"
+  },
+  "created_at_utc": "2026-08-16T22:49:54.868524+00:00",
+  "entry_name": "ticket-002-SS-02",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/SS-02",
+    "commit": "b22eb32",
+    "inside_work_tree": "true"
+  },
+  "guard_weakening": {
+    "bypassed": [],
+    "flags": [],
+    "model_action": "CloseTicket",
+    "note": "RC-01: a close taken under a guard-weakening flag is a different modeled state from one taken under the guard. Recorded, never refused.",
+    "weakened": false
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/SS-02/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/SS-02/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/SS-02/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/SS-02/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/SS-02/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/SS-02/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/SS-02/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/SS-02/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/SS-02/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_binding_reconciliation.py",
+            "relative": "tests/test_tla_spec_dev_binding_reconciliation.py",
+            "source": "specs/tickets/SS-02/desired/tests/test_tla_spec_dev_binding_reconciliation.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/SS-02/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/SS-02/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/SS-02/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/SS-02/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/SS-02/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/SS-02/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/SS-02/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_generation_adapter.py",
+            "relative": "tests/test_tla_spec_dev_generation_adapter.py",
+            "source": "specs/tickets/SS-02/desired/tests/test_tla_spec_dev_generation_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/SS-02/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/SS-02/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/SS-02/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/SS-02/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/SS-02/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/SS-02/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/SS-02/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/SS-02"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "Searched and found none, and the two real candidates were REFUSED for recorded reasons. CANDIDATE 1: examples/validation/instruments/demonstrate.py already stages trees, judges expect_exit/expect_output and runs pytest slots, so `absent-input` looks like duplicated machinery that should import it. REFUSED for a reason already written into this repository: score_tools.py SHIPS STANDALONE (RM-05 section 3) and deliberately refuses to hard-require siblings -- `_closed_at` is duplicated from scripts/disposition.py on that exact ground, with tests/test_ledger_resolution_is_deterministic.py pinning the two to one answer. Importing a sibling under examples/ would be a new hard dependency in the one tool that has none. The duplication is also not total: the absent-input runner adds `link` and `remove`, which demonstrate.py has no equivalent of and which exist because `audit` verifies 133 sealed digests against REPO_ROOT paths, so a staging strategy that COPIES produces 133 violations that say nothing about the state under test. That was measured, not predicted. CANDIDATE 2: widen demonstrate.py's SLOTS literal to four so the existing register guards police the new block. REFUSED because tests/test_instrument_demonstrations.py is SS-06's conflict key and widening SLOTS changes what demonstrate.py EXECUTES for every one of 66 rows. Filed instead as SS-02-DF-04 with the derive-from-the-register repair named, which is the shape SM-03 already chose for the enumeration itself. No TLC run supports either decision and none is claimed: this ticket adds no TLA+ surface, ticket-local desired and current are byte-identical, and the model delta is zero against SS-03.",
+    "measured": false,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/results/RESULT.md",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-02/RESULT.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/results/R1-refusal-on-a-real-instrument.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-02/R1-refusal-on-a-real-instrument.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/results/the-checks-own-absent-input.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-02/the-checks-own-absent-input.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/results/absent-input-whole-register-executed.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-02/absent-input-whole-register-executed.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/results/pytest-base-48f9c7e.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-02/pytest-base-48f9c7e.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/results/pytest-tip-preclose.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-02/pytest-tip-preclose.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/results/collect-tip-preclose.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-02/collect-tip-preclose.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/results/collection-attribution.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-02/collection-attribution.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/results/spec-unit-SS-02.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-02/spec-unit-SS-02.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/results/audit-tip.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-02/audit-tip.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/results/instruments-still-run.txt",
+      "source": "specs/results/scorecards/stabilize-substrate/SS-02/instruments-still-run.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/results/SS-02-the-check-exists.md",
+      "source": "specs/results/scorecards/stabilize-substrate/GOAL-absent-input-consumed/SS-02-the-check-exists.md"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 130,
+    "close_out_entry": "Close-out ticket SS-02",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [],
+    "findings_filed": 0,
+    "findings_total": 0,
+    "findings_unfiled": [],
+    "path": "/Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-02/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/ticket",
+      "source": "specs/tickets/SS-02"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "R1 gains a third clause and it is EXECUTED: score_tools.py absent-input requires every instrument in this project's own register to ship a demonstrated ABSENT-INPUT case in THREE states (absent / unreadable / empty), answered UNDECIDED or refusal and never PASS, with collapses between states found BY EXECUTION and declared. R1 applied to the check itself: it refuses the real instrument scorecard-audit with its block removed (exit 1) and passes it with all three states staged and run (exit 0). Its own absent inputs -- absent, zero-byte, unparseable, instrument-less and empty-selection registers -- all answer UNDECIDED exit 2 with six distinct messages and never 0. Count at this tip: 2 of 56 instruments carry a contract; 54 do not, and there is no target on that ratio. NO INSTANCE OF THE CLASS WAS REPAIRED -- that is SS-05's. Suite, five numbers that sum: base 48f9c7e 8/1509/0/1/1518 -> tip PRE-CLOSE 7/1548/0/1/1556, every unit of the +38 attributed node by node (23 mine, 4 from open ticket, 11 SS-03's) and the one repaired red is SS-03's. THIS SEALED SUMMARY DESCRIBES THE PRE-CLOSE TREE; the post-close figures are in the RESULT and are the authoritative ones. Four findings filed, SS-02-DF-01..04, ledger 317 -> 321 rows, appended only.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "R1's absent-input extension is written where R1 lives, and is EXECUTED by a check rather than only stated.",
+        "The check has a demonstrated refusal on a REAL instrument in this repository, failing before and passing after.",
+        "The check's OWN absent-input behaviour is demonstrated: absent register, empty register, unparseable register -- and none of them answers PASS.",
+        "The check refuses nothing about any code outside this repository. NO NEW GATE OVER SUBJECT-PROGRAM CONTENT.",
+        "NO INSTANCE OF THE CLASS IS REPAIRED BY THIS TICKET; the class is left at its measured size for SS-05 and SS-08.",
+        "Collection movement is reported as denominator movement.",
+        "The card is unchanged: serve | wc -c is still 6,281 and the digest is stated."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "SS-04",
+      "SS-05",
+      "SS-06",
+      "SS-08"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "examples/validation/scorecards/score_tools.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "tests/test_absent_input_demonstrations.py",
+        "references/eval_scorecard.md",
+        "specs/results/scorecards/stabilize-substrate/GOAL-absent-input-consumed/",
+        "specs/results/scorecards/stabilize-substrate/SS-02/"
+      ]
+    },
+    "depends_on": [
+      "SS-01"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/275",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "Moves clauses (a), (b) and (e) from 'no check exists' to 'an executed check with a demonstrated refusal on a real instrument'. NO EFFECT ON THE INSTANCE COUNT -- that is SS-05's, deliberately, so the class is measured before it is shrunk.",
+        "goal": "GOAL-absent-input-consumed",
+        "local_signal": "the new check run against the instrument register, with its refusal transcript recorded"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "collection RISES by the new demonstrations. THAT IS DENOMINATOR MOVEMENT AND MUST BE REPORTED AS SUCH -- a pass rate that improves because you added passing tests is not a stabilized tree.",
+        "goal": "GOAL-tree-stabilizes",
+        "local_signal": "uv run --with pytest --with pyyaml -m pytest tests -q --collect-only"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected -- score_tools.py produced all four results; verify each still reproduces rather than asserting it",
+        "goal": "GOAL-four-results-still-stand",
+        "local_signal": "python3 examples/validation/scorecards/score_tools.py audit"
+      }
+    ],
+    "id": "SS-02",
+    "implementation_scope": [
+      "examples/validation/scorecards/",
+      "references/",
+      "tests/",
+      "specs/results/scorecards/stabilize-substrate/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "THE CONSUMPTION THIS PROGRAMME OWES, AND THE REASON THE EPIC EXISTS. R1 REQUIRES A DEMONSTRATED FAILING INPUT ON A REAL SUBJECT. IT DOES NOT REQUIRE A DEMONSTRATED ABSENT ONE. THAT SINGLE GAP IS WHY ALL 48 INSTANCES SHIPPED -- each satisfied R1 IN FULL and still answered PASS to the question it was built to refuse. YOUR SLICE IS THE RULE AND THE INSTRUMENT, NOT THE REPAIRS -- SS-05 does the repairs, and if you start fixing instances you will both blow your slice and shrink the class SS-08 has to measure. EXTEND R1: every instrument ships a demonstrated ABSENT-INPUT case, and THE CORRECT ANSWER TO AN ABSENT INPUT IS UNDECIDED OR A REFUSAL, NEVER PASS. THE WORKED SHAPE IS A SIGNATURE CHANGE: score_tools._finding_ids went set[str] -> set[str] | None, because THE OLD TYPE COULD NOT DISTINGUISH 'READ AND FOUND NOTHING' FROM 'READ NOTHING' AND ANSWERED THE SECOND WITH THE FIRST. That is the class in one line, and the third state was demonstrated too -- against a tree with no ledger live or archived, audit_rh3 emits ONE UNVERIFIED LINE instead of 14 fabrication claims, and UNVERIFIED does not increment the violation count. NOW LAND IT AS AN EXECUTED CHECK. A DOCTRINE LINE WITH NO INSTRUMENT IS A PREFERENCE, and the predecessor measured 1-of-41 consumption and then filed 57 findings while consuming almost none. THE CHECK RUNS OVER THIS PROJECT'S OWN INSTRUMENT REGISTER, and it is IN THE PERMITTED POPULATION under the adjudicated static-gates doctrine: static checks over this project's own record, metadata and method have 3 catches : 1 false refusal, and the doctrine MAY NOT refuse them. IT IS NOT A GATE ON AN ADOPTER'S CODE AND MUST NOT BECOME ONE. R1 APPLIES TO YOUR OWN CHECK: demonstrate it REFUSING A REAL INSTRUMENT IN THIS REPOSITORY -- failing before, passing after -- not a fixture. AND THE OBVIOUS SELF-REFERENTIAL TRAP, WHICH YOU MUST NOT FALL INTO: YOUR CHECK IS ITSELF AN INSTRUMENT THAT CAN BE HANDED AN ABSENT INPUT. An empty register, an absent register, a register that parses to nothing -- what does your check answer? If it answers PASS you have shipped the 49th instance INSIDE the fix for the class. DEMONSTRATE THE ANSWER. THE SUB-SHAPES ARE ENUMERATED FOR YOU in CA-10-absent-input/RESULT.md section 3.2 and the next sweep is cheaper because of it: absent-path-returns-empty; vacuous all()/not any(); one-sided threshold trivially satisfied by zero; .get() collapsing both sides of a comparison; unparseable becoming indistinguishable from absent; default-named lookup missing silently; empty selection reported as a satisfied population.",
+    "promotion_order": 30,
+    "promotion_predecessor": "SS-03",
+    "role": "implementation",
+    "schedule_revision": 1,
+    "status": "closed",
+    "title": "Extend R1 to require a demonstrated ABSENT input, and land it as an executed check with a demonstrated refusal",
+    "wave": 2
+  },
+  "ticket_id": "SS-02",
+  "ticket_index": 2,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "closed",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/stabilize-substrate-epic/ticket-002-SS-02/ticket",
+    "source": "specs/tickets/SS-02"
+  },
+  "workflow_name": "stabilize-substrate-epic"
+}

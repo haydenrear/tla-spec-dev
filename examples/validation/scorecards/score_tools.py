@@ -15,6 +15,15 @@ surface. Putting it here keeps the model's surface unchanged.
   python3 score_tools.py seal <dir>...
   python3 score_tools.py contested [--root DIR] [--example E]
   python3 score_tools.py scope [--path P ...] [--format text|json]
+  python3 score_tools.py absent-input [--registry F] [--only ID] [--contract-only]
+
+`absent-input` is `SS-02`'s addition and it executes an extension to `R1`:
+EVERY INSTRUMENT SHIPS A DEMONSTRATED ABSENT-INPUT CASE, AND THE CORRECT ANSWER
+IS UNDECIDED OR A REFUSAL, NEVER PASS. `R1` has only ever required a demonstrated
+FAILING input on a real subject, and all 48 instances of the absent-input class
+`CA-10` swept satisfied it IN FULL while still answering PASS to the question
+they were built to refuse. It runs over this repository's own instrument register
+and nothing else; it gates nothing and no close path consults it.
 
 `contested` and `scope` are RD-01's two additions and they answer the same
 defect at two granularities: A CLAIM READ FORWARD WITHOUT BEING CHECKED.
@@ -3862,6 +3871,749 @@ def cmd_tags(argv: list[str]) -> int:
     return 0
 
 
+# --------------------------------------------------------------------------
+# absent-input: R1 extended, and EXECUTED over this project's instrument register
+# --------------------------------------------------------------------------
+#
+# `R1` has always said: AN INSTRUMENT SHIPS WITH A DEMONSTRATED FAILING INPUT ON
+# A REAL SUBJECT. It has never said anything about an input that is NOT THERE.
+# `CA-10` swept 43 verdict-producing modules and found 48 instances of one class
+# -- an instrument handed an absent, empty or unparseable input and answering
+# PASS, clean, disposed, `0 violation(s)`, exit 0 -- and EVERY ONE OF THE 48
+# SATISFIED `R1` IN FULL. The gap is the whole explanation, and this command is
+# the extension executed rather than written down:
+#
+#     EVERY INSTRUMENT IN THIS REPOSITORY'S OWN INSTRUMENT REGISTER SHIPS A
+#     DEMONSTRATED ABSENT-INPUT CASE, AND THE CORRECT ANSWER IS UNDECIDED OR A
+#     REFUSAL -- NEVER PASS.
+#
+# THREE STATES, NOT TWO, AND THAT IS THE PART WAVE 1 PAID FOR. `CA-10-DF-11`
+# repaired the ABSENT ledger (`set[str]` -> `set[str] | None`). `SS-01` repaired
+# the WRONG one. An independent reviewer then handed the result a ledger that
+# EXISTED and named nothing -- `findings: []`, a zero-byte file, malformed YAML
+# -- and got 14 confident fabrication accusations against real citations
+# (`SS-01-DF-04`). A fallback that merely moves the false PASS to a rarer input
+# has not fixed the class, so a contract that distinguishes only
+# absent-from-present satisfies nothing here:
+#
+#     absent       the input is not in the tree at all
+#     unreadable   it is there and cannot be read as itself -- empty, truncated,
+#                  malformed, wrong shape
+#     empty        it reads and parses perfectly and genuinely names nothing
+#
+# AND THE THREE ARE CHECKED FOR DISTINGUISHABILITY BY EXECUTION, not by reading
+# the contract: if the instrument's own output for one state carries every
+# marker the contract declares for another, the instrument cannot tell them
+# apart, and that has to be DECLARED with a reason rather than discovered by the
+# next reviewer.
+#
+# WHAT THIS IS NOT. It is NOT A GATE. No close path consults it, nothing about
+# any subject program is decided here, and it reads exactly one file: this
+# repository's own instrument register. Under the adjudicated static-gates
+# doctrine that is the PERMITTED population -- static checks over this project's
+# own record, metadata and method, at 3 catches : 1 false refusal -- and a check
+# over an ADOPTER'S code is the refused one. This must never become one.
+#
+# AND IT IS ITSELF AN INSTRUMENT THAT CAN BE HANDED AN ABSENT INPUT. An absent
+# register, a register that does not parse, a zero-byte register, a register
+# that parses and declares no instruments, a `--only` matching nothing: each is
+# answered UNDECIDED (exit 2), each says WHICH of them it hit, and none of them
+# is 0. `0 of 0 satisfied` is the seventh sub-shape in `CA-10`'s own list -- an
+# empty selection reported as a satisfied population -- and answering PASS to it
+# would have shipped the 49th instance of the class inside the fix for the class.
+
+INSTRUMENT_REGISTER = "examples/validation/instruments/instruments.toml"
+
+#: The three states, in the order a reader should think about them.
+ABSENT_STATES = ("absent", "unreadable", "empty")
+
+#: The only two answers available. `pass` is deliberately not one of them, and a
+#: contract declaring it is a violation rather than a row this check skips.
+ABSENT_ANSWERS = ("refusal", "undecided")
+
+#: 2 is the point of the command: an answer that is neither "every instrument
+#: complies" nor "some instrument does not", because nothing was measured.
+#:
+#: AND IT COLLIDES WITH ARGPARSE, which is disclosed rather than hidden, because
+#: this command refuses instruments for exactly this shape. `argparse` exits 2 on
+#: a usage error, so the CODE alone does not separate "UNDECIDED" from "you typed
+#: the command wrong". The FIRST LINE of output always does -- `UNVERIFIED:
+#: [state] ...` versus `usage: ...` -- and every contract in the register asserts
+#: on that line rather than on the code. `SS-02-DF-02`.
+ABSENT_OK, ABSENT_REFUSED, ABSENT_UNDECIDED = 0, 1, 2
+
+
+class RegisterUndecided(Exception):
+    """The register could not be read AS A REGISTER, so nothing was measured.
+
+    Carries the state it hit -- absent / unreadable / empty -- because the three
+    are different facts, and a caller that cannot tell them apart is the defect
+    this command exists to name.
+    """
+
+    def __init__(self, state: str, message: str) -> None:
+        super().__init__(message)
+        self.state = state
+
+
+class DemonstrationStale(Exception):
+    """The demonstration is malformed or no longer stages what it declares.
+
+    Distinct from an instrument that answered wrongly: this one never ran.
+    """
+
+
+def load_instrument_register(path: pathlib.Path) -> dict:
+    """The register, or an UNDECIDED refusal naming which of the three it hit.
+
+    Deliberately four branches and not two. `tomllib` parses a zero-byte file
+    into `{}` without complaint, so "there is nothing here" and "this reads and
+    declares nothing" arrive at the same place unless they are separated on the
+    way in -- which is the class itself, one layer up, inside the reader that
+    checks for the class.
+    """
+
+    if not path.is_file():
+        raise RegisterUndecided(
+            "absent",
+            f"no instrument register at {path}. Nothing was read, so nothing is "
+            f"satisfied and nothing is violated.",
+        )
+    text = path.read_text(encoding="utf-8")
+    if not text.strip():
+        raise RegisterUndecided(
+            "unreadable",
+            f"the instrument register at {path} is EMPTY ({path.stat().st_size} "
+            f"byte(s)). It parses as valid TOML declaring nothing, which is why "
+            f"this is asked before parsing rather than after.",
+        )
+    try:
+        data = tomllib.loads(text)
+    except tomllib.TOMLDecodeError as exc:
+        raise RegisterUndecided(
+            "unreadable",
+            f"the instrument register at {path} DOES NOT PARSE: {exc}. An "
+            f"unparseable register is not an empty one and must not be answered "
+            f"with the same verdict (`SS-01-DF-04`).",
+        ) from exc
+    rows = data.get("instrument")
+    if not isinstance(rows, list) or not rows:
+        raise RegisterUndecided(
+            "empty",
+            f"the instrument register at {path} PARSES AND DECLARES 0 "
+            f"instruments. `0 of 0 satisfied` is an empty selection reported as a "
+            f"satisfied population, which is the seventh sub-shape of the very "
+            f"class this command checks for.",
+        )
+    # A ROW THIS TOOL CANNOT NAME IS A MALFORMED REGISTER, NOT A CRASH. Reported
+    # by the reviewer of PR #284 while reproducing `SS-02-DF-05`: a row with no
+    # `id` reached `entry["id"]` and died with `KeyError: 'id'` and a traceback.
+    # A traceback is not one of the three answers, and "the register is
+    # unreadable as a register" is exactly an absent-input case for this check --
+    # which makes crashing on it the class, once more, inside the fix for it.
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            raise RegisterUndecided(
+                "unreadable",
+                f"the instrument register at {path}: row #{index} is a "
+                f"{type(row).__name__}, not a table. A register whose rows are not "
+                f"rows cannot be measured.",
+            )
+        for required in ("id", "family"):
+            if not str(row.get(required) or "").strip():
+                raise RegisterUndecided(
+                    "unreadable",
+                    f"the instrument register at {path}: row #{index} declares no "
+                    f"`{required}`. An instrument this tool cannot name, or cannot "
+                    f"tell apart from a declared not-an-instrument, is not something "
+                    f"it can report a verdict about.",
+                )
+    return data
+
+
+def absent_contract_problems(entry: dict) -> list[str]:
+    """Everything wrong with a row's declared contract, before anything runs.
+
+    Static, so a register with 60 rows can be read without executing 180
+    demonstrations -- and so that "this row has no contract at all" is reported
+    as itself rather than as a demonstration that failed.
+    """
+
+    contract = entry.get("absent_input")
+    if contract is None:
+        return [
+            "NO CONTRACT: no `[instrument.absent_input]` block. Nothing has ever "
+            "shown what this instrument answers when the thing it watches is not "
+            "there, which is exactly how all 48 instances of the class shipped "
+            "with `R1` satisfied in full."
+        ]
+    problems: list[str] = []
+    for state in ABSENT_STATES:
+        spec = contract.get(state)
+        if spec is None:
+            problems.append(
+                f"`{state}`: no demonstration and no `unreachable` reason. Three "
+                f"states are required; two is the shape `SS-01-DF-04` refuted."
+            )
+            continue
+        if str(spec.get("unreachable") or "").strip():
+            continue  # counted and printed separately, NEVER as satisfied
+        answer = spec.get("answer")
+        if answer not in ABSENT_ANSWERS:
+            problems.append(
+                f"`{state}`: answer {answer!r}. The permitted answers are "
+                f"{list(ABSENT_ANSWERS)}; `pass` is not one of them and never "
+                f"becomes one."
+            )
+        if not spec.get("expect_output"):
+            problems.append(
+                f"`{state}`: declares no `expect_output`. An exit code cannot "
+                f"show that an instrument answered UNDECIDED rather than clean -- "
+                f"`score_tools.py audit` answers UNDECIDED and exits 0 today."
+            )
+        kind = spec.get("kind", "cli")
+        if kind == "cli":
+            if not spec.get("argv"):
+                problems.append(f"`{state}`: kind `cli` with no `argv`")
+        elif kind == "pytest":
+            if not spec.get("nodes"):
+                problems.append(f"`{state}`: kind `pytest` with no `nodes`")
+            if "expect_passed" not in spec and "expect_passed_at_least" not in spec:
+                problems.append(
+                    f"`{state}`: kind `pytest` asserting only an exit code. pytest "
+                    f"exits 0 for a collected-and-skipped run (`SM-GM-I1`)."
+                )
+        else:
+            problems.append(f"`{state}`: unknown kind {kind!r}")
+        # `expect_exit` IS MANDATORY, and that is `SS-02-DF-06`. It used to be
+        # optional, and `_absent_judge` skips the exit-code comparison entirely
+        # when it is absent -- so DELETING ONE LINE from a contract turned off
+        # exit-code checking AND slipped past the UNDECIDED-and-exits-0 rule
+        # below, which read the DECLARED code. Three states answering
+        # `UNVERIFIED ...` while exiting 0 with no `expect_exit` reported
+        # SATISFIED. Found by an independent reviewer of PR #284.
+        if "expect_exit" not in spec:
+            problems.append(
+                f"`{state}`: declares no `expect_exit`. An omitted exit code is "
+                f"not a permissive one -- it disables the comparison, and the "
+                f"UNDECIDED-and-exits-0 rule with it."
+            )
+        elif answer == "undecided" and spec["expect_exit"] == 0 and not str(
+            spec.get("exit_code_cannot_carry_the_answer") or ""
+        ).strip():
+            problems.append(
+                f"`{state}`: answers UNDECIDED and exits 0, so a caller reading "
+                f"only the exit code gets a PASS. Declare "
+                f"`exit_code_cannot_carry_the_answer` with the reason, or make the "
+                f"exit code carry it."
+            )
+    return problems
+
+
+def absent_observed_problems(spec: dict, observed_exit: int) -> list[str]:
+    """The half of the UNDECIDED-and-exits-0 rule that reads what HAPPENED.
+
+    `absent_contract_problems` reads the DECLARED exit code, which is a claim by
+    the same author who wrote the answer. `SS-02-DF-06`: a contract that simply
+    omitted `expect_exit` evaded the rule entirely and reported SATISFIED over
+    three states that printed `UNVERIFIED ...` and exited 0. Requiring
+    `expect_exit` closes that, and this closes the other direction -- a contract
+    that DECLARES a nonzero exit and then observes 0 is the same false PASS with
+    a truthful-looking contract in front of it.
+    """
+
+    if spec.get("answer") != "undecided" or observed_exit != 0:
+        return []
+    if str(spec.get("exit_code_cannot_carry_the_answer") or "").strip():
+        return []
+    return [
+        "OBSERVED exit 0 while answering `undecided`, and nothing declares "
+        "`exit_code_cannot_carry_the_answer`. The rule reads what the "
+        "instrument DID, not only what the contract claimed it would do."
+    ]
+
+
+def _absent_expand(value: str, tree: pathlib.Path) -> str:
+    return (
+        value.replace("{repo}", str(REPO_ROOT))
+        .replace("{tree}", str(tree))
+        .replace("{python}", sys.executable)
+    )
+
+
+def _absent_stage(spec: dict, tree: pathlib.Path) -> None:
+    """Build the state's tree: copy, LINK, remove, write.
+
+    `link` is here and `demonstrate.py` has no equivalent, for a measured
+    reason. `score_tools.py audit` verifies 133 sealed digests against paths
+    under `REPO_ROOT`, so a demonstration that COPIES the repository to move one
+    file produces 133 seal violations that have nothing to do with the state
+    being demonstrated. Symlinking everything except the input under test leaves
+    every other answer byte-identical, which is what makes the three states
+    comparable to each other at all.
+
+    `remove` refuses a target that is not there, for the same reason
+    `demonstrate.py` refuses a `find` that occurs zero times: a demonstration
+    that deletes nothing demonstrates nothing.
+    """
+
+    import shutil
+
+    for entry in spec.get("stage", []):
+        source = REPO_ROOT / entry["from"]
+        destination = tree / entry["to"]
+        if not source.exists():
+            raise DemonstrationStale(f"stage source does not exist: {entry['from']}")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if source.is_dir():
+            shutil.copytree(source, destination,
+                            ignore=shutil.ignore_patterns("__pycache__"))
+        else:
+            shutil.copy2(source, destination)
+
+    for entry in spec.get("link", []):
+        source = REPO_ROOT / entry["from"]
+        destination = tree / entry["to"]
+        if not source.exists():
+            raise DemonstrationStale(f"link source does not exist: {entry['from']}")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        skip = set(entry.get("except", []))
+        if entry.get("children"):
+            destination.mkdir(parents=True, exist_ok=True)
+            unseen = skip - {child.name for child in source.iterdir()}
+            if unseen:
+                raise DemonstrationStale(
+                    f"link `except` names {sorted(unseen)}, which {entry['from']} "
+                    f"does not contain -- an exclusion that excludes nothing is a "
+                    f"demonstration of nothing"
+                )
+            for child in sorted(source.iterdir()):
+                if child.name in skip:
+                    continue
+                (destination / child.name).symlink_to(child)
+        else:
+            destination.symlink_to(source)
+
+    for relative in spec.get("remove", []):
+        target = tree / relative
+        if not target.exists() and not target.is_symlink():
+            raise DemonstrationStale(
+                f"remove target is not there: {relative} -- a demonstration that "
+                f"deletes nothing demonstrates nothing"
+            )
+        if target.is_dir() and not target.is_symlink():
+            shutil.rmtree(target)
+        else:
+            target.unlink()
+
+    for entry in spec.get("write", []):
+        target = tree / entry["file"]
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(entry.get("content", ""), encoding="utf-8")
+
+
+def _absent_observe(spec: dict, tree: pathlib.Path) -> dict:
+    kind = spec.get("kind", "cli")
+    env = dict(os.environ)
+    for key, value in (spec.get("env") or {}).items():
+        env[key] = _absent_expand(str(value), tree)
+    if kind == "cli":
+        argv = [_absent_expand(part, tree) for part in spec["argv"]]
+    else:
+        argv = ["uv", "run", "--with", "pytest", "--with", "pyyaml",
+                "python", "-m", "pytest", "-q",
+                *[_absent_expand(node, tree) for node in spec["nodes"]]]
+    cwd = _absent_expand(spec.get("cwd", "{repo}"), tree)
+    done = subprocess.run(argv, cwd=cwd, env=env, capture_output=True, text=True,
+                          timeout=spec.get("timeout", 900))
+    output = done.stdout + done.stderr
+    observed = {"exit": done.returncode, "output": output, "argv": argv}
+    if kind == "pytest":
+        counts: dict[str, int] = {}
+        for number, outcome in re.findall(
+            r"(\d+) (passed|failed|skipped|error|errors|deselected|xfailed|xpassed)", output
+        ):
+            counts[outcome.rstrip("s") if outcome in ("errors",) else outcome] = int(number)
+        observed["counts"] = counts
+    return observed
+
+
+def _absent_judge(spec: dict, observed: dict) -> list[str]:
+    problems: list[str] = []
+    expected = spec.get("expect_exit")
+    if expected is not None and observed["exit"] != expected:
+        problems.append(f"exit {observed['exit']}, declared {expected}")
+    for needle in spec.get("expect_output", []):
+        if needle not in observed["output"]:
+            problems.append(f"output does not contain {needle!r}")
+    for needle in spec.get("expect_absent", []):
+        if needle in observed["output"]:
+            problems.append(f"output contains {needle!r}, which it must not")
+    counts = observed.get("counts")
+    if counts is not None:
+        passed = counts.get("passed", 0)
+        exact = spec.get("expect_passed")
+        if exact is not None and passed != exact:
+            problems.append(f"{passed} test(s) passed, declared exactly {exact}")
+        floor = spec.get("expect_passed_at_least")
+        if floor is not None and passed < floor:
+            problems.append(f"{passed} test(s) passed, declared at least {floor}")
+        allowed = spec.get("expect_skipped", 0)
+        if counts.get("skipped", 0) != allowed:
+            problems.append(
+                f"{counts.get('skipped', 0)} test(s) SKIPPED, declared {allowed} -- "
+                f"a skipped demonstration is not a demonstration"
+            )
+    return problems
+
+
+def run_absent_demonstration(spec: dict) -> dict:
+    """Stage the state in a throwaway tree, run the instrument, judge the answer."""
+
+    import shutil
+    import tempfile
+
+    workspace = pathlib.Path(tempfile.mkdtemp(prefix="ss02-absent-"))
+    try:
+        tree = workspace / "tree"
+        tree.mkdir()
+        _absent_stage(spec, tree)
+        observed = _absent_observe(spec, tree)
+        return {
+            "ran": True,
+            "exit": observed["exit"],
+            "output": observed["output"],
+            "problems": _absent_judge(spec, observed),
+            "argv": observed["argv"],
+            "tail": "\n".join(observed["output"].splitlines()[-4:]),
+        }
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+def absent_indistinguishable(contract: dict, outputs: dict[str, str]) -> list[dict]:
+    """State pairs this instrument answers the SAME way, found by EXECUTION.
+
+    `SS-01-DF-04` in one function. A contract can declare three states and an
+    instrument can still collapse two of them -- which is a fallback that moved
+    the false PASS to a rarer input rather than a fix -- and reading the TOML
+    cannot tell. So each state's real output is checked against the OTHER
+    state's declared markers.
+
+    THE VACUITY GUARD IS NOT DECORATION. `all(marker in output for marker in
+    other)` over an EMPTY marker set is TRUE, so two states declaring identical
+    contracts would be reported DISTINGUISHED by the obvious implementation --
+    sub-shape 2 of the class, inside the check for the class. An empty marker
+    set is refused statically by `absent_contract_problems`, and the identical-
+    contract case is decided here before any `all()` runs.
+    """
+
+    declared = {
+        frozenset(entry.get("states", [])): str(entry.get("reason") or "").strip()
+        for entry in contract.get("indistinguishable", [])
+    }
+    found: list[dict] = []
+    states = [s for s in ABSENT_STATES if s in outputs]
+    for left, right in itertools.combinations(states, 2):
+        markers_left = set(contract[left].get("expect_output", []))
+        markers_right = set(contract[right].get("expect_output", []))
+        if not markers_left or not markers_right:
+            continue  # already a static problem; not re-reported as a collapse
+        if markers_left == markers_right:
+            why = "the two states declare the SAME expected output"
+        elif all(m in outputs[left] for m in markers_right) and all(
+            m in outputs[right] for m in markers_left
+        ):
+            why = "each state's own output carries the other state's markers"
+        else:
+            continue
+        reason = declared.get(frozenset((left, right)))
+        found.append({"states": [left, right], "why": why,
+                      "declared": bool(reason), "reason": reason or ""})
+    return found
+
+
+def absent_measure(entry: dict, execute: bool, states: tuple[str, ...] = ABSENT_STATES) -> dict:
+    """One instrument's row in the report.
+
+    `states` narrows which of the three are actually staged and run. A NARROWED
+    RUN IS NEVER `SATISFIED`: two of the three checks here -- distinguishability,
+    and "all three reproduce" -- are properties of the SET, and a subset that
+    reported the same word as the whole would be an empty-selection answer with
+    extra steps. It is reported `PARTIAL` and the command exits UNDECIDED.
+
+    A WAIVED STATE IS NEVER `SATISFIED` EITHER, AND THAT COST A HIGH FINDING.
+    `unreachable = "<reason>"` was documented in three places as *"counted and
+    printed separately, NEVER as satisfied"*, and the code fell through to
+    `SATISFIED` anyway: a row whose three states were all waived with the
+    free-text reason `"cannot be constructed"` reported **SATISFIED**, counted 1
+    under `contract EXECUTED and holding`, printed *"every state reproduced"*
+    and exited **0** -- with ZERO demonstrations run. That is sub-shape 7 of the
+    class this command exists to name -- an empty selection reported as a
+    satisfied population -- inside the fix for the class. Found by an
+    independent reviewer of PR #284 instructed to refute. `SS-02-DF-05`.
+
+    So a waived state lands in its own verdict and its own bucket, and the
+    command exits UNDECIDED over it: nothing was refused, and nothing was
+    demonstrated either.
+    """
+
+    row = {
+        "id": entry["id"],
+        "paths": entry.get("paths", []),
+        "family": entry.get("family"),
+        "problems": absent_contract_problems(entry),
+        "states": {},
+        "waived": [],
+        "collapsed": [],
+        "executed": False,
+        "partial": tuple(states) != ABSENT_STATES,
+    }
+    contract = entry.get("absent_input")
+    if contract is None:
+        row["verdict"] = "NO CONTRACT"
+        return row
+    for state in ABSENT_STATES:
+        spec = contract.get(state) or {}
+        if str(spec.get("unreachable") or "").strip():
+            row["waived"].append({"state": state, "reason": spec["unreachable"]})
+            row["states"][state] = "waived"
+    if row["problems"]:
+        row["verdict"] = "INCOMPLETE"
+        return row
+    if not execute:
+        row["verdict"] = "DECLARED (not executed)"
+        for state in ABSENT_STATES:
+            row["states"].setdefault(state, "declared")
+        return row
+
+    row["executed"] = True
+    outputs: dict[str, str] = {}
+    for state in states:
+        if row["states"].get(state) == "waived":
+            continue
+        spec = contract[state]
+        try:
+            result = run_absent_demonstration(spec)
+        except DemonstrationStale as exc:
+            row["problems"].append(f"`{state}`: MALFORMED DEMONSTRATION: {exc}")
+            row["states"][state] = "stale"
+            continue
+        except subprocess.TimeoutExpired:
+            row["problems"].append(f"`{state}`: TIMED OUT")
+            row["states"][state] = "stale"
+            continue
+        outputs[state] = result["output"]
+        found = list(result["problems"])
+        found.extend(absent_observed_problems(spec, result["exit"]))
+        if found:
+            row["problems"].extend(f"`{state}`: {p}" for p in found)
+            row["states"][state] = "MISS"
+        else:
+            row["states"][state] = "ok"
+    for collapse in absent_indistinguishable(contract, outputs):
+        row["collapsed"].append(collapse)
+        if not collapse["declared"]:
+            row["problems"].append(
+                f"states {collapse['states']} are INDISTINGUISHABLE -- "
+                f"{collapse['why']} -- and nothing declares it. Add an "
+                f"`[[instrument.absent_input.indistinguishable]]` entry with a "
+                f"reason, or make the instrument tell them apart (`SS-01-DF-04`)."
+            )
+    if row["problems"]:
+        row["verdict"] = "REFUSED"
+    elif row["waived"]:
+        # BEFORE THE ORDER OF THESE BRANCHES IS CHANGED: this one used to be
+        # absent, and `SATISFIED` swallowed it. `SS-02-DF-05`.
+        row["verdict"] = f"WAIVED ({len(row['waived'])} of {len(ABSENT_STATES)})"
+    elif row["partial"]:
+        row["verdict"] = f"PARTIAL ({','.join(states)})"
+    else:
+        row["verdict"] = "SATISFIED"
+    return row
+
+
+def render_absent(report: dict) -> str:
+    lines = ["R1-absent -- what every instrument answers when the input is not there",
+             "=" * 78, ""]
+    lines.append(f"register     {report['register']}")
+    lines.append(f"rows         {report['rows_total']} "
+                 f"({report['not_an_instrument']} declared not-an-instrument)")
+    lines.append(f"instruments  {report['instruments']}")
+    lines.append(f"selected     {report['selected']}")
+    lines.append(f"executed     {'yes' if report['execute'] else 'no (--contract-only)'}")
+    lines.append("")
+    lines.append(f"{'instrument':<34} {'absent':<8} {'unread':<8} {'empty':<8} verdict")
+    lines.append("-" * 78)
+    for row in report["instrument_rows"]:
+        mark = {s: (row["states"].get(s) or "-") for s in ABSENT_STATES}
+        lines.append(f"{row['id']:<34} {mark['absent']:<8} {mark['unreadable']:<8} "
+                     f"{mark['empty']:<8} {row['verdict']}")
+    counted = report["counts"]
+    lines += ["", "THE COUNT -- this command's product", "-" * 78,
+              f"  instruments in the register                 {counted['instruments']}",
+              f"  selected                                    {counted['selected']}",
+              f"  contract EXECUTED and holding               {counted['satisfied']}",
+              f"  contract declared, not executed             {counted['declared_not_executed']}",
+              f"  contract executed over a SUBSET of states   {counted['partial']}",
+              f"  contract with a WAIVED state, nothing run    {counted['waived_rows']}",
+              f"  WITHOUT one                                 {counted['without_contract']}",
+              f"  with a contract that did not hold           {counted['refused']}",
+              f"  states declared unreachable, with a reason  {counted['waived_states']}",
+              f"  DECLARED indistinguishable state pairs      {counted['collapsed_declared']}",
+              "",
+              "  The first six sum to `selected`, in that order, always.",
+              "  No target is set on that ratio. A high `WITHOUT` count is the honest",
+              "  outcome: the class was measured at 48 instances across 30 of 43",
+              "  verdict-producing modules before anything was repaired, and a count",
+              "  that fell because rows were deleted is denominator movement, not a",
+              "  repair."]
+    collapsed = [(r["id"], c) for r in report["instrument_rows"] for c in r["collapsed"]]
+    if collapsed:
+        lines += ["", "STATES AN INSTRUMENT CANNOT TELL APART -- declared, not discovered",
+                  "-" * 78]
+        for ident, entry in collapsed:
+            lines.append(f"  {ident}  {entry['states']}  ({entry['why']})")
+            lines.append(f"      {entry['reason'] or 'UNDECLARED'}")
+    waived = [(r["id"], w) for r in report["instrument_rows"] for w in r["waived"]]
+    if waived:
+        lines += ["", "STATES DECLARED UNREACHABLE -- NOTHING RAN FOR THESE, AND A "
+                      "REASON IS NOT A DEMONSTRATION", "-" * 78]
+        for ident, entry in waived:
+            lines.append(f"  {ident}  `{entry['state']}`")
+            lines.append(f"      {entry['reason']}")
+        lines.append("")
+        lines.append("  A waived state is COUNTED AND PRINTED, never folded into the")
+        lines.append("  satisfied population, and a row carrying one can never report")
+        lines.append("  SATISFIED. It did until `SS-02-DF-05`.")
+    problems = [(r["id"], p) for r in report["instrument_rows"] for p in r["problems"]]
+    if problems:
+        lines += ["", f"REFUSED -- {len(problems)} problem(s) over "
+                      f"{counted['refused'] + counted['without_contract']} of "
+                      f"{report['selected']} selected instrument(s)", "-" * 78]
+        for ident, problem in problems:
+            lines.append(f"  {ident}: {problem}")
+    elif counted["satisfied"] == report["selected"] and report["selected"]:
+        # ONLY when it is true of EVERY selected row. It used to print whenever
+        # `problems` was empty, which included a run where nothing executed at
+        # all -- the footer asserting a demonstration that had not happened.
+        # `SS-02-DF-05`; the `--contract-only` / `--state` half of the same
+        # sentence is `SS-02-DF-07`.
+        lines += ["", "Every selected instrument carries a three-state absent-input "
+                      "contract and every state reproduced."]
+    else:
+        lines += ["", f"No problem was found, and {report['selected'] - counted['satisfied']} "
+                      f"of {report['selected']} selected instrument(s) did NOT have every "
+                      f"state executed and holding. Nothing here says they reproduced."]
+    return "\n".join(lines)
+
+
+def cmd_absent_input(argv: list[str]) -> int:
+    ap = argparse.ArgumentParser(prog="score_tools.py absent-input")
+    ap.add_argument("--registry", default=str(REPO_ROOT / INSTRUMENT_REGISTER))
+    ap.add_argument("--only", action="append", default=[])
+    ap.add_argument("--state", action="append", default=[], choices=list(ABSENT_STATES),
+                    help="stage and run only these states; the run is then PARTIAL "
+                         "and can never report SATISFIED")
+    ap.add_argument("--contract-only", action="store_true",
+                    help="read the declared contracts without executing them")
+    ap.add_argument("--format", choices=("text", "json"), default="text")
+    ap.add_argument("--out")
+    args = ap.parse_args(argv)
+
+    path = pathlib.Path(args.registry)
+    try:
+        register = load_instrument_register(path)
+    except RegisterUndecided as exc:
+        print(f"{UNVERIFIED}: [{exc.state}] {exc}")
+        print(f"\nabsent-input is UNDECIDED over this register: not clean, not "
+              f"refused, and NOT 0. exit {ABSENT_UNDECIDED}.")
+        return ABSENT_UNDECIDED
+
+    all_rows = register["instrument"]
+    instruments = [r for r in all_rows if r.get("family") != "not-an-instrument"]
+    if not instruments:
+        print(f"{UNVERIFIED}: [empty] the register at {path} declares "
+              f"{len(all_rows)} row(s) and EVERY ONE is `family = "
+              f"\"not-an-instrument\"`. There is no instrument to ask, so there is "
+              f"nothing to satisfy.")
+        print(f"\nabsent-input is UNDECIDED over this register. exit {ABSENT_UNDECIDED}.")
+        return ABSENT_UNDECIDED
+
+    selected = instruments
+    if args.only:
+        selected = [r for r in instruments if r["id"] in args.only]
+        if not selected:
+            known = sorted(r["id"] for r in all_rows)
+            print(f"{UNVERIFIED}: [empty] --only {args.only} selected 0 of "
+                  f"{len(instruments)} instrument(s). An empty selection reported "
+                  f"as a satisfied population is the seventh sub-shape of this very "
+                  f"class (`CA-10-DF-24`, `demonstrate.py:505`). Known ids: "
+                  f"{known[:6]}...")
+            print(f"\nabsent-input is UNDECIDED over this selection. "
+                  f"exit {ABSENT_UNDECIDED}.")
+            return ABSENT_UNDECIDED
+
+    states = tuple(s for s in ABSENT_STATES if s in args.state) or ABSENT_STATES
+    rows = [absent_measure(entry, execute=not args.contract_only, states=states)
+            for entry in selected]
+    counts = {
+        "instruments": len(instruments),
+        "selected": len(selected),
+        "satisfied": sum(1 for r in rows if r["verdict"] == "SATISFIED"),
+        "declared_not_executed": sum(
+            1 for r in rows if r["verdict"] == "DECLARED (not executed)"),
+        "partial": sum(1 for r in rows if r["verdict"].startswith("PARTIAL")),
+        "waived_rows": sum(1 for r in rows if r["verdict"].startswith("WAIVED")),
+        "without_contract": sum(1 for r in rows if r["verdict"] == "NO CONTRACT"),
+        "refused": sum(1 for r in rows if r["verdict"] in ("REFUSED", "INCOMPLETE")),
+        "waived_states": sum(len(r["waived"]) for r in rows),
+        "collapsed_declared": sum(
+            1 for r in rows for c in r["collapsed"] if c["declared"]
+        ),
+    }
+    # The identity the report prints, asserted where it is computed rather than
+    # left to a reader: every selected instrument lands in exactly one bucket.
+    # `waived_rows` was added to it by `SS-02-DF-05` -- a bucket that was NOT in
+    # this sum is exactly how those rows were being counted as satisfied.
+    assert (counts["satisfied"] + counts["declared_not_executed"] + counts["partial"]
+            + counts["waived_rows"] + counts["without_contract"]
+            + counts["refused"]) == len(selected)
+    report = {
+        "register": str(path),
+        "rows_total": len(all_rows),
+        "not_an_instrument": len(all_rows) - len(instruments),
+        "instruments": len(instruments),
+        "selected": len(selected),
+        "execute": not args.contract_only,
+        "instrument_rows": rows,
+        "counts": counts,
+    }
+    payload = (json.dumps(report, indent=2, sort_keys=True)
+               if args.format == "json" else render_absent(report))
+    print(payload)
+    if args.out:
+        out = pathlib.Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+        print(f"\nwrote {out}")
+    if any(r["problems"] for r in rows):
+        return ABSENT_REFUSED
+    if counts["partial"] or counts["declared_not_executed"] or counts["waived_rows"]:
+        # Nothing was refused, and nothing was fully checked either. Reporting 0
+        # here would be a partial run answering for a whole one, which is the
+        # class this command exists to name. `waived_rows` joined this condition
+        # at `SS-02-DF-05`: three states waived with a free-text reason and zero
+        # demonstrations run used to exit 0.
+        print(f"\nNo problem was found, and NOT EVERY CONTRACT WAS FULLY EXECUTED: "
+              f"{counts['declared_not_executed']} declared-only, {counts['partial']} "
+              f"over a subset of states, {counts['waived_rows']} with a state declared "
+              f"unreachable. A reason is not a demonstration. UNDECIDED, "
+              f"exit {ABSENT_UNDECIDED}.")
+        return ABSENT_UNDECIDED
+    return ABSENT_OK
+
+
 COMMANDS = {
     "check": cmd_check,
     "tags": cmd_tags,
@@ -3873,6 +4625,7 @@ COMMANDS = {
     "seal": cmd_seal,
     "contested": cmd_contested,
     "scope": cmd_scope,
+    "absent-input": cmd_absent_input,
 }
 
 
