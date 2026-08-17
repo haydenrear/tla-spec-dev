@@ -1,0 +1,63 @@
+SS-02 review round 2 -- SS-02-DF-05, the reviewer's reproduction, before and after
+date: 2026-08-17T01:04:23Z
+tree: feature/SS-02 at cbb6761 with the repair applied; BEFORE column re-run at cbb6761
+
+=== AFTER: all three states waived with a free-text reason ===
+$ score_tools.py absent-input --registry <one row, three unreachable states>
+R1-absent -- what every instrument answers when the input is not there
+==============================================================================
+
+register     /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/ss02/rr2/waived.toml
+rows         1 (0 declared not-an-instrument)
+instruments  1
+selected     1
+executed     yes
+
+instrument                         absent   unread   empty    verdict
+------------------------------------------------------------------------------
+all-three-waived                   waived   waived   waived   WAIVED (3 of 3)
+
+THE COUNT -- this command's product
+------------------------------------------------------------------------------
+  instruments in the register                 1
+  selected                                    1
+  contract EXECUTED and holding               0
+  contract declared, not executed             0
+  contract executed over a SUBSET of states   0
+  contract with a WAIVED state, nothing run    1
+  WITHOUT one                                 0
+  with a contract that did not hold           0
+  states declared unreachable, with a reason  3
+  DECLARED indistinguishable state pairs      0
+
+  The first six sum to `selected`, in that order, always.
+  No target is set on that ratio. A high `WITHOUT` count is the honest
+  outcome: the class was measured at 48 instances across 30 of 43
+  verdict-producing modules before anything was repaired, and a count
+  that fell because rows were deleted is denominator movement, not a
+  repair.
+
+STATES DECLARED UNREACHABLE -- NOTHING RAN FOR THESE, AND A REASON IS NOT A DEMONSTRATION
+------------------------------------------------------------------------------
+  all-three-waived  `absent`
+      cannot be constructed
+  all-three-waived  `unreadable`
+      cannot be constructed
+  all-three-waived  `empty`
+      cannot be constructed
+
+  A waived state is COUNTED AND PRINTED, never folded into the
+  satisfied population, and a row carrying one can never report
+  SATISFIED. It did until `SS-02-DF-05`.
+
+No problem was found, and 1 of 1 selected instrument(s) did NOT have every state executed and holding. Nothing here says they reproduced.
+
+No problem was found, and NOT EVERY CONTRACT WAS FULLY EXECUTED: 0 declared-only, 0 over a subset of states, 1 with a state declared unreachable. A reason is not a demonstration. UNDECIDED, exit 2.
+exit: 2
+
+=== AFTER: a register row with no `id` ===
+$ score_tools.py absent-input --registry <row with name and family, no id>
+UNVERIFIED: [unreadable] the instrument register at /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b670d0ab-e884-47f9-a904-7c7a284bd273/scratchpad/ss02/rr2/no_id.toml: row #0 declares no `id`. An instrument this tool cannot name, or cannot tell apart from a declared not-an-instrument, is not something it can report a verdict about.
+
+absent-input is UNDECIDED over this register: not clean, not refused, and NOT 0. exit 2.
+exit: 2

@@ -3025,7 +3025,7 @@ seventh sub-shape in CA-10's own list and it is answered UNDECIDED here, never 0
 """
 
   [instrument.failing]
-  summary = "THE REAL REGISTER, NOT A FIXTURE: 53 of 55 shipped instruments have never been shown what they answer when their input is absent, and the check refuses on that"
+  summary = "THE REAL REGISTER, NOT A FIXTURE: 54 of the 56 instruments this register enumerates have never been shown what they answer when their input is absent, and the check refuses on that. (It read `53 of 55` until an independent reviewer of PR #284 re-derived it against the executed check: 55 was the count BEFORE this row was added, and 53 was neither the with-self nor the without-self answer. The denominator includes this row deliberately -- a check measuring a population it is not itself in is measuring something else.)"
   argv = ["{python}", "{repo}/examples/validation/scorecards/score_tools.py",
           "absent-input", "--contract-only"]
   cwd = "{repo}"

@@ -202,6 +202,190 @@ def test_a_contract_that_declares_only_two_states_is_REFUSED(tmp_path, state):
         assert f"`{other}`: no demonstration" not in done.stdout
 
 
+# ---------------------------------------------------------------------------
+# 2a. `unreachable`: a reason is not a demonstration -- SS-02-DF-05
+# ---------------------------------------------------------------------------
+#
+# THE HIGHEST-VALUE THING AN INDEPENDENT REVIEWER FOUND IN PR #284, AND IT WAS
+# INSIDE THIS CHECK. `unreachable = "<reason>"` is documented in three places as
+# "counted and printed, NEVER as satisfied", and the code fell through to
+# SATISFIED anyway. One row, three states, each waived with the free-text reason
+# "cannot be constructed", nothing else -- SATISFIED, counted 1 under `contract
+# EXECUTED and holding`, footer claiming "every state reproduced", exit 0, and
+# ZERO demonstrations run. Sub-shape 7 of the class this file exists to close,
+# inside the fix for the class. It had NO TEST; that is why it shipped.
+
+WAIVED_ROW = """
+schema_version = 1
+
+[registry]
+id = "one row, three excuses"
+
+[[instrument]]
+id = "all-three-waived"
+name = "an instrument that declares every state impossible"
+paths = []
+family = "measurement"
+watches = "nothing, demonstrably"
+verdict_surface = "none"
+classification = "demonstrated-can-fail"
+no_failing_demonstration = "this is a fixture for SS-02-DF-05"
+
+  [instrument.absent_input.absent]
+  unreachable = "cannot be constructed"
+
+  [instrument.absent_input.unreadable]
+  unreachable = "cannot be constructed"
+
+  [instrument.absent_input.empty]
+  unreachable = "cannot be constructed"
+"""
+
+
+def test_a_WAIVED_state_can_never_buy_SATISFIED(tmp_path):
+    """`SS-02-DF-05`. The regression that lets the whole check mean something.
+
+    Three free-text excuses used to be worth a green run. They are now their own
+    verdict, their own bucket, their own printed section, and exit 2 -- because
+    nothing was refused and nothing was demonstrated either.
+    """
+
+    registry = tmp_path / "instruments.toml"
+    registry.write_text(WAIVED_ROW, encoding="utf-8")
+    done = run_check(registry=registry)
+    out = done.stdout
+
+    assert done.returncode == 2, out + done.stderr
+    # The VERDICT CELL, not the whole report: the report's own prose explains
+    # what a waived row is not, and grepping the page for the word would pass on
+    # that sentence. Assert the cell the reader acts on.
+    verdict = next(line for line in out.splitlines()
+                   if line.startswith("all-three-waived "))
+    assert "WAIVED (3 of 3)" in verdict
+    assert "SATISFIED" not in verdict
+    assert "every state reproduced" not in out
+    assert "contract EXECUTED and holding               0" in out
+    assert "contract with a WAIVED state, nothing run    1" in out
+    assert "states declared unreachable, with a reason  3" in out
+    assert "A reason is not a demonstration" in out
+    # The section that makes the excuse readable rather than merely counted.
+    assert "STATES DECLARED UNREACHABLE" in out
+    assert "cannot be constructed" in out
+
+
+def test_one_WAIVED_state_is_enough_to_stop_SATISFIED(tmp_path):
+    """Not only the all-waived case.
+
+    A row that demonstrates two states properly and waives the third is the
+    shape a later ticket will actually write, and it is the one where a
+    fall-through to SATISFIED would be hardest to notice.
+    """
+
+    registry = rewrite_register(
+        tmp_path,
+        lambda text: text.replace(
+            '    [instrument.absent_input.empty]\n    summary = "the ledger parses',
+            '    [instrument.absent_input.empty]\n'
+            '    unreachable = "SS-02 test: pretend this one cannot be built"\n'
+            '    summary = "the ledger parses',
+            1,
+        ),
+    )
+    done = run_check("--only", SUBJECT, "--state", "absent", "--state", "empty",
+                     registry=registry)
+    out = done.stdout
+    assert done.returncode == 2, out + done.stderr
+    verdict = next(line for line in out.splitlines() if line.startswith(f"{SUBJECT} "))
+    assert "WAIVED (1 of 3)" in verdict
+    assert "SATISFIED" not in verdict
+
+
+def test_the_bucket_identity_holds_with_a_waived_row(tmp_path):
+    """`waived_rows` is IN the sum. Being outside it is how those rows were
+    counted as satisfied in the first place: the report printed an identity that
+    the buckets did not actually satisfy, and nothing compared them."""
+
+    registry = tmp_path / "instruments.toml"
+    registry.write_text(WAIVED_ROW, encoding="utf-8")
+    done = run_check("--format", "json", registry=registry)
+    report = json.loads(done.stdout.split("\nNo problem was found")[0])
+    counts = report["counts"]
+    buckets = ("satisfied", "declared_not_executed", "partial", "waived_rows",
+               "without_contract", "refused")
+    assert sum(counts[b] for b in buckets) == report["selected"] == 1
+    assert counts["waived_rows"] == 1
+    assert counts["satisfied"] == 0
+
+
+# ---------------------------------------------------------------------------
+# 2b. `expect_exit` is mandatory -- SS-02-DF-06
+# ---------------------------------------------------------------------------
+
+
+def test_a_state_that_declares_no_expect_exit_is_REFUSED(tmp_path):
+    """`SS-02-DF-06`. The rule called mandatory was opt-in.
+
+    `_absent_judge` compares the exit code only when the contract declares one,
+    and the UNDECIDED-and-exits-0 rule read the DECLARED code -- so DELETING ONE
+    LINE turned off exit-code checking AND the rule that depends on it, and a
+    contract answering `undecided` while exiting 0 reported SATISFIED. Found by
+    an independent reviewer of PR #284.
+    """
+
+    registry = rewrite_register(
+        tmp_path,
+        lambda text: text.replace("\n    expect_exit = 0\n", "\n", 1),
+    )
+    done = run_check("--contract-only", "--only", SUBJECT, registry=registry)
+    assert done.returncode == 1, done.stdout + done.stderr
+    assert "declares no `expect_exit`" in done.stdout
+    assert "An omitted exit code is not a permissive one" in done.stdout
+
+
+def test_the_UNDECIDED_and_exits_zero_rule_reads_what_HAPPENED(tmp_path):
+    """The other half of `SS-02-DF-06`, and the one a static check cannot do.
+
+    A contract may declare `expect_exit = 1` and the instrument may exit 0. The
+    declaration would then satisfy the static rule while the run produces
+    exactly the false PASS the rule exists to name, so the rule is applied to the
+    OBSERVED code as well. Here the declared code is moved to 1 and the
+    `exit_code_cannot_carry_the_answer` declaration removed; `audit` still exits
+    0, so BOTH the exit-code comparison and the observed rule must fire.
+    """
+
+    def transform(text: str) -> str:
+        text = text.replace("\n    expect_exit = 0\n", "\n    expect_exit = 1\n", 1)
+        return text.replace("exit_code_cannot_carry_the_answer", "note_about_exit", 1)
+
+    registry = rewrite_register(tmp_path, transform)
+    done = run_check("--only", SUBJECT, "--state", "absent", registry=registry)
+    out = done.stdout
+    assert done.returncode == 1, out + done.stderr
+    assert "exit 0, declared 1" in out
+    assert "OBSERVED exit 0 while answering `undecided`" in out
+
+
+def test_a_register_row_with_no_id_is_UNDECIDED_and_not_a_TRACEBACK(tmp_path):
+    """Reported by the reviewer of PR #284 while reproducing `SS-02-DF-05`.
+
+    `entry["id"]` on a row that has none died with `KeyError` and a traceback. A
+    traceback is not one of the three answers, and "the register is unreadable
+    as a register" is an absent-input case for this check like any other.
+    """
+
+    registry = tmp_path / "instruments.toml"
+    registry.write_text(
+        'schema_version = 1\n\n[registry]\nid = "x"\n\n[[instrument]]\n'
+        'name = "a row with no id"\nfamily = "measurement"\n',
+        encoding="utf-8",
+    )
+    done = run_check(registry=registry)
+    assert done.returncode == 2, done.stdout + done.stderr
+    assert "[unreadable]" in done.stdout
+    assert "declares no `id`" in done.stdout
+    assert "Traceback" not in done.stdout + done.stderr
+
+
 def test_states_the_instrument_CANNOT_TELL_APART_must_be_declared(tmp_path):
     """Found by EXECUTION, not by reading the TOML.
 
@@ -434,12 +618,12 @@ def test_the_count_is_reported_with_a_denominator_and_carries_no_target():
     report = json.loads(done.stdout)
     counts = report["counts"]
     assert counts["instruments"] == report["instruments"] > 0
-    buckets = ("satisfied", "declared_not_executed", "partial",
+    buckets = ("satisfied", "declared_not_executed", "partial", "waived_rows",
                "without_contract", "refused")
     assert sum(counts[b] for b in buckets) == report["selected"]
     text = run_check("--contract-only").stdout
     assert "instruments in the register" in text
-    assert "The first five sum to `selected`" in text
+    assert "The first six sum to `selected`" in text
     assert "No target is set on that ratio" in text
 
 
@@ -456,7 +640,7 @@ def test_a_PARTIAL_run_can_never_report_SATISFIED():
     done = run_check("--only", SELF, "--state", "absent")
     assert done.returncode == 2, done.stdout + done.stderr
     assert "PARTIAL (absent)" in done.stdout
-    assert "NO CONTRACT WAS FULLY EXECUTED" in done.stdout
+    assert "NOT EVERY CONTRACT WAS FULLY EXECUTED" in done.stdout
     full = run_check("--only", SELF)
     assert full.returncode == 0, full.stdout + full.stderr
     assert "SATISFIED" in full.stdout
@@ -473,7 +657,7 @@ def test_contract_only_over_a_clean_register_is_UNDECIDED_not_PASS(tmp_path):
     done = run_check("--contract-only", "--only", SELF)
     assert done.returncode == 2, done.stdout + done.stderr
     assert "DECLARED (not executed)" in done.stdout
-    assert "NO CONTRACT WAS FULLY EXECUTED" in done.stdout
+    assert "NOT EVERY CONTRACT WAS FULLY EXECUTED" in done.stdout
 
 
 # ---------------------------------------------------------------------------

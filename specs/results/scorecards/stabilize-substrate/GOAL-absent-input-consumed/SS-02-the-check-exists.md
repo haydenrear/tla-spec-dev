@@ -72,9 +72,32 @@ epic ships, and **this ticket shipped none**.
 that is `SS-05`'s, so the class is measured before it is shrunk.**
 
 **48 instances at the baseline. 48 at this tip.** Nothing in `CA-10`'s table
-was repaired here. Four *new* findings were filed (`SS-02-DF-01` … `-04`), three
-of which are further faces of the same class found **by the check** — but a
-finding filed is a finding routed, and none of them is counted as a repair.
+was repaired here. Nine *new* findings were filed (`SS-02-DF-01` … `-09`), most
+of which are further faces of the same class found **by the check or by an
+independent reviewer of the check** — but a finding filed is a finding routed,
+and none of them is counted as a repair.
+
+> **CORRECTION, AND `SS-08` MUST READ IT BEFORE RE-SWEEPING.** The PR body first
+> said *"no file in `CA-10`'s 48-instance table was edited"*. **That is false**,
+> and the reviewer was right to refuse it. `examples/validation/scorecards/score_tools.py`
+> **carries five of the 48** (`CA-10-absent-input/RESULT.md:178-182`), and this
+> ticket inserted 9 lines at line 15 of that file, so **all five citations now
+> point at unrelated lines.** `48 → 48` still stands — the diff has **zero
+> deletions**, verified — but the correct sentence is **"no instance repaired;
+> five `file:line` citations shifted by +9"**:
+>
+> | `CA-10` cites | the same code is now at |
+> |---|---|
+> | `score_tools.py:2484` (`INSTRUMENT-LOG.toml` absent) | `:2493` |
+> | `score_tools.py:2930` (zero cards, R-H1 clause 3) | `:2939` |
+> | `score_tools.py:3293` (zero cards, judge spread) | `:3302` |
+> | `score_tools.py:3448` (`DEFAULT_SWEEP`) | `:3457` |
+> | `score_tools.py:3590` (card corpus absent) | `:3599` |
+>
+> Verified by reading both line numbers in the tip file, not by arithmetic.
+> `CA-10-absent-input/RESULT.md` is a sealed record and `R-H4` forbids editing
+> it, so the mapping lives here instead. **A re-sweep that reads those five
+> citations literally will read the wrong lines.**
 
 **Two things that look like movement and are not:**
 

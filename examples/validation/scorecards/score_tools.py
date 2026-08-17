@@ -4005,6 +4005,29 @@ def load_instrument_register(path: pathlib.Path) -> dict:
             f"satisfied population, which is the seventh sub-shape of the very "
             f"class this command checks for.",
         )
+    # A ROW THIS TOOL CANNOT NAME IS A MALFORMED REGISTER, NOT A CRASH. Reported
+    # by the reviewer of PR #284 while reproducing `SS-02-DF-05`: a row with no
+    # `id` reached `entry["id"]` and died with `KeyError: 'id'` and a traceback.
+    # A traceback is not one of the three answers, and "the register is
+    # unreadable as a register" is exactly an absent-input case for this check --
+    # which makes crashing on it the class, once more, inside the fix for it.
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            raise RegisterUndecided(
+                "unreadable",
+                f"the instrument register at {path}: row #{index} is a "
+                f"{type(row).__name__}, not a table. A register whose rows are not "
+                f"rows cannot be measured.",
+            )
+        for required in ("id", "family"):
+            if not str(row.get(required) or "").strip():
+                raise RegisterUndecided(
+                    "unreadable",
+                    f"the instrument register at {path}: row #{index} declares no "
+                    f"`{required}`. An instrument this tool cannot name, or cannot "
+                    f"tell apart from a declared not-an-instrument, is not something "
+                    f"it can report a verdict about.",
+                )
     return data
 
 
@@ -4062,7 +4085,20 @@ def absent_contract_problems(entry: dict) -> list[str]:
                 )
         else:
             problems.append(f"`{state}`: unknown kind {kind!r}")
-        if answer == "undecided" and spec.get("expect_exit") == 0 and not str(
+        # `expect_exit` IS MANDATORY, and that is `SS-02-DF-06`. It used to be
+        # optional, and `_absent_judge` skips the exit-code comparison entirely
+        # when it is absent -- so DELETING ONE LINE from a contract turned off
+        # exit-code checking AND slipped past the UNDECIDED-and-exits-0 rule
+        # below, which read the DECLARED code. Three states answering
+        # `UNVERIFIED ...` while exiting 0 with no `expect_exit` reported
+        # SATISFIED. Found by an independent reviewer of PR #284.
+        if "expect_exit" not in spec:
+            problems.append(
+                f"`{state}`: declares no `expect_exit`. An omitted exit code is "
+                f"not a permissive one -- it disables the comparison, and the "
+                f"UNDECIDED-and-exits-0 rule with it."
+            )
+        elif answer == "undecided" and spec["expect_exit"] == 0 and not str(
             spec.get("exit_code_cannot_carry_the_answer") or ""
         ).strip():
             problems.append(
@@ -4072,6 +4108,29 @@ def absent_contract_problems(entry: dict) -> list[str]:
                 f"exit code carry it."
             )
     return problems
+
+
+def absent_observed_problems(spec: dict, observed_exit: int) -> list[str]:
+    """The half of the UNDECIDED-and-exits-0 rule that reads what HAPPENED.
+
+    `absent_contract_problems` reads the DECLARED exit code, which is a claim by
+    the same author who wrote the answer. `SS-02-DF-06`: a contract that simply
+    omitted `expect_exit` evaded the rule entirely and reported SATISFIED over
+    three states that printed `UNVERIFIED ...` and exited 0. Requiring
+    `expect_exit` closes that, and this closes the other direction -- a contract
+    that DECLARES a nonzero exit and then observes 0 is the same false PASS with
+    a truthful-looking contract in front of it.
+    """
+
+    if spec.get("answer") != "undecided" or observed_exit != 0:
+        return []
+    if str(spec.get("exit_code_cannot_carry_the_answer") or "").strip():
+        return []
+    return [
+        "OBSERVED exit 0 while answering `undecided`, and nothing declares "
+        "`exit_code_cannot_carry_the_answer`. The rule reads what the "
+        "instrument DID, not only what the contract claimed it would do."
+    ]
 
 
 def _absent_expand(value: str, tree: pathlib.Path) -> str:
@@ -4282,6 +4341,21 @@ def absent_measure(entry: dict, execute: bool, states: tuple[str, ...] = ABSENT_
     and "all three reproduce" -- are properties of the SET, and a subset that
     reported the same word as the whole would be an empty-selection answer with
     extra steps. It is reported `PARTIAL` and the command exits UNDECIDED.
+
+    A WAIVED STATE IS NEVER `SATISFIED` EITHER, AND THAT COST A HIGH FINDING.
+    `unreachable = "<reason>"` was documented in three places as *"counted and
+    printed separately, NEVER as satisfied"*, and the code fell through to
+    `SATISFIED` anyway: a row whose three states were all waived with the
+    free-text reason `"cannot be constructed"` reported **SATISFIED**, counted 1
+    under `contract EXECUTED and holding`, printed *"every state reproduced"*
+    and exited **0** -- with ZERO demonstrations run. That is sub-shape 7 of the
+    class this command exists to name -- an empty selection reported as a
+    satisfied population -- inside the fix for the class. Found by an
+    independent reviewer of PR #284 instructed to refute. `SS-02-DF-05`.
+
+    So a waived state lands in its own verdict and its own bucket, and the
+    command exits UNDECIDED over it: nothing was refused, and nothing was
+    demonstrated either.
     """
 
     row = {
@@ -4330,8 +4404,10 @@ def absent_measure(entry: dict, execute: bool, states: tuple[str, ...] = ABSENT_
             row["states"][state] = "stale"
             continue
         outputs[state] = result["output"]
-        if result["problems"]:
-            row["problems"].extend(f"`{state}`: {p}" for p in result["problems"])
+        found = list(result["problems"])
+        found.extend(absent_observed_problems(spec, result["exit"]))
+        if found:
+            row["problems"].extend(f"`{state}`: {p}" for p in found)
             row["states"][state] = "MISS"
         else:
             row["states"][state] = "ok"
@@ -4346,6 +4422,10 @@ def absent_measure(entry: dict, execute: bool, states: tuple[str, ...] = ABSENT_
             )
     if row["problems"]:
         row["verdict"] = "REFUSED"
+    elif row["waived"]:
+        # BEFORE THE ORDER OF THESE BRANCHES IS CHANGED: this one used to be
+        # absent, and `SATISFIED` swallowed it. `SS-02-DF-05`.
+        row["verdict"] = f"WAIVED ({len(row['waived'])} of {len(ABSENT_STATES)})"
     elif row["partial"]:
         row["verdict"] = f"PARTIAL ({','.join(states)})"
     else:
@@ -4376,12 +4456,13 @@ def render_absent(report: dict) -> str:
               f"  contract EXECUTED and holding               {counted['satisfied']}",
               f"  contract declared, not executed             {counted['declared_not_executed']}",
               f"  contract executed over a SUBSET of states   {counted['partial']}",
+              f"  contract with a WAIVED state, nothing run    {counted['waived_rows']}",
               f"  WITHOUT one                                 {counted['without_contract']}",
               f"  with a contract that did not hold           {counted['refused']}",
               f"  states declared unreachable, with a reason  {counted['waived_states']}",
               f"  DECLARED indistinguishable state pairs      {counted['collapsed_declared']}",
               "",
-              "  The first five sum to `selected`, in that order, always.",
+              "  The first six sum to `selected`, in that order, always.",
               "  No target is set on that ratio. A high `WITHOUT` count is the honest",
               "  outcome: the class was measured at 48 instances across 30 of 43",
               "  verdict-producing modules before anything was repaired, and a count",
@@ -4394,6 +4475,17 @@ def render_absent(report: dict) -> str:
         for ident, entry in collapsed:
             lines.append(f"  {ident}  {entry['states']}  ({entry['why']})")
             lines.append(f"      {entry['reason'] or 'UNDECLARED'}")
+    waived = [(r["id"], w) for r in report["instrument_rows"] for w in r["waived"]]
+    if waived:
+        lines += ["", "STATES DECLARED UNREACHABLE -- NOTHING RAN FOR THESE, AND A "
+                      "REASON IS NOT A DEMONSTRATION", "-" * 78]
+        for ident, entry in waived:
+            lines.append(f"  {ident}  `{entry['state']}`")
+            lines.append(f"      {entry['reason']}")
+        lines.append("")
+        lines.append("  A waived state is COUNTED AND PRINTED, never folded into the")
+        lines.append("  satisfied population, and a row carrying one can never report")
+        lines.append("  SATISFIED. It did until `SS-02-DF-05`.")
     problems = [(r["id"], p) for r in report["instrument_rows"] for p in r["problems"]]
     if problems:
         lines += ["", f"REFUSED -- {len(problems)} problem(s) over "
@@ -4401,9 +4493,18 @@ def render_absent(report: dict) -> str:
                       f"{report['selected']} selected instrument(s)", "-" * 78]
         for ident, problem in problems:
             lines.append(f"  {ident}: {problem}")
-    else:
+    elif counted["satisfied"] == report["selected"] and report["selected"]:
+        # ONLY when it is true of EVERY selected row. It used to print whenever
+        # `problems` was empty, which included a run where nothing executed at
+        # all -- the footer asserting a demonstration that had not happened.
+        # `SS-02-DF-05`; the `--contract-only` / `--state` half of the same
+        # sentence is `SS-02-DF-07`.
         lines += ["", "Every selected instrument carries a three-state absent-input "
                       "contract and every state reproduced."]
+    else:
+        lines += ["", f"No problem was found, and {report['selected'] - counted['satisfied']} "
+                      f"of {report['selected']} selected instrument(s) did NOT have every "
+                      f"state executed and holding. Nothing here says they reproduced."]
     return "\n".join(lines)
 
 
@@ -4463,6 +4564,7 @@ def cmd_absent_input(argv: list[str]) -> int:
         "declared_not_executed": sum(
             1 for r in rows if r["verdict"] == "DECLARED (not executed)"),
         "partial": sum(1 for r in rows if r["verdict"].startswith("PARTIAL")),
+        "waived_rows": sum(1 for r in rows if r["verdict"].startswith("WAIVED")),
         "without_contract": sum(1 for r in rows if r["verdict"] == "NO CONTRACT"),
         "refused": sum(1 for r in rows if r["verdict"] in ("REFUSED", "INCOMPLETE")),
         "waived_states": sum(len(r["waived"]) for r in rows),
@@ -4472,8 +4574,11 @@ def cmd_absent_input(argv: list[str]) -> int:
     }
     # The identity the report prints, asserted where it is computed rather than
     # left to a reader: every selected instrument lands in exactly one bucket.
+    # `waived_rows` was added to it by `SS-02-DF-05` -- a bucket that was NOT in
+    # this sum is exactly how those rows were being counted as satisfied.
     assert (counts["satisfied"] + counts["declared_not_executed"] + counts["partial"]
-            + counts["without_contract"] + counts["refused"]) == len(selected)
+            + counts["waived_rows"] + counts["without_contract"]
+            + counts["refused"]) == len(selected)
     report = {
         "register": str(path),
         "rows_total": len(all_rows),
@@ -4494,13 +4599,17 @@ def cmd_absent_input(argv: list[str]) -> int:
         print(f"\nwrote {out}")
     if any(r["problems"] for r in rows):
         return ABSENT_REFUSED
-    if counts["partial"] or counts["declared_not_executed"]:
+    if counts["partial"] or counts["declared_not_executed"] or counts["waived_rows"]:
         # Nothing was refused, and nothing was fully checked either. Reporting 0
         # here would be a partial run answering for a whole one, which is the
-        # class this command exists to name.
-        print(f"\nNo problem was found, and NO CONTRACT WAS FULLY EXECUTED: "
+        # class this command exists to name. `waived_rows` joined this condition
+        # at `SS-02-DF-05`: three states waived with a free-text reason and zero
+        # demonstrations run used to exit 0.
+        print(f"\nNo problem was found, and NOT EVERY CONTRACT WAS FULLY EXECUTED: "
               f"{counts['declared_not_executed']} declared-only, {counts['partial']} "
-              f"over a subset of states. UNDECIDED, exit {ABSENT_UNDECIDED}.")
+              f"over a subset of states, {counts['waived_rows']} with a state declared "
+              f"unreachable. A reason is not a demonstration. UNDECIDED, "
+              f"exit {ABSENT_UNDECIDED}.")
         return ABSENT_UNDECIDED
     return ABSENT_OK
 

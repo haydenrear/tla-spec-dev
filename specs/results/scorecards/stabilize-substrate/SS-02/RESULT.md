@@ -4,6 +4,14 @@
 the absent-input class was repaired here. That is `SS-05`'s, deliberately, so
 `SS-08` measures a class nobody shrank while measuring it.
 
+> **READ §10 FIRST.** An independent reviewer of PR #284, instructed to refute,
+> returned **CHANGES** with eleven findings — and **both HIGH findings were
+> instances of the class this check exists to close, inside the check.** An
+> all-waived contract reported `SATISFIED` with zero demonstrations run; the
+> "mandatory" exit-code declaration was evaded by deleting one line. §1–§9 were
+> written before that round and are unedited except where a figure in them was
+> wrong; **§10 is what moved and why.**
+
 ---
 
 ## 0. Every figure in this file names its tree, because a figure is a joint property of the artifact and the tree
@@ -159,12 +167,16 @@ ticket moved the instance count by zero, deliberately** — §6.
 
 ---
 
-## 5. Findings filed: four, all reproducible, none repaired here
+## 5. Findings filed: nine, all reproducible
+
+**Four before review, five after it.** This section describes the first four;
+`SS-02-DF-05` … `-09` are in §10, and **two of those five are repaired here
+rather than routed** — the review found them inside the check itself.
 
 Ledger `specs/deferred_findings.yaml`, **appended only**: 308 rows at the base →
-**317** after `SS-03` merged → **321** here. Row count only rises; the tail
-conflict with `SS-03` was resolved by keeping both sets **in promotion order**
-(`SS-03` at 20, then `SS-02` at 30).
+**317** after `SS-03` merged → **321** before review → **326** here. Row count
+only rises, all ids unique; the tail conflict with `SS-03` was resolved by
+keeping both sets **in promotion order** (`SS-03` at 20, then `SS-02` at 30).
 
 | id | what | routed to |
 |---|---|---|
@@ -174,7 +186,11 @@ conflict with `SS-03` was resolved by keeping both sets **in promotion order**
 | `SS-02-DF-04` | **The register's own guards cannot see the new slot.** `demonstrate.py`'s `SLOTS` literal is `("failing","passing","blind_spot")` and four tests iterate it, so an absent-input contract could cite a nonexistent pytest node or assert only an exit code and no sibling guard would notice. The check imposes the equivalent itself, so nothing is unpoliced **today** — but the obligation now lives in two places. `FI-04-DF-04`'s shape. | `SS-06` |
 
 `disposition.py --ticket SS-02` → **`DISPOSED ticket SS-02: 4 findings, all three
-clauses hold`**.
+clauses hold`** — and **`4` is not `9`**. The instrument selects a row only when
+`found_by` starts with the ticket id *and* the row id does, so the five
+review-round rows are invisible to it. Selected by id prefix instead, **all nine
+pass all three clauses, `0 of 9` fail.** See §10.5: the under-count is exactly
+the externally-found rows, which is the direction that flatters the ticket.
 
 ---
 
@@ -318,16 +334,31 @@ attributed to `open ticket`. Passes fall by the same 4. No red moves.**
 **`test_ticket_retirement` is still red and correctly so:** it now complains
 about five planned tickets instead of six, `SS-02` having dropped off the list.
 
-### 7.1 The sealed copy and this file have diverged, on purpose
+### 7.1 The sealed copy and this file have diverged, on purpose — and where
 
 `specs/.history/stabilize-substrate-epic/ticket-002-SS-02/results/RESULT.md` is
-the byte-frozen copy the close took, and it stops at §6 — it cannot contain the
-post-close measurement, because that measurement did not exist until the close
-had already happened. **`R-H4` leaves it there.** This file, at
+the byte-frozen copy the close took. **`R-H4` leaves it there.** This file, at
 `specs/results/scorecards/stabilize-substrate/SS-02/RESULT.md`, is the live one
-and is the one to read. `SS-01` hit the same divergence one ticket ago
-(`8/1508/0/1516` sealed against `8/1504/0/1512` live) and it is structural, not
-a mistake either of us made.
+and is the one to read.
+
+**Where exactly they diverge, since a vague answer to that is what a reader
+cannot check.** The sealed copy is **312 lines** and **carries §7, §8 and §9** —
+it is not truncated. It first diverged **inside §7**, at its line 276: it
+describes the post-close figures as living in files *"measured after the
+close"*, because at seal time they had not been measured yet, where this file
+carries the measured table. **Review round 2 then widened the gap deliberately**
+— the banner at the top, the corrected counts in §5, this subsection, and all of
+§10 postdate the seal. The sealed copy is the close's own record of what it saw;
+**this file is the current one and is the one to read.**
+
+> **CORRECTED.** The PR body first said the sealed copy *"stops at §6"*. It does
+> not, and an independent reviewer of PR #284 checked. The claim was written
+> from what I expected the close to capture rather than from reading the file it
+> wrote — which is this epic's most repeated error shape, committed here about
+> the artifact documenting that error shape.
+
+`SS-01` hit the same divergence one ticket ago (`8/1508/0/1516` sealed against
+`8/1504/0/1512` live). It is structural, not a mistake either of us made.
 
 ---
 
@@ -354,3 +385,133 @@ none.
 | `repository_unit` | `uv run --with pytest --with pyyaml -m pytest tests -q` | §6 |
 | `graphs` | — | none declared |
 | `spec_graph` | — | **N/A, and the no-op is stated rather than skipped:** this ticket changes a measurement instrument and the instrument register. Ticket-local `desired/` and `current/` are byte-identical to each other and to the whole-program state (`diff -rq` clean), and no `External.tla` surface, action, invariant or model config moved. |
+
+---
+
+## 10. Review round 2 — the check for the class contained the class, twice
+
+PR #284 went to an independent reviewer instructed to **REFUTE**. Verdict:
+**CHANGES**, eleven findings, two HIGH. **Both HIGH findings are instances of
+the absent-input class, inside the check built to close it.** That is the most
+on-thesis result this ticket produced and it is not buried.
+
+### 10.1 What the reviewer verified that I had not
+
+Recorded first, because a review that only lists defects is not a measurement:
+
+- **My staging is a genuine control, and the reviewer ran the control I did
+  not.** Symlink-everything *including* the ledger → 0 UNVERIFIED, 0 violations,
+  exit 0, 18,900 chars. So the BEFORE/AFTER difference comes from the input
+  under test and not from the staging. **I should have run that arm myself.**
+- The BEFORE/AFTER pair survives being run **symmetrically**.
+- **My declared collapse is stronger than I claimed:** `unreadable` and `empty`
+  produce **byte-identical 19,222-character outputs**. `SS-02-DF-01` understates
+  itself.
+- `2 of 56` re-derives exactly; the `+1` self-inclusion is legitimate;
+  `48 → 48` confirmed by **zero deletions** in the diff; `R-H4` absolute across
+  144 files, all `A`, zero `M`/`D`; the suite exact at the head; node diff
+  `34 added / 0 removed`; all four ledger reproductions run; and my 5m16s cost
+  figure measured at 4:46 against it — inside run-to-run variance.
+
+### 10.2 The two HIGH findings, both repaired, both filed
+
+**`SS-02-DF-05` — an all-waived contract was reported SATISFIED and counted as
+EXECUTED.** One row, three states, each `unreachable = "cannot be constructed"`:
+`SATISFIED`, `contract EXECUTED and holding 1`, footer *"every state
+reproduced"*, **exit 0**, with **zero demonstrations run**. That is **sub-shape 7
+of this command's own taxonomy — an empty selection reported as a satisfied
+population — inside the fix for the class.** Three places promised the opposite,
+including `score_tools.py`'s own comment `# counted and printed separately,
+NEVER as satisfied` **one line above the code that did the opposite**. It
+shipped because `unreachable` **had no test**.
+
+Repaired: its own verdict `WAIVED (n of 3)`, its own bucket `waived_rows`
+**inside** the identity assertion that the buckets sum to `selected`, its own
+printed section, and **exit 2** — nothing refused, nothing demonstrated. The
+affirmative footer now prints only when **every** selected row is `SATISFIED`.
+Four tests pin it. **A bucket that was not in the sum is how the fall-through
+survived**, and the report printed an identity its own buckets did not satisfy.
+
+**`SS-02-DF-06` — the "mandatory" `exit_code_cannot_carry_the_answer` was
+opt-in.** The rule read the **declared** exit code, and `_absent_judge` compares
+the exit code only when one is declared — so **deleting one line** disabled the
+comparison *and* the rule that depends on it, and a contract answering
+`undecided` while exiting 0 reported `SATISFIED`. Repaired in **both**
+directions: `expect_exit` is now required on every state, and
+`absent_observed_problems` applies the rule to the **observed** exit code, so a
+contract that declares a nonzero exit and then observes 0 is refused too.
+
+**And one more, the reviewer's own, found while reproducing the first:** a
+register row with no `id` died with `KeyError: 'id'` and a traceback. **A
+traceback is not one of the three answers**, and a register unreadable *as a
+register* is an absent-input case for this check like any other. Rows are now
+validated on the way in; a row missing `id` or `family` answers
+`UNVERIFIED: [unreadable]`, exit 2.
+
+### 10.3 The other nine, and what happened to each
+
+| # | finding | disposition |
+|---|---|---|
+| F3 | `SS-02-DF-04` said **four** tests iterate the `SLOTS` literal. **There are two** (`:674`, `:751`), and the row's own grep returns 2. | **corrected in place** before merge, with the original wording quoted in the row |
+| F4 | My own `R1` demonstration summary published **"53 of 55"** where the executed check says **54 of 56** — neither defensible reading. | **corrected** in `instruments.toml` |
+| F8 | *"No file in `CA-10`'s 48-instance table was edited"* is **false** — `score_tools.py` carries five of the 48 and this ticket shifted all five citations **+9**. | **corrected**, with the full `+9` mapping in `GOAL-absent-input-consumed/SS-02-the-check-exists.md`; `48 → 48` stands on **zero deletions** |
+| F9 | *"The sealed `RESULT.md` stops at §6"* is **false** — it carries §7–§9 and diverges mid-§7 at its line 276. | **corrected**, §7.1 |
+| F10 | Out-of-key disclosure list incomplete. | **completed**, §10.4 |
+| F5 | Collapse detection compares author-declared markers, never verdicts or exit codes — three identical verdicts differing only in an echoed path pass. | **`SS-02-DF-08`**, routed to `SS-05` on owner instruction |
+| F6/F7 | The affirmative footer printed unconditionally; `--only known --only typo` drops the typo silently and exits 0. | **`SS-02-DF-07`**, routed to `SS-05`. **Say plainly:** the footer half was closed as an unavoidable consequence of `SS-02-DF-05`'s repair — leaving a sentence I knew to be false was not available. **The `--only` half is open** and is why the row exists. |
+| F11 | `test_the_check_gates_nothing` greps one directory for one literal, so an `import` evades it; `test_the_register_is_the_only_thing_the_check_reads` inspects only `argv`, never `env`/`cwd`/`stage.from`/`link.from`/`write.file`/`nodes`. | **`SS-02-DF-09`**, routed to `SS-06`. **Clause (e) still holds at this tip — by inspection over two contracts, NOT because those two tests establish it**, and `SS-08` must not quote them as proof without this row beside them. |
+
+**Findings: 4 → 9.** Ledger **321 → 326** rows, appended only, all ids unique.
+**That is over the assignment's deferment budget of 5 for this ticket** — the
+owner directed the routing of F5/F6/F7/F11 and directed F1 to be filed as well;
+disclosed rather than trimmed to fit.
+
+### 10.4 The complete out-of-key file list (F10)
+
+Everything this branch touches outside the declared conflict keys:
+
+| path | why |
+|---|---|
+| `examples/validation/instruments/instruments.toml` | **the check's subject.** No sibling ticket claims it |
+| `specs/deferred_findings.yaml` | the shared cumulative ledger, **appended only** |
+| `specs/desired_program_model/ticket_plan.yaml` | `status: planned → closed` on **this ticket's entry only** |
+| `specs/tickets/SS-02/**`, `specs/.history/stabilize-substrate-epic/ticket-002-SS-02/**` | `open ticket` / `close ticket` byproducts |
+| `specs/results/complexity_ledger.json` | close byproduct, **+343 lines to a shared append target that will conflict with every remaining sibling** |
+| `specs/results/skill_feedback.md` | close byproduct |
+| `specs/current/**` | the ticket-scoped promotion the close performs |
+
+`tests/test_instrument_demonstrations.py` is `SS-06`'s key and was **not**
+touched — that is why `SS-02-DF-04` exists instead of a fix.
+
+### 10.5 Two things the owner corrected, and one figure of the owner's that this round moved
+
+The owner withdrew two items as theirs, not mine: SS-08 obligation 9a's
+`--ticket` claim, and issue #275's stale "297 rows" (my **308 at `48f9c7e`** is
+right). **One of those two moved during this round and the owner should see the
+new number.**
+
+`disposition.py --ticket SS-02` selects a row only when **`found_by` starts with
+the ticket id** *and* the row id does. At `cbb6761` that was **4 of 4** and the
+owner's "for SS-02 it is exactly right" was true. **At this head it is 4 of 9** —
+the five review-round rows are excluded because their `found_by` is
+*"independent reviewer of PR #284 instructed to REFUTE"*.
+
+**The under-count is not random: it is exactly the rows an independent reviewer
+found.** So the instrument systematically under-reports a ticket's findings in
+the direction of hiding externally-found ones, which is the direction that
+flatters the ticket. All nine rows pass the three clauses when selected by id
+prefix (`0 of 9` fail). **Recorded for the owner's softening of 9a; not filed,
+because 9a is the owner's.**
+
+### 10.6 What I think is wrong in the review
+
+**Nothing.** Every finding I could check, I reproduced: the all-waived
+`SATISFIED`, the one-line `expect_exit` evasion, the `KeyError`, two loops and
+not four, `53 of 55` matching no reading, the five `+9` citation shifts read at
+both line numbers in the tip file, and the sealed copy carrying §7–§9. **The
+reviewer was right on all eleven, and right about the two HIGHs being the
+ticket's own thesis turned on the ticket.**
+
+One refinement rather than a disagreement, on F6/F7: the footer half could not
+be left standing while `SS-02-DF-05` was repaired, because the fix makes the
+sentence false rather than merely weak. It is closed here and the row says so.
