@@ -164,7 +164,380 @@ FAILING"* is half wrong, and I am not repeating it.** The denominator movement
 is real and is stated in §4; the numerator claim about *two* failing is
 refuted by running both.
 
+**Section 1 was committed on its own, at `d6805f8`, before any source file was
+edited.** `git show --stat d6805f8` touches only this directory.
+
 ---
 
-*(Sections 2 onward are written as the repairs land; this file was committed at
-the end of section 1, before any source file was edited.)*
+## 2. THE REPAIRS, BY SUB-SHAPE, EACH WITH ITS DEMONSTRATED CASE
+
+Six commits, `4df1875`…`65e378e`. Every repair carries a demonstrated
+absent-input case that fails before and passes after **on a real subject**, and
+in every one the correct answer is **UNDECIDED or a refusal**. Where the shape
+has a third state, all three are demonstrated and **asserted to answer in
+different words** — a fallback that moves the false PASS to a rarer input has
+not fixed the class, and two states answering identically is the defect
+`SS-07-DF-08`, `SS-06-DF-05` and `SS-01-DF-04` are each instances of.
+
+### 2.1 `generate_python.py:238` — the only instance that leaves this repository
+
+**Sub-shape 6, a default-named lookup that misses silently**
+(`manifest.get("invariants", []) or []`).
+
+`render_validators` emitted `def validate_state(state) -> None: return None` for
+an absent key, a nulled key **and** an empty list — one answer to three
+different facts — and `validate_manifest` reported zero errors, so nothing
+anywhere said the spec double had no state oracle.
+
+**The repair is the signature.** `invariants_absence_state(manifest)` returns
+`"absent" | "unreadable" | "empty" | None`, and each of the three emits a
+**different** refusal naming the state it hit. The generated body is
+`raise NotImplementedError(...)` — the shape *this same function already
+emitted* for an invariant with no template and for a transition with no
+template. Only `validate_state` had been given a pass.
+
+| | before | after |
+|---|---|---|
+| `ex4_pipeline_coherent` (key **absent**) | `return None` | `raise NotImplementedError("NO STATE ORACLE WAS GENERATED [absent]: …")` |
+| `reminder_worker` (`invariants: []`) | `return None` | `… [empty]: …` |
+| `atomic_publisher` (`invariants: []`) | `return None` | `… [empty]: …` |
+| `legacy_payment_http` (declares two) | `validate_type_invariant(state)` | **unchanged** |
+
+**Demonstrated case:** `tests/test_absent_invariants_refuse.py`, 13 nodes, all
+green; every assertion fails against `f45a245`. The three states are asserted
+separately, the **control** (`legacy_payment_http` still generates calls) is
+asserted, and the three refusals are asserted **pairwise distinct**.
+
+**The examples half.** All three live manifests now declare the invariant names
+their own `.cfg` hands TLC, and `tests/test_absent_invariants_refuse.py`
+**re-derives those names from the `.cfg` files** rather than trusting the lists
+I wrote. Four live generated packages regenerated. The nine frozen or sealed
+copies — five under `reminder_worker/evidence/validation-runs/`, three under
+`specs/.history/` which `R-H4` seals, one under `hexagonal-prompting/measure/` —
+are **left exactly as they are**.
+
+**Priced, and the price is smaller than it looks in this tree.** `validate_state`,
+`validate_trace` and `explain_state_failure` are referenced **only inside the
+generated `validators.py` files themselves and in `generate_python.py`** —
+`grep -rl` over `examples/`, `scripts/` and `tests/` returns those files and
+nothing else. So in **this** repository the vacuous oracle was never called, and
+repairing it moves no verdict here. **Its whole value is outward:** it is the
+defect the toolchain scaffolds into every repository it touches, and after this
+commit it cannot be scaffolded silently — generation refuses and names the state.
+That is the honest price and it is stated rather than inflated: I cannot show a
+defect caught in this tree, only a defect that can no longer ship.
+
+### 2.2 `disposition.py:126` — the named half, at every nesting level
+
+**Sub-shapes 4 and 5.**
+
+`CA-05-DF-06`'s structural refusal was a **line scan** matching keys at exactly
+four-space indent inside a `  - id:` block. A duplicate anywhere else was
+invisible, and the important one is a duplicated **top-level `findings:`** —
+what concatenating two ledgers produces. `yaml.safe_load` keeps the last block
+and `DISPOSED epic XX: 1 findings, all three clauses hold` printed at exit 0 over
+a document declaring two rows, **with no `STRUCTURAL` line at all**.
+
+`CA-10-DF-22` names the correct answer and it is now that: **a
+duplicate-rejecting loader**. Every mapping node at every depth is examined, so
+the level a duplicate sits at stops mattering. Rows are labelled by their own
+`id`; a collision with no `id` above it is labelled `<document>`.
+
+**And the third state, which a regex scan could not have had.** `duplicate_keys`
+raises `LedgerUnreadable` when the text will not parse, and `load()` answers
+`UNDECIDED [unreadable]` at exit 2 instead of dying inside the parser. The
+**empty** state moved from exit 1 to exit 2 — it already refused, but with the
+code a *clause verdict* uses, which is `SS-01-DF-05`'s finding applied to its
+sibling.
+
+**Demonstrated case:** `tests/test_disposition_absent_input.py`, 10 nodes.
+Includes a duplicate two levels down inside a nested `surface:` mapping — not
+hypothetical, **every row in this repository's own ledger carries one with five
+keys** — and an explicit assertion that the three states produce **three
+distinct messages**. **Non-vacuity:** the real 355-row ledger still loads, still
+reports no duplicates, and still prints a verdict; a rejecting loader that
+rejected this repository's own ledger would satisfy every other assertion in the
+file and destroy the instrument.
+
+### 2.3 `blind_dispatch.py:143` — a guard a constant kept alive
+
+**Sub-shape 2, `not any(...)` over a collection that can never be empty.**
+
+`if not any(groups.values())` could never be false, because
+`groups["harness block label"]` is `list(HARNESS_MARKERS)` — four hard-coded
+strings in the module. **The `UNDECIDED` branch was unreachable**, and both
+classes that are actually derived from the tree fail silently to `[]`.
+
+The question the guard asks is *"did anything get looked up?"*, and a tuple of
+literals answers *yes* without looking anything up, so it cannot be evidence for
+the proposition. `DERIVED_NEEDLE_CLASSES` names the two that can be, and the
+guard reads only those.
+
+| | before | after |
+|---|---|---|
+| `check <400B> --repo /tmp/notarepo --memory /nonexistent` | `WEAK PASS`, **exit 0** | `UNDECIDED: no needles could be derived from this tree. Not a pass.`, **exit 2**, naming which classes were empty |
+
+**Demonstrated case:** `tests/test_blind_dispatch_absent_input.py`, 4 nodes.
+**Non-vacuity was the real risk here and it is asserted:** a guard that refused
+whenever *any* class was empty would refuse every honest run by an operator with
+no memory index — a new false REFUSAL traded for the old false PASS. **One**
+derivable class still decides the round (`--repo <this repository>` still returns
+`WEAK PASS` at exit 0 and still announces `0 memory needles`), and the
+already-repaired empty-subject and failed-dispatch preconditions are pinned so
+the half that worked is not traded for the half that did not.
+`demonstrate.py --only blind-dispatch-check` → `ok / ok / skip`, reproduced.
+
+### 2.4 `corpus_diagnostics.py` — the corpus gate's three unnamed entrances
+
+**Sub-shapes 1, 3 and 6.**
+
+| entrance | before | after |
+|---|---|---|
+| `:889` empty generated package (`CASES = []`) | `corpus gate PASS: 0 internal case(s)`, exit 0 — while an empty **trace** directory eight lines below raised | `UNDECIDED [empty]`, and the trace refusal still answers **in its own words** (asserted distinct) |
+| `:543` no manifest above the corpus | `cap max_external_cases_per_action = 50` printed as though measured | the report prints `cap provenance: DOCUMENTED DEFAULT … NOT this project's negotiated cap` |
+| `:916` no `SOURCE_VIEW`, no inferable directory | gated at the **internal** cap (200) instead of external (50) — a 120-case external corpus passed at **4×** | `UNDECIDED`, both budget key names printed; `--view` remains the escape |
+
+For `:543` the suppression in `budgets.py` is **left** — that file is outside
+this ticket's conflict keys, and duplicating its warning would double-report for
+callers that do pass a manifest. What changed is that **the fact travels with the
+number**, on the page, where the verdict is read.
+
+**Demonstrated case:** `tests/test_corpus_gate_absent_input.py`, 7 nodes.
+**Non-vacuity for all three:** a package declaring `SOURCE_VIEW` is still
+measured; `--view external` still measures the same corpus that refused without
+it; and a cap read from `ex4_pipeline_coherent`'s real negotiated manifest is
+**not** labelled a default. Without those, three refusals could have replaced a
+false PASS with a gate that refuses everything.
+
+### 2.5 `testgraph_channels.py` — a gate that answered CLEAN about what it never opened
+
+**Sub-shapes 1, 5 and 7.**
+
+`production_imports_for_module` returned a bare list, and returned `[]` both when
+it read a module and found no production import **and** when the module resolved
+to no file or would not parse. `enforce_external_bindings` reads zero offenders
+as compliance, so the gate whose entire purpose is proving *"this adapter does
+not import the program under test"* answered **CLEAN for a module it never
+opened**. The module's own docstring already named the shape: *"a gate that
+disables itself on the input it exists to police"*.
+
+**The repair is the signature again:** `-> tuple[offenders, unreadable]`. Each
+unopened module becomes a `ChannelViolation` reading `ISOLATION UNDECIDED`, whose
+text says explicitly that it is **not** an accusation of importing production
+code but the absence of one. Absent and unparseable get **different sentences**.
+It is threaded out rather than raised because the walk is transitive and one
+unreadable helper must not discard offenders already found in modules that did
+open.
+
+**Second entrance:** an empty action selection skipped every binding and the
+caller printed `external channel enforcement passed`.
+`export_testgraph_cases` derives that set from the external corpus, so an **empty
+corpus** produced `actions=set()` and the gate checked 0 of N. Now refused;
+`actions=None` still means *check everything* and is asserted unchanged.
+
+**And the part worth more than either repair.**
+`tests/test_testgraph_channels.py::test_spec_unit_adapters_may_import_production`
+**proved its point by calling the gate with `actions=set()`**, with the comment
+*"Restricting `actions` to an empty set checks nothing external"*. **It was using
+the defect as its mechanism**, so a green run of it was evidence for the wrong
+proposition — and the phrase *"checks nothing external"* was the tell, sitting in
+the suite through the whole epic. **This is the only test in the repository whose
+meaning this ticket changed**, and the rewrite says so in its own docstring
+rather than only in a diff. The claim it exists to make is about **narrowing**,
+not emptiness, so it is now made with a real two-binding table and a **non-empty**
+selection, plus the converse: the unselected binding **is** a violation when it is
+selected, so the pass is a fact about the selection and not about the gate having
+stopped working.
+
+**Demonstrated cases:** two new tests, each with its own non-vacuity guard.
+
+### 2.6 `score_tools.py` — the instrument that executes the reading rules
+
+**Sub-shapes 1, 2 and 7.** Four of the five sites `CA-10-DF-18` names; the fifth
+(item 4) was repaired by `SS-02`/`SS-04` and is **pinned here rather than
+re-repaired**.
+
+| item | before | after |
+|---|---|---|
+| 1 `load_log` | empty skeleton for an absent `INSTRUMENT-LOG.toml`; `audit --root …/cut-the-apparatus` → `0 violation(s)`, **exit 0** | `dict \| None`; `audit_input_state` refuses with **exit 2**, three states, three sentences |
+| 2 `audit_rh6` | `OK  no judge group has a spread greater than 1` over **zero cards** | `UNVERIFIED`, which does not increment the violation count |
+| 3 `audit_rh1_architecture` | **no line at all** over zero cards | `UNVERIFIED` naming that a silent clause reads exactly like one that held |
+| 5 `sweep_paths` | a pattern matching zero files contributed **in silence** | `patterns  swept N of M`, every barren pattern named |
+
+Item 5 is the **mechanism** half: the named harm is already gone (`SS-01` added
+the relocated ledger to `DEFAULT_SWEEP` after 17 REFUTED figures went unswept),
+and the mechanism was untouched. It is **reported, not refused** —
+`specs/desired_program_model/*.yaml` legitimately matches three files while a
+workflow is open and none after a close. On this tree: `patterns swept 8 of 8`.
+
+**I got item 3 wrong first and the suite caught it.** My first guard tested
+`ctx["rows"]` and turned three `test_architecture_tags` tests red, because they
+call `audit_rh1_architecture` directly with a ctx carrying only `root` and
+`demonstrations` and let it read the cards itself — which is the supported way to
+call it. The guard belongs on the population the clause actually derives from,
+`rows = module.card_rows(ctx["root"])`, and the code says so at the site.
+
+**Demonstrated case:** `tests/test_score_tools_absent_input.py`, 10 nodes.
+**Non-vacuity:** the real scorecard root still audits at **exit 0** with
+`0 violation(s)`, and `scope` still reaches its figures. `test_score_tools.py`:
+**116 passed, 0 failed**.
+
+**Deliberately scoped, and this is the half `SS-02` handed forward.** `SS-02`'s
+registered contract for `scorecard-audit` declares
+`exit_code_cannot_carry_the_answer` on its three **ledger** states and records
+that making them exit non-zero *"is a change to what a violation MEANS, and that
+belongs to SS-05"*. **I declined it, with reasons on the record**: an
+unresolvable ledger over a real corpus is a genuinely *partial* measurement (133
+sealed digests were still verified, five of six rules still ran), repairing it
+changes what VIOLATION means for every caller, and it requires amending another
+ticket's registered contract plus three tests that mutate the register's
+**literal text**. Filed as `SS-05-DF-03` and **executed** by a test that asserts
+the unrepaired state, so it goes red the day it is repaired.
+
+---
+
+## 3. THE RETRO-REGISTRATION, AND THE DENOMINATOR MOVEMENT
+
+Both instruments this epic shipped now carry a three-state contract in
+`instruments.toml`. **Neither was repaired.** `git diff HEAD` over
+`stranded_loaders.py` and `vacuity_probe.py` is empty; the evidence file records
+that.
+
+```
+instruments in the register   56 -> 58        rows 66 -> 68
+whole-register verdict        REFUSED -- 53 problem(s) over 53 of 56 selected
+                          ->  REFUSED -- 55 problem(s) over 54 of 58 selected
+```
+
+**Denominator +2. Numerator +1 instrument failing and +2 problems.** Unflattering
+movement, declared rather than absorbed.
+
+| | contract | measured |
+|---|---|---|
+| `stranded-loaders` (SS-07) | **REFUSED**, 2 problems, exit 1 | `unreadable` and `empty` both answer `UNDECIDED` and both **exit 0** with no `exit_code_cannot_carry_the_answer`; the two messages are byte-identical apart from the path |
+| `vacuity-probe` (SS-06) | **SATISFIED**, contract executed and holding, exit 0 | all three states refuse at exit 2 in three distinct sentences |
+
+**THE WORK ORDER'S PREDICTION IS HALF WRONG AND I AM NOT REPEATING IT.** The plan
+and issue #279 both say the population goes *"56 → 58 with two more instruments
+FAILING"*. **It is one.** `SS-06-DF-05` is `disposition: repaired` in the ledger —
+`SS-06` repaired its probe and pinned it with a seeded mutant *before* shipping —
+and `SS-07-DF-08` is `carried` and was not repaired. Measured twice: by hand
+before either row was written
+(`evidence/instrument-states-before-registration-f45a245.txt`) and by the check
+after (`evidence/register-after-retro-registration.txt`).
+
+**No `[[absent_input.indistinguishable]]` block is written for `stranded-loaders`'
+`unreadable`/`empty` pair**, even though they are byte-identical messages.
+Declaring the collapse is what makes the check *accept* it, so declaring it would
+be repairing the instrument by another route — `MF-020` from the direction nobody
+watches. An undeclared collapse sets the verdict to REFUSED, which is the honest
+answer.
+
+**Two things this cost, recorded rather than smoothed over.**
+`demonstrate.py` stages with `stage` and `mutate` **only** — the `write`
+primitive belongs to `absent-input`'s staging and is **silently ignored**, which
+cost two `MISS` rows (`SS-05-DF-06`). And `expect_absent = ["STRANDED"]` on the
+passing slot was **unfalsifiable in the other direction**, because the report's
+own banner reads `STRANDED LOADERS IN THE SEALED RECORD`, so that bar is satisfied
+by no run at all.
+
+**And the mechanism underneath both `DF`s, which is neither ticket's fault:**
+`registry.enumeration.roots` is `["scripts", "examples/validation"]`, so the
+register's own discovery scan **cannot see an instrument shipped under
+`specs/results/`**. *"Nothing is silently omitted"* holds only for the two roots
+it walks, and the natural home for an instrument a ticket ships is exactly where
+it does not look. `SS-05-DF-04`.
+
+---
+
+## 4. WHAT I DID NOT REACH, WITH COUNT AND REASON
+
+```
+denominator                                48   sites enumerated by CA-10 §3.3
+  repaired by SS-05                        13
+  repaired earlier, by SS-02/SS-04         1    score_tools.py:3590 -- pinned, not re-repaired
+  NOT REACHED                              34
+13 + 1 + 34 = 48
+```
+
+**The 13 this ticket repaired:** `generate_python.py:238`;
+`corpus_diagnostics.py:889`, `:543`, `:916`; `testgraph_channels.py:336`,
+`:341`, `:410`; `disposition.py:126`; `blind_dispatch.py:143`;
+`score_tools.py:2484`, `:3293`, `:2930`, `:3448`.
+
+**Why the 34 were not reached, by reason — they sum:**
+
+| count | reason |
+|---:|---|
+| **32** | **Outside `SS-05`'s `conflict_keys.production`.** The plan gives `SS-05` seven production files; these 32 sites live in 21 other modules — `extract_spec_manifest.py`, `scaffold_spec.py`, `onboard_program_model.py`, `infer_action_params.py`, `analyze_complexity.py`, `complexity_ledger.py`, `code_complexity.py`, `check_prediction_seal.py`, `demonstrate.py`, `dispatch_record.py`, `divergence.py`, `run_controls.py`, `run_arm_swap.py`, `architecture_tags.py`, `fitness_functions.py`, `budgets.py`, `effect_conformance.py`, `spec_evolution.py`, `close_tickets.py`, `new_ticket_workflow.py`, `run_generated_case_adapters.py`. The epic's deferment policy is explicit: *"defects outside your conflict keys are deferred, not fixed"*. The two highest-value ones are filed by name: `SS-05-DF-02` (`extract_spec_manifest`, the other half of `CA-10-DF-21`) and `SS-05-DF-05` (`run_generated_case_adapters`, the other half of `CA-10-DF-20`). |
+| **2** | `generate_cases_from_tlc_dump.py:2912` and `:1336`. **These are INSIDE my conflict keys and I simply did not reach them.** No reason beyond time. I am naming them here rather than letting them disappear into the 32, because "outside my keys" is an excuse the 32 have and these two do not. |
+
+**`generate_cases_from_tlc_dump.py` is in this ticket's conflict keys and I
+shipped nothing for it.** That is the honest statement of what this ticket left
+undone in the one place it had no procedural cover.
+
+**Nothing was reported smaller than it is.** The class moved from a filed 47 to a
+measured 48 (§1.1), and 34 of those 48 are open at my tip. **34 of 48 open** is
+the figure `SS-08` should carry forward, with the denominator named.
+
+---
+
+## 5. SUITE MOVEMENT, FIVE BUCKETS THAT SUM
+
+*(filled in from the single full-suite run at the tip — see §5.1)*
+
+---
+
+## 6. ESCALATIONS
+
+1. **`SS-02`'s deferred decision, declined with reasons.** The register hands
+   `SS-05` the question of whether `audit` should exit non-zero on an
+   unresolvable ledger. I declined it and filed `SS-05-DF-03` with three reasons
+   and an executed test. **The owner or `SS-08` should decide it, not inherit
+   it.**
+2. **Six ledger rows against a batch budget of five.** `SS-05-DF-06` is the
+   sixth. It is filed rather than dropped because it carries a reproduction and
+   because dropping it leaves the next registering ticket — which the owner
+   ruling makes *every* ticket that ships an instrument — to pay the same cost
+   again. **Disclosed, not hidden by folding two rows together.**
+3. **`instruments.toml` is outside every ticket's conflict keys**, as
+   `planning_rules.schedule_revision_2…` records. `SS-05` amended **only its own
+   two new rows** and appended them at the **end of the file**, because three
+   tests in `tests/test_absent_input_demonstrations.py` mutate the register by
+   string replacement on the **first** four-space `expect_exit = 0` and on the
+   first `exit_code_cannot_carry_the_answer`. A row added above
+   `scorecard-audit` carrying either literal would silently change which contract
+   those tests mutate. **I did not edit `SS-02`'s row.**
+4. **Files touched outside `implementation_scope`.** The ticket's
+   `implementation_scope` is `scripts/`, `examples/validation/`, `tests/`,
+   `specs/results/scorecards/stabilize-substrate/`. I also edited
+   `examples/effect_providers/reminder_worker/specs/program_model/spec_manifest.yaml`
+   and `.../atomic_publisher/...spec_manifest.yaml` and regenerated
+   `atomic_publisher`'s `validators.py`, because issue #279 orders the shipped
+   examples carrying the vacuous oracle to be named **and fixed** and two of the
+   three live in `examples/effect_providers/`. Disclosed rather than assumed.
+5. **No skill was edited.** Nothing under `.skill-manager/skills/` was touched
+   and no diff is proposed against one.
+
+---
+
+## 7. GOAL CONTRIBUTION
+
+**`GOAL-absent-input-consumed` — direct.** `expected_effect` is *"instances
+remaining falls from 47, each repair carrying its own demonstrated absent-input
+case"*. Measured: the denominator is **48**, not 47 (§1.1); remaining is **34**;
+**13 sites repaired by this ticket**, each with a demonstrated case, plus 1
+repaired earlier. Clause (d) — *every repair this epic ships carries its own
+demonstrated absent-input case* — is satisfied for all 13 and the demonstrations
+are executed by the suite rather than described. Clause (e) — no new gate over
+subject-program content — holds: the only new refusals over an adopter's material
+are in the **generator**, which refuses to emit an oracle it cannot write, and in
+the **corpus gate and channel gate**, which already refused adjacent inputs and
+now refuse symmetrically.
+
+**`GOAL-tree-stabilizes` — guard.** §5.
+
+**`GOAL-four-results-still-stand` — guard.** `local_signal` is
+`score_tools.py audit`. At the tip it reports **`0 violation(s)`, exit 0** on the
+real scorecard root, and `test_score_tools.py` is **116 passed / 0 failed**.
+`scope` still reaches its figures. **No result was broken.**
