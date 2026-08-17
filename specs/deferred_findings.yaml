@@ -23470,3 +23470,94 @@ findings:
       CARRIED. The crash is repaired at SS-04's tip. SS-08 inherits only the
       semantic question, and should note that the epic's own instrument was one
       appended ledger row away from producing no output at all.
+
+  - id: SS-04-DF-06
+    found_by: "SS-04, running the full repository suite on its own post-close tree"
+    found_at_commit: "97d70ed"
+    schedule_revision: 1
+    severity: medium
+    channel: execution
+    channel_note: >-
+      found by the suite, not by inspection, and reported here rather than
+      repaired because the file is another ticket's conflict key
+    cost:
+      basis: "one full suite run at the tip compared line by line against a clean-clone run at the base"
+      value: "three reds, every one attributed, zero unattributed movement in any of the five buckets"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "tests/test_score_tools.py"
+    summary: >-
+      THREE EXISTING TESTS IN `tests/test_score_tools.py` PIN THE OLD
+      RECOGNISER'S EXHAUSTIVE ANSWER AND GO RED WHEN `FORM P` IS ADDED. All
+      three are SS-04's, all three are DECLARED rather than discovered, and in
+      all three the test's STATED PURPOSE STILL HOLDS -- what has gone stale is a
+      closed enumeration written when one sentence form was the only one.
+      (1) `test_a_scoped_claim_whose_denominator_moved_is_stale_and_not_refuted`
+      asserts that NO shipped line reaches COUNT-MOVED, as a live check that
+      `RM-06-DF-03` stays closed. FORM P reaches 39, every one a real
+      `<n> of <m> cards` figure whose card population moved.
+      (2) `test_what_the_sweep_cannot_reach_is_counted_and_named` asserts the
+      UNREACHABLE reason set is a SUBSET of five named reasons. SS-04 adds two
+      more named reasons -- `no counted noun` and `numerator has no predicate` --
+      so the test's actual requirement (every reach limit is REPORTED BY NAME) is
+      satisfied MORE fully than before and the assertion still fails.
+      (3) `test_a_movement_notation_is_not_read_as_a_count` writes a two-line
+      fixture and asserts the whole file yields nothing. Its subject, `2/2 -> 4/4`,
+      is STILL not read as a count -- that is the point of the test and it holds.
+      What fires is the SECOND line of its own fixture, `worst 1, 2 of 6 moved in
+      each arm`, which contains a genuine counted figure that FORM P now reads
+      and reports UNREACHABLE, reason `non-card noun`. The fixture asserts more
+      than the docstring claims.
+      NO INHERITED RED WAS REPAIRED AND NO INHERITED RED CHANGED ITS REASON:
+      base 7 reds and tip 10 reds, the tip set is the base set plus exactly these
+      three, verified by diffing the two FAILED lists.
+    reproduction: >-
+      At `97d70ed`:
+      `uv run --with pytest --with pyyaml -m pytest tests/test_score_tools.py -q -k
+      "denominator_moved_is_stale or cannot_reach_is_counted or movement_notation"`
+      -> 3 failed, 113 deselected. At `8dd0442` the same command passes. The full
+      suite is `7 / 1550 / 0 / 1 / 1558` at the base in a clean clone and
+      `10 / 1583 / 0 / 1 / 1594` at the tip after the close; both sum, and the
+      +33 passed is 36 new nodes minus these 3.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-04/FINAL-FIGURES.txt -- the five-number tables and the failure-set diff"
+      - "specs/results/scorecards/stabilize-substrate/SS-04/RESULT.md section 10"
+      - "tests/test_counted_figure_recogniser.py -- the same properties asserted against the NEW verdict set"
+    why_out_of_scope: >-
+      `tests/test_score_tools.py` IS NOT IN SS-04'S CONFLICT KEYS. SS-04's
+      workflow keys are `tests/test_counted_figure_recogniser.py` and two
+      evidence roots; SS-06 RUNS CONCURRENTLY AND OWNS EXISTING TEST FILES, and
+      SS-04's assignment says in terms that defects outside its keys are
+      DEFERRED, NOT FIXED. Editing three assertions in a file another live ticket
+      owns would also risk a merge conflict in exactly the place a reviewer
+      cannot see it.
+    suggested_fix: >-
+      Three edits, all small, and NONE of them should weaken what the test is
+      for. (1) Scope the COUNT-MOVED census to the dimension-bound forms --
+      `[r for r in whole if r.get("form") != "P" and r["verdict"] == COUNT_MOVED]`
+      -- because `RM-06-DF-03` is about a DIMENSION-BOUND claim going stale and
+      FORM P cannot make that claim at all. (2) Add the two new reasons to the
+      permitted set; the assertion is `<=` over a NAMED set and the requirement
+      is that every reason be named, so extending the set is the correct
+      response and shrinking the reason list would be the wrong one. (3) Either
+      restrict the assertion to the movement-notation line, or accept the second
+      figure and assert its verdict is UNREACHABLE -- the second is better,
+      because it turns a test that asserts ABSENCE into one that asserts the
+      right ANSWER. DO NOT delete any of the three: each one caught something.
+    blast_radius: >-
+      Three reds on the epic branch until they are updated. No production
+      behaviour is affected and no verdict any of the three protects has changed:
+      RM-06-DF-03 is still closed for bound figures, every reach limit is still
+      named, and movement notation is still not read as a count.
+    disposition: carried
+    disposition_ticket: "SS-06"
+    disposition_note: >-
+      ROUTED TO SS-06 as the owner of existing test files, and to SS-08 as
+      declared reds it must not read as a regression. If SS-06 has already
+      promoted when this lands, it is the epic owner's call. SS-08 SHOULD COUNT
+      THESE AS THREE ATTRIBUTED REDS, NOT AS AN UNEXPLAINED MOVEMENT -- clause
+      (f) of GOAL-tree-stabilizes is satisfied by this row.

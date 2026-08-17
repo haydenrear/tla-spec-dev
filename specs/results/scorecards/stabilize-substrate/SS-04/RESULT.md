@@ -13,11 +13,11 @@ and because this epic has now caught four parties quoting one without the other.
 
 | | base `8dd0442`, re-derived here | tip |
 |---|---:|---:|
-| whole-record counted figures | **103** | **2,990** |
+| whole-record counted figures | **103** | **3,004** |
 | — REFUTED | **81** | **81** |
 | — COUNT-MOVED | **0** | **39** |
 | — HOLDS | **2** | **2** |
-| — UNREACHABLE | **20** | **2,868** |
+| — UNREACHABLE | **20** | **2,882** |
 | files swept | 367 | 369 |
 | files carrying a figure | **37** | **258** |
 | `scope` process exit code | **1** | **1** |
@@ -28,19 +28,22 @@ and because this epic has now caught four parties quoting one without the other.
 aside: `FORM P` **cannot produce either verdict**, so nothing that had an answer
 before has a different one, and no exit code anywhere changed.
 
-**The 2,990 − 103 = 2,887 new figures are all FORM P's, and 60 of them are
+**The 3,004 − 103 = 2,901 new figures are all FORM P's, and 61 of them are
 mine.** This ticket's own documents are inside `DEFAULT_SWEEP` —
 `specs/results/scorecards/**/*.md` matches `PROSE-FORM-SPEC.md` and this file,
 and `specs/deferred_findings.yaml` matches the five findings I appended — so a
 write-up about counted figures adds counted figures to the corpus it is
-measuring. **All 60 are UNREACHABLE. Excluding them, the record's own figure is
-2,930 over 256 files**, and `files swept` rises 367 → 369 for the two documents
+measuring. **All 61 are UNREACHABLE. Excluding them, the record's own figure is
+2,943 over 256 files**, and `files swept` rises 367 → 369 for the two documents
 this ticket added.
 
 **AND THREE OF MY OWN SENTENCES BRIEFLY BECAME REFUTED CLAIMS ABOUT THIS
-PROJECT.** A finding I filed contained the literal `D2 = 2 on 39 of 49 rows` as
-a HYPOTHETICAL and another quoted a real `D5 …` figure; the sweep read all three
-as claims, re-derived them against the 95-card corpus, and REFUTED went 81 → 84.
+PROJECT.** A finding I filed spelled out a dimension-bound figure over `49 rows`
+as a HYPOTHETICAL, and another quoted a real one about an abolished dimension;
+the sweep read all three as claims, re-derived them against the 95-card corpus,
+and REFUTED went 81 → 84. **This paragraph does the same thing if the literals
+are written out, which is why they are not** — and it took four passes to stop
+reintroducing them, once in this very sentence.
 **An invented figure written into a swept file is indistinguishable from a claim
 somebody made.** All three were rewritten as placeholders — the shape is stated,
 the literal is not — and the first draft of §5 of this file transcribed 39 real
@@ -71,7 +74,7 @@ ledger rows this ticket appended — is the stable one to quote.
 
 ## 1. What moved, with numerator and denominator named
 
-- **Whole-record figures 103 → 2,990, of which 2,930 are the record's and 60 are
+- **Whole-record figures 103 → 3,004, of which 2,943 are the record's and 61 are
   this ticket's own documents.** *Numerator and denominator both, and they are
   the same movement*: the recogniser reads a form it could not read before, so
   figures that were always in those files are now counted. **No pattern was added
@@ -127,7 +130,7 @@ except `NEXT-EPIC.md`, which was 1 and is 1).
 
 **FORM P's verdicts are `{UNREACHABLE, COUNT-MOVED}`.** Not "we were careful":
 `test_form_p_never_refutes_and_never_holds_over_the_whole_record` computes the
-verdict set over all 2,887 FORM P rows in this tree and asserts it against
+verdict set over all 2,901 FORM P rows in this tree and asserts it against
 `PROSE_VERDICTS`.
 
 - **`REFUTED` is unavailable** because a prose figure binds no value to a
@@ -139,12 +142,12 @@ verdict set over all 2,887 FORM P rows in this tree and asserts it against
   numerator was not, and calling that HOLDS would be the instrument claiming to
   have checked a claim it only half-read.
 
-FORM P's 2,848 UNREACHABLE rows, by named reason:
+FORM P's 2,862 UNREACHABLE rows, by named reason:
 
 | reason | count | share |
 |---|---:|---:|
-| `non-card noun` | 1,872 | 64.8% |
-| `no counted noun` | 949 | 32.9% |
+| `non-card noun` | 1,883 | 65.8% |
+| `no counted noun` | 952 | 33.3% |
 | `unresolved qualifier` | 19 | 0.7% |
 | `numerator has no predicate` | 5 | 0.2% |
 | `anaphoric scope` | 3 | 0.1% |
@@ -269,13 +272,13 @@ it works*. Four things, in order:
 
 | | prediction | outcome |
 |---|---|---|
-| P1 | FORM P finds >20 and <400 figures over the default sweep | **FAILED** — 2,887. I was wrong by an order of magnitude about how much counted prose this record carries. |
-| P2 | >85% of them are `non-card noun` | **FAILED** — 64.8% (1,872 of 2,887). The bucket I did not anticipate is `no counted noun`, 949 of them: the figure ends a line, or its noun sits outside the three-token window. `SS-04-DF-03`. |
+| P1 | FORM P finds >20 and <400 figures over the default sweep | **FAILED** — 2,901. I was wrong by an order of magnitude about how much counted prose this record carries. |
+| P2 | >85% of them are `non-card noun` | **FAILED** — 65.8%. The bucket I did not anticipate is `no counted noun`, a third of the rows: the figure ends a line, or its noun sits outside the three-token window. `SS-04-DF-03`. |
 | P3 | FORM P produces zero REFUTED | passed |
 | P4 | the charter moves off 0 and reads >10 | passed — 15 |
 | P5 | `CUT-THE-APPARATUS-EPIC.md` moves off 0 | passed — 7 |
 | P6 | whole-record REFUTED and the exit code are unchanged | passed — 81 and 1 |
-| P7 | the superset finds ≥15% more shapes than FORM P takes | passed — 75% more (5,790 vs 3,305) |
+| P7 | the superset finds ≥15% more shapes than FORM P takes | passed — 76% more (5,800 vs 3,299) |
 | P8 | ≥2 of the five named figures do not parse | passed — 3 |
 
 **6 of 8. Not an ALARM** (`measurement_rule`: an ALARM is every prediction
@@ -290,18 +293,16 @@ Measured by `recall_audit.py` against a separate over-broad scanner. **A superse
 hit is not necessarily a counted figure**; the denominator is "shapes a reader
 might have to check" and the numerator is "shapes the recogniser reaches".
 
-**Over the whole default sweep: 3,305 of 5,790 = 57.1%. It misses 2,485, and
-every one of them is in a declared category.**
+**Over the whole default sweep: 3,299 of 5,800 = 56.9%. It misses 2,501, and
+every one of them is in a declared category — the exact per-shape split is in
+`recall-whole-record.txt`, which is regenerated by the script and does not go
+stale the way a table transcribed into this file does.**
 
-| missed | shape | declared? |
-|---:|---|---|
-| 1,404 | `n/m` ratio or movement notation — `17 / 1483`, `2/2 -> 4` | §5, yes |
-| 843 | `n:m` colon form — `3 : 1` | §5, yes |
-| 122 | **split across a line break** | §5, yes |
-| 62 | distributive `every one of the N` — **deliberately refused** | §5, yes |
-| 38 | `n in m` rather than `n of m` — `1 in 38` | §5, yes |
-| 16 | spelled-out numbers above twenty — `thirty-one of forty` | §5, yes |
-| **0** | unclassified | — |
+The order of the six declared categories does not move: `n/m` ratio-or-movement
+notation is the largest by a wide margin (roughly 56% of the misses), then the
+`n:m` colon form (roughly 34%), then figures **split across a line break**, then
+the distributive `every one of the N` this recogniser **deliberately refuses**,
+then `n in m`, then spelled-out numbers above twenty. **Unclassified: zero.**
 
 **Over the three charters: 180 of 256 = 70.3%**, missing 39 `n/m`, 17 `n:m`,
 14 line-break splits, 4 `n in m`, 1 distributive, 1 spelled-out.
@@ -362,13 +363,16 @@ it is swept in, and the output recorded nothing about the tree.** Every run now
 prints, in text and JSON:
 
 ```
-## The tree this was swept in — SS-01-DF-03
+The tree this was swept in — SS-01-DF-03
   root            /Users/hayde/IdeaProjects/wt-epic-stabilize-substrate-SS-04
-  root HEAD       5fb0c459124ccf2661c95e67cef4d4c24fe38093  (WORKING TREE DIRTY)
+  root HEAD       <the commit, and WORKING TREE DIRTY when it is>
   scorecard root  …/specs/results/scorecards
   cards           95
-  files swept     368  (DEFAULT_SWEEP)
+  files swept     <n>  (DEFAULT_SWEEP)
 ```
+
+(Shape only — the live values move with the tree, which is the point. A real
+capture is in `scope-whole-record-TIP.txt` and in `FINAL-FIGURES.txt`.)
 
 and a root that is **not a git checkout** says so in those words, so the
 `21/18/3`-under-a-bare-`--root` figure can no longer be mistaken for the
@@ -386,20 +390,66 @@ that error cannot be written from this output.** Where a joint distribution
 
 ---
 
-## 10. The suite, and the close divergence
+## 10. The suite — five numbers that sum, at both ends, each with its tree
 
-Five numbers that sum, at both ends, each with its tree named. See the PR body
-for the authoritative figures; **the sealed close-history entry cannot describe
-the tree it produces**, because `close ticket` seals the entry and deletes the
-workspace in one operation. **This file and the PR body are authoritative for the
-post-close tree; the sealed summary describes the pre-close one.**
+**The authoritative table is `FINAL-FIGURES.txt`** — a `.txt`, which
+`DEFAULT_SWEEP` does not read, so writing a figure there does not change it.
 
-**The first base run was CONTAMINATED and is preserved rather than deleted**:
-`pytest-BASE-CONTAMINATED-edits-landed-mid-run.txt`. I started it in the ticket
-worktree and then edited `score_tools.py` and `instruments.toml` while it ran —
-the exact rule §8 of the charter states, broken by the ticket agent this time.
-The base figure quoted anywhere in this ticket comes from a **clean clone of
-`8dd0442`** with nothing else running in it.
+| tree | failed | passed | skipped | xfailed | collection |
+|---|---:|---:|---:|---:|---:|
+| base `8dd0442`, **clean clone**, workflow closed | 7 | 1550 | 0 | 1 | 1558 |
+| tip `97d70ed`, ticket workspace OPEN | — | — | — | — | 1598 |
+| tip `97d70ed`, workspace CLOSED — **the tree this PR leaves** | 10 | 1583 | 0 | 1 | 1594 |
+
+`7 + 1550 + 0 + 1 = 1558`. `10 + 1583 + 0 + 1 = 1594`.
+
+**Every unit attributed; nothing is unexplained.**
+
+- **collection +36 — denominator**: the 36 nodes of
+  `tests/test_counted_figure_recogniser.py`. The 1598 row is the same tree with
+  the workspace open: `open ticket` widens `test_spec_yaml_valid` over
+  `specs/tickets/SS-04/` by **+4**, and `close ticket` removed those 4 again.
+- **failed +3 — numerator, and all three are MINE.** The three in
+  `tests/test_score_tools.py` that pin the OLD recogniser's exhaustive answer.
+  **Declared, not discovered**; filed as `SS-04-DF-06`; **not repaired, because
+  that file is `SS-06`'s conflict key and not this ticket's.** In all three the
+  test's stated purpose still holds — what went stale is a closed enumeration
+  written when one sentence form was the only one.
+- **passed +33**: 36 new nodes minus those 3.
+- **skipped 0 → 0. xfailed 1 → 1.**
+- **Zero inherited reds repaired, zero inherited reds changed their reason.** The
+  tip FAILED list is the base FAILED list plus exactly those three, verified by
+  diffing the two, and both `test_instrument_demonstrations` assertions are
+  byte-identical at either end despite this ticket adding a register row.
+
+### The close divergence, disclosed rather than discovered
+
+**`close ticket` seals the history entry and deletes the workspace in ONE
+operation, so the sealed entry can never describe the tree it produces.** The
+sealed summary describes the pre-close, workspace-open tree. **The row marked
+*"the tree this PR leaves"* is authoritative.**
+
+### And the first base run was CONTAMINATED — by me
+
+I started it inside the ticket worktree and then edited `score_tools.py` and
+`instruments.toml` while it ran. **That is the rule §8 of the charter states,
+broken by a ticket agent this time rather than by the owner.** It is preserved,
+labelled, and is not the baseline:
+`pytest-BASE-CONTAMINATED-edits-landed-mid-run.txt`. Every base figure here comes
+from a **clean clone of `8dd0442`** with nothing else running in it.
+
+---
+
+## 10a. Findings filed — ledger 334 → 340, append-only
+
+| id | what | routed to |
+|---|---|---|
+| `SS-04-DF-01` | `_CARD_NOUN` counts `rows` and `judges` as cards. FORM P's half repaired; **the BOUND forms' half is latent and those forms CAN return REFUTED** | `SS-08` |
+| `SS-04-DF-02` | the partitive `one of the two highest` — a membership claim read as a count. Its distributive cousin **is** repaired and pinned | `SS-08` |
+| `SS-04-DF-03` | 949 of FORM P's 2,848 UNREACHABLE rows say `no counted noun`, a fact about a three-token window and **not** about the record. Where sealed prediction P2 failed | `SS-08` |
+| `SS-04-DF-04` | every documented `python3 …score_tools.py …` dies with a **traceback** under a `python3` below 3.11, and **this ticket's own document sweep reported ten zeroes before it was caught** | `SS-08` |
+| `SS-04-DF-05` | a `REFUTED` figure naming an **abolished dimension** killed the whole command with `KeyError: 'D5'`. **Repaired here**; the semantic question is carried | `SS-08` |
+| `SS-04-DF-06` | the three declared reds above, with the minimal edit for each and the reason none was applied | `SS-06` |
 
 ---
 
@@ -412,6 +462,6 @@ The base figure quoted anywhere in this ticket comes from a **clean clone of
 - **The charter is not a clean held-out document.** The assignment requires
   reading it before touching git, so it was read before the recogniser was
   written. `CUT-THE-APPARATUS-EPIC.md` and the baselines were genuinely unopened.
-- **`n:m` and `n/m` are 2,247 of the 2,485 misses and both are declared.**
+- **`n:m` and `n/m` together are about nine tenths of the misses, and both are declared.**
   Reaching them means deciding that `7 / 1462` is a count rather than a ratio,
   which is a judgement about the sentence, not about the numbers.
