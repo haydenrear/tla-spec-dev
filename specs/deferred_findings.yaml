@@ -24700,3 +24700,70 @@ findings:
       again, which is the argument `deferment.md` makes for filing at all. The overrun
       is disclosed in SS-05's RESULT.md rather than hidden by folding two rows
       together.
+  - id: SS-05-DF-07
+    found_by: SS-05, by the suite -- the epic's own new guard went red on the ticket repairing the class it guards
+    found_at_commit: a0b5f96
+    schedule_revision: 2
+    severity: moderate
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["tests/test_absent_input_demonstrations.py"]
+    channel: the-suite
+    cost:
+      basis: one full-suite run at the tip, one red, and one reading of the guard
+      value: it is the epic's own anti-gate guard mis-reporting, found by the only mechanism that could find it
+    summary: >-
+      `SS-02`'S ANTI-GATE GUARD IS A SUBSTRING MATCH OVER RAW SOURCE TEXT AND CANNOT
+      TELL A CALL FROM A MENTION IN A COMMENT, SO IT RAISED A FALSE REFUSAL AGAINST
+      THE TICKET THAT WAS REPAIRING THE CLASS IT GUARDS. `test_the_check_gates_nothing`
+      exists for `GOAL-absent-input-consumed` clause (e) -- NO NEW GATE OVER
+      SUBJECT-PROGRAM CONTENT -- and proves it by searching every program surface for
+      the tokens `absent-input`, `absent_input` and `cmd_absent_input`. `SS-05`
+      repaired six instances of the absent-input class and CITED THE CHECK BY NAME in
+      the comments explaining each repair, in `scripts/disposition.py` and
+      `scripts/generate_python.py`. The guard reported both as callers wiring the
+      check into a close path. NOTHING WAS WIRED: the clause the guard defends was
+      still TRUE and it reported a violation anyway. THAT IS A FALSE REFUSAL BY A
+      RECOGNISER BOUND TO SURFACE FORM, and it is the same class as `CA-08-DF-01` (a
+      recogniser bound by sentence form, which reads zero counted figures on charters)
+      and `SS-00-DF-03` (a keyword matcher over harness prose, which classified three
+      of five commands as judged instruments). THE SHAPE IS NOW THREE FOR THREE IN
+      THIS PROJECT'S OWN RECOGNISERS. Worse, the incentive it creates is exactly
+      backwards: the cheapest way to make it green is to STOP CITING THE FINDING ID
+      AND THE RULE IN THE CODE THAT IMPLEMENTS THEM, which is the documentation habit
+      this epic exists to strengthen.
+    reproduction: >-
+      At `a0b5f96`, `uv run --with pytest --with pyyaml -m pytest
+      tests/test_absent_input_demonstrations.py::test_the_check_gates_nothing -q`
+      -> `AssertionError: ['scripts/disposition.py', 'scripts/generate_python.py']
+      reference the absent-input check`. Both matches are in COMMENTS; neither file
+      imports, invokes or shells out to it. `grep -n "absent" scripts/generate_python.py`
+      shows every hit on a `#` line.
+    evidence:
+      - "specs/results/scorecards/stabilize-substrate/SS-05/evidence/pytest-tip-FIRST-RUN-with-the-false-refusal.txt"
+      - "tests/test_absent_input_demonstrations.py -- `_code_only` and `test_the_gate_guard_still_catches_a_real_caller`"
+      - "specs/deferred_findings.yaml -- CA-08-DF-01, SS-00-DF-03"
+    blast_radius: >-
+      One test, and the clause it decides. It fails CLOSED, so it never granted a
+      false clean; what it costs is a red that pressures the next author to remove a
+      citation from a comment.
+    disposition: repaired
+    disposition_ticket: SS-05
+    disposition_note: >-
+      REPAIRED, AND THE ALTERNATIVE IS NAMED SO THE CHOICE IS ON THE RECORD.
+      REWORDING MY OWN COMMENTS WOULD HAVE MADE IT GREEN IN ONE MINUTE and would have
+      been editing the artifact to make the check pass -- the exact move `MF-020` and
+      `measurement_rule` forbid, available here in its most tempting form because the
+      artifact was only a comment. Instead the GUARD was repaired to measure the
+      property it states: `.py` files are searched with comments and docstrings
+      removed via `ast.unparse`, and non-`.py` files and untokenisable files are
+      searched WHOLE, because unreadable is not clean. THE NARROWING IS THE RISK AND
+      IT IS DEMONSTRATED AGAINST: `test_the_gate_guard_still_catches_a_real_caller`
+      puts four subjects through the same code path -- an import, a `subprocess.run`
+      with the CLI spelling, an attribute call, and the comment-only mention -- and
+      asserts the first three are still caught and the fourth is not, plus that the
+      UNNARROWED search does flag the fourth, which is the finding itself executed.
+      The guard is strictly stronger on its stated claim than it was.
