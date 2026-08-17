@@ -2356,23 +2356,53 @@ def test_a_scoped_claim_whose_denominator_moved_is_stale_and_not_refuted(st, tmp
     assert "the denominator rose" in moved[0]["detail"]
 
     # And the finding itself, asserted so it cannot quietly stop being true:
-    # no line in the shipped record reaches COUNT-MOVED any more.
+    # no DIMENSION-BOUND line in the shipped record reaches COUNT-MOVED.
+    #
+    # SS-04-DF-06 (1), decided by SS-06. `RM-06-DF-03` is about a claim of the
+    # form `D<n> = <v> on <n> of <m>` going stale, and SS-04's FORM P reads
+    # ordinary `<n> of <m>` prose, which cannot carry a dimension at all. Before
+    # SS-04 this line asserted over EVERY form because there was only one; after
+    # it, 39 form-P lines reach COUNT-MOVED and every one is a real figure whose
+    # card population moved.
+    #
+    # THE EXCLUSION IS ASSERTED, NOT ASSUMED. SS-06 re-derived the claim rather
+    # than accepting it: all 39 carry `dim is None`, so excluding form P cannot
+    # hide a dimension-bound COUNT-MOVED, and the loop below says so on every
+    # run. Narrowing this to a form label without that check would be exactly
+    # the "scope the control until it is quiet" move RM-06-DF-01 refuses.
     whole = st.run_scope(REPO_ROOT, SCORECARDS)
-    assert [r for r in whole if r["verdict"] == st.COUNT_MOVED] == [], (
-        "a shipped line is COUNT-MOVED again; RM-06-DF-03 is closed and this "
-        "demonstration should move back onto the record"
+    moved_now = [r for r in whole if r["verdict"] == st.COUNT_MOVED]
+    for r in moved_now:
+        assert r.get("form") == "P" and r.get("dim") is None, (
+            "a COUNT-MOVED line carries a dimension, so the form-P exclusion "
+            f"below would hide it: {r}"
+        )
+    assert [r for r in moved_now if r.get("form") != "P"] == [], (
+        "a shipped DIMENSION-BOUND line is COUNT-MOVED again; RM-06-DF-03 is "
+        "closed and this demonstration should move back onto the record"
     )
 
 
 def test_what_the_sweep_cannot_reach_is_counted_and_named(st):
     """`absent` and `checked, none found` are different claims, and this project
-    has been caught conflating them. Four reach limits are reported by name."""
+    has been caught conflating them. Every reach limit is reported BY NAME.
+
+    SS-04-DF-06 (2), decided by SS-06. The requirement is that no reach limit is
+    anonymous, and the assertion is `<=` over a NAMED set -- so when SS-04 added
+    two more named reasons the requirement was satisfied MORE fully and the
+    assertion still failed. **Extending the set is the correct response and
+    shrinking the reason list would be the wrong one**: a smaller list would make
+    the sweep report fewer distinct limits, which is the conflation this test
+    exists to prevent.
+    """
     results = st.run_scope(REPO_ROOT, SCORECARDS)
     unreachable = [r for r in results if r["verdict"] == st.UNREACHABLE]
     assert unreachable
     reasons = {r["reason"] for r in unreachable}
     assert reasons <= {"anaphoric scope", "arm-scoped", "unresolved qualifier",
-                       "non-card noun", "empty scope"}, reasons
+                       "non-card noun", "empty scope",
+                       # SS-04's two, added rather than the list shrunk:
+                       "no counted noun", "numerator has no predicate"}, reasons
     assert "anaphoric scope" in reasons and "arm-scoped" in reasons
     for r in unreachable:
         assert r["detail"], r
@@ -2382,11 +2412,33 @@ def test_a_movement_notation_is_not_read_as_a_count(st, tmp_path):
     """`D4 2/2 -> 4/4` is this repository's notation for a movement between two
     judge passes. Reading it as "D4 = 4 on 2 of 2 cards" would have manufactured
     a dozen refutations out of nothing, and a count inflated by a parser bug is
-    worse than no count."""
+    worse than no count.
+
+    SS-04-DF-06 (3), decided by SS-06. THE SUBJECT OF THIS TEST STILL HOLDS AND
+    ALWAYS DID: `2/2 -> 4/4 -> 3/4` is not read as a count, before SS-04 or
+    after. What went red is the SECOND line of its own two-line fixture --
+    `worst 1, 2 of 6 moved in each arm` -- which contains a genuine counted
+    figure that SS-04's FORM P now reads and reports UNREACHABLE. **The fixture
+    asserted more than the docstring claimed.**
+
+    Fixed by asserting the right ANSWER rather than an ABSENCE, which is the
+    stronger of the two repairs SS-04 offered: the movement line yields nothing,
+    and the counted line yields UNREACHABLE with its reason named. A test that
+    asserts a whole file yields nothing goes red the moment the recogniser
+    learns anything new, whether or not it learned it correctly.
+    """
     f = tmp_path / "movement.md"
     f.write_text("| **D4** | **MUST STOP BEING CITED.** `2/2 -> 4/4 -> 3/4` |\n"
                  "| **D1** | worst 1, 2 of 6 moved in each arm |\n")
-    assert st.run_scope(REPO_ROOT, SCORECARDS, [f]) == []
+    results = st.run_scope(REPO_ROOT, SCORECARDS, [f])
+    # The subject: line 1's movement notation is not a count.
+    assert [r for r in results if r["line"] == 1] == [], results
+    # Line 2 IS a counted figure, and the right answer to it is UNREACHABLE --
+    # not silence, and never a verdict on a scope the sweep cannot resolve.
+    line2 = [r for r in results if r["line"] == 2]
+    assert len(line2) == 1, results
+    assert line2[0]["verdict"] == st.UNREACHABLE, line2[0]
+    assert line2[0]["reason"], line2[0]
 
 
 def test_the_sweep_over_the_real_record_refuses_something(st, capsys):
