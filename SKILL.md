@@ -208,6 +208,24 @@ This skill has three roles:
     If the repository has other checkouts with their own homes, they are stale
     too and no command fans out to them. Say so in the epic's kickoff notes
     rather than letting a ticket agent discover it.
+
+    **"Current" is about unit bytes, not derived artifacts, and do not conflate
+    the two.** A ticket home *inherits* the artifacts its parent holds and
+    *declares* the rest, so `skill-manager artifacts stale` reporting a nonzero
+    count in a fresh clone is not staleness this rule is about, and scheduling a
+    rebuild for it wastes every ticket's provisioning. The contract — including
+    when `skill-manager build <id>` is the right move, and the two wrong
+    diagnoses that have already been reached by reading the source instead — is
+    stated once at
+    `${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/plugins/skt/skills/skt/references/derived-artifacts.md`
+    -- which is absent in a home that does not have the skt plugin installed,
+    **including, very likely, the project home you are standing in**. When it is
+    not there: the page is `skills/skt/references/derived-artifacts.md` in
+    `github.com/haydenrear/skill-publisher-skill`, and `skill-manager install
+    github:haydenrear/skill-publisher-skill` puts it in the home. Point ticket
+    agents at it, and do not paraphrase it into an epic's kickoff notes -- but do
+    not leave an agent with a dead link and a prohibition either, which is what
+    this paragraph did before the fallback was named.
 12. **Every epic states measurable goals; every ticket relates to one.** Ask the
     user what should be measurably better before scaffolding the workflow.
     Record each goal with its metric, harness command, baseline, and target;
@@ -418,3 +436,11 @@ acceptable close.
 | Reconcile ticket homes, keep the ledger, sweep the worktrees | `references/worktree-lifecycle.md` |
 | Validate, promote, close, and open the epic PR | `references/finalize.md` |
 | Classify, defer, batch, and triage failure cases | `references/deferment.md` |
+| Deciding whether a ticket home's `declared-only` artifacts need rebuilding | `${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/plugins/skt/skills/skt/references/derived-artifacts.md` — skt owns it; this skill does not restate it, and it is absent in a home without skt |
+
+**One word, two meanings — do not confuse them.** In *this* skill "artifact"
+almost always means the **wave review artifact** under `review.artifact_root`,
+which a human reads. A **derived artifact** is a thing a Skill Manager home
+produced — a CLI shim, a venv, a projection — and it is the skt page above.
+Nothing in the review artifact's lifecycle is affected by `artifacts list`, and
+"rebuild the artifact" is never an instruction this skill gives.
