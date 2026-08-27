@@ -30,7 +30,7 @@ this project harvesting 1-of-41 findings; a ledger that can only say "done" or
 
 | id | area | what changes | price, declared before | status |
 |---|---|---|---|---|
-| `CL-01` | `scripts/complexity_ledger.py` — the close gate | report EVERY unsatisfied clause in one pass, not the first | ~20 lines, a loop and an accumulator; the clauses are already evaluated independently, so no change to what is required | `PRICED` |
+| `CL-01` | `scripts/complexity_ledger.py` — the `refinement` sub-object only | **RE-PRICED AND SHRUNK.** ~~report every clause in one pass~~ — **the gate already does that.** What survives: `refinement.searched` and `refinement.outcome` cascade, so satisfying the first reveals the second | ~4 lines: evaluate both sub-clauses before returning. **Was priced at ~20 lines against a defect that did not exist** — see `ROUND-1-RESULT.md` §2 | `PRICED` |
 | `CL-02` | the close gate's plan-status check | name the accepted status values in the refusal | ~2 lines, one f-string | `PRICED` |
 | `CL-03` | workflow close / `scaffold workflow` | EITHER scaffold the workflow-level ledger input (~5 lines, changes what a fresh tree contains — declare it) OR correct the message that names the wrong producer (~1 line) | **two different fixes, deliberately not conflated** | `OPEN` |
 | `CL-04` | the `close` subparser | EITHER add `close workflow` as a thin wrapper (~15 lines, changes the CLI surface) OR name `scripts/close_tickets.py` in the error (~1 line) | as above, declare which | `OPEN` |
@@ -40,9 +40,20 @@ this project harvesting 1-of-41 findings; a ledger that can only say "done" or
 
 ## From round 1 — the first designed round
 
-*Filed when the round reports. Each row will carry the task id that produced it
-and the judge verdict — `TOOL-COULD-HAVE-SAID` / `DOC-COULD-HAVE-SAID` /
-`IRREDUCIBLE` — because only the first class becomes a change.*
+**The round's largest output was a SUBTRACTION.** See `ROUND-1-RESULT.md`.
+
+| id | task | area | verdict | what changes | status |
+|---|---|---|---|---|---|
+| `CL-01` | `T2` | the `refinement` sub-object | `TOOL-COULD-HAVE-SAID` | re-priced ~20 lines → ~4; see above | `PRICED` |
+| `CL-02` | `T2` | the plan-status check | `TOOL-COULD-HAVE-SAID` — agent: *"didn't say which file/field to edit … inferable but not spelled out"* | unchanged: name the accepted values | `PRICED` |
+| `CL-07` | `T2` | the ticket ledger's TODO fields | `IRREDUCIBLE`-leaning | **none proposed.** The agent's worst moment was telling gating TODOs from recorded-not-refusing ones — but it resolved it from the file's own comments, so the tool did tell it. **Filed as measured, not as a change** | `REFUSED` |
+| `CL-NOT-A-CHANGE` | `T4` | `report_out_resolution` | — | **CONFIRMED do-not-change by the agent that hit it**: *"not a blocker since the note explained it plainly"* | `REFUSED` |
+
+### And one row that is a RESULT rather than a change
+
+| id | what was measured |
+|---|---|
+| `CL-VALIDATED-301` | **`#301`'s remedy works.** `T4`'s agent: *"YES — the error message named the exact constraint and gave a concrete example path, which worked unmodified."* One round trip, remedy applied verbatim. **The first change in this programme measured as working by an agent that did not know it had been made** — and the shape `CL-02`, `CL-05`, `CL-06` are proposing to copy. |
 
 ---
 
@@ -53,8 +64,18 @@ Rows accumulating on one region is the signal the whole programme is for:
 
 > Which areas produced friction that every automated instrument missed?
 
-Round 0 already concentrates: **`CL-01`, `CL-02` and `CL-03` are all the CLOSE
-PATH**, three of six rows on one region. That is a hypothesis, not a result —
-`n=1`, one agent, and the close path is also the most-exercised operation in the
-set, so it has the most chances to produce a row. **A round with a per-region
-denominator is what turns it into a rate.**
+Round 0 concentrated on the **close path** — `CL-01`, `CL-02`, `CL-03`, three of
+six rows on one region — and round 1 **partly dissolved that concentration**:
+`CL-01` shrank from ~20 lines to ~4 once the defect it named was measured and
+found not to exist.
+
+**That is the influence graph doing its job in the direction nobody wants it
+to.** A region looked hot; a designed round made it cooler. Had the change been
+made off round 0's price, ~20 lines would have been written against a defect
+that was not there — and the close path would have been credited with a fix it
+never needed, permanently, in a sealed record.
+
+**The standing caution:** the close path is still the most-exercised operation
+in the task set, so it has the most chances to produce a row. **A per-region
+denominator — rows over invocations of that region — is what turns a count into
+a rate**, and no round has one yet.

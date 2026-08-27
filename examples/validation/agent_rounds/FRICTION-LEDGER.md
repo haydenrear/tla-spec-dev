@@ -25,7 +25,27 @@ test supplies a correct input on the first try.
 
 ---
 
-## F-01 — Three sequential refusals to close one ticket, each revealing one problem
+## F-01 — ~~Three sequential refusals, each revealing one problem~~ — **REFUTED BY ROUND 1**
+
+> **WITHDRAWN AS WRITTEN, 2026-08-27. Two of the three round trips were the
+> author's, not the toolchain's.** See `ROUND-1-RESULT.md` §2. The gate reports
+> every failing top-level clause in ONE pass, measured directly:
+> a completely unfilled ledger returns `refinement` AND `narrative` together.
+> Round 0's trip 1 was the author reading `tail -5` and acting on the last line;
+> trip 2 was a blunt regex that broke the ledger's YAML. **The round-1 agent got
+> the same refusal and fixed both clauses in one edit.**
+>
+> **WHAT SURVIVES, and it is smaller:** the `refinement` sub-clauses CASCADE —
+> setting `searched: true` satisfies "no record" and then reveals `outcome`.
+> **One extra round trip, confined to one sub-object.** Re-priced as `CL-01` in
+> `CHANGE-LEDGER.md`.
+>
+> **This row is kept rather than deleted.** It is the round's most valuable
+> result: the seed ledger's own author over-attributed his friction to the tool,
+> and only a designed round with an agent that did not know the answers could
+> say so.
+
+## F-01 (as originally written, unedited)
 
 **Cost: 3 round trips, ~4 minutes, and the agent nearly concluded the close was broken.**
 
