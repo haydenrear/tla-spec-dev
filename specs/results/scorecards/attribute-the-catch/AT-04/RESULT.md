@@ -185,25 +185,69 @@ did not establish that asking produces a refactor. The precedent it bet against 
 
 ---
 
-## 3. THE TREE
+## 3. THE TREE, AND EVERY UNIT OF ITS MOVEMENT
 
-Full suite at the tip, against `main`'s baseline of **7 failed / 1464 passed**
-recorded at `902cfd7`:
+**At the epic tip, full suite:**
 
 ```
-SUITE_NUMBERS_PLACEHOLDER
+16 failed / 1485 passed / 4 skipped   collection 1505
 ```
 
-Raw output: `pytest-tip.txt` beside this file.
+**They sum: 16 + 1485 + 4 = 1505.** Raw output: `pytest-tip.txt` beside this file; the base measurement is
+`pytest-base-main-902cfd7-seven-files.txt`.
 
-**This epic added no test and no production code**, so any movement in the
-numerator is not attributable to it; movement in **collection** is attributable
-to the workflow scaffold, which added `specs/current` and
-`specs/desired_program_model` where `main` had neither. **That is denominator
-movement and it is declared, not discovered** — the predecessor epic learned the
-same thing when scaffolding moved collection 1491 → 1503.
+### 3.1 The comparison, and why it is a SET comparison and not a count
 
----
+**All 16 reds live in seven test files.** Those same seven files were run at
+`main@902cfd7` — the epic's own base — in a **fresh detached worktree**, and
+produced **14 failed / 300 passed**.
+
+**The 16 at the tip are the same 14 node ids, plus exactly two:**
+
+| new node id | attribution |
+|---|---|
+| `test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml]` | **denominator.** The scaffold created this file. |
+| `test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/spec_manifest.yaml]` | **denominator.** The scaffold created this file. |
+
+**Both are parametrizations over files that do not exist at `main`, so the node
+ids cannot exist there.** That attribution holds regardless of checkout, which is
+why the set comparison is the sound one and the count comparison is not.
+
+**ZERO REDS ARE ATTRIBUTABLE TO THE MARKDOWN THIS EPIC SHIPS.** This epic added
+no test and no production code. Two reds are the workflow scaffold — declared,
+not discovered, and the predecessor learned the same thing when scaffolding moved
+its collection 1491 → 1503.
+
+**Two reds a reviewer would reasonably suspect of being mine, and are not:**
+`test_ticket_retirement::test_repository_canonical_delivered_plan_has_matching_close_receipts`
+and `test_goal_baseline_is_a_card::test_a_real_epic_plans_judged_baseline_cannot_be_re_opened`
+are **red at `main` too**. Marking four tickets `closed` in the plan and adding
+an `epic_goals` block did not create either.
+
+### 3.2 `902cfd7`'s OWN FIGURE DOES NOT REPRODUCE HERE, AND THAT IS A FILED CLASS
+
+**The commit message of `902cfd7` records `7 failed / 1464 passed`.** Running
+seven of its files at that exact commit in a fresh worktree produces **14 failed
+in those seven files alone**. **The figure does not reproduce, and this epic did
+not cause that.**
+
+**This is `SS-00-DF-01`'s class exactly** — figures from this repository's own
+instruments depend on **the checkout, not only the commit** — and the rule
+already on the record is the one that applies:
+
+> no audit figure may be quoted without naming both the tree **and** the checkout
+
+`902cfd7`'s figure was measured in the original clone
+(`~/IdeaProjects/tla-spec-dev`); every figure in this RESULT was measured in
+`~/IdeaProjects/tla-spec-dev-2` and in a detached worktree of it. **So
+`7 / 1464` is NOT comparable to `16 / 1485 / 4` and this RESULT does not compare
+them.** The comparison that is sound is §3.1's, between two checkouts running the
+same node ids, where the answer is `+2, both denominator`.
+
+**Filed rather than fixed.** It is a real finding about this repository's
+measurement conditions, it is outside this epic's markdown-only scope, and
+quietly reporting `+9 reds against 902cfd7` would have been the arithmetic this
+project has corrected in itself at least six times.
 
 ## 4. WHAT A REVIEWER SHOULD ATTACK FIRST
 
@@ -222,3 +266,7 @@ same thing when scaffolding moved collection 1491 → 1503.
 5. **Six of the six MET verdicts are on documents this epic itself wrote.**
    Nothing external tested any of them. That is the structural weakness of a
    markdown-only epic and no clause in it can fix that.
+6. **§3.2 — `902cfd7`'s own `7 / 1464` does not reproduce in this checkout.**
+   Check that classifying it as `SS-00-DF-01`'s known class is right and not a
+   convenient way to avoid reporting `+9 reds`. The set comparison in §3.1 is
+   the load-bearing claim; if it is wrong, this epic's tree section is wrong.
