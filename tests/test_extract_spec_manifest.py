@@ -186,3 +186,41 @@ def test_inline_mapping_sequence_items_parse_whole() -> None:
         {"fact": "bound", "op": "<=", "value": 624},
     ]
     assert parsed["budgets"]["max_internal_cases_per_component"] == 716
+
+
+def test_a_manifest_the_constrained_parser_cannot_represent_still_fails_closed(
+    tmp_path: Path,
+) -> None:
+    """The registered failing demonstration for `manifest-validator`.
+
+    IT REPLACES ONE THIS CHANGE REMOVED, and the substitution is the point. The
+    register previously cited the nested-inline-mapping refusal, whose stated
+    purpose was that the parser must not "silently parse differently with and
+    without PyYAML installed". Nested flow mappings are now SUPPORTED, because
+    refusing them meant the parser could not read a JSON document while PyYAML
+    could -- the refusal was causing the divergence it existed to prevent.
+
+    The purpose is now served two ways, and both are stronger than the old
+    demonstration:
+
+      - `tests/test_parse_simple_yaml_differential.py` compares VALUES against
+        PyYAML across every manifest in the repository, which covers the defect
+        classes a refusal cannot see: the ones that parse successfully and
+        return wrong data;
+      - and the constrained parser still FAILS CLOSED on input it genuinely
+        cannot represent, which is what this test demonstrates.
+
+    A demonstration that cannot fail is not a demonstration, so this asserts a
+    real refusal on a real input rather than asserting the absence of one.
+    """
+    unterminated = tmp_path / "unterminated.yaml"
+    unterminated.write_text(
+        "module: Unstable\nstate: {value: str\ncommands: {}\n", encoding="utf-8"
+    )
+    with pytest.raises(ValueError, match="unterminated inline mapping"):
+        load_manifest(unterminated)
+
+    tabbed = tmp_path / "tabbed.yaml"
+    tabbed.write_text("module: Unstable\n\tstate: {}\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="tabs are not supported"):
+        load_manifest(tabbed)
