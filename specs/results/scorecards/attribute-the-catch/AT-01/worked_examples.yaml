@@ -1,0 +1,113 @@
+# Worked examples of the four record kinds in references/bug_attribution.md.
+#
+# EVERY ROW HERE IS REAL AND RE-DERIVABLE AT THIS TREE. None is invented to
+# demonstrate a field. Where a figure is quoted, the command or commit that
+# produces it is named beside it.
+#
+# WHY THIS FILE IS HERE AND NOT IN THE LIVE LEDGER: there IS no live ledger on
+# main. The 364-row specs/deferred_findings.yaml lives on
+# epic/stabilize-substrate, where SS-01 moved it so it survives a workflow
+# close, and it arrives on main with #296. Writing a second file at that same
+# path from this branch would collide with 364 rows on merge for no benefit.
+# These records move into the ledger when it exists.
+
+catch:
+  - id: AT-EX-CATCH-01
+    summary: >-
+      Archiving copied build scaffolding into specs/.history on every close --
+      24 gradle-wrapper.jar files, vendored venvs and tool caches.
+    channel: operator-running-own-instrument
+    class: hand
+    channel_note: >-
+      Found by measuring the archive on purpose, with a probe written for the
+      occasion and not kept. Nothing standing would have reported it: the
+      archive grew inside a passing close every time.
+    area: >-
+      the workflow-close archive path -- scripts/spec_evolution.py's copy_ignore,
+      which decides what a close receipt keeps.
+    pinned_by: "tests/test_history_entry_size.py"
+    found_at_commit: "902cfd7"
+    note: >-
+      THE HEADLINE DID NOT SURVIVE ITS OWN MEASUREMENT and the commit says so:
+      198.5 MB across 18,759 files resolves to 2,873 unique blobs at 14.5 MB
+      packed, about 9% of a 162 MB .git. The exclusions recover 3 unique blobs
+      and 0.05 MB. They are hygiene against the NEXT binary, not a space fix.
+
+reach:
+  - invariant: "every YAML file under specs/ must parse"
+    enforced_by: "tests/test_spec_yaml_valid.py::test_spec_yaml_parses"
+    enforced_on:
+      - "specs/**/*.yaml and *.yml, recursively"
+    unenforced_on:
+      - "specs/.history/** -- excluded deliberately; the test says so in its docstring"
+      - "every YAML outside specs/ -- test_graph/, CI workflow files, provider-bindings.json's siblings"
+      - "SCHEMA. It asserts the bytes parse. It asserts nothing about fields, types, or required keys."
+    enumerated_by: >-
+      Read the test: SPECS = repo/specs, rglob('*.y*ml'), '.history' not in
+      path.parts. The three entries above are that predicate's complement,
+      derived from the source rather than guessed.
+    note: >-
+      This is the invariant ATTRIBUTE-THE-CATCH-EPIC.md leans on when it says
+      'there is no new test, and that is a fact rather than a preference'. The
+      unenforced list is what leaning on it does NOT buy, and it is the half a
+      charter would never write about its own load-bearing claim.
+
+blind:
+  - case: "tests/test_spec_yaml_valid.py::test_spec_yaml_parses"
+    passes: true
+    could_not_have_caught: >-
+      A DUPLICATE KEY. yaml.safe_load('a: 1\na: 2\n') returns {'a': 2} -- it
+      accepts the file, silently keeps the last value, and reports success.
+      Verified at this tree.
+    why: >-
+      The assertion is 'safe_load did not raise'. Duplicate keys do not raise.
+      The case is not weak; it is answering a different question from the one a
+      reader assumes it answers.
+    severity_note: >-
+      THIS IS NOT HYPOTHETICAL AND THE PROJECT ALREADY KNOWS IT. scripts/
+      disposition.py grew an explicit duplicate_keys() refusal
+      (disposition.py:98, raised at :181) because a duplicate key in the ledger
+      certified a clean answer. So the repository carries BOTH an instrument
+      that refuses on duplicate keys AND a green that cannot see them, and
+      nothing connected the two.
+    what_would_cover_it: >-
+      Not stated here. Naming the remedy is how a BLIND turns into the standing
+      instruction to duplicate -- architecture_advice.md S5. The record's job is
+      to say what the green cannot see.
+
+  - case: "the 3 vacuous passes of CA-10-DF-14"
+    passes: true
+    could_not_have_caught: UNDECIDED
+    why: >-
+      NOT ENUMERATED BY THIS TICKET. SS-06 re-measured the vacuous population at
+      SIX, not three, and the six are named in that ticket's evidence on
+      epic/stabilize-substrate, which is not this branch.
+    note: >-
+      Written as UNDECIDED on purpose, and this row is the worked example of
+      section 3 of the doctrine. An empty could_not_have_caught here would read
+      as 'these greens are fine'. They are not fine; they are unexamined, and
+      the two must not look the same.
+
+price:
+  - proposal: >-
+      Intra-entry deduplication: elide archived-workdir files that are
+      byte-identical to the snapshot beside them.
+    declared_before:
+      value: "recover 50.5 MB across 5,386 files"
+      declared_at_commit: "pre-902cfd7, during the same session"
+    measured_after:
+      value: >-
+        0 bytes recovered in version control -- git already dedups and
+        compresses these -- and 3 tests broken, because the elision deleted
+        ticket/desired/External.tla, which three tests assert is a complete
+        readable tree.
+      measured_at_commit: "902cfd7"
+    verdict: REFUSED
+    reason: >-
+      Deleting a file readers expect, to save bytes git was not spending, is a
+      bad trade twice over.
+    note: >-
+      THE DECLARED PRICE IS WHY THIS REFUSAL IS REVIEWABLE. Without the 50.5 MB
+      / 5,386 files written down BEFORE, the measurement afterwards is just a
+      story about why nothing happened. The commit message preserved both halves
+      by accident; this kind exists to stop it being an accident.
