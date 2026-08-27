@@ -72,6 +72,13 @@ tla-spec-dev --spec-root specs run spec-unit-tests --ticket <ticket-id>
 
 7. Store evidence under the ticket `results/` directory or another referenced
    evidence path.
+7a. **Attribute what the ticket hit, while you are still in it.** For each
+   regression: what caught it (`channel`), what area it was in, and the
+   assertion that pins it — or why none was added. For each case you wrote that
+   passes: what it could **never** have caught, or `UNDECIDED` if you did not
+   work it out. **Written now, not reconstructed at close** — memory
+   reconstructs favourably. Nothing gates on this.
+   See `references/bug_attribution.md` §4 and §6.
 8. Fill in the ticket's complexity-ledger input,
    `specs/tickets/<ticket-id>/results/complexity_ledger.yaml` (scaffolded by
    `open ticket` with TODO sentinels that fail the gate). The close refuses
@@ -126,6 +133,24 @@ program model.
    the only value that means "the surface was walked and no in-scope gap was
    found". Run `prompts/coverage_audit.md` if you want that read, and record the
    report path. See `references/coverage_audit.md`, "Status".
+4a. **Write the attribution section of the close-out or evaluation.** Four
+   questions, answered from the record by reading it — there is no tool and one
+   is not wanted:
+   - **CATCH** — per architectural area, how many regressions were caught by
+     something `automated` and how many escaped to a `hand` or to `reading`.
+   - **REACH** — which invariants are enforced on some surfaces and not others,
+     and which claim full coverage without saying how they enumerated.
+   - **BLIND** — which passing cases could never have caught the areas that keep
+     escaping. A green sitting on an escaping area is the strongest single
+     signal here.
+   - **PRICE** — which proposals were priced before, and what they actually
+     cost.
+   Then say **what the record could not show**: how much of it carries an
+   attribution at all. A clean report off a thin record certifies an absence
+   nobody observed. Nothing gates on any of this.
+   See `references/bug_attribution.md`; the refactor read is
+   `prompts/regression_architecture.md`.
+
 5. Record a closed-workflow snapshot and remove temporary workflow directories:
 
 ```bash

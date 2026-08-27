@@ -261,6 +261,14 @@ overstating by a factor of four.
 
 ## The two fields
 
+> **Extended by `AT-01`.** `channel`'s nine-token vocabulary, the
+> `automated` / `hand` / `reading` class each token belongs to, the pin a
+> non-automated catch carries, and the three record kinds that run in the
+> opposite direction from a finding — REACH, BLIND and PRICE — are in
+> `references/bug_attribution.md`. That page also disposes of the 27 rows this
+> vocabulary drifted by, and the disposition is mostly `UNDECIDED` on purpose.
+
+
 **`channel`** — asked for six epics ago, so every findings-by-channel table in
 `SELF-IMPROVEMENT.md` has been a hand classification of free text. The
 vocabulary is the one the record already used:
