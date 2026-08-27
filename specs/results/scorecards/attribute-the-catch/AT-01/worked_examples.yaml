@@ -33,6 +33,29 @@ catch:
       packed, about 9% of a 162 MB .git. The exclusions recover 3 unique blobs
       and 0.05 MB. They are hygiene against the NEXT binary, not a space fix.
 
+  - id: AT-EX-CATCH-02
+    summary: >-
+      The history-archive exclusions never reached the ticket workdir. A real
+      `close ticket` with a planted gradle-wrapper.jar and .venv/ archived both.
+    channel: operator-doing-the-work
+    class: hand
+    channel_note: >-
+      Found by MANUAL TESTING of the basic operations -- scaffold, open, close --
+      on a throwaway repository, not by reading the code and not by the suite.
+      Nothing standing would have reported it.
+    area: >-
+      the workflow-close archive path -- specifically the seam between
+      `copy_snapshot` (which honours copy_ignore) and the `shutil.move` at
+      spec_evolution.py:1973 (which honours nothing).
+    pinned_by: "tests/test_history_entry_size.py::test_the_ticket_workdir_is_pruned_too_and_not_only_the_snapshots"
+    found_at_commit: "902cfd7"
+    note: >-
+      THE EXCLUSIONS WERE CORRECT AND WERE BEING ASKED THE WRONG QUESTION.
+      `copy_ignore` only runs inside `shutil.copytree`, so it governed the model
+      SNAPSHOTS; the ticket workdir -- the half where a gradle wrapper or a
+      vendored venv actually lives -- is MOVED. Measured: the planted files
+      landed in <entry>/ticket/current/ while <entry>/snapshots/ was clean.
+
 reach:
   - invariant: "every YAML file under specs/ must parse"
     enforced_by: "tests/test_spec_yaml_valid.py::test_spec_yaml_parses"
@@ -51,6 +74,26 @@ reach:
       'there is no new test, and that is a fact rather than a preference'. The
       unenforced list is what leaning on it does NOT buy, and it is the half a
       charter would never write about its own load-bearing claim.
+
+  - invariant: "build scaffolding and binaries are never archived into specs/.history"
+    enforced_by: "scripts/spec_evolution.py::copy_ignore, via shutil.copytree(ignore=...)"
+    enforced_on:
+      - "the model snapshots -- everything reached through `copy_snapshot`"
+    unenforced_on:
+      - "THE TICKET WORKDIR. It reaches the entry by `shutil.move` at
+         spec_evolution.py:1973, which copies no bytes and consults no ignore
+         function. This is where gradle wrappers and vendored venvs live."
+    enumerated_by: >-
+      Grepped every write into a history entry -- `shutil.` and `copy_snapshot`
+      in spec_evolution.py -- and checked which consult an ignore predicate.
+      copy_ignore has exactly ONE caller. Two of the moves and one copy2 loop do
+      not consult it; merge_tree filters by name only, not by suffix.
+    note: >-
+      THE POINT OF THIS RECORD IS THE SECOND LIST. `enforced_on` is what anybody
+      would have written, and it is what the commit message asserted. The defect
+      lived entirely in the half nobody wrote down. Repaired by `prune_ignored`;
+      the record is kept because the SHAPE recurs -- any exclusion attached to a
+      copy is silently absent from every move beside it.
 
 blind:
   - case: "tests/test_spec_yaml_valid.py::test_spec_yaml_parses"
@@ -88,6 +131,25 @@ blind:
       as 'these greens are fine'. They are not fine; they are unexamined, and
       the two must not look the same.
 
+  - case: "tests/test_history_entry_size.py::test_build_scaffolding_and_binaries_are_never_archived"
+    passes: true
+    could_not_have_caught: >-
+      Anything about the ticket workdir. It calls `copy_snapshot` DIRECTLY, so
+      it exercises the copied tree and never the moved one -- and the moved one
+      is where the defect was.
+    why: >-
+      Fixture construction, not assertion strength. The assertion is exactly
+      right about the function it calls; the function it calls is not the one
+      the close uses for that tree.
+    note: >-
+      GREEN FOR A CLOSE THAT ARCHIVED BOTH PLANTED FILES. This is the first
+      BLIND in this repository found by running the operation rather than by
+      reading the code, and it is the same shape as DEF-115: green meant the
+      test could not look. Its sibling
+      `test_a_stray_jar_beside_real_evidence_is_dropped_and_the_evidence_kept`
+      is blind the same way -- it calls `copy_ignore` on a list of NAMES, with
+      no tree at all.
+
 price:
   - proposal: >-
       Intra-entry deduplication: elide archived-workdir files that are
@@ -111,3 +173,23 @@ price:
       / 5,386 files written down BEFORE, the measurement afterwards is just a
       story about why nothing happened. The commit message preserved both halves
       by accident; this kind exists to stop it being an accident.
+
+  - proposal: >-
+      Exclude build scaffolding and binaries from history entries by name and
+      suffix (the shipped 902cfd7 change).
+    declared_before:
+      value: "hygiene, not a space fix -- explicitly NOT sold as recovering space"
+      declared_at_commit: "902cfd7 (in the commit message, before this measurement)"
+    measured_after:
+      value: >-
+        Correct as far as it went and INCOMPLETE for its own stated case: it did
+        not reach the ticket workdir, which is where the 24 gradle-wrapper.jar
+        files the message counts actually live. Repaired in the successor commit.
+      measured_at_commit: "49c8ec3"
+    verdict: SHIPPED-THEN-EXTENDED
+    note: >-
+      THE DECLARED PRICE IS WHY THIS READS AS AN EXTENSION AND NOT A RETRACTION.
+      902cfd7 declared up front that the numbers should not be oversold and that
+      the change was hygiene against the NEXT binary. That declaration survived
+      contact with a measurement that found the change incomplete -- which is
+      exactly what a price declared beforehand is for.

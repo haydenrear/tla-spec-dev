@@ -249,6 +249,39 @@ measurement conditions, it is outside this epic's markdown-only scope, and
 quietly reporting `+9 reds against 902cfd7` would have been the arithmetic this
 project has corrected in itself at least six times.
 
+## 3.3 THE RECORD WAS USED ONCE, ON A REAL DEFECT, AND IT WORKED
+
+**After this RESULT was first written, manual testing of the basic operations
+found a defect, and it was recorded in all four kinds.** That is the first use
+of this epic's machinery on something that was not chosen to demonstrate it.
+
+`902cfd7` added exclusions so build scaffolding is never archived into
+`specs/.history`. A real `close ticket` with a planted `gradle-wrapper.jar` and
+`.venv/` **archived both of them.**
+
+- **CATCH** — `channel: operator-doing-the-work` (class `hand`), area *"the seam
+  between `copy_snapshot` and the `shutil.move` at spec_evolution.py:1973"*,
+  pinned by a new test that goes through the move path.
+- **REACH** — `copy_ignore` is **enforced on** the model snapshots and
+  **unenforced on the ticket workdir**, which is moved, not copied. **The defect
+  lived entirely in the half nobody wrote down**, and the commit message
+  asserted only the enforced half.
+- **BLIND** — the two shipped tests were **green for that close**. Both call
+  `copy_snapshot` / `copy_ignore` directly, so neither ever exercised the move
+  path. **Green meant they were asking the copied tree a question about the
+  moved one** — the same shape as `DEF-115`.
+- **PRICE** — `902cfd7` declared beforehand that the change was *hygiene, not a
+  space fix*. That declaration **survived contact with a measurement that found
+  the change incomplete**, which is what a price declared beforehand is for.
+
+**What this does and does not establish.** It establishes that the four kinds
+can hold a real defect and that each said something the others did not — the
+REACH names the gap, the BLIND explains why the suite missed it, the CATCH says
+who found it and what pins it now. **It does not establish that the record would
+have PREVENTED it**: nobody had written the REACH before the defect, and writing
+it is exactly what nobody does until something costs them. That is the honest
+limit and it is the same limit `DEF-124` records.
+
 ## 4. WHAT A REVIEWER SHOULD ATTACK FIRST
 
 1. **The `automated` / `hand` class assignments in §4.1's table.**
