@@ -1,0 +1,73 @@
+# Agent ergonomics task set. See README.md.
+#
+# A TASK NEVER NAMES THE FLAG, FILE OR VALUE THE AGENT NEEDS. The measurement is
+# what the agent has to discover; a task that supplies it has measured nothing.
+#
+# `done_check` is run BY THE HARNESS, not by the agent, and the agent is never
+# shown it. An agent that knows the check can satisfy the check.
+
+schema_version = 1
+task_set_version = "1.0.0"
+
+[defaults]
+budget_steps = 25
+budget_seconds = 300
+# The agent is given the repo and nothing else. No skill preloaded, no hint.
+context = "a fresh clone of a repository with tla-spec-dev available on PATH"
+
+# ---------------------------------------------------------------------------
+# T1 -- the operation every adopter does first.
+# Seeded by nothing; this is the control. If T1 is expensive, everything is.
+# ---------------------------------------------------------------------------
+[[task]]
+id = "T1-scaffold"
+ask = "Set this repository up to use tla-spec-dev, so that a spec workflow exists and a first ticket can be started."
+done_check = "test -d specs/program_model && test -d specs/desired_program_model"
+budget_steps = 12
+budget_seconds = 180
+predicts = "cheap -- the CLI prints a next-step line after every scaffold verb"
+
+# ---------------------------------------------------------------------------
+# T2 -- the close gate. F-01/F-02 predict this is the most expensive task in
+# the set, and the prediction is RECORDED BEFORE the round so it can be wrong.
+# ---------------------------------------------------------------------------
+[[task]]
+id = "T2-close-ticket"
+ask = "A ticket has been opened and its work is done. Close it."
+done_check = "test -d specs/.history && find specs/.history -name 'ticket-*' -maxdepth 3 | grep -q ."
+budget_steps = 25
+budget_seconds = 420
+predicts = """
+EXPENSIVE, 4+ round trips. F-01 measured three sequential ledger refusals plus
+F-02's plan-status refusal on a real run. If this comes in at 1-2 trips the
+ledger's round-0 costs were an artifact of that agent and must be withdrawn.
+"""
+
+# ---------------------------------------------------------------------------
+# T3 -- generation. F-06 predicts the agent will not discover
+# --actions-metadata and will not notice that nothing was declared.
+# ---------------------------------------------------------------------------
+[[task]]
+id = "T3-generate-cases"
+ask = "Generate conformance cases from the internal model, and confirm from the output that every action the model declares was covered."
+done_check = "find specs -name case_coverage.json | head -1 | xargs -I{} python3 -c \"import json,sys; d=json.load(open('{}')); sys.exit(0 if d.get('declared_view_actions') else 1)\""
+budget_steps = 20
+budget_seconds = 300
+predicts = """
+The FAILURE MODE is the interesting one and it is silent: without
+--actions-metadata the run exits 0 with declared_view_actions: []. An agent that
+reports success here has been misled BY A GREEN, which is a BLIND record on the
+generator, not a mistake by the agent.
+"""
+
+# ---------------------------------------------------------------------------
+# T4 -- the one that should be cheap and is the positive control for the round.
+# If T4 is expensive the harness is measuring the agent, not the toolchain.
+# ---------------------------------------------------------------------------
+[[task]]
+id = "T4-read-a-refusal"
+ask = "Generate cases into a directory outside the spec tree. If the tool refuses, do what it says and succeed."
+done_check = "find specs -type d -name '*generated*' | grep -q ."
+budget_steps = 8
+budget_seconds = 120
+predicts = "CHEAP, 2 trips. #301 put the remedy in the refusal. If this is expensive, that fix did not work and the round has found it."
