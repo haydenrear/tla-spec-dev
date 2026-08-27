@@ -76,23 +76,44 @@ ports: {}
     assert load_manifest(path)["module"] == "Stable"
 
 
-def test_inline_mapping_fails_closed_with_actionable_dependency_invariant_error(
-    tmp_path: Path,
-) -> None:
+def test_nested_inline_mappings_parse_and_agree_with_pyyaml(tmp_path: Path) -> None:
+    """A NESTED flow mapping is read, not refused. This REPLACES a refusal.
+
+    This test previously asserted the opposite -- that `state: {value: {type:
+    str}}` raised "nested inline mappings are not supported; use an indented
+    mapping so parsing is dependency-invariant". That refusal was the right
+    call FOR AS LONG AS THE PARSER COULD NOT DO IT: failing closed beat parsing
+    differently from PyYAML.
+
+    It is the wrong call now, for a reason the differential (#298) made
+    visible. YAML IS A SUPERSET OF JSON, and `specs/tickets/*/ticket.yaml` is
+    written as pretty-printed JSON -- so PyYAML read those files and this
+    parser raised on them. The refusal did not deliver dependency invariance;
+    it delivered a parser that could not read the repository's own tickets when
+    PyYAML was absent, which is exactly the condition this parser exists for.
+
+    Dependency invariance is now established BY MEASUREMENT rather than by
+    refusal: `tests/test_parse_simple_yaml_differential.py` parses every YAML
+    under `specs/` through both implementations and compares values. That is a
+    stronger guarantee than this test ever gave, because it covers the two
+    defect classes a refusal cannot see -- the ones that parse successfully and
+    return wrong data.
+    """
     path = tmp_path / "spec_manifest.yaml"
-    path.write_text(
-        """module: Unstable
+    text = """module: Unstable
 package: unstable_contract
 state: {value: {type: str}}
 commands: {}
 results: {}
 ports: {}
-""",
-        encoding="utf-8",
-    )
+"""
+    path.write_text(text, encoding="utf-8")
 
-    with pytest.raises(ValueError, match="inline mappings are not supported.*indented mapping"):
-        load_manifest(path)
+    parsed = load_manifest(path)
+    assert parsed["state"] == {"value": {"type": "str"}}
+
+    yaml = pytest.importorskip("yaml")
+    assert parsed == yaml.safe_load(text)
 
 
 def test_complete_generated_tree_is_identical_with_and_without_site_packages(
