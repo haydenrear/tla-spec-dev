@@ -76,23 +76,44 @@ ports: {}
     assert load_manifest(path)["module"] == "Stable"
 
 
-def test_inline_mapping_fails_closed_with_actionable_dependency_invariant_error(
-    tmp_path: Path,
-) -> None:
+def test_nested_inline_mappings_parse_and_agree_with_pyyaml(tmp_path: Path) -> None:
+    """A NESTED flow mapping is read, not refused. This REPLACES a refusal.
+
+    This test previously asserted the opposite -- that `state: {value: {type:
+    str}}` raised "nested inline mappings are not supported; use an indented
+    mapping so parsing is dependency-invariant". That refusal was the right
+    call FOR AS LONG AS THE PARSER COULD NOT DO IT: failing closed beat parsing
+    differently from PyYAML.
+
+    It is the wrong call now, for a reason the differential (#298) made
+    visible. YAML IS A SUPERSET OF JSON, and `specs/tickets/*/ticket.yaml` is
+    written as pretty-printed JSON -- so PyYAML read those files and this
+    parser raised on them. The refusal did not deliver dependency invariance;
+    it delivered a parser that could not read the repository's own tickets when
+    PyYAML was absent, which is exactly the condition this parser exists for.
+
+    Dependency invariance is now established BY MEASUREMENT rather than by
+    refusal: `tests/test_parse_simple_yaml_differential.py` parses every YAML
+    under `specs/` through both implementations and compares values. That is a
+    stronger guarantee than this test ever gave, because it covers the two
+    defect classes a refusal cannot see -- the ones that parse successfully and
+    return wrong data.
+    """
     path = tmp_path / "spec_manifest.yaml"
-    path.write_text(
-        """module: Unstable
+    text = """module: Unstable
 package: unstable_contract
 state: {value: {type: str}}
 commands: {}
 results: {}
 ports: {}
-""",
-        encoding="utf-8",
-    )
+"""
+    path.write_text(text, encoding="utf-8")
 
-    with pytest.raises(ValueError, match="inline mappings are not supported.*indented mapping"):
-        load_manifest(path)
+    parsed = load_manifest(path)
+    assert parsed["state"] == {"value": {"type": "str"}}
+
+    yaml = pytest.importorskip("yaml")
+    assert parsed == yaml.safe_load(text)
 
 
 def test_complete_generated_tree_is_identical_with_and_without_site_packages(
@@ -165,3 +186,41 @@ def test_inline_mapping_sequence_items_parse_whole() -> None:
         {"fact": "bound", "op": "<=", "value": 624},
     ]
     assert parsed["budgets"]["max_internal_cases_per_component"] == 716
+
+
+def test_a_manifest_the_constrained_parser_cannot_represent_still_fails_closed(
+    tmp_path: Path,
+) -> None:
+    """The registered failing demonstration for `manifest-validator`.
+
+    IT REPLACES ONE THIS CHANGE REMOVED, and the substitution is the point. The
+    register previously cited the nested-inline-mapping refusal, whose stated
+    purpose was that the parser must not "silently parse differently with and
+    without PyYAML installed". Nested flow mappings are now SUPPORTED, because
+    refusing them meant the parser could not read a JSON document while PyYAML
+    could -- the refusal was causing the divergence it existed to prevent.
+
+    The purpose is now served two ways, and both are stronger than the old
+    demonstration:
+
+      - `tests/test_parse_simple_yaml_differential.py` compares VALUES against
+        PyYAML across every manifest in the repository, which covers the defect
+        classes a refusal cannot see: the ones that parse successfully and
+        return wrong data;
+      - and the constrained parser still FAILS CLOSED on input it genuinely
+        cannot represent, which is what this test demonstrates.
+
+    A demonstration that cannot fail is not a demonstration, so this asserts a
+    real refusal on a real input rather than asserting the absence of one.
+    """
+    unterminated = tmp_path / "unterminated.yaml"
+    unterminated.write_text(
+        "module: Unstable\nstate: {value: str\ncommands: {}\n", encoding="utf-8"
+    )
+    with pytest.raises(ValueError, match="unterminated inline mapping"):
+        load_manifest(unterminated)
+
+    tabbed = tmp_path / "tabbed.yaml"
+    tabbed.write_text("module: Unstable\n\tstate: {}\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="tabs are not supported"):
+        load_manifest(tabbed)

@@ -149,10 +149,16 @@ def resolve_spec_tree_out(value: str | Path, spec_dir: Path, *, is_file: bool = 
     considered = resolved.parts[:-1] if is_file else resolved.parts
     if SPEC_TREE_DIR_NAME not in considered:
         raise SpecTreePathError(
-            f"case generation must write under a `{SPEC_TREE_DIR_NAME}/` directory; "
-            f"got {resolved}. The `spec_tree` and `spec_tree_delete` effect ports "
-            f"declare target `**/{SPEC_TREE_DIR_NAME}/**`, so a write -- or the "
-            "metadir delete derived from it -- anywhere else is an undeclared "
-            f"effect. Pass a path under a {SPEC_TREE_DIR_NAME}/ directory."
+            f"case generation must write under a `{SPEC_TREE_DIR_NAME}/` directory "
+            f"(e.g. {SPEC_TREE_DIR_NAME}/generated/<consumer>/<run-id>); "
+            f"got {resolved}.\n"
+            f"The `spec_tree` and `spec_tree_delete` effect ports declare target "
+            f"`**/{SPEC_TREE_DIR_NAME}/**`, so a write -- or the metadir delete "
+            "derived from it -- anywhere else is an undeclared effect.\n"
+            "REMEDY: point --out at a path under a "
+            f"{SPEC_TREE_DIR_NAME}/ directory and keep only exported artifacts "
+            "(traces, reports) under your own report directory. A Test Graph node "
+            f"generating into its build tree wants --out {SPEC_TREE_DIR_NAME}/"
+            "generated/testgraph/<run-id>."
         )
     return resolved

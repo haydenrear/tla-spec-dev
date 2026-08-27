@@ -165,6 +165,42 @@ def copy_ignore(_directory: str, names: list[str]) -> set[str]:
     }
 
 
+def prune_ignored(root: Path) -> list[Path]:
+    """Remove build scaffolding from a tree that was MOVED, not copied.
+
+    `copy_ignore` only runs inside `shutil.copytree`, so it governs the model
+    SNAPSHOTS and nothing else. The ticket workdir reaches a history entry by
+    `shutil.move` (see `record_ticket_close`), which copies no bytes and
+    consults no ignore function -- so every exclusion added to
+    `IGNORED_COPY_NAMES` applied to the half of the entry that rarely contains
+    a jar, and skipped the half that does.
+
+    Measured on a real close before this existed: a planted
+    `gradle-wrapper.jar` and `.venv/` landed in
+    `<entry>/ticket/current/...` while `<entry>/snapshots/` was clean. The
+    exclusions were correct and were being asked the wrong question.
+
+    Returns what it removed so the caller can record it rather than assert it.
+    """
+    removed: list[Path] = []
+    if not root.exists():
+        return removed
+    # Directories first and deepest-last, so a removed parent is not re-walked.
+    for path in sorted(root.rglob("*"), key=lambda p: len(p.parts), reverse=True):
+        if not path.exists():
+            continue
+        if path.is_dir() and path.name in IGNORED_COPY_NAMES:
+            shutil.rmtree(path, ignore_errors=True)
+            removed.append(path)
+        elif path.is_file() and (
+            path.name in IGNORED_COPY_NAMES
+            or path.suffix.lower() in IGNORED_COPY_SUFFIXES
+        ):
+            path.unlink(missing_ok=True)
+            removed.append(path)
+    return removed
+
+
 def make_directory_appendable(path: Path) -> None:
     if not path.exists():
         return
@@ -1971,12 +2007,16 @@ def create_ticket_history_entry(
     if active_dir.exists():
         ticket_history_dir = entry_dir / "ticket"
         shutil.move(str(active_dir), str(ticket_history_dir))
+        # The move consults no ignore function, so the exclusions have to be
+        # applied here or they do not apply to the ticket workdir at all.
+        pruned = prune_ignored(ticket_history_dir)
         ticket_workdir_record = {
             "role": "ticket_workdir",
             "source": rel(active_dir),
             "snapshot": rel(ticket_history_dir),
             "exists": True,
             "moved": True,
+            "pruned": [rel(path) for path in pruned],
         }
         snapshots.append(ticket_workdir_record)
     promoted_paths: list[Path] = []

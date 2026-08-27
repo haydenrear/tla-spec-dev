@@ -1249,7 +1249,32 @@ import pytest
 
 SPEC_DIR = Path(__file__).resolve().parents[1]
 SPEC_ROOT = SPEC_DIR.parent
-REPO_ROOT = SPEC_ROOT.parent
+
+
+def _repo_root() -> Path:
+    """Find the repository root by SEARCH, not by counting `..`.
+
+    Counting is off by one inside a ticket workspace. `SPEC_ROOT.parent` is
+    correct at `specs/current/tests` (`specs` -> repo root) and WRONG at
+    `specs/tickets/<id>/current/tests`, where it resolves to `specs/tickets`.
+    The batch runner was then invoked with `--import-root specs/tickets`, and
+    the adapter module every entry in `case_adapters.toml` names was
+    unimportable -- so no ticket-local corpus could import its own adapters,
+    in every repository using this scaffold.
+
+    Searching upward for the nearest ancestor that is a repository root works
+    at BOTH depths, which is the property counting cannot have.
+    """
+    markers = (".git", "pyproject.toml", "Cargo.toml", "go.mod", "package.json")
+    for candidate in [SPEC_DIR, *SPEC_DIR.parents]:
+        if any((candidate / marker).exists() for marker in markers):
+            return candidate
+    # No marker found: fall back to the historical guess rather than raising at
+    # import time, and let the run fail with its own error instead of this one.
+    return SPEC_ROOT.parent
+
+
+REPO_ROOT = _repo_root()
 
 CASES_DIR = SPEC_ROOT / "generated" / "spec-unit" / "{_slug(module)}_internal_cases"
 

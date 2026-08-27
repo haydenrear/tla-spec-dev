@@ -70,6 +70,10 @@ class ActionMetadata:
     controllability: str
     generates: tuple[str, ...]
     tags: tuple[str, ...] = ()
+    #: `expected_zero: "<why>"` in actions.yml. A DECLARED zero-case action --
+    #: the reason is required and is printed, so a hole reads as stated rather
+    #: than silent. An UNDECLARED zero is a failure; see `report_coverage`.
+    expected_zero: str | None = None
 
 
 @dataclass(frozen=True)
@@ -334,6 +338,26 @@ def normalize_string_list(value: Any) -> tuple[str, ...]:
     raise ValueError(f"expected string or list of strings, got {value!r}")
 
 
+class ZeroCaseActionError(RuntimeError):
+    """A declared view action generated no cases and did not declare that zero.
+
+    Deliberately an ERROR and not a warning. The warning form shipped, was
+    printed, and was not read -- the corpus meant to decide a goal did not
+    contain the case for the action the goal names, and it was found only
+    because somebody opened `case_coverage.json` by hand.
+    """
+
+    def __init__(self, view: str, actions: list[str], record_path: Any) -> None:
+        self.view = view
+        self.actions = list(actions)
+        self.record_path = record_path
+        super().__init__(
+            f"{len(actions)} declared {view} action(s) generated ZERO cases without "
+            f"an `expected_zero` declaration: {', '.join(actions)}. "
+            f"Coverage record written to {record_path}."
+        )
+
+
 def default_action_metadata(action: str, view: str) -> ActionMetadata:
     return ActionMetadata(
         name=action,
@@ -370,8 +394,28 @@ def load_action_metadata(path: Path | None, spec_dir: Path | None = None) -> dic
             controllability=controllability,
             generates=normalize_string_list(raw_spec.get("generates", (VIEW_GENERATES[layer],))),
             tags=normalize_string_list(raw_spec.get("tags", ())),
+            expected_zero=_expected_zero(action, raw_spec.get("expected_zero")),
         )
     return metadata
+
+
+def _expected_zero(action: str, raw: Any) -> str | None:
+    """`expected_zero` must carry a REASON. A bare true declares nothing.
+
+    The whole value of a declared zero is that a reader can tell "known-inert
+    until MH-03 lands" from "your wrapper is broken and your goal is
+    unverified". A boolean cannot carry that, so a boolean is refused.
+    """
+    if raw is None:
+        return None
+    if isinstance(raw, bool) or not str(raw).strip():
+        raise ValueError(
+            f"expected_zero for {action} must be a REASON string, not {raw!r}. "
+            "Write why the action generates no cases -- e.g. "
+            '\'guard unsatisfiable until MH-03 lands\' -- so a reader can tell a '
+            "known-inert action from a broken one."
+        )
+    return str(raw).strip()
 
 
 def action_metadata_for(action: str, view: str, metadata: dict[str, ActionMetadata]) -> ActionMetadata:
@@ -1368,13 +1412,48 @@ def report_action_coverage(
                 file=sys.stderr,
             )
 
-    for silent in sorted(reportable - set(emitted_counts)):
+    # ZERO IS DECLARABLE; UNDECLARED ZERO IS A FAILURE.
+    #
+    # This used to be a warning and nothing more: the generator printed a line,
+    # `case_coverage.json` simply had no entry for the action, and the corpus
+    # reported a healthy total. A corpus that silently covers 10 of 11 declared
+    # actions while reporting a five-figure case count is claiming more than it
+    # checked -- and it was, in a case where the missing action was the one the
+    # goal was written about.
+    #
+    # Two causes produce the same zero and they are NOT the same thing:
+    #   A. an alias wrapper with no conjunct of its own, so TLC attributes its
+    #      transitions to the inner action -- A REAL DEFECT;
+    #   B. a guard that is unsatisfiable in this epic because the actions that
+    #      would satisfy it are sequenced later -- A LEGITIMATE STATE.
+    # From the outside they were indistinguishable. `expected_zero: "<why>"`
+    # is what makes B sayable, so that A can be made to fail.
+    silent = sorted(reportable - set(emitted_counts))
+    declared_zero: dict[str, str] = {}
+    undeclared_zero: list[str] = []
+    for name in silent:
+        reason = action_metadata_for(name, view, action_metadata).expected_zero
+        if reason:
+            declared_zero[name] = reason
+        else:
+            undeclared_zero.append(name)
+
+    for name, reason in declared_zero.items():
         print(
-            f"warning: declared {view} action {silent!r} generated ZERO cases. "
-            "If it is a pure alias wrapper (Wrapper(x) == Inner(x)), TLC "
+            f"declared zero: {view} action {name!r} generated no cases, as declared "
+            f"in actions.yml -- {reason}"
+        )
+
+    for name in undeclared_zero:
+        print(
+            f"ERROR: declared {view} action {name!r} generated ZERO cases and does "
+            "not declare that it should.\n"
+            "  If it is a pure alias wrapper (Wrapper(x) == Inner(x)), TLC "
             "attributes its transitions to the inner action -- add a semantic "
-            "no-op anchoring conjunct so the wrapper owns its edges, or remove "
-            "the action from actions.yml if it is not a real view action.",
+            "no-op anchoring conjunct so the wrapper owns its edges.\n"
+            "  If it is not a real view action, remove it from actions.yml.\n"
+            f"  If the zero is EXPECTED, declare it: `{name}: {{expected_zero: "
+            '"<why>"}}` in actions.yml, and the reason is printed on every run.',
             file=sys.stderr,
         )
 
@@ -1386,8 +1465,16 @@ def report_action_coverage(
         declaration=declaration,
         source=str(package_dir),
     )
+    record["declared_zero_actions"] = dict(sorted(declared_zero.items()))
+    record["undeclared_zero_actions"] = undeclared_zero
     path = case_modules.write_coverage_record(package_dir, record)
     print(f"per-action coverage recorded to {path}")
+    if undeclared_zero:
+        # The corpus is not what it claims to be, and the caller must not read
+        # it as though it were. Raised rather than returned so no caller can
+        # forget to check, and after the record is written so the evidence of
+        # WHY it failed is on disk.
+        raise ZeroCaseActionError(view, undeclared_zero, path)
     return record
 
 
@@ -3194,10 +3281,10 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     Until that ticket the whole of case-module generation was reachable only by
     running this file directly: `build_parser` in scripts/tla_spec_dev.py never
     referenced it, so an import-closure walk of the shipped CLI never saw the
-    java spawn at scripts/generate_cases_from_tlc_dump.py:126
+    java spawn at scripts/generate_cases_from_tlc_dump.py:130
     (subprocess.run), the metadir delete at
-    scripts/generate_cases_from_tlc_dump.py:150 (shutil.rmtree), the package
-    writes at scripts/generate_cases_from_tlc_dump.py:1139-1140 (path.write_text)
+    scripts/generate_cases_from_tlc_dump.py:154 (shutil.rmtree), the package
+    writes at scripts/generate_cases_from_tlc_dump.py:1184 (path.write_text)
     or the parameter-recovery audit write. Nothing generated a case for it,
     nothing adapted it, nothing mutated it, and all four oracles reported green
     over surface the model did not contain.
@@ -3432,7 +3519,14 @@ def run(args: argparse.Namespace) -> int:
     states, edges = load_dot(dot_path)
     if not states:
         raise SystemExit(f"ERROR: no states parsed from {dot_path}")
-    action_metadata = load_action_metadata(args.actions_metadata, spec_dir)
+    try:
+        action_metadata = load_action_metadata(args.actions_metadata, spec_dir)
+    except ValueError as error:
+        # A malformed actions.yml is an OPERATOR error, and the message already
+        # says what to write. A traceback buries it under a stack the operator
+        # cannot act on.
+        print(f"ERROR: {error}", file=sys.stderr)
+        return 2
 
     # MF-029: recover action arguments from each case's own state pair. The
     # recipes come from the SAME module TLC just explored, so the recovery and
@@ -3486,14 +3580,22 @@ def run(args: argparse.Namespace) -> int:
     for port_report in port_reports:
         print(render_port_report(port_report))
 
-    coverage_record = report_action_coverage(
-        prepared,
-        module=tla_path.stem,
-        view=view,
-        action_metadata=action_metadata,
-        package_dir=out_path / args.package,
-        manifest_path=manifest_path,
-    )
+    # An undeclared zero-case action fails the RUN, not just a log line. The
+    # record is already on disk when this raises, so the evidence of why is
+    # readable. Caught here rather than propagating a traceback: the operator
+    # needs the remedy, and the remedy is in the message.
+    try:
+        coverage_record = report_action_coverage(
+            prepared,
+            module=tla_path.stem,
+            view=view,
+            action_metadata=action_metadata,
+            package_dir=out_path / args.package,
+            manifest_path=manifest_path,
+        )
+    except ZeroCaseActionError as error:
+        print(f"ERROR: {error}", file=sys.stderr)
+        return 3
 
     if getattr(args, "coverage_json", None) is not None:
         write_case_module_coverage_report(

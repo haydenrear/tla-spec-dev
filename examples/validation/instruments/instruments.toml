@@ -2068,23 +2068,47 @@ more to the next ticket than a quietly green one. `SM-03-DF-02`.
   [instrument.failing]
   kind = "pytest"
   tier = "slow"
-  summary = "an inline mapping the constrained parser cannot represent -- it must fail CLOSED with an actionable dependency-invariant error rather than silently parsing differently with and without PyYAML installed"
+  summary = "input the constrained parser genuinely cannot represent -- an unterminated inline mapping and a tab -- must fail CLOSED rather than parse to something PyYAML would read differently"
   nodes = [
-    "tests/test_extract_spec_manifest.py::test_inline_mapping_fails_closed_with_actionable_dependency_invariant_error",
+    "tests/test_extract_spec_manifest.py::test_a_manifest_the_constrained_parser_cannot_represent_still_fails_closed",
   ]
   expect_exit = 0
   expect_passed = 1
+  note = """
+  RE-POINTED, NOT QUIETLY EDITED. This cited
+  `test_inline_mapping_fails_closed_with_actionable_dependency_invariant_error`,
+  whose stated purpose was that the parser must not "silently parse differently
+  with and without PyYAML installed".
+
+  THE REFUSAL WAS CAUSING THE DIVERGENCE IT EXISTED TO PREVENT. YAML is a
+  superset of JSON and `specs/tickets/*/ticket.yaml` is written as JSON, so
+  PyYAML read those files and the constrained parser raised on them. Nested flow
+  mappings are now supported and the refusal is gone (#298), so the
+  demonstration it named no longer exists.
+
+  The purpose is served two ways now, both stronger than what was here: the
+  differential in `[instrument.passing]` compares VALUES across every manifest
+  in the repository -- covering the classes a refusal cannot see, the ones that
+  parse successfully and return wrong data -- and the parser still fails closed
+  on input it genuinely cannot represent, which is what this node demonstrates.
+
+  Caught by `test_every_cited_pytest_node_exists` on the full suite BEFORE the
+  change merged, which is the registry doing exactly its job: a behaviour change
+  removed a registered demonstration and the register refused to let it go
+  unnoticed.
+  """
 
   [instrument.passing]
   kind = "pytest"
   tier = "slow"
-  summary = "the same manifests parsed with and without the optional YAML package, generating an identical tree"
+  summary = "the same manifests parsed with and without the optional YAML package generating an identical tree, AND every manifest in the repository parsed under both implementations with the values compared"
   nodes = [
     "tests/test_extract_spec_manifest.py::test_complete_generated_tree_is_identical_with_and_without_site_packages",
     "tests/test_extract_spec_manifest.py::test_load_manifest_ignores_optional_yaml_package",
+    "tests/test_parse_simple_yaml_differential.py::test_the_differential_has_something_to_differential",
   ]
   expect_exit = 0
-  expect_passed = 2
+  expect_passed = 3
 
 
 [[instrument]]

@@ -1,4 +1,5 @@
 import json
+from dataclasses import replace
 from pathlib import Path
 import sys
 import importlib
@@ -9,6 +10,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts.generate_cases_from_tlc_dump import (
+    ZeroCaseActionError,
+    _expected_zero,
     ActionMetadata,
     Edge,
     labels_for_case,
@@ -295,22 +298,66 @@ def write_case_module_manifest(tmp_path: Path, scope: str) -> Path:
     return path
 
 
-def test_undeclared_module_warns_for_every_zero_case_view_action(tmp_path: Path, capsys) -> None:
-    """R4-DF-04, unchanged: with no declaration the whole view is in scope."""
+def test_undeclared_zero_case_view_actions_now_FAIL_rather_than_warn(tmp_path: Path, capsys) -> None:
+    """R4-DF-04's scope rule is unchanged; the DISPOSITION of a zero is not.
+
+    This used to assert two warning LINES. Warnings were printed, the coverage
+    file simply had no entry for the action, and the corpus reported a healthy
+    total -- so a corpus silently covering 10 of 11 declared actions passed as
+    healthy while the goal it was built to decide named the missing one. The
+    zero is now an error, and the record is still written first so the evidence
+    of why is on disk.
+    """
     prepared = prepare_external_cases(tmp_path, "undeclared_cases")
 
-    report_action_coverage(
+    with pytest.raises(ZeroCaseActionError) as caught:
+        report_action_coverage(
+            prepared,
+            module="Aspect_Submit",
+            view="external",
+            action_metadata=EXTERNAL_METADATA,
+            package_dir=tmp_path / "undeclared_cases",
+            manifest_path=tmp_path / "missing_manifest.yaml",
+        )
+
+    assert caught.value.actions == ["Cancel", "Retry"]
+    errors = [line for line in capsys.readouterr().err.splitlines() if "ZERO cases" in line]
+    assert len(errors) == 2
+    assert (tmp_path / "undeclared_cases" / "case_coverage.json").exists()
+
+
+def test_a_declared_expected_zero_is_reported_and_does_not_fail(tmp_path: Path, capsys) -> None:
+    """Case B of #300: a guard unsatisfiable in THIS epic is a legitimate state.
+
+    It was previously indistinguishable from Case A -- a broken alias wrapper --
+    because both produced the same silent zero. Declaring it makes the hole read
+    as stated, and is what allows the undeclared form above to fail.
+    """
+    prepared = prepare_external_cases(tmp_path, "expected_zero_cases")
+    metadata = dict(EXTERNAL_METADATA)
+    for name in ("Cancel", "Retry"):
+        metadata[name] = replace(metadata[name], expected_zero=f"guard unsatisfiable until MH-03 ({name})")
+
+    record = report_action_coverage(
         prepared,
         module="Aspect_Submit",
         view="external",
-        action_metadata=EXTERNAL_METADATA,
-        package_dir=tmp_path / "undeclared_cases",
+        action_metadata=metadata,
+        package_dir=tmp_path / "expected_zero_cases",
         manifest_path=tmp_path / "missing_manifest.yaml",
     )
 
-    warnings = [line for line in capsys.readouterr().err.splitlines() if "ZERO cases" in line]
-    assert sorted(warnings)[0].startswith("warning: declared external action 'Cancel'")
-    assert len(warnings) == 2  # Cancel and Retry
+    assert record["undeclared_zero_actions"] == []
+    assert set(record["declared_zero_actions"]) == {"Cancel", "Retry"}
+    out = capsys.readouterr().out
+    assert "declared zero: external action 'Cancel'" in out
+    assert "guard unsatisfiable until MH-03 (Cancel)" in out, "the REASON must reach the operator"
+
+
+def test_expected_zero_refuses_a_bare_boolean() -> None:
+    """A declaration with no reason declares nothing a reader can act on."""
+    with pytest.raises(ValueError, match="must be a REASON string"):
+        _expected_zero("Retry", True)
 
 
 def test_declared_case_module_scopes_the_zero_case_warning(tmp_path: Path, capsys) -> None:
@@ -332,34 +379,39 @@ def test_declared_case_module_scopes_the_zero_case_warning(tmp_path: Path, capsy
     assert "are NOT reported as coverage holes" in captured.out
 
 
-def test_an_in_scope_action_with_no_cases_still_warns(tmp_path: Path, capsys) -> None:
+def test_an_in_scope_action_with_no_cases_now_fails(tmp_path: Path, capsys) -> None:
     prepared = prepare_external_cases(tmp_path, "in_scope_cases")
 
-    report_action_coverage(
-        prepared,
-        module="Aspect_Submit",
-        view="external",
-        action_metadata=EXTERNAL_METADATA,
-        package_dir=tmp_path / "in_scope_cases",
-        manifest_path=write_case_module_manifest(tmp_path, "Submit, Retry"),
-    )
+    with pytest.raises(ZeroCaseActionError) as caught:
+        report_action_coverage(
+            prepared,
+            module="Aspect_Submit",
+            view="external",
+            action_metadata=EXTERNAL_METADATA,
+            package_dir=tmp_path / "in_scope_cases",
+            manifest_path=write_case_module_manifest(tmp_path, "Submit, Retry"),
+        )
 
-    warnings = [line for line in capsys.readouterr().err.splitlines() if "ZERO cases" in line]
-    assert len(warnings) == 1
-    assert "'Retry'" in warnings[0]
+    assert caught.value.actions == ["Retry"]
+    errors = [line for line in capsys.readouterr().err.splitlines() if "ZERO cases" in line]
+    assert len(errors) == 1 and "'Retry'" in errors[0]
 
 
 def test_generating_outside_the_declared_scope_is_reported_as_drift(tmp_path: Path, capsys) -> None:
     prepared = prepare_external_cases(tmp_path, "drift_cases")
 
-    report_action_coverage(
-        prepared,
-        module="Aspect_Submit",
-        view="external",
-        action_metadata=EXTERNAL_METADATA,
-        package_dir=tmp_path / "drift_cases",
-        manifest_path=write_case_module_manifest(tmp_path, "Retry"),
-    )
+    # `Retry` is in scope and generates nothing, so the run now also FAILS --
+    # the drift report this test is about is printed before that happens, and
+    # the assertions below read it out of the captured stream.
+    with pytest.raises(ZeroCaseActionError):
+        report_action_coverage(
+            prepared,
+            module="Aspect_Submit",
+            view="external",
+            action_metadata=EXTERNAL_METADATA,
+            package_dir=tmp_path / "drift_cases",
+            manifest_path=write_case_module_manifest(tmp_path, "Retry"),
+        )
 
     err = capsys.readouterr().err
     assert "generated 1 case(s) for 'Submit', which is not in its declared `actions:` scope" in err
