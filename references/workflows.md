@@ -79,6 +79,13 @@ tla-spec-dev --spec-root specs run spec-unit-tests --ticket <ticket-id>
    work it out. **Written now, not reconstructed at close** — memory
    reconstructs favourably. Nothing gates on this.
    See `references/bug_attribution.md` §4 and §6.
+7b. **Place each regression on the influence graph.** The arc is
+   *found → area → pinned*. Say which arcs this ticket completed and which
+   stopped part-way, and add or amend the area's row in
+   `examples/validation/agent_rounds/SELF-IMPROVEMENT-MATRIX.md`. **One or two
+   lines is the right size** — the matrix accumulates across tickets and the
+   reading happens at the epic, not here. An area with no regression this ticket
+   gets no row.
 8. Fill in the ticket's complexity-ledger input,
    `specs/tickets/<ticket-id>/results/complexity_ledger.yaml` (scaffolded by
    `open ticket` with TODO sentinels that fail the gate). The close refuses
@@ -146,10 +153,25 @@ program model.
    - **PRICE** — which proposals were priced before, and what they actually
      cost.
    Then say **what the record could not show**: how much of it carries an
-   attribution at all. A clean report off a thin record certifies an absence
-   nobody observed. Nothing gates on any of this.
-   See `references/bug_attribution.md`; the refactor read is
-   `prompts/regression_architecture.md`.
+   attribution at all, and which areas have escapes but **no denominator** —
+   an area with one escape in two invocations and one with one escape in a
+   hundred look identical until you say so. A clean report off a thin record
+   certifies an absence nobody observed.
+
+4b. **THE ARCHITECTURAL READ — this is a required task of the evaluation, not a
+   footnote.** Run `prompts/regression_architecture.md` over the attribution
+   records and the current self-improvement matrix. It asks which areas keep
+   appearing in the `escaped to hand` column **across rounds**, and what about
+   the SHAPE of the worst one makes bugs there hard to catch automatically. It
+   must price its suggestion forward and must not choose it.
+   **Judge the transcripts with `prompts/regression_judge.md`, two judges, blind
+   to each other and to the matrix** — a self-graded attribution is the verdict
+   an agent has an incentive to give.
+   **No checker, gate, lint or static analyzer may be proposed as the answer.**
+   That route is measured and closed here; if one is ever built it goes in a
+   separate library. Nothing gates on any of this.
+   See `references/bug_attribution.md` and
+   `examples/validation/agent_rounds/SELF-IMPROVEMENT-MATRIX.md`.
 
 5. Record a closed-workflow snapshot and remove temporary workflow directories:
 

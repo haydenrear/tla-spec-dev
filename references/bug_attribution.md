@@ -244,6 +244,43 @@ would have cost, and it is the only reason a refusal is reviewable later.
 
 ---
 
+## 7a. The influence graph, and the matrix it accumulates into
+
+**The four kinds are per-finding. The influence graph is what they add up to.**
+
+The arc for one regression is **found → area → pinned**:
+
+```
+a regression happened
+  -> what CAUGHT it            (CATCH.channel, class automated | hand | reading)
+  -> what AREA it lived in     (CATCH.area, prose, from whoever found it)
+  -> what PINS it now          (CATCH.pinned_by, or pin_note saying why not)
+```
+
+Accumulated per area across tickets and epics, that is
+`examples/validation/agent_rounds/SELF-IMPROVEMENT-MATRIX.md`. **The column that
+matters is `escaped to hand`** — the only one that says an automated instrument
+was blind.
+
+**An area that escapes once is noise. An area that escapes in three rounds is
+telling you something about its shape.** That is the whole reason to keep the
+graph over time rather than per epic.
+
+**It is maintained by prompting, not by a tool, and that is a decision rather
+than a gap.** Computing it would mean parsing findings, inferring areas and
+joining across epics — three inference steps, each a place to put a bug into the
+instrument used to find bugs. `prompts/regression_architecture.md` is the ask;
+`prompts/regression_judge.md` judges the transcripts blind. **No checker, gate,
+lint or static analyzer is the answer here** — that route is measured and closed
+(`references/architecture_advice.md`), and if a tool is built later it belongs in
+a separate library with this page as its specification.
+
+**What the graph cannot currently say, stated so nobody reads it as more than it
+is: there are no denominators.** An area with one escape in two invocations and
+one with one escape in a hundred look identical in the matrix. Until a round
+carries per-area invocation counts, a concentration in that table may be a
+concentration of attention rather than of defects.
+
 ## 8. What this page deliberately does not do
 
 - **It does not gate.** Nothing refuses, nothing blocks a close, no exit code
