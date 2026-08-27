@@ -3519,7 +3519,14 @@ def run(args: argparse.Namespace) -> int:
     states, edges = load_dot(dot_path)
     if not states:
         raise SystemExit(f"ERROR: no states parsed from {dot_path}")
-    action_metadata = load_action_metadata(args.actions_metadata, spec_dir)
+    try:
+        action_metadata = load_action_metadata(args.actions_metadata, spec_dir)
+    except ValueError as error:
+        # A malformed actions.yml is an OPERATOR error, and the message already
+        # says what to write. A traceback buries it under a stack the operator
+        # cannot act on.
+        print(f"ERROR: {error}", file=sys.stderr)
+        return 2
 
     # MF-029: recover action arguments from each case's own state pair. The
     # recipes come from the SAME module TLC just explored, so the recovery and
