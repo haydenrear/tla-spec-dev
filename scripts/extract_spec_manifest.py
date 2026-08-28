@@ -26,6 +26,99 @@ def _strip_comment(line: str) -> str:
     return line.rstrip()
 
 
+#: Single-character escapes YAML defines inside a double-quoted scalar.
+_DOUBLE_ESCAPES = {
+    "0": "\0",
+    "a": "\a",
+    "b": "\b",
+    "t": "\t",
+    "\t": "\t",
+    "n": "\n",
+    "v": "\v",
+    "f": "\f",
+    "r": "\r",
+    "e": "\x1b",
+    " ": " ",
+    '"': '"',
+    "/": "/",
+    "\\": "\\",
+    "N": "\x85",
+    "_": "\xa0",
+    "L": "\u2028",
+    "P": "\u2029",
+}
+
+#: Numeric escapes, mapped to the count of hex digits that follow.
+_HEX_ESCAPES = {"x": 2, "u": 4, "U": 8}
+
+_HEX_DIGITS = set("0123456789abcdefABCDEF")
+
+
+def _trailing_backslashes(text: str) -> int:
+    """How many backslashes `text` ends with.
+
+    An ODD count means the last one is itself an escape character, still
+    waiting for the thing it escapes. That is the whole test for `is this
+    double-quoted line continuing onto the next one`.
+    """
+    count = 0
+    for char in reversed(text):
+        if char != "\\":
+            break
+        count += 1
+    return count
+
+
+def _unescape_double_quoted(body: str) -> str:
+    """Resolve the escape sequences in a double-quoted scalar's body.
+
+    Returning the raw slice instead -- which is what this parser did -- is the
+    silent-wrong-data class again, not a crash: `"a\\nb"` came back as the six
+    characters `a`, `\\`, `n`, `b` rather than the four a YAML reader sees. It
+    stayed invisible until `yaml.safe_dump` first emitted double-quoted scalars,
+    which it does as soon as a value carries a newline -- long ticket objectives.
+
+    Unknown escapes RAISE rather than passing through, matching the real
+    parsers. A wrong manifest that stops the toolchain is recoverable; a wrong
+    manifest that flows into generated contracts is not.
+    """
+    out: list[str] = []
+    index = 0
+    while index < len(body):
+        char = body[index]
+        if char != "\\":
+            out.append(char)
+            index += 1
+            continue
+        if index + 1 >= len(body):
+            raise ValueError(
+                "double-quoted scalar ends in a lone backslash; a trailing `\\` "
+                "escapes a line break, so the continuation line is missing"
+            )
+        code = body[index + 1]
+        width = _HEX_ESCAPES.get(code)
+        if width is not None:
+            digits = body[index + 2 : index + 2 + width]
+            if len(digits) != width or any(d not in _HEX_DIGITS for d in digits):
+                raise ValueError(
+                    f"malformed numeric escape `\\{code}{digits}` in a double-quoted "
+                    f"scalar; `\\{code}` takes exactly {width} hex digits"
+                )
+            out.append(chr(int(digits, 16)))
+            index += 2 + width
+            continue
+        replacement = _DOUBLE_ESCAPES.get(code)
+        if replacement is None:
+            raise ValueError(
+                f"unsupported escape `\\{code}` in double-quoted spec-manifest "
+                "scalar; quote the value with ' instead, where no escape but '' "
+                "is interpreted"
+            )
+        out.append(replacement)
+        index += 2
+    return "".join(out)
+
+
 def _parse_scalar(value: str) -> Any:
     value = value.strip()
     if value in {"", "{}"}:
@@ -45,7 +138,10 @@ def _parse_scalar(value: str) -> Any:
         # read by any real YAML parser.
         return value[1:-1].replace("''", "'")
     if value.startswith('"') and value.endswith('"') and len(value) >= 2:
-        return value[1:-1]
+        # A double-quoted scalar is the ONE YAML scalar style that interprets
+        # backslash escapes. Slicing the quotes off and stopping there returns
+        # the escapes as literal text. See _unescape_double_quoted.
+        return _unescape_double_quoted(value[1:-1])
     if re.fullmatch(r"-?\d+", value):
         return int(value)
     if re.fullmatch(r"-?\d+\.\d+", value):
@@ -297,17 +393,50 @@ def _fold_continuation(
     unterminated quoted scalar, or a plain scalar whose continuation cannot
     be read as a mapping entry. Anything else keeps raising, so a genuinely
     misindented mapping is still a loud error rather than a silent string.
+
+    HOW the join is made is itself part of the contract, and there are two
+    joins, not one:
+
+    * An ordinary wrap folds to a SPACE -- that is YAML flow folding.
+    * A double-quoted line ending in a backslash is an ESCAPED LINE BREAK.
+      It folds to NOTHING, and the continuation line's leading whitespace is
+      dropped with it.
+
+    The distinction has to be drawn HERE, before the lines are joined, because
+    afterwards it cannot be drawn at all: an escaped line break arrives as
+    `\\` followed by the folded space, which is character-for-character
+    identical to the escaped space `\\ `. Deciding between them downstream
+    would be a guess. Deciding here is a fact -- the line boundary is still
+    visible, and a trailing backslash on THIS line means the break was
+    escaped.
+
+    A continuation line may also begin with `- `. That is a sequence item only
+    when no quote is open; inside an open quoted scalar it is prose, and
+    breaking out of the fold there left the row to be re-read as a block
+    sequence, which raised `unexpected indentation` and made the whole
+    manifest unreadable.
     """
     quote = _open_quote(value)
-    parts = [value]
-    while index < len(rows) and rows[index][0] > row_indent and not rows[index][1].startswith("- "):
-        if quote is None and _looks_like_mapping_entry(rows[index][1]):
+    folded = value
+    joined = False
+    while index < len(rows) and rows[index][0] > row_indent:
+        content = rows[index][1]
+        if quote is None and content.startswith("- "):
             break
-        parts.append(rows[index][1])
+        if quote is None and _looks_like_mapping_entry(content):
+            break
+        if quote == '"' and _trailing_backslashes(folded) % 2 == 1:
+            # Escaped line break: drop the backslash, join with no space. The
+            # continuation line was already left-stripped by _preprocess,
+            # which is exactly what YAML does to it.
+            folded = folded[:-1] + content
+        else:
+            folded = f"{folded} {content}"
+        joined = True
         index += 1
-        if quote is not None and _open_quote(" ".join(parts)) is None:
+        if quote is not None and _open_quote(folded) is None:
             break
-    return (" ".join(parts) if len(parts) > 1 else value), index
+    return (folded if joined else value), index
 
 
 def _parse_dict(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[dict[str, Any], int]:
