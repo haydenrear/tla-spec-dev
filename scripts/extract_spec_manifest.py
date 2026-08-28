@@ -38,9 +38,13 @@ def _parse_scalar(value: str) -> Any:
         return True
     if value == "false":
         return False
-    if (value.startswith('"') and value.endswith('"')) or (
-        value.startswith("'") and value.endswith("'")
-    ):
+    if value.startswith("'") and value.endswith("'") and len(value) >= 2:
+        # YAML escapes a single quote inside a single-quoted scalar by
+        # doubling it. Returning the raw slice leaves `the epic''s goal`
+        # doubled, which then fails an exact comparison against the same text
+        # read by any real YAML parser.
+        return value[1:-1].replace("''", "'")
+    if value.startswith('"') and value.endswith('"') and len(value) >= 2:
         return value[1:-1]
     if re.fullmatch(r"-?\d+", value):
         return int(value)
@@ -118,23 +122,104 @@ def _parse_inline_mapping(value: str) -> dict[str, Any]:
     return result
 
 
+def _key_split_pos(content: str) -> int | None:
+    """Index of the `:` that separates a key from its value, or None.
+
+    In YAML a colon only ends a key when it is followed by whitespace or by
+    the end of the line. Splitting on the first colon regardless turns the
+    plain scalar `crates/mh-session::execution` into the mapping
+    `{'crates/mh-session': ':execution'}` -- which is exactly how a list of
+    conflict keys and implementation scopes silently became a list of
+    single-entry dicts that no consumer could match against.
+    """
+    quote: str | None = None
+    i = 0
+    while i < len(content):
+        ch = content[i]
+        if quote is not None:
+            if quote == "'" and ch == "'":
+                if i + 1 < len(content) and content[i + 1] == "'":
+                    i += 2
+                    continue
+                quote = None
+            elif quote == '"':
+                if ch == "\\":
+                    i += 2
+                    continue
+                if ch == '"':
+                    quote = None
+        elif ch in "\"'":
+            quote = ch
+        elif ch == ":" and (i + 1 == len(content) or content[i + 1] in " \t"):
+            return i
+        i += 1
+    return None
+
+
 def _split_key_value(content: str) -> tuple[str, str]:
-    if ":" not in content:
+    pos = _key_split_pos(content)
+    if pos is None:
         raise ValueError(f"expected key/value entry, got: {content!r}")
-    key, value = content.split(":", 1)
-    return key.strip(), value.strip()
+    return content[:pos].strip(), content[pos + 1 :].strip()
+
+
+def _value_text(content: str) -> str:
+    """The scalar-value part of a row, for open-quote tracking."""
+    if content.startswith("- "):
+        content = content[2:].strip()
+    pos = _key_split_pos(content)
+    return content[pos + 1 :].strip() if pos is not None else content
+
+
+#: Block-scalar indicators. Everything indented under one of these is content.
+_BLOCK_INDICATORS = {">", ">-", ">+", "|", "|-", "|+"}
 
 
 def _preprocess(text: str) -> list[tuple[int, str]]:
+    """Rows as `(indent, content)`, with comments stripped only where they are
+    comments.
+
+    A `#` is a comment only outside a scalar, and a scalar can span lines two
+    different ways. Both are tracked here:
+
+    * `pending` — the quote char of a FLOW scalar that opened on an earlier
+      line and has not closed yet.
+    * `block_indent` — the indent of the key that opened a BLOCK scalar
+      (`>`, `|`, and their chomping variants). Everything more indented is its
+      content.
+
+    Missing either one deletes the rest of a sentence from the middle of a
+    prose field, and does it silently: the parse still succeeds. Measured on
+    this repository's own deferred-findings backlog, where the text describing
+    this very defect -- `sgl-project/sglang#9594 and #23814` -- was itself
+    truncated at the `#`.
+    """
     rows: list[tuple[int, str]] = []
+    pending: str | None = None
+    block_indent: int | None = None
     for raw in text.splitlines():
-        stripped = _strip_comment(raw)
+        raw_rstripped = raw.rstrip()
+        raw_indent = len(raw_rstripped) - len(raw_rstripped.lstrip(" "))
+        in_block = block_indent is not None and (not raw_rstripped.strip() or raw_indent > block_indent)
+
+        stripped = raw_rstripped if (pending is not None or in_block) else _strip_comment(raw)
         if not stripped.strip():
             continue
         if stripped.startswith("\t"):
             raise ValueError("tabs are not supported in spec manifests")
         indent = len(stripped) - len(stripped.lstrip(" "))
-        rows.append((indent, stripped.strip()))
+        content = stripped.strip()
+        rows.append((indent, content))
+
+        if in_block:
+            # Block content is opaque: it opens no quotes and closes none.
+            continue
+        block_indent = None
+        value = _value_text(content)
+        if pending is None and value in _BLOCK_INDICATORS:
+            block_indent = indent
+            continue
+        pending = _open_quote(value) if pending is None else _open_quote(pending + content)
     return rows
 
 
@@ -164,6 +249,67 @@ def _parse_folded_scalar(
     return value, index
 
 
+def _open_quote(text: str) -> str | None:
+    """The quote char `text` opens and does not close, or None.
+
+    A YAML flow scalar may wrap onto continuation lines, so `objective: 'one`
+    is a legal start whose value is not complete until the closing quote is
+    seen -- possibly several lines later.
+    """
+    if not text or text[0] not in "\"'":
+        return None
+    quote, body, i = text[0], text[1:], 0
+    while i < len(body):
+        ch = body[i]
+        if quote == "'":
+            if ch == "'":
+                if i + 1 < len(body) and body[i + 1] == "'":
+                    i += 2  # an escaped quote, not the terminator
+                    continue
+                return None
+        else:
+            if ch == "\\":
+                i += 2
+                continue
+            if ch == '"':
+                return None
+        i += 1
+    return quote
+
+
+def _looks_like_mapping_entry(text: str) -> bool:
+    pos = _key_split_pos(text)
+    return pos is not None and bool(text[:pos].strip()) and " " not in text[:pos].strip()
+
+
+def _fold_continuation(
+    rows: list[tuple[int, str]], index: int, row_indent: int, value: str
+) -> tuple[str, int]:
+    """Fold more-indented continuation lines into a wrapped scalar.
+
+    Any YAML dumper writing to a width limit -- which is how the epic ticket
+    plans in this repository are produced -- wraps a long scalar onto
+    continuation lines. Without this the parser raised "unexpected
+    indentation" on the whole file, and because the ticket plan is what
+    `open ticket` reads, that made every ticket in such an epic unopenable.
+
+    Folding is applied only where YAML is unambiguous about it: an
+    unterminated quoted scalar, or a plain scalar whose continuation cannot
+    be read as a mapping entry. Anything else keeps raising, so a genuinely
+    misindented mapping is still a loud error rather than a silent string.
+    """
+    quote = _open_quote(value)
+    parts = [value]
+    while index < len(rows) and rows[index][0] > row_indent and not rows[index][1].startswith("- "):
+        if quote is None and _looks_like_mapping_entry(rows[index][1]):
+            break
+        parts.append(rows[index][1])
+        index += 1
+        if quote is not None and _open_quote(" ".join(parts)) is None:
+            break
+    return (" ".join(parts) if len(parts) > 1 else value), index
+
+
 def _parse_dict(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[dict[str, Any], int]:
     result: dict[str, Any] = {}
     while index < len(rows):
@@ -181,11 +327,20 @@ def _parse_dict(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[d
             result[key], index = _parse_folded_scalar(rows, index, row_indent, value)
             continue
         if value:
+            value, index = _fold_continuation(rows, index, row_indent, value)
             result[key] = _parse_scalar(value)
             continue
 
         if index < len(rows) and rows[index][0] > row_indent:
             result[key], index = _parse_block(rows, index, rows[index][0])
+        elif index < len(rows) and rows[index][0] == row_indent and rows[index][1].startswith("- "):
+            # A block sequence may sit at the SAME indent as the key that owns
+            # it. That is ordinary YAML and it is what every dumper emits, so
+            # requiring the sequence to be further indented made the parser
+            # stop at the first such key and declare the entire remainder of
+            # the file "unparsed manifest content" -- which is how a ticket
+            # plan produced by a YAML dumper became unreadable.
+            result[key], index = _parse_list(rows, index, row_indent)
         else:
             result[key] = None
     return result, index
@@ -222,7 +377,7 @@ def _parse_list(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[l
             # justification, and fitness to defaults.
             result.append(_parse_scalar(item))
             continue
-        if ":" in item and not item.startswith(("'", '"')):
+        if _key_split_pos(item) is not None and not item.startswith(("'", '"')):
             key, value_text = _split_key_value(item)
             if value_text in {">", ">-", ">+"}:
                 folded, index = _parse_folded_scalar(rows, index, row_indent, value_text)
@@ -233,6 +388,8 @@ def _parse_list(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[l
                         value.update(child)
                 result.append(value)
                 continue
+            if value_text:
+                value_text, index = _fold_continuation(rows, index, row_indent, value_text)
             value: dict[str, Any] = {key: _parse_scalar(value_text) if value_text else None}
             if index < len(rows) and rows[index][0] > row_indent:
                 child, index = _parse_block(rows, index, rows[index][0])
@@ -255,16 +412,15 @@ def _parse_list(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[l
             # ignored. Found while wiring the MF-014 case-cap gate, whose
             # entire "raise the cap with a rationale" accept path depends on
             # the manifest actually being read.
-            continuation: list[str] = []
-            while (
-                index < len(rows)
-                and rows[index][0] > row_indent
-                and not rows[index][1].startswith("- ")
-            ):
-                continuation.append(rows[index][1])
-                index += 1
-            if continuation:
-                result.append(" ".join([item, *continuation]))
+            #
+            # A QUOTED item wraps the same way, and must additionally have its
+            # quotes stripped once folded: joining the lines and appending the
+            # raw string leaves the value carrying its own delimiters, so an
+            # exact comparison against the same entry read by a real YAML
+            # parser fails on every wrapped quoted entry.
+            folded, index = _fold_continuation(rows, index, row_indent, item)
+            if folded != item:
+                result.append(_parse_scalar(folded))
             else:
                 result.append(_parse_scalar(item))
     return result, index
