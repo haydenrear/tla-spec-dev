@@ -37,21 +37,31 @@ easiest way to make this prompt lie. Then the current matrix.
 > self-improvement matrix built from earlier rounds. Your job is to extend the
 > matrix and then say what its shape implies about the architecture.
 >
-> **1. Place each new regression on the influence graph.** For each one:
-> what caught it (`automated` / `hand` / `reading`), which architectural area it
-> lived in — in your own prose, not a taxonomy — and whether an assertion now
-> pins it. A regression that was found by hand and pinned by an assertion is the
-> full arc; say which arcs are incomplete and where they stopped.
+> **1. Anchor each new regression to a TLA+ action.** For each one: what caught
+> it (`automated` / `hand` / `reading`), **which action in the model it happened
+> inside** — `<Module>.<Action>` from `specs/program_model/` — and whether an
+> assertion now pins it. A regression found by hand and pinned by an assertion is
+> the full arc; say which arcs are incomplete and where they stopped.
 >
-> **2. Update the matrix, per area:** caught by graph or suite, escaped to hand,
-> pinned, still unpinned. **Append and amend; never silently rewrite a row.** If
-> an area has no new regressions this round, it gets no row — absence of evidence
-> is absence, not zero.
+> **If a regression does not fit any declared action, anchor it `UNMODELED` and
+> say what it sits beneath.** Do not stretch an action to cover it. The size of
+> `UNMODELED` is a measurement of how much of the real bug surface the semantic
+> model does not reach, and stretching destroys exactly that number.
+>
+> **2. Update the matrix, per anchor:** escaped to hand, pinned, still unpinned,
+> and the finding IDs. **Append and amend; never silently rewrite a row.** An
+> action with no new regressions gets no row — absence of evidence is absence,
+> not zero.
 >
 > **3. Read the `escaped to hand` column.** It is the only column that says an
-> automated instrument was blind. Which areas keep appearing in it across rounds,
-> not just this one? **An area that escapes once is noise. An area that escapes
-> in three rounds is telling you something about its shape.**
+> automated instrument was blind. Which actions keep appearing in it across
+> rounds, not just this one? **An action that escapes once is noise. An action
+> that escapes in three rounds is telling you something about its shape.**
+>
+> **3a. Say what is WORKING.** Which actions have closed arcs? Which fixes were
+> later measured as working? **A matrix that only records problems will
+> recommend churn**, and an action that has stopped producing escapes is the
+> result the whole programme is for.
 >
 > **4. Say what you could not see, before you suggest anything.** How many
 > records carry no attribution? How many areas have no denominator — that is, you
@@ -60,12 +70,17 @@ easiest way to make this prompt lie. Then the current matrix.
 > identical in this matrix.** If the record is too thin to support a conclusion,
 > say so and stop at step 4.
 >
-> **5. For the area with the most repeated escapes — one architectural
-> suggestion.** Not a check, not a lint, not more tests. **What about the SHAPE
-> of that area makes bugs there hard to catch automatically?** Common shapes
-> worth naming: a rule enforced on one path and not the identical path beside it;
-> a seam where two mechanisms meet and neither owns the boundary; a green that
-> passes because it could not look.
+> **5. For the action with the most repeated escapes — is it too complex, and
+> is it time to refactor it?** Not a check, not a lint, not more tests. **What
+> about the SHAPE of that action makes bugs there hard to catch automatically?**
+> Shapes worth naming: a rule enforced on one path and not the identical path
+> beside it; a seam where two mechanisms meet and neither owns the boundary; a
+> green that passes because it could not look; an action carrying bookkeeping
+> that has nothing to do with what it means.
+>
+> **Because the anchor is the model, the refactor is a MODEL refactor.** Say
+> what the action would become in the TLA+, and therefore which rows of the
+> matrix would be carried and which dropped.
 >
 > **6. Price it forward and do not choose it.** State what the change would
 > cost — surfaces touched, roughly how much moves, what behaviour changes, and

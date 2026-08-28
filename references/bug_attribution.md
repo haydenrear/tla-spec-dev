@@ -257,7 +257,15 @@ a regression happened
   -> what PINS it now          (CATCH.pinned_by, or pin_note saying why not)
 ```
 
-Accumulated per area across tickets and epics, that is
+**The area is recorded as prose by the finder, and ANCHORED TO A TLA+ ACTION by
+the epic agent.** The model is the semantic representation of the program and it
+outlives the code — files are renamed, split and moved; `CloseTicket` is not. A
+regression that fits no declared action is anchored `UNMODELED`, and **the size
+of that bucket measures how much of the real bug surface the model does not
+reach.** Do not stretch an action to cover something it does not mean; stretching
+destroys that number.
+
+Accumulated per anchor across tickets and epics, that is
 `examples/validation/agent_rounds/SELF-IMPROVEMENT-MATRIX.md`. **The column that
 matters is `escaped to hand`** — the only one that says an automated instrument
 was blind.
