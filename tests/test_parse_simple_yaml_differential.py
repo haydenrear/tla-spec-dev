@@ -155,3 +155,48 @@ def test_the_four_defects_stay_fixed(label: str, text: str) -> None:
     repository's own manifests happen to contain.
     """
     assert parse_simple_yaml(text) == yaml.safe_load(text), label
+
+
+# ---------------------------------------------------------------------------
+# THE COROLLARY, ADDED AFTER THE DIFFERENTIAL REPORTED CLEAN ON A BROKEN PARSER
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("seed", range(12))
+def test_safe_dump_output_round_trips(seed: int) -> None:
+    """Parse what a DUMPER writes, not only what this repository happens to hold.
+
+    THIS EXISTS BECAUSE THE DIFFERENTIAL ABOVE PASSED ON A PARSER THAT WAS
+    WRONG. Every manifest under `specs/` agreed with PyYAML while
+    `parse_simple_yaml` silently joined two paragraphs of a multi-line scalar
+    with a space -- because no file in this repository contained that shape.
+    The differential reported clean because it could not look, which is a BLIND
+    record on the instrument, not a pass.
+
+    The shape it could not see is the one a dumper produces constantly:
+    `yaml.safe_dump` writes a `\n` inside a scalar as a BLANK LINE, and YAML
+    folds n>1 line breaks to n-1 newlines. Every long ticket objective and
+    every multi-paragraph finding summary written by a tool has it. It was
+    found by an independent fix (PR #307) whose own corpus did contain it.
+
+    Generating the input removes the dependency on what the corpus happens to
+    contain -- the defect class this test is named for.
+    """
+    import random
+
+    rng = random.Random(seed)
+    words = "alpha beta gamma delta epsilon zeta eta theta iota kappa".split()
+
+    def sentence() -> str:
+        return " ".join(rng.choice(words) for _ in range(rng.randint(3, 25)))
+
+    payload = {
+        "objective": "\n".join(sentence() for _ in range(rng.randint(1, 4))),
+        "found_at_commit": f"{rng.randint(0, 9)}{rng.randint(100000, 999999)}",
+        "note": f"see report.md#anchor-{seed} and 'quoted {rng.choice(words)}'",
+        "nested": {"a": [sentence(), {"b": sentence()}]},
+    }
+    text = yaml.safe_dump(payload)
+
+    assert parse_simple_yaml(text) == yaml.safe_load(text), (
+        "parse_simple_yaml disagrees with PyYAML on output PyYAML itself wrote"
+    )
