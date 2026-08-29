@@ -130,7 +130,13 @@ class SpecTreePathError(ValueError):
     """
 
 
-def resolve_spec_tree_out(value: str | Path, spec_dir: Path, *, is_file: bool = False) -> Path:
+def resolve_spec_tree_out(
+    value: str | Path,
+    spec_dir: Path,
+    *,
+    is_file: bool = False,
+    flag: str = "--out",
+) -> Path:
     """Resolve a generation output path, refusing anything outside `specs/`.
 
     Resolution is unchanged -- it still goes through
@@ -144,21 +150,39 @@ def resolve_spec_tree_out(value: str | Path, spec_dir: Path, *, is_file: bool = 
     root that is written INTO (``--out``). For the first the containing
     directory must carry the component; for the second the path itself may be
     the `specs` directory.
+
+    ``flag`` names the option being resolved, and it exists because E-02 of the
+    round-2 evaluation hit this refusal on ``--dot`` and was handed a REMEDY
+    that said *"point --out at a path under a specs/ directory"* -- advice for a
+    flag it had already set correctly. **A refusal that names the wrong flag
+    sends the reader to the wrong place**, which is the defect class ``#301``
+    was opened to remove, reintroduced by the fix for it.
     """
     resolved = resolve_spec_relative_path(Path(value).expanduser(), spec_dir)
     considered = resolved.parts[:-1] if is_file else resolved.parts
     if SPEC_TREE_DIR_NAME not in considered:
         raise SpecTreePathError(
-            f"case generation must write under a `{SPEC_TREE_DIR_NAME}/` directory "
+            f"{flag} must write under a `{SPEC_TREE_DIR_NAME}/` directory "
             f"(e.g. {SPEC_TREE_DIR_NAME}/generated/<consumer>/<run-id>); "
             f"got {resolved}.\n"
             f"The `spec_tree` and `spec_tree_delete` effect ports declare target "
             f"`**/{SPEC_TREE_DIR_NAME}/**`, so a write -- or the metadir delete "
             "derived from it -- anywhere else is an undeclared effect.\n"
-            "REMEDY: point --out at a path under a "
+            f"REMEDY: point {flag} at a path under a "
             f"{SPEC_TREE_DIR_NAME}/ directory and keep only exported artifacts "
-            "(traces, reports) under your own report directory. A Test Graph node "
-            f"generating into its build tree wants --out {SPEC_TREE_DIR_NAME}/"
-            "generated/testgraph/<run-id>."
+            "(traces, reports) under your own report directory. "
+            + (
+                "A Test Graph node generating into its build tree wants "
+                f"--out {SPEC_TREE_DIR_NAME}/generated/testgraph/<run-id>."
+                if not is_file
+                # A file path cannot take the directory example above, and the
+                # reason it is constrained at all is the destructive one:
+                # run_tlc_dump rmtree's this path's PARENT.
+                else f"{flag} names a FILE and its PARENT directory is what must "
+                f"carry the {SPEC_TREE_DIR_NAME}/ component -- the TLC metadir is "
+                "derived from that parent and deleted, so an unconstrained path "
+                f"here is a destructive delete. Put it beside the corpus: "
+                f"{SPEC_TREE_DIR_NAME}/generated/testgraph/<run-id>/dot/<Module>.dot."
+            )
         )
     return resolved

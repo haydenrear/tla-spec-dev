@@ -22,9 +22,9 @@ real row, not a leftover — see below.
 
 | anchor | escaped to hand | pinned | unpinned | findings | reading |
 |---|---|---|---|---|---|
-| `TlaSpecDevCli.CloseTicket` | **3** | 1 | 2 | `AT-EX-CATCH-02`, `F-02`, `CL-01` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
-| `TlaSpecDevCli.GenerateCases` | 3 | 2 | 1 | `#300`, `#301`, `F-06` | two fixed and measured working; the silent-zero half is still open |
-| `TlaSpecDevCli.OpenTicket` | 1 | 1 | 0 | `#299` | closed arc |
+| `TlaSpecDevCli.CloseTicket` | **4** | 1 | 3 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
+| `TlaSpecDevCli.GenerateCases` | **7** | **4** | 3 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
+| `TlaSpecDevCli.OpenTicket` | **2** | 1 | 1 | `#299`, `E-01` | **was read as a closed arc; round 2 reopened it.** `E-01` is a conformance violation against a guard the model calls structural |
 | `TlaSpecDevCli.AnalyzeComplexity` | 1 | 0 | 1 | `F-07` | cosmetic; unpinned by choice |
 | **`UNMODELED`** — the constrained YAML parser | **7** | 11 | 0 | `#298`, `#307` | infrastructure beneath every action; no anchor exists. **Now 7 of 13 findings in the whole record.** |
 
@@ -90,6 +90,124 @@ away. **A hand catch wearing a script**, per §4.1.
 
 ---
 
+## Round 2 — two blind agents, and what they cost the matrix
+
+**Run 2026-08-29.** `T1` and `T3` from `tasks.toml`, dispatched blind into
+isolated worktrees, 102,809 subagent tokens. **Both predictions were recorded
+before the round and both were wrong.**
+
+### The predictions, and their fate
+
+| task | predicted | measured | verdict |
+|---|---|---|---|
+| `T1-scaffold` | "cheap — the CLI prints a next-step line after every scaffold verb" | 5 round trips, 6 blockers, `PARTIAL` | **WITHDRAWN, not refuted** — see below |
+| `T3-generate-cases` | the agent will not find `--actions-metadata`; exits 0 with `declared_view_actions: []`; **misled by a green** | found it, covered all 4 actions, `uncovered_actions: []` | **REFUTED** |
+
+**`T1`'s number is withdrawn because the harness was wrong, not the tool.** The
+worktree was a copy of this repository, which is already scaffolded — so the
+scaffold verbs had nothing to do and `scaffold workflow --dry-run` reported
+`scaffolded ticket workflow files: 0`. The task's own header says *"a fresh
+clone"*, and this was not one. **A measurement taken on the wrong fixture is not
+a refutation; it is a void run**, and reporting its 5 round trips as a cost of
+the toolchain would be the `MF-020` error in the other direction. `T1`'s
+*findings* stand — they do not depend on the fixture — but its headline number
+does not.
+
+**`T3` is a genuine refutation, and the reason matters more than the verdict.**
+The agent discovered the canonical flag set — projectors, `--actions-metadata`,
+`--dedupe projected` — by reading
+`examples/distributed_history/scripts/regenerate_tlc_cases.py`. **The tool did
+not tell it. A committed example did.** `F-06` predicted a silent green and got
+a correct answer by a route nobody designed as documentation, and **the route it
+learned from is itself broken** — `E-02`. The prediction was wrong; the
+mechanism it was worried about is intact.
+
+### The findings
+
+| id | anchor | what | channel |
+|---|---|---|---|
+| `E-01` | `TlaSpecDevCli.OpenTicket` | `open ticket AT-04` **succeeds on a ticket the plan marks `status: closed`** | `operator-doing-the-work` |
+| `E-02` | `TlaSpecDevCli.GenerateCases` | `regenerate_tlc_cases.py`'s default `--out` is **refused by the RC-02 check `#301` added.** The committed regeneration driver cannot run as written | `operator-doing-the-work` |
+| `E-03` | `TlaSpecDevCli.CloseTicket` | `close --help` advertises *"Close ticket or workflow history"*; `close` accepts only `ticket` | `operator-doing-the-work` |
+| `E-04` | `TlaSpecDevCli.GenerateCases` | Two coverage reports with **different schemas** are written to the same default filename; the second overwrites the first, and the `--coverage-json` refusal **steers you into the collision** | `operator-doing-the-work` |
+
+**`E-01` is the one that matters, because the model claims the property is
+structural.** `OpenTicket` in `TlaSpecDevCli.tla` guards on
+
+```
+/\ ticket_state[ticket] = TicketUnopened
+\* MF-025: ... the never-reopened property is now structural.
+```
+
+**The production CLI reopened a closed ticket and wrote 53 files.** That is a
+conformance violation against a guard the model comments on by name, and
+neither TLC nor the Test Graph nor the suite reported it — because nothing
+drives the CLI against the plan's `status` field. Reproduced by hand.
+
+**`E-02` is a regression I introduced and shipped.** `#301` made
+`resolve_spec_tree_out` refuse any `--out` outside `specs/`. `regenerate_tlc_cases.py`
+passes an absolute `DEFAULT_GENERATED_DIR = EXAMPLE_ROOT / "test_graph" / "build"
+/ "generated"`, which is outside `specs/`, and is now refused. **Reproduced:**
+
+```
+ERROR: case generation must write under a `specs/` directory ...
+       got .../examples/distributed_history/test_graph/build/generated.
+```
+
+The suite did not catch it because **nothing runs that script.** It is a
+committed driver with no caller — the same shape as the `history-archive-excludes`
+defect, where both shipped tests were green because they called the helper
+directly and never the path that used it. **That is now twice.**
+
+### What round 2 did to the matrix's own readings
+
+- **`OpenTicket` was recorded as a "closed arc". It was not.** It was an action
+  with one finding and no second look. **The row did not change because the
+  action improved; it changed because somebody finally ran it.** Every "closed
+  arc" reading in this file is now suspect on the same grounds, and the
+  fifteen-actions denominator says why: the population of *unexercised* is
+  eleven, and `OpenTicket` was effectively in it.
+- **`GenerateCases` is now joint-worst at 5** and two of the five are damage
+  from its own repairs — `E-02` from `#301`, `E-04` from a refusal message added
+  in the same family. **An action whose fixes generate its next findings is the
+  concentration signal `regression_architecture.md` step 5 exists for.**
+- **`UNMODELED` did not grow this round.** All four findings anchored. That is
+  the first round where the model reached everything found.
+
+### The findings the verification found
+
+**`E-02` was not one defect and fixing it produced two more.** Verifying a fix by
+running the thing is the only reason any of this surfaced; the assertion alone
+would have shipped.
+
+| id | what | state |
+|---|---|---|
+| `E-05` | The RC-02 refusal **named the wrong flag** — it said *"point `--out` at ..."* when `--dot` was what failed, and handed the reader advice for an option they had already set correctly | **FIXED.** Both refusals now name the failing flag, and a file path gets file-shaped advice |
+| `E-06` | Regenerating the example **deletes 8 tracked files and writes their replacements where `.gitignore` hides them.** `VIEW_OUTPUT_DIRS` says `spec-unit`, the committed corpus is at `spec_unit`, and the generator clears its root first. Exit 0, success message, `git status` shows deletions only | **FILED**, not fixed — the fix is a decision about whether that corpus is committed or generated |
+
+**`E-05` is the sharpest of the round.** `#301` existed to put the remedy in the
+refusal, and it was verified working — a blind agent said *"the error message
+named the exact constraint and gave a concrete example path, which worked
+unmodified."* **That verification was run on `--out`.** The same fix, on the
+sibling flag it also constrained, sent the reader to the wrong option. **A fix
+measured on one of the two paths it changed is a fix measured on half of
+itself**, and the half that was not measured is where the defect was.
+
+### And a BLIND on the pin, caught before it shipped
+
+The first version of `tests/test_example_drivers_write_inside_spec_tree.py`
+caught bare `Exception`, called the resolver with the wrong arity, and **reported
+the resulting `TypeError` as though it were the finding.** It would have gone
+green the moment the arity was right, whatever the path resolved to.
+
+That is this project's own BLIND class pointed at the instrument built to close
+a CATCH. **Third occurrence of the shape**, after the `safe_dump` differential
+and `history-archive-excludes`. Repaired by catching only `SpecTreePathError`,
+and verified by checking the pin goes **red on the old value and green on the
+new** — a pin never observed failing is a claim, per §3.
+
+---
+
 ## Carry-through, which is the whole difficulty
 
 **When the architecture is refactored, the TLA+ is refactored — and at that
@@ -106,6 +224,14 @@ inference over history.
 2026-08-29  Model read for its full action list: 15 declared, 4 populated. No row
             carried or dropped -- the model did not change, only what is known
             about it did. Carry-through STILL untested.
+2026-08-29  Round 2 (T1, T3 blind). Four findings, ALL ANCHORED -- no row
+            carried or dropped, the model did not change. OpenTicket's "closed
+            arc" reading WITHDRAWN: the arc was never closed, it was unexercised.
+            Carry-through STILL untested.
+2026-08-29  Verifying the E-02 fix produced E-05 and E-06, both GenerateCases.
+            Six findings this round, ALL ANCHORED, none UNMODELED -- the first
+            round where the model reached everything found. No row carried or
+            dropped. Carry-through STILL untested.
 ```
 
 Each future entry records: the model change, and per affected row —
