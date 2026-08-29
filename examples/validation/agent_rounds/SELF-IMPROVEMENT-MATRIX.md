@@ -59,6 +59,37 @@ reported clean on.
 
 ---
 
+## The denominator nobody had written down
+
+**`TlaSpecDevCli.tla` declares fifteen actions in `Next`. This matrix populates
+four.**
+
+```
+BuildSkillCli    InstallLocalCli    ScaffoldProject    RecordBudgets
+ScaffoldWorkflow  *OpenTicket*      UpdateTicketDesired  UpdateTicketCurrent
+*AnalyzeComplexity*  AnalyzeCorpus  *GenerateCases*    RunEffectConformance
+RunSpecUnitTests  *CloseTicket*     CloseTicketWeakened
+```
+
+`*starred*` = has ever carried a finding. **The other eleven have not**, and the
+matrix cannot tell you which kind of eleven those are.
+
+**This is §1 of `references/bug_attribution.md` restated one level up.** An
+action that is genuinely clean and an action nobody has ever exercised produce
+**the identical empty row**. The four populated ones are simply the four an
+agent happened to touch this month — they are a record of attention, not of
+defect density.
+
+**It is not an argument for filling them in.** It is the argument for the column
+this matrix does not have — a denominator — and for the reading rule that
+follows from not having it: **every empty row is UNDECIDED, never clean.**
+
+Measured 2026-08-29 against `specs/program_model/TlaSpecDevCli.tla`. Channel:
+`operator-running-own-instrument` — a grep over the `Next` disjuncts, thrown
+away. **A hand catch wearing a script**, per §4.1.
+
+---
+
 ## Carry-through, which is the whole difficulty
 
 **When the architecture is refactored, the TLA+ is refactored — and at that
@@ -72,6 +103,9 @@ inference over history.
 2026-08-29  PR #307 unioned with main's parser. Model unchanged, so NO ROW MOVED.
             UNMODELED gained 4 escapes. Carry-through still untested: nothing has
             refactored the model since the matrix opened.
+2026-08-29  Model read for its full action list: 15 declared, 4 populated. No row
+            carried or dropped -- the model did not change, only what is known
+            about it did. Carry-through STILL untested.
 ```
 
 Each future entry records: the model change, and per affected row —
