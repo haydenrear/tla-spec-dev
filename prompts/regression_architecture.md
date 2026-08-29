@@ -63,24 +63,62 @@ easiest way to make this prompt lie. Then the current matrix.
 > recommend churn**, and an action that has stopped producing escapes is the
 > result the whole programme is for.
 >
+> **3b. Which actions can the test graph not drive?** For each action carrying
+> escapes, say whether a **binding** exists for it — an entry naming an adapter,
+> a projector and an assertion, so that TLC-derived cases can drive it and a node
+> can go red. An action with escapes and **no binding** is the pair this step
+> exists to find: **defects are arriving there and nothing is pointed at it.**
+>
+> This is REACH asked of the model instead of an invariant, so the same rule
+> governs it — an empty unbound-list is a **claim** and must say how it
+> enumerated, or it is `UNDECIDED`.
+>
 > **4. Say what you could not see, before you suggest anything.** How many
 > records carry no attribution? How many areas have no denominator — that is, you
 > know the escapes but not how many times the area was exercised? **An area with
 > one escape in two invocations and one with one escape in a hundred look
-> identical in this matrix.** If the record is too thin to support a conclusion,
-> say so and stop at step 4.
+> identical in this matrix.** **And how many actions did you not check for a
+> binding?** If the record is too thin to support a conclusion, say so and stop
+> at step 4.
 >
-> **5. For the action with the most repeated escapes — is it too complex, and
-> is it time to refactor it?** Not a check, not a lint, not more tests. **What
-> about the SHAPE of that action makes bugs there hard to catch automatically?**
-> Shapes worth naming: a rule enforced on one path and not the identical path
-> beside it; a seam where two mechanisms meet and neither owns the boundary; a
-> green that passes because it could not look; an action carrying bookkeeping
-> that has nothing to do with what it means.
+> **5. For the action with the most repeated escapes — TWO responses, and say
+> which.** There are exactly two. **They point in opposite directions, and the
+> value of this step is that you must pick one and say why the other is wrong
+> here.**
 >
-> **Because the anchor is the model, the refactor is a MODEL refactor.** Say
+> > **(a) REDUCE — the action is too complex.** What about the SHAPE of that
+> > action makes bugs there hard to catch automatically? Shapes worth naming: a
+> > rule enforced on one path and not the identical path beside it; a seam where
+> > two mechanisms meet and neither owns the boundary; a green that passes
+> > because it could not look; an action carrying bookkeeping that has nothing to
+> > do with what it means. **This shrinks the model surface.**
+> >
+> > **(b) EXPAND — the model cannot see it.** The escapes arrive by hand because
+> > **nothing at that location can go red**. Model the behaviour the defects are
+> > landing in — as a new action, or as more of an existing one — and add the
+> > binding that drives it. **This grows the model surface.**
+>
+> **Choose by what the record says, not by which is cheaper.** Repeated escapes
+> at an action the graph *can* drive argue for **(a)**: the instrument is there
+> and the shape is defeating it. Repeated escapes at an action with **no
+> binding** argue for **(b)**: nothing has ever looked, and simplifying a place
+> you cannot observe is guessing.
+>
+> **If (b) is not cheap, say so — that is an answer, not a blocker.** Name what
+> about the code makes it hard to drive. **That is a refactor proposed for
+> OBSERVABILITY, and it is a different claim from a refactor for simplicity** —
+> keep them distinct, because they compete.
+>
+> **Because the anchor is the model, either response is a MODEL change.** Say
 > what the action would become in the TLA+, and therefore which rows of the
-> matrix would be carried and which dropped.
+> matrix would be carried, dropped or split.
+>
+> **5a. If your proposal changes the model, show the arithmetic.** Findings are
+> conserved — `references/bug_attribution.md` §7b. State `findings before` and
+> `findings after` and where each affected finding re-anchors. **They must be
+> equal.** A proposal that appears to reduce a count by removing the place the
+> count lives has reduced nothing, and these two numbers make that visible
+> without anyone having to suspect you of it.
 >
 > **6. Price it forward and do not choose it.** State what the change would
 > cost — surfaces touched, roughly how much moves, what behaviour changes, and
@@ -94,6 +132,23 @@ easiest way to make this prompt lie. Then the current matrix.
 > tests" for an area that escapes; if the instruments were blind, more of them
 > are blind too. Do not fill an empty field with an inference: an absent record
 > is an absent record, and saying so is the useful answer.
+>
+> **Response (b) is not an exception to that, and the difference is not one of
+> degree:**
+>
+> - **Duplication** is a second instrument where one already stands, or an
+>   assertion written to catch **the specific defect that already happened**.
+>   That is `MF-020` — a recogniser fitted to a known answer — and it is
+>   forbidden here whatever it is called.
+> - **A binding** drives an action against **the model's own expectations**, from
+>   TLC-derived cases. It is derived from the specification, not from the
+>   finding. At an action with no binding it duplicates nothing: it is the
+>   **first** instrument at that location.
+>
+> **The test is whether you could have written it before the bug existed.** A
+> binding, yes — the model already said what the action does. An assertion shaped
+> around the failure you just read, no. **If you cannot tell which you are
+> proposing, you are proposing the second one.**
 
 ---
 
@@ -107,6 +162,13 @@ Score it against four things before acting on any of it:
 3. **Is anything gating on it?** Nothing may refuse on this output. §5.
 4. **Did it propose a checker?** If so it ignored the one instruction with a
    measured reason behind it, and that is a finding about the prompt.
+5. **Did it pick a response and say why the other was wrong?** An output that
+   describes both and commits to neither has not done step 5. An output that
+   picked **(a)** for an action it never checked for a binding picked the
+   shrinking response without establishing anything had ever looked — the one
+   ordering this prompt exists to prevent.
+6. **If the model moves, do the two totals match?** They are the only place a
+   removed row could go missing, and checking them costs one addition.
 
 **Then record the suggestion in the matrix with its declared price**, `OPEN`
 until the owner decides. A suggestion refused with a reason is consumption; a

@@ -299,6 +299,66 @@ one with one escape in a hundred look identical in the matrix. Until a round
 carries per-area invocation counts, a concentration in that table may be a
 concentration of attention rather than of defects.
 
+## 7b. CONSERVATION — what happens to findings when the model changes
+
+**The model may shrink. The record may not.**
+
+This is the whole rule, and it exists because the matrix anchors findings to
+TLA+ actions, which makes the model a place where counts live — and anything
+that holds a count can be improved by editing the container instead of the
+contents.
+
+**There is no prohibition here and there should not be one.** Reducing
+complexity where defects aggregate is one of the two responses this programme
+wants, and it legitimately removes model surface. A ban on removal would put
+that response in direct conflict with the record that motivates it. So removal
+stays available and is made *pointless* instead:
+
+> **Total findings is invariant under any model change. Only their distribution
+> moves.**
+
+Drop an action and its findings re-anchor — to whatever absorbed the behaviour,
+or to `UNMODELED`. Merge two and the rows add. Split one and the parts sum to
+the whole. **Nothing evaporates**, and a reader checks it by summing a column.
+
+### Why arithmetic and not a rule against deleting
+
+**Spreading findings across more of the model and hiding a concentration are the
+same edit.** Both split a heavy row into light ones; both are a diff that adds
+actions. No prohibition can separate them, because there is nothing in the
+change itself to separate. The sum can: after a legitimate split the parts still
+add to the original, and the concentration is visibly redistributed rather than
+reduced.
+
+That also disposes of the four quieter versions of the same move — **merge**,
+**widen an action's meaning until the bug is not in it**, **re-anchor to
+`UNMODELED`**, and **drop**. Under conservation all four are relabelling, and
+relabelling does not change a total.
+
+### What a model change must therefore record
+
+Every model change is recorded in the matrix's carry-through log, and each
+affected row says **carried**, **dropped** or **split/merged** — that part is
+unchanged. Conservation adds one line to the entry:
+
+```
+findings before: N    findings after: N    (re-anchored: <id> -> <new anchor>, ...)
+```
+
+**If the two numbers differ, the entry is wrong**, and it is wrong in a way that
+is visible without reading any of the prose around it.
+
+### The corollary, which is the point of the whole loop
+
+A proposal that reduces an action's escape count **by removing the action** has
+reduced nothing, and under conservation it cannot even appear to. So the only
+way the count at an action falls is the honest one: **something started catching
+the defects before they escaped.**
+
+That is what makes "fewer escapes" mean anything, and it is why this rule sits
+next to PRICE rather than in a governance section. It is not a control. It is
+the thing that makes the measurement mean what it says.
+
 ## 8. What this page deliberately does not do
 
 - **It does not gate.** Nothing refuses, nothing blocks a close, no exit code

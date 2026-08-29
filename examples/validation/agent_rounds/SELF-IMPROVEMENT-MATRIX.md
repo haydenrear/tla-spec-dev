@@ -208,6 +208,48 @@ new** — a pin never observed failing is a claim, per §3.
 
 ---
 
+## The second response: can the graph even look there?
+
+**Escapes at an action say one of two things, and the matrix could not tell them
+apart until now:** the instrument is there and the action's shape is defeating
+it, or **nothing at that location can go red.** Those want opposite repairs —
+*reduce* the complexity, or *expand* the model and bind it — so the difference
+has to be measured before either is proposed.
+
+Measured 2026-08-29 against `specs/program_model/`:
+
+| layer | bound | of | note |
+|---|---|---|---|
+| spec-unit | **15** | 15 | every action has an adapter in `case_adapters.toml` |
+| **test graph / external** | **0** | 15 | **no `testgraph_bindings.yml` exists, and no external view exists to bind** |
+
+**Every escape in this matrix is at an action the Test Graph cannot drive.**
+Not one of them — `CloseTicket` at 4, `GenerateCases` at 7, `OpenTicket` at 2 —
+sits at a location where a Test Graph node could have gone red, because the
+view split the external layer needs was never built.
+
+And the reason is already recorded, which makes this the honest branch rather
+than a new complaint. From `spec_manifest.yaml`:
+
+> `MF-023` (concluded epic) measured modularity **Q=0.012**, found **no clean
+> cut**, and deliberately did **not** decompose; the baseline is a single
+> `TlaSpecDevCli.tla` module and **the view split is unscoped future work.**
+
+**So the record argues for response (b), and response (b) is expensive.** That
+is exactly the branch the workflow describes: not cheap → name what makes it
+hard to drive, price it forward, hand it up. It is not a blocker and it is not a
+finding against `MF-023`, whose decision was measured and is on the page.
+
+**What it does settle is an ordering.** Proposing *reduce* for `GenerateCases`
+would be simplifying an action at the external layer that nothing has ever
+observed at the external layer — and `E-02`, `E-05` and `E-06` all surfaced from
+**running** the thing rather than asserting about it, which is the signature of a
+place with no standing instrument. **The shrinking response is the wrong one to
+reach for first here**, and before this measurement existed there was nothing in
+the matrix that would have said so.
+
+---
+
 ## Carry-through, which is the whole difficulty
 
 **When the architecture is refactored, the TLA+ is refactored — and at that
@@ -232,12 +274,40 @@ inference over history.
             Six findings this round, ALL ANCHORED, none UNMODELED -- the first
             round where the model reached everything found. No row carried or
             dropped. Carry-through STILL untested.
+2026-08-29  Binding coverage measured for the first time: 15/15 actions bound at
+            spec-unit, 0/15 at the test graph / external layer. No model change,
+            so nothing carried or dropped.
+            findings before: 21    findings after: 21    (re-anchored: none)
+            Carry-through STILL untested -- but the arithmetic line starts here.
 ```
 
 Each future entry records: the model change, and per affected row —
 **carried** (the action survived under a new name; escapes carry with it),
-**dropped** (the action is gone; the escapes are historical and stop
-accumulating), or **split/merged** (with the reason).
+**dropped** (the action is gone; its findings **re-anchor**, to whatever
+absorbed the behaviour or to `UNMODELED`), or **split/merged** (with the
+reason).
+
+**And every entry states the arithmetic, because findings are conserved:**
+
+```
+findings before: N    findings after: N    (re-anchored: <id> -> <anchor>, ...)
+```
+
+**If the two numbers differ the entry is wrong**, and it is wrong in a way a
+reader catches by addition rather than by suspicion.
+
+**There is no rule against removing an action, and there should not be one.**
+Reducing complexity where defects aggregate is one of the two responses this
+programme wants, and it legitimately removes model surface — a ban would put
+that response in conflict with the record that motivates it. Conservation makes
+removal **harmless** rather than forbidden.
+
+It also disposes of the quieter versions of the same move. **Spreading findings
+across more of the model and hiding a concentration are the same edit** — both
+split a heavy row into light ones. No prohibition can separate them; the sum
+can. Merge, widen-until-the-bug-is-not-in-it, and re-anchor-to-`UNMODELED` all
+reduce to relabelling under the same arithmetic, and relabelling does not change
+a total. See `references/bug_attribution.md` §7b.
 
 **Nothing parses history.** Sealed epics are not re-read to rebuild this file.
 The pointers are finding and issue IDs, and they stay resolvable because they are
