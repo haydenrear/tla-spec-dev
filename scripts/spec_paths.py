@@ -172,8 +172,18 @@ def resolve_spec_tree_out(
             f"{SPEC_TREE_DIR_NAME}/ directory and keep only exported artifacts "
             "(traces, reports) under your own report directory. "
             + (
+                # E-07: this example used to be RELATIVE. A relative --out falls
+                # back to `spec_dir / path` (resolve_spec_relative_path), so an
+                # operator following the remedy verbatim from the repo root got
+                # the corpus in a NESTED specs/ inside the model directory --
+                # measured in round 2, T4. The remedy now shows the absolute
+                # form, which is the only one that means what it looks like.
                 "A Test Graph node generating into its build tree wants "
-                f"--out {SPEC_TREE_DIR_NAME}/generated/testgraph/<run-id>."
+                f"--out <spec-root>/{SPEC_TREE_DIR_NAME}/generated/testgraph/"
+                "<run-id> -- pass it ABSOLUTE. A relative --out is resolved "
+                "against the SPEC DIRECTORY, not your current directory, so a "
+                f"relative `{SPEC_TREE_DIR_NAME}/...` lands in a nested "
+                f"{SPEC_TREE_DIR_NAME}/ inside the model."
                 if not is_file
                 # A file path cannot take the directory example above, and the
                 # reason it is constrained at all is the destructive one:

@@ -23,7 +23,7 @@ real row, not a leftover — see below.
 | anchor | escaped to hand | pinned | unpinned | findings | reading |
 |---|---|---|---|---|---|
 | `TlaSpecDevCli.CloseTicket` | **4** | 1 | 3 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
-| `TlaSpecDevCli.GenerateCases` | **7** | **4** | 3 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
+| `TlaSpecDevCli.GenerateCases` | **8** | **5** | 3 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06`, `E-07` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
 | `TlaSpecDevCli.OpenTicket` | **2** | 1 | 1 | `#299`, `E-01` | **was read as a closed arc; round 2 reopened it.** `E-01` is a conformance violation against a guard the model calls structural |
 | `TlaSpecDevCli.AnalyzeComplexity` | 1 | 0 | 1 | `F-07` | cosmetic; unpinned by choice |
 | **`UNMODELED/yaml-parser`** | **7** | 11 | 0 | `#298`, `#307`, `#308` | infrastructure beneath every action; no anchor exists. **7 of 21 findings in the whole record.** Disposition: **`MODELABLE`** — see below |
@@ -248,6 +248,56 @@ place with no standing instrument. **The shrinking response is the wrong one to
 reach for first here**, and before this measurement existed there was nothing in
 the matrix that would have said so.
 
+### T4, and a defect inside the fix for a defect
+
+**`T4-read-a-refusal` predicted CHEAP, 2 trips.** Measured: **3 round trips**, and the
+control held — `#301`'s remedy cleared the refusal on the first try, followed
+verbatim.
+
+**`E-05` is confirmed fixed by an agent that did not know it had been made.** The
+refusal named `--out`, and `--out` was the flag that had actually failed. That is
+the second time this round a repair was verified by somebody blind to it.
+
+**And the same run found `E-07`, in the string I had just edited.**
+
+The remedy's example was **relative** — `--out specs/generated/testgraph/<run-id>`.
+But `resolve_spec_relative_path` falls back to `spec_dir / path`, so an operator
+following the remedy verbatim from the repo root lands the corpus in
+`.../specs/program_model/specs/generated/...` — **a nested `specs/` inside the
+model directory.** The agent followed it exactly and said so:
+
+> the remedy is literally correct (it satisfies the RC-02 check) but
+> under-specified about placement.
+
+**The tool is not silent about it** — a `note:` prints the real resolution and says
+to pass an absolute path. So the run emits **the remedy and its own correction in
+the same output**, which is worse than either alone. **FIXED:** the remedy now
+shows the absolute form and states the resolution rule.
+
+**`E-05` and `E-07` are one class seen twice.** `#301` put the remedy in the
+refusal and was verified working — on `--out`, with an absolute path. **The flag
+it also constrained and the path form it recommends were both unverified**, and a
+defect was sitting in each. *A fix is only measured on the paths the measurement
+actually walked.*
+
+### And a second wall the remedy does not mention
+
+Following the remedy to completion wrote a full case package and then hit an
+**unrelated refusal**: `178,484` cases per action against
+`max_external_cases_per_action: 200`. **The remedy chain is not complete** — doing
+what the first refusal says leads to a second one it never mentions, with a
+corpus already on disk. Same shape as `E-04`, where a refusal's remedy steered
+into a collision. Not filed separately: it is the budget gate doing its job, and
+the finding is about the *sequence*, not the gate.
+
+### What was NOT the toolchain
+
+The agent overran its 8-step budget to ~14, and **said why**: two wait-loops whose
+`pgrep` pattern matched themselves and never terminated. **That is agent error,
+not toolchain cost**, and it is recorded here rather than counted as an escape —
+`F-01` was withdrawn for exactly this confusion, where two of three trips blamed
+on the close gate turned out to be the author's own.
+
 ---
 
 ## The bins — where findings accumulate outside the model
@@ -343,6 +393,9 @@ inference over history.
             so nothing carried or dropped.
             findings before: 21    findings after: 21    (re-anchored: none)
             Carry-through STILL untested -- but the arithmetic line starts here.
+2026-08-29  T4 run. E-05 CONFIRMED FIXED by a blind agent; E-07 found in the same
+            string and fixed. GenerateCases 7 -> 8. No model change.
+            findings before: 22    findings after: 22    (re-anchored: none)
 ```
 
 Each future entry records: the model change, and per affected row —
