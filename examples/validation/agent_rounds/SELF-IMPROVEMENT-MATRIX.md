@@ -26,9 +26,10 @@ real row, not a leftover — see below.
 | `TlaSpecDevCli.GenerateCases` | 3 | 2 | 1 | `#300`, `#301`, `F-06` | two fixed and measured working; the silent-zero half is still open |
 | `TlaSpecDevCli.OpenTicket` | 1 | 1 | 0 | `#299` | closed arc |
 | `TlaSpecDevCli.AnalyzeComplexity` | 1 | 0 | 1 | `F-07` | cosmetic; unpinned by choice |
-| **`UNMODELED`** — the constrained YAML parser | 3 | 7 | 0 | `#298` | infrastructure beneath every action; no anchor exists |
+| **`UNMODELED`** — the constrained YAML parser | **7** | 11 | 0 | `#298`, `#307` | infrastructure beneath every action; no anchor exists. **Now 7 of 13 findings in the whole record.** |
 
-**8 of 9 findings anchored to a declared action. 1 did not.**
+**11 of 15 findings anchored to a declared action. 4 did not — and all four are
+the same unanchored row.**
 
 ---
 
@@ -38,10 +39,23 @@ real row, not a leftover — see below.
 does not reach.** A model that claims to represent the program, and to which
 most bugs cannot be attached, is not representing the program.
 
-At 1 of 9 the model is doing well. **If that ratio grows, the finding is not
-"file the bug better" — it is that the model has stopped covering the code**, and
-the response is to extend the model or to stop calling it the semantic
-representation. Either is honest; drifting is not.
+It was 1 of 9. **After `#307` it is 4 of 15, and every one of the four is the
+same row.** The ratio is not drifting across the model — it is concentrating in
+one place the model does not describe at all, and that is a sharper statement
+than the ratio alone.
+
+**The parser has now produced 7 of the project's 13 recorded findings while
+sitting outside the model entirely.** If any single fact justifies extending the
+model, it is that one. The alternative is honest too — say the parser is
+infrastructure the model deliberately does not cover — but it must be said,
+because at 7 findings it is no longer a rounding error.
+
+**And a detection channel arrived that this matrix has no column for.** Two of
+the four new findings were caught by neither the graph, the suite, nor a hand:
+they were caught by **running two independent implementations against each
+other's corpora**. That is not `automated`, `hand` or `reading`. It is
+cross-implementation disagreement, and it found defects both parsers' own tests
+reported clean on.
 
 ---
 
@@ -55,6 +69,9 @@ inference over history.
 ```
 ## Carry-through log
 2026-08-28  matrix opened. Model unchanged. No rows carried or dropped.
+2026-08-29  PR #307 unioned with main's parser. Model unchanged, so NO ROW MOVED.
+            UNMODELED gained 4 escapes. Carry-through still untested: nothing has
+            refactored the model since the matrix opened.
 ```
 
 Each future entry records: the model change, and per affected row —
@@ -86,6 +103,15 @@ Three questions, at the epic goal / scorecard / evaluation and at planning:
 
 - **No denominators.** Escapes are counted; how often each action was exercised
   is not. A concentration may be attention rather than defects.
+- **A blind instrument reported clean, twice.** The differential passed over
+  every manifest in this repository while the parser was wrong about
+  `safe_dump` output, because no file here has that shape. **It passed because
+  it could not look** — the same `BLIND` class this matrix already records
+  against the suite, now recorded against the instrument built to catch it. The
+  repair was to generate the input rather than sample the corpus.
+- **The channel vocabulary is short one value.** Cross-implementation
+  disagreement is not `automated`, `hand` or `reading`, and it produced two
+  findings this round.
 - **No era column.** An action repaired three epics ago reads like one still
   bleeding, and `acted on` is a claim nobody has re-measured.
 - **n = 5 anchors, one session, one model.** Nothing here supports a trend.

@@ -105,12 +105,22 @@ instrument or by a hand?"* is answered by finding the token in this table. **No
 | `operator-running-a-shipped-instrument` | **automated** | a standing instrument reported it; a person invoked it |
 | `operator-doing-the-work` | **hand** | found while doing something else |
 | `operator-running-own-instrument` | **hand** | a probe written for the occasion and thrown away |
+| `cross-implementation` | **automated** | two implementations of the same contract disagreed — **new**, and see below |
 | `census` | **reading** | a systematic sweep of the record |
 | `independent-review` | **reading** | a reviewer reading the change |
 | `blind-judges` | **reading** | a scored card's judge |
 
 **The line between `automated` and `hand` is one question:** *would it catch this
-again tomorrow, with nobody watching?* That is why
+again tomorrow, with nobody watching?*
+
+**`cross-implementation` is `automated` by that question and is worth its own
+token because nothing else finds what it finds.** It was added after two
+independently-written fixes to the same YAML parser were run against each
+other's corpora and each turned out to be wrong in ways its own tests reported
+clean on — then two further defects surfaced that had survived both. A single
+implementation cannot produce this signal at any budget, and the only
+prerequisite is that a second implementation of the same contract exists.
+`PyYAML` is that second implementation here; `#298` and `#307` are the record. That is why
 `operator-running-a-shipped-instrument` is automated — the instrument stands —
 and `operator-running-own-instrument` is **hand** — the probe does not. **A
 throwaway probe that found a real bug is a hand catch wearing a script.**
