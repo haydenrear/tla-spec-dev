@@ -26,7 +26,7 @@ real row, not a leftover — see below.
 | `TlaSpecDevCli.GenerateCases` | **7** | **4** | 3 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
 | `TlaSpecDevCli.OpenTicket` | **2** | 1 | 1 | `#299`, `E-01` | **was read as a closed arc; round 2 reopened it.** `E-01` is a conformance violation against a guard the model calls structural |
 | `TlaSpecDevCli.AnalyzeComplexity` | 1 | 0 | 1 | `F-07` | cosmetic; unpinned by choice |
-| **`UNMODELED`** — the constrained YAML parser | **7** | 11 | 0 | `#298`, `#307` | infrastructure beneath every action; no anchor exists. **Now 7 of 13 findings in the whole record.** |
+| **`UNMODELED/yaml-parser`** | **7** | 11 | 0 | `#298`, `#307`, `#308` | infrastructure beneath every action; no anchor exists. **7 of 21 findings in the whole record.** Disposition: **`MODELABLE`** — see below |
 
 **11 of 15 findings anchored to a declared action. 4 did not — and all four are
 the same unanchored row.**
@@ -250,6 +250,70 @@ the matrix that would have said so.
 
 ---
 
+## The bins — where findings accumulate outside the model
+
+**`UNMODELED` is not one place.** It is a space of named bins, and the name was
+already being collected: every unanchored finding has to say *what it sits
+beneath*. Grouping by that string costs nothing new and is the difference
+between *"seven findings, one gap"* and *"seven findings, five gaps"* — which
+want different answers.
+
+| bin | findings | disposition | blocker / note |
+|---|---|---|---|
+| `UNMODELED/yaml-parser` | **7** | **`MODELABLE`** | Nothing is stopping it. It is a deterministic parser with a total function from text to data — **the easiest thing in this repository to model.** Accumulating here is now a *choice*, and this row exists to make that choice visible |
+| `UNMODELED/skill-composition` | 0 | **`DEFERRED`** | **Blocker: no runner exists that can drive several skills composed inside one plugin end to end.** Opened empty and deliberately — the bin is declared before its findings arrive, so the first one lands somewhere rather than being pooled |
+
+### The disposition is not in-scope / out-of-scope
+
+A bin carries a claim about **representability**, and there are four —
+`MODELABLE`, `DEFERRED`, `RECORD-ONLY`, `UNDECIDED`. A new bin is `UNDECIDED`
+until somebody classifies it, per §3's absent-input rule. See
+`references/bug_attribution.md` §7c.
+
+**`DEFERRED` is the case the vocabulary exists for.** Bugs in prompts, in skills,
+and in the composition of several skills inside one plugin are real and they
+recur — and **no test graph binding can drive them today.** They are not out of
+scope, and they are not modelable now. They are waiting on a runner that does not
+exist, and *that sentence is the record.*
+
+### Three rules that keep a bin from becoming a wastebasket
+
+1. **A bin accumulates regardless of disposition.** Deferral is not closure, and
+   nothing is ever moved into a disposition in order to stop counting it.
+2. **A `DEFERRED` blocker is re-read every round.** Capability now exists and the
+   bin did not move? **That is a finding — about the record, not the code.**
+3. **A growing `DEFERRED` bin is a PRICE on the missing capability.** It says
+   what deferring has cost so far, in findings, and that is the evidence the
+   capability gets built on. It is `gate_passed: False` on 16 of 16 runs,
+   avoided — a cost measured **against** something.
+
+### Why this closes a hole conservation could not see
+
+§7b makes **removing from the model** harmless: findings are conserved.
+
+The version conservation cannot see is **refusing to add** — *"that's just
+infrastructure"* — which reaches the same silence without ever touching the
+model. So the escape is not blocked, it is made **loud**: the refusal becomes a
+named bin, with a disposition, that keeps counting. **A decision not to model
+something stays visible and re-reviewable instead of being the quiet way to stop
+a number growing.**
+
+**And a bin still feeds the architecture read.** A bin that can never be modeled
+can still say an area is too complex. `RECORD-ONLY` is a claim about
+representation, never about relevance.
+
+### The standing test
+
+`UNMODELED/yaml-parser` is `MODELABLE` and has produced **7 of the project's 21
+findings while sitting outside the model entirely.** If this loop works, that bin
+is the first thing it moves — and when it does, conservation does real work for
+the first time: 7 findings re-anchor **out** of the bin and **into** the new
+action, totals equal before and after. **If a round leaves it at 7 and
+`MODELABLE`, the loop did not work, and that is the honest first measurement of
+it.**
+
+---
+
 ## Carry-through, which is the whole difficulty
 
 **When the architecture is refactored, the TLA+ is refactored — and at that
@@ -325,7 +389,11 @@ Three questions, at the epic goal / scorecard / evaluation and at planning:
 2. **What is working?** `OpenTicket` is a closed arc. `GenerateCases` had a fix
    measured as working by an agent that did not know it had been made. **A matrix
    that only records problems will recommend churn.**
-3. **Is `UNMODELED` growing?**
+3. **Which bins are growing, and what is each waiting for?** `UNMODELED` is a
+   space of named bins, not one number — see "The bins". A `MODELABLE` bin that
+   grows is a decision being deferred without saying so; a `DEFERRED` bin that
+   grows is **the price of a capability nobody has built yet**, and that is the
+   most actionable thing this matrix produces.
 
 ---
 

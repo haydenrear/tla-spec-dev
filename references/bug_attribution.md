@@ -359,6 +359,84 @@ That is what makes "fewer escapes" mean anything, and it is why this rule sits
 next to PRICE rather than in a governance section. It is not a control. It is
 the thing that makes the measurement mean what it says.
 
+## 7c. SEMANTIC BINS — where findings accumulate outside the model
+
+**`UNMODELED` is not one place. It is a space of named bins**, and the name is
+already being collected: §7a requires every unanchored finding to *say what it
+sits beneath*, and refuses to let an action be stretched to cover it. That string
+is the bin. **Nothing new is recorded here** — what is new is that findings are
+grouped by it instead of pooled.
+
+```
+UNMODELED/<bin>          e.g.  UNMODELED/yaml-parser
+                               UNMODELED/skill-composition
+```
+
+**Why grouping is the whole point.** Seven findings pooled in `UNMODELED` reads
+as one gap. Seven findings in one bin is a gap with a shape; seven across five
+bins is a model that is thin everywhere. **Those want different answers, and the
+pooled count cannot tell them apart.**
+
+### The disposition of a bin, which is NOT in-scope / out-of-scope
+
+A bin is not waiting for a yes/no about whether it belongs in the model. It is
+carrying a claim about **representability**, and there are four:
+
+| disposition | means | what the bin is waiting for |
+|---|---|---|
+| `MODELABLE` | this could be an action today; nothing is stopping it | **a decision.** Accumulating here is now a choice, and it is the choice §7a's `UNMODELED` number exists to make visible |
+| `DEFERRED` | representable in principle, **not validatable with what exists** | a **named capability**, not a mood. *"No runner exists that can drive a multi-skill plugin end to end"* is a blocker. *"Hard to test"* is not |
+| `RECORD-ONLY` | not expected to become an action | nothing. It accumulates because **the accumulation is evidence about the architecture**, which is useful whether or not it ever becomes a model element |
+| `UNDECIDED` | nobody has classified it | classification. **This is the default for a new bin** — §3, an absent input is `UNDECIDED`, never a PASS |
+
+**`DEFERRED` is the case this section exists for.** Bugs in prompts, in skills,
+and in the composition of several skills inside one plugin are real, they
+recur, and **no test graph binding can drive them today.** They are not out of
+scope and they are not modelable-now. They are waiting on a runner that does not
+exist yet, and *that sentence is the record* — not a shrug, and not a deletion.
+
+### Three rules, and they are what keep a bin from being a wastebasket
+
+1. **A bin accumulates regardless of disposition. Deferral is not closure.** A
+   `DEFERRED` or `RECORD-ONLY` bin keeps counting forever. Nothing is ever moved
+   into a disposition in order to stop counting it.
+
+2. **A `DEFERRED` bin's blocker is re-read every round.** If the named capability
+   now exists and the bin did not move, **that is a finding** — about the record,
+   not the code.
+
+3. **A growing `DEFERRED` bin is a PRICE on the missing capability.** This is the
+   useful output and it is the reason deferral is worth writing down rather than
+   waving at: the bin says *what deferring has cost so far*, in findings, and
+   that is the evidence the capability gets built on. It is `gate_passed: False`
+   on 16 of 16 runs, avoided — **a cost measured against something.**
+
+### The degeneracy this closes, which is the twin of §7b's
+
+§7b makes **removing from the model** harmless, because findings are conserved.
+
+The version conservation cannot see is **refusing to add** — *"that is just
+infrastructure"* — which achieves the same silence and never touches the model at
+all. So the escape is not blocked; it is made **loud**: the refusal becomes a
+named bin, with a disposition, that **keeps counting.** A decision not to model
+something stays visible and re-reviewable instead of being the quiet way to make
+a number stop growing.
+
+### And a bin still feeds the architecture read
+
+**A bin that can never be modeled can still say an area is too complex.** The
+inability to represent something in TLA+ does not remove it from the record and
+does not exempt it from response **(a)**. `RECORD-ONLY` is a statement about
+*representation*, never about relevance.
+
+### When a bin becomes an action
+
+Conservation — §7b — does real work here for the first time. The bin's findings
+**re-anchor out of `UNMODELED/<bin>` and into the new action**; the totals before
+and after are equal. **That is what proves the extension absorbed the history
+rather than restarting the count**, and it is the difference between extending
+the model and quietly opening a fresh one.
+
 ## 8. What this page deliberately does not do
 
 - **It does not gate.** Nothing refuses, nothing blocks a close, no exit code

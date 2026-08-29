@@ -43,10 +43,16 @@ easiest way to make this prompt lie. Then the current matrix.
 > assertion now pins it. A regression found by hand and pinned by an assertion is
 > the full arc; say which arcs are incomplete and where they stopped.
 >
-> **If a regression does not fit any declared action, anchor it `UNMODELED` and
-> say what it sits beneath.** Do not stretch an action to cover it. The size of
-> `UNMODELED` is a measurement of how much of the real bug surface the semantic
-> model does not reach, and stretching destroys exactly that number.
+> **If a regression does not fit any declared action, anchor it
+> `UNMODELED/<bin>`** — where `<bin>` is what it sits beneath, named. Do not
+> stretch an action to cover it. The size of `UNMODELED` measures how much of the
+> real bug surface the semantic model does not reach, and stretching destroys
+> exactly that number.
+>
+> **Group by the bin; never pool.** Seven findings pooled reads as one gap. Seven
+> in one bin is a gap with a shape; seven across five bins is a model that is
+> thin everywhere. **The pooled count cannot tell those apart**, and they want
+> different answers.
 >
 > **2. Update the matrix, per anchor:** escaped to hand, pinned, still unpinned,
 > and the finding IDs. **Append and amend; never silently rewrite a row.** An
@@ -73,6 +79,24 @@ easiest way to make this prompt lie. Then the current matrix.
 > governs it — an empty unbound-list is a **claim** and must say how it
 > enumerated, or it is `UNDECIDED`.
 >
+> **3c. Read the bins.** For each `UNMODELED/<bin>`, give its count, whether it
+> grew this round, and its **disposition** — `MODELABLE`, `DEFERRED`,
+> `RECORD-ONLY`, or `UNDECIDED` (`references/bug_attribution.md` §7c). A new bin
+> is `UNDECIDED` until somebody classifies it; that is the correct entry, not a
+> gap to fill with a guess.
+>
+> - **`DEFERRED` — name the blocker and re-read it.** A blocker is a **missing
+>   capability**, stated concretely: *"no runner exists that can drive a
+>   multi-skill plugin end to end."* *"Hard to test"* is not a blocker.
+>   **If the capability now exists and the bin did not move, say so — that is a
+>   finding about the record.**
+> - **A growing `DEFERRED` bin is a PRICE on the missing capability.** Say what
+>   deferring has cost so far, in findings. That is the evidence the capability
+>   would be built on, and it is the whole reason deferral is written down rather
+>   than waved at.
+> - **Every bin keeps counting, whatever its disposition.** Nothing is moved into
+>   a disposition in order to stop counting it.
+>
 > **4. Say what you could not see, before you suggest anything.** How many
 > records carry no attribution? How many areas have no denominator — that is, you
 > know the escapes but not how many times the area was exercised? **An area with
@@ -81,9 +105,14 @@ easiest way to make this prompt lie. Then the current matrix.
 > binding?** If the record is too thin to support a conclusion, say so and stop
 > at step 4.
 >
-> **5. For the action with the most repeated escapes — TWO responses, and say
-> which.** There are exactly two. **They point in opposite directions, and the
-> value of this step is that you must pick one and say why the other is wrong
+> **5. For the row with the most repeated escapes — the responses, and say
+> which.** **The row may be a bin.** `UNMODELED/<bin>` competes with the actions
+> on the same column, and if a bin is the worst row then the bin is what this
+> step is about — a matrix whose worst row is the one row the loop cannot act on
+> has a hole where its answer should be.
+>
+> **For an ACTION there are two responses. They point in opposite directions, and
+> the value of this step is that you must pick one and say why the other is wrong
 > here.**
 >
 > > **(a) REDUCE — the action is too complex.** What about the SHAPE of that
@@ -103,6 +132,31 @@ easiest way to make this prompt lie. Then the current matrix.
 > and the shape is defeating it. Repeated escapes at an action with **no
 > binding** argue for **(b)**: nothing has ever looked, and simplifying a place
 > you cannot observe is guessing.
+>
+> **For a BIN there is a third response, and the two above do not apply** — there
+> is no action to simplify and nothing to bind:
+>
+> > **(c) MODEL — no action exists at all.** Findings are accumulating at a place
+> > the model does not describe. Say whether the bin is `MODELABLE` **now**, and
+> > if so what action it would become and what it would mean. **This is the only
+> > response that makes `UNMODELED` fall while the model's breadth rises**, which
+> > is the healthy direction for both numbers at once.
+> >
+> > **If it is `DEFERRED`, (c) is still an answer: name the capability that is
+> > missing and price it against what the bin has cost so far.** Deferral with a
+> > named blocker and a running cost is a result. Deferral as a shrug is the
+> > refusal-to-model degeneracy, and it is the one conservation cannot see —
+> > §7b guards deleting from the model, §7c guards never adding to it.
+> >
+> > **If it is `RECORD-ONLY`, say so and say why it will not become an action —
+> > then still answer (a) for it.** Inability to represent something in TLA+ does
+> > not exempt it from *"is this area too complex?"*. `RECORD-ONLY` is a claim
+> > about representation, never about relevance.
+>
+> **When a bin does become an action, conservation applies and does real work:**
+> its findings re-anchor **out of** `UNMODELED/<bin>` and **into** the new action,
+> and the totals match. That is what proves the extension absorbed the history
+> instead of restarting the count.
 >
 > **If (b) is not cheap, say so — that is an answer, not a blocker.** Name what
 > about the code makes it hard to drive. **That is a refactor proposed for
@@ -169,6 +223,10 @@ Score it against four things before acting on any of it:
    ordering this prompt exists to prevent.
 6. **If the model moves, do the two totals match?** They are the only place a
    removed row could go missing, and checking them costs one addition.
+7. **Did a bin get a disposition, or a dismissal?** `DEFERRED` without a named
+   missing capability is a shrug wearing a token, and it is the refusal-to-model
+   degeneracy. **A bin that stopped counting is the finding**, whatever the
+   disposition says.
 
 **Then record the suggestion in the matrix with its declared price**, `OPEN`
 until the owner decides. A suggestion refused with a reason is consumption; a

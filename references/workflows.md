@@ -80,9 +80,13 @@ tla-spec-dev --spec-root specs run spec-unit-tests --ticket <ticket-id>
    reconstructs favourably. Nothing gates on this.
    See `references/bug_attribution.md` §4 and §6.
 7b. **Name the TLA+ action each regression happened inside, and REPORT IT
-   UPWARD.** `<Module>.<Action>` from `specs/program_model/`, or `UNMODELED`
-   with what it sits beneath — do not stretch an action to cover something it
-   does not mean. One line per regression, in the ticket close-out and the PR.
+   UPWARD.** `<Module>.<Action>` from `specs/program_model/`, or
+   `UNMODELED/<bin>` where `<bin>` NAMES what it sits beneath — do not stretch an
+   action to cover something it does not mean. **Name the bin even if it is the
+   first finding in it**: an unnamed bin is pooled, and a pooled count cannot
+   tell one gap from five. Prompts, skills, and several skills composed inside
+   one plugin are bins, not actions — nothing can drive them today, and that is
+   recorded rather than skipped. See `references/bug_attribution.md` §7c. One line per regression, in the ticket close-out and the PR.
    **Do NOT edit the self-improvement matrix.** The epic agent is its only
    writer; a ticket that edits it creates the naming drift the anchor exists to
    prevent. See `examples/validation/agent_rounds/SELF-IMPROVEMENT-MATRIX.md`.
