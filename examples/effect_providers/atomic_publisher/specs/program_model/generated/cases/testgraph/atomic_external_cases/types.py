@@ -65,36 +65,6 @@ class StateGraphOutput:
 
 
 @dataclass(frozen=True)
-class StateGraphRejection:
-    """The expected outcome of a call the model does not enable (HP-03).
-
-    Emitted by the negative corpus: at this before-state the action's own
-    body evaluates to a definite FALSE, so the program must REFUSE the
-    call. ``reason`` is the violated conjunct copied verbatim out of the
-    module -- it is the model's words, not a classification invented here,
-    so an adapter comparing rejection reasons is comparing against the
-    specification rather than against this generator.
-
-    ``changed`` is always empty and is spelled out rather than implied: a
-    refused call changes no modeled variable, which is the second half of
-    the assertion and the half a status-only oracle would miss.
-    """
-
-    action: str
-    params: dict[str, Any]
-    reason: str
-    changed: dict[str, dict[str, Any]] = field(default_factory=dict)
-    #: Variables that record the OUTCOME of a call rather than the state it
-    #: left behind, derived from the model: the write set of every action
-    #: this module uses to spell a refusal out. A real program's refusal
-    #: does change these -- it reports that it refused -- so an adapter must
-    #: report them unobservable, and `after == before` is asserted over
-    #: everything else. When a model declares no refusal actions this tuple
-    #: is empty and full inertness is asserted.
-    outcome_fields: tuple[str, ...] = ()
-
-
-@dataclass(frozen=True)
 class StateGraphCase:
     name: str
     before: dict[str, Any]

@@ -3,11 +3,11 @@
 Generated from a TLC DOT state graph dump.
 
 - View: `internal`
-- States: `14`
-- Transitions: `7`
+- States: `57`
+- Transitions: `56`
 
-- Emitted transitions before dedupe: `7`
-- TLC transitions before view filtering: `7`
+- Emitted transitions before dedupe: `56`
+- TLC transitions before view filtering: `56`
 
 - Dedupe mode: `projected`
 

@@ -23,7 +23,7 @@ real row, not a leftover — see below.
 | anchor | escaped to hand | pinned | unpinned | findings | reading |
 |---|---|---|---|---|---|
 | `TlaSpecDevCli.CloseTicket` | **4** | 1 | 3 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
-| `TlaSpecDevCli.GenerateCases` | **8** | **5** | 3 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06`, `E-07` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
+| `TlaSpecDevCli.GenerateCases` | **8** | **6** | 3 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06`, `E-07`, `E-08` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
 | `TlaSpecDevCli.OpenTicket` | **2** | 1 | 1 | `#299`, `E-01` | **was read as a closed arc; round 2 reopened it.** `E-01` is a conformance violation against a guard the model calls structural |
 | `TlaSpecDevCli.AnalyzeComplexity` | 1 | 0 | 1 | `F-07` | cosmetic; unpinned by choice |
 | **`UNMODELED/yaml-parser`** | **7** | 11 | 0 | `#298`, `#307`, `#308` | infrastructure beneath every action; no anchor exists. **7 of 21 findings in the whole record.** Disposition: **`MODELABLE`** — see below |
@@ -298,6 +298,52 @@ not toolchain cost**, and it is recorded here rather than counted as an escape �
 `F-01` was withdrawn for exactly this confusion, where two of three trips blamed
 on the close gate turned out to be the author's own.
 
+### E-08 — the test graph, run for the first time, and the first automated catch
+
+**`specWorkflow` 8/8. `cliWorkflow` 2/2. `effectProviderExamples` RED — and red on
+`main`, not on this branch.** Verified: `main`'s own resolver refuses the identical
+path, with the older generic wording.
+
+**`E-02`'s class hit FOUR committed drivers. Hand testing found one across two
+rounds. The test graph found the other three in 57 seconds.**
+
+| driver | defect |
+|---|---|
+| `atomic_publisher` | `--dot` into a temp dir — **fixed**, node now passes it |
+| `reminder_worker` | `--dot` into a temp dir — **fixed**; `--out` still refused |
+| `legacy_payment_http` | `--dot` **and** `--out` outside any `specs/` — `--dot` fixed |
+
+**The lesson is NOT `E-02`'s, and the difference is the point.** `E-02` was a
+committed driver with **no caller** — nothing could have caught it. **These three
+have a caller: this exact test graph node.** It was never that nothing could look;
+**it is that nobody ran the thing that would.**
+
+**First `test-graph` catch in the record — class `automated`.** Every prior finding
+in both rounds was `hand` or `cross-implementation`. It is also the first evidence
+for a claim this matrix had been making without support: that `escaped to hand`
+would fall if something automated were actually pointed at these actions.
+
+**Half deliberately not fixed, filed as `#314`.** `legacy_payment_http` keeps two
+generated trees and only one carries `specs/`; the refused one holds **16 tracked
+files** and is hardcoded in `validate.py:248` and `tests/test_project.py:20`.
+Relocating a corpus is a decision, not a path typo.
+
+### And I walked into E-06 while fixing E-08
+
+`git add -A` after running the generators swept **41 files** of regenerated corpus
+and per-run evidence artifacts into a commit whose subject said it fixed three
+driver paths. **44 files, 17,682 insertions, of which 3 were intended.**
+
+**That is E-06's exact shape, committed by the person who wrote E-06 up**, one
+round later: a generator mutated tracked trees, and a blanket add made it
+invisible under an unrelated subject line. Reverted in the open rather than
+rewritten, because the commit was already pushed.
+
+**The pin is procedural and it is worth stating plainly: never `git add -A` in a
+tree where a generator has just run.** Stage by path. No assertion can catch this
+one — the files are legitimately changed, they are simply not what the commit
+claims to be about.
+
 ---
 
 ## The bins — where findings accumulate outside the model
@@ -396,6 +442,10 @@ inference over history.
 2026-08-29  T4 run. E-05 CONFIRMED FIXED by a blind agent; E-07 found in the same
             string and fixed. GenerateCases 7 -> 8. No model change.
             findings before: 22    findings after: 22    (re-anchored: none)
+2026-08-30  Test graph run for the first time. E-08: RC-02 broke four committed
+            drivers, three found by the graph in 57s. First test-graph channel
+            catch in the record. No model change.
+            findings before: 23    findings after: 23    (re-anchored: none)
 ```
 
 Each future entry records: the model change, and per affected row —

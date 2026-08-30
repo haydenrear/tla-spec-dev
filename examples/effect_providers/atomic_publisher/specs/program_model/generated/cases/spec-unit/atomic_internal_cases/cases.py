@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .types import UNCHECKED, ActionMetadata, StateGraphCase, StateGraphInput, StateGraphOutput, StateGraphRejection
+from .types import UNCHECKED, ActionMetadata, StateGraphCase, StateGraphInput, StateGraphOutput
 
 
 SCHEMA_VERSION = 'tla-testgraph.trace.v1'
