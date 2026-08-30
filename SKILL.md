@@ -849,11 +849,21 @@ and result as validation evidence.
    scaffolding modeled as state-machine behavior.
 11. Run spec-double self-tests.
 12. Run adapter conformance tests and relevant Test Graph validation.
-13. Mark the ticket closed and run
+13. **Attribute what the ticket hit, BEFORE you close.** For each regression:
+    what caught it (`channel`), the area, and the assertion that pins it — or
+    why none was added. For each passing case you wrote: what it could **never**
+    have caught, or `UNDECIDED`. Then **name the TLA+ action each regression
+    happened inside** — `<Module>.<Action>`, or `UNMODELED/<bin>` naming what it
+    sits beneath — and report it upward in the close-out and the PR. **Do not
+    edit the self-improvement matrix; the epic agent is its only writer.**
+    Nothing gates on any of this, which is exactly why it has to be a step
+    rather than a reference: see `references/bug_attribution.md` and
+    `references/workflows.md` 7a/7b.
+14. Mark the ticket closed and run
     `tla-spec-dev --spec-root specs close ticket <ticket-id>` to move the ticket
     directory to history, replace project current with ticket desired, and merge
     ticket-local Test Graph artifacts into project specs.
-14. Continue until `specs/current` equals `specs/desired_program_model`, then
+15. Continue until `specs/current` equals `specs/desired_program_model`, then
     promote the converged model to `specs/program_model`, write a workflow
     close record, and remove `specs/current` plus `specs/desired_program_model`
     once they no longer carry distinct planning state. Use
@@ -925,7 +935,9 @@ Use this loop for each slice:
    HTTP, etc.) and publish useful endpoint/context data for downstream nodes.
 8. Run the narrow graph for the slice.
 9. Mark the ticket closed in `specs/desired_program_model/ticket_plan.yaml`,
-   record run ids and evidence paths, then close the ticket with
+   record run ids and evidence paths, **attribute each regression to the TLA+
+   action it happened inside** (`references/bug_attribution.md`; step 13 of the
+   ticket loop above), then close the ticket with
    `tla-spec-dev --spec-root specs close ticket <ticket-id> --result <evidence-path>`.
 10. Sync the desired model metadata to mark the refined boundary as done.
 11. Commit the ticket close record, spec changes, and evidence together.

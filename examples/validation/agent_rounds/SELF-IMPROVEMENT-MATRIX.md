@@ -22,7 +22,7 @@ real row, not a leftover — see below.
 
 | anchor | escaped to hand | pinned | unpinned | findings | reading |
 |---|---|---|---|---|---|
-| `TlaSpecDevCli.CloseTicket` | **4** | 1 | 3 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
+| `TlaSpecDevCli.CloseTicket` | **5** | 2 | 3 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03`, `E-09` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
 | `TlaSpecDevCli.GenerateCases` | **8** | **6** | 3 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06`, `E-07`, `E-08` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
 | `TlaSpecDevCli.OpenTicket` | **2** | 1 | 1 | `#299`, `E-01` | **was read as a closed arc; round 2 reopened it.** `E-01` is a conformance violation against a guard the model calls structural |
 | `TlaSpecDevCli.AnalyzeComplexity` | 1 | 0 | 1 | `F-07` | cosmetic; unpinned by choice |
@@ -344,6 +344,93 @@ tree where a generator has just run.** Stage by path. No assertion can catch thi
 one — the files are legitimately changed, they are simply not what the commit
 claims to be about.
 
+### E-09 — the apparatus was unreachable from the path agents walk
+
+**A blind agent was given a finished ticket and told to follow this repository's
+own close-out process.** It produced a correct, careful attribution — and then
+answered the question the round was actually for:
+
+> **WOULD_YOU_HAVE_DONE_THIS_UNPROMPTED: No — honestly, no.**
+>
+> The close-out path a ticket agent actually walks is `SKILL.md`'s numbered
+> lists and `close ticket --summary`. **Neither mentions attribution.**
+
+**Measured and confirmed: `SKILL.md` — the always-loaded ~19,000-token entry
+point — contained zero references to attribution.** The apparatus was reachable
+only from `references/workflows.md`, one line in an index of thirty-odd
+reference files.
+
+**That is the finding this whole epic turns on.** Six findings, three artifacts,
+four doctrine files and a matrix, all hanging off a step nothing routed to. *A
+page whose subject is "a finding only exists where something was found" was
+itself reachable only by an agent already looking for it.*
+
+**FIXED:** attribution is now **step 13 of the ticket loop in `SKILL.md`**, before
+`close ticket`, and named again in the refinement loop's step 9.
+
+### And two more, from the same run
+
+**`E-10` — §4 named a file that does not exist.** *"A CATCH is an ordinary finding
+in `specs/deferred_findings.yaml`"* — that path is **not on `main`**; the 364 rows
+live in sealed epic results. The agent went looking, did not find it, and **was
+one step from creating the colliding path**; it was saved only by stumbling on a
+comment in a file nothing routes to. **FIXED:** §4 now says where the ledger is,
+what to do when it is absent, and why.
+
+**`E-11` — the channel vocabulary's worked example contradicts a defensible
+reading of its own lookup.** Two agents met the identical situation — *a person
+ran `close ticket` and read the refusal* — and classed it opposite ways:
+`AT-EX-CATCH-02` as `operator-doing-the-work` (**hand**), the round-2 agent as
+`operator-running-a-shipped-instrument` (**automated**). Both follow from *"would
+it catch this again tomorrow?"*, **and they flip the one number §4.1 exists to
+protect.**
+
+**FIXED** with a tie-break: *did the instrument REPORT the defect, or did the
+operator notice something the instrument stayed silent about?* `AT-EX-CATCH-02`
+**is not amended** — the rule was written after it, and refiling it would be
+fitting the record to the rule.
+
+### What did NOT go wrong, which was the question asked
+
+**The prohibitions did not block anything.** The agent enumerated **thirteen**
+`must not` / `never` / `do not` instructions. **Not one stopped it**, and five
+made the output better:
+
+| instruction | effect |
+|---|---|
+| §4.1 *"the class is a lookup, not a judgement"* | **changed the classification** — it was about to file `hand` |
+| §4.2 *"automated catches need no pin"* | made *"I added no test"* correct rather than a gap |
+| §3 *"an empty blind-spot is a CLAIM"* | it wrote a BLIND row instead of silently omitting one |
+| *"None is invented to demonstrate a field"* | stopped it inventing a plausible BLIND row |
+| §8 *"it does not gate"* | stopped it hunting for an `attribute` subcommand |
+
+**The one thing that blocked it was not a prohibition — it was `E-10`, a doc
+pointing at a file that is not there.**
+
+### Manual testing: nothing broken
+
+`scaffold project` → `scaffold workflow` → `open ticket` → `analyze complexity`
+→ `close ticket`, on a fresh repo. **All exit 0, every stage prints a next-step
+line.** The close refused once, **reported both reasons in one pass**, each
+naming the exact field to set — and closing succeeded immediately after setting
+them. `prune_ignored` runs and reports in the receipt.
+
+**10,925 Python files: 0 syntax errors, 0 unguarded imports** (`yaml` and `tomli`
+are all behind `try/except` or deferred into the function that needs them).
+
+### The pin, and the false positive in it
+
+`tests/test_example_drivers_write_inside_spec_tree.py` covered **one** driver and
+passed while three more were broken — `E-08`. It now covers **all four**, plus a
+discovery test that fails when a new generator driver is added without being
+listed. **A guard that only covers what somebody remembered to add is not a
+guard.**
+
+Its first version matched any file *mentioning* the generator and flagged three
+that merely list the path in a `FORBIDDEN_FRAMEWORK_SURFACES` constant. **A false
+positive is how a guard gets switched off**, so discovery now requires the file
+to pass `--out` as well.
+
 ---
 
 ## The bins — where findings accumulate outside the model
@@ -446,6 +533,9 @@ inference over history.
             drivers, three found by the graph in 57s. First test-graph channel
             catch in the record. No model change.
             findings before: 23    findings after: 23    (re-anchored: none)
+2026-08-30  Round 3 (blind close-out + manual testing). E-09/E-10/E-11 found and
+            fixed; prohibitions measured NOT blocking. No model change.
+            findings before: 26    findings after: 26    (re-anchored: none)
 ```
 
 Each future entry records: the model change, and per affected row —

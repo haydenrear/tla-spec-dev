@@ -76,8 +76,22 @@ for however long it takes the next `DEF-124` to arrive.
 
 ## 4. CATCH — the channel, the area, the pin
 
-A CATCH is an ordinary finding in `specs/deferred_findings.yaml` carrying three
-things beyond the existing schema.
+A CATCH is an ordinary finding in the project's cumulative ledger, carrying
+three things beyond the existing schema.
+
+> **WHERE THE LEDGER IS, because this sentence has already misled an agent.**
+> In a repository that has one, it is `specs/deferred_findings.yaml`. **This
+> repository does not have one on `main`** — the 364 rows live in the sealed
+> epic results (`specs/results/deferred_findings_*.yaml`), and creating
+> `specs/deferred_findings.yaml` from a branch would collide with all of them on
+> merge.
+>
+> **So when that path is absent, write the rows into the ticket's own
+> `results/attribution.yaml`** and say in a header where they belong and when
+> they move. A blind agent following §4 literally went looking for the file,
+> did not find it, and was one step from creating the colliding path — it was
+> saved only by stumbling on a comment in a file nothing routes to. **That is a
+> `DOC-COULD-HAVE-SAID`, and this is the doc saying it.**
 
 ```yaml
 - id: AT-01-DF-01
@@ -112,6 +126,30 @@ instrument or by a hand?"* is answered by finding the token in this table. **No
 
 **The line between `automated` and `hand` is one question:** *would it catch this
 again tomorrow, with nobody watching?*
+
+> **THE TIE-BREAK THAT QUESTION DOES NOT SETTLE, measured.** Two agents met the
+> same situation — *a person ran `close ticket` by hand and read the refusal* —
+> and classed it opposite ways. `AT-EX-CATCH-02` filed it
+> `operator-doing-the-work` (**hand**); a round-2 agent filed it
+> `operator-running-a-shipped-instrument` (**automated**), reasoning that the
+> instrument stands and would refuse again tomorrow. **Both readings are
+> defensible from the sentence above, and they flip the one number §4.1 exists
+> to protect.**
+>
+> **The tie-break is: did the instrument REPORT the defect, or did the operator
+> notice something the instrument stayed silent about?**
+>
+> - The gate refused and its message named the problem → **automated**. The
+>   instrument did the work; the person only invoked it.
+> - The command succeeded, or refused for an unrelated reason, and the person
+>   spotted the defect anyway → **hand**. The instrument was silent, and
+>   silence is what `hand` means.
+>
+> Under that rule `AT-EX-CATCH-02` is **`operator-doing-the-work`** and stays as
+> filed: the close gate there refused on plan status, and the archive-seam
+> defect was something the operator noticed while dealing with it. **The
+> existing row is not amended** — the rule was written after it, and refiling it
+> would be fitting the record to the rule.
 
 **`cross-implementation` is `automated` by that question and is worth its own
 token because nothing else finds what it finds.** It was added after two
