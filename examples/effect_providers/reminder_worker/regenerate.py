@@ -76,7 +76,12 @@ def main() -> int:
         "projected",
     ]
     with tempfile.TemporaryDirectory(prefix="reminder-tlc-") as temporary:
-        dot_root = Path(temporary)
+        # RC-02 (E-08): the TLC metadir is derived from this path's PARENT and
+        # rmtree'd, so a temp dir here is a destructive delete outside the tree
+        # `spec_tree_delete` declares, and the refusal made the
+        # effectProviderExamples test graph node RED on main.
+        dot_root = generated_root / "dot"
+        dot_root.mkdir(parents=True, exist_ok=True)
         run(
             [
                 sys.executable,

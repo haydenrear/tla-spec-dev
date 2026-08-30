@@ -54,6 +54,12 @@ def main() -> int:
     )
 
     records: dict[str, Any] = {}
+    # RC-02 (E-08): --dot is constrained like --out, and for a stronger reason --
+    # run_tlc_dump derives the TLC metadir from this path's PARENT and rmtree's
+    # it, so a temp dir here is a destructive delete outside the tree
+    # `spec_tree_delete` declares. This refusal made the effectProviderExamples
+    # test graph node RED on main.
+    (GENERATED_DIR / "dot").mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="atomic-publisher-tlc-") as raw_tmp:
         tmp = Path(raw_tmp)
         for view, module, package, lane in (
@@ -77,7 +83,7 @@ def main() -> int:
                     "--tlc2",
                     args.tlc2,
                     "--dot",
-                    str(tmp / f"{module}.dot"),
+                    str(GENERATED_DIR / "dot" / f"{module}.dot"),
                     "--state-projector",
                     "specs.program_model.tlc_projection:project_state",
                     "--output-projector",

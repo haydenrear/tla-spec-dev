@@ -87,7 +87,7 @@ def main() -> int:
             "--tlc2",
             args.tlc2,
             "--dot",
-            str(GENERATED / "tlc" / f"{module}.dot"),
+            str(SPEC_DIR / "generated" / "tlc" / f"{module}.dot"),
             "--state-projector",
             "specs.program_model.tlc_projection:project_state",
             "--output-projector",
