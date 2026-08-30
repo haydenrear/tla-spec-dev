@@ -15,7 +15,7 @@ import tempfile
 PROJECT_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = PROJECT_ROOT.parents[2]
 SPEC_ROOT = PROJECT_ROOT / "specs" / "program_model"
-GENERATED_ROOT = PROJECT_ROOT / "generated"
+GENERATED_ROOT = PROJECT_ROOT / "specs" / "generated"
 
 
 def run(

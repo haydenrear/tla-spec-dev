@@ -67,6 +67,16 @@ def _project_digests() -> dict[str, str]:
             continue
         if relative.parts[:2] == ("evidence", "validation-runs"):
             continue
+        # E-13: RC-02 requires every generated corpus to be written under
+        # `specs/`, and this snapshot fails the run if anything outside
+        # evidence/validation-runs changes. Those two rules are incompatible for
+        # a validator that REGENERATES in order to compare -- the scratch corpus
+        # has to live somewhere both allow. `specs/generated/.validation/<run>`
+        # is that place: inside the tree the `spec_tree` port declares, and
+        # excluded here for the same reason evidence/validation-runs is --
+        # per-run scratch is not project state.
+        if relative.parts[:3] == ("specs", "generated", ".validation"):
+            continue
         result[str(relative)] = hashlib.sha256(path.read_bytes()).hexdigest()
     return result
 
@@ -376,7 +386,9 @@ def main() -> int:
     result_path = run_root / "result.json"
     steps_path = run_root / "steps.json"
     steps: list[dict[str, Any]] = []
-    generated_root = run_root / "generated"
+    # E-13: NOT run_root/"generated" -- that is outside `specs/` and RC-02
+    # refuses it, which made this node red. Excluded from _project_digests above.
+    generated_root = PROJECT_ROOT / "specs" / "generated" / ".validation" / args.run_id
     env = os.environ.copy()
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     before = _project_digests()
@@ -497,6 +509,11 @@ def main() -> int:
             f"validation failure: {type(error).__name__}: {error}"
         )
     finally:
+        # The scratch corpus is per-run and must not survive the run.
+        shutil.rmtree(
+            PROJECT_ROOT / "specs" / "generated" / ".validation" / args.run_id,
+            ignore_errors=True,
+        )
         final_snapshot = _project_digests()
         if final_snapshot != before:
             before_paths = set(before)

@@ -23,7 +23,7 @@ real row, not a leftover — see below.
 | anchor | escaped to hand | pinned | unpinned | findings | reading |
 |---|---|---|---|---|---|
 | `TlaSpecDevCli.CloseTicket` | **5** | 2 | 3 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03`, `E-09` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
-| `TlaSpecDevCli.GenerateCases` | **9** | **7** | 3 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06`, `E-07`, `E-08`, `E-12` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
+| `TlaSpecDevCli.GenerateCases` | **10** | **9** | 1 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06`, `E-07`, `E-08`, `E-12`, `E-13` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
 | `TlaSpecDevCli.OpenTicket` | **2** | 1 | 1 | `#299`, `E-01` | **was read as a closed arc; round 2 reopened it.** `E-01` is a conformance violation against a guard the model calls structural |
 | `TlaSpecDevCli.AnalyzeComplexity` | 1 | 0 | 1 | `F-07` | cosmetic; unpinned by choice |
 | **`UNMODELED/yaml-parser`** | **7** | 11 | 0 | `#298`, `#307`, `#308` | infrastructure beneath every action; no anchor exists. **7 of 21 findings in the whole record.** Disposition: **`MODELABLE`** — see below |
@@ -469,6 +469,64 @@ silence.
 is a decision rather than a patch: the question *"is a generated corpus committed
 or regenerated?"* has never been answered once for all four.
 
+### #314 closed: one answer to "where do generated cases live?"
+
+**Four examples had four answers.** Now they have one — `specs/generated/` for
+cases, `specs/program_model/generated/` for the contract. 39 tracked files moved,
+7 consumers repointed, and the xfail allowance in the pin is **empty**, which is
+its correct state: it exists as a mechanism for a dated exception, not as a
+parking space for a broken driver.
+
+**`reminder_worker`'s 138 remaining out-of-tree files are evidence artifacts**
+from past validation runs. Those are archival records, not a live corpus, and
+they stay.
+
+### E-13 — two rules in this repository were mutually incompatible
+
+Moving the corpus was not enough, and the reason is the interesting part.
+`reminder_worker/validate.py` **regenerates in order to compare**, and it was
+caught between two rules that are each correct on their own:
+
+- **RC-02**: every generated corpus writes under `specs/`.
+- **`_project_digests()`**: the run FAILS if anything outside
+  `evidence/validation-runs` changes during validation.
+
+**A validator that regenerates has nowhere to put the scratch corpus that both
+rules allow.** It had chosen `evidence/` — legal under the second rule, refused
+by the first.
+
+**Resolved by extending the scratch exclusion rather than by weakening either
+rule:** the corpus goes to `specs/generated/.validation/<run-id>` — inside the
+tree `spec_tree` declares — and that path is excluded from the digest for the
+same reason `evidence/validation-runs` already is: **per-run scratch is not
+project state.** Removed in `finally`.
+
+**This is the first finding in the record that is a conflict BETWEEN rules
+rather than a defect in one.** Neither was wrong; the pair had never been
+evaluated against a caller that needed both.
+
+### Where the node stands, and what is not ours
+
+`effectProviderExamples` went from **blocked at the first of three projects on
+RC-02** to **failing only on `reminder_worker`'s contract drift** — which
+**reproduces identically on `origin/main`** (`1 failed, 6 passed`, same
+assertion). Three blockers cleared; one pre-existing bug remains, unrelated to
+this branch and untouched by it.
+
+**Recorded, not fixed:** the committed contract disagrees with what regeneration
+produces — the file sets differ (`effect_providers.py` vs `fake.py`), which is a
+generator behaviour change, not content drift. **Overwriting the committed
+artifact would silently accept whatever the generator now emits**, and that is a
+decision about which side is right, not a refresh.
+
+### And the E-06 trap, caught the second time
+
+`git add -A` staged **131 per-run evidence artifacts** alongside a 39-file corpus
+move. **Same trap as the commit before it** — but this time the category count
+was read before committing rather than after, and they never entered the commit.
+**The pin for E-06 is procedural and it worked exactly once it was actually
+followed.**
+
 ---
 
 ## The bins — where findings accumulate outside the model
@@ -577,6 +635,10 @@ inference over history.
 2026-08-30  E-12: the README documented a refused command, and the first fix hit
             E-07's nested-specs trap. Fourth surface from one rule change.
             findings before: 27    findings after: 27    (re-anchored: none)
+2026-08-30  #314 closed: all four examples standardised on specs/generated/.
+            E-13: RC-02 and the validator's no-mutation digest were mutually
+            incompatible; resolved by extending the scratch exclusion.
+            findings before: 28    findings after: 28    (re-anchored: none)
 ```
 
 Each future entry records: the model change, and per affected row —

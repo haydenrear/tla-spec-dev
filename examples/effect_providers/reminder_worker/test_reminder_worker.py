@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parent
 REPO_ROOT = ROOT.parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT / "generated"))
+sys.path.insert(0, str(ROOT / "specs" / "generated"))
 
 import run_experiment
 
@@ -68,7 +68,7 @@ class ReminderWorkerExperimentTests(unittest.TestCase):
                 self.assertIs(signature.parameters["command"].annotation, command_type)
                 self.assertIs(signature.return_annotation, result_type)
 
-        committed = ROOT / "generated" / "reminder_contract"
+        committed = ROOT / "specs" / "generated" / "reminder_contract"
 
         def source_tree(path: Path) -> dict[str, bytes]:
             return {
@@ -156,7 +156,7 @@ class ReminderWorkerExperimentTests(unittest.TestCase):
         self.assertEqual(active_point_count(), 0)
 
     def test_external_cases_cross_the_process_boundary(self) -> None:
-        sys.path.insert(0, str(ROOT / "generated" / "cases" / "testgraph"))
+        sys.path.insert(0, str(ROOT / "specs" / "generated" / "cases" / "testgraph"))
         from external_adapter import ReminderProcessAdapter
         from reminder_external_cases.cases import CASES
 

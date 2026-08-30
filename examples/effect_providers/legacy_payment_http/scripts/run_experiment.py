@@ -24,7 +24,7 @@ REPO_ROOT = PROJECT_ROOT.parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 SPEC_DIR = PROJECT_ROOT / "specs" / "program_model"
-CASES_DIR = PROJECT_ROOT / "generated" / "spec-unit" / "payment_http_internal_cases"
+CASES_DIR = PROJECT_ROOT / "specs" / "generated" / "spec-unit" / "payment_http_internal_cases"
 MAPPING = SPEC_DIR / "case_adapters.toml"
 PREREGISTRATION = PROJECT_ROOT.parent / "PREREGISTRATION.yaml"
 PREREGISTRATION_SHA256 = "970ade21dcf9e460a60cdb1e70396b5b5507c460983e7001cb1bceff5fe9390b"

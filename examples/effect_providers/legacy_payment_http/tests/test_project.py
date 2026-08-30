@@ -17,7 +17,7 @@ import requests
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = PROJECT_ROOT.parents[2]
-CASES_PARENT = PROJECT_ROOT / "generated" / "spec-unit"
+CASES_PARENT = PROJECT_ROOT / "specs" / "generated" / "spec-unit"
 CONTRACT_PARENT = PROJECT_ROOT / "specs" / "program_model" / "generated"
 for root in (PROJECT_ROOT, REPO_ROOT, CASES_PARENT, CONTRACT_PARENT):
     sys.path.insert(0, str(root))
@@ -220,7 +220,7 @@ class LegacyPaymentHttpTests(unittest.TestCase):
         self.assertTrue(patches_are_clean())
 
     def test_external_loopback_adapter_drives_real_http_process(self) -> None:
-        cases_parent = PROJECT_ROOT / "generated" / "testgraph"
+        cases_parent = PROJECT_ROOT / "specs" / "generated" / "testgraph"
         sys.path.insert(0, str(cases_parent))
         external_cases = list(
             importlib.import_module("payment_http_external_cases").CASES
