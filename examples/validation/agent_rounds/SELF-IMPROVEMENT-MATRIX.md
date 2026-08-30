@@ -23,7 +23,7 @@ real row, not a leftover — see below.
 | anchor | escaped to hand | pinned | unpinned | findings | reading |
 |---|---|---|---|---|---|
 | `TlaSpecDevCli.CloseTicket` | **5** | 2 | 3 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03`, `E-09` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
-| `TlaSpecDevCli.GenerateCases` | **8** | **6** | 3 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06`, `E-07`, `E-08` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
+| `TlaSpecDevCli.GenerateCases` | **9** | **7** | 3 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06`, `E-07`, `E-08`, `E-12` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
 | `TlaSpecDevCli.OpenTicket` | **2** | 1 | 1 | `#299`, `E-01` | **was read as a closed arc; round 2 reopened it.** `E-01` is a conformance violation against a guard the model calls structural |
 | `TlaSpecDevCli.AnalyzeComplexity` | 1 | 0 | 1 | `F-07` | cosmetic; unpinned by choice |
 | **`UNMODELED/yaml-parser`** | **7** | 11 | 0 | `#298`, `#307`, `#308` | infrastructure beneath every action; no anchor exists. **7 of 21 findings in the whole record.** Disposition: **`MODELABLE`** — see below |
@@ -431,6 +431,44 @@ that merely list the path in a `FORBIDDEN_FRAMEWORK_SURFACES` constant. **A fals
 positive is how a guard gets switched off**, so discovery now requires the file
 to pass `--out` as well.
 
+### E-12 — the same defect in the documentation, and in my fix for it
+
+**`examples/distributed_history/README.md` documented a command RC-02 refuses**,
+twice: `regenerate_tlc_cases.py --out test_graph/build/generated/manual`. `E-02`
+fixed the driver's default and **left the README telling users the old path.**
+A reader following the documented command got the refusal.
+
+**And the first fix was wrong in exactly the way `E-07` describes.** Rewriting it
+to `--out specs/generated/manual` resolved to
+`specs/program_model/specs/generated/manual` — the nested `specs/` — because a
+relative `--out` resolves against the SPEC DIRECTORY. **I wrote `E-07` up and
+then walked into it inside the hour.** Corrected to `--out "$PWD/..."`.
+
+**That is now four surfaces from one rule change** — driver defaults, `--dot`
+paths, the refusal's own remedy text, and the docs — and each was found by a
+different instrument. **A behaviour change fans out further than the call sites
+that fail to compile**, and nothing enumerated the fan-out.
+
+### And the thing the question exposed: four examples, four different answers
+
+| example | tracked under `specs/` | tracked OUTSIDE | ignore rule |
+|---|---|---|---|
+| `distributed_history` | 13 | 0 | `/specs/generated/` |
+| `atomic_publisher` | 24 | 0 | none |
+| `reminder_worker` | **0** | **23** | none |
+| `legacy_payment_http` | 9 | **16** | none |
+
+**The rule is not ambiguous** — `spec_tree` and `spec_tree_delete` both declare
+`target: "**/specs/**"`, so generation writes under `specs/` or it is an
+undeclared effect. **Two examples comply, one is split across both, one is
+entirely outside.** `distributed_history` additionally *ignores* the directory
+its 13 tracked files live in, which is how `E-06` deleted eight of them in
+silence.
+
+**This is a standardisation gap, not four separate bugs**, and it is why `#314`
+is a decision rather than a patch: the question *"is a generated corpus committed
+or regenerated?"* has never been answered once for all four.
+
 ---
 
 ## The bins — where findings accumulate outside the model
@@ -536,6 +574,9 @@ inference over history.
 2026-08-30  Round 3 (blind close-out + manual testing). E-09/E-10/E-11 found and
             fixed; prohibitions measured NOT blocking. No model change.
             findings before: 26    findings after: 26    (re-anchored: none)
+2026-08-30  E-12: the README documented a refused command, and the first fix hit
+            E-07's nested-specs trap. Fourth surface from one rule change.
+            findings before: 27    findings after: 27    (re-anchored: none)
 ```
 
 Each future entry records: the model change, and per affected row —

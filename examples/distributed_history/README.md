@@ -58,7 +58,7 @@ Run the local adapter checks:
 uv run tests/test_ecommerce_backend.py
 uv run specs/program_model/tests/test_ecommerce_adapters.py
 
-uv run scripts/regenerate_tlc_cases.py --out test_graph/build/generated/manual
+uv run scripts/regenerate_tlc_cases.py --out "$PWD/specs/generated/manual"
 
 # TLA_SPEC_DEV_ROOT points at the tla-spec-dev toolchain checkout. It defaults
 # to ../.. here, which is correct for this embedded copy; a standalone checkout
@@ -94,7 +94,7 @@ the scripts above can find the generator, exporter, and adapter runner:
 
 ```bash
 TLA_SPEC_DEV_ROOT=/path/to/tla-spec-dev \
-uv run scripts/regenerate_tlc_cases.py --out test_graph/build/generated/manual
+uv run scripts/regenerate_tlc_cases.py --out "$PWD/specs/generated/manual"
 ```
 
 Run the Test Graph:
