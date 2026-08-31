@@ -22,9 +22,9 @@ real row, not a leftover — see below.
 
 | anchor | escaped to hand | pinned | unpinned | findings | reading |
 |---|---|---|---|---|---|
-| `TlaSpecDevCli.CloseTicket` | **5** | 2 | 3 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03`, `E-09` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
-| `TlaSpecDevCli.GenerateCases` | **10** | **9** | 1 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06`, `E-07`, `E-08`, `E-12`, `E-13` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
-| `TlaSpecDevCli.OpenTicket` | **2** | 1 | 1 | `#299`, `E-01` | **was read as a closed arc; round 2 reopened it.** `E-01` is a conformance violation against a guard the model calls structural |
+| `TlaSpecDevCli.CloseTicket` | **5** | **3** | 2 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03`, `E-09` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
+| `TlaSpecDevCli.GenerateCases` | **10** | **10** | 0 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06`, `E-07`, `E-08`, `E-12`, `E-13` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
+| `TlaSpecDevCli.OpenTicket` | **2** | **2** | 0 | `#299`, `E-01` | **was read as a closed arc; round 2 reopened it.** `E-01` is a conformance violation against a guard the model calls structural |
 | `TlaSpecDevCli.AnalyzeComplexity` | 1 | 0 | 1 | `F-07` | cosmetic; unpinned by choice |
 | **`UNMODELED/yaml-parser`** | **7** | 11 | 0 | `#298`, `#307`, `#308` | infrastructure beneath every action; no anchor exists. **7 of 21 findings in the whole record.** Disposition: **`MODELABLE`** — see below |
 
@@ -527,6 +527,59 @@ was read before committing rather than after, and they never entered the commit.
 **The pin for E-06 is procedural and it worked exactly once it was actually
 followed.**
 
+### Round 4 — the session's own findings, closed out
+
+**All four issues this session filed are fixed, and each one is now pinned or
+demonstrated.** `#310`, `#311`, `#312`, `#313`. Every unpinned row in the three
+touched anchors is closed.
+
+| id | fix | verified by |
+|---|---|---|
+| `E-01` `#310` | `open ticket` refuses a plan entry already `closed` or `retired`, quoting the model's own guard. **No override flag, matching the model, which has no notion of one** | reopen attempt exits 1 with the remedy |
+| `E-03` `#311` | Help said *"Close ticket or workflow history"*; `close` takes only `ticket`. Now names `scripts/close_tickets.py` in both the summary and the next-step line | `--help` output |
+| `E-04` `#312` | `--coverage-json` **refuses `case_coverage.json`** — the name the per-action record owns. The two reports carry different schemas and the second silently destroyed the first, both printing success | refusal reproduced |
+| `E-06` `#313` | Committed corpus renamed `spec_unit` → `spec-unit` to match `VIEW_OUTPUT_DIRS`, and the contradictory `.gitignore` rule removed | new pin, verified red on the old name |
+
+**`E-01` reused the existing vocabulary rather than inventing one** —
+`TICKET_CLOSED_STATUSES` and `TICKET_RETIRED_STATUS` already existed in
+`spec_evolution.py`. A second list of "what counts as closed" would have been a
+new place for the two to drift.
+
+**`E-06`'s fix is the rename, not a regeneration.** Regenerating produced **738
+untracked files against 13 tracked** — 732 traces where 5 are committed. That is
+a corpus-size question, not this defect, and answering it by accident inside a
+bug fix is how the tracked corpus got into this state. The defect was two names
+for one directory; the fix is one name.
+
+### The guard took three tries, and each failure is the same lesson
+
+The pin for `E-06` cried wolf **three times** before it was correct:
+
+1. Asserted every directory under a generated tree is a view root — flagged an
+   intermediate `cases/` level and two contract trees.
+2. Narrowed to *near misses* (a name normalising to a view root but spelled
+   differently) — flagged `examples/*/test_graph`, the **Gradle project**, which
+   normalises to `testgraph`.
+3. Scoped to paths **inside** a `generated/` tree. Green, and **verified red on
+   the old name**.
+
+**False positives are how a guard gets switched off**, so a pin that over-claims
+is worse than no pin — it spends the credibility the real catch will need. This
+is the third instrument this round that had to be repaired before it could be
+trusted, after the `E-08` discovery test and the `E-02` pin's swallowed
+`TypeError`.
+
+### And a scare that was not real
+
+The installed CLI runs `~/.skill-manager/skills/spec-double-compiler/`, a
+**separate copy** from this working tree — so `close --help` showed the old
+string and it looked as though every manual test this session had exercised
+stale code. **Measured: the installed copy is byte-identical to repo `HEAD`**
+(38,288 bytes both, zero commits to that file since 20 Aug). It lacked only the
+uncommitted edit. **The earlier manual testing was valid**, and the alarm is
+recorded because the next drift between those two copies will be real and will
+look exactly the same.
+
 ---
 
 ## The bins — where findings accumulate outside the model
@@ -638,6 +691,9 @@ inference over history.
 2026-08-30  #314 closed: all four examples standardised on specs/generated/.
             E-13: RC-02 and the validator's no-mutation digest were mutually
             incompatible; resolved by extending the scratch exclusion.
+            findings before: 28    findings after: 28    (re-anchored: none)
+2026-08-31  Round 4: #310/#311/#312/#313 all fixed and pinned. No model change,
+            no new findings -- the first round that only CLOSED rows.
             findings before: 28    findings after: 28    (re-anchored: none)
 ```
 

@@ -26,6 +26,8 @@ contract needs neither, and it is the contract that broke.
 from __future__ import annotations
 
 import importlib.util
+import pathlib
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -209,3 +211,69 @@ def test_driver_does_not_point_dot_at_a_temp_dir(driver_path: Path, attr: str) -
             "declares -- and RC-02 refuses it, which is what made the "
             "effectProviderExamples test graph node red on main (E-08)."
         )
+
+
+def test_no_committed_corpus_sits_at_a_near_miss_of_a_view_root() -> None:
+    """A corpus one separator away from what the generator writes is orphaned, not updated.
+
+    E-06 (#313). ``VIEW_OUTPUT_DIRS["internal"]`` is ``spec-unit``; one example's
+    committed corpus sat at ``spec_unit`` -- the same word, the other separator.
+    The generator clears its output root, so regenerating **deleted the tracked
+    tree and wrote an untracked sibling**, while a ``.gitignore`` rule over the
+    parent hid the replacement. ``git status`` showed deletions only, at exit 0.
+
+    The precise defect is a NEAR MISS: a directory whose name normalises to a
+    view root but is not spelled like one. Checking that is exact. An earlier
+    version of this test asserted every directory under a generated tree was a
+    view root, and flagged three that are nothing of the kind -- an intermediate
+    ``cases/`` level and two contract trees. **False positives are how a guard
+    gets switched off**, so this one only claims what it can actually prove.
+    """
+    import sys
+
+    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    try:
+        from generate_cases_from_tlc_dump import (  # type: ignore[import-not-found]
+            VIEW_OUTPUT_DIRS,
+        )
+    finally:
+        sys.path.pop(0)
+
+    def _norm(name: str) -> str:
+        return name.replace("-", "").replace("_", "").lower()
+
+    written = set(VIEW_OUTPUT_DIRS.values())
+    written_norm = {_norm(n): n for n in written}
+
+    tracked = subprocess.run(
+        ["git", "ls-files", "examples"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    ).stdout.splitlines()
+
+    offenders: dict[str, str] = {}
+    for rel in tracked:
+        parts = pathlib.PurePosixPath(rel).parts
+        if "generated" not in parts:
+            # Scoped to generated trees on purpose. Unscoped, this flagged
+            # `examples/*/test_graph` -- the Gradle validation project, which
+            # normalises to the `testgraph` view root and is an entirely
+            # different thing. Three false-positive rounds on this guard; each
+            # one is a reason somebody would switch it off.
+            continue
+        after = parts[parts.index("generated") + 1 :]
+        base = parts[: parts.index("generated") + 1]
+        for i, part in enumerate(after):
+            if part in written:
+                continue
+            canonical = written_norm.get(_norm(part))
+            if canonical is not None:
+                offenders["/".join(base + after[: i + 1])] = canonical
+
+    assert not offenders, (
+        "committed directories one separator away from a view root the generator "
+        "writes -- regenerating deletes these and writes a sibling:\n  "
+        + "\n  ".join(f"{k}  ->  should be `{v}`" for k, v in sorted(offenders.items()))
+    )

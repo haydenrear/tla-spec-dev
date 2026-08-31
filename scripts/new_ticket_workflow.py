@@ -956,6 +956,32 @@ def scaffold_ticket_directory(
     plan = load_ticket_plan(specs_dir)
     ticket_index, ticket = find_ticket(plan, ticket_ref, source=ticket_plan_path(specs_dir))
     resolved_ticket_id = str(ticket.get("id") or f"ticket-{ticket_index}")
+
+    # E-01 (#310): `open ticket` used to succeed on a ticket the plan already
+    # marks closed or retired, scaffolding 53 files and printing the ordinary
+    # next steps -- reopening finished work was indistinguishable from starting
+    # new work. TlaSpecDevCli.tla guards OpenTicket on
+    # `ticket_state[ticket] = TicketUnopened`, under a comment that names the
+    # property: "the never-reopened property is now structural". It was not
+    # enforced anywhere in production, and nothing -- TLC, the Test Graph, the
+    # suite -- reported it, because nothing drives the CLI against the plan's
+    # status field.
+    #
+    # No override flag, matching the model, which has no notion of one.
+    from scripts.spec_evolution import TICKET_CLOSED_STATUSES, TICKET_RETIRED_STATUS
+
+    raw_status = str(ticket.get("status") or "").strip().lower()
+    if raw_status in TICKET_CLOSED_STATUSES or raw_status == TICKET_RETIRED_STATUS:
+        raise SystemExit(
+            f"ERROR: ticket {resolved_ticket_id} has already entered the lifecycle: "
+            f"status={raw_status}.\n"
+            "`OpenTicket` in the program model requires ticket_state = TicketUnopened -- "
+            "'the never-reopened property is now structural' (MF-025). Reopening finished "
+            "work would be indistinguishable from starting new work.\n"
+            "REMEDY: to do more work here, add a NEW ticket entry to "
+            f"{ticket_plan_path(specs_dir)} with its own id. To inspect what this ticket "
+            "did, read its sealed record under specs/.history rather than reopening it."
+        )
     title = ticket_title(ticket, resolved_ticket_id)
     root_dir = ticket_root_dir(specs_dir, ticket_root)
     ticket_dir = root_dir / _safe_segment(resolved_ticket_id)

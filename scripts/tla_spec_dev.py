@@ -792,14 +792,23 @@ def build_parser() -> argparse.ArgumentParser:
 
     close_parser = subparsers.add_parser(
         "close",
-        help="Close ticket or workflow history.",
+        # E-03 (#311): this said "Close ticket or workflow history." `close`
+        # accepts only `ticket`; workflow-history close is scripts/close_tickets.py,
+        # run from references/workflows.md step 5. An agent read the help as a map,
+        # looked for `close workflow`, and got an argparse error -- the help was
+        # describing a real step that lives somewhere the CLI does not point to.
+        help="Close a ticket. (Workflow history: scripts/close_tickets.py.)",
         description="Close a ticket once current equals desired and validations pass.",
         allow_abbrev=False,
     )
     close_parser.set_defaults(
         func=incomplete_command,
         command_path="tla-spec-dev close",
-        next_step="Choose a target: tla-spec-dev close ticket <ticket-name>.",
+        next_step=(
+            "Choose a target: tla-spec-dev close ticket <ticket-name>. "
+            "To close WORKFLOW history, run scripts/close_tickets.py -- it is not "
+            "a `close` target (references/workflows.md step 5)."
+        ),
     )
     close_sub = close_parser.add_subparsers(dest="close_target", metavar="target")
     close_ticket = close_sub.add_parser(

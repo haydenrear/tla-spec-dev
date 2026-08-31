@@ -3666,7 +3666,32 @@ def write_case_module_coverage_report(
         raise SystemExit(
             f"ERROR: --coverage-json must resolve inside the generated package "
             f"({package_dir}); got {resolved}. The report describes that corpus and is "
-            "declared as a write to it."
+            "declared as a write to it.\n"
+            f"REMEDY: pick a name INSIDE that package other than "
+            f"`{case_modules.COVERAGE_FILENAME}`, which the per-action record already "
+            f"owns -- e.g. {package_dir / 'case_module_report.json'}."
+        )
+    # E-04 (#312): this run writes TWO reports with DIFFERENT schemas, and until
+    # now both could land on `case_coverage.json` -- the per-action record
+    # (`actions`, `declared_view_actions`, `declared_zero_actions`) and the
+    # case-module report (`view_actions`, `uncovered_actions`, `per_action`).
+    # The second silently overwrote the first and BOTH printed a success line.
+    #
+    # Worse, the refusal above steered callers into it: the only path an agent
+    # knew inside the package was the one already written, so following the
+    # remedy destroyed the report the tool had just produced. A refusal whose
+    # remedy causes data loss is worse than no refusal, because it is obeyed in
+    # good faith and answers with a confident success.
+    if resolved.name == case_modules.COVERAGE_FILENAME:
+        raise SystemExit(
+            f"ERROR: --coverage-json may not be `{case_modules.COVERAGE_FILENAME}`; got "
+            f"{resolved}.\n"
+            "That filename is owned by the per-action coverage record this run also "
+            "writes, and the two carry DIFFERENT schemas -- writing both here means the "
+            "case-module report silently destroys the per-action one, and both report "
+            "success.\n"
+            f"REMEDY: choose another name inside the package, e.g. "
+            f"{resolved.with_name('case_module_report.json')}."
         )
     declared_for_view = {
         name for name, meta in action_metadata.items() if should_emit_action(meta, view)
