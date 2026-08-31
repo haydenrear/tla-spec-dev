@@ -76,8 +76,22 @@ for however long it takes the next `DEF-124` to arrive.
 
 ## 4. CATCH — the channel, the area, the pin
 
-A CATCH is an ordinary finding in `specs/deferred_findings.yaml` carrying three
-things beyond the existing schema.
+A CATCH is an ordinary finding in the project's cumulative ledger, carrying
+three things beyond the existing schema.
+
+> **WHERE THE LEDGER IS, because this sentence has already misled an agent.**
+> In a repository that has one, it is `specs/deferred_findings.yaml`. **This
+> repository does not have one on `main`** — the 364 rows live in the sealed
+> epic results (`specs/results/deferred_findings_*.yaml`), and creating
+> `specs/deferred_findings.yaml` from a branch would collide with all of them on
+> merge.
+>
+> **So when that path is absent, write the rows into the ticket's own
+> `results/attribution.yaml`** and say in a header where they belong and when
+> they move. A blind agent following §4 literally went looking for the file,
+> did not find it, and was one step from creating the colliding path — it was
+> saved only by stumbling on a comment in a file nothing routes to. **That is a
+> `DOC-COULD-HAVE-SAID`, and this is the doc saying it.**
 
 ```yaml
 - id: AT-01-DF-01
@@ -105,12 +119,46 @@ instrument or by a hand?"* is answered by finding the token in this table. **No
 | `operator-running-a-shipped-instrument` | **automated** | a standing instrument reported it; a person invoked it |
 | `operator-doing-the-work` | **hand** | found while doing something else |
 | `operator-running-own-instrument` | **hand** | a probe written for the occasion and thrown away |
+| `cross-implementation` | **automated** | two implementations of the same contract disagreed — **new**, and see below |
 | `census` | **reading** | a systematic sweep of the record |
 | `independent-review` | **reading** | a reviewer reading the change |
 | `blind-judges` | **reading** | a scored card's judge |
 
 **The line between `automated` and `hand` is one question:** *would it catch this
-again tomorrow, with nobody watching?* That is why
+again tomorrow, with nobody watching?*
+
+> **THE TIE-BREAK THAT QUESTION DOES NOT SETTLE, measured.** Two agents met the
+> same situation — *a person ran `close ticket` by hand and read the refusal* —
+> and classed it opposite ways. `AT-EX-CATCH-02` filed it
+> `operator-doing-the-work` (**hand**); a round-2 agent filed it
+> `operator-running-a-shipped-instrument` (**automated**), reasoning that the
+> instrument stands and would refuse again tomorrow. **Both readings are
+> defensible from the sentence above, and they flip the one number §4.1 exists
+> to protect.**
+>
+> **The tie-break is: did the instrument REPORT the defect, or did the operator
+> notice something the instrument stayed silent about?**
+>
+> - The gate refused and its message named the problem → **automated**. The
+>   instrument did the work; the person only invoked it.
+> - The command succeeded, or refused for an unrelated reason, and the person
+>   spotted the defect anyway → **hand**. The instrument was silent, and
+>   silence is what `hand` means.
+>
+> Under that rule `AT-EX-CATCH-02` is **`operator-doing-the-work`** and stays as
+> filed: the close gate there refused on plan status, and the archive-seam
+> defect was something the operator noticed while dealing with it. **The
+> existing row is not amended** — the rule was written after it, and refiling it
+> would be fitting the record to the rule.
+
+**`cross-implementation` is `automated` by that question and is worth its own
+token because nothing else finds what it finds.** It was added after two
+independently-written fixes to the same YAML parser were run against each
+other's corpora and each turned out to be wrong in ways its own tests reported
+clean on — then two further defects surfaced that had survived both. A single
+implementation cannot produce this signal at any budget, and the only
+prerequisite is that a second implementation of the same contract exists.
+`PyYAML` is that second implementation here; `#298` and `#307` are the record. That is why
 `operator-running-a-shipped-instrument` is automated — the instrument stands —
 and `operator-running-own-instrument` is **hand** — the probe does not. **A
 throwaway probe that found a real bug is a hand catch wearing a script.**
@@ -243,6 +291,189 @@ nothing happened.
 would have cost, and it is the only reason a refusal is reviewable later.
 
 ---
+
+## 7a. The influence graph, and the matrix it accumulates into
+
+**The four kinds are per-finding. The influence graph is what they add up to.**
+
+The arc for one regression is **found → area → pinned**:
+
+```
+a regression happened
+  -> what CAUGHT it            (CATCH.channel, class automated | hand | reading)
+  -> what AREA it lived in     (CATCH.area, prose, from whoever found it)
+  -> what PINS it now          (CATCH.pinned_by, or pin_note saying why not)
+```
+
+**The area is recorded as prose by the finder, and ANCHORED TO A TLA+ ACTION by
+the epic agent.** The model is the semantic representation of the program and it
+outlives the code — files are renamed, split and moved; `CloseTicket` is not. A
+regression that fits no declared action is anchored `UNMODELED`, and **the size
+of that bucket measures how much of the real bug surface the model does not
+reach.** Do not stretch an action to cover something it does not mean; stretching
+destroys that number.
+
+Accumulated per anchor across tickets and epics, that is
+`examples/validation/agent_rounds/SELF-IMPROVEMENT-MATRIX.md`. **The column that
+matters is `escaped to hand`** — the only one that says an automated instrument
+was blind.
+
+**An area that escapes once is noise. An area that escapes in three rounds is
+telling you something about its shape.** That is the whole reason to keep the
+graph over time rather than per epic.
+
+**It is maintained by prompting, not by a tool, and that is a decision rather
+than a gap.** Computing it would mean parsing findings, inferring areas and
+joining across epics — three inference steps, each a place to put a bug into the
+instrument used to find bugs. `prompts/regression_architecture.md` is the ask;
+`prompts/regression_judge.md` judges the transcripts blind. **No checker, gate,
+lint or static analyzer is the answer here** — that route is measured and closed
+(`references/architecture_advice.md`), and if a tool is built later it belongs in
+a separate library with this page as its specification.
+
+**What the graph cannot currently say, stated so nobody reads it as more than it
+is: there are no denominators.** An area with one escape in two invocations and
+one with one escape in a hundred look identical in the matrix. Until a round
+carries per-area invocation counts, a concentration in that table may be a
+concentration of attention rather than of defects.
+
+## 7b. CONSERVATION — what happens to findings when the model changes
+
+**The model may shrink. The record may not.**
+
+This is the whole rule, and it exists because the matrix anchors findings to
+TLA+ actions, which makes the model a place where counts live — and anything
+that holds a count can be improved by editing the container instead of the
+contents.
+
+**There is no prohibition here and there should not be one.** Reducing
+complexity where defects aggregate is one of the two responses this programme
+wants, and it legitimately removes model surface. A ban on removal would put
+that response in direct conflict with the record that motivates it. So removal
+stays available and is made *pointless* instead:
+
+> **Total findings is invariant under any model change. Only their distribution
+> moves.**
+
+Drop an action and its findings re-anchor — to whatever absorbed the behaviour,
+or to `UNMODELED`. Merge two and the rows add. Split one and the parts sum to
+the whole. **Nothing evaporates**, and a reader checks it by summing a column.
+
+### Why arithmetic and not a rule against deleting
+
+**Spreading findings across more of the model and hiding a concentration are the
+same edit.** Both split a heavy row into light ones; both are a diff that adds
+actions. No prohibition can separate them, because there is nothing in the
+change itself to separate. The sum can: after a legitimate split the parts still
+add to the original, and the concentration is visibly redistributed rather than
+reduced.
+
+That also disposes of the four quieter versions of the same move — **merge**,
+**widen an action's meaning until the bug is not in it**, **re-anchor to
+`UNMODELED`**, and **drop**. Under conservation all four are relabelling, and
+relabelling does not change a total.
+
+### What a model change must therefore record
+
+Every model change is recorded in the matrix's carry-through log, and each
+affected row says **carried**, **dropped** or **split/merged** — that part is
+unchanged. Conservation adds one line to the entry:
+
+```
+findings before: N    findings after: N    (re-anchored: <id> -> <new anchor>, ...)
+```
+
+**If the two numbers differ, the entry is wrong**, and it is wrong in a way that
+is visible without reading any of the prose around it.
+
+### The corollary, which is the point of the whole loop
+
+A proposal that reduces an action's escape count **by removing the action** has
+reduced nothing, and under conservation it cannot even appear to. So the only
+way the count at an action falls is the honest one: **something started catching
+the defects before they escaped.**
+
+That is what makes "fewer escapes" mean anything, and it is why this rule sits
+next to PRICE rather than in a governance section. It is not a control. It is
+the thing that makes the measurement mean what it says.
+
+## 7c. SEMANTIC BINS — where findings accumulate outside the model
+
+**`UNMODELED` is not one place. It is a space of named bins**, and the name is
+already being collected: §7a requires every unanchored finding to *say what it
+sits beneath*, and refuses to let an action be stretched to cover it. That string
+is the bin. **Nothing new is recorded here** — what is new is that findings are
+grouped by it instead of pooled.
+
+```
+UNMODELED/<bin>          e.g.  UNMODELED/yaml-parser
+                               UNMODELED/skill-composition
+```
+
+**Why grouping is the whole point.** Seven findings pooled in `UNMODELED` reads
+as one gap. Seven findings in one bin is a gap with a shape; seven across five
+bins is a model that is thin everywhere. **Those want different answers, and the
+pooled count cannot tell them apart.**
+
+### The disposition of a bin, which is NOT in-scope / out-of-scope
+
+A bin is not waiting for a yes/no about whether it belongs in the model. It is
+carrying a claim about **representability**, and there are four:
+
+| disposition | means | what the bin is waiting for |
+|---|---|---|
+| `MODELABLE` | this could be an action today; nothing is stopping it | **a decision.** Accumulating here is now a choice, and it is the choice §7a's `UNMODELED` number exists to make visible |
+| `DEFERRED` | representable in principle, **not validatable with what exists** | a **named capability**, not a mood. *"No runner exists that can drive a multi-skill plugin end to end"* is a blocker. *"Hard to test"* is not |
+| `RECORD-ONLY` | not expected to become an action | nothing. It accumulates because **the accumulation is evidence about the architecture**, which is useful whether or not it ever becomes a model element |
+| `UNDECIDED` | nobody has classified it | classification. **This is the default for a new bin** — §3, an absent input is `UNDECIDED`, never a PASS |
+
+**`DEFERRED` is the case this section exists for.** Bugs in prompts, in skills,
+and in the composition of several skills inside one plugin are real, they
+recur, and **no test graph binding can drive them today.** They are not out of
+scope and they are not modelable-now. They are waiting on a runner that does not
+exist yet, and *that sentence is the record* — not a shrug, and not a deletion.
+
+### Three rules, and they are what keep a bin from being a wastebasket
+
+1. **A bin accumulates regardless of disposition. Deferral is not closure.** A
+   `DEFERRED` or `RECORD-ONLY` bin keeps counting forever. Nothing is ever moved
+   into a disposition in order to stop counting it.
+
+2. **A `DEFERRED` bin's blocker is re-read every round.** If the named capability
+   now exists and the bin did not move, **that is a finding** — about the record,
+   not the code.
+
+3. **A growing `DEFERRED` bin is a PRICE on the missing capability.** This is the
+   useful output and it is the reason deferral is worth writing down rather than
+   waving at: the bin says *what deferring has cost so far*, in findings, and
+   that is the evidence the capability gets built on. It is `gate_passed: False`
+   on 16 of 16 runs, avoided — **a cost measured against something.**
+
+### The degeneracy this closes, which is the twin of §7b's
+
+§7b makes **removing from the model** harmless, because findings are conserved.
+
+The version conservation cannot see is **refusing to add** — *"that is just
+infrastructure"* — which achieves the same silence and never touches the model at
+all. So the escape is not blocked; it is made **loud**: the refusal becomes a
+named bin, with a disposition, that **keeps counting.** A decision not to model
+something stays visible and re-reviewable instead of being the quiet way to make
+a number stop growing.
+
+### And a bin still feeds the architecture read
+
+**A bin that can never be modeled can still say an area is too complex.** The
+inability to represent something in TLA+ does not remove it from the record and
+does not exempt it from response **(a)**. `RECORD-ONLY` is a statement about
+*representation*, never about relevance.
+
+### When a bin becomes an action
+
+Conservation — §7b — does real work here for the first time. The bin's findings
+**re-anchor out of `UNMODELED/<bin>` and into the new action**; the totals before
+and after are equal. **That is what proves the extension absorbed the history
+rather than restarting the count**, and it is the difference between extending
+the model and quietly opening a fresh one.
 
 ## 8. What this page deliberately does not do
 

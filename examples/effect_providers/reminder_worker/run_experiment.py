@@ -22,7 +22,7 @@ from typing import Any
 PROJECT_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = PROJECT_ROOT.parents[2]
 SPEC_ROOT = PROJECT_ROOT / "specs" / "program_model"
-GENERATED_ROOT = PROJECT_ROOT / "generated"
+GENERATED_ROOT = PROJECT_ROOT / "specs" / "generated"
 CASES_ROOT = GENERATED_ROOT / "cases" / "spec-unit" / "reminder_internal_cases"
 PREREGISTRATION = PROJECT_ROOT.parent / "PREREGISTRATION.yaml"
 ROOT_SEED = 20260721

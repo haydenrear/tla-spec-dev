@@ -245,7 +245,7 @@ def _validate(run_id: str, run_root: Path, result: dict[str, Any]) -> None:
         timeout=120,
     )
 
-    external_cases = PROJECT_ROOT / "generated" / "testgraph" / "payment_http_external_cases"
+    external_cases = PROJECT_ROOT / "specs" / "generated" / "testgraph" / "payment_http_external_cases"
     external = _write_process(
         run_root,
         "external-56-cases",

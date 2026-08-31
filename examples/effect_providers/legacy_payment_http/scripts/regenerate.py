@@ -19,7 +19,7 @@ from typing import Any
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = PROJECT_ROOT.parents[2]
 SPEC_DIR = PROJECT_ROOT / "specs" / "program_model"
-GENERATED = PROJECT_ROOT / "generated"
+GENERATED = PROJECT_ROOT / "specs" / "generated"
 DEFAULT_EVIDENCE = PROJECT_ROOT / "evidence"
 
 INTERNAL_ACTIONS = {
@@ -87,7 +87,7 @@ def main() -> int:
             "--tlc2",
             args.tlc2,
             "--dot",
-            str(GENERATED / "tlc" / f"{module}.dot"),
+            str(SPEC_DIR / "generated" / "tlc" / f"{module}.dot"),
             "--state-projector",
             "specs.program_model.tlc_projection:project_state",
             "--output-projector",

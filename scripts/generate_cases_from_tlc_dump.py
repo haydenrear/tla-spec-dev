@@ -3484,9 +3484,11 @@ def run(args: argparse.Namespace) -> int:
     # `dot_path.parent`, so constraining `--dot` constrains the destructive
     # delete by construction rather than by a second, separate check.
     try:
-        out_path = resolve_spec_tree_out(args.out, spec_dir)
+        out_path = resolve_spec_tree_out(args.out, spec_dir, flag="--out")
         dot_path = (
-            resolve_spec_tree_out(args.dot, spec_dir, is_file=True) if args.dot else None
+            resolve_spec_tree_out(args.dot, spec_dir, is_file=True, flag="--dot")
+            if args.dot
+            else None
         )
     except SpecTreePathError as error:
         print(f"ERROR: {error}", file=sys.stderr)

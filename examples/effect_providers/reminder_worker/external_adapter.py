@@ -13,7 +13,7 @@ from spec_double_compiler.runtime import CaseRunResult
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-GENERATED_ROOT = PROJECT_ROOT / "generated"
+GENERATED_ROOT = PROJECT_ROOT / "specs" / "generated"
 
 
 class ReminderProcessAdapter:

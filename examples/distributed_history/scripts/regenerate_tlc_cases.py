@@ -11,7 +11,6 @@ import os
 import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 
@@ -23,7 +22,14 @@ EXAMPLE_ROOT = Path(__file__).resolve().parents[1]
 # fallback.
 REPO_ROOT = Path(os.environ.get("TLA_SPEC_DEV_ROOT", EXAMPLE_ROOT.parents[1])).resolve()
 SPEC_DIR = EXAMPLE_ROOT / "specs" / "program_model"
-DEFAULT_GENERATED_DIR = EXAMPLE_ROOT / "test_graph" / "build" / "generated"
+# RC-02 (tla-spec-dev #301): `resolve_spec_tree_out` refuses any --out
+# outside a `specs/` directory, because the `spec_tree` effect port declares
+# target `**/specs/**` and a write anywhere else is an undeclared effect.
+# This default was `test_graph/build/generated` and the refusal made this
+# script unrunnable as written -- it is a committed driver with no caller,
+# so nothing went red. `specs/generated/` is already in this example's
+# .gitignore, and the refusal's own REMEDY names this shape.
+DEFAULT_GENERATED_DIR = EXAMPLE_ROOT / "specs" / "generated"
 
 
 def run(command: list[str]) -> None:
@@ -42,7 +48,7 @@ def main() -> int:
         "--out",
         type=Path,
         default=DEFAULT_GENERATED_DIR,
-        help="Generated case root. Defaults to test_graph/build/generated.",
+        help="Generated case root. Must resolve under a `specs/` directory (RC-02). Defaults to specs/generated, where the committed corpus lives.",
     )
     args = parser.parse_args()
     generated_dir = args.out if args.out.is_absolute() else EXAMPLE_ROOT / args.out
@@ -69,42 +75,49 @@ def main() -> int:
         "--dedupe",
         "projected",
     ]
-    with tempfile.TemporaryDirectory(prefix="distributed-history-tlc-") as tmp:
-        tmp_path = Path(tmp)
-        run(
-            [
-                sys.executable,
-                str(REPO_ROOT / "scripts" / "generate_cases_from_tlc_dump.py"),
-                str(SPEC_DIR / "Internal.tla"),
-                str(SPEC_DIR / "Internal.cfg"),
-                "--out",
-                str(generated_dir),
-                "--package",
-                "ecommerce_internal_cases",
-                "--view",
-                "internal",
-                "--dot",
-                str(tmp_path / "Internal.dot"),
-                *common,
-            ]
-        )
-        run(
-            [
-                sys.executable,
-                str(REPO_ROOT / "scripts" / "generate_cases_from_tlc_dump.py"),
-                str(SPEC_DIR / "External.tla"),
-                str(SPEC_DIR / "External.cfg"),
-                "--out",
-                str(generated_dir),
-                "--package",
-                "ecommerce_external_cases",
-                "--view",
-                "external",
-                "--dot",
-                str(tmp_path / "External.dot"),
-                *common,
-            ]
-        )
+    # RC-02: `--dot` is constrained the same way as `--out`, and for a stronger
+    # reason -- run_tlc_dump derives the TLC metadir from the dot path's PARENT
+    # and `shutil.rmtree`s it, so a dot path in a system temp dir is a
+    # destructive delete outside the tree the `spec_tree_delete` port declares.
+    # This used to be a TemporaryDirectory, which the refusal now rejects. The
+    # dot files go beside the corpus they describe; `specs/generated/` is
+    # already in this example's .gitignore, so nothing new is tracked.
+    dot_dir = generated_dir / "dot"
+    dot_dir.mkdir(parents=True, exist_ok=True)
+    run(
+        [
+            sys.executable,
+            str(REPO_ROOT / "scripts" / "generate_cases_from_tlc_dump.py"),
+            str(SPEC_DIR / "Internal.tla"),
+            str(SPEC_DIR / "Internal.cfg"),
+            "--out",
+            str(generated_dir),
+            "--package",
+            "ecommerce_internal_cases",
+            "--view",
+            "internal",
+            "--dot",
+            str(dot_dir / "Internal.dot"),
+            *common,
+        ]
+    )
+    run(
+        [
+            sys.executable,
+            str(REPO_ROOT / "scripts" / "generate_cases_from_tlc_dump.py"),
+            str(SPEC_DIR / "External.tla"),
+            str(SPEC_DIR / "External.cfg"),
+            "--out",
+            str(generated_dir),
+            "--package",
+            "ecommerce_external_cases",
+            "--view",
+            "external",
+            "--dot",
+            str(dot_dir / "External.dot"),
+            *common,
+        ]
+    )
     run(
         [
             sys.executable,
