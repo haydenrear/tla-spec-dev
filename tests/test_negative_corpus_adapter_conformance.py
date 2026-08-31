@@ -76,7 +76,19 @@ from scripts.infer_action_params import build_recipes, parse_variables  # noqa: 
 
 EXAMPLE = ROOT / "examples" / "distributed_history"
 SPEC = EXAMPLE / "specs" / "program_model"
-COMMITTED_CORPUS = EXAMPLE / "specs" / "generated" / "spec_unit"
+# E-06 (#313): this was hardcoded to "spec_unit" while the generator writes
+# VIEW_OUTPUT_DIRS["internal"] == "spec-unit". The two drifted apart, the
+# committed corpus was renamed to match the generator, and this line was the one
+# consumer that still named the old spelling -- caught by set-comparing the
+# suite against main, not by anything here. Derived from the generator now, so
+# the next rename moves this with it instead of orphaning it.
+sys.path.insert(0, str(ROOT / "scripts"))
+try:
+    from generate_cases_from_tlc_dump import VIEW_OUTPUT_DIRS  # type: ignore
+finally:
+    sys.path.pop(0)
+
+COMMITTED_CORPUS = EXAMPLE / "specs" / "generated" / VIEW_OUTPUT_DIRS["internal"]
 FIXTURE_MODEL = ROOT / "examples" / "validation" / "ab" / "model"
 
 # `Internal.tla:8-14` -- `InternalInit`, and the state one `CreateAccount`

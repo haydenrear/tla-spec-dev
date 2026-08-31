@@ -23,7 +23,7 @@ real row, not a leftover — see below.
 | anchor | escaped to hand | pinned | unpinned | findings | reading |
 |---|---|---|---|---|---|
 | `TlaSpecDevCli.CloseTicket` | **5** | **3** | 2 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03`, `E-09` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
-| `TlaSpecDevCli.GenerateCases` | **10** | **10** | 0 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06`, `E-07`, `E-08`, `E-12`, `E-13` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
+| `TlaSpecDevCli.GenerateCases` | **11** | **11** | 0 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06`, `E-07`, `E-08`, `E-12`, `E-13` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
 | `TlaSpecDevCli.OpenTicket` | **2** | **2** | 0 | `#299`, `E-01` | **was read as a closed arc; round 2 reopened it.** `E-01` is a conformance violation against a guard the model calls structural |
 | `TlaSpecDevCli.AnalyzeComplexity` | 1 | 0 | 1 | `F-07` | cosmetic; unpinned by choice |
 | **`UNMODELED/yaml-parser`** | **7** | 11 | 0 | `#298`, `#307`, `#308` | infrastructure beneath every action; no anchor exists. **7 of 21 findings in the whole record.** Disposition: **`MODELABLE`** — see below |
@@ -580,6 +580,34 @@ uncommitted edit. **The earlier manual testing was valid**, and the alarm is
 recorded because the next drift between those two copies will be real and will
 look exactly the same.
 
+### E-14 — the fix for E-06 broke a consumer, and only the set comparison saw it
+
+**The rename `spec_unit` → `spec-unit` orphaned one caller.**
+`tests/test_negative_corpus_adapter_conformance.py:79` hardcoded the old
+spelling, and the suite went **17 failed against a 16 baseline.**
+
+**Nothing local caught it.** The new pin passed — it checks *committed
+directories*, and the directory was correct. The example's own tests passed. The
+test graph passed both workflows. **The only instrument that saw it was
+set-comparing the whole suite against `main`**, which is why that comparison is
+run every round rather than a count.
+
+**A count would have missed it too.** 16 → 17 is one number; the *set* named the
+node. Earlier this session a count said 16 while an ANSI-broken grep found 0
+failures and would have reported *"16 fixed"* — the same lesson from the other
+side.
+
+**Repaired by deriving rather than repeating:** the test now imports
+`VIEW_OUTPUT_DIRS["internal"]` from the generator, so the next rename moves the
+consumer with it instead of orphaning it. **Two constants naming one directory is
+the defect `E-06` was; hardcoding a third would have been the same bug in the
+pin's own neighbourhood.**
+
+**This is the fan-out again, now at five surfaces from one rule change** — driver
+defaults, `--dot` paths, the refusal's remedy text, the docs, and now a test's
+corpus path. Each found by a different instrument, and still nothing enumerates
+the fan-out before it bites.
+
 ---
 
 ## The bins — where findings accumulate outside the model
@@ -692,9 +720,10 @@ inference over history.
             E-13: RC-02 and the validator's no-mutation digest were mutually
             incompatible; resolved by extending the scratch exclusion.
             findings before: 28    findings after: 28    (re-anchored: none)
-2026-08-31  Round 4: #310/#311/#312/#313 all fixed and pinned. No model change,
-            no new findings -- the first round that only CLOSED rows.
-            findings before: 28    findings after: 28    (re-anchored: none)
+2026-08-31  Round 4: #310/#311/#312/#313 all fixed and pinned. E-14: the E-06
+            rename orphaned one consumer, seen only by the suite set comparison.
+            No model change.
+            findings before: 29    findings after: 29    (re-anchored: none)
 ```
 
 Each future entry records: the model change, and per affected row —
