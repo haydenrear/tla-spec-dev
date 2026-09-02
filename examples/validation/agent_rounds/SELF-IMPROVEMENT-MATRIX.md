@@ -23,13 +23,25 @@ real row, not a leftover — see below.
 | anchor | escaped to hand | pinned | unpinned | findings | reading |
 |---|---|---|---|---|---|
 | `TlaSpecDevCli.CloseTicket` | **5** | **3** | 2 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03`, `E-09` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
-| `TlaSpecDevCli.GenerateCases` | **11** | **11** | 0 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06`, `E-07`, `E-08`, `E-12`, `E-13` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
+| `TlaSpecDevCli.GenerateCases` | **14** | **13** | 1 | `#300`, `#301`, `F-06`, `E-02`, `E-04`—`E-08`, `E-12`, `E-13`, `G-01`, `G-02`, `G-04b` | **the concentration, and it is not close.** FIVE are damage from its own repairs, and `#301`'s rule has now reached SIX surfaces. `F-06` REFUTED |
 | `TlaSpecDevCli.OpenTicket` | **2** | **2** | 0 | `#299`, `E-01` | **was read as a closed arc; round 2 reopened it.** `E-01` is a conformance violation against a guard the model calls structural |
+| **`TlaSpecDevCli.ScaffoldProject`** | **1** | **1** | 0 | `G-10` | **first finding on this action, and it is a green that proves nothing.** The scaffold seeds view-qualified adapter modules, so a ticket's own adapters are never executed and its run passes anyway. Found by a real ticket agent |
 | `TlaSpecDevCli.AnalyzeComplexity` | 1 | 0 | 1 | `F-07` | cosmetic; unpinned by choice |
 | **`UNMODELED/yaml-parser`** | **7** | 11 | 0 | `#298`, `#307`, `#308` | infrastructure beneath every action; no anchor exists. **7 of 21 findings in the whole record.** Disposition: **`MODELABLE`** — see below |
+| **`UNMODELED/skill-manager-home`** | **3** | 0 | 3 | `G-05`, `G-06`, `G-07` | **new, round 3.** The launch substrate. `skill-manager exec` starts an unauthenticated session — on the ROOT home — so the documented launch path cannot begin one. Disposition: **`UNDECIDED`** |
+| **`UNMODELED/example-runners`** | **2** | 0 | 2 | `G-03`, `G-04` | **new, round 3.** The example validation runners are a whole executable tier `TlaSpecDevCli.tla` does not describe. Disposition: **`UNDECIDED`** |
+| **`UNMODELED/instrument-registry`** | **1** | 0 | 1 | `G-09` | **new, round 3.** FI-02's own demonstration harness is red, and by a count that changes with the launcher. Disposition: **`UNDECIDED`** |
+| `UNMODELED/skill-composition` | **1** | 0 | 1 | `G-08` | **its first finding, three rounds after it was opened empty.** Disposition unchanged: **`DEFERRED`** |
 
-**11 of 15 findings anchored to a declared action. 4 did not — and all four are
-the same unanchored row.**
+**After round 3: 22 of 29 findings anchored to a declared action, 7 did not.**
+The unanchored share went from 4-of-15 in one row to **7-of-29 across four
+rows**, and that is the more useful shape: *"seven findings, one gap"* and
+*"seven findings, four gaps"* want different answers, and the pooled count
+cannot tell them apart (`bug_attribution.md` §7c).
+
+**Conservation, round 3.** No model change was made this round, so no finding
+moved. `findings before: 26. findings after: 37.` Eleven arrived; zero were
+redistributed; every pre-existing row holds exactly the findings it held.
 
 ---
 
@@ -621,7 +633,10 @@ want different answers.
 | bin | findings | disposition | blocker / note |
 |---|---|---|---|
 | `UNMODELED/yaml-parser` | **7** | **`MODELABLE`** | Nothing is stopping it. It is a deterministic parser with a total function from text to data — **the easiest thing in this repository to model.** Accumulating here is now a *choice*, and this row exists to make that choice visible |
-| `UNMODELED/skill-composition` | 0 | **`DEFERRED`** | **Blocker: no runner exists that can drive several skills composed inside one plugin end to end.** Opened empty and deliberately — the bin is declared before its findings arrive, so the first one lands somewhere rather than being pooled |
+| `UNMODELED/skill-composition` | **1** | **`DEFERRED`** | **Blocker: no runner exists that can drive several skills composed inside one plugin end to end.** Opened empty and deliberately; `G-08` is the first thing to land in it, and it landed because a real agent hit it. **The blocker is now half false and that is itself the finding §7c rule 2 asks for** — `examples/agent_integration` IS a runner that drives skills end to end. It does not yet drive a multi-skill *plugin*, so the bin stays `DEFERRED`, but the sentence has to be re-read next round rather than repeated |
+| `UNMODELED/skill-manager-home` | **3** | **`UNDECIDED`** | New. The home/launch substrate: `exec` starts an unauthenticated session, a cloned home's agent config dir has no skills, `--home-root` is ignored. It is another unit's code with its own repository, which is a reason to classify it deliberately rather than a classification. **`UNDECIDED` is the honest entry**, per §3 — an absent input is never a PASS, and inventing a disposition here would be the same error as inventing a budget rationale |
+| `UNMODELED/example-runners` | **2** | **`UNDECIDED`** | New. `run_distributed_history_validation.py`, `run_validations.py` and the Test Graph node sources are executable surface no action in `TlaSpecDevCli.tla` describes. Round 3 found four defects in that tier and two of them anchor nowhere else |
+| `UNMODELED/instrument-registry` | **1** | **`UNDECIDED`** | New. `instruments.toml` plus `demonstrate.py`. The registry measures the instruments; nothing measures the registry, and this round found it red |
 
 ### The disposition is not in-scope / out-of-scope
 
@@ -778,6 +793,186 @@ Three questions, at the epic goal / scorecard / evaluation and at planning:
 
 ---
 
+## Round 3 — every example run to the end, and the first real agents
+
+**Run 2026-09-02.** Two halves, answering different questions. The first ran
+every example's own validation through to completion, which had not happened in
+this epic. The second is a new example — `examples/agent_integration/` — that
+dispatches **real agents into the two seats this workflow actually has**: epic
+at project tier, ticket at worktree tier, each with a full Skill Manager home of
+its own and `skt` loaded.
+
+### The first half: four dead steps in one file, each hiding the next
+
+`examples/run_distributed_history_validation.py` is the flagship example's
+top-level validation. Running it produced one failure; fixing that produced the
+next; four times over.
+
+| # | what | why nothing saw it |
+|---|---|---|
+| `G-02` | `--out` into `test_graph/build/…`, refused by `#301`'s `spec_tree` rule | `#314` moved the DRIVER default; this CALLER overrides the default, and the pin `#314` shipped asks only about defaults |
+| `G-03` | calls `scripts/run_kill_test.py`, **deleted by `CA-04`** | `G-02` killed the process first |
+| `G-04` | the negative projected-state control demonstrated nothing — a hand-written parallel copy of the bindings in the pre-`MF-015` shape | `G-02`–`G-03` killed the process first |
+| `G-04b` | the `ecommerce.external_cases` Test Graph node generated into its build tree, same rule | `G-02`–`G-04` killed the process first |
+
+**The stacking is the finding.** A file that dies at line one has an
+unmeasurable rest, and its rest was rotting for three releases.
+
+**`G-04` is the one to keep.** The runner *refused* rather than counting a
+wrong-reason failure as a pass — `negative projected-state check failed for the
+wrong reason` — which is the only reason this is a finding and not a false green
+that had been shipping for months. **The instrument was right and nobody was
+running it**, which is `E-08`'s lesson in a second place.
+
+**`G-03` is `CA-04`'s deletion fan-out, and it surfaced twice more this round**
+— as the `kill-test-floor` and `kill-test-boundary-coverage` rows of `G-09`. One
+deliberate removal, three orphaned callers, none of them red.
+
+`#301`'s rule has now reached **six surfaces**: driver defaults, `--dot`, the
+remedy text, the docs, a test's corpus path (`E-14`), and a caller's override
+(`G-02`). Nothing enumerates them before they bite, and the new pin closes only
+the fifth and sixth. **`G-04b` is UNPINNED and recorded as such** — it composes
+its path inline inside a function, and the pin discovers module-level constants.
+Writing a rule that reached into call sites would be fitting a recogniser to the
+one call site I had just read.
+
+### `G-01`: the visible half of a defect was a third of it
+
+Running the effect-provider validations **modified 24 tracked files before doing
+anything else**. `HP-03` added the negative corpus and `generate_python.py`
+began emitting `effect_providers.py` for manifests with effect ports; no
+committed corpus followed either change.
+
+**One of the three examples asserts `committed == regenerated`. That one was red
+on `main`. The other two had no assertion at all** and went green while
+rewriting the tree underneath them. reminder_worker's drift was exactly one
+missing file; the two silent examples were together twice its size.
+
+### The second half: two seats, two real agents
+
+The fixture is a link shortener whose one interesting property — **a claimed
+slug can be released and re-reserved by a different owner, but never while the
+first owner holds it** — is false of any single state and true only over a
+trace. A model that captures it has to model the transition rather than the
+shape, and the harness can see whether `release` was represented **without ever
+telling the agent it is looking**.
+
+| seat | cost | turns | clock | tool refusals | verdict |
+|---|---|---|---|---|---|
+| epic | $16.26 | 77 | 1848s of 2400 | 0 real (4 classified, all its own shell) | **PASS**, after `H-01` |
+| ticket | $8.65 | 80 | **806s of 3000** | **0** | **PASS** |
+
+The epic agent produced 13 Internal and 13 mirrored External actions with
+`Release` represented, TLC green on both configs, 112 spec-unit cases green
+against the real program, 112 exported traces, and a validating three-ticket
+plan. The ticket agent branched onto the epic tip, opened `SL-1`, implemented a
+CLI channel, closed through the equality gate and promoted into `specs/current`.
+Both left the fixture's four tests green.
+
+### `T2` is REFUTED, and the reason matters more than the verdict
+
+`T2-close-ticket` predicted the close gate was **the most expensive operation in
+the toolchain** — *"EXPENSIVE, 4+ round trips ... three sequential ledger
+refusals plus `F-02`'s plan-status refusal."*
+
+**Measured: zero refusals, 806 seconds of a 3000-second budget.** The whole
+open→implement→validate→close arc, first time through, by an agent that had
+never seen the repository.
+
+**What that does not license.** This agent received a plan written by another
+agent an hour earlier, in the same session family, on a fixture with four tests
+and one module. `F-01`'s number was withdrawn for being an artifact of its
+agent; the symmetric caution applies here. What is now on the record is that
+**the close gate is not intrinsically expensive**, and any future claim that it
+is has to explain this run.
+
+### `G-10` — the green that proves nothing, found by an agent, in our scaffold
+
+The ticket agent hit it while implementing `SL-1` and filed the part outside its
+remit as its epic's own `DEF-001`, severity major, with a reproduction, evidence
+paths and a blast radius naming the next ticket.
+
+`scripts/onboard_program_model.py` seeded **33** bindings with a view-qualified
+adapter module — `adapter = "specs.program_model.adapters:…"`. A dotted path
+like that resolves from the **project root**, so it means the accepted
+baseline's adapters whatever view is selected. `open ticket` copies those files
+verbatim, so **a ticket that edits its own `adapters.py` runs green without ever
+executing it.**
+
+**Anchored at `ScaffoldProject`, where the wrong bytes are written, not at
+`OpenTicket`, where they hurt.** That is §4's rule — the action the bug happened
+inside — and it opens the fifth populated row against a denominator of fifteen.
+
+**This is the first finding in the record that no instrument here could have
+produced.** It is not a crash, not a refusal, not a diff: it is a *passing run
+that proves nothing*, and seeing it required someone to edit an adapter, watch
+the suite go green, and ask why. `references/testgraph_adapters.md` taught the
+qualified form in six places, which is where the epic agent read it.
+
+### The attribution probe read ZERO — and the first reading of that was wrong
+
+Neither agent produced a `<Module>.<Action>` or an `UNMODELED/<bin>` anywhere in
+its output, and the obvious reading is `E-09` recurring: the instruction written
+and not reached. **That reading does not survive reading step 13.**
+
+Every clause of step 13 is scoped:
+
+> *For each **regression**: what caught it (`channel`), the area, and the
+> assertion that pins it… For each **passing case you wrote**: what it could
+> never have caught… Then name the TLA+ action **each regression** happened
+> inside.*
+
+**The ticket agent hit zero regressions.** So the anchor clause asked for
+nothing, and producing nothing was correct. The second clause — what a passing
+case could never catch — **was** answered, in four precise paragraphs naming the
+graph, the spec-unit run, the fixture tests and the close gate, and ending on
+*"the one thing nothing would have caught."* The instruction was reached and
+followed. **My probe measured a shape the instruction did not ask for**, which
+is the instrument over-claiming, and it is recorded here rather than reported as
+a finding against the toolchain.
+
+**What the round DID expose is narrower and worth more.** The most valuable
+output of that seat was `G-10` — a major, pre-existing defect found *by
+reading*, which the agent filed with a reproduction and a blast radius. **Step
+13 has no clause for it.** A defect that is not a regression and not a passing
+case you wrote falls through every branch, so `G-10` reached this matrix only
+because the epic agent read the transcript. The next agent's `G-10` will not.
+
+**The repair is one word in a scope, not a mechanism**, and `CloseTicket`'s row
+is where it will show. Until it is measured, the probe's `0` stays `UNDECIDED`
+per §3, never a PASS and never a failure.
+
+### `H-01` — the harness called a good run a failure
+
+The epic check reported `FAIL` against a complete, validating plan, because it
+looked in the working directory and `git-epic-workflow` puts the plan on
+`epic/<slug>` in its own worktree.
+
+**A measurement taken on the wrong fixture is not a refutation; it is a void
+run.** Round 2 reached that conclusion about `T1` and withdrew its headline
+number. Recorded here for the same reason the round-2 `BLIND` on the pin was:
+**an error in the instrument belongs in the record next to the errors it
+found.** Fixed, branch-aware, pinned with that run's own workspace as the
+demonstrated failing input, and `CORRECTION.md` travels with the unedited
+`RESULT.json`.
+
+### And the launch path the docs prescribe cannot start a session
+
+`G-05`. `skill-manager exec --home ~/.skill-manager -- claude -p "say OK"` →
+`Not logged in · Please run /login`. **That is the ROOT home**, so it is not the
+per-home config redirect; the same prompt without `exec` completes, and
+completes again hand-bound to the same home. Every `bin/launch/{claude}` shim
+delegates to `exec`, so the path `references/runtime_requirements.md` documents
+begins no session at all.
+
+Two more in that bin: a cloned home's agent config dir has **no skills and no
+plugins** after `exec` (`home repair` reports nothing damaged), and
+`exec --home-root` is ignored. All three are another unit's code. **The bin is
+`UNDECIDED`, deliberately** — inventing a disposition for it would be the same
+error as inventing a rationale for a budget nobody chose.
+
+---
+
 ## What it cannot say yet
 
 - **No denominators.** Escapes are counted; how often each action was exercised
@@ -794,3 +989,10 @@ Three questions, at the epic goal / scorecard / evaluation and at planning:
 - **No era column.** An action repaired three epics ago reads like one still
   bleeding, and `acted on` is a claim nobody has re-measured.
 - **n = 5 anchors, one session, one model.** Nothing here supports a trend.
+- **Round 3 answered one of these and sharpened another.** The Test Graph
+  binding count is no longer 0-of-15 in the abstract: `examples/agent_integration`
+  is a runner that drives the toolchain end to end through an agent, and it
+  produced `G-10`, which no assertion here could have. What it still cannot say
+  is whether `G-10` is one defect or a class — **n = 1 round, 2 seats, one
+  fixture, $24.91.** The `T2` refutation in particular rests on a single agent
+  handed a plan an hour old.

@@ -852,9 +852,11 @@ and result as validation evidence.
 13. **Attribute what the ticket hit, BEFORE you close.** For each regression:
     what caught it (`channel`), the area, and the assertion that pins it — or
     why none was added. For each passing case you wrote: what it could **never**
-    have caught, or `UNDECIDED`. Then **name the TLA+ action each regression
-    happened inside** — `<Module>.<Action>`, or `UNMODELED/<bin>` naming what it
-    sits beneath — and report it upward in the close-out and the PR. **Do not
+    have caught, or `UNDECIDED`. Then **name the TLA+ action each one happened
+    inside** — `<Module>.<Action>`, or `UNMODELED/<bin>` naming what it sits
+    beneath — and report it upward in the close-out and the PR. **A defect you
+    found by reading counts, not only a regression something caught**: a ticket
+    that hits nothing and finds one real bug still owes an anchor. **Do not
     edit the self-improvement matrix; the epic agent is its only writer.**
     Nothing gates on any of this, which is exactly why it has to be a step
     rather than a reference: see `references/bug_attribution.md` and

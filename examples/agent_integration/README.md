@@ -113,8 +113,13 @@ that agent, not a reason to leave the harness wrong.)
 `UNMODELED/<bin>`. The probe asks only whether that **shape** appears anywhere
 in what the agent produced. It does not check the naming is correct: fitting a
 recogniser to a known answer is `MF-020`, and this project has refused it three
-times. A run with zero occurrences is `E-09` recurring in a new place — the
-instruction written, and not reached.
+times. **A run with zero occurrences is `UNDECIDED`, not a failure**, and round 001 is
+why that sentence is here. It read zero in both seats, and the obvious
+conclusion — `E-09` recurring — does not survive reading step 13: every clause
+is scoped to regressions and to cases the agent wrote, and the ticket agent hit
+zero regressions. Producing no anchor was correct. Read the number against what
+the agent actually hit, or this probe over-claims on exactly the axis the rest
+of the harness is built to police.
 
 ## The fixture
 

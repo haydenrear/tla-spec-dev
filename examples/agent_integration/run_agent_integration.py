@@ -581,8 +581,20 @@ def attribution_probe(harvested: dict[str, Any]) -> dict[str, Any]:
     `UNMODELED/<bin>`. This does NOT check that the naming is correct -- fitting
     a recogniser to a known answer is MF-020 and this project has refused it
     three times. It checks only whether the SHAPE the instruction asks for
-    appears anywhere in what the agent produced. A run with zero is E-09
-    recurring: the instruction is written and not reached.
+    appears anywhere in what the agent produced.
+
+    **A ZERO IS `UNDECIDED`, NOT A FAILURE**, and the first version of this
+    docstring said otherwise. Round 001 read zero in both seats and the obvious
+    conclusion -- E-09 recurring, the instruction written and not reached -- did
+    not survive reading step 13, every clause of which is scoped to regressions
+    and to cases the agent wrote. **The ticket agent hit zero regressions, so
+    the anchor clause asked for nothing and producing nothing was correct.**
+    Reporting that as a finding would have been this instrument over-claiming
+    on its first run, which is the failure mode the whole harness is built to
+    avoid in others.
+
+    So the caveat travels with the number, in the result, rather than living in
+    whoever last read the code.
     """
     blob = "\n".join(
         str(x)
@@ -595,6 +607,12 @@ def attribution_probe(harvested: dict[str, Any]) -> dict[str, Any]:
         "named_unmodeled_bin": sorted(set(bins)),
         "action_shaped_mentions": sorted(set(actions))[:40],
         "any_attribution_shape": bool(bins or actions),
+        "reading": (
+            "A zero here is UNDECIDED, never a failure. SKILL.md step 13 scopes "
+            "its anchor clause to regressions and to cases the agent wrote, so a "
+            "round with no regressions correctly produces no anchor. Read this "
+            "against what the agent actually hit before concluding anything."
+        ),
     }
 
 
