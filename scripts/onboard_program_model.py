@@ -437,7 +437,32 @@ actions:
 
 
 def case_adapters_toml() -> str:
-    return """# SPEC-UNIT ADAPTERS (internal view).
+    return """# ADAPTER MODULES ARE NAMED BARE, AND THAT IS LOAD-BEARING.
+#
+# A binding written `specs.program_model.adapters:X` is resolved from the
+# PROJECT ROOT, so it means the accepted baseline's adapters no matter which
+# view is selected. `open ticket` copies these files verbatim into
+# `specs/tickets/<id>/{current,desired}`, so a ticket that edits its own
+# `adapters.py` runs GREEN WITHOUT EVER EXECUTING IT -- the corpus is the
+# ticket's and the adapters are the baseline's.
+#
+# A bare `adapters:X` resolves against the SELECTED spec directory, which both
+# loaders put on the import path (`default_import_roots_for` adds the spec dir;
+# `enforce_external_channels` adds the bindings file's own directory). So the
+# view executes its own adapters, which is the only reading under which a
+# ticket-local adapter change is validated at all.
+#
+# ONE CONDITION, because it is easy to lose: `default_import_roots_for` is
+# skipped entirely when `--import-root` is passed explicitly. A caller that
+# states its own roots must include the spec directory among them, or a bare
+# name stops resolving. The default path needs nothing.
+#
+# Found by a ticket agent in examples/agent_integration round 001, filed as its
+# own DEF-001 against the epic it was working, with the reproduction that names
+# this scaffold: *"consider the same in the tla-spec-dev ticket scaffold so
+# seeded bindings never point at another view."*
+#
+# SPEC-UNIT ADAPTERS (internal view).
 #
 # Maps each Internal.tla action to the adapter that drives the real internal
 # boundary for a generated spec-unit case. Run with:
@@ -449,18 +474,18 @@ def case_adapters_toml() -> str:
 # uncomment and adapt this project-owned binding:
 #
 # [effect_providers.ExampleEffectPort]
-# provider = "specs.program_model.providers:effect_provider"
+# provider = "providers:effect_provider"
 
 [adapters.RegisterActor]
-adapter = "specs.program_model.adapters:RegisterActorInternalAdapter"
+adapter = "adapters:RegisterActorInternalAdapter"
 kind = "program-internal"
 
 [adapters.AcceptRecord]
-adapter = "specs.program_model.adapters:AcceptRecordInternalAdapter"
+adapter = "adapters:AcceptRecordInternalAdapter"
 kind = "program-internal"
 
 [adapters.PublishRecord]
-adapter = "specs.program_model.adapters:PublishRecordInternalAdapter"
+adapter = "adapters:PublishRecordInternalAdapter"
 kind = "program-internal"
 """
 
@@ -508,7 +533,7 @@ def effect_provider_usage_yml() -> str:
 version: 1
 providers: []
 # - port: ExampleEffectPort
-#   provider: specs.program_model.providers:effect_provider
+#   provider: providers:effect_provider
 #   binding_style: explicit_injection  # explicit_injection | self_installed | external_fixture | other
 #   state_scope: execution_point
 #   fuzz_dimensions: []
@@ -519,7 +544,15 @@ providers: []
 
 
 def testgraph_bindings_yml() -> str:
-    return """# TEST GRAPH ADAPTERS (external view).
+    return """# Adapter modules are named BARE here for the same reason they are in
+# case_adapters.toml: a view-qualified `specs.program_model.adapters:X`
+# resolves from the project root, so a ticket copy of this file silently drives
+# the accepted baseline's adapters instead of its own. `enforce_external_channels`
+# puts this file's own directory on the import path, so a bare name means "the
+# adapters beside these bindings", which is the only reading that makes a
+# ticket-local adapter change observable.
+#
+# TEST GRAPH ADAPTERS (external view).
 #
 # Maps each External.tla action to the adapter that drives the real public
 # surface, plus the projector/assertion that compare deployed state back to the
@@ -561,70 +594,70 @@ actions:
     layer: external
     controllability: e2e_direct
     kind: program-external
-    adapter: specs.program_model.adapters:RegisterActorExternalAdapter
-    projector: specs.program_model.adapters:ProgramStateProjector
-    expected_projection: specs.program_model.adapters:ExpectedProgramProjection
-    assertion: specs.program_model.adapters:ProjectedStateAssertion
+    adapter: adapters:RegisterActorExternalAdapter
+    projector: adapters:ProgramStateProjector
+    expected_projection: adapters:ExpectedProgramProjection
+    assertion: adapters:ProjectedStateAssertion
   SubmitDuplicateRegisterActor:
     view: external
     channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
-    adapter: specs.program_model.adapters:RegisterActorExternalAdapter
-    projector: specs.program_model.adapters:ProgramStateProjector
-    expected_projection: specs.program_model.adapters:ExpectedProgramProjection
-    assertion: specs.program_model.adapters:ProjectedStateAssertion
+    adapter: adapters:RegisterActorExternalAdapter
+    projector: adapters:ProgramStateProjector
+    expected_projection: adapters:ExpectedProgramProjection
+    assertion: adapters:ProjectedStateAssertion
   SubmitAcceptRecord:
     view: external
     channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
-    adapter: specs.program_model.adapters:AcceptRecordExternalAdapter
-    projector: specs.program_model.adapters:ProgramStateProjector
-    expected_projection: specs.program_model.adapters:ExpectedProgramProjection
-    assertion: specs.program_model.adapters:ProjectedStateAssertion
+    adapter: adapters:AcceptRecordExternalAdapter
+    projector: adapters:ProgramStateProjector
+    expected_projection: adapters:ExpectedProgramProjection
+    assertion: adapters:ProjectedStateAssertion
   SubmitAcceptRecordUnknownActor:
     view: external
     channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
-    adapter: specs.program_model.adapters:AcceptRecordExternalAdapter
-    projector: specs.program_model.adapters:ProgramStateProjector
-    expected_projection: specs.program_model.adapters:ExpectedProgramProjection
-    assertion: specs.program_model.adapters:ProjectedStateAssertion
+    adapter: adapters:AcceptRecordExternalAdapter
+    projector: adapters:ProgramStateProjector
+    expected_projection: adapters:ExpectedProgramProjection
+    assertion: adapters:ProjectedStateAssertion
   SubmitDuplicateAcceptRecord:
     view: external
     channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
-    adapter: specs.program_model.adapters:AcceptRecordExternalAdapter
-    projector: specs.program_model.adapters:ProgramStateProjector
-    expected_projection: specs.program_model.adapters:ExpectedProgramProjection
-    assertion: specs.program_model.adapters:ProjectedStateAssertion
+    adapter: adapters:AcceptRecordExternalAdapter
+    projector: adapters:ProgramStateProjector
+    expected_projection: adapters:ExpectedProgramProjection
+    assertion: adapters:ProjectedStateAssertion
   RunPublishWorker:
     view: external
     channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
-    adapter: specs.program_model.adapters:PublishWorkerExternalAdapter
-    projector: specs.program_model.adapters:ProgramStateProjector
-    expected_projection: specs.program_model.adapters:ExpectedProgramProjection
-    assertion: specs.program_model.adapters:ProjectedStateAssertion
+    adapter: adapters:PublishWorkerExternalAdapter
+    projector: adapters:ProgramStateProjector
+    expected_projection: adapters:ExpectedProgramProjection
+    assertion: adapters:ProjectedStateAssertion
   RunPublishWorkerNoop:
     view: external
     channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
-    adapter: specs.program_model.adapters:PublishWorkerExternalAdapter
-    projector: specs.program_model.adapters:ProgramStateProjector
-    expected_projection: specs.program_model.adapters:ExpectedProgramProjection
-    assertion: specs.program_model.adapters:ProjectedStateAssertion
+    adapter: adapters:PublishWorkerExternalAdapter
+    projector: adapters:ProgramStateProjector
+    expected_projection: adapters:ExpectedProgramProjection
+    assertion: adapters:ProjectedStateAssertion
 """
 
 

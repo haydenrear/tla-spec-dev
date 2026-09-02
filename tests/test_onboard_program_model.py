@@ -52,7 +52,21 @@ def test_scaffold_emits_both_views_and_both_adapter_mappings(tmp_path: Path) -> 
     case_adapters = (program_model / "case_adapters.toml").read_text(encoding="utf-8")
     assert "InternalAdapter" in case_adapters
     assert "[effect_providers.ExampleEffectPort]" in case_adapters
-    assert "specs.program_model.providers:effect_provider" in case_adapters
+    # BARE, not `specs.program_model.providers:` -- and the change is semantic,
+    # not cosmetic. A view-qualified dotted path resolves from the project root,
+    # so a ticket copy of this mapping drives the accepted baseline's providers
+    # however the ticket edited its own `providers.py`. See
+    # tests/test_scaffolded_bindings_name_their_own_view.py, which is the pin,
+    # and the note at the top of `case_adapters_toml()`.
+    provider_lines = [
+        line.strip()
+        for line in case_adapters.splitlines()
+        if "providers:effect_provider" in line
+    ]
+    assert provider_lines, "the example effect-provider binding is gone"
+    assert all(
+        "specs.program_model.providers:" not in line for line in provider_lines
+    ), f"the example binding still names another view's providers module: {provider_lines}"
 
     actions = (program_model / "actions.yml").read_text(encoding="utf-8")
     assert actions.count("effect_ports: []") == 11

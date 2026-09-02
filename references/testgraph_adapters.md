@@ -8,6 +8,31 @@ foundational to every project, not an add-on for distributed systems. A baseline
 without an External view and its adapters generates no Test Graph cases, so the
 repository's public surface is never validated.
 
+### Name the adapter module bare, not view-qualified
+
+Write `adapter: adapters:CheckoutHttpAdapter`, not
+`adapter: specs.program_model.adapters:CheckoutHttpAdapter`.
+
+A view-qualified dotted path is resolved from the **project root**, so it means
+the accepted baseline's adapters whatever view is selected. `open ticket` copies
+the bindings verbatim into `specs/tickets/<id>/{current,desired}`, so a ticket
+that edits its own `adapters.py` **runs green without ever executing it** — the
+corpus is the ticket's and the adapters are the baseline's. That green is the
+worst kind: it reports a validated ticket-local adapter change that was never
+run.
+
+A bare name resolves against the **selected** spec directory, which both loaders
+put on the import path: `default_import_roots_for` adds the spec dir, and
+`enforce_external_channels` adds the bindings file's own directory. One
+condition — `default_import_roots_for` is skipped when `--import-root` is passed
+explicitly, so a caller that states its own roots must include the spec
+directory among them.
+
+`examples/distributed_history` still uses the qualified form. It has no ticket
+workflow, so the defect does not manifest there, and its runners pass a single
+explicit `--import-root`; converting it needs that caller changed too. Read it
+for the adapter shapes, not for the module naming.
+
 ## What the scaffold gives you
 
 `tla-spec-dev scaffold project` emits the full baseline shape:
@@ -130,7 +155,7 @@ violation. There is no override flag anywhere in this path.
 actions:
   SubmitCheckout:
     channel: http          # http | cli | fs | queue | k8s
-    adapter: specs.program_model.adapters:CheckoutHttpAdapter
+    adapter: adapters:CheckoutHttpAdapter
 ```
 
 A binding whose author did not say how the program is driven has not declared
@@ -174,7 +199,7 @@ A violation reports the adapter, the offending import, and the remediation:
 ```text
 ERROR: external channel enforcement failed for 1 binding(s) in .../testgraph_bindings.yml
   action SubmitCheckout
-    adapter:     specs.program_model.adapters:CheckoutHttpAdapter
+    adapter:     adapters:CheckoutHttpAdapter
     problem:     adapter module specs.program_model.adapters imports production
                  package 'ecommerce'; a Test Graph adapter that imports the
                  program under test is running it in-process, not over the
@@ -223,10 +248,10 @@ The binding file wires this:
 actions:
   SubmitCheckout:
     channel: http
-    adapter: specs.program_model.adapters:CheckoutHttpAdapter
-    projector: specs.program_model.adapters:ClusterStateProjector
-    expected_projection: specs.program_model.adapters:ExpectedClusterProjection
-    assertion: specs.program_model.adapters:ProjectedStateAssertion
+    adapter: adapters:CheckoutHttpAdapter
+    projector: adapters:ClusterStateProjector
+    expected_projection: adapters:ExpectedClusterProjection
+    assertion: adapters:ProjectedStateAssertion
 ```
 
 The runner computes:
