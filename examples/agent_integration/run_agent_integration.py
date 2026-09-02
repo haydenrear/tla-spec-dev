@@ -312,6 +312,25 @@ def bind_home_env(home: Path) -> tuple[dict[str, str], str]:
     return env, LAUNCH_NOTE
 
 
+def _drop_home_clones(ws_root: Path) -> list[str]:
+    """Remove the cloned Skill Manager homes, leaving everything the agents wrote.
+
+    Only directories named exactly `.skill-manager` INSIDE the run's own
+    workspace root are removed, and the root is resolved first: a cleanup that
+    can wander is worse than a gigabyte of disk.
+    """
+    root = ws_root.resolve()
+    removed: list[str] = []
+    for home in sorted(root.rglob(TIER_HOME_DIRNAME)):
+        if not home.is_dir():
+            continue
+        if root not in home.resolve().parents:
+            continue  # pragma: no cover - defensive; rglob cannot leave the root
+        shutil.rmtree(home, ignore_errors=True)
+        removed.append(str(home))
+    return removed
+
+
 # ---------------------------------------------------------------------------
 # Dispatch
 # ---------------------------------------------------------------------------
@@ -759,6 +778,13 @@ def main() -> int:
                 flush=True,
             )
     finally:
+        # A home clone is ~700MB and there are two per run. Left behind, a
+        # weekly round costs a gigabyte and a half of disk that nothing in the
+        # evidence refers to -- the homes are reproducible from the source home,
+        # and what a reader needs is the workspace and RESULT.json. So they go
+        # unless asked for. The AGENTS' WORK IS NEVER TOUCHED.
+        if not args.keep_workspace:
+            result["reclaimed_homes"] = _drop_home_clones(ws_root)
         result["duration_seconds"] = round(time.perf_counter() - started, 3)
         result["finished_utc"] = datetime.now(timezone.utc).isoformat()
         (evidence / "RESULT.json").write_text(

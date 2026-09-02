@@ -326,3 +326,54 @@ def test_no_plan_anywhere_falls_back_rather_than_crashing(tmp_path) -> None:
     _git(repo, "config", "user.name", "t")
     _git(repo, "commit", "-q", "--allow-empty", "-m", "empty")
     assert harness._ref_carrying_the_plan(repo) == "HEAD"
+
+
+def test_cleanup_removes_the_home_clones_and_nothing_the_agents_wrote(tmp_path) -> None:
+    """Two 700MB clones per run, and nothing in the evidence refers to them.
+
+    Left behind, a weekly round costs a gigabyte and a half of disk. Removed
+    carelessly, it costs the run. So the cleanup is asserted on both halves at
+    once: every `.skill-manager` under the run root goes, and everything else
+    stays exactly where the agents left it.
+    """
+    harness = _harness()
+    (tmp_path / "project" / ".skill-manager" / "bin").mkdir(parents=True)
+    (tmp_path / "ticket-worktree" / ".skill-manager").mkdir(parents=True)
+    (tmp_path / "project" / "shortlink.py").write_text("# the agent's work\n")
+    (tmp_path / "project" / "specs").mkdir()
+
+    removed = harness._drop_home_clones(tmp_path)
+
+    assert len(removed) == 2, f"expected both homes, removed {removed}"
+    assert not (tmp_path / "project" / ".skill-manager").exists()
+    assert not (tmp_path / "ticket-worktree" / ".skill-manager").exists()
+    assert (tmp_path / "project" / "shortlink.py").is_file(), "the agent's work was deleted"
+    assert (tmp_path / "project" / "specs").is_dir(), "the agent's spec tree was deleted"
+
+
+def test_cleanup_will_not_follow_a_symlink_out_of_the_run(tmp_path) -> None:
+    """A cleanup that can wander is worse than the disk it saves.
+
+    `rglob` cannot leave the root on its own, but a `.skill-manager` SYMLINK
+    inside the workspace pointing at the operator's real home is a plausible
+    accident — a copied worktree, a hand-made shortcut — and `rmtree` through it
+    would take the home this machine works from.
+    """
+    harness = _harness()
+    outside = tmp_path / "outside" / ".skill-manager"
+    (outside / "skills").mkdir(parents=True)
+    run_root = tmp_path / "run"
+    (run_root / "project").mkdir(parents=True)
+    (run_root / "project" / ".skill-manager").symlink_to(outside, target_is_directory=True)
+
+    removed = harness._drop_home_clones(run_root)
+
+    # ASSERTED ON THE RETURN VALUE, not just on the survivor. `shutil.rmtree`
+    # refuses a symlink and `ignore_errors=True` swallows that refusal, so
+    # `outside` survives whether or not the guard exists -- checking only that
+    # it survived is a test that passes vacuously, which is the shape this
+    # repository has been caught by three times. The guard's observable effect
+    # is that the link is SKIPPED rather than attempted.
+    assert removed == [], f"the cleanup tried to remove a home outside the run: {removed}"
+    assert outside.is_dir(), "the cleanup followed a symlink out of the run root"
+    assert (outside / "skills").is_dir()
