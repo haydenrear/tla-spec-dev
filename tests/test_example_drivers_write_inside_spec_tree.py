@@ -361,3 +361,83 @@ def test_callers_that_override_a_driver_default_are_also_inside_the_spec_tree() 
         "these example modules pass `--out` and name a generated root the "
         "toolchain's own resolver refuses:\n  " + "\n  ".join(offenders)
     )
+
+
+
+def _is_within(candidate: Path, root: Path) -> bool:
+    """True when `candidate` is `root` or lives beneath it. No string prefixes.
+
+    `a/generated` and `a/generated-old` share a string prefix and share no
+    directory; comparing paths as text is how a guard flags the wrong tree.
+    """
+    try:
+        candidate.resolve().relative_to(root)
+    except ValueError:
+        return False
+    return True
+
+
+def test_a_validation_run_does_not_generate_over_a_committed_corpus() -> None:
+    """Writing under `specs/` is necessary. Writing over a FIXTURE is not allowed.
+
+    `#301` says a generated-case root must live under `specs/`. The obvious way
+    to satisfy that in `examples/run_distributed_history_validation.py` was to
+    point the run at the driver's default, `specs/generated` -- and that
+    directory holds a **committed fixture**: four hand-legible external cases
+    with named constants, which
+    `tests/test_corpus_diagnostics.py::test_cli_passes_on_the_committed_example_corpus`
+    asserts stays inside the default 50-per-action cap.
+
+    A full generation of that model is 732 cases. The run replaced a 121-line
+    fixture with 18,315 lines and took the corpus gate from PASS to
+    `732 external case(s), cap = 50 per action`.
+
+    **Nothing local caught it.** Not the resolver -- the path was legal. Not the
+    example's own validation -- it went green on the corpus it had just written.
+    Only a set comparison of the whole suite against the baseline commit saw it:
+    17 failures against 16, with the one new failure in a file that names none
+    of the things that changed. That is `E-14`'s shape for the third time.
+
+    So the property asserted here is the one the resolver cannot express: **a
+    run's output root must not BE a committed corpus directory.** Membership in
+    git is the test, because "committed" is exactly what makes overwriting it a
+    loss.
+    """
+    module = _load(REPO_ROOT / "examples" / "run_distributed_history_validation.py")
+    generated_root = getattr(module, "GENERATED_ROOT", None)
+    assert generated_root is not None, "the runner exposes no GENERATED_ROOT"
+
+    tracked = subprocess.run(
+        ["git", "ls-files", "examples"],
+        cwd=REPO_ROOT, capture_output=True, text=True, check=False,
+    ).stdout.splitlines()
+
+    # CONTAINMENT, not equality, and the difference is the whole test. My first
+    # version compared the output root against the set of directories that
+    # directly hold tracked files. `specs/generated` holds none -- its files are
+    # a level down, under `spec-unit/` and `testgraph/` -- so the check passed
+    # with the defect restored. **A guard that is green on its own demonstrated
+    # failing input is not a guard**, and this repository has now caught that
+    # shape in itself five times.
+    #
+    # The generator CLEARS its output root, so what matters is whether any
+    # tracked file lives anywhere beneath it.
+    root = pathlib.Path(generated_root).resolve()
+    buried = [
+        rel for rel in tracked
+        if rel and _is_within(REPO_ROOT / rel, root)
+    ]
+    assert not buried, (
+        f"the validation run generates into {root}, and {len(buried)} committed "
+        "file(s) live beneath it -- the generator clears its output root, so a "
+        "run replaces a fixture other tests assert against and then goes green "
+        "on what it just wrote. First few:\n  "
+        + "\n  ".join(buried[:5])
+    )
+    # Non-vacuity: the fixture this protects must still be committed, or there
+    # is nothing here to protect and the assertion above proves nothing.
+    fixture = REPO_ROOT / "examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases"
+    assert any(_is_within(REPO_ROOT / rel, fixture.resolve()) for rel in tracked if rel), (
+        "the committed corpus this test protects is gone -- either it moved "
+        "(update this path) or the protection is now vacuous"
+    )

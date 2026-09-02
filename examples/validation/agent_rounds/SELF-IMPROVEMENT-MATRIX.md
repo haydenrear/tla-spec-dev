@@ -942,6 +942,54 @@ because the epic agent read the transcript. The next agent's `G-10` will not.
 is where it will show. Until it is measured, the probe's `0` stays `UNDECIDED`
 per §3, never a PASS and never a failure.
 
+### `H-03` — and I shipped the exact defect this round is about
+
+`G-02`'s repair pointed the flagship validation at the driver's default,
+`specs/generated`, on the reasoning that a caller should not spell a path the
+driver already owns. **That directory holds a committed FIXTURE** — four
+hand-legible external cases with named constants, which
+`test_cli_passes_on_the_committed_example_corpus` asserts stays inside the
+default 50-per-action cap.
+
+A full generation of that model is **732 cases**. The run replaced a 121-line
+fixture with 18,315 lines, and the commit carried **779,379 insertions across
+751 files** under a subject line about four dead steps.
+
+**That is `E-06`'s shape and `f590d8d`'s shape, committed by the author of both
+write-ups, one round later.** A generator mutated a tracked tree and the change
+travelled under an unrelated subject.
+
+**Nothing local caught it.** Not the resolver — the path was legal. Not the
+example's own validation — it went green on the corpus it had just written. Not
+the new caller-override pin — the path it checked was fine. **Only the set
+comparison against the baseline commit saw it: 17 failures against 16**, with
+the single new one in `test_corpus_diagnostics.py`, a file that names none of
+the things that changed. Third time this epic that only the set comparison saw
+a regression, after `E-14`.
+
+**And a second instrument said it independently, from the other side.** One of
+the regenerated artifacts, `specs/generated/dot/External.dot`, is **137.76 MB** —
+past GitHub's 100 MB limit — so the pre-receive hook refused the branch outright,
+even though a later commit had already reverted the file. The blob was still in
+history. Two unrelated instruments, the corpus gate and a remote's size limit,
+reported the same defect by different routes, **and neither of them was the test
+suite.** That is the `cross-implementation` channel argument in a new form: the
+instruments that caught this agreed with each other and shared no code.
+
+Reverted — the branch rebuilt so those 751 files never entered it — the run
+given its own `specs/generated/.validation/<run-id>` beside the fixture
+(`E-13`'s shape), and pinned on **containment** — any tracked file
+anywhere beneath a run's output root. **The first version of that pin was
+vacuous**: it compared the output root against directories that directly hold
+tracked files, and `specs/generated` holds none, so it was green on its own
+demonstrated failing input. Caught by asking the question this project already
+knows to ask, and rewritten before it shipped.
+
+**The driver's own default still points at the fixture**, so running
+`regenerate_tlc_cases.py` by hand still overwrites it. That is `E-06`'s open
+question — *whether that corpus is committed or generated* — and it is the
+owner's, not a caller's to route around.
+
 ### `H-01` — the harness called a good run a failure
 
 The epic check reported `FAIL` against a complete, validating plan, because it

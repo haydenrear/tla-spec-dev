@@ -98,9 +98,45 @@ def _driver_generated_root(example_root: Path) -> Path:
 DEFAULT_EXAMPLE_ROOT = REPO_ROOT / "examples" / "distributed_history"
 # VAL-11: these are set from the target example path in main(); the defaults
 # keep module-level readers working when the embedded copy is the target.
+def _run_scratch_root(example_root: Path, run_id: str) -> Path:
+    """A per-run corpus, under `specs/` but NOT on top of the committed one.
+
+    The first version of this fix pointed the run at the driver's default,
+    `specs/generated`, reasoning that a caller should not repeat a path the
+    driver already owns. Right about the path, wrong about the directory:
+    **`specs/generated` holds a committed FIXTURE** -- four hand-legible
+    external cases with named constants, which
+    `tests/test_corpus_diagnostics.py::test_cli_passes_on_the_committed_example_corpus`
+    asserts stays inside the default 50-per-action cap.
+
+    A full generation of this model is 732 cases. Pointing the run there
+    replaced a 121-line fixture with 18,315 lines and took the corpus gate from
+    PASS to `732 external case(s), cap = 50 per action`. **The gate was right;
+    the run had no business writing there**, and only a set comparison of the
+    whole suite against the baseline saw it -- 17 failures against 16, with the
+    one new failure in a file nothing else pointed at.
+
+    So the run gets its own directory beside the fixture, and removes it. Same
+    shape as `E-13`, which moved reminder_worker's scratch corpus to
+    `specs/generated/.validation/<run-id>`. The name is dotted so nothing
+    mistakes a run directory for a view root: `E-06` was a committed corpus one
+    separator away from `spec-unit`, and a transient sibling of real corpora is
+    that hazard with a timer on it.
+
+    WHAT THIS DOES NOT FIX, because it is a decision and not a path: the
+    DRIVER's own default is still `specs/generated`, so running
+    `regenerate_tlc_cases.py` by hand still overwrites the fixture. That is the
+    conflict `E-06` was filed as -- *"whether that corpus is committed or
+    generated"* -- and it belongs to the owner, not to a caller routing around it.
+    """
+    return _driver_generated_root(example_root) / ".validation" / run_id
+
 EXAMPLE_ROOT = DEFAULT_EXAMPLE_ROOT
 TEST_GRAPH_ROOT = EXAMPLE_ROOT / "test_graph"
-GENERATED_ROOT = _driver_generated_root(EXAMPLE_ROOT)
+#: One scratch corpus per run, inside the spec tree and BESIDE the committed
+#: fixture rather than on top of it. See `_run_scratch_root`.
+RUN_ID = f"{os.getpid()}-{int(time.time())}"
+GENERATED_ROOT = _run_scratch_root(EXAMPLE_ROOT, RUN_ID)
 CLUSTER_NAME = "ecommerce-history"
 
 #: The one line the negative projected-state control rewrites, and the value it
@@ -145,7 +181,7 @@ def main() -> int:
             "example (missing specs/program_model)"
         )
     TEST_GRAPH_ROOT = EXAMPLE_ROOT / "test_graph"
-    GENERATED_ROOT = _driver_generated_root(EXAMPLE_ROOT)
+    GENERATED_ROOT = _run_scratch_root(EXAMPLE_ROOT, RUN_ID)
 
     env = os.environ.copy()
     env["ECOMMERCE_TEST_MODE"] = args.mode
@@ -170,6 +206,25 @@ def main() -> int:
     finally:
         if args.mode == "k3d" and not args.keep_k3d:
             cleanup_k3d()
+        # The scratch corpus lives inside the spec tree, so leaving it behind
+        # puts an untracked 732-case sibling next to the committed fixture --
+        # which is `E-06`'s hazard exactly. Removed on every exit, including a
+        # failed run, because a failed run is when a stray corpus is most
+        # confusing to whoever looks next.
+        _drop_scratch(GENERATED_ROOT)
+
+
+
+def _drop_scratch(scratch: Path) -> None:
+    """Remove this run's scratch corpus and any empty `.validation` above it."""
+    try:
+        if scratch.is_dir():
+            shutil.rmtree(scratch, ignore_errors=True)
+        parent = scratch.parent
+        if parent.name == ".validation" and parent.is_dir() and not any(parent.iterdir()):
+            parent.rmdir()
+    except OSError:
+        pass
 
 
 def regenerate_tlc_cases() -> None:
