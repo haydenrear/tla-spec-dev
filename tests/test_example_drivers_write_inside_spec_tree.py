@@ -277,3 +277,87 @@ def test_no_committed_corpus_sits_at_a_near_miss_of_a_view_root() -> None:
         "writes -- regenerating deletes these and writes a sibling:\n  "
         + "\n  ".join(f"{k}  ->  should be `{v}`" for k, v in sorted(offenders.items()))
     )
+
+
+def _example_modules_passing_out() -> list[Path]:
+    """Every example module that hands `--out` to something. Discovered, not listed.
+
+    Mechanical for the same reason `test_every_generator_driver_is_listed` is:
+    a guard that only covers what somebody remembered to add is not a guard.
+    """
+    found: list[Path] = []
+    for path in sorted((REPO_ROOT / "examples").rglob("*.py")):
+        if any(
+            part in {".venv", "build", "evidence", "generated", "__pycache__"}
+            for part in path.parts
+        ):
+            continue
+        if '"--out"' in path.read_text(errors="replace"):
+            found.append(path)
+    return found
+
+
+def test_callers_that_override_a_driver_default_are_also_inside_the_spec_tree() -> None:
+    """A CALLER that passes `--out` bypasses the default this file already pins.
+
+    ``examples/run_distributed_history_validation.py`` -- the top-level
+    validation for the flagship example -- passed
+    ``test_graph/build/generated/validation`` on the command line. `#301`'s
+    ``spec_tree`` rule refuses that. `#314` moved the driver's DEFAULT under
+    ``specs/`` and this caller, which never uses the default, was not moved with
+    it. The example's whole validation exited 2 and **nothing was red**, because
+    every existing check here asks about defaults.
+
+    That is the third time in this epic that one rule change reached a surface
+    nobody enumerated: the driver defaults, then `--dot`, then the remedy text,
+    then the docs, then a test's corpus path (E-14), and now a caller's
+    override. So this asserts the property one level out: any module-level
+    generated-root constant in a file that passes ``--out`` must be a path the
+    resolver accepts.
+
+    What it CANNOT see, said rather than implied: a path composed inline at the
+    call site. This finds the named constants, which is where all six of those
+    surfaces actually lived.
+    """
+    import sys
+
+    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    try:
+        from spec_paths import (  # type: ignore[import-not-found]
+            SpecTreePathError,
+            resolve_spec_tree_out,
+        )
+    finally:
+        sys.path.pop(0)
+
+    offenders: list[str] = []
+    checked = 0
+    for path in _example_modules_passing_out():
+        try:
+            module = _load(path)
+        except Exception:  # pragma: no cover - an unimportable example is not this test's finding
+            continue
+        for name in dir(module):
+            if "GENERATED" not in name.upper():
+                continue
+            value = getattr(module, name, None)
+            if not isinstance(value, pathlib.Path) or not value.is_absolute():
+                continue
+            checked += 1
+            spec_dir = (
+                getattr(module, "SPEC_DIR", None)
+                or getattr(module, "SPEC_ROOT", None)
+                or value.parent
+            )
+            try:
+                resolve_spec_tree_out(value, pathlib.Path(spec_dir), flag="--out")
+            except SpecTreePathError as exc:
+                offenders.append(
+                    f"{path.relative_to(REPO_ROOT)}:{name} = {value}\n    {exc}"
+                )
+
+    assert checked, "no generated-root constants were checked -- this test would pass vacuously"
+    assert not offenders, (
+        "these example modules pass `--out` and name a generated root the "
+        "toolchain's own resolver refuses:\n  " + "\n  ".join(offenders)
+    )

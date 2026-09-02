@@ -1,9 +1,47 @@
 #!/usr/bin/env python3
-"""Run the distributed_history example and validate projected-state evidence."""
+"""Run the distributed_history example and validate projected-state evidence.
+
+RETIRED STEP: the mutation kill test (MF-016 oracle 4)
+------------------------------------------------------
+`main` used to call `validate_kill_test()`, which shelled out to
+`scripts/run_kill_test.py`. **That script does not exist.** `CA-04` (6bf1687)
+deliberately cut the oracle-4 gate -- the `kill_test` variable, the
+`RunKillTest` action, the `KillTestVerdictRequiresBudgets` invariant,
+`RunKillTestAdapter`, `kill_rate_floor`, the `mutation_write` port and three
+mutant catalogues -- and deleted the runner with them, retaining
+`scripts/kill_test.py` only as the catalogue parser a disproof still depends on.
+This caller was not cut with it, so the step could only ever fail:
+
+    can't open file '.../scripts/run_kill_test.py': [Errno 2] No such file
+
+Nothing was red, and the reason is worth keeping: this file had ALREADY been
+dead one step earlier, refused by the `spec_tree` rule before it ever reached
+the kill test (see `_driver_generated_root`). Two dead steps stacked, and the
+first hid the second.
+
+The measurement the step recorded is kept here rather than lost with it. The
+last real end-to-end run scored **0.571 (4/7)** against a 0.8 floor, with three
+survivors, each a true finding about the example's representation:
+
+  * `store-projection_store` -> refine `projections` / `ProjectOrder`. No
+    generated case distinguishes the projected status, so the read model's
+    advance is unmodeled.
+  * `inv-InternalInvariant`  -> refine `orders` / `Checkout`. No generated case
+    checks out against a nonexistent account, so referential integrity is
+    unexercised.
+  * `inv-Invariant`          -> refine `responses` / `SubmitCreateAccount`. The
+    HTTP boundary is genuinely outside the in-process internal corpus; the
+    external corpus is what must cover it.
+
+Those are still open. Refining the model until they die is real work; the floor
+was never lowered and the survivors were never waived, because doing either is
+the degeneracy the kill test existed to prevent.
+"""
 
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import shutil
@@ -17,13 +55,61 @@ from urllib.request import urlopen
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _driver_generated_root(example_root: Path) -> Path:
+    """Where the example's own driver writes -- ASKED, not repeated.
+
+    This line used to read ``test_graph/build/generated/validation``, and
+    `#301`'s ``spec_tree`` rule refused it: the port declares target
+    ``**/specs/**``, so a write outside a ``specs/`` directory is an undeclared
+    effect. `#314` moved the DRIVER's default under ``specs/generated`` and this
+    file, which overrides that default on the command line, was not moved with
+    it. The flagship example's top-level validation has been dead since:
+
+        ERROR: --out must write under a `specs/` directory ...
+
+    Nothing was red for it. The pin added with `#314`
+    (``tests/test_example_drivers_write_inside_spec_tree.py``) asserts a
+    driver's DEFAULT is acceptable, and this caller never uses the default.
+
+    So the path is read out of the driver rather than spelled again here. That
+    is the E-14 lesson applied: the same rename orphaned a consumer that had
+    repeated the string, and the repair was to import the value instead of
+    retyping it. A second copy of a path is a second thing to forget.
+    """
+    driver = example_root / "scripts" / "regenerate_tlc_cases.py"
+    if driver.is_file():
+        spec = importlib.util.spec_from_file_location("_dh_regenerate", driver)
+        if spec and spec.loader:
+            module = importlib.util.module_from_spec(spec)
+            try:
+                spec.loader.exec_module(module)
+            except Exception:  # pragma: no cover - a broken driver is its own error
+                pass
+            else:
+                default = getattr(module, "DEFAULT_GENERATED_DIR", None)
+                if default is not None:
+                    return Path(default)
+    # The driver could not be read. Fall back to the layout `#314` chose, and
+    # say so rather than silently reverting to the refused path.
+    return example_root / "specs" / "generated"
+
 DEFAULT_EXAMPLE_ROOT = REPO_ROOT / "examples" / "distributed_history"
 # VAL-11: these are set from the target example path in main(); the defaults
 # keep module-level readers working when the embedded copy is the target.
 EXAMPLE_ROOT = DEFAULT_EXAMPLE_ROOT
 TEST_GRAPH_ROOT = EXAMPLE_ROOT / "test_graph"
-GENERATED_ROOT = TEST_GRAPH_ROOT / "build" / "generated" / "validation"
+GENERATED_ROOT = _driver_generated_root(EXAMPLE_ROOT)
 CLUSTER_NAME = "ecommerce-history"
+
+#: The one line the negative projected-state control rewrites, and the value it
+#: rewrites it to. Named here so the fixture and the refusal that guards it read
+#: the same string.
+REAL_EXPECTED_PROJECTION = (
+    "expected_projection: specs.program_model.adapters:ExpectedClusterProjection"
+)
+WRONG_EXPECTED_PROJECTION = "expected_projection: wrong_projection:WrongExpectedProjection"
 
 
 def run(command: list[str], *, cwd: Path = REPO_ROOT, env: dict[str, str] | None = None) -> None:
@@ -59,7 +145,7 @@ def main() -> int:
             "example (missing specs/program_model)"
         )
     TEST_GRAPH_ROOT = EXAMPLE_ROOT / "test_graph"
-    GENERATED_ROOT = TEST_GRAPH_ROOT / "build" / "generated" / "validation"
+    GENERATED_ROOT = _driver_generated_root(EXAMPLE_ROOT)
 
     env = os.environ.copy()
     env["ECOMMERCE_TEST_MODE"] = args.mode
@@ -74,7 +160,6 @@ def main() -> int:
     try:
         regenerate_tlc_cases()
         validate_internal_cases()
-        validate_kill_test()
         validate_projected_state_assertion_catches_mismatch()
         run_test_graph(env)
         report_dir = latest_report_dir()
@@ -119,117 +204,6 @@ def validate_internal_cases() -> None:
     )
 
 
-def validate_kill_test() -> None:
-    """MF-016 oracle 4: the worked mutation kill test.
-
-    Seeds one real behavioral fault per boundary of the internal model into the
-    ecommerce backend, runs the internal spec-unit corpus against each, and
-    requires the kill rate to meet `kill_rate_floor` from the example's
-    manifest budgets.
-
-    This asserts the STRICT outcome: a green control run and a verdict of
-    "pass". It is deliberately not softened, and the floor is deliberately not
-    lowered to match what the example currently scores.
-
-    KNOWN CURRENT RESULT, recorded rather than tuned away: the first real
-    end-to-end run measured **0.571 (4/7)** against the 0.8 floor, with three
-    surviving mutants, each carrying a true refinement pointer:
-
-      * store-projection_store -> refine `projections` / `ProjectOrder`.
-        No generated case distinguishes the projected status, so the read
-        model's advance is unmodeled.
-      * inv-InternalInvariant  -> refine `orders` / `Checkout`.
-        No generated case checks out against a nonexistent account, so
-        referential integrity is unexercised.
-      * inv-Invariant          -> refine `responses` / `SubmitCreateAccount`.
-        The HTTP boundary is genuinely outside the in-process internal corpus;
-        the external corpus is what must cover it.
-
-    All three are TRUE findings about the example's representation, which is
-    exactly what the oracle exists to produce. Refining the example's model
-    until they die is real modeling work and belongs with the other deferred
-    case-generation work in MF-023 -- note that `--mode local` cannot reach
-    this step today anyway, because case generation for the External model is
-    already refused by a pre-existing complexity-gate finding (C2 is touched
-    by 9 actions, exceeding max_component_actions 8).
-
-    Making this assertion pass by lowering the floor, waiving the survivors, or
-    dropping the mutants would be precisely the degeneracy the kill test exists
-    to prevent, so none of that was done.
-    """
-
-    spec_dir = EXAMPLE_ROOT / "specs" / "program_model"
-    corpus_command = " ".join(
-        [
-            sys.executable,
-            str(REPO_ROOT / "scripts" / "run_generated_case_adapters.py"),
-            str(GENERATED_ROOT / "spec-unit" / "ecommerce_internal_cases"),
-            "--mapping",
-            str(spec_dir / "case_adapters.toml"),
-            "--view",
-            "internal",
-            "--batch",
-            "--work-dir",
-            "/tmp/ecommerce-kill-test-work",
-            "--import-root",
-            str(EXAMPLE_ROOT),
-        ]
-    )
-    report_path = GENERATED_ROOT / "kill-test.json"
-    completed = subprocess.run(
-        [
-            sys.executable,
-            str(REPO_ROOT / "scripts" / "run_kill_test.py"),
-            "--target",
-            str(spec_dir),
-            "--root",
-            str(EXAMPLE_ROOT),
-            # The internal corpus measures the internal model. The external
-            # model is a separate kill test with its own corpus; this narrows
-            # the coverage obligation only -- every mutant still runs.
-            "--cfg",
-            "Internal.cfg",
-            "--corpus-command",
-            corpus_command,
-            "--out",
-            str(report_path),
-        ],
-        cwd=EXAMPLE_ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    combined = completed.stdout + completed.stderr
-    if not report_path.is_file():
-        raise SystemExit(f"kill test wrote no evidence to {report_path}:\n{combined}")
-    report = json.loads(report_path.read_text(encoding="utf-8"))
-
-    # The control run first: without it, a corpus that is already red would
-    # report a perfect and meaningless 1.0.
-    if report.get("control_green") is not True:
-        raise SystemExit(
-            f"kill test control run failed -- the corpus does not pass on the unmutated "
-            f"program, so no kill can be attributed to any mutation:\n{combined}"
-        )
-    if report["uncovered_boundaries"]:
-        raise SystemExit(
-            f"kill test ran with uncovered boundaries: {report['uncovered_boundaries']}"
-        )
-    # Every survivor must carry an actionable pointer, whatever the verdict.
-    for pointer in report["surviving_mutants"]:
-        if not pointer.get("refine_variable") or not pointer.get("refine_action"):
-            raise SystemExit(f"surviving mutant carries no refinement pointer: {pointer}")
-
-    if completed.returncode != 0 or report["verdict"] != "pass":
-        raise SystemExit(
-            f"kill test did not clear the floor: {report.get('summary')}\n"
-            f"Each surviving mutant above names the variable and action to refine. "
-            f"Do not lower kill_rate_floor to make this pass.\n{combined}"
-        )
-
-    print(f"kill test ok: {report['summary']}")
-
-
 def validate_projected_state_assertion_catches_mismatch() -> None:
     port = free_port()
     env = os.environ.copy()
@@ -263,7 +237,7 @@ class WrongExpectedProjection:
 """.lstrip(),
                 encoding="utf-8",
             )
-            mapping = tmp_path / "wrong_bindings.toml"
+            mapping = tmp_path / "wrong_bindings.yml"
             mapping.write_text(wrong_projection_mapping(), encoding="utf-8")
             command = [
                 sys.executable,
@@ -311,35 +285,42 @@ class WrongExpectedProjection:
 
 
 def wrong_projection_mapping() -> str:
-    blocks = []
-    for action, adapter in {
-        "SubmitCreateAccount": "CreateAccountHttpAdapter",
-        "SubmitDuplicateCreateAccount": "CreateAccountHttpAdapter",
-        "SubmitAddCartItem": "AddCartItemHttpAdapter",
-        "SubmitDuplicateAddCartItem": "AddCartItemHttpAdapter",
-        "SubmitAddCartItemMissingAccount": "AddCartItemHttpAdapter",
-        "SubmitCheckout": "CheckoutHttpAdapter",
-        "SubmitCheckoutMissingAccount": "CheckoutHttpAdapter",
-        "SubmitCheckoutEmptyCart": "CheckoutHttpAdapter",
-        "SubmitDuplicateCheckout": "CheckoutHttpAdapter",
-        "RunFulfillmentWorker": "RunFulfillmentWorkerHttpAdapter",
-        "RunFulfillmentWorkerNoop": "RunFulfillmentWorkerHttpAdapter",
-    }.items():
-        blocks.append(
-            f"""
-[actions.{action}]
-view = "external"
-layer = "external"
-controllability = "e2e_direct"
-kind = "ecommerce-http"
-adapter = "specs.program_model.adapters:{adapter}"
-projector = "specs.program_model.adapters:ClusterStateProjector"
-expected_projection = "wrong_projection:WrongExpectedProjection"
-assertion = "specs.program_model.adapters:ProjectedStateAssertion"
-""".strip()
-        )
-    return "\n\n".join(blocks) + "\n"
+    """The REAL external bindings, with exactly one thing wrong.
 
+    This used to hand-write a parallel TOML copy of the binding set in the old
+    `[actions.<Action>]` shape. `MF-015` then made an ``external:`` block
+    declaring `production_package` and `port_bindings` mandatory, and the
+    hand-written copy did not have one, so the negative control stopped
+    demonstrating anything:
+
+        negative projected-state check failed for the wrong reason:
+        ERROR: external channel enforcement failed for 1 binding(s)
+          problem: no external: block declaring production_package and port_bindings
+
+    The runner caught that and refused rather than counting it as a pass, which
+    is the right behaviour and the only reason this is a finding rather than a
+    silent false green. It stayed unseen because this whole file had been dead
+    two steps earlier (see `_driver_generated_root`).
+
+    A control has to be the real thing with ONE fault introduced, or it is not a
+    control -- so the fixture is now derived from the shipped bindings and
+    changes a single line. A second hand-maintained copy of a binding set is a
+    second thing to forget, and this is the third time in this epic that a
+    repeated string outlived the thing it repeated.
+    """
+    source = EXAMPLE_ROOT / "specs" / "program_model" / "testgraph_bindings.yml"
+    text = source.read_text(encoding="utf-8")
+    wrong = text.replace(REAL_EXPECTED_PROJECTION, WRONG_EXPECTED_PROJECTION)
+    if wrong == text:
+        # A fixture that changed nothing is a control that proves nothing, and
+        # it would go green for the worst possible reason. Refuse instead.
+        raise SystemExit(
+            f"ERROR: {source} no longer declares {REAL_EXPECTED_PROJECTION!r}, so the "
+            "negative projected-state control could not introduce its fault. The "
+            "control must be the real binding set with one thing wrong; update the "
+            "anchor rather than letting this pass."
+        )
+    return wrong
 
 def run_test_graph(env: dict[str, str]) -> None:
     run(
