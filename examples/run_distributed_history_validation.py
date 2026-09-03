@@ -359,7 +359,12 @@ def wrong_projection_mapping() -> str:
 
     A control has to be the real thing with ONE fault introduced, or it is not a
     control -- so the fixture is now derived from the shipped bindings and
-    changes a single line. A second hand-maintained copy of a binding set is a
+    changes ONE THING: the expected-projection binding, wherever it appears.
+    That is 11 lines in the current file, not one; `str.replace` is unqualified
+    and every action's binding is rewritten. Only `SubmitCreateAccount` is
+    exercised (`--label ... --limit 1`), but the mechanism is stated correctly
+    here because a reader checking the fault against the diff should find what
+    the docstring said they would. A second hand-maintained copy of a binding set is a
     second thing to forget, and this is the third time in this epic that a
     repeated string outlived the thing it repeated.
     """

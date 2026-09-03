@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "run_id": "plumbing-001",
-  "started_utc": "2026-09-02T12:40:14.233718+00:00",
-  "repo_commit": "5cac1c05ebe120b559138b30da1e9fe2151c05a9",
+  "run_id": "plumbing-002",
+  "started_utc": "2026-09-03T00:07:00.765410+00:00",
+  "repo_commit": "1f18d387f7f58a4b22bd496d84f70f1f71d4b9b6",
   "roles": {
     "epic": {
       "clone": {
         "source": "/Users/hayde/.skill-manager",
-        "dest": "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-plumb/project/.skill-manager",
+        "dest": "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-plumb2/project/.skill-manager",
         "directories": 8085,
         "files": 36586,
         "symlinks": 14,
-        "bytes": 630953720,
+        "bytes": 630953771,
         "linksRelativized": 0,
         "stateReanchored": 23,
         "provisionedRewritten": 6,
@@ -38,7 +38,7 @@
       "done_check": {
         "passed": false,
         "exit": 1,
-        "script": "test -d specs/program_model && test -d specs/desired_program_model && test -f specs/desired_program_model/ticket_plan.yaml && python3 -c \"import sys,re; t=open('specs/desired_program_model/ticket_plan.yaml').read(); sys.exit(0 if re.search(r'^\\s*-\\s', t, re.M) else 1)\""
+        "script": "set -u\nfound=\"\"\nif [ -f specs/desired_program_model/ticket_plan.yaml ]; then\n  found=\"worktree:specs/desired_program_model/ticket_plan.yaml\"\nfi\nfor ref in $(git for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null); do\n  if git cat-file -e \"$ref:specs/desired_program_model/ticket_plan.yaml\" 2>/dev/null; then\n    found=\"${found:-}${found:+ }$ref\"\n  fi\ndone\necho \"plan found at: ${found:-<nowhere>}\"\ntest -d specs/program_model || { echo \"no specs/program_model\"; exit 1; }\ntest -n \"$found\" || exit 1\n\n# A PLAN FILE IS NOT A PLAN, and the first version of this check could not tell\n# the difference. `tla-spec-dev scaffold workflow` emits a ticket_plan.yaml that\n# ALREADY contains `tickets:` and `- id: <ticket>`, so a `grep` for a list item\n# passed after two scaffold verbs and zero thought -- measured, exit 0, on a plan\n# that was 100% placeholders. That was the epic seat's only pass/fail signal.\n#\n# So the check now refuses the SHIPPED TEMPLATE by its own placeholder markers.\n# They come from `scripts/new_ticket_workflow.py:ticket_plan()`, and\n# `tests/test_agent_integration_harness.py` imports that function to assert\n# every marker below still appears in what it emits -- if the scaffold renames\n# a placeholder, that test says so rather than this predicate going quietly weak.\nscan=$(mktemp)\nfor ref in $(git for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null); do\n  git show \"$ref:specs/desired_program_model/ticket_plan.yaml\" 2>/dev/null\ndone > \"$scan\"\ncat specs/desired_program_model/ticket_plan.yaml >> \"$scan\" 2>/dev/null || true\n\nrc=0\nif ! grep -qE '^[[:space:]]*(-|id:)' \"$scan\"; then\n  echo \"the plan carries no ticket entry\"\n  rc=1\nfi\nfor marker in ReplaceWithDesiredAction replace_with_state_field 'Replace with implementation surfaces'; do\n  if grep -qF \"$marker\" \"$scan\"; then\n    echo \"the plan still carries the scaffold placeholder: $marker\"\n    rc=1\n  fi\ndone\nrm -f \"$scan\"\nexit $rc"
       },
       "fixture": {
         "ran": true,
@@ -47,19 +47,24 @@
       },
       "workspace": {
         "status": "",
-        "log": "1a4e68a shortlink: the program, and the tests that hold it up",
-        "spec_tree": ""
+        "log": "51eb88f shortlink: the program, and the tests that hold it up",
+        "spec_tree": "",
+        "declared_actions": "",
+        "generated_cases": "",
+        "exported_traces": "       0\n",
+        "results": ""
       },
-      "handoff_commit_rc": 1
+      "handoff_commit_rc": 1,
+      "handoff_ref": "HEAD"
     },
     "ticket": {
       "clone": {
-        "source": "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-plumb/project/.skill-manager",
-        "dest": "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-plumb/ticket-worktree/.skill-manager",
+        "source": "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-plumb2/project/.skill-manager",
+        "dest": "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-plumb2/ticket-worktree/.skill-manager",
         "directories": 8082,
         "files": 36610,
         "symlinks": 12,
-        "bytes": 631668569,
+        "bytes": 631668690,
         "linksRelativized": 0,
         "stateReanchored": 23,
         "provisionedRewritten": 1,
@@ -86,7 +91,7 @@
       "done_check": {
         "passed": false,
         "exit": 1,
-        "script": "test -d specs/.history && find specs/.history -maxdepth 3 -name 'ticket-*' | grep -q ."
+        "script": "set -u\nif test -d specs/.history && find specs/.history -maxdepth 3 -name 'ticket-*' | grep -q .; then\n  echo \"closed ticket found in the worktree\"\n  exit 0\nfi\nfor ref in $(git for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null); do\n  if git ls-tree -r --name-only \"$ref\" -- specs/.history 2>/dev/null | grep -q 'ticket-'; then\n    echo \"closed ticket found on $ref\"\n    exit 0\n  fi\ndone\necho \"no specs/.history ticket-* entry on any ref\"\nexit 1"
       },
       "fixture": {
         "ran": true,
@@ -95,8 +100,12 @@
       },
       "workspace": {
         "status": "",
-        "log": "1a4e68a shortlink: the program, and the tests that hold it up",
-        "spec_tree": ""
+        "log": "51eb88f shortlink: the program, and the tests that hold it up",
+        "spec_tree": "",
+        "declared_actions": "",
+        "generated_cases": "",
+        "exported_traces": "       0\n",
+        "results": ""
       }
     }
   },
@@ -324,7 +333,11 @@
     },
     "fixture_green_before": true
   },
-  "workspace_root": "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-plumb",
-  "duration_seconds": 68.997,
-  "finished_utc": "2026-09-02T12:41:24.516704+00:00"
+  "workspace_root": "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-plumb2",
+  "reclaimed_homes": [
+    "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-plumb2/project/.skill-manager",
+    "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-plumb2/ticket-worktree/.skill-manager"
+  ],
+  "duration_seconds": 67.345,
+  "finished_utc": "2026-09-03T00:08:09.335933+00:00"
 }

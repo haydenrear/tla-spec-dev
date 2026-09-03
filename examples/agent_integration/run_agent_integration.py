@@ -325,7 +325,10 @@ def _drop_home_clones(ws_root: Path) -> list[str]:
         if not home.is_dir():
             continue
         if root not in home.resolve().parents:
-            continue  # pragma: no cover - defensive; rglob cannot leave the root
+            # REACHABLE, and `test_cleanup_will_not_follow_a_symlink_out_of_the_run`
+            # reaches it: a `.skill-manager` SYMLINK inside the workspace names a
+            # path outside the root, and `rglob` will hand it to us.
+            continue
         shutil.rmtree(home, ignore_errors=True)
         removed.append(str(home))
     return removed
@@ -451,13 +454,18 @@ def harvest(stream_path: Path) -> dict[str, Any]:
                     content = "\n".join(
                         c.get("text", "") for c in content if isinstance(c, dict)
                     )
-                errors.append(
-                    {
-                        "tool": call.get("tool"),
-                        "input": _trim(call.get("input")),
-                        "error": _trim(content, 4000),
-                    }
-                )
+                # CLASSIFY BEFORE TRIMMING. `_trim` turns a long input dict
+                # into JSON text, and a classifier handed text instead of a
+                # command sees no executable and reports `shell` -- silently
+                # clean, for every long command, which is the exact direction
+                # this instrument must not fail in.
+                record = {
+                    "tool": call.get("tool"),
+                    "kind": classify_error({"input": call.get("input")}),
+                    "input": _trim(call.get("input")),
+                    "error": _trim(content, 4000),
+                }
+                errors.append(record)
         elif etype == "result":
             final = {
                 "subtype": event.get("subtype"),
@@ -469,8 +477,6 @@ def harvest(stream_path: Path) -> dict[str, Any]:
                 "result": _trim(event.get("result"), 20000),
             }
 
-    for err in errors:
-        err["kind"] = classify_error(err)
     toolchain = [e for e in errors if e["kind"] == "toolchain"]
 
     return {
@@ -486,42 +492,113 @@ def harvest(stream_path: Path) -> dict[str, Any]:
     }
 
 
-# Entry points that ARE the toolchain under test. A failed call that names one
-# is a candidate defect; a failed call that does not is the agent's own shell.
+# What counts as INVOKING the toolchain, decided from the EXECUTABLE.
 #
-# This split exists because the first run of this harness reported seven "tool
-# errors" and six of them were one `cat a; cat b; cat c` chain where a single
-# file was missing. Counting those as findings is the same failure this
-# repository has already had three times from an over-claiming guard: false
-# positives are how an instrument gets switched off. So the count the harness
-# leads with is the classified one, and the rest are kept, visible, and NOT
-# called defects.
-TOOLCHAIN_TOKENS = (
+# The first version matched these as substrings anywhere in the command blob,
+# and on this repository's own committed evidence that was **75% wrong**: three
+# of the epic seat's four "toolchain" errors were
+# `E=.skill-manager/skills/...; cat $E/a; cat $E/b` -- a failed `cat` whose PATH
+# happened to contain `.skill-manager`. Exactly the shape the classifier exists
+# to exclude, counted as the thing it exists to find, in the number the harness
+# prints and leads with.
+#
+# Worse, the unit test passed anyway: its negative input was
+# `cat a.md; cat b.md; cat missing.md`, a cat chain with no toolchain-shaped
+# path in it. **The real failing input was sitting in the repository as
+# committed evidence and was not used.** It is used now.
+#
+# So a command is split into segments and each segment's executable is
+# identified. A path that is merely an ARGUMENT is not an invocation.
+TOOLCHAIN_EXECUTABLES = {
     "tla-spec-dev",
+    "tla_spec_dev.py",
     "tlc2",
-    "spec_tree",
-    "generate_cases_from_tlc_dump",
-    "new_ticket_workflow",
-    "close_tickets",
-    "analyze_complexity",
-    "scaffold_spec",
-    "onboard_program_model",
-    "skt ",
+    "skt",
     "skill-manager",
-    "test_graph",
     "gradlew",
-)
+}
+
+#: Scripts of this repository that ARE the toolchain, by basename.
+TOOLCHAIN_SCRIPTS = {
+    "generate_cases_from_tlc_dump.py",
+    "run_generated_case_adapters.py",
+    "export_testgraph_cases.py",
+    "new_ticket_workflow.py",
+    "close_tickets.py",
+    "analyze_complexity.py",
+    "corpus_diagnostics.py",
+    "scaffold_spec.py",
+    "onboard_program_model.py",
+    "generate_python.py",
+    "spec_paths.py",
+}
+
+#: An interpreter runs whatever it is handed; the script is the executable.
+INTERPRETERS = {"python", "python3", "python3.14", "uv", "bash", "sh", "env"}
+
+_SEGMENT = re.compile(r"[;&|]{1,2}|\n")
+_ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
+
+
+def _executables(command: str) -> list[str]:
+    """The executable of each segment of a shell command.
+
+    Leading `VAR=value` assignments and interpreters are stepped over, so
+    `E=/x; python3 /a/b/gen.py --out ...` yields `gen.py` and
+    `E=/x; cat $E/f` yields `cat`.
+    """
+    found: list[str] = []
+    for segment in _SEGMENT.split(command):
+        tokens = segment.strip().split()
+        while tokens and (_ASSIGNMENT.match(tokens[0]) or tokens[0] in {"then", "do", "!", "("}):
+            tokens = tokens[1:]
+        while tokens and tokens[0] in INTERPRETERS:
+            # Step past the interpreter and its own flags to the script it runs.
+            tokens = tokens[1:]
+            while tokens and tokens[0].startswith("-"):
+                tokens = tokens[1:]
+                # `uv run --with pytest python ...`: values follow some flags.
+                if tokens and not tokens[0].startswith("-") and tokens[0] not in INTERPRETERS:
+                    break
+        if tokens:
+            found.append(tokens[0].rstrip("'\"").split("/")[-1])
+    return found
 
 
 def classify_error(entry: dict[str, Any]) -> str:
-    """`toolchain` if the failing call invoked the thing under test, else `shell`.
+    """`toolchain` if the failing call INVOKED the thing under test, else `shell`.
 
-    Classified by the COMMAND, not by the message. A message-based rule reads
-    whatever words happen to be in the output and drifts toward matching the
-    findings already known -- which is MF-020 with extra steps.
+    Classified by what was executed, never by what appears in the text. A rule
+    that reads the output drifts toward matching the findings already known,
+    which is MF-020 with extra steps; a rule that reads any substring of the
+    command counts a `cat` of a skill's file as running the skill.
     """
-    blob = json.dumps(entry.get("input"), default=str)
-    return "toolchain" if any(tok in blob for tok in TOOLCHAIN_TOKENS) else "shell"
+    payload = entry.get("input") or {}
+    if isinstance(payload, str):
+        # A harvested record read back from RESULT.json: `_trim` may have turned
+        # the input into JSON text, and a re-classification of committed
+        # evidence has to be able to read it. Falling through to "shell" here
+        # would make every past round look clean, which is a false PASS in the
+        # one direction this instrument must never fail.
+        try:
+            payload = json.loads(payload)
+        except json.JSONDecodeError:
+            payload = {"command": payload}
+    command = payload.get("command") if isinstance(payload, dict) else None
+    if not isinstance(command, str):
+        # A non-Bash tool (Read, Edit, ...) is never a toolchain invocation.
+        return "shell"
+    for executable in _executables(command):
+        if executable in TOOLCHAIN_EXECUTABLES or executable in TOOLCHAIN_SCRIPTS:
+            return "toolchain"
+        # A script belonging to another installed unit -- `.../skills/<unit>/
+        # scripts/<x>.py` -- is that unit's surface, and running it is an
+        # invocation of the toolchain even though the file is not ours.
+        if executable.endswith(".py") and re.search(
+            r"skills/[^/\s]+/scripts/[^/\s]*" + re.escape(executable), command
+        ):
+            return "toolchain"
+    return "shell"
 
 
 def _trim(value: Any, limit: int = 1200) -> Any:
@@ -574,15 +651,42 @@ def workspace_state(cwd: Path) -> dict[str, Any]:
             ["git", *args], cwd=cwd, text=True, capture_output=True
         ).stdout.strip()
 
+    def shell(script: str, limit: int = 4000) -> Any:
+        return _trim(
+            subprocess.run(
+                ["bash", "-c", script], cwd=cwd, text=True, capture_output=True
+            ).stdout,
+            limit,
+        )
+
     return {
         "status": _trim(git("status", "--porcelain"), 8000),
         "log": _trim(git("log", "--oneline", "-20"), 4000),
-        "spec_tree": _trim(
-            subprocess.run(
-                ["bash", "-c", "find specs -maxdepth 3 2>/dev/null | sort | head -80"],
-                cwd=cwd, text=True, capture_output=True,
-            ).stdout,
-            6000,
+        "spec_tree": shell("find specs -maxdepth 3 2>/dev/null | sort | head -80", 6000),
+        # HARNESS-SIDE COUNTS, because the numbers a write-up quotes must have a
+        # source that is not the agent's closing message. Round 001's report
+        # ("13 Internal and 13 mirrored External actions", "112 spec-unit cases",
+        # "111 distinct states") was true -- confirmed afterwards by reading the
+        # workspace off disk -- but at the time its only source was the
+        # transcript, which `dispatch()`'s own docstring says is the one thing
+        # this harness must not trust. Every count below is read from a file the
+        # agent left behind, not from what it said about them.
+        "declared_actions": shell(
+            "grep -cE '^  [A-Za-z][A-Za-z0-9_]*:' specs/program_model/actions.yml 2>/dev/null",
+            200,
+        ),
+        "generated_cases": shell(
+            "for f in $(find specs/generated -name cases.py 2>/dev/null); do "
+            "printf '%s %s\\n' \"$(grep -c 'StateGraphCase(' $f)\" \"$f\"; done",
+            2000,
+        ),
+        "exported_traces": shell(
+            "find specs/generated -path '*traces/*.json' 2>/dev/null | wc -l", 200
+        ),
+        "results": shell(
+            "for f in $(find specs -path '*results*' -name '*.txt' 2>/dev/null | head -12); do "
+            "printf '\\n--- %s\\n' \"$f\"; tail -3 \"$f\"; done",
+            8000,
         ),
     }
 
@@ -652,7 +756,11 @@ def main() -> int:
         "--workspace-root", type=Path,
         help="Where the agents work. Defaults to a temp dir OUTSIDE this repository.",
     )
-    parser.add_argument("--keep-workspace", action="store_true")
+    parser.add_argument(
+        "--keep-homes", dest="keep_homes", action="store_true",
+        help="Keep the cloned Skill Manager homes (~700MB each). They are removed "
+             "by default; the workspace itself is ALWAYS kept.",
+    )
     parser.add_argument(
         "--budget-seconds", type=float,
         help="Override every role's wall-clock budget. Use a small value to smoke-test "
@@ -783,18 +891,25 @@ def main() -> int:
         # evidence refers to -- the homes are reproducible from the source home,
         # and what a reader needs is the workspace and RESULT.json. So they go
         # unless asked for. The AGENTS' WORK IS NEVER TOUCHED.
-        if not args.keep_workspace:
+        if not args.keep_homes:
             result["reclaimed_homes"] = _drop_home_clones(ws_root)
         result["duration_seconds"] = round(time.perf_counter() - started, 3)
         result["finished_utc"] = datetime.now(timezone.utc).isoformat()
         (evidence / "RESULT.json").write_text(
             json.dumps(result, indent=2, default=str) + "\n", encoding="utf-8"
         )
-        print(f"workspace kept at {ws_root} (delete when done)", flush=True)
+        kept = "with its homes" if args.keep_homes else "homes reclaimed"
+        print(f"workspace kept at {ws_root} ({kept}; delete when done)", flush=True)
 
+    # ONLY THE SEATS THAT RAN. The ticket branch writes a `handoff_commit_rc`
+    # into the epic entry, which created an `epic` row with no `done_check` --
+    # so `--role ticket` alone reported `failed_roles: ["epic"]` and exited 1
+    # even when the ticket seat passed. A harness that misreports a seat it was
+    # not asked to run is worse than one that cannot run a subset.
+    ran = {r["id"] for r in selected}
     failures = [
         rid for rid, entry in result["roles"].items()
-        if not entry.get("done_check", {}).get("passed")
+        if rid in ran and not entry.get("done_check", {}).get("passed")
     ]
     print(json.dumps({"result": str(evidence / "RESULT.json"), "failed_roles": failures}))
     return 1 if failures else 0

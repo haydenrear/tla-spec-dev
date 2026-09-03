@@ -1,10 +1,22 @@
-"""A link shortener with expiry and a reservation window.
+"""A link shortener: reserve a slug, claim it, resolve it, give it back.
 
 The fixture the integration agents are pointed at. It is deliberately small and
-deliberately NOT trivial: it has real state (three maps), a real ordering
-constraint (a reservation must be claimed before it expires), and one behaviour
-that only shows up as a sequence (a claimed slug can be released and re-reserved
-by a different owner, but never while the first owner still holds it).
+deliberately NOT trivial: it has real state (three maps), a two-step
+acquisition, and one behaviour that only shows up as a sequence -- a claimed
+slug can be released and re-reserved by a DIFFERENT owner, but never while the
+first owner still holds it.
+
+THIS DOCSTRING IS PART OF THE MEASUREMENT, so it says only what the code does.
+Its first version opened *"a link shortener with expiry and a reservation
+window ... a reservation must be claimed before it expires"* and **there is no
+expiry in this file** -- no timestamp, no clock, no deadline check anywhere. The
+epic agent of round 001 read it, believed it, and built a three-ticket epic
+around implementing "the reservation window the module docstring promises."
+
+The example exists to see whether an agent finds the trace-only property
+WITHOUT being told where to look. A docstring that names a property the program
+does not have is not a neutral fixture; it is a different experiment, run by
+accident. Anything added here has to be added to the code first.
 
 That last property is the reason this file exists rather than a CRUD toy: it is
 false for single states and true only over a trace, so a spec that models it has

@@ -1,0 +1,16 @@
+# TLC's DOT output, and nothing else.
+#
+# `generate_cases_from_tlc_dump.py --dot` writes the state graph beside the
+# generated corpus. It is a build artifact of a run, is tracked in no example
+# (`git ls-files | grep '/generated/dot/'` is empty), and it is BIG: the
+# distributed_history model's `External.dot` is 137.76 MB, which is past
+# GitHub's 100 MB limit -- a `git add -A` after a validation run puts a blob in
+# history that the remote will then refuse, as it refused this branch once.
+#
+# SCOPED TO `dot/`, deliberately. E-06 was a `.gitignore` over
+# `specs/generated/` while thirteen files were TRACKED inside it: git ignores
+# only untracked paths, so the rule was decorative, and it made a regeneration
+# that deleted eight tracked files show up in `git status` as deletions only.
+# A rule over a directory that holds committed corpora hides exactly the change
+# a reader needs to see. This one covers a directory that holds none.
+**/generated/dot/

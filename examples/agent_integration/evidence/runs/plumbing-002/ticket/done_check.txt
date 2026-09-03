@@ -1,0 +1,17 @@
+$ set -u
+if test -d specs/.history && find specs/.history -maxdepth 3 -name 'ticket-*' | grep -q .; then
+  echo "closed ticket found in the worktree"
+  exit 0
+fi
+for ref in $(git for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null); do
+  if git ls-tree -r --name-only "$ref" -- specs/.history 2>/dev/null | grep -q 'ticket-'; then
+    echo "closed ticket found on $ref"
+    exit 0
+  fi
+done
+echo "no specs/.history ticket-* entry on any ref"
+exit 1
+exit=1
+no specs/.history ticket-* entry on any ref
+
+

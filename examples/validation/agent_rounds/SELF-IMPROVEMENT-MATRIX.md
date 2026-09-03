@@ -848,6 +848,17 @@ on `main`. The other two had no assertion at all** and went green while
 rewriting the tree underneath them. reminder_worker's drift was exactly one
 missing file; the two silent examples were together twice its size.
 
+
+**And the missing guard is now added, which the first pass did not do.**
+Regenerating the corpora cleared the symptom and left the cause: two of the
+three examples still had no `committed == regenerated` assertion, so the next
+generator change reproduces `G-01` exactly. `tests/test_committed_contracts_match_the_generator.py`
+discovers every example manifest, regenerates the contract package into a temp
+directory, and compares file sets and bytes against the committed copy found
+**by asking git** rather than by a table of per-example paths — a table of paths
+being the thing that goes stale. Verified red by deleting
+`atomic_publisher`'s `effect_providers.py`, which is `G-01`'s exact shape.
+Caught by the review of `#317`.
 ### The second half: two seats, two real agents
 
 The fixture is a link shortener whose one interesting property — **a claimed
@@ -859,8 +870,14 @@ telling the agent it is looking**.
 
 | seat | cost | turns | clock | tool refusals | verdict |
 |---|---|---|---|---|---|
-| epic | $16.26 | 77 | 1848s of 2400 | 0 real (4 classified, all its own shell) | **PASS**, after `H-01` |
+| epic | $16.26 | 77 | 1848s of 2400 | **1 real** (2 classified, 5 shell across both seats) | **PASS**, after `H-01` |
 | ticket | $8.65 | 80 | **806s of 3000** | **0** | **PASS** |
+
+Every number in the paragraph below is read off the workspace — `actions.yml`,
+`cases.py`, the trace directory, `specs/results/` — and not out of the agent's
+closing message, which `dispatch()`'s own docstring says is the one source this
+harness must not trust. The first version of this table took them from the
+transcript, and the review of `#317` was right to say so.
 
 The epic agent produced 13 Internal and 13 mirrored External actions with
 `Release` represented, TLC green on both configs, 112 spec-unit cases green
@@ -989,6 +1006,59 @@ knows to ask, and rewritten before it shipped.
 `regenerate_tlc_cases.py` by hand still overwrites it. That is `E-06`'s open
 question — *whether that corpus is committed or generated* — and it is the
 owner's, not a caller's to route around.
+
+### `H-04` — the fixture promised a feature it did not have, and the agent believed it
+
+`shortlink.py` opened *"A link shortener with expiry and a reservation window …
+a reservation must be claimed before it expires."* **There is no expiry in that
+file** — no timestamp, no clock, no deadline check anywhere in it.
+
+The epic agent read the docstring, believed it, and built its epic around
+implementing *"the reservation window the module docstring promises"*: a logical
+clock, per-slug deadlines, `Tick`, `ClaimRefusedExpired`, a
+`ClaimOnlyWhileActive` property.
+
+**So round 001's epic seat did not measure what this example exists to measure.**
+The fixture's whole design is one trace-only property — `release` and
+re-reservation — that an agent has to *find*, and the harness watches for
+without saying so. Instead the docstring pointed at a different property, one
+that isn't there. That is not a neutral fixture; it is a different experiment,
+run by accident.
+
+**Nothing in the harness could see it.** `done_check` asks whether a plan file
+exists. `fixture_still_green` passes because the agent never touched the module.
+The transcript reads like a success and *is* one, against the wrong question.
+
+Found by the blind reviewer of `#317`, which is the argument for blind dispatch
+restated: the author of a fixture is the last person who will notice that its
+description and its code disagree. Fixed and pinned —
+`test_the_fixture_docstring_promises_nothing_the_fixture_lacks`, verified red on
+the original text. **The epic seat is owed a re-run before its result is cited
+again**; the ticket seat is unaffected, because it worked from the plan and the
+code rather than from the docstring.
+
+### `H-05` — the classifier was 75% wrong on the project's own evidence
+
+`classify_error` matched `skill-manager` and `test_graph` as substrings anywhere
+in a command, so `E=.skill-manager/skills/…; cat $E/a; cat $E/b` — a failed
+`cat` — counted as invoking the toolchain. Three of the epic seat's four
+"toolchain" errors were that. **The number the harness prints and leads with was
+75% false positives**, and the write-up's *"0 real refusals, all its own shell"*
+was wrong in the other direction too: `new-uv-node.py` in the same run is a
+genuine refusal, reported as `G-08` in the same document that said there were
+none.
+
+**And the unit test passed.** Its negative input was
+`cat a.md; cat b.md; cat missing.md` — a cat chain with no toolchain-shaped path
+in it. **The real failing input was sitting in the repository as committed
+evidence and was not used.** That is a new shape for this record: not a vacuous
+test, but a *falsifiable test with a chosen input that avoids the failure mode*,
+which is the same error as fitting a recogniser to a known answer pointed the
+other way.
+
+Re-classified by the EXECUTABLE of each command segment. Round 001 reads
+**2 toolchain / 5 shell**, and that reading is now pinned against the committed
+evidence so the next write-up cannot drift from it silently.
 
 ### `H-01` — the harness called a good run a failure
 

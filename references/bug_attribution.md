@@ -36,13 +36,23 @@ by a better finding**:
 
 | kind | direction | the question it answers |
 |---|---|---|
-| **CATCH** | backward, from a failure | A regression happened. What caught it, what area was it in, what pins it now? |
+| **CATCH** | backward, from a failure | A defect was found. What caught it, what area was it in, what pins it now? |
 | **REACH** | forward, from a rule | An invariant exists. Which surfaces enforce it — **and which do not**? |
 | **BLIND** | forward, from a green | A case passes. What could it **never** have caught? |
 | **PRICE** | forward, from a proposal | A change was proposed. What was it priced at **before** — and what did it cost? |
 
 **CATCH is the only one indexed by a failure.** The other three are the negative
 space, and they are the reason this page exists.
+
+**And a CATCH does not require something to have caught it.** The `channel` may
+be `reading` — a defect found by a person or an agent looking at the code, with
+nothing red anywhere. Round 3 made the case concretely: a ticket agent hit ZERO
+regressions and found one MAJOR pre-existing defect by reading, and because
+every clause was scoped to *"a regression happened"*, the most valuable thing
+that seat produced had no clause to land in. It reached the matrix only because
+somebody read the transcript afterwards. **A defect found by reading is a CATCH
+whose channel is `reading` and whose `pinned_by` is usually empty** — and the
+empty pin is the interesting half, not a reason to leave it unrecorded.
 
 ---
 
@@ -296,10 +306,10 @@ would have cost, and it is the only reason a refusal is reviewable later.
 
 **The four kinds are per-finding. The influence graph is what they add up to.**
 
-The arc for one regression is **found → area → pinned**:
+The arc for one defect is **found → area → pinned**:
 
 ```
-a regression happened
+a defect was found  (a regression, OR something noticed by reading)
   -> what CAUGHT it            (CATCH.channel, class automated | hand | reading)
   -> what AREA it lived in     (CATCH.area, prose, from whoever found it)
   -> what PINS it now          (CATCH.pinned_by, or pin_note saying why not)
@@ -308,7 +318,7 @@ a regression happened
 **The area is recorded as prose by the finder, and ANCHORED TO A TLA+ ACTION by
 the epic agent.** The model is the semantic representation of the program and it
 outlives the code — files are renamed, split and moved; `CloseTicket` is not. A
-regression that fits no declared action is anchored `UNMODELED`, and **the size
+defect that fits no declared action is anchored `UNMODELED`, and **the size
 of that bucket measures how much of the real bug surface the model does not
 reach.** Do not stretch an action to cover something it does not mean; stretching
 destroys that number.

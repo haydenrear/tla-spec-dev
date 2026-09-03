@@ -5,6 +5,49 @@ that as the epic agent failing.** It is kept unedited because the record of a
 run is not something to rewrite, and this file is the correction that travels
 with it.
 
+## A second correction, from the review of PR #317
+
+Three claims in the first version of this file were wrong, and they are left
+above/below as written with the corrections here — a record that is edited to
+look right afterwards is not a record.
+
+**1. The fixture's docstring lied, and it steered this run.** `shortlink.py`
+opened *"A link shortener with expiry and a reservation window … a reservation
+must be claimed before it expires."* **There is no expiry in that file.** The
+epic agent read it and built its epic around implementing "the reservation
+window the module docstring promises" — a logical clock, per-slug deadlines,
+`Tick`, `ClaimRefusedExpired`. So the three-ticket plan below is partly a plan
+to specify behaviour the program does not have, and **this round did not measure
+what the example says it measures**: whether an agent finds the trace-only
+`release` property without being told where to look. It was told to look
+somewhere else. The docstring is fixed and pinned; the epic seat should be
+re-run before its result is cited again.
+
+**2. "0 toolchain refusals" was wrong. It is 1.** The classifier matched
+`skill-manager` and `test_graph` as substrings anywhere in a command, so three
+of the epic seat's four "toolchain" errors were a failed `cat` of a skill's own
+files. Re-classified by the executable, this run is **2 toolchain / 5 shell**,
+and of the two, one is a genuine refusal — `new-uv-node.py` rejecting
+`shortlink.external_cases` with *"node id must be dotted lowercase segments"*,
+which it is (filed as `G-08`) — and one is the agent running a real script from
+a drifted working directory. The corrected reading is pinned by
+`test_the_committed_evidence_reclassifies_the_way_the_record_says`.
+
+**3. The numbers below came from the agent's closing message**, which
+`dispatch()`'s own docstring says is the one thing this harness must not trust.
+They are now read off the workspace instead, and they hold:
+
+| claim | harness-side source | reads |
+|---|---|---|
+| 13 Internal + 13 mirrored External actions | `grep -c` on `specs/program_model/actions.yml` | **26** |
+| 112 spec-unit cases | `grep -c 'StateGraphCase('` | **112** (and 112 external) |
+| 112 exported traces | `find … -path '*traces/*.json' \| wc -l` | **113** = 112 + `manifest.json` |
+| TLC green, 111 distinct states | `specs/results/program_model/tlc-internal.txt` | **111 distinct, 0 left on queue** |
+| spec-unit cases green | same directory, `spec-unit.txt` | *"spec-unit validation passed for 1 target(s)"* |
+
+`workspace_state()` now captures all five on every run, so the next write-up has
+a source that is not the transcript.
+
 ## What actually happened
 
 The epic agent produced, in 1848s of a 2400s budget, for $16.26:

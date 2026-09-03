@@ -95,6 +95,12 @@ def test_the_done_check_is_not_reachable_from_the_ask(role: dict) -> None:
         for token in role["done_check"].split()
         if "/" in token and not token.startswith("-")
     }
+    assert paths, (
+        f"role {role['id']}'s done_check names no path-like token, so this "
+        "comparison has nothing to compare and would pass whatever the ask "
+        "said. Four other tests in this file carry a non-vacuity guard; this "
+        "is that guard."
+    )
     leaked = sorted(p for p in paths if p.lower() in ask)
     assert not leaked, f"role {role['id']}'s ask reveals its own done_check: {leaked}"
 
@@ -130,16 +136,100 @@ def test_binding_a_home_removes_every_other_home_from_path(monkeypatch) -> None:
 
 
 def test_a_failed_call_is_a_defect_only_when_it_invoked_the_toolchain() -> None:
-    """The first run reported seven tool errors and six were the agent's own shell.
+    """Classified by the EXECUTABLE, and tested on the input that actually broke it.
 
-    False positives are how an instrument gets switched off, so the count the
-    harness leads with is classified -- by the COMMAND, never by the message.
+    The first classifier matched `skill-manager` and `test_graph` as substrings
+    anywhere in the command, and on this repository's own committed evidence it
+    was **75% wrong**: three of four "toolchain" errors were
+    `E=.skill-manager/skills/...; cat $E/a; cat $E/b` -- a failed `cat` whose
+    PATH contained the token.
+
+    The old test passed anyway, because its negative input was
+    `cat a.md; cat b.md; cat missing.md` -- a cat chain with no toolchain-shaped
+    path in it. **The failing input was in the repository as committed evidence
+    and was not used.** Both are here now, and the second is the one that
+    matters.
     """
     harness = _harness()
-    toolchain = {"input": {"command": "tla-spec-dev --spec-root specs close ticket X"}}
-    shell = {"input": {"command": "cat a.md; cat b.md; cat missing.md"}}
-    assert harness.classify_error(toolchain) == "toolchain"
-    assert harness.classify_error(shell) == "shell"
+
+    assert harness.classify_error(
+        {"input": {"command": "tla-spec-dev --spec-root specs close ticket X"}}
+    ) == "toolchain"
+    assert harness.classify_error(
+        {"input": {"command": "cat a.md; cat b.md; cat missing.md"}}
+    ) == "shell"
+
+    # THE REAL ONE: reading a skill's files is not running the skill.
+    reading_a_skill = {
+        "input": {
+            "command": (
+                "cd /tmp/ws/project\n"
+                "S=.skill-manager/skills/spec-double-compiler\n"
+                "cat $S/references/typical_workflow.md; echo ======; "
+                "ls -R $S/examples/distributed_history/specs/program_model/ | head -60"
+            )
+        }
+    }
+    assert harness.classify_error(reading_a_skill) == "shell", (
+        "a failed `cat` of a skill's own files was counted as invoking the "
+        "toolchain -- this is the input that made the headline number 75% wrong"
+    )
+
+    # And RUNNING a script that belongs to another installed unit is.
+    running_a_skill_script = {
+        "input": {
+            "command": "python3 .skill-manager/skills/test-graph/scripts/new-uv-node.py a.b action"
+        }
+    }
+    assert harness.classify_error(running_a_skill_script) == "toolchain"
+
+
+def test_the_classifier_reads_an_input_that_the_harvest_already_trimmed() -> None:
+    """Re-classifying committed evidence must not silently report it clean.
+
+    `_trim` turns a long input dict into JSON TEXT before it reaches
+    `RESULT.json`. A classifier handed text instead of a mapping finds no
+    command, no executable, and answers `shell` -- so every long command in
+    every past round would re-read as clean. That is a false PASS in the one
+    direction this instrument may never fail in (`SS-02`).
+    """
+    harness = _harness()
+    trimmed = {"input": '{"command": "tla-spec-dev --spec-root specs close ticket X"}'}
+    assert harness.classify_error(trimmed) == "toolchain"
+
+    not_even_json = {"input": "tla-spec-dev close ticket X\n... [900 more chars]"}
+    assert harness.classify_error(not_even_json) == "toolchain"
+
+
+def test_the_committed_evidence_reclassifies_the_way_the_record_says() -> None:
+    """The numbers in the write-ups have a source, and this is it.
+
+    Round 001's report said "0 real refusals, 4 classified, all its own shell".
+    Two of those were wrong in opposite directions -- the count of classified
+    errors was inflated by three `cat` chains, and the claim of zero REAL
+    refusals was contradicted by `new-uv-node.py` in the same run. This asserts
+    the corrected reading against the committed evidence so the next write-up
+    cannot drift from it silently.
+    """
+    import json
+
+    harness = _harness()
+    result = json.loads(
+        (
+            REPO_ROOT
+            / "examples/agent_integration/evidence/runs/round-001/RESULT.json"
+        ).read_text()
+    )
+    counts = {"toolchain": 0, "shell": 0}
+    for role in ("epic", "ticket"):
+        for err in result["roles"][role]["harvest"]["tool_errors"]:
+            counts[harness.classify_error(err)] += 1
+
+    assert counts == {"toolchain": 2, "shell": 5}, (
+        f"round 001 re-classifies as {counts}; the record says 2 toolchain / 5 "
+        "shell. Either the classifier changed or the record is stale, and both "
+        "are things a reader has to be told."
+    )
 
 
 def test_the_attribution_probe_is_silent_on_an_empty_transcript() -> None:
@@ -377,3 +467,146 @@ def test_cleanup_will_not_follow_a_symlink_out_of_the_run(tmp_path) -> None:
     assert removed == [], f"the cleanup tried to remove a home outside the run: {removed}"
     assert outside.is_dir(), "the cleanup followed a symlink out of the run root"
     assert (outside / "skills").is_dir()
+
+
+#: The scaffold placeholders the epic `done_check` refuses. Kept here AND in
+#: `roles.toml`, with `test_the_scaffold_still_emits_the_placeholders_the_check_refuses`
+#: asserting the scaffold still emits them -- so a rename in
+#: `new_ticket_workflow.ticket_plan()` fails a test rather than quietly turning
+#: the predicate back into one that accepts a template.
+SCAFFOLD_PLACEHOLDERS = (
+    "ReplaceWithDesiredAction",
+    "replace_with_state_field",
+    "Replace with implementation surfaces",
+)
+
+
+def test_the_scaffold_still_emits_the_placeholders_the_check_refuses() -> None:
+    """Derived from the scaffold, not retyped from memory of it.
+
+    If `ticket_plan()` renames a placeholder, the epic predicate stops rejecting
+    templates and starts passing on two scaffold verbs again -- silently, and in
+    exactly the way it already did once. This is the guard on that.
+    """
+    import sys
+
+    sys.path.insert(0, str(REPO_ROOT))
+    try:
+        from scripts.new_ticket_workflow import ticket_plan  # type: ignore[import-not-found]
+    finally:
+        sys.path.pop(0)
+
+    template = ticket_plan("SL-1", "A title", "Shortlink")
+    missing = [p for p in SCAFFOLD_PLACEHOLDERS if p not in template]
+    assert not missing, (
+        f"the scaffold no longer emits {missing}, so the epic done_check's "
+        "template rejection is now partly inert. Update both this list and "
+        "examples/agent_integration/roles.toml."
+    )
+
+    epic = next(r for r in _roles() if r["id"] == "epic")
+    absent = [p for p in SCAFFOLD_PLACEHOLDERS if p not in epic["done_check"]]
+    assert not absent, f"the epic done_check does not refuse {absent}"
+
+
+def test_the_epic_check_refuses_a_plan_that_is_still_the_scaffold_template(tmp_path) -> None:
+    """Two scaffold verbs and zero thought used to be a PASS.
+
+    `tla-spec-dev scaffold workflow` emits a `ticket_plan.yaml` that already
+    contains `tickets:` and `- id: <ticket>`, so the first version of this
+    predicate -- a grep for a list item -- returned exit 0 on a plan that was
+    100% placeholders. **That was the epic seat's only pass/fail signal**, and
+    the role's own `predicts` field says the thing worth watching is whether the
+    agent finds the plan half at all.
+
+    The template is generated here rather than pasted, so this control tracks
+    the scaffold instead of a snapshot of it.
+    """
+    import subprocess
+    import sys
+
+    sys.path.insert(0, str(REPO_ROOT))
+    try:
+        from scripts.new_ticket_workflow import ticket_plan  # type: ignore[import-not-found]
+    finally:
+        sys.path.pop(0)
+
+    repo = tmp_path / "scaffolded"
+    (repo / "specs" / "program_model").mkdir(parents=True)
+    plan_dir = repo / "specs" / "desired_program_model"
+    plan_dir.mkdir(parents=True)
+    (plan_dir / "ticket_plan.yaml").write_text(
+        ticket_plan("SL-1", "Reserve a short code", "Shortlink"), encoding="utf-8"
+    )
+    _git(repo.parent, "init", "-q", "-b", "main", str(repo))
+    _git(repo, "config", "user.email", "t@t.invalid")
+    _git(repo, "config", "user.name", "t")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "scaffold only")
+
+    epic = next(r for r in _roles() if r["id"] == "epic")
+    proc = subprocess.run(
+        ["bash", "-c", epic["done_check"].strip()], cwd=repo, text=True, capture_output=True
+    )
+    assert proc.returncode != 0, (
+        "the epic done_check PASSED on the shipped scaffold template -- the seat "
+        f"has no pass/fail signal:\n{proc.stdout}"
+    )
+    assert "placeholder" in proc.stdout, (
+        "the check refused without saying why; a reader cannot tell a template "
+        f"rejection from a missing file:\n{proc.stdout}"
+    )
+
+
+#: State-bearing concepts that would each need real machinery in the fixture --
+#: a field, a parameter, a comparison. Narrow on purpose: this is a guard on one
+#: demonstrated failure, not a general docstring checker, and it says so.
+FIXTURE_CONCEPTS = ("expir", "ttl", "clock", "deadline", "timestamp", "timeout")
+
+#: Everything after this marker is the fixture explaining its own history, and
+#: it necessarily names the concept it got wrong.
+FIXTURE_CORRECTION_MARKER = "THIS DOCSTRING IS PART OF THE MEASUREMENT"
+
+
+def test_the_fixture_docstring_promises_nothing_the_fixture_lacks() -> None:
+    """The fixture's description IS part of the experiment, and it lied once.
+
+    `shortlink.py` opened *"A link shortener with expiry and a reservation
+    window ... a reservation must be claimed before it expires."* **There is no
+    expiry in that file** -- no timestamp, no clock, no deadline check. The epic
+    agent of round 001 read it, believed it, and built a three-ticket epic
+    around implementing "the reservation window the module docstring promises."
+
+    The example exists to see whether an agent finds the trace-only `release`
+    property WITHOUT being told where to look. A docstring naming a property the
+    program does not have is not a neutral fixture; it is a different
+    experiment, run by accident -- and nothing else in the harness can see it.
+    `done_check` asks only whether a plan file exists, and `fixture_still_green`
+    passes because the agent never touched the module.
+    """
+    source = (
+        REPO_ROOT / "examples/agent_integration/fixture/shortlink.py"
+    ).read_text(encoding="utf-8")
+    marker = source.find(FIXTURE_CORRECTION_MARKER)
+    assert marker > 0, (
+        "the fixture's correction marker is gone, so this test cannot tell a "
+        "promise from an explanation of a past promise"
+    )
+    promise, explanation = source[:marker], source[marker:]
+
+    body_start = source.find('"""', source.find('"""') + 3) + 3
+    code = source[body_start:].lower()
+
+    leaked = [c for c in FIXTURE_CONCEPTS if c in promise.lower() and c not in code]
+    assert not leaked, (
+        f"the fixture's opening description names {leaked}, and the code "
+        "implements none of it. That is the round-001 defect exactly: the "
+        "docstring is what an agent reads first, so it steers the measurement."
+    )
+    # Non-vacuity: the guard must be looking at a real description, and the
+    # explanation below the marker must still be there to be excluded.
+    assert len(promise) > 200, "the fixture's description is gone; nothing is guarded"
+    assert any(c in explanation.lower() for c in FIXTURE_CONCEPTS), (
+        "the record of what went wrong has been edited out of the fixture, and "
+        "with it the only reason this test is here"
+    )

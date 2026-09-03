@@ -44,6 +44,7 @@ Real agents, real money, up to ~90 minutes. Useful flags:
 --budget-seconds 150     # smoke the plumbing against a real agent, cheaply
 --plumbing-only          # homes + workspace + done_checks, no agent at all
 --workspace-root DIR     # default: a temp dir OUTSIDE this repository
+--keep-homes             # keep the ~700MB home clones for debugging
 ```
 
 `--plumbing-only` is the negative control and it is worth running first: both
@@ -72,18 +73,23 @@ nothing. Same discipline as `examples/validation/agent_rounds/tasks.toml`.
 
 ### Errors are classified by the command, not the message
 
-The first run of this harness reported seven tool errors. Six were one
-`cat a; cat b; cat c` chain in which a single file was missing. Reporting those
-as findings would repeat the failure this repository has already had three
-times from an over-claiming guard: **false positives are how an instrument gets
-switched off.**
+A failed call is `toolchain` only when the call itself **invoked** the thing
+under test, and `shell` otherwise. Classified by the executable rather than by
+the output text — a message-based rule reads whatever words happen to be there
+and drifts toward matching the findings already known, which is `MF-020` with
+extra steps. The `shell` errors are kept and visible. They are just not called
+defects.
 
-So a failed call is `toolchain` only when the call itself invoked the thing
-under test, and `shell` otherwise. Classified by the command rather than by the
-output text, deliberately — a message-based rule reads whatever words happen to
-be there and drifts toward matching the findings already known, which is
-`MF-020` with extra steps. The `shell` errors are kept and visible. They are
-just not called defects.
+**By the executable, not by any substring**, and that distinction was learned
+the expensive way. The first version matched `skill-manager` and `test_graph`
+anywhere in the command, and on this repository's own committed evidence it was
+**75% wrong**: three of four "toolchain" errors were
+`E=.skill-manager/skills/…; cat $E/a; cat $E/b` — a failed `cat` whose *path*
+carried the token. Its unit test passed because the negative input chosen for it
+was a cat chain with no toolchain-shaped path in it, while the real failing
+input sat in `evidence/runs/round-001/` unused. **False positives are how an
+instrument gets switched off**, and an instrument that over-claims on its own
+front page is the one thing this harness may not be.
 
 ### The checks look on every branch, because the workflow uses branches
 
