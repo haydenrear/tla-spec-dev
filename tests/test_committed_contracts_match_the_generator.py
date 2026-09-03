@@ -117,3 +117,61 @@ def test_the_committed_contract_is_what_the_generator_emits_today(manifest: Path
             f"{example.name}'s committed contract differs in content from what "
             f"the generator emits today: {differing}"
         )
+
+
+#: Keys whose value is a wall clock. A committed artifact carrying one is
+#: non-reproducible by construction: the bytes change on every run even when
+#: nothing else did.
+TIMING_KEYS = ("wall_seconds", "duration_seconds", "elapsed_seconds")
+
+
+def _generated_json_under(root: Path) -> list[Path]:
+    return [
+        p for p in sorted(root.rglob("*.json"))
+        if "generated" in p.parts and "evidence" not in p.parts
+    ]
+
+
+def test_no_committed_generated_artifact_carries_a_wall_clock() -> None:
+    """"The tree stays clean afterwards" has to be true of whoever regenerates.
+
+    `atomic_publisher`'s committed `provenance.json` carried
+    `wall_seconds: 0.850681`. Every run of `regenerate.py` rewrote it with a new
+    float even when the corpus was byte-identical, so the file turned up dirty
+    in unrelated work and `G-01`'s "regenerating no longer rewrites the tree"
+    was false for anyone who actually ran the driver. Found by review of `#317`.
+
+    Per-run timings are not lost and do not belong here: `validate.py` records
+    `duration_seconds` in its own `result.json`, under a run id, which is where
+    a number that changes every run belongs. `evidence/` is excluded below for
+    the same reason — a frozen record of one run SHOULD carry how long that run
+    took.
+    """
+    import json
+
+    offenders: list[str] = []
+    for path in _generated_json_under(EFFECT_PROVIDERS):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            continue
+
+        def walk(node: object, where: str) -> None:
+            if isinstance(node, dict):
+                for key, value in node.items():
+                    if key in TIMING_KEYS and isinstance(value, (int, float)):
+                        offenders.append(f"{path.relative_to(REPO_ROOT)}:{where}{key} = {value}")
+                    walk(value, f"{where}{key}.")
+            elif isinstance(node, list):
+                for item in node:
+                    walk(item, where)
+
+        walk(payload, "")
+
+    assert not offenders, (
+        "committed generated artifacts carry a wall clock, so regenerating "
+        "dirties them even when the corpus is unchanged:\n  " + "\n  ".join(offenders)
+    )
+    assert _generated_json_under(EFFECT_PROVIDERS), (
+        "no committed generated JSON was scanned -- this test is vacuous"
+    )

@@ -134,8 +134,15 @@ and resolution. It is deliberately small and deliberately not a CRUD toy: a
 claimed slug can be released and re-reserved by a **different** owner, but never
 while the first owner holds it. That property is false of any single state and
 true only over a trace, so a spec that captures it has to model the transition
-rather than the shape — and the harness can see whether `release` was modeled at
-all without ever telling the agent that it is looking.
+rather than the shape.
+
+**The harness does not check whether `release` was modeled, and that is a
+choice.** A recogniser for one expected action name is `MF-020` — fitting a
+detector to a known answer — and this project has refused that three times.
+Whether the agent found the property is read out of the workspace afterwards, by
+a person, which is a `reading` channel and is recorded as one. The earlier
+version of this sentence said the harness could see it; nothing in the harness
+ever could.
 
 ## Known limitation: the launch is hand-bound
 

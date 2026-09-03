@@ -201,7 +201,16 @@ def parse_generation_output(
         "generated_cases": len(cases),
         "generated_states": int(state_match.group(1)) if state_match else None,
         "search_depth": int(depth_match.group(1)) if depth_match else None,
-        "wall_seconds": round(wall_seconds, 6),
+        # NO `wall_seconds` HERE. This dict is committed, and a wall clock in a
+        # committed artifact makes that artifact non-reproducible by
+        # construction: every regeneration dirtied `provenance.json` with a new
+        # float even when the corpus was byte-identical, so "the tree stays
+        # clean afterwards" was false for anyone who ran the driver, and the
+        # hunk turned up in unrelated diffs.
+        #
+        # The measurement is not lost -- `validate.py` records the run's
+        # `duration_seconds` in its own `result.json`, under the run id, which
+        # is where a per-run number belongs. Nothing reads this one.
     }
 
 

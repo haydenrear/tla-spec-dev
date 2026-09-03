@@ -138,9 +138,22 @@ def preflight(source_home: Path) -> dict[str, Any]:
     )
     if proc.returncode == 0:
         try:
-            report["source_home_descriptor"] = json.loads(proc.stdout)
+            descriptor = json.loads(proc.stdout)
         except json.JSONDecodeError:
             report["source_home_descriptor"] = {"raw": proc.stdout[:2000]}
+        else:
+            # The fields that decide whether a run is comparable to another run.
+            # The full descriptor is a snapshot of every installed unit -- machine
+            # state, not a finding, and the bulk of what made this record leak the
+            # operator's home layout.
+            report["source_home_descriptor"] = {
+                key: descriptor.get(key)
+                for key in ("tier", "policy", "cliVersion", "unitCount")
+                if key in descriptor
+            }
+            units = descriptor.get("units")
+            if isinstance(units, list):
+                report["source_home_descriptor"]["units"] = len(units)
     else:
         report["source_home_descriptor"] = {"error": proc.stderr[:2000]}
 
@@ -376,14 +389,20 @@ def dispatch(
     with (out_dir / "stream.jsonl").open("w", encoding="utf-8") as stream, (
         out_dir / "stderr.txt"
     ).open("w", encoding="utf-8") as errfile:
+        # OWN SESSION, so a timeout can take the whole tree. `proc.kill()`
+        # kills `claude` and nothing it spawned: TLC's JVM, a gradle daemon, the
+        # fixture's HTTP server are reparented and keep running, and the next
+        # round inherits a machine the last one did not clean up. A harness that
+        # reports `timeout` while leaving a JVM holding the port is measuring
+        # the previous round.
         proc = subprocess.Popen(
-            command, cwd=cwd, env=env, stdout=stream, stderr=errfile, text=True
+            command, cwd=cwd, env=env, stdout=stream, stderr=errfile, text=True,
+            start_new_session=True,
         )
         try:
             returncode = proc.wait(timeout=budget)
         except subprocess.TimeoutExpired:
-            proc.kill()
-            proc.wait()
+            _kill_tree(proc)
             returncode = -9
             status = "timeout"
     duration = time.perf_counter() - started
@@ -404,6 +423,28 @@ def dispatch(
     }
 
 
+
+def _kill_tree(proc: "subprocess.Popen[str]") -> None:
+    """SIGKILL the process GROUP, falling back to the process itself.
+
+    `start_new_session=True` makes the child a group leader, so its pid is the
+    group id and one `killpg` reaches everything it spawned. The fallback
+    matters on the race where the child has already exited: `killpg` then raises
+    `ProcessLookupError`, and a harness that dies in its own cleanup loses the
+    transcript of the round it was cleaning up after.
+    """
+    import signal
+
+    try:
+        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+    except (ProcessLookupError, PermissionError, OSError):
+        proc.kill()
+    try:
+        proc.wait(timeout=30)
+    except subprocess.TimeoutExpired:  # pragma: no cover - the group refused to die
+        pass
+
+
 # ---------------------------------------------------------------------------
 # Harvest -- the part that finds bugs
 # ---------------------------------------------------------------------------
@@ -418,7 +459,8 @@ def harvest(stream_path: Path) -> dict[str, Any]:
     errors: list[dict[str, Any]] = []
     text_blocks: list[str] = []
     final: dict[str, Any] = {}
-    turns = 0
+    message_ids: set[str] = set()
+    events = 0
 
     if not stream_path.is_file():
         return {"parsed": False, "reason": "no stream file"}
@@ -433,7 +475,21 @@ def harvest(stream_path: Path) -> dict[str, Any]:
             continue
         etype = event.get("type")
         if etype == "assistant":
-            turns += 1
+            # NOT A TURN COUNT, and it used to be labelled as one. The stream
+            # emits an `assistant` event per content BLOCK, so round 001
+            # recorded `assistant_turns: 118` beside the result event's
+            # `num_turns: 77` -- two turn counts in one file disagreeing by 50%,
+            # which is worse than having neither. Distinct message ids give 28,
+            # a third number; none of the three is wrong, they count different
+            # things.
+            #
+            # So nothing here claims to be the turn count. `final.num_turns` is
+            # the agent's own, and it is authoritative when the run produced a
+            # result event. These two are raw stream shape, useful precisely
+            # when it did not -- a timeout has no result event and these are all
+            # a reader gets.
+            events += 1
+            message_ids.add(event.get("message", {}).get("id") or f"anon-{events}")
             for block in event.get("message", {}).get("content", []) or []:
                 if block.get("type") == "tool_use":
                     calls[block.get("id", "")] = {
@@ -481,7 +537,8 @@ def harvest(stream_path: Path) -> dict[str, Any]:
 
     return {
         "parsed": True,
-        "assistant_turns": turns,
+        "assistant_events": events,
+        "assistant_messages": len(message_ids),
         "tool_calls": len(calls),
         "tool_errors": errors,
         "tool_error_count": len(errors),
@@ -608,6 +665,32 @@ def _trim(value: Any, limit: int = 1200) -> Any:
     if len(text) <= limit:
         return value if isinstance(value, str) else text
     return text[:limit] + f"\n... [{len(text) - limit} more chars]"
+
+
+
+def _redact(value: Any) -> Any:
+    """Replace the operator's home prefix with `~`, everywhere, recursively.
+
+    `.gitignore` excludes the transcripts because they *"carry the operator's
+    absolute paths, session ids and home layout"*. RESULT.json carried the same
+    thing -- `workspace_root`, `home`, `cwd`, `claude_bin`,
+    `preflight.source_home` -- ten occurrences of `/Users/<operator>/` in round
+    001. **The file that travels was leaking what the file that stays was
+    excluded for**, which makes the stated reason untrue rather than merely
+    incomplete.
+
+    `~` rather than deletion: a reader still needs to see that the workspace was
+    outside the repository and which tier a home was, and a redacted path that
+    keeps its shape says both.
+    """
+    home = str(Path.home())
+    if isinstance(value, str):
+        return value.replace(home, "~")
+    if isinstance(value, dict):
+        return {k: _redact(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_redact(v) for v in value]
+    return value
 
 
 # ---------------------------------------------------------------------------
@@ -780,6 +863,14 @@ def main() -> int:
     evidence = EVIDENCE_ROOT / run_id
     if evidence.exists():
         raise SystemExit(f"refusing to overwrite evidence {evidence}")
+
+    # PREFLIGHT FIRST, THEN CLAIM THE RUN ID. The directory used to be created
+    # here, so a refused preflight -- no `claude` on PATH, a red fixture -- left
+    # an empty `evidence/runs/<id>/` behind and BURNED that id: the same
+    # `--run-id` then hit "refusing to overwrite evidence" on the next attempt,
+    # and the operator had to invent a new name because of a failure that
+    # produced nothing.
+    preflight_report = preflight(args.source_home)
     evidence.mkdir(parents=True)
 
     defaults, roles = _load_roles()
@@ -797,7 +888,7 @@ def main() -> int:
         "roles": {},
         "plumbing_only": args.plumbing_only,
     }
-    result["preflight"] = preflight(args.source_home)
+    result["preflight"] = preflight_report
 
     ws_root = args.workspace_root or Path(
         tempfile.mkdtemp(prefix=f"agent-integration-{run_id}-")
@@ -876,7 +967,8 @@ def main() -> int:
             # that dies during the second seat used to leave no RESULT.json at
             # all, discarding a completed first seat that cost real money.
             (evidence / "RESULT.json").write_text(
-                json.dumps(result, indent=2, default=str) + "\n", encoding="utf-8"
+                json.dumps(_redact(result), indent=2, default=str) + "\n",
+                encoding="utf-8",
             )
             print(
                 f"  {role['id']}: done_check="
@@ -896,7 +988,7 @@ def main() -> int:
         result["duration_seconds"] = round(time.perf_counter() - started, 3)
         result["finished_utc"] = datetime.now(timezone.utc).isoformat()
         (evidence / "RESULT.json").write_text(
-            json.dumps(result, indent=2, default=str) + "\n", encoding="utf-8"
+            json.dumps(_redact(result), indent=2, default=str) + "\n", encoding="utf-8"
         )
         kept = "with its homes" if args.keep_homes else "homes reclaimed"
         print(f"workspace kept at {ws_root} ({kept}; delete when done)", flush=True)

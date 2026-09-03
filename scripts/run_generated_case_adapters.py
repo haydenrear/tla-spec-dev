@@ -217,16 +217,33 @@ def default_import_roots_for(spec_dir: Path | None) -> list[Path]:
     This ADDS a path and removes none, so nothing that resolved before stops
     resolving; and it is skipped entirely when `--import-root` is given, so a
     caller that states its roots still gets exactly those.
+
+    ORDER IS LOAD-BEARING, AND IT IS REVERSED ON THE WAY OUT. `ensure_import_roots`
+    inserts each root at `sys.path[0]` in turn, so **the LAST root returned here
+    is the FIRST one searched.** `spec_dir` therefore goes last.
+
+    It did not, and that was a real hole under `G-10`. With `[cwd, spec_dir,
+    project_root]` the resolved `sys.path` head was
+    `[project_root, spec_dir, cwd]`, so a bare `adapters:X` binding -- the form
+    `G-10` introduced precisely so a view executes its OWN adapters -- imported
+    `<project_root>/adapters` first. No example here has a top-level `adapters`
+    package, so nothing was red; a project laid out hexagonally, which is this
+    repository's own doctrine, very plausibly does, and there the bare name
+    binds to the production package. **The same green that proves nothing, one
+    directory over.** Found by review of `#317`; the order is pinned in
+    `tests/test_scaffolded_bindings_name_their_own_view.py`, membership alone
+    having been what let it through.
     """
     if spec_dir is None:
         return [Path.cwd()]
-    roots = [Path.cwd(), spec_dir]
+    roots = [Path.cwd()]
     parts = spec_dir.resolve().parts
     if "specs" in parts:
         innermost = len(parts) - 1 - parts[::-1].index("specs")
         project_root = Path(*parts[:innermost])
         if project_root not in roots:
             roots.append(project_root)
+    roots.append(spec_dir)
     return roots
 
 

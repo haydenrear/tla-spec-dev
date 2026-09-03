@@ -247,6 +247,50 @@ def carry_manifest_semantic_tail(template_text: str, baseline_manifest: Path) ->
     return template_text[:template_idx] + accepted[accepted_idx:]
 
 
+#: A binding map copied into a ticket view must name THAT view's modules.
+#:
+#: `G-10`: bindings written `specs.program_model.adapters:X` resolve from the
+#: project root, so a ticket's copy points back at the accepted baseline and the
+#: ticket's own `adapters.py` is never imported -- **a ticket that edits its
+#: adapters runs green without executing them.** The scaffold now emits bare
+#: names, which resolve against whichever view is selected, but a scaffold fix
+#: only reaches NEW projects. The defect lives here, at the copy seam, and every
+#: project onboarded before it keeps the hole.
+#:
+#: `close_tickets.promote_semantic_files` already re-roots on the way OUT. This
+#: is the symmetric move on the way IN, and it strips to BARE rather than
+#: re-rooting to the ticket's own dotted path, because bare is the form
+#: `reroot_module_prefixes` itself calls "the one that cannot rot on promotion".
+#:
+#: It is loud. A silent rewrite of a file the operator is about to edit is worse
+#: than the defect it fixes.
+BINDING_MAP_NAMES = {"testgraph_bindings.yml", "case_adapters.toml"}
+VIEW_DIR_NAMES = ("current", "desired_program_model", "program_model", "desired")
+_VIEW_QUALIFIED_MODULE = re.compile(r"\bspecs\.(?:%s)\." % "|".join(VIEW_DIR_NAMES))
+
+
+def strip_view_prefixes(text: str) -> tuple[str, int]:
+    """`specs.<view>.adapters:X` -> `adapters:X`. Returns the text and the count."""
+    moved = len(_VIEW_QUALIFIED_MODULE.findall(text))
+    return _VIEW_QUALIFIED_MODULE.sub("", text), moved
+
+
+def _seed_file(src: Path, dst: Path) -> str:
+    """Copy one seeded file, un-rooting a binding map's module references."""
+    if src.name not in BINDING_MAP_NAMES:
+        shutil.copyfile(src, dst)
+        return f"copied {src} -> {dst}"
+    text = src.read_text(encoding="utf-8")
+    rewritten, moved = strip_view_prefixes(text)
+    dst.write_text(rewritten, encoding="utf-8")
+    if not moved:
+        return f"copied {src} -> {dst}"
+    return (
+        f"copied {src} -> {dst} (un-rooted {moved} view-qualified module "
+        "reference(s) so this view executes its OWN adapters; see G-10)"
+    )
+
+
 def copy_baseline_tree(src_dir: Path, dst_dir: Path, *, force: bool, dry_run: bool) -> list[Path]:
     if not src_dir.exists():
         return []
@@ -263,8 +307,7 @@ def copy_baseline_tree(src_dir: Path, dst_dir: Path, *, force: bool, dry_run: bo
             print(f"would copy {src} -> {dst}")
         else:
             dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(src, dst)
-            print(f"copied {src} -> {dst}")
+            print(_seed_file(src, dst))
         copied.append(dst)
     return copied
 
@@ -295,8 +338,7 @@ def copy_workflow_tree(
             print(f"would copy {src} -> {dst}")
         else:
             dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(src, dst)
-            print(f"copied {src} -> {dst}")
+            print(_seed_file(src, dst))
         copied.append(dst)
     return copied
 

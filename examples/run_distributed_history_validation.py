@@ -85,8 +85,17 @@ def _driver_generated_root(example_root: Path) -> Path:
             module = importlib.util.module_from_spec(spec)
             try:
                 spec.loader.exec_module(module)
-            except Exception:  # pragma: no cover - a broken driver is its own error
-                pass
+            except Exception as exc:  # pragma: no cover - a broken driver is its own error
+                # SAY SO. The docstring below promises this "says so rather than
+                # silently reverting", and the bare `pass` said nothing -- so a
+                # driver that failed to import, which is exactly how a renamed
+                # constant presents, fell back to a hardcoded path in silence.
+                print(
+                    f"WARNING: could not read {driver} ({exc.__class__.__name__}: {exc}); "
+                    "falling back to the layout #314 chose. If the driver moved its "
+                    "generated root, this run is writing somewhere it does not.",
+                    file=sys.stderr,
+                )
             else:
                 default = getattr(module, "DEFAULT_GENERATED_DIR", None)
                 if default is not None:
@@ -139,9 +148,12 @@ RUN_ID = f"{os.getpid()}-{int(time.time())}"
 GENERATED_ROOT = _run_scratch_root(EXAMPLE_ROOT, RUN_ID)
 CLUSTER_NAME = "ecommerce-history"
 
-#: The one line the negative projected-state control rewrites, and the value it
+#: The binding the negative projected-state control rewrites, and the value it
 #: rewrites it to. Named here so the fixture and the refusal that guards it read
-#: the same string.
+#: the same string. It appears once per action -- 11 times in the shipped file,
+#: not once -- and every one is rewritten; only `SubmitCreateAccount` is
+#: exercised. Said plainly because a reader checking the fault against the diff
+#: should find what they were told they would find.
 REAL_EXPECTED_PROJECTION = (
     "expected_projection: specs.program_model.adapters:ExpectedClusterProjection"
 )

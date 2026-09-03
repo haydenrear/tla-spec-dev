@@ -33,15 +33,37 @@ real row, not a leftover — see below.
 | **`UNMODELED/instrument-registry`** | **1** | 0 | 1 | `G-09` | **new, round 3.** FI-02's own demonstration harness is red, and by a count that changes with the launcher. Disposition: **`UNDECIDED`** |
 | `UNMODELED/skill-composition` | **1** | 0 | 1 | `G-08` | **its first finding, three rounds after it was opened empty.** Disposition unchanged: **`DEFERRED`** |
 
-**After round 3: 22 of 29 findings anchored to a declared action, 7 did not.**
-The unanchored share went from 4-of-15 in one row to **7-of-29 across four
-rows**, and that is the more useful shape: *"seven findings, one gap"* and
-*"seven findings, four gaps"* want different answers, and the pooled count
-cannot tell them apart (`bug_attribution.md` §7c).
+**After round 3: 23 of 37 findings anchored to a declared action, 14 did not.**
+The unanchored share went from 7-in-one-row to **14 across five rows**, and that
+is the more useful shape: *"seven findings, one gap"* and *"fourteen findings,
+five gaps"* want different answers, and the pooled count cannot tell them apart
+(`bug_attribution.md` §7c).
 
 **Conservation, round 3.** No model change was made this round, so no finding
 moved. `findings before: 26. findings after: 37.` Eleven arrived; zero were
 redistributed; every pre-existing row holds exactly the findings it held.
+
+**How the count is defined, because it disagreed with itself.** The first
+version of this section said *"22 of 29, 7 did not"* while the table summed to
+23 anchored + 14 unanchored = 37 and the conservation line said 26 → 37: three
+totals, three answers, in the one table whose only claimed property is
+conservation. Review of `#317` caught it. **Each finding is counted in exactly
+one row** — the rows above share no id — and the arithmetic is now:
+
+```
+anchored    5 + 14 + 2 + 1 + 1 = 23
+unanchored  7 +  3 + 2 + 1 + 1 = 14
+                                 --
+                                 37   = 26 before + 11 this round
+```
+
+**Two older cells still do not reconcile, and are left rather than tidied.**
+`UNMODELED/yaml-parser` shows 7 findings while naming three ids, and its
+`pinned` cell reads 11 — larger than its escape count. Both predate round 3 and
+both belong to measurements this writer did not take; silently adjusting another
+round's numbers to make a total come out is the failure this section just had,
+not its repair. They are named here so the next round can settle them with the
+evidence rather than with arithmetic.
 
 ---
 
@@ -1059,6 +1081,107 @@ other way.
 Re-classified by the EXECUTABLE of each command segment. Round 001 reads
 **2 toolchain / 5 shell**, and that reading is now pinned against the committed
 evidence so the next write-up cannot drift from it silently.
+
+### `H-06` — `G-10`'s fix was narrower than its write-up, in three ways
+
+A second review, by the repository's owner, on a checkout of the branch. It
+reproduced the resolution behaviour rather than reading it, and the fix did not
+survive that.
+
+**1. Bare names resolved from the PROJECT ROOT first.** `ensure_import_roots`
+inserts each root at `sys.path[0]` in turn, so the last root returned is the
+first searched — and `spec_dir` was returned second of three. The resolved head
+was `[project_root, spec_dir, cwd]`, so a bare `adapters:X`, the form `G-10`
+introduced *so a view runs its own adapters*, imported `<project_root>/adapters`
+first. No example here has a top-level `adapters` package, so nothing was red. A
+project laid out ports-and-adapters — this repository's own doctrine — very
+plausibly does. **The same green that proves nothing, one directory over.**
+
+**2. The fix landed in the scaffold; the defect lives at the copy seam.** Only
+new projects get the corrected template. `open ticket` copies binding maps with
+`shutil.copyfile`, so every project onboarded before this branch keeps
+`specs.program_model.adapters:X` in its ticket views and keeps the hole intact.
+`close_tickets.promote_semantic_files` already re-roots on the way *out*; the
+symmetric move on the way *in* was missing. It strips to BARE, which
+`reroot_module_prefixes` itself calls *"the form that cannot rot on promotion"*,
+and it says so on stdout — a silent rewrite of a file the operator is about to
+edit is worse than the defect it fixes.
+
+**3. The pin tested a function the defect's own path never calls.** It asserted
+`spec_dir in default_import_roots_for(...)`, and `tla_spec_dev.py` passes
+`--import-root` explicitly on the ticket path, which skips that function
+entirely. **Membership, of a list, in a code path that does not run.** Replaced
+by three that test the seam: the resolved ORDER; a bare binding resolving to the
+ticket view through `ensure_import_roots` exactly as the close gate calls it,
+with the qualified form shown resolving to the baseline as its contrast; and the
+copy seam un-rooting what it copies. Each verified red with its own fix removed.
+
+**This is the third consecutive round in which the instrument built to catch a
+finding needed a finding of its own** — the round-2 `BLIND` on the pin, `H-05`'s
+test with an input that avoided the failure mode, and now a pin aimed at the
+wrong function. That is not three accidents. **A pin is written by whoever just
+fixed the defect, which is the person least able to see what they still assume.**
+
+### `H-07` — four harness bugs, and what they would each have cost
+
+| | what | why it matters |
+|---|---|---|
+| timeout | `proc.kill()` killed `claude` and nothing it spawned | a timed-out round leaves TLC's JVM and the fixture's server running; **the next round inherits them** and measures the previous one. Now `start_new_session` plus `killpg`, asserted against a real grandchild |
+| `assistant_turns` | 118, beside the result event's `num_turns: 77` | **two turn counts in one file disagreeing by 50%.** The stream emits one event per content BLOCK; distinct message ids give a third number, 28. Nothing is named for turns now: `assistant_events` and `assistant_messages` are stream shape, `final.num_turns` is the count |
+| evidence dir | created before `preflight` | a refused preflight left an empty directory and **burned the run id** — the next attempt hit "refusing to overwrite evidence" because of a failure that produced nothing |
+| `RESULT.json` | 23 occurrences of the operator's home path | `.gitignore` excludes the transcripts *because* they carry absolute paths and home layout. **The file that travels was leaking what the file that stays was excluded for**, which makes a stated reason untrue rather than incomplete. Redacted to `~`, and the committed records with it |
+
+### `H-08` — three totals for one table whose only claim is conservation
+
+*"22 of 29, 7 unanchored"* in the prose, `26 → 37` in the conservation line, and
+rows summing to 23 + 14 = 37. **Conservation is the single property this table
+asserts**, and it disagreed with itself three ways. Corrected to one set, with
+the arithmetic written out; two older cells that still do not reconcile
+(`yaml-parser` at 7 findings with three ids named, and a `pinned` cell larger
+than its escape count) are **named rather than tidied** — silently adjusting an
+earlier round's numbers to make a total come out is the failure being repaired,
+not the repair.
+
+### `H-09` — the README promised an instrument that does not exist
+
+*"the harness can see whether `release` was modeled at all without ever telling
+the agent that it is looking."* **Nothing in the harness checks it.** The
+observation came from reading the workspace by hand.
+
+The right answer is not to build the recogniser: a detector fitted to one
+expected action name is `MF-020`, refused three times here. It is to say that
+whether the agent found the property is read out afterwards, by a person, and is
+a `reading` channel. **A claim to an instrument is worse than no instrument**,
+because the next reader stops looking for the thing themselves.
+
+### `H-10` — the fourth `git add -A`, in the commit that documents the other three
+
+The commit carrying the fixes above was staged with `git add -A examples`. It
+swept **805 per-run evidence files and 100,629 insertions** when thirteen files
+were intended.
+
+**Fourth occurrence.** `f590d8d` swept 44 files under a subject about three
+driver paths. `E-06` is the write-up of that shape. The corpus overwrite earlier
+in this same round was a third. This one is the commit whose message names all
+three.
+
+**So the pin was prose, and prose loses to muscle memory.** *"Never `git add -A`
+in a tree where a generator has just run"* has now been read, agreed with,
+written down, and violated by its own author four times. A rule that depends on
+remembering it at the exact moment attention is elsewhere is not a control.
+
+Replaced with a mechanism: `evidence/validation-runs/` is gitignored. Git
+ignores only UNTRACKED paths, so the 850 evidence files already committed stay
+fully visible — a modification or deletion of one still shows in `git status`,
+which is the difference from `E-06`, where a rule over a directory of TRACKED
+files hid exactly the change a reader needed to see. Freezing a new run
+deliberately still works and now costs one flag, and **that friction is the
+point**: evidence a person chose to keep gets an explicit act, evidence a run
+happened to produce does not ride in behind one.
+
+The untracked count after a full eval sweep went from 17 directories to zero,
+which is the first time this round that "the tree stays clean afterwards" has
+been true without a caveat.
 
 ### `H-01` — the harness called a good run a failure
 

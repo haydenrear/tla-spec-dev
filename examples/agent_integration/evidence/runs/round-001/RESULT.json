@@ -6,8 +6,8 @@
   "roles": {
     "epic": {
       "clone": {
-        "source": "/Users/hayde/.skill-manager",
-        "dest": "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-round1/project/.skill-manager",
+        "source": "~/.skill-manager",
+        "dest": "~/.claude/jobs/c92f85ab/tmp/ws-round1/project/.skill-manager",
         "directories": 8085,
         "files": 36586,
         "symlinks": 14,
@@ -34,11 +34,11 @@
       "dispatch": {
         "role": "epic",
         "tier": "project",
-        "home": "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-round1/project/.skill-manager",
+        "home": "~/.claude/jobs/c92f85ab/tmp/ws-round1/project/.skill-manager",
         "launch_style": "hand-bound",
         "launch_note": "LAUNCH STYLE: hand-bound, NOT `skill-manager exec`, and that is a finding\nrather than a preference.\n\nreferences/runtime_requirements.md says to launch through the home's\n`bin/launch/{claude,codex,gemini}` shims or `skill-manager exec`, because those\nput the home's bin/ first and strip other homes' bin/ -- \"the part\nhand-exporting always misses\". This harness measured that path and it does not\nstart a session:\n\n    $ skill-manager exec --home ~/.skill-manager -- claude -p \"say OK\"\n    Not logged in - Please run /login          (terminal_reason: api_error)\n\nThat is the ROOT home, whose CLAUDE_CONFIG_DIR resolves to the operator's own\n~/.claude, so it is not the per-home config redirect. The same prompt run\nwithout `exec` completes normally, and completes normally again with\nSKILL_MANAGER_HOME and PATH bound to the same home by hand. Measured on\nskill-manager 0.25.1 / claude 2.1.258 with keychain OAuth; an ANTHROPIC_API_KEY\nlaunch passes its key through the environment and would not see this.\n\nSo the binding here is done explicitly, and it does the one thing the docs warn\nhand-exporting forgets: every OTHER home's bin/ is removed from PATH, not just\nthis home's prepended. What is bound:\n\n    SKILL_MANAGER_HOME  -> this tier's home\n    PATH                -> this home's bin/cli and bin/mcp first, every other\n                           home's bin removed\n    CLAUDE_CONFIG_DIR   -> LEFT ALONE. Redirecting it is what `exec` does and\n                           it is also what leaves the launch unauthenticated.\n\nWhat that costs, stated rather than glossed: `tla-spec-dev`, `tlc2`, `pytest`\nand `jinja2` come from THIS home (the wrappers with its absolute path baked in,\nwhich is the isolation runtime_requirements.md actually argues for), while the\nskill and plugin BYTES come from the operator's agent config. skt therefore\nloads, and its `skt status` report is produced by this home's `skt`.",
-        "claude_bin": "/Users/hayde/.local/bin/claude",
-        "cwd": "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-round1/project",
+        "claude_bin": "~/.local/bin/claude",
+        "cwd": "~/.claude/jobs/c92f85ab/tmp/ws-round1/project",
         "status": "ok",
         "returncode": 0,
         "duration_seconds": 1847.809,
@@ -52,7 +52,7 @@
         "tool_errors": [
           {
             "tool": "Bash",
-            "input": "{\"command\": \"cd /Users/hayde/.claude/jobs/c92f85ab/tmp/ws-round1/project; E=.skill-manager/skills/spec-double-compiler/examples/distributed_history/specs/program_model; for f in adapters.py tlc_projection.py; do echo \\\"=== $f\\\"; cat $E/$f; done; ls $E/tests; echo === test-graph SKILL; cat .skill-manager/skills/test-graph/SKILL.md\", \"description\": \"Read example adapters, projection, and test-graph skill\"}",
+            "input": "{\"command\": \"cd ~/.claude/jobs/c92f85ab/tmp/ws-round1/project; E=.skill-manager/skills/spec-double-compiler/examples/distributed_history/specs/program_model; for f in adapters.py tlc_projection.py; do echo \\\"=== $f\\\"; cat $E/$f; done; ls $E/tests; echo === test-graph SKILL; cat .skill-manager/skills/test-graph/SKILL.md\", \"description\": \"Read example adapters, projection, and test-graph skill\"}",
             "error": "Exit code 1\n=== adapters.py\nfrom __future__ import annotations\n\nimport json\nimport os\nimport time\nimport urllib.error\nimport urllib.request\nfrom pathlib import Path\nfrom typing import Any\n\nfrom ecommerce_backend.domain import EcommerceStore\nfrom spec_double_compiler.runtime import CaseRunResult\n\n\ndef _state(value: Any) -> dict[str, Any]:\n    return json.loads(json.dumps(value, sort_keys=True))\n\n\nclass _InternalAdapter:\n    def setup_all(self, context: Any) -> None:\n        context.shared[\"setup_all_called\"] = True\n\n    def teardown_all(self, context: Any) -> None:\n        context.shared[\"teardown_all_called\"] = True\n\n    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:\n        store = EcommerceStore()\n        try:\n            store.load_state(case.before)\n            output = self.apply(store, case.input.params)\n            return CaseRunResult(output=output, after=store.snapshot())\n        finally:\n            store.close()\n\n    def apply(self, store: EcommerceStore, params: dict[str, Any]) -> dict[str, Any]:\n        raise NotImplementedError\n\n\nclass CreateAccountInternalAdapter(_InternalAdapter):\n    def apply(self, store: EcommerceStore, params: dict[str, Any]) -> dict[str, Any]:\n        result = store.create_account(params[\"account\"])\n        return {\"status\": result.status, \"body\": result.body}\n\n\nclass AddCartItemInternalAdapter(_InternalAdapter):\n    def apply(self, store: EcommerceStore, params: dict[str, Any]) -> dict[str, Any]:\n        result = store.add_cart_item(params[\"account\"], params[\"sku\"])\n        return {\"status\": result.status, \"body\": result.body}\n\n\nclass CheckoutInternalAdapter(_InternalAdapter):\n    def apply(self, store: EcommerceStore, params: dict[str, Any]) -> dict[str, Any]:\n        result = store.checkout(params[\"account\"], params[\"order\"])\n        return {\"status\": result.status, \"body\": result.body}\n\n\nclass ProjectOrderInternalAdapter(_InternalAdapter):\n    def apply(self, store: EcommerceStore, params: dict[str, Any]) -> dict[str, Any]:\n        result = store.project_order(params[\"order\"])\n        return {\"status\": result.status, \"body\": result.body}\n\n\nclass _HttpAdapter:\n    def setup_all(self, context: Any) -> None:\n        base_url = os.environ.get(\"ECOMMERCE_BASE_URL\", \"http://127.0.0.1:18080\")\n        context.shared[\"base_url\"] = base_url.rstrip(\"/\")\n        self._wait_for_health(context.shared[\"base_url\"])\n        self._post(context.shared[\"base_url\"], \"/debug/traffic/reset\", {})\n        self._post(context.shared[\"base_url\"], \"/debug/reset\", {})\n\n    def teardown_all(self, context: Any) -> None:\n        base_url = context.shared.get(\"base_url\") or os.environ.get(\"ECOMMERCE_BASE_URL\", \"http://127.0.0.1:18080\")\n        try:\n            self._post(base_url.rstrip(\"/\"), \"/debug/reset\", {})\n        except Exception:\n            return\n\n    def setup(self, context: Any) -> None:\n        base_url = context.shared[\"base_url\"]\n        self._post(base_url, \"/debug/reset\", {})\n        self._post(base_url, \"/debug/load\", {\"state\": context.case.before})\n\n    def teardown(self, context: Any) -> None:\n        self._post(context.shared[\"base_url\"], \"/debug/reset\", {})\n\n    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:\n        base_url = os.environ.get(\"ECOMMERCE_BASE_URL\", \"http://127.0.0.1:18080\").rstrip(\"/\")\n        result = self.apply(base_url, case.input.params)\n        return CaseRunResult(output=result)\n\n    def apply(self, base_url: str, params: dict[str, Any]) -> dict[str, Any]:\n        raise NotImplementedError\n\n    def _wait_for_health(self, base_url: str) -> None:\n        deadline = time.time() + 20\n        last_error: BaseException | None = None\n        while time.time() < deadline:\n            try:\n                self._get(base_url, \"/health\")\n                return\n            except Exception as exc:\n                last_error = exc\n                time.sleep(0.2)\n        raise RuntimeError(f\"service did not become healthy at {base_url}: {l\n... [6039 more chars]",
             "kind": "toolchain"
           },
@@ -71,7 +71,7 @@
           {
             "tool": "Bash",
             "input": "{\"command\": \"E=.skill-manager/skills/spec-double-compiler/examples/distributed_history; sed -n 150,260p $E/specs/program_model/adapters.py; echo \\\"=== test-graph scaffold help\\\"; python3 .skill-manager/skills/test-graph/scripts/scaffold.py --help 2>&1 | head -30; ls .skill-manager/skills/test-graph/scripts; echo \\\"=== test-graph workflows.md (scaffold + uv node sections)\\\"; sed -n 1,140p .skill-manager/skills/test-graph/references/workflows.md\", \"description\": \"Read example HTTP adapter middle and test-graph scaffolding docs\"}",
-            "error": "Exit code 1\nsed: .skill-manager/skills/spec-double-compiler/examples/distributed_history/specs/program_model/adapters.py: No such file or directory\n=== test-graph scaffold help\n/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python: can't open file '/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-round1/project/specs/program_model/.skill-manager/skills/test-graph/scripts/scaffold.py': [Errno 2] No such file or directory\nls: .skill-manager/skills/test-graph/scripts: No such file or directory\n=== test-graph workflows.md (scaffold + uv node sections)\nsed: .skill-manager/skills/test-graph/references/workflows.md: No such file or directory",
+            "error": "Exit code 1\nsed: .skill-manager/skills/spec-double-compiler/examples/distributed_history/specs/program_model/adapters.py: No such file or directory\n=== test-graph scaffold help\n/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python: can't open file '~/.claude/jobs/c92f85ab/tmp/ws-round1/project/specs/program_model/.skill-manager/skills/test-graph/scripts/scaffold.py': [Errno 2] No such file or directory\nls: .skill-manager/skills/test-graph/scripts: No such file or directory\n=== test-graph workflows.md (scaffold + uv node sections)\nsed: .skill-manager/skills/test-graph/references/workflows.md: No such file or directory",
             "kind": "toolchain"
           },
           {
@@ -151,8 +151,8 @@
     },
     "ticket": {
       "clone": {
-        "source": "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-round1/project/.skill-manager",
-        "dest": "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-round1/ticket-worktree/.skill-manager",
+        "source": "~/.claude/jobs/c92f85ab/tmp/ws-round1/project/.skill-manager",
+        "dest": "~/.claude/jobs/c92f85ab/tmp/ws-round1/ticket-worktree/.skill-manager",
         "directories": 8082,
         "files": 36610,
         "symlinks": 12,
@@ -179,11 +179,11 @@
       "dispatch": {
         "role": "ticket",
         "tier": "worktree",
-        "home": "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-round1/ticket-worktree/.skill-manager",
+        "home": "~/.claude/jobs/c92f85ab/tmp/ws-round1/ticket-worktree/.skill-manager",
         "launch_style": "hand-bound",
         "launch_note": "LAUNCH STYLE: hand-bound, NOT `skill-manager exec`, and that is a finding\nrather than a preference.\n\nreferences/runtime_requirements.md says to launch through the home's\n`bin/launch/{claude,codex,gemini}` shims or `skill-manager exec`, because those\nput the home's bin/ first and strip other homes' bin/ -- \"the part\nhand-exporting always misses\". This harness measured that path and it does not\nstart a session:\n\n    $ skill-manager exec --home ~/.skill-manager -- claude -p \"say OK\"\n    Not logged in - Please run /login          (terminal_reason: api_error)\n\nThat is the ROOT home, whose CLAUDE_CONFIG_DIR resolves to the operator's own\n~/.claude, so it is not the per-home config redirect. The same prompt run\nwithout `exec` completes normally, and completes normally again with\nSKILL_MANAGER_HOME and PATH bound to the same home by hand. Measured on\nskill-manager 0.25.1 / claude 2.1.258 with keychain OAuth; an ANTHROPIC_API_KEY\nlaunch passes its key through the environment and would not see this.\n\nSo the binding here is done explicitly, and it does the one thing the docs warn\nhand-exporting forgets: every OTHER home's bin/ is removed from PATH, not just\nthis home's prepended. What is bound:\n\n    SKILL_MANAGER_HOME  -> this tier's home\n    PATH                -> this home's bin/cli and bin/mcp first, every other\n                           home's bin removed\n    CLAUDE_CONFIG_DIR   -> LEFT ALONE. Redirecting it is what `exec` does and\n                           it is also what leaves the launch unauthenticated.\n\nWhat that costs, stated rather than glossed: `tla-spec-dev`, `tlc2`, `pytest`\nand `jinja2` come from THIS home (the wrappers with its absolute path baked in,\nwhich is the isolation runtime_requirements.md actually argues for), while the\nskill and plugin BYTES come from the operator's agent config. skt therefore\nloads, and its `skt status` report is produced by this home's `skt`.",
-        "claude_bin": "/Users/hayde/.local/bin/claude",
-        "cwd": "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-round1/ticket-worktree",
+        "claude_bin": "~/.local/bin/claude",
+        "cwd": "~/.claude/jobs/c92f85ab/tmp/ws-round1/ticket-worktree",
         "status": "ok",
         "returncode": 0,
         "duration_seconds": 805.867,
@@ -278,22 +278,22 @@
   },
   "plumbing_only": false,
   "preflight": {
-    "claude": "/Users/hayde/.local/bin/claude",
-    "skill-manager": "/Users/hayde/.skill-manager/bin/cli/skill-manager",
+    "claude": "~/.local/bin/claude",
+    "skill-manager": "~/.skill-manager/bin/cli/skill-manager",
     "git": "/usr/bin/git",
-    "source_home": "/Users/hayde/.skill-manager",
+    "source_home": "~/.skill-manager",
     "source_home_descriptor": {
-      "homeRoot": "/Users/hayde",
+      "homeRoot": "~",
       "policy": "live",
       "env": {
-        "SKILL_MANAGER_HOME": "/Users/hayde/.skill-manager",
-        "CLAUDE_CONFIG_DIR": "/Users/hayde/.claude",
-        "CLAUDE_HOME": "/Users/hayde/.claude",
-        "CODEX_HOME": "/Users/hayde/.codex",
-        "GEMINI_HOME": "/Users/hayde/.gemini"
+        "SKILL_MANAGER_HOME": "~/.skill-manager",
+        "CLAUDE_CONFIG_DIR": "~/.claude",
+        "CLAUDE_HOME": "~/.claude",
+        "CODEX_HOME": "~/.codex",
+        "GEMINI_HOME": "~/.gemini"
       },
       "cli": {
-        "skillManager": "/Users/hayde/.skill-manager/bin/cli/skill-manager"
+        "skillManager": "~/.skill-manager/bin/cli/skill-manager"
       },
       "gateway": {
         "url": "http://127.0.0.1:51717",
@@ -500,7 +500,7 @@
     },
     "fixture_green_before": true
   },
-  "workspace_root": "/Users/hayde/.claude/jobs/c92f85ab/tmp/ws-round1",
+  "workspace_root": "~/.claude/jobs/c92f85ab/tmp/ws-round1",
   "duration_seconds": 2720.352,
   "finished_utc": "2026-09-02T13:39:12.210501+00:00"
 }

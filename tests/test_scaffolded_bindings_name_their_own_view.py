@@ -99,29 +99,150 @@ def test_the_scaffold_still_binds_something(template: str) -> None:
     assert _binding_values(text), f"{template}() emits no binding values at all"
 
 
-def test_a_bare_name_resolves_against_the_selected_spec_directory() -> None:
-    """The property the bare names depend on, asserted rather than assumed.
-
-    If `default_import_roots_for` ever stopped adding the spec directory, every
-    scaffolded project would break at once and the failure would look like a
-    user error in their mapping.
-    """
+def _runner():
     sys.path.insert(0, str(REPO_ROOT / "scripts"))
     try:
-        from run_generated_case_adapters import (  # type: ignore[import-not-found]
-            default_import_roots_for,
+        import run_generated_case_adapters  # type: ignore[import-not-found]
+
+        return run_generated_case_adapters
+    finally:
+        sys.path.pop(0)
+
+
+def test_the_selected_spec_directory_is_searched_FIRST_not_merely_present() -> None:
+    """Membership was not enough, and asserting only membership hid a live hole.
+
+    `ensure_import_roots` inserts each root at `sys.path[0]` in turn, so **the
+    LAST root returned is the FIRST searched.** With `[cwd, spec_dir,
+    project_root]` the resolved head was `[project_root, spec_dir, cwd]`, and a
+    bare `adapters:X` -- the form `G-10` introduced so a view runs its OWN
+    adapters -- imported `<project_root>/adapters` first.
+
+    No example here has a top-level `adapters` package, so nothing was red. A
+    project laid out ports-and-adapters, which is this repository's own
+    doctrine, very plausibly does; there the bare name binds to the production
+    package. **The same green that proves nothing, one directory over.** Found
+    by review of `#317`, which is why this asserts ORDER.
+    """
+    runner = _runner()
+    spec_dir = REPO_ROOT / "examples" / "distributed_history" / "specs" / "program_model"
+    project_root = spec_dir.parents[1]
+    roots = runner.default_import_roots_for(spec_dir)
+
+    assert spec_dir in roots and project_root in roots, (
+        "a root left the list; either bare bindings or view-qualified ones stop "
+        f"resolving. roots={roots}"
+    )
+    # Simulate the reversal rather than describing it.
+    path: list[str] = []
+    for root in [REPO_ROOT, *roots]:
+        resolved = str(root.resolve())
+        if resolved not in path:
+            path.insert(0, resolved)
+    assert path[0] == str(spec_dir.resolve()), (
+        "the selected spec directory is not the FIRST entry on the resolved "
+        f"import path, so a bare `adapters:X` can bind elsewhere. head={path[:3]}"
+    )
+
+
+def test_a_bare_binding_resolves_to_the_TICKET_view_on_the_close_gate_path(tmp_path, monkeypatch) -> None:
+    """The seam, not the string -- and on the path the close gate actually uses.
+
+    The earlier pin asserted a property of `default_import_roots_for`, and
+    `tla_spec_dev.py` passes `--import-root <target_dir>` explicitly on the
+    ticket path, which SKIPS that function entirely. So the pin tested a
+    function the defect's own code path never calls.
+
+    This builds the two views `G-10` is about -- a baseline and a ticket copy,
+    each with its own `adapters.py` -- and resolves through the mechanism the
+    runner really uses, `ensure_import_roots` plus `importlib.import_module`.
+    The bare name must yield the TICKET's module. The qualified name is shown
+    yielding the baseline's, which is the defect, so this test carries its own
+    demonstration of what it prevents.
+    """
+    import importlib
+
+    runner = _runner()
+    project = tmp_path / "proj"
+    baseline = project / "specs" / "program_model"
+    ticket = project / "specs" / "tickets" / "SL-1" / "current"
+    for view, marker in ((baseline, "BASELINE"), (ticket, "TICKET")):
+        view.mkdir(parents=True)
+        (view / "adapters.py").write_text(f'WHICH_VIEW = "{marker}"\n', encoding="utf-8")
+    (project / "specs" / "__init__.py").write_text("", encoding="utf-8")
+    (project / "specs" / "program_model" / "__init__.py").write_text("", encoding="utf-8")
+
+    saved_path, saved_modules = list(sys.path), dict(sys.modules)
+    try:
+        for name in [n for n in sys.modules if n == "adapters" or n.startswith("specs")]:
+            del sys.modules[name]
+        # Exactly what the close gate passes: the selected view, and nothing else.
+        runner.ensure_import_roots([ticket])
+        bare = importlib.import_module("adapters")
+        assert bare.WHICH_VIEW == "TICKET", (
+            "a bare `adapters:X` binding did not resolve to the selected view's "
+            f"own adapters; it found {bare.WHICH_VIEW}. That is G-10: the ticket "
+            "runs green over adapters it did not write."
+        )
+
+        # THE CONTRAST, so this test carries its own demonstration of what it
+        # prevents rather than asserting only the good case. The qualified form
+        # a pre-G-10 project still ships resolves from the project root, and
+        # finds the BASELINE's adapters no matter which view was selected.
+        sys.path.insert(0, str(project))
+        qualified = importlib.import_module("specs.program_model.adapters")
+        assert qualified.WHICH_VIEW == "BASELINE", (
+            "the qualified form no longer reaches the baseline, so the defect "
+            "this test contrasts against can no longer be demonstrated here"
+        )
+    finally:
+        sys.path[:] = saved_path
+        sys.modules.clear()
+        sys.modules.update(saved_modules)
+
+
+def test_opening_a_ticket_un_roots_a_binding_map_it_copies(tmp_path, capsys) -> None:
+    """The fix has to reach projects that were onboarded before it.
+
+    Correcting the scaffold template only helps NEW projects. `open ticket`
+    copies the baseline's binding maps verbatim, so every existing project keeps
+    `specs.program_model.adapters:X` in its ticket views and keeps the hole.
+    `close_tickets.promote_semantic_files` already re-roots on the way out; this
+    is the symmetric move on the way in, and it strips to BARE because that is
+    the form `reroot_module_prefixes` itself calls the one that cannot rot.
+
+    It must also be LOUD: a silent rewrite of a file the operator is about to
+    edit is worse than the defect it fixes.
+    """
+    sys.path.insert(0, str(REPO_ROOT))
+    try:
+        from scripts.new_ticket_workflow import (  # type: ignore[import-not-found]
+            copy_baseline_tree,
         )
     finally:
         sys.path.pop(0)
 
-    spec_dir = REPO_ROOT / "examples" / "distributed_history" / "specs" / "program_model"
-    roots = default_import_roots_for(spec_dir)
-    assert spec_dir in roots, (
-        "the selected spec directory is not an import root, so a bare "
-        "`adapters:X` binding cannot resolve to the view's own adapters"
+    src, dst = tmp_path / "program_model", tmp_path / "ticket_current"
+    src.mkdir()
+    (src / "case_adapters.toml").write_text(
+        '[adapters.Reserve]\n'
+        'adapter = "specs.program_model.adapters:ReserveInternalAdapter"\n'
+        'kind = "shortlink-internal"\n',
+        encoding="utf-8",
     )
-    # And the project root, so a project that DOES qualify still resolves.
-    assert spec_dir.parents[1] in roots, (
-        "the project root left the import roots; view-qualified bindings in "
-        "existing projects would stop resolving"
+    (src / "Internal.tla").write_text("---- MODULE Internal ----\n====\n", encoding="utf-8")
+
+    copy_baseline_tree(src, dst, force=False, dry_run=False)
+
+    copied = (dst / "case_adapters.toml").read_text(encoding="utf-8")
+    assert "specs.program_model.adapters:" not in copied, (
+        "the ticket copy still names the baseline's adapters module, so the "
+        "ticket's own adapters.py will not be the one that runs"
     )
+    assert 'adapter = "adapters:ReserveInternalAdapter"' in copied
+    assert "un-rooted 1 view-qualified module reference" in capsys.readouterr().out, (
+        "the rewrite happened silently; an operator about to edit this file is "
+        "not told its module references changed"
+    )
+    # A non-binding file is copied untouched.
+    assert (dst / "Internal.tla").read_text(encoding="utf-8").startswith("---- MODULE")

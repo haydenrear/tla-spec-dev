@@ -610,3 +610,106 @@ def test_the_fixture_docstring_promises_nothing_the_fixture_lacks() -> None:
         "the record of what went wrong has been edited out of the fixture, and "
         "with it the only reason this test is here"
     )
+
+
+def test_the_record_does_not_leak_what_the_gitignore_excludes_transcripts_for() -> None:
+    """The file that travels must not carry what the file that stays was excluded for.
+
+    `.gitignore` excludes `stream.jsonl` because it *"carries the operator's
+    absolute paths, session ids and home layout"*. `RESULT.json` carried the
+    same thing — ten occurrences of `/Users/<operator>/` in round 001 across
+    `workspace_root`, `home`, `cwd`, `claude_bin` and `preflight.source_home`.
+    A stated reason that the neighbouring file violates is not a partial reason;
+    it is an untrue one.
+    """
+    harness = _harness()
+    committed = sorted(
+        (REPO_ROOT / "examples/agent_integration/evidence/runs").glob("*/RESULT.json")
+    )
+    assert committed, "no committed RESULT.json to check"
+    home = str(Path.home())
+    for path in committed:
+        text = path.read_text(encoding="utf-8")
+        assert home not in text, (
+            f"{path.relative_to(REPO_ROOT)} embeds the operator's home path, "
+            "which is the reason `.gitignore` gives for excluding the transcripts"
+        )
+    # Non-vacuity: the redactor must actually be doing something, or these files
+    # could be clean because nothing ever wrote a path into them.
+    assert harness._redact({"p": f"{home}/x"}) == {"p": "~/x"}
+
+
+def test_a_timeout_takes_the_whole_process_tree() -> None:
+    """`proc.kill()` kills `claude` and nothing it spawned.
+
+    TLC's JVM, a gradle daemon, the fixture's HTTP server: all reparented, all
+    still running after the harness prints `timeout`. **The next round then
+    inherits a machine the last one did not clean up**, which is a measurement
+    of the previous round wearing this one's run id.
+
+    Asserted on a real process tree rather than by reading: a shell that spawns
+    a child which outlives it, killed through the group, and the grandchild must
+    be gone.
+    """
+    import os
+    import signal
+    import subprocess as sp
+    import time
+
+    harness = _harness()
+    marker = Path(os.environ.get("TMPDIR", "/tmp")) / f"kill-tree-probe-{os.getpid()}"
+    marker.unlink(missing_ok=True)
+    # The grandchild writes the marker only if it is still alive after the kill.
+    child = sp.Popen(
+        ["bash", "-c", f"(sleep 2; touch {marker}) & sleep 30"],
+        start_new_session=True,
+        stdout=sp.DEVNULL,
+        stderr=sp.DEVNULL,
+    )
+    try:
+        time.sleep(0.3)
+        harness._kill_tree(child)
+        time.sleep(3)
+        assert not marker.exists(), (
+            "a grandchild of the killed process survived and kept working; a "
+            "timed-out round leaves its JVMs and servers behind"
+        )
+    finally:
+        marker.unlink(missing_ok=True)
+        try:
+            os.killpg(os.getpgid(child.pid), signal.SIGKILL)
+        except (ProcessLookupError, OSError):
+            pass
+
+
+def test_the_stream_shape_fields_do_not_claim_to_be_turn_counts(tmp_path) -> None:
+    """Round 001 carried two turn counts in one file, disagreeing by 50%.
+
+    `assistant_turns: 118` sat beside the result event's `num_turns: 77`,
+    because the stream emits one `assistant` event per content BLOCK. Distinct
+    message ids give 28 — a third number. None is wrong; they count different
+    things, and only one of them is a turn.
+
+    So nothing in the harvest is named for turns any more. `final.num_turns` is
+    the agent's own count and is authoritative when a result event exists; these
+    two describe raw stream shape, which is what a reader has when it does not.
+    """
+    harness = _harness()
+    stream = tmp_path / "stream.jsonl"
+    stream.write_text(
+        "\n".join(
+            [
+                '{"type":"assistant","message":{"id":"m1","content":[{"type":"text","text":"a"}]}}',
+                '{"type":"assistant","message":{"id":"m1","content":[{"type":"tool_use","id":"t1",'
+                '"name":"Bash","input":{"command":"true"}}]}}',
+                '{"type":"assistant","message":{"id":"m2","content":[{"type":"text","text":"b"}]}}',
+                '{"type":"result","subtype":"success","num_turns":2,"result":"done"}',
+            ]
+        ),
+        encoding="utf-8",
+    )
+    got = harness.harvest(stream)
+    assert "assistant_turns" not in got, "a field named for turns is back"
+    assert got["assistant_events"] == 3, "the raw event count is what it says"
+    assert got["assistant_messages"] == 2, "two distinct message ids"
+    assert got["final"]["num_turns"] == 2, "the agent's own count is preserved"
