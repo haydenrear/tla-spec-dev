@@ -25,22 +25,23 @@ real row, not a leftover — see below.
 | `TlaSpecDevCli.CloseTicket` | **5** | **3** | 2 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03`, `E-09` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
 | `TlaSpecDevCli.GenerateCases` | **14** | **13** | 1 | `#300`, `#301`, `F-06`, `E-02`, `E-04`—`E-08`, `E-12`, `E-13`, `G-01`, `G-02`, `G-04b` | **the concentration, and it is not close.** FIVE are damage from its own repairs, and `#301`'s rule has now reached SIX surfaces. `F-06` REFUTED |
 | `TlaSpecDevCli.OpenTicket` | **2** | **2** | 0 | `#299`, `E-01` | **was read as a closed arc; round 2 reopened it.** `E-01` is a conformance violation against a guard the model calls structural |
-| **`TlaSpecDevCli.ScaffoldProject`** | **1** | **1** | 0 | `G-10` | **first finding on this action, and it is a green that proves nothing.** The scaffold seeds view-qualified adapter modules, so a ticket's own adapters are never executed and its run passes anyway. Found by a real ticket agent |
+| **`TlaSpecDevCli.ScaffoldProject`** | **2** | **1** | 1 | `G-10`, `G-12` | **both found by real ticket agents, and both the same shape:** the scaffold is right and the REFERENCE teaches otherwise. `G-10` unpinned by the fix; `G-12` filed, not fixed |
 | `TlaSpecDevCli.AnalyzeComplexity` | 1 | 0 | 1 | `F-07` | cosmetic; unpinned by choice |
 | **`UNMODELED/yaml-parser`** | **7** | 11 | 0 | `#298`, `#307`, `#308` | infrastructure beneath every action; no anchor exists. **7 of 21 findings in the whole record.** Disposition: **`MODELABLE`** — see below |
-| **`UNMODELED/skill-manager-home`** | **3** | 0 | 3 | `G-05`, `G-06`, `G-07` | **new, round 3.** The launch substrate. `skill-manager exec` starts an unauthenticated session — on the ROOT home — so the documented launch path cannot begin one. Disposition: **`UNDECIDED`** |
+| **`UNMODELED/skill-manager-home`** | **4** | 0 | 4 | `G-05`, `G-06`, `G-07`, `G-13` | **new, round 3, and the fastest-growing row.** `skill-manager exec` starts an unauthenticated session — on the ROOT home — and the `tla-spec-dev` wrapper runs a bare `python3` off PATH. Disposition: **`UNDECIDED`** |
 | **`UNMODELED/example-runners`** | **2** | 0 | 2 | `G-03`, `G-04` | **new, round 3.** The example validation runners are a whole executable tier `TlaSpecDevCli.tla` does not describe. Disposition: **`UNDECIDED`** |
 | **`UNMODELED/instrument-registry`** | **1** | 0 | 1 | `G-09` | **new, round 3.** FI-02's own demonstration harness is red, and by a count that changes with the launcher. Disposition: **`UNDECIDED`** |
 | `UNMODELED/skill-composition` | **1** | 0 | 1 | `G-08` | **its first finding, three rounds after it was opened empty.** Disposition unchanged: **`DEFERRED`** |
 
-**After round 3: 23 of 37 findings anchored to a declared action, 14 did not.**
+**After round 3 and its re-run: 24 of 39 findings anchored to a declared action,
+15 did not.**
 The unanchored share went from 7-in-one-row to **14 across five rows**, and that
 is the more useful shape: *"seven findings, one gap"* and *"fourteen findings,
 five gaps"* want different answers, and the pooled count cannot tell them apart
 (`bug_attribution.md` §7c).
 
-**Conservation, round 3.** No model change was made this round, so no finding
-moved. `findings before: 26. findings after: 37.` Eleven arrived; zero were
+**Conservation, round 3 and the re-run.** No model change was made, so no
+finding moved. `findings before: 26. findings after: 39.` Thirteen arrived -- eleven in round 3, two more from its re-run; zero were
 redistributed; every pre-existing row holds exactly the findings it held.
 
 **How the count is defined, because it disagreed with itself.** The first
@@ -51,10 +52,10 @@ conservation. Review of `#317` caught it. **Each finding is counted in exactly
 one row** — the rows above share no id — and the arithmetic is now:
 
 ```
-anchored    5 + 14 + 2 + 1 + 1 = 23
-unanchored  7 +  3 + 2 + 1 + 1 = 14
+anchored    5 + 14 + 2 + 2 + 1 = 24
+unanchored  7 +  4 + 2 + 1 + 1 = 15
                                  --
-                                 37   = 26 before + 11 this round
+                                 39   = 26 before + 11 round 3 + 2 round 002
 ```
 
 **Two older cells still do not reconcile, and are left rather than tidied.**
@@ -1153,6 +1154,89 @@ expected action name is `MF-020`, refused three times here. It is to say that
 whether the agent found the property is read out afterwards, by a person, and is
 a `reading` channel. **A claim to an instrument is worse than no instrument**,
 because the next reader stops looking for the thing themselves.
+
+## Round 002 — the re-run, and what the corrected fixture bought
+
+**Run 2026-09-03**, after `H-04` (the fixture promised expiry it did not have)
+and the `#317` review fixes. Both seats **PASS**, `failed_roles: []`, $18.47,
+49 minutes.
+
+| seat | cost | turns | clock | toolchain refusals | done_check |
+|---|---|---|---|---|---|
+| epic | **$6.38** (was $16.26) | 66 (was 77) | **1027s** of 2400 (was 1848) | 0 | **PASS** |
+| ticket | $12.09 (was $8.65) | 105 (was 80) | 1860s of 3000 (was 806) | 0 | **PASS** |
+
+**The epic seat got cheaper and faster by more than half.** Round 001's epic
+spent its budget building a three-ticket plan around a reservation window the
+docstring promised and the code did not have. With the docstring telling the
+truth, the same seat did the real job in 56% of the time for 39% of the money.
+**That is the cost of a fixture that lies, measured**: not a wrong answer, a
+whole epic aimed at absent behaviour.
+
+**And the question the example exists to ask finally got asked.** The fixture's
+one trace-only property — a claimed slug may be released and re-reserved by a
+DIFFERENT owner, never while the first holds it — is now in the model, with both
+refusal rules:
+
+```
+Internal.tla   Release(s, o)              "only the holding owner may release,
+                                           and only while live"
+External.tla   SubmitRelease
+               SubmitReleaseNotLive
+               SubmitReleaseNotYours
+```
+
+Found without being told to look for it, which is the whole design of the
+fixture. **Read out of the workspace by hand, and recorded as channel
+`reading`** — the harness does not check it and deliberately does not, because a
+recogniser fitted to one expected action name is `MF-020`.
+
+### The two findings round 002 produced, both from the ticket seat
+
+| id | anchor | what |
+|---|---|---|
+| `G-12` | `TlaSpecDevCli.ScaffoldProject` | the reference example's `adapters.py` **omits the `SKILL_ROOT_BOOTSTRAP` block the scaffold inserts into every one it emits** |
+| `G-13` | `UNMODELED/skill-manager-home` | `bin/cli/tla-spec-dev` is `exec python3 <script>` — a **bare interpreter off PATH** |
+
+**`G-12` is `G-10`'s shape, exactly.** `scaffold_spec.py:671` substitutes
+`SKILL_ROOT_BOOTSTRAP` into `ADAPTERS_PY`, because without it `from
+spec_double_compiler.runtime import ...` cannot resolve under any interpreter
+absent a hand-set `PYTHONPATH`. `examples/distributed_history/specs/program_model/adapters.py`
+— the file `references/testgraph_adapters.md` calls *"the concrete reference
+implementation"*, and which `scaffold_spec.py:518` names too — **carries none of
+it.** Round 2's `T3` established that agents learn the flag set by reading that
+example rather than from the tool; they learn adapter shape there too, and what
+they learn is unimportable. **The scaffold is right and the reference teaches
+otherwise, for the second time in two rounds.**
+
+**`G-13` makes a sentence in `references/runtime_requirements.md` half true.**
+It says the wrappers are *"generated shell scripts with that home's absolute
+path baked into the body — no environment variable redirects them after the
+fact."* The path to the SCRIPT is baked in; the INTERPRETER is `python3` off
+PATH. The ticket agent hit it as `ModuleNotFoundError: No module named 'yaml'`
+and wrote it down before this matrix did.
+
+### `H-11` — and the instrument counted the agent's notes as the defect
+
+The run's own numbers said the ticket seat hit one toolchain refusal. It hit
+zero. The agent ran `cat > deferred_findings.yaml <<'YAML'` and one line of the
+body began `.skill-manager/bin/cli/tla-spec-dev runs a bare python3 from PATH`
+— **prose recording `G-13`, read by the classifier as an invocation of it.**
+
+Second time this instrument over-claimed, and the two are worth reading
+together: first `skill-manager` matched as a substring anywhere in a command;
+narrowed to the executable, heredoc text still reached the executable position.
+**Both times it reported a defect where there was a description of one.** Fixed,
+pinned, and `RESULT.json` re-harvested — the record now says zero, and the
+re-harvest is declared in the file rather than done quietly.
+
+The `attribution_probe` read zero in both seats again, and again that is
+`UNDECIDED` rather than a failure: the ticket seat hit no regression, so step
+13's anchor clause asked for nothing. It did file three deferred findings, three
+skill-feedback items, and a blocking escalation — reporting upward, in the
+workflow's own vocabulary, without an anchor.
+
+---
 
 ### `G-11` — the source-citation tripwire caught a fan-out nothing else could
 

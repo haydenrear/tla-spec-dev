@@ -713,3 +713,37 @@ def test_the_stream_shape_fields_do_not_claim_to_be_turn_counts(tmp_path) -> Non
     assert got["assistant_events"] == 3, "the raw event count is what it says"
     assert got["assistant_messages"] == 2, "two distinct message ids"
     assert got["final"]["num_turns"] == 2, "the agent's own count is preserved"
+
+
+def test_prose_inside_a_heredoc_is_not_read_as_a_command() -> None:
+    """Round 002 flagged a seat's error as `toolchain` for text it was WRITING.
+
+    The ticket agent ran `cat > deferred_findings.yaml <<'YAML'` and one line of
+    the body began `.skill-manager/bin/cli/tla-spec-dev runs a bare python3 from
+    PATH` -- prose recording a finding it had just made. Split on newlines, that
+    line's first token sat in the executable position, and the classifier read
+    documentation of a defect as a defect. The seat's real count for that round
+    is **zero**.
+
+    Second time the same instrument over-claimed: first `skill-manager` matched
+    as a substring anywhere, and when that was narrowed to the executable,
+    heredoc text still reached the executable position. **Both times it reported
+    a defect where there was a description of one**, which is the failure mode
+    this whole harness exists to police in others.
+    """
+    harness = _harness()
+    writing_it_down = (
+        "cd /tmp/x\n"
+        "cat > findings.yaml <<'YAML'\n"
+        "  .skill-manager/bin/cli/tla-spec-dev runs a bare python3 from PATH\n"
+        "  tla-spec-dev --spec-root specs close ticket X\n"
+        "YAML\n"
+    )
+    assert harness.classify_error({"input": {"command": writing_it_down}}) == "shell", (
+        "a heredoc body was read as shell; the instrument counted the agent's "
+        "own notes about a defect as an occurrence of it"
+    )
+    # And the same text OUTSIDE a heredoc is still an invocation.
+    assert harness.classify_error(
+        {"input": {"command": "tla-spec-dev --spec-root specs close ticket X"}}
+    ) == "toolchain"

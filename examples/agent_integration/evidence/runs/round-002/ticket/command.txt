@@ -1,0 +1,42 @@
+/Users/hayde/.local/bin/claude -p This repository has a plan with a first ticket in it, written by someone else.
+That ticket is yours. Take it from wherever it currently sits through to done,
+including whatever this project expects to be recorded when work like this
+finishes.
+
+Report at the end what you changed, and what would have caught you if you had
+got it wrong. --permission-mode bypassPermissions --output-format stream-json --verbose
+
+LAUNCH STYLE: hand-bound, NOT `skill-manager exec`, and that is a finding
+rather than a preference.
+
+references/runtime_requirements.md says to launch through the home's
+`bin/launch/{claude,codex,gemini}` shims or `skill-manager exec`, because those
+put the home's bin/ first and strip other homes' bin/ -- "the part
+hand-exporting always misses". This harness measured that path and it does not
+start a session:
+
+    $ skill-manager exec --home ~/.skill-manager -- claude -p "say OK"
+    Not logged in - Please run /login          (terminal_reason: api_error)
+
+That is the ROOT home, whose CLAUDE_CONFIG_DIR resolves to the operator's own
+~/.claude, so it is not the per-home config redirect. The same prompt run
+without `exec` completes normally, and completes normally again with
+SKILL_MANAGER_HOME and PATH bound to the same home by hand. Measured on
+skill-manager 0.25.1 / claude 2.1.258 with keychain OAuth; an ANTHROPIC_API_KEY
+launch passes its key through the environment and would not see this.
+
+So the binding here is done explicitly, and it does the one thing the docs warn
+hand-exporting forgets: every OTHER home's bin/ is removed from PATH, not just
+this home's prepended. What is bound:
+
+    SKILL_MANAGER_HOME  -> this tier's home
+    PATH                -> this home's bin/cli and bin/mcp first, every other
+                           home's bin removed
+    CLAUDE_CONFIG_DIR   -> LEFT ALONE. Redirecting it is what `exec` does and
+                           it is also what leaves the launch unauthenticated.
+
+What that costs, stated rather than glossed: `tla-spec-dev`, `tlc2`, `pytest`
+and `jinja2` come from THIS home (the wrappers with its absolute path baked in,
+which is the isolation runtime_requirements.md actually argues for), while the
+skill and plugin BYTES come from the operator's agent config. skt therefore
+loads, and its `skt status` report is produced by this home's `skt`.

@@ -595,6 +595,37 @@ INTERPRETERS = {"python", "python3", "python3.14", "uv", "bash", "sh", "env"}
 
 _SEGMENT = re.compile(r"[;&|]{1,2}|\n")
 _ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
+#: `cat > f <<'YAML'` ... `YAML`. Everything between is DATA, not shell.
+_HEREDOC = re.compile(r"<<-?\s*[\"\']?([A-Za-z_][A-Za-z0-9_]*)[\"\']?")
+
+
+def _strip_heredocs(command: str) -> str:
+    """Remove heredoc BODIES before looking for executables.
+
+    Round 002 flagged a ticket-seat error as `toolchain` because a line inside a
+    `cat > deferred_findings.yaml <<'YAML'` body began with
+    `.skill-manager/bin/cli/tla-spec-dev runs a bare python3 from PATH` -- prose
+    the agent was WRITING DOWN, in a finding it had just made, read by this
+    classifier as a command it had run. The seat's real toolchain-error count
+    for that round is zero.
+
+    That is the over-claiming shape twice over: first `skill-manager` matched as
+    a substring anywhere, and when that was fixed to match on the executable,
+    heredoc text still reached the executable position. **Both times the
+    instrument reported a defect where there was documentation of one.**
+    """
+    out: list[str] = []
+    terminator: str | None = None
+    for line in command.splitlines():
+        if terminator is not None:
+            if line.strip() == terminator:
+                terminator = None
+            continue
+        out.append(line)
+        found = _HEREDOC.search(line)
+        if found:
+            terminator = found.group(1)
+    return "\n".join(out)
 
 
 def _executables(command: str) -> list[str]:
@@ -605,7 +636,7 @@ def _executables(command: str) -> list[str]:
     `E=/x; cat $E/f` yields `cat`.
     """
     found: list[str] = []
-    for segment in _SEGMENT.split(command):
+    for segment in _SEGMENT.split(_strip_heredocs(command)):
         tokens = segment.strip().split()
         while tokens and (_ASSIGNMENT.match(tokens[0]) or tokens[0] in {"then", "do", "!", "("}):
             tokens = tokens[1:]

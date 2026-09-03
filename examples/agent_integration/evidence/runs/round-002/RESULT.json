@@ -1,0 +1,300 @@
+{
+  "schema_version": 1,
+  "run_id": "round-002",
+  "started_utc": "2026-09-03T17:18:17.254731+00:00",
+  "repo_commit": "da2c75a56e31ffe4170c2c14a2347ad58c1f3ba9",
+  "roles": {
+    "epic": {
+      "clone": {
+        "source": "~/.skill-manager",
+        "dest": "~/.claude/jobs/c92f85ab/tmp/ws-round2/project/.skill-manager",
+        "directories": 8085,
+        "files": 36586,
+        "symlinks": 14,
+        "bytes": 630953771,
+        "linksRelativized": 0,
+        "stateReanchored": 23,
+        "provisionedRewritten": 6,
+        "leaks": 0,
+        "contentReferences": 174,
+        "danglingLinks": 0,
+        "danglingReferences": 6,
+        "droppedRegistrations": 6,
+        "droppedBindings": 40,
+        "droppedChildHomes": 5,
+        "clean": true,
+        "manifestShortfall": {
+          "manifest": null,
+          "declared": 0,
+          "missing": []
+        }
+      },
+      "ask": "You own a new epic on this repository. Set the repository up so that its\nbehaviour is carried by a TLA+ program spec, then write down the epic as a\nplan: what the ending state is, and the tickets that get there, with the first\none ready for a different agent to pick up tomorrow.\n\nDo not implement any ticket. Plan only.",
+      "predicts": "The scaffold verbs are cheap (T1 measured that). The expensive, and the one\nworth watching, is whether the agent finds the PLAN half of\ndesired_program_model at all: SKILL.md says the desired model is \"not only a\nfuture TLA+ model; it is also the structured implementation plan\", and an agent\nthat reads it as a spec directory writes TLA+ and no ticket_plan.yaml.",
+      "dispatch": {
+        "role": "epic",
+        "tier": "project",
+        "home": "~/.claude/jobs/c92f85ab/tmp/ws-round2/project/.skill-manager",
+        "launch_style": "hand-bound",
+        "launch_note": "LAUNCH STYLE: hand-bound, NOT `skill-manager exec`, and that is a finding\nrather than a preference.\n\nreferences/runtime_requirements.md says to launch through the home's\n`bin/launch/{claude,codex,gemini}` shims or `skill-manager exec`, because those\nput the home's bin/ first and strip other homes' bin/ -- \"the part\nhand-exporting always misses\". This harness measured that path and it does not\nstart a session:\n\n    $ skill-manager exec --home ~/.skill-manager -- claude -p \"say OK\"\n    Not logged in - Please run /login          (terminal_reason: api_error)\n\nThat is the ROOT home, whose CLAUDE_CONFIG_DIR resolves to the operator's own\n~/.claude, so it is not the per-home config redirect. The same prompt run\nwithout `exec` completes normally, and completes normally again with\nSKILL_MANAGER_HOME and PATH bound to the same home by hand. Measured on\nskill-manager 0.25.1 / claude 2.1.258 with keychain OAuth; an ANTHROPIC_API_KEY\nlaunch passes its key through the environment and would not see this.\n\nSo the binding here is done explicitly, and it does the one thing the docs warn\nhand-exporting forgets: every OTHER home's bin/ is removed from PATH, not just\nthis home's prepended. What is bound:\n\n    SKILL_MANAGER_HOME  -> this tier's home\n    PATH                -> this home's bin/cli and bin/mcp first, every other\n                           home's bin removed\n    CLAUDE_CONFIG_DIR   -> LEFT ALONE. Redirecting it is what `exec` does and\n                           it is also what leaves the launch unauthenticated.\n\nWhat that costs, stated rather than glossed: `tla-spec-dev`, `tlc2`, `pytest`\nand `jinja2` come from THIS home (the wrappers with its absolute path baked in,\nwhich is the isolation runtime_requirements.md actually argues for), while the\nskill and plugin BYTES come from the operator's agent config. skt therefore\nloads, and its `skt status` report is produced by this home's `skt`.",
+        "claude_bin": "~/.local/bin/claude",
+        "cwd": "~/.claude/jobs/c92f85ab/tmp/ws-round2/project",
+        "status": "ok",
+        "returncode": 0,
+        "duration_seconds": 1026.575,
+        "budget_seconds": 2400.0,
+        "permission_mode": "bypassPermissions"
+      },
+      "harvest": {
+        "parsed": true,
+        "assistant_events": 142,
+        "assistant_messages": 65,
+        "tool_calls": 64,
+        "tool_errors": [
+          {
+            "tool": "Bash",
+            "kind": "shell",
+            "input": "{\"command\": \"cd specs/program_model && for f in actions.yml case_adapters.toml testgraph_bindings.yml tlc_projection.py; do echo \\\"=========== $f\\\"; cat \\\"$f\\\"; done\", \"description\": \"Read scaffold mapping files\"}",
+            "error": "Exit code 1\n(eval):cd:1: no such file or directory: specs/program_model"
+          },
+          {
+            "tool": "Bash",
+            "kind": "shell",
+            "input": "{\"command\": \"R=~/.claude/jobs/c92f85ab/tmp/ws-round2/project/specs/program_model\\ncat > \\\"$R/spec_manifest.yaml\\\" <<'EOF'\\n# Ports, invariants, finite model, and onboarding status for the Shortlink\\n# program model. This maps TLA+ concepts onto Python concepts; the semantics\\n# live in Core.tla / Internal.tla / External.tla.\\nmodule: Shortlink\\npackage: shortlink_program_cases\\n\\nstatus:\\n  workflow: project_onboarding\\n  model_role: accepted_program_model\\n  relation_to_current: none_until_ticket_workflow_starts\\n  relation_to_desired_program_model: none_until_ticket_workflow_starts\\n  updated: 2026-09-03\\n  onboarding:\\n    status: baseline_authored_adapters_pending\\n    done:\\n      - Core/Internal/External model shortlink.py as written; TLC green on both cfgs.\\n      - Every `raise ShortlinkError` in the module has a matching External action (9 of 9).\\n      - Coverage run confirms all 4 internal and all 13 external actions are reachable.\\n      - actions.yml, case_adapters.toml, testgraph_bindings.yml, tlc_projection.py complete.\\n      - Adapter skeletons in place, each naming the ticket that implements it.\\n    next:\\n      - SL-01 stands up the test_graph project\n... [4645 more chars]",
+            "error": "Exit code 1\nTraceback (most recent call last):\n  File \u001b[35m\"<string>\"\u001b[0m, line \u001b[35m2\u001b[0m, in \u001b[35m<module>\u001b[0m\n    import yaml,sys\n\u001b[1;35mModuleNotFoundError\u001b[0m: \u001b[35mNo module named 'yaml'\u001b[0m"
+          },
+          {
+            "tool": "Bash",
+            "kind": "shell",
+            "input": "{\"command\": \"R=~/.claude/jobs/c92f85ab/tmp/ws-round2/project; cd \\\"$R\\\"; pwd\\npython3 -c \\\"\\nimport yaml\\nd=yaml.safe_load(open('$R/specs/program_model/spec_manifest.yaml'))\\nprint('manifest parses; top keys:', list(d))\\nprint('ports:', list(d['ports']['ShortlinkPort']['methods']))\\nprint('properties:', d['properties'])\\nprint('finite_model:', d['finite_model'])\\\"\\necho \\\"--- actions.yml + bindings parse ---\\\"\\npython3 -c \\\"\\nimport yaml\\na=yaml.safe_load(open('$R/specs/program_model/actions.yml'))['actions']\\nb=yaml.safe_load(open('$R/specs/program_model/testgraph_bindings.yml'))\\nprint('actions.yml:', len(a), 'actions;', sum(1 for v in a.values() if v['layer']=='internal'), 'internal', sum(1 for v in a.values() if v['layer']=='external'), 'external')\\nprint('bindings:', len(b['actions']), 'external actions; channels:', {v['channel'] for v in b['actions'].values()})\\nprint('binding keys == external actions:', set(b['actions']) == {k for k,v in a.items() if v['layer']=='external'})\\\"\", \"description\": \"Validate manifest and cross-check action registries\"}",
+            "error": "Exit code 1\n~/.claude/jobs/c92f85ab/tmp/ws-round2/project\nTraceback (most recent call last):\n  File \u001b[35m\"<string>\"\u001b[0m, line \u001b[35m2\u001b[0m, in \u001b[35m<module>\u001b[0m\n    import yaml\n\u001b[1;35mModuleNotFoundError\u001b[0m: \u001b[35mNo module named 'yaml'\u001b[0m\n--- actions.yml + bindings parse ---\nTraceback (most recent call last):\n  File \u001b[35m\"<string>\"\u001b[0m, line \u001b[35m2\u001b[0m, in \u001b[35m<module>\u001b[0m\n    import yaml\n\u001b[1;35mModuleNotFoundError\u001b[0m: \u001b[35mNo module named 'yaml'\u001b[0m"
+          }
+        ],
+        "tool_error_count": 3,
+        "toolchain_error_count": 0,
+        "shell_error_count": 3,
+        "final": {
+          "subtype": "success",
+          "is_error": false,
+          "num_turns": 66,
+          "duration_ms": 1013618,
+          "total_cost_usd": 6.3780969999999995,
+          "usage": {
+            "input_tokens": 130,
+            "cache_creation_input_tokens": 142865,
+            "cache_read_input_tokens": 5998144,
+            "output_tokens": 77989,
+            "output_tokens_details": {
+              "thinking_tokens": 21933
+            },
+            "server_tool_use": {
+              "web_search_requests": 0,
+              "web_fetch_requests": 0
+            },
+            "service_tier": "standard",
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 142865,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "inference_geo": "not_available",
+            "iterations": [
+              {
+                "input_tokens": 2,
+                "output_tokens": 1381,
+                "cache_read_input_tokens": 152102,
+                "cache_creation_input_tokens": 773,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 773
+                },
+                "type": "message"
+              }
+            ],
+            "speed": "standard"
+          },
+          "result": "Done. Everything is committed on `epic/spec-carries-shortlink`.\n\n## What I set up (on `main`, `c519933`)\n\nAn accepted TLA+ baseline in `specs/program_model` plus a `test_graph` project \u2014 the two preconditions the epic workflow requires. This was onboarding, not ticket work; the skill is explicit that the External view, bindings, and adapter skeletons are onboarding deliverables and must not be deferred to a ticket.\n\n- `Internal.tla` mirrors `Shortener`'s three dicts and four methods one for one.\n- `External.tla` covers the public surface plus **one refusal action per `raise ShortlinkError`** \u2014 nine for nine.\n- TLC green on both cfgs (169 / 2780 distinct states); a coverage run confirms all 17 actions reachable, no dead ones.\n\nThe load-bearing part is four **trace** properties, chiefly `NoSilentOwnershipTransfer`: a live slug's holder never changes to a different holder in one step. That's false of no single state \u2014 only of a step \u2014 so it needs `Release` modelled and a state machine to say at all. I validated it against a mutant that takes a slug over in place; TLC reported the violation with the two-state trace. That run was ad hoc, so I recorded G2's baseline as **0/4, not 1/4** \u2014 making it evidence is SL-05.\n\nThere is no expiry or clock in the model, because there is none in the code.\n\n## The epic\n\n`docs/epic-spec-carries-shortlink.md` \u2014 ending state (6 clauses), 3 goals with measured baselines, 6 tickets in 4 waves. Canonical plan in `specs/desired_program_model/ticket_plan.yaml`; verified acyclic, promotion order a topological extension, no intra-wave conflict-key collisions.\n\n**SL-01 is ready** at `docs/tickets/SL-01.md` \u2014 passes `validate_assignment.py`. It rejected my first render (`spec_unit` can't be `N/A`, `graphs` can't be empty); both fixed, and the rule is recorded in the plan so the other five don't repeat it. The ticket carries four environment problems I hit while authoring, the biggest being that **`spec_double_compiler` isn't importable by any interpreter here, so `adapters.py` can't be imported at all today**.\n\n## Three things need your decision before dispatch\n\n1. **The goals** \u2014 recorded as `proposed_awaiting_user`. The skill forbids inventing goals or treating silence as agreement, and this session was non-interactive.\n2. **SF1: SL-03 adds a CLI and a persisted store to a pure in-memory library.** It's the only new product surface in the epic. It's forced, not gratuitous \u2014 MF-015 forbids an external adapter from importing the production package, so an in-process library's only honest external channel is a subprocess, which needs persistent state. But persistence is genuinely new behaviour with new failure modes. Alternative (internal-only) is written up; I recommend accepting SL-03.\n3. **Review and deferment policy** \u2014 proposed as wave-gating / batch-with-budget-5.\n\nI implemented no tickets: every adapter still raises `NotImplementedError` naming its ticket. `test_shortlink.py` is still 4 passed. One note \u2014 the repo has **no git remote**, so nothing could be filed as a GitHub issue; the plan is canonical and SL-01's body is ready to file as-is once a remote exists."
+        },
+        "narration": "I'll start by understanding what's actually in this repository.\n\nThis fixture is a deliberate trap: its docstring records that a previous agent hallucinated an \"expiry/reservation window\" feature that doesn't exist in the code and built an epic around implementing it. I'll plan strictly against the code as written. Let me check git state and load the epic workflow skill.\n\nNo git remote, Java present but no TLA+ tooling yet. Loading the epic workflow skill.\n\nThe skill's preconditions are decisive: this repo has neither `specs/program_model` nor `test_graph/`, and the skill says epic kickoff is *not* onboarding. Let me read what onboarding actually requires.\n\nOnboarding is explicitly not ticket work (\"Do not defer the structure to a ticket\"), so it's the setup step the user asked for. Let me check whether the tooling actually exists here.\n\nTooling is present. Per the epic skill's rule 11, I check home currency before scheduling anything, and verify the CLI works.\n\nBoth CLIs work. Let me scaffold the baseline and read the required references in parallel.\n\nScaffold produced the full structure. Let me read the placeholders and the reference example.\n\nNow I understand the template shape. Let me read the remaining scaffold files to match their schemas.\n\nNow I'll write the real model. Starting with the shared core and internal view.\n\nShell cwd drifted; I'll use absolute paths throughout.\n\nNow let me model-check the internal view before writing the external one.\n\nInternal view is green. Now a negative control \u2014 a property that can't fail is worthless, so let me confirm it actually catches an ownership steal.\n\nThe property is falsifiable \u2014 it catches the exact bug. Now the External view, which enumerates the public surface.\n\nBoth views check green. Let me verify every action is actually reachable \u2014 an action that never fires would be a claim the program doesn't support.\n\nAll 13 external actions fire \u2014 no dead actions. Now the mapping files.\n\nAll 13 actions map cleanly. Now the action registry and adapter bindings.\n\nNow the projection, manifest, and effect-provider files.\n\nyaml is missing from the default `python3` that `tla-spec-dev` shells to. Let me validate the files and check whether that breaks the CLI.\n\nFound a real blocker: `spec_double_compiler` isn't importable by any interpreter here. Let me check where it lives and whether the test_graph scaffold can run.\n\nAdapters import cleanly. Now the test_graph project, the last baseline checklist item.\n\nBaseline preconditions are now met. Let me finish the last two baseline files.\n\nFinal verification of both views, then I'll record the baseline's reading of the program.\n\nNow let me commit the baseline on `main` before branching the epic.\n\nBaseline accepted on `main`. Now the epic branch and its shared spec workflow.\n\nWorkflow scaffolded. Let me read the assignment schema so the first ticket is genuinely pickup-ready.\n\nNow the canonical plan. This is the deliverable, so I'll write it in full.\n\nPlan validates: acyclic, promotion order is a topological extension, no intra-wave conflict collisions. Let me sync the workflow status and commit.\n\nNow the epic document and the first ticket, ready for pickup.\n\nNow the first ticket, written so another agent can pick it up cold.\n\nThe skill ships a validator for exactly this. Let me run it.\n\nThe validator rejects it \u2014 the REQUIRED matrix isn't optional per ticket. Both are real errors; let me fix them.\n\nValid. Let me sync the canonical plan with that fix and record the rule so later assignments don't repeat it.\n\nFinal verification that nothing regressed, then commit.\n\nDone. Everything is committed on `epic/spec-carries-shortlink`.\n\n## What I set up (on `main`, `c519933`)\n\nAn accepted TLA+ baseline in `specs/program_model` plus a `test_graph` project \u2014 the two preconditions the epic workflow requires. This was onboarding, not ticket work; the skill is explicit that the External view, bindings, and adapter skeletons are onboarding deliverables and must not be deferred to a ticket.\n\n- `Internal.tla` mirrors `Shortener`'s three dicts and four methods one for one.\n- `External.tla` covers the public surface plus **one refusal action per `raise ShortlinkError`** \u2014 nine for nine.\n- TLC green on both cfgs (169 / 2780 distinct states); a coverage run confirms all 17 actions reachable, no dead ones.\n\nThe load-bearing part is four **trace** properties, chiefly `NoSilentOwnershipTransfer`: a live slug's holder never changes to a different holder in one step. That's false of no single state \u2014 only of a step \u2014 so it needs `Release` modelled and a state machine to say at all. I validated it against a mutant that takes a slug over in place; TLC reported the violation with the two-state trace. That run was ad hoc, so I recorded G2's baseline as **0/4, not 1/4** \u2014 making it evidence is SL-05.\n\nThere is no expiry or clock in the model, because there is none in the code.\n\n## The epic\n\n`docs/epic-spec-carries-shortlink.md` \u2014 ending state (6 clauses), 3 goals with measured baselines, 6 tickets in 4 waves. Canonical plan in `specs/desired_program_model/ticket_plan.yaml`; verified acyclic, promotion order a topological extension, no intra-wave conflict-key collisions.\n\n**SL-01 is ready** at `docs/tickets/SL-01.md` \u2014 passes `validate_assignment.py`. It rejected my first render (`spec_unit` can't be `N/A`, `graphs` can't be empty); both fixed, and the rule is recorded in the plan so the other five don't repeat it. The ticket carries four environment problems I hit while authoring, the biggest being that **`spec_double_compiler` isn't importable by any interpreter here, so `adapters.py` can't be imported at all today**.\n\n## Three things need your decision before dispatch\n\n1. **The goals** \u2014 recorded as `proposed_awaiting_user`. The skill forbids inventing goals or treating silence as agreement, and this session was non-interactive.\n2. **SF1: SL-03 adds a CLI and a persisted store to a pure in-memory library.** It's the only new product surface in the epic. It's forced, not gratuitous \u2014 MF-015 forbids an external adapter from importing the production package, so an in-process library's only honest external channel is a subprocess, which needs persistent state. But persistence is genuinely new behaviour with new failure modes. Alternative (internal-only) is written up; I recommend accepting SL-03.\n3. **Review and deferment policy** \u2014 proposed as wave-gating / batch-with-budget-5.\n\nI implemented no tickets: every adapter still raises `NotImplementedError` naming its ticket. `test_shortlink.py` is still 4 passed. One note \u2014 the repo has **no git remote**, so nothing could be filed as a GitHub issue; the plan is canonical and SL-01's body is ready to file as-is once a remote exists."
+      },
+      "attribution_probe": {
+        "named_unmodeled_bin": [],
+        "action_shaped_mentions": [],
+        "any_attribution_shape": false,
+        "reading": "A zero here is UNDECIDED, never a failure. SKILL.md step 13 scopes its anchor clause to regressions and to cases the agent wrote, so a round with no regressions correctly produces no anchor. Read this against what the agent actually hit before concluding anything."
+      },
+      "done_check": {
+        "passed": true,
+        "exit": 0,
+        "script": "set -u\nfound=\"\"\nif [ -f specs/desired_program_model/ticket_plan.yaml ]; then\n  found=\"worktree:specs/desired_program_model/ticket_plan.yaml\"\nfi\nfor ref in $(git for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null); do\n  if git cat-file -e \"$ref:specs/desired_program_model/ticket_plan.yaml\" 2>/dev/null; then\n    found=\"${found:-}${found:+ }$ref\"\n  fi\ndone\necho \"plan found at: ${found:-<nowhere>}\"\ntest -d specs/program_model || { echo \"no specs/program_model\"; exit 1; }\ntest -n \"$found\" || exit 1\n\n# A PLAN FILE IS NOT A PLAN, and the first version of this check could not tell\n# the difference. `tla-spec-dev scaffold workflow` emits a ticket_plan.yaml that\n# ALREADY contains `tickets:` and `- id: <ticket>`, so a `grep` for a list item\n# passed after two scaffold verbs and zero thought -- measured, exit 0, on a plan\n# that was 100% placeholders. That was the epic seat's only pass/fail signal.\n#\n# So the check now refuses the SHIPPED TEMPLATE by its own placeholder markers.\n# They come from `scripts/new_ticket_workflow.py:ticket_plan()`, and\n# `tests/test_agent_integration_harness.py` imports that function to assert\n# every marker below still appears in what it emits -- if the scaffold renames\n# a placeholder, that test says so rather than this predicate going quietly weak.\nscan=$(mktemp)\nfor ref in $(git for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null); do\n  git show \"$ref:specs/desired_program_model/ticket_plan.yaml\" 2>/dev/null\ndone > \"$scan\"\ncat specs/desired_program_model/ticket_plan.yaml >> \"$scan\" 2>/dev/null || true\n\nrc=0\nif ! grep -qE '^[[:space:]]*(-|id:)' \"$scan\"; then\n  echo \"the plan carries no ticket entry\"\n  rc=1\nfi\nfor marker in ReplaceWithDesiredAction replace_with_state_field 'Replace with implementation surfaces'; do\n  if grep -qF \"$marker\" \"$scan\"; then\n    echo \"the plan still carries the scaffold placeholder: $marker\"\n    rc=1\n  fi\ndone\nrm -f \"$scan\"\nexit $rc"
+      },
+      "fixture": {
+        "ran": true,
+        "passed": true,
+        "output": "test_a_live_slug_cannot_be_released_by_a_stranger (test_shortlink.ShortenerTests.test_a_live_slug_cannot_be_released_by_a_stranger) ... \u001b[32mok\u001b[0m\ntest_a_reservation_is_not_claimable_by_another_owner (test_shortlink.ShortenerTests.test_a_reservation_is_not_claimable_by_another_owner) ... \u001b[32mok\u001b[0m\ntest_release_frees_the_slug_for_a_different_owner (test_shortlink.ShortenerTests.test_release_frees_the_slug_for_a_different_owner) ... \u001b[32mok\u001b[0m\ntest_reserve_then_claim_makes_the_slug_live (test_shortlink.ShortenerTests.test_reserve_then_claim_makes_the_slug_live) ... \u001b[32mok\u001b[0m\n\n----------------------------------------------------------------------\nRan 4 tests in 0.000s\n\n\u001b[32mOK\u001b[0m\n"
+      },
+      "workspace": {
+        "status": "",
+        "log": "101b06a epic: the epic write-up and SL-01, ready to pick up\nbe1f759 epic: the canonical plan for spec-carries-shortlink\nc519933 specs: accept a TLA+ program-model baseline for shortlink.py\nd6cfdb8 shortlink: the program, and the tests that hold it up",
+        "spec_tree": "specs\nspecs/current\nspecs/current/__init__.py\nspecs/current/__pycache__\nspecs/current/__pycache__/__init__.cpython-310.pyc\nspecs/current/__pycache__/adapters.cpython-310.pyc\nspecs/current/__pycache__/tlc_projection.cpython-314.pyc\nspecs/current/actions.yml\nspecs/current/adapters.py\nspecs/current/case_adapters.toml\nspecs/current/Core.tla\nspecs/current/effect_provider_usage.yaml\nspecs/current/External.cfg\nspecs/current/External.tla\nspecs/current/Internal.cfg\nspecs/current/Internal.tla\nspecs/current/providers.py\nspecs/current/README.md\nspecs/current/spec_manifest.yaml\nspecs/current/testgraph_bindings.yml\nspecs/current/tests\nspecs/current/tests/test_current_ticket_workflow.py\nspecs/current/tests/test_spec_unit_adapters.py\nspecs/current/tlc_projection.py\nspecs/desired_program_model\nspecs/desired_program_model/__init__.py\nspecs/desired_program_model/__pycache__\nspecs/desired_program_model/__pycache__/__init__.cpython-310.pyc\nspecs/desired_program_model/__pycache__/adapters.cpython-310.pyc\nspecs/desired_program_model/__pycache__/tlc_projection.cpython-314.pyc\nspecs/desired_program_model/actions.yml\nspecs/desired_program_model/adapters.py\nspecs/desired_program_model/case_adapters.toml\nspecs/desired_program_model/Core.tla\nspecs/desired_program_model/desired_state.yaml\nspecs/desired_program_model/effect_provider_usage.yaml\nspecs/desired_program_model/External.cfg\nspecs/desired_program_model/External.tla\nspecs/desired_program_model/Internal.cfg\nspecs/desired_program_model/Internal.tla\nspecs/desired_program_model/providers.py\nspecs/desired_program_model/README.md\nspecs/desired_program_model/spec_manifest.yaml\nspecs/desired_program_model/testgraph_bindings.yml\nspecs/desired_program_model/tests\nspecs/desired_program_model/tests/test_spec_unit_adapters.py\nspecs/desired_program_model/ticket_plan.yaml\nspecs/desired_program_model/tlc_projection.py\nspecs/program_model\nspecs/program_model/__init__.py\nspecs/program_model/__pycache__\nspecs/program_model/__pycache__/__init__.cpython-310.pyc\nspecs/program_model/__pycache__/adapters.cpython-310.pyc\nspecs/program_model/__pycache__/tlc_projection.cpython-314.pyc\nspecs/program_model/actions.yml\nspecs/program_model/adapters.py\nspecs/program_model/case_adapters.toml\nspecs/program_model/Core.tla\nspecs/program_model/effect_provider_usage.yaml\nspecs/program_model/External.cfg\nspecs/program_model/External.tla\nspecs/program_model/Internal.cfg\nspecs/program_model/Internal.tla\nspecs/program_model/providers.py\nspecs/program_model/README.md\nspecs/program_model/spec_manifest.yaml\nspecs/program_model/states\nspecs/program_model/testgraph_bindings.yml\nspecs/program_model/tests\nspecs/program_model/tests/test_program_model_onboarding.py\nspecs/program_model/tests/test_spec_unit_adapters.py\nspecs/program_model/tlc_projection.py\n",
+        "declared_actions": "17\n",
+        "generated_cases": "",
+        "exported_traces": "       0\n",
+        "results": ""
+      },
+      "handoff_commit_rc": 1,
+      "handoff_ref": "epic/spec-carries-shortlink"
+    },
+    "ticket": {
+      "clone": {
+        "source": "~/.claude/jobs/c92f85ab/tmp/ws-round2/project/.skill-manager",
+        "dest": "~/.claude/jobs/c92f85ab/tmp/ws-round2/ticket-worktree/.skill-manager",
+        "directories": 8082,
+        "files": 36610,
+        "symlinks": 12,
+        "bytes": 631668687,
+        "linksRelativized": 0,
+        "stateReanchored": 23,
+        "provisionedRewritten": 1,
+        "leaks": 0,
+        "contentReferences": 0,
+        "danglingLinks": 0,
+        "danglingReferences": 0,
+        "droppedRegistrations": 0,
+        "droppedBindings": 0,
+        "droppedChildHomes": 0,
+        "clean": true,
+        "manifestShortfall": {
+          "manifest": null,
+          "declared": 0,
+          "missing": []
+        }
+      },
+      "ask": "This repository has a plan with a first ticket in it, written by someone else.\nThat ticket is yours. Take it from wherever it currently sits through to done,\nincluding whatever this project expects to be recorded when work like this\nfinishes.\n\nReport at the end what you changed, and what would have caught you if you had\ngot it wrong.",
+      "predicts": "EXPENSIVE. F-01 measured three sequential ledger refusals plus F-02's\nplan-status refusal on a real close. The second half of the ask (\"what would\nhave caught you\") is the E-09 probe: SKILL.md step 13 now tells a closing agent\nto name the TLA+ action each regression happened inside. If the agent closes\nwithout ever naming an action or an UNMODELED bin, step 13 is written but not\nreachable, which is E-09 all over again in a new place.",
+      "dispatch": {
+        "role": "ticket",
+        "tier": "worktree",
+        "home": "~/.claude/jobs/c92f85ab/tmp/ws-round2/ticket-worktree/.skill-manager",
+        "launch_style": "hand-bound",
+        "launch_note": "LAUNCH STYLE: hand-bound, NOT `skill-manager exec`, and that is a finding\nrather than a preference.\n\nreferences/runtime_requirements.md says to launch through the home's\n`bin/launch/{claude,codex,gemini}` shims or `skill-manager exec`, because those\nput the home's bin/ first and strip other homes' bin/ -- \"the part\nhand-exporting always misses\". This harness measured that path and it does not\nstart a session:\n\n    $ skill-manager exec --home ~/.skill-manager -- claude -p \"say OK\"\n    Not logged in - Please run /login          (terminal_reason: api_error)\n\nThat is the ROOT home, whose CLAUDE_CONFIG_DIR resolves to the operator's own\n~/.claude, so it is not the per-home config redirect. The same prompt run\nwithout `exec` completes normally, and completes normally again with\nSKILL_MANAGER_HOME and PATH bound to the same home by hand. Measured on\nskill-manager 0.25.1 / claude 2.1.258 with keychain OAuth; an ANTHROPIC_API_KEY\nlaunch passes its key through the environment and would not see this.\n\nSo the binding here is done explicitly, and it does the one thing the docs warn\nhand-exporting forgets: every OTHER home's bin/ is removed from PATH, not just\nthis home's prepended. What is bound:\n\n    SKILL_MANAGER_HOME  -> this tier's home\n    PATH                -> this home's bin/cli and bin/mcp first, every other\n                           home's bin removed\n    CLAUDE_CONFIG_DIR   -> LEFT ALONE. Redirecting it is what `exec` does and\n                           it is also what leaves the launch unauthenticated.\n\nWhat that costs, stated rather than glossed: `tla-spec-dev`, `tlc2`, `pytest`\nand `jinja2` come from THIS home (the wrappers with its absolute path baked in,\nwhich is the isolation runtime_requirements.md actually argues for), while the\nskill and plugin BYTES come from the operator's agent config. skt therefore\nloads, and its `skt status` report is produced by this home's `skt`.",
+        "claude_bin": "~/.local/bin/claude",
+        "cwd": "~/.claude/jobs/c92f85ab/tmp/ws-round2/ticket-worktree",
+        "status": "ok",
+        "returncode": 0,
+        "duration_seconds": 1860.249,
+        "budget_seconds": 3000.0,
+        "permission_mode": "bypassPermissions"
+      },
+      "harvest": {
+        "parsed": true,
+        "assistant_events": 207,
+        "assistant_messages": 104,
+        "tool_calls": 103,
+        "tool_errors": [
+          {
+            "tool": "Bash",
+            "kind": "shell",
+            "input": "{\"command\": \"cd ~/.claude/jobs/c92f85ab/tmp/ws-round2/ticket-worktree\\nsed -i '' 's/Recorded as `SL-01-F3`\\\\./Recorded as `SL-01-F2`./' RUNNING.md\\ncat > specs/desired_program_model/deferred_findings.yaml <<'YAML'\\n# Deferred-findings backlog for epic/spec-carries-shortlink.\\n#\\n# Policy (from the SL-01 assignment's `deferment:` block, mirroring\\n# ticket_plan.yaml): mode=batch, blocking=escalate, budget=5.\\n#\\n# A finding lands here when it is real, outside the reporting ticket's conflict\\n# keys or scope, and NOT fixed. Findings a ticket confirmed and answered are\\n# reported as evidence instead -- they are not deferrals and do not spend budget.\\nversion: 1\\nepic: spec-carries-shortlink\\nbudget: 5\\nspent: 3\\n\\nfindings:\\n  - id: SL-01-F1\\n    reported_by: SL-01\\n    severity: blocking\\n    status: escalated_to_epic_owner\\n    title: >-\\n      The `smoke` graph cannot pass in this repository: its `app.running` node is\\n      an unmodified scaffold example that HEAD-probes http://localhost:8080.\\n    detail: >-\\n      `smoke` is the REQUIRED affected graph for every wave-1/2 ticket until\\n      SL-04 creates `shortlinkExternal` (ticket_plan.yaml validation_matrix_rule).\\\n... [5410 more chars]",
+            "error": "Exit code 1\nTraceback (most recent call last):\n  File \u001b[35m\"<string>\"\u001b[0m, line \u001b[35m1\u001b[0m, in \u001b[35m<module>\u001b[0m\n    \u001b[1;31mimport yaml,sys\u001b[0m;d=yaml.safe_load(open('specs/desired_program_model/deferred_findings.yaml'));print('valid YAML,',len(d['findings']),'findings, spent',d['spent'],'of',d['budget'])\n    \u001b[1;31m^^^^^^^^^^^^^^^\u001b[0m\n\u001b[1;35mModuleNotFoundError\u001b[0m: \u001b[35mNo module named 'yaml'\u001b[0m"
+          },
+          {
+            "tool": "Bash",
+            "kind": "shell",
+            "input": "{\"command\": \"cd ~/.claude/jobs/c92f85ab/tmp/ws-round2/ticket-worktree\\n. ./scripts/_manifest.sh && resolve_python\\n\\\"$SHORTLINK_PYTHON\\\" -c \\\"import yaml;d=yaml.safe_load(open('specs/desired_program_model/deferred_findings.yaml'));print('valid YAML,',len(d['findings']),'findings, spent',d['spent'],'of',d['budget'])\\\"\", \"description\": \"Validate backlog YAML with pinned interpreter\"}",
+            "error": "Exit code 1\n./scripts/_manifest.sh:14: BASH_SOURCE[0]: parameter not set\nmanifest not found: //pyproject.toml"
+          }
+        ],
+        "tool_error_count": 2,
+        "toolchain_error_count": 0,
+        "shell_error_count": 2,
+        "final": {
+          "subtype": "success",
+          "is_error": false,
+          "num_turns": 105,
+          "duration_ms": 1847750,
+          "total_cost_usd": 12.090887999999998,
+          "usage": {
+            "input_tokens": 208,
+            "cache_creation_input_tokens": 227876,
+            "cache_read_input_tokens": 14626776,
+            "output_tokens": 99908,
+            "output_tokens_details": {
+              "thinking_tokens": 31334
+            },
+            "server_tool_use": {
+              "web_search_requests": 0,
+              "web_fetch_requests": 0
+            },
+            "service_tier": "standard",
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 227876,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "inference_geo": "not_available",
+            "iterations": [
+              {
+                "input_tokens": 2,
+                "output_tokens": 1582,
+                "cache_read_input_tokens": 236895,
+                "cache_creation_input_tokens": 991,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 991
+                },
+                "type": "message"
+              }
+            ],
+            "speed": "standard"
+          },
+          "result": "SL-01 is done and committed. Here's what happened.\n\n## What I changed\n\n**The one real defect.** `specs/*/adapters.py` went straight to `from spec_double_compiler.runtime import CaseRunResult` with no resolver, so the module couldn't be imported by *any* interpreter without a hand-set `PYTHONPATH`. spec-double-compiler's scaffold is supposed to emit a `SKILL_ROOT_BOOTSTRAP` block at exactly that point; this repo's copy had none. I extracted that block programmatically from `scaffold_spec.py` and inserted it verbatim into all five copies, so a re-scaffold produces the same text and its documented resolution order (`~/.skill-manager` **last**) is preserved rather than approximated.\n\n**The toolchain.** `pyproject.toml` pins one interpreter and `tlc_seconds = 120`; `scripts/_manifest.sh` reads it with awk (it has to run *before* an interpreter is chosen) and `scripts/check_manifest.sh` asserts that shortcut agrees with real `tomllib`. `scripts/run_tlc.sh` runs both views with a hand-rolled watchdog \u2014 `timeout` is GNU coreutils and isn't on stock macOS. Plus `scripts/tla-spec-dev`, `scripts/pytest.sh`, and `RUNNING.md`.\n\nNo model semantics, no adapter bodies, no change to `shortlink.py` \u2014 `git diff 101b06a` over every `.tla` and `.cfg` is empty.\n\n**Recorded, as this project expects:** spec ticket closed and promoted with 14 evidence files, append-only history at `specs/.history/spec-carries-shortlink/ticket-000-SL-01`, the complexity ledger filled (it refused the close twice until it was), 3 deferred findings, 3 skill-feedback findings, and the PR body committed at the review artifact root.\n\n## Three things you should decide\n\n1. **`smoke` is red and I left it that way.** It's my REQUIRED graph, but its `app.running` node is an unmodified scaffold example probing `localhost:8080` \u2014 red at the epic tip, and I changed no file under `test_graph/`. Escalated as **SL-01-F1 (blocking)** rather than downgraded to `N/A`, because that's how wave 2 inherits a validation step nobody checks. Recommended fix in the backlog: point the affected graph at `rerunSmokeUv` (self-contained, green) until SL-04 lands.\n2. **The goals are still `proposed_awaiting_user`**, and SF1 is `pending_user`. Didn't block SL-01 (it's `enabling`/`guard`), but it blocks SL-06.\n3. **No git remote**, so there is no PR. The body is written in full and committed; opening it is one command.\n\n## What would have caught me if I'd got it wrong\n\nThe honest answer is that for most of this ticket, *nothing would have* \u2014 which is why I went looking rather than waiting.\n\n- **The distinct-state counts** (169/2780) are the one real tripwire the ticket ships, and they'd have caught an accidental model edit. They didn't move.\n- **Nothing would have caught a broken watchdog.** A timeout that never fires looks exactly like one that works. I tested it directly (`SHORTLINK_TLC_SECONDS=1` \u2192 `TIMEOUT`, exit 1).\n- **Nothing would have caught the awk reader** silently returning half a multi-line array. That's why `check_manifest.sh` exists.\n- **Nothing caught my own bug, until I wrote the \"where I'd look for bugs\" list and then actually ran it.** `_python_is_capable` did `import importlib` then `importlib.util.find_spec(...)`; the submodule isn't imported implicitly, so on 3.14 it raised `AttributeError` and the refusal read as a traceback. It still *refused* \u2014 which is precisely why no happy-path test could see it \u2014 but it would have rejected a capable interpreter for a false reason. Wrong in the direction that keeps tests green. Fixed in `25c22e7`.\n- **The spec-unit run is the trap in the other direction:** it passes, and passing means nothing here. What matters is that it says `no generated spec-unit cases yet`. If it had reported passing *adapter* cases, that would mean I'd done SL-02's work.\n\nOne correction to the ticket's premises worth carrying forward: known-finding #4 assumed `test_graph`'s gitignored links were a fragility. They're the opposite \u2014 `provider-bindings.json` is tracked and the runner materialises them. Measured, not reasoned about: this worktree had none of them and a graph still ran green. No `--copy-sdk` snapshot needed."
+        },
+        "narration": "I'll start by orienting myself in the repo and finding the plan and ticket.\n\nThis is an epic-assigned ticket with a documented workflow. Let me load the skill that owns this flow.\n\nEpic assignment marker is present. Reading the epic-ticket reference.\n\nNow confirming the four known-broken findings rather than assuming them.\n\nOpening the assigned spec ticket now, before implementing.\n\nNow the clean-clone experiment for `test_graph`, recorded before I change anything.\n\nThe `smoke` graph fails on a scaffold example node probing `localhost:8080`. Let me establish whether the toolchain itself works by running a self-contained graph.\n\nToolchain is understood. Now writing the deliverables \u2014 starting with the dependency manifest.\n\nNow the manifest reader and interpreter resolver.\n\nThe timeout path is the part most likely to be silently broken, so let me make it testable and test it.\n\nNow the core fix: the adapters' skill-root resolver. I'll use the canonical text the scaffold emits, extracted programmatically rather than retyped.\n\nNow the acceptance test that matters most \u2014 the import, with no hand-set environment, on every interpreter on the machine.\n\nNow the deterministic `tla-spec-dev` entry point (known finding 3).\n\nAdding `pyproject.toml` turned the repo into a uv project \u2014 that's a real side effect I need to handle deliberately.\n\nNow `RUNNING.md`.\n\nNow the full REQUIRED validation matrix, in one pass, writing durable evidence.\n\nNow re-running both graphs to confirm state after all my changes.\n\nNow marking only the SL-01 entry closed in the canonical plan.\n\nNow closing the assigned spec ticket with its evidence.\n\nNow filling the complexity ledger honestly.\n\nTicket closed and promoted. The close emitted a skill-feedback template that expects filling \u2014 let me look.\n\nConfirmed a well-attributed finding. Filing the skill feedback now.\n\nFinal full validation matrix re-run on the post-close tree, then commit.\n\nNow the read-only `home close-out` gate, pointed at the main working tree's home.\n\nThe PR route is genuinely unavailable. Writing the PR body as the committed handoff artifact at the declared review root.\n\nLet me verify the two behaviors I claimed but hadn't directly tested.\n\nFound a real bug in my own capability check \u2014 it refuses for the wrong reason on 3.14. Fixing.\n\nOne real bug (fixed), one false alarm \u2014 `run_tlc.sh` needs no Python at all, so the override correctly doesn't affect it. Correcting the PR body and re-validating.\n\nFinal check \u2014 re-running the home gate, since the test-graph run materialised links into the home after my first check.\n\nSL-01 is done and committed. Here's what happened.\n\n## What I changed\n\n**The one real defect.** `specs/*/adapters.py` went straight to `from spec_double_compiler.runtime import CaseRunResult` with no resolver, so the module couldn't be imported by *any* interpreter without a hand-set `PYTHONPATH`. spec-double-compiler's scaffold is supposed to emit a `SKILL_ROOT_BOOTSTRAP` block at exactly that point; this repo's copy had none. I extracted that block programmatically from `scaffold_spec.py` and inserted it verbatim into all five copies, so a re-scaffold produces the same text and its documented resolution order (`~/.skill-manager` **last**) is preserved rather than approximated.\n\n**The toolchain.** `pyproject.toml` pins one interpreter and `tlc_seconds = 120`; `scripts/_manifest.sh` reads it with awk (it has to run *before* an interpreter is chosen) and `scripts/check_manifest.sh` asserts that shortcut agrees with real `tomllib`. `scripts/run_tlc.sh` runs both views with a hand-rolled watchdog \u2014 `timeout` is GNU coreutils and isn't on stock macOS. Plus `scripts/tla-spec-dev`, `scripts/pytest.sh`, and `RUNNING.md`.\n\nNo model semantics, no adapter bodies, no change to `shortlink.py` \u2014 `git diff 101b06a` over every `.tla` and `.cfg` is empty.\n\n**Recorded, as this project expects:** spec ticket closed and promoted with 14 evidence files, append-only history at `specs/.history/spec-carries-shortlink/ticket-000-SL-01`, the complexity ledger filled (it refused the close twice until it was), 3 deferred findings, 3 skill-feedback findings, and the PR body committed at the review artifact root.\n\n## Three things you should decide\n\n1. **`smoke` is red and I left it that way.** It's my REQUIRED graph, but its `app.running` node is an unmodified scaffold example probing `localhost:8080` \u2014 red at the epic tip, and I changed no file under `test_graph/`. Escalated as **SL-01-F1 (blocking)** rather than downgraded to `N/A`, because that's how wave 2 inherits a validation step nobody checks. Recommended fix in the backlog: point the affected graph at `rerunSmokeUv` (self-contained, green) until SL-04 lands.\n2. **The goals are still `proposed_awaiting_user`**, and SF1 is `pending_user`. Didn't block SL-01 (it's `enabling`/`guard`), but it blocks SL-06.\n3. **No git remote**, so there is no PR. The body is written in full and committed; opening it is one command.\n\n## What would have caught me if I'd got it wrong\n\nThe honest answer is that for most of this ticket, *nothing would have* \u2014 which is why I went looking rather than waiting.\n\n- **The distinct-state counts** (169/2780) are the one real tripwire the ticket ships, and they'd have caught an accidental model edit. They didn't move.\n- **Nothing would have caught a broken watchdog.** A timeout that never fires looks exactly like one that works. I tested it directly (`SHORTLINK_TLC_SECONDS=1` \u2192 `TIMEOUT`, exit 1).\n- **Nothing would have caught the awk reader** silently returning half a multi-line array. That's why `check_manifest.sh` exists.\n- **Nothing caught my own bug, until I wrote the \"where I'd look for bugs\" list and then actually ran it.** `_python_is_capable` did `import importlib` then `importlib.util.find_spec(...)`; the submodule isn't imported implicitly, so on 3.14 it raised `AttributeError` and the refusal read as a traceback. It still *refused* \u2014 which is precisely why no happy-path test could see it \u2014 but it would have rejected a capable interpreter for a false reason. Wrong in the direction that keeps tests green. Fixed in `25c22e7`.\n- **The spec-unit run is the trap in the other direction:** it passes, and passing means nothing here. What matters is that it says `no generated spec-unit cases yet`. If it had reported passing *adapter* cases, that would mean I'd done SL-02's work.\n\nOne correction to the ticket's premises worth carrying forward: known-finding #4 assumed `test_graph`'s gitignored links were a fragility. They're the opposite \u2014 `provider-bindings.json` is tracked and the runner materialises them. Measured, not reasoned about: this worktree had none of them and a graph still ran green. No `--copy-sdk` snapshot needed."
+      },
+      "attribution_probe": {
+        "named_unmodeled_bin": [],
+        "action_shaped_mentions": [],
+        "any_attribution_shape": false,
+        "reading": "A zero here is UNDECIDED, never a failure. SKILL.md step 13 scopes its anchor clause to regressions and to cases the agent wrote, so a round with no regressions correctly produces no anchor. Read this against what the agent actually hit before concluding anything."
+      },
+      "done_check": {
+        "passed": true,
+        "exit": 0,
+        "script": "set -u\nif test -d specs/.history && find specs/.history -maxdepth 3 -name 'ticket-*' | grep -q .; then\n  echo \"closed ticket found in the worktree\"\n  exit 0\nfi\nfor ref in $(git for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null); do\n  if git ls-tree -r --name-only \"$ref\" -- specs/.history 2>/dev/null | grep -q 'ticket-'; then\n    echo \"closed ticket found on $ref\"\n    exit 0\n  fi\ndone\necho \"no specs/.history ticket-* entry on any ref\"\nexit 1"
+      },
+      "fixture": {
+        "ran": true,
+        "passed": true,
+        "output": "test_a_live_slug_cannot_be_released_by_a_stranger (test_shortlink.ShortenerTests.test_a_live_slug_cannot_be_released_by_a_stranger) ... \u001b[32mok\u001b[0m\ntest_a_reservation_is_not_claimable_by_another_owner (test_shortlink.ShortenerTests.test_a_reservation_is_not_claimable_by_another_owner) ... \u001b[32mok\u001b[0m\ntest_release_frees_the_slug_for_a_different_owner (test_shortlink.ShortenerTests.test_release_frees_the_slug_for_a_different_owner) ... \u001b[32mok\u001b[0m\ntest_reserve_then_claim_makes_the_slug_live (test_shortlink.ShortenerTests.test_reserve_then_claim_makes_the_slug_live) ... \u001b[32mok\u001b[0m\n\n----------------------------------------------------------------------\nRan 4 tests in 0.000s\n\n\u001b[32mOK\u001b[0m\n"
+      },
+      "workspace": {
+        "status": "",
+        "log": "daca71c SL-01: point the PR body at the branch head\n25c22e7 SL-01: fix the capability check's importlib.util import\nf78ff14 SL-01: the PR body, as a committed artifact\n4009f52 SL-01: make the spec workflow runnable in this repository\nfb651af SL-01: open the ticket-local spec workspace\n101b06a epic: the epic write-up and SL-01, ready to pick up\nbe1f759 epic: the canonical plan for spec-carries-shortlink\nc519933 specs: accept a TLA+ program-model baseline for shortlink.py\nd6cfdb8 shortlink: the program, and the tests that hold it up",
+        "spec_tree": "specs\nspecs/.history\nspecs/.history/spec-carries-shortlink\nspecs/.history/spec-carries-shortlink/ticket-000-SL-01\nspecs/current\nspecs/current/__init__.py\nspecs/current/actions.yml\nspecs/current/adapters.py\nspecs/current/case_adapters.toml\nspecs/current/Core.tla\nspecs/current/effect_provider_usage.yaml\nspecs/current/External.cfg\nspecs/current/External.tla\nspecs/current/Internal.cfg\nspecs/current/Internal.tla\nspecs/current/providers.py\nspecs/current/README.md\nspecs/current/spec_manifest.yaml\nspecs/current/testgraph_bindings.yml\nspecs/current/tests\nspecs/current/tests/test_current_ticket_workflow.py\nspecs/current/tests/test_spec_unit_adapters.py\nspecs/current/tlc_projection.py\nspecs/desired_program_model\nspecs/desired_program_model/__init__.py\nspecs/desired_program_model/actions.yml\nspecs/desired_program_model/adapters.py\nspecs/desired_program_model/case_adapters.toml\nspecs/desired_program_model/Core.tla\nspecs/desired_program_model/deferred_findings.yaml\nspecs/desired_program_model/desired_state.yaml\nspecs/desired_program_model/effect_provider_usage.yaml\nspecs/desired_program_model/External.cfg\nspecs/desired_program_model/External.tla\nspecs/desired_program_model/Internal.cfg\nspecs/desired_program_model/Internal.tla\nspecs/desired_program_model/providers.py\nspecs/desired_program_model/README.md\nspecs/desired_program_model/spec_manifest.yaml\nspecs/desired_program_model/testgraph_bindings.yml\nspecs/desired_program_model/tests\nspecs/desired_program_model/tests/test_spec_unit_adapters.py\nspecs/desired_program_model/ticket_plan.yaml\nspecs/desired_program_model/tlc_projection.py\nspecs/program_model\nspecs/program_model/__init__.py\nspecs/program_model/actions.yml\nspecs/program_model/adapters.py\nspecs/program_model/case_adapters.toml\nspecs/program_model/Core.tla\nspecs/program_model/effect_provider_usage.yaml\nspecs/program_model/External.cfg\nspecs/program_model/External.tla\nspecs/program_model/Internal.cfg\nspecs/program_model/Internal.tla\nspecs/program_model/providers.py\nspecs/program_model/README.md\nspecs/program_model/spec_manifest.yaml\nspecs/program_model/testgraph_bindings.yml\nspecs/program_model/tests\nspecs/program_model/tests/test_program_model_onboarding.py\nspecs/program_model/tests/test_spec_unit_adapters.py\nspecs/program_model/tlc_projection.py\nspecs/results\nspecs/results/complexity_ledger.json\nspecs/results/skill_feedback.md\nspecs/tickets\n",
+        "declared_actions": "17\n",
+        "generated_cases": "",
+        "exported_traces": "       0\n",
+        "results": "\n--- specs/.history/spec-carries-shortlink/ticket-000-SL-01/results/spec-unit-tests-SL-01.txt\nrunning pytest:~/.claude/jobs/c92f85ab/tmp/ws-round2/ticket-worktree/specs/tickets/SL-01/current: uv run --with pytest -m pytest ~/.claude/jobs/c92f85ab/tmp/ws-round2/ticket-worktree/specs/tickets/SL-01/current/tests -q\nspec-unit validation passed for 2 target(s)\nrc=0\n\n--- specs/.history/spec-carries-shortlink/ticket-000-SL-01/results/model-descriptor-comparison.txt\nTLC reports the same state counts on both sides.\n  Internal: 677 generated / 169 distinct  (expected 677 / 169)\n  External: 54129 generated / 2780 distinct  (expected 54129 / 2780)\n\n--- specs/.history/spec-carries-shortlink/ticket-000-SL-01/results/testgraph-smoke-run.txt\nBUILD FAILED in 1m 12s\n5 actionable tasks: 1 executed, 4 up-to-date\nrc=1\n\n--- specs/.history/spec-carries-shortlink/ticket-000-SL-01/results/tlc-Internal.txt\nThe depth of the complete state graph search is 6.\nThe average outdegree of the complete state graph is 1 (minimum is 0, the maximum 4 and the 95th percentile is 4).\nFinished in 03s at (2026-09-03 13:54:34)\n\n--- specs/.history/spec-carries-shortlink/ticket-000-SL-01/results/tlc-summary.txt\nInternal: PASS -- 677 states generated, 169 distinct states found, 0 states left on queue.\nExternal: PASS -- 54129 states generated, 2780 distinct states found, 0 states left on queue.\nexit=0\n\n--- specs/.history/spec-carries-shortlink/ticket-000-SL-01/results/repository-unit.txt\n\n\u001b[32m============================== \u001b[32m\u001b[1m4 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[32m ===============================\u001b[0m\nrc=0\n\n--- specs/.history/spec-carries-shortlink/ticket-000-SL-01/results/spec-unit-honesty.txt\nrunning pytest:~/.claude/jobs/c92f85ab/tmp/ws-round2/ticket-worktree/specs/current: uv run --with pytest -m pytest ~/.claude/jobs/c92f85ab/tmp/ws-round2/ticket-worktree/specs/current/tests -q -rs -v\nspec-unit validation passed for 1 target(s)\nrc=0\n\n--- specs/.history/spec-carries-shortlink/ticket-000-SL-01/results/tlc-External.txt\nThe depth of the complete state graph search is 7.\nThe average outdegree of the complete state graph is 1 (minimum is 0, the maximum 21 and the 95th percentile is 15).\nFinished in 05s at (2026-09-03 13:54:42)\n\n--- specs/.history/spec-carries-shortlink/ticket-000-SL-01/results/adapters-import.txt\n    raise ModuleNotFoundError(\nModuleNotFoundError: SPEC_DOUBLE_COMPILER_HOME=/tmp/definitely-not-a-skill holds no spec_double_compiler package. Point it at <home>/skills/spec-double-compiler, or unset it.\n    rc=1 (non-zero expected)\n\n--- specs/.history/spec-carries-shortlink/ticket-000-SL-01/results/testgraph-findings.txt\n\nThe graph RUNNER is healthy, which is the part SL-01 owned: rerunSmokeUv\nexercises binding materialisation + Gradle + uv end to end and is green.\n\n--- specs/.history/spec-carries-shortlink/ticket-000-SL-01/results/goal-signal-G3.txt\n\n\u001b[32m============================== \u001b[32m\u001b[1m4 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[32m ===============================\u001b[0m\nrc=0\n\n--- specs/.history/spec-carries-shortlink/ticket-000-SL-01/results/goal-signal-G1.txt\n$ env -u PYTHONPATH -u SKILL_MANAGER_HOME -u SPEC_DOUBLE_COMPILER_HOME python -c 'import specs.program_model.adapters'\nimport OK\nrc=0\n"
+      }
+    }
+  },
+  "plumbing_only": false,
+  "preflight": {
+    "claude": "~/.local/bin/claude",
+    "skill-manager": "~/.skill-manager/bin/cli/skill-manager",
+    "git": "/usr/bin/git",
+    "source_home": "~/.skill-manager",
+    "source_home_descriptor": {
+      "policy": "live",
+      "units": 29
+    },
+    "fixture_green_before": true
+  },
+  "workspace_root": "~/.claude/jobs/c92f85ab/tmp/ws-round2",
+  "reclaimed_homes": [
+    "~/.claude/jobs/c92f85ab/tmp/ws-round2/project/.skill-manager",
+    "~/.claude/jobs/c92f85ab/tmp/ws-round2/ticket-worktree/.skill-manager"
+  ],
+  "duration_seconds": 2965.256,
+  "finished_utc": "2026-09-03T18:07:42.623930+00:00",
+  "reharvested": "Re-harvested after the heredoc fix. The run's own classification counted a line inside a `cat <<'YAML'` body as a command; corrected, both seats hit ZERO toolchain errors. Nothing else in this record changed."
+}
