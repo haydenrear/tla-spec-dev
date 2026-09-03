@@ -1154,6 +1154,28 @@ whether the agent found the property is read out afterwards, by a person, and is
 a `reading` channel. **A claim to an instrument is worse than no instrument**,
 because the next reader stops looking for the thing themselves.
 
+### `G-11` — the source-citation tripwire caught a fan-out nothing else could
+
+Adding seventeen lines of docstring to `default_import_roots_for` moved an
+anchor in `run_generated_case_adapters.py` from line 1413 to 1430, and
+`scripts/effect_conformance.py:1684` cites that line by number.
+
+**Only `test_source_citations.py` saw it**, and it named the file, the stale
+number, the anchor token, and where the anchor moved to — enough to fix without
+searching. Class `automated`, and the first automated catch in this record
+against a defect class that is not about behaviour at all: **editing one file
+invalidates a reference in another that nothing links them by.**
+
+That is `#301`'s fan-out shape one more time, with the difference that this time
+an instrument existed and was pointed at it. Six surfaces of a rule change had
+to be found by hand or by set comparison; this one announced itself in twelve
+seconds.
+
+Checked before fixing that the change had not worsened the three pre-existing
+citation failures: every other stale anchor in the suite drifts NEGATIVE
+(−89, −36) or belongs to files this branch never edited, and a +17 shift appears
+nowhere. **One new stale citation, caused by this branch, and it is fixed.**
+
 ### `H-10` — the fourth `git add -A`, in the commit that documents the other three
 
 The commit carrying the fixes above was staged with `git add -A examples`. It
