@@ -14,6 +14,10 @@ validationGraph {
         node("sources/spec_workflow_close_ticket.py")
         node("sources/spec_workflow_failure_cleanup_probe.py")
         node("sources/spec_workflow_cleanup.py")
+        // G-12: the reference adapters must import where an adopter runs them,
+        // asserted where the environment cannot supply the answer. Its unit
+        // test was green for a property of the operator's machine.
+        node("sources/reference_adapters_resolve.py")
     }
 
     testGraph("cliWorkflow") {

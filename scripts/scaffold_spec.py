@@ -112,6 +112,24 @@ def _spec_double_compiler_root() -> Path | None:
     Returns None only when no candidate holds the package; an inherited
     PYTHONPATH is then the last thing left to answer.
     """
+    # THE ENCLOSING CHECKOUT FIRST, ahead of every home including an explicit
+    # one. This block is copied into `adapters.py` files that live INSIDE the
+    # spec-double-compiler repository as well as into downstream projects, and
+    # in the former the package is a sibling of the checkout root. Without this
+    # candidate the reference example imported the INSTALLED skill instead of
+    # the checkout under review -- `sys.path.insert(0, home)` outranking the
+    # repository whose tests were running -- which is the hazard the docstring
+    # above warns about, produced by the code below it.
+    #
+    # Costs a downstream project nothing: no ancestor of a scaffolded project
+    # holds a `spec_double_compiler` package, so this loop finds nothing and
+    # resolution proceeds exactly as before. Found by the blind review of `#318`,
+    # which also showed the reference example failing to import at all on any
+    # checkout that does not happen to sit under the operator's home.
+    for parent in Path(__file__).resolve().parents:
+        if (parent / "spec_double_compiler").is_dir():
+            return parent
+
     explicit = os.environ.get("SPEC_DOUBLE_COMPILER_HOME")
     if explicit:
         root = Path(explicit).expanduser()

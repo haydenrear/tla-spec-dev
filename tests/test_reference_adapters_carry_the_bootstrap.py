@@ -76,33 +76,87 @@ def test_the_bootstrap_resolves_before_the_import_it_protects() -> None:
     )
 
 
-def test_the_module_imports_with_no_pythonpath_help(tmp_path) -> None:
-    """The property, executed rather than asserted about.
+def _import_probe(target: Path) -> str:
+    return (
+        "import sys, importlib.util as u;"
+        f"sys.path.insert(0, {str(target.parents[2])!r});"
+        f"spec = u.spec_from_file_location('ref_adapters', {str(target)!r});"
+        "m = u.module_from_spec(spec); spec.loader.exec_module(m);"
+        "import spec_double_compiler as sdc;"
+        "print('OK', sdc.__file__)"
+    )
 
-    Runs the module in a subprocess from a neutral working directory with
-    `PYTHONPATH` cleared, which is the situation the block exists for and the
-    one that was failing.
+
+def test_it_imports_with_no_skill_manager_home_reachable_at_all(tmp_path) -> None:
+    """The CI condition, and the first version of this test never reached it.
+
+    It cleared `PYTHONPATH` only, and passed -- but this checkout lives UNDER
+    the operator's home directory, so the resolver's ancestor walk found
+    `~/.skill-manager` whatever the environment said. **The test was green for a
+    property of this machine, not of this repository**, and would have gone red
+    on any runner that checks out elsewhere. Found by the blind review of `#318`.
+
+    So the environment is stripped of every source the resolver consults --
+    `SPEC_DOUBLE_COMPILER_HOME`, `SKILL_MANAGER_HOME`, `PYTHONPATH` and `HOME` --
+    and the repository is copied somewhere with no home above it.
+    """
+    import os
+    import shutil
+    import subprocess
+
+    checkout = tmp_path / "checkout"
+    shutil.copytree(
+        REPO_ROOT, checkout,
+        ignore=shutil.ignore_patterns(
+            ".git", "__pycache__", ".skill-manager", "build", ".gradle", "evidence",
+        ),
+        symlinks=True,
+    )
+    target = checkout / "examples/distributed_history/specs/program_model/adapters.py"
+    assert target.is_file(), "the copy did not include the reference adapters"
+
+    env = {
+        k: v for k, v in os.environ.items()
+        if k not in ("SPEC_DOUBLE_COMPILER_HOME", "SKILL_MANAGER_HOME", "PYTHONPATH")
+    }
+    env["HOME"] = str(tmp_path / "no-home")
+
+    proc = subprocess.run(
+        [sys.executable, "-c", _import_probe(target)],
+        cwd=tmp_path, env=env, text=True, capture_output=True, timeout=180,
+    )
+    assert proc.returncode == 0, (
+        "the reference adapters do not import on a checkout with no Skill "
+        "Manager home above it -- i.e. on CI:\n" + proc.stdout + proc.stderr
+    )
+    assert str(checkout) in proc.stdout, (
+        "it imported, but not from the checkout under test:\n" + proc.stdout
+    )
+
+
+def test_the_checkout_outranks_an_installed_skill(tmp_path) -> None:
+    """The hazard the block's own docstring names, produced by the block itself.
+
+    `sys.path.insert(0, home)` put an INSTALLED spec-double-compiler ahead of
+    the repository whose tests were running, so the reference example inside
+    this skill's own repo exercised a different build than the checkout under
+    review. Confirmed before the fix: it resolved to
+    `~/.skill-manager/skills/spec-double-compiler/`.
+
+    The resolver now tries the enclosing checkout first. A scaffolded downstream
+    project has no ancestor holding the package, so nothing changes for it.
     """
     import os
     import subprocess
 
-    env = dict(os.environ)
-    env.pop("PYTHONPATH", None)
-    example = REPO_ROOT / "examples" / "distributed_history"
-    probe = (
-        "import sys;"
-        f"sys.path.insert(0, {str(example)!r});"
-        "import importlib.util as u;"
-        f"spec = u.spec_from_file_location('ref_adapters', {str(REFERENCE)!r});"
-        "m = u.module_from_spec(spec); spec.loader.exec_module(m);"
-        "print('imported', hasattr(m, '_InternalAdapter'))"
-    )
+    target = REPO_ROOT / "examples/distributed_history/specs/program_model/adapters.py"
+    env = {k: v for k, v in os.environ.items() if k != "SKILL_MANAGER_HOME"}
     proc = subprocess.run(
-        [sys.executable, "-c", probe], cwd=tmp_path, env=env,
-        text=True, capture_output=True, timeout=120,
+        [sys.executable, "-c", _import_probe(target)],
+        cwd=tmp_path, env=env, text=True, capture_output=True, timeout=180,
     )
-    assert proc.returncode == 0, (
-        "the reference adapters do not import with PYTHONPATH cleared:\n"
-        + proc.stdout + proc.stderr
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert str(REPO_ROOT) in proc.stdout and ".skill-manager" not in proc.stdout, (
+        "the reference adapters resolved spec_double_compiler somewhere other "
+        "than this checkout:\n" + proc.stdout
     )
-    assert "imported True" in proc.stdout, proc.stdout
