@@ -236,12 +236,12 @@ effects:
         # CD-10 (audit run 3, gap R3-3a): RunSpecUnitTests' shipped dispatch
         # spawns the generated-case runner (`python
         # scripts/run_generated_case_adapters.py ...`, built at
-        # scripts/tla_spec_dev.py:353 (run_generated_case_adapters.py) and
-        # executed at scripts/tla_spec_dev.py:408 (subprocess.run) whenever a
+        # scripts/tla_spec_dev.py:369 (run_generated_case_adapters.py) and
+        # executed at scripts/tla_spec_dev.py:433 (subprocess.run) whenever a
         # target carries a generated case package.
         # That command line does not match test_process's `*pytest*` -- only
         # the `uv run --with pytest -m pytest` child at
-        # scripts/tla_spec_dev.py:335-342 (--with) does -- so the
+        # scripts/tla_spec_dev.py:353 (--with) does -- so the
         # runner spawn gets its own port rather than a widened, dishonest
         # test_process target.
         runner_process:
@@ -256,7 +256,7 @@ effects:
         # (scripts/spec_evolution.py:385 (shutil.rmtree) via
         # scripts/spec_evolution.py:580 (replace_tree), the GitHub #22
         # data-loss mechanism), and unlink of seeded paths the ticket dropped
-        # (scripts/spec_evolution.py:477 (target.unlink)). filesystem.write
+        # (scripts/spec_evolution.py:1180 (target.unlink)). filesystem.write
         # on spec_tree never covered these -- the schema distinguishes
         # filesystem.delete precisely so a delete cannot hide under a write.
         spec_tree_delete:
@@ -280,7 +280,7 @@ effects:
         # MF-026 (hexagonal-prompting, gap G-2). PRE-EXISTING AT THE EPIC BASE
         # and surfaced by no previous audit round. RunSpecUnitTests --no-batch
         # spawns `<python> <work_dir>/programs/case_*.py` --
-        # scripts/run_generated_case_adapters.py:2276 (subprocess.run) -- which
+        # scripts/run_generated_case_adapters.py:2187 (subprocess.run) -- which
         # matches neither test_process (`*pytest*`) nor runner_process
         # (`*run_generated_case_adapters*`), and `work_dir` defaults to
         # tempfile.mkdtemp, outside spec_tree and evidence_report. Declared
@@ -291,7 +291,7 @@ effects:
           type: process.spawn
           target: "*programs/case-*"
         # MF-026 round 2, G-2 write half. With no --work-dir the runner writes
-        # into tempfile.mkdtemp -- scripts/run_generated_case_adapters.py:2392 (mkdtemp)
+        # into tempfile.mkdtemp -- scripts/run_generated_case_adapters.py:2356 (mkdtemp)
         # (mkdtemp) -- placing the per-case program at
         # scripts/run_generated_case_adapters.py:1353 (program_path). No
         # declared write port accepted that path.
@@ -300,7 +300,7 @@ effects:
           target: "**/programs/case-*"
         # CD-10 (audit run 3, gap R3-3b): CloseTicket spawns `git rev-parse
         # ...` for history-entry provenance
-        # (scripts/spec_evolution.py:99 (subprocess.run), via
+        # (scripts/spec_evolution.py:142 (subprocess.run), via
         # scripts/spec_evolution.py:1093 (git_metadata) at
         # ticket close and scripts/spec_evolution.py:1195 (git_metadata) at
         # workflow close). The

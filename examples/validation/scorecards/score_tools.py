@@ -92,6 +92,11 @@ of which is implemented by `audit` rather than merely written down.
 """
 from __future__ import annotations
 
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[3] / "scripts"))
+import verdict  # noqa: E402
+
 import argparse
 import hashlib
 import itertools
@@ -3330,6 +3335,7 @@ def cmd_audit(argv: list[str]) -> int:
     ap.add_argument("--root", default=str(DEFAULT_SCORECARD_ROOT))
     ap.add_argument("--rubric", default=str(DEFAULT_RUBRIC))
     ap.add_argument("--quiet-ok", action="store_true", help="hide the OK lines")
+    verdict.add_verdict_argument(ap)
     args = ap.parse_args(argv)
     root = pathlib.Path(args.root)
     try:
@@ -3357,6 +3363,24 @@ def cmd_audit(argv: list[str]) -> int:
               f"-- a reading rule nothing executes will drift")
         violations += len(unimplemented)
     print(f"\n{violations} violation(s)")
+
+    # The verdict as data. Two instruments -- `scorecard-audit` and
+    # `scorecard-contested-drift` -- asserted on the literal string
+    # `"1 violation(s)"`, which couples a demonstration to a count AND to a
+    # plural AND to a sentence. The count belongs in `detail`; what a
+    # demonstration should assert is that the audit found violations at all.
+    verdict.Verdict(
+        instrument="scorecard-audit",
+        verdict="fail" if violations else "pass",
+        reason="reading_rule_violations" if violations else "reading_rules_clean",
+        detail={
+            "violations": violations,
+            "cards": len(ctx["rows"]),
+            "claims": len(ctx["claims"]),
+            "unimplemented_rules": unimplemented,
+        },
+    ).write(getattr(args, "verdict_json", None))
+
     return 1 if violations else 0
 
 

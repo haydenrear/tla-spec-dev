@@ -1,0 +1,506 @@
+{
+  "schema_version": 1,
+  "run_id": "round-001",
+  "started_utc": "2026-09-02T12:53:50.871977+00:00",
+  "repo_commit": "5cac1c05ebe120b559138b30da1e9fe2151c05a9",
+  "roles": {
+    "epic": {
+      "clone": {
+        "source": "~/.skill-manager",
+        "dest": "~/.claude/jobs/c92f85ab/tmp/ws-round1/project/.skill-manager",
+        "directories": 8085,
+        "files": 36586,
+        "symlinks": 14,
+        "bytes": 630953771,
+        "linksRelativized": 0,
+        "stateReanchored": 23,
+        "provisionedRewritten": 6,
+        "leaks": 0,
+        "contentReferences": 174,
+        "danglingLinks": 0,
+        "danglingReferences": 6,
+        "droppedRegistrations": 6,
+        "droppedBindings": 40,
+        "droppedChildHomes": 5,
+        "clean": true,
+        "manifestShortfall": {
+          "manifest": null,
+          "declared": 0,
+          "missing": []
+        }
+      },
+      "ask": "You own a new epic on this repository. Set the repository up so that its\nbehaviour is carried by a TLA+ program spec, then write down the epic as a\nplan: what the ending state is, and the tickets that get there, with the first\none ready for a different agent to pick up tomorrow.\n\nDo not implement any ticket. Plan only.",
+      "predicts": "The scaffold verbs are cheap (T1 measured that). The expensive, and the one\nworth watching, is whether the agent finds the PLAN half of\ndesired_program_model at all: SKILL.md says the desired model is \"not only a\nfuture TLA+ model; it is also the structured implementation plan\", and an agent\nthat reads it as a spec directory writes TLA+ and no ticket_plan.yaml.",
+      "dispatch": {
+        "role": "epic",
+        "tier": "project",
+        "home": "~/.claude/jobs/c92f85ab/tmp/ws-round1/project/.skill-manager",
+        "launch_style": "hand-bound",
+        "launch_note": "LAUNCH STYLE: hand-bound, NOT `skill-manager exec`, and that is a finding\nrather than a preference.\n\nreferences/runtime_requirements.md says to launch through the home's\n`bin/launch/{claude,codex,gemini}` shims or `skill-manager exec`, because those\nput the home's bin/ first and strip other homes' bin/ -- \"the part\nhand-exporting always misses\". This harness measured that path and it does not\nstart a session:\n\n    $ skill-manager exec --home ~/.skill-manager -- claude -p \"say OK\"\n    Not logged in - Please run /login          (terminal_reason: api_error)\n\nThat is the ROOT home, whose CLAUDE_CONFIG_DIR resolves to the operator's own\n~/.claude, so it is not the per-home config redirect. The same prompt run\nwithout `exec` completes normally, and completes normally again with\nSKILL_MANAGER_HOME and PATH bound to the same home by hand. Measured on\nskill-manager 0.25.1 / claude 2.1.258 with keychain OAuth; an ANTHROPIC_API_KEY\nlaunch passes its key through the environment and would not see this.\n\nSo the binding here is done explicitly, and it does the one thing the docs warn\nhand-exporting forgets: every OTHER home's bin/ is removed from PATH, not just\nthis home's prepended. What is bound:\n\n    SKILL_MANAGER_HOME  -> this tier's home\n    PATH                -> this home's bin/cli and bin/mcp first, every other\n                           home's bin removed\n    CLAUDE_CONFIG_DIR   -> LEFT ALONE. Redirecting it is what `exec` does and\n                           it is also what leaves the launch unauthenticated.\n\nWhat that costs, stated rather than glossed: `tla-spec-dev`, `tlc2`, `pytest`\nand `jinja2` come from THIS home (the wrappers with its absolute path baked in,\nwhich is the isolation runtime_requirements.md actually argues for), while the\nskill and plugin BYTES come from the operator's agent config. skt therefore\nloads, and its `skt status` report is produced by this home's `skt`.",
+        "claude_bin": "~/.local/bin/claude",
+        "cwd": "~/.claude/jobs/c92f85ab/tmp/ws-round1/project",
+        "status": "ok",
+        "returncode": 0,
+        "duration_seconds": 1847.809,
+        "budget_seconds": 2400.0,
+        "permission_mode": "bypassPermissions"
+      },
+      "harvest": {
+        "parsed": true,
+        "assistant_turns": 118,
+        "tool_calls": 73,
+        "tool_errors": [
+          {
+            "tool": "Bash",
+            "input": "{\"command\": \"cd ~/.claude/jobs/c92f85ab/tmp/ws-round1/project; E=.skill-manager/skills/spec-double-compiler/examples/distributed_history/specs/program_model; for f in adapters.py tlc_projection.py; do echo \\\"=== $f\\\"; cat $E/$f; done; ls $E/tests; echo === test-graph SKILL; cat .skill-manager/skills/test-graph/SKILL.md\", \"description\": \"Read example adapters, projection, and test-graph skill\"}",
+            "error": "Exit code 1\n=== adapters.py\nfrom __future__ import annotations\n\nimport json\nimport os\nimport time\nimport urllib.error\nimport urllib.request\nfrom pathlib import Path\nfrom typing import Any\n\nfrom ecommerce_backend.domain import EcommerceStore\nfrom spec_double_compiler.runtime import CaseRunResult\n\n\ndef _state(value: Any) -> dict[str, Any]:\n    return json.loads(json.dumps(value, sort_keys=True))\n\n\nclass _InternalAdapter:\n    def setup_all(self, context: Any) -> None:\n        context.shared[\"setup_all_called\"] = True\n\n    def teardown_all(self, context: Any) -> None:\n        context.shared[\"teardown_all_called\"] = True\n\n    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:\n        store = EcommerceStore()\n        try:\n            store.load_state(case.before)\n            output = self.apply(store, case.input.params)\n            return CaseRunResult(output=output, after=store.snapshot())\n        finally:\n            store.close()\n\n    def apply(self, store: EcommerceStore, params: dict[str, Any]) -> dict[str, Any]:\n        raise NotImplementedError\n\n\nclass CreateAccountInternalAdapter(_InternalAdapter):\n    def apply(self, store: EcommerceStore, params: dict[str, Any]) -> dict[str, Any]:\n        result = store.create_account(params[\"account\"])\n        return {\"status\": result.status, \"body\": result.body}\n\n\nclass AddCartItemInternalAdapter(_InternalAdapter):\n    def apply(self, store: EcommerceStore, params: dict[str, Any]) -> dict[str, Any]:\n        result = store.add_cart_item(params[\"account\"], params[\"sku\"])\n        return {\"status\": result.status, \"body\": result.body}\n\n\nclass CheckoutInternalAdapter(_InternalAdapter):\n    def apply(self, store: EcommerceStore, params: dict[str, Any]) -> dict[str, Any]:\n        result = store.checkout(params[\"account\"], params[\"order\"])\n        return {\"status\": result.status, \"body\": result.body}\n\n\nclass ProjectOrderInternalAdapter(_InternalAdapter):\n    def apply(self, store: EcommerceStore, params: dict[str, Any]) -> dict[str, Any]:\n        result = store.project_order(params[\"order\"])\n        return {\"status\": result.status, \"body\": result.body}\n\n\nclass _HttpAdapter:\n    def setup_all(self, context: Any) -> None:\n        base_url = os.environ.get(\"ECOMMERCE_BASE_URL\", \"http://127.0.0.1:18080\")\n        context.shared[\"base_url\"] = base_url.rstrip(\"/\")\n        self._wait_for_health(context.shared[\"base_url\"])\n        self._post(context.shared[\"base_url\"], \"/debug/traffic/reset\", {})\n        self._post(context.shared[\"base_url\"], \"/debug/reset\", {})\n\n    def teardown_all(self, context: Any) -> None:\n        base_url = context.shared.get(\"base_url\") or os.environ.get(\"ECOMMERCE_BASE_URL\", \"http://127.0.0.1:18080\")\n        try:\n            self._post(base_url.rstrip(\"/\"), \"/debug/reset\", {})\n        except Exception:\n            return\n\n    def setup(self, context: Any) -> None:\n        base_url = context.shared[\"base_url\"]\n        self._post(base_url, \"/debug/reset\", {})\n        self._post(base_url, \"/debug/load\", {\"state\": context.case.before})\n\n    def teardown(self, context: Any) -> None:\n        self._post(context.shared[\"base_url\"], \"/debug/reset\", {})\n\n    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:\n        base_url = os.environ.get(\"ECOMMERCE_BASE_URL\", \"http://127.0.0.1:18080\").rstrip(\"/\")\n        result = self.apply(base_url, case.input.params)\n        return CaseRunResult(output=result)\n\n    def apply(self, base_url: str, params: dict[str, Any]) -> dict[str, Any]:\n        raise NotImplementedError\n\n    def _wait_for_health(self, base_url: str) -> None:\n        deadline = time.time() + 20\n        last_error: BaseException | None = None\n        while time.time() < deadline:\n            try:\n                self._get(base_url, \"/health\")\n                return\n            except Exception as exc:\n                last_error = exc\n                time.sleep(0.2)\n        raise RuntimeError(f\"service did not become healthy at {base_url}: {l\n... [6039 more chars]",
+            "kind": "toolchain"
+          },
+          {
+            "tool": "Bash",
+            "input": "{\"command\": \"cd specs/program_model && for f in spec_manifest.yaml adapters.py tlc_projection.py providers.py effect_provider_usage.yaml tests/test_program_model_onboarding.py tests/test_spec_unit_adapters.py; do echo \\\"=== $f\\\"; cat $f; done\", \"description\": \"Read scaffolded manifest, adapters, providers and tests\"}",
+            "error": "Exit code 1\n(eval):cd:1: no such file or directory: specs/program_model",
+            "kind": "shell"
+          },
+          {
+            "tool": "Bash",
+            "input": "{\"command\": \"E=.skill-manager/skills/spec-double-compiler/examples/distributed_history; echo \\\"=== build.gradle.kts\\\"; cat $E/test_graph/build.gradle.kts; echo \\\"=== sources\\\"; ls $E/test_graph/sources; echo \\\"=== README\\\"; cat $E/test_graph/README.md | head -80; echo \\\"=== regenerate\\\"; cat $E/scripts/regenerate_tlc_cases.py\", \"description\": \"Read example test_graph composition and case regeneration\"}",
+            "error": "Exit code 1\n=== build.gradle.kts\ncat: .skill-manager/skills/spec-double-compiler/examples/distributed_history/test_graph/build.gradle.kts: No such file or directory\n=== sources\nls: .skill-manager/skills/spec-double-compiler/examples/distributed_history/test_graph/sources: No such file or directory\n=== README\ncat: .skill-manager/skills/spec-double-compiler/examples/distributed_history/test_graph/README.md: No such file or directory\n=== regenerate\ncat: .skill-manager/skills/spec-double-compiler/examples/distributed_history/scripts/regenerate_tlc_cases.py: No such file or directory",
+            "kind": "toolchain"
+          },
+          {
+            "tool": "Bash",
+            "input": "{\"command\": \"E=.skill-manager/skills/spec-double-compiler/examples/distributed_history; sed -n 150,260p $E/specs/program_model/adapters.py; echo \\\"=== test-graph scaffold help\\\"; python3 .skill-manager/skills/test-graph/scripts/scaffold.py --help 2>&1 | head -30; ls .skill-manager/skills/test-graph/scripts; echo \\\"=== test-graph workflows.md (scaffold + uv node sections)\\\"; sed -n 1,140p .skill-manager/skills/test-graph/references/workflows.md\", \"description\": \"Read example HTTP adapter middle and test-graph scaffolding docs\"}",
+            "error": "Exit code 1\nsed: .skill-manager/skills/spec-double-compiler/examples/distributed_history/specs/program_model/adapters.py: No such file or directory\n=== test-graph scaffold help\n/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python: can't open file '~/.claude/jobs/c92f85ab/tmp/ws-round1/project/specs/program_model/.skill-manager/skills/test-graph/scripts/scaffold.py': [Errno 2] No such file or directory\nls: .skill-manager/skills/test-graph/scripts: No such file or directory\n=== test-graph workflows.md (scaffold + uv node sections)\nsed: .skill-manager/skills/test-graph/references/workflows.md: No such file or directory",
+            "kind": "toolchain"
+          },
+          {
+            "tool": "Bash",
+            "input": "{\"command\": \"python3 .skill-manager/skills/test-graph/scripts/new-uv-node.py shortlink.external_cases action 2>&1 | tail -5; python3 .skill-manager/skills/test-graph/scripts/new-uv-node.py shortlink.evidence evidence 2>&1 | tail -5; echo \\\"=== generated node\\\"; cat test_graph/sources/shortlink_external_cases.py\", \"description\": \"Generate uv node skeletons for the external graph\"}",
+            "error": "Exit code 1\nerror: node id must be dotted lowercase segments (got 'shortlink.external_cases'); e.g. 'checkout.smoke'\n  1. fill in the body\n  2. add `node(\"sources/shortlink_evidence.py\")` to build.gradle.kts\n     (or leave it out \u2014 it'll be pulled in transitively if something dependsOn it)\n  3. <skill>/scripts/discover.py <graph>             # dry-run the plan\n  4. <skill>/scripts/run.py <graph>                  # run the graph that includes shortlink.evidence\n=== generated node\ncat: test_graph/sources/shortlink_external_cases.py: No such file or directory",
+            "kind": "toolchain"
+          }
+        ],
+        "tool_error_count": 5,
+        "toolchain_error_count": 4,
+        "shell_error_count": 1,
+        "final": {
+          "subtype": "success",
+          "is_error": false,
+          "num_turns": 77,
+          "duration_ms": 1840421,
+          "total_cost_usd": 16.259204499999996,
+          "usage": {
+            "input_tokens": 1550,
+            "cache_creation_input_tokens": 364795,
+            "cache_read_input_tokens": 5939218,
+            "output_tokens": 149260,
+            "output_tokens_details": {
+              "thinking_tokens": 54887
+            },
+            "server_tool_use": {
+              "web_search_requests": 0,
+              "web_fetch_requests": 0
+            },
+            "service_tier": "standard",
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 364795,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "inference_geo": "not_available",
+            "iterations": [
+              {
+                "input_tokens": 56,
+                "output_tokens": 1634,
+                "cache_read_input_tokens": 372719,
+                "cache_creation_input_tokens": 2083,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 2083
+                },
+                "type": "message"
+              }
+            ],
+            "speed": "standard"
+          },
+          "result": "Done. The repository now carries its behaviour in a TLA+ program spec on `main`, and the epic is planned on `epic/shortlink-spec` with SL-1 ready for another agent to pick up.\n\n**Baseline on `main` (commit 5ca5279).** `specs/program_model/` models the Shortener as one named action per command outcome across two views: 13 Internal actions (4 commands, 9 refusal rules, `Release` included so the release-then-re-reserve trace is represented) and 13 mirrored External actions with a response record. TLC passes on both configs. The generated Internal corpus runs green against the real `shortlink.Shortener` through spec-unit adapters, and the External view exports Test Graph traces over a declared `cli` channel. The fixture's own 4 tests are untouched and green. A `test_graph/` project is scaffolded with the `shortlinkExternal` graph composed.\n\n| Check | Result |\n| --- | --- |\n| TLC Internal / External | pass, 111 distinct states each (one slug) |\n| Spec-unit cases vs real Shortener | 112 executed, 0 failures |\n| External traces exported | 112, channel gate passed |\n| `shortlinkExternal` graph | errored, 0 of 112 executed (no channel exists yet) |\n| `test_shortlink.py` | 4 of 4 pass |\n\n**Epic plan on `epic/shortlink-spec`** (worktree `../wt-epic-shortlink-spec`, tip 1bec438). The canonical plan is `specs/desired_program_model/ticket_plan.yaml`; it validates cleanly. The desired model there is the whole-program end state, already model-checked: the reservation window the module docstring promises (logical clock, per-slug deadlines, `Tick`, `ClaimRefusedExpired`, a `ClaimOnlyWhileActive` property) plus the public `tick` command and cli-driving adapters.\n\nEnding state: every Shortlink behaviour, including expiry, is generated from the spec and validated at both boundaries: spec-unit cases in-process, and External cases driven over a `shortlink_cli` process with matched projected state in the graph.\n\n| Ticket | Wave | Depends on | Slice | Readiness |\n| --- | --- | --- | --- | --- |\n| SL-1 cli channel | 1 | none | `shortlink_cli` over a JSON state file, error codes, adapter `apply`, graph green | ready now |\n| SL-2 reservation window | 2 | SL-1 | clock, expiry, `tick`, new actions and adapters | after SL-1 merges and one decision (below) |\n| SL-3 evaluation | 3 | SL-1, SL-2 | runs every goal harness on the integrated tip | after both |\n\nGoals decided by SL-3: External graph passes with every case matched; spec-unit conformance including the window actions; the reservation-window property and cases; the fixture stays green. Baselines were measured on the fresh epic branch under `results/epic-shortlink-spec/baseline/`.\n\n**Hand-off for tomorrow.** The agent takes `specs/desired_program_model/issues/SL-1.md` on the epic branch as its issue body. It validates as a correct epic assignment and tells the agent how to create the worktree, open only spec ticket SL-1, run the validation matrix, and stop at the sealed branch.\n\n**Decisions I made without you, recorded under `epic.assumptions_to_confirm` in the plan.** Please confirm or amend before SL-2 dispatches.\n\n- **No git remote exists.** There are no GitHub issues; the rendered files stand in for them, and \"push\" and \"PR\" are redefined in each assignment.\n- **Goals, targets, deferment policy** (batch, escalate blocking findings, budget 5) and **review policy** (stop at every wave boundary, epic agent merges) were set by me.\n- **SL-2 is scheduled** because the docstring promises expiry and the code lacks it. Retire it if that promise is stale.\n- **Case budgets block SL-2.** The desired model generates 667 cases per view against caps of 200 (internal) and 50 per external action, because the clock multiplies every refusal case. The generator refuses over-cap corpora and I did not raise the caps. Options are recorded in the plan.\n- **Advisory warning.** The complexity descriptor flags 13 actions (15 after SL-2) against a heuristic of 8; I kept the default budgets and recorded the finding."
+        },
+        "narration": "I'll orient in the repo first, then load the epic-planning and spec-compiler skills that govern how this should be set up.\n\nThe repo is a small Python link shortener with no remote, so tickets will have to live in-repo rather than as GitHub issues. Loading the skills that govern epic planning and the spec setup.\n\nSkills loaded. The repo has no remote, so GitHub issue creation won't be available; I'll check the tooling (tla-spec-dev, TLC, test-graph) and read the planning references before doing anything.\n\nBaseline is committed on main. Creating the epic worktree with its own Skill Manager home from that pinned commit, then renaming its branch to the declared epic name.\n\nRendering the three ticket assignments against the plan commit, validating each with the assignment validator, and committing them; also indexing the memory notes.\n\nThe render script needs PyYAML, which the system Python lacks; re-running it through uv, then validating and committing the assignments.\n\nAssignments validate for all three tickets. Committing them on the epic branch and taking a final look at both checkouts.\n\nDone. The repository now carries its behaviour in a TLA+ program spec on `main`, and the epic is planned on `epic/shortlink-spec` with SL-1 ready for another agent to pick up.\n\n**Baseline on `main` (commit 5ca5279).** `specs/program_model/` models the Shortener as one named action per command outcome across two views: 13 Internal actions (4 commands, 9 refusal rules, `Release` included so the release-then-re-reserve trace is represented) and 13 mirrored External actions with a response record. TLC passes on both configs. The generated Internal corpus runs green against the real `shortlink.Shortener` through spec-unit adapters, and the External view exports Test Graph traces over a declared `cli` channel. The fixture's own 4 tests are untouched and green. A `test_graph/` project is scaffolded with the `shortlinkExternal` graph composed.\n\n| Check | Result |\n| --- | --- |\n| TLC Internal / External | pass, 111 distinct states each (one slug) |\n| Spec-unit cases vs real Shortener | 112 executed, 0 failures |\n| External traces exported | 112, channel gate passed |\n| `shortlinkExternal` graph | errored, 0 of 112 executed (no channel exists yet) |\n| `test_shortlink.py` | 4 of 4 pass |\n\n**Epic plan on `epic/shortlink-spec`** (worktree `../wt-epic-shortlink-spec`, tip 1bec438). The canonical plan is `specs/desired_program_model/ticket_plan.yaml`; it validates cleanly. The desired model there is the whole-program end state, already model-checked: the reservation window the module docstring promises (logical clock, per-slug deadlines, `Tick`, `ClaimRefusedExpired`, a `ClaimOnlyWhileActive` property) plus the public `tick` command and cli-driving adapters.\n\nEnding state: every Shortlink behaviour, including expiry, is generated from the spec and validated at both boundaries: spec-unit cases in-process, and External cases driven over a `shortlink_cli` process with matched projected state in the graph.\n\n| Ticket | Wave | Depends on | Slice | Readiness |\n| --- | --- | --- | --- | --- |\n| SL-1 cli channel | 1 | none | `shortlink_cli` over a JSON state file, error codes, adapter `apply`, graph green | ready now |\n| SL-2 reservation window | 2 | SL-1 | clock, expiry, `tick`, new actions and adapters | after SL-1 merges and one decision (below) |\n| SL-3 evaluation | 3 | SL-1, SL-2 | runs every goal harness on the integrated tip | after both |\n\nGoals decided by SL-3: External graph passes with every case matched; spec-unit conformance including the window actions; the reservation-window property and cases; the fixture stays green. Baselines were measured on the fresh epic branch under `results/epic-shortlink-spec/baseline/`.\n\n**Hand-off for tomorrow.** The agent takes `specs/desired_program_model/issues/SL-1.md` on the epic branch as its issue body. It validates as a correct epic assignment and tells the agent how to create the worktree, open only spec ticket SL-1, run the validation matrix, and stop at the sealed branch.\n\n**Decisions I made without you, recorded under `epic.assumptions_to_confirm` in the plan.** Please confirm or amend before SL-2 dispatches.\n\n- **No git remote exists.** There are no GitHub issues; the rendered files stand in for them, and \"push\" and \"PR\" are redefined in each assignment.\n- **Goals, targets, deferment policy** (batch, escalate blocking findings, budget 5) and **review policy** (stop at every wave boundary, epic agent merges) were set by me.\n- **SL-2 is scheduled** because the docstring promises expiry and the code lacks it. Retire it if that promise is stale.\n- **Case budgets block SL-2.** The desired model generates 667 cases per view against caps of 200 (internal) and 50 per external action, because the clock multiplies every refusal case. The generator refuses over-cap corpora and I did not raise the caps. Options are recorded in the plan.\n- **Advisory warning.** The complexity descriptor flags 13 actions (15 after SL-2) against a heuristic of 8; I kept the default budgets and recorded the finding."
+      },
+      "attribution_probe": {
+        "named_unmodeled_bin": [],
+        "action_shaped_mentions": [],
+        "any_attribution_shape": false
+      },
+      "done_check": {
+        "passed": false,
+        "exit": 1,
+        "script": "test -d specs/program_model && test -d specs/desired_program_model && test -f specs/desired_program_model/ticket_plan.yaml && python3 -c \"import sys,re; t=open('specs/desired_program_model/ticket_plan.yaml').read(); sys.exit(0 if re.search(r'^\\s*-\\s', t, re.M) else 1)\""
+      },
+      "fixture": {
+        "ran": true,
+        "passed": true,
+        "output": "test_a_live_slug_cannot_be_released_by_a_stranger (test_shortlink.ShortenerTests.test_a_live_slug_cannot_be_released_by_a_stranger) ... \u001b[32mok\u001b[0m\ntest_a_reservation_is_not_claimable_by_another_owner (test_shortlink.ShortenerTests.test_a_reservation_is_not_claimable_by_another_owner) ... \u001b[32mok\u001b[0m\ntest_release_frees_the_slug_for_a_different_owner (test_shortlink.ShortenerTests.test_release_frees_the_slug_for_a_different_owner) ... \u001b[32mok\u001b[0m\ntest_reserve_then_claim_makes_the_slug_live (test_shortlink.ShortenerTests.test_reserve_then_claim_makes_the_slug_live) ... \u001b[32mok\u001b[0m\n\n----------------------------------------------------------------------\nRan 4 tests in 0.000s\n\n\u001b[32mOK\u001b[0m\n"
+      },
+      "workspace": {
+        "status": "",
+        "log": "5ca5279 spec: accept the Shortlink program model baseline\nade844b shortlink: the program, and the tests that hold it up",
+        "spec_tree": "specs\nspecs/generated\nspecs/generated/dot\nspecs/generated/dot/.tlc-states\nspecs/generated/dot/External.dot\nspecs/generated/dot/Internal.dot\nspecs/generated/spec-unit\nspecs/generated/spec-unit/shortlink_internal_cases\nspecs/generated/testgraph\nspecs/generated/testgraph/shortlink_external_cases\nspecs/generated/testgraph/traces\nspecs/program_model\nspecs/program_model/__init__.py\nspecs/program_model/__pycache__\nspecs/program_model/__pycache__/__init__.cpython-313.pyc\nspecs/program_model/__pycache__/internal_adapters.cpython-313.pyc\nspecs/program_model/actions.yml\nspecs/program_model/adapters.py\nspecs/program_model/case_adapters.toml\nspecs/program_model/Core.tla\nspecs/program_model/effect_provider_usage.yaml\nspecs/program_model/External.cfg\nspecs/program_model/External.tla\nspecs/program_model/internal_adapters.py\nspecs/program_model/Internal.cfg\nspecs/program_model/Internal.tla\nspecs/program_model/providers.py\nspecs/program_model/README.md\nspecs/program_model/spec_manifest.yaml\nspecs/program_model/testgraph_bindings.yml\nspecs/program_model/tests\nspecs/program_model/tests/__pycache__\nspecs/program_model/tests/test_program_model_onboarding.py\nspecs/program_model/tests/test_spec_unit_adapters.py\nspecs/program_model/tlc_projection.py\nspecs/results\nspecs/results/program_model\nspecs/results/program_model/complexity-external.txt\nspecs/results/program_model/spec-unit.txt\nspecs/results/program_model/testgraph-shortlinkExternal-baseline.log\nspecs/results/program_model/tlc-external.txt\nspecs/results/program_model/tlc-internal.txt\n"
+      },
+      "handoff_commit_rc": 1
+    },
+    "ticket": {
+      "clone": {
+        "source": "~/.claude/jobs/c92f85ab/tmp/ws-round1/project/.skill-manager",
+        "dest": "~/.claude/jobs/c92f85ab/tmp/ws-round1/ticket-worktree/.skill-manager",
+        "directories": 8082,
+        "files": 36610,
+        "symlinks": 12,
+        "bytes": 631668690,
+        "linksRelativized": 0,
+        "stateReanchored": 23,
+        "provisionedRewritten": 1,
+        "leaks": 0,
+        "contentReferences": 0,
+        "danglingLinks": 0,
+        "danglingReferences": 0,
+        "droppedRegistrations": 0,
+        "droppedBindings": 0,
+        "droppedChildHomes": 0,
+        "clean": true,
+        "manifestShortfall": {
+          "manifest": null,
+          "declared": 0,
+          "missing": []
+        }
+      },
+      "ask": "This repository has a plan with a first ticket in it, written by someone else.\nThat ticket is yours. Take it from wherever it currently sits through to done,\nincluding whatever this project expects to be recorded when work like this\nfinishes.\n\nReport at the end what you changed, and what would have caught you if you had\ngot it wrong.",
+      "predicts": "EXPENSIVE. F-01 measured three sequential ledger refusals plus F-02's\nplan-status refusal on a real close. The second half of the ask (\"what would\nhave caught you\") is the E-09 probe: SKILL.md step 13 now tells a closing agent\nto name the TLA+ action each regression happened inside. If the agent closes\nwithout ever naming an action or an UNMODELED bin, step 13 is written but not\nreachable, which is E-09 all over again in a new place.",
+      "dispatch": {
+        "role": "ticket",
+        "tier": "worktree",
+        "home": "~/.claude/jobs/c92f85ab/tmp/ws-round1/ticket-worktree/.skill-manager",
+        "launch_style": "hand-bound",
+        "launch_note": "LAUNCH STYLE: hand-bound, NOT `skill-manager exec`, and that is a finding\nrather than a preference.\n\nreferences/runtime_requirements.md says to launch through the home's\n`bin/launch/{claude,codex,gemini}` shims or `skill-manager exec`, because those\nput the home's bin/ first and strip other homes' bin/ -- \"the part\nhand-exporting always misses\". This harness measured that path and it does not\nstart a session:\n\n    $ skill-manager exec --home ~/.skill-manager -- claude -p \"say OK\"\n    Not logged in - Please run /login          (terminal_reason: api_error)\n\nThat is the ROOT home, whose CLAUDE_CONFIG_DIR resolves to the operator's own\n~/.claude, so it is not the per-home config redirect. The same prompt run\nwithout `exec` completes normally, and completes normally again with\nSKILL_MANAGER_HOME and PATH bound to the same home by hand. Measured on\nskill-manager 0.25.1 / claude 2.1.258 with keychain OAuth; an ANTHROPIC_API_KEY\nlaunch passes its key through the environment and would not see this.\n\nSo the binding here is done explicitly, and it does the one thing the docs warn\nhand-exporting forgets: every OTHER home's bin/ is removed from PATH, not just\nthis home's prepended. What is bound:\n\n    SKILL_MANAGER_HOME  -> this tier's home\n    PATH                -> this home's bin/cli and bin/mcp first, every other\n                           home's bin removed\n    CLAUDE_CONFIG_DIR   -> LEFT ALONE. Redirecting it is what `exec` does and\n                           it is also what leaves the launch unauthenticated.\n\nWhat that costs, stated rather than glossed: `tla-spec-dev`, `tlc2`, `pytest`\nand `jinja2` come from THIS home (the wrappers with its absolute path baked in,\nwhich is the isolation runtime_requirements.md actually argues for), while the\nskill and plugin BYTES come from the operator's agent config. skt therefore\nloads, and its `skt status` report is produced by this home's `skt`.",
+        "claude_bin": "~/.local/bin/claude",
+        "cwd": "~/.claude/jobs/c92f85ab/tmp/ws-round1/ticket-worktree",
+        "status": "ok",
+        "returncode": 0,
+        "duration_seconds": 805.867,
+        "budget_seconds": 3000.0,
+        "permission_mode": "bypassPermissions"
+      },
+      "harvest": {
+        "parsed": true,
+        "assistant_turns": 119,
+        "tool_calls": 78,
+        "tool_errors": [
+          {
+            "tool": "Bash",
+            "input": "{\"command\": \"git show epic/shortlink-spec:specs/desired_program_model/ticket_plan.yaml; echo =====SL-1=====; git show epic/shortlink-spec:specs/desired_program_model/issues/SL-1.md\", \"description\": \"Read the ticket plan and SL-1 assignment\"}",
+            "error": "Exit code 1\n# Canonical plan for epic shortlink-spec (git-epic-workflow). This file is the\n# schedule; the rendered assignments under issues/ mirror it for handoff and\n# never replace it. Keep it synchronized with spec_manifest.yaml status.\nversion: 1\nname: shortlink-spec-epic\nupdated: \"2026-09-02\"\nschedule_revision: 1\npurpose: >-\n  Carry every Shortlink behaviour by the program spec at both boundaries: the\n  public surface becomes drivable from outside the process so the External\n  corpus runs end to end, and the reservation window the module docstring\n  promises (\"a reservation must be claimed before it expires\") is modeled,\n  implemented, and generated into cases at both boundaries.\n\nepic:\n  id: EPIC-shortlink-spec\n  branch: epic/shortlink-spec\n  default_branch: main\n  base_sha: 5ca5279b1b63ca1955cde4ac603267572dd05149\n  workflow: shortlink-spec-epic\n  evidence_root: results/epic-shortlink-spec\n  tracker: >-\n    No git remote exists, so there are no GitHub issues. Each ticket's rendered\n    assignment lives at specs/desired_program_model/issues/<id>.md and is the\n    body a ticket agent is handed. Create the issues from those files if a\n    remote appears; the plan stays canonical either way.\n  assumptions_to_confirm:\n    - Goals, targets, the deferment policy, and the review policy were set by the epic agent without the user present; confirm or amend before dispatch.\n    - The reservation window (SL-2) is scheduled because shortlink.py's docstring promises it and the code lacks it; retire SL-2 if that promise is stale.\n    - Complexity budgets are the defaults; max_component_actions 8 is exceeded (13 actions per view now, 15 after SL-2) and is reported, not raised.\n    - \"DECISION REQUIRED BEFORE SL-2 IS DISPATCHED (at the wave-1 review): the desired model's corpora are over the default case caps and the generator refuses over-cap corpora with no trimming option. Measured on the desired model (Window=2, MaxTime=3, one slug): 667 internal cases against max_internal_cases_per_component 200, and 667 external cases with SubmitClaimNotReserved=180, SubmitClaimWrongOwner=120, SubmitReleaseNotLive=72 against max_external_cases_per_action 50. The clock multiplies every clock-independent refusal case. Options: (a) accept path -- raise both caps with a recorded rationale (source: negotiated) in the SL-2 ticket-local manifests; (b) shrink the finite model (Window=1, MaxTime=2, or drop the empty-string owner/target values) and accept the lost boundary cases; (c) restructure so refusals are not enumerated per clock value. SL-2 cannot close until one is chosen.\"\n\nending_state: >-\n  specs/program_model (promoted from this desired model) has Internal and\n  External views with 15 actions each; shortlink.Shortener carries a logical\n  clock, reservation deadlines, and tick(); shortlink_cli drives reserve /\n  claim / release / resolve / tick over a JSON state file with the status/body\n  response contract; every generated Internal case passes through\n  internal_adapters.py and every generated External case passes through the\n  cli adapters with a matched projected state in the shortlinkExternal graph;\n  the fixture's own tests remain green; every goal below has a recorded verdict.\n\nplanning_rules:\n  current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.\n  unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.\n  graph_rule: Add graph or integration nodes only after current-model validation passes.\n  semantic_model_rule: Do not add test graph nodes, pytest jobs, CI workflow steps, integration harnesses, or validation scripts as TLA+ program state/actions.\n  evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.\n  desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes.\n  promotion_ru\n... [6040 more chars]",
+            "kind": "shell"
+          },
+          {
+            "tool": "Bash",
+            "input": "{\"command\": \"git show epic/shortlink-spec:specs/desired_program_model/issues/SL-1.md; echo; echo =====PLAN-SL-1=====; git show epic/shortlink-spec:specs/desired_program_model/ticket_plan.yaml | sed -n '/^goals:/,/id: SL-2/p'\", \"description\": \"Read the SL-1 assignment and its plan entry\"}",
+            "error": "Exit code 1\n# SL-1: Public cli channel: shortlink_cli drives every External case and the shortlinkExternal graph passes\n\n> Rendered from the canonical plan `specs/desired_program_model/ticket_plan.yaml`\n> at commit `66b4b74cb8c4` (schedule revision 1). This file is the issue body a\n> ticket agent is handed, because the repository has no git remote. If a\n> remote appears, create the GitHub issue from this body and write its URL\n> back into the plan. **Readiness: READY NOW \u2014 no dependencies.**\n\n## Summary\nThe program becomes drivable from outside its process. A new shortlink_cli module exposes reserve, claim, release and resolve over a JSON state file with the exact response contract documented in specs/desired_program_model/adapters.py (status/body JSON on stdout, exit 0 for ok and 1 for refused, outcome codes from Core.Outcomes); ShortlinkError carries that outcome code; the External adapters' `apply` drives the CLI; the shortlinkExternal graph passes with every generated case matched. No TLA+ semantics change: the ticket's desired and current views are equal on .tla/.cfg and differ from the epic base only in adapters.py (implemented apply) -- record that no-op model result and its evidence at close. The baseline corpora (112 internal, 112 external) are within every cap, so this ticket needs no budget decision.\n\n<!-- git-epic-workflow:assignment:start -->\n## Epic execution \u2014 REQUIRED\n\n```yaml\nversion: 1\nepic:\n  id: \"EPIC-shortlink-spec\"\n  workflow: \"shortlink-spec-epic\"\n  branch: \"epic/shortlink-spec\"\n  base_sha: \"66b4b74cb8c4f2ec4d13cc43d62e69c167f2454b\"\n  plan_commit: \"66b4b74cb8c4f2ec4d13cc43d62e69c167f2454b\"\n  schedule_revision: 1\n  default_branch: \"main\"\nticket:\n  spec_id: \"SL-1\"\n  feature_branch: \"feature/SL-1-cli-channel\"\n  worktree: \"../wt-SL-1-cli-channel\"\n  pr_base: \"epic/shortlink-spec\"\n  depends_on: []\n  blocks: [SL-2, SL-3]\n  wave: 1\n  promotion_order: 10\n  promotion_predecessor: null\n  role: implementation\n  conflict_keys:\n    production: [shortlink.py, shortlink_cli.py, README.md]\n    tla: []\n    adapters: [specs/tickets/SL-1/**/adapters.py, specs/tickets/SL-1/**/internal_adapters.py, specs/tickets/SL-1/**/spec_manifest.yaml]\n    test_graph: [test_graph/sources/shortlink_cases.py, test_graph/sources/shortlink_evidence.py]\n    workflow: [specs/desired_program_model/ticket_plan.yaml#SL-1]\ngoals:\n  - goal: \"GOAL-external-graph\"\n    kind: \"integration\"\n    statement: \"The shortlinkExternal graph passes end to end: every generated External case drives the program over the cli channel and its projected state matches the model.\"\n    metric: \"Graph status; executedCaseCount vs expectedCaseCount from shortlink.cases; every program-state.json record matched from shortlink.evidence\"\n    baseline: \"errored: shortlink.cases executed 0 of 112 generated cases (adapter NotImplementedError: no cli channel) (measured at 5ca5279)\"\n    target: \"graph status passed; executedCaseCount == expectedCaseCount (>= 112, more after SL-2); every projected-state record matched: true\"\n    decided_by:\n      ticket: \"SL-3\"\n      harness: \"SHORTLINK_SPEC_DIR=specs/current \\\"${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/test-graph/scripts/run.py\\\" shortlinkExternal\"\n    contribution: \"direct\"\n    expected_effect: \"graph goes from errored (0 of 112 executed) to passed with 112 of 112 executed and matched\"\n    local_signal: \"SHORTLINK_SPEC_DIR=specs/tickets/SL-1/current \\\"${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/test-graph/scripts/run.py\\\" shortlinkExternal\"\n  - goal: \"GOAL-spec-unit-conformance\"\n    kind: \"quality\"\n    statement: \"Every generated Internal case passes through the spec-unit adapters against shortlink.Shortener, including the reservation-window actions once they exist.\"\n    metric: \"spec-unit validation result and 'executed N cases in batch' for specs/current\"\n    baseline: \"passed; executed 112 cases in batch across 13 actions (measured at 5ca5279)\"\n    target: \"passed on the integrated epic; corpus covers 15 actions i\n... [6039 more chars]",
+            "kind": "shell"
+          }
+        ],
+        "tool_error_count": 2,
+        "toolchain_error_count": 0,
+        "shell_error_count": 2,
+        "final": {
+          "subtype": "success",
+          "is_error": false,
+          "num_turns": 80,
+          "duration_ms": 797491,
+          "total_cost_usd": 8.649753999999998,
+          "usage": {
+            "input_tokens": 1438,
+            "cache_creation_input_tokens": 236435,
+            "cache_read_input_tokens": 3961696,
+            "output_tokens": 58325,
+            "output_tokens_details": {
+              "thinking_tokens": 16942
+            },
+            "server_tool_use": {
+              "web_search_requests": 0,
+              "web_fetch_requests": 0
+            },
+            "service_tier": "standard",
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 236435,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "inference_geo": "not_available",
+            "iterations": [
+              {
+                "input_tokens": 56,
+                "output_tokens": 1133,
+                "cache_read_input_tokens": 243543,
+                "cache_creation_input_tokens": 5554,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 5554
+                },
+                "type": "message"
+              }
+            ],
+            "speed": "standard"
+          },
+          "result": "SL-1 is done and sealed for the epic owner's review. Branch `feature/SL-1-cli-channel` sits at commit 03991a9 on top of the epic tip, in this worktree, with the PR body at `PR.md`. Per the epic assignment I did not merge it, touch `main`, or remove the worktree.\n\n**What changed**\n\n- **New `shortlink_cli.py`.** One process per command over a JSON state file. stdout is one status/body JSON object, exit 0 for ok and 1 for refused, with the refusal code from the model's outcome set. The file is rewritten only by an accepted mutating command, and empty-string arguments reach the program verbatim.\n- **`shortlink.py`.** Each refusal now carries a stable outcome code on the exception. Messages are byte-identical, so the four fixture tests pass unchanged.\n- **Spec workflow.** The ticket's desired and current views differ from the epic base only in the adapters: the External adapters' `apply` now drives the CLI, the internal adapters report the exception code, and the bindings name their adapter modules bare so the selected view executes its own copy. The ticket closed through the default equality gate and promoted into `specs/current`. History is at `specs/.history/shortlink-spec-epic/ticket-000-SL-1`, with all evidence under its results directory. Only the SL-1 plan entry was edited.\n- **Validation.** TLC passes on both views and is identical to the base. The spec-unit corpus passes on both targets. The `shortlinkExternal` graph went from the recorded baseline of 0 executed to passed with every case executed and every projected state matched. A re-run on the promoted `specs/current` also passed.\n- **Recorded.** One backlog entry, DEF-001, and two skill-feedback items. The read-only home close-out gate reported clean. Project memory updated.\n\n**Deviation to know about.** The assignment declared a worktree at `../wt-SL-1-cli-channel`. The harness gave me this worktree and forbade leaving it, so I renamed its branch and reset it to the epic tip instead of creating a second worktree and home. The sweep needs to target this path explicitly.\n\n**What would have caught me if I had got it wrong**\n\n- The graph and the spec-unit run are the direct catch for a wrong response body, exit code, refusal order, or state-file shape. Every case writes a projected-state record that is compared to the model's `after`.\n- The fixture's four tests would catch any change to the exception messages.\n- The close gate would have refused a ticket whose current and desired views differed, and the ledger would have refused a missing narrative or refinement record.\n- The one thing nothing would have caught is the bug I found by reading: the scaffolded bindings pointed every view at the baseline's adapter modules, so a ticket whose adapters were never wired still ran green. That is why DEF-001 is filed as major and why `specs/desired_program_model` should be rebased before SL-2 starts."
+        },
+        "narration": "I'll start by reading the memory notes and the repository layout to find the plan and its first ticket.\n\nNow I'll move this worktree's branch onto the epic tip under the declared feature-branch name, and in parallel read the ticket open/close mechanics I have to satisfy.\n\nThe branch is now `feature/SL-1-cli-channel` at the epic tip. Next I'll open the SL-1 ticket workspace and read the complexity-ledger input format that the close gate checks.\n\nFiled the backlog entry. Running the epic plan and assignment validators with a Python that has PyYAML before I close the ticket, since the close moves the ticket directory into history.\n\nPlan validates. Closing the SL-1 spec ticket now with every evidence path, and validating the rendered assignment in parallel.\n\nDiff reviewed and memory written. Now indexing the new memory file and committing the sealed ticket work on the feature branch.\n\nSL-1 is done and sealed for the epic owner's review. Branch `feature/SL-1-cli-channel` sits at commit 03991a9 on top of the epic tip, in this worktree, with the PR body at `PR.md`. Per the epic assignment I did not merge it, touch `main`, or remove the worktree.\n\n**What changed**\n\n- **New `shortlink_cli.py`.** One process per command over a JSON state file. stdout is one status/body JSON object, exit 0 for ok and 1 for refused, with the refusal code from the model's outcome set. The file is rewritten only by an accepted mutating command, and empty-string arguments reach the program verbatim.\n- **`shortlink.py`.** Each refusal now carries a stable outcome code on the exception. Messages are byte-identical, so the four fixture tests pass unchanged.\n- **Spec workflow.** The ticket's desired and current views differ from the epic base only in the adapters: the External adapters' `apply` now drives the CLI, the internal adapters report the exception code, and the bindings name their adapter modules bare so the selected view executes its own copy. The ticket closed through the default equality gate and promoted into `specs/current`. History is at `specs/.history/shortlink-spec-epic/ticket-000-SL-1`, with all evidence under its results directory. Only the SL-1 plan entry was edited.\n- **Validation.** TLC passes on both views and is identical to the base. The spec-unit corpus passes on both targets. The `shortlinkExternal` graph went from the recorded baseline of 0 executed to passed with every case executed and every projected state matched. A re-run on the promoted `specs/current` also passed.\n- **Recorded.** One backlog entry, DEF-001, and two skill-feedback items. The read-only home close-out gate reported clean. Project memory updated.\n\n**Deviation to know about.** The assignment declared a worktree at `../wt-SL-1-cli-channel`. The harness gave me this worktree and forbade leaving it, so I renamed its branch and reset it to the epic tip instead of creating a second worktree and home. The sweep needs to target this path explicitly.\n\n**What would have caught me if I had got it wrong**\n\n- The graph and the spec-unit run are the direct catch for a wrong response body, exit code, refusal order, or state-file shape. Every case writes a projected-state record that is compared to the model's `after`.\n- The fixture's four tests would catch any change to the exception messages.\n- The close gate would have refused a ticket whose current and desired views differed, and the ledger would have refused a missing narrative or refinement record.\n- The one thing nothing would have caught is the bug I found by reading: the scaffolded bindings pointed every view at the baseline's adapter modules, so a ticket whose adapters were never wired still ran green. That is why DEF-001 is filed as major and why `specs/desired_program_model` should be rebased before SL-2 starts."
+      },
+      "attribution_probe": {
+        "named_unmodeled_bin": [],
+        "action_shaped_mentions": [],
+        "any_attribution_shape": false
+      },
+      "done_check": {
+        "passed": true,
+        "exit": 0,
+        "script": "test -d specs/.history && find specs/.history -maxdepth 3 -name 'ticket-*' | grep -q ."
+      },
+      "fixture": {
+        "ran": true,
+        "passed": true,
+        "output": "test_a_live_slug_cannot_be_released_by_a_stranger (test_shortlink.ShortenerTests.test_a_live_slug_cannot_be_released_by_a_stranger) ... \u001b[32mok\u001b[0m\ntest_a_reservation_is_not_claimable_by_another_owner (test_shortlink.ShortenerTests.test_a_reservation_is_not_claimable_by_another_owner) ... \u001b[32mok\u001b[0m\ntest_release_frees_the_slug_for_a_different_owner (test_shortlink.ShortenerTests.test_release_frees_the_slug_for_a_different_owner) ... \u001b[32mok\u001b[0m\ntest_reserve_then_claim_makes_the_slug_live (test_shortlink.ShortenerTests.test_reserve_then_claim_makes_the_slug_live) ... \u001b[32mok\u001b[0m\n\n----------------------------------------------------------------------\nRan 4 tests in 0.000s\n\n\u001b[32mOK\u001b[0m\n"
+      },
+      "workspace": {
+        "status": "",
+        "log": "03991a9 SL-1: PR body for the epic owner (Refs SL-1)\n71440eb SL-1: public cli channel -- shortlink_cli drives every External case\n1bec438 epic(shortlink-spec): render the SL-1, SL-2, SL-3 assignments\n66b4b74 epic(shortlink-spec): scaffold the shared spec workflow and the canonical plan\n5ca5279 spec: accept the Shortlink program model baseline\nade844b shortlink: the program, and the tests that hold it up",
+        "spec_tree": "specs\nspecs/.history\nspecs/.history/shortlink-spec-epic\nspecs/.history/shortlink-spec-epic/ticket-000-SL-1\nspecs/current\nspecs/current/__init__.py\nspecs/current/actions.yml\nspecs/current/adapters.py\nspecs/current/case_adapters.toml\nspecs/current/Core.tla\nspecs/current/effect_provider_usage.yaml\nspecs/current/External.cfg\nspecs/current/External.tla\nspecs/current/internal_adapters.py\nspecs/current/Internal.cfg\nspecs/current/Internal.tla\nspecs/current/providers.py\nspecs/current/README.md\nspecs/current/spec_manifest.yaml\nspecs/current/testgraph_bindings.yml\nspecs/current/tests\nspecs/current/tests/test_current_ticket_workflow.py\nspecs/current/tests/test_spec_unit_adapters.py\nspecs/current/tlc_projection.py\nspecs/desired_program_model\nspecs/desired_program_model/__init__.py\nspecs/desired_program_model/actions.yml\nspecs/desired_program_model/adapters.py\nspecs/desired_program_model/case_adapters.toml\nspecs/desired_program_model/Core.tla\nspecs/desired_program_model/deferred_findings.yaml\nspecs/desired_program_model/desired_state.yaml\nspecs/desired_program_model/effect_provider_usage.yaml\nspecs/desired_program_model/External.cfg\nspecs/desired_program_model/External.tla\nspecs/desired_program_model/internal_adapters.py\nspecs/desired_program_model/Internal.cfg\nspecs/desired_program_model/Internal.tla\nspecs/desired_program_model/issues\nspecs/desired_program_model/issues/SL-1.md\nspecs/desired_program_model/issues/SL-2.md\nspecs/desired_program_model/issues/SL-3.md\nspecs/desired_program_model/providers.py\nspecs/desired_program_model/README.md\nspecs/desired_program_model/spec_manifest.yaml\nspecs/desired_program_model/testgraph_bindings.yml\nspecs/desired_program_model/tests\nspecs/desired_program_model/tests/test_spec_unit_adapters.py\nspecs/desired_program_model/ticket_plan.yaml\nspecs/desired_program_model/tlc_projection.py\nspecs/generated\nspecs/generated/dot\nspecs/generated/dot/.tlc-states\nspecs/generated/dot/External.dot\nspecs/generated/dot/Internal.dot\nspecs/generated/spec-unit\nspecs/generated/spec-unit/shortlink_internal_cases\nspecs/generated/testgraph\nspecs/generated/testgraph/shortlink_external_cases\nspecs/generated/testgraph/traces\nspecs/program_model\nspecs/program_model/__init__.py\nspecs/program_model/actions.yml\nspecs/program_model/adapters.py\nspecs/program_model/case_adapters.toml\nspecs/program_model/Core.tla\nspecs/program_model/effect_provider_usage.yaml\nspecs/program_model/External.cfg\nspecs/program_model/External.tla\nspecs/program_model/internal_adapters.py\nspecs/program_model/Internal.cfg\nspecs/program_model/Internal.tla\nspecs/program_model/providers.py\nspecs/program_model/README.md\nspecs/program_model/spec_manifest.yaml\nspecs/program_model/testgraph_bindings.yml\nspecs/program_model/tests\nspecs/program_model/tests/test_program_model_onboarding.py\nspecs/program_model/tests/test_spec_unit_adapters.py\nspecs/program_model/tlc_projection.py\n"
+      }
+    }
+  },
+  "plumbing_only": false,
+  "preflight": {
+    "claude": "~/.local/bin/claude",
+    "skill-manager": "~/.skill-manager/bin/cli/skill-manager",
+    "git": "/usr/bin/git",
+    "source_home": "~/.skill-manager",
+    "source_home_descriptor": {
+      "homeRoot": "~",
+      "policy": "live",
+      "env": {
+        "SKILL_MANAGER_HOME": "~/.skill-manager",
+        "CLAUDE_CONFIG_DIR": "~/.claude",
+        "CLAUDE_HOME": "~/.claude",
+        "CODEX_HOME": "~/.codex",
+        "GEMINI_HOME": "~/.gemini"
+      },
+      "cli": {
+        "skillManager": "~/.skill-manager/bin/cli/skill-manager"
+      },
+      "gateway": {
+        "url": "http://127.0.0.1:51717",
+        "owned": true
+      },
+      "units": [
+        {
+          "name": "acp-cdc-ai-python",
+          "kind": "skill",
+          "version": "0.2.0",
+          "source": "git",
+          "sha": "f45866987dd8e9b5284ade741ef44cf815fa84ee"
+        },
+        {
+          "name": "andrej-karpathy-skills",
+          "kind": "plugin",
+          "version": "1.0.0",
+          "source": "git",
+          "sha": "43442d0f92ee1b8c043c5721dda817a3afa565d8"
+        },
+        {
+          "name": "cdc-agent-substrate-plugin",
+          "kind": "plugin",
+          "version": "0.2.2",
+          "source": "local_file"
+        },
+        {
+          "name": "code-reviewer",
+          "kind": "harness",
+          "version": "0.1.0",
+          "source": "local_file"
+        },
+        {
+          "name": "debugging",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "91909afce1c4df7434232dfb45d1d742ea0c90f3"
+        },
+        {
+          "name": "deploy-helm",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "a367aa0091a19088684916a974b1bad19cc5a1c3"
+        },
+        {
+          "name": "discovery",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "4887bda863e4bb3e5848bc231b0ec8485c6207a0"
+        },
+        {
+          "name": "doc-repo-devops",
+          "kind": "doc",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "3bf445361f6cd10a11d251ce9f99064cc873a2b6"
+        },
+        {
+          "name": "git-epic-workflow",
+          "kind": "skill",
+          "version": "0.4.1",
+          "source": "git",
+          "sha": "7a5bb3357550c4cab2c15ce1e652bcf7e769758b"
+        },
+        {
+          "name": "git-integration-repo",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "9aad9912abe971500fb2823beebde677dc71c37a"
+        },
+        {
+          "name": "git-issue",
+          "kind": "skill",
+          "version": "0.4.0",
+          "source": "git",
+          "sha": "0bafb1a58c7ce0786e0f20ed1859137b5ff2f21b"
+        },
+        {
+          "name": "git-issue-workflow",
+          "kind": "skill",
+          "version": "0.4.1",
+          "source": "git",
+          "sha": "90f87eea2ea4d95468ed5470fa2379fc2fdd0bd6"
+        },
+        {
+          "name": "hyper-experiments",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "41b8f560d590823885824404539e9dcdf43c9e0d"
+        },
+        {
+          "name": "hyper-experiments-finance",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "5b3c8d2b78bf2e142230cadcbb820cae56e46127"
+        },
+        {
+          "name": "live-swarm-agent",
+          "kind": "harness",
+          "version": "0.1.0",
+          "source": "local_file"
+        },
+        {
+          "name": "llm-wiki",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "f84685a36b35fb76f37f5eef6eb0ecec131a7b1d"
+        },
+        {
+          "name": "plugin-repository",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "5e156f42d7bd6bdff89db96c1a4d2f340b330f62"
+        },
+        {
+          "name": "repo-coder",
+          "kind": "harness",
+          "version": "0.1.0",
+          "source": "local_file"
+        },
+        {
+          "name": "repo-tester",
+          "kind": "harness",
+          "version": "0.1.0",
+          "source": "local_file"
+        },
+        {
+          "name": "run-tracer",
+          "kind": "harness",
+          "version": "0.1.0",
+          "source": "local_file"
+        },
+        {
+          "name": "skill-dev-skill",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "6f620ad584680b5e379232841dd57e96e5a297e7"
+        },
+        {
+          "name": "skill-manager",
+          "kind": "skill",
+          "version": "0.1.2",
+          "source": "git",
+          "sha": "043a0d333586d0f825ec6ffc9e0cc75aad6a3f57"
+        },
+        {
+          "name": "skt",
+          "kind": "plugin",
+          "version": "0.8.1",
+          "source": "git",
+          "sha": "e437d8f876fcfd22ec8035281fc5815175afb764"
+        },
+        {
+          "name": "slm-agent",
+          "kind": "skill",
+          "version": "0.1.1",
+          "source": "local_file"
+        },
+        {
+          "name": "spec-double-compiler",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "5cac1c05ebe120b559138b30da1e9fe2151c05a9"
+        },
+        {
+          "name": "test-graph",
+          "kind": "skill",
+          "version": "0.2.1",
+          "source": "git",
+          "sha": "8405cc71ff2dc6b20b7db2bf302320c7b0f7952e"
+        },
+        {
+          "name": "tracer-agent",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "local_file"
+        },
+        {
+          "name": "tracing-observability",
+          "kind": "skill",
+          "version": "0.3.0",
+          "source": "git",
+          "sha": "b36711545c7e3b3faafaf50c1a467827c50f9248"
+        },
+        {
+          "name": "vision-toolbelt-skill",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "c3c1f9445bdceec85bbaa982750028a1a6290bbc"
+        }
+      ],
+      "envContributions": {}
+    },
+    "fixture_green_before": true
+  },
+  "workspace_root": "~/.claude/jobs/c92f85ab/tmp/ws-round1",
+  "duration_seconds": 2720.352,
+  "finished_utc": "2026-09-02T13:39:12.210501+00:00"
+}

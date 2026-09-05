@@ -1,0 +1,151 @@
+# The two agent roles this repository's workflow actually has, and the ask each
+# one is given.
+#
+# A ROLE ASK NEVER NAMES THE FLAG, FILE, OR VERB THE AGENT NEEDS. What the agent
+# has to discover *is* the measurement; an ask that supplies it has measured
+# nothing. This is the same discipline as
+# `examples/validation/agent_rounds/tasks.toml`, and it is the reason these asks
+# read like a colleague's request rather than a runbook.
+#
+# `done_check` is run BY THE HARNESS against the workspace, never shown to the
+# agent, and never mentioned in the ask. An agent that knows the check can
+# satisfy the check without doing the work.
+
+schema_version = 1
+role_set_version = "1.0.0"
+
+[defaults]
+# Wall clock, not turns: this CLI has no --max-turns, so the budget is time.
+# A timeout is a RESULT, not a harness failure -- an agent that cannot finish
+# the ordinary workflow inside the budget is the finding.
+budget_seconds = 2400
+permission_mode = "bypassPermissions"
+
+# ---------------------------------------------------------------------------
+# R1 -- the EPIC AGENT. Owns the plan; dispatches tickets; never implements
+# them. SKILL.md gives it one privilege nobody else has: it is the only writer
+# of the self-improvement matrix.
+# ---------------------------------------------------------------------------
+[[role]]
+id = "epic"
+tier = "project"
+ask = """
+You own a new epic on this repository. Set the repository up so that its
+behaviour is carried by a TLA+ program spec, then write down the epic as a
+plan: what the ending state is, and the tickets that get there, with the first
+one ready for a different agent to pick up tomorrow.
+
+Do not implement any ticket. Plan only.
+"""
+# H-01: LOOK ON EVERY BRANCH, not just the one the harness happens to sit on.
+#
+# Round 1 recorded this check as FAIL while the epic agent had in fact produced
+# a complete, validating plan -- on `epic/shortlink-spec`, in its own worktree,
+# which is exactly what `git-epic-workflow` tells an epic agent to do. The check
+# looked in the working directory and reported the absence of a file that was
+# three commits away on another ref.
+#
+# That is round 2's `T1` all over again: **a measurement taken on the wrong
+# fixture is not a refutation, it is a void run**, and the harness owns the
+# error. A done_check must ask the question the workflow answers, not the
+# question the harness finds convenient.
+done_check = """
+set -u
+found=""
+if [ -f specs/desired_program_model/ticket_plan.yaml ]; then
+  found="worktree:specs/desired_program_model/ticket_plan.yaml"
+fi
+for ref in $(git for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null); do
+  if git cat-file -e "$ref:specs/desired_program_model/ticket_plan.yaml" 2>/dev/null; then
+    found="${found:-}${found:+ }$ref"
+  fi
+done
+echo "plan found at: ${found:-<nowhere>}"
+test -d specs/program_model || { echo "no specs/program_model"; exit 1; }
+test -n "$found" || exit 1
+
+# A PLAN FILE IS NOT A PLAN, and the first version of this check could not tell
+# the difference. `tla-spec-dev scaffold workflow` emits a ticket_plan.yaml that
+# ALREADY contains `tickets:` and `- id: <ticket>`, so a `grep` for a list item
+# passed after two scaffold verbs and zero thought -- measured, exit 0, on a plan
+# that was 100% placeholders. That was the epic seat's only pass/fail signal.
+#
+# So the check now refuses the SHIPPED TEMPLATE by its own placeholder markers.
+# They come from `scripts/new_ticket_workflow.py:ticket_plan()`, and
+# `tests/test_agent_integration_harness.py` imports that function to assert
+# every marker below still appears in what it emits -- if the scaffold renames
+# a placeholder, that test says so rather than this predicate going quietly weak.
+scan=$(mktemp)
+for ref in $(git for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null); do
+  git show "$ref:specs/desired_program_model/ticket_plan.yaml" 2>/dev/null
+done > "$scan"
+cat specs/desired_program_model/ticket_plan.yaml >> "$scan" 2>/dev/null || true
+
+rc=0
+if ! grep -qE '^[[:space:]]*(-|id:)' "$scan"; then
+  echo "the plan carries no ticket entry"
+  rc=1
+fi
+for marker in ReplaceWithDesiredAction replace_with_state_field 'Replace with implementation surfaces'; do
+  if grep -qF "$marker" "$scan"; then
+    echo "the plan still carries the scaffold placeholder: $marker"
+    rc=1
+  fi
+done
+rm -f "$scan"
+exit $rc
+"""
+predicts = """
+The scaffold verbs are cheap (T1 measured that). The expensive, and the one
+worth watching, is whether the agent finds the PLAN half of
+desired_program_model at all: SKILL.md says the desired model is "not only a
+future TLA+ model; it is also the structured implementation plan", and an agent
+that reads it as a spec directory writes TLA+ and no ticket_plan.yaml.
+"""
+
+# ---------------------------------------------------------------------------
+# R2 -- the TICKET AGENT. Picks one ticket out of a plan it did not write,
+# implements it, closes it. T2 predicted this is the most expensive operation
+# in the whole toolchain.
+# ---------------------------------------------------------------------------
+[[role]]
+id = "ticket"
+tier = "worktree"
+# The close gate is the most expensive operation in the toolchain (T2), and
+# this agent also has to read a plan it did not write. It gets the longer clock.
+budget_seconds = 3000
+ask = """
+This repository has a plan with a first ticket in it, written by someone else.
+That ticket is yours. Take it from wherever it currently sits through to done,
+including whatever this project expects to be recorded when work like this
+finishes.
+
+Report at the end what you changed, and what would have caught you if you had
+got it wrong.
+"""
+# Branch-aware for the same reason the epic check is: a ticket agent is told to
+# work in its own worktree on its own branch, so the history entry that proves a
+# close happened may not be on the ref the harness is standing on.
+done_check = """
+set -u
+if test -d specs/.history && find specs/.history -maxdepth 3 -name 'ticket-*' | grep -q .; then
+  echo "closed ticket found in the worktree"
+  exit 0
+fi
+for ref in $(git for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null); do
+  if git ls-tree -r --name-only "$ref" -- specs/.history 2>/dev/null | grep -q 'ticket-'; then
+    echo "closed ticket found on $ref"
+    exit 0
+  fi
+done
+echo "no specs/.history ticket-* entry on any ref"
+exit 1
+"""
+predicts = """
+EXPENSIVE. F-01 measured three sequential ledger refusals plus F-02's
+plan-status refusal on a real close. The second half of the ask ("what would
+have caught you") is the E-09 probe: SKILL.md step 13 now tells a closing agent
+to name the TLA+ action each regression happened inside. If the agent closes
+without ever naming an action or an UNMODELED bin, step 13 is written but not
+reachable, which is E-09 all over again in a new place.
+"""

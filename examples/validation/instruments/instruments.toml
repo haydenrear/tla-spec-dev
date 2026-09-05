@@ -114,7 +114,7 @@ any row of it is a re-runnable perturbation of the SUBJECT, not of the runner.
   [instrument.failing]
   summary = "a checked-out order is persisted with status 'pending' instead of 'accepted' (kill_mutants.toml store-order_store, verbatim)"
   argv = ["{python}", "{repo}/scripts/run_generated_case_adapters.py",
-          "{tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases",
+          "{tree}/dh/specs/generated/spec-unit/ecommerce_internal_cases",
           "--mapping", "{tree}/dh/specs/program_model/case_adapters.toml",
           "--view", "internal", "--batch", "--import-root", "{tree}/dh"]
   cwd = "{tree}/dh"
@@ -133,7 +133,7 @@ any row of it is a re-runnable perturbation of the SUBJECT, not of the runner.
   [instrument.passing]
   summary = "the same corpus against the same tree, unmutated"
   argv = ["{python}", "{repo}/scripts/run_generated_case_adapters.py",
-          "{tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases",
+          "{tree}/dh/specs/generated/spec-unit/ecommerce_internal_cases",
           "--mapping", "{tree}/dh/specs/program_model/case_adapters.toml",
           "--view", "internal", "--batch", "--import-root", "{tree}/dh"]
   cwd = "{tree}/dh"
@@ -184,93 +184,6 @@ decides a run.
   reason = "MF-027. Not a defect and not repairable here; recorded so the oracle's reach is not read as total."
 
 [[instrument]]
-id = "kill-test-floor"
-name = "MF-016 mutation kill test"
-paths = ["scripts/kill_test.py", "scripts/run_kill_test.py"]
-family = "measurement"
-watches = "whether the distilled corpus can tell a seeded fault from the correct program"
-verdict_surface = "exit 1 below floor / regressed, exit 2 incomplete catalogue / no control"
-classification = "demonstrated-can-fail"
-
-  [instrument.failing]
-  summary = "the shipped distributed-history example: 3 of 7 seeded faults survive the corpus, 0.571 against a floor of 0.800 -- a genuinely under-refined representation, not a contrived one"
-  argv = ["{python}", "{repo}/scripts/run_kill_test.py",
-          "--target", "{tree}/dh/specs/program_model", "--root", "{tree}/dh",
-          "--cfg", "Internal.cfg",
-          "--corpus-command", "{python} {repo}/scripts/run_generated_case_adapters.py {tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases --mapping {tree}/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root {tree}/dh"]
-  expect_exit = 1
-  expect_output = ["BELOW FLOOR", "There is no waiver"]
-
-    [[instrument.failing.stage]]
-    from = "examples/distributed_history"
-    to = "dh"
-
-  [instrument.passing]
-  summary = "the same corpus over a catalogue containing only faults it does kill"
-  argv = ["{python}", "{repo}/scripts/run_kill_test.py",
-          "--target", "{tree}/dh/specs/program_model", "--root", "{tree}/dh",
-          "--cfg", "Internal.cfg",
-          "--corpus-command", "{python} {repo}/scripts/run_generated_case_adapters.py {tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases --mapping {tree}/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root {tree}/dh"]
-  expect_exit = 0
-  expect_output = ["PASS: kill rate 1.000"]
-
-    [[instrument.passing.stage]]
-    from = "examples/distributed_history"
-    to = "dh"
-
-    [[instrument.passing.stage]]
-    from = "examples/validation/instruments/fixtures/kill_test/killable_only.toml"
-    to = "dh/specs/program_model/kill_mutants.toml"
-
-[[instrument]]
-id = "kill-test-boundary-coverage"
-name = "kill test boundary coverage (--list-boundaries)"
-paths = ["scripts/run_kill_test.py"]
-family = "measurement"
-watches = "that every boundary the model declares carries a seeded fault"
-verdict_surface = "exit 2 on an incomplete catalogue"
-classification = "demonstrated-can-fail"
-
-  [instrument.failing]
-  summary = "the model grows a declared port and the catalogue does not follow it -- the drift a sealed catalogue certificate hides"
-  argv = ["{python}", "{repo}/scripts/run_kill_test.py",
-          "--target", "{tree}/dh/specs/program_model", "--root", "{tree}/dh",
-          "--list-boundaries"]
-  expect_exit = 2
-  expect_output = ["NO MUTANT"]
-
-    [[instrument.failing.stage]]
-    from = "examples/distributed_history"
-    to = "dh"
-
-    [[instrument.failing.mutate]]
-    file = "dh/specs/program_model/spec_manifest.yaml"
-    find = "budgets:"
-    replace = """effects:
-  components:
-    ledger:
-      ports:
-        unseeded_port:
-          type: filesystem.write
-          target: "**/never-seeded/**"
-  actions:
-    Checkout: [unseeded_port]
-
-budgets:"""
-
-  [instrument.passing]
-  summary = "the catalogue as shipped: every declared boundary carries a seeded fault"
-  argv = ["{python}", "{repo}/scripts/run_kill_test.py",
-          "--target", "{tree}/dh/specs/program_model", "--root", "{tree}/dh",
-          "--list-boundaries"]
-  expect_exit = 0
-  expect_output = ["declared boundaries carry a seeded fault"]
-
-    [[instrument.passing.stage]]
-    from = "examples/distributed_history"
-    to = "dh"
-
-[[instrument]]
 id = "corpus-diagnostics"
 name = "corpus case-cap diagnostics"
 paths = ["scripts/corpus_diagnostics.py"]
@@ -281,10 +194,19 @@ classification = "demonstrated-can-fail"
 
   [instrument.failing]
   summary = "a component carrying more cases than its declared cap allows"
+  # ASSERTED ON THE VERDICT, not on the prose. This slot and the one below used
+  # to match sentences; the gate's wording moved from "Every component is within
+  # cap" to "Every {scope} is within cap" when the cap became per-action, and a
+  # correct demonstration began reporting a working instrument broken. The path
+  # was stale too -- `spec_unit` predates the `spec-unit` rename (E-06/#313) --
+  # which is that rename's fourth orphaned consumer.
   argv = ["{python}", "{repo}/scripts/corpus_diagnostics.py",
-          "{tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases",
-          "--manifest", "{tree}/dh/specs/program_model/spec_manifest.yaml"]
+          "{tree}/dh/specs/generated/spec-unit/ecommerce_internal_cases",
+          "--manifest", "{tree}/dh/specs/program_model/spec_manifest.yaml",
+          "--verdict-json", "{verdict}"]
   expect_exit = 1
+  expect_verdict = "fail"
+  expect_reason = "over_cap"
 
     [[instrument.failing.stage]]
     from = "examples/distributed_history"
@@ -298,10 +220,12 @@ classification = "demonstrated-can-fail"
   [instrument.passing]
   summary = "the same corpus under the caps it was generated against"
   argv = ["{python}", "{repo}/scripts/corpus_diagnostics.py",
-          "{tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases",
-          "--manifest", "{tree}/dh/specs/program_model/spec_manifest.yaml"]
+          "{tree}/dh/specs/generated/spec-unit/ecommerce_internal_cases",
+          "--manifest", "{tree}/dh/specs/program_model/spec_manifest.yaml",
+          "--verdict-json", "{verdict}"]
   expect_exit = 0
-  expect_output = ["Every component is within cap"]
+  expect_verdict = "pass"
+  expect_reason = "within_cap"
 
     [[instrument.passing.stage]]
     from = "examples/distributed_history"
@@ -1392,6 +1316,49 @@ property of the instrument. `SM-03-DF-03`.
   nodes = ["tests/test_spec_manifest_records.py"]
   expect_exit = 0
   expect_passed_at_least = 18  # SM-03: exit 0 is also what a fully-skipped run returns
+
+[[instrument]]
+id = "citation-anchor"
+name = "line-citation checker and fixer"
+paths = ["scripts/check_citations.py"]
+family = "repo-tripwire"
+watches = "every `FILE.EXT:LINE (ANCHOR)` citation in the scoped source, and whether the line still holds the anchor"
+verdict_surface = "exit 1 listing each stale or uncheckable citation; `--fix` rewrites the ones whose anchor resolves to exactly one line"
+classification = "demonstrated-can-fail"
+note = """
+`G-11`: seventeen lines of docstring added to one function moved an anchor from
+1413 to 1430, and another file cited it by number. Nothing about behaviour
+changed, so every behavioural check stayed green.
+
+**The interesting half is the REFUSAL.** The checker already knew where the
+anchor had gone and made a human copy it across, which is where three
+consecutive tickets' stale citations came from. `--fix` writes the number -- and
+the whole risk of a tool that writes numbers is one that guesses, so the
+demonstrations below are the two directions: it must repair the unique case and
+must leave the 2-hit and 0-hit cases exactly as it found them.
+"""
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "fast"
+  summary = "the unambiguous repair, and that a second run finds nothing"
+  nodes = [
+    "tests/test_citation_fixer.py::test_it_repairs_a_citation_whose_anchor_moved",
+    "tests/test_citation_fixer.py::test_fixing_is_idempotent",
+  ]
+  expect_exit = 0
+  expect_passed = 2
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "fast"
+  summary = "an anchor on several lines, and an anchor on none: both reported, neither rewritten"
+  nodes = [
+    "tests/test_citation_fixer.py::test_it_refuses_when_the_anchor_appears_on_several_lines",
+    "tests/test_citation_fixer.py::test_it_refuses_when_the_anchor_is_gone_entirely",
+  ]
+  expect_exit = 0
+  expect_passed = 2
 
 [[instrument]]
 id = "skill-root-tripwire"
@@ -2600,6 +2567,54 @@ THE SessionStart HOOK AND SKILL LISTING REACHED EVERY ARM. Both are corrected:
 identity leak is not the standing objection this row once said it was.
 """
 
+
+[[retired]]
+id = "kill-test-floor"
+retired_by = "CA-04, applied here by the #317 audit"
+retired_at = "6bf1687 cut the gate; these rows outlived it by three epics"
+paths = ["scripts/run_kill_test.py"]
+reason = """
+RETIRED, NOT SILENTLY DROPPED, and the delay is the finding.
+
+`CA-04` (6bf1687) deliberately cut the mutation kill-test GATE -- the
+`kill_test` variable, the `RunKillTest` action, the
+`KillTestVerdictRequiresBudgets` invariant, `RunKillTestAdapter`,
+`kill_rate_floor`, the `mutation_write` port -- and deleted
+`scripts/run_kill_test.py` with them. Its own commit message says every model
+surface enumerated in advance was found and cut.
+
+**These two instrument rows were not.** They kept declaring a script that does
+not exist and kept invoking it, so `demonstrate.py` reported them MISS/MISS for
+three epics -- read, every time, as *"this instrument cannot be shown to fail"*
+rather than *"the thing it measures was removed on purpose"*. Those are opposite
+statements and the registry could not tell them apart.
+
+`scripts/kill_test.py` SURVIVES and is not retired with them. `CA-04` measured
+that deleting it would strand a disproof: `run_controls.py` imports it at module
+scope, and `check_catalogue.py` -- the instrument `RM-03` explicitly refused to
+delete -- went to `ModuleNotFoundError` when the file was parked. The oracle-4
+gate went; the catalogue parser and suppression scanner stayed, and five callers
+still import them.
+
+The measurement the gate last produced is kept in
+`examples/run_distributed_history_validation.py`'s module docstring: 0.571
+(4/7) against a 0.8 floor, with three named survivors, each a true finding about
+that example's representation. **Retiring the instrument does not retire the
+finding**, and the floor was never lowered to make it pass.
+
+`kill-test-boundary-coverage` retires with it: its whole subject was the
+`--list-boundaries` mode of the same deleted script.
+"""
+
+[[retired]]
+id = "kill-test-boundary-coverage"
+retired_by = "CA-04, applied here by the #317 audit"
+retired_at = "6bf1687 cut the gate; these rows outlived it by three epics"
+paths = ["scripts/run_kill_test.py"]
+reason = """
+Retires with `kill-test-floor`. Its subject was `--list-boundaries` on
+`scripts/run_kill_test.py`, which `CA-04` deleted. See that entry.
+"""
 
 [[retired]]
 id = "gap-mutant-runner"

@@ -1,0 +1,343 @@
+{
+  "schema_version": 1,
+  "run_id": "plumbing-002",
+  "started_utc": "2026-09-03T00:07:00.765410+00:00",
+  "repo_commit": "1f18d387f7f58a4b22bd496d84f70f1f71d4b9b6",
+  "roles": {
+    "epic": {
+      "clone": {
+        "source": "~/.skill-manager",
+        "dest": "~/.claude/jobs/c92f85ab/tmp/ws-plumb2/project/.skill-manager",
+        "directories": 8085,
+        "files": 36586,
+        "symlinks": 14,
+        "bytes": 630953771,
+        "linksRelativized": 0,
+        "stateReanchored": 23,
+        "provisionedRewritten": 6,
+        "leaks": 0,
+        "contentReferences": 174,
+        "danglingLinks": 0,
+        "danglingReferences": 6,
+        "droppedRegistrations": 6,
+        "droppedBindings": 40,
+        "droppedChildHomes": 5,
+        "clean": true,
+        "manifestShortfall": {
+          "manifest": null,
+          "declared": 0,
+          "missing": []
+        }
+      },
+      "ask": "You own a new epic on this repository. Set the repository up so that its\nbehaviour is carried by a TLA+ program spec, then write down the epic as a\nplan: what the ending state is, and the tickets that get there, with the first\none ready for a different agent to pick up tomorrow.\n\nDo not implement any ticket. Plan only.",
+      "predicts": "The scaffold verbs are cheap (T1 measured that). The expensive, and the one\nworth watching, is whether the agent finds the PLAN half of\ndesired_program_model at all: SKILL.md says the desired model is \"not only a\nfuture TLA+ model; it is also the structured implementation plan\", and an agent\nthat reads it as a spec directory writes TLA+ and no ticket_plan.yaml.",
+      "dispatch": {
+        "status": "skipped",
+        "reason": "--plumbing-only"
+      },
+      "done_check": {
+        "passed": false,
+        "exit": 1,
+        "script": "set -u\nfound=\"\"\nif [ -f specs/desired_program_model/ticket_plan.yaml ]; then\n  found=\"worktree:specs/desired_program_model/ticket_plan.yaml\"\nfi\nfor ref in $(git for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null); do\n  if git cat-file -e \"$ref:specs/desired_program_model/ticket_plan.yaml\" 2>/dev/null; then\n    found=\"${found:-}${found:+ }$ref\"\n  fi\ndone\necho \"plan found at: ${found:-<nowhere>}\"\ntest -d specs/program_model || { echo \"no specs/program_model\"; exit 1; }\ntest -n \"$found\" || exit 1\n\n# A PLAN FILE IS NOT A PLAN, and the first version of this check could not tell\n# the difference. `tla-spec-dev scaffold workflow` emits a ticket_plan.yaml that\n# ALREADY contains `tickets:` and `- id: <ticket>`, so a `grep` for a list item\n# passed after two scaffold verbs and zero thought -- measured, exit 0, on a plan\n# that was 100% placeholders. That was the epic seat's only pass/fail signal.\n#\n# So the check now refuses the SHIPPED TEMPLATE by its own placeholder markers.\n# They come from `scripts/new_ticket_workflow.py:ticket_plan()`, and\n# `tests/test_agent_integration_harness.py` imports that function to assert\n# every marker below still appears in what it emits -- if the scaffold renames\n# a placeholder, that test says so rather than this predicate going quietly weak.\nscan=$(mktemp)\nfor ref in $(git for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null); do\n  git show \"$ref:specs/desired_program_model/ticket_plan.yaml\" 2>/dev/null\ndone > \"$scan\"\ncat specs/desired_program_model/ticket_plan.yaml >> \"$scan\" 2>/dev/null || true\n\nrc=0\nif ! grep -qE '^[[:space:]]*(-|id:)' \"$scan\"; then\n  echo \"the plan carries no ticket entry\"\n  rc=1\nfi\nfor marker in ReplaceWithDesiredAction replace_with_state_field 'Replace with implementation surfaces'; do\n  if grep -qF \"$marker\" \"$scan\"; then\n    echo \"the plan still carries the scaffold placeholder: $marker\"\n    rc=1\n  fi\ndone\nrm -f \"$scan\"\nexit $rc"
+      },
+      "fixture": {
+        "ran": true,
+        "passed": true,
+        "output": "test_a_live_slug_cannot_be_released_by_a_stranger (test_shortlink.ShortenerTests.test_a_live_slug_cannot_be_released_by_a_stranger) ... \u001b[32mok\u001b[0m\ntest_a_reservation_is_not_claimable_by_another_owner (test_shortlink.ShortenerTests.test_a_reservation_is_not_claimable_by_another_owner) ... \u001b[32mok\u001b[0m\ntest_release_frees_the_slug_for_a_different_owner (test_shortlink.ShortenerTests.test_release_frees_the_slug_for_a_different_owner) ... \u001b[32mok\u001b[0m\ntest_reserve_then_claim_makes_the_slug_live (test_shortlink.ShortenerTests.test_reserve_then_claim_makes_the_slug_live) ... \u001b[32mok\u001b[0m\n\n----------------------------------------------------------------------\nRan 4 tests in 0.000s\n\n\u001b[32mOK\u001b[0m\n"
+      },
+      "workspace": {
+        "status": "",
+        "log": "51eb88f shortlink: the program, and the tests that hold it up",
+        "spec_tree": "",
+        "declared_actions": "",
+        "generated_cases": "",
+        "exported_traces": "       0\n",
+        "results": ""
+      },
+      "handoff_commit_rc": 1,
+      "handoff_ref": "HEAD"
+    },
+    "ticket": {
+      "clone": {
+        "source": "~/.claude/jobs/c92f85ab/tmp/ws-plumb2/project/.skill-manager",
+        "dest": "~/.claude/jobs/c92f85ab/tmp/ws-plumb2/ticket-worktree/.skill-manager",
+        "directories": 8082,
+        "files": 36610,
+        "symlinks": 12,
+        "bytes": 631668690,
+        "linksRelativized": 0,
+        "stateReanchored": 23,
+        "provisionedRewritten": 1,
+        "leaks": 0,
+        "contentReferences": 0,
+        "danglingLinks": 0,
+        "danglingReferences": 0,
+        "droppedRegistrations": 0,
+        "droppedBindings": 0,
+        "droppedChildHomes": 0,
+        "clean": true,
+        "manifestShortfall": {
+          "manifest": null,
+          "declared": 0,
+          "missing": []
+        }
+      },
+      "ask": "This repository has a plan with a first ticket in it, written by someone else.\nThat ticket is yours. Take it from wherever it currently sits through to done,\nincluding whatever this project expects to be recorded when work like this\nfinishes.\n\nReport at the end what you changed, and what would have caught you if you had\ngot it wrong.",
+      "predicts": "EXPENSIVE. F-01 measured three sequential ledger refusals plus F-02's\nplan-status refusal on a real close. The second half of the ask (\"what would\nhave caught you\") is the E-09 probe: SKILL.md step 13 now tells a closing agent\nto name the TLA+ action each regression happened inside. If the agent closes\nwithout ever naming an action or an UNMODELED bin, step 13 is written but not\nreachable, which is E-09 all over again in a new place.",
+      "dispatch": {
+        "status": "skipped",
+        "reason": "--plumbing-only"
+      },
+      "done_check": {
+        "passed": false,
+        "exit": 1,
+        "script": "set -u\nif test -d specs/.history && find specs/.history -maxdepth 3 -name 'ticket-*' | grep -q .; then\n  echo \"closed ticket found in the worktree\"\n  exit 0\nfi\nfor ref in $(git for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null); do\n  if git ls-tree -r --name-only \"$ref\" -- specs/.history 2>/dev/null | grep -q 'ticket-'; then\n    echo \"closed ticket found on $ref\"\n    exit 0\n  fi\ndone\necho \"no specs/.history ticket-* entry on any ref\"\nexit 1"
+      },
+      "fixture": {
+        "ran": true,
+        "passed": true,
+        "output": "test_a_live_slug_cannot_be_released_by_a_stranger (test_shortlink.ShortenerTests.test_a_live_slug_cannot_be_released_by_a_stranger) ... \u001b[32mok\u001b[0m\ntest_a_reservation_is_not_claimable_by_another_owner (test_shortlink.ShortenerTests.test_a_reservation_is_not_claimable_by_another_owner) ... \u001b[32mok\u001b[0m\ntest_release_frees_the_slug_for_a_different_owner (test_shortlink.ShortenerTests.test_release_frees_the_slug_for_a_different_owner) ... \u001b[32mok\u001b[0m\ntest_reserve_then_claim_makes_the_slug_live (test_shortlink.ShortenerTests.test_reserve_then_claim_makes_the_slug_live) ... \u001b[32mok\u001b[0m\n\n----------------------------------------------------------------------\nRan 4 tests in 0.000s\n\n\u001b[32mOK\u001b[0m\n"
+      },
+      "workspace": {
+        "status": "",
+        "log": "51eb88f shortlink: the program, and the tests that hold it up",
+        "spec_tree": "",
+        "declared_actions": "",
+        "generated_cases": "",
+        "exported_traces": "       0\n",
+        "results": ""
+      }
+    }
+  },
+  "plumbing_only": true,
+  "preflight": {
+    "claude": "~/.local/bin/claude",
+    "skill-manager": "~/.skill-manager/bin/cli/skill-manager",
+    "git": "/usr/bin/git",
+    "source_home": "~/.skill-manager",
+    "source_home_descriptor": {
+      "homeRoot": "~",
+      "policy": "live",
+      "env": {
+        "SKILL_MANAGER_HOME": "~/.skill-manager",
+        "CLAUDE_CONFIG_DIR": "~/.claude",
+        "CLAUDE_HOME": "~/.claude",
+        "CODEX_HOME": "~/.codex",
+        "GEMINI_HOME": "~/.gemini"
+      },
+      "cli": {
+        "skillManager": "~/.skill-manager/bin/cli/skill-manager"
+      },
+      "gateway": {
+        "url": "http://127.0.0.1:51717",
+        "owned": true
+      },
+      "units": [
+        {
+          "name": "acp-cdc-ai-python",
+          "kind": "skill",
+          "version": "0.2.0",
+          "source": "git",
+          "sha": "f45866987dd8e9b5284ade741ef44cf815fa84ee"
+        },
+        {
+          "name": "andrej-karpathy-skills",
+          "kind": "plugin",
+          "version": "1.0.0",
+          "source": "git",
+          "sha": "43442d0f92ee1b8c043c5721dda817a3afa565d8"
+        },
+        {
+          "name": "cdc-agent-substrate-plugin",
+          "kind": "plugin",
+          "version": "0.2.2",
+          "source": "local_file"
+        },
+        {
+          "name": "code-reviewer",
+          "kind": "harness",
+          "version": "0.1.0",
+          "source": "local_file"
+        },
+        {
+          "name": "debugging",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "91909afce1c4df7434232dfb45d1d742ea0c90f3"
+        },
+        {
+          "name": "deploy-helm",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "a367aa0091a19088684916a974b1bad19cc5a1c3"
+        },
+        {
+          "name": "discovery",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "4887bda863e4bb3e5848bc231b0ec8485c6207a0"
+        },
+        {
+          "name": "doc-repo-devops",
+          "kind": "doc",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "3bf445361f6cd10a11d251ce9f99064cc873a2b6"
+        },
+        {
+          "name": "git-epic-workflow",
+          "kind": "skill",
+          "version": "0.4.1",
+          "source": "git",
+          "sha": "7a5bb3357550c4cab2c15ce1e652bcf7e769758b"
+        },
+        {
+          "name": "git-integration-repo",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "9aad9912abe971500fb2823beebde677dc71c37a"
+        },
+        {
+          "name": "git-issue",
+          "kind": "skill",
+          "version": "0.4.0",
+          "source": "git",
+          "sha": "0bafb1a58c7ce0786e0f20ed1859137b5ff2f21b"
+        },
+        {
+          "name": "git-issue-workflow",
+          "kind": "skill",
+          "version": "0.4.1",
+          "source": "git",
+          "sha": "90f87eea2ea4d95468ed5470fa2379fc2fdd0bd6"
+        },
+        {
+          "name": "hyper-experiments",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "41b8f560d590823885824404539e9dcdf43c9e0d"
+        },
+        {
+          "name": "hyper-experiments-finance",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "5b3c8d2b78bf2e142230cadcbb820cae56e46127"
+        },
+        {
+          "name": "live-swarm-agent",
+          "kind": "harness",
+          "version": "0.1.0",
+          "source": "local_file"
+        },
+        {
+          "name": "llm-wiki",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "f84685a36b35fb76f37f5eef6eb0ecec131a7b1d"
+        },
+        {
+          "name": "plugin-repository",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "5e156f42d7bd6bdff89db96c1a4d2f340b330f62"
+        },
+        {
+          "name": "repo-coder",
+          "kind": "harness",
+          "version": "0.1.0",
+          "source": "local_file"
+        },
+        {
+          "name": "repo-tester",
+          "kind": "harness",
+          "version": "0.1.0",
+          "source": "local_file"
+        },
+        {
+          "name": "run-tracer",
+          "kind": "harness",
+          "version": "0.1.0",
+          "source": "local_file"
+        },
+        {
+          "name": "skill-dev-skill",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "6f620ad584680b5e379232841dd57e96e5a297e7"
+        },
+        {
+          "name": "skill-manager",
+          "kind": "skill",
+          "version": "0.1.2",
+          "source": "git",
+          "sha": "043a0d333586d0f825ec6ffc9e0cc75aad6a3f57"
+        },
+        {
+          "name": "skt",
+          "kind": "plugin",
+          "version": "0.8.1",
+          "source": "git",
+          "sha": "e437d8f876fcfd22ec8035281fc5815175afb764"
+        },
+        {
+          "name": "slm-agent",
+          "kind": "skill",
+          "version": "0.1.1",
+          "source": "local_file"
+        },
+        {
+          "name": "spec-double-compiler",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "5cac1c05ebe120b559138b30da1e9fe2151c05a9"
+        },
+        {
+          "name": "test-graph",
+          "kind": "skill",
+          "version": "0.2.1",
+          "source": "git",
+          "sha": "8405cc71ff2dc6b20b7db2bf302320c7b0f7952e"
+        },
+        {
+          "name": "tracer-agent",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "local_file"
+        },
+        {
+          "name": "tracing-observability",
+          "kind": "skill",
+          "version": "0.3.0",
+          "source": "git",
+          "sha": "b36711545c7e3b3faafaf50c1a467827c50f9248"
+        },
+        {
+          "name": "vision-toolbelt-skill",
+          "kind": "skill",
+          "version": "0.1.0",
+          "source": "git",
+          "sha": "c3c1f9445bdceec85bbaa982750028a1a6290bbc"
+        }
+      ],
+      "envContributions": {}
+    },
+    "fixture_green_before": true
+  },
+  "workspace_root": "~/.claude/jobs/c92f85ab/tmp/ws-plumb2",
+  "reclaimed_homes": [
+    "~/.claude/jobs/c92f85ab/tmp/ws-plumb2/project/.skill-manager",
+    "~/.claude/jobs/c92f85ab/tmp/ws-plumb2/ticket-worktree/.skill-manager"
+  ],
+  "duration_seconds": 67.345,
+  "finished_utc": "2026-09-03T00:08:09.335933+00:00"
+}

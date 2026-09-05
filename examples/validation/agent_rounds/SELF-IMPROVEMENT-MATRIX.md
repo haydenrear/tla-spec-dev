@@ -23,13 +23,193 @@ real row, not a leftover — see below.
 | anchor | escaped to hand | pinned | unpinned | findings | reading |
 |---|---|---|---|---|---|
 | `TlaSpecDevCli.CloseTicket` | **5** | **3** | 2 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03`, `E-09` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
-| `TlaSpecDevCli.GenerateCases` | **11** | **11** | 0 | `#300`, `#301`, `F-06`, `E-02`, `E-04`, `E-05`, `E-06`, `E-07`, `E-08`, `E-12`, `E-13` | **the concentration, and it is not close.** THREE of the seven are damage from its own repairs. `F-06` REFUTED |
-| `TlaSpecDevCli.OpenTicket` | **2** | **2** | 0 | `#299`, `E-01` | **was read as a closed arc; round 2 reopened it.** `E-01` is a conformance violation against a guard the model calls structural |
+| `TlaSpecDevCli.GenerateCases` | **14** | **13** | 1 | `#300`, `#301`, `F-06`, `E-02`, `E-04`—`E-08`, `E-12`, `E-13`, `G-01`, `G-02`, `G-04b` | **the concentration, and it is not close.** FIVE are damage from its own repairs, and `#301`'s rule has now reached SIX surfaces. `F-06` REFUTED |
+| `TlaSpecDevCli.OpenTicket` | **3** | **3** | 0 | `#299`, `E-01`, `H-06b` | **was read as a closed arc; round 2 reopened it.** `H-06b` is `G-10`'s other half: the copy seam handed every pre-existing project the same hole the scaffold fix only closed for new ones |
+| **`TlaSpecDevCli.ScaffoldProject`** | **2** | **1** | 1 | `G-10`, `G-12` | **both found by real ticket agents, and both the same shape:** the scaffold is right and the REFERENCE teaches otherwise. `G-10` unpinned by the fix; `G-12` filed, not fixed |
+| **`TlaSpecDevCli.RunSpecUnitTests`** | **1** | **1** | 0 | `H-06a` | **sixth populated row.** `default_import_roots_for` returned the spec dir second, and `ensure_import_roots` reverses, so a bare binding resolved from the PROJECT ROOT first |
 | `TlaSpecDevCli.AnalyzeComplexity` | 1 | 0 | 1 | `F-07` | cosmetic; unpinned by choice |
 | **`UNMODELED/yaml-parser`** | **7** | 11 | 0 | `#298`, `#307`, `#308` | infrastructure beneath every action; no anchor exists. **7 of 21 findings in the whole record.** Disposition: **`MODELABLE`** — see below |
+| **`UNMODELED/skill-manager-home`** | **4** | 0 | 4 | `G-05`, `G-06`, `G-07`, `G-13` | **new, round 3, and the fastest-growing row.** `skill-manager exec` starts an unauthenticated session — on the ROOT home — and the `tla-spec-dev` wrapper runs a bare `python3` off PATH. Disposition: **`UNDECIDED`** |
+| **`UNMODELED/example-runners`** | **3** | **1** | 2 | `G-03`, `G-04`, `H-03` | **new, round 3.** The example validation runners are a whole executable tier `TlaSpecDevCli.tla` does not describe. `H-03` is one of them overwriting a committed fixture. Disposition: **`UNDECIDED`** |
+| **`UNMODELED/instrument-registry`** | **1** | 0 | 1 | `G-09` | **new, round 3.** FI-02's own demonstration harness is red, and by a count that changes with the launcher. Disposition: **`UNDECIDED`** |
+| `UNMODELED/skill-composition` | **1** | 0 | 1 | `G-08` | **its first finding, three rounds after it was opened empty.** Disposition unchanged: **`DEFERRED`** |
+| **`UNMODELED/agent-harness`** | **11** | **8** | 3 | `H-01`, `H-02`, `H-04`, `H-05`, `H-06c`, `H-07`×4, `H-09`, `H-11` | **new, and it opens as the second-largest row in the matrix.** Eleven defects in `examples/agent_integration/` — the instrument itself. Disposition: **`UNDECIDED`** |
+| **`UNMODELED/record-keeping`** | **3** | **1** | 2 | `H-08`, `H-10`, `G-11` | **new.** The matrix disagreeing with itself, the fourth `git add -A`, and a line-number citation going stale two files away. Never an action; the accumulation is the evidence. Disposition: **`RECORD-ONLY`** |
 
-**11 of 15 findings anchored to a declared action. 4 did not — and all four are
-the same unanchored row.**
+**After round 3, its re-run, and the audit below: 26 of 56 findings anchored to a
+declared action, 30 did not — the unanchored share is now the MAJORITY.**
+The unanchored share went from 7-in-one-row to **30 across seven rows**, and that
+is the more useful shape: *"seven findings, one gap"* and *"thirty findings,
+seven gaps"* want different answers, and the pooled count cannot tell them apart
+(`bug_attribution.md` §7c).
+
+**The largest single row is no longer a toolchain action.** `GenerateCases` has
+14; `UNMODELED/agent-harness` has 11 and did not exist an hour ago. **The
+instrument built to measure the toolchain has produced nearly as many defects as
+the worst action it measures**, and that is the number to sit with rather than
+explain away: an instrument this defective has been the source of every claim in
+this round.
+
+**Conservation, round 3, the re-run, and the audit.** No model change was made,
+so nothing moved between rows for that reason. `findings before: 26. findings
+after: 56.` Thirty arrived — eleven in round 3, two from its re-run, and seventeen surfaced
+by the audit (sixteen by hand, and **one more by the check the audit produced**:
+`G-11` had been written up and never placed either, and
+`tests/test_every_finding_reaches_the_table.py` found it on its first run). **Three DID move**, and they moved because they were misfiled, not
+because the model changed: `H-06`'s import-order and copy-seam halves out of the
+narrative and onto `RunSpecUnitTests` and `OpenTicket`, and `H-03` onto
+`UNMODELED/example-runners`. Every other pre-existing row holds exactly the
+findings it held.
+
+**How the count is defined, because it disagreed with itself.** The first
+version of this section said *"22 of 29, 7 did not"* while the table summed to
+23 anchored + 14 unanchored = 37 and the conservation line said 26 → 37: three
+totals, three answers, in the one table whose only claimed property is
+conservation. Review of `#317` caught it. **Each finding is counted in exactly
+one row** — the rows above share no id — and the arithmetic is now:
+
+```
+anchored    5 + 14 + 3 + 2 + 1 + 1      = 26
+unanchored  7 +  4 + 3 + 1 + 1 + 11 + 3 = 30
+                                          --
+                                          56
+```
+
+**Sixteen of those arrived by AUDIT, not by a new round**, and the audit was
+prompted by one question: *were those bugs assigned to bug attribution?* Two
+were. Eleven were not, and had never been counted anywhere.
+
+**The eleven were the `H-` series — defects in the harness itself**, written up
+in full in the narrative below and absent from every total above it. The reason
+they were absent is worth stating because it is exactly the failure §7c names:
+round 2 recorded its one BLIND-on-the-pin as narrative, and this round followed
+that precedent eleven times. **A precedent for one is not a precedent for
+eleven.** §7c calls the escape conservation cannot see *"refusing to add — 'that
+is just infrastructure' — which achieves the same silence and never touches the
+model at all."* Eleven findings outside the count is that, achieved by never
+opening the bin.
+
+**And placing them moved three findings OUT of the harness**, which is the part
+that actually changes what this matrix says:
+
+| was | now | why |
+|---|---|---|
+| `H-06` (one entry) | `H-06a` → `RunSpecUnitTests`, `H-06b` → `OpenTicket`, `H-06c` → harness | two of its three parts are TOOLCHAIN defects, filed under a harness-shaped heading because the review that found them arrived as review of the harness's PR |
+| `H-03` | `UNMODELED/example-runners` | a validation runner overwriting a committed fixture is that tier's defect, not the instrument's |
+
+`RunSpecUnitTests` becomes the **sixth populated row** of fifteen declared
+actions, and it was opened by a finding that had been sitting in the narrative
+labelled as something else.
+
+**Two older cells still do not reconcile, and are left rather than tidied.**
+`UNMODELED/yaml-parser` shows 7 findings while naming three ids, and its
+`pinned` cell reads 11 — larger than its escape count. Both predate round 3 and
+both belong to measurements this writer did not take; silently adjusting another
+round's numbers to make a total come out is the failure this section just had,
+not its repair. They are named here so the next round can settle them with the
+evidence rather than with arithmetic.
+
+---
+
+## The architecture read on `UNMODELED/agent-harness`
+
+**Eleven findings in one round, in code written this round, underneath every
+claim this round makes.** `regression_architecture.md` step 5 asks for a
+response, and it asks for the measurement first.
+
+### A denominator, for once
+
+The matrix's standing limitation is *"no denominators — a concentration may be
+attention rather than defects."* For this one row it can be supplied, because
+the code each row names is countable:
+
+| row | findings | LOC | per KLOC |
+|---|---|---|---|
+| **`UNMODELED/agent-harness`** | **11** | 1,193 | **9.2** |
+| `TlaSpecDevCli.GenerateCases` | 14 | 3,720 | 3.8 |
+| `UNMODELED/example-runners` | 3 | 855 | 3.5 |
+| `TlaSpecDevCli.OpenTicket` | 3 | 1,175 | 2.6 |
+| `TlaSpecDevCli.CloseTicket` | 5 | 2,821 | 1.8 |
+| `TlaSpecDevCli.ScaffoldProject` | 2 | 2,465 | 0.8 |
+| `TlaSpecDevCli.RunSpecUnitTests` | 1 | 2,409 | 0.4 |
+| `TlaSpecDevCli.AnalyzeComplexity` | 1 | 2,401 | 0.4 |
+
+**2.4× the worst toolchain action.** And the caveat that keeps it honest: this
+is still attention-weighted, not defect density — `AnalyzeComplexity` at 0.4 may
+simply be unexercised, which is §1's whole point. What makes the comparison
+carry weight is that `GenerateCases` was under active attack **in this same
+round** and still came in at less than half the rate.
+
+### What actually went wrong, by what each defect assumed
+
+| assumed contract | findings |
+|---|---|
+| **the SHELL** | `H-05`, `H-11` |
+| prose matching code | `H-04`, `H-09` |
+| git | `H-01` |
+| POSIX process groups | `H-07a` |
+| the `stream-json` wire format | `H-07b` |
+| the Claude CLI's environment | `H-02` |
+| internal ordering / serialization | `H-07c`, `H-07d` |
+| test design | `H-06c` |
+
+**Six of eleven are "I assumed how an external system behaves, and it behaves
+otherwise."** The harness's entire job is integration — git, the shell, the
+process tree, a wire format, a CLI, a filesystem — and **each integration was
+written from assumption rather than from the system's contract.** That is the
+cause, and it is not a shortage of care; it is a shape. A file whose job is to
+be right about six foreign contracts has six chances to be wrong about one, and
+nothing in it is modeled, so nothing can be wrong *against* anything.
+
+### Response (a), REDUCE — and the specific place a library does not help
+
+**The shell-parsing cluster is the one to cut, and the fix is not a better
+parser.** `classify_error` + `_executables` + `_strip_heredocs` are 84 lines
+answering *"did this call invoke the toolchain?"* by **reading a string**, and
+both of their defects were the same failure: reporting a defect where there was
+a description of one. `bashlex` would lower the error rate and keep the class,
+because the question is still being answered by inference.
+
+**Stop inferring; observe.** The homes are cloned per run and thrown away, so a
+logging shim on `<home>/bin/cli/*` costs nothing and records what actually ran.
+That deletes 84 lines and two defects, makes a false positive structurally
+impossible, and is **strictly more informative** — it captures successful
+invocations, which the error-only harvest cannot see at all.
+
+`main` is the other reduce: **182 lines, no docstring, nine responsibilities,
+two defects** (`H-07c` ordering, `H-07d` serialization). Both are the kind that
+only appear in a procedure long enough to lose track of its own order.
+
+### Response (b)/(c), MODEL — and its price
+
+**The harness is a workflow with states**: workspace built → home cloned →
+dispatched → checked → reclaimed. That is exactly the shape `TlaSpecDevCli.tla`
+already models for other verbs, and modeling it would move eleven findings from
+`UNMODELED` to anchored and give the `done_check`s somewhere to be bound.
+
+Priced honestly, it is not free: the run's states are entangled with a live
+agent, and the interesting transitions (timeout, refusal, partial dispatch) are
+the ones hardest to enumerate. **Named and priced rather than proposed**, per
+step 5's own instruction for the expensive branch.
+
+### And the finding about the record itself
+
+**None of this was visible until the repository's owner asked whether the
+round's bugs had been attributed.** Eleven write-ups, some of them long, none in
+any total.
+
+The cause is structural. `SKILL.md` makes the epic agent the matrix's single
+writer so that naming stays stable — and this round **the writer was also the
+author of the thing being measured.** Defects in the toolchain became rows;
+defects in the harness became prose. Not by decision, by category drift, one
+finding at a time. `CA-01` dispatches judges blind to the operator's
+conclusions; nothing dispatched an auditor blind to the matrix-writer's
+classifications.
+
+`tests/test_every_finding_reaches_the_table.py` is the cheap half of that fix —
+it does not judge whether a placement is right, only that a finding written up
+was placed at all. **It found one more on its first run**: `G-11`, written up
+and never placed, by the same drift.
 
 ---
 
@@ -621,7 +801,12 @@ want different answers.
 | bin | findings | disposition | blocker / note |
 |---|---|---|---|
 | `UNMODELED/yaml-parser` | **7** | **`MODELABLE`** | Nothing is stopping it. It is a deterministic parser with a total function from text to data — **the easiest thing in this repository to model.** Accumulating here is now a *choice*, and this row exists to make that choice visible |
-| `UNMODELED/skill-composition` | 0 | **`DEFERRED`** | **Blocker: no runner exists that can drive several skills composed inside one plugin end to end.** Opened empty and deliberately — the bin is declared before its findings arrive, so the first one lands somewhere rather than being pooled |
+| `UNMODELED/skill-composition` | **1** | **`DEFERRED`** | **Blocker: no runner exists that can drive several skills composed inside one plugin end to end.** Opened empty and deliberately; `G-08` is the first thing to land in it, and it landed because a real agent hit it. **The blocker is now half false and that is itself the finding §7c rule 2 asks for** — `examples/agent_integration` IS a runner that drives skills end to end. It does not yet drive a multi-skill *plugin*, so the bin stays `DEFERRED`, but the sentence has to be re-read next round rather than repeated |
+| `UNMODELED/skill-manager-home` | **3** | **`UNDECIDED`** | New. The home/launch substrate: `exec` starts an unauthenticated session, a cloned home's agent config dir has no skills, `--home-root` is ignored. It is another unit's code with its own repository, which is a reason to classify it deliberately rather than a classification. **`UNDECIDED` is the honest entry**, per §3 — an absent input is never a PASS, and inventing a disposition here would be the same error as inventing a budget rationale |
+| `UNMODELED/example-runners` | **2** | **`UNDECIDED`** | New. `run_distributed_history_validation.py`, `run_validations.py` and the Test Graph node sources are executable surface no action in `TlaSpecDevCli.tla` describes. Round 3 found four defects in that tier and two of them anchor nowhere else |
+| `UNMODELED/instrument-registry` | **1** | **`UNDECIDED`** | New. `instruments.toml` plus `demonstrate.py`. The registry measures the instruments; nothing measures the registry, and this round found it red |
+| `UNMODELED/agent-harness` | **11** | **`UNDECIDED`** | New, and it opens as the second-largest row anywhere in this file. `examples/agent_integration/` -- the thing that produced every round-3 and round-002 claim. Eight of the eleven are pinned, which is the only reason the disposition is not worse than undecided |
+| `UNMODELED/record-keeping` | **2** | **`RECORD-ONLY`** | New. The matrix disagreeing with itself (`H-08`) and the fourth `git add -A` (`H-10`). Neither will ever be a TLA+ action; per §7c that is a statement about REPRESENTATION, never about relevance, and `H-10` is the one that finally got a mechanism instead of a rule |
 
 ### The disposition is not in-scope / out-of-scope
 
@@ -778,6 +963,529 @@ Three questions, at the epic goal / scorecard / evaluation and at planning:
 
 ---
 
+## Round 3 — every example run to the end, and the first real agents
+
+**Run 2026-09-02.** Two halves, answering different questions. The first ran
+every example's own validation through to completion, which had not happened in
+this epic. The second is a new example — `examples/agent_integration/` — that
+dispatches **real agents into the two seats this workflow actually has**: epic
+at project tier, ticket at worktree tier, each with a full Skill Manager home of
+its own and `skt` loaded.
+
+### The first half: four dead steps in one file, each hiding the next
+
+`examples/run_distributed_history_validation.py` is the flagship example's
+top-level validation. Running it produced one failure; fixing that produced the
+next; four times over.
+
+| # | what | why nothing saw it |
+|---|---|---|
+| `G-02` | `--out` into `test_graph/build/…`, refused by `#301`'s `spec_tree` rule | `#314` moved the DRIVER default; this CALLER overrides the default, and the pin `#314` shipped asks only about defaults |
+| `G-03` | calls `scripts/run_kill_test.py`, **deleted by `CA-04`** | `G-02` killed the process first |
+| `G-04` | the negative projected-state control demonstrated nothing — a hand-written parallel copy of the bindings in the pre-`MF-015` shape | `G-02`–`G-03` killed the process first |
+| `G-04b` | the `ecommerce.external_cases` Test Graph node generated into its build tree, same rule | `G-02`–`G-04` killed the process first |
+
+**The stacking is the finding.** A file that dies at line one has an
+unmeasurable rest, and its rest was rotting for three releases.
+
+**`G-04` is the one to keep.** The runner *refused* rather than counting a
+wrong-reason failure as a pass — `negative projected-state check failed for the
+wrong reason` — which is the only reason this is a finding and not a false green
+that had been shipping for months. **The instrument was right and nobody was
+running it**, which is `E-08`'s lesson in a second place.
+
+**`G-03` is `CA-04`'s deletion fan-out, and it surfaced twice more this round**
+— as the `kill-test-floor` and `kill-test-boundary-coverage` rows of `G-09`. One
+deliberate removal, three orphaned callers, none of them red.
+
+`#301`'s rule has now reached **six surfaces**: driver defaults, `--dot`, the
+remedy text, the docs, a test's corpus path (`E-14`), and a caller's override
+(`G-02`). Nothing enumerates them before they bite, and the new pin closes only
+the fifth and sixth. **`G-04b` is UNPINNED and recorded as such** — it composes
+its path inline inside a function, and the pin discovers module-level constants.
+Writing a rule that reached into call sites would be fitting a recogniser to the
+one call site I had just read.
+
+### `G-01`: the visible half of a defect was a third of it
+
+Running the effect-provider validations **modified 24 tracked files before doing
+anything else**. `HP-03` added the negative corpus and `generate_python.py`
+began emitting `effect_providers.py` for manifests with effect ports; no
+committed corpus followed either change.
+
+**One of the three examples asserts `committed == regenerated`. That one was red
+on `main`. The other two had no assertion at all** and went green while
+rewriting the tree underneath them. reminder_worker's drift was exactly one
+missing file; the two silent examples were together twice its size.
+
+
+**And the missing guard is now added, which the first pass did not do.**
+Regenerating the corpora cleared the symptom and left the cause: two of the
+three examples still had no `committed == regenerated` assertion, so the next
+generator change reproduces `G-01` exactly. `tests/test_committed_contracts_match_the_generator.py`
+discovers every example manifest, regenerates the contract package into a temp
+directory, and compares file sets and bytes against the committed copy found
+**by asking git** rather than by a table of per-example paths — a table of paths
+being the thing that goes stale. Verified red by deleting
+`atomic_publisher`'s `effect_providers.py`, which is `G-01`'s exact shape.
+Caught by the review of `#317`.
+### The second half: two seats, two real agents
+
+The fixture is a link shortener whose one interesting property — **a claimed
+slug can be released and re-reserved by a different owner, but never while the
+first owner holds it** — is false of any single state and true only over a
+trace. A model that captures it has to model the transition rather than the
+shape, and the harness can see whether `release` was represented **without ever
+telling the agent it is looking**.
+
+| seat | cost | turns | clock | tool refusals | verdict |
+|---|---|---|---|---|---|
+| epic | $16.26 | 77 | 1848s of 2400 | **1 real** (2 classified, 5 shell across both seats) | **PASS**, after `H-01` |
+| ticket | $8.65 | 80 | **806s of 3000** | **0** | **PASS** |
+
+Every number in the paragraph below is read off the workspace — `actions.yml`,
+`cases.py`, the trace directory, `specs/results/` — and not out of the agent's
+closing message, which `dispatch()`'s own docstring says is the one source this
+harness must not trust. The first version of this table took them from the
+transcript, and the review of `#317` was right to say so.
+
+The epic agent produced 13 Internal and 13 mirrored External actions with
+`Release` represented, TLC green on both configs, 112 spec-unit cases green
+against the real program, 112 exported traces, and a validating three-ticket
+plan. The ticket agent branched onto the epic tip, opened `SL-1`, implemented a
+CLI channel, closed through the equality gate and promoted into `specs/current`.
+Both left the fixture's four tests green.
+
+### `T2` is REFUTED, and the reason matters more than the verdict
+
+`T2-close-ticket` predicted the close gate was **the most expensive operation in
+the toolchain** — *"EXPENSIVE, 4+ round trips ... three sequential ledger
+refusals plus `F-02`'s plan-status refusal."*
+
+**Measured: zero refusals, 806 seconds of a 3000-second budget.** The whole
+open→implement→validate→close arc, first time through, by an agent that had
+never seen the repository.
+
+**What that does not license.** This agent received a plan written by another
+agent an hour earlier, in the same session family, on a fixture with four tests
+and one module. `F-01`'s number was withdrawn for being an artifact of its
+agent; the symmetric caution applies here. What is now on the record is that
+**the close gate is not intrinsically expensive**, and any future claim that it
+is has to explain this run.
+
+### `G-10` — the green that proves nothing, found by an agent, in our scaffold
+
+The ticket agent hit it while implementing `SL-1` and filed the part outside its
+remit as its epic's own `DEF-001`, severity major, with a reproduction, evidence
+paths and a blast radius naming the next ticket.
+
+`scripts/onboard_program_model.py` seeded **33** bindings with a view-qualified
+adapter module — `adapter = "specs.program_model.adapters:…"`. A dotted path
+like that resolves from the **project root**, so it means the accepted
+baseline's adapters whatever view is selected. `open ticket` copies those files
+verbatim, so **a ticket that edits its own `adapters.py` runs green without ever
+executing it.**
+
+**Anchored at `ScaffoldProject`, where the wrong bytes are written, not at
+`OpenTicket`, where they hurt.** That is §4's rule — the action the bug happened
+inside — and it opens the fifth populated row against a denominator of fifteen.
+
+**This is the first finding in the record that no instrument here could have
+produced.** It is not a crash, not a refusal, not a diff: it is a *passing run
+that proves nothing*, and seeing it required someone to edit an adapter, watch
+the suite go green, and ask why. `references/testgraph_adapters.md` taught the
+qualified form in six places, which is where the epic agent read it.
+
+### The attribution probe read ZERO — and the first reading of that was wrong
+
+Neither agent produced a `<Module>.<Action>` or an `UNMODELED/<bin>` anywhere in
+its output, and the obvious reading is `E-09` recurring: the instruction written
+and not reached. **That reading does not survive reading step 13.**
+
+Every clause of step 13 is scoped:
+
+> *For each **regression**: what caught it (`channel`), the area, and the
+> assertion that pins it… For each **passing case you wrote**: what it could
+> never have caught… Then name the TLA+ action **each regression** happened
+> inside.*
+
+**The ticket agent hit zero regressions.** So the anchor clause asked for
+nothing, and producing nothing was correct. The second clause — what a passing
+case could never catch — **was** answered, in four precise paragraphs naming the
+graph, the spec-unit run, the fixture tests and the close gate, and ending on
+*"the one thing nothing would have caught."* The instruction was reached and
+followed. **My probe measured a shape the instruction did not ask for**, which
+is the instrument over-claiming, and it is recorded here rather than reported as
+a finding against the toolchain.
+
+**What the round DID expose is narrower and worth more.** The most valuable
+output of that seat was `G-10` — a major, pre-existing defect found *by
+reading*, which the agent filed with a reproduction and a blast radius. **Step
+13 has no clause for it.** A defect that is not a regression and not a passing
+case you wrote falls through every branch, so `G-10` reached this matrix only
+because the epic agent read the transcript. The next agent's `G-10` will not.
+
+**The repair is one word in a scope, not a mechanism**, and `CloseTicket`'s row
+is where it will show. Until it is measured, the probe's `0` stays `UNDECIDED`
+per §3, never a PASS and never a failure.
+
+### `H-03` — and I shipped the exact defect this round is about
+
+**Anchored by the audit to `UNMODELED/example-runners`**, not to the harness: a
+validation runner overwriting a committed fixture is that tier's defect, and
+that tier is the one no action in `TlaSpecDevCli.tla` describes.
+
+`G-02`'s repair pointed the flagship validation at the driver's default,
+`specs/generated`, on the reasoning that a caller should not spell a path the
+driver already owns. **That directory holds a committed FIXTURE** — four
+hand-legible external cases with named constants, which
+`test_cli_passes_on_the_committed_example_corpus` asserts stays inside the
+default 50-per-action cap.
+
+A full generation of that model is **732 cases**. The run replaced a 121-line
+fixture with 18,315 lines, and the commit carried **779,379 insertions across
+751 files** under a subject line about four dead steps.
+
+**That is `E-06`'s shape and `f590d8d`'s shape, committed by the author of both
+write-ups, one round later.** A generator mutated a tracked tree and the change
+travelled under an unrelated subject.
+
+**Nothing local caught it.** Not the resolver — the path was legal. Not the
+example's own validation — it went green on the corpus it had just written. Not
+the new caller-override pin — the path it checked was fine. **Only the set
+comparison against the baseline commit saw it: 17 failures against 16**, with
+the single new one in `test_corpus_diagnostics.py`, a file that names none of
+the things that changed. Third time this epic that only the set comparison saw
+a regression, after `E-14`.
+
+**And a second instrument said it independently, from the other side.** One of
+the regenerated artifacts, `specs/generated/dot/External.dot`, is **137.76 MB** —
+past GitHub's 100 MB limit — so the pre-receive hook refused the branch outright,
+even though a later commit had already reverted the file. The blob was still in
+history. Two unrelated instruments, the corpus gate and a remote's size limit,
+reported the same defect by different routes, **and neither of them was the test
+suite.** That is the `cross-implementation` channel argument in a new form: the
+instruments that caught this agreed with each other and shared no code.
+
+Reverted — the branch rebuilt so those 751 files never entered it — the run
+given its own `specs/generated/.validation/<run-id>` beside the fixture
+(`E-13`'s shape), and pinned on **containment** — any tracked file
+anywhere beneath a run's output root. **The first version of that pin was
+vacuous**: it compared the output root against directories that directly hold
+tracked files, and `specs/generated` holds none, so it was green on its own
+demonstrated failing input. Caught by asking the question this project already
+knows to ask, and rewritten before it shipped.
+
+**The driver's own default still points at the fixture**, so running
+`regenerate_tlc_cases.py` by hand still overwrites it. That is `E-06`'s open
+question — *whether that corpus is committed or generated* — and it is the
+owner's, not a caller's to route around.
+
+### `H-04` — the fixture promised a feature it did not have, and the agent believed it
+
+`shortlink.py` opened *"A link shortener with expiry and a reservation window …
+a reservation must be claimed before it expires."* **There is no expiry in that
+file** — no timestamp, no clock, no deadline check anywhere in it.
+
+The epic agent read the docstring, believed it, and built its epic around
+implementing *"the reservation window the module docstring promises"*: a logical
+clock, per-slug deadlines, `Tick`, `ClaimRefusedExpired`, a
+`ClaimOnlyWhileActive` property.
+
+**So round 001's epic seat did not measure what this example exists to measure.**
+The fixture's whole design is one trace-only property — `release` and
+re-reservation — that an agent has to *find*, and the harness watches for
+without saying so. Instead the docstring pointed at a different property, one
+that isn't there. That is not a neutral fixture; it is a different experiment,
+run by accident.
+
+**Nothing in the harness could see it.** `done_check` asks whether a plan file
+exists. `fixture_still_green` passes because the agent never touched the module.
+The transcript reads like a success and *is* one, against the wrong question.
+
+Found by the blind reviewer of `#317`, which is the argument for blind dispatch
+restated: the author of a fixture is the last person who will notice that its
+description and its code disagree. Fixed and pinned —
+`test_the_fixture_docstring_promises_nothing_the_fixture_lacks`, verified red on
+the original text. **The epic seat is owed a re-run before its result is cited
+again**; the ticket seat is unaffected, because it worked from the plan and the
+code rather than from the docstring.
+
+### `H-05` — the classifier was 75% wrong on the project's own evidence
+
+`classify_error` matched `skill-manager` and `test_graph` as substrings anywhere
+in a command, so `E=.skill-manager/skills/…; cat $E/a; cat $E/b` — a failed
+`cat` — counted as invoking the toolchain. Three of the epic seat's four
+"toolchain" errors were that. **The number the harness prints and leads with was
+75% false positives**, and the write-up's *"0 real refusals, all its own shell"*
+was wrong in the other direction too: `new-uv-node.py` in the same run is a
+genuine refusal, reported as `G-08` in the same document that said there were
+none.
+
+**And the unit test passed.** Its negative input was
+`cat a.md; cat b.md; cat missing.md` — a cat chain with no toolchain-shaped path
+in it. **The real failing input was sitting in the repository as committed
+evidence and was not used.** That is a new shape for this record: not a vacuous
+test, but a *falsifiable test with a chosen input that avoids the failure mode*,
+which is the same error as fitting a recogniser to a known answer pointed the
+other way.
+
+Re-classified by the EXECUTABLE of each command segment. Round 001 reads
+**2 toolchain / 5 shell**, and that reading is now pinned against the committed
+evidence so the next write-up cannot drift from it silently.
+
+### `H-06a` / `H-06b` / `H-06c` — `G-10`'s fix was narrower than its write-up, in three ways
+
+**Placed by the audit as three findings, not one, and two of them are not the
+harness's at all:** `H-06a` (the import order) anchors to
+`TlaSpecDevCli.RunSpecUnitTests`, `H-06b` (the copy seam) to
+`TlaSpecDevCli.OpenTicket`, and only `H-06c` (the pin aimed at a function the
+ticket path never calls) belongs to `UNMODELED/agent-harness`. They were filed
+under one harness-shaped heading because the review that found them arrived as
+review of the harness's PR — **the finding took the shape of the thing that
+carried it**, which is a filing error the influence graph is supposed to prevent
+and did not.
+
+A second review, by the repository's owner, on a checkout of the branch. It
+reproduced the resolution behaviour rather than reading it, and the fix did not
+survive that.
+
+**1. Bare names resolved from the PROJECT ROOT first.** `ensure_import_roots`
+inserts each root at `sys.path[0]` in turn, so the last root returned is the
+first searched — and `spec_dir` was returned second of three. The resolved head
+was `[project_root, spec_dir, cwd]`, so a bare `adapters:X`, the form `G-10`
+introduced *so a view runs its own adapters*, imported `<project_root>/adapters`
+first. No example here has a top-level `adapters` package, so nothing was red. A
+project laid out ports-and-adapters — this repository's own doctrine — very
+plausibly does. **The same green that proves nothing, one directory over.**
+
+**2. The fix landed in the scaffold; the defect lives at the copy seam.** Only
+new projects get the corrected template. `open ticket` copies binding maps with
+`shutil.copyfile`, so every project onboarded before this branch keeps
+`specs.program_model.adapters:X` in its ticket views and keeps the hole intact.
+`close_tickets.promote_semantic_files` already re-roots on the way *out*; the
+symmetric move on the way *in* was missing. It strips to BARE, which
+`reroot_module_prefixes` itself calls *"the form that cannot rot on promotion"*,
+and it says so on stdout — a silent rewrite of a file the operator is about to
+edit is worse than the defect it fixes.
+
+**3. The pin tested a function the defect's own path never calls.** It asserted
+`spec_dir in default_import_roots_for(...)`, and `tla_spec_dev.py` passes
+`--import-root` explicitly on the ticket path, which skips that function
+entirely. **Membership, of a list, in a code path that does not run.** Replaced
+by three that test the seam: the resolved ORDER; a bare binding resolving to the
+ticket view through `ensure_import_roots` exactly as the close gate calls it,
+with the qualified form shown resolving to the baseline as its contrast; and the
+copy seam un-rooting what it copies. Each verified red with its own fix removed.
+
+**This is the third consecutive round in which the instrument built to catch a
+finding needed a finding of its own** — the round-2 `BLIND` on the pin, `H-05`'s
+test with an input that avoided the failure mode, and now a pin aimed at the
+wrong function. That is not three accidents. **A pin is written by whoever just
+fixed the defect, which is the person least able to see what they still assume.**
+
+### `H-07` — four harness bugs, and what they would each have cost
+
+**Counted as FOUR in `UNMODELED/agent-harness`, not one.** Grouping them under a
+single heading was convenient prose and bad arithmetic: four independent defects
+with four independent causes, and a row that reads `1` where four things broke
+understates the only thing the row exists to measure.
+
+| | what | why it matters |
+|---|---|---|
+| timeout | `proc.kill()` killed `claude` and nothing it spawned | a timed-out round leaves TLC's JVM and the fixture's server running; **the next round inherits them** and measures the previous one. Now `start_new_session` plus `killpg`, asserted against a real grandchild |
+| `assistant_turns` | 118, beside the result event's `num_turns: 77` | **two turn counts in one file disagreeing by 50%.** The stream emits one event per content BLOCK; distinct message ids give a third number, 28. Nothing is named for turns now: `assistant_events` and `assistant_messages` are stream shape, `final.num_turns` is the count |
+| evidence dir | created before `preflight` | a refused preflight left an empty directory and **burned the run id** — the next attempt hit "refusing to overwrite evidence" because of a failure that produced nothing |
+| `RESULT.json` | 23 occurrences of the operator's home path | `.gitignore` excludes the transcripts *because* they carry absolute paths and home layout. **The file that travels was leaking what the file that stays was excluded for**, which makes a stated reason untrue rather than incomplete. Redacted to `~`, and the committed records with it |
+
+### `H-08` — three totals for one table whose only claim is conservation
+
+*"22 of 29, 7 unanchored"* in the prose, `26 → 37` in the conservation line, and
+rows summing to 23 + 14 = 37. **Conservation is the single property this table
+asserts**, and it disagreed with itself three ways. Corrected to one set, with
+the arithmetic written out; two older cells that still do not reconcile
+(`yaml-parser` at 7 findings with three ids named, and a `pinned` cell larger
+than its escape count) are **named rather than tidied** — silently adjusting an
+earlier round's numbers to make a total come out is the failure being repaired,
+not the repair.
+
+### `H-09` — the README promised an instrument that does not exist
+
+*"the harness can see whether `release` was modeled at all without ever telling
+the agent that it is looking."* **Nothing in the harness checks it.** The
+observation came from reading the workspace by hand.
+
+The right answer is not to build the recogniser: a detector fitted to one
+expected action name is `MF-020`, refused three times here. It is to say that
+whether the agent found the property is read out afterwards, by a person, and is
+a `reading` channel. **A claim to an instrument is worse than no instrument**,
+because the next reader stops looking for the thing themselves.
+
+## Round 002 — the re-run, and what the corrected fixture bought
+
+**Run 2026-09-03**, after `H-04` (the fixture promised expiry it did not have)
+and the `#317` review fixes. Both seats **PASS**, `failed_roles: []`, $18.47,
+49 minutes.
+
+| seat | cost | turns | clock | toolchain refusals | done_check |
+|---|---|---|---|---|---|
+| epic | **$6.38** (was $16.26) | 66 (was 77) | **1027s** of 2400 (was 1848) | 0 | **PASS** |
+| ticket | $12.09 (was $8.65) | 105 (was 80) | 1860s of 3000 (was 806) | 0 | **PASS** |
+
+**The epic seat got cheaper and faster by more than half.** Round 001's epic
+spent its budget building a three-ticket plan around a reservation window the
+docstring promised and the code did not have. With the docstring telling the
+truth, the same seat did the real job in 56% of the time for 39% of the money.
+**That is the cost of a fixture that lies, measured**: not a wrong answer, a
+whole epic aimed at absent behaviour.
+
+**And the question the example exists to ask finally got asked.** The fixture's
+one trace-only property — a claimed slug may be released and re-reserved by a
+DIFFERENT owner, never while the first holds it — is now in the model, with both
+refusal rules:
+
+```
+Internal.tla   Release(s, o)              "only the holding owner may release,
+                                           and only while live"
+External.tla   SubmitRelease
+               SubmitReleaseNotLive
+               SubmitReleaseNotYours
+```
+
+Found without being told to look for it, which is the whole design of the
+fixture. **Read out of the workspace by hand, and recorded as channel
+`reading`** — the harness does not check it and deliberately does not, because a
+recogniser fitted to one expected action name is `MF-020`.
+
+### The two findings round 002 produced, both from the ticket seat
+
+| id | anchor | what |
+|---|---|---|
+| `G-12` | `TlaSpecDevCli.ScaffoldProject` | the reference example's `adapters.py` **omits the `SKILL_ROOT_BOOTSTRAP` block the scaffold inserts into every one it emits** |
+| `G-13` | `UNMODELED/skill-manager-home` | `bin/cli/tla-spec-dev` is `exec python3 <script>` — a **bare interpreter off PATH** |
+
+**`G-12` is `G-10`'s shape, exactly.** `scaffold_spec.py:671` substitutes
+`SKILL_ROOT_BOOTSTRAP` into `ADAPTERS_PY`, because without it `from
+spec_double_compiler.runtime import ...` cannot resolve under any interpreter
+absent a hand-set `PYTHONPATH`. `examples/distributed_history/specs/program_model/adapters.py`
+— the file `references/testgraph_adapters.md` calls *"the concrete reference
+implementation"*, and which `scaffold_spec.py:518` names too — **carries none of
+it.** Round 2's `T3` established that agents learn the flag set by reading that
+example rather than from the tool; they learn adapter shape there too, and what
+they learn is unimportable. **The scaffold is right and the reference teaches
+otherwise, for the second time in two rounds.**
+
+**`G-13` makes a sentence in `references/runtime_requirements.md` half true.**
+It says the wrappers are *"generated shell scripts with that home's absolute
+path baked into the body — no environment variable redirects them after the
+fact."* The path to the SCRIPT is baked in; the INTERPRETER is `python3` off
+PATH. The ticket agent hit it as `ModuleNotFoundError: No module named 'yaml'`
+and wrote it down before this matrix did.
+
+### `H-11` — and the instrument counted the agent's notes as the defect
+
+The run's own numbers said the ticket seat hit one toolchain refusal. It hit
+zero. The agent ran `cat > deferred_findings.yaml <<'YAML'` and one line of the
+body began `.skill-manager/bin/cli/tla-spec-dev runs a bare python3 from PATH`
+— **prose recording `G-13`, read by the classifier as an invocation of it.**
+
+Second time this instrument over-claimed, and the two are worth reading
+together: first `skill-manager` matched as a substring anywhere in a command;
+narrowed to the executable, heredoc text still reached the executable position.
+**Both times it reported a defect where there was a description of one.** Fixed,
+pinned, and `RESULT.json` re-harvested — the record now says zero, and the
+re-harvest is declared in the file rather than done quietly.
+
+The `attribution_probe` read zero in both seats again, and again that is
+`UNDECIDED` rather than a failure: the ticket seat hit no regression, so step
+13's anchor clause asked for nothing. It did file three deferred findings, three
+skill-feedback items, and a blocking escalation — reporting upward, in the
+workflow's own vocabulary, without an anchor.
+
+---
+
+### `G-11` — the source-citation tripwire caught a fan-out nothing else could
+
+Adding seventeen lines of docstring to `default_import_roots_for` moved an
+anchor in `run_generated_case_adapters.py` from line 1413 to 1430, and
+`scripts/effect_conformance.py:1684` cites that line by number.
+
+**Only `test_source_citations.py` saw it**, and it named the file, the stale
+number, the anchor token, and where the anchor moved to — enough to fix without
+searching. Class `automated`, and the first automated catch in this record
+against a defect class that is not about behaviour at all: **editing one file
+invalidates a reference in another that nothing links them by.**
+
+That is `#301`'s fan-out shape one more time, with the difference that this time
+an instrument existed and was pointed at it. Six surfaces of a rule change had
+to be found by hand or by set comparison; this one announced itself in twelve
+seconds.
+
+Checked before fixing that the change had not worsened the three pre-existing
+citation failures: every other stale anchor in the suite drifts NEGATIVE
+(−89, −36) or belongs to files this branch never edited, and a +17 shift appears
+nowhere. **One new stale citation, caused by this branch, and it is fixed.**
+
+### `H-10` — the fourth `git add -A`, in the commit that documents the other three
+
+The commit carrying the fixes above was staged with `git add -A examples`. It
+swept **805 per-run evidence files and 100,629 insertions** when thirteen files
+were intended.
+
+**Fourth occurrence.** `f590d8d` swept 44 files under a subject about three
+driver paths. `E-06` is the write-up of that shape. The corpus overwrite earlier
+in this same round was a third. This one is the commit whose message names all
+three.
+
+**So the pin was prose, and prose loses to muscle memory.** *"Never `git add -A`
+in a tree where a generator has just run"* has now been read, agreed with,
+written down, and violated by its own author four times. A rule that depends on
+remembering it at the exact moment attention is elsewhere is not a control.
+
+Replaced with a mechanism: `evidence/validation-runs/` is gitignored. Git
+ignores only UNTRACKED paths, so the 850 evidence files already committed stay
+fully visible — a modification or deletion of one still shows in `git status`,
+which is the difference from `E-06`, where a rule over a directory of TRACKED
+files hid exactly the change a reader needed to see. Freezing a new run
+deliberately still works and now costs one flag, and **that friction is the
+point**: evidence a person chose to keep gets an explicit act, evidence a run
+happened to produce does not ride in behind one.
+
+The untracked count after a full eval sweep went from 17 directories to zero,
+which is the first time this round that "the tree stays clean afterwards" has
+been true without a caveat.
+
+### `H-01` — the harness called a good run a failure
+
+The epic check reported `FAIL` against a complete, validating plan, because it
+looked in the working directory and `git-epic-workflow` puts the plan on
+`epic/<slug>` in its own worktree.
+
+**A measurement taken on the wrong fixture is not a refutation; it is a void
+run.** Round 2 reached that conclusion about `T1` and withdrew its headline
+number. Recorded here for the same reason the round-2 `BLIND` on the pin was:
+**an error in the instrument belongs in the record next to the errors it
+found.** Fixed, branch-aware, pinned with that run's own workspace as the
+demonstrated failing input, and `CORRECTION.md` travels with the unedited
+`RESULT.json`.
+
+### And the launch path the docs prescribe cannot start a session
+
+`G-05`. `skill-manager exec --home ~/.skill-manager -- claude -p "say OK"` →
+`Not logged in · Please run /login`. **That is the ROOT home**, so it is not the
+per-home config redirect; the same prompt without `exec` completes, and
+completes again hand-bound to the same home. Every `bin/launch/{claude}` shim
+delegates to `exec`, so the path `references/runtime_requirements.md` documents
+begins no session at all.
+
+Two more in that bin: a cloned home's agent config dir has **no skills and no
+plugins** after `exec` (`home repair` reports nothing damaged), and
+`exec --home-root` is ignored. All three are another unit's code. **The bin is
+`UNDECIDED`, deliberately** — inventing a disposition for it would be the same
+error as inventing a rationale for a budget nobody chose.
+
+---
+
 ## What it cannot say yet
 
 - **No denominators.** Escapes are counted; how often each action was exercised
@@ -794,3 +1502,10 @@ Three questions, at the epic goal / scorecard / evaluation and at planning:
 - **No era column.** An action repaired three epics ago reads like one still
   bleeding, and `acted on` is a claim nobody has re-measured.
 - **n = 5 anchors, one session, one model.** Nothing here supports a trend.
+- **Round 3 answered one of these and sharpened another.** The Test Graph
+  binding count is no longer 0-of-15 in the abstract: `examples/agent_integration`
+  is a runner that drives the toolchain end to end through an agent, and it
+  produced `G-10`, which no assertion here could have. What it still cannot say
+  is whether `G-10` is one defect or a class — **n = 1 round, 2 seats, one
+  fixture, $24.91.** The `T2` refutation in particular rests on a single agent
+  handed a plan an hour old.

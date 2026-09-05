@@ -1,0 +1,48 @@
+$ set -u
+found=""
+if [ -f specs/desired_program_model/ticket_plan.yaml ]; then
+  found="worktree:specs/desired_program_model/ticket_plan.yaml"
+fi
+for ref in $(git for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null); do
+  if git cat-file -e "$ref:specs/desired_program_model/ticket_plan.yaml" 2>/dev/null; then
+    found="${found:-}${found:+ }$ref"
+  fi
+done
+echo "plan found at: ${found:-<nowhere>}"
+test -d specs/program_model || { echo "no specs/program_model"; exit 1; }
+test -n "$found" || exit 1
+
+# A PLAN FILE IS NOT A PLAN, and the first version of this check could not tell
+# the difference. `tla-spec-dev scaffold workflow` emits a ticket_plan.yaml that
+# ALREADY contains `tickets:` and `- id: <ticket>`, so a `grep` for a list item
+# passed after two scaffold verbs and zero thought -- measured, exit 0, on a plan
+# that was 100% placeholders. That was the epic seat's only pass/fail signal.
+#
+# So the check now refuses the SHIPPED TEMPLATE by its own placeholder markers.
+# They come from `scripts/new_ticket_workflow.py:ticket_plan()`, and
+# `tests/test_agent_integration_harness.py` imports that function to assert
+# every marker below still appears in what it emits -- if the scaffold renames
+# a placeholder, that test says so rather than this predicate going quietly weak.
+scan=$(mktemp)
+for ref in $(git for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null); do
+  git show "$ref:specs/desired_program_model/ticket_plan.yaml" 2>/dev/null
+done > "$scan"
+cat specs/desired_program_model/ticket_plan.yaml >> "$scan" 2>/dev/null || true
+
+rc=0
+if ! grep -qE '^[[:space:]]*(-|id:)' "$scan"; then
+  echo "the plan carries no ticket entry"
+  rc=1
+fi
+for marker in ReplaceWithDesiredAction replace_with_state_field 'Replace with implementation surfaces'; do
+  if grep -qF "$marker" "$scan"; then
+    echo "the plan still carries the scaffold placeholder: $marker"
+    rc=1
+  fi
+done
+rm -f "$scan"
+exit $rc
+exit=0
+plan found at: worktree:specs/desired_program_model/ticket_plan.yaml epic/spec-carries-shortlink
+
+

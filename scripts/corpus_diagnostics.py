@@ -58,6 +58,11 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 from pathlib import Path
+
+try:  # the repository's sibling-import idiom: package first, script second
+    from . import verdict
+except ImportError:  # pragma: no cover - direct script execution
+    import verdict  # type: ignore[no-redef]
 from typing import Any, Iterable, Sequence
 
 try:
@@ -855,6 +860,7 @@ def add_arguments(parser: Any) -> Any:
         type=Path,
         help="spec_manifest.yaml supplying the caps. Defaults to the nearest one above the package.",
     )
+    verdict.add_verdict_argument(parser)
     return parser
 
 
@@ -930,6 +936,31 @@ def run(args: Any) -> int:
         cases, view=view, manifest_path=manifest, source=str(cases_dir)
     )
     print(render_report(report))
+
+    # THE VERDICT AS DATA, beside the prose rather than instead of it.
+    #
+    # This gate's own wording moved from "Every component is within cap" to
+    # "Every {scope} is within cap" when the cap became per-action, and the
+    # demonstration asserting the old sentence began reporting the instrument
+    # broken. The instrument was not broken. **The coupling was a sentence**, and
+    # `reason` is the field that outlives one.
+    worst = max(report.group_counts.values(), default=0)
+    verdict.Verdict(
+        instrument="corpus-diagnostics",
+        verdict="pass" if report.passed else "fail",
+        reason="within_cap" if report.passed else "over_cap",
+        detail={
+            "view": report.view,
+            "scope": report.scope,
+            "cap": report.cap,
+            "cap_budget": report.cap_budget,
+            "total_cases": report.total_cases,
+            "groups": len(report.group_counts),
+            "worst_group_cases": worst,
+            "over_cap_groups": [g.key for g in report.over_cap],
+        },
+    ).write(getattr(args, "verdict_json", None))
+
     return EXIT_OK if report.passed else EXIT_OVER_CAP
 
 

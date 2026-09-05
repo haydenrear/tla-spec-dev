@@ -1,0 +1,13 @@
+# The raw transcripts are not committed. Two reasons, both about what they are
+# rather than how big they are -- though they are also ~1MB per role per run:
+#
+#   * they carry the operator's absolute paths, session ids and home layout
+#     verbatim, which is machine state and not a finding;
+#   * everything a reader needs is already lifted into RESULT.json -- every
+#     failed tool call paired to the command that made it, the trimmed
+#     narration, the done_check and its exit code.
+#
+# A run's stream.jsonl stays on disk where the run wrote it, so re-harvesting an
+# old round is a local operation. What travels is the harvest.
+evidence/runs/*/*/stream.jsonl
+evidence/runs/*/*/stderr.txt

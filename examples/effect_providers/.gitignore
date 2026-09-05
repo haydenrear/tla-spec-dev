@@ -1,0 +1,39 @@
+# TLC's DOT output, and nothing else.
+#
+# `generate_cases_from_tlc_dump.py --dot` writes the state graph beside the
+# generated corpus. It is a build artifact of a run, is tracked in no example
+# (`git ls-files | grep '/generated/dot/'` is empty), and it is BIG: the
+# distributed_history model's `External.dot` is 137.76 MB, which is past
+# GitHub's 100 MB limit -- a `git add -A` after a validation run puts a blob in
+# history that the remote will then refuse, as it refused this branch once.
+#
+# SCOPED TO `dot/`, deliberately. E-06 was a `.gitignore` over
+# `specs/generated/` while thirteen files were TRACKED inside it: git ignores
+# only untracked paths, so the rule was decorative, and it made a regeneration
+# that deleted eight tracked files show up in `git status` as deletions only.
+# A rule over a directory that holds committed corpora hides exactly the change
+# a reader needs to see. This one covers a directory that holds none.
+**/generated/dot/
+
+# Per-run validation evidence, which is created by every run and committed by
+# nobody on purpose.
+#
+# THIS IS A MECHANISM FOR A RULE THAT HAS FAILED FOUR TIMES. `f590d8d` swept 44
+# files under a subject line about three driver paths; `E-06` was written up
+# about the same shape; the corpus overwrite on this branch was a third; and the
+# commit that documents all three was itself made with `git add -A` and swept
+# **805 evidence files, 100,629 insertions**, when thirteen were intended. The
+# pin for it was prose -- "never `git add -A` in a tree where a generator has
+# just run" -- and prose loses to muscle memory.
+#
+# Git ignores only UNTRACKED paths, so the 850 evidence files already committed
+# stay fully visible: a modification or deletion of one still shows in
+# `git status`. That is the difference from `E-06`, where a rule over a
+# directory of TRACKED files hid exactly the change a reader needed to see.
+#
+# Deliberately freezing a new run still works and now costs one flag:
+# `git add -f examples/.../evidence/validation-runs/<run-id>`. That friction is
+# the point -- evidence a human chose to keep gets an explicit act; evidence a
+# run happened to produce does not get swept in behind one.
+evidence/validation-runs/
+*/evidence/validation-runs/

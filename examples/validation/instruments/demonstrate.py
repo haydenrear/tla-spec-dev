@@ -112,6 +112,9 @@ from pathlib import Path
 from typing import Any
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "scripts"))
+import verdict  # noqa: E402
+
 REPO_ROOT = HERE.parents[2]
 REGISTRY = HERE / "instruments.toml"
 
@@ -188,15 +191,39 @@ def expand(value: str, tree: Path) -> str:
 
 
 def run_cli(spec: dict[str, Any], tree: Path) -> dict[str, Any]:
-    argv = [expand(part, tree) for part in spec["argv"]]
-    cwd = expand(spec.get("cwd", "{tree}"), tree)
-    completed = subprocess.run(
-        argv, cwd=cwd, capture_output=True, text=True, timeout=spec.get("timeout", 900)
-    )
+    """Run one command-line demonstration, and read its verdict if it wrote one.
+
+    `{verdict}` in an `argv` expands to a per-run temp path. A gate handed
+    `--verdict-json {verdict}` writes `{verdict, reason, detail}` there, and the
+    slot can then assert `expect_reason` instead of `expect_output`.
+
+    **That is the whole point.** 41 of this registry's 103 slots assert on
+    literal output strings, and 13 of the failures it reports today are prose
+    drift: `corpus_diagnostics.py` moved from "Every component is within cap" to
+    "Every {scope} is within cap" when the cap became per-action, and a correct
+    demonstration began reporting a working instrument broken. A `reason` code
+    survives every rewording of the sentence beside it.
+    """
+    with tempfile.TemporaryDirectory(prefix="verdict-") as scratch:
+        verdict_path = Path(scratch) / "verdict.json"
+        argv = [expand(part, tree).replace("{verdict}", str(verdict_path)) for part in spec["argv"]]
+        cwd = expand(spec.get("cwd", "{tree}"), tree)
+        completed = subprocess.run(
+            argv, cwd=cwd, capture_output=True, text=True, timeout=spec.get("timeout", 900)
+        )
+        observed_verdict: dict[str, Any] | None = None
+        verdict_error: str | None = None
+        if verdict_path.is_file():
+            try:
+                observed_verdict = verdict.read(verdict_path)
+            except (ValueError, json.JSONDecodeError) as exc:
+                verdict_error = str(exc)
     return {
         "exit": completed.returncode,
         "output": completed.stdout + completed.stderr,
         "argv": argv,
+        "verdict": observed_verdict,
+        "verdict_error": verdict_error,
     }
 
 
@@ -268,7 +295,37 @@ def judge(spec: dict[str, Any], observed: dict[str, Any]) -> list[str]:
     for needle in spec.get("expect_absent", []):
         if needle in observed["output"]:
             problems.append(f"output contains {needle!r}, which it must not")
+    problems.extend(judge_verdict(spec, observed))
     problems.extend(judge_counts(spec, observed))
+    return problems
+
+
+def judge_verdict(spec: dict[str, Any], observed: dict[str, Any]) -> list[str]:
+    """Assert on the gate's stated reason, not on the sentence beside it.
+
+    A slot declaring `expect_reason` is asserting against a stable code the gate
+    chose deliberately. A slot that declares it and gets NO verdict file is a
+    louder failure than a wording mismatch, because it means the gate did not
+    write one at all -- and a consumer that treated a missing verdict as absent
+    would turn a broken gate into a quiet pass.
+    """
+    expected = spec.get("expect_reason")
+    if expected is None:
+        return []
+    if observed.get("verdict_error"):
+        return [f"verdict file is not a verdict document: {observed['verdict_error']}"]
+    found = observed.get("verdict")
+    if found is None:
+        return [
+            f"declared expect_reason={expected!r} and the command wrote no verdict "
+            "-- pass `--verdict-json {verdict}` in argv, or drop the declaration"
+        ]
+    problems: list[str] = []
+    if found["reason"] != expected:
+        problems.append(f"verdict reason {found['reason']!r}, declared {expected!r}")
+    wanted_outcome = spec.get("expect_verdict")
+    if wanted_outcome is not None and found["verdict"] != wanted_outcome:
+        problems.append(f"verdict {found['verdict']!r}, declared {wanted_outcome!r}")
     return problems
 
 

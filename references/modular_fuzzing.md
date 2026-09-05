@@ -411,9 +411,25 @@ detect a model shrunk past usefulness. Until it earns that role on a real app
 (MF-037), guard against over-shrinking with human review of the R/W matrix and the
 retained behavior, not with the kill rate.
 
+> **RETIRED BY `CA-04` (6bf1687). The gate below no longer exists**, and this
+> section is kept as the design record rather than deleted. `run kill-test`, the
+> `RunKillTest` action, `kill_rate_floor`, the `mutation_write` port and
+> `scripts/run_kill_test.py` were all cut; `scripts/kill_test.py` survives as
+> the catalogue parser and suppression scanner that five callers still import.
+> The instrument rows retired with it in
+> `examples/validation/instruments/instruments.toml`, three epics late --
+> they had been reporting MISS, which reads as *"cannot be shown to fail"*
+> rather than *"was removed on purpose"*.
+>
+> **The last measurement it produced stands**: 0.571 (4/7) against a 0.8 floor
+> on `distributed_history`, three named survivors, each a true finding about
+> that example's representation. Kept in
+> `examples/run_distributed_history_validation.py`'s module docstring. The floor
+> was never lowered to make it pass.
+
 **Mechanized by MF-016** as `tla-spec-dev run kill-test`
-(`scripts/kill_test.py`, `scripts/run_kill_test.py`). Five properties are
-load-bearing, and each exists to close a specific way the experiment could be
+(`scripts/kill_test.py`, `scripts/run_kill_test.py`). Five properties were
+load-bearing, and each existed to close a specific way the experiment could be
 faked:
 
 - **Coverage is computed, not promised.** The required boundary set — one per
