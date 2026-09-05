@@ -252,11 +252,13 @@ effects:
           target: "*run_generated_case_adapters*"
         # CD-10 (audit run 3, gap R3-2): CloseTicket's shipped close path
         # performs destructive deletes, all under the spec tree: rmtree of TLC
-        # `states/` dirs (scripts/spec_evolution.py:225-237 (def remove_state_directories)),
-        # called at ticket close and at workflow close; rmtree of project
-        # `current/` before promotion
-        # (scripts/spec_evolution.py:1086-1088 (def replace_tree), the GitHub
-        # #22 data-loss mechanism); and unlink of seeded paths the ticket dropped
+        # `states/` dirs (scripts/spec_evolution.py:237 (shutil.rmtree) via
+        # scripts/spec_evolution.py:1998 (remove_state_directories) at ticket
+        # close and scripts/spec_evolution.py:2155 (remove_state_directories)
+        # at workflow close), rmtree of project `current/` before promotion
+        # (scripts/spec_evolution.py:1088 (shutil.rmtree) via
+        # scripts/spec_evolution.py:1283 (replace_tree), the GitHub #22
+        # data-loss mechanism), and unlink of seeded paths the ticket dropped
         # (scripts/spec_evolution.py:1180 (target.unlink)). filesystem.write
         # on spec_tree never covered these -- the schema distinguishes
         # filesystem.delete precisely so a delete cannot hide under a write.
@@ -302,8 +304,11 @@ effects:
         # CD-10 (audit run 3, gap R3-3b): CloseTicket spawns `git rev-parse
         # ...` for history-entry provenance
         # (scripts/spec_evolution.py:142 (subprocess.run), via
-        # scripts/spec_evolution.py:149 (def git_metadata), at ticket close
-        # and again at workflow close). The
+        # scripts/spec_evolution.py:2101 (git_metadata) at ticket close,
+        # scripts/spec_evolution.py:2215 (git_metadata) at workflow close, and
+        # scripts/spec_evolution.py:1859 (git_metadata) on ticket
+        # retirement -- THREE call sites, not the two this sentence claimed
+        # before #318's review counted them). The
         # fail-open branch on git error is out-of-model; the spawn itself is
         # not, so it is declared.
         git_metadata:
@@ -372,9 +377,9 @@ effects:
     # CD-11 (audit run 4, gap R4-3): evidence_report REMOVED -- a dead
     # declared port, the same class G4 removed for AnalyzeComplexity's
     # tlc_process. corpus_diagnostics.py has no --out flag (add_arguments
-    # scripts/corpus_diagnostics.py:842 (def add_arguments) registers
+    # scripts/corpus_diagnostics.py:847 (def add_arguments) registers
     # cases_dir/--view/--manifest only) and no file write anywhere; run()
-    # (scripts/corpus_diagnostics.py:909 (def run)) prints the report and
+    # (scripts/corpus_diagnostics.py:915 (def run)) prints the report and
     # returns. Removal
     # matches the shipped print-only behavior. Deliberately an EMPTY row, not
     # an absent one (the RecordBudgets rule above): the command reads and
