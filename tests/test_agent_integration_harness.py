@@ -747,3 +747,135 @@ def test_prose_inside_a_heredoc_is_not_read_as_a_command() -> None:
     assert harness.classify_error(
         {"input": {"command": "tla-spec-dev --spec-root specs close ticket X"}}
     ) == "toolchain"
+
+
+# --------------------------------------------------------------------------
+# The eval suite's own configuration.
+#
+# `examples/agent_integration/eval-plugin/` replaced most of this harness with
+# `claude plugin eval`, and the four defects that followed were all the same
+# shape: a contract the library was ASSUMED to honour, with no receipt. Each
+# one made a run report an agent failure that was the suite's own setup, which
+# is the exact direction this project says an instrument may not fail in.
+#
+# These pin the four. They read configuration, cost nothing, and go red if a
+# later edit walks any of them back.
+# --------------------------------------------------------------------------
+
+EVAL_PLUGIN = EXAMPLE / "eval-plugin"
+EVAL_CASE = EVAL_PLUGIN / "evals" / "scaffold-a-program-model"
+
+
+def _eval_case_text() -> str:
+    return (EVAL_CASE / "case.yaml").read_text(encoding="utf-8")
+
+
+def test_the_fixture_is_placed_by_a_hook_and_not_by_scaffold_script() -> None:
+    """`scaffold_script:` is accepted by the case loader and never executed.
+
+    Measured in 2.1.261 at every placement -- top level, `execution:`,
+    `setup:`, `workspace:`, `sandbox:`, `scaffold.script` -- and in both forms,
+    a file name and inline bash. The decisive probe was an inline body of
+    `exit 3`: the case still scored 1.00, so the script was not failing
+    quietly, it was never invoked. The case scored 0 on an EMPTY repository and
+    that read as "the agent could not build a spec".
+    """
+    hooks = EVAL_PLUGIN / "hooks" / "hooks.json"
+    assert hooks.is_file(), "the fixture has no placement mechanism at all"
+
+    import json
+
+    session_start = json.loads(hooks.read_text(encoding="utf-8"))["hooks"]["SessionStart"]
+    commands = [
+        h["command"]
+        for entry in session_start
+        for h in entry["hooks"]
+        if h.get("type") == "command"
+    ]
+    assert any("scaffold.sh" in c for c in commands), (
+        f"no SessionStart hook runs the scaffold; commands were {commands}"
+    )
+
+    # And nobody may quietly re-add the inert key and believe it does the work.
+    for line in _eval_case_text().splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            continue
+        assert not stripped.startswith("scaffold_script:"), (
+            "case.yaml declares scaffold_script:, which the CLI accepts and "
+            "never runs -- the fixture would silently not be placed"
+        )
+
+
+def test_every_gated_tool_the_case_declares_is_granted_in_the_documented_run() -> None:
+    """A tool in `allowed_tools:` is still refused unless `--allow-tools` grants it.
+
+    `--allow-tools Bash` alone produced `not granted (missing --allow-tools
+    grant, or a malformed entry): Write, Edit` and a score of 0: the agent
+    could read the program and could not write one line of the spec. The
+    summary line said nothing; only the per-case notes did.
+    """
+    import re
+
+    declared = re.search(r"allowed_tools:\s*\[([^\]]*)\]", _eval_case_text())
+    assert declared, "the case declares no allowed_tools"
+    tools = {t.strip() for t in declared.group(1).split(",") if t.strip()}
+    gated = tools & {"Bash", "Write", "Edit", "WebFetch"}
+
+    readme = (EVAL_PLUGIN / "README.md").read_text(encoding="utf-8")
+    grant = re.search(r"--allow-tools ([A-Za-z ]+)", readme)
+    assert grant, "the README documents no --allow-tools grant"
+    granted = set(grant.group(1).split())
+
+    missing = sorted(gated - granted)
+    assert not missing, (
+        f"the case declares {sorted(gated)} but the documented run grants "
+        f"{sorted(granted)}; {missing} would be refused and the run would "
+        "score 0 for a reason that is not the agent's"
+    )
+
+
+def test_no_grader_scores_an_artefact_any_scratch_file_would_satisfy() -> None:
+    """The first artefact grader globbed `specs/program_model/*.tla`.
+
+    A run that spent its whole budget on toolchain archaeology left behind
+    `Probe.tla` -- `Next == x' = (x + 1) % 3`, a counter mod 3 with nothing to
+    do with the fixture -- and the case reported 0.50, as though half the work
+    had been done.
+    """
+    import re
+
+    for grader in sorted((EVAL_CASE / "graders").glob("*.md")):
+        text = grader.read_text(encoding="utf-8")
+        if "type: file_exists" not in text:
+            continue
+        path = re.search(r"^path:\s*\"?([^\"\n]+)\"?", text, re.M)
+        assert path, f"{grader.name}: a file_exists grader with no path"
+        assert not path.group(1).strip().endswith("*.tla"), (
+            f"{grader.name} globs *.tla, which a scratch probe satisfies"
+        )
+
+
+def test_the_llm_grader_does_not_claim_to_read_files_it_cannot_see() -> None:
+    """The `llm` grader sees the final response and nothing else.
+
+    Measured with a probe case whose hook wrote `banana` into SECRET.txt and
+    whose criterion was "score 1 only if SECRET.txt contains banana":
+
+        never mentioned the file            FAIL FAIL FAIL
+        READ the file, did not quote it     FAIL FAIL FAIL
+        quoted its contents in the reply    PASS PASS PASS
+
+    The grader used to end "Score the artefacts: an action in the `.tla` files,
+    not a claim in the response." That instruction could never be followed, so
+    what it scored was the claim while reading as artefact evidence -- SS-02
+    with the grader itself as the absent input.
+    """
+    for grader in sorted((EVAL_CASE / "graders").glob("*.md")):
+        text = grader.read_text(encoding="utf-8")
+        if "type: llm" not in text:
+            continue
+        assert "CANNOT SEE THE WORKSPACE" in text, (
+            f"{grader.name}: an llm grader that does not say what it can see "
+            "will drift back into being written as though it reads the tree"
+        )

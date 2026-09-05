@@ -33,21 +33,21 @@ real row, not a leftover — see below.
 | **`UNMODELED/example-runners`** | **3** | **1** | 2 | `G-03`, `G-04`, `H-03` | **new, round 3.** The example validation runners are a whole executable tier `TlaSpecDevCli.tla` does not describe. `H-03` is one of them overwriting a committed fixture. Disposition: **`UNDECIDED`** |
 | **`UNMODELED/instrument-registry`** | **1** | 0 | 1 | `G-09` | **new, round 3.** FI-02's own demonstration harness is red, and by a count that changes with the launcher. Disposition: **`UNDECIDED`** |
 | `UNMODELED/skill-composition` | **1** | 0 | 1 | `G-08` | **its first finding, three rounds after it was opened empty.** Disposition unchanged: **`DEFERRED`** |
-| **`UNMODELED/agent-harness`** | **12** | **8** | 4 | `H-01`, `H-02`, `H-04`, `H-05`, `H-06c`, `H-07`×4, `H-09`, `H-11`, `H-12` | **the largest row in this matrix.** Twelve defects in `examples/agent_integration/` — the instrument itself — and `H-12` is a REPAIR that was worse than what it replaced. Disposition: **`UNDECIDED`** |
+| **`UNMODELED/agent-harness`** | **18** | **12** | 6 | `H-01`, `H-02`, `H-04`, `H-05`, `H-06c`, `H-07`×4, `H-09`, `H-11`, `H-12`, `H-13`—`H-18` | **the largest row in this matrix, and now by a wide margin.** Eighteen defects in `examples/agent_integration/` — the instrument itself. `H-12` is a REPAIR that was worse than what it replaced; `H-13`—`H-17` are round 4's, and all five are the SAME shape — a contract `claude plugin eval` was assumed to honour, with no receipt. `H-18` is the one that outlives its repair: a run that ends on the turn ceiling has no report, and the grader that reads the report scores its ABSENCE as FAIL. Disposition: **`UNDECIDED`** |
 | **`UNMODELED/record-keeping`** | **3** | **1** | 2 | `H-08`, `H-10`, `G-11` | **new.** The matrix disagreeing with itself, the fourth `git add -A`, and a line-number citation going stale two files away. Never an action; the accumulation is the evidence. Disposition: **`RECORD-ONLY`** |
 
-**After round 3, its re-run, the audit below, and `#318`'s review: 27 of 58
-findings anchored to a declared action, 31 did not — the unanchored share is the
-MAJORITY.**
-The unanchored share went from 7-in-one-row to **30 across seven rows**, and that
+**After round 3, its re-run, the audit below, `#318`'s review and round 4:
+27 of 64 findings anchored to a declared action, 37 did not — the unanchored
+share is the MAJORITY.**
+The unanchored share went from 7-in-one-row to **36 across seven rows**, and that
 is the more useful shape: *"seven findings, one gap"* and *"thirty findings,
 seven gaps"* want different answers, and the pooled count cannot tell them apart
 (`bug_attribution.md` §7c).
 
 **The largest single row is no longer a toolchain action.** `GenerateCases` has
-14; `UNMODELED/agent-harness` has 12 and now leads the table outright. **The
-instrument built to measure the toolchain has produced nearly as many defects as
-the worst action it measures**, and that is the number to sit with rather than
+14; `UNMODELED/agent-harness` has 18 and leads the table outright. **The
+instrument built to measure the toolchain has produced MORE defects than the
+worst action it measures**, and that is the number to sit with rather than
 explain away: an instrument this defective has been the source of every claim in
 this round.
 
@@ -1546,6 +1546,185 @@ plugins** after `exec` (`home repair` reports nothing damaged), and
 `exec --home-root` is ignored. All three are another unit's code. **The bin is
 `UNDECIDED`, deliberately** — inventing a disposition for it would be the same
 error as inventing a rationale for a budget nobody chose.
+
+---
+
+## Round 4 — the library was adopted, and it moved the defect class
+
+`examples/agent_integration/eval-plugin/` replaced most of `run_agent_integration.py`
+with `claude plugin eval`. The question that motivated it was whether buying the
+harness back removes the defects, and the answer measured here is **it removes
+the twelve it replaced and opens a new class of four.**
+
+Every one of the four is the same shape: **a contract the library was assumed to
+honour, with no receipt.** None of them is a bug in my logic. All four made a run
+report an agent failure that was the suite's own configuration — the direction
+this project says an instrument may never fail in — and none of them was visible
+in the summary line the run prints.
+
+### `H-13` — the case declared three tools and the run granted one
+
+`allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]` in `case.yaml`
+does not grant anything. The operator grant is a separate flag, and I passed
+`--allow-tools Bash`. The run scored 0. The reason appeared once, in a per-case
+note nobody reads when the score is 0:
+
+```
+scaffold-a-program-model: not granted (missing --allow-tools grant, or
+a malformed entry): Write, Edit
+```
+
+**The agent could read the program and could not write one line of a spec**, and
+the report called that a failure to model.
+
+### `H-14` — `scaffold_script:` is accepted and never runs
+
+The case carried `scaffold_script: scaffold.sh`, the run passed `--scaffold`,
+and the CLI printed its warning that the script "runs as you". The fixture was
+never placed. The repository the agent woke up in was empty, and it said so:
+
+> *"I stopped before writing a spec, because there's nothing to specify. The
+> repository is empty."*
+
+Measured at every placement — top level, `execution:`, `setup:`, `workspace:`,
+`sandbox:`, `scaffold.script` — and in both forms, a file name and inline bash.
+The decisive probe was an inline body of `echo ... >&2; exit 3`: **the case still
+scored 1.00**, so the script was not failing quietly, it was never invoked. A
+host-path write from inside it produced no file either.
+
+Fixed by placing the fixture from a `SessionStart` hook, which is the mechanism
+the CLI's own grader warning names — *"a plugin hook still could"* create a file
+the run is graded on — and verified in the trace: `hook_response … "scaffold:
+placed the fixture and made the first commit" … exit_code 0`, before turn one.
+
+### `H-15` — the artefact grader was satisfied by a scratch file
+
+`file_exists` on `specs/program_model/*.tla`. The first run that got as far as
+writing anything left behind `Probe.tla`:
+
+```tla
+Init == x = 0
+Next == x' = (x + 1) % 3
+```
+
+A counter mod 3 — a toolchain smoke test, written while checking that TLC ran at
+all, with nothing to do with the fixture. **The case reported 0.50**, as though
+half the work had been done. The grader now checks `spec_manifest.yaml`, which
+names ports, invariants and a finite model, and which scribbling one module does
+not produce.
+
+### `H-16` — the grader was told to score artefacts it cannot see
+
+`models-the-trace-property.md` ended: *"Score the artefacts: an action in the
+`.tla` files, not a claim in the response."* **The `llm` grader sees the final
+response and nothing else.** Measured with a probe case whose hook wrote
+`banana` into `SECRET.txt`, graded on "score 1 only if SECRET.txt contains
+banana":
+
+| what the agent did | judge votes |
+|---|---|
+| never mentioned the file | FAIL FAIL FAIL |
+| **read** the file, did not quote it | FAIL FAIL FAIL |
+| quoted its contents in the reply | PASS PASS PASS |
+
+Not the workspace. Not tool output. The final text.
+
+So the instruction could never be followed, and what the grader actually scored
+was **the claim, while reading as though it scored the artefact** — `SS-02` with
+the grader itself as the absent input, written by the person who had just
+finished insisting that an absent input is `UNDECIDED` and never `PASS`.
+
+There is no fallback: `regex` matches the response and rejects `path:` and
+`file:`; `file_exists` rejects `contains:`. Of the six grader types, **only
+`file_exists` observes the workspace, and only by path.** The grader now states
+what it can see, and the case prompt requires the response to quote the module's
+`Next` disjuncts so there is real text under it.
+
+### `H-17` — and the budget nobody had measured
+
+Unpinned, because it is a number rather than a predicate. The first scored run
+was given 40 turns and spent 39 of them on environment archaeology:
+`find / -maxdepth 8 -iname "tla2tools*.jar"`, a scan of
+`/Library/Java/JavaVirtualMachines`, an `unzip` of the jar to locate the
+standard modules. One `Skill` call, five `Write` calls, no model of the fixture,
+and then the turn ceiling. **The trace-property grader voted FAIL, which reads
+as "the model is wrong" and meant "no model was ever attempted."**
+
+The hook now discovers `java`, `tla-spec-dev` and `tla2tools.jar` at runtime and
+names them in its output, so the session is handed what it would otherwise spend
+its budget finding — or told the tool is missing, which is a truthful input
+rather than a silent 0. Nothing is hardcoded; another machine gets its own paths.
+
+**It worked, and the run hit the ceiling anyway.** At 60 turns the archaeology
+was gone — Bash 39 → 32, and the turns it freed went into the work: Write 5 →
+22, Edit 0 → 12 — and the session produced a real spec tree: `Core.tla`,
+`Internal.tla`, `External.tla`, a manifest, adapters, conformance tests. The
+budget was not padding. It was the wrong number twice, and 120 is the third
+guess, now written down with what the second one bought.
+
+### `H-18` — a run that ran out of turns is `UNDECIDED`, and the suite scores it FAIL
+
+This is the one that outlives the budget. The 60-turn run wrote exactly the
+model the fixture exists to elicit:
+
+```tla
+InternalNext ==
+  \/ \E s \in Slugs, o \in Owners : Reserve(s, o)
+  \/ \E s \in Slugs, o \in Owners, t \in Targets : Claim(s, o, t)
+  \/ \E s \in Slugs, o \in Owners : Release(s, o)
+  \/ \E s \in Slugs : Resolve(s)
+
+OwnershipHandoffRequiresRelease ==
+  [][ \A s \in Slugs :
+        (owners'[s] # owners[s]) => (owners[s] = NoOwner \/ owners'[s] = NoOwner) ]_InternalVars
+```
+
+`Release` is an action. The handoff property is stated as a step formula, with a
+comment saying why it cannot be an invariant. **That is a pass on the criterion,
+and the grader voted FAIL FAIL FAIL** — because the session ended
+`error_max_turns` at turn 61 with its last words *"Now full verification of
+everything I can execute."*, so there was no closing report, and the grader that
+can only read the report read nothing.
+
+An absent report is not a wrong report. `SS-02` says an absent input is
+`UNDECIDED` and never `PASS`; it says the same about `FAIL`, and this suite
+cannot express that. The run reported **0.50** — the artefact grader saw the
+tree, the report grader scored a truncation — and 0.50 is exactly the number a
+half-finished model would have produced. **The score is the same for "modelled
+half of it" and "modelled all of it and got cut off mid-sentence."**
+
+Raising the budget makes it rarer, not impossible, and rarer is the property an
+instrument may not rely on. What would fix it is a verdict the suite does not
+have: a run that ends on the ceiling should score `UNDECIDED` on every grader
+that reads the response, and only the workspace graders should count. Unpinned,
+and recorded as the shape to watch rather than a defect with a repair.
+
+### What this does to the reading
+
+`UNMODELED/agent-harness` goes from 12 to 18 and stays the largest row in the
+matrix by a wider margin. But **the twelve and the six are not the same kind of
+defect**, and pooling them hides the only thing this round measured:
+
+* the twelve were *logic I wrote* — a timeout that killed one process of a
+  group, evidence written in the wrong order, agents writing into the
+  operator's memory. `claude plugin eval` deletes that surface outright.
+* five of the six are *assumptions about a contract*, and every one of them was
+  cheap to find the moment anybody probed instead of trusting — four probe runs,
+  about $0.40, for `H-14` and `H-16` together.
+* the sixth, `H-18`, is neither. It is a gap in what the suite can SAY: there is
+  no verdict for "the run did not finish", so an absent report is scored as a
+  wrong one. That is the same `SS-02` this record spends its opening pages on,
+  and adopting a library did not import a fix for it.
+
+**The library was still the right call.** What it does not do is remove the
+obligation to demand a receipt, and the class it opens is one blind dispatch
+cannot help with, because there is no second implementation to disagree with —
+only the tool, and whether you asked it.
+
+Four of the six are pinned in `tests/test_agent_integration_harness.py`, each
+verified red before green: a `scaffold_script:` key reappearing in `case.yaml`,
+a gated tool declared but not granted in the documented run, a `file_exists`
+grader globbing `*.tla`, and an `llm` grader that stops saying what it can see.
 
 ---
 
