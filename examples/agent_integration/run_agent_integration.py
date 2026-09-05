@@ -303,10 +303,19 @@ loads, and its `skt status` report is produced by this home's `skt`.\
 """
 
 
-def bind_home_env(home: Path) -> tuple[dict[str, str], str]:
-    """Environment for a launch bound to `home`. See LAUNCH_NOTE."""
+def bind_home_env(
+    home: Path, shim_dir: Path | None = None, invocation_log: Path | None = None
+) -> tuple[dict[str, str], str]:
+    """Environment for a launch bound to `home`. See LAUNCH_NOTE.
+
+    When `shim_dir` is given it goes FIRST on PATH, ahead of the home's own
+    `bin/cli`, so every toolchain invocation is recorded before it runs. That is
+    the whole of what replaced the command-string classifier.
+    """
     env = dict(os.environ)
     env["SKILL_MANAGER_HOME"] = str(home)
+    if invocation_log is not None:
+        env["SPEC_DEV_INVOCATION_LOG"] = str(invocation_log)
     # Strip EVERY home's bin, including the operator's, then prepend this one.
     # A launch that merely prepends leaves the previous home's wrappers
     # reachable, and a wrapper resolved from the wrong home is a different
@@ -316,8 +325,9 @@ def bind_home_env(home: Path) -> tuple[dict[str, str], str]:
         for part in os.environ.get("PATH", "").split(os.pathsep)
         if part and f"{os.sep}.skill-manager{os.sep}" not in part + os.sep
     ]
+    front = [str(shim_dir)] if shim_dir is not None else []
     env["PATH"] = os.pathsep.join(
-        [str(home / "bin" / "cli"), str(home / "bin" / "mcp"), *kept]
+        [*front, str(home / "bin" / "cli"), str(home / "bin" / "mcp"), *kept]
     )
     # The harness's own session must not be inherited as the agent's session.
     for leak in ("CLAUDE_CODE_SESSION_ID", "CLAUDE_CODE_CHILD_SESSION"):
@@ -371,7 +381,10 @@ def dispatch(
     budget = float(role.get("budget_seconds", defaults.get("budget_seconds", 1500)))
     mode = str(role.get("permission_mode", defaults.get("permission_mode", "bypassPermissions")))
 
-    env, launch_note = bind_home_env(home)
+    shim_dir = out_dir / "shims"
+    invocation_log = out_dir / "invocations.log"
+    watching = install_invocation_shims(home, shim_dir)
+    env, launch_note = bind_home_env(home, shim_dir, invocation_log)
     claude_bin = shutil.which("claude", path=env["PATH"]) or "claude"
     command = [
         claude_bin,
@@ -414,6 +427,8 @@ def dispatch(
         "launch_style": "hand-bound",
         "launch_note": launch_note,
         "claude_bin": claude_bin,
+        "watching": watching,
+        "invocation_log": str(invocation_log),
         "cwd": str(cwd),
         "status": status,
         "returncode": returncode,
@@ -510,18 +525,13 @@ def harvest(stream_path: Path) -> dict[str, Any]:
                     content = "\n".join(
                         c.get("text", "") for c in content if isinstance(c, dict)
                     )
-                # CLASSIFY BEFORE TRIMMING. `_trim` turns a long input dict
-                # into JSON text, and a classifier handed text instead of a
-                # command sees no executable and reports `shell` -- silently
-                # clean, for every long command, which is the exact direction
-                # this instrument must not fail in.
-                record = {
-                    "tool": call.get("tool"),
-                    "kind": classify_error({"input": call.get("input")}),
-                    "input": _trim(call.get("input")),
-                    "error": _trim(content, 4000),
-                }
-                errors.append(record)
+                errors.append(
+                    {
+                        "tool": call.get("tool"),
+                        "input": _trim(call.get("input")),
+                        "error": _trim(content, 4000),
+                    }
+                )
         elif etype == "result":
             final = {
                 "subtype": event.get("subtype"),
@@ -533,160 +543,114 @@ def harvest(stream_path: Path) -> dict[str, Any]:
                 "result": _trim(event.get("result"), 20000),
             }
 
-    toolchain = [e for e in errors if e["kind"] == "toolchain"]
-
     return {
         "parsed": True,
         "assistant_events": events,
         "assistant_messages": len(message_ids),
         "tool_calls": len(calls),
+        # FAILED tool calls, ALL of them, unclassified. Which ones touched the
+        # toolchain is answered by `invocations` -- observed, not inferred.
         "tool_errors": errors,
         "tool_error_count": len(errors),
-        "toolchain_error_count": len(toolchain),
-        "shell_error_count": len(errors) - len(toolchain),
         "final": final,
         "narration": _trim("\n\n".join(text_blocks), 20000),
     }
 
 
-# What counts as INVOKING the toolchain, decided from the EXECUTABLE.
+# OBSERVED INVOCATIONS, not inferred ones.
 #
-# The first version matched these as substrings anywhere in the command blob,
-# and on this repository's own committed evidence that was **75% wrong**: three
-# of the epic seat's four "toolchain" errors were
-# `E=.skill-manager/skills/...; cat $E/a; cat $E/b` -- a failed `cat` whose PATH
-# happened to contain `.skill-manager`. Exactly the shape the classifier exists
-# to exclude, counted as the thing it exists to find, in the number the harness
-# prints and leads with.
+# This block used to answer *"did this call invoke the toolchain?"* by reading
+# the command string, and it was wrong twice in two rounds -- both times
+# reporting a defect where there was a DESCRIPTION of one. First
+# `skill-manager` matched as a substring anywhere in a command, so a failed
+# `cat` of a skill's files counted as running the skill: **75% false positives
+# on this repository's own committed evidence.** Narrowed to the executable of
+# each shell segment, heredoc bodies still reached the executable position, so
+# an agent WRITING DOWN a finding about `tla-spec-dev` was recorded as invoking
+# it.
 #
-# Worse, the unit test passed anyway: its negative input was
-# `cat a.md; cat b.md; cat missing.md`, a cat chain with no toolchain-shaped
-# path in it. **The real failing input was sitting in the repository as
-# committed evidence and was not used.** It is used now.
+# A better parser would have lowered the error rate and kept the class, because
+# the question was still being answered by inference. **So stop inferring.** The
+# homes are cloned per run and discarded, and `bind_home_env` already owns PATH,
+# so a shim directory in front of the home's `bin/cli` records what actually
+# ran. There is nothing left to be wrong about: a call either went through the
+# shim or it did not.
 #
-# So a command is split into segments and each segment's executable is
-# identified. A path that is merely an ARGUMENT is not an invocation.
-TOOLCHAIN_EXECUTABLES = {
-    "tla-spec-dev",
-    "tla_spec_dev.py",
-    "tlc2",
-    "skt",
-    "skill-manager",
-    "gradlew",
-}
+# It is also strictly more informative. The old classifier could only speak
+# about calls that FAILED, because only failures reach the transcript as
+# `is_error`. The log records every invocation, including the successful ones,
+# which is the larger half of what an agent actually did with the toolchain.
 
-#: Scripts of this repository that ARE the toolchain, by basename.
-TOOLCHAIN_SCRIPTS = {
-    "generate_cases_from_tlc_dump.py",
-    "run_generated_case_adapters.py",
-    "export_testgraph_cases.py",
-    "new_ticket_workflow.py",
-    "close_tickets.py",
-    "analyze_complexity.py",
-    "corpus_diagnostics.py",
-    "scaffold_spec.py",
-    "onboard_program_model.py",
-    "generate_python.py",
-    "spec_paths.py",
-}
+#: The binaries a cloned home exposes that ARE the toolchain under test.
+SHIMMED = ("tla-spec-dev", "tlc2", "skt", "skill-manager", "jinja2")
 
-#: An interpreter runs whatever it is handed; the script is the executable.
-INTERPRETERS = {"python", "python3", "python3.14", "uv", "bash", "sh", "env"}
+#: Fields are separated by US (0x1f) and records by newline. Chosen over JSON
+#: because the shim is `/bin/sh`: quoting an arbitrary argv into JSON from shell
+#: is its own defect generator, and this file has enough of those.
+_US = "\x1f"
 
-_SEGMENT = re.compile(r"[;&|]{1,2}|\n")
-_ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
-#: `cat > f <<'YAML'` ... `YAML`. Everything between is DATA, not shell.
-_HEREDOC = re.compile(r"<<-?\s*[\"\']?([A-Za-z_][A-Za-z0-9_]*)[\"\']?")
+SHIM_TEMPLATE = """#!/bin/sh
+# Written by examples/agent_integration/run_agent_integration.py. Records the
+# invocation, then runs the real binary and preserves its exit status.
+__log="${SPEC_DEV_INVOCATION_LOG:-/dev/null}"
+__args=""
+for __a in "$@"; do __args="${__args}\x1f${__a}"; done
+"__REAL__" "$@"
+__status=$?
+printf '%s\x1f%s\x1f%s%s\n' "$(date +%s)" "__NAME__" "${__status}" "${__args}" >> "${__log}"
+exit ${__status}
+"""
 
 
-def _strip_heredocs(command: str) -> str:
-    """Remove heredoc BODIES before looking for executables.
+def install_invocation_shims(home: Path, shim_dir: Path) -> dict[str, str]:
+    """Front `home/bin/cli` with shims that log what the agent actually ran.
 
-    Round 002 flagged a ticket-seat error as `toolchain` because a line inside a
-    `cat > deferred_findings.yaml <<'YAML'` body began with
-    `.skill-manager/bin/cli/tla-spec-dev runs a bare python3 from PATH` -- prose
-    the agent was WRITING DOWN, in a finding it had just made, read by this
-    classifier as a command it had run. The seat's real toolchain-error count
-    for that round is zero.
-
-    That is the over-claiming shape twice over: first `skill-manager` matched as
-    a substring anywhere, and when that was fixed to match on the executable,
-    heredoc text still reached the executable position. **Both times the
-    instrument reported a defect where there was documentation of one.**
+    Returns the shimmed name -> real path map, so a run's record says what it
+    was watching rather than leaving a reader to infer it from this source.
     """
-    out: list[str] = []
-    terminator: str | None = None
-    for line in command.splitlines():
-        if terminator is not None:
-            if line.strip() == terminator:
-                terminator = None
+    shim_dir.mkdir(parents=True, exist_ok=True)
+    installed: dict[str, str] = {}
+    for name in SHIMMED:
+        real = home / "bin" / "cli" / name
+        if not real.is_file():
             continue
-        out.append(line)
-        found = _HEREDOC.search(line)
-        if found:
-            terminator = found.group(1)
-    return "\n".join(out)
+        shim = shim_dir / name
+        shim.write_text(
+            SHIM_TEMPLATE.replace("__REAL__", str(real)).replace("__NAME__", name),
+            encoding="utf-8",
+        )
+        shim.chmod(0o755)
+        installed[name] = str(real)
+    return installed
 
 
-def _executables(command: str) -> list[str]:
-    """The executable of each segment of a shell command.
+def read_invocations(log: Path) -> list[dict[str, Any]]:
+    """Parse the shim log. A malformed record is reported, never dropped.
 
-    Leading `VAR=value` assignments and interpreters are stepped over, so
-    `E=/x; python3 /a/b/gen.py --out ...` yields `gen.py` and
-    `E=/x; cat $E/f` yields `cat`.
+    Dropping one would make a run with a broken shim look like a run in which
+    the agent used nothing -- indistinguishable from success, which is the one
+    direction this instrument may not fail in.
     """
-    found: list[str] = []
-    for segment in _SEGMENT.split(_strip_heredocs(command)):
-        tokens = segment.strip().split()
-        while tokens and (_ASSIGNMENT.match(tokens[0]) or tokens[0] in {"then", "do", "!", "("}):
-            tokens = tokens[1:]
-        while tokens and tokens[0] in INTERPRETERS:
-            # Step past the interpreter and its own flags to the script it runs.
-            tokens = tokens[1:]
-            while tokens and tokens[0].startswith("-"):
-                tokens = tokens[1:]
-                # `uv run --with pytest python ...`: values follow some flags.
-                if tokens and not tokens[0].startswith("-") and tokens[0] not in INTERPRETERS:
-                    break
-        if tokens:
-            found.append(tokens[0].rstrip("'\"").split("/")[-1])
-    return found
-
-
-def classify_error(entry: dict[str, Any]) -> str:
-    """`toolchain` if the failing call INVOKED the thing under test, else `shell`.
-
-    Classified by what was executed, never by what appears in the text. A rule
-    that reads the output drifts toward matching the findings already known,
-    which is MF-020 with extra steps; a rule that reads any substring of the
-    command counts a `cat` of a skill's file as running the skill.
-    """
-    payload = entry.get("input") or {}
-    if isinstance(payload, str):
-        # A harvested record read back from RESULT.json: `_trim` may have turned
-        # the input into JSON text, and a re-classification of committed
-        # evidence has to be able to read it. Falling through to "shell" here
-        # would make every past round look clean, which is a false PASS in the
-        # one direction this instrument must never fail.
+    if not log.is_file():
+        return []
+    invocations: list[dict[str, Any]] = []
+    for line in log.read_text(errors="replace").splitlines():
+        if not line.strip():
+            continue
+        parts = line.split("\x1f")
+        if len(parts) < 3:
+            invocations.append({"malformed": line[:400]})
+            continue
+        when, tool, status = parts[0], parts[1], parts[2]
         try:
-            payload = json.loads(payload)
-        except json.JSONDecodeError:
-            payload = {"command": payload}
-    command = payload.get("command") if isinstance(payload, dict) else None
-    if not isinstance(command, str):
-        # A non-Bash tool (Read, Edit, ...) is never a toolchain invocation.
-        return "shell"
-    for executable in _executables(command):
-        if executable in TOOLCHAIN_EXECUTABLES or executable in TOOLCHAIN_SCRIPTS:
-            return "toolchain"
-        # A script belonging to another installed unit -- `.../skills/<unit>/
-        # scripts/<x>.py` -- is that unit's surface, and running it is an
-        # invocation of the toolchain even though the file is not ours.
-        if executable.endswith(".py") and re.search(
-            r"skills/[^/\s]+/scripts/[^/\s]*" + re.escape(executable), command
-        ):
-            return "toolchain"
-    return "shell"
+            exit_code = int(status)
+        except ValueError:
+            invocations.append({"malformed": line[:400]})
+            continue
+        invocations.append(
+            {"at": when, "tool": tool, "exit": exit_code, "argv": parts[3:]}
+        )
+    return invocations
 
 
 def _trim(value: Any, limit: int = 1200) -> Any:
@@ -989,6 +953,7 @@ def main() -> int:
                     role=role, defaults=defaults, cwd=cwd, home=home, out_dir=role_dir
                 )
                 entry["harvest"] = harvest(role_dir / "stream.jsonl")
+                entry["invocations"] = read_invocations(role_dir / "invocations.log")
                 entry["attribution_probe"] = attribution_probe(entry["harvest"])
 
             entry["done_check"] = run_done_check(str(role["done_check"]), cwd, role_dir)
@@ -1004,8 +969,9 @@ def main() -> int:
             print(
                 f"  {role['id']}: done_check="
                 f"{'PASS' if entry['done_check']['passed'] else 'FAIL'}"
-                f" toolchain_errors={entry.get('harvest', {}).get('toolchain_error_count', 'n/a')}"
-                f" shell_errors={entry.get('harvest', {}).get('shell_error_count', 'n/a')}",
+                f" tool_errors={entry.get('harvest', {}).get('tool_error_count', 'n/a')}"
+                f" toolchain_calls={len(entry.get('invocations') or [])}"
+                f" of which failed={sum(1 for i in (entry.get('invocations') or []) if i.get('exit'))}",
                 flush=True,
             )
     finally:

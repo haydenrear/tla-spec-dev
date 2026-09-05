@@ -71,25 +71,29 @@ A role's `ask` names no flag, no file, and no verb. What the agent has to
 discover *is* the measurement, and an ask that supplies it has measured
 nothing. Same discipline as `examples/validation/agent_rounds/tasks.toml`.
 
-### Errors are classified by the command, not the message
+### Toolchain use is OBSERVED, not inferred
 
-A failed call is `toolchain` only when the call itself **invoked** the thing
-under test, and `shell` otherwise. Classified by the executable rather than by
-the output text — a message-based rule reads whatever words happen to be there
-and drifts toward matching the findings already known, which is `MF-020` with
-extra steps. The `shell` errors are kept and visible. They are just not called
-defects.
+A shim directory goes in front of the home's `bin/cli` on `PATH`, and every
+`tla-spec-dev`, `tlc2`, `skt`, `skill-manager` and `jinja2` call is recorded --
+argv and exit status -- before the real binary runs. `invocations.log` is what
+the run says the agent did with the toolchain.
 
-**By the executable, not by any substring**, and that distinction was learned
-the expensive way. The first version matched `skill-manager` and `test_graph`
-anywhere in the command, and on this repository's own committed evidence it was
-**75% wrong**: three of four "toolchain" errors were
-`E=.skill-manager/skills/…; cat $E/a; cat $E/b` — a failed `cat` whose *path*
-carried the token. Its unit test passed because the negative input chosen for it
-was a cat chain with no toolchain-shaped path in it, while the real failing
-input sat in `evidence/runs/round-001/` unused. **False positives are how an
-instrument gets switched off**, and an instrument that over-claims on its own
-front page is the one thing this harness may not be.
+**This replaced a classifier that read command strings, and was wrong twice in
+two rounds — both times reporting a defect where there was a *description* of
+one.** First `skill-manager` matched as a substring anywhere, so a failed `cat`
+of a skill's own files counted as running the skill: **75% false positives on
+this repository's own committed evidence.** Narrowed to the executable of each
+shell segment, heredoc bodies still reached the executable position, so an agent
+*writing down* a finding about `tla-spec-dev` was recorded as invoking it.
+
+A better parser would have lowered the error rate and kept the class, because
+the question was still being answered by inference. There is nothing left to be
+wrong about now: a call either went through the shim or it did not.
+
+It is also strictly more informative. The classifier could only speak about
+calls that FAILED, because only failures reach the transcript as `is_error`. The
+log has every invocation, including the successful ones — the larger half of
+what an agent actually did.
 
 ### The checks look on every branch, because the workflow uses branches
 
