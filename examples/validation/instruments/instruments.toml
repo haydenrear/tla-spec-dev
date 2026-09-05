@@ -114,7 +114,7 @@ any row of it is a re-runnable perturbation of the SUBJECT, not of the runner.
   [instrument.failing]
   summary = "a checked-out order is persisted with status 'pending' instead of 'accepted' (kill_mutants.toml store-order_store, verbatim)"
   argv = ["{python}", "{repo}/scripts/run_generated_case_adapters.py",
-          "{tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases",
+          "{tree}/dh/specs/generated/spec-unit/ecommerce_internal_cases",
           "--mapping", "{tree}/dh/specs/program_model/case_adapters.toml",
           "--view", "internal", "--batch", "--import-root", "{tree}/dh"]
   cwd = "{tree}/dh"
@@ -133,7 +133,7 @@ any row of it is a re-runnable perturbation of the SUBJECT, not of the runner.
   [instrument.passing]
   summary = "the same corpus against the same tree, unmutated"
   argv = ["{python}", "{repo}/scripts/run_generated_case_adapters.py",
-          "{tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases",
+          "{tree}/dh/specs/generated/spec-unit/ecommerce_internal_cases",
           "--mapping", "{tree}/dh/specs/program_model/case_adapters.toml",
           "--view", "internal", "--batch", "--import-root", "{tree}/dh"]
   cwd = "{tree}/dh"
@@ -197,7 +197,7 @@ classification = "demonstrated-can-fail"
   argv = ["{python}", "{repo}/scripts/run_kill_test.py",
           "--target", "{tree}/dh/specs/program_model", "--root", "{tree}/dh",
           "--cfg", "Internal.cfg",
-          "--corpus-command", "{python} {repo}/scripts/run_generated_case_adapters.py {tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases --mapping {tree}/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root {tree}/dh"]
+          "--corpus-command", "{python} {repo}/scripts/run_generated_case_adapters.py {tree}/dh/specs/generated/spec-unit/ecommerce_internal_cases --mapping {tree}/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root {tree}/dh"]
   expect_exit = 1
   expect_output = ["BELOW FLOOR", "There is no waiver"]
 
@@ -210,7 +210,7 @@ classification = "demonstrated-can-fail"
   argv = ["{python}", "{repo}/scripts/run_kill_test.py",
           "--target", "{tree}/dh/specs/program_model", "--root", "{tree}/dh",
           "--cfg", "Internal.cfg",
-          "--corpus-command", "{python} {repo}/scripts/run_generated_case_adapters.py {tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases --mapping {tree}/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root {tree}/dh"]
+          "--corpus-command", "{python} {repo}/scripts/run_generated_case_adapters.py {tree}/dh/specs/generated/spec-unit/ecommerce_internal_cases --mapping {tree}/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root {tree}/dh"]
   expect_exit = 0
   expect_output = ["PASS: kill rate 1.000"]
 
@@ -281,10 +281,19 @@ classification = "demonstrated-can-fail"
 
   [instrument.failing]
   summary = "a component carrying more cases than its declared cap allows"
+  # ASSERTED ON THE VERDICT, not on the prose. This slot and the one below used
+  # to match sentences; the gate's wording moved from "Every component is within
+  # cap" to "Every {scope} is within cap" when the cap became per-action, and a
+  # correct demonstration began reporting a working instrument broken. The path
+  # was stale too -- `spec_unit` predates the `spec-unit` rename (E-06/#313) --
+  # which is that rename's fourth orphaned consumer.
   argv = ["{python}", "{repo}/scripts/corpus_diagnostics.py",
-          "{tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases",
-          "--manifest", "{tree}/dh/specs/program_model/spec_manifest.yaml"]
+          "{tree}/dh/specs/generated/spec-unit/ecommerce_internal_cases",
+          "--manifest", "{tree}/dh/specs/program_model/spec_manifest.yaml",
+          "--verdict-json", "{verdict}"]
   expect_exit = 1
+  expect_verdict = "fail"
+  expect_reason = "over_cap"
 
     [[instrument.failing.stage]]
     from = "examples/distributed_history"
@@ -298,10 +307,12 @@ classification = "demonstrated-can-fail"
   [instrument.passing]
   summary = "the same corpus under the caps it was generated against"
   argv = ["{python}", "{repo}/scripts/corpus_diagnostics.py",
-          "{tree}/dh/specs/generated/spec_unit/ecommerce_internal_cases",
-          "--manifest", "{tree}/dh/specs/program_model/spec_manifest.yaml"]
+          "{tree}/dh/specs/generated/spec-unit/ecommerce_internal_cases",
+          "--manifest", "{tree}/dh/specs/program_model/spec_manifest.yaml",
+          "--verdict-json", "{verdict}"]
   expect_exit = 0
-  expect_output = ["Every component is within cap"]
+  expect_verdict = "pass"
+  expect_reason = "within_cap"
 
     [[instrument.passing.stage]]
     from = "examples/distributed_history"
@@ -1392,6 +1403,49 @@ property of the instrument. `SM-03-DF-03`.
   nodes = ["tests/test_spec_manifest_records.py"]
   expect_exit = 0
   expect_passed_at_least = 18  # SM-03: exit 0 is also what a fully-skipped run returns
+
+[[instrument]]
+id = "citation-anchor"
+name = "line-citation checker and fixer"
+paths = ["scripts/check_citations.py"]
+family = "repo-tripwire"
+watches = "every `FILE.EXT:LINE (ANCHOR)` citation in the scoped source, and whether the line still holds the anchor"
+verdict_surface = "exit 1 listing each stale or uncheckable citation; `--fix` rewrites the ones whose anchor resolves to exactly one line"
+classification = "demonstrated-can-fail"
+note = """
+`G-11`: seventeen lines of docstring added to one function moved an anchor from
+1413 to 1430, and another file cited it by number. Nothing about behaviour
+changed, so every behavioural check stayed green.
+
+**The interesting half is the REFUSAL.** The checker already knew where the
+anchor had gone and made a human copy it across, which is where three
+consecutive tickets' stale citations came from. `--fix` writes the number -- and
+the whole risk of a tool that writes numbers is one that guesses, so the
+demonstrations below are the two directions: it must repair the unique case and
+must leave the 2-hit and 0-hit cases exactly as it found them.
+"""
+
+  [instrument.passing]
+  kind = "pytest"
+  tier = "fast"
+  summary = "the unambiguous repair, and that a second run finds nothing"
+  nodes = [
+    "tests/test_citation_fixer.py::test_it_repairs_a_citation_whose_anchor_moved",
+    "tests/test_citation_fixer.py::test_fixing_is_idempotent",
+  ]
+  expect_exit = 0
+  expect_passed = 2
+
+  [instrument.failing]
+  kind = "pytest"
+  tier = "fast"
+  summary = "an anchor on several lines, and an anchor on none: both reported, neither rewritten"
+  nodes = [
+    "tests/test_citation_fixer.py::test_it_refuses_when_the_anchor_appears_on_several_lines",
+    "tests/test_citation_fixer.py::test_it_refuses_when_the_anchor_is_gone_entirely",
+  ]
+  expect_exit = 0
+  expect_passed = 2
 
 [[instrument]]
 id = "skill-root-tripwire"
