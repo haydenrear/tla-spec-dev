@@ -25,7 +25,7 @@ real row, not a leftover — see below.
 | `TlaSpecDevCli.CloseTicket` | **5** | **3** | 2 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03`, `E-09` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
 | `TlaSpecDevCli.GenerateCases` | **14** | **13** | 1 | `#300`, `#301`, `F-06`, `E-02`, `E-04`—`E-08`, `E-12`, `E-13`, `G-01`, `G-02`, `G-04b` | **the concentration, and it is not close.** FIVE are damage from its own repairs, and `#301`'s rule has now reached SIX surfaces. `F-06` REFUTED |
 | `TlaSpecDevCli.OpenTicket` | **3** | **3** | 0 | `#299`, `E-01`, `H-06b` | **was read as a closed arc; round 2 reopened it.** `H-06b` is `G-10`'s other half: the copy seam handed every pre-existing project the same hole the scaffold fix only closed for new ones |
-| **`TlaSpecDevCli.ScaffoldProject`** | **2** | **1** | 1 | `G-10`, `G-12` | **both found by real ticket agents, and both the same shape:** the scaffold is right and the REFERENCE teaches otherwise. `G-10` unpinned by the fix; `G-12` filed, not fixed |
+| **`TlaSpecDevCli.ScaffoldProject`** | **3** | **3** | 0 | `G-10`, `G-12`, `G-14` | **three, and the last is damage from repairing the second.** `G-14` is the bootstrap hijacking the checkout under review — the hazard its own docstring names. Pinned at two layers, unit and test graph |
 | **`TlaSpecDevCli.RunSpecUnitTests`** | **1** | **1** | 0 | `H-06a` | **sixth populated row.** `default_import_roots_for` returned the spec dir second, and `ensure_import_roots` reverses, so a bare binding resolved from the PROJECT ROOT first |
 | `TlaSpecDevCli.AnalyzeComplexity` | 1 | 0 | 1 | `F-07` | cosmetic; unpinned by choice |
 | **`UNMODELED/yaml-parser`** | **7** | 11 | 0 | `#298`, `#307`, `#308` | infrastructure beneath every action; no anchor exists. **7 of 21 findings in the whole record.** Disposition: **`MODELABLE`** — see below |
@@ -33,18 +33,19 @@ real row, not a leftover — see below.
 | **`UNMODELED/example-runners`** | **3** | **1** | 2 | `G-03`, `G-04`, `H-03` | **new, round 3.** The example validation runners are a whole executable tier `TlaSpecDevCli.tla` does not describe. `H-03` is one of them overwriting a committed fixture. Disposition: **`UNDECIDED`** |
 | **`UNMODELED/instrument-registry`** | **1** | 0 | 1 | `G-09` | **new, round 3.** FI-02's own demonstration harness is red, and by a count that changes with the launcher. Disposition: **`UNDECIDED`** |
 | `UNMODELED/skill-composition` | **1** | 0 | 1 | `G-08` | **its first finding, three rounds after it was opened empty.** Disposition unchanged: **`DEFERRED`** |
-| **`UNMODELED/agent-harness`** | **11** | **8** | 3 | `H-01`, `H-02`, `H-04`, `H-05`, `H-06c`, `H-07`×4, `H-09`, `H-11` | **new, and it opens as the second-largest row in the matrix.** Eleven defects in `examples/agent_integration/` — the instrument itself. Disposition: **`UNDECIDED`** |
+| **`UNMODELED/agent-harness`** | **12** | **8** | 4 | `H-01`, `H-02`, `H-04`, `H-05`, `H-06c`, `H-07`×4, `H-09`, `H-11`, `H-12` | **the largest row in this matrix.** Twelve defects in `examples/agent_integration/` — the instrument itself — and `H-12` is a REPAIR that was worse than what it replaced. Disposition: **`UNDECIDED`** |
 | **`UNMODELED/record-keeping`** | **3** | **1** | 2 | `H-08`, `H-10`, `G-11` | **new.** The matrix disagreeing with itself, the fourth `git add -A`, and a line-number citation going stale two files away. Never an action; the accumulation is the evidence. Disposition: **`RECORD-ONLY`** |
 
-**After round 3, its re-run, and the audit below: 26 of 56 findings anchored to a
-declared action, 30 did not — the unanchored share is now the MAJORITY.**
+**After round 3, its re-run, the audit below, and `#318`'s review: 27 of 58
+findings anchored to a declared action, 31 did not — the unanchored share is the
+MAJORITY.**
 The unanchored share went from 7-in-one-row to **30 across seven rows**, and that
 is the more useful shape: *"seven findings, one gap"* and *"thirty findings,
 seven gaps"* want different answers, and the pooled count cannot tell them apart
 (`bug_attribution.md` §7c).
 
 **The largest single row is no longer a toolchain action.** `GenerateCases` has
-14; `UNMODELED/agent-harness` has 11 and did not exist an hour ago. **The
+14; `UNMODELED/agent-harness` has 12 and now leads the table outright. **The
 instrument built to measure the toolchain has produced nearly as many defects as
 the worst action it measures**, and that is the number to sit with rather than
 explain away: an instrument this defective has been the source of every claim in
@@ -52,7 +53,7 @@ this round.
 
 **Conservation, round 3, the re-run, and the audit.** No model change was made,
 so nothing moved between rows for that reason. `findings before: 26. findings
-after: 56.` Thirty arrived — eleven in round 3, two from its re-run, and seventeen surfaced
+after: 58.` Thirty arrived — eleven in round 3, two from its re-run, and seventeen surfaced
 by the audit (sixteen by hand, and **one more by the check the audit produced**:
 `G-11` had been written up and never placed either, and
 `tests/test_every_finding_reaches_the_table.py` found it on its first run). **Three DID move**, and they moved because they were misfiled, not
@@ -69,10 +70,10 @@ conservation. Review of `#317` caught it. **Each finding is counted in exactly
 one row** — the rows above share no id — and the arithmetic is now:
 
 ```
-anchored    5 + 14 + 3 + 2 + 1 + 1      = 26
-unanchored  7 +  4 + 3 + 1 + 1 + 11 + 3 = 30
+anchored    5 + 14 + 3 + 3 + 1 + 1      = 27
+unanchored  7 +  4 + 3 + 1 + 1 + 12 + 3 = 31
                                           --
-                                          56
+                                          58
 ```
 
 **Sixteen of those arrived by AUDIT, not by a new round**, and the audit was
@@ -1403,6 +1404,68 @@ skill-feedback items, and a blocking escalation — reporting upward, in the
 workflow's own vocabulary, without an anchor.
 
 ---
+
+### `H-12` / `G-14` — I replaced an instrument with a worse one, and shipped it for review
+
+Two findings from the blind review of `#318`, and they are the same lesson at
+two layers.
+
+**`H-12`: the observation shim could not see the calls that matter.** It
+replaced a classifier that over-claimed with one that under-reports, and
+under-reporting is the direction this project says an instrument may never fail
+in. It intercepts PATH resolution and nothing else:
+
+```
+PATH lookup       recorded=1
+absolute path     recorded=0
+relative path     recorded=0
+python3 <script>  recorded=0
+```
+
+**The one genuine toolchain refusal in this entire record** — `G-08` — was
+invoked as `python3 .skill-manager/skills/test-graph/scripts/new-uv-node.py`.
+The shim would not have seen it. A bypassed call reported `toolchain_calls=0`,
+**indistinguishable from an agent that never touched the toolchain**, which is
+`SKILL.md`'s `unobservable` rule violated by the instrument built to enforce it.
+
+Two more, each disqualifying on its own: the record is written AFTER the binary
+returns, so a budget timeout SIGKILLs the group and **the slow call that caused
+the timeout is the one guaranteed missing** — while the docstring claimed the
+record was written "before the real binary runs", describing code that was never
+written. And an argv containing a newline fabricates a second, *successful*
+invocation attributed to a tool nobody ran.
+
+Reverted. The classifier it replaced was wrong in the recoverable direction:
+**it cried wolf, loudly, on inputs a human triages. An instrument that
+over-claims gets checked; one that stays silent does not.**
+
+**`G-14`: the `G-12` repair hijacked the checkout under review.**
+`sys.path.insert(0, home)` put an installed spec-double-compiler ahead of the
+repository whose tests were running, so the reference example inside this
+skill's own repo exercised a different build than the one being validated —
+the hazard the block's own docstring warns about, produced by the code beneath
+it. And its test was green for a property of this MACHINE: the checkout sits
+under the operator's home, so the resolver's ancestor walk found
+`~/.skill-manager` whatever the environment said.
+
+Fixed by trying the enclosing checkout first, and asserted in the one place the
+environment cannot supply the answer: a test graph node that copies the
+repository somewhere with no home above it, strips every variable the resolver
+consults, and imports from a neutral cwd. **The unit test was the thing that was
+wrong, so the assertion moved to a layer the unit test could not fake.**
+
+### And the pattern these two complete
+
+Three consecutive rounds, and now a fourth, in which **the instrument built to
+catch a finding needed a finding of its own**: round 2's `BLIND` on the pin,
+`H-05`'s test with an input that avoided the failure mode, `H-06c`'s pin aimed
+at a function the defect's path never calls, and now a replacement instrument
+that is blind where its predecessor over-claimed.
+
+**A pin is written by whoever just fixed the defect** — the person least able to
+see what they still assume — and a replacement is written by whoever was most
+annoyed by the thing it replaces. Both are the wrong author, and blind dispatch
+is the only thing that has reliably caught either.
 
 ### `G-11` — the source-citation tripwire caught a fan-out nothing else could
 
