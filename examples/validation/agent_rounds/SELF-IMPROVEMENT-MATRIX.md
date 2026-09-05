@@ -24,25 +24,40 @@ real row, not a leftover — see below.
 |---|---|---|---|---|---|
 | `TlaSpecDevCli.CloseTicket` | **5** | **3** | 2 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03`, `E-09` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
 | `TlaSpecDevCli.GenerateCases` | **14** | **13** | 1 | `#300`, `#301`, `F-06`, `E-02`, `E-04`—`E-08`, `E-12`, `E-13`, `G-01`, `G-02`, `G-04b` | **the concentration, and it is not close.** FIVE are damage from its own repairs, and `#301`'s rule has now reached SIX surfaces. `F-06` REFUTED |
-| `TlaSpecDevCli.OpenTicket` | **2** | **2** | 0 | `#299`, `E-01` | **was read as a closed arc; round 2 reopened it.** `E-01` is a conformance violation against a guard the model calls structural |
+| `TlaSpecDevCli.OpenTicket` | **3** | **3** | 0 | `#299`, `E-01`, `H-06b` | **was read as a closed arc; round 2 reopened it.** `H-06b` is `G-10`'s other half: the copy seam handed every pre-existing project the same hole the scaffold fix only closed for new ones |
 | **`TlaSpecDevCli.ScaffoldProject`** | **2** | **1** | 1 | `G-10`, `G-12` | **both found by real ticket agents, and both the same shape:** the scaffold is right and the REFERENCE teaches otherwise. `G-10` unpinned by the fix; `G-12` filed, not fixed |
+| **`TlaSpecDevCli.RunSpecUnitTests`** | **1** | **1** | 0 | `H-06a` | **sixth populated row.** `default_import_roots_for` returned the spec dir second, and `ensure_import_roots` reverses, so a bare binding resolved from the PROJECT ROOT first |
 | `TlaSpecDevCli.AnalyzeComplexity` | 1 | 0 | 1 | `F-07` | cosmetic; unpinned by choice |
 | **`UNMODELED/yaml-parser`** | **7** | 11 | 0 | `#298`, `#307`, `#308` | infrastructure beneath every action; no anchor exists. **7 of 21 findings in the whole record.** Disposition: **`MODELABLE`** — see below |
 | **`UNMODELED/skill-manager-home`** | **4** | 0 | 4 | `G-05`, `G-06`, `G-07`, `G-13` | **new, round 3, and the fastest-growing row.** `skill-manager exec` starts an unauthenticated session — on the ROOT home — and the `tla-spec-dev` wrapper runs a bare `python3` off PATH. Disposition: **`UNDECIDED`** |
-| **`UNMODELED/example-runners`** | **2** | 0 | 2 | `G-03`, `G-04` | **new, round 3.** The example validation runners are a whole executable tier `TlaSpecDevCli.tla` does not describe. Disposition: **`UNDECIDED`** |
+| **`UNMODELED/example-runners`** | **3** | **1** | 2 | `G-03`, `G-04`, `H-03` | **new, round 3.** The example validation runners are a whole executable tier `TlaSpecDevCli.tla` does not describe. `H-03` is one of them overwriting a committed fixture. Disposition: **`UNDECIDED`** |
 | **`UNMODELED/instrument-registry`** | **1** | 0 | 1 | `G-09` | **new, round 3.** FI-02's own demonstration harness is red, and by a count that changes with the launcher. Disposition: **`UNDECIDED`** |
 | `UNMODELED/skill-composition` | **1** | 0 | 1 | `G-08` | **its first finding, three rounds after it was opened empty.** Disposition unchanged: **`DEFERRED`** |
+| **`UNMODELED/agent-harness`** | **11** | **8** | 3 | `H-01`, `H-02`, `H-04`, `H-05`, `H-06c`, `H-07`×4, `H-09`, `H-11` | **new, and it opens as the second-largest row in the matrix.** Eleven defects in `examples/agent_integration/` — the instrument itself. Disposition: **`UNDECIDED`** |
+| **`UNMODELED/record-keeping`** | **2** | 0 | 2 | `H-08`, `H-10` | **new.** The matrix disagreeing with itself, and the fourth `git add -A`. Never an action; the accumulation is the evidence. Disposition: **`RECORD-ONLY`** |
 
-**After round 3 and its re-run: 24 of 39 findings anchored to a declared action,
-15 did not.**
-The unanchored share went from 7-in-one-row to **14 across five rows**, and that
-is the more useful shape: *"seven findings, one gap"* and *"fourteen findings,
-five gaps"* want different answers, and the pooled count cannot tell them apart
+**After round 3, its re-run, and the audit below: 26 of 55 findings anchored to a
+declared action, 29 did not — the unanchored share is now the MAJORITY.**
+The unanchored share went from 7-in-one-row to **29 across seven rows**, and that
+is the more useful shape: *"seven findings, one gap"* and *"twenty-nine findings,
+seven gaps"* want different answers, and the pooled count cannot tell them apart
 (`bug_attribution.md` §7c).
 
-**Conservation, round 3 and the re-run.** No model change was made, so no
-finding moved. `findings before: 26. findings after: 39.` Thirteen arrived -- eleven in round 3, two more from its re-run; zero were
-redistributed; every pre-existing row holds exactly the findings it held.
+**The largest single row is no longer a toolchain action.** `GenerateCases` has
+14; `UNMODELED/agent-harness` has 11 and did not exist an hour ago. **The
+instrument built to measure the toolchain has produced nearly as many defects as
+the worst action it measures**, and that is the number to sit with rather than
+explain away: an instrument this defective has been the source of every claim in
+this round.
+
+**Conservation, round 3, the re-run, and the audit.** No model change was made,
+so nothing moved between rows for that reason. `findings before: 26. findings
+after: 55.` Twenty-nine arrived — eleven in round 3, two from its re-run, sixteen surfaced
+by the audit. **Three DID move**, and they moved because they were misfiled, not
+because the model changed: `H-06`'s import-order and copy-seam halves out of the
+narrative and onto `RunSpecUnitTests` and `OpenTicket`, and `H-03` onto
+`UNMODELED/example-runners`. Every other pre-existing row holds exactly the
+findings it held.
 
 **How the count is defined, because it disagreed with itself.** The first
 version of this section said *"22 of 29, 7 did not"* while the table summed to
@@ -52,11 +67,37 @@ conservation. Review of `#317` caught it. **Each finding is counted in exactly
 one row** — the rows above share no id — and the arithmetic is now:
 
 ```
-anchored    5 + 14 + 2 + 2 + 1 = 24
-unanchored  7 +  4 + 2 + 1 + 1 = 15
-                                 --
-                                 39   = 26 before + 11 round 3 + 2 round 002
+anchored    5 + 14 + 3 + 2 + 1 + 1 = 26
+unanchored  7 +  4 + 3 + 1 + 1 + 11 + 2 = 29
+                                          --
+                                          55
 ```
+
+**Sixteen of those arrived by AUDIT, not by a new round**, and the audit was
+prompted by one question: *were those bugs assigned to bug attribution?* Two
+were. Eleven were not, and had never been counted anywhere.
+
+**The eleven were the `H-` series — defects in the harness itself**, written up
+in full in the narrative below and absent from every total above it. The reason
+they were absent is worth stating because it is exactly the failure §7c names:
+round 2 recorded its one BLIND-on-the-pin as narrative, and this round followed
+that precedent eleven times. **A precedent for one is not a precedent for
+eleven.** §7c calls the escape conservation cannot see *"refusing to add — 'that
+is just infrastructure' — which achieves the same silence and never touches the
+model at all."* Eleven findings outside the count is that, achieved by never
+opening the bin.
+
+**And placing them moved three findings OUT of the harness**, which is the part
+that actually changes what this matrix says:
+
+| was | now | why |
+|---|---|---|
+| `H-06` (one entry) | `H-06a` → `RunSpecUnitTests`, `H-06b` → `OpenTicket`, `H-06c` → harness | two of its three parts are TOOLCHAIN defects, filed under a harness-shaped heading because the review that found them arrived as review of the harness's PR |
+| `H-03` | `UNMODELED/example-runners` | a validation runner overwriting a committed fixture is that tier's defect, not the instrument's |
+
+`RunSpecUnitTests` becomes the **sixth populated row** of fifteen declared
+actions, and it was opened by a finding that had been sitting in the narrative
+labelled as something else.
 
 **Two older cells still do not reconcile, and are left rather than tidied.**
 `UNMODELED/yaml-parser` shows 7 findings while naming three ids, and its
@@ -660,6 +701,8 @@ want different answers.
 | `UNMODELED/skill-manager-home` | **3** | **`UNDECIDED`** | New. The home/launch substrate: `exec` starts an unauthenticated session, a cloned home's agent config dir has no skills, `--home-root` is ignored. It is another unit's code with its own repository, which is a reason to classify it deliberately rather than a classification. **`UNDECIDED` is the honest entry**, per §3 — an absent input is never a PASS, and inventing a disposition here would be the same error as inventing a budget rationale |
 | `UNMODELED/example-runners` | **2** | **`UNDECIDED`** | New. `run_distributed_history_validation.py`, `run_validations.py` and the Test Graph node sources are executable surface no action in `TlaSpecDevCli.tla` describes. Round 3 found four defects in that tier and two of them anchor nowhere else |
 | `UNMODELED/instrument-registry` | **1** | **`UNDECIDED`** | New. `instruments.toml` plus `demonstrate.py`. The registry measures the instruments; nothing measures the registry, and this round found it red |
+| `UNMODELED/agent-harness` | **11** | **`UNDECIDED`** | New, and it opens as the second-largest row anywhere in this file. `examples/agent_integration/` -- the thing that produced every round-3 and round-002 claim. Eight of the eleven are pinned, which is the only reason the disposition is not worse than undecided |
+| `UNMODELED/record-keeping` | **2** | **`RECORD-ONLY`** | New. The matrix disagreeing with itself (`H-08`) and the fourth `git add -A` (`H-10`). Neither will ever be a TLA+ action; per §7c that is a statement about REPRESENTATION, never about relevance, and `H-10` is the one that finally got a mechanism instead of a rule |
 
 ### The disposition is not in-scope / out-of-scope
 
@@ -984,6 +1027,10 @@ per §3, never a PASS and never a failure.
 
 ### `H-03` — and I shipped the exact defect this round is about
 
+**Anchored by the audit to `UNMODELED/example-runners`**, not to the harness: a
+validation runner overwriting a committed fixture is that tier's defect, and
+that tier is the one no action in `TlaSpecDevCli.tla` describes.
+
 `G-02`'s repair pointed the flagship validation at the driver's default,
 `specs/generated`, on the reasoning that a caller should not spell a path the
 driver already owns. **That directory holds a committed FIXTURE** — four
@@ -1085,6 +1132,16 @@ evidence so the next write-up cannot drift from it silently.
 
 ### `H-06` — `G-10`'s fix was narrower than its write-up, in three ways
 
+**Placed by the audit as three findings, not one, and two of them are not the
+harness's at all:** `H-06a` (the import order) anchors to
+`TlaSpecDevCli.RunSpecUnitTests`, `H-06b` (the copy seam) to
+`TlaSpecDevCli.OpenTicket`, and only `H-06c` (the pin aimed at a function the
+ticket path never calls) belongs to `UNMODELED/agent-harness`. They were filed
+under one harness-shaped heading because the review that found them arrived as
+review of the harness's PR — **the finding took the shape of the thing that
+carried it**, which is a filing error the influence graph is supposed to prevent
+and did not.
+
 A second review, by the repository's owner, on a checkout of the branch. It
 reproduced the resolution behaviour rather than reading it, and the fix did not
 survive that.
@@ -1124,6 +1181,11 @@ wrong function. That is not three accidents. **A pin is written by whoever just
 fixed the defect, which is the person least able to see what they still assume.**
 
 ### `H-07` — four harness bugs, and what they would each have cost
+
+**Counted as FOUR in `UNMODELED/agent-harness`, not one.** Grouping them under a
+single heading was convenient prose and bad arithmetic: four independent defects
+with four independent causes, and a row that reads `1` where four things broke
+understates the only thing the row exists to measure.
 
 | | what | why it matters |
 |---|---|---|
