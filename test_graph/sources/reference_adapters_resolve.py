@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import tempfile
 from pathlib import Path
 
 from testgraphsdk import NodeResult, NodeSpec, node, procs
@@ -74,7 +75,17 @@ def main(ctx):
     repo = Path(__file__).resolve().parents[2]
     result = NodeResult.pass_(SPEC.id)
 
-    checkout = ctx.report_dir / "detached-checkout"
+    # OUTSIDE THE REPOSITORY, and removed afterwards.
+    #
+    # The first version copied the checkout into `ctx.report_dir`, which lives
+    # under `test_graph/build/`. Two repository-scanning tests then found the
+    # duplicate and reported the scorecard stated in eleven places it should not
+    # be -- `test_card_has_one_home` and `test_prediction_seal`, both green
+    # before this node existed. **A validation that leaves a second copy of the
+    # repository inside the repository breaks every check that reads the tree**,
+    # which is `E-13`'s lesson and `H-03`'s, arriving a third time.
+    scratch = Path(tempfile.mkdtemp(prefix="reference-adapters-resolve-"))
+    checkout = scratch / "checkout"
     shutil.copytree(
         repo, checkout,
         ignore=shutil.ignore_patterns(
@@ -86,6 +97,7 @@ def main(ctx):
     target = checkout / RELATIVE_ADAPTERS
     result.assertion("the copied checkout holds the reference adapters", target.is_file())
     if not target.is_file():
+        shutil.rmtree(scratch, ignore_errors=True)
         return result
 
     env = {k: v for k, v in os.environ.items() if k not in STRIPPED}
@@ -128,6 +140,7 @@ def main(ctx):
         "the checkout outranks any installed spec-double-compiler",
         str(repo) in repo_output and ".skill-manager" not in repo_output,
     )
+    shutil.rmtree(scratch, ignore_errors=True)
     return result
 
 
