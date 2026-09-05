@@ -184,93 +184,6 @@ decides a run.
   reason = "MF-027. Not a defect and not repairable here; recorded so the oracle's reach is not read as total."
 
 [[instrument]]
-id = "kill-test-floor"
-name = "MF-016 mutation kill test"
-paths = ["scripts/kill_test.py", "scripts/run_kill_test.py"]
-family = "measurement"
-watches = "whether the distilled corpus can tell a seeded fault from the correct program"
-verdict_surface = "exit 1 below floor / regressed, exit 2 incomplete catalogue / no control"
-classification = "demonstrated-can-fail"
-
-  [instrument.failing]
-  summary = "the shipped distributed-history example: 3 of 7 seeded faults survive the corpus, 0.571 against a floor of 0.800 -- a genuinely under-refined representation, not a contrived one"
-  argv = ["{python}", "{repo}/scripts/run_kill_test.py",
-          "--target", "{tree}/dh/specs/program_model", "--root", "{tree}/dh",
-          "--cfg", "Internal.cfg",
-          "--corpus-command", "{python} {repo}/scripts/run_generated_case_adapters.py {tree}/dh/specs/generated/spec-unit/ecommerce_internal_cases --mapping {tree}/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root {tree}/dh"]
-  expect_exit = 1
-  expect_output = ["BELOW FLOOR", "There is no waiver"]
-
-    [[instrument.failing.stage]]
-    from = "examples/distributed_history"
-    to = "dh"
-
-  [instrument.passing]
-  summary = "the same corpus over a catalogue containing only faults it does kill"
-  argv = ["{python}", "{repo}/scripts/run_kill_test.py",
-          "--target", "{tree}/dh/specs/program_model", "--root", "{tree}/dh",
-          "--cfg", "Internal.cfg",
-          "--corpus-command", "{python} {repo}/scripts/run_generated_case_adapters.py {tree}/dh/specs/generated/spec-unit/ecommerce_internal_cases --mapping {tree}/dh/specs/program_model/case_adapters.toml --view internal --batch --import-root {tree}/dh"]
-  expect_exit = 0
-  expect_output = ["PASS: kill rate 1.000"]
-
-    [[instrument.passing.stage]]
-    from = "examples/distributed_history"
-    to = "dh"
-
-    [[instrument.passing.stage]]
-    from = "examples/validation/instruments/fixtures/kill_test/killable_only.toml"
-    to = "dh/specs/program_model/kill_mutants.toml"
-
-[[instrument]]
-id = "kill-test-boundary-coverage"
-name = "kill test boundary coverage (--list-boundaries)"
-paths = ["scripts/run_kill_test.py"]
-family = "measurement"
-watches = "that every boundary the model declares carries a seeded fault"
-verdict_surface = "exit 2 on an incomplete catalogue"
-classification = "demonstrated-can-fail"
-
-  [instrument.failing]
-  summary = "the model grows a declared port and the catalogue does not follow it -- the drift a sealed catalogue certificate hides"
-  argv = ["{python}", "{repo}/scripts/run_kill_test.py",
-          "--target", "{tree}/dh/specs/program_model", "--root", "{tree}/dh",
-          "--list-boundaries"]
-  expect_exit = 2
-  expect_output = ["NO MUTANT"]
-
-    [[instrument.failing.stage]]
-    from = "examples/distributed_history"
-    to = "dh"
-
-    [[instrument.failing.mutate]]
-    file = "dh/specs/program_model/spec_manifest.yaml"
-    find = "budgets:"
-    replace = """effects:
-  components:
-    ledger:
-      ports:
-        unseeded_port:
-          type: filesystem.write
-          target: "**/never-seeded/**"
-  actions:
-    Checkout: [unseeded_port]
-
-budgets:"""
-
-  [instrument.passing]
-  summary = "the catalogue as shipped: every declared boundary carries a seeded fault"
-  argv = ["{python}", "{repo}/scripts/run_kill_test.py",
-          "--target", "{tree}/dh/specs/program_model", "--root", "{tree}/dh",
-          "--list-boundaries"]
-  expect_exit = 0
-  expect_output = ["declared boundaries carry a seeded fault"]
-
-    [[instrument.passing.stage]]
-    from = "examples/distributed_history"
-    to = "dh"
-
-[[instrument]]
 id = "corpus-diagnostics"
 name = "corpus case-cap diagnostics"
 paths = ["scripts/corpus_diagnostics.py"]
@@ -2654,6 +2567,54 @@ THE SessionStart HOOK AND SKILL LISTING REACHED EVERY ARM. Both are corrected:
 identity leak is not the standing objection this row once said it was.
 """
 
+
+[[retired]]
+id = "kill-test-floor"
+retired_by = "CA-04, applied here by the #317 audit"
+retired_at = "6bf1687 cut the gate; these rows outlived it by three epics"
+paths = ["scripts/run_kill_test.py"]
+reason = """
+RETIRED, NOT SILENTLY DROPPED, and the delay is the finding.
+
+`CA-04` (6bf1687) deliberately cut the mutation kill-test GATE -- the
+`kill_test` variable, the `RunKillTest` action, the
+`KillTestVerdictRequiresBudgets` invariant, `RunKillTestAdapter`,
+`kill_rate_floor`, the `mutation_write` port -- and deleted
+`scripts/run_kill_test.py` with them. Its own commit message says every model
+surface enumerated in advance was found and cut.
+
+**These two instrument rows were not.** They kept declaring a script that does
+not exist and kept invoking it, so `demonstrate.py` reported them MISS/MISS for
+three epics -- read, every time, as *"this instrument cannot be shown to fail"*
+rather than *"the thing it measures was removed on purpose"*. Those are opposite
+statements and the registry could not tell them apart.
+
+`scripts/kill_test.py` SURVIVES and is not retired with them. `CA-04` measured
+that deleting it would strand a disproof: `run_controls.py` imports it at module
+scope, and `check_catalogue.py` -- the instrument `RM-03` explicitly refused to
+delete -- went to `ModuleNotFoundError` when the file was parked. The oracle-4
+gate went; the catalogue parser and suppression scanner stayed, and five callers
+still import them.
+
+The measurement the gate last produced is kept in
+`examples/run_distributed_history_validation.py`'s module docstring: 0.571
+(4/7) against a 0.8 floor, with three named survivors, each a true finding about
+that example's representation. **Retiring the instrument does not retire the
+finding**, and the floor was never lowered to make it pass.
+
+`kill-test-boundary-coverage` retires with it: its whole subject was the
+`--list-boundaries` mode of the same deleted script.
+"""
+
+[[retired]]
+id = "kill-test-boundary-coverage"
+retired_by = "CA-04, applied here by the #317 audit"
+retired_at = "6bf1687 cut the gate; these rows outlived it by three epics"
+paths = ["scripts/run_kill_test.py"]
+reason = """
+Retires with `kill-test-floor`. Its subject was `--list-boundaries` on
+`scripts/run_kill_test.py`, which `CA-04` deleted. See that entry.
+"""
 
 [[retired]]
 id = "gap-mutant-runner"
