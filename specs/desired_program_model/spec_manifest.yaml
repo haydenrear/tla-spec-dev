@@ -249,13 +249,11 @@ effects:
           target: "*run_generated_case_adapters*"
         # CD-10 (audit run 3, gap R3-2): CloseTicket's shipped close path
         # performs destructive deletes, all under the spec tree: rmtree of TLC
-        # `states/` dirs (scripts/spec_evolution.py:154 (shutil.rmtree) via
-        # scripts/spec_evolution.py:994 (remove_state_directories) at ticket
-        # close and scripts/spec_evolution.py:1143 (remove_state_directories)
-        # at workflow close), rmtree of project `current/` before promotion
-        # (scripts/spec_evolution.py:385 (shutil.rmtree) via
-        # scripts/spec_evolution.py:580 (replace_tree), the GitHub #22
-        # data-loss mechanism), and unlink of seeded paths the ticket dropped
+        # `states/` dirs (scripts/spec_evolution.py:225-237 (def remove_state_directories)),
+        # called at ticket close and at workflow close; rmtree of project
+        # `current/` before promotion
+        # (scripts/spec_evolution.py:1086-1088 (def replace_tree), the GitHub
+        # #22 data-loss mechanism); and unlink of seeded paths the ticket dropped
         # (scripts/spec_evolution.py:1180 (target.unlink)). filesystem.write
         # on spec_tree never covered these -- the schema distinguishes
         # filesystem.delete precisely so a delete cannot hide under a write.
@@ -301,9 +299,8 @@ effects:
         # CD-10 (audit run 3, gap R3-3b): CloseTicket spawns `git rev-parse
         # ...` for history-entry provenance
         # (scripts/spec_evolution.py:142 (subprocess.run), via
-        # scripts/spec_evolution.py:1093 (git_metadata) at
-        # ticket close and scripts/spec_evolution.py:1195 (git_metadata) at
-        # workflow close). The
+        # scripts/spec_evolution.py:149 (def git_metadata), at ticket close
+        # and again at workflow close). The
         # fail-open branch on git error is out-of-model; the spawn itself is
         # not, so it is declared.
         git_metadata:
