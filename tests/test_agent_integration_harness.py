@@ -135,6 +135,103 @@ def test_binding_a_home_removes_every_other_home_from_path(monkeypatch) -> None:
     assert "Not logged in" in note, "the launch note must carry the finding it stands on"
 
 
+def test_a_failed_call_is_a_defect_only_when_it_invoked_the_toolchain() -> None:
+    """Classified by the EXECUTABLE, and tested on the input that actually broke it.
+
+    The first classifier matched `skill-manager` and `test_graph` as substrings
+    anywhere in the command, and on this repository's own committed evidence it
+    was **75% wrong**: three of four "toolchain" errors were
+    `E=.skill-manager/skills/...; cat $E/a; cat $E/b` -- a failed `cat` whose
+    PATH contained the token.
+
+    The old test passed anyway, because its negative input was
+    `cat a.md; cat b.md; cat missing.md` -- a cat chain with no toolchain-shaped
+    path in it. **The failing input was in the repository as committed evidence
+    and was not used.** Both are here now, and the second is the one that
+    matters.
+    """
+    harness = _harness()
+
+    assert harness.classify_error(
+        {"input": {"command": "tla-spec-dev --spec-root specs close ticket X"}}
+    ) == "toolchain"
+    assert harness.classify_error(
+        {"input": {"command": "cat a.md; cat b.md; cat missing.md"}}
+    ) == "shell"
+
+    # THE REAL ONE: reading a skill's files is not running the skill.
+    reading_a_skill = {
+        "input": {
+            "command": (
+                "cd /tmp/ws/project\n"
+                "S=.skill-manager/skills/spec-double-compiler\n"
+                "cat $S/references/typical_workflow.md; echo ======; "
+                "ls -R $S/examples/distributed_history/specs/program_model/ | head -60"
+            )
+        }
+    }
+    assert harness.classify_error(reading_a_skill) == "shell", (
+        "a failed `cat` of a skill's own files was counted as invoking the "
+        "toolchain -- this is the input that made the headline number 75% wrong"
+    )
+
+    # And RUNNING a script that belongs to another installed unit is.
+    running_a_skill_script = {
+        "input": {
+            "command": "python3 .skill-manager/skills/test-graph/scripts/new-uv-node.py a.b action"
+        }
+    }
+    assert harness.classify_error(running_a_skill_script) == "toolchain"
+
+
+def test_the_classifier_reads_an_input_that_the_harvest_already_trimmed() -> None:
+    """Re-classifying committed evidence must not silently report it clean.
+
+    `_trim` turns a long input dict into JSON TEXT before it reaches
+    `RESULT.json`. A classifier handed text instead of a mapping finds no
+    command, no executable, and answers `shell` -- so every long command in
+    every past round would re-read as clean. That is a false PASS in the one
+    direction this instrument may never fail in (`SS-02`).
+    """
+    harness = _harness()
+    trimmed = {"input": '{"command": "tla-spec-dev --spec-root specs close ticket X"}'}
+    assert harness.classify_error(trimmed) == "toolchain"
+
+    not_even_json = {"input": "tla-spec-dev close ticket X\n... [900 more chars]"}
+    assert harness.classify_error(not_even_json) == "toolchain"
+
+
+def test_the_committed_evidence_reclassifies_the_way_the_record_says() -> None:
+    """The numbers in the write-ups have a source, and this is it.
+
+    Round 001's report said "0 real refusals, 4 classified, all its own shell".
+    Two of those were wrong in opposite directions -- the count of classified
+    errors was inflated by three `cat` chains, and the claim of zero REAL
+    refusals was contradicted by `new-uv-node.py` in the same run. This asserts
+    the corrected reading against the committed evidence so the next write-up
+    cannot drift from it silently.
+    """
+    import json
+
+    harness = _harness()
+    result = json.loads(
+        (
+            REPO_ROOT
+            / "examples/agent_integration/evidence/runs/round-001/RESULT.json"
+        ).read_text()
+    )
+    counts = {"toolchain": 0, "shell": 0}
+    for role in ("epic", "ticket"):
+        for err in result["roles"][role]["harvest"]["tool_errors"]:
+            counts[harness.classify_error(err)] += 1
+
+    assert counts == {"toolchain": 2, "shell": 5}, (
+        f"round 001 re-classifies as {counts}; the record says 2 toolchain / 5 "
+        "shell. Either the classifier changed or the record is stale, and both "
+        "are things a reader has to be told."
+    )
+
+
 def test_the_attribution_probe_is_silent_on_an_empty_transcript() -> None:
     """No attribution found in nothing is absence of evidence, not evidence of it.
 
@@ -181,9 +278,7 @@ def test_the_harvest_pairs_an_error_back_to_the_call_that_made_it(tmp_path) -> N
     )
     got = harness.harvest(stream)
     assert got["tool_error_count"] == 1
-    # No `kind` any more: which calls touched the toolchain is answered by the
-    # invocation log, which observes, rather than by reading this command back.
-    assert "toolchain_error_count" not in got
+    assert got["toolchain_error_count"] == 1
     only = got["tool_errors"][0]
     assert only["tool"] == "Bash"
     assert "close ticket X" in str(only["input"])
@@ -620,123 +715,35 @@ def test_the_stream_shape_fields_do_not_claim_to_be_turn_counts(tmp_path) -> Non
     assert got["final"]["num_turns"] == 2, "the agent's own count is preserved"
 
 
+def test_prose_inside_a_heredoc_is_not_read_as_a_command() -> None:
+    """Round 002 flagged a seat's error as `toolchain` for text it was WRITING.
 
+    The ticket agent ran `cat > deferred_findings.yaml <<'YAML'` and one line of
+    the body began `.skill-manager/bin/cli/tla-spec-dev runs a bare python3 from
+    PATH` -- prose recording a finding it had just made. Split on newlines, that
+    line's first token sat in the executable position, and the classifier read
+    documentation of a defect as a defect. The seat's real count for that round
+    is **zero**.
 
-# ---------------------------------------------------------------------------
-# Observation replaced inference. These are the tests that class needs.
-# ---------------------------------------------------------------------------
-
-
-def test_a_shim_records_the_call_and_preserves_the_exit_status(tmp_path) -> None:
-    """The whole replacement, exercised against a real binary and a real shell.
-
-    The classifier it replaces was wrong twice in two rounds, both times
-    reporting a defect where there was a DESCRIPTION of one. This cannot be:
-    a call either went through the shim or it did not.
-
-    The exit status matters as much as the record. A shim that logs and then
-    swallows a non-zero status would make every toolchain refusal look like a
-    success to the agent running under it -- the harness would be CAUSING green.
+    Second time the same instrument over-claimed: first `skill-manager` matched
+    as a substring anywhere, and when that was narrowed to the executable,
+    heredoc text still reached the executable position. **Both times it reported
+    a defect where there was a description of one**, which is the failure mode
+    this whole harness exists to police in others.
     """
-    import os
-    import subprocess
-
     harness = _harness()
-    home = tmp_path / "home"
-    (home / "bin" / "cli").mkdir(parents=True)
-    real = home / "bin" / "cli" / "tla-spec-dev"
-    real.write_text('#!/bin/sh\necho "ran: $*"\nexit 3\n', encoding="utf-8")
-    real.chmod(0o755)
-
-    shim_dir, log = tmp_path / "shims", tmp_path / "invocations.log"
-    watching = harness.install_invocation_shims(home, shim_dir)
-    assert "tla-spec-dev" in watching
-
-    env, _ = harness.bind_home_env(home, shim_dir, log)
-    assert env["PATH"].split(os.pathsep)[0] == str(shim_dir), (
-        "the shim directory is not first on PATH, so the real binary answers "
-        "and nothing is recorded"
-    )
-
-    proc = subprocess.run(
-        ["bash", "-c", "tla-spec-dev --spec-root specs close ticket X"],
-        env=env, text=True, capture_output=True,
-    )
-    assert proc.returncode == 3, "the shim did not preserve the real exit status"
-    assert "ran: --spec-root specs close ticket X" in proc.stdout
-
-    recorded = harness.read_invocations(log)
-    assert len(recorded) == 1, recorded
-    assert recorded[0]["tool"] == "tla-spec-dev"
-    assert recorded[0]["exit"] == 3
-    assert recorded[0]["argv"] == ["--spec-root", "specs", "close", "ticket", "X"]
-
-
-def test_mentioning_the_toolchain_records_nothing(tmp_path) -> None:
-    """The two defects this replaced, as one input that must now produce zero.
-
-    `H-05` was a failed `cat` of a skill's files counted as running the skill.
-    `H-11` was a line inside a `cat <<'YAML'` body -- prose in which the agent
-    was WRITING DOWN a finding about `tla-spec-dev` -- counted as invoking it.
-    Both are here, and both must record nothing, because nothing ran.
-    """
-    import subprocess
-
-    harness = _harness()
-    home = tmp_path / "home"
-    (home / "bin" / "cli").mkdir(parents=True)
-    real = home / "bin" / "cli" / "tla-spec-dev"
-    real.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
-    real.chmod(0o755)
-
-    shim_dir, log = tmp_path / "shims", tmp_path / "invocations.log"
-    harness.install_invocation_shims(home, shim_dir)
-    env, _ = harness.bind_home_env(home, shim_dir, log)
-
-    script = (
-        "S=/some/.skill-manager/skills/spec-double-compiler\n"
-        "cat $S/references/typical_workflow.md 2>/dev/null\n"
-        "cat > /dev/null <<'YAML'\n"
+    writing_it_down = (
+        "cd /tmp/x\n"
+        "cat > findings.yaml <<'YAML'\n"
         "  .skill-manager/bin/cli/tla-spec-dev runs a bare python3 from PATH\n"
         "  tla-spec-dev --spec-root specs close ticket X\n"
         "YAML\n"
     )
-    subprocess.run(["bash", "-c", script], env=env, text=True, capture_output=True)
-
-    assert harness.read_invocations(log) == [], (
-        "something was recorded for a run in which the toolchain was only "
-        "MENTIONED -- the false-positive class is back"
+    assert harness.classify_error({"input": {"command": writing_it_down}}) == "shell", (
+        "a heredoc body was read as shell; the instrument counted the agent's "
+        "own notes about a defect as an occurrence of it"
     )
-
-
-def test_a_malformed_record_is_reported_not_dropped(tmp_path) -> None:
-    """A run with a broken shim must not read as a run that used nothing.
-
-    Dropping the line would make those two indistinguishable, and one of them
-    is success. `SS-02`: an absent input is never a PASS.
-    """
-    harness = _harness()
-    log = tmp_path / "invocations.log"
-    log.write_text("garbage-with-no-separators\n", encoding="utf-8")
-    recorded = harness.read_invocations(log)
-    assert len(recorded) == 1 and "malformed" in recorded[0]
-
-
-def test_no_log_and_an_empty_log_are_both_empty_but_the_run_says_which(tmp_path) -> None:
-    """An absent log is a run that recorded nothing; the record must show it.
-
-    `dispatch` writes `invocation_log` into the result whether or not anything
-    landed there, so a reader can tell "the agent used no toolchain" from "the
-    shims were never installed".
-    """
-    harness = _harness()
-    assert harness.read_invocations(tmp_path / "nothing.log") == []
-    (tmp_path / "empty.log").write_text("", encoding="utf-8")
-    assert harness.read_invocations(tmp_path / "empty.log") == []
-
-
-def test_the_shim_list_is_not_empty() -> None:
-    """Guard the guard: shimming nothing observes nothing, silently."""
-    harness = _harness()
-    assert harness.SHIMMED, "no binary is shimmed; every run would record zero"
-    assert "tla-spec-dev" in harness.SHIMMED
+    # And the same text OUTSIDE a heredoc is still an invocation.
+    assert harness.classify_error(
+        {"input": {"command": "tla-spec-dev --spec-root specs close ticket X"}}
+    ) == "toolchain"
