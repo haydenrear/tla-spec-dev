@@ -34,12 +34,12 @@ real row, not a leftover — see below.
 | **`UNMODELED/instrument-registry`** | **1** | 0 | 1 | `G-09` | **new, round 3.** FI-02's own demonstration harness is red, and by a count that changes with the launcher. Disposition: **`UNDECIDED`** |
 | `UNMODELED/skill-composition` | **1** | 0 | 1 | `G-08` | **its first finding, three rounds after it was opened empty.** Disposition unchanged: **`DEFERRED`** |
 | **`UNMODELED/agent-harness`** | **11** | **8** | 3 | `H-01`, `H-02`, `H-04`, `H-05`, `H-06c`, `H-07`×4, `H-09`, `H-11` | **new, and it opens as the second-largest row in the matrix.** Eleven defects in `examples/agent_integration/` — the instrument itself. Disposition: **`UNDECIDED`** |
-| **`UNMODELED/record-keeping`** | **2** | 0 | 2 | `H-08`, `H-10` | **new.** The matrix disagreeing with itself, and the fourth `git add -A`. Never an action; the accumulation is the evidence. Disposition: **`RECORD-ONLY`** |
+| **`UNMODELED/record-keeping`** | **3** | **1** | 2 | `H-08`, `H-10`, `G-11` | **new.** The matrix disagreeing with itself, the fourth `git add -A`, and a line-number citation going stale two files away. Never an action; the accumulation is the evidence. Disposition: **`RECORD-ONLY`** |
 
-**After round 3, its re-run, and the audit below: 26 of 55 findings anchored to a
-declared action, 29 did not — the unanchored share is now the MAJORITY.**
-The unanchored share went from 7-in-one-row to **29 across seven rows**, and that
-is the more useful shape: *"seven findings, one gap"* and *"twenty-nine findings,
+**After round 3, its re-run, and the audit below: 26 of 56 findings anchored to a
+declared action, 30 did not — the unanchored share is now the MAJORITY.**
+The unanchored share went from 7-in-one-row to **30 across seven rows**, and that
+is the more useful shape: *"seven findings, one gap"* and *"thirty findings,
 seven gaps"* want different answers, and the pooled count cannot tell them apart
 (`bug_attribution.md` §7c).
 
@@ -52,8 +52,10 @@ this round.
 
 **Conservation, round 3, the re-run, and the audit.** No model change was made,
 so nothing moved between rows for that reason. `findings before: 26. findings
-after: 55.` Twenty-nine arrived — eleven in round 3, two from its re-run, sixteen surfaced
-by the audit. **Three DID move**, and they moved because they were misfiled, not
+after: 56.` Thirty arrived — eleven in round 3, two from its re-run, and seventeen surfaced
+by the audit (sixteen by hand, and **one more by the check the audit produced**:
+`G-11` had been written up and never placed either, and
+`tests/test_every_finding_reaches_the_table.py` found it on its first run). **Three DID move**, and they moved because they were misfiled, not
 because the model changed: `H-06`'s import-order and copy-seam halves out of the
 narrative and onto `RunSpecUnitTests` and `OpenTicket`, and `H-03` onto
 `UNMODELED/example-runners`. Every other pre-existing row holds exactly the
@@ -67,10 +69,10 @@ conservation. Review of `#317` caught it. **Each finding is counted in exactly
 one row** — the rows above share no id — and the arithmetic is now:
 
 ```
-anchored    5 + 14 + 3 + 2 + 1 + 1 = 26
-unanchored  7 +  4 + 3 + 1 + 1 + 11 + 2 = 29
+anchored    5 + 14 + 3 + 2 + 1 + 1      = 26
+unanchored  7 +  4 + 3 + 1 + 1 + 11 + 3 = 30
                                           --
-                                          55
+                                          56
 ```
 
 **Sixteen of those arrived by AUDIT, not by a new round**, and the audit was
@@ -106,6 +108,108 @@ both belong to measurements this writer did not take; silently adjusting another
 round's numbers to make a total come out is the failure this section just had,
 not its repair. They are named here so the next round can settle them with the
 evidence rather than with arithmetic.
+
+---
+
+## The architecture read on `UNMODELED/agent-harness`
+
+**Eleven findings in one round, in code written this round, underneath every
+claim this round makes.** `regression_architecture.md` step 5 asks for a
+response, and it asks for the measurement first.
+
+### A denominator, for once
+
+The matrix's standing limitation is *"no denominators — a concentration may be
+attention rather than defects."* For this one row it can be supplied, because
+the code each row names is countable:
+
+| row | findings | LOC | per KLOC |
+|---|---|---|---|
+| **`UNMODELED/agent-harness`** | **11** | 1,193 | **9.2** |
+| `TlaSpecDevCli.GenerateCases` | 14 | 3,720 | 3.8 |
+| `UNMODELED/example-runners` | 3 | 855 | 3.5 |
+| `TlaSpecDevCli.OpenTicket` | 3 | 1,175 | 2.6 |
+| `TlaSpecDevCli.CloseTicket` | 5 | 2,821 | 1.8 |
+| `TlaSpecDevCli.ScaffoldProject` | 2 | 2,465 | 0.8 |
+| `TlaSpecDevCli.RunSpecUnitTests` | 1 | 2,409 | 0.4 |
+| `TlaSpecDevCli.AnalyzeComplexity` | 1 | 2,401 | 0.4 |
+
+**2.4× the worst toolchain action.** And the caveat that keeps it honest: this
+is still attention-weighted, not defect density — `AnalyzeComplexity` at 0.4 may
+simply be unexercised, which is §1's whole point. What makes the comparison
+carry weight is that `GenerateCases` was under active attack **in this same
+round** and still came in at less than half the rate.
+
+### What actually went wrong, by what each defect assumed
+
+| assumed contract | findings |
+|---|---|
+| **the SHELL** | `H-05`, `H-11` |
+| prose matching code | `H-04`, `H-09` |
+| git | `H-01` |
+| POSIX process groups | `H-07a` |
+| the `stream-json` wire format | `H-07b` |
+| the Claude CLI's environment | `H-02` |
+| internal ordering / serialization | `H-07c`, `H-07d` |
+| test design | `H-06c` |
+
+**Six of eleven are "I assumed how an external system behaves, and it behaves
+otherwise."** The harness's entire job is integration — git, the shell, the
+process tree, a wire format, a CLI, a filesystem — and **each integration was
+written from assumption rather than from the system's contract.** That is the
+cause, and it is not a shortage of care; it is a shape. A file whose job is to
+be right about six foreign contracts has six chances to be wrong about one, and
+nothing in it is modeled, so nothing can be wrong *against* anything.
+
+### Response (a), REDUCE — and the specific place a library does not help
+
+**The shell-parsing cluster is the one to cut, and the fix is not a better
+parser.** `classify_error` + `_executables` + `_strip_heredocs` are 84 lines
+answering *"did this call invoke the toolchain?"* by **reading a string**, and
+both of their defects were the same failure: reporting a defect where there was
+a description of one. `bashlex` would lower the error rate and keep the class,
+because the question is still being answered by inference.
+
+**Stop inferring; observe.** The homes are cloned per run and thrown away, so a
+logging shim on `<home>/bin/cli/*` costs nothing and records what actually ran.
+That deletes 84 lines and two defects, makes a false positive structurally
+impossible, and is **strictly more informative** — it captures successful
+invocations, which the error-only harvest cannot see at all.
+
+`main` is the other reduce: **182 lines, no docstring, nine responsibilities,
+two defects** (`H-07c` ordering, `H-07d` serialization). Both are the kind that
+only appear in a procedure long enough to lose track of its own order.
+
+### Response (b)/(c), MODEL — and its price
+
+**The harness is a workflow with states**: workspace built → home cloned →
+dispatched → checked → reclaimed. That is exactly the shape `TlaSpecDevCli.tla`
+already models for other verbs, and modeling it would move eleven findings from
+`UNMODELED` to anchored and give the `done_check`s somewhere to be bound.
+
+Priced honestly, it is not free: the run's states are entangled with a live
+agent, and the interesting transitions (timeout, refusal, partial dispatch) are
+the ones hardest to enumerate. **Named and priced rather than proposed**, per
+step 5's own instruction for the expensive branch.
+
+### And the finding about the record itself
+
+**None of this was visible until the repository's owner asked whether the
+round's bugs had been attributed.** Eleven write-ups, some of them long, none in
+any total.
+
+The cause is structural. `SKILL.md` makes the epic agent the matrix's single
+writer so that naming stays stable — and this round **the writer was also the
+author of the thing being measured.** Defects in the toolchain became rows;
+defects in the harness became prose. Not by decision, by category drift, one
+finding at a time. `CA-01` dispatches judges blind to the operator's
+conclusions; nothing dispatched an auditor blind to the matrix-writer's
+classifications.
+
+`tests/test_every_finding_reaches_the_table.py` is the cheap half of that fix —
+it does not judge whether a placement is right, only that a finding written up
+was placed at all. **It found one more on its first run**: `G-11`, written up
+and never placed, by the same drift.
 
 ---
 
@@ -1130,7 +1234,7 @@ Re-classified by the EXECUTABLE of each command segment. Round 001 reads
 **2 toolchain / 5 shell**, and that reading is now pinned against the committed
 evidence so the next write-up cannot drift from it silently.
 
-### `H-06` — `G-10`'s fix was narrower than its write-up, in three ways
+### `H-06a` / `H-06b` / `H-06c` — `G-10`'s fix was narrower than its write-up, in three ways
 
 **Placed by the audit as three findings, not one, and two of them are not the
 harness's at all:** `H-06a` (the import order) anchors to
