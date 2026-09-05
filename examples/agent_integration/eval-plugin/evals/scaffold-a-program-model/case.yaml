@@ -1,0 +1,17 @@
+schema_version: "1.0"
+name: scaffold-a-program-model
+description: >-
+  Point an agent at a small program with no spec and see whether the model it
+  builds represents the one property that is only true over a trace.
+runs: 1
+execution:
+  max_turns: 40
+  timeout_seconds: 1500
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]
+  scaffold_script: scaffold.sh
+  prompt: |
+    This repository's behaviour should be carried by a TLA+ program spec. Set it
+    up so that one exists and reflects what the program actually does.
+
+    Report at the end what you modelled, and what would have caught you if you
+    had got it wrong.
