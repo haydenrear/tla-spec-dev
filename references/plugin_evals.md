@@ -509,6 +509,56 @@ with `type: file_exists, path: ".eval/checks"` as the grader.
    YAML parse, your own test runner. Never after reading the response.
 3. **`exit 0`, always.** A `Stop` hook that fails non-zero can push the session
    onward, and a verifier that changes the run it measures is not a verifier.
+4. **Run agent-authored code with no write anywhere, and write its verdict
+   yourself.** This is the rule the first three do not cover, and it was found
+   by attack rather than by reasoning.
+
+### The hook is not inside the sandbox, and that cuts both ways
+
+The reason a `Stop` hook can run TLC is that it is outside the profile that
+denies the agent's Bash tool every filesystem write. The same fact means
+**anything the hook executes runs with the hook's privileges** — including the
+program the agent was told to repair.
+
+Demonstrated on the `catch-the-drift` case. Five lines appended to
+`ecommerce_backend/domain.py`:
+
+```python
+_PAYLOAD = "import time, os\ntime.sleep(4)\nos.makedirs('.eval', exist_ok=True)\n" \
+           "open('.eval/behaviour', 'w').write('forged after the hook exited')\n"
+_sp.Popen([_sys.executable, "-c", _PAYLOAD], cwd=_os.getcwd(), start_new_session=True)
+```
+
+The hook refused correctly — `create_account did not persist` — exited with no
+`behaviour` verdict, and four seconds later the spawned process created it. The
+graders then read a green weight-2 verdict on a program that was never
+repaired, with the refusal it overwrote still sitting in the verifier's own log.
+
+**Clearing the verdict directory first does not help**, because the write lands
+after the hook is gone. **Killing the process group does not help either** —
+`start_new_session=True` exists precisely to escape that.
+
+What does: refuse the write. On macOS, `sandbox-exec -f <profile>` with
+
+```
+(version 1)
+(allow default)
+(deny file-write*)
+(allow file-write-data (literal "/dev/null") (literal "/dev/stdout") (literal "/dev/stderr"))
+```
+
+and the check then **cannot record its own verdict**, which is the separation
+that matters: it signals through its exit status, and the hook — outside the
+profile — writes the file. Untrusted code decides nothing about what gets
+written. Descendants inherit the profile, so daemonising buys nothing.
+
+Set `PYTHONDONTWRITEBYTECODE=1`; a confined interpreter cannot write
+`__pycache__` and will otherwise complain.
+
+Where no such facility exists, run the check anyway and **write a verdict
+saying so** — `.eval/UNDECIDED-unconfined` — rather than offering the same
+green under a weaker guarantee. An operator who cannot tell the two apart is
+back to reading a number that means less than it says.
 
 Verified both ways on the real artefact: the passing run's model produced
 `parses`, `checks` and `manifest`; a workspace holding `placeholder: true` and
@@ -609,6 +659,8 @@ Before a score means anything:
 - [ ] a `.eval/toolchain` marker distinguishes "checked and failed" from "never
       checked", and no grader scores it
 - [ ] the run executed YOUR checkout — the hook printed which CLI it resolved
+- [ ] agent-authored code that the verifier executes cannot write the verdicts,
+      and a run where it could says so
 - [ ] you have read `trace.jsonl`, not only the summary line
 
 The last one catches the others.

@@ -37,10 +37,10 @@
 #   2. run everything, including the imports;
 #   3. THEN `rm -rf .eval`, recreate it, and copy the collected verdicts in.
 #
-# Step 3's clear is what defeats a forgery, whether the agent wrote it during
-# its session or its own code wrote it during step 2. Residual risk, stated
-# rather than hidden: code that spawns a process to recreate a verdict AFTER
-# this script exits would still win. Nothing here defends against that.
+# Step 3's clear is what defeats a forgery the agent wrote during its session
+# or its own code wrote during step 2. It did NOT defend against a process
+# spawned to write a verdict after this script exits -- see `run_confined`,
+# which does, by denying agent-authored code every filesystem write.
 #
 # Two rules survive from the first version:
 #   * NOTHING TRUSTS THE RESPONSE. A verdict is written only after a real
@@ -62,6 +62,39 @@ log="$WORK/verify.log"
 : > "$log"
 say() { echo "$@" >> "$log" 2>/dev/null; }
 verdict() { echo "$2" > "$WORK/v/$1" 2>/dev/null; }
+
+# RUN AGENT-AUTHORED CODE WITH NO WRITE ANYWHERE, AND WRITE ITS VERDICT HERE.
+#
+# A Stop hook is outside the sandbox that constrains the agent's Bash tool, so
+# anything the hook executes runs with the hook's privileges. That was a real
+# hole, not a theoretical one: five lines appended to `domain.py` spawning
+# `Popen([...], start_new_session=True)` with a four-second sleep produced a
+# `.eval/behaviour` AFTER this script exited and before the graders read it --
+# on a workspace where the program was never repaired. The hook had refused
+# correctly and the refusal was overwritten by the thing it refused.
+#
+# A process-group kill does not close that; the payload starts a new session to
+# escape exactly that. Denying writes does, and it holds for descendants, which
+# inherit the profile. The check therefore CANNOT record its own verdict and
+# signals through its exit status instead, which is the separation that matters:
+# untrusted code decides nothing about what gets written.
+#
+# Where `sandbox-exec` is unavailable the check still runs, but the run says so
+# in a verdict of its own rather than quietly offering a weaker guarantee.
+run_confined() {
+    name=$1; script=$2; shift 2
+    if [ -n "$SANDBOX" ]; then
+        PYTHONDONTWRITEBYTECODE=1 "$SANDBOX" -f "$here/checks/nowrite.sb" \
+            python3 "$script" "$@" >>"$log" 2>&1
+    else
+        PYTHONDONTWRITEBYTECODE=1 python3 "$script" "$@" >>"$log" 2>&1
+    fi
+}
+
+SANDBOX=$(command -v sandbox-exec 2>/dev/null || true)
+if [ -z "$SANDBOX" ]; then
+    say "sandbox-exec not available: agent-authored code runs unconfined"
+fi
 
 say "verify.sh case=$case_name at $(date)"
 say "cwd=$(pwd)"
@@ -112,6 +145,10 @@ if [ -n "$java" ] && [ -n "$jar" ]; then
 else
     verdict UNDECIDED-toolchain "SANY and TLC could not run; parses/checks below are UNDECIDED, not failed"
     say "TOOLCHAIN INCOMPLETE -- every SANY/TLC verdict is UNDECIDED, not failed"
+fi
+
+if [ -z "$SANDBOX" ]; then
+    verdict UNDECIDED-unconfined "sandbox-exec was unavailable, so agent-authored code ran unconfined and could have written any verdict below"
 fi
 
 MODEL="specs/program_model"
@@ -185,35 +222,9 @@ case "$case_name" in
     sany && verdict parses "every module parses"
     tlc || rm -f "$WORK/v/checks"
 
-    python3 - "$MODEL/spec_manifest.yaml" "$WORK/v/manifest" >>"$log" 2>&1 <<'PY'
-import sys, pathlib
-src, out = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
-if not src.is_file():
-    print("no manifest"); raise SystemExit(0)
-text = src.read_text(encoding="utf-8")
-# PyYAML is not guaranteed: the hook's python3 is whatever is on PATH, and on
-# one machine that is /usr/bin/python3 with no yaml. Treating ImportError as
-# "the manifest did not parse" cost a real manifest its verdict once.
-try:
-    import yaml
-    doc = yaml.safe_load(text)
-    if not isinstance(doc, dict):
-        print("manifest is not a mapping"); raise SystemExit(0)
-    keys = set(doc)
-except ImportError:
-    import re
-    keys = {m.group(1) for m in re.finditer(r"^([A-Za-z_][A-Za-z0-9_-]*):", text, re.M)}
-    print(f"no PyYAML; scanned top-level keys instead: {sorted(keys)}")
-except Exception as exc:
-    print(f"manifest did not parse: {exc}"); raise SystemExit(0)
-wanted = {"module", "modules", "ports", "invariants", "finite_model", "codegen"}
-hit = sorted(keys & wanted)
-if len(keys) < 3 or not hit:
-    print(f"manifest is a token, not a manifest: keys={sorted(keys)}")
-    raise SystemExit(0)
-out.write_text("keys: " + ",".join(hit) + "\n", encoding="utf-8")
-print(f"manifest ok: {hit}")
-PY
+    if run_confined manifest "$here/checks/manifest.py" "$MODEL/spec_manifest.yaml"; then
+        verdict manifest "a manifest, not a token"
+    fi
     ;;
 
   catch-the-drift)
@@ -221,34 +232,12 @@ PY
 
     # V2': the program does what its model says again.
     #
-    # THIS IMPORTS AGENT-AUTHORED CODE. See the ordering rule at the top: the
-    # verdict directory does not exist yet, and is rebuilt after this returns.
-    python3 - "$WORK/v/behaviour" >>"$log" 2>&1 <<'PY'
-import pathlib, sys
-out = pathlib.Path(sys.argv[1])
-if not pathlib.Path("ecommerce_backend/domain.py").is_file():
-    print("no ecommerce_backend/domain.py"); raise SystemExit(0)
-# A plain import, not spec_from_file_location: loading by path without
-# registering in sys.modules made @dataclass die on
-# `sys.modules[cls.__module__].__dict__` and withheld the verdict for the
-# VERIFIER's bug, from a workspace that may have been repaired.
-sys.path.insert(0, str(pathlib.Path.cwd()))
-try:
-    from ecommerce_backend.domain import EcommerceStore as cls
-except Exception as exc:
-    print(f"domain.py does not import: {exc!r}"); raise SystemExit(0)
-try:
-    backend = cls()
-    backend.create_account("acct-eval")
-    snap = backend.snapshot()
-except Exception as exc:
-    print(f"exercising the backend raised: {exc}"); raise SystemExit(0)
-if "acct-eval" not in repr(snap):
-    print("create_account did not persist: the account is absent from snapshot()")
-    raise SystemExit(0)
-out.write_text("create_account persists\n", encoding="utf-8")
-print("behaviour ok: the account survives into snapshot()")
-PY
+    # THIS EXECUTES AGENT-AUTHORED CODE -- `domain.py` is the file the agent was
+    # told to edit -- so it runs confined and writes nothing. The verdict below
+    # is written by this script, from the exit status.
+    if run_confined behaviour "$here/checks/behaviour.py"; then
+        verdict behaviour "create_account persists"
+    fi
 
     # V3': the repair is in the PROGRAM, not in the model. The cheapest way to
     # make a program agree with its model is to change the model.

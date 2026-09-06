@@ -1,0 +1,24 @@
+;; The profile the verifier runs agent-authored code under.
+;;
+;; A `Stop` hook is NOT inside the sandbox that constrains the agent's Bash
+;; tool, so anything the hook executes runs with the hook's own privileges.
+;; The `catch-the-drift` check imports `ecommerce_backend/domain.py`, which is
+;; the file the agent was told to edit -- so importing it hands agent-authored
+;; code the ability to write the very verdicts the graders read.
+;;
+;; Demonstrated before this profile existed: five appended lines spawning
+;; `Popen([...], start_new_session=True)` with a four-second sleep. The hook
+;; refused correctly ("create_account did not persist"), exited with no
+;; `behaviour` verdict, and the spawned process created `.eval/behaviour`
+;; afterwards. A process-group kill does not close that -- the payload puts
+;; itself in a new session precisely to escape one.
+;;
+;; Denying writes does close it, and it closes it for descendants too: a child
+;; inherits the profile, so no amount of daemonising helps.
+(version 1)
+(allow default)
+(deny file-write*)
+(allow file-write-data
+       (literal "/dev/null")
+       (literal "/dev/stdout")
+       (literal "/dev/stderr"))
