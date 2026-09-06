@@ -195,7 +195,10 @@ def test_absent_and_empty_are_different_claims() -> None:
 
 def test_this_repositorys_own_manifest_declares_no_orphan_port_name() -> None:
     """Every name in `effects.actions` resolves to a port under `components`."""
-    catalog = load_port_catalog(ROOT / "specs/current/spec_manifest.yaml")
+    # `specs/program_model`, not `specs/current`: current is the working copy an
+    # OPEN workflow carries, and `close_tickets.py` removes it at close, so a
+    # test rooted there asserts nothing about this repository between epics.
+    catalog = load_port_catalog(ROOT / "specs/program_model/spec_manifest.yaml")
     declared = {port.name for port in catalog.ports}
     assert declared, "the repository's own manifest declares effect ports"
     for action, qualified in catalog.mapped_actions.items():

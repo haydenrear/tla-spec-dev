@@ -208,6 +208,16 @@ def is_unfilled_template_prose(value: str) -> bool:
     untouched template never closes through) and drops the one that never did.
     `check_ledger` strips before calling, so trailing whitespace still counts as
     unfilled.
+
+    THE FIRST REPAIR ONLY CONVERTED THE TWO FIELDS SF-305 NAMED. `refinement.detail`
+    and `transition_diff` are free prose too and kept the substring test for
+    another epic, which is a recogniser fitted to the reported instance rather
+    than to the class (`MF-020`). `transition_diff` is the worse of the two: it
+    is blanked, and then a close carrying TLC red flags is refused for a
+    transition_diff that was written and discarded. Both call this now. The
+    remaining `TEMPLATE_SENTINEL in ...` sites are status and enum fields, where
+    a substring test is a different question and the value is not the author's
+    own words.
     """
     return value == TEMPLATE_SENTINEL
 
@@ -716,7 +726,7 @@ def parse_refinement(raw: dict[str, Any] | None) -> RefinementRecord:
     if TEMPLATE_SENTINEL.lower() in outcome:
         outcome = ""
     detail = str(raw.get("detail", "") or "")
-    if TEMPLATE_SENTINEL in detail:
+    if is_unfilled_template_prose(detail.strip()):
         detail = ""
     return RefinementRecord(
         searched=bool(raw.get("searched", False)),
@@ -864,7 +874,7 @@ def evaluate(
     tlc_findings = analyze_complexity.compare_tlc_reports(before_report, after_report)
     red_flags = [f for f in tlc_findings if f.get("level") == "RED FLAG"]
     transition_diff = str(ledger_input.get("transition_diff", "") or "").strip()
-    if TEMPLATE_SENTINEL in transition_diff:
+    if is_unfilled_template_prose(transition_diff):
         transition_diff = ""
     if red_flags:
         if not transition_diff:
