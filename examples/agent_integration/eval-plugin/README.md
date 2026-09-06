@@ -176,6 +176,33 @@ substituted a Python reachability check — 2,325 states, 111,600 transitions,
 each `(state, call)` pair matched against the real `Shortener` — which is a real
 cross-check and is not model checking.
 
+## What the two cases score, and what each grader carried
+
+Measured, both cases, one run each, with the checkout's shim on `PATH`:
+
+| case | score | cost | turns |
+|---|---|---|---|
+| `catch-the-drift` | **1.00** | $1.32 | ended `success` |
+| `scaffold-a-program-model` | **0.75** | $11.76 | 128, ended `success` |
+
+The 0.75 is worth reading carefully, because it is the shape this suite was
+rebuilt to make legible. **All three artefact verdicts passed** — SANY parsed
+every module, TLC explored `Internal` and `External` cleanly, and the manifest
+is a real manifest. The one failure was the response grader, `FAIL PASS FAIL`,
+on a run whose artefact is verifiably correct: `Release(s, o)` is a disjunct of
+`InternalNext`, and the module's own comment says the trace property *"is the
+reason `Release` has to be in this model at all."*
+
+Before the `Stop` hook existed, that run would have reported the opposite —
+a file existed and a paragraph read well — and nobody could have told the two
+apart. Now the artefact and the report disagree **in the notes**, and the
+artefact is the part that was checked by a program.
+
+Judge triples observed across this suite's development: `FAIL PASS PASS`,
+`PASS PASS PASS`, `FAIL PASS FAIL`. **A majority is not a consensus**, and one
+run's `llm` score is not evidence of much. That is why the artefact verdicts
+carry three of the four weights.
+
 ## Why the baseline arm is off
 
 Under `--ablation with-without` the second arm loads no plugin, so **the hook

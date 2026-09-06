@@ -382,6 +382,42 @@ Verified both ways on the real artefact: the passing run's model produced
 `parses`, `checks` and `manifest`; a workspace holding `placeholder: true` and
 three forged verdicts produced none.
 
+### The verifier is now the thing most likely to be wrong
+
+Moving the judgement into a hook does not remove the false-negative risk. It
+relocates it, from the grader to the program the grader trusts — and that
+program runs in an environment nobody looked at. Three of these were caught
+here, and the first two were caught only because a control was run before the
+suite was:
+
+* **`SANY` resolves imports against the working directory.** Invoked from the
+  workspace root on `specs/program_model/External.tla`, it reported *"Cannot
+  find source file for module Internal"* about a module that parses perfectly.
+  Run it from the model directory on a bare filename.
+* **A module loaded by path is not in `sys.modules`, and `@dataclass` looks up
+  `sys.modules[cls.__module__].__dict__`.** A behavioural check that used
+  `spec_from_file_location` died with `'NoneType' object has no attribute
+  '__dict__'` and withheld its verdict — from a workspace that may have been
+  repaired. Use a plain import.
+* **The hook's `$HOME` is the constructed eval home, and its `python3` is
+  whatever is on `PATH`.** A jar search rooted at `$HOME/.skill-manager` found
+  nothing, so SANY and TLC were skipped and two cases lost their artefact
+  verdicts — 0.25 and 0.80 reported for an environment fault **in the
+  verifier**. The manifest check failed the same way on `No module named
+  'yaml'`. Resolve tools the way the project's own wrappers do (`bin/cli/tlc2`
+  derives its jar from its own location and honours `TLA2TOOLS_JAR`), and give
+  every library import a fallback.
+
+Two rules follow, and they cost nothing:
+
+1. **Run the verifier against a known-good workspace and a known-bad one before
+   you run the suite**, under the same `HOME` the hook will have. Every one of
+   the three above was a green control away from being charged to an agent.
+2. **Write a verdict for the ENVIRONMENT too** — `.eval/toolchain`, recording
+   that the tools resolved. Without it, "the model does not parse" and "SANY was
+   never run" are the same absent file, and no score can tell them apart. Never
+   grade that marker: a forged workspace earns it too.
+
 ### What each grader is for, once you have this
 
 * **verdict paths carry the claim.** They are the only evidence a confident
@@ -425,6 +461,11 @@ Before a score means anything:
 - [ ] every `llm` grader says in its own body that it reads the response only
 - [ ] a forged workspace has been run through the graders and scored 0
 - [ ] the run did not end `error_max_turns`
+- [ ] the verifier has been run against a known-good and a known-bad workspace,
+      under the same `HOME` the hook will have
+- [ ] a `.eval/toolchain` marker distinguishes "checked and failed" from "never
+      checked", and no grader scores it
+- [ ] the run executed YOUR checkout — the hook printed which CLI it resolved
 - [ ] you have read `trace.jsonl`, not only the summary line
 
 The last one catches the others.

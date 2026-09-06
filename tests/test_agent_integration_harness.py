@@ -966,7 +966,12 @@ def test_a_forged_workspace_earns_no_verdict(tmp_path) -> None:
 
     subprocess.run(["sh", str(VERIFY)], cwd=tmp_path, check=False, timeout=600)
 
-    survived = sorted(p.name for p in verdicts.iterdir() if p.name != "verify.log")
+    # `toolchain` is not a verdict about the WORK -- it records that java and
+    # the tla2tools jar resolved, so that a missing artefact verdict can be told
+    # apart from an artefact that was never checked. No grader reads it, and the
+    # pin below enforces that every grader reads something else.
+    diagnostic = {"verify.log", "toolchain"}
+    survived = sorted(p.name for p in verdicts.iterdir() if p.name not in diagnostic)
     assert not survived, (
         f"forged verdicts survived the verifier: {survived}. Every one of these "
         "is a grader scoring green on a workspace that holds no model."
@@ -1100,3 +1105,17 @@ def test_the_shim_refuses_when_there_is_no_checkout(tmp_path) -> None:
         f"out={done.stdout!r})"
     )
     assert "refusing to fall through" in done.stderr
+
+
+def test_no_grader_scores_the_toolchain_marker() -> None:
+    """`.eval/toolchain` says the ENVIRONMENT was able to look, not that the
+    work was good. A workspace holding nothing but a forged manifest still
+    earns it, so a grader pointed at it would score green on an empty run.
+    """
+    for case in EVAL_CASES:
+        for grader in sorted((case / "graders").glob("*.md")):
+            text = grader.read_text(encoding="utf-8")
+            assert ".eval/toolchain" not in text, (
+                f"{case.name}/{grader.name} grades the toolchain marker, which "
+                "a forged workspace also earns"
+            )

@@ -7,10 +7,14 @@ The fixture's one interesting property is false of any single state and true
 only over a trace: a claimed slug may be released and re-reserved by a
 DIFFERENT owner, but never while the first owner still holds it.
 
-Score 1 only if the response quotes the generated module's action list and that
-list contains a release action -- under any name -- so that the
-release-then-re-reserve sequence is expressible. Score 0 if the response only
-asserts the property was modelled without quoting the actions.
+ONE QUESTION ONLY: does the action list the response quotes contain a release
+action -- under any name -- so that the release-then-re-reserve sequence is
+expressible? Score 0 if it does not, or if no action list is quoted.
+
+Do not also judge whether the quote is present or well-formed. That half moved
+to `quotes-the-action-list.md`, a regex, after three judges split FAIL PASS FAIL
+over a 6,300-character report whose artefact was correct. A judge asked two
+questions at once answers neither reliably.
 
 THIS GRADER SCORES THE RESPONSE. IT CANNOT SEE THE WORKSPACE.
 Measured, not assumed: a probe case whose hook wrote `banana` into SECRET.txt

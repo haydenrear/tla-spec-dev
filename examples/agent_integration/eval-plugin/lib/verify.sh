@@ -58,12 +58,45 @@ if [ -z "$java" ]; then
         [ -x "$j" ] && { java="$j"; break; }
     done
 fi
-jar=""
-for c in "$repo/.skill-manager/bin/cli/.spec-double-compiler/tla2tools.jar" \
-         "$HOME/.skill-manager/bin/cli/.spec-double-compiler/tla2tools.jar"; do
-    [ -f "$c" ] && { jar="$c"; break; }
-done
+# THE JAR, RESOLVED THE WAY THE PROJECT'S OWN WRAPPER RESOLVES IT.
+#
+# The first version looked under `$HOME/.skill-manager`. Inside the hook `$HOME`
+# is the constructed eval home, which deliberately does NOT symlink
+# `.skill-manager` -- so the jar was MISSING, SANY and TLC were skipped, and
+# both cases lost their artefact verdicts. `catch-the-drift` reported 0.80 and
+# `scaffold-a-program-model` 0.25 for an environment fault in the verifier,
+# which is this apparatus committing the exact error it exists to prevent, one
+# layer up. The runs may have been fine; the numbers said they were not.
+#
+# `bin/cli/tlc2` derives its jar from its own location and honours
+# `TLA2TOOLS_JAR`. Following that is home-independent and cannot drift from the
+# installation it belongs to.
+jar="${TLA2TOOLS_JAR:-}"
+if [ -z "$jar" ]; then
+    tlc=$(command -v tlc2 2>/dev/null || true)
+    if [ -n "$tlc" ]; then
+        tlcdir=$(CDPATH= cd -- "$(dirname -- "$tlc")" && pwd)
+        [ -f "$tlcdir/.spec-double-compiler/tla2tools.jar" ] &&
+            jar="$tlcdir/.spec-double-compiler/tla2tools.jar"
+    fi
+fi
+if [ -z "$jar" ]; then
+    for c in "$repo/.skill-manager/bin/cli/.spec-double-compiler/tla2tools.jar" \
+             "$HOME/.skill-manager/bin/cli/.spec-double-compiler/tla2tools.jar"; do
+        [ -f "$c" ] && { jar="$c"; break; }
+    done
+fi
 say "java=${java:-MISSING} jar=${jar:-MISSING}"
+
+# A verdict for the ENVIRONMENT, so a missing artefact verdict is attributable.
+# Without this, "the model does not parse" and "SANY was never run" are the same
+# absent file, and the score cannot tell them apart -- an absent input read as a
+# failing one, which is SS-02 with the verifier as the input.
+if [ -n "$java" ] && [ -n "$jar" ]; then
+    echo "java=$java jar=$jar" > "$VD/toolchain"
+else
+    say "TOOLCHAIN INCOMPLETE: every SANY/TLC verdict below is UNDECIDED, not failed"
+fi
 
 MODEL="specs/program_model"
 
@@ -130,14 +163,31 @@ import sys, pathlib
 src, out = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
 if not src.is_file():
     print("no manifest"); raise SystemExit(0)
+text = src.read_text(encoding="utf-8")
+# PyYAML IS NOT GUARANTEED HERE. The hook's python3 is whatever is on PATH --
+# on this machine /usr/bin/python3, which has no yaml -- and the first version
+# treated `No module named 'yaml'` as "the manifest did not parse". A real
+# manifest lost its verdict because the VERIFIER lacked a library, and the
+# score read as the agent's.
+#
+# So: yaml when it is there, and a top-level key scan when it is not. The scan
+# is weaker but decides this question the same way -- it still refuses the
+# one-key `placeholder: true` that the grader this replaces scored green.
 try:
     import yaml
-    doc = yaml.safe_load(src.read_text(encoding="utf-8"))
+    doc = yaml.safe_load(text)
+    if not isinstance(doc, dict):
+        print("manifest is not a mapping"); raise SystemExit(0)
+    keys = set(doc)
+except ImportError:
+    import re
+    keys = {
+        m.group(1)
+        for m in re.finditer(r"^([A-Za-z_][A-Za-z0-9_-]*):", text, re.M)
+    }
+    print(f"no PyYAML; scanned top-level keys instead: {sorted(keys)}")
 except Exception as exc:
     print(f"manifest did not parse: {exc}"); raise SystemExit(0)
-if not isinstance(doc, dict):
-    print("manifest is not a mapping"); raise SystemExit(0)
-keys = set(doc)
 wanted = {"module", "modules", "ports", "invariants", "finite_model", "codegen"}
 hit = sorted(keys & wanted)
 if len(keys) < 3 or not hit:
