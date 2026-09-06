@@ -22,22 +22,22 @@ real row, not a leftover — see below.
 
 | anchor | escaped to hand | pinned | unpinned | findings | reading |
 |---|---|---|---|---|---|
-| `TlaSpecDevCli.CloseTicket` | **5** | **3** | 2 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03`, `E-09` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
+| `TlaSpecDevCli.CloseTicket` | **6** | **4** | 2 | `AT-EX-CATCH-02`, `F-02`, `CL-01`, `E-03`, `E-09`, `AT-CL-01` | **the concentration.** One real defect (the archive seam) and two bookkeeping refusals |
 | `TlaSpecDevCli.GenerateCases` | **14** | **13** | 1 | `#300`, `#301`, `F-06`, `E-02`, `E-04`—`E-08`, `E-12`, `E-13`, `G-01`, `G-02`, `G-04b` | **the concentration, and it is not close.** FIVE are damage from its own repairs, and `#301`'s rule has now reached SIX surfaces. `F-06` REFUTED |
 | `TlaSpecDevCli.OpenTicket` | **3** | **3** | 0 | `#299`, `E-01`, `H-06b` | **was read as a closed arc; round 2 reopened it.** `H-06b` is `G-10`'s other half: the copy seam handed every pre-existing project the same hole the scaffold fix only closed for new ones |
 | **`TlaSpecDevCli.ScaffoldProject`** | **3** | **3** | 0 | `G-10`, `G-12`, `G-14` | **three, and the last is damage from repairing the second.** `G-14` is the bootstrap hijacking the checkout under review — the hazard its own docstring names. Pinned at two layers, unit and test graph |
-| **`TlaSpecDevCli.RunSpecUnitTests`** | **1** | **1** | 0 | `H-06a` | **sixth populated row.** `default_import_roots_for` returned the spec dir second, and `ensure_import_roots` reverses, so a bare binding resolved from the PROJECT ROOT first |
+| **`TlaSpecDevCli.RunSpecUnitTests`** | **2** | **2** | 0 | `H-06a`, `AT-CL-02` | **sixth populated row.** `default_import_roots_for` returned the spec dir second, and `ensure_import_roots` reverses, so a bare binding resolved from the PROJECT ROOT first |
 | `TlaSpecDevCli.AnalyzeComplexity` | 1 | 0 | 1 | `F-07` | cosmetic; unpinned by choice |
 | **`UNMODELED/yaml-parser`** | **7** | 11 | 0 | `#298`, `#307`, `#308` | infrastructure beneath every action; no anchor exists. **7 of 21 findings in the whole record.** Disposition: **`MODELABLE`** — see below |
 | **`UNMODELED/skill-manager-home`** | **4** | 0 | 4 | `G-05`, `G-06`, `G-07`, `G-13` | **new, round 3, and the fastest-growing row.** `skill-manager exec` starts an unauthenticated session — on the ROOT home — and the `tla-spec-dev` wrapper runs a bare `python3` off PATH. Disposition: **`UNDECIDED`** |
 | **`UNMODELED/example-runners`** | **3** | **1** | 2 | `G-03`, `G-04`, `H-03` | **new, round 3.** The example validation runners are a whole executable tier `TlaSpecDevCli.tla` does not describe. `H-03` is one of them overwriting a committed fixture. Disposition: **`UNDECIDED`** |
-| **`UNMODELED/instrument-registry`** | **1** | 0 | 1 | `G-09` | **new, round 3.** FI-02's own demonstration harness is red, and by a count that changes with the launcher. Disposition: **`UNDECIDED`** |
+| **`UNMODELED/instrument-registry`** | **2** | **1** | 1 | `G-09`, `AT-IR-01` | **new, round 3.** FI-02's own demonstration harness is red, and by a count that changes with the launcher. Disposition: **`UNDECIDED`** |
 | `UNMODELED/skill-composition` | **1** | 0 | 1 | `G-08` | **its first finding, three rounds after it was opened empty.** Disposition unchanged: **`DEFERRED`** |
-| **`UNMODELED/agent-harness`** | **19** | **12** | 7 | `H-01`, `H-02`, `H-04`, `H-05`, `H-06c`, `H-07`×4, `H-09`, `H-11`, `H-12`, `H-13`, `H-14`, `H-15`, `H-16`, `H-17`, `H-18`, `H-19` | **the largest row in this matrix, and now by a wide margin.** Nineteen defects in `examples/agent_integration/` — the instrument itself. `H-12` is a REPAIR that was worse than what it replaced; `H-13`—`H-17` are round 4's, and all five are the SAME shape — a contract `claude plugin eval` was assumed to honour, with no receipt. `H-18` and `H-19` outlive their repairs: a run that ends on the turn ceiling has no report and the grader scores its ABSENCE as FAIL, and the sandbox denies subprocess writes so TLC cannot run at all. Disposition: **`UNDECIDED`** |
-| **`UNMODELED/record-keeping`** | **3** | **1** | 2 | `H-08`, `H-10`, `G-11` | **new.** The matrix disagreeing with itself, the fourth `git add -A`, and a line-number citation going stale two files away. Never an action; the accumulation is the evidence. Disposition: **`RECORD-ONLY`** |
+| **`UNMODELED/agent-harness`** | **22** | **15** | 7 | `H-01`, `H-02`, `H-04`, `H-05`, `H-06c`, `H-07`×4, `H-09`, `H-11`, `H-12`, `H-20`, `H-21`, `H-22`, `H-13`, `H-14`, `H-15`, `H-16`, `H-17`, `H-18`, `H-19` | **the largest row in this matrix, and now by a wide margin.** Nineteen defects in `examples/agent_integration/` — the instrument itself. `H-12` is a REPAIR that was worse than what it replaced; `H-13`—`H-17` are round 4's, and all five are the SAME shape — a contract `claude plugin eval` was assumed to honour, with no receipt. `H-18` and `H-19` outlive their repairs: a run that ends on the turn ceiling has no report and the grader scores its ABSENCE as FAIL, and the sandbox denies subprocess writes so TLC cannot run at all. Disposition: **`UNDECIDED`** |
+| **`UNMODELED/record-keeping`** | **5** | **3** | 2 | `H-08`, `H-10`, `G-11`, `AT-RK-01`, `AT-RK-02` | **new.** The matrix disagreeing with itself, the fourth `git add -A`, and a line-number citation going stale two files away. Never an action; the accumulation is the evidence. Disposition: **`RECORD-ONLY`** |
 
 **After round 3, its re-run, the audit below, `#318`'s review and round 4:
-27 of 65 findings anchored to a declared action, 38 did not — the unanchored
+29 of 76 findings anchored to a declared action, 47 did not — the unanchored
 share is the MAJORITY.**
 The unanchored share went from 7-in-one-row to **37 across seven rows**, and that
 is the more useful shape: *"seven findings, one gap"* and *"thirty findings,
@@ -1779,6 +1779,155 @@ Four of the six are pinned in `tests/test_agent_integration_harness.py`, each
 verified red before green: a `scaffold_script:` key reappearing in `case.yaml`,
 a gated tool declared but not granted in the documented run, a `file_exists`
 grader globbing `*.tla`, and an `llm` grader that stops saying what it can see.
+
+---
+
+## Round 5 — two blind reviews, and the closing of an epic that had never closed
+
+Round 5 is not an agent round. It is the eval suite being reviewed twice by
+agents that could not see the reasoning behind it, and the `attribute-the-catch`
+workflow being closed for the first time. **Nine of the eleven findings below
+came from the two reviews; two came from running a thing rather than reasoning
+about it.** None came from the suite.
+
+### `H-20` — the verifier executed agent-authored code with the verdict directory writable
+
+`catch-the-drift` imports `ecommerce_backend/domain.py`, which is the file the
+case asks the agent to repair. A `Stop` hook runs OUTSIDE the sandbox that
+denies the agent's Bash tool every write — that is why it can run TLC — so the
+import handed agent-authored code the privileges of the thing grading it.
+
+Demonstrated, five appended lines:
+
+```python
+_sp.Popen([_sys.executable, "-c", _PAYLOAD],   # sleep 4, write .eval/behaviour
+          cwd=_os.getcwd(), start_new_session=True)
+```
+
+The hook refused correctly, exited with no verdict, and four seconds later the
+spawned process created one. **The weight-2 grader then read green on a program
+that was never repaired, with the refusal it overwrote still in the verifier's
+own log.** Clearing the directory first does not help; the write lands after the
+hook is gone. Killing the process group does not help; `start_new_session`
+exists to escape that. Closed by denying the write, which descendants inherit.
+
+### `H-21` — and the fix carried the same defect it was fixing
+
+The first wiring of the `deny file-write*` profile passed the LOGICAL path.
+macOS resolves before matching, so a profile naming `/tmp/ws/.eval` does not
+deny `/private/tmp/ws/.eval` — **and a deny that never applies looks exactly
+like one that worked, because an allowed write prints nothing either.** Found by
+checking the file was absent rather than that no error appeared.
+
+This is the third time in this record that an instrument has been believed
+working on the strength of an absent error message.
+
+### `H-22` — the flagship forgery control ran with no case selected
+
+`test_a_forged_workspace_earns_no_turn`'s sibling, the control this suite was
+proudest of, executed `verify.sh` with `EVAL_CASE` unset. The dispatch fell to
+the `""` arm and logged `EVAL_CASE unset; nothing verified`. The forged files
+vanished only because of the unconditional clear; **the manifest recogniser the
+docstring names as the point of the test never ran.** A reviewer mutation-proved
+it: gutting that recogniser so `placeholder: true` earns a verdict left the test
+green.
+
+### `TlaSpecDevCli.CloseTicket` — `AT-CL-01`, the close consumed another epic's evidence
+
+`specs/results/complexity_ledger_input.yaml` had not been refreshed since
+`5a0a39d Close the hexagonal-prompting spec workflow`, and its narrative opened
+*"Workflow close of complexity-descriptor-main-readiness"* — two epics earlier.
+Closing against it wrote another epic's narrative, another epic's coverage
+report, and a green `tlc_before` / `tlc_after` about a `SCAN-REMOVE` ticket that
+is not in this epic into **four permanent, append-only receipts**.
+
+The metrics were a genuine fresh read. The EVIDENCE was recycled, and the two
+are adjacent fields in the same JSON object. The CLI is not at fault: it
+faithfully recorded a stale input file that nobody refreshed, and nothing asks
+whether the input describes the epic being closed.
+
+**The blocked framing was also wrong, and that is the finding within the
+finding.** I reported this as unfixable-without-a-TLC-run. TLC runs on this
+model in **two seconds** — 2,505,440 states generated, 124,643 distinct,
+depth 24. I had adopted a review's framing instead of testing it, which is the
+first habit `references/plugin_evals.md` §0 now names, arriving from the
+direction of the person who wrote it.
+
+### `TlaSpecDevCli.RunSpecUnitTests` — `AT-CL-02`, the close broke two shipped commands
+
+`spec_unit_target_dirs` and `effect_conformance_report.resolve_spec_dir` both
+named `specs/current` unconditionally. The workflow close REMOVES that directory
+— the documented end of the desired/current loop — so closing an epic took
+`run spec-unit-tests` and `run effect-conformance` down with it, on a repository
+whose documented state between epics is exactly that.
+
+`new_ticket_workflow.project_current_source` has carried the fallback for as
+long as the close has removed the directory. Two of three resolvers had it. This
+is `#320`'s class — a live consumer of a path that goes away — arriving on the
+day `#320` was deferred, and found by tests rather than by any loader check.
+
+### `UNMODELED/instrument-registry` — `AT-IR-01`, the field the path check does not walk
+
+`test_every_declared_path_exists` walks `entry["paths"]`. A slot's
+`[[instrument.*.stage]] from` is also a path into this repository, and
+`demonstrate.py` refuses a missing one with `MALFORMED DEMONSTRATION` — **but
+only in the slow tier, and the suite runs the fast one.**
+
+So the close removed `specs/desired_program_model` and `spec-yaml-tripwire`'s
+FAILING slot — the demonstration that proves that instrument can go red — staged
+a file that no longer existed, while the registry went on declaring
+`classification = "demonstrated-can-fail"` for it. Two `expect_passed_at_least`
+floors broke the same way, having been measured against a three-tree
+parametrisation. A blind review found all three by running the tier by hand.
+
+Pinned: `test_every_staged_source_exists` sweeps 48 staged sources in the tier
+that always runs, with a non-vacuity guard beside it.
+
+### `UNMODELED/record-keeping` — `AT-RK-01`, a guard satisfied before it was written
+
+The repair for the close-receipt check accepted an absent plan against ANY
+`closed-snapshot` from ANY epic. **Six already existed on `main` before the
+branch that reads them was authored**, and `.history` is append-only, so the
+failing case was unreachable: it read as a guard and behaved as `return`. The
+commit's "verified red on exactly that case" was true about the code path and
+misleading about whether anything could reach it.
+
+Now checks the newest snapshot's OWN archived plan against the receipts beside
+it — which required `validate_ticket_plan_closed` to take an explicit
+`specs_dir`, because it derives one from the plan's location and an archived
+plan sits three levels off.
+
+### `UNMODELED/record-keeping` — `AT-RK-02`, a repair fitted to the instance
+
+`SF-305` said a substring test over free prose silently blanked a filled
+narrative. The repair converted `narrative` and `justification` — **the two
+fields the finding named** — and left the identical test on `refinement.detail`
+and `transition_diff`, which are free prose too. `transition_diff` is the worse
+one: it is blanked, and a close carrying TLC red flags is then refused for a
+`transition_diff` that was written and discarded.
+
+`MF-020` names this shape for recognisers. It applies to repairs.
+
+### What round 5 says that round 4 did not
+
+Round 4's lesson was that adopting a library moves the defect class from *logic
+I wrote* to *contracts I assumed*. **Round 5's is that the second class does not
+shrink when you write the contracts down.** Every finding above is a thing this
+record already had a rule for:
+
+| finding | the rule it already had |
+|---|---|
+| `H-21` | an absent error message is not evidence |
+| `H-22` | a control that cannot go red is not a control |
+| `AT-RK-01` | the same, one layer up |
+| `AT-RK-02` | `MF-020`, do not fit to the reported instance |
+| `AT-CL-01` | `SS-02`, an absent input is not a passing one |
+| `AT-IR-01` | a declaration nothing executes will drift |
+
+**Writing the rule down did not stop me breaking it. Someone else reading the
+artefact did, nine times out of eleven.** That is an argument for blind review as
+a standing cost of the work, not a phase at the end of it — and it is the same
+conclusion round 2 reached, now with a second denominator behind it.
 
 ---
 
