@@ -2830,7 +2830,39 @@ def _ledger_path() -> pathlib.Path | None:
             seen.setdefault(path.resolve(), None)
     if not seen:
         return None
-    return sorted(seen, key=lambda p: (p.stat().st_mtime, p.stat().st_size, str(p)))[-1]
+
+    # NOT BY MTIME. Git does not preserve modification times, so "the newest
+    # archived copy" resolved differently in two checkouts of the SAME COMMIT
+    # -- and silently, because both answers are a real ledger.
+    #
+    # Measured: a fresh extract of `main` resolved
+    # cut-the-apparatus-epic/closed-snapshot (298 rows, carrying CL-03-DF-04)
+    # while a working tree at the same content resolved
+    # subtract-to-measure-epic/ticket-005-SM-05 (88 rows, without it). Nine
+    # scorecard claims then failed to resolve `filed_as = CL-03-DF-04`, and
+    # five disposition tests asserted `88 > 200` -- failures I had recorded as
+    # a standing baseline waiting on #296 for an entire epic. They were waiting
+    # on a `stat()` call.
+    #
+    # The ledger is append-only and cumulative, so row count is a content-based
+    # proxy for recency that every checkout agrees on. Ties break on the path,
+    # and a closed-snapshot outranks a mid-epic ticket snapshot at equal size
+    # because it is the copy a close sealed.
+    def _rank(path: pathlib.Path) -> tuple[int, int, str]:
+        try:
+            # Indent-tolerant: a ledger whose entries sit under a mapping key
+            # writes `  - id:`, and counting "\n- id:" scored those ZERO --
+            # a counter that silently ranked the fuller file lower, which is
+            # the same failure mode one line up.
+            rows = sum(
+                1 for line in path.read_text(encoding="utf-8").splitlines()
+                if line.lstrip().startswith("- id:")
+            )
+        except OSError:
+            rows = 0
+        return (rows, 1 if "closed-snapshot" in str(path) else 0, str(path))
+
+    return sorted(seen, key=_rank)[-1]
 
 
 def _finding_ids() -> set[str] | None:

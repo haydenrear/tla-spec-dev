@@ -34,10 +34,10 @@ real row, not a leftover — see below.
 | **`UNMODELED/instrument-registry`** | **2** | **1** | 1 | `G-09`, `AT-IR-01` | **new, round 3.** FI-02's own demonstration harness is red, and by a count that changes with the launcher. Disposition: **`UNDECIDED`** |
 | `UNMODELED/skill-composition` | **1** | 0 | 1 | `G-08` | **its first finding, three rounds after it was opened empty.** Disposition unchanged: **`DEFERRED`** |
 | **`UNMODELED/agent-harness`** | **22** | **15** | 7 | `H-01`, `H-02`, `H-04`, `H-05`, `H-06c`, `H-07`×4, `H-09`, `H-11`, `H-12`, `H-20`, `H-21`, `H-22`, `H-13`, `H-14`, `H-15`, `H-16`, `H-17`, `H-18`, `H-19` | **the largest row in this matrix, and now by a wide margin.** Nineteen defects in `examples/agent_integration/` — the instrument itself. `H-12` is a REPAIR that was worse than what it replaced; `H-13`—`H-17` are round 4's, and all five are the SAME shape — a contract `claude plugin eval` was assumed to honour, with no receipt. `H-18` and `H-19` outlive their repairs: a run that ends on the turn ceiling has no report and the grader scores its ABSENCE as FAIL, and the sandbox denies subprocess writes so TLC cannot run at all. Disposition: **`UNDECIDED`** |
-| **`UNMODELED/record-keeping`** | **5** | **3** | 2 | `H-08`, `H-10`, `G-11`, `AT-RK-01`, `AT-RK-02` | **new.** The matrix disagreeing with itself, the fourth `git add -A`, and a line-number citation going stale two files away. Never an action; the accumulation is the evidence. Disposition: **`RECORD-ONLY`** |
+| **`UNMODELED/record-keeping`** | **6** | **4** | 2 | `H-08`, `H-10`, `G-11`, `AT-RK-01`, `AT-RK-02`, `AT-LR-01` | **new.** The matrix disagreeing with itself, the fourth `git add -A`, and a line-number citation going stale two files away. Never an action; the accumulation is the evidence. Disposition: **`RECORD-ONLY`** |
 
 **After round 3, its re-run, the audit below, `#318`'s review and round 4:
-29 of 76 findings anchored to a declared action, 47 did not — the unanchored
+29 of 77 findings anchored to a declared action, 48 did not — the unanchored
 share is the MAJORITY.**
 The unanchored share went from 7-in-one-row to **37 across seven rows**, and that
 is the more useful shape: *"seven findings, one gap"* and *"thirty findings,
@@ -1907,6 +1907,52 @@ one: it is blanked, and a close carrying TLC red flags is then refused for a
 `transition_diff` that was written and discarded.
 
 `MF-020` names this shape for recognisers. It applies to repairs.
+
+### `AT-LR-01` — which findings this repository believes in depended on `stat()`
+
+**The largest finding of round 5, and it was found by running the tier nobody
+runs.**
+
+A workflow close removes `specs/desired_program_model/deferred_findings.yaml`,
+so two independent readers fall back to the archived copies under
+`specs/.history`: `scripts/disposition.py` and
+`examples/validation/scorecards/score_tools.py`. Both ordered the candidates by
+**`(mtime, size, path)`**, and **git does not preserve mtimes.**
+
+Measured on identical content:
+
+```
+fresh extract of main      -> cut-the-apparatus/closed-snapshot    296 rows, has CL-03-DF-04
+working tree, same commit  -> subtract-to-measure/ticket-005-SM-05  88 rows, does not
+```
+
+Downstream: nine scorecard claims could not resolve `filed_as = CL-03-DF-04`,
+five instrument demonstrations broke, and `test_disposition_requirement.py`
+asserted `88 > 200` — **five failures this record has been carrying as a
+standing baseline "waiting on `#296`" for an entire epic.** They were waiting on
+a `stat()` call. On the same commit, freshly extracted, that file is 15/15.
+
+`archived_ledgers`'s own docstring named the hazard —
+
+> Size breaks mtime ties … A `git checkout` flattens mtimes, which is exactly
+> when the tie-break is needed.
+
+— and then sorted on mtime FIRST, so the size tie-break applied only to files
+sharing a timestamp to the microsecond and in practice never ran. **The comment
+describes the fix and the code implements the bug**, which is a shape worth
+naming: a docstring is not an execution.
+
+Both resolvers now order by entry count, which is content and which every
+checkout agrees on, with `closed-snapshot` outranking a mid-epic snapshot at
+equal size. Pinned by an executed control that shuffles mtimes across five
+seeds, plus one asserting the two resolvers agree — verified red against the
+old ordering.
+
+**What this costs the rest of this record.** Every failure count in rounds 3
+through 5 was taken on a working tree, so any of them that touched the ledger
+was reporting this bug rather than the repository. The counts are being
+re-derived; until they are, prefer a figure measured on a fresh extract to one
+quoted here.
 
 ### What round 5 says that round 4 did not
 

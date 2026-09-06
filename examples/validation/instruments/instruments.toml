@@ -1075,12 +1075,26 @@ Byte-identical: nothing in the tripwire was refactored to make this possible.
   summary = "a stale internal citation in a staged script -- `budgets.py:3 (anchor)` where the anchor is really on line 217 -- which is exactly the one-line-shift shape RC-02 was written for and which a 'does the line exist' check passes"
   nodes = ["tests/test_source_citations.py"]
   expect_exit = 1
-  expect_passed = 1
+  # 1 was the count when this slot was written and the staged run collected
+  # two tests. It now collects four -- the file grew -- so three pass beside
+  # the one the tripwire fires on. The number is the observation, not the
+  # goal: what the slot demonstrates is the FAILURE below, and this count only
+  # exists so a run that collects nothing cannot report `ok`.
+  expect_passed = 3
   expect_output = ["does not contain the anchor"]
 
     [[instrument.failing.stage]]
     from = "tests/test_source_citations.py"
     to = "tests/test_source_citations.py"
+
+  # tests/test_source_citations.py imports `check_citations`, which lives in
+  # scripts/ -- so a staged tree without it errors with ModuleNotFoundError and
+  # the slot reports 0 passed against a declared 1. Same shape as the `verdict`
+  # import in one-home-tripwire: a module was introduced, a test grew an import
+  # of it, and the staged tree that demonstrates the test was never told.
+  [[instrument.failing.stage]]
+    from = "scripts/check_citations.py"
+    to = "scripts/check_citations.py"
 
     [[instrument.failing.stage]]
     from = "scripts/budgets.py"
@@ -1099,7 +1113,12 @@ Byte-identical: nothing in the tripwire was refactored to make this possible.
   summary = "the repository's own citations"
   nodes = ["tests/test_source_citations.py"]
   expect_exit = 0
-  expect_passed_at_least = 78  # SM-03: exit 0 is also what a fully-skipped run returns
+  # 78 assumed three spec trees. test_source_citations parametrises over
+  # program_model, current and desired_program_model, and the workflow close
+  # removes the last two -- so three parametrisations stop being collected.
+  # Third instance of this class in one registry; the first two were the
+  # manifest-records and port-declaration floors.
+  expect_passed_at_least = 75  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "one-home-tripwire"
@@ -1183,6 +1202,29 @@ packet and was M2. A sixth carve-out should be argued for, not added.
     [[instrument.failing.stage]]
     from = "examples/validation/scorecards/score_tools.py"
     to = "examples/validation/scorecards/score_tools.py"
+
+  # score_tools.py inserts `../../../scripts` on sys.path and imports `verdict`,
+  # so a staged tree without it errors all eight tests with
+  # `ModuleNotFoundError: No module named 'verdict'` -- and the demonstration
+  # then reports 0 passed against a declared 7. That is what happened when
+  # scripts/verdict.py was introduced and score_tools grew the import: this
+  # slot broke, and nothing said so because the slow tier is not run.
+  [[instrument.failing.stage]]
+    from = "scripts/verdict.py"
+    to = "scripts/verdict.py"
+
+  # And the two frozen rubrics GUARDED names. Without them
+  # `test_every_guarded_entry_still_restates_something` and
+  # `test_the_guarded_copies_are_really_guarded` fail in the staged tree --
+  # for the STAGING, not for the tripwire this slot demonstrates, which is
+  # a false positive inside a demonstration of a true one.
+  [[instrument.failing.stage]]
+    from = "examples/validation/scorecards/rubric_v3_frozen.md"
+    to = "examples/validation/scorecards/rubric_v3_frozen.md"
+
+  [[instrument.failing.stage]]
+    from = "examples/validation/scorecards/rubric_v4_frozen.md"
+    to = "examples/validation/scorecards/rubric_v4_frozen.md"
 
     [[instrument.failing.stage]]
     from = "references/eval_scorecard.md"
