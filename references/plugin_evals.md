@@ -137,11 +137,19 @@ ln -s "$HOME/Library/Keychains" "$EVALHOME/Library/Keychains"
 `.docker` must be a real directory holding a real file; symlinking it to
 `~/.docker` puts the shims back.
 
-**This home is not hermetic, and you should know what it leaks.** Symlinking
-`.claude` loads the operator's personal skills into every run — a passing run's
-`init` event listed `deep-research`, `dataviz`, `code-review` and six others
-beside the plugin under test. Anything those contribute is in your score and in
-your baseline arm. Symlink the narrowest set that authenticates.
+**What this home does NOT leak — a correction, because I got it wrong once.**
+An earlier draft of this section said symlinking `.claude` loads the operator's
+personal skills into every run, and named `deep-research`, `dataviz` and
+`code-review` as evidence. That was inference, not measurement, and the
+measurement says otherwise: a run's `init` event listed **17 skills, every one
+of them a Claude Code built-in**, plus the plugin under test. None of the
+operator's 20 skill-manager units appeared, even though they are symlinked into
+`~/.claude/skills/` and `~/.claude` is symlinked into this home.
+
+The reason is that the sandbox gives each run its own `CLAUDE_CONFIG_DIR`, so
+`~/.claude/skills/` is never consulted. **The run is more hermetic than I
+claimed, and your own skills are NOT there unless you put them there** — which
+is section 3.5.
 
 ### Which copy of your CLI answers — and how to make it the checkout
 
@@ -318,6 +326,103 @@ found. Nothing hardcoded: another machine gets its own paths, or gets told the
 tool is missing, which is a truthful input rather than a silent 0.
 
 ---
+
+## 3.5 Several skills at once, and skills from a skill-manager home
+
+**`claude plugin eval` is not limited to one plugin.** A case declares
+`plugins:` — an array — and every entry is loaded alongside the target. Three
+units in one run, measured:
+
+```
+Plugin under test: "git-issue" (no version) at ".../units/git-issue"
+Plugin under test: "git-epic-workflow" (no version) at ".../units/git-epic-workflow"
+Plugin under test: "skt" version "0.8.1" at ".../units/skt"
+plugins loaded: ['git-issue', 'git-epic-workflow', 'skt']
+their skills  : ['git-issue:git-issue', 'git-epic-workflow:git-epic-workflow',
+                 'skt:skt', 'skt:unit-authoring']
+```
+
+Because `plugins:` is per **case**, different cases in one suite can load
+different subsets. That is the shape worth building toward: *does this workflow
+succeed with the epic skill and the issue skill, but not with the issue skill
+alone?* is a question this can answer directly, one case per subset.
+
+### The containment rule, which is the whole trick
+
+An entry must resolve **under the containment root** — the directory you point
+`claude plugin eval` at, or the enclosing plugin if your target sits inside one.
+The refusal says so:
+
+> `plugins` entry "/Users/…/.skill-manager/skills/git-issue" resolves to
+> /Users/…/.skill-manager/skills/git-issue, **outside the containment root** …
+> Only plugins under it can be loaded from case.yaml.
+
+Three consequences, each measured:
+
+* **Absolute paths resolve; bare names do not.** A relative string like
+  `bundled/git-issue` is looked up as an installed plugin NAME and reported as
+  `does not exist`. Write the absolute path.
+* **Symlinks are resolved before the check, so a symlink out of the root is
+  refused.** `ln -s ~/.skill-manager/skills/git-issue units/git-issue` fails
+  with the message above. The unit has to be physically inside.
+* **A skill-manager unit needs no manifest.** `~/.skill-manager/skills/git-issue`
+  has a bare `SKILL.md` at its root and no `.claude-plugin/plugin.json`, and it
+  loads as a single-skill plugin named after its directory.
+
+### The harness shape
+
+The target does **not** have to be a plugin itself. A plain directory holding
+`evals/` and a `units/` tree works, and then nothing is "under test" except what
+each case names:
+
+```
+skill-eval-harness/
+  units/                     # PHYSICAL COPIES, not symlinks
+    git-issue/
+    git-epic-workflow/
+    git-issue-workflow/
+    skt/
+  evals/
+    epic-then-issue/case.yaml        # plugins: [.../git-epic-workflow, .../git-issue]
+    issue-alone/case.yaml            # plugins: [.../git-issue]
+    the-whole-workflow/case.yaml     # plugins: [all four]
+```
+
+```bash
+cd skill-eval-harness
+HOME=$EVALHOME CLAUDE_CODE_WALNUT_SPIRE=1 \
+  claude plugin eval . --allow-tools Bash Write Edit
+```
+
+`--ablation with-without` works here and is worth keeping: it runs a second arm
+with **no plugins at all** and reports the delta, which is the only thing that
+separates "the workflow succeeded" from "the skills are why it succeeded".
+Verified in this shape — `Ablation: 2 arms × 1 case`.
+
+### The cost of `units/` being copies
+
+Physical copies drift from the home they came from, and a suite that quietly
+evaluates last month's skill is worse than no suite. Nothing in the CLI helps
+here; the containment rule forces the copy. Two things to do about it:
+
+1. **Refresh as a step, not a memory.** A `refresh.sh` that re-copies each unit
+   from `$SKILL_MANAGER_HOME/skills/<name>` before a run, and prints the source
+   commit or digest of each.
+2. **Record what was evaluated.** Write those digests into the results
+   directory. A score against an unnamed version of a skill cannot be compared
+   to anything later, and comparison is the entire point of running a suite
+   across subsets.
+
+### Several kinds of agent
+
+A plugin can ship `agents/`, and a plugin's `settings.json` can set `agent:` to
+make one of them the main thread. That is the documented lever for "will a
+different kind of agent get through this workflow", and the harness shape above
+gives each variant its own directory under `units/` and its own case.
+
+**I have not run that.** Everything else in this section was measured; this
+paragraph is the mechanism from the plugin documentation, and the first person
+to try it should expect to correct it.
 
 ## 4. Keeping the score honest
 
