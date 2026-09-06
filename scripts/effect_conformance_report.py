@@ -50,7 +50,11 @@ def resolve_spec_dir(args: argparse.Namespace) -> Path:
     ticket = getattr(args, "ticket", None)
     if ticket:
         return spec_root / "tickets" / ticket / "current"
-    return spec_root / "current"
+    # `current` while a workflow is open, `program_model` once it closes: the
+    # workflow close removes `specs/current`, and this returned a path that
+    # stopped existing the moment an epic ended.
+    current = spec_root / "current"
+    return current if current.exists() else spec_root / "program_model"
 
 
 def load_declarations_for(spec_dir: Path):

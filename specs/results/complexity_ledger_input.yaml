@@ -1,226 +1,93 @@
-# Workflow-ledger input for the hexagonal-prompting close.
+# Workflow-ledger input for the ATTRIBUTE-THE-CATCH close.
+#
+# WRITTEN FOR THIS EPIC. The file it replaces was last touched by
+# `5a0a39d Close the hexagonal-prompting spec workflow` and opened
+# "Workflow close of complexity-descriptor-main-readiness" -- two epics before
+# that. Closing this workflow against it consumed another epic's narrative,
+# another epic's coverage-audit report, and another epic's TLC numbers into
+# four permanent ticket receipts, each asserting a green `tlc_before` and
+# `tlc_after` about a `SCAN-REMOVE` ticket that is not in this epic. The
+# metrics were freshly measured; the EVIDENCE was recycled, and a receipt is
+# append-only. Refreshing this file is what stops that.
+
+narrative: >-
+  Workflow close of attribute-the-catch. The epic ships documentation and
+  prompts: `references/bug_attribution.md` (the four record kinds -- CATCH,
+  REACH, BLIND, PRICE), the two surfaces that ask for them at ticket close-out
+  and workflow close, `prompts/regression_architecture.md`, and AT-04's
+  clause-by-clause evaluation of six goals. MODEL DELTA IS ZERO AND THAT IS THE
+  TICKET: no TLA+ action, variable or invariant was added, removed or changed,
+  and `specs/current` was byte-identical to `specs/desired_program_model` on
+  every semantic file at close. Six goals MET; one clause of
+  GOAL-the-record-says-what-caught-it is DESIGNED, NOT APPLIED, because the
+  364-row ledger whose 27 out-of-vocabulary rows it would dispose lives on
+  epic/stabilize-substrate and arrives with #296 -- stated in AT-04's RESULT.md
+  as the epic's single largest limitation rather than worked around.
+
+justification: >-
+  ZERO model delta, so no TLA+ representation was added and none needs
+  justifying. TLC was nonetheless run at close on the converged model rather
+  than cited from a previous epic, so the receipts carry a measurement of THIS
+  tree.
+
+transition_diff: ""
+
+validated_refactor:
+  tlc_before:
+    status: green
+    evidence: >-
+      Not a separate run, and deliberately not presented as one. Model delta is
+      zero, so the before-model and the after-model are the same file and one
+      TLC run measures both. A second run of an unchanged model would be the
+      same numbers wearing a different label, which is the shape that made the
+      recycled evidence hard to spot.
+  tlc_after:
+    status: green
+    evidence: >-
+      specs/current/TlaSpecDevCli.tla with MC.cfg, run at close on 2026-09-06:
+      "Model checking completed. No error has been found." 2,505,440 states
+      generated, 124,643 distinct, depth 24, 0 left on queue, finished in 02s.
+  behavior_tests:
+    status: green
+    evidence: >-
+      Full suite at the close tip: 12 failed, 1613 passed, 23 skipped -- item
+      for item the standing baseline, with no failure introduced by this epic.
+      The 12 are pre-existing and four of them assert against a ledger that is
+      not on main; see #296.
+  descriptor_comparison:
+    status: recorded
+    evidence: >-
+      `diff -rq specs/current specs/desired_program_model` differs only in
+      README.md, spec_manifest.yaml status metadata, and the two planning files
+      the close ignores by design (desired_state.yaml, ticket_plan.yaml). No
+      semantic file differs.
+
+refinement:
+  searched: true
+  measured: true
+  applied: false
+  outcome: none
+  detail: >-
+    No reduction was searched for, because there is no model change to reduce.
+    An epic that adds zero actions cannot simplify its way to a smaller one,
+    and inventing a refactor to fill this field is the retrospective this
+    programme has spent three epics learning not to write.
+
 retention:
   kill_rate:
     status: not_run
-    evidence: 'EXPERIMENTAL per the pivot; no decrease claimed. NOTE: the merged effect-provider evals
-      measured 36/36 preregistered mutant kills on their three fixtures (examples/effect_providers/RESULTS.md)
-      — recorded as context, not as this repository''s kill rate.'
+    evidence: EXPERIMENTAL per the pivot; no decrease claimed, and no model delta to claim it for.
   effect_conformance:
     status: not_run
     evidence: EXPERIMENTAL per the pivot; no decrease claimed.
   external_coverage:
     status: not_run
     evidence: EXPERIMENTAL per the pivot; no decrease claimed.
+
 coverage_audit:
-  status: fail
-  report: specs/results/coverage_audit_report_hexagonal_prompting.md
-  in_scope_gaps: 3
-  escalations: 3
-  gaps_created_by_this_epic: 2
-  out_of_model_inventoried: 14504
-  scope_source: specs/desired_program_model/ticket_plan.yaml:102-119 (representation_scope), governed
-    by :42-55 (semantic_model_rule, representation_scope_rule) and :56-68 (surface_cost_rule, no_new_gates_rule)
-  model_audited: specs/program_model/TlaSpecDevCli.tla -- 11 variables, 18 Next disjuncts, 17 @command
-    actions, 12 ports
-  commit: f431c62
-  raw_evidence: specs/results/coverage-audit-hexagonal-prompting-raw/
-  reproducers:
-  - classify_scope.py -- the 14,575-row scope partition
-  - cli_closure.py -- transitive import closure of the CLI entrypoint
-  - module_to_action.py -- module to modeled-action attribution
-  - collapse_effects.py -- the Sweep-2 collapsing rule, applied by machine
-  - group_behaviors.py -- the Sweep-3 grouping rules, applied by machine
-  - external_surface.py -- the External surface, walked from the live argparse tree
-  gates_run:
-    pytest: 1122 passed, 0 failed -- re-run, not read
-    effect_conformance: unobservable, exit 1, THREE runs, 84 observed / 15 gaps / 9 dead / 15 unobservable,
-      IDENTICAL every run
-    tlc: 'not re-run. Model semantics proved unchanged by construction: specs/program_model/TlaSpecDevCli.tla
-      is BYTE-IDENTICAL at b68cbd5 and f431c62 after comment stripping, and MC.cfg/MCsmall.cfg are unchanged.
-      The state space cannot have moved.'
-  in_scope_gaps_detail:
-  - id: G-1
-    created_by: HP-04
-    disposition: change the program
-    summary: RunEffectConformance's new spec_tree_delete (and spec_tree) declare **/specs/**, but the
-      delete they cover runs at <--work-dir>/<case>. --work-dir is type=Path with no resolver (effect_conformance_report.py:169,
-      used raw at :152); reset_case_work_dir rmtrees <work_dir>/<case_name> (effect_conformance.py:1685).
-      The function's OWN docstring (:1678-1681) states the caller 'can point [it] anywhere'.
-    remediation: Apply spec_paths.resolve_spec_tree_out(args.work_dir, spec_dir) at effect_conformance_report.py:152
-      -- the guard RC-02 built for exactly this class (predecessor gap N-2), whose own docstring at spec_paths.py:105-128
-      describes this site.
-  - id: G-2
-    created_by: pre-existing at b68cbd5; never previously filed
-    disposition: model it (or change the program)
-    summary: 'RunSpecUnitTests --no-batch: run_generated_case_adapters.execute_programs (:2178) spawns
-      <python> <work_dir>/programs/case_*.py, matching neither test_process (*pytest*) nor runner_process
-      (*run_generated_case_adapters*); with no --work-dir, work_dir = tempfile.mkdtemp (:2294), so case
-      programs and case-work trees land outside spec_tree (**/specs/**) and evidence_report (**/results/**).'
-    remediation: 'Declare case_program_process (process.spawn -> */programs/case_*) plus a work-tree write
-      port on RunSpecUnitTests. Surface cost per surface_cost_rule: ZERO state space -- effects.actions
-      is a declaration table, not state. Alternative: default --work-dir under the spec tree and resolve
-      it, folding this into spec_tree.'
-  - id: G-3
-    created_by: HP-05
-    disposition: model it (or retire via ESC-3)
-    summary: generate_python.py:891 mapping_path.write_text() appends [effect_providers.<Port>] tables
-      to specs/*/case_adapters.toml -- the model's own binding table. scripts/generate_python.py is in-model
-      by :109, is reachable from NO CLI subcommand, and is a documented shipped command (references/generation_modes.md:11).
-      No action, no port. The file it writes is itself an ESC-1 row.
-    remediation: Either give the codegen a modeled action and a spec_tree port (the disposition RC-01
-      chose for the structurally identical G-6), or resolve ESC-3 by restoring the predecessor's ESC-7
-      ruling into representation_scope.out_of_model -- which retires this row in one visible plan line
-      rather than by a per-finding waiver.
-  escalations_detail:
-  - id: ESC-1
-    rows: 19
-    ask: representation_scope :108-119 -- classify 19 tracked files no line covers.
-    summary: 'The block names the model, the manifest, the cfgs and two adapter modules and stops. It
-      does not name the action-to-adapter BINDING TABLE (specs/*/case_adapters.toml, which prompts/coverage_audit.md
-      section 1 requires in the representation index and effect_conformance.load_mappings reads), the
-      MUTANT CATALOG (specs/*/kill_mutants.toml, oracle 4''s entire input), the DECLARED COMPONENT PARTITION
-      (specs/*/architecture_{components,map}.yaml), or any other .py in a spec tree. The last is not hypothetical:
-      specs/current/tlc_projection.py is NEW IN THIS EPIC (HP-03) and is the reason a corpus of this model
-      is importable at all -- 3,678,217 cases to 541. It is desired_boundaries:130 delivered, and this
-      gate cannot classify it. Also: .DS_Store is tracked.'
-  - id: ESC-2
-    ask: service_catalog.known_gaps :135-137 -- restore the External-view ruling.
-    summary: The predecessor's plan carried an explicit ruling that the single-module baseline made the
-      External view 'an INVENTORY ROW under this line, not a gap'. It did not survive the carry-forward;
-      the strings External / Internal / view split appear NOWHERE in this plan. prompts/coverage_audit.md
-      section 5 mandates reporting the whole External surface as unrepresented absent a counter-quote,
-      and section 0 forbids the auditor supplying one. One restored sentence retires this.
-  - id: ESC-3
-    ask: known_gaps :135-137 or representation_scope.out_of_model :113-119 -- restore the effect-provider-runtime
-      carve-out.
-    summary: The predecessor's ESC-7 ruling put 'the effect-provider runtime -- scripts/run_generated_case_adapters.py
-      provider machinery, spec_double_compiler/*, templates/python/ports.py.j2' out-of-model. TWO OF THE
-      THREE survived (:117); the scripts/ half did not, and :109 claims it IN, while service_catalog.existing_boundaries:124
-      names it as a boundary of this epic and the manifest declares runner_process for it. The plan now
-      says three different things about one file. Governs G-3.
-  findings_recorded_not_counted_as_gaps:
-  - 'F-1 [minor] tlc_seconds: 120 is documented as a ''hard external timeout per TLC run'' in budgets.py:49
-    and all three spec_manifest.yaml:34, and is READ BY NOTHING. The java/TLC spawn (generate_cases_from_tlc_dump.py:126)
-    passes no timeout=; scripts/run_tlc.sh has none. The only budget presented as an operational hard
-    limit is the one that does nothing.'
-  - F-2 [minor] The effect schema has no observable type for clock or environment reads (spec_manifest.yaml:125-127
-    restricts type to filesystem/process/network). 4 datetime.now() sites and 3 env reads on in-model
-    modules can never be declared and can never be observed -- a whole class of nondeterminism input outside
-    both the model and the oracle.
-  - 'F-3 [major] spec_tree_delete -- the ONE unit of model surface this epic added -- reports DEAD MODEL
-    SURFACE on all three oracle runs. Mitigating: it was already dead before HP-04 (declared for CloseTicket,
-    CloseTicketWeakened, GenerateCases), the dead-port count is 9 before and 9 after, and HP-04''s delete
-    executes OUTSIDE the sandbox window by construction (effect_conformance.py:1809 resets, :1824 enters
-    the sandbox), so the oracle could not observe it even in principle. Not a coverage gap -- dead surface
-    is the inverse -- but the epic''s single surface addition is, by the shipped instrument''s own report,
-    not exercised.'
-  - F-4 [minor] spec_evolution.py:1005 shutil.move(active_dir -> ticket_history_dir) unlinks its source
-    and IS covered by spec_tree_delete's glob, but the manifest's spec_tree_delete comment (:245-256)
-    enumerates the other three CloseTicket deletes by file:line and not this one.
-  - 'F-5 [POSITIVE, verified independently] HP-04''s determinism repair is REAL. Three runs of an identical
-    corpus against an identical tree: 84 / 15 / 9 / 15, exit 1, byte-identical every time -- and RUN 1
-    WAS COLD (specs/current/.effect-conformance-work/ did not exist; git status was clean at f431c62),
-    so the three runs span exactly the cold-vs-warm axis that produced the predecessor''s spread. The
-    predecessor measured a 43% spread (20 / 15 / 14) and filed it as its own major finding. Closed by
-    measurement, not assertion.'
-  - 'F-6 [minor] The plan''s OWN known_gaps:137 citation went stale inside this epic: it cites effect_conformance.py:1141-1145
-    for ''in-process CPython only'', which was exact at b68cbd5 and now points at an OutOfProcessObservation
-    field declaration (the text moved to :1441). Fifth consecutive ticket to ship a stale internal figure,
-    in the one document this gate reads its scope from. tests/test_source_citations.py still does not
-    cover ticket_plan.yaml; the predecessor recommended extending it and the defect recurred within one
-    epic.'
-  epic_diff_swept_as_surface: yes -- this instruction found 2 of the 3 gaps
-  epic_diff_findings:
-    hp01: examples/validation fixtures + a sealed prediction file. Out-of-model by :115. Zero effect sites.
-    hp02: prompts/hexagonal_implementation.md. Out-of-model by :119. Zero effect sites.
-    hp03: CLEAN, verified per-site. scripts/generate_cases_from_tlc_dump.py has THE SAME SIX effect sites
-      before and after (96/116/140/669/882/883 -> 106/126/150/716/1006/1007, renumbered not added). Zero
-      new spawns, writes or deletes; the negative report is printed, never written. External surface +3
-      options, +0 subcommands, +0 positionals -- the per-flag-variant claim is mechanically confirmed.
-      BUT it also shipped specs/current/tlc_projection.py, which no scope line covers (ESC-1).
-    hp04: 'GAP G-1 (the new spec_tree_delete does not cover what the action actually deletes) and POSITIVE
-      F-5 (determinism repair verified over three runs). Model semantics delta: ZERO, proved by comment-stripped
-      byte equality.'
-    hp05: 'GAP G-3 (a new write into the adapter binding table from an unrepresented module). Model surface
-      delta: zero, as claimed -- but ''zero model surface'' was not ''zero program effect''.'
-    hp06: measurement only, all under specs/results/scorecards/ and examples/. Out-of-model by :115 /
-      :116. Zero effect sites.
-  judgement_for_the_redirect:
-    remaining_unmodelled_surface: BOOKKEEPING, with exactly ONE exception.
-    the_exception: specs/current/tlc_projection.py. It is not peripheral surface that happens to be unclassified
-      -- it is the mechanism that makes case generation possible on this model at all (3,678,217 cases
-      and a 7.4 GB cases.py without it; 541 cases and 667 KB with it, per references/generation_modes.md:155-165).
-      It is desired_boundaries:130 delivered, and the scope block this gate reads cannot classify it.
-      The ask is to CLASSIFY it in one plan line, not to model it.
-    generation_blocker: 'Unchanged from the predecessor: already-modelled surface. This epic''s answer
-      was a PROJECTION rather than more coverage, which was the right instinct. NOT VERIFIED BY ME --
-      I did not re-run generate cases, and the 541-case figure is the single most decision-relevant unverified
-      claim in this epic.'
-    oracle_blocker: The process boundary, unchanged. 9 of 12 ports dead; 0 of 15 gaps are effects of the
-      action under test; 15 unobservable boundaries; the MF-033 out-of-process observer emitted NOTHING
-      on any of the three runs. G-2 shows the toolchain ADDING a process boundary rather than removing
-      one.
-    are_the_gaps_load_bearing: 'G-1 marginally (an unconstrained work dir is where the oracle''s own writes
-      land). G-2 and G-3: no -- declaration bookkeeping about our own CLI. None of the three would be
-      found by any oracle in this toolchain, and closing them makes no oracle greener.'
-    recommendation: Close G-1 and G-2 (a few lines each), answer ESC-1/ESC-2/ESC-3 with restored plan
-      lines, and take the small honest number. The expensive thing in this report is not the gap list
-      -- it is section 9, and no coverage work moves it.
-  history:
-  - 'predecessor round 4 (ab0dfee, architectural-coherence): pass, 0 gaps, 0 escalations -- BUT its Sweep-1
-    row set was source extensions only (6,210 rows over py/kt/java/kts/j2/sh), so the 19 rows that match
-    no plan line (.toml, .yaml, and a .py inside a spec tree) could never have entered it. Its zero-escalation
-    result was structurally guaranteed for exactly the artifacts the four oracles consume.'
-  - 'this run (f431c62, hexagonal-prompting): fail, 3 gaps, 3 escalations, 14,575 rows over EVERY tracked
-    file with no filter.'
-justification: ''
-transition_diff: ''
-refinement:
-  searched: true
-  outcome: none
-  detail: 'Searched at workflow scope: the model is unchanged (TLC byte-identical to the CD-11 baseline
-    through CD-04..08, the effect-provider merge, and the owner spot fixes). Refinement THIS workflow
-    earned happened on the validation examples, not this model: run-3/run-4 agents took validated refactors
-    on taskq (424 -> 63 distinct via the corpus-priced representation fix) and order_hub (bound 8,388,608
-    -> 624, four convergent runs), evidence under examples/validation/runs/.'
-  applied: false
-  approved_by: ''
-narrative: 'Workflow close of complexity-descriptor-main-readiness, the promotion gate for merging to
-  main. The batch (CD-04..08, PRs #94-#98) removed every negative side effect the six earlier validation
-  runs catalogued: the corpus gate now states measurements and asks the redesign question; the descriptor''s
-  domain resolution and R/W attribution are accurate on the standard patterns real agents write; every
-  surface speaks the advisory doctrine; the shipped example passes its own documented workflow. The effect-provider
-  epic then merged (86865d2 + integration) with zero host-model delta, adding the agent-authored provider
-  runtime whose evals reproduced here (80/80 tests; atomic_publisher and reminder_worker fresh validations
-  pass), and the composed surface was validated by run 4: content-asserting providers killed the exact
-  bug class the MF-038 probe measured at 0/9 (taskq: 45/45 points, exact replay; order_hub: two probes;
-  distributed_history: one-boundary migration with the legacy path proven). Four adoption-path defects
-  were owner spot-fixed with regression tests (e7fcd09). SF-001..007 filed as #105-#111; remaining backlog
-  carried as #112-#115. Measured alternatives and the findings the machine-checked core cannot express
-  live in examples/validation/runs/ and the run 2-5 audit reports of the predecessor workflow, all sealed.'
-validated_refactor:
-  tlc_before:
-    status: green
-    value: 1,292,951 distinct / 32.1M generated / depth 26
-    evidence: MC.cfg at 24ed3fa~, recorded by the SCAN-REMOVE ticket BEFORE deleting a line. No error.
-  tlc_after:
-    status: green
-    value: 563,963 distinct / 13.0M generated / depth 25
-    evidence: MC.cfg at 24ed3fa. No error. Declared bound 26,671,680 -> 1,111,320. This is the FIRST DIVISION
-      in this ledger's history; every prior entry multiplies.
-  behavior_tests:
-    status: green
-    value: 986 passed / 0 failed at 24ed3fa; 1,004 / 0 at d8608ce
-    evidence: 'The -164 against the pre-removal 1,150 is EXACTLY the 135 deleted scanner tests plus their
-      parametrisations, verified test-by-test -- no test newly failing. specs/{program_model,current,desired_program_model}/tests:
-      69 each, green.'
-  descriptor_comparison:
-    status: recorded
-    evidence: 'The decrease is pure DELETION of two variables (architecture_scan, architecture_delta)
-      and their sole writer (AnalyzeArchitecture), which left together. No invariant weakened, no guard
-      relaxed, no domain narrowed, no reachable behaviour quotiented away. Checked against MF-020, whose
-      whole point is that a metric can improve because an edge was DELETED: here the edge was deleted
-      deliberately, with the behaviour it carried removed in the same commit rather than orphaned, and
-      the four oracles'' scope shrank with it rather than staying wide over a smaller model. Every other
-      action, variable and invariant is byte-identical after comment stripping. Full diff: commit 24ed3fa
-      (9,552 deletions / 1,842 insertions / 60 files).'
+  status: not_run
+  report: ""
+  scope_source: >-
+    specs/desired_program_model/ticket_plan.yaml epic_goals -- the six goals AT-04
+    decided clause by clause.
+  in_scope_gaps: null

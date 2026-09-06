@@ -232,11 +232,23 @@ def validate_ticket_plan_closed(
     *,
     repo_root: Path | None = None,
     workflow: str | None = None,
+    specs_dir: Path | None = None,
 ) -> list[str]:
+    """Every delivered ticket in `ticket_plan` has its close receipt.
+
+    `specs_dir` is derived from the plan's own location by default, which is
+    right for a LIVE plan at `specs/desired_program_model/ticket_plan.yaml` and
+    wrong for an ARCHIVED one: a close copies the plan it consumed to
+    `specs/.history/<workflow>/closed-snapshot/snapshots/desired_program_model/`,
+    where `parent.parent` is the snapshots directory and the receipts are three
+    levels above it. Checking a closed workflow against its own archived plan is
+    the only way to ask "did this close ship a ticket without a receipt" after
+    the live plan is gone, so that caller passes `specs_dir` explicitly.
+    """
     if not ticket_plan.exists():
         return [f"missing ticket plan: {ticket_plan}"]
     plan = _load_yaml(ticket_plan)
-    specs_dir = ticket_plan.resolve().parent.parent
+    specs_dir = (specs_dir or ticket_plan.resolve().parent.parent).resolve()
     resolved_repo_root = (repo_root or specs_dir.parent).resolve()
     return validate_workflow_ticket_completion(
         repo_root=resolved_repo_root,

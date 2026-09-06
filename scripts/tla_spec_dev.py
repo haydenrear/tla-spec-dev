@@ -267,8 +267,24 @@ def active_ticket_id(specs_dir: Path) -> str | None:
     return None
 
 
+def project_spec_dir(specs_dir: Path) -> Path:
+    """`current` while a workflow is open, `program_model` once it closes.
+
+    `close_tickets.py` REMOVES `specs/current` at workflow close -- that is the
+    documented end of the desired/current loop, not an accident -- so a resolver
+    that names `current` unconditionally works only between a workflow opening
+    and closing, and reports `ERROR: spec-unit target does not exist` on every
+    repository sitting between epics. `new_ticket_workflow.project_current_source`
+    has had this fallback for as long as the close has removed the directory;
+    the two resolvers below did not, and closing an epic took the CLI's own
+    `run spec-unit-tests` and `run effect-conformance` down with it.
+    """
+    current = specs_dir / "current"
+    return current if current.exists() else specs_dir / "program_model"
+
+
 def spec_unit_target_dirs(args: argparse.Namespace, specs_dir: Path) -> list[Path]:
-    project_current = specs_dir / "current"
+    project_current = project_spec_dir(specs_dir)
     if args.target is not None:
         target = Path(args.target)
         return [target if target.is_absolute() else (Path(args.repo_root).resolve() / target)]

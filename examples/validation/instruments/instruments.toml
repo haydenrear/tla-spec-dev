@@ -1244,7 +1244,7 @@ classification was defensible even though its stated reason was wrong.
     to = "specs/coverage_audit_ledger_input.yaml"
 
     [[instrument.failing.stage]]
-    from = "specs/desired_program_model/desired_state.yaml"
+    from = "specs/program_model/spec_manifest.yaml"  # was desired_state.yaml: removed at workflow close
     to = "specs/desired_state.yaml"
 
     [[instrument.failing.stage]]
@@ -1315,7 +1315,13 @@ property of the instrument. `SM-03-DF-03`.
   summary = "the three committed trees"
   nodes = ["tests/test_spec_manifest_records.py"]
   expect_exit = 0
-  expect_passed_at_least = 18  # SM-03: exit 0 is also what a fully-skipped run returns
+  # 18 assumed three spec trees. The close removes current/ and
+  # desired_program_model/, and the file parametrises over all three, so 12 of
+  # the 18 now SKIP. Floor is the program_model tree alone -- and the skips are
+  # DECLARED, because `expect_skipped` defaults to 0 precisely so that a
+  # demonstration cannot go quiet without someone writing the number down.
+  expect_passed_at_least = 6
+  expect_skipped = 12  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "citation-anchor"
@@ -1432,7 +1438,10 @@ measurement stops being one.
   summary = "the repository's declared ports"
   nodes = ["tests/test_port_declarations.py"]
   expect_exit = 0
-  expect_passed_at_least = 6  # SM-03: exit 0 is also what a fully-skipped run returns
+  # Same three-tree assumption: 4 of the 6 now SKIP, declared for the same
+  # reason as above.
+  expect_passed_at_least = 2
+  expect_skipped = 4  # SM-03: exit 0 is also what a fully-skipped run returns
 
 [[instrument]]
 id = "complexity-ledger"
@@ -1534,7 +1543,11 @@ classification = "demonstrated-can-fail"
 [[instrument]]
 id = "spec-unit-adapter-conformance"
 name = "spec-unit adapter conformance (enforce_projection)"
-paths = ["specs/current/production_adapters.py", "specs/current/adapter_case_runtime.py"]
+# Repointed at the workflow close that removed specs/current. `current` is the
+# working copy an open workflow carries; `program_model` is the durable one the
+# close promotes to, and it holds the same two files. A registry naming a
+# working-copy path claims an instrument that is absent between epics.
+paths = ["specs/program_model/production_adapters.py", "specs/program_model/adapter_case_runtime.py"]
 family = "workflow"
 watches = "each modelled action's real CLI behaviour against the TLA+ after-state"
 verdict_surface = "AssertionError: 'projected after-state disagrees with the model'"
