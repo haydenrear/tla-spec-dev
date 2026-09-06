@@ -29,10 +29,19 @@ can drift from the repository (`E-14`).
 
 ```bash
 EVALHOME=<a scratch directory>          # see "The home" below -- not your $HOME
-HOME=$EVALHOME CLAUDE_CODE_WALNUT_SPIRE=1 \
+BIN=$PWD/examples/agent_integration/eval-plugin/bin
+
+PATH="$BIN:$PATH" HOME=$EVALHOME CLAUDE_CODE_WALNUT_SPIRE=1 \
   claude plugin eval examples/agent_integration/eval-plugin \
       --ablation none --runs 1 --allow-tools Bash Write Edit
 ```
+
+Add `--case <name>` to run one of them; there are two:
+
+| case | the question |
+|---|---|
+| `scaffold-a-program-model` | given a program with no spec, does the model represent the one property that is only true over a trace? |
+| `catch-the-drift` | given a program and the model it already has, can you find where they stopped agreeing -- and repair the program rather than the model? |
 
 Every part of that line is load-bearing, and each one was learned by a run that
 scored 0 for a reason that was not the agent's:
@@ -44,6 +53,21 @@ scored 0 for a reason that was not the agent's:
   entry): Write, Edit` and a score of 0: the agent could read the program and
   could not write a line of the spec. A tool named in the case's
   `allowed_tools:` is still refused unless it is *also* granted here.
+* **`PATH="$BIN:$PATH"`** — **without it the run grades whichever
+  `tla-spec-dev` the operator has installed, not this checkout.** Measured: a
+  run's `which -a tla-spec-dev` returned
+  `/Users/hayde/.skill-manager/bin/cli/tla-spec-dev` three times and nothing
+  else, and a traceback resolved the code from
+  `~/.skill-manager/skills/spec-double-compiler/scripts/`. Three fixes that do
+  not work: a plugin `bin/` directory (documented to join the Bash tool's PATH;
+  inside `plugin eval` it never appears), `execution.env: {PATH: ...}` in
+  case.yaml (refused — *"only EVAL_\* keys can be set from case.yaml. Anything
+  else must come from the operator's shell."*), and a shim under `/tmp` (the
+  PATH reaches the run, but the sandbox cannot see `/private/tmp`). `bin/`
+  here holds a shim that execs this tree's `scripts/tla_spec_dev.py` and
+  **exits 127 rather than falling through** to an installed copy. The
+  `SessionStart` hook prints which one it got, so the trace answers the
+  question without anyone reconstructing it.
 * **`--ablation none`** — see "Why the baseline arm is off" below.
 * **`HOME=$EVALHOME`** — see "The home".
 

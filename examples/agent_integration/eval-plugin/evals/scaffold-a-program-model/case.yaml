@@ -16,6 +16,13 @@ runs: 1
 # EMPTY repository, and its 0 would read as "the skill is what scored" when it
 # means "the fixture was never placed". Run this case with --ablation none.
 execution:
+  env:
+    # Hooks belong to the PLUGIN, not the case, so lib/place.sh and
+    # lib/verify.sh dispatch on this. `execution.env` is the only channel and
+    # it is deliberately narrow -- a non-EVAL_* key is refused with "only
+    # EVAL_* keys can be set from case.yaml. Anything else must come from the
+    # operator's shell."
+    EVAL_CASE: scaffold-a-program-model
   # 40 was the archaeology budget; 60 was still short, and BOTH ended
   # `error_max_turns`. The second run wrote a correct model -- Release as an
   # action, `OwnershipHandoffRequiresRelease` as a `[][...]_vars` property --

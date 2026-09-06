@@ -18,6 +18,14 @@ build/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
+# The eval plugin's CLI shim is SOURCE, not a build output. `bin/` swallowed it
+# silently: the commit that introduced it went through without it, so the
+# committed recipe would have pointed every operator at a directory that is not
+# there, and the run would have graded whichever tla-spec-dev they happened to
+# have installed -- which is the exact defect the shim exists to prevent,
+# restored by the ignore file.
+!examples/agent_integration/eval-plugin/bin/
+!examples/agent_integration/eval-plugin/bin/**
 
 ### IntelliJ IDEA ###
 .idea

@@ -1,0 +1,23 @@
+schema_version: "1.0"
+name: catch-the-drift
+description: >-
+  The other example, and the other question. Not "can you build a model" but
+  "can you find where a program stopped matching the one it already has".
+runs: 1
+execution:
+  env:
+    EVAL_CASE: catch-the-drift
+  # This case is cheaper than scaffolding one: the model already exists, and the
+  # work is a diagnosis rather than a construction.
+  max_turns: 60
+  timeout_seconds: 1800
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]
+  prompt: |
+    This repository carries an ecommerce backend and a TLA+ model of it under
+    `specs/program_model/`. Somewhere in the last two commits the program
+    stopped doing what the model says it does.
+
+    Find the disagreement and repair it, then say which action of the model
+    the break sat under and what in the model would have caught it.
+
+    The model is the reference. Do not edit it.

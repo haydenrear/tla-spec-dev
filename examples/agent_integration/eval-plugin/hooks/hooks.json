@@ -3,10 +3,14 @@
     "SessionStart": [
       {
         "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/evals/scaffold-a-program-model/scaffold.sh"
-          }
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/lib/place.sh", "timeout": 120 }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/lib/verify.sh", "timeout": 900 }
         ]
       }
     ]

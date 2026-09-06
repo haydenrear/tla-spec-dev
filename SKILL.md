@@ -1,6 +1,6 @@
 ---
 name: spec-double-compiler
-description: 'Use when creating or maintaining Python spec doubles generated from a constrained, annotated TLA+ state-machine specification, including manifests, generated fakes, ports, validators, Hypothesis strategies, traces, internal/external Test Graph integration cases, and adapter conformance tests.'
+description: 'Use when creating or maintaining Python spec doubles generated from a constrained, annotated TLA+ state-machine specification, including manifests, generated fakes, ports, validators, Hypothesis strategies, traces, internal/external Test Graph integration cases, and adapter conformance tests. ALSO THE ONE-STOP LOCATION FOR ORGANIZATIONAL STANDARDS on self-improvement, bug attribution, and evals: read references/bug_attribution.md before recording where a defect escaped, references/blind_dispatch.md before reviewing your own work, and references/plugin_evals.md before writing or running any `claude plugin eval` suite against any skill -- what a case can and cannot observe, how to point a run at a checkout instead of an installed unit, and how to keep a score from being talked into passing.'
 skill-imports:
   - unit: skill-manager
     path: references/cli.md
@@ -1325,6 +1325,18 @@ current change.
   runtime expectations, **which of the three Skill Manager homes those tools and
   this skill are resolved from**, and how to get a home-resident skill edit out
   of a ticket worktree before it is deleted.
+- `references/plugin_evals.md`: **driving `claude plugin eval` against this or
+  any skill, and keeping the score attached to something that happened.** The
+  three things a case can observe (a workspace PATH, a tool NAME, the final
+  RESPONSE — never file contents, tool inputs, tool outputs or exit codes), the
+  constructed `HOME` that lets the Bash sandbox and authentication hold at once,
+  which skill-manager home a run actually resolves the CLI from, why
+  `scaffold_script:` is accepted and never executed, and the anti-gaming
+  discipline: **verify in a `Stop` hook and grade the verdict path it writes**,
+  because the sandbox that denies the agent's subprocesses does not deny a hook.
+  Written after a case scored 1.00 while `tla-spec-dev` failed on all three
+  attempts and the manifest the grader accepted was typed by the agent. Import
+  it into any skill that wants evals.
 - `references/tla_profile.md`: constrained TLA+ subset.
 - `references/codegen_contract.md`: manifest schema and generator behavior.
 - `references/conformance_testing.md`: production adapter conformance.

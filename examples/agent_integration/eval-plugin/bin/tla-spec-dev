@@ -1,0 +1,30 @@
+#!/bin/sh
+# THE CHECKOUT'S CLI, NOT THE INSTALLED ONE.
+#
+# Without this shim on PATH the eval grades whatever `tla-spec-dev` the
+# operator happens to have installed. Measured: a run's `which -a tla-spec-dev`
+# returned `/Users/hayde/.skill-manager/bin/cli/tla-spec-dev` three times and
+# nothing else, and a traceback resolved the code from
+# `~/.skill-manager/skills/spec-double-compiler/scripts/`. The branch under
+# review was never executed.
+#
+# Three ways that DO NOT work, each measured rather than assumed:
+#   * a plugin `bin/` directory. The docs say it joins the Bash tool's PATH
+#     while the plugin is enabled; inside `plugin eval` it does not appear.
+#   * `execution.env` in case.yaml. Refused: "only EVAL_* keys can be set from
+#     case.yaml. Anything else must come from the operator's shell."
+#   * a shim under /tmp. The shell PATH does reach the run -- it was first in
+#     $PATH -- but the sandbox cannot reach /private/tmp, so `which` never
+#     found it. The shim has to live inside the checkout.
+#
+# So: the operator prepends THIS directory, and the run gets this file.
+set -eu
+here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+repo=$(CDPATH= cd -- "$here/../../../.." && pwd)
+
+test -f "$repo/scripts/tla_spec_dev.py" || {
+    echo "tla-spec-dev shim: no checkout at $repo -- refusing to fall through" \
+         "to an installed copy, which would grade code nobody is reviewing" >&2
+    exit 127
+}
+exec python3 "$repo/scripts/tla_spec_dev.py" "$@"
