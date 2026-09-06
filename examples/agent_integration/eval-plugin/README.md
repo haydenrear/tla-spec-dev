@@ -183,32 +183,28 @@ substituted a Python reachability check — 2,325 states, 111,600 transitions,
 each `(state, call)` pair matched against the real `Shortener` — which is a real
 cross-check and is not model checking.
 
-## What the two cases score, and what each grader carried
+## What the two cases score
 
-Measured, both cases, one run each, with the checkout's shim on `PATH`:
+Measured, both cases, one run each, with the checkout's shim on `PATH` and the
+verdict graders hardened after a blind review:
 
-| case | score | cost | turns |
+| case | score | cost | evidence behind it |
 |---|---|---|---|
-| `catch-the-drift` | **1.00** | $1.32 | ended `success` |
-| `scaffold-a-program-model` | **0.75** | $11.76 | 128, ended `success` |
+| `catch-the-drift` | **1.00** | $1.86 | the account survives into `snapshot()`; the model tree matches the shipped one byte for byte |
+| `scaffold-a-program-model` | **1.00** | $12.02 | SANY on every module; TLC clean on `Internal` (2,325 distinct states), `External` (223) and a `Scenario_ReleaseHandoff` witness the session wrote itself (13) |
 
-The 0.75 is worth reading carefully, because it is the shape this suite was
-rebuilt to make legible. **All three artefact verdicts passed** — SANY parsed
-every module, TLC explored `Internal` and `External` cleanly, and the manifest
-is a real manifest. The one failure was the response grader, `FAIL PASS FAIL`,
-on a run whose artefact is verifiably correct: `Release(s, o)` is a disjunct of
-`InternalNext`, and the module's own comment says the trace property *"is the
-reason `Release` has to be in this model at all."*
-
-Before the `Stop` hook existed, that run would have reported the opposite —
-a file existed and a paragraph read well — and nobody could have told the two
-apart. Now the artefact and the report disagree **in the notes**, and the
-artefact is the part that was checked by a program.
+**Read the middle of that table, not the left.** Three earlier runs of the same
+case scored 1.00, 0.75, 0.25 and 0.50, and only one of those numbers was about
+the model: the 1.00 was scored while `tla-spec-dev` failed on all three
+attempts, the 0.25 was the verifier's own `$HOME` assumption, and the 0.50 was a
+run cut off mid-sentence. The scores became worth quoting when the evidence
+column became something a program had checked.
 
 Judge triples observed across this suite's development: `FAIL PASS PASS`,
-`PASS PASS PASS`, `FAIL PASS FAIL`. **A majority is not a consensus**, and one
-run's `llm` score is not evidence of much. That is why the artefact verdicts
-carry three of the four weights.
+`PASS PASS PASS`, `FAIL PASS FAIL`, `PASS PASS PASS`. **A majority is not a
+consensus**, and one run's `llm` score is not evidence of much — which is why
+the verdict graders carry most of the weight and the response graders are a
+minority voice.
 
 ## Why the baseline arm is off
 
