@@ -291,12 +291,23 @@ def scanned_files() -> list[str]:
     `demonstrate.py` runs a tripwire in a STAGED copy with no repository around
     it, and `git ls-files` there returns nothing -- which would make the failing
     demonstration below pass for the wrong reason.
+
+    Symlinks are not followed, and that is load-bearing rather than tidy.
+    `examples/agent_integration/eval-plugin/skills/spec-double-compiler` is a
+    symlink to this repository's own skill directory -- the eval plugin carries
+    the skill surface by reference so it cannot drift (E-14) -- so following it
+    reported `references/eval_scorecard.md`, THE CARD'S ONE HOME, as a
+    restatement of itself at a second path. A symlink is a second NAME, never a
+    second statement: it cannot hold different bytes, so nothing hides behind
+    this skip.
     """
     out = []
     stack = [REPO_ROOT]
     while stack:
         d = stack.pop()
         for child in sorted(d.iterdir()):
+            if child.is_symlink():
+                continue
             if child.is_dir():
                 if child.name not in PRUNE:
                     stack.append(child)
