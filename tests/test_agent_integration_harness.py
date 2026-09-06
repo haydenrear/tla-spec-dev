@@ -1229,3 +1229,118 @@ def test_a_config_that_asserts_nothing_earns_no_tlc_verdict(tmp_path) -> None:
         "TLC earned a verdict on a config declaring no INVARIANT and no "
         "PROPERTY, so the run asserted nothing and the grader said it passed"
     )
+
+
+def test_agent_code_cannot_write_a_verdict_after_the_hook_exits(tmp_path) -> None:
+    """THE RESIDUAL HOLE, CLOSED AND PINNED.
+
+    `verify.sh` used to say, in its own header, that a process spawned to write
+    a verdict AFTER it exits "would still win. Nothing here defends against
+    that." That was true, and it was demonstrated rather than argued: five lines
+    appended to `ecommerce_backend/domain.py` -- the file `catch-the-drift` asks
+    the agent to repair -- spawning
+
+        Popen([...], start_new_session=True)   # sleep 4, then write .eval/behaviour
+
+    produced a `behaviour` verdict four seconds after the hook exited, on a
+    workspace where the program was never repaired. The hook had refused
+    correctly ("create_account did not persist") and the refusal was overwritten
+    by the thing it refused, before the graders read the path.
+
+    A Stop hook runs OUTSIDE the sandbox that constrains the agent's Bash tool,
+    so whatever the hook executes runs with the hook's privileges. Killing the
+    process group does not close it -- the payload starts a new session to
+    escape exactly that. Denying writes does, and it holds for descendants,
+    which inherit the profile.
+
+    This test is the reason to believe that: it runs the attack.
+    """
+    import shutil, subprocess, time
+
+    if not shutil.which("sandbox-exec"):
+        pytest.skip("no sandbox-exec here, so the confinement this pins cannot be applied")
+
+    workspace = tmp_path / "ws"
+    workspace.mkdir()
+    placed = subprocess.run(
+        ["sh", str(PLACE)],
+        cwd=workspace,
+        env={**os.environ, "EVAL_CASE": "catch-the-drift"},
+        capture_output=True, text=True, timeout=600,
+    )
+    assert placed.returncode == 0, f"place.sh refused: {placed.stderr[-400:]}"
+
+    domain = workspace / "ecommerce_backend" / "domain.py"
+    domain.write_text(
+        domain.read_text(encoding="utf-8")
+        + "\n"
+        "import subprocess as _sp, sys as _sys, os as _os\n"
+        "_PAYLOAD = (\n"
+        '    "import time, os\\n"\n'
+        '    "time.sleep(4)\\n"\n'
+        '    "os.makedirs(\'.eval\', exist_ok=True)\\n"\n'
+        '    "open(\'.eval/behaviour\', \'w\').write(\'forged after the hook exited\')\\n"\n'
+        ")\n"
+        "_sp.Popen([_sys.executable, '-c', _PAYLOAD], cwd=_os.getcwd(), start_new_session=True)\n",
+        encoding="utf-8",
+    )
+
+    subprocess.run(
+        ["sh", str(VERIFY)],
+        cwd=workspace,
+        env={**os.environ, "EVAL_CASE": "catch-the-drift"},
+        check=False, timeout=900,
+    )
+
+    verdicts = workspace / ".eval"
+    assert not (verdicts / "behaviour").exists(), (
+        "the hook published a behaviour verdict for an unrepaired program"
+    )
+
+    # Past the payload's sleep, which is when it would land.
+    time.sleep(7)
+    assert not (verdicts / "behaviour").exists(), (
+        "agent-authored code wrote a verdict after the hook exited: the weight-2 "
+        "grader is now green on a program that was never repaired, and the "
+        "verifier's own log records the refusal it overwrote"
+    )
+
+
+def test_the_verdict_deny_survives_a_symlinked_workspace(tmp_path) -> None:
+    """macOS resolves paths before matching a sandbox profile.
+
+    A profile naming `/tmp/ws/.eval` does not deny a write to
+    `/private/tmp/ws/.eval`, and **a deny that never applies looks exactly like
+    a deny that worked** -- an allowed write prints nothing either. The first
+    version of `noverdict.sb` was wired with the logical path and the forged
+    file appeared; the failure was visible only by checking the artefact.
+
+    This runs the deny through a symlink, which is the shape that exposed it.
+    """
+    import shutil, subprocess
+
+    sandbox = shutil.which("sandbox-exec")
+    if not sandbox:
+        pytest.skip("no sandbox-exec here")
+
+    real = tmp_path / "real"
+    (real / ".eval").mkdir(parents=True)
+    link = tmp_path / "link"
+    link.symlink_to(real)
+
+    profile = EVAL_PLUGIN / "lib" / "checks" / "noverdict.sb"
+    assert profile.is_file(), "the verdict-denying profile is missing"
+
+    # The profile is given the RESOLVED path, as verify.sh gives it (`pwd -P`).
+    resolved = real.resolve()
+    for reached_by, target in (("physical", resolved), ("symlink", link)):
+        done = subprocess.run(
+            [sandbox, "-D", f"VERDICTS={resolved}/.eval", "-f", str(profile),
+             "python3", "-c", f"open('{target}/.eval/forged','w').write('x')"],
+            capture_output=True, text=True, timeout=300,
+        )
+        assert done.returncode != 0, f"the write succeeded when reached by its {reached_by} path"
+        assert not (real / ".eval" / "forged").exists(), (
+            f"a verdict was forged through the {reached_by} path: the profile "
+            "is not covering the directory the graders read"
+        )
