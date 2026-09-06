@@ -122,6 +122,36 @@ it": the two are indistinguishable in the score. `max_turns` is now 120 and
 `timeout_seconds` 2700, which makes the truncation rarer without making the
 score honest when it happens.
 
+**At 120 turns the case scores 1.00** — 103 turns, `subtype: success`, 1781s,
+$10.59. That is the working reference point: a passing run of this case costs
+about ten dollars and half an hour. Note the response grader passed **FAIL PASS
+PASS**, a majority rather than a consensus, on a run whose artefact is plainly
+correct — one run's score from this case is not evidence of much.
+
+## What this suite cannot measure: TLC never runs
+
+The passing run reported its own largest gap without being asked:
+
+> **TLC has never been run on this model.** Not on `Internal.cfg`, not on
+> `External.cfg`, not on `Witness.cfg`.
+
+```
+$ mkdir -p "$TMPDIR/x"
+mkdir: /private/tmp/e-3WvvbF/tmp/x: Operation not permitted
+```
+
+**The eval sandbox denies filesystem writes to spawned subprocesses.** The
+agent's own `Write` tool works — the CLI mediates it — but TLC creates a metadir
+before exploring anything, so it aborts having checked nothing. Every
+allowlisted scratch location behaves the same way; this is not a matter of
+choosing a directory, and no `--allow-tools` grant changes it.
+
+So **this suite measures whether a model gets AUTHORED, and can never measure
+whether it CHECKS.** Any score from it must be read inside that bound. The run
+substituted a Python reachability check — 2,325 states, 111,600 transitions,
+each `(state, call)` pair matched against the real `Shortener` — which is a real
+cross-check and is not model checking.
+
 ## Why the baseline arm is off
 
 Under `--ablation with-without` the second arm loads no plugin, so **the hook

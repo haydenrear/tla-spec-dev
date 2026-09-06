@@ -33,19 +33,19 @@ real row, not a leftover — see below.
 | **`UNMODELED/example-runners`** | **3** | **1** | 2 | `G-03`, `G-04`, `H-03` | **new, round 3.** The example validation runners are a whole executable tier `TlaSpecDevCli.tla` does not describe. `H-03` is one of them overwriting a committed fixture. Disposition: **`UNDECIDED`** |
 | **`UNMODELED/instrument-registry`** | **1** | 0 | 1 | `G-09` | **new, round 3.** FI-02's own demonstration harness is red, and by a count that changes with the launcher. Disposition: **`UNDECIDED`** |
 | `UNMODELED/skill-composition` | **1** | 0 | 1 | `G-08` | **its first finding, three rounds after it was opened empty.** Disposition unchanged: **`DEFERRED`** |
-| **`UNMODELED/agent-harness`** | **18** | **12** | 6 | `H-01`, `H-02`, `H-04`, `H-05`, `H-06c`, `H-07`×4, `H-09`, `H-11`, `H-12`, `H-13`—`H-18` | **the largest row in this matrix, and now by a wide margin.** Eighteen defects in `examples/agent_integration/` — the instrument itself. `H-12` is a REPAIR that was worse than what it replaced; `H-13`—`H-17` are round 4's, and all five are the SAME shape — a contract `claude plugin eval` was assumed to honour, with no receipt. `H-18` is the one that outlives its repair: a run that ends on the turn ceiling has no report, and the grader that reads the report scores its ABSENCE as FAIL. Disposition: **`UNDECIDED`** |
+| **`UNMODELED/agent-harness`** | **19** | **12** | 7 | `H-01`, `H-02`, `H-04`, `H-05`, `H-06c`, `H-07`×4, `H-09`, `H-11`, `H-12`, `H-13`—`H-19` | **the largest row in this matrix, and now by a wide margin.** Nineteen defects in `examples/agent_integration/` — the instrument itself. `H-12` is a REPAIR that was worse than what it replaced; `H-13`—`H-17` are round 4's, and all five are the SAME shape — a contract `claude plugin eval` was assumed to honour, with no receipt. `H-18` and `H-19` outlive their repairs: a run that ends on the turn ceiling has no report and the grader scores its ABSENCE as FAIL, and the sandbox denies subprocess writes so TLC cannot run at all. Disposition: **`UNDECIDED`** |
 | **`UNMODELED/record-keeping`** | **3** | **1** | 2 | `H-08`, `H-10`, `G-11` | **new.** The matrix disagreeing with itself, the fourth `git add -A`, and a line-number citation going stale two files away. Never an action; the accumulation is the evidence. Disposition: **`RECORD-ONLY`** |
 
 **After round 3, its re-run, the audit below, `#318`'s review and round 4:
-27 of 64 findings anchored to a declared action, 37 did not — the unanchored
+27 of 65 findings anchored to a declared action, 38 did not — the unanchored
 share is the MAJORITY.**
-The unanchored share went from 7-in-one-row to **36 across seven rows**, and that
+The unanchored share went from 7-in-one-row to **37 across seven rows**, and that
 is the more useful shape: *"seven findings, one gap"* and *"thirty findings,
 seven gaps"* want different answers, and the pooled count cannot tell them apart
 (`bug_attribution.md` §7c).
 
 **The largest single row is no longer a toolchain action.** `GenerateCases` has
-14; `UNMODELED/agent-harness` has 18 and leads the table outright. **The
+14; `UNMODELED/agent-harness` has 19 and leads the table outright. **The
 instrument built to measure the toolchain has produced MORE defects than the
 worst action it measures**, and that is the number to sit with rather than
 explain away: an instrument this defective has been the source of every claim in
@@ -1699,9 +1699,60 @@ have: a run that ends on the ceiling should score `UNDECIDED` on every grader
 that reads the response, and only the workspace graders should count. Unpinned,
 and recorded as the shape to watch rather than a defect with a repair.
 
+**At 120 turns the case scored 1.00** — 103 turns, `subtype: success`, 1781s,
+$10.59, both graders green. The model it produced is not a near miss: thirteen
+internal actions at one-per-outcome, `ReleaseOk` / `ReleaseRejectsNotLive` /
+`ReleaseRejectsNotOwner`, and the trace property stated twice, as
+`OwnerChangesOnlyViaRelease` and `TargetChangesOnlyViaRelease`, each with a
+comment saying why it cannot be an invariant.
+
+Two things to keep beside that number. The response grader passed **FAIL PASS
+PASS** — a majority, not a consensus, on a run whose artefact is clearly
+correct; the criterion sits close enough to its edge that one run's score is
+not evidence of much. And the budget went 40 → 60 → 120 by guessing, twice
+wrong. What the third guess bought is now written into `case.yaml` beside the
+number, so the next person to change it changes it against evidence.
+
+### `H-19` — the sandbox cannot run the verifier the skill exists to drive
+
+The passing run volunteered its own largest gap, unprompted, in
+`specs/results/validation.md`:
+
+> **TLC has never been run on this model.** Not on `Internal.cfg`, not on
+> `External.cfg`, not on `Witness.cfg`. This is the single largest gap in the
+> evidence above and nothing below is offered as an equivalent.
+
+with the refusal reproduced:
+
+```
+$ mkdir -p "$TMPDIR/x"
+mkdir: /private/tmp/e-3WvvbF/tmp/x: Operation not permitted
+```
+
+**The eval sandbox denies filesystem writes to spawned subprocesses.** The
+agent's own `Write` tool works — the CLI mediates it — but TLC creates a
+metadir before exploring anything, so it aborts having checked nothing, and no
+case package can be generated. Every allowlisted scratch location behaves the
+same way, so this is not a matter of choosing a directory.
+
+**This suite therefore measures whether a model gets AUTHORED, and can never
+measure whether it CHECKS.** For a skill whose entire claim is that the spec is
+executable, that is the difference between the two things it does. The run
+substituted a Python reachability check — 2,325 states, 111,600 transitions,
+each `(state, call)` pair run against the real `Shortener` and matched on rule,
+return value and all three dicts — which is a real cross-check and is not model
+checking.
+
+Unpinned, and not repairable from inside the case: it is a property of the
+sandbox. Recorded because it bounds what any score from this suite is allowed
+to mean, and because the agent found it and said so **when nothing asked it
+to** — the same channel that produced `H-14`'s *"there's nothing to specify"*.
+Twice now the most useful instrument in the run has been the agent's own
+report of what it could not do.
+
 ### What this does to the reading
 
-`UNMODELED/agent-harness` goes from 12 to 18 and stays the largest row in the
+`UNMODELED/agent-harness` goes from 12 to 19 and stays the largest row in the
 matrix by a wider margin. But **the twelve and the six are not the same kind of
 defect**, and pooling them hides the only thing this round measured:
 
@@ -1711,10 +1762,13 @@ defect**, and pooling them hides the only thing this round measured:
 * five of the six are *assumptions about a contract*, and every one of them was
   cheap to find the moment anybody probed instead of trusting — four probe runs,
   about $0.40, for `H-14` and `H-16` together.
-* the sixth, `H-18`, is neither. It is a gap in what the suite can SAY: there is
-  no verdict for "the run did not finish", so an absent report is scored as a
-  wrong one. That is the same `SS-02` this record spends its opening pages on,
-  and adopting a library did not import a fix for it.
+* the last two are neither, and neither has a repair. `H-18` is a gap in what
+  the suite can SAY: there is no verdict for "the run did not finish", so an
+  absent report is scored as a wrong one — the same `SS-02` this record spends
+  its opening pages on, which adopting a library did not import a fix for.
+  `H-19` is a bound on what it can SEE: the sandbox denies subprocess writes,
+  so TLC never runs, and no score from this suite may be read as evidence that
+  a model checks.
 
 **The library was still the right call.** What it does not do is remove the
 obligation to demand a receipt, and the class it opens is one blind dispatch
