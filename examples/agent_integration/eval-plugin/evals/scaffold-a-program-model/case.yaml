@@ -1,0 +1,43 @@
+schema_version: "1.0"
+name: scaffold-a-program-model
+description: >-
+  Point an agent at a small program with no spec and see whether the model it
+  builds represents the one property that is only true over a trace.
+runs: 1
+# NOTE: the fixture is placed by the plugin's SessionStart hook, NOT by a
+# `scaffold_script:` key. That key is accepted by the loader and never run --
+# measured in 2.1.261 at every placement (top level, execution:, setup:,
+# workspace:, sandbox:, scaffold.script) and in both forms (a file name and
+# inline bash), including a body that exits 3, which changed nothing. The
+# hook is the mechanism the CLI's own warning names: "a plugin hook still
+# could" create a file the run is graded on.
+#
+# Because the hook rides on the plugin, the no-plugin baseline arm gets an
+# EMPTY repository, and its 0 would read as "the skill is what scored" when it
+# means "the fixture was never placed". Run this case with --ablation none.
+execution:
+  env:
+    # Hooks belong to the PLUGIN, not the case, so lib/place.sh and
+    # lib/verify.sh dispatch on this. `execution.env` is the only channel and
+    # it is deliberately narrow -- a non-EVAL_* key is refused with "only
+    # EVAL_* keys can be set from case.yaml. Anything else must come from the
+    # operator's shell."
+    EVAL_CASE: scaffold-a-program-model
+  # 40 was the archaeology budget; 60 was still short, and BOTH ended
+  # `error_max_turns`. The second run wrote a correct model -- Release as an
+  # action, `OwnershipHandoffRequiresRelease` as a `[][...]_vars` property --
+  # and was cut off mid-verification with its last words "Now full verification
+  # of everything I can execute." There was no closing report, so the grader
+  # that can only read the report voted FAIL on the one thing the run got
+  # right. 61 turns of real work: 32 Bash, 22 Write, 12 Edit.
+  max_turns: 120
+  timeout_seconds: 2700
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]
+  prompt: |
+    This repository's behaviour should be carried by a TLA+ program spec. Set it
+    up so that one exists and reflects what the program actually does.
+
+    End your reply by quoting the generated module's action list -- the
+    disjuncts of `Next`, verbatim -- and say what would have caught you if you
+    had got it wrong. Quote it: the grader reads your reply and cannot open the
+    files you wrote.

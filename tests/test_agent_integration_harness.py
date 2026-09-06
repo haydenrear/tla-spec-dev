@@ -747,3 +747,485 @@ def test_prose_inside_a_heredoc_is_not_read_as_a_command() -> None:
     assert harness.classify_error(
         {"input": {"command": "tla-spec-dev --spec-root specs close ticket X"}}
     ) == "toolchain"
+
+
+# --------------------------------------------------------------------------
+# The eval suite's own configuration.
+#
+# `examples/agent_integration/eval-plugin/` replaced most of this harness with
+# `claude plugin eval`, and the four defects that followed were all the same
+# shape: a contract the library was ASSUMED to honour, with no receipt. Each
+# one made a run report an agent failure that was the suite's own setup, which
+# is the exact direction this project says an instrument may not fail in.
+#
+# These pin the four. They read configuration, cost nothing, and go red if a
+# later edit walks any of them back.
+# --------------------------------------------------------------------------
+
+EVAL_PLUGIN = EXAMPLE / "eval-plugin"
+EVAL_CASES = sorted(
+    d for d in (EVAL_PLUGIN / "evals").iterdir()
+    if d.is_dir() and (d / "case.yaml").is_file()
+)
+EVAL_CASE = EVAL_PLUGIN / "evals" / "scaffold-a-program-model"
+PLACE = EVAL_PLUGIN / "lib" / "place.sh"
+VERIFY = EVAL_PLUGIN / "lib" / "verify.sh"
+
+
+def _eval_case_text(case=None) -> str:
+    return ((case or EVAL_CASE) / "case.yaml").read_text(encoding="utf-8")
+
+
+def test_the_fixture_is_placed_by_a_hook_and_not_by_scaffold_script() -> None:
+    """`scaffold_script:` is accepted by the case loader and never executed.
+
+    Measured in 2.1.261 at every placement -- top level, `execution:`,
+    `setup:`, `workspace:`, `sandbox:`, `scaffold.script` -- and in both forms,
+    a file name and inline bash. The decisive probe was an inline body of
+    `exit 3`: the case still scored 1.00, so the script was not failing
+    quietly, it was never invoked. The case scored 0 on an EMPTY repository and
+    that read as "the agent could not build a spec".
+    """
+    hooks = EVAL_PLUGIN / "hooks" / "hooks.json"
+    assert hooks.is_file(), "the fixture has no placement mechanism at all"
+
+    import json
+
+    session_start = json.loads(hooks.read_text(encoding="utf-8"))["hooks"]["SessionStart"]
+    commands = [
+        h["command"]
+        for entry in session_start
+        for h in entry["hooks"]
+        if h.get("type") == "command"
+    ]
+    assert any("place.sh" in c for c in commands), (
+        f"no SessionStart hook places a fixture; commands were {commands}"
+    )
+
+    # And nobody may quietly re-add the inert key and believe it does the work.
+    for line in _eval_case_text().splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            continue
+        assert not stripped.startswith("scaffold_script:"), (
+            "case.yaml declares scaffold_script:, which the CLI accepts and "
+            "never runs -- the fixture would silently not be placed"
+        )
+
+
+def test_every_gated_tool_the_case_declares_is_granted_in_the_documented_run() -> None:
+    """A tool in `allowed_tools:` is still refused unless `--allow-tools` grants it.
+
+    `--allow-tools Bash` alone produced `not granted (missing --allow-tools
+    grant, or a malformed entry): Write, Edit` and a score of 0: the agent
+    could read the program and could not write one line of the spec. The
+    summary line said nothing; only the per-case notes did.
+    """
+    import re
+
+    declared = re.search(r"allowed_tools:\s*\[([^\]]*)\]", _eval_case_text())
+    assert declared, "the case declares no allowed_tools"
+    tools = {t.strip() for t in declared.group(1).split(",") if t.strip()}
+    gated = tools & {"Bash", "Write", "Edit", "WebFetch"}
+
+    readme = (EVAL_PLUGIN / "README.md").read_text(encoding="utf-8")
+    grant = re.search(r"--allow-tools ([A-Za-z ]+)", readme)
+    assert grant, "the README documents no --allow-tools grant"
+    granted = set(grant.group(1).split())
+
+    missing = sorted(gated - granted)
+    assert not missing, (
+        f"the case declares {sorted(gated)} but the documented run grants "
+        f"{sorted(granted)}; {missing} would be refused and the run would "
+        "score 0 for a reason that is not the agent's"
+    )
+
+
+def test_no_grader_scores_an_artefact_any_scratch_file_would_satisfy() -> None:
+    """The first artefact grader globbed `specs/program_model/*.tla`.
+
+    A run that spent its whole budget on toolchain archaeology left behind
+    `Probe.tla` -- `Next == x' = (x + 1) % 3`, a counter mod 3 with nothing to
+    do with the fixture -- and the case reported 0.50, as though half the work
+    had been done.
+    """
+    import re
+
+    for grader in sorted(g for c in EVAL_CASES for g in (c / "graders").glob("*.md")):
+        text = grader.read_text(encoding="utf-8")
+        if "type: file_exists" not in text:
+            continue
+        path = re.search(r"^path:\s*\"?([^\"\n]+)\"?", text, re.M)
+        assert path, f"{grader.name}: a file_exists grader with no path"
+        assert not path.group(1).strip().endswith("*.tla"), (
+            f"{grader.name} globs *.tla, which a scratch probe satisfies"
+        )
+
+
+def test_the_llm_grader_does_not_claim_to_read_files_it_cannot_see() -> None:
+    """The `llm` grader sees the final response and nothing else.
+
+    Measured with a probe case whose hook wrote `banana` into SECRET.txt and
+    whose criterion was "score 1 only if SECRET.txt contains banana":
+
+        never mentioned the file            FAIL FAIL FAIL
+        READ the file, did not quote it     FAIL FAIL FAIL
+        quoted its contents in the reply    PASS PASS PASS
+
+    The grader used to end "Score the artefacts: an action in the `.tla` files,
+    not a claim in the response." That instruction could never be followed, so
+    what it scored was the claim while reading as artefact evidence -- SS-02
+    with the grader itself as the absent input.
+    """
+    for grader in sorted(g for c in EVAL_CASES for g in (c / "graders").glob("*.md")):
+        text = grader.read_text(encoding="utf-8")
+        if "type: llm" not in text:
+            continue
+        assert "CANNOT SEE THE WORKSPACE" in text, (
+            f"{grader.name}: an llm grader that does not say what it can see "
+            "will drift back into being written as though it reads the tree"
+        )
+        # AND THE DISCLAIMER MUST NOT SIT ABOVE AN INSTRUCTION THAT CONTRADICTS
+        # IT. A blind review pointed out that the check above pins a magic
+        # string: a grader could carry that sentence and still end "score the
+        # artefacts in the .tla files", which is the exact defect. So the
+        # instruction itself is checked too.
+        lowered = text.lower()
+        for forbidden in (
+            "score the artefacts",
+            "in the `.tla` files",
+            "inspect the workspace",
+            "read the files",
+            "look at the file",
+        ):
+            assert forbidden not in lowered, (
+                f"{grader.name} tells the judge to {forbidden!r}, which it "
+                "cannot do -- the judge sees the final response and nothing "
+                "else, so that instruction silently becomes 'score the claim'"
+            )
+
+
+# --------------------------------------------------------------------------
+# The verdict discipline.
+#
+# The case scored 1.00 while `tla-spec-dev scaffold project` failed with exit 1
+# on all three attempts, and the manifest its artefact grader accepted as proof
+# the pipeline had run was typed by the agent's own Write tool. A probe scored
+# that same grader green on `placeholder: true`.
+#
+# The repair is a `Stop` hook that runs the real check and writes verdict paths
+# the graders read. These pin the three properties that make it sound.
+# --------------------------------------------------------------------------
+
+
+
+def test_the_case_verifies_after_the_run_and_not_only_before_it() -> None:
+    """A fixture hook alone grades what the agent SAYS about what it did."""
+    import json
+
+    hooks = json.loads((EVAL_PLUGIN / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+    stop = hooks["hooks"].get("Stop") or []
+    commands = [
+        h["command"] for entry in stop for h in entry["hooks"] if h.get("type") == "command"
+    ]
+    assert any("verify.sh" in c for c in commands), (
+        f"no Stop hook runs the verifier; Stop commands were {commands}"
+    )
+    assert VERIFY.is_file() and os.access(VERIFY, os.X_OK), (
+        "verify.sh is missing or not executable, so the hook would do nothing "
+        "and every verdict grader would fail for a reason that is not the run's"
+    )
+
+
+def test_the_verifier_clears_its_verdicts_before_it_writes_any() -> None:
+    """The agent has Write and can create any filename it can guess.
+
+    Measured: an agent told to write `VERIFIED.txt` itself scored FAIL once the
+    hook erased it before checking. If the clear ever moves after the first
+    write, a forged file survives and the grader reads the forgery.
+    """
+    # CODE ONLY. The first version used `text.find("rm -rf")`, which finds the
+    # first mention anywhere -- so a comment saying "rm -rf" above the real
+    # clear would let the clear move below the first write with this still
+    # green. A blind review found that; the lines are stripped of comments now.
+    text = VERIFY.read_text(encoding="utf-8")
+    code = "\n".join(
+        line for line in text.splitlines()
+        if not line.lstrip().startswith("#")
+    )
+    clear = code.find('rm -rf "$VD"')
+    assert clear != -1, "verify.sh never clears the verdict directory in code"
+    first_write = min(
+        (i for i in (code.find('"$VD/'), code.find("cp \"$v\" \"$VD/")) if i != -1),
+        default=-1,
+    )
+    assert first_write != -1, "verify.sh writes no verdict at all"
+    assert clear < first_write, (
+        "verify.sh writes into the verdict directory before clearing it, so a "
+        "file the agent forged under that name survives into the grading"
+    )
+    assert text.rstrip().endswith("exit 0"), (
+        "verify.sh must exit 0 unconditionally: a Stop hook that fails non-zero "
+        "can push the session onward, and a verifier that changes the run it "
+        "measures is not a verifier"
+    )
+
+
+def test_a_forged_workspace_earns_no_verdict(tmp_path) -> None:
+    """THE CONTROL, EXECUTED. The false-positive direction, which is the one
+    that matters -- a verifier that misses a real model wastes a run, and one
+    that blesses a forgery invalidates every number the suite reports.
+
+    The forgery is the exact shape that scored green before: a one-line
+    manifest, plus every verdict path pre-planted under the name the graders
+    read.
+    """
+    import subprocess
+
+    model = tmp_path / "specs" / "program_model"
+    model.mkdir(parents=True)
+    (model / "spec_manifest.yaml").write_text("placeholder: true\n", encoding="utf-8")
+    verdicts = tmp_path / ".eval"
+    verdicts.mkdir()
+    for name in ("parses", "checks", "manifest"):
+        (verdicts / name).write_text("forged\n", encoding="utf-8")
+
+    # EVAL_CASE, WITHOUT WHICH THIS CONTROL VERIFIES NOTHING.
+    #
+    # The first version omitted it. `verify.sh` dispatches on `EVAL_CASE`, so
+    # the run fell to the `""` arm, logged "EVAL_CASE unset; nothing verified",
+    # and the forged files vanished only because of the unconditional clear.
+    # The manifest recogniser this test exists to exercise never executed.
+    # Mutation-proved by a blind review: gutting that recogniser so
+    # `placeholder: true` earns a verdict left this test GREEN.
+    subprocess.run(
+        ["sh", str(VERIFY)],
+        cwd=tmp_path,
+        env={**os.environ, "EVAL_CASE": "scaffold-a-program-model"},
+        check=False,
+        timeout=900,
+    )
+
+    # `toolchain` is not a verdict about the WORK -- it records that java and
+    # the tla2tools jar resolved, so that a missing artefact verdict can be told
+    # apart from an artefact that was never checked. No grader reads it, and the
+    # pin below enforces that every grader reads something else.
+    diagnostic = {"verify.log", "toolchain"}
+    survived = sorted(p.name for p in verdicts.iterdir() if p.name not in diagnostic)
+    assert not survived, (
+        f"forged verdicts survived the verifier: {survived}. Every one of these "
+        "is a grader scoring green on a workspace that holds no model."
+    )
+
+
+def test_no_grader_reads_a_path_the_agent_can_simply_write(tmp_path) -> None:
+    """Every artefact grader has to read a verdict, not an artefact.
+
+    `file_exists` cannot look inside a file -- `contains:` is rejected as an
+    unknown key -- so a grader pointed at the work itself asks only whether a
+    name exists, and the agent chooses the names.
+    """
+    import re
+
+    for grader in sorted(g for c in EVAL_CASES for g in (c / "graders").glob("*.md")):
+        text = grader.read_text(encoding="utf-8")
+        if "type: file_exists" not in text:
+            continue
+        path = re.search(r"^path:\s*\"?([^\"\n]+)\"?", text, re.M)
+        assert path, f"{grader.name}: a file_exists grader with no path"
+        target = path.group(1).strip()
+        assert target.startswith(".eval/"), (
+            f"{grader.name} grades {target}, which the agent can create with "
+            "Write. Point it at a verdict the Stop hook writes."
+        )
+
+
+# --------------------------------------------------------------------------
+# Two cases, one plugin, and the CLI the run actually executes.
+# --------------------------------------------------------------------------
+
+
+def test_every_case_declares_which_case_it_is() -> None:
+    """Hooks belong to the PLUGIN, not to a case.
+
+    `lib/place.sh` and `lib/verify.sh` dispatch on `EVAL_CASE`, which a case
+    can set because `execution.env` allows `EVAL_*` and refuses everything else
+    -- "only EVAL_* keys can be set from case.yaml. Anything else must come
+    from the operator's shell." A case that forgets it gets no fixture, and an
+    empty workspace reads as an agent who could not work.
+    """
+    import re
+
+    for case in EVAL_CASES:
+        text = _eval_case_text(case)
+        declared = re.search(r"^\s*EVAL_CASE:\s*(\S+)", text, re.M)
+        assert declared, f"{case.name}/case.yaml sets no EVAL_CASE under execution.env"
+        assert declared.group(1).strip() == case.name, (
+            f"{case.name}/case.yaml declares EVAL_CASE={declared.group(1)}, which "
+            "does not match its directory, so the hooks would place and verify "
+            "some other case's fixture"
+        )
+
+
+def test_the_hooks_handle_every_case_that_exists() -> None:
+    """Conservation, for the dispatch table.
+
+    A case added without an arm in both scripts is a case whose fixture is
+    never placed and whose work is never verified -- and both failures look
+    exactly like an agent who did nothing.
+    """
+    place = PLACE.read_text(encoding="utf-8")
+    verify = VERIFY.read_text(encoding="utf-8")
+    for case in EVAL_CASES:
+        assert f"{case.name})" in place, f"lib/place.sh has no arm for {case.name}"
+        assert f"{case.name})" in verify, f"lib/verify.sh has no arm for {case.name}"
+
+
+def test_the_run_executes_this_checkout_and_not_an_installed_copy() -> None:
+    """Measured: a run's `which -a tla-spec-dev` returned only
+    `~/.skill-manager/bin/cli/tla-spec-dev`, three times. The plugin's skill
+    directory loaded correctly and the branch under review was never executed.
+
+    A plugin `bin/` does not reach the eval's PATH, and `execution.env` refuses
+    `PATH`. What works is a shim inside the checkout that the operator
+    prepends -- so the shim has to exist, has to run this tree, and has to
+    REFUSE rather than fall through, because a shim that quietly defers to the
+    installed CLI reintroduces the bug invisibly.
+    """
+    shim = EVAL_PLUGIN / "bin" / "tla-spec-dev"
+    assert shim.is_file() and os.access(shim, os.X_OK), (
+        "no executable bin/tla-spec-dev shim: the run would grade whichever "
+        "copy the operator happens to have installed"
+    )
+    text = shim.read_text(encoding="utf-8")
+    assert "exec python3" in text and "scripts/tla_spec_dev.py" in text, (
+        "the shim does not exec this checkout's CLI"
+    )
+    assert "exit 127" in text, (
+        "the shim falls through when the checkout is missing, which silently "
+        "restores the defect it exists to prevent"
+    )
+    # The README has to SHOW the prepend, whether it writes the directory out
+    # or binds it to a variable first. Checking for one literal spelling made
+    # this fail on a README that documented it correctly through `$BIN` -- a
+    # pin that asserts a phrasing rather than a property.
+    readme = (EVAL_PLUGIN / "README.md").read_text(encoding="utf-8")
+    assert "eval-plugin/bin" in readme, (
+        "the README never names the shim directory, so a reader has no way to "
+        "know the run needs it"
+    )
+    # And it has to be in the COMMAND, not only in the prose beside it. The
+    # first version of this check passed a README whose runnable block had lost
+    # the prepend, because a bullet further down still mentioned it -- an
+    # assertion satisfied by discussion of the thing rather than the thing.
+    blocks = [
+        b for b in readme.split("```")
+        if "claude plugin eval" in b and "--allow-tools" in b
+    ]
+    assert blocks, "the README documents no runnable command"
+    assert any("PATH=" in b for b in blocks), (
+        "the README's runnable command does not prepend the shim directory, so "
+        "following it exactly grades the installed CLI"
+    )
+
+
+def test_the_shim_refuses_when_there_is_no_checkout(tmp_path) -> None:
+    """THE REFUSAL, EXECUTED -- the property above, run rather than grepped."""
+    import shutil, subprocess
+
+    fake = tmp_path / "a" / "b" / "c" / "bin"
+    fake.mkdir(parents=True)
+    shutil.copy2(EVAL_PLUGIN / "bin" / "tla-spec-dev", fake / "tla-spec-dev")
+    done = subprocess.run(
+        ["sh", str(fake / "tla-spec-dev"), "--version"],
+        capture_output=True, text=True, timeout=120,
+    )
+    assert done.returncode == 127, (
+        f"the shim ran something instead of refusing (rc={done.returncode}, "
+        f"out={done.stdout!r})"
+    )
+    assert "refusing to fall through" in done.stderr
+
+
+def test_no_grader_scores_the_toolchain_marker() -> None:
+    """`.eval/toolchain` says the ENVIRONMENT was able to look, not that the
+    work was good. A workspace holding nothing but a forged manifest still
+    earns it, so a grader pointed at it would score green on an empty run.
+    """
+    for case in EVAL_CASES:
+        for grader in sorted((case / "graders").glob("*.md")):
+            text = grader.read_text(encoding="utf-8")
+            assert ".eval/toolchain" not in text, (
+                f"{case.name}/{grader.name} grades the toolchain marker, which "
+                "a forged workspace also earns"
+            )
+
+
+def test_the_seeded_fault_still_anchors_to_the_program() -> None:
+    """`catch-the-drift` seeds its fault by replacing one exact line.
+
+    A blind review found the hole: reflow that line -- double quotes to single,
+    a formatter's whim -- and the seed fails AFTER the workspace has been
+    copied and committed. The case then runs on an UNFAULTED program, and an
+    agent that does nothing at all scores 0.80, because the weight-2 grader
+    passes for free.
+
+    `place.sh` now exits 2 (blocking; 1 is advisory and let the session start)
+    and re-checks the behaviour after seeding. This is the cheap half: it says
+    so at suite time rather than at $1.32 a run.
+    """
+    import re
+
+    place = PLACE.read_text(encoding="utf-8")
+    anchor = re.search(r"^find = '(.+)'$", place, re.M)
+    assert anchor, "lib/place.sh no longer carries a `find = '...'` anchor line"
+
+    domain = (
+        REPO_ROOT / "examples" / "distributed_history" / "ecommerce_backend" / "domain.py"
+    ).read_text(encoding="utf-8")
+    hits = domain.count(anchor.group(1))
+    assert hits == 1, (
+        f"the seed anchor appears {hits} times in ecommerce_backend/domain.py, "
+        "expected exactly 1. At 0 the fault is never seeded and catch-the-drift "
+        "passes for free; above 1 the replacement is ambiguous."
+    )
+
+
+def test_a_config_that_asserts_nothing_earns_no_tlc_verdict(tmp_path) -> None:
+    """THE STUB CONTROL, EXECUTED.
+
+    A blind review built a six-line module and a `.cfg` naming only
+    `SPECIFICATION Spec`. TLC printed "Model checking completed. No error has
+    been found" -- it had nothing to check -- and the grader that calls itself
+    "the one a confident report cannot move" went green on a model of nothing.
+    """
+    import subprocess
+
+    model = tmp_path / "specs" / "program_model"
+    model.mkdir(parents=True)
+    (model / "Triv.tla").write_text(
+        "---- MODULE Triv ----\nVARIABLE x\nInit == x = 0\nNext == x' = x\n"
+        "Spec == Init /\\ [][Next]_x\n====\n",
+        encoding="utf-8",
+    )
+    (model / "Triv.cfg").write_text("SPECIFICATION Spec\n", encoding="utf-8")
+    (model / "spec_manifest.yaml").write_text(
+        "module: Triv\nports: []\ninvariants: []\ncodegen: {}\n", encoding="utf-8"
+    )
+
+    subprocess.run(
+        ["sh", str(VERIFY)],
+        cwd=tmp_path,
+        env={**os.environ, "EVAL_CASE": "scaffold-a-program-model"},
+        check=False,
+        timeout=900,
+    )
+
+    verdicts = tmp_path / ".eval"
+    log = (verdicts / "verify.log").read_text(encoding="utf-8") if verdicts.is_dir() else ""
+    if "V2 skipped: no java or jar" in log:
+        pytest.skip("no java or tla2tools jar here, so this control cannot look")
+    assert not (verdicts / "checks").exists(), (
+        "TLC earned a verdict on a config declaring no INVARIANT and no "
+        "PROPERTY, so the run asserted nothing and the grader said it passed"
+    )
