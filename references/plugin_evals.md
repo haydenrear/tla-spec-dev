@@ -12,6 +12,66 @@ The worked example is `examples/agent_integration/eval-plugin/`.
 
 ---
 
+## 0. The unknown unknowns, and how to stop inheriting mine
+
+**Everything in this file was believed before it was measured, and a third of
+what I believed was wrong.** Not wrong at the edges — wrong in the direction
+that made a suite report success it had not earned. If you import this
+reference and treat its list as the hazards, you inherit my blind spots along
+with my findings. The list is the smaller half. **The method is the point.**
+
+### What was actually wrong, and what would have caught it a day earlier
+
+| I believed | The truth | What found it |
+|---|---|---|
+| `scaffold_script:` runs the fixture script | Never invoked, at any placement | An inline body of `exit 3`. The case still scored 1.00 |
+| The `llm` grader reads the workspace | It reads the final response and nothing else | A hook wrote `banana` into a file; graded three ways |
+| Symlinking `.claude` leaks my skills into runs | Zero of 20 appeared; the run gets a fresh HOME | Reading the `init` event instead of inferring from three names |
+| Containment forces physical copies of units | It applies to the entry path only, never inside a plugin | Trying a symlink inside a wrapper |
+| Entries must be absolute paths | Relative resolves, against the case directory | Trying a relative one |
+| A bare name is looked up as an installed plugin | There is no name lookup at all | Trying three genuinely installed names |
+| A `Stop` hook's verdicts cannot be forged | A spawned process writes one after the hook exits | Writing the attack |
+| The `deny file-write*` rule was applying | It was not: the profile named `/tmp/...`, the kernel resolves to `/private/tmp/...` | Checking the file was absent, not that no error printed |
+| My forged-workspace control was a control | It ran with no case selected and could not go red | Mutating the recogniser and watching the test stay green |
+
+Read the right-hand column. **Not one of those was found by thinking harder.**
+
+### The five habits, in the order they pay
+
+1. **Probe; do not reason.** A case that fails to load never runs an agent, so a
+   refusal costs **$0.00**. Every schema fact in this file came from a
+   deliberately malformed case. Reasoning about an undocumented tool produces
+   confident prose and nothing else.
+
+2. **Make your failing case fail first.** The attack that proved verdicts were
+   forgeable did not work on the first try: an embedded `\n` in a heredoc became
+   a real newline and the payload died on a `SyntaxError`. **"No verdict
+   appeared" reads exactly like "no hole".** Run the negative case standalone
+   and confirm it does the bad thing before you conclude anything prevents it.
+
+3. **Ask what would look identical if you were wrong.** A denied write prints
+   nothing. An allowed write also prints nothing. If your evidence is the
+   *absence* of an error, you have not measured — check the artefact. This one
+   question would have caught three of the nine rows above.
+
+4. **Mutate the thing under test and watch your control go red.** A control that
+   has never failed is a claim. Gutting a recogniser and finding the suite still
+   green is how the flagship forgery control was exposed as vacuous — it had
+   been running with no case selected since the day it was written.
+
+5. **Re-run under the real conditions.** The hook's `HOME` is not your `$HOME`;
+   its `python3` is whatever is on `PATH`; its paths resolve physically. A
+   verifier that works in your shell and not in the hook withholds verdicts from
+   correct work, and the score reads as the agent's failure.
+
+### The rule for adding to this file
+
+**Before writing a claim here, name the observation that would differ if it were
+false.** If you cannot name one, you have a belief, and it goes in marked as a
+belief — the way the `agents:` paragraph in §3.5 is marked *I have not run
+that*. An unmarked guess in a reference that other skills import is how one
+person's ignorance becomes an organisation's.
+
 ## 1. The three things a case can observe
 
 This is the whole surface. Six grader types, and they see between them exactly
@@ -554,6 +614,28 @@ written. Descendants inherit the profile, so daemonising buys nothing.
 
 Set `PYTHONDONTWRITEBYTECODE=1`; a confined interpreter cannot write
 `__pycache__` and will otherwise complain.
+
+**Two profiles, because not everything the hook runs can be denied writes.**
+SANY and TLC parse and explore agent-authored `.tla`, and TLC creates a metadir
+before exploring anything — deny it writes and it aborts having checked
+nothing, which is a verdict withheld for the verifier's own configuration. So:
+
+| profile | applied to | rule |
+|---|---|---|
+| `nowrite.sb` | checks that need no writes (the behavioural check, the manifest check) | `(deny file-write*)` |
+| `noverdict.sb` | **everything else the hook executes**, SANY and TLC included | `(deny file-write* (subpath (param "VERDICTS")))` |
+
+The graders read exactly one directory, so that is the directory nothing the
+hook runs may write. Descendants inherit either profile, so a payload that
+daemonises and sleeps past the hook's exit is refused under both.
+
+**THE PATH IN A PROFILE MUST BE THE RESOLVED ONE.** macOS resolves before
+matching, so a profile naming `/tmp/ws/.eval` does not deny a write to
+`/private/tmp/ws/.eval` — and **a deny that never applies looks exactly like a
+deny that worked**, because an allowed write prints nothing either. Use
+`pwd -P`. Measured both ways: with the physical path the deny fires through the
+physical path *and* through the symlinked one; without it, through neither.
+This is habit 3 in §0, and it cost a round to learn twice.
 
 Where no such facility exists, run the check anyway and **write a verdict
 saying so** — `.eval/UNDECIDED-unconfined` — rather than offering the same

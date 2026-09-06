@@ -1,0 +1,19 @@
+;; The profile EVERY hook-executed subprocess runs under.
+;;
+;; A `Stop` hook is outside the sandbox that denies the agent's Bash tool every
+;; write -- which is why it can run TLC, and equally why anything it executes
+;; inherits its privileges. The graders read exactly one directory, so that is
+;; the directory nothing the hook runs may write.
+;;
+;; This is the weaker of the two profiles and the one with wide reach. SANY and
+;; TLC parse and explore agent-authored `.tla` files and legitimately need to
+;; write (TLC creates a metadir before exploring anything), so they cannot run
+;; under `nowrite.sb`. They can run under this: write what you need, never a
+;; verdict.
+;;
+;; Descendants inherit it, so a payload that daemonises with
+;; `start_new_session=True` and sleeps past the hook's exit is still refused --
+;; which is the attack this exists for.
+(version 1)
+(allow default)
+(deny file-write* (subpath (param "VERDICTS")))

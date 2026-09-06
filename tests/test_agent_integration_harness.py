@@ -1304,3 +1304,43 @@ def test_agent_code_cannot_write_a_verdict_after_the_hook_exits(tmp_path) -> Non
         "grader is now green on a program that was never repaired, and the "
         "verifier's own log records the refusal it overwrote"
     )
+
+
+def test_the_verdict_deny_survives_a_symlinked_workspace(tmp_path) -> None:
+    """macOS resolves paths before matching a sandbox profile.
+
+    A profile naming `/tmp/ws/.eval` does not deny a write to
+    `/private/tmp/ws/.eval`, and **a deny that never applies looks exactly like
+    a deny that worked** -- an allowed write prints nothing either. The first
+    version of `noverdict.sb` was wired with the logical path and the forged
+    file appeared; the failure was visible only by checking the artefact.
+
+    This runs the deny through a symlink, which is the shape that exposed it.
+    """
+    import shutil, subprocess
+
+    sandbox = shutil.which("sandbox-exec")
+    if not sandbox:
+        pytest.skip("no sandbox-exec here")
+
+    real = tmp_path / "real"
+    (real / ".eval").mkdir(parents=True)
+    link = tmp_path / "link"
+    link.symlink_to(real)
+
+    profile = EVAL_PLUGIN / "lib" / "checks" / "noverdict.sb"
+    assert profile.is_file(), "the verdict-denying profile is missing"
+
+    # The profile is given the RESOLVED path, as verify.sh gives it (`pwd -P`).
+    resolved = real.resolve()
+    for reached_by, target in (("physical", resolved), ("symlink", link)):
+        done = subprocess.run(
+            [sandbox, "-D", f"VERDICTS={resolved}/.eval", "-f", str(profile),
+             "python3", "-c", f"open('{target}/.eval/forged','w').write('x')"],
+            capture_output=True, text=True, timeout=300,
+        )
+        assert done.returncode != 0, f"the write succeeded when reached by its {reached_by} path"
+        assert not (real / ".eval" / "forged").exists(), (
+            f"a verdict was forged through the {reached_by} path: the profile "
+            "is not covering the directory the graders read"
+        )

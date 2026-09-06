@@ -84,6 +84,8 @@ verdict() { echo "$2" > "$WORK/v/$1" 2>/dev/null; }
 run_confined() {
     name=$1; script=$2; shift 2
     if [ -n "$SANDBOX" ]; then
+        # nowrite.sb names no path, so it needs no resolution and cannot be
+        # defeated by one -- unlike noverdict.sb above.
         PYTHONDONTWRITEBYTECODE=1 "$SANDBOX" -f "$here/checks/nowrite.sb" \
             python3 "$script" "$@" >>"$log" 2>&1
     else
@@ -91,7 +93,27 @@ run_confined() {
     fi
 }
 
+# EVERYTHING the hook executes, under a profile that forbids the one directory
+# the graders read. SANY and TLC parse and explore agent-authored `.tla` and
+# legitimately need to write -- TLC creates a metadir before exploring anything
+# -- so they cannot run under `nowrite.sb`; they run under this.
+#
+# THE PATH MUST BE THE RESOLVED ONE. macOS resolves before matching, so a
+# profile naming `/tmp/ws/.eval` does not deny a write to
+# `/private/tmp/ws/.eval` -- and the failed deny looks exactly like a
+# successful one, because a write that is allowed prints nothing. Measured both
+# ways: with `pwd -P` the deny fires through the physical path AND through the
+# symlinked one; without it, neither.
+confine() {
+    if [ -n "$SANDBOX" ]; then
+        "$SANDBOX" -D "VERDICTS=$WS_REAL/$VD" -f "$here/checks/noverdict.sb" "$@"
+    else
+        "$@"
+    fi
+}
+
 SANDBOX=$(command -v sandbox-exec 2>/dev/null || true)
+WS_REAL=$(pwd -P)
 if [ -z "$SANDBOX" ]; then
     say "sandbox-exec not available: agent-authored code runs unconfined"
 fi
@@ -170,7 +192,7 @@ sany() {
         # `EXTENDS Internal` against the working directory, and invoking it
         # from the workspace root reported `Cannot find source file for module
         # Internal` on a module that parses perfectly.
-        if (cd "$MODEL" && "$java" -cp "$jar" tla2sany.SANY "$base") >>"$log" 2>&1; then
+        if (cd "$MODEL" && confine "$java" -cp "$jar" tla2sany.SANY "$base") >>"$log" 2>&1; then
             say "SANY ok: $base"
         else
             say "SANY FAILED: $base"
@@ -201,7 +223,7 @@ tlc() {
             continue
         fi
         say "TLC on $base"
-        out=$(cd "$MODEL" && "$java" -XX:+UseParallelGC -cp "$jar" tlc2.TLC \
+        out=$(cd "$MODEL" && confine "$java" -XX:+UseParallelGC -cp "$jar" tlc2.TLC \
                  -config "$base.cfg" -workers 1 -cleanup "$base.tla" 2>&1)
         echo "$out" >> "$log" 2>/dev/null
         if echo "$out" | grep -q "Model checking completed. No error has been found"; then
