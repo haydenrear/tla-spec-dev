@@ -113,11 +113,18 @@ inline body of `echo ... >&2; exit 3`: the case still scored 1.00, so the script
 was not merely failing quietly, it was never invoked.
 
 So the fixture is placed by `hooks/hooks.json`, a `SessionStart` hook that runs
-`evals/scaffold-a-program-model/scaffold.sh` with the workspace as its working
-directory. This is the mechanism the CLI's own grader warning names — *"a plugin
-hook still could"* create a file the run is graded on — and it is verified: the
-trace records `hook_response … "scaffold: placed the fixture and made the first
-commit" … exit_code 0` before the first turn.
+`lib/place.sh` with the workspace as its working directory. One hook serves
+both cases and dispatches on `EVAL_CASE`. This is the mechanism the CLI's own
+grader warning names — *"a plugin hook still could"* create a file the run is
+graded on — and it is verified: the trace records a `hook_response` for
+`SessionStart` carrying the hook's `place: …` output at `exit_code 0`, before
+the first turn.
+
+(An earlier draft of this paragraph cited a `scaffold.sh` that no longer exists
+and quoted a message this code cannot emit — a measurement claim citing the
+output of a deleted implementation. A blind review caught it. The lesson is
+narrow and worth keeping: prose that quotes evidence has to be re-read whenever
+the thing producing the evidence is renamed.)
 
 The hook also **names the toolchain** rather than leaving the session to find
 it. The first scored run spent 39 of its 40 turns on environment archaeology —
@@ -230,22 +237,25 @@ contains banana":
 | **read** the file, did not quote it | FAIL FAIL FAIL |
 | quoted its contents in the reply | PASS PASS PASS |
 
-`models-the-trace-property.md` used to end with *"Score the artefacts: an action
-in the `.tla` files, not a claim in the response."* That instruction could never
-be followed, so what it scored was the claim while reading as though it scored
-the artefact — `SS-02` with the grader itself as the absent input. It now says
-what it grades, and the case prompt requires the response to quote the module's
-`Next` disjuncts so there is real text to grade.
+`models-the-trace-property.md` used to direct the judge at the generated
+modules rather than the reply. That instruction could never be followed, so what
+it scored was the claim while reading as though it scored the artefact —
+`SS-02` with the grader itself as the absent input. It now says what it grades,
+and the case prompt requires the response to quote the module's `Next`
+disjuncts so there is real text to grade.
 
 There is no content-matching grader to fall back on: `regex` matches the
 response only and rejects `path:` and `file:`; `file_exists` rejects
 `contains:`. The grader types are `regex | tool_order | tool_used | file_exists
 | llm | baseline`, and only `file_exists` observes the workspace — by path.
 
-So the artefact evidence is a path, and it must be a path a scratch file cannot
-produce. `spec-tree-is-a-tree.md` checks `specs/program_model/spec_manifest.yaml`.
-Its predecessor globbed `specs/program_model/*.tla`, which `Probe.tla` satisfied,
-and the case reported 0.50 as though half the work had been done.
+So the artefact evidence is a path, and it must be a path nothing cheaper than
+the work can produce. **No grader here reads the work directly**: every
+`file_exists` path is a verdict under `.eval/`, written by `lib/verify.sh` after
+a real program succeeded, and a pin enforces that. An intermediate design did
+point a grader at `specs/program_model/spec_manifest.yaml` — better than the
+`*.tla` glob a scratch `Probe.tla` satisfied, and still a file the agent types
+itself.
 
 ## Debugging a run
 

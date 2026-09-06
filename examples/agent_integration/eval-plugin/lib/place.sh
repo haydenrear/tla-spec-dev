@@ -29,7 +29,15 @@ plugin=$(CDPATH= cd -- "$here/.." && pwd)
 repo=$(CDPATH= cd -- "$plugin/../../.." && pwd)
 case_name="${EVAL_CASE:-}"
 
-fail() { echo "place: $*" >&2; exit 1; }
+# EXIT 2, NOT 1. Claude Code treats exit 2 as blocking and every other non-zero
+# code as advisory, so `exit 1` printed a complaint and let the session start
+# anyway. That matters most where it is most dangerous: if the seed below
+# fails, the workspace is ALREADY copied and committed, so the case would run
+# on an UNFAULTED program and an agent that does nothing at all scores 0.80 --
+# the weight-2 grader passes for free because `create_account` was never
+# broken. Found by a blind review; there was no pin, and there is one now
+# (`test_the_seeded_fault_still_anchors_to_the_program`).
+fail() { echo "place: $*" >&2; exit 2; }
 
 git_init() {
     git init -q -b main . 2>/dev/null || return 0
@@ -70,17 +78,34 @@ case "$case_name" in
     rm -rf ./specs/program_model/__pycache__ ./ecommerce_backend/__pycache__
     git_init "ecommerce backend, and the model that describes it"
 
-    python3 - <<'PY' || fail "could not seed the mutant"
+    # The seed. `find` must match EXACTLY ONCE: a formatter that reflows the
+    # line -- double quotes to single, say -- makes this refuse rather than
+    # hand the agent a program with nothing wrong with it.
+    python3 - <<'SEED' || fail "could not seed the mutant; the case would run on an UNFAULTED program and pass for free"
 import pathlib
 p = pathlib.Path("ecommerce_backend/domain.py")
 find = '            self._conn.execute("insert or ignore into accounts(account_id) values (?)", (account_id,))'
 replace = "            pass  # a change from an earlier commit"
 text = p.read_text(encoding="utf-8")
-if find not in text:
-    raise SystemExit("the mutant's anchor line is not in domain.py")
+n = text.count(find)
+if n != 1:
+    raise SystemExit(f"the anchor line appears {n} times in domain.py, expected exactly 1")
 p.write_text(text.replace(find, replace, 1), encoding="utf-8")
-PY
+SEED
     git add -A && git commit -q -m "accounts: simplify creation"
+
+    # AND THE SEED IS CONFIRMED BY BEHAVIOUR, not by the edit returning 0.
+    # A successful string replacement is not a broken program. If an account
+    # still persists, the fault is not there and the case must not start.
+    python3 - <<'CHECK' || fail "the seeded fault did not change the program's behaviour; refusing to run a case that would pass for free"
+import pathlib, sys
+sys.path.insert(0, str(pathlib.Path.cwd()))
+from ecommerce_backend.domain import EcommerceStore
+b = EcommerceStore()
+b.create_account("acct-seed-check")
+if "acct-seed-check" in repr(b.snapshot()):
+    raise SystemExit("create_account still persists: the fault was not seeded")
+CHECK
     echo "place: an ecommerce backend, its TLA+ model, and two commits"
     ;;
 

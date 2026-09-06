@@ -24,9 +24,14 @@ when the agent READ the file but did not quote it, and PASS PASS PASS only when
 the word appeared in the final response. The judge sees the final text and
 nothing else -- not the file tree, not tool output.
 
-The previous version of this grader ended with "Score the artefacts: an action
-in the `.tla` files, not a claim in the response." That instruction could never
-be followed, so what it actually scored was the claim, while reading as though
-it scored the artefact -- SS-02 with the grader as the absent input. The
-file-existence grader beside this one is the artefact evidence; this one is the
-report, and now says so.
+The previous version of this grader ended by telling the judge to grade the
+generated modules rather than the reply. That instruction could never be
+followed, so what it scored was the reply while reading as though it scored the
+modules -- SS-02, with the grader itself as the absent input. The verdict
+graders beside this one carry the artefact; this one is the report, and now
+says so.
+
+(Stated in paraphrase deliberately. A pin forbids an `llm` grader from carrying
+phrases that direct the judge at the workspace, and a verbatim quotation of the
+old instruction would trip it -- correctly, since a reader skimming for the
+rule cannot tell a quotation from an instruction either.)

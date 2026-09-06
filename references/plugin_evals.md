@@ -280,13 +280,22 @@ every placement — top level, `execution:`, `setup:`, `workspace:`, `sandbox:`,
 decisive probe was an inline body of `echo ... >&2; exit 3`: the case still
 scored 1.00, so it was not failing quietly, it was never invoked.
 
-Place fixtures from a **`SessionStart` hook** in `hooks/hooks.json`:
+Place fixtures from a **`SessionStart` hook** in `hooks/hooks.json`. One hook
+serves every case and dispatches on `EVAL_CASE` (see above), so it lives beside
+the plugin rather than inside a case:
 
 ```json
 {"hooks": {"SessionStart": [{"hooks": [
-  {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/evals/<case>/scaffold.sh"}
+  {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/lib/place.sh"}
 ]}]}}
 ```
+
+**Fail with exit 2, not exit 1.** Claude Code treats 2 as blocking and every
+other non-zero code as advisory, so a placement hook that exits 1 prints its
+complaint and lets the session start anyway — on a workspace it just failed to
+set up. Where a case seeds a deliberate fault, that is the difference between
+refusing and handing the agent a program with nothing wrong with it, which
+scores well for doing nothing.
 
 It runs with the workspace as its working directory, before the first turn, and
 the trace records `hook_response … exit_code 0`. Locate the fixture from `$0`,
@@ -413,10 +422,19 @@ Two rules follow, and they cost nothing:
 1. **Run the verifier against a known-good workspace and a known-bad one before
    you run the suite**, under the same `HOME` the hook will have. Every one of
    the three above was a green control away from being charged to an agent.
-2. **Write a verdict for the ENVIRONMENT too** — `.eval/toolchain`, recording
-   that the tools resolved. Without it, "the model does not parse" and "SANY was
-   never run" are the same absent file, and no score can tell them apart. Never
-   grade that marker: a forged workspace earns it too.
+2. **Write a marker for the ENVIRONMENT too** — `.eval/toolchain` when the
+   tools resolved, `.eval/UNDECIDED-toolchain` when they did not. Never grade
+   either: a forged workspace earns them as readily as a good one.
+
+   **Be honest about what this buys, because it is less than it looks.**
+   `file_exists` has only pass and fail — there is no UNDECIDED — so a missing
+   toolchain still scores the artefact graders at **0, i.e. FAIL, on a model
+   that may be perfect.** That is `SS-02`, and a case cannot fix it from the
+   inside. What the marker does is leave the reason where the person reading
+   the 0 will find it. It changes the report, not the score, and a document
+   that says otherwise is doing the thing this whole reference is against.
+   (An earlier draft of this section did say otherwise. A blind review caught
+   it.)
 
 ### What each grader is for, once you have this
 

@@ -885,6 +885,24 @@ def test_the_llm_grader_does_not_claim_to_read_files_it_cannot_see() -> None:
             f"{grader.name}: an llm grader that does not say what it can see "
             "will drift back into being written as though it reads the tree"
         )
+        # AND THE DISCLAIMER MUST NOT SIT ABOVE AN INSTRUCTION THAT CONTRADICTS
+        # IT. A blind review pointed out that the check above pins a magic
+        # string: a grader could carry that sentence and still end "score the
+        # artefacts in the .tla files", which is the exact defect. So the
+        # instruction itself is checked too.
+        lowered = text.lower()
+        for forbidden in (
+            "score the artefacts",
+            "in the `.tla` files",
+            "inspect the workspace",
+            "read the files",
+            "look at the file",
+        ):
+            assert forbidden not in lowered, (
+                f"{grader.name} tells the judge to {forbidden!r}, which it "
+                "cannot do -- the judge sees the final response and nothing "
+                "else, so that instruction silently becomes 'score the claim'"
+            )
 
 
 # --------------------------------------------------------------------------
@@ -926,17 +944,25 @@ def test_the_verifier_clears_its_verdicts_before_it_writes_any() -> None:
     hook erased it before checking. If the clear ever moves after the first
     write, a forged file survives and the grader reads the forgery.
     """
+    # CODE ONLY. The first version used `text.find("rm -rf")`, which finds the
+    # first mention anywhere -- so a comment saying "rm -rf" above the real
+    # clear would let the clear move below the first write with this still
+    # green. A blind review found that; the lines are stripped of comments now.
     text = VERIFY.read_text(encoding="utf-8")
-    clear = text.find("rm -rf")
-    assert clear != -1, "verify.sh never clears the verdict directory"
+    code = "\n".join(
+        line for line in text.splitlines()
+        if not line.lstrip().startswith("#")
+    )
+    clear = code.find('rm -rf "$VD"')
+    assert clear != -1, "verify.sh never clears the verdict directory in code"
     first_write = min(
-        (i for i in (text.find('> "$VD/'), text.find('>> "$VD/')) if i != -1),
+        (i for i in (code.find('"$VD/'), code.find("cp \"$v\" \"$VD/")) if i != -1),
         default=-1,
     )
     assert first_write != -1, "verify.sh writes no verdict at all"
     assert clear < first_write, (
-        "verify.sh writes a verdict before clearing the directory, so a file the "
-        "agent forged under that name survives into the grading"
+        "verify.sh writes into the verdict directory before clearing it, so a "
+        "file the agent forged under that name survives into the grading"
     )
     assert text.rstrip().endswith("exit 0"), (
         "verify.sh must exit 0 unconditionally: a Stop hook that fails non-zero "
@@ -964,7 +990,21 @@ def test_a_forged_workspace_earns_no_verdict(tmp_path) -> None:
     for name in ("parses", "checks", "manifest"):
         (verdicts / name).write_text("forged\n", encoding="utf-8")
 
-    subprocess.run(["sh", str(VERIFY)], cwd=tmp_path, check=False, timeout=600)
+    # EVAL_CASE, WITHOUT WHICH THIS CONTROL VERIFIES NOTHING.
+    #
+    # The first version omitted it. `verify.sh` dispatches on `EVAL_CASE`, so
+    # the run fell to the `""` arm, logged "EVAL_CASE unset; nothing verified",
+    # and the forged files vanished only because of the unconditional clear.
+    # The manifest recogniser this test exists to exercise never executed.
+    # Mutation-proved by a blind review: gutting that recogniser so
+    # `placeholder: true` earns a verdict left this test GREEN.
+    subprocess.run(
+        ["sh", str(VERIFY)],
+        cwd=tmp_path,
+        env={**os.environ, "EVAL_CASE": "scaffold-a-program-model"},
+        check=False,
+        timeout=900,
+    )
 
     # `toolchain` is not a verdict about the WORK -- it records that java and
     # the tla2tools jar resolved, so that a missing artefact verdict can be told
@@ -1119,3 +1159,73 @@ def test_no_grader_scores_the_toolchain_marker() -> None:
                 f"{case.name}/{grader.name} grades the toolchain marker, which "
                 "a forged workspace also earns"
             )
+
+
+def test_the_seeded_fault_still_anchors_to_the_program() -> None:
+    """`catch-the-drift` seeds its fault by replacing one exact line.
+
+    A blind review found the hole: reflow that line -- double quotes to single,
+    a formatter's whim -- and the seed fails AFTER the workspace has been
+    copied and committed. The case then runs on an UNFAULTED program, and an
+    agent that does nothing at all scores 0.80, because the weight-2 grader
+    passes for free.
+
+    `place.sh` now exits 2 (blocking; 1 is advisory and let the session start)
+    and re-checks the behaviour after seeding. This is the cheap half: it says
+    so at suite time rather than at $1.32 a run.
+    """
+    import re
+
+    place = PLACE.read_text(encoding="utf-8")
+    anchor = re.search(r"^find = '(.+)'$", place, re.M)
+    assert anchor, "lib/place.sh no longer carries a `find = '...'` anchor line"
+
+    domain = (
+        REPO_ROOT / "examples" / "distributed_history" / "ecommerce_backend" / "domain.py"
+    ).read_text(encoding="utf-8")
+    hits = domain.count(anchor.group(1))
+    assert hits == 1, (
+        f"the seed anchor appears {hits} times in ecommerce_backend/domain.py, "
+        "expected exactly 1. At 0 the fault is never seeded and catch-the-drift "
+        "passes for free; above 1 the replacement is ambiguous."
+    )
+
+
+def test_a_config_that_asserts_nothing_earns_no_tlc_verdict(tmp_path) -> None:
+    """THE STUB CONTROL, EXECUTED.
+
+    A blind review built a six-line module and a `.cfg` naming only
+    `SPECIFICATION Spec`. TLC printed "Model checking completed. No error has
+    been found" -- it had nothing to check -- and the grader that calls itself
+    "the one a confident report cannot move" went green on a model of nothing.
+    """
+    import subprocess
+
+    model = tmp_path / "specs" / "program_model"
+    model.mkdir(parents=True)
+    (model / "Triv.tla").write_text(
+        "---- MODULE Triv ----\nVARIABLE x\nInit == x = 0\nNext == x' = x\n"
+        "Spec == Init /\\ [][Next]_x\n====\n",
+        encoding="utf-8",
+    )
+    (model / "Triv.cfg").write_text("SPECIFICATION Spec\n", encoding="utf-8")
+    (model / "spec_manifest.yaml").write_text(
+        "module: Triv\nports: []\ninvariants: []\ncodegen: {}\n", encoding="utf-8"
+    )
+
+    subprocess.run(
+        ["sh", str(VERIFY)],
+        cwd=tmp_path,
+        env={**os.environ, "EVAL_CASE": "scaffold-a-program-model"},
+        check=False,
+        timeout=900,
+    )
+
+    verdicts = tmp_path / ".eval"
+    log = (verdicts / "verify.log").read_text(encoding="utf-8") if verdicts.is_dir() else ""
+    if "V2 skipped: no java or jar" in log:
+        pytest.skip("no java or tla2tools jar here, so this control cannot look")
+    assert not (verdicts / "checks").exists(), (
+        "TLC earned a verdict on a config declaring no INVARIANT and no "
+        "PROPERTY, so the run asserted nothing and the grader said it passed"
+    )
