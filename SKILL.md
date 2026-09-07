@@ -141,8 +141,18 @@ This skill has three roles:
     together if the bootstrap fails:
 
     ```bash
-    skt ticket new <ticket> --base "$commit_oid" --path <declared-worktree>
+    # skt lives in bin/cli of the home, NOT in skills/ -- it is a plugin.
+    SKT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/bin/cli/skt"
+    [ -x "$SKT" ] || SKT="$(command -v skt)"          # or on PATH
+    "$SKT" ticket new <ticket> --base "$commit_oid" --path <declared-worktree>
     ```
+
+    **Check for it at that path.** Measured twice by eval: an agent looked for
+    `skt` under `skills/`, did not find it there because it is a plugin, and
+    fell through to the hand-run pair below -- reading `wt` and
+    `bootstrap-home.sh` and replaying their steps. Both runs had a working
+    `skt` in `bin/cli` the whole time. `ls skills/` is the wrong question, and
+    the answer to the right one is one `-x` test.
 
     It applies the index-base pinning conventions (clean slate, OIDs resolved
     once, create-only retention ref, branch from the pinned commit) and refuses
