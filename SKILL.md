@@ -1336,7 +1336,13 @@ current change.
   because the sandbox that denies the agent's subprocesses does not deny a hook.
   Written after a case scored 1.00 while `tla-spec-dev` failed on all three
   attempts and the manifest the grader accepted was typed by the agent. Import
-  it into any skill that wants evals.
+  it into any skill that wants evals. Extended by the first suite built on it
+  (~$12, fourteen runs of one case): **`PATH` is the only variable that reaches
+  the sandbox**, so setup must run the real front-door command and refuse before
+  a run is billed; **`--case` is mandatory** once units are symlinked, because
+  discovery recurses into their eval directories; a case that is not itself an
+  ablation loads **every** unit, since retrieval among the skills is the thing
+  under test; and no number in a report may come from a single run.
 - `references/tla_profile.md`: constrained TLA+ subset.
 - `references/codegen_contract.md`: manifest schema and generator behavior.
 - `references/conformance_testing.md`: production adapter conformance.

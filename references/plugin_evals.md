@@ -8,6 +8,13 @@ running probe cases that cost cents. Where a claim came from a probe, the probe
 is named. Where a thing is undocumented and I could not settle it, that is said
 rather than guessed.
 
+A **second source** now feeds it: the first full suite built on this reference,
+in `haydenrear/skill-manager` — fourteen runs of one case, about **$12**, on
+Claude Code 2.1.263. Everything traceable to that suite says so, because it ran
+on a different machine against different units and its environment facts are the
+ones most likely to be local. Where a claim of theirs was re-checked here, the
+re-check is named too.
+
 The worked example is `examples/agent_integration/eval-plugin/`.
 
 ---
@@ -33,10 +40,13 @@ with my findings. The list is the smaller half. **The method is the point.**
 | A `Stop` hook's verdicts cannot be forged | A spawned process writes one after the hook exits | Writing the attack |
 | The `deny file-write*` rule was applying | It was not: the profile named `/tmp/...`, the kernel resolves to `/private/tmp/...` | Checking the file was absent, not that no error printed |
 | My forged-workspace control was a control | It ran with no case selected and could not go red | Mutating the recogniser and watching the test stay green |
+| The eval home's `TMPDIR` follows the operator's shell | **`PATH` is the only variable that reaches the sandbox.** `TMPDIR` and `SKILL_MANAGER_HOME` both read `<unset>` inside a run | Printing them from the `SessionStart` hook, after eight runs died inside `git worktree add` |
+| A hook can check the environment on the agent's behalf | The hook is *more* privileged, so its check answers a question nobody asked | `/usr/bin/git --version` succeeded in the hook in a run where the agent's Bash could not |
+| A suite runs the cases I wrote | Case discovery is a recursive glob and follows symlinked units into *their* eval directories | Two `spec-double-compiler` cases appearing in a run of a different repository's suite |
 
 Read the right-hand column. **Not one of those was found by thinking harder.**
 
-### The five habits, in the order they pay
+### The six habits, in the order they pay
 
 1. **Probe; do not reason.** A case that fails to load never runs an agent, so a
    refusal costs **$0.00**. Every schema fact in this file came from a
@@ -63,6 +73,15 @@ Read the right-hand column. **Not one of those was found by thinking harder.**
    its `python3` is whatever is on `PATH`; its paths resolve physically. A
    verifier that works in your shell and not in the hook withholds verdicts from
    correct work, and the score reads as the agent's failure.
+
+6. **Count the runs behind the number before you quote it.** Fourteen runs of
+   one case, while the environment was being repaired monotonically, produced
+   Bash-call counts of **14, 10, 9, 8, 18, 18, 15, 27, 19, —, 16, —, 15, 21**.
+   The counts did not improve with the environment, never approached the
+   budget, and **their spread is wider than every effect that was attributed to
+   a change.** Seven single runs were quoted as evidence in that round and all
+   seven conclusions were wrong. This is habit 4 pointed at yourself: a number
+   you cannot re-produce is a claim.
 
 ### The rule for adding to this file
 
@@ -125,7 +144,7 @@ response is written by the thing being graded.
 ```bash
 HOME=$EVALHOME CLAUDE_CODE_WALNUT_SPIRE=1 \
   claude plugin eval <plugin-dir> \
-      --ablation none --runs 1 --allow-tools Bash Write Edit
+      --case '<glob>' --ablation none --runs 1 --allow-tools Bash Write Edit
 ```
 
 Each part is load-bearing, and each was learned from a run that scored 0 for a
@@ -154,6 +173,15 @@ if the second arm can do the task. If your fixture is placed by a plugin hook
 (section 3), the no-plugin arm gets an **empty workspace** and its 0 means "the
 fixture was never placed", not "the skill is what scored". Use `--ablation
 none` until the fixture can be placed independently of the plugin.
+
+**`--case <glob>`** — a name filter, and it is **not optional once your units
+are symlinked.** Discovery is a recursive glob — `--help` says the cases are
+`<eval dir>/**/case.yaml` — so it descends through a symlinked unit into
+whatever eval directory *that* unit ships. Verified here: this repository ships
+`examples/agent_integration/eval-plugin/evals/` with two cases of its own, and a
+suite that symlinks this skill's surface runs them, billed, alongside its own.
+The cost is silent — the extra cases score, and nothing says they were not
+yours. §3.5 has the shape that makes this bite.
 
 **`--keep-temp`** — preserves each run's sandbox and prints the path. Open it:
 
@@ -393,6 +421,99 @@ Have the `SessionStart` hook discover the tools **at runtime** and print what it
 found. Nothing hardcoded: another machine gets its own paths, or gets told the
 tool is missing, which is a truthful input rather than a silent 0.
 
+### Five environment facts, each of which cost a failed run
+
+From the `skill-manager` suite. Each was paid for once; a suite that does not
+know them pays again, and every one of them bills as a skill failure.
+
+1. **`PATH` is the only variable that reaches the sandbox.** `TMPDIR` and
+   `SKILL_MANAGER_HOME` both printed `<unset>` from inside a run, even though
+   both were set in the operator's shell. `execution.env` will not close the
+   gap either — its allowlist refuses everything but `EVAL_*`:
+
+   > `execution.env` key PATH is not allowed — only `EVAL_*` keys can be set
+   > from case.yaml. Anything else must come from the operator's shell.
+
+   Read those two sentences together: `PATH` has to come from the shell, and
+   `PATH` is the only part of the shell that arrives — `TMPDIR` was set there
+   too and did not. **Anything your case needs that is not a `PATH` entry or an
+   `EVAL_*` key has to be discovered inside the run.**
+
+2. **An unset `TMPDIR` breaks Apple's `git` before it does anything.** `git`
+   from the Xcode command-line tools writes an `xcrun` cache into `TMPDIR` on
+   startup. Without one:
+
+   ```
+   git: error: couldn't create cache file '…/T/xcrun_db-…' (Operation not permitted)
+   ```
+
+   and `git worktree add` dies immediately after printing *"Preparing
+   worktree"*. **One unset variable made a case unmeasurable for eight runs** —
+   eight reds on a case whose task began with a worktree command, not one of
+   them about the skill under test.
+
+3. **The sandbox cannot read under the operator's home directory.** The same
+   command succeeded in an ordinary shell and failed inside a run. Build trees,
+   fixtures and checkouts have to live where the sandbox reaches — `/private/tmp`
+   worked, which is where it keeps its own temps.
+
+   > **This does not agree with the `/private/tmp` row in §2**, which says a
+   > shim there was on `PATH` and `which` never found it. The two observations
+   > are not the same observation — one is *resolving an executable on `PATH`*,
+   > the other is *reading a tree* — and they are from different suites on
+   > different machines, one of them a CLI patch apart. **Which of read access,
+   > exec access and `PATH` resolution `/private/tmp` actually gets is
+   > UNDECIDED**, and the row stays until somebody runs the probe that
+   > separates them: put a readable file and an executable shim in one
+   > `/private/tmp` directory and have the hook print `cat` and `which` for
+   > each. That probe costs one refused case, i.e. $0.00.
+
+4. **A CLI shim may exec a toolchain of its own.** The checkout shim in §2 ends
+   in `exec`, and what it execs has its own dependencies — theirs runs `jbang`.
+   Putting the shim's directory on the eval `PATH` is not enough; **everything
+   the shim reaches for has to be on that `PATH` too**, and the `SessionStart`
+   hook should print each of them the way §"Dependent tools" prints the rest.
+
+5. **A hook cannot verify the environment on the agent's behalf.** Measured: the
+   `SessionStart` hook ran `/usr/bin/git --version` successfully in a run where
+   the agent's own Bash could not. The hook is outside the sandbox — that is the
+   same asymmetry §4 relies on to run TLC, read in the opposite direction, and
+   it is worse here because it is *silent*. A hook that checks a tool and prints
+   `OK` has confirmed the tool works **for the hook**, and the run proceeds into
+   an environment nobody has actually tested.
+
+### Prove the environment in setup, before a run is billed against it
+
+The consequence of all five, and it is the cheapest rule in this file.
+
+**Setup must run the real front-door command and fail if it does not work.**
+Not a version probe, not a `which` — the actual first command the case will ask
+the agent for, in a throwaway corner of the fixture, from the same place the
+agent will stand:
+
+```sh
+verify_env() {                     # last thing setup.sh does
+    tmp=$(mktemp -d)
+    ( cd "$tmp" && <the real front-door command> ) >"$tmp/log" 2>&1 || {
+        echo "setup: environment cannot run the task — refusing to bill a run" >&2
+        cat "$tmp/log" >&2
+        exit 1
+    }
+    rm -rf "$tmp"
+}
+```
+
+It costs **$0.00** — a case that never starts runs no agent — and in that suite
+it caught three broken environments that would otherwise have been billed, and
+reported, as skill failures. Facts 2 and 3 above are both things `verify_env`
+would have caught on run one instead of run eight.
+
+**This is not the `.eval/toolchain` marker of §4, and it does not replace it.**
+The marker annotates a run that happened; `verify_env` stops the run from
+happening. You want both: the marker cannot rescue a score (§4 is explicit that
+`file_exists` has no UNDECIDED), and setup refusing is the only mechanism that
+keeps the unmeasurable run out of the report entirely.
+
 ---
 
 ## 3.5 Several skills at once, and live units from a skill-manager home
@@ -414,6 +535,24 @@ their skills  : ['git-issue:git-issue', 'git-epic-workflow:git-epic-workflow',
 the shape worth building toward: *does this workflow need the epic skill, or
 does the issue skill alone get through?* is one case per subset, and
 `--ablation with-without` gives each one a no-plugin arm to be measured against.
+
+**But a subset is an ablation you are deliberately running, not the default for
+an ordinary case.** The distinction cost the `skill-manager` suite a rule, and
+it is worth stating as one: **a case whose question is not itself "which unit is
+needed" loads EVERY unit.** What such a case measures is retrieval *among* the
+skills — whether the agent finds the right one with all of them in front of it.
+Hand it only the units its task happens to need and you have done the retrieval
+for it, and the score reports a skill that would not have been reached. It is
+progressive disclosure graded against a curated shortlist, which is the one
+condition it never meets in production.
+
+So there are two case shapes, and mixing them up is how a suite gets a good
+number for the wrong reason:
+
+| the case asks | `plugins:` |
+|---|---|
+| can the agent do the task | **every unit in `units/`** |
+| does it need *this* unit to do the task | the subset, plus a sibling case with the complement |
 
 ### How an entry resolves
 
@@ -472,10 +611,18 @@ skill-eval-harness/
 ```bash
 cd skill-eval-harness
 HOME=$EVALHOME CLAUDE_CODE_WALNUT_SPIRE=1 \
-  claude plugin eval . --allow-tools Bash Write Edit
+  claude plugin eval . --case 'epic-then-issue' --allow-tools Bash Write Edit
 ```
 
-Two gotchas the wrapper form introduces:
+Three gotchas the wrapper form introduces:
+
+* **`--case` is mandatory here, and this is the shape that makes it so.** The
+  wrapper's whole point is that `units/*/skills/*` are symlinks into live units,
+  and discovery is a recursive glob (`<eval dir>/**/case.yaml`) that follows
+  them. A unit that ships its own eval plugin — `spec-double-compiler` ships
+  `examples/agent_integration/eval-plugin/evals/` with two cases — contributes
+  those cases to *your* run. They score, they bill, and the report does not mark
+  them as somebody else's. **Name the cases you meant to run, every time.**
 
 * **A symlinked ENTRY loads under its resolved identity.** `units/git-issue ->
   vendored/gi` (inside the root, so accepted) loads as plugin **`gi`**, and
@@ -501,6 +648,83 @@ each variant its own directory and its own case.
 **I have not run that.** Everything else in this section was measured; this
 paragraph is the mechanism from the plugin documentation, and the first person
 to try it should expect to correct it.
+
+## 3.6 Where a suite lives, and what it leaves behind
+
+Everything above is one case. A suite is a directory that outlives the round
+that built it, and this is the layout the `skill-manager` suite arrived at —
+offered as a convention, not a mechanism: nothing in `plugin eval` requires it.
+
+```
+specs/evals/
+  README.md                     how to run; points at this file for how a case is written
+  harness/
+    lib.sh                      eval_path, eval_tmpdir, branch_home, verify_env
+    rewrite-case.py             generates the machine-specific parts of a case
+    units-template/             the harness's own plugins (hooks, no skills)
+    evals/<case>/setup.sh       makes the environment realistic
+    evals/<case>/run.sh         carries the PATH, runs the case, tears down
+    evals/<case>/case.yaml + graders/*.md
+  results/                      evidence: what was run, what it cost, the traces
+```
+
+**A setup script and a run script per case**, because §3's five environment
+facts have to be executed by something and a README cannot execute. Setup makes
+the environment realistic and ends in `verify_env`; run carries the `PATH` —
+the one variable that gets through — and tears down after.
+
+The rule the layout exists to enforce is one line:
+
+> **What is in git is what MAKES the environment, never the environment.**
+
+Nothing machine-specific is committed. `rewrite-case.py` generates the parts
+that are, on the machine that is about to run. A committed absolute path is the
+same defect as a hardcoded jar in a `SessionStart` hook, one directory further
+out.
+
+### An eval score is spec evidence, and it is filed like any other
+
+A score is a measurement of the same kind as a TLC run or a Test Graph
+envelope, and it belongs in the same places: under the ticket's `results/`
+directory, passed to `close ticket --result`, snapshotted into `.history` when
+the workflow closes, cited by the goal it claims to move. It is not a different
+species of number because a model produced it.
+
+**But file the trace, not the score.** Every useful thing the `skill-manager`
+round produced came out of `trace.jsonl`; **the scores were actively
+misleading** — §4 is a catalogue of the ways, and that round added two more
+(§3's facts 2 and 3, eight reds that were an unset variable). A committed `0.25`
+is unreadable a week later and unfalsifiable forever.
+
+So the convention is **"record the score with the trace excerpt that justifies
+it"**, and the excerpt is the part that has to be there:
+
+```
+specs/evals/results/<round>/
+  summary.md          the score, the CLI version, the case, the run count
+  trace-<case>-<n>.jsonl        or the excerpt, where the whole file is large
+  UNDECIDED.md        which runs were not measurements, and why
+```
+
+`UNDECIDED.md` is not optional padding — it is where the eight unmeasurable
+runs go, so that a later reader counting reds does not count them. §4 has the
+argument for why nothing inside a case can carry that fact.
+
+### What this buys, stated as a number rather than a hope
+
+The same round found **four defects in shipped CLIs and skills that 258 passing
+unit tests did not see.** All four were about an agent's path through a CLI: an
+argument refused with a remedy the repository could not carry out, a `--help`
+that led with options rather than the shape of a call, a skill naming the
+*condition* for using a tool without saying how to test it, and a verifier
+refusing a path its own message had just named. **No unit test asserts that an
+error message is actionable**, and that is the class this instrument reaches and
+the rest of the suite does not.
+
+It also produced roughly a dozen defects in **itself**, which is the more
+important number and is `references/bug_attribution.md` §6a.
+
+---
 
 ## 4. Keeping the score honest
 
@@ -708,7 +932,22 @@ Two rules follow, and they cost nothing:
   `tool_used: Skill` grader is treated as a plugin-fired indicator rather than
   part of the score.
 
-### Two failure shapes to check before reading any number
+### Three failure shapes to check before reading any number
+
+**UNDECIDED has no representation, and that is the dangerous one.** `file_exists`
+has only pass and fail; `tool_used` has only a count inside a range or outside
+it. Neither can say *"this run was not a measurement."* So **an environment that
+could not run the task and a skill that could not do the task produce the same
+number**, and the number is a red charged to the skill. Eight consecutive reds
+in the `skill-manager` round were an unset `TMPDIR` (§3, fact 2), and nothing in
+the score said so.
+
+The line that follows is short and it goes before the other two: **before
+reading a red, confirm the task was possible in that environment.** Reading it
+after is how a suite spends eight runs improving a skill that was never the
+problem. `verify_env` in setup (§3) is the mechanism that makes this checkable
+rather than remembered; the `.eval/toolchain` marker above is what leaves the
+reason where the person reading the red will find it.
 
 **A run that ran out of turns is `UNDECIDED`, and the suite scores it FAIL.**
 `error_max_turns` leaves no closing report, so every response grader votes FAIL
@@ -736,6 +975,9 @@ Before a score means anything:
 - [ ] every `llm` grader says in its own body that it reads the response only
 - [ ] a forged workspace has been run through the graders and scored 0
 - [ ] the run did not end `error_max_turns`
+- [ ] setup proved the environment could run the task **before** the run was
+      billed, and the runs it refused are recorded as UNDECIDED rather than red
+- [ ] **no number in this report comes from a single run**
 - [ ] the verifier has been run against a known-good and a known-bad workspace,
       under the same `HOME` the hook will have
 - [ ] a `.eval/toolchain` marker distinguishes "checked and failed" from "never

@@ -44,6 +44,11 @@ by a better finding**:
 **CATCH is the only one indexed by a failure.** The other three are the negative
 space, and they are the reason this page exists.
 
+**Four, and one that is missing on purpose.** §6a records a fifth direction —
+*a red that was never about the code it was charged to* — measured, named, and
+deliberately left without a schema, because nobody has run a round with one.
+It is BLIND's twin and it belongs on this list the moment somebody does.
+
 **And a CATCH does not require something to have caught it.** The `channel` may
 be `reading` — a defect found by a person or an agent looking at the code, with
 nothing red anywhere. Round 3 made the case concretely: a ticket agent hit ZERO
@@ -273,6 +278,74 @@ have never had a place to be written as reach.
 
 ---
 
+## 6a. THE INSTRUMENT'S OWN DEFECTS, and the red that was never a defect
+
+Measured, in the first eval suite built on `references/plugin_evals.md`
+(`haydenrear/skill-manager`, fourteen runs of one case, ~$12):
+
+| defects the round produced | count |
+|---|---|
+| in the product — shipped CLIs and skills | **4** |
+| in the instrument — the suite's own cases, fixtures and environment | **~12** |
+
+**The instrument out-produced the product three to one**, and this is the
+ordinary case rather than a bad round. An apparatus is newer than the thing it
+measures and gets less scrutiny.
+
+Two consequences, and they are different problems.
+
+### The instrument's defects are CATCHes, and the `area` is what keeps them apart
+
+Nothing new is needed for these. A defect in a fixture is a defect: it has a
+channel, it has a pin or an honest empty one, and §4 already carries it. **What
+it needs is for `area` to say the apparatus** — because `area` is prose and
+prose is optional in practice, and a record that does not distinguish them
+produces a count in which twelve of sixteen defects are the measuring stick.
+Read as product quality, that number is not merely imprecise; it is inverted.
+
+So: **an `area` on an instrument defect names the instrument.**
+`"the eval harness's TMPDIR handling"`, not `"worktree creation"` — even though
+a worktree command is what went red.
+
+### The red that was not a defect at all, which has no kind
+
+This is the part the four kinds do not reach, and it is worth stating rather
+than filling.
+
+Each of those twelve instrument defects **produced a red against innocent
+code**. Eight consecutive runs failed on an unset `TMPDIR`; the score said the
+skill could not create a worktree. *Only the trace told them apart* — and a
+trace is not a record, it is a file somebody has to read.
+
+Line that up against §2 and the gap is exact:
+
+> **BLIND** is a **green** that could not have caught something.
+> This is a **red** that was never about the code it was charged to.
+
+They are twins, and only one of them has a kind. A green that cannot look and a
+red that measures the apparatus are the two ways a signal reports on something
+other than its subject, and this page currently records the first and loses the
+second.
+
+**What that record would need is not obvious, and §3 governs the answer.** An
+absent input is UNDECIDED, never a PASS — so the honest state of this section
+is: **UNDECIDED, and named.** What is known:
+
+- it is not a BLIND: the case is red, and `could_not_have_caught` is the wrong
+  question — the case caught something, just not in the code;
+- it is not a plain CATCH either: a CATCH is indexed by a defect in the subject,
+  and here the subject is clean;
+- the useful field is probably a **retraction** — *this many reds against this
+  area were the instrument, and here is the trace* — because the failure mode
+  is a later reader counting reds and concluding the area is fragile.
+
+**Nobody has run a round with such a record, so this page does not ship a
+schema for it.** A schema written from the armchair is a claim, and §3 says
+what this page does with claims. What this section fixes is the cheaper half:
+the reds are now *known* to be uncounted, instead of being counted.
+
+---
+
 ## 7. PRICE — declared before, measured after
 
 ```yaml
@@ -442,6 +515,27 @@ and in the composition of several skills inside one plugin are real, they
 recur, and **no test graph binding can drive them today.** They are not out of
 scope and they are not modelable-now. They are waiting on a runner that does not
 exist yet, and *that sentence is the record* — not a shrug, and not a deletion.
+
+> **AND THAT BLOCKER HAS PARTLY EXPIRED — rule 2 below, applied to this page's
+> own example.** A runner that drives a multi-skill plugin end to end now
+> exists and has been measured: `claude plugin eval` loads several units in one
+> run and scores them, and `references/plugin_evals.md` §3.5 records three
+> loaded together. The first suite built on it, in `haydenrear/skill-manager`,
+> **found four defects in shipped CLIs and skills that 258 passing unit tests
+> did not** — all four about an agent's path through a CLI, which is precisely
+> the shape this bin was opened to hold.
+>
+> **The bin does not close, and the blocker is rewritten, not deleted.** What
+> expired is *"no runner exists"*. What is still true is narrower and it is the
+> sentence that should now be in the bin: **no `test_graph` binding drives one**
+> — `plugin eval` is a separate runner with its own environment, its own cost,
+> and no graph node, so the findings it produces still arrive by hand. Whether a
+> binding is possible is UNDECIDED and nobody has tried it.
+>
+> Rewriting a blocker to the narrower true statement is the only move rule 2
+> permits here. Closing the bin would claim the graph reaches these defects;
+> leaving *"no runner exists"* in place would be the record going stale in the
+> exact way rule 2 exists to catch.
 
 ### Three rules, and they are what keep a bin from being a wastebasket
 
