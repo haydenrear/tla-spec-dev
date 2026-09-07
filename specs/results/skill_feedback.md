@@ -2324,8 +2324,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - severity: silent-data-loss
 - root_cause: tool
 - workaround_applied: paraphrased the sentence so the narrative no longer contains the sentinel substring
-- recommendation: none yet -- needs a ticket against tla-spec-dev; not filed by CA-04 because opening issues is outside a ticket agent's remit
-- status: open
+- recommendation: fixed in this repository. The substring test became equality for `narrative` and `justification`; extended to `refinement.detail` and `transition_diff` at the attribute-the-catch close, where the first repair had left the same defect in two more free-prose fields.; not filed by CA-04 because opening issues is outside a ticket agent's remit
+- status: recorded-local
 - surface: the narrative sentinel check
 - forced_workaround: paraphrase a legitimate quotation to avoid a substring
 - data_loss: yes
@@ -2340,8 +2340,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - severity: manual-workaround
 - root_cause: spec
 - workaround_applied: drove TLC directly via `.skill-manager/bin/cli/tlc2 -config MC.cfg TlaSpecDevCli.tla`, and reconstructed the pre-change model from the branch point with `git show <base>:specs/current/...` into a scratch tree
-- recommendation: none yet -- needs a ticket against tla-spec-dev; also filed in the epic ledger as CA-04-DF-08
-- status: open
+- recommendation: https://github.com/haydenrear/tla-spec-dev/issues/319 (deferred at the attribute-the-catch close: new CLI surface plus a baseline-reconstruction design); also filed in the epic ledger as CA-04-DF-08
+- status: filed
 - surface: the CLI's TLC entry point, and the close gate that depends on it
 - forced_workaround: bypass the documented CLI entirely and hand-roll both sides of a two-sided measurement
 - data_loss: no
@@ -2380,8 +2380,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - severity: wrong-result
 - root_cause: skill
 - workaround_applied: none available -- the misses were found by an independent reviewer reading the tests, not by any grep
-- recommendation: none yet -- needs a ticket against tla-spec-dev; the ledger row is CA-06-DF-03
-- status: open
+- recommendation: https://github.com/haydenrear/tla-spec-dev/issues/320 (deferred at the attribute-the-catch close: needs a caller graph, and the finding says a third grep will not do it); the ledger row is CA-06-DF-03
+- status: filed
 - surface: the loader-check procedure prescribed by PRICE-TABLE-FORMAT.md section 5
 - forced_workaround: human reading of every test that invokes the changed entry point
 - data_loss: no
@@ -2421,6 +2421,126 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: cut-the-apparatus-epic
 - closed_at: 2026-08-14T22:46:54+00:00
 - summary: Workflow close for cut-the-apparatus-epic. Eight delivered tickets, none retired, --accept-new used nowhere. CA-05 carries two close receipts by design; the earlier one is marked superseded_by the reconciled one and is excluded from the count, not deleted. The cumulative findings ledger (278 rows) is archived at closed-snapshot/deferred_findings.yaml and recorded in this manifest under findings_ledger; disposition.py reads it from there. GOAL-apparatus-cut is MISSED and awaits the owner's recorded acceptance on PR #272.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket AT-01
+
+- close_scope: ticket
+- close_id: AT-01
+- workflow: attribute-the-catch-epic
+- closed_at: 2026-09-06T16:17:44+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket AT-02
+
+- close_scope: ticket
+- close_id: AT-02
+- workflow: attribute-the-catch-epic
+- closed_at: 2026-09-06T16:17:44+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket AT-03
+
+- close_scope: ticket
+- close_id: AT-03
+- workflow: attribute-the-catch-epic
+- closed_at: 2026-09-06T16:17:44+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket AT-04
+
+- close_scope: ticket
+- close_id: AT-04
+- workflow: attribute-the-catch-epic
+- closed_at: 2026-09-06T16:17:44+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out workflow attribute-the-catch-epic
+
+- close_scope: workflow
+- close_id: attribute-the-catch-epic
+- workflow: attribute-the-catch-epic
+- closed_at: 2026-09-06T16:17:54+00:00
+- summary: attribute-the-catch: the four record kinds (CATCH/REACH/BLIND/PRICE), the surfaces that ask for them, the refactor prompt, and AT-04's clause-by-clause evaluation. Six goals MET, one clause DESIGNED-NOT-APPLIED because the 364-row ledger it would dispose lives on epic/stabilize-substrate and arrives with #296. SF-305 repaired and extended to its class; SF-306 and SF-307 deferred to #319 and #320.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket AT-01
+
+- close_scope: ticket
+- close_id: AT-01
+- workflow: attribute-the-catch-epic
+- closed_at: 2026-09-06T20:38:09+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket AT-02
+
+- close_scope: ticket
+- close_id: AT-02
+- workflow: attribute-the-catch-epic
+- closed_at: 2026-09-06T20:38:10+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket AT-03
+
+- close_scope: ticket
+- close_id: AT-03
+- workflow: attribute-the-catch-epic
+- closed_at: 2026-09-06T20:38:10+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket AT-04
+
+- close_scope: ticket
+- close_id: AT-04
+- workflow: attribute-the-catch-epic
+- closed_at: 2026-09-06T20:38:10+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out workflow attribute-the-catch-epic
+
+- close_scope: workflow
+- close_id: attribute-the-catch-epic
+- workflow: attribute-the-catch-epic
+- closed_at: 2026-09-06T20:38:57+00:00
+- summary: attribute-the-catch: the four record kinds, the surfaces that ask for them, the refactor prompt, and AT-04's clause-by-clause evaluation. Zero model delta; TLC run at close on the converged model. SF-305 repaired and extended to its class; SF-306 and SF-307 deferred to #319 and #320.
 - feedback_status: unreviewed
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.

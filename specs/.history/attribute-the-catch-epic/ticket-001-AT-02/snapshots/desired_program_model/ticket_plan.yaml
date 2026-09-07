@@ -1,0 +1,187 @@
+# This file is part of the desired program model.
+# It is intentionally general: use it for any model-backed ticket workflow,
+# not only migrations. Keep it synchronized with spec_manifest.yaml status.
+version: 1
+name: attribute-the-catch-epic
+updated: null
+purpose: "Break the desired whole-program change into tickets that can be implemented, modeled in specs/current, unit-tested, and then validated with broader graph or integration checks."
+
+planning_rules:
+  current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
+  unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.
+  graph_rule: Add graph or integration nodes only after current-model validation passes.
+  semantic_model_rule: Do not add test graph nodes, pytest jobs, CI workflow steps, integration harnesses, or validation scripts as TLA+ program state/actions.
+  evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
+  desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes.
+  promotion_rule: When specs/current equals specs/desired_program_model, promote the converged model to specs/program_model.
+
+status:
+  workflow: ticket
+  active_ticket: AT-04
+  active_ticket_title: "EVALUATION: decide the six goals by reading the record"
+  desired_module: TlaSpecDevCli
+  phase: evaluation
+
+# Replace or extend these sections with project-specific domains. Service,
+# process, queue, database, file, API, model, permission, or UI boundaries can
+# all be listed here when they matter to correctness.
+service_catalog:
+  existing_boundaries: []
+  desired_boundaries: []
+  adapter_boundaries: []
+  known_gaps: []
+
+epic_goals:
+  evaluation_ticket: AT-04
+  evidence_root: specs/results/scorecards/attribute-the-catch
+  note: >-
+    NONE OF THESE IS DECIDED BY A SCRIPT, BECAUSE THERE IS NO SCRIPT. Each is decided by AT-04
+    reading the record and reporting a count with its denominator. Every baseline figure below was
+    measured on the 364-row cumulative ledger at the epic/stabilize-substrate tip, WHICH IS NOT
+    THIS BRANCH -- that ledger does not exist on main and arrives when #296 merges. The figures
+    are labelled at their tree and must be re-derived, not quoted.
+
+  goals:
+    - id: GOAL-the-record-says-what-caught-it
+      kind: CATCH
+      baseline: "144 of 364 carry a channel (39.6%); 27 outside the closed vocabulary, ALL of them SS-*; no token names the test graph; blind-judges selected 0 times."
+      target: >-
+        (a) Graph, suite and hand distinguishable from the token via a lookup table, no channel_note read.
+        (b) The 27 out-of-vocabulary rows disposed -- mapped, absorbed, or UNDECIDED where intent is
+        unrecoverable -- each count stated. UNDECIDED IS A CORRECT ANSWER AND ITS COUNT IS A RESULT.
+        (c) blind-judges retired or retained with a reason.
+
+    - id: GOAL-hand-catches-name-their-pin
+      kind: CATCH
+      baseline: "0. Disposition measures ROUTING, never CONSUMPTION -- consumption.md's own words."
+      target: >-
+        (a) A non-automated catch names an assertion, test node id or path::test_name.
+        (b) Where none was added, the record SAYS SO AND SAYS WHY; a blank is not an answer.
+        (c) Automated catches need no pin -- a second assertion is duplication, architecture_advice.md S5.
+
+    - id: GOAL-invariants-name-their-unenforced-surfaces
+      kind: REACH
+      baseline: "0 rows. THE KIND DOES NOT EXIST. DEF-124: enforced on bin/cli and bin/mcp, unenforced on skills/, plugins/ and the agent dirs; THREE LIVE HOMES, EIGHT DAYS AFTER THE FIX, and nothing named the second list."
+      target: >-
+        (a) A REACH names enforced_on AND unenforced_on, both enumerated.
+        (b) AN EMPTY UNENFORCED LIST IS A CLAIM and names how it enumerated (enumerated_by).
+        (c) 'I did not enumerate' is UNDECIDED and is written differently from 'I enumerated and found none'.
+        (d) Nothing enforces this.
+
+    - id: GOAL-green-declares-its-blind-spot
+      kind: BLIND
+      baseline: "0 rows. THE KIND DOES NOT EXIST. DEF-115: a node green for weeks because every fixture planted a wrapper and repair cannot read a symlink -- GREEN MEANT COULD NOT LOOK. This repo's own population: CA-10-DF-14's 3 vacuous passes, re-measured by SS-06 at SIX."
+      target: >-
+        (a) A BLIND names, for a passing case, a class it could NEVER have caught, and why.
+        (b) An empty blind spot is a claim, not a default.
+        (c) Written by whoever wrote the case, not reconstructed later by a reader.
+        (d) It does not fail a green and does not gate a close.
+
+    - id: GOAL-proposals-are-priced-before-not-after
+      kind: PRICE
+      baseline: "0 rows. gate_passed: False on 16 OF 16 RUNS WITH NOTHING STOPPING -- measured afterwards every time, priced beforehand never, so sixteen measurements had nothing to be measured against."
+      target: >-
+        (a) declared_before and measured_after are two fields written at two different times.
+        (b) declared_at_commit makes BACKFILLING VISIBLE rather than convenient; a price whose
+        declaration commit is after the measurement commit is a retrospective, not a price.
+        (c) The refactor prompt emits a PRICE, not a retrospective.
+        (d) A refused proposal KEEPS its declared price -- that is what makes the refusal reviewable.
+
+    - id: GOAL-the-surfaces-ask-for-all-four
+      kind: surfaces
+      baseline: "No surface mentions any of the four."
+      target: >-
+        (a) The ticket close-out asks for CATCH and BLIND, DURING THE WORK not reconstructed at close.
+        (b) The workflow close asks for all four plus what the record could not show.
+        (c) Asked for, NEVER ENFORCED -- no gate, no refusal, no exit code, nothing reads it.
+        (d) THE ASK FITS ON A SCREEN at each site. A page of instructions at a close-out is a page
+        nobody reads, and would reproduce the 39.6% with better documentation.
+
+
+tickets:
+  - id: AT-01
+    title: "references/bug_attribution.md: the four record kinds"
+    status: closed
+    depends_on: []
+    objective: >-
+      Describe what the record keeps about where defects came from AND where nobody looked.
+      Four record kinds: CATCH (backward, from a failure), REACH (forward, from an invariant),
+      BLIND (forward, from a green), PRICE (forward, from a proposal). Plus the rule that
+      makes REACH and BLIND worth anything: AN EMPTY UNENFORCED-LIST AND AN EMPTY BLIND-SPOT
+      ARE CLAIMS, NEVER DEFAULTS, governed by SS-02's absent-input rule.
+    model_delta: >-
+      NONE, AND THAT IS THE TICKET. This epic ships markdown and prompts. No TLA+ action, no
+      state field, no adapter, no production code, no test. The one mechanical property the
+      schema needs -- the file parses -- is ALREADY GUARDED by tests/test_spec_yaml_valid.py,
+      which parses every specs/**/*.y*ml outside .history. Stating a model delta here would be
+      fiction.
+    implementation_scope:
+      - references/bug_attribution.md
+      - references/consumption.md
+    acceptance:
+      assertions:
+        - Graph, suite and hand are separable from the channel token via a lookup table, with no channel_note read.
+        - An empty unenforced_on and an empty could_not_have_caught are claims that name their enumeration.
+        - The 27 out-of-vocabulary rows are disposed, and the disposition is mostly UNDECIDED on purpose.
+      evidence:
+        - references/bug_attribution.md
+
+  - id: AT-02
+    title: "Where the four kinds are asked for: ticket close-out and workflow close"
+    status: closed
+    depends_on: [AT-01]
+    objective: >-
+      A schema nobody is asked to fill in reaches 39.6% in six epics. That is the measured fate
+      of `channel`. Ask for it at the two sites where the work actually happens, in prose that
+      FITS ON A SCREEN, and enforce nothing.
+    model_delta: "NONE. Prose edits to references/workflows.md only."
+    implementation_scope:
+      - references/workflows.md
+    acceptance:
+      assertions:
+        - The ticket close-out asks for CATCH and BLIND, during the work rather than at close.
+        - The workflow close asks for all four kinds plus what the record could not show.
+        - Nothing gates, refuses, or changes an exit code.
+      evidence:
+        - references/workflows.md
+
+  - id: AT-03
+    title: "prompts/regression_architecture.md: the refactor prompt"
+    status: closed
+    depends_on: [AT-01]
+    objective: >-
+      Ask whether a simplification would REMOVE a class rather than catch it, and PRICE IT
+      FORWARD -- a prediction before anyone tries it, never a retrospective that a past
+      refactor already paid off.
+    model_delta: "NONE. One markdown prompt, dispatched verbatim, read by no tool."
+    implementation_scope:
+      - prompts/regression_architecture.md
+    acceptance:
+      assertions:
+        - The four constraints are in the prompt text, not only the caller notes.
+        - Step 4 forces the agent to say what it could not see BEFORE proposing anything.
+        - The output is a PRICE with declared_before filled and measured_after null.
+      evidence:
+        - prompts/regression_architecture.md
+
+  - id: AT-04
+    title: "EVALUATION: decide the six goals by reading the record"
+    status: closed
+    depends_on: [AT-01, AT-02, AT-03]
+    role: evaluation
+    objective: >-
+      Decide the six goals clause by clause BY READING, not by running. No harness is built,
+      deliberately: a script written by the evaluation to decide the evaluation's own goals is
+      an instrument nobody reviewed.
+    model_delta: "NONE."
+    implementation_scope:
+      - specs/results/scorecards/attribute-the-catch/AT-04/
+    acceptance:
+      assertions:
+        - Each goal decided on its own target text, with the count and denominator named.
+        - The suite at the tip is reported as numbers that sum, against main's baseline.
+        - What the epic could NOT do is published at the same prominence as what it did.
+      evidence:
+        - specs/results/scorecards/attribute-the-catch/AT-04/RESULT.md
+        - specs/results/scorecards/attribute-the-catch/AT-04/pytest-tip.txt
+

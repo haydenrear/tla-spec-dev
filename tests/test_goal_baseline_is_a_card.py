@@ -74,6 +74,56 @@ CLASSIFIER = TICKET / "analysis/baseline_is_a_card.py"
 NO_CARD_DEMO = TICKET / "analysis/no_card_project_unaffected.py"
 LIVE_PLAN = REPO_ROOT / "specs/desired_program_model/ticket_plan.yaml"
 
+#: The goal this file's R1 demonstration is ABOUT. It belongs to a finished
+#: epic, so it is not in whatever plan happens to be live -- and reading the
+#: live plan for it was wrong even while one existed.
+SUBJECT_GOAL = "GOAL-loop-reaches-the-program"
+
+
+def plan_holding(goal_id: str) -> pathlib.Path:
+    """The plan that actually declares `goal_id`, live or archived.
+
+    TWO PRE-EXISTING BUGS MET HERE. The live plan was read for a goal that
+    belongs to a CLOSED epic, so the lookup was wrong whenever the live plan
+    was some other epic's -- which is always, once that epic ends. And a
+    workflow close removes `specs/desired_program_model/` entirely, so after
+    one the read raised `FileNotFoundError` and MASKED the real failure
+    underneath it.
+
+    Searched deterministically by sorted path, never by mtime: `AT-LR-01` is
+    what happens when a resolver in this repository picks "the newest file"
+    from a `stat()` call that git does not preserve.
+    """
+    candidates = [LIVE_PLAN] if LIVE_PLAN.is_file() else []
+    candidates += sorted((REPO_ROOT / "specs" / ".history").glob(
+        "*/*/snapshots/desired_program_model/ticket_plan.yaml"))
+    for candidate in candidates:
+        try:
+            document = yaml.safe_load(candidate.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if goal_id in {g["id"] for g in epic_goals(document)}:
+            return candidate
+    raise AssertionError(
+        f"no plan in this repository declares {goal_id!r}. The R1 "
+        "demonstration has lost its subject; restate it against a goal that "
+        "exists rather than deleting it."
+    )
+
+
+def epic_goals(document: dict) -> list[dict]:
+    """`epic_goals` as a list, whichever shape the plan uses.
+
+    It began as a list and became a mapping with the list under `goals:`.
+    Iterating the mapping yields its KEYS -- strings -- so `g["id"]` raised
+    `TypeError: string indices must be integers`, which is how this test has
+    been failing on `main`.
+    """
+    goals = document.get("epic_goals")
+    if isinstance(goals, dict):
+        goals = goals.get("goals", [])
+    return [g for g in (goals or []) if isinstance(g, dict) and "id" in g]
+
 #: The three files the proposal touches, and the only ones it may touch.
 PROPOSED_FILES = {
     "01-git-epic-workflow-goals-and-evaluation-third-branch.patch": "references/goals-and-evaluation.md",
@@ -194,9 +244,10 @@ def test_a_real_epic_plans_judged_baseline_cannot_be_re_opened(classifier):
     If this ever goes green, the baseline was edited after the fact. Move the
     demonstration to another failing goal and say which; do not delete it.
     """
+    plan = plan_holding(SUBJECT_GOAL)
     goals = {g["id"]: g for g in
-             yaml.safe_load(LIVE_PLAN.read_text(encoding="utf-8"))["epic_goals"]}
-    goal = goals["GOAL-loop-reaches-the-program"]
+             epic_goals(yaml.safe_load(plan.read_text(encoding="utf-8")))}
+    goal = goals[SUBJECT_GOAL]
     verdict, why = classifier.classify(REPO_ROOT, goal)
     assert verdict == "directory", why
     cited = REPO_ROOT / "specs/results/scorecards/close-the-loop"

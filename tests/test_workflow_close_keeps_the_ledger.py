@@ -199,3 +199,51 @@ def test_an_unfilled_template_narrative_still_refuses_the_close(tmp_path: Path) 
     with pytest.raises(SystemExit) as refusal:
         close(root)
     assert "narrative" in str(refusal.value)
+
+
+def test_a_transition_diff_that_quotes_the_template_sentinel_is_not_blanked(tmp_path: Path) -> None:
+    """SF-305's class, not SF-305's two instances.
+
+    The first repair converted `narrative` and `justification` -- the two fields
+    the finding named -- and left the identical substring test on
+    `refinement.detail` and `transition_diff`, which are free prose too. That is
+    a recogniser fitted to the reported instance (`MF-020`).
+
+    `transition_diff` is the worse of the two, because it is load-bearing: with
+    TLC red flags present the close is REFUSED when it is empty, so prose that
+    mentions the sentinel is discarded and the close then fails naming the
+    absence it caused.
+    """
+    root = build_subject(tmp_path / "subject")
+    ledger_input = root / "specs" / "results" / "complexity_ledger_input.yaml"
+    document = yaml.safe_load(ledger_input.read_text(encoding="utf-8"))
+    diff = (
+        'The template ships transition_diff: "TODO"; this entry explains which '
+        "transitions moved and why, and before the class repair the substring "
+        "test blanked it for quoting the word."
+    )
+    document["transition_diff"] = diff
+    ledger_input.write_text(yaml.safe_dump(document, sort_keys=False), encoding="utf-8")
+
+    close(root)
+
+    written = json.loads((root / "specs" / "results" / "complexity_ledger.json").read_text(encoding="utf-8"))
+    assert written["entries"][-1]["transition_diff"] == diff
+
+
+def test_an_unfilled_template_transition_diff_is_still_treated_as_absent(tmp_path: Path) -> None:
+    """The property the substring test was protecting, kept under equality."""
+    import sys
+
+    # A PLAIN IMPORT. spec_from_file_location without registering the module in
+    # sys.modules makes @dataclass die on sys.modules[cls.__module__].__dict__ --
+    # the same trap the eval verifier hit, met a second time in one session.
+    scripts = Path(__file__).resolve().parents[1] / "scripts"
+    sys.path.insert(0, str(scripts))
+    try:
+        import complexity_ledger as module
+    finally:
+        sys.path.remove(str(scripts))
+    assert module.is_unfilled_template_prose("TODO") is True
+    assert module.is_unfilled_template_prose("TODO ".strip()) is True
+    assert module.is_unfilled_template_prose('mentions "TODO" in passing') is False

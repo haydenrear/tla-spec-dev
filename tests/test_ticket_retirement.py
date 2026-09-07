@@ -681,7 +681,57 @@ def test_a_receipt_cannot_supersede_itself(tmp_path: Path) -> None:
 
 
 def test_repository_canonical_delivered_plan_has_matching_close_receipts() -> None:
+    """Every delivered ticket of the OPEN workflow has one close receipt.
+
+    NO OPEN WORKFLOW IS A LEGITIMATE STATE, and it is the state this repository
+    is supposed to be in on `main`: `close_tickets.py` removes
+    `specs/desired_program_model/` and `specs/current/` at workflow close, so the
+    plan this test reads is absent by design between epics.
+
+    The first version asserted against a hardcoded plan path and went red the
+    moment a workflow closed correctly. But an absent plan must not simply pass:
+    deleting the plan would then satisfy the check that exists to stop tickets
+    being marked done without evidence. So absence is only accepted against
+    EVIDENCE OF A CLOSE -- a `closed-snapshot` under `specs/.history/` -- and is
+    a failure without one.
+    """
     plan_path = ROOT / "specs" / "desired_program_model" / "ticket_plan.yaml"
+
+    if not plan_path.is_file():
+        # THE FIRST VERSION OF THIS BRANCH WAS UNCONDITIONAL. It accepted ANY
+        # closed-snapshot from ANY epic -- and six already existed on `main`
+        # before the branch was written, so the guard was satisfied before its
+        # own code was authored and could never fail again. `.history` is
+        # append-only, so "delete them all" is unreachable. It read as a guard
+        # and behaved as `return`.
+        #
+        # The close archives the plan it consumed, so the real subject is right
+        # there: check the NEWEST snapshot's OWN plan against the receipts
+        # beside it. That goes red if a plan is deleted to dodge the check, and
+        # red if a workflow closes with a ticket missing its receipt.
+        snapshots = sorted(
+            (ROOT / "specs" / ".history").glob("*/closed-snapshot"),
+            key=lambda d: d.stat().st_mtime,
+        )
+        assert snapshots, (
+            "no ticket plan and no closed-snapshot either: the plan is absent "
+            "only because a workflow closed and took it with it, so with no "
+            "close on record this check is passing on the absence of its "
+            "own subject."
+        )
+        newest = snapshots[-1]
+        archived = newest / "snapshots" / "desired_program_model" / "ticket_plan.yaml"
+        assert archived.is_file(), (
+            f"{newest.parent.name} closed without archiving the plan it consumed, "
+            "so nothing can be checked against its receipts"
+        )
+        assert validate_ticket_plan_closed(
+            archived,
+            repo_root=ROOT,
+            workflow=newest.parent.name,
+            specs_dir=ROOT / "specs",
+        ) == []
+        return
 
     assert validate_ticket_plan_closed(plan_path, repo_root=ROOT) == []
 

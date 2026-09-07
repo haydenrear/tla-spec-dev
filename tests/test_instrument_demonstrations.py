@@ -742,6 +742,63 @@ def test_every_declared_path_exists(registry) -> None:
     assert missing == []
 
 
+def _stage_sources(registry) -> list[tuple[str, str]]:
+    """Every `from =` a slot stages, with the instrument it belongs to."""
+    out: list[tuple[str, str]] = []
+    for entry in registry["instrument"]:
+        for slot in ("failing", "passing"):
+            spec = entry.get(slot)
+            if not isinstance(spec, dict):
+                continue
+            for stage in spec.get("stage", []) or []:
+                source = stage.get("from")
+                if source:
+                    out.append((entry["id"], source))
+    return out
+
+
+def test_every_staged_source_exists(registry) -> None:
+    """THE FIELD THE PATH CHECK DID NOT WALK.
+
+    `test_every_declared_path_exists` walks `entry["paths"]` and stops there.
+    A slot's `[[instrument.*.stage]] from` is also a path into this repository,
+    and `demonstrate.py` raises `MALFORMED DEMONSTRATION: stage source does not
+    exist` when it is missing -- but only in the SLOW tier, and the suite runs
+    the fast one.
+
+    So when the attribute-the-catch close removed `specs/desired_program_model`,
+    `spec-yaml-tripwire`'s FAILING slot -- the demonstration that proves that
+    instrument can go red -- staged a file that no longer existed, and nothing
+    in the suite said so. The registry went on declaring
+    `classification = "demonstrated-can-fail"` for an instrument whose
+    demonstration was malformed. A blind review found it by running the tier
+    by hand.
+
+    This is the cheap half of that: the path is checked here, in the tier that
+    always runs, so a rename or a removal breaks the table rather than the
+    reader's trust in it.
+    """
+    missing = [
+        f"{instrument}: {source}"
+        for instrument, source in _stage_sources(registry)
+        if not (REPO_ROOT / source).exists()
+    ]
+    assert missing == [], (
+        "a demonstration stages a file that is not there, so the slot reports "
+        "MALFORMED rather than the verdict the registry claims for it:\n  "
+        + "\n  ".join(missing)
+    )
+
+
+def test_the_staged_source_check_is_not_vacuous(registry) -> None:
+    """A sweep over nothing passes. This is the guard the other four carry."""
+    sources = _stage_sources(registry)
+    assert len(sources) >= 5, (
+        f"only {len(sources)} staged sources found; the check above would pass "
+        "on an empty sweep and prove nothing about the registry"
+    )
+
+
 def test_every_cited_pytest_node_exists(registry) -> None:
     """A demonstration citing a test id that does not exist would report `ok`
     on a run nobody made."""

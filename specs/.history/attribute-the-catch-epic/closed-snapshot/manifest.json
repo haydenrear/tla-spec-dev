@@ -1,0 +1,412 @@
+{
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/attribute-the-catch-epic/closed-snapshot specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'close spec ticket workflow'",
+    "message": "It is recommended to commit this history directory now: specs/.history/attribute-the-catch-epic/closed-snapshot"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 16,
+        "before": 16,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 277830,
+        "before": 277830,
+        "bound_complete_after": false,
+        "bound_complete_before": false,
+        "comparable": false,
+        "delta": 0,
+        "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+        "percent": 0.0
+      },
+      "depth": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "generated_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "variables": {
+        "after": 8,
+        "before": 8,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "AT-04"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "specs/desired_program_model/ticket_plan.yaml epic_goals -- the six goals AT-04 decided clause by clause.",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 16,
+          "before": 16,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 277830,
+          "before": 277830,
+          "bound_complete_after": false,
+          "bound_complete_before": false,
+          "comparable": false,
+          "delta": 0,
+          "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+          "percent": 0.0
+        },
+        "depth": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "generated_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "variables": {
+          "after": 8,
+          "before": 8,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "AT-04"
+    },
+    "errors": [],
+    "input_path": "specs/results/complexity_ledger_input.yaml",
+    "justification": "ZERO model delta, so no TLA+ representation was added and none needs justifying. TLC was nonetheless run at close on the converged model rather than cited from a previous epic, so the receipts carry a measurement of THIS tree.",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+      "actions": 16,
+      "actions_from_fallback_heuristic": false,
+      "bound": 277830,
+      "bound_complete": false,
+      "bound_resolved_variables": 6,
+      "bound_unresolved_variables": [
+        "lastCommand",
+        "result"
+      ],
+      "budget_utilization": {
+        "max_state_space_bound": {
+          "bound_complete": false,
+          "cap": 1000000,
+          "caveat": "the bound is a product over 6 of 8 declared variables (2 unresolved: lastCommand, result), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything",
+          "percent": null,
+          "percent_lower_bound": 27.8,
+          "used": 277830,
+          "within_cap": null
+        }
+      },
+      "depth": null,
+      "distinct_states": null,
+      "gate_passed": false,
+      "gate_violations": [
+        "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 8 declared variables (2 unresolved: lastCommand, result) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
+        "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+      ],
+      "generated_states": null,
+      "modularity": 0.002483746073489777,
+      "variables": 8
+    },
+    "narrative": "Workflow close of attribute-the-catch. The epic ships documentation and prompts: `references/bug_attribution.md` (the four record kinds -- CATCH, REACH, BLIND, PRICE), the two surfaces that ask for them at ticket close-out and workflow close, `prompts/regression_architecture.md`, and AT-04's clause-by-clause evaluation of six goals. MODEL DELTA IS ZERO AND THAT IS THE TICKET: no TLA+ action, variable or invariant was added, removed or changed, and `specs/current` was byte-identical to `specs/desired_program_model` on every semantic file at close. Six goals MET; one clause of GOAL-the-record-says-what-caught-it is DESIGNED, NOT APPLIED, because the 364-row ledger whose 27 out-of-vocabulary rows it would dispose lives on epic/stabilize-substrate and arrives with #296 -- stated in AT-04's RESULT.md as the epic's single largest limitation rather than worked around.",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+    ],
+    "recorded_at_utc": "2026-09-06T20:38:57.163308+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "No reduction was searched for, because there is no model change to reduce. An epic that adds zero actions cannot simplify its way to a smaller one, and inventing a refactor to fill this field is the retrospective this programme has spent three epics learning not to write.",
+      "measured": true,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "EXPERIMENTAL per the pivot; no decrease claimed.",
+        "status": "not_run",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "EXPERIMENTAL per the pivot; no decrease claimed.",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "EXPERIMENTAL per the pivot; no decrease claimed, and no model delta to claim it for.",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=not_run (UNVERIFIED)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "workflow",
+    "scope_id": "attribute-the-catch-epic",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "retained",
+        "evidence": "Full suite at the close tip: 12 failed, 1613 passed, 23 skipped -- item for item the standing baseline, with no failure introduced by this epic. The 12 are pre-existing and four of them assert against a ledger that is not on main; see #296.",
+        "status": "green",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "retained",
+        "evidence": "`diff -rq specs/current specs/desired_program_model` differs only in README.md, spec_manifest.yaml status metadata, and the two planning files the close ignores by design (desired_state.yaml, ticket_plan.yaml). No semantic file differs.",
+        "status": "recorded",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "retained",
+        "evidence": "specs/current/TlaSpecDevCli.tla with MC.cfg, run at close on 2026-09-06: \"Model checking completed. No error has been found.\" 2,505,440 states generated, 124,643 distinct, depth 24, 0 left on queue, finished in 02s.",
+        "status": "green",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "retained",
+        "evidence": "Not a separate run, and deliberately not presented as one. Model delta is zero, so the before-model and the after-model are the same file and one TLC run measures both. A second run of an unchanged model would be the same numbers wearing a different label, which is the shape that made the recycled evidence hard to spot.",
+        "status": "green",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=green (retained)",
+      "tlc_after=green (retained)",
+      "behavior_tests=green (retained)",
+      "descriptor_comparison=recorded (retained)"
+    ],
+    "verdict": "recorded",
+    "workflow": "attribute-the-catch-epic"
+  },
+  "created_at_utc": "2026-09-06T20:38:57.201909+00:00",
+  "entry_name": "closed-snapshot",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "findings_ledger": {
+    "exists": false,
+    "role": "findings_ledger",
+    "source": "specs/desired_program_model/deferred_findings.yaml"
+  },
+  "git": {
+    "branch": "close/attribute-the-catch",
+    "commit": "d193ef5",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "workflow-close",
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "No reduction was searched for, because there is no model change to reduce. An epic that adds zero actions cannot simplify its way to a smaller one, and inventing a refactor to fill this field is the retrospective this programme has spent three epics learning not to write.",
+    "measured": true,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "EXPERIMENTAL per the pivot; no decrease claimed.",
+      "status": "not_run",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "EXPERIMENTAL per the pivot; no decrease claimed.",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "EXPERIMENTAL per the pivot; no decrease claimed, and no model delta to claim it for.",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 137,
+    "close_out_entry": "Close-out workflow attribute-the-catch-epic",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [],
+    "findings_filed": 0,
+    "findings_total": 0,
+    "findings_unfiled": [],
+    "path": "/Users/hayde/IdeaProjects/tla-spec-dev-2/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/attribute-the-catch-epic/closed-snapshot/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/attribute-the-catch-epic/closed-snapshot/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/attribute-the-catch-epic/closed-snapshot/snapshots/current",
+      "source": "specs/current"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "attribute-the-catch: the four record kinds, the surfaces that ask for them, the refactor prompt, and AT-04's clause-by-clause evaluation. Zero model delta; TLC run at close on the converged model. SF-305 repaired and extended to its class; SF-306 and SF-307 deferred to #319 and #320.",
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "tickets": [
+    {
+      "acceptance": {
+        "assertions": [
+          "Graph, suite and hand are separable from the channel token via a lookup table, with no channel_note read.",
+          "An empty unenforced_on and an empty could_not_have_caught are claims that name their enumeration.",
+          "The 27 out-of-vocabulary rows are disposed, and the disposition is mostly UNDECIDED on purpose."
+        ],
+        "evidence": [
+          "references/bug_attribution.md"
+        ]
+      },
+      "depends_on": [],
+      "id": "AT-01",
+      "implementation_scope": [
+        "references/bug_attribution.md",
+        "references/consumption.md"
+      ],
+      "model_delta": "NONE, AND THAT IS THE TICKET. This epic ships markdown and prompts. No TLA+ action, no state field, no adapter, no production code, no test. The one mechanical property the schema needs -- the file parses -- is ALREADY GUARDED by tests/test_spec_yaml_valid.py, which parses every specs/**/*.y*ml outside .history. Stating a model delta here would be fiction.",
+      "objective": "Describe what the record keeps about where defects came from AND where nobody looked. Four record kinds: CATCH (backward, from a failure), REACH (forward, from an invariant), BLIND (forward, from a green), PRICE (forward, from a proposal). Plus the rule that makes REACH and BLIND worth anything: AN EMPTY UNENFORCED-LIST AND AN EMPTY BLIND-SPOT ARE CLAIMS, NEVER DEFAULTS, governed by SS-02's absent-input rule.",
+      "status": "closed",
+      "title": "references/bug_attribution.md: the four record kinds"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "The ticket close-out asks for CATCH and BLIND, during the work rather than at close.",
+          "The workflow close asks for all four kinds plus what the record could not show.",
+          "Nothing gates, refuses, or changes an exit code."
+        ],
+        "evidence": [
+          "references/workflows.md"
+        ]
+      },
+      "depends_on": [
+        "AT-01"
+      ],
+      "id": "AT-02",
+      "implementation_scope": [
+        "references/workflows.md"
+      ],
+      "model_delta": "NONE. Prose edits to references/workflows.md only.",
+      "objective": "A schema nobody is asked to fill in reaches 39.6% in six epics. That is the measured fate of `channel`. Ask for it at the two sites where the work actually happens, in prose that FITS ON A SCREEN, and enforce nothing.",
+      "status": "closed",
+      "title": "Where the four kinds are asked for: ticket close-out and workflow close"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "The four constraints are in the prompt text, not only the caller notes.",
+          "Step 4 forces the agent to say what it could not see BEFORE proposing anything.",
+          "The output is a PRICE with declared_before filled and measured_after null."
+        ],
+        "evidence": [
+          "prompts/regression_architecture.md"
+        ]
+      },
+      "depends_on": [
+        "AT-01"
+      ],
+      "id": "AT-03",
+      "implementation_scope": [
+        "prompts/regression_architecture.md"
+      ],
+      "model_delta": "NONE. One markdown prompt, dispatched verbatim, read by no tool.",
+      "objective": "Ask whether a simplification would REMOVE a class rather than catch it, and PRICE IT FORWARD -- a prediction before anyone tries it, never a retrospective that a past refactor already paid off.",
+      "status": "closed",
+      "title": "prompts/regression_architecture.md: the refactor prompt"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each goal decided on its own target text, with the count and denominator named.",
+          "The suite at the tip is reported as numbers that sum, against main's baseline.",
+          "What the epic could NOT do is published at the same prominence as what it did."
+        ],
+        "evidence": [
+          "specs/results/scorecards/attribute-the-catch/AT-04/RESULT.md",
+          "specs/results/scorecards/attribute-the-catch/AT-04/pytest-tip.txt"
+        ]
+      },
+      "depends_on": [
+        "AT-01",
+        "AT-02",
+        "AT-03"
+      ],
+      "id": "AT-04",
+      "implementation_scope": [
+        "specs/results/scorecards/attribute-the-catch/AT-04/"
+      ],
+      "model_delta": "NONE.",
+      "objective": "Decide the six goals clause by clause BY READING, not by running. No harness is built, deliberately: a script written by the evaluation to decide the evaluation's own goals is an instrument nobody reviewed.",
+      "role": "evaluation",
+      "status": "closed",
+      "title": "EVALUATION: decide the six goals by reading the record"
+    }
+  ],
+  "workflow_name": "attribute-the-catch-epic"
+}

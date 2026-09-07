@@ -132,16 +132,42 @@ def duplicate_keys(text: str) -> list[tuple[str, str, list[int]]]:
 def archived_ledgers(root: pathlib.Path = pathlib.Path(".")) -> list[pathlib.Path]:
     """Every archived copy of the ledger under `specs/.history`, best last.
 
-    Ordered by (mtime, size). Size breaks mtime ties -- and it is not arbitrary:
-    the ledger is APPEND-ONLY by rule, so of two copies the larger one carries
-    the later state. A `git checkout` flattens mtimes, which is exactly when the
-    tie-break is needed.
+    ORDERED BY CONTENT, NOT BY MTIME. The previous ordering was
+    `(mtime, size, path)`, and its own docstring named the hazard -- "a
+    `git checkout` flattens mtimes, which is exactly when the tie-break is
+    needed" -- while still sorting on mtime FIRST, so the size tie-break was
+    only ever consulted when two files shared a timestamp to the microsecond.
+    In practice it never ran.
+
+    What that cost: two checkouts of the SAME COMMIT resolved different
+    ledgers, silently, because both answers are a real ledger. A fresh extract
+    of `main` read cut-the-apparatus's 296-row closed-snapshot; a working tree
+    at identical content read subtract-to-measure's 88-row mid-epic snapshot.
+    Five disposition tests then asserted `88 > 200` and were recorded as a
+    standing baseline waiting on #296 for an entire epic. They were waiting on
+    a `stat()` call.
+
+    The ledger is APPEND-ONLY by rule, so of two copies the one with more
+    entries carries the later state, and every checkout counts the same
+    entries. A closed-snapshot outranks a mid-epic ticket snapshot at equal
+    size, because it is the copy a close sealed.
     """
     seen: dict[pathlib.Path, None] = {}
     for pattern in ARCHIVE_GLOBS:
         for path in root.glob(pattern):
             seen.setdefault(path.resolve(), None)
-    return sorted(seen, key=lambda p: (p.stat().st_mtime, p.stat().st_size, str(p)))
+
+    def rank(path: pathlib.Path) -> tuple[int, int, str]:
+        try:
+            rows = sum(
+                1 for line in path.read_text(encoding="utf-8").splitlines()
+                if line.lstrip().startswith("- id:")
+            )
+        except OSError:
+            rows = 0
+        return (rows, 1 if "closed-snapshot" in str(path) else 0, str(path))
+
+    return sorted(seen, key=rank)
 
 
 def resolve_ledger(path: pathlib.Path, *, explicit: bool) -> pathlib.Path:
