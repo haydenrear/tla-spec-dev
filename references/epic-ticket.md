@@ -231,9 +231,18 @@ to `commit_oid`/`tree_oid` **once**, create-only
 commit. Never re-resolve `origin/epic/<slug>` after creation — a ref is a
 symbolic name, not an identity.
 
-In a home carrying the `skt` plugin, the whole block below is one command —
-declared path, pinned base, retention ref, and the worktree's own home, rolled
-back together on bootstrap failure:
+`skt` is a plugin, so **`skills/` is the wrong place to look for it** — a home
+that has it reports it absent when you list that directory. One test answers the
+question:
+
+```bash
+SMH="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"
+test -x "$SMH/bin/cli/skt"        # -> use the one command below
+```
+
+Where it resolves, the whole block below is one command — declared path, pinned
+base, retention ref, and the worktree's own home, rolled back together on
+bootstrap failure:
 
 ```bash
 git fetch origin
@@ -242,7 +251,15 @@ skt ticket new <issue-number>-<slug> --base "$commit_oid" --path ../wt-<issue-nu
 cd ../wt-<issue-number>-<slug>
 ```
 
-Without skt, the same conventions by hand:
+Without skt, the same conventions by hand.
+
+**If you are reading this because the front door was not *found*, that is a
+defect worth reporting.** The block below is for a repository that genuinely has
+no `skt` — not for one where it was present and you looked in `skills/`, or ran
+it and it failed. It works either way, which is exactly why its use is silent
+unless you say so: run the `-x` test first, and if it resolved, name the reason
+on the PR (`SKILL.md` rule 10, *Reaching that by-hand pair is itself a
+finding*).
 
 ```bash
 git fetch origin

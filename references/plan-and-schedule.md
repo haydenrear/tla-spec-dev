@@ -49,10 +49,17 @@ snapshot branching consume these OIDs as base-snapshot identity):
 Choose a short stable slug and create a dedicated epic worktree from the fetched
 default-branch tip:
 
-In a home carrying the `skt` plugin, one command applies every convention below
-— clean-slate check, OIDs resolved once, create-only retention ref, branch from
-the pinned commit — and gives the worktree its own home in the same breath,
-rolling both back if the bootstrap fails:
+`skt` is a plugin, so it is never under a home's `skills/`; test it by path:
+
+```bash
+SMH="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"
+test -x "$SMH/bin/cli/skt"        # -> use the one command below
+```
+
+Where it resolves, one command applies every convention below — clean-slate
+check, OIDs resolved once, create-only retention ref, branch from the pinned
+commit — and gives the worktree its own home in the same breath, rolling both
+back if the bootstrap fails:
 
 ```bash
 git fetch origin
@@ -62,7 +69,10 @@ cd ../wt-epic-<slug>
 
 (The branch it creates is `feature/epic-<slug>`; rename with `git branch -m
 epic/<slug>` if the plan declares the bare epic name, or pass the resolved
-`commit_oid` as `--base`.) Without skt, the same conventions by hand:
+`commit_oid` as `--base`.) Without skt, the same conventions by hand — and if
+you are here because the front door was not *found* rather than not *present*,
+that is a front-door defect: report it under `SKILL.md` rule 10, *Reaching that
+by-hand pair is itself a finding*.
 
 ```bash
 git fetch origin

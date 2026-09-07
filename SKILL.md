@@ -175,6 +175,28 @@ This skill has three roles:
     never been given a home makes `bootstrap-home.sh` the *first* thing run in
     it, which is the same one-time per-repository step `wt new` prints as its
     `fix:` line elsewhere.
+
+    **Reaching that by-hand pair is itself a finding — report it.** It is
+    written for a home that genuinely has no `skt`, and it *works*, which is
+    the whole problem: an agent that merely could not FIND the front door lands
+    on it, produces a plausible worktree, and leaves no trace but four tool
+    calls where one would have done. Measured four times across the eval suite,
+    for four different reasons, and none of the four reported anything. So run
+    the `-x` test above first. If it did not resolve, the by-hand pair is
+    correct and there is nothing to report. If it resolved and you are on the
+    by-hand pair anyway, say which of these you were in:
+
+    - `skt` is installed but was not on `PATH`;
+    - you looked where a plugin never is (`skills/`);
+    - you found it and it **failed** — quote its `error:` line verbatim;
+    - you found it and could not read the home it pointed at.
+
+    All four are front-door defects, not facts about the repository. An epic
+    agent has two places to put that line — the wave review artifact
+    (`references/human-review.md`) for its own provisioning, and the ticket's
+    PR body when a ticket agent reports it — and files it against the skill
+    that owns the door: `git-epic-workflow` for the declared-path route above,
+    `git-issue-workflow` for `wt`, `skt` for the plugin.
 11. **The epic owns whether the homes are CURRENT, and checks before scheduling
     anything.** Every ticket worktree is a *copy* of the project home, and the
     project home is a copy of the root `~/.skill-manager`. Copies do not update

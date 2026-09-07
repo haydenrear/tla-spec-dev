@@ -254,6 +254,13 @@ For each row in the ledger:
      close <ticket>
    ```
 
+   Which one: `test -x "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/bin/cli/skt"`.
+   skt is a PLUGIN — it is never under `skills/`, so listing that directory
+   answers wrongly. Falling to the second line because the first was not
+   *found* is a front-door defect to report (`SKILL.md` rule 10, *Reaching that
+   by-hand pair is itself a finding*); falling to it because skt is genuinely
+   absent is not.
+
    Both resolve a ticket by searching, so a hand-made `../wt-<issue>-<slug>` is
    found. If you need a flag they do not forward, the two steps they wrap keep
    the `&&` — on separate lines the removal runs whatever the gate returned,
