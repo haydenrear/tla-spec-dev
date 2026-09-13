@@ -453,8 +453,11 @@ receiver flow is `references/agent-tag-pr.md`.
 - This skill **executes** a ticket; it does not author the issue. Issue creation,
   the References section, and the spec-required decision are `git-issue`'s job.
 - It does not create or amend an epic assignment. In epic mode it consumes the
-  marker-delimited assignment exactly as written and stops when required fields
-  or scheduling state are inconsistent.
+  marker-delimited assignment, stops only when the PR base or branch would be
+  wrong, and otherwise proceeds on the plan's values, listing any mismatch in
+  the PR. `SKILL_GATES=off` lets `wt new` proceed from a dirty parent tree and
+  forces the tla-spec-dev close gates; `wt close` still takes an explicit
+  `--force`.
 - It does not reimplement the spec, test-graph, or fan-out mechanics — it
   **sequences** them. Those live in `spec-double-compiler` (the `tla-spec-dev`
   CLI), `test-graph` (the graph scripts), and `git-integration-repo`

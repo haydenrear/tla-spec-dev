@@ -188,6 +188,7 @@ def wt_new(
     integration: bool = False,
     no_home: bool = False,
     stale_base_ok: bool = False,
+    dirty_ok: bool = False,
     cwd: str | Path | None = None,
 ) -> WorktreeContract:
     """Create the worktree and its home.
@@ -195,6 +196,7 @@ def wt_new(
     Raises :class:`StaleBase` (exit 7) when ``base`` names a local branch
     that is behind its remote counterpart. ``stale_base_ok=True`` takes
     the local ref anyway, and ``stale_base`` then records that it did.
+    ``dirty_ok=True`` warns instead of refusing when the parent tree is dirty.
     """
     args = ["new", ticket]
     if base:
@@ -205,6 +207,8 @@ def wt_new(
         args.append("--no-home")
     if stale_base_ok:
         args.append("--stale-base-ok")
+    if dirty_ok:
+        args.append("--dirty-ok")
     proc = _run(args, cwd=cwd)
     if proc.returncode != 0:
         raise _parse_failure(_combined(proc), proc.returncode)

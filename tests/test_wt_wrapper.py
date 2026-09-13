@@ -144,6 +144,18 @@ def test_stale_base_ok_is_forwarded_to_the_script(use_stub):
         assert "--stale-base-ok" in fh.read()
 
 
+def test_dirty_ok_is_forwarded_to_the_script(use_stub, tmp_path, monkeypatch):
+    args_out = tmp_path / "args"
+    monkeypatch.setenv("GIW_ARGS_OUT", str(args_out))
+    use_stub(
+        'if [ "$1" = new ]; then echo "args: $*" > "$GIW_ARGS_OUT"; '
+        'echo "created worktree /tmp/repo-T-1"; '
+        "else\n" + CONTRACT + "fi\n"
+    )
+    wt_new("T-1", dirty_ok=True)
+    assert "--dirty-ok" in args_out.read_text()
+
+
 def test_wt_info_without_propagate_is_plain_repo(use_stub):
     use_stub(
         "cat <<'EOF'\nWORKTREE   /w\nBRANCH     feature/T-2\nCLOSE      wt close T-2\nEOF\n"
