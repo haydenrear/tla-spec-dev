@@ -12,10 +12,12 @@ import copy
 from contextlib import redirect_stderr, redirect_stdout
 import importlib.util
 import io
+import os
 from pathlib import Path
 import sys
 import tempfile
 import unittest
+import unittest.mock
 
 import yaml
 
@@ -172,18 +174,18 @@ def fully_retired_plan() -> dict:
 
 class EpicPlanValidatorTests(unittest.TestCase):
     def assert_invalid(self, plan: dict, diagnostic: str) -> None:
-        report = validator.validate_plan(plan)
+        report = validator.validate_plan(strict=True, plan=plan)
         self.assertTrue(report.errors)
         self.assertIn(diagnostic, "\n".join(report.errors))
 
     def assert_warns(self, plan: dict, diagnostic: str) -> None:
         """Warnings are advisory: they must not fail the plan."""
-        report = validator.validate_plan(plan)
+        report = validator.validate_plan(strict=True, plan=plan)
         self.assertEqual(report.errors, [])
         self.assertIn(diagnostic, "\n".join(report.warnings))
 
     def test_accepts_valid_parallel_schedule(self) -> None:
-        report = validator.validate_plan(valid_plan())
+        report = validator.validate_plan(strict=True, plan=valid_plan())
         self.assertEqual(report.errors, [])
         self.assertEqual(report.warnings, [])
 
@@ -196,7 +198,7 @@ class EpicPlanValidatorTests(unittest.TestCase):
         self.assert_invalid(plan, "schedule_revision must be a positive integer")
 
     def test_accepts_canonical_retirement_receipts(self) -> None:
-        report = validator.validate_plan(fully_retired_plan())
+        report = validator.validate_plan(strict=True, plan=fully_retired_plan())
         self.assertEqual(report.errors, [])
         self.assertEqual(report.warnings, [])
 
@@ -213,7 +215,7 @@ class EpicPlanValidatorTests(unittest.TestCase):
         )
         # Canonical-plan shape: delivered tickets retain their sealed historical
         # `blocks` edges to the later-retired evaluation ticket.
-        report = validator.validate_plan(plan)
+        report = validator.validate_plan(strict=True, plan=plan)
         self.assertEqual(report.errors, [])
         self.assertEqual(report.warnings, [])
 
@@ -230,7 +232,7 @@ class EpicPlanValidatorTests(unittest.TestCase):
         plan["tickets"][2]["status"] = "closed"
         # Delivered tickets retain historical dependency and predecessor edges
         # to a ticket retired by a later schedule amendment.
-        report = validator.validate_plan(plan)
+        report = validator.validate_plan(strict=True, plan=plan)
         self.assertEqual(report.errors, [])
         self.assertEqual(report.warnings, [])
 
@@ -259,7 +261,7 @@ class EpicPlanValidatorTests(unittest.TestCase):
     def test_accepts_sealed_retirement_after_later_plan_revision(self) -> None:
         plan = fully_retired_plan()
         plan["schedule_revision"] = 3
-        report = validator.validate_plan(plan)
+        report = validator.validate_plan(strict=True, plan=plan)
         self.assertEqual(report.errors, [])
         self.assertEqual(report.warnings, [])
 
@@ -343,7 +345,7 @@ class EpicPlanValidatorTests(unittest.TestCase):
                 },
             ],
         }
-        report = validator.validate_plan(plan)
+        report = validator.validate_plan(strict=True, plan=plan)
         self.assertEqual(report.errors, [])
 
     def test_rejects_retirement_revision_newer_than_root(self) -> None:
@@ -387,7 +389,7 @@ class EpicPlanValidatorTests(unittest.TestCase):
         del plan["tickets"][0]["retirement"]["affected_goals"][0][
             "successor_workflow"
         ]
-        errors = "\n".join(validator.validate_plan(plan).errors)
+        errors = "\n".join(validator.validate_plan(strict=True, plan=plan).errors)
         self.assertIn("retirement.successor_issue must be a non-empty string", errors)
         self.assertIn("successor_workflow must be a non-empty string", errors)
 
@@ -437,7 +439,7 @@ class EpicPlanValidatorTests(unittest.TestCase):
         retirement = plan["tickets"][0]["retirement"]
         retirement["successor_issue"] = "EPIC-99"
         retirement["successor_workflow"] = "next-epic-workflow"
-        errors = "\n".join(validator.validate_plan(plan).errors)
+        errors = "\n".join(validator.validate_plan(strict=True, plan=plan).errors)
         self.assertIn(
             "retirement.successor_issue must be absent unless "
             "retirement.resolution is carried",
@@ -522,6 +524,18 @@ class EpicPlanValidatorTests(unittest.TestCase):
         plan["tickets"][0]["promotion_predecessor"] = None
         self.assert_invalid(plan, "retirement disposition conflicts with active tickets")
 
+    def test_retiring_part_of_a_goal_only_warns_by_default(self) -> None:
+        plan = fully_retired_plan()
+        plan["tickets"][0].pop("status")
+        plan["tickets"][0].pop("retirement")
+        plan["tickets"][0]["blocks"] = []
+        plan["tickets"][0]["promotion_predecessor"] = None
+        report = validator.validate_plan(plan)
+        self.assertEqual(report.errors, [])
+        self.assertTrue(
+            any("conflicts with active tickets" in w for w in report.warnings)
+        )
+
     def test_rejects_plan_without_a_deferment_policy(self) -> None:
         plan = valid_plan()
         del plan["deferment_policy"]
@@ -597,7 +611,7 @@ class EpicPlanValidatorTests(unittest.TestCase):
         plan = valid_plan()
         plan["review_policy"]["cadence"] = "milestone"
         plan["review_policy"]["milestones"] = [1, 3]
-        report = validator.validate_plan(plan)
+        report = validator.validate_plan(strict=True, plan=plan)
         self.assertEqual(report.errors, [])
         self.assertEqual(report.warnings, [])
 
@@ -618,7 +632,7 @@ class EpicPlanValidatorTests(unittest.TestCase):
         plan = valid_plan()
         plan["tickets"].append(copy.deepcopy(plan["tickets"][0]))
         plan["tickets"].append({"id": "not stable"})
-        errors = "\n".join(validator.validate_plan(plan).errors)
+        errors = "\n".join(validator.validate_plan(strict=True, plan=plan).errors)
         self.assertIn("duplicate ticket ID 'EPIC-1'", errors)
         self.assertIn("id must be a stable string", errors)
 
@@ -664,16 +678,39 @@ class EpicPlanValidatorTests(unittest.TestCase):
         plan["tickets"][2]["promotion_predecessor"] = "EPIC-1"
         self.assert_invalid(plan, "promotion_predecessor must be 'EPIC-2'")
 
-    def test_cli_returns_nonzero_for_invalid_plan(self) -> None:
-        plan = valid_plan()
-        plan["tickets"][0]["blocks"] = []
+    def run_cli(self, plan: dict, *args: str) -> tuple[int, str]:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "ticket_plan.yaml"
             path.write_text(yaml.safe_dump(plan, sort_keys=False), encoding="utf-8")
             stderr = io.StringIO()
-            with redirect_stderr(stderr):
-                self.assertEqual(validator.main([str(path)]), 1)
-            self.assertIn("INVALID:", stderr.getvalue())
+            with redirect_stderr(stderr), redirect_stdout(io.StringIO()):
+                code = validator.main([str(path), *args])
+        return code, stderr.getvalue()
+
+    def test_cli_strict_returns_nonzero_for_invalid_plan(self) -> None:
+        plan = valid_plan()
+        plan["tickets"][0]["blocks"] = []
+        code, stderr = self.run_cli(plan, "--strict")
+        self.assertEqual(code, 1)
+        self.assertIn("INVALID:", stderr)
+
+    def test_cli_default_warns_on_a_policy_slip_and_succeeds(self) -> None:
+        plan = valid_plan()
+        plan["tickets"][0]["blocks"] = []
+        code, stderr = self.run_cli(plan)
+        self.assertEqual(code, 0)
+        self.assertIn("WARNING:", stderr)
+        self.assertLessEqual(len(stderr.splitlines()), 4)
+
+    def test_cli_blocks_on_an_unknown_dependency_unless_forced(self) -> None:
+        plan = valid_plan()
+        plan["tickets"][1]["depends_on"] = ["NOPE-9"]
+        code, stderr = self.run_cli(plan)
+        self.assertEqual(code, 1)
+        self.assertIn("unknown ticket 'NOPE-9'", stderr)
+        self.assertEqual(self.run_cli(plan, "--force")[0], 0)
+        with unittest.mock.patch.dict(os.environ, {"SKILL_GATES": "off"}):
+            self.assertEqual(self.run_cli(plan)[0], 0)
 
     def test_cli_returns_zero_for_valid_plan(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -746,7 +783,7 @@ class EpicPlanValidatorTests(unittest.TestCase):
         plan = valid_plan()
         del plan["epic_goals"][0]["harness"]
         plan["epic_goals"][0]["kind"] = "hunch"
-        errors = "\n".join(validator.validate_plan(plan).errors)
+        errors = "\n".join(validator.validate_plan(strict=True, plan=plan).errors)
         self.assertIn("harness must be a non-empty string", errors)
         self.assertIn("kind must be one of", errors)
 
@@ -785,7 +822,7 @@ class EpicPlanValidatorTests(unittest.TestCase):
     ) -> None:
         plan = valid_plan()
         plan["epic_goals"][0]["evaluation_ticket"] = "EPIC-1"
-        errors = "\n".join(validator.validate_plan(plan).errors)
+        errors = "\n".join(validator.validate_plan(strict=True, plan=plan).errors)
         self.assertIn("must declare role: evaluation", errors)
 
 

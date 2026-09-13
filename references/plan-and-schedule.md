@@ -369,11 +369,13 @@ uv run <git-epic-workflow-skill>/scripts/validate_epic_plan.py \
   specs/desired_program_model/ticket_plan.yaml
 ```
 
-The validator prints `WARNING:` lines and still exits 0 for a missing or waived
-goal set, a missing evaluation ticket, an `unmeasured` baseline, or a `direct`
-contribution with no local signal. Treat those as prompts to go back to the
-user, not as noise. Inconsistencies inside a declared goal set are errors and
-exit non-zero.
+Only a plan that cannot be scheduled at all fails (exit 1): no tickets, an
+unusable or duplicate ticket ID, a `depends_on` naming a ticket that does not
+exist, or a dependency cycle. Every other rule above is advisory: it prints a
+`WARNING:` summary (at most three lines; `--verbose` lists all) and exits 0.
+Read the warnings and fix what matters; do not let them stop the epic. `--strict`
+turns every rule back into an error. `--force` (or `SKILL_GATES=off`) exits 0
+even past a blocking error, for when you have decided it does not apply.
 
 A valid plan is not a valid dispatch. The plan is this skill's; the assignment
 block that reaches a ticket agent is rendered by `git-issue` into a GitHub issue

@@ -23,6 +23,7 @@ Read an issue body (file or stdin) and check the marker-delimited block:
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 import re
 import sys
@@ -59,7 +60,6 @@ NOT_APPLICABLE = "N/A"
 
 EPIC_STRINGS = ("id", "workflow", "branch", "base_sha", "plan_commit", "default_branch")
 TICKET_STRINGS = ("spec_id", "feature_branch", "worktree", "pr_base")
-CONFLICT_KINDS = ("production", "tla", "adapters", "test_graph", "workflow")
 VALIDATION_FIELDS = (
     "tlc",
     "spec_unit",
@@ -73,14 +73,30 @@ EXCUSABLE = ("tlc", "repository_unit", "spec_graph", "toolchain_spec_workflow")
 GOAL_STRINGS = ("statement", "metric", "baseline", "target", "expected_effect")
 
 
+GATES_ENV = "SKILL_GATES"
+
+
 class AssignmentError(Exception):
     """The body carries no assignment block that can be parsed at all."""
+
+
+class Blocking(str):
+    """A diagnostic that fails the run by default.
+
+    Only what would send a ticket agent to the wrong branch, worktree, or
+    ticket blocks. Every other diagnostic is advisory unless `strict` is set:
+    a shape or policy slip is a note for the reviewer, not a reason to stop.
+    """
 
 
 @dataclass(frozen=True)
 class AssignmentReport:
     errors: tuple[str, ...]
     warnings: tuple[str, ...]
+
+
+def _gate(message: str, blocking: bool) -> str:
+    return Blocking(message) if blocking else message
 
 
 def extract_block(body: str) -> str:
@@ -159,14 +175,18 @@ def _excuse_is_reasoned(value: str) -> bool:
 
 
 def _require_str(
-    mapping: dict[str, Any], path: str, field: str, errors: list[str]
+    mapping: dict[str, Any],
+    path: str,
+    field: str,
+    errors: list[str],
+    blocking: bool = False,
 ) -> str | None:
     value = mapping.get(field, MISSING)
     if value is MISSING:
-        errors.append(f"{path}.{field} is required")
+        errors.append(_gate(f"{path}.{field} is required", blocking))
         return None
     if not isinstance(value, str) or not value.strip():
-        errors.append(f"{path}.{field} must be a non-empty string")
+        errors.append(_gate(f"{path}.{field} must be a non-empty string", blocking))
         return None
     return value
 
@@ -182,14 +202,14 @@ def _require_int(
 
 
 def _require_mapping(
-    assignment: dict[str, Any], field: str, errors: list[str]
+    assignment: dict[str, Any], field: str, errors: list[str], blocking: bool = False
 ) -> dict[str, Any] | None:
     value = assignment.get(field, MISSING)
     if value is MISSING:
-        errors.append(f"assignment must declare {field}")
+        errors.append(_gate(f"assignment must declare {field}", blocking))
         return None
     if not isinstance(value, dict):
-        errors.append(f"{field} must be a mapping")
+        errors.append(_gate(f"{field} must be a mapping", blocking))
         return None
     return value
 
@@ -213,11 +233,11 @@ def _id_list(
 
 
 def _validate_epic(assignment: dict[str, Any], errors: list[str]) -> str | None:
-    epic = _require_mapping(assignment, "epic", errors)
+    epic = _require_mapping(assignment, "epic", errors, blocking=True)
     if epic is None:
         return None
     for field in EPIC_STRINGS:
-        _require_str(epic, "epic", field, errors)
+        _require_str(epic, "epic", field, errors, blocking=field == "branch")
     _require_int(epic, "epic", "schedule_revision", errors)
 
     branch = epic.get("branch")
@@ -229,10 +249,10 @@ def _validate_epic(assignment: dict[str, Any], errors: list[str]) -> str | None:
             )
         default_branch = epic.get("default_branch")
         if isinstance(default_branch, str) and branch.strip() == default_branch.strip():
-            errors.append(
+            errors.append(Blocking(
                 "epic.branch is the default branch: an epic integrates on its own "
                 "branch and never dispatches tickets against the default branch"
-            )
+            ))
         return branch.strip()
     return None
 
@@ -240,11 +260,11 @@ def _validate_epic(assignment: dict[str, Any], errors: list[str]) -> str | None:
 def _validate_ticket(
     assignment: dict[str, Any], epic_branch: str | None, errors: list[str]
 ) -> dict[str, Any] | None:
-    ticket = _require_mapping(assignment, "ticket", errors)
+    ticket = _require_mapping(assignment, "ticket", errors, blocking=True)
     if ticket is None:
         return None
     for field in TICKET_STRINGS:
-        _require_str(ticket, "ticket", field, errors)
+        _require_str(ticket, "ticket", field, errors, blocking=True)
     _require_int(ticket, "ticket", "wave", errors)
     _require_int(ticket, "ticket", "promotion_order", errors)
 
@@ -259,10 +279,10 @@ def _validate_ticket(
         and isinstance(pr_base, str)
         and pr_base.strip() != epic_branch
     ):
-        errors.append(
+        errors.append(Blocking(
             f"ticket.pr_base {pr_base!r} is not the epic branch {epic_branch!r}: "
             "the ticket PR would target the wrong base"
-        )
+        ))
 
     role = ticket.get("role", MISSING)
     if role not in TICKET_ROLES:
@@ -294,24 +314,17 @@ def _validate_ticket(
         elif isinstance(spec_id, str) and predecessor.strip() == spec_id.strip():
             errors.append("ticket.promotion_predecessor is this ticket itself")
 
-    conflicts = ticket.get("conflict_keys", MISSING)
-    if not isinstance(conflicts, dict):
+    # Lanes are whatever the plan names; a lane left out simply has no keys.
+    conflicts = ticket.get("conflict_keys", {})
+    if conflicts is not None and not isinstance(conflicts, dict):
         errors.append("ticket.conflict_keys must be a mapping")
-    else:
-        for kind in CONFLICT_KINDS:
-            value = conflicts.get(kind, MISSING)
-            if value is MISSING:
-                errors.append(f"ticket.conflict_keys.{kind} is required (may be empty)")
-            elif not isinstance(value, list) or any(
-                not isinstance(item, str) for item in value
+    elif conflicts:
+        for kind, value in conflicts.items():
+            if value is not None and (
+                not isinstance(value, list)
+                or any(not isinstance(item, str) for item in value)
             ):
                 errors.append(f"ticket.conflict_keys.{kind} must be a list of strings")
-        unknown = sorted(set(conflicts) - set(CONFLICT_KINDS))
-        if unknown:
-            errors.append(
-                f"ticket.conflict_keys has unknown lane(s) {unknown}; the "
-                f"lanes are {list(CONFLICT_KINDS)}"
-            )
     return ticket
 
 
@@ -505,8 +518,13 @@ def validate_assignment(
     assignment: object,
     expect_ticket: str | None = None,
     expect_epic_branch: str | None = None,
+    strict: bool = False,
 ) -> AssignmentReport:
-    """Return deterministic diagnostics; no errors means the block is usable."""
+    """Return deterministic diagnostics; no errors means the block is usable.
+
+    By default only `Blocking` diagnostics are errors and the rest are
+    warnings. `strict` restores every rule as an error.
+    """
     errors: list[str] = []
     warnings: list[str] = []
 
@@ -530,17 +548,21 @@ def validate_assignment(
         spec_id = ticket.get("spec_id")
         actual = spec_id.strip() if isinstance(spec_id, str) else None
         if actual != expect_ticket:
-            errors.append(
+            errors.append(Blocking(
                 f"ticket.spec_id is {actual!r} but this dispatch expects "
                 f"{expect_ticket!r}"
-            )
+            ))
     if expect_epic_branch is not None and epic_branch != expect_epic_branch:
-        errors.append(
+        errors.append(Blocking(
             f"epic.branch is {epic_branch!r} but this dispatch expects "
             f"{expect_epic_branch!r}"
-        )
+        ))
 
-    return AssignmentReport(tuple(errors), tuple(warnings))
+    if strict:
+        return AssignmentReport(tuple(errors), tuple(warnings))
+    blocking = tuple(error for error in errors if isinstance(error, Blocking))
+    advisory = tuple(error for error in errors if not isinstance(error, Blocking))
+    return AssignmentReport(blocking, advisory + tuple(warnings))
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -565,7 +587,51 @@ def _parser() -> argparse.ArgumentParser:
         default=None,
         help="fail unless epic.branch equals this branch",
     )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="treat every diagnostic as an error, not only blocking ones",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help=f"exit 0 even when errors remain (same as {GATES_ENV}=off)",
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="list every warning instead of a short summary",
+    )
     return parser
+
+
+WARNINGS_SHOWN = 3
+LINE_LIMIT = 160
+
+
+def _clip(message: str) -> str:
+    return message if len(message) <= LINE_LIMIT else message[: LINE_LIMIT - 3] + "..."
+
+
+def print_diagnostics(
+    source: str, report: AssignmentReport, force: bool, verbose: bool
+) -> None:
+    """Print few, short lines: agents read this output into their context."""
+    shown = report.warnings if verbose else report.warnings[:WARNINGS_SHOWN]
+    for warning in shown:
+        print(f"WARNING: {warning if verbose else _clip(warning)}", file=sys.stderr)
+    hidden = len(report.warnings) - len(shown)
+    if hidden:
+        print(f"WARNING: {hidden} more (--verbose lists them)", file=sys.stderr)
+    if report.errors:
+        label = "FORCED past errors in" if force else "INVALID:"
+        print(f"{label} {source}", file=sys.stderr)
+        for error in report.errors:
+            print(f"- {error if verbose else _clip(error)}", file=sys.stderr)
+
+
+def gates_forced(flag: bool) -> bool:
+    return flag or os.environ.get(GATES_ENV, "").strip().lower() in {"off", "0", "false"}
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -588,27 +654,26 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"ERROR: {source}: {error}", file=sys.stderr)
         return 2
 
+    force = gates_forced(args.force)
     report = validate_assignment(
         assignment,
         expect_ticket=args.expect_ticket,
         expect_epic_branch=args.expect_epic_branch,
+        strict=args.strict,
     )
-    for warning in report.warnings:
-        print(f"WARNING: {warning}", file=sys.stderr)
-
-    if report.errors:
-        print(f"INVALID: {source}", file=sys.stderr)
-        for error in report.errors:
-            print(f"- {error}", file=sys.stderr)
+    print_diagnostics(source, report, force, args.verbose)
+    if report.errors and not force:
         return 1
 
-    ticket = assignment["ticket"]
-    goals = assignment["goals"]
+    ticket = assignment.get("ticket") if isinstance(assignment, dict) else None
+    ticket = ticket if isinstance(ticket, dict) else {}
+    goals = assignment.get("goals") if isinstance(assignment, dict) else None
+    goals = goals if isinstance(goals, list) else []
     goal_label = "goal" if len(goals) == 1 else "goals"
     print(
-        f"OK: {source} carries a valid assignment for {ticket['spec_id']} "
-        f"(wave {ticket['wave']}, role {ticket['role']}, "
-        f"{len(goals)} {goal_label}, base {ticket['pr_base']})"
+        f"OK: {source} carries a usable assignment for {ticket.get('spec_id')} "
+        f"(wave {ticket.get('wave')}, role {ticket.get('role')}, "
+        f"{len(goals)} {goal_label}, base {ticket.get('pr_base')})"
     )
     return 0
 

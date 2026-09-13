@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 from collections import defaultdict
 from dataclasses import dataclass
+import os
 from pathlib import Path
 import re
 import sys
@@ -65,6 +66,18 @@ GOAL_RETIREMENT_FIELDS = frozenset(
         "successor_workflow",
     }
 )
+
+
+GATES_ENV = "SKILL_GATES"
+
+
+class Blocking(str):
+    """A diagnostic that fails the plan by default.
+
+    Only what makes the schedule unusable blocks: no tickets, unusable or
+    duplicate IDs, dangling or cyclic dependencies. Every other diagnostic is
+    advisory unless `strict` is set.
+    """
 
 
 @dataclass(frozen=True)
@@ -135,6 +148,8 @@ def _id_list(
     raw: dict[str, Any], field: str, label: str, errors: list[str]
 ) -> tuple[str, ...]:
     value = raw.get(field, MISSING)
+    if value is MISSING or value is None:
+        return ()
     if not isinstance(value, list):
         errors.append(f"{label}: {field} must be a list")
         return ()
@@ -248,11 +263,11 @@ def _goal_links(
 
 def _parse_tickets(plan: object, errors: list[str]) -> dict[str, Ticket]:
     if not isinstance(plan, dict):
-        errors.append("plan root must be a mapping")
+        errors.append(Blocking("plan root must be a mapping"))
         return {}
     raw_tickets = plan.get("tickets")
     if not isinstance(raw_tickets, list) or not raw_tickets:
-        errors.append("plan must contain a non-empty tickets list")
+        errors.append(Blocking("plan must contain a non-empty tickets list"))
         return {}
 
     tickets: dict[str, Ticket] = {}
@@ -264,13 +279,13 @@ def _parse_tickets(plan: object, errors: list[str]) -> dict[str, Ticket]:
         raw_id = raw.get("id", MISSING)
         label = _ticket_label(index, raw_id)
         if not isinstance(raw_id, str) or not STABLE_ID.fullmatch(raw_id):
-            errors.append(
+            errors.append(Blocking(
                 f"{label}: id must be a stable string using only letters, digits, "
                 "'.', '_' or '-' and must start with a letter or digit"
-            )
+            ))
             continue
         if raw_id in tickets:
-            errors.append(f"duplicate ticket ID {raw_id!r}")
+            errors.append(Blocking(f"duplicate ticket ID {raw_id!r}"))
             continue
 
         raw_status = raw.get("status", "planned")
@@ -660,10 +675,10 @@ def _validate_dependency_graph(tickets: dict[str, Ticket], errors: list[str]) ->
             if dependency == ticket.id:
                 errors.append(f"ticket {ticket.id!r}: cannot depend on itself")
             elif dependency not in tickets:
-                errors.append(
+                errors.append(Blocking(
                     f"ticket {ticket.id!r}: depends_on references unknown ticket "
                     f"{dependency!r}"
-                )
+                ))
             elif dependency in retired_ids:
                 if not ticket.delivered:
                     errors.append(
@@ -710,7 +725,7 @@ def _validate_dependency_graph(tickets: dict[str, Ticket], errors: list[str]) ->
 
     cycle = _find_dependency_cycle(non_retired)
     if cycle:
-        errors.append(f"dependency cycle detected: {' -> '.join(cycle)}")
+        errors.append(Blocking(f"dependency cycle detected: {' -> '.join(cycle)}"))
 
 
 def _validate_conflicts(tickets: dict[str, Ticket], errors: list[str]) -> None:
@@ -1248,11 +1263,12 @@ def _validate_review_policy(
         )
 
 
-def validate_plan(plan: object) -> PlanReport:
-    """Return deterministic diagnostics; no errors means the plan is valid.
+def validate_plan(plan: object, strict: bool = False) -> PlanReport:
+    """Return deterministic diagnostics; no errors means the plan is usable.
 
-    Warnings never fail the plan: a missing goal set or evaluation ticket is a
-    conversation to have with the epic owner, not a schema violation.
+    By default only `Blocking` diagnostics are errors and everything else is a
+    warning, so a shape or policy slip never stops an epic. `strict` restores
+    the full rule set as errors.
     """
     errors: list[str] = []
     warnings: list[str] = []
@@ -1261,16 +1277,19 @@ def validate_plan(plan: object) -> PlanReport:
     _validate_review_policy(plan, errors, warnings)
     goals = _parse_goals(plan, errors, warnings)
     tickets = _parse_tickets(plan, errors)
-    if not tickets:
+    if tickets:
+        retirements = _validate_retirements(
+            plan, tickets, goals, schedule_revision, errors
+        )
+        _validate_dependency_graph(tickets, errors)
+        _validate_conflicts(tickets, errors)
+        _validate_promotion_lane(tickets, errors)
+        _validate_goal_alignment(goals, tickets, retirements, errors, warnings)
+    if strict:
         return PlanReport(errors=errors, warnings=warnings)
-    retirements = _validate_retirements(
-        plan, tickets, goals, schedule_revision, errors
-    )
-    _validate_dependency_graph(tickets, errors)
-    _validate_conflicts(tickets, errors)
-    _validate_promotion_lane(tickets, errors)
-    _validate_goal_alignment(goals, tickets, retirements, errors, warnings)
-    return PlanReport(errors=errors, warnings=warnings)
+    blocking = [error for error in errors if isinstance(error, Blocking)]
+    advisory = [error for error in errors if not isinstance(error, Blocking)]
+    return PlanReport(errors=blocking, warnings=advisory + warnings)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -1284,7 +1303,51 @@ def _parser() -> argparse.ArgumentParser:
         default=DEFAULT_PLAN,
         help=f"ticket plan YAML (default: {DEFAULT_PLAN})",
     )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="treat every diagnostic as an error, not only blocking ones",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help=f"exit 0 even when errors remain (same as {GATES_ENV}=off)",
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="list every warning instead of a short summary",
+    )
     return parser
+
+
+WARNINGS_SHOWN = 3
+LINE_LIMIT = 160
+
+
+def _clip(message: str) -> str:
+    return message if len(message) <= LINE_LIMIT else message[: LINE_LIMIT - 3] + "..."
+
+
+def print_diagnostics(
+    source: object, report: PlanReport, force: bool, verbose: bool
+) -> None:
+    """Print few, short lines: agents read this output into their context."""
+    shown = report.warnings if verbose else report.warnings[:WARNINGS_SHOWN]
+    for warning in shown:
+        print(f"WARNING: {warning if verbose else _clip(warning)}", file=sys.stderr)
+    hidden = len(report.warnings) - len(shown)
+    if hidden:
+        print(f"WARNING: {hidden} more (--verbose lists them)", file=sys.stderr)
+    if report.errors:
+        label = "FORCED past errors in" if force else "INVALID:"
+        print(f"{label} {source}", file=sys.stderr)
+        for error in report.errors:
+            print(f"- {error if verbose else _clip(error)}", file=sys.stderr)
+
+
+def gates_forced(flag: bool) -> bool:
+    return flag or os.environ.get(GATES_ENV, "").strip().lower() in {"off", "0", "false"}
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -1299,15 +1362,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"ERROR: invalid YAML in {args.plan}: {error}", file=sys.stderr)
         return 2
 
-    report = validate_plan(plan)
-    for warning in report.warnings:
-        print(f"WARNING: {warning}", file=sys.stderr)
-
-    if report.errors:
-        print(f"INVALID: {args.plan}", file=sys.stderr)
-        for error in report.errors:
-            print(f"- {error}", file=sys.stderr)
+    force = gates_forced(args.force)
+    report = validate_plan(plan, strict=args.strict)
+    print_diagnostics(args.plan, report, force, args.verbose)
+    if report.errors and not force:
         return 1
+    if not isinstance(plan, dict) or not isinstance(plan.get("tickets"), list):
+        return 0
 
     ticket_count = len(plan["tickets"])
     retired_count = sum(
@@ -1322,7 +1383,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         if isinstance(ticket, dict)
         and str(ticket.get("status", "")).strip().lower() != RETIRED
     ]
-    wave_count = len({ticket["wave"] for ticket in active_tickets})
+    wave_count = len({str(ticket.get("wave")) for ticket in active_tickets})
     goal_count = len(plan.get("epic_goals") or [])
     goal_label = "goal" if goal_count == 1 else "goals"
     print(

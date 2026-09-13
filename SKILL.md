@@ -369,9 +369,11 @@ canonical plan entry before starting and again before promotion.
    `scripts/validate_assignment.py`, against the issue body as GitHub now holds
    it, with `--expect-ticket` and `--expect-epic-branch`. The schema is
    specified here, rendered by `git-issue`, and parsed by `git-issue-workflow`,
-   so an unrendered placeholder, a `pr_base` that is not the epic branch, or a
-   policy block the renderer omitted is caught here rather than by the ticket
-   agent not having it.
+   so a `pr_base` that is not the epic branch fails here and an omitted policy
+   block or placeholder shows up as a short warning. Only wrong-branch,
+   wrong-ticket, and missing-location errors block; `--force` (or
+   `SKILL_GATES=off`) passes those too when you have decided they do not apply.
+   Never rewrite a plan or re-scope a ticket just to silence a warning.
 6. Commit and push the epic branch before handing out any issue URL.
 7. Report the epic branch/tip, workflow name, the goal table, and a table of
    issue URL, ticket ID, dependencies, wave, promotion predecessor, and goals
