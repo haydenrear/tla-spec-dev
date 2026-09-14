@@ -129,7 +129,9 @@ first, once, then again for the worktree.
 Then note two things about the schedule you are about to write:
 
 - **`conflict_keys` do not cover units in a home.** They partition *tracked files*
-  — production, TLA, adapters, test_graph, workflow. A skill unit lives in a home,
+  under lane names the plan chooses — `production`, `tla`, `adapters`,
+  `test_graph` and `workflow` are common examples, not a required set, and the
+  validators accept any lane name. A skill unit lives in a home,
   which is gitignored, so two tickets in the same wave can have perfectly disjoint
   conflict keys and still both improve `test-graph` in their own homes. Neither
   edit is in either PR. **You** reconcile both into the one project home at that
