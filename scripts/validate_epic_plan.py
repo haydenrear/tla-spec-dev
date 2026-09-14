@@ -1082,8 +1082,8 @@ def _validate_goal_alignment(
                 retired_ids = sorted(ticket.id for ticket, _ in impacts)
                 errors.append(
                     f"goal {goal_id!r}: active evaluation ticket {evaluator.id!r} "
-                    f"cannot decide retired work {retired_ids}; retire/reschedule the "
-                    "evaluator and record an accepted or carried goal disposition"
+                    f"cannot decide retired work {retired_ids}; "
+                    "decide with the owner whether it still measures this goal"
                 )
 
             active_associations = sorted(
@@ -1094,8 +1094,8 @@ def _validate_goal_alignment(
             if active_associations:
                 errors.append(
                     f"goal {goal_id!r}: retirement disposition conflicts with active "
-                    f"tickets {active_associations}; deliver or retire every remaining "
-                    "ticket serving the goal"
+                    f"tickets {active_associations}; they can proceed -- note the partial "
+                    "retirement in the epic PR"
                 )
             continue
 
