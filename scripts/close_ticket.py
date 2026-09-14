@@ -34,6 +34,11 @@ def main() -> int:
         action="store_true",
         help="Accept the ticket desired/ as the new current/: skip the current==desired check and overwrite current/ from desired/ before promotion.",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Warn instead of refusing on status, receipt, and convergence gates. SKILL_GATES=off means the same. Recorded in the receipt.",
+    )
     args = parser.parse_args()
 
     result = create_ticket_history_entry(
@@ -49,6 +54,7 @@ def main() -> int:
         promote_current=not args.no_promote_current,
         accept_new=args.accept_new,
         emit_feedback=not args.no_skill_feedback,
+        force=args.force,
     )
     print_commit_recommendation(result)
     return 0

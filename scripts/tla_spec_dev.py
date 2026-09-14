@@ -227,6 +227,7 @@ def run_close_ticket(args: argparse.Namespace) -> int:
         ticket_root=args.ticket_root,
         promote_current=not args.no_promote_current,
         accept_new=args.accept_new,
+        force=args.force,
     )
     print_commit_recommendation(result)
     return 0
@@ -244,6 +245,7 @@ def run_retire_ticket(args: argparse.Namespace) -> int:
         ticket_ref=args.ticket_name,
         workflow=args.workflow_name,
         ticket_root=args.ticket_root,
+        force=args.force,
     )
     print_commit_recommendation(result)
     return 0
@@ -540,7 +542,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     open_ticket.add_argument("ticket_name", help="Ticket id from desired_program_model/ticket_plan.yaml.")
     open_ticket.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
-    open_ticket.add_argument("--force", action="store_true", help="Overwrite existing ticket-local files.")
+    open_ticket.add_argument("--force", action="store_true", help="Overwrite existing ticket-local files, and reopen a ticket the plan already marks terminal (SKILL_GATES=off also allows the reopen).")
     open_ticket.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
     open_ticket.set_defaults(
         func=run_open_ticket,
@@ -800,6 +802,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path("tickets"),
         help="Ticket directory root, relative to spec root by default.",
     )
+    retire_ticket.add_argument(
+        "--force",
+        action="store_true",
+        help="Warn instead of refusing on retirement-declaration and prior-receipt gates. SKILL_GATES=off means the same.",
+    )
     retire_ticket.set_defaults(
         func=run_retire_ticket,
         command_path="tla-spec-dev retire ticket",
@@ -845,6 +852,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--accept-new",
         action="store_true",
         help="Accept the ticket desired/ as the new current/: skip the current==desired check and overwrite current/ from desired/ before promotion.",
+    )
+    close_ticket.add_argument(
+        "--force",
+        action="store_true",
+        help="Warn instead of refusing on status, receipt, and convergence gates; a divergent ticket is accepted as with --accept-new. SKILL_GATES=off means the same. Recorded in the receipt.",
     )
     close_ticket.set_defaults(
         func=run_close_ticket,

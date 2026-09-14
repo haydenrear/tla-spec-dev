@@ -92,8 +92,7 @@ filled in, and the ticket is marked closed in
 `specs/desired_program_model/ticket_plan.yaml`. It reads the ticket
 from that YAML file, evaluates the complexity-ledger gate (appending a
 recorded or rejected entry to `specs/results/complexity_ledger.json`; a
-rejected gate refuses the close before anything is mutated, with no override
-flag), snapshots `specs/program_model`,
+rejection warns and never refuses the close), snapshots `specs/program_model`,
 `specs/desired_program_model`, project `specs/current`, moves
 `specs/tickets/<ticket-id>` into
 `specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/ticket/`, promotes the

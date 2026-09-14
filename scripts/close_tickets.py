@@ -19,17 +19,23 @@ from typing import Any
 
 try:
     from .spec_evolution import (
+        TICKET_CLOSED_STATUSES,
         create_workflow_closed_snapshot,
+        gates_forced,
         live_receipt_manifests,
         print_commit_recommendation,
+        refuse_or_warn,
         validate_workflow_ticket_completion,
         workflow_name as resolve_workflow_name,
     )
 except ImportError:  # pragma: no cover - direct script execution
     from spec_evolution import (
+        TICKET_CLOSED_STATUSES,
         create_workflow_closed_snapshot,
+        gates_forced,
         live_receipt_manifests,
         print_commit_recommendation,
+        refuse_or_warn,
         validate_workflow_ticket_completion,
         workflow_name as resolve_workflow_name,
     )
@@ -74,7 +80,10 @@ def _load_yaml(path: Path) -> dict[str, Any]:
 
     if not path.exists():
         return {}
-    return load_manifest(path)
+    try:
+        return load_manifest(path)
+    except ValueError as error:
+        raise SystemExit(f"ERROR: {path}: {error}") from error
 
 
 def _resolve_spec_root(repo_root: Path, spec_root: Path) -> Path:
@@ -316,8 +325,7 @@ def _terminal_delivered_ticket(plan: dict[str, Any]) -> tuple[int, dict[str, Any
         (index, ticket)
         for index, ticket in enumerate(tickets)
         if isinstance(ticket, dict)
-        and str(ticket.get("status", "")).strip().lower()
-        in {"accepted", "closed", "complete", "completed", "done"}
+        and str(ticket.get("status", "")).strip().lower() in TICKET_CLOSED_STATUSES
     ]
     if not delivered:
         return None
@@ -368,24 +376,10 @@ def validate_retirement_accept_new_authority(
         )
     if manifest.get("workflow_name") != resolved_workflow:
         errors.append(f"terminal ticket {terminal_id} close receipt names another workflow")
-    if str(manifest.get("ticket_status", "")).strip().lower() not in {
-        "accepted",
-        "closed",
-        "complete",
-        "completed",
-        "done",
-    }:
+    if str(manifest.get("ticket_status", "")).strip().lower() not in TICKET_CLOSED_STATUSES:
         errors.append(f"terminal ticket {terminal_id} receipt is not a successful close")
-    guard = manifest.get("guard_weakening")
-    if not isinstance(guard, dict) or guard.get("weakened") is not False:
-        errors.append(
-            f"terminal ticket {terminal_id} receipt was not an unweakened successful close"
-        )
-    if manifest.get("accept_new") is not False:
-        errors.append(
-            f"terminal ticket {terminal_id} receipt used accept-new and cannot authorize "
-            "retirement closeout"
-        )
+    # A forced or accept-new terminal close is recorded in its receipt's
+    # guard_weakening block; it does not disqualify that close as an authority.
     snapshots = manifest.get("snapshots")
     desired_records = [
         record
@@ -425,45 +419,63 @@ def close_ticket_workflow(
     history_entry: str = "closed-snapshot",
     accept_new: bool = False,
     emit_feedback: bool = True,
+    force: bool = False,
 ) -> list[Path]:
+    """Close the workflow. Under `force` (or SKILL_GATES=off) every refusal
+    below except a missing desired tree becomes one warning line, and a
+    divergent tree is accepted as if `--accept-new` had been passed."""
+    force = gates_forced(force)
     resolved_spec_root = _resolve_spec_root(repo_root, spec_root)
     program_dir = resolved_spec_root / "program_model"
     current_dir = resolved_spec_root / "current"
     desired_dir = resolved_spec_root / "desired_program_model"
+    ticket_plan = desired_dir / "ticket_plan.yaml"
+
+    if not accept_new:
+        errors = validate_equivalent(current_dir, desired_dir)
+        errors.extend(
+            validate_ticket_plan_closed(ticket_plan, repo_root=repo_root, workflow=workflow_name)
+        )
+        errors.extend(validate_equivalent(desired_dir, program_dir, label="program_model"))
+        refuse_or_warn(
+            errors,
+            force=force,
+            header="cannot close ticket workflow:",
+            guidance=workflow_promotion_guidance(),
+        )
+        # A forced close over a divergent tree accepts desired as the outcome.
+        accept_new = bool(errors)
 
     if accept_new:
         if not desired_dir.exists():
             raise SystemExit(f"cannot accept new workflow state: missing model directory: {desired_dir}")
-        ticket_plan = desired_dir / "ticket_plan.yaml"
         errors = validate_ticket_plan_closed(
             ticket_plan,
             repo_root=repo_root,
             workflow=workflow_name,
         )
+        header = "cannot close ticket workflow:"
         if ticket_plan_has_retirements(ticket_plan):
-            plan = _load_yaml(ticket_plan)
             retirement_errors = validate_retirement_accept_new_authority(
                 repo_root=repo_root,
                 specs_dir=resolved_spec_root,
                 desired_dir=desired_dir,
-                plan=plan,
+                plan=_load_yaml(ticket_plan),
                 workflow=workflow_name,
             )
             if retirement_errors:
                 errors.extend(retirement_errors)
-                raise SystemExit(
+                header = (
                     "cannot close ticket workflow with --accept-new: the plan contains "
                     "retired tickets, so desired state must exactly match the archived "
-                    "desired snapshot of the terminal unweakened successful ticket:\n"
-                    + "\n".join(f"- {error}" for error in errors)
+                    "desired snapshot of the terminal successful ticket:"
                 )
-        if errors:
-            raise SystemExit(
-                "cannot close ticket workflow:\n"
-                + "\n".join(f"- {error}" for error in errors)
-                + "\n\n"
-                + workflow_promotion_guidance()
-            )
+        refuse_or_warn(
+            errors,
+            force=force,
+            header=header,
+            guidance="" if header != "cannot close ticket workflow:" else workflow_promotion_guidance(),
+        )
         if not dry_run:
             for relative in promote_semantic_files(desired_dir, current_dir):
                 print(f"accept-new current: {relative}")
@@ -471,23 +483,6 @@ def close_ticket_workflow(
                 print(f"accept-new program_model: {relative}")
         else:
             print("would accept desired_program_model as the new current and program_model")
-    else:
-        errors = validate_equivalent(current_dir, desired_dir)
-        errors.extend(
-            validate_ticket_plan_closed(
-                desired_dir / "ticket_plan.yaml",
-                repo_root=repo_root,
-                workflow=workflow_name,
-            )
-        )
-        errors.extend(validate_equivalent(desired_dir, program_dir, label="program_model"))
-        if errors:
-            raise SystemExit(
-                "cannot close ticket workflow:\n"
-                + "\n".join(f"- {error}" for error in errors)
-                + "\n\n"
-                + workflow_promotion_guidance()
-            )
 
     if not dry_run:
         result = create_workflow_closed_snapshot(
@@ -498,6 +493,7 @@ def close_ticket_workflow(
             workflow=workflow_name,
             entry_name=history_entry,
             emit_feedback=emit_feedback,
+            force=force,
         )
         print_commit_recommendation(result)
         # MF-017: migration.md Phase 6 calls the retro part of the workflow, not
@@ -542,6 +538,11 @@ def main() -> int:
         action="store_true",
         help="Accept desired_program_model/ as the new current/ and program_model/: skip the semantic-equivalence checks and overwrite them from desired_program_model/ before the snapshot. Ticket receipts are still required; with retirement, desired must exactly match the terminal delivered ticket's archived desired snapshot.",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Warn instead of refusing on status, receipt, convergence, and complexity-ledger gates; a divergent tree is accepted as with --accept-new. SKILL_GATES=off means the same. Recorded in the receipt.",
+    )
     args = parser.parse_args()
 
     close_ticket_workflow(
@@ -554,6 +555,7 @@ def main() -> int:
         history_entry=args.history_entry,
         accept_new=args.accept_new,
         emit_feedback=not args.no_skill_feedback,
+        force=args.force,
     )
     return 0
 

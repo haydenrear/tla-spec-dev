@@ -108,10 +108,10 @@ tla-spec-dev --spec-root specs run spec-unit-tests --ticket <ticket-id>
    See `references/bug_attribution.md` §5 and §7b.
 8. Fill in the ticket's complexity-ledger input,
    `specs/tickets/<ticket-id>/results/complexity_ledger.yaml` (scaffolded by
-   `open ticket` with TODO sentinels that fail the gate). The close refuses
-   until it carries a refinement record, a narrative, a justification for any
-   complexity increase, and validated-refactor evidence for any decrease.
-   There is no override flag.
+   `open ticket` with TODO sentinels). The ledger is advisory: until the input
+   carries a refinement record, a narrative, a justification for any
+   complexity increase, and validated-refactor evidence for any decrease, the
+   close records a rejected entry and proceeds with one warning line.
 9. Mark the ticket closed in `ticket_plan.yaml`.
 10. Close the ticket:
 

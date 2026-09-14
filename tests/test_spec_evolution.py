@@ -237,8 +237,8 @@ def test_empty_directory_still_reports_absence_rather_than_raising(tmp_path: Pat
     assert find_model_files(tmp_path / "nope") is None
 
 
-def test_close_refuses_to_record_a_ledger_entry_for_a_mismatched_pair(tmp_path: Path) -> None:
-    """"I could not measure this" -- and nothing is appended to the ledger."""
+def test_close_skips_the_ledger_for_a_mismatched_pair_with_one_warning(tmp_path: Path, capsys) -> None:
+    """"I could not measure this" -- one warning, nothing appended, no refusal."""
     specs_dir = tmp_path / "specs"
     active_dir = specs_dir / "tickets" / "T-1"
     model_dir = three_module_baseline(
@@ -247,19 +247,20 @@ def test_close_refuses_to_record_a_ledger_entry_for_a_mismatched_pair(tmp_path: 
     )
     input_path = write_ticket_ledger_input(active_dir)
 
-    with pytest.raises(SystemExit) as error:
-        record_complexity_ledger(
-            specs_dir,
-            scope="ticket",
-            scope_id="T-1",
-            workflow="fixture",
-            model_dir=model_dir,
-            input_path=input_path,
-        )
+    record = record_complexity_ledger(
+        specs_dir,
+        scope="ticket",
+        scope_id="T-1",
+        workflow="fixture",
+        model_dir=model_dir,
+        input_path=input_path,
+    )
 
-    message = str(error.value)
-    assert "could not measure" in message
-    assert "Core.tla + External.cfg" in message
+    warning = capsys.readouterr().err
+    assert record is None
+    assert "could not measure" in warning
+    assert "Core.tla + External.cfg" in warning
+    assert len(warning.strip().splitlines()) == 1
     assert not complexity_ledger.ledger_path(specs_dir).exists()
 
 

@@ -124,15 +124,20 @@ The same applies to the whole-workflow close, which requires `current/`,
 (the whole-workflow comparison covers `.tla`, `.cfg`, `.yaml`/`.yml` files
 only).
 
-Both closes are additionally gated by the complexity ledger (MF-019): a
-ticket close reads the ticket's `results/complexity_ledger.yaml` input
-(scaffolded by `open ticket`), and the workflow close reads
-`specs/results/complexity_ledger_input.yaml`. The gate runs before the
-history entry is created, appends an entry (recorded or rejected) to
-`specs/results/complexity_ledger.json`, and has no override flag. It refuses
-when the input is missing or unfilled, when there is no refinement record or
-narrative, when complexity increased without a recorded justification, and when
-a decrease lacks validated-refactor evidence.
+Both closes also run the complexity ledger (MF-019): a ticket close reads the
+ticket's `results/complexity_ledger.yaml` input (scaffolded by `open ticket`),
+and the workflow close reads `specs/results/complexity_ledger_input.yaml`. It
+is advisory. It appends an entry (recorded or rejected) to
+`specs/results/complexity_ledger.json` and prints one warning line when it
+rejects — unfilled input, no refinement record or narrative, an unjustified
+increase, or an unevidenced decrease — and the close proceeds. A model or
+input it cannot read skips the measurement with one warning line.
+
+Every other close refusal (ticket status, receipts, current == desired) can
+be skipped with `--force` or `SKILL_GATES=off` (alias `SPEC_GATES=off`). Each
+skipped refusal prints one line, and the receipt's `guard_weakening.force`
+records it. Path confinement, symlink workspaces, and overwriting an existing
+history entry are never skipped.
 
 The coverage audit was a sixth refusal — at workflow close, on anything but
 `pass`, with no override — until 2026-08-04. Its verdict is still recorded and
@@ -247,7 +252,8 @@ entry without accepting it. Its manifest records, exactly:
 }
 ```
 
-`close ticket` always refuses `status: retired`, even under `--allow-open`.
+`close ticket` refuses `status: retired`, even under `--allow-open`, unless
+`--force` is passed.
 Whole-workflow close recognizes a retirement only when the canonical receipt
 exists and its ticket identity, complete retirement block, no-promotion field,
 no-validation field, and empty accepted snapshot/result lists exactly match the
@@ -299,8 +305,9 @@ narrower. The current `desired_program_model` must be byte-for-byte identical
 to the archived desired snapshot in the one successful close receipt for the
 terminal delivered ticket (the unique greatest `promotion_order`, or the final
 delivered ordinal when no orders are declared). That receipt must match the
-final plan's workflow, immutable ordinal, ticket identity, and terminal status;
-it must record an unweakened close with `accept_new: false`. This lets a final
+final plan's workflow, immutable ordinal, ticket identity, and a terminal
+status. A forced or `accept_new` terminal close still qualifies; its receipt
+records that in `guard_weakening`. This lets a final
 evaluation ticket authorize promotion while preventing withdrawn ticket state
 from becoming the program model merely because its schedule was retired.
 

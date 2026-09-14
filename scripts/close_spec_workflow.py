@@ -28,6 +28,11 @@ def main() -> int:
         action="store_true",
         help="Do not emit/append the references/migration.md Phase 6 skill-feedback retro into <spec-root>/results/skill_feedback.md.",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Warn instead of refusing on ticket status and receipt gates. SKILL_GATES=off means the same.",
+    )
     args = parser.parse_args()
 
     repo_root = args.repo_root.resolve()
@@ -40,6 +45,7 @@ def main() -> int:
         entry_name=args.entry_name,
         allow_open=args.allow_open,
         emit_feedback=not args.no_skill_feedback,
+        force=args.force,
     )
     if args.remove_active:
         specs_dir = resolve_spec_root(repo_root, args.spec_root)

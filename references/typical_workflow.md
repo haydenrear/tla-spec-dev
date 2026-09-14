@@ -91,10 +91,10 @@ tla-spec-dev --repo-root path/to/repo --spec-root specs close ticket TICKET-123 
 
 Closing validates ticket-local `current == desired`, records a
 complexity-ledger entry from the ticket's filled-in
-`results/complexity_ledger.yaml` (the close is refused — with no override
-flag — while the ledger input is missing, still carries TODO sentinels, lacks
-a refinement record or narrative, reports an unjustified complexity increase,
-or claims a decrease without validated-refactor evidence), promotes ticket
+`results/complexity_ledger.yaml` (advisory: a missing input skips the
+measurement, and an input with TODO sentinels, no refinement record or
+narrative, an unjustified increase, or an unevidenced decrease is recorded as
+rejected with one warning line — the close still proceeds), promotes ticket
 `desired/` onto project-level `specs/current` (removing only seeded paths the
 ticket dropped and preserving current-only files the ticket was never seeded
 with), merges ticket-local Test Graph artifacts into project specs, and moves
