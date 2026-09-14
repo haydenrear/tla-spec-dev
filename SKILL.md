@@ -37,8 +37,8 @@ skill-imports:
   - unit: test-graph
     path: references/workflows.md
     reason: Defines graph discovery, execution, evidence, and the smart failure loop used by every ticket and by epic finalization.
-  - unit: skill-manager
-    path: references/workflows.md
+  - unit: skt
+    path: skills/skill-manager/references/workflows.md
     reason: Defines how installed dependent skills and their managed tools are resolved at runtime.
 ---
 
