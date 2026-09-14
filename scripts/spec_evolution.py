@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import os
 import re
 import shlex
 import shutil
@@ -75,9 +76,69 @@ IGNORED_COPY_NAMES = {
 #: Suffixes never archived into a history entry. Binaries carry no reviewable
 #: decision and are reproducible from the build that emitted them.
 IGNORED_COPY_SUFFIXES = {".jar", ".class", ".so", ".dylib", ".pyc"}
-TICKET_CLOSED_STATUSES = {"accepted", "closed", "complete", "completed", "done"}
+#: The ONE terminal-status vocabulary. close_tickets.py and new_ticket_workflow.py
+#: import it; a second literal copy is how `delivered` came to close in one
+#: command and refuse in the next.
+TICKET_CLOSED_STATUSES = {"accepted", "closed", "complete", "completed", "delivered", "done", "merged"}
 TICKET_RETIRED_STATUS = "retired"
 TICKET_RETIREMENT_RESOLUTIONS = {"carried", "superseded", "abandoned"}
+
+#: One switch for every skill's gates. `SKILL_GATES=off` is the primary name,
+#: shared with git-epic-workflow's validators and git-issue-workflow's `wt`;
+#: `SPEC_GATES=off` is accepted as an alias. Either means exactly `--force`.
+GATES_ENV_VARS = ("SKILL_GATES", "SPEC_GATES")
+GATES_OFF_VALUES = {"off", "0", "false", "no", "force"}
+FORCED_WARNING_CAP = 10
+FORCED_WARNING_WIDTH = 200
+_forced_warnings_seen: set[str] = set()
+
+
+def gates_forced(force: bool = False) -> bool:
+    """True when `--force` was passed or a gates env var is set to off."""
+    if force:
+        return True
+    return any(
+        os.environ.get(name, "").strip().lower() in GATES_OFF_VALUES
+        for name in GATES_ENV_VARS
+    )
+
+
+def refuse_or_warn(
+    problems: list[str],
+    *,
+    force: bool,
+    header: str | None = None,
+    guidance: str = "",
+) -> None:
+    """Refuse with every problem, or under force print one short line each.
+
+    Forced warnings are deduplicated across a run and capped, so a forced close
+    costs the reader a few lines instead of a report.
+    """
+    if not problems:
+        return
+    if not force:
+        if header is None and len(problems) == 1:
+            message = problems[0]
+        else:
+            message = (header or "ERROR:") + "\n" + "\n".join(f"- {problem}" for problem in problems)
+        if guidance:
+            message += "\n\n" + guidance
+        raise SystemExit(message)
+    fresh = []
+    for problem in problems:
+        line = " ".join(problem.split()).removeprefix("ERROR: ")
+        if len(line) > FORCED_WARNING_WIDTH:
+            line = line[: FORCED_WARNING_WIDTH - 3] + "..."
+        if line not in _forced_warnings_seen:
+            _forced_warnings_seen.add(line)
+            fresh.append(line)
+    for line in fresh[:FORCED_WARNING_CAP]:
+        print(f"WARNING (forced): {line}", file=sys.stderr)
+    if len(fresh) > FORCED_WARNING_CAP:
+        print(f"WARNING (forced): ... {len(fresh) - FORCED_WARNING_CAP} more", file=sys.stderr)
+
+
 RETIREMENT_HISTORY_POLICY = (
     "append-only by convention; this retirement is a scheduling receipt, "
     "not a successful close or validation claim"
@@ -105,7 +166,10 @@ def _load_yaml(path: Path) -> dict[str, Any]:
 
     if not path.exists():
         return {}
-    return load_manifest(path)
+    try:
+        return load_manifest(path)
+    except ValueError as error:
+        raise SystemExit(f"ERROR: {path}: {error}") from error
 
 
 def resolve_spec_root(repo_root: Path, spec_root: Path) -> Path:
@@ -823,13 +887,13 @@ def validate_successful_ticket_receipt(
             f"ticket {resolved_ticket_id} close receipt names another workflow: "
             f"{manifest.get('workflow_name')!r} ({manifest_path})"
         )
+    # Any terminal spelling on either side is the same fact: `done` at close time
+    # and `delivered` in the plan later is not a different outcome.
     receipt_status = str(manifest.get("ticket_status", "")).strip().lower()
-    expected_status = ticket_status(ticket)
-    if receipt_status != expected_status or receipt_status not in TICKET_CLOSED_STATUSES:
+    if receipt_status not in TICKET_CLOSED_STATUSES:
         errors.append(
-            f"ticket {resolved_ticket_id} close receipt status does not match the "
-            f"delivered plan entry: expected {expected_status!r}, got {receipt_status!r} "
-            f"({manifest_path})"
+            f"ticket {resolved_ticket_id} close receipt is not a successful close: "
+            f"status {receipt_status!r} ({manifest_path})"
         )
     return errors
 
@@ -1231,11 +1295,12 @@ CLOSE_GUARD_WEAKENING_FLAGS = {
     "--accept-new": "skips the ticket current == desired check and overwrites current/ from desired/",
     "--allow-open": "snapshots a ticket whose ticket_plan.yaml status is not closed/done",
     "--no-promote-current": "closes without promoting ticket desired/ into project current/",
+    "--force": "warns instead of refusing on status, receipt, convergence, and ledger gates (same as SKILL_GATES=off)",
 }
 
 
 def weakening_flags_record(
-    *, accept_new: bool, allow_open: bool, promote_current: bool
+    *, accept_new: bool, allow_open: bool, promote_current: bool, force: bool = False
 ) -> dict[str, Any]:
     """Name the guard-weakening flags this close was taken under.
 
@@ -1261,8 +1326,11 @@ def weakening_flags_record(
         used.append("--allow-open")
     if not promote_current:
         used.append("--no-promote-current")
+    if force:
+        used.append("--force")
     return {
         "weakened": bool(used),
+        "force": force,
         "flags": used,
         "bypassed": [CLOSE_GUARD_WEAKENING_FLAGS[flag] for flag in used],
         "model_action": "CloseTicketWeakened" if used else "CloseTicket",
@@ -1531,41 +1599,41 @@ def record_complexity_ledger(
     model_dir: Path,
     input_path: Path,
     tlc_report: Path | None = None,
-) -> dict[str, Any]:
-    """Evaluate the standing objective and refuse the close when it is not met.
+) -> dict[str, Any] | None:
+    """Measure the close and record the verdict. Advisory: never refuses.
 
-    Called BEFORE the history entry is created and before promotion, so a
-    refused close leaves the tree untouched.
+    Complexity is a scanner, not a gate. A close the ledger rejects is still
+    appended to the ledger as a rejection and the close proceeds with one
+    warning line; a model or input the ledger cannot read skips the measurement
+    with one warning line and returns None.
     """
+    def skipped(reason: str) -> None:
+        print(
+            "WARNING: complexity ledger skipped: " + " ".join(reason.split())[:FORCED_WARNING_WIDTH],
+            file=sys.stderr,
+        )
+
     try:
         selection = select_model_files(model_dir)
     except ModelSelectionError as error:
-        raise SystemExit(
-            f"ERROR: complexity ledger could not identify the model to measure in "
-            f"{rel(model_dir)}.\n{error}"
-        ) from error
+        skipped(f"could not identify the model to measure in {rel(model_dir)}: {error}")
+        return None
     if selection is None:
-        raise SystemExit(
-            f"ERROR: complexity ledger cannot find a model to measure in {rel(model_dir)}.\n"
-            "The ledger records measured complexity; it does not estimate and it does "
-            "not skip. Point the close at a tree containing <module>.tla and MC.cfg."
-        )
+        skipped(f"no model to measure in {rel(model_dir)}")
+        return None
     mismatches = validate_model_pair(selection)
     if mismatches:
-        raise SystemExit(
-            f"ERROR: complexity ledger could not measure {selection.describe()} in "
-            f"{rel(model_dir)}:\n"
-            + "\n".join(f"- {problem}" for problem in mismatches)
-            + "\n\nA config that does not configure the module is not a measurement. "
-            "Declare the pair in spec_manifest.yaml:\n  model:\n    tla: <module>.tla\n"
-            "    cfg: <config>.cfg"
+        skipped(
+            f"could not measure {selection.describe()} in {rel(model_dir)}: {mismatches[0]}"
         )
+        return None
     print(f"complexity ledger model: {selection.describe()}")
     tla_path, cfg_path, manifest_path = selection.tla, selection.cfg, selection.manifest
     try:
         ledger_input = complexity_ledger.load_input(input_path)
-    except complexity_ledger.LedgerError as error:
-        raise SystemExit(f"ERROR: {error}") from error
+    except Exception as error:  # a malformed input is a skipped measurement, not a refusal
+        skipped(str(error).splitlines()[0])
+        return None
 
     resolved_tlc = tlc_report
     if resolved_tlc is None:
@@ -1592,18 +1660,16 @@ def record_complexity_ledger(
         # input document, the way every other per-ticket evidence path is.
         input_dir=input_path.parent,
     )
-    report = complexity_ledger.render_report(verdict)
     if verdict.rejected:
-        # Append the rejection before refusing. The rejected entry is part of the
-        # append-only record -- a refused close is evidence, not a non-event --
-        # and previous_entry() skips rejections so it never becomes a baseline.
-        complexity_ledger.append_entry(path, verdict.entry)
-        raise SystemExit(
-            report
-            + "\nERROR: close refused by the complexity ledger (MF-019 standing objective).\n"
-            "Complexity is minimized under behavior retention. There is no override flag."
+        # The rejected entry is part of the append-only record, and
+        # previous_entry() skips rejections so it never becomes a baseline.
+        print(
+            f"WARNING: complexity ledger rejected this close ({len(verdict.errors)} "
+            f"issue(s)); see {rel(path)}",
+            file=sys.stderr,
         )
-    print(report)
+    else:
+        print(complexity_ledger.render_report(verdict))
     complexity_ledger.append_entry(path, verdict.entry)
     record = dict(verdict.entry)
     record["ledger_path"] = rel(path)
@@ -1676,15 +1742,15 @@ def _render_retirement_summary(
         [
             f"# Retired ticket: {resolved_ticket_id}\n\n",
             f"- Workflow: `{workflow}`\n",
-            f"- Resolution: `{retirement['resolution']}`\n",
-            f"- Decided by: `{retirement['decided_by']}`\n",
-            f"- Decided at: `{retirement['decided_at']}`\n",
+            f"- Resolution: `{retirement.get('resolution')}`\n",
+            f"- Decided by: `{retirement.get('decided_by')}`\n",
+            f"- Decided at: `{retirement.get('decided_at')}`\n",
             *successor_lines,
             f"- Archived ticket workspace: {archived}\n",
             "- Semantic promotion performed: `false`\n",
             "- Validation claimed: `false`\n",
             "\n## Owner reason\n\n",
-            retirement["reason"].strip(),
+            str(retirement.get("reason") or "").strip(),
             "\n\nThis append-only receipt records a scheduling decision. It is not a "
             "successful ticket close and claims no validated program change.\n",
         ]
@@ -1753,8 +1819,14 @@ def create_ticket_retirement_entry(
     ticket_ref: str,
     workflow: str | None = None,
     ticket_root: Path = Path("tickets"),
+    force: bool = False,
 ) -> HistoryEntryResult:
-    """Write the canonical no-promotion receipt for an owner-retired ticket."""
+    """Write the canonical no-promotion receipt for an owner-retired ticket.
+
+    Under `force` (or SKILL_GATES=off) declaration and prior-receipt refusals
+    warn instead; path confinement, symlink, and overwrite refusals still stop.
+    """
+    force = gates_forced(force)
     repo_root = repo_root.resolve()
     specs_dir = resolve_spec_root(repo_root, spec_root)
     plan = load_ticket_plan(specs_dir)
@@ -1770,11 +1842,7 @@ def create_ticket_retirement_entry(
         index=index,
         expected_receipt=expected_receipt,
     )
-    if declaration_errors:
-        raise SystemExit(
-            "ERROR: cannot retire ticket:\n"
-            + "\n".join(f"- {error}" for error in declaration_errors)
-        )
+    refuse_or_warn(declaration_errors, force=force, header="ERROR: cannot retire ticket:")
 
     successful_receipts = _terminal_receipts_for_identity(
         specs_dir=specs_dir,
@@ -1783,9 +1851,12 @@ def create_ticket_retirement_entry(
         resolved_ticket_id=resolved_ticket_id,
     )["ticket"]
     if successful_receipts:
-        raise SystemExit(
-            f"ERROR: ticket {resolved_ticket_id} already has a successful close receipt: "
-            f"{_record_path(successful_receipts[0], repo_root)}"
+        refuse_or_warn(
+            [
+                f"ERROR: ticket {resolved_ticket_id} already has a successful close receipt: "
+                f"{_record_path(successful_receipts[0], repo_root)}"
+            ],
+            force=force,
         )
 
     # Resolve and confine the optional workspace before creating even an empty
@@ -1832,7 +1903,7 @@ def create_ticket_retirement_entry(
                 "validation_claimed": False,
             }
 
-        retirement = ticket["retirement"]
+        retirement = ticket.get("retirement") if isinstance(ticket.get("retirement"), dict) else {}
         retirement_result = retirement_commit_recommendation(
             repo_root=repo_root,
             entry_dir=entry_dir,
@@ -1900,19 +1971,28 @@ def create_ticket_history_entry(
     promote_current: bool = True,
     accept_new: bool = False,
     emit_feedback: bool = True,
+    force: bool = False,
 ) -> HistoryEntryResult:
+    """Close one ticket.
+
+    Under `force` (or SKILL_GATES=off) the status, receipt, and convergence
+    refusals print one warning line each and the close proceeds; a divergent
+    ticket is accepted as with `--accept-new`. Overwriting an existing history
+    entry is still refused. The receipt records `guard_weakening.force`.
+    """
+    force = gates_forced(force)
     specs_dir = resolve_spec_root(repo_root, spec_root)
     plan = load_ticket_plan(specs_dir)
     resolved_workflow = workflow_name(plan, workflow)
     index, ticket = find_ticket(plan, ticket_ref)
     resolved_ticket_id = ticket_id(ticket, index)
     status = ticket_status(ticket)
+    status_problems: list[str] = []
     if status == TICKET_RETIRED_STATUS:
-        raise SystemExit(
+        status_problems.append(
             f"ERROR: ticket {resolved_ticket_id} is retired; use "
-            f"`tla-spec-dev --spec-root {spec_root} retire ticket {resolved_ticket_id}`. "
-            "A retirement receipt cannot promote desired/current state or claim validation, "
-            "even with --allow-open."
+            f"`tla-spec-dev --spec-root {spec_root} retire ticket {resolved_ticket_id}` "
+            "or --force."
         )
     retirement_receipts = _terminal_receipts_for_identity(
         specs_dir=specs_dir,
@@ -1921,31 +2001,19 @@ def create_ticket_history_entry(
         resolved_ticket_id=resolved_ticket_id,
     )["ticket-retirement"]
     if retirement_receipts:
-        raise SystemExit(
-            f"ERROR: ticket {resolved_ticket_id} already has an immutable retirement "
-            f"receipt for ordinal {index}: "
-            f"{_record_path(retirement_receipts[0], repo_root)}. Editing the plan status "
-            "cannot resurrect retired work as a successful close."
+        status_problems.append(
+            f"ERROR: ticket {resolved_ticket_id} already has a retirement receipt for "
+            f"ordinal {index}: {_record_path(retirement_receipts[0], repo_root)}"
         )
-    if not allow_open and status not in TICKET_CLOSED_STATUSES:
-        raise SystemExit(f"ERROR: ticket {resolved_ticket_id} is not closed in ticket_plan.yaml: status={status or '(missing)'}")
+    if not allow_open and status not in TICKET_CLOSED_STATUSES and status != TICKET_RETIRED_STATUS:
+        status_problems.append(
+            f"ERROR: ticket {resolved_ticket_id} is not closed in ticket_plan.yaml: "
+            f"status={status or '(missing)'} (mark it done/delivered, or pass --force)"
+        )
+    for problem in status_problems:
+        refuse_or_warn([problem], force=force)
 
-    # RC-01 (MF-026, owner decision 2026-08-01): a close taken under a
-    # guard-weakening flag is a DIFFERENT STATE from one taken under the guard
-    # (TlaSpecDevCli.tla CloseTicketWeakened), and until this ticket the record
-    # could not tell them apart. `--accept-new` and `--allow-open` exist
-    # specifically to bypass the precondition TLC proves over 563,963 states;
-    # the manifest recorded only `accept_new`, as an unlabeled boolean beside
-    # fifty other keys, and nothing named what it meant. Recorded here so the
-    # modeled distinction is externally observable in the append-only history --
-    # a model may not represent a difference the program does not expose.
-    guard_weakening_record = weakening_flags_record(
-        accept_new=accept_new, allow_open=allow_open, promote_current=promote_current
-    )
     active_dir = active_ticket_dir(specs_dir, resolved_ticket_id, ticket_root)
-    accept_new_record: dict[str, Any] | None = None
-    if active_dir.exists() and accept_new:
-        accept_new_record = accept_new_ticket_current(active_dir)
     ticket_close_errors: list[str] = []
     if active_dir.exists() and not accept_new:
         ticket_close_errors.extend(
@@ -1956,25 +2024,38 @@ def create_ticket_history_entry(
                 right_label=f"{active_dir.name}/desired",
             )
         )
+    refuse_or_warn(
+        ticket_close_errors,
+        force=force,
+        header="ERROR: cannot close ticket-local workflow:",
+        guidance=ticket_promotion_guidance(active_dir),
+    )
     if ticket_close_errors:
-        raise SystemExit(
-            "ERROR: cannot close ticket-local workflow:\n"
-            + "\n".join(f"- {error}" for error in ticket_close_errors)
-            + "\n\n"
-            + ticket_promotion_guidance(active_dir)
-        )
+        # Forced over a divergent ticket: desired is the accepted outcome.
+        accept_new = True
+    accept_new_record: dict[str, Any] | None = None
+    if active_dir.exists() and accept_new:
+        accept_new_record = accept_new_ticket_current(active_dir)
+
+    # RC-01 (MF-026): a close taken under a guard-weakening flag is a different
+    # modeled state (TlaSpecDevCli.tla CloseTicketWeakened) from one taken under
+    # the guard, so the receipt names every flag it was taken under, --force
+    # (or SKILL_GATES=off) included.
+    guard_weakening_record = weakening_flags_record(
+        accept_new=accept_new,
+        allow_open=allow_open,
+        promote_current=promote_current,
+        force=force and bool(status_problems or ticket_close_errors),
+    )
 
     resolved_entry_name = safe_segment(entry_name) if entry_name else ticket_entry_name(index, ticket)
     entry_dir = history_root(specs_dir, resolved_workflow) / resolved_entry_name
     if entry_dir.exists():
         raise SystemExit(f"ERROR: refusing to overwrite existing history entry: {entry_dir}")
 
-    # MF-019: the standing objective is a gate, and it runs BEFORE the history
-    # entry exists and before promotion, so a refused close mutates nothing.
-    # There is deliberately no flag, parameter, or environment variable that
-    # skips this. When the ticket workdir is absent the ledger measures the
-    # promoted whole-program model instead of skipping -- "no model here" must
-    # never be a way to close without a ledger entry.
+    # MF-019: the ledger measures and records every close; it is advisory and
+    # never refuses (record_complexity_ledger). When the ticket workdir is
+    # absent it measures the promoted whole-program model instead.
     _has_workdir = active_dir.exists()
     complexity_record = record_complexity_ledger(
         specs_dir,
@@ -2115,7 +2196,9 @@ def create_workflow_closed_snapshot(
     entry_name: str = "closed-snapshot",
     allow_open: bool = False,
     emit_feedback: bool = True,
+    force: bool = False,
 ) -> HistoryEntryResult:
+    force = gates_forced(force)
     specs_dir = resolve_spec_root(repo_root, spec_root)
     plan = load_ticket_plan(specs_dir)
     resolved_workflow = workflow_name(plan, workflow)
@@ -2127,15 +2210,14 @@ def create_workflow_closed_snapshot(
         allow_open=allow_open,
         workflow=resolved_workflow,
     )
-    if completion_errors:
-        raise SystemExit(
-            "ERROR: cannot write closed workflow snapshot with incomplete or invalid tickets:\n"
-            + "\n".join(f"- {item}" for item in completion_errors)
-        )
+    refuse_or_warn(
+        completion_errors,
+        force=force,
+        header="ERROR: cannot write closed workflow snapshot with incomplete or invalid tickets:",
+    )
 
     # MF-019: workflow close records a ledger entry too, measured against the
-    # promoted whole-program model. Same gate, same refusal, evaluated before
-    # the snapshot exists.
+    # promoted whole-program model. Advisory, like the ticket close.
     complexity_record = record_complexity_ledger(
             specs_dir,
             scope="workflow",

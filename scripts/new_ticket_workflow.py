@@ -51,7 +51,10 @@ def _load_manifest(path: Path) -> dict[str, Any]:
 
     if not path.exists():
         return {}
-    return load_manifest(path)
+    try:
+        return load_manifest(path)
+    except ValueError as error:
+        raise SystemExit(f"ERROR: {path}: {error}") from error
 
 
 def _slug(value: str) -> str:
@@ -1009,20 +1012,23 @@ def scaffold_ticket_directory(
     # suite -- reported it, because nothing drives the CLI against the plan's
     # status field.
     #
-    # No override flag, matching the model, which has no notion of one.
-    from scripts.spec_evolution import TICKET_CLOSED_STATUSES, TICKET_RETIRED_STATUS
+    # `--force` (or SKILL_GATES=off) reopens anyway, with one warning line.
+    from scripts.spec_evolution import (
+        TICKET_CLOSED_STATUSES,
+        TICKET_RETIRED_STATUS,
+        gates_forced,
+        refuse_or_warn,
+    )
 
     raw_status = str(ticket.get("status") or "").strip().lower()
     if raw_status in TICKET_CLOSED_STATUSES or raw_status == TICKET_RETIRED_STATUS:
-        raise SystemExit(
-            f"ERROR: ticket {resolved_ticket_id} has already entered the lifecycle: "
-            f"status={raw_status}.\n"
-            "`OpenTicket` in the program model requires ticket_state = TicketUnopened -- "
-            "'the never-reopened property is now structural' (MF-025). Reopening finished "
-            "work would be indistinguishable from starting new work.\n"
-            "REMEDY: to do more work here, add a NEW ticket entry to "
-            f"{ticket_plan_path(specs_dir)} with its own id. To inspect what this ticket "
-            "did, read its sealed record under specs/.history rather than reopening it."
+        refuse_or_warn(
+            [
+                f"ERROR: ticket {resolved_ticket_id} has already entered the lifecycle: "
+                f"status={raw_status}. Add a NEW ticket entry to "
+                f"{ticket_plan_path(specs_dir)}, or pass --force to reopen it."
+            ],
+            force=gates_forced(force),
         )
     title = ticket_title(ticket, resolved_ticket_id)
     root_dir = ticket_root_dir(specs_dir, ticket_root)

@@ -561,6 +561,16 @@ Lifecycle:
    the ticket directory into history, replaces project `specs/current` with
    ticket `desired/`, and merges ticket-local Test Graph artifacts into project
    specs.
+   Every terminal spelling closes (`done`, `closed`, `delivered`, `merged`, ...).
+   Never rewrite a ticket's status in the plan just to get past a refusal: if
+   the close still refuses on status, the CLI on PATH is older than this
+   skill, and the answer is `--force`, not a different word in the plan.
+   If a gate blocks a close you have decided to make, rerun with `--force`
+   (or set `SKILL_GATES=off`; `SPEC_GATES=off` is an alias). Each skipped
+   refusal prints one warning line, and forced closes are recorded in the
+   receipt's `guard_weakening` block. `--force` never overwrites an existing
+   history entry or writes outside the spec root. The complexity ledger never
+   blocks: a rejected verdict is recorded and the close proceeds with a warning.
    When the owner withdraws a dispatched ticket instead, do not mark it closed
    and do not use `--allow-open`. Keep the ticket in its original plan ordinal,
    mark it `status: retired`, add the explicit `retirement` decision described
@@ -982,8 +992,9 @@ against the unchanged plan entry.
 Workflow close also requires one matching successful-close receipt for every
 delivered ticket. If `--accept-new` is used in a plan containing retirement,
 the desired tree must exactly match the terminal delivered ticket's archived
-desired snapshot from an unweakened, non-`accept-new` close; retirement itself
-can never authorize semantic promotion.
+desired snapshot; retirement itself can never authorize semantic promotion.
+`--force` (or `SKILL_GATES=off`) turns each of these refusals into one warning
+line.
 
 Whole-workflow close:
 

@@ -211,7 +211,7 @@ def test_success_close_cannot_promote_a_retired_ticket_even_with_allow_open(
         )
 
     assert "is retired" in str(error.value)
-    assert "cannot promote" in str(error.value)
+    assert "--force" in str(error.value)
     assert not (tmp_path / "specs" / ".history" / WORKFLOW).exists()
 
 
@@ -620,9 +620,9 @@ def test_supersession_is_directional_and_is_not_newest_wins(tmp_path: Path) -> N
     """Which receipt counts is what the marker SAYS, not which one sorts last."""
     plan_path = write_delivered_plan(tmp_path)
     good = write_delivered_receipt(tmp_path, "ticket-000-DONE-001")
-    # Later by name, and WRONG: its status disagrees with the delivered plan entry.
+    # Later by name, and WRONG: its status is not a terminal close.
     later = write_delivered_receipt(
-        tmp_path, "ticket-000-DONE-001-retaken", ticket_status="closed"
+        tmp_path, "ticket-000-DONE-001-retaken", ticket_status="in_progress"
     )
 
     # Direction: the LATER receipt is the superseded one, so the earlier survives.
@@ -632,9 +632,23 @@ def test_supersession_is_directional_and_is_not_newest_wins(tmp_path: Path) -> N
     # Reverse the arrow over the same two files and the survivor changes with it.
     clear_superseded(later)
     mark_superseded(good, "ticket-000-DONE-001-retaken")
-    assert "does not match the delivered plan entry" in "\n".join(
+    assert "is not a successful close" in "\n".join(
         validate_ticket_plan_closed(plan_path, repo_root=tmp_path)
     )
+
+
+def test_any_terminal_spelling_on_plan_and_receipt_is_the_same_close(
+    tmp_path: Path,
+) -> None:
+    """`done` at close time and `delivered` in the plan later is not a mismatch."""
+    plan_path = write_delivered_plan(tmp_path)
+    plan_path.write_text(
+        plan_path.read_text(encoding="utf-8").replace("status: done", "status: delivered"),
+        encoding="utf-8",
+    )
+    write_delivered_receipt(tmp_path, "ticket-000-DONE-001", ticket_status="done")
+
+    assert validate_ticket_plan_closed(plan_path, repo_root=tmp_path) == []
 
 
 def test_supersession_marker_naming_a_missing_receipt_does_not_drop_the_count(
@@ -774,7 +788,7 @@ def test_success_close_refuses_to_resurrect_an_exactly_retired_ticket(
     resurrected["tickets"][0]["status"] = "done"
     plan_path.write_text(render_plan(resurrected), encoding="utf-8")
 
-    with pytest.raises(SystemExit, match="already has an immutable retirement receipt"):
+    with pytest.raises(SystemExit, match="already has a retirement receipt"):
         create_ticket_history_entry(
             repo_root=tmp_path,
             spec_root=Path("specs"),

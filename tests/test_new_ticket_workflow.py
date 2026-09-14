@@ -390,6 +390,87 @@ def test_close_ticket_requires_ticket_current_to_match_desired(tmp_path: Path) -
         raise AssertionError("expected divergent ticket current/desired to block close")
 
 
+def _ticket_fixture(tmp_path: Path, ticket_id: str, *, status: str, divergent: bool) -> Path:
+    write_program_model(tmp_path)
+    scaffold(tmp_path, ticket_id, "Gate fixture", force=False, dry_run=False)
+    scaffold_ticket_directory(tmp_path, ticket_id, force=False, dry_run=False)
+    ticket_dir = tmp_path / "specs" / "tickets" / ticket_id
+    desired_tla = stub_program_model("Desired")
+    (ticket_dir / "desired" / "ProgramModel.tla").write_text(desired_tla, encoding="utf-8")
+    (ticket_dir / "current" / "ProgramModel.tla").write_text(
+        stub_program_model("Current") if divergent else desired_tla, encoding="utf-8"
+    )
+    (tmp_path / "specs" / "desired_program_model" / "ticket_plan.yaml").write_text(
+        f"tickets:\n  - id: {ticket_id}\n    status: {status}\n",
+        encoding="utf-8",
+    )
+    write_ticket_ledger_input(ticket_dir)
+    return ticket_dir
+
+
+def test_delivered_status_closes_a_ticket(tmp_path: Path) -> None:
+    _ticket_fixture(tmp_path, "AUTH-150", status="delivered", divergent=False)
+
+    result = create_ticket_history_entry(
+        repo_root=tmp_path, spec_root=Path("specs"), ticket_ref="AUTH-150", summary="closed", result_paths=[]
+    )
+
+    manifest = json.loads((result.entry_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["ticket_status"] == "delivered"
+    assert manifest["guard_weakening"]["force"] is False
+
+
+def test_force_closes_an_open_divergent_ticket_and_records_it(tmp_path: Path, capsys) -> None:
+    _ticket_fixture(tmp_path, "AUTH-151", status="in_progress", divergent=True)
+
+    result = create_ticket_history_entry(
+        repo_root=tmp_path,
+        spec_root=Path("specs"),
+        ticket_ref="AUTH-151",
+        summary="forced",
+        result_paths=[],
+        force=True,
+    )
+
+    manifest = json.loads((result.entry_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["guard_weakening"]["force"] is True
+    assert "--force" in manifest["guard_weakening"]["flags"]
+    assert manifest["accept_new"] is True
+    assert "Desired ==" in (tmp_path / "specs" / "current" / "ProgramModel.tla").read_text(encoding="utf-8")
+    warnings = [line for line in capsys.readouterr().err.splitlines() if line.startswith("WARNING (forced):")]
+    assert any("AUTH-151 is not closed" in line for line in warnings)
+    assert all(len(line) <= 220 for line in warnings)
+
+    # Force never overwrites an existing history entry.
+    try:
+        create_ticket_history_entry(
+            repo_root=tmp_path,
+            spec_root=Path("specs"),
+            ticket_ref="AUTH-151",
+            summary="replayed",
+            result_paths=[],
+            force=True,
+        )
+    except SystemExit as exc:
+        assert "refusing to overwrite existing history entry" in str(exc)
+    else:
+        raise AssertionError("expected force to still refuse overwriting history")
+
+
+def test_complexity_ledger_rejection_warns_and_the_close_proceeds(tmp_path: Path, capsys) -> None:
+    ticket_dir = _ticket_fixture(tmp_path, "AUTH-152", status="done", divergent=False)
+    (ticket_dir / "results" / "complexity_ledger.yaml").write_text('narrative: "TODO"\n', encoding="utf-8")
+
+    result = create_ticket_history_entry(
+        repo_root=tmp_path, spec_root=Path("specs"), ticket_ref="AUTH-152", summary="closed", result_paths=[]
+    )
+
+    assert result.entry_dir.is_dir()
+    assert "complexity ledger rejected this close" in capsys.readouterr().err
+    ledger = json.loads((tmp_path / "specs" / "results" / "complexity_ledger.json").read_text(encoding="utf-8"))
+    assert ledger["entries"][-1]["verdict"] == "rejected"
+
+
 def test_close_ticket_accept_new_promotes_divergent_desired(tmp_path: Path) -> None:
     write_program_model(tmp_path)
     scaffold(tmp_path, "AUTH-131", "Accept new ticket", force=False, dry_run=False)
@@ -667,6 +748,35 @@ def test_close_ticket_workflow_accept_new_still_requires_closed_tickets(tmp_path
         assert "ticket AUTH-134 is not closed" in str(exc)
     else:
         raise AssertionError("expected accept-new to still require closed tickets")
+
+
+def _open_workflow_fixture(tmp_path: Path, ticket_id: str) -> None:
+    for name in ["program_model", "current", "desired_program_model"]:
+        directory = tmp_path / "specs" / name
+        directory.mkdir(parents=True)
+        (directory / "ProgramModel.tla").write_text(stub_program_model("Stub"), encoding="utf-8")
+        (directory / "MC.cfg").write_text("SPECIFICATION Spec\n", encoding="utf-8")
+    (tmp_path / "specs" / "desired_program_model" / "ticket_plan.yaml").write_text(
+        f"tickets:\n  - id: {ticket_id}\n    status: next\n", encoding="utf-8"
+    )
+
+
+def test_forced_workflow_close_warns_instead_of_refusing_open_tickets(tmp_path: Path, capsys) -> None:
+    _open_workflow_fixture(tmp_path, "AUTH-160")
+
+    removed = close_ticket_workflow(tmp_path, Path("specs"), dry_run=True, force=True)
+
+    assert removed
+    assert "WARNING (forced): ticket AUTH-160 is not closed" in capsys.readouterr().err
+
+
+def test_skill_gates_off_is_the_same_as_force(tmp_path: Path, monkeypatch, capsys) -> None:
+    _open_workflow_fixture(tmp_path, "AUTH-161")
+    monkeypatch.setenv("SKILL_GATES", "off")
+
+    close_ticket_workflow(tmp_path, Path("specs"), dry_run=True)
+
+    assert "WARNING (forced): ticket AUTH-161 is not closed" in capsys.readouterr().err
 
 
 def test_scaffold_workflow_carries_accepted_manifest_semantics(tmp_path, monkeypatch):
