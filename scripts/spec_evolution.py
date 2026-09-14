@@ -137,6 +137,8 @@ def refuse_or_warn(
         print(f"WARNING (forced): {line}", file=sys.stderr)
     if len(fresh) > FORCED_WARNING_CAP:
         print(f"WARNING (forced): ... {len(fresh) - FORCED_WARNING_CAP} more", file=sys.stderr)
+
+
 RETIREMENT_HISTORY_POLICY = (
     "append-only by convention; this retirement is a scheduling receipt, "
     "not a successful close or validation claim"
