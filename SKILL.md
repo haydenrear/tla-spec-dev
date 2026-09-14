@@ -373,7 +373,11 @@ canonical plan entry before starting and again before promotion.
    loads — use it, don't search for the scripts. The scripts declare their own
    dependencies: run them with `uv run --script`, never `python3` (which lacks
    PyYAML). `validate_assignment.py` reads `--assignment <file>` or stdin,
-   never a positional path. The schema is
+   never a positional path; `validate_epic_plan.py` takes the plan path
+   positionally. Both take the same three flags, so there is nothing to find in
+   `--help` or the source: `--force` (exit 0 past blocking errors, same as
+   `SKILL_GATES=off`), `--strict` (every rule is an error), `--verbose` (list
+   every warning). The schema is
    specified here, rendered by `git-issue`, and parsed by `git-issue-workflow`,
    so a `pr_base` that is not the epic branch fails here and an omitted policy
    block or placeholder shows up as a short warning. Only wrong-branch,
