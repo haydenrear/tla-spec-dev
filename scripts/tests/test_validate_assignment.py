@@ -12,10 +12,12 @@ import copy
 from contextlib import redirect_stderr, redirect_stdout
 import importlib.util
 import io
+import os
 from pathlib import Path
 import sys
 import tempfile
 import unittest
+import unittest.mock
 
 import yaml
 
@@ -116,6 +118,7 @@ def rendered(assignment: dict, *, prose: str = "Do the work.") -> str:
 
 
 def check(assignment: dict, **kwargs) -> validator.AssignmentReport:
+    kwargs.setdefault("strict", True)
     return validator.validate_assignment(assignment, **kwargs)
 
 
@@ -324,25 +327,31 @@ class TicketTests(unittest.TestCase):
         assignment["ticket"]["promotion_predecessor"] = None
         self.assertEqual(check(assignment).errors, ())
 
-    def test_requires_every_conflict_lane(self) -> None:
+    def test_accepts_any_conflict_lanes_and_missing_ones(self) -> None:
         assignment = valid_assignment()
-        del assignment["ticket"]["conflict_keys"]["tla"]
-        self.assertTrue(
-            any(
-                "conflict_keys.tla is required" in error
-                for error in check(assignment).errors
-            )
-        )
+        assignment["ticket"]["conflict_keys"] = {
+            "implementation": ["src/app.py"],
+            "model": [],
+        }
+        self.assertEqual(check(assignment).errors, ())
+        del assignment["ticket"]["conflict_keys"]
+        self.assertEqual(check(assignment).errors, ())
 
-    def test_rejects_unknown_conflict_lane(self) -> None:
+
+class DefaultModeTests(unittest.TestCase):
+    def test_policy_and_shape_slips_are_warnings(self) -> None:
         assignment = valid_assignment()
-        assignment["ticket"]["conflict_keys"]["docs"] = []
-        self.assertTrue(
-            any(
-                "unknown lane(s) ['docs']" in error
-                for error in check(assignment).errors
-            )
-        )
+        assignment["review"]["mode"] = "wave"
+        del assignment["deferment"]
+        report = validator.validate_assignment(assignment)
+        self.assertEqual(report.errors, ())
+        self.assertTrue(any("review.mode" in w for w in report.warnings))
+
+    def test_wrong_base_still_blocks(self) -> None:
+        assignment = valid_assignment()
+        assignment["ticket"]["pr_base"] = "main"
+        report = validator.validate_assignment(assignment)
+        self.assertTrue(any("wrong base" in e for e in report.errors))
 
 
 class GoalTests(unittest.TestCase):
@@ -657,13 +666,35 @@ class MainTests(unittest.TestCase):
         self.assertIn("base epic/cut-the-apparatus", out)
         self.assertEqual(err, "")
 
-    def test_returns_1_for_an_invalid_assignment(self) -> None:
+    def test_strict_returns_1_for_an_invalid_assignment(self) -> None:
         assignment = valid_assignment()
         assignment["review"]["mode"] = "wave"
-        code, _, err = self.run_main(rendered(assignment))
+        code, _, err = self.run_main(rendered(assignment), "--strict")
         self.assertEqual(code, 1)
         self.assertIn("INVALID:", err)
         self.assertIn("review.mode", err)
+
+    def test_default_passes_a_policy_slip_with_a_short_summary(self) -> None:
+        assignment = valid_assignment()
+        assignment["review"]["mode"] = "wave"
+        assignment["ticket"]["conflict_keys"] = {"implementation": [], "model": []}
+        del assignment["deferment"]
+        del assignment["goals"]
+        code, out, err = self.run_main(rendered(assignment))
+        self.assertEqual(code, 0)
+        self.assertIn("OK:", out)
+        self.assertLessEqual(len(err.splitlines()), 4)
+
+    def test_force_and_env_pass_a_blocking_error(self) -> None:
+        assignment = valid_assignment()
+        assignment["ticket"]["pr_base"] = "main"
+        body = rendered(assignment)
+        self.assertEqual(self.run_main(body)[0], 1)
+        code, _, err = self.run_main(body, "--force")
+        self.assertEqual(code, 0)
+        self.assertIn("FORCED", err)
+        with unittest.mock.patch.dict(os.environ, {"SKILL_GATES": "off"}):
+            self.assertEqual(self.run_main(body)[0], 0)
 
     def test_returns_2_when_no_block_is_present(self) -> None:
         code, _, err = self.run_main("## Discovery\n\nnothing here\n")

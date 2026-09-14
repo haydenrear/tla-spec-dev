@@ -146,18 +146,26 @@ template:
 
 ```bash
 gh issue view <issue-number> --json body -q .body \
-  | uv run <git-epic-workflow-skill>/scripts/validate_assignment.py \
+  | uv run --script "<skill base directory>/scripts/validate_assignment.py" \
       --expect-ticket <stable-ticket-id> --expect-epic-branch epic/<slug>
+# or, from a saved body (a flag, never a positional path):
+uv run --script "<skill base directory>/scripts/validate_assignment.py" \
+  --assignment issue-body.md --expect-ticket <stable-ticket-id> --expect-epic-branch epic/<slug>
 ```
 
-It rejects an unrendered `<placeholder>`, a `pr_base` that is not the epic
-branch, an epic branch that is the default branch, a ticket that depends on or
-promotes after itself, a REQUIRED matrix entry excused as `N/A`, an `N/A`
-without a reason, a non-evaluation ticket that decides its own goal, a
-`review.mode` other than `external`, a `merged_by` other than `epic-owner`, and
-a missing `deferment` block. Adding a field to the block above means adding it
-to the validator and to the renderer in the same change; the validator is what
-makes "and to the renderer" impossible to forget.
+The skill base directory is the `Base directory for this skill:` line printed
+when the skill loads. Run the script with `uv run --script`, never `python3`,
+which lacks PyYAML.
+
+It fails only on what would send the agent to the wrong place: no parseable
+block, a missing `epic`/`ticket` block, branch, feature branch, worktree or
+`pr_base`, a `pr_base` that is not the epic branch, an epic branch that is the
+default branch, or a ticket/branch the dispatch did not expect. Everything else
+(placeholders, `N/A` without a reason, missing policy blocks, enum spellings,
+`conflict_keys` lanes, which may be any names) is a short `WARNING:` summary
+with exit 0; `--strict` restores them as errors and `--force` (or
+`SKILL_GATES=off`) passes past blocking ones. Adding a field to the block above
+still means adding it to the renderer in the same change.
 
 ## Evaluation-ticket variant
 

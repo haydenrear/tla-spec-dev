@@ -317,12 +317,12 @@ ticket-level successor issue/workflow. A ticket resolved as `superseded` or
 `abandoned` cannot carry a goal, and neither the ticket nor its non-carried goal
 entries may contain successor fields.
 
-Retirement must close the goal's active schedule boundary. Its evaluation
-ticket cannot stay active and depend on work that will never be delivered, and
-no other undelivered active ticket may remain associated with a disposed goal.
-Either deliver the remaining work before retirement or include it in the
-retirement amendment. The canonical schema and transaction are in
-`plan-and-schedule.md` §5a.
+Retiring one ticket while other tickets still serve the same goal is allowed.
+The validator warns that the goal's evaluation ticket or other active tickets
+remain associated with a disposed goal; decide with the owner whether the
+evaluator still measures something meaningful, and note it in the epic PR. Do
+not re-scope a ticket just to satisfy that warning. The canonical schema and
+transaction are in `plan-and-schedule.md` §5a.
 
 ## What the ticket agent does with it
 
