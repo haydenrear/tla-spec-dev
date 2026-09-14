@@ -137,6 +137,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --no-home)     SKIP_HOME=1; shift ;;
     --stale-base-ok) STALE_OK=1; shift ;;
+    --dirty-ok)    WT_DIRTY_OK=1; shift ;;
     --integration) WANT_INTEGRATION=1; shift ;;
     --quiet)       QUIET=1; shift ;;
     --verbose|-v)  VERBOSE=1; shift ;;

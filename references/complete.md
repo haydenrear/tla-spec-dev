@@ -221,13 +221,13 @@ checkout other than the one that opened the worktree — but it must be run from
 inside **some** git repository (from a non-repo directory it exits 1 with
 `not inside a git repository`).
 
-`close-change.sh --force` still runs the gate and still prints every blocker; it
-only declines to stop, and it says the work is being discarded. It exists so that
-someone throwing away a spike uses a named, loud override instead of `rm -rf`,
-which skips this check and every other one. `--force` is not on
-`skill-manager home close-out` itself — the CLI's job is the verdict, the script's
-job is whether to obey it. Never reach for it to get past a blocker you have not
-read.
+`close-change.sh --force` still runs the gate; it only declines to stop, and
+`wt` reports one line — how many blockers were discarded and the log listing
+them. It exists so that someone throwing away a spike uses a named override
+instead of `rm -rf`, which skips this check and every other one. `--force` is not
+on `skill-manager home close-out` itself — the CLI's job is the verdict, the
+script's job is whether to obey it. Use it when you or the user has decided the
+blocker does not apply, and say so in the PR.
 
 ### 6b. After the removal
 

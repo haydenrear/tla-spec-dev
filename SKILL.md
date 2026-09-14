@@ -87,17 +87,29 @@ new|close|info <ticket>` imports this skill's Python surface
 contract, same gate, plus guided remedies on refusal. Prefer it when present;
 everything below remains the source of truth for what it does.
 
-**Test for `skt` by its path, not by looking around.** It is a *plugin*, so it is
-never under a home's `skills/` — an agent that lists that directory concludes it
-is absent from a home that has it. Two paths answer the whole question:
+**Test for `skt` with one command, not by looking around.** It is a *plugin*, so
+it is never under a home's `skills/` — an agent that lists that directory
+concludes it is absent from a home that has it. Ask the shell, because the
+checkout's own home puts its `bin/cli` on PATH and `$SKILL_MANAGER_HOME` is
+often unset:
 
 ```bash
-SMH="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"
-test -x "$SMH/bin/cli/skt"                              # the plugin's generated CLI wrapper
-test -x "$SMH/skills/git-issue-workflow/scripts/wt"     # this skill's own script
+command -v skt       # prints a path -> use `skt ticket new|close <ticket>` and stop looking
 ```
 
-Either one resolving means the front door is here.
+Its whole surface, so there is nothing to look up in `--help`:
+`skt ticket new <ticket> [<base>] [--base <ref>] [--path <dir>]` and
+`skt ticket close <ticket>` (no flags — forcing past the close gate is
+`wt close <ticket> --force`). A dirty parent tree is passed with the
+environment, not a flag: `WT_DIRTY_OK=1 skt ticket new <ticket>`.
+
+Only if that prints nothing, use this skill's own script, from the checkout's
+project home first and the operator's home second:
+
+```bash
+WT=./.skill-manager/skills/git-issue-workflow/scripts/wt
+[ -x "$WT" ] || WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"
+```
 
 **Do not substitute `git worktree add`.** It produces a worktree with no Skill
 Manager home, and an agent launched there writes the operator's global
@@ -114,7 +126,9 @@ log: /tmp/wt-XXXXXX-run.log
 
 Exit **3** with "no project home yet" is the common one, on the first ticket in
 a repository that has never been given a home. Run the `fix:` line verbatim —
-once per repository, not per worktree — and re-run `wt new`.
+once per repository, not per worktree — and re-run `wt new`. The exception is an
+environment that refuses writes (a sandbox's "Operation not permitted"): the
+`fix:` line fails the same way there, so report it rather than running it.
 
 Exit **7** is the branch point: a bare base name resolves to the **local** ref,
 and a local `epic/*` branch does not advance when its ticket PRs are merged
@@ -123,6 +137,17 @@ local one is behind it; the `fix:` line branches from the published tip.
 `--stale-base-ok` takes the local ref deliberately and says so on **stderr**,
 leaving stdout unchanged. `WT_FETCH=0` skips the refresh when offline. See
 `references/worktrees.md` § *The branch point*.
+
+Exit **1** with "working tree is not clean" is the parent checkout having
+uncommitted files. Creating a worktree never reads or writes them: pass
+`--dirty-ok` (or `WT_DIRTY_OK=1`, or `SKILL_GATES=off`) and it proceeds with one
+warning line. Never stash, commit, or discard someone's edits to get past it.
+
+A bootstrap refusal saying the CLI "is the entrypoint of the home X … NOTHING IS
+OUT OF DATE" (exit **79**) is a home mismatch, not an old CLI: the CLI it found
+binds a different home than the one being bootstrapped. Re-run naming the right
+home's CLI — `SKILL_MANAGER_CLI=<repo>/.skill-manager/bin/cli/skill-manager` —
+and never upgrade or reinstall skill-manager to get past it.
 
 **Reaching a by-hand route is itself a finding — report it.** This skill spells
 out a manual equivalent in two places: the chained
@@ -134,9 +159,10 @@ produces a plausible result, and leaves no trace but the cost.** Four eval runs
 did exactly that, for four different reasons, and none of them reported a
 problem.
 
-So run the two `-x` tests above first. If neither resolved, the by-hand route is
-correct and there is nothing to report. If either resolved and you are on the
-by-hand route anyway, say so in one line, naming which it was:
+So run the `command -v skt` test above first. If it printed nothing and neither
+`wt` path exists, the by-hand route is correct and there is nothing to report.
+If either resolved and you are on the by-hand route anyway, say so in one line,
+naming which it was:
 
 - `skt` is installed but was not on `PATH`;
 - you looked where it never is (`skills/` for a plugin);
@@ -453,8 +479,11 @@ receiver flow is `references/agent-tag-pr.md`.
 - This skill **executes** a ticket; it does not author the issue. Issue creation,
   the References section, and the spec-required decision are `git-issue`'s job.
 - It does not create or amend an epic assignment. In epic mode it consumes the
-  marker-delimited assignment exactly as written and stops when required fields
-  or scheduling state are inconsistent.
+  marker-delimited assignment, stops only when the PR base or branch would be
+  wrong, and otherwise proceeds on the plan's values, listing any mismatch in
+  the PR. `SKILL_GATES=off` lets `wt new` proceed from a dirty parent tree and
+  forces the tla-spec-dev close gates; `wt close` still takes an explicit
+  `--force`.
 - It does not reimplement the spec, test-graph, or fan-out mechanics — it
   **sequences** them. Those live in `spec-double-compiler` (the `tla-spec-dev`
   CLI), `test-graph` (the graph scripts), and `git-integration-repo`

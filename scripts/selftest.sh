@@ -1366,7 +1366,8 @@ check "$(yesno test "$(yesno has_key FIX "$SCRATCH/wt-force.out")" = 0)" \
 check "$(yesno command grep -q 'DISCARDED' "$SCRATCH/wt-force.err")" \
   "a_forced_close_still_says_on_stderr_what_it_discarded" \
   "the forced run threw work away and said so nowhere; see $SCRATCH/wt-force.err"
-check "$(yesno command grep -q 'forced-wt-only-unit' "$SCRATCH/wt-force.err")" \
+FORCE_LOG2="$(command sed -n 's/.*full list in //p' "$SCRATCH/wt-force.err" | command sed -n 1p)"
+check "$(yesno command grep -q 'forced-wt-only-unit' "${FORCE_LOG2:-$SCRATCH/wt-force.err}")" \
   "a_forced_close_names_the_work_it_discarded" \
   "the discarded unit is not named on stderr; see $SCRATCH/wt-force.err"
 

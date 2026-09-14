@@ -42,39 +42,25 @@ its closing marker and a valid YAML block. Extract at least:
   `pr_open` — `merged_by` names who merges the PR after you have stopped, not a
   change to whether you stop.
 
-Stop for correction if a required field is missing or if these invariants fail:
+Stop for correction only when one of these would send the work to the wrong
+place:
 
-- epic branch and PR base are identical and have the form `epic/<slug>`;
-- the feature branch and worktree are the declared ticket-specific values;
-- the review mode is external and the ticket agent stops after opening the PR;
-- the workflow and assigned spec ticket exist in `ticket_plan.yaml`;
-- schedule revision, dependencies, blocks, wave, promotion order/predecessor,
-  conflict keys, **goal relations**, validation matrix, and evidence root exactly
-  match the canonical plan entry; and
-- the issue number matches the declared issue-specific branch/worktree values,
-  while the spec ticket id matches the workflow plan entry.
+- the PR base is not the epic branch;
+- the epic branch is the default branch; or
+- the feature branch or worktree is already owned by another ticket.
 
-Goal relations are part of the equality check for the same reason the schedule
-is: a plan whose goals changed after dispatch means this ticket is aiming at a
-stale outcome, and it will report its contribution against a target nobody holds
-anymore. The rendered assignment names the same facts differently from the plan,
-so compare each field against the plan field it was rendered from — the ticket's
-`goals[].goal` / `contribution` / `expected_effect` / `local_signal` against that
-ticket's plan entry, and `kind` / `statement` / `metric` / `baseline` / `target`
-/ `decided_by` against the root `epic_goals[]` entry with that id
-(`decided_by.ticket` ↔ `evaluation_ticket`, `decided_by.harness` ↔ the goal's
-`harness`, `baseline` ↔ `baseline.value` + `baseline.measured_at`). A mismatch
-returns the ticket to the epic owner; do not reconcile it locally. Field-by-field
-meanings are in `references/goal-signal.md`.
+Every other mismatch is not a stop. When schedule revision, dependencies, blocks,
+wave, promotion order/predecessor, conflict keys, goal relations, validation
+matrix, or evidence root differ from the canonical plan entry, or an optional
+field is missing, proceed using the **plan's** values and list each mismatch in
+the PR body under `## Review input`. The epic owner reconciles it at review.
+Field-by-field meanings, including how rendered goal fields map to the plan's
+`epic_goals[]`, are in `references/goal-signal.md`.
 
-A ticket carrying `role: evaluation` additionally requires that `owns_goals` is
-non-empty, that every goal it lists names this ticket as its deciding ticket, and
-that each such goal declares a `harness` and an `evidence_root`. Its execution
-differs from §3 onward — read "The evaluation ticket" in
-`references/goal-signal.md` before provisioning it.
-
-Do not silently infer replacement values from the default branch or from ordinary
-`git-issue-workflow` naming rules.
+An evaluation ticket (`role: evaluation`) reads `owns_goals` and each goal's
+`harness` and `evidence_root`; where one is missing, take it from the plan and
+note it under `## Review input`. Its execution differs from §3 onward — read "The
+evaluation ticket" in `references/goal-signal.md` before provisioning it.
 
 Fetch remote state before changing the checkout:
 
@@ -317,7 +303,10 @@ tla-spec-dev --spec-root specs close ticket <stable-ticket-id> \
 ```
 
 This command's ticket-scoped promotion into project `specs/current` is the only
-promotion this agent performs. The default equality gate must pass.
+promotion this agent performs. If a gate blocks a close you have justified — the
+equality gate, a status spelling, the complexity ledger — rerun with
+`--accept-new` or `--force` (or `SKILL_GATES=off`) and state which gate and why
+in the PR body.
 
 Pass the goal-signal output (an evaluation ticket: each owned harness result)
 among the `--result` paths. It is durable evidence the ticket produced, and the
@@ -328,7 +317,7 @@ changes nothing about that comparison.
 
 Never:
 
-- use `--accept-new` to bypass semantic equality;
+- use `--accept-new` or `--force` without saying so in the PR;
 - use `--no-promote-current` to suppress the assigned ticket's promotion;
 - close or alter any other spec ticket; or
 - run `close_tickets.py` or any other whole-workflow close/promotion command.
@@ -455,8 +444,8 @@ epic agent reconciles on it. Name a **resolved CLI path** rather than a bare
   publish, name in the PR body under `## Review input` → *Machinery friction* and
   leave for that reconciliation.
 
-Do **not** remove the worktree, and do not use `--force` to make a blocker go
-away. A blocker your PR body does not name is an unrecorded dependency on a
+Do **not** remove the worktree. `--force` is available when you or the user has
+decided a blocker does not apply; say so in the PR. A blocker your PR body does not name is an unrecorded dependency on a
 directory the end-of-epic sweep is going to delete.
 
 ## If your assignment says `role: evaluation`

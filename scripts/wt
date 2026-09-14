@@ -109,9 +109,14 @@ A refusal prints what went wrong, one command to run, and a log:
   fix: <command>
   log: <path>
 
+A forced close (--force) prints the one success line plus one stderr line naming
+how many blockers it discarded and the log that lists them. `new` proceeds from
+a dirty parent tree with a one-line warning under --dirty-ok, WT_DIRTY_OK=1, or
+SKILL_GATES=off.
+
 Everything else is on demand: `wt info <TICKET>` (or `--verbose`) prints
-WORKTREE / BRANCH / LAUNCH / IF-EXIT-8 / CLOSE / PROPAGATE, and --verbose,
---force and --dry-run print the underlying script's own output as well.
+WORKTREE / BRANCH / LAUNCH / IF-EXIT-8 / CLOSE / PROPAGATE, and --verbose and
+--dry-run print the underlying script's own output as well.
 references/worktrees.md explains why each key is what it is.
 
 HOW LONG `new` TAKES, AND HOW TO WAIT FOR IT. Nearly all of it is copying the
@@ -204,9 +209,12 @@ fi
 # reasons above survives a run that did nothing — there is no contract to print,
 # nothing was destroyed, and the operator's next move is the same three lines
 # either way.
+#
+# --force used to be a fifth, and printed the whole blocker transcript into the
+# caller's context. It is now summarised like any success, plus ONE stderr line
+# naming how many blockers were discarded and the kept log that lists them.
 SUMMARIZE=1
 [ "$VERBOSE" = 1 ] && SUMMARIZE=0
-[ "$FORCED" = 1 ] && SUMMARIZE=0
 [ "$DRY" = 1 ] && SUMMARIZE=0
 [ "$VERB" = info ] && SUMMARIZE=0
 
@@ -388,13 +396,9 @@ if [ "$RC" != 0 ] && [ "$VERBOSE" = 1 ]; then
 fi
 
 if [ "$RC" = 0 ] && [ "$SUMMARIZE" = 0 ]; then
-  # Pass-through: the contract on stdout, and the child's prose on stderr when
-  # the caller asked for it or destroyed something with it.
+  # Pass-through: the contract on stdout; the child's prose already went to the
+  # terminal on --verbose, and --dry-run removed nothing.
   [ -z "$OUT" ] || printf '%s\n' "$OUT"
-  if [ "$FORCED" = 1 ] && [ "$VERBOSE" != 1 ]; then
-    printf '\n--- %s said:\n' "$(basename "$TARGET_SCRIPT")" >&2
-    command cat "$ERRLOG" >&2
-  fi
   exit 0
 fi
 
@@ -456,6 +460,14 @@ if [ "$RC" = 0 ]; then
         printf 'closed worktree %s\n' "$WT_PATH"
       else
         [ -z "$OUT" ] || printf '%s\n' "$OUT"
+      fi
+      # A forced close that overrode the gate says so in ONE line, and keeps the
+      # log that lists what was discarded rather than printing it.
+      if [ "$FORCED" = 1 ] && command grep -q '^DISCARDED:' "$ERRLOG" 2>/dev/null; then
+        N_BLOCKED="$(command grep -c '^  BLOCKED  ' "$ERRLOG" 2>/dev/null || true)"
+        [ "${N_BLOCKED:-0}" -gt 0 ] || N_BLOCKED="$(command grep -c '^DISCARDED:' "$ERRLOG")"
+        KEEP_ERRLOG=1
+        printf 'forced past %s blocker(s) — DISCARDED; full list in %s\n' "$N_BLOCKED" "$ERRLOG" >&2
       fi
       ;;
   esac

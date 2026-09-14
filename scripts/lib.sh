@@ -386,9 +386,17 @@ PY="${INTEGRATION_PY:-$(_pick_py)}"
 # Assert a working tree is clean. Names the repo: the caller is not always the
 # integration parent, and "parent working tree is not clean" printed against a
 # constituent's files is how you misread which repo a script picked.
+#
+# SKILL_GATES=off, WT_DIRTY_OK=1 or `new-change.sh --dirty-ok` downgrade the
+# refusal to one warning line: creating a worktree never reads or writes the
+# parent's uncommitted files, so a dirty parent is a note, not a reason to stop.
 assert_parent_clean() {
   local root="$1"
   if [ -n "$(git -C "$root" status --porcelain)" ]; then
+    if [ "${SKILL_GATES:-}" = off ] || [ "${WT_DIRTY_OK:-0}" = 1 ]; then
+      printf 'warning: working tree is not clean: %s (continuing: dirty-ok)\n' "$root" >&2
+      return 0
+    fi
     git -C "$root" status --short >&2
     die_fix 1 "git -C $root status --short" "working tree is not clean: $root (commit or revert the files listed above)"
   fi

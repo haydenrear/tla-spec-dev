@@ -385,17 +385,12 @@ refuse() {
   # stdout saw a failure on a run that succeeded, and a caller that keys on
   # FAILED first saw the opposite of what happened.
   #
-  # So on the forced path the refusal is EXPLANATION, not verdict, and
-  # explanation lives on stderr like all the other prose here. It is not
-  # quieter: the same lines are printed, plus the DISCARDED banner. What
-  # changes is which stream carries the answer.
+  # So on the forced path the refusal is EXPLANATION, not verdict, and it goes
+  # to stderr as one DISCARDED line: the blockers were already rendered above
+  # (and are kept in the log), so repeating them is noise in the caller's
+  # context.
   if [ "$FORCE" = 1 ]; then
-    printf '\n' >&2
-    printf 'the gate refused to remove %s\n' "$WT" >&2
-    printf '  %s\n' "$@" >&2
-    printf '\n  Clearing it would have been:\n    %s\n' \
-      "${REFUSE_FIX:-$0 $TARGET --force}" >&2
-    printf '\n  --force given: removing anyway. Anything above is DISCARDED.\n' >&2
+    printf 'DISCARDED: forced past the gate for %s — %s\n' "$WT" "$1" >&2
     return 0
   fi
   # The contract first, on stdout: FIRST argument as the one-line summary, since
