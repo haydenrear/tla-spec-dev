@@ -97,6 +97,12 @@ often unset:
 command -v skt       # prints a path -> use `skt ticket new|close <ticket>` and stop looking
 ```
 
+Its whole surface, so there is nothing to look up in `--help`:
+`skt ticket new <ticket> [<base>] [--base <ref>] [--path <dir>]` and
+`skt ticket close <ticket>` (no flags — forcing past the close gate is
+`wt close <ticket> --force`). A dirty parent tree is passed with the
+environment, not a flag: `WT_DIRTY_OK=1 skt ticket new <ticket>`.
+
 Only if that prints nothing, use this skill's own script, from the checkout's
 project home first and the operator's home second:
 
