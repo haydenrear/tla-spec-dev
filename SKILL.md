@@ -561,6 +561,10 @@ Lifecycle:
    the ticket directory into history, replaces project `specs/current` with
    ticket `desired/`, and merges ticket-local Test Graph artifacts into project
    specs.
+   Every terminal spelling closes (`done`, `closed`, `delivered`, `merged`, ...).
+   Never rewrite a ticket's status in the plan just to get past a refusal: if
+   the close still refuses on status, the CLI on PATH is older than this
+   skill, and the answer is `--force`, not a different word in the plan.
    If a gate blocks a close you have decided to make, rerun with `--force`
    (or set `SKILL_GATES=off`; `SPEC_GATES=off` is an alias). Each skipped
    refusal prints one warning line, and forced closes are recorded in the

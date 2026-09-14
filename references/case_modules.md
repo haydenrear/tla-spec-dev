@@ -525,7 +525,11 @@ python3 scripts/tla_spec_dev.py --spec-root specs run effect-conformance \
 
 **It loads the project's own adapters.** `case_adapters.toml` — the file
 `tla-spec-dev scaffold` writes — names adapters as bare module paths
-(`production_adapters:OpenTicketAdapter`). The oracle puts the target spec
+(`production_adapters:OpenTicketAdapter`). A ticket view must do the same when
+it adds a binding: a qualified `specs.program_model.adapters:X` resolves the
+*baseline* adapters from any spec tree and silently tests the wrong code, even
+though older examples still show that form (`references/testgraph_adapters.md`,
+"Name the adapter module bare"). The oracle puts the target spec
 directory, the current directory and the toolchain root on `sys.path`, the same
 set the enforcing runner gets on `PYTHONPATH`. No `PYTHONPATH=` prefix is
 needed, and one being needed used to be the reason nobody could tell whether the

@@ -956,7 +956,15 @@ right model and was cut off mid-verification with the words *"Now full
 verification of everything I can execute."* — scored 0.50, which is also
 precisely the score a half-finished model gets. **The two are indistinguishable
 in the number.** Always read the `error:` column beside the score. Verdict-path
-graders are what keeps such a run legible, because they still see the workspace.
+graders are what keeps such a run legible, because they still see the workspace
+— **but only if something writes the verdicts, and a `Stop` hook does not run
+on that exit.** Measured in the `skill-manager` wide lane (2026-09-14, 2.1.270):
+with the verifier registered on both `Stop` and `SessionEnd` and each writing
+which event it was, every run that ended `error_max_turns` was written by
+`SessionEnd` alone, and every normal run by `Stop`. A round that registered only
+`Stop` lost every verdict on 12 capped runs and scored them red. Register the
+verifier on `SessionEnd` too; both derive the same verdicts, so the second
+write is harmless.
 
 **A majority is not a consensus.** The `llm` grader takes three votes. A run
 whose artefact was plainly correct passed **FAIL PASS PASS**. One run's score
