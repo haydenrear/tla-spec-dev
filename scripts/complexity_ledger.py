@@ -1165,8 +1165,8 @@ def render_report(verdict: LedgerVerdict) -> str:
 TEMPLATE = """\
 # Complexity ledger input -- MF-019 standing objective.
 #
-# `close ticket` refuses until this is filled in. That refusal is the mechanism:
-# the standing objective is a required close-out step, not a stance.
+# `close ticket` never refuses on this file: an unfilled or rejected input is
+# recorded as a rejected entry and the close proceeds with one warning line.
 #
 # The delta is computed for you from `analyze complexity` and the TLC report.
 # What you supply is the part a tool cannot know: whether behavior was retained,
