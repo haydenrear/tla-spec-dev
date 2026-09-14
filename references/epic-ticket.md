@@ -146,9 +146,16 @@ template:
 
 ```bash
 gh issue view <issue-number> --json body -q .body \
-  | uv run <git-epic-workflow-skill>/scripts/validate_assignment.py \
+  | uv run --script "<skill base directory>/scripts/validate_assignment.py" \
       --expect-ticket <stable-ticket-id> --expect-epic-branch epic/<slug>
+# or, from a saved body (a flag, never a positional path):
+uv run --script "<skill base directory>/scripts/validate_assignment.py" \
+  --assignment issue-body.md --expect-ticket <stable-ticket-id> --expect-epic-branch epic/<slug>
 ```
+
+The skill base directory is the `Base directory for this skill:` line printed
+when the skill loads. Run the script with `uv run --script`, never `python3`,
+which lacks PyYAML.
 
 It fails only on what would send the agent to the wrong place: no parseable
 block, a missing `epic`/`ticket` block, branch, feature branch, worktree or

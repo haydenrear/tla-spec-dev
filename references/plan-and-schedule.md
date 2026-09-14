@@ -364,10 +364,15 @@ Treat `depends_on` as a directed graph and reject the plan unless:
   contributing ticket, and each goal's evaluation ticket both depends on and
   promotes after every contributor.
 
-Run the bundled validator before dispatch and whenever the schedule changes:
+Run the bundled validator before dispatch and whenever the schedule changes.
+The skill base directory is printed as `Base directory for this skill:` when the
+skill loads — use it, don't search for the scripts. The scripts declare their
+own dependencies: run them with `uv run --script`, never `python3` (which lacks
+PyYAML). `validate_assignment.py` reads `--assignment <file>` or stdin, never a
+positional path.
 
 ```bash
-uv run <git-epic-workflow-skill>/scripts/validate_epic_plan.py \
+uv run --script "<skill base directory>/scripts/validate_epic_plan.py" \
   specs/desired_program_model/ticket_plan.yaml
 ```
 
@@ -378,6 +383,8 @@ exist, or a dependency cycle. Every other rule above is advisory: it prints a
 Read the warnings and fix what matters; do not let them stop the epic. `--strict`
 turns every rule back into an error. `--force` (or `SKILL_GATES=off`) exits 0
 even past a blocking error, for when you have decided it does not apply.
+Report what the validator printed; its warnings explain themselves — do not read
+the validator's source to interpret them.
 
 A valid plan is not a valid dispatch. The plan is this skill's; the assignment
 block that reaches a ticket agent is rendered by `git-issue` into a GitHub issue
@@ -386,8 +393,11 @@ GitHub actually holds, per issue, before handing out its URL:
 
 ```bash
 gh issue view <issue-number> --json body -q .body \
-  | uv run <git-epic-workflow-skill>/scripts/validate_assignment.py \
+  | uv run --script "<skill base directory>/scripts/validate_assignment.py" \
       --expect-ticket <stable-ticket-id> --expect-epic-branch epic/<slug>
+# or, from a saved body:
+uv run --script "<skill base directory>/scripts/validate_assignment.py" \
+  --assignment issue-body.md --expect-ticket <stable-ticket-id> --expect-epic-branch epic/<slug>
 ```
 
 Exit 2 means there is no parseable assignment block at all; exit 1 lists what is

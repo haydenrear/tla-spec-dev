@@ -365,9 +365,15 @@ canonical plan entry before starting and again before promotion.
    agree the review cadence, whether the wave review gates the next wave, and
    who merges ticket PRs into the epic branch; record that as `review_policy`
    (`references/human-review.md` §2).
-5. Validate every rendered assignment before handing out its issue URL —
-   `scripts/validate_assignment.py`, against the issue body as GitHub now holds
-   it, with `--expect-ticket` and `--expect-epic-branch`. The schema is
+5. Validate every rendered assignment before handing out its issue URL, against
+   the issue body as GitHub now holds it:
+   `uv run --script "<skill base directory>/scripts/validate_assignment.py" --assignment <issue-body.md> --expect-ticket <id> --expect-epic-branch epic/<slug>`
+   (or pipe `gh issue view <n> --json body -q .body` into it). The skill base
+   directory is printed as `Base directory for this skill:` when the skill
+   loads — use it, don't search for the scripts. The scripts declare their own
+   dependencies: run them with `uv run --script`, never `python3` (which lacks
+   PyYAML). `validate_assignment.py` reads `--assignment <file>` or stdin,
+   never a positional path. The schema is
    specified here, rendered by `git-issue`, and parsed by `git-issue-workflow`,
    so a `pr_base` that is not the epic branch fails here and an omitted policy
    block or placeholder shows up as a short warning. Only wrong-branch,
