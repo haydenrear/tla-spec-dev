@@ -41,6 +41,10 @@ def main(ctx):
                 "project",
                 "--name",
                 "ProgramModel",
+                # The graph exercises the FULL shape end to end (External view,
+                # bindings, adapters merged on close). The default scaffold is
+                # the four-file minimum since 2026-09-14; --full is the opt-in.
+                "--full",
             ],
         ),
         (
@@ -93,13 +97,8 @@ def main(ctx):
     missing_baseline = [name for name in baseline_files if not (program_model / name).is_file()]
 
     def copied(name: str) -> bool:
-        current = ticket_dir / "current" / name
-        desired = ticket_dir / "desired" / name
-        return (
-            current.is_file()
-            and desired.is_file()
-            and desired.read_text() == current.read_text()
-        )
+        # Desired-only since 2026-09-14: `open ticket` seeds desired/ alone.
+        return (ticket_dir / "desired" / name).is_file()
 
     not_copied = [name for name in baseline_files if not copied(name)]
 
@@ -108,7 +107,8 @@ def main(ctx):
         .assertion("program model scaffolded by CLI with both views", not missing_baseline)
         .assertion("project workflow scaffolded by CLI", (repo / "specs" / "desired_program_model" / "ticket_plan.yaml").is_file())
         .assertion("ticket directory exists", ticket_dir.is_dir())
-        .assertion("ticket current + desired carry the whole baseline", not not_copied)
+        .assertion("ticket desired carries the whole baseline", not not_copied)
+        .assertion("ticket opens desired-only: no ticket-local current/", not (ticket_dir / "current").exists())
         .assertion(
             "no single-module stand-in left behind",
             not (program_model / "ProgramModel.tla").exists() and not (program_model / "MC.cfg").exists(),

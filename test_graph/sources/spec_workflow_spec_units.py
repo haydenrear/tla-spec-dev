@@ -49,7 +49,7 @@ def main(ctx):
         output = (ctx.report_dir / record.log_path).read_text(encoding="utf-8")
     return (
         result
-        .assertion("spec-unit output names ticket current", f"specs/tickets/{ticket_id}/current" in output)
+        .assertion("spec-unit output names the ticket desired model", f"specs/tickets/{ticket_id}/desired" in output)
         .assertion("spec-unit output reports pass", "spec-unit validation passed" in output)
         .artifact("spec-unit-log", str(ctx.report_dir / record.log_path) if record.log_path else "")
     )

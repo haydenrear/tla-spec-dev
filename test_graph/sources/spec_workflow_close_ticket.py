@@ -104,8 +104,11 @@ def main(ctx):
     assertions = {
         "active ticket directory removed": not ticket_dir.exists(),
         "history directory exists": history_dir.is_dir(),
-        "history contains ticket current": (history_dir / "ticket" / "current" / "Internal.tla").is_file(),
-        "history contains ticket external view": (history_dir / "ticket" / "current" / "External.tla").is_file(),
+        "history contains ticket desired": (history_dir / "ticket" / "desired" / "Internal.tla").is_file(),
+        "history contains ticket external view": (history_dir / "ticket" / "desired" / "External.tla").is_file(),
+        "history has no ticket current (desired-only close)": not (history_dir / "ticket" / "current").exists(),
+        "manifest records the desired-only close": manifest.get("desired_only") is True,
+        "manifest records no guard weakening": (manifest.get("guard_weakening") or {}).get("weakened") is False,
         "project current promoted internal view": "CompleteTicket"
         in (repo / "specs" / "current" / "Internal.tla").read_text(encoding="utf-8"),
         "project current promoted external view": "SubmitCompleteTicket"
