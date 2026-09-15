@@ -26,7 +26,7 @@ CONSTANTS
 \*   0  not yet opened
 \*   1  active, phase 0 (opened)
 \*   2  active, phase 1 (desired model updated)
-\*   3  active, phase 2 (current model updated)
+\*   3  active, phase 2 (implementation landed)
 \*   4  active, phase 3 (spec-unit tests passed)
 \*   5  closed
 \*
@@ -314,7 +314,7 @@ ScaffoldWorkflow(root) ==
                   effect_conformance >>
 
 \* CLI: `tla-spec-dev --spec-root <root> open ticket <ticket-name>`
-\* Creates ticket-local current/desired/results/Test Graph workspace.
+\* Creates ticket-local desired/results/Test Graph workspace (current/ only with --with-current, since 2026-09-14).
 \* @command OpenTicket
 \* @result CliWorkflowResult
 \* @port TlaSpecDevCliPort.spec_tree
@@ -352,7 +352,7 @@ UpdateTicketDesired(ticket) ==
                   corpus_gate,
                   effect_conformance >>
 
-\* Agent step: production implementation has landed and current matches desired.
+\* Agent step: production implementation has landed (a current/ exists, and must match desired/, only when opened --with-current).
 \* @command UpdateTicketCurrent
 \* @result CliWorkflowResult
 \* @port TlaSpecDevCliPort.spec_tree
@@ -480,7 +480,7 @@ RunEffectConformance(root) ==
                   corpus_gate >>
 
 \* CLI: `tla-spec-dev --spec-root <root> run spec-unit-tests`
-\* Runs generated/adapted spec-unit validation for ticket current.
+\* Runs generated/adapted spec-unit validation for the ticket model: current/ when seeded, otherwise desired/.
 \* CD-09 (coverage-audit run 2, gap G2): the complexity gate no longer appears
 \* in this guard AT ALL, and the `override` input is gone. The shipped command
 \* performs no complexity check -- the descriptor is ADVISORY (MF-036/CD-01):
@@ -557,7 +557,7 @@ RunSpecUnitTests(root, ticket) ==
                   complexity_gate >>
 
 \* CLI: `tla-spec-dev --spec-root <root> close ticket <ticket-name>`
-\* Closes ticket only after current == desired and spec-unit tests passed.
+\* Closes ticket after spec-unit tests passed and promotes desired/ (desired-only since 2026-09-14; current == desired applies only to --with-current tickets).
 \* @command CloseTicket
 \* @result CliWorkflowResult
 \* @port TlaSpecDevCliPort.spec_tree

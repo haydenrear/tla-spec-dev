@@ -35,10 +35,22 @@ from budgets import budgets_block  # noqa: E402
 
 # The accepted baseline is not complete until every one of these exists. This
 # list is the executable form of the checklist in SKILL.md; keep them in sync.
+# The minimum baseline (2026-09-14): a model, its cfg, and the manifest. That is
+# everything TLC, `analyze complexity` and the implementation brief -- the
+# validated products -- read. It used to be thirteen files, and an agent that
+# did not produce all thirteen was told the baseline was "not complete".
 REQUIRED_BASELINE_FILES = (
     "Core.tla",
     "Internal.tla",
     "Internal.cfg",
+    "spec_manifest.yaml",
+)
+
+# The rest of the accepted shape: the External view, generated-case adapters,
+# effect providers and Test Graph bindings. `scaffold project --full` emits
+# them; nothing requires them. Add them when the project wants generated cases
+# or its public surface driven through a test_graph.
+OPTIONAL_BASELINE_FILES = (
     "External.tla",
     "External.cfg",
     "actions.yml",
@@ -48,7 +60,6 @@ REQUIRED_BASELINE_FILES = (
     "case_adapters.toml",
     "testgraph_bindings.yml",
     "tlc_projection.py",
-    "spec_manifest.yaml",
 )
 
 
@@ -971,7 +982,39 @@ def _plain(value: Any) -> Any:
 '''
 
 
-def manifest(module: str, package: str, spec_root_text: str = "specs") -> str:
+def manifest(module: str, package: str, spec_root_text: str = "specs", full: bool = False) -> str:
+    if full:
+        next_steps = f"""      - Replace the scaffolded Core/Internal/External semantics with this repository's real whole-program behavior.
+      - Keep actions.yml in sync with Internal.tla and External.tla.
+      - Implement the spec-unit adapters in adapters.py and map them in case_adapters.toml.
+      - Implement the Test Graph adapters, projector, and assertion in adapters.py and map them in testgraph_bindings.yml.
+      - Run TLC on the internal view - scripts/run_tlc.sh {spec_root_text}/program_model/Internal.tla {spec_root_text}/program_model/Internal.cfg
+      - Run TLC on the external view - scripts/run_tlc.sh {spec_root_text}/program_model/External.tla {spec_root_text}/program_model/External.cfg
+      - Budgets carry documented defaults; adjust one only when analyze complexity warns on it, and note why."""
+        views = """views:
+  internal:
+    module: Internal.tla
+    config: Internal.cfg
+    spec: InternalSpec
+    generates: spec_unit
+    adapter_mapping: case_adapters.toml
+  external:
+    module: External.tla
+    config: External.cfg
+    spec: Spec
+    generates: testgraph
+    adapter_mapping: testgraph_bindings.yml"""
+    else:
+        next_steps = f"""      - Replace the scaffolded Core/Internal semantics with this repository's real state, actions and invariants.
+      - Run TLC - scripts/run_tlc.sh {spec_root_text}/program_model/Internal.tla {spec_root_text}/program_model/Internal.cfg
+      - Budgets carry documented defaults; adjust one only when analyze complexity warns on it, and note why.
+      - Optional later - tla-spec-dev scaffold project --full adds the External view, adapters and providers."""
+        views = """views:
+  internal:
+    module: Internal.tla
+    config: Internal.cfg
+    spec: InternalSpec
+    generates: spec_unit"""
     return f"""module: {module}
 package: {package}
 
@@ -984,22 +1027,14 @@ status:
   onboarding:
     status: scaffolded
     next:
-      - Replace the scaffolded Core/Internal/External semantics with this repository's real whole-program behavior.
-      - Keep actions.yml in sync with Internal.tla and External.tla.
-      - Implement the spec-unit adapters in adapters.py and map them in case_adapters.toml.
-      - Implement the Test Graph adapters, projector, and assertion in adapters.py and map them in testgraph_bindings.yml.
-      - Scaffold a test_graph project if the repository does not have one; the External view is validated through it.
-      - Run TLC on the internal view - scripts/run_tlc.sh {spec_root_text}/program_model/Internal.tla {spec_root_text}/program_model/Internal.cfg
-      - Run TLC on the external view - scripts/run_tlc.sh {spec_root_text}/program_model/External.tla {spec_root_text}/program_model/External.cfg
-      - Generate cases and validate adapter coverage for both views.
-      - Propose the budgets below to the user, ask which to adjust for this program, and record a one-line rationale per changed value.
+{next_steps}
 
 # Per-program complexity and case budgets. These are advisory thresholds read
 # by analyze complexity (which warns with facts and never blocks) and by the
 # EXPERIMENTAL fuzzing surface (case generation, the adapter runner, the
-# mutation kill test). Defaults come from references/modular_fuzzing.md;
-# negotiate them with the user and record a one-line rationale for each
-# changed value. Doctrine: SKILL.md "Complexity Budgets Are Advisory".
+# mutation kill test). Defaults come from references/modular_fuzzing.md and
+# need no agreement before modeling; when you change one, record a one-line
+# rationale. Doctrine: SKILL.md "Complexity Budgets Are Advisory".
 {budgets_block()}
 # Optional dead-weight audit (advisory): add a justification: table linking
 # every declared variable to what depends on it. Schema: one mapping per
@@ -1012,19 +1047,7 @@ status:
 #       effects: [order_submitted]
 #       kill_tests: [test_order_cap]
 
-views:
-  internal:
-    module: Internal.tla
-    config: Internal.cfg
-    spec: InternalSpec
-    generates: spec_unit
-    adapter_mapping: case_adapters.toml
-  external:
-    module: External.tla
-    config: External.cfg
-    spec: Spec
-    generates: testgraph
-    adapter_mapping: testgraph_bindings.yml
+{views}
 
 state:
   {module}State:
@@ -1112,8 +1135,8 @@ ports:
         result: {module}State
 
 invariants:
-  - InternalInvariant
-  - ExternalInvariant
+  - InternalInvariant{"""
+  - ExternalInvariant""" if full else ""}
 
 finite_model:
   Actors:
@@ -1130,70 +1153,67 @@ finite_model:
 
 case_codegen:
   style: explicit_transition_cases
-  generation_status: planned
-  projection: tlc_projection.py
+  generation_status: planned{"""
+  projection: tlc_projection.py""" if full else ""}
 """
 
 
-def readme(module: str, spec_root_text: str = "specs") -> str:
+def readme(module: str, spec_root_text: str = "specs", full: bool = False) -> str:
+    shape = "the full shape" if full else "the minimum"
+    full_section = f"""
+## The optional layer (`--full`)
+
+| File | Purpose |
+| --- | --- |
+| `External.tla` / `External.cfg` | external view: what a harness can drive and observe |
+| `actions.yml` | per-action layer, controllability, and what it generates |
+| `adapters.py` | spec-unit adapters and Test Graph adapters/projector/assertion |
+| `providers.py` | agent-authored effect providers for generated ports |
+| `effect_provider_usage.yaml` | provider scope, assertions, cleanup, bypass limits |
+| `case_adapters.toml` | internal action -> spec-unit adapter |
+| `testgraph_bindings.yml` | external action -> Test Graph adapter |
+| `tlc_projection.py` | TLC state -> generated-case shapes |
+
+These generate and run cases from the model. They are worth having when the
+project wants its public surface driven end to end; they are not required for
+the model to be a baseline. The working example of the full shape is
+`examples/distributed_history/specs/program_model/`.
+""" if full else """
+## Adding the optional layer later
+
+`tla-spec-dev scaffold project --full` adds the External view, generated-case
+adapters, effect providers and Test Graph bindings. None of it is required.
+Add it when the project wants cases generated from the model and run against
+real adapters; `references/testgraph_adapters.md` describes that layer.
+"""
     return f"""# Program Model
 
 Accepted whole-program TLA+ model for this repository. It is the semantic
-baseline for future ticket workflows.
+baseline for future ticket workflows. This scaffold is {shape}: placeholders
+to replace with the repository's real state, actions and invariants.
 
-## Completion target
-
-This directory is a SCAFFOLD. The completion target — a real, working baseline
-with both views wired end to end — is:
-
-    examples/distributed_history/specs/program_model/
-
-Diff your tree against that one before calling onboarding done. Read
-`references/testgraph_adapters.md` first: it is where the Internal/External
-split and the adapter contract are actually specified.
-
-## The baseline is not complete until it has all of these
+## The baseline
 
 | File | Purpose |
 | --- | --- |
 | `Core.tla` | shared constants and helper operators |
-| `Internal.tla` / `Internal.cfg` | internal view: fine-grained program state |
-| `External.tla` / `External.cfg` | external view: publicly observable behavior |
-| `actions.yml` | per-action layer, controllability, and what it generates |
-| `adapters.py` | spec-unit adapters AND Test Graph adapters/projector/assertion |
-| `providers.py` | agent-authored generated-port effect providers |
-| `effect_provider_usage.yaml` | provider state, fuzz, assertion, cleanup, and bypass evidence |
-| `case_adapters.toml` | internal action -> spec-unit adapter |
-| `testgraph_bindings.yml` | external action -> Test Graph adapter |
-| `tlc_projection.py` | TLC state -> generated-case shapes |
-| `spec_manifest.yaml` | ports, invariants, finite model, onboarding status |
+| `Internal.tla` / `Internal.cfg` | the program state machine and its finite model |
+| `spec_manifest.yaml` | ports, invariants, finite model, budgets, onboarding status |
 
-A single-module baseline is NOT valid. Without `External.tla` plus Test Graph
-adapters the project has no generative integration testing, which is the point
-of the workflow.
-
-## Two views, one semantic authority
-
-- **Internal view** (`Internal.tla`) is fine-grained program/component state.
-  Generates spec-unit cases, run by the spec-unit adapters in `adapters.py`.
-- **External view** (`External.tla`) is what a test harness can drive or observe
-  from outside. Generates Test Graph cases, run by the Test Graph adapters.
-
-External does not mean distributed. For an HTTP service it is requests; for a
-CLI, command invocations and filesystem assertions; for a library, the public
-API surface and the files it writes. If the public surface is observable
-filesystem behavior, then the External view *is* the library — not an add-on.
-
-## Validate both views
+A baseline is done when TLC passes on `Internal.tla` and the model names the
+real state, actions and invariants of this program. Keep it small: model the
+boundary that matters for the ticket at hand, not every subsystem.
+{full_section}
+## Validate
 
 ```bash
 scripts/run_tlc.sh {spec_root_text}/program_model/Internal.tla {spec_root_text}/program_model/Internal.cfg
-scripts/run_tlc.sh {spec_root_text}/program_model/External.tla {spec_root_text}/program_model/External.cfg
-tla-spec-dev --spec-root {spec_root_text} run spec-unit-tests
+tla-spec-dev --spec-root {spec_root_text} analyze complexity {spec_root_text}/program_model/Internal.tla {spec_root_text}/program_model/Internal.cfg
 ```
 
-Test Graph nodes are end-to-end External-view executions only. TLC runs and
-spec-unit runs are direct `tla-spec-dev` commands, never graph nodes.
+Budgets in `spec_manifest.yaml` carry documented defaults. Nothing needs
+agreeing before you model; change a value only if `analyze complexity` warns
+on it, and note why.
 
 Use `{spec_root_text}/current` and `{spec_root_text}/desired_program_model` only after this
 baseline exists and a later ticket needs a planned destination. First onboarding
@@ -1202,10 +1222,11 @@ should not create those directories.
 
 
 def onboarding_test(module: str, spec_root_text: str = "specs") -> str:
-    return f'''"""The accepted baseline must carry BOTH views and BOTH adapter mappings.
+    return f'''"""The accepted baseline carries a model, its cfg and the manifest.
 
-This test fails while the scaffold is incomplete. That is deliberate: a
-single-module baseline cannot generate Test Graph cases, so the project would
+This test fails while the minimum is absent. The optional layer (External view,
+adapters, providers, bindings) is added by `scaffold project --full` and is not
+checked here. A single module was once treated as invalid; it is not, so the project would
 have no validation of its public surface.
 """
 
@@ -1220,15 +1241,6 @@ REQUIRED_BASELINE_FILES = [
     "Core.tla",
     "Internal.tla",
     "Internal.cfg",
-    "External.tla",
-    "External.cfg",
-    "actions.yml",
-    "adapters.py",
-    "providers.py",
-    "effect_provider_usage.yaml",
-    "case_adapters.toml",
-    "testgraph_bindings.yml",
-    "tlc_projection.py",
     "spec_manifest.yaml",
 ]
 
@@ -1363,27 +1375,11 @@ if __name__ == "__main__":
 
 def testgraph_reminder(repo_root: Path, spec_root_text: str) -> str:
     return f"""
-{'=' * 72}
-!! NO test_graph PROJECT FOUND IN {repo_root}
-{'=' * 72}
-
-The External view you just scaffolded ({spec_root_text}/program_model/External.tla)
-generates Test Graph cases. Without a test_graph project there is nothing to
-execute them, so this repository's public surface will NOT be validated.
-
-Do not skip this. Every project in this workflow is validated strictly through
-Test Graph adapters -- they are foundational, not optional.
-
-Next:
-  1. Scaffold a test_graph project in this repository (see the test-graph skill).
-  2. Implement the Test Graph adapters, projector, and assertion in
-     {spec_root_text}/program_model/adapters.py
-  3. Map every External.tla action in
-     {spec_root_text}/program_model/testgraph_bindings.yml
-  4. Read references/testgraph_adapters.md and diff your tree against
-     examples/distributed_history/specs/program_model/
-
-{'=' * 72}
+note: no test_graph project in {repo_root}. The External view
+({spec_root_text}/program_model/External.tla) generates Test Graph cases, and without a
+test_graph project they have nowhere to run. Optional: scaffold one with the
+test-graph skill when you want the public surface driven end to end
+(references/testgraph_adapters.md).
 """
 
 
@@ -1403,13 +1399,25 @@ def missing_baseline_files(program_dir: Path) -> list[str]:
     return [name for name in REQUIRED_BASELINE_FILES if not (program_dir / name).exists()]
 
 
+def missing_optional_baseline_files(program_dir: Path) -> list[str]:
+    """Return the optional (``--full``) baseline files absent from program_dir."""
+    return [name for name in OPTIONAL_BASELINE_FILES if not (program_dir / name).exists()]
+
+
 def scaffold(
     repo_root: Path,
     name: str | None,
     force: bool,
     dry_run: bool,
     spec_root: Path = Path("specs"),
+    full: bool = False,
 ) -> list[Path]:
+    """Scaffold the accepted baseline.
+
+    Default: the minimum -- Core/Internal model, cfg, manifest, README and one
+    smoke test. ``full=True`` adds the External view, the generated-case
+    adapters, effect providers, Test Graph bindings and the TLC projection.
+    """
     module = _module_name(name or repo_root.name)
     package = f"{_slug(module)}_program_cases"
     resolved_spec_root = _resolve_spec_root(repo_root, spec_root)
@@ -1417,31 +1425,34 @@ def scaffold(
     program_dir = resolved_spec_root / "program_model"
 
     files = [
-        (program_dir / "README.md", readme(module, spec_root_text)),
+        (program_dir / "README.md", readme(module, spec_root_text, full=full)),
         (program_dir / "__init__.py", ""),
         (program_dir / "Core.tla", core_tla()),
         (program_dir / "Internal.tla", internal_tla()),
         (program_dir / "Internal.cfg", internal_cfg()),
-        (program_dir / "External.tla", external_tla()),
-        (program_dir / "External.cfg", external_cfg()),
-        (program_dir / "actions.yml", actions_yml()),
-        (program_dir / "adapters.py", adapters_py(module)),
-        (program_dir / "providers.py", providers_py()),
-        (program_dir / "effect_provider_usage.yaml", effect_provider_usage_yml()),
-        (program_dir / "case_adapters.toml", case_adapters_toml()),
-        (program_dir / "testgraph_bindings.yml", testgraph_bindings_yml()),
-        (program_dir / "tlc_projection.py", tlc_projection_py(module)),
-        (program_dir / "spec_manifest.yaml", manifest(module, package, spec_root_text)),
+        (program_dir / "spec_manifest.yaml", manifest(module, package, spec_root_text, full=full)),
         (program_dir / "tests" / "test_program_model_onboarding.py", onboarding_test(module, spec_root_text)),
-        (program_dir / "tests" / "test_spec_unit_adapters.py", spec_unit_adapter_test(module, spec_root_text)),
     ]
+    if full:
+        files += [
+            (program_dir / "External.tla", external_tla()),
+            (program_dir / "External.cfg", external_cfg()),
+            (program_dir / "actions.yml", actions_yml()),
+            (program_dir / "adapters.py", adapters_py(module)),
+            (program_dir / "providers.py", providers_py()),
+            (program_dir / "effect_provider_usage.yaml", effect_provider_usage_yml()),
+            (program_dir / "case_adapters.toml", case_adapters_toml()),
+            (program_dir / "testgraph_bindings.yml", testgraph_bindings_yml()),
+            (program_dir / "tlc_projection.py", tlc_projection_py(module)),
+            (program_dir / "tests" / "test_spec_unit_adapters.py", spec_unit_adapter_test(module, spec_root_text)),
+        ]
 
     written: list[Path] = []
     for path, content in files:
         if write_file(path, content, force=force, dry_run=dry_run):
             written.append(path)
 
-    if not has_test_graph(repo_root):
+    if full and not has_test_graph(repo_root):
         print(testgraph_reminder(repo_root, spec_root_text))
 
     return written
@@ -1454,10 +1465,11 @@ def main() -> int:
     parser.add_argument("--name", help="Program/module name. Defaults to the repository directory name.")
     parser.add_argument("--force", action="store_true", help="Overwrite existing program-model files.")
     parser.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
+    parser.add_argument("--full", action="store_true", help="Also emit the External view, adapters, providers, bindings and projection.")
     args = parser.parse_args()
 
     repo_root = args.repo_root.resolve()
-    written = scaffold(repo_root, args.name, args.force, args.dry_run, args.spec_root)
+    written = scaffold(repo_root, args.name, args.force, args.dry_run, args.spec_root, full=args.full)
     print(f"scaffolded program model files: {len(written)}")
     return 0
 

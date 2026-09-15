@@ -200,7 +200,7 @@ def test_an_unfilled_template_narrative_is_recorded_as_rejected_and_the_close_pr
 
     close(root)
 
-    assert "complexity ledger rejected this close" in capsys.readouterr().err
+    assert "complexity ledger input rejected" in capsys.readouterr().err
     assert entry_dir(root).is_dir()
 
 

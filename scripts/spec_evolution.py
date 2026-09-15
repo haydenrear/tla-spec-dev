@@ -1664,8 +1664,8 @@ def record_complexity_ledger(
         # The rejected entry is part of the append-only record, and
         # previous_entry() skips rejections so it never becomes a baseline.
         print(
-            f"WARNING: complexity ledger rejected this close ({len(verdict.errors)} "
-            f"issue(s)); see {rel(path)}",
+            f"WARNING: complexity ledger input rejected ({len(verdict.errors)} "
+            f"issue(s)); recorded as rejected, the close proceeds. See {rel(path)}",
             file=sys.stderr,
         )
     else:
@@ -2014,8 +2014,12 @@ def create_ticket_history_entry(
         refuse_or_warn([problem], force=force)
 
     active_dir = active_ticket_dir(specs_dir, resolved_ticket_id, ticket_root)
+    # Desired-only ticket (the default since 2026-09-14): no ticket-local
+    # current/ was seeded, so there is nothing to converge. desired/ is the
+    # outcome and is promoted as such. Not a guard weakening: no guard exists.
+    desired_only = active_dir.exists() and not (active_dir / "current").exists()
     ticket_close_errors: list[str] = []
-    if active_dir.exists() and not accept_new:
+    if active_dir.exists() and not accept_new and not desired_only:
         ticket_close_errors.extend(
             validate_equivalent_model_dirs(
                 active_dir / "current",
@@ -2034,7 +2038,7 @@ def create_ticket_history_entry(
         # Forced over a divergent ticket: desired is the accepted outcome.
         accept_new = True
     accept_new_record: dict[str, Any] | None = None
-    if active_dir.exists() and accept_new:
+    if active_dir.exists() and accept_new and not desired_only:
         accept_new_record = accept_new_ticket_current(active_dir)
 
     # RC-01 (MF-026): a close taken under a guard-weakening flag is a different
@@ -2062,7 +2066,11 @@ def create_ticket_history_entry(
         scope="ticket",
         scope_id=resolved_ticket_id,
         workflow=resolved_workflow,
-        model_dir=(active_dir / "current") if _has_workdir else (specs_dir / "current"),
+        model_dir=(
+            (active_dir / "desired" if desired_only else active_dir / "current")
+            if _has_workdir
+            else (specs_dir / "current")
+        ),
         input_path=complexity_ledger_input_path(
             specs_dir, active_dir if _has_workdir else None, "ticket"
         ),
@@ -2157,6 +2165,7 @@ def create_ticket_history_entry(
         "ticket_workdir": ticket_workdir_record,
         "accept_new": accept_new,
         "accept_new_promotion": accept_new_record,
+        "desired_only": desired_only,
         # RC-01: which guard-weakening flags this close was taken under, and
         # therefore whether it is a CloseTicket or a CloseTicketWeakened in the
         # model. Never a refusal -- the flags are shipped and have legitimate

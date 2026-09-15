@@ -1423,6 +1423,7 @@ def test_cli_scaffolded_project_selects_a_custom_project_provider_without_framew
             "project",
             "--name",
             "CliProject",
+            "--full",
         ],
         cwd=tmp_path,
         text=True,

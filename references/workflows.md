@@ -122,7 +122,7 @@ tla-spec-dev --spec-root specs close ticket <ticket-id> \
   --result specs/results/adapter.txt
 ```
 
-The close operation validates ticket-local `current == desired`, records a
+The close operation promotes ticket-local `desired/` (there is no ticket-local `current/` unless opened with `--with-current`), records a
 complexity-ledger entry in `specs/results/complexity_ledger.json` (refusing
 the close if the ledger gate rejects), moves `specs/tickets/<ticket-id>` to
 `specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/ticket/`, promotes

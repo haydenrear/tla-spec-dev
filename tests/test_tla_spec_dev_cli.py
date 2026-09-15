@@ -86,6 +86,7 @@ def test_cli_scaffold_project_and_workflow_use_spec_root(tmp_path: Path) -> None
         "project",
         "--name",
         "CliProject",
+        "--full",
         cwd=tmp_path,
     )
     result_workflow = run_cli(
@@ -134,7 +135,7 @@ def test_cli_run_spec_unit_tests_targets_active_ticket_current(tmp_path: Path) -
     ticket_id = "CLI-202"
     run_cli("--spec-root", "project_specs", "scaffold", "project", "--name", "CliProject", cwd=tmp_path)
     run_cli("--spec-root", "project_specs", "scaffold", "workflow", ticket_id, "CLI ticket unit tests", cwd=tmp_path)
-    run_cli("--spec-root", "project_specs", "open", "ticket", ticket_id, cwd=tmp_path)
+    run_cli("--spec-root", "project_specs", "open", "ticket", ticket_id, "--with-current", cwd=tmp_path)
     ticket_test = tmp_path / "project_specs" / "tickets" / ticket_id / "current" / "tests" / "test_ticket_unit.py"
     ticket_test.parent.mkdir(parents=True, exist_ok=True)
     ticket_test.write_text("def test_ticket_unit():\n    assert True\n", encoding="utf-8")
@@ -146,11 +147,26 @@ def test_cli_run_spec_unit_tests_targets_active_ticket_current(tmp_path: Path) -
     assert f"project_specs/tickets/{ticket_id}/current" in result.stdout
 
 
+def test_cli_run_spec_unit_tests_targets_a_desired_only_ticket(tmp_path: Path) -> None:
+    ticket_id = "CLI-203"
+    run_cli("--spec-root", "project_specs", "scaffold", "project", "--name", "CliProject", cwd=tmp_path)
+    run_cli("--spec-root", "project_specs", "scaffold", "workflow", ticket_id, "CLI desired-only", cwd=tmp_path)
+    run_cli("--spec-root", "project_specs", "open", "ticket", ticket_id, cwd=tmp_path)
+    ticket_test = tmp_path / "project_specs" / "tickets" / ticket_id / "desired" / "tests" / "test_ticket_unit.py"
+    ticket_test.parent.mkdir(parents=True, exist_ok=True)
+    ticket_test.write_text("def test_ticket_unit():\n    assert True\n", encoding="utf-8")
+
+    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", "--ticket", ticket_id, cwd=tmp_path)
+
+    assert result.returncode == 0, result.stderr
+    assert f"project_specs/tickets/{ticket_id}/desired" in result.stdout
+
+
 def test_cli_run_spec_unit_tests_auto_includes_project_current_tests(tmp_path: Path) -> None:
     ticket_id = "CLI-204"
     run_cli("--spec-root", "project_specs", "scaffold", "project", "--name", "CliProject", cwd=tmp_path)
     run_cli("--spec-root", "project_specs", "scaffold", "workflow", ticket_id, "CLI active ticket tests", cwd=tmp_path)
-    run_cli("--spec-root", "project_specs", "open", "ticket", ticket_id, cwd=tmp_path)
+    run_cli("--spec-root", "project_specs", "open", "ticket", ticket_id, "--with-current", cwd=tmp_path)
     project_test = tmp_path / "project_specs" / "current" / "tests" / "test_project_current_failure.py"
     project_test.parent.mkdir(parents=True, exist_ok=True)
     project_test.write_text("def test_project_current_failure():\n    assert False\n", encoding="utf-8")
@@ -235,6 +251,7 @@ def test_cli_open_ticket_and_close_ticket_use_spec_root(tmp_path: Path) -> None:
         "project",
         "--name",
         "CliProject",
+        "--full",
         cwd=tmp_path,
     )
     result_workflow = run_cli(
@@ -262,7 +279,8 @@ def test_cli_open_ticket_and_close_ticket_use_spec_root(tmp_path: Path) -> None:
     assert "desired" in result_open.stdout
     ticket_dir = tmp_path / "project_specs" / "tickets" / ticket_id
     assert (ticket_dir / "desired" / "External.tla").exists()
-    assert (ticket_dir / "current" / "External.tla").exists()
+    # Desired-only by default (2026-09-14): no ticket current/, no convergence.
+    assert not (ticket_dir / "current").exists()
     assert (ticket_dir / "desired" / "testgraph_bindings.yml").exists()
 
     # MF-019: `open ticket` scaffolds the complexity-ledger input with TODO

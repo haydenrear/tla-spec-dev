@@ -118,7 +118,9 @@ def main(ctx):
     ticket_id = ctx.get("spec.workflow.repo", "ticketId") or "FLOW-1"
     ticket_dir = Path(ctx.get("spec.workflow.start", "ticketDir") or repo / "specs" / "tickets" / ticket_id)
 
-    for model_dir in (ticket_dir / "desired", ticket_dir / "current"):
+    # Desired-only ticket (2026-09-14): the ticket edits desired/ and the
+    # close promotes it. There is no current/ to keep in step.
+    for model_dir in (ticket_dir / "desired",):
         append_before_terminator(model_dir / "Internal.tla", INTERNAL_ACTION)
         append_before_terminator(model_dir / "External.tla", EXTERNAL_ACTION)
 
@@ -144,7 +146,7 @@ def main(ctx):
     result = NodeResult.pass_(SPEC.id)
     for label, argv in [
         ("git-add", ["git", "add", "."]),
-        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+        ("git-commit", ["git", "commit", "-m", "complete ticket desired"]),
     ]:
         record = procs.run(ctx, label, argv, cwd=repo)
         result.process(record).assertion(f"{label} succeeded", record.exit_code == 0)
@@ -152,17 +154,13 @@ def main(ctx):
     def read(view: str, name: str) -> str:
         return (ticket_dir / view / name).read_text(encoding="utf-8")
 
-    views_match = all(
-        read("current", name) == read("desired", name)
-        for name in ("Internal.tla", "External.tla", "actions.yml", "testgraph_bindings.yml")
-    )
     return (
         result
         .assertion("ticket plan marked done", "status: done" in updated)
         .assertion("desired internal view updated first-class", "CompleteTicket" in read("desired", "Internal.tla"))
         .assertion("desired external view updated first-class", "SubmitCompleteTicket" in read("desired", "External.tla"))
         .assertion("new external action mapped for Test Graph", "SubmitCompleteTicket" in read("desired", "testgraph_bindings.yml"))
-        .assertion("current matches desired across both views", views_match)
+        .assertion("no ticket-local current/ to converge", not (ticket_dir / "current").exists())
         .assertion("ticket spec adapter written", (ticket_dir / "desired" / "spec_adapters" / "complete_ticket_adapter.py").is_file())
         .assertion("ticket Test Graph binding written", (ticket_dir / "testgraph" / "bindings.yml").is_file())
         .artifact("ticket-plan", str(ticket_plan))

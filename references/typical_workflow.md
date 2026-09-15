@@ -57,39 +57,39 @@ For each ticket or implementation slice:
 tla-spec-dev --repo-root path/to/repo --spec-root specs open ticket TICKET-123
 ```
 
-This creates `specs/tickets/TICKET-123/current`, `desired`, `results`, any
-copied Test Graph configuration, a `ticket.yaml` recording lifecycle metadata
-plus the seed manifest of project-`current` paths copied into the workspace,
-and a `results/complexity_ledger.yaml` ledger input scaffolded with TODO
-sentinels that must be filled in before close. Ticket `desired` is the
-whole-program state at the end of this ticket, not the whole project
-destination.
+This creates `specs/tickets/TICKET-123/desired` (a copy of project `current`),
+`results`, any copied Test Graph configuration, a `ticket.yaml` recording
+lifecycle metadata plus the seed manifest of project-`current` paths copied
+into the workspace, and a `results/complexity_ledger.yaml` ledger input.
+The ledger input is advisory; an unfilled one is recorded and the close
+proceeds. Ticket `desired` is the whole-program state at the end of this
+ticket, not the whole project destination. Pass `--with-current` to also seed
+a ticket-local `current/` for the older two-directory loop.
 
-2. Update `specs/tickets/TICKET-123/desired` first so it represents the
-   expected post-ticket whole-program state, including TLA+, configs,
-   spec-unit adapters/tests, and Test Graph bindings/adapters when applicable.
+2. Update `specs/tickets/TICKET-123/desired` so it represents the expected
+   post-ticket whole-program state: TLA+ and configs, plus spec-unit
+   adapters/tests and Test Graph bindings when the project has that layer.
+   Run TLC on it once.
 3. Update production code.
-4. Update `specs/tickets/TICKET-123/current` to represent the whole program as
-   now implemented for this ticket.
-5. Keep `desired_program_model/ticket_plan.yaml` synchronized with changes in
+4. Keep `desired_program_model/ticket_plan.yaml` synchronized with changes in
    scope, order, dependencies, and acceptance criteria.
-6. Run TLC, generated adapter tests, and Test Graph validation as needed. Use
-   the shipped CLI for spec-unit validation:
+5. Run TLC and, when the project has them, generated adapter tests and Test
+   Graph validation. Use the shipped CLI for spec-unit validation:
 
 ```bash
 tla-spec-dev --repo-root path/to/repo --spec-root specs run spec-unit-tests --ticket TICKET-123
 ```
 
-7. Record validation evidence in the ticket `results/` directory, manifests, or
+6. Record validation evidence in the ticket `results/` directory, manifests, or
    ticket status.
-8. When ticket-local `current` semantically equals ticket-local `desired`, mark
-   the ticket closed in `ticket_plan.yaml`, then close the ticket:
+7. Mark the ticket `done` in `ticket_plan.yaml`, then close the ticket:
 
 ```bash
 tla-spec-dev --repo-root path/to/repo --spec-root specs close ticket TICKET-123 --result path/to/repo/specs/results/tlc.txt
 ```
 
-Closing validates ticket-local `current == desired`, records a
+Closing promotes ticket `desired/` (with `--with-current`, a divergent
+`current/` is accepted as `desired/` under `--force` and recorded), records a
 complexity-ledger entry from the ticket's filled-in
 `results/complexity_ledger.yaml` (advisory: a missing input skips the
 measurement, and an input with TODO sentinels, no refinement record or

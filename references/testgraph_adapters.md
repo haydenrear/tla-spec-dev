@@ -3,10 +3,11 @@
 This reference describes the External/Test Graph adapter path. Use
 `examples/distributed_history/` as the concrete reference implementation.
 
-Read this **before authoring any spec baseline**. Test Graph adapters are
-foundational to every project, not an add-on for distributed systems. A baseline
-without an External view and its adapters generates no Test Graph cases, so the
-repository's public surface is never validated.
+Read this when adding the optional layer: the External view and its Test
+Graph adapters (`tla-spec-dev scaffold project --full`). A baseline is complete
+without them (Core/Internal/cfg/manifest, see SKILL.md); this layer is worth
+having when the project wants its public surface driven end to end, and it is
+never required. The rest of this page is written for that case.
 
 ### Name the adapter module bare, not view-qualified
 

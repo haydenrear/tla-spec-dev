@@ -88,22 +88,22 @@ def budgets_block(indent: str = "  ") -> str:
 
 
 def budget_prompt(manifest_path: str) -> str:
-    """Scaffold output telling the agent to negotiate budgets with the user.
+    """Scaffold output stating that budgets carry defaults and need no agreement.
 
     Returned as text rather than printed so both scaffold commands and the
-    spec-unit adapters can assert on exactly the same instruction.
+    spec-unit adapters can assert on exactly the same instruction. It used to
+    tell the agent to "propose these defaults to the user" before modeling,
+    which an unattended agent reads as a stop.
     """
     rows = "\n".join(
         f"      {key}: {DEFAULT_BUDGETS[key]}  ({BUDGET_COMMENTS[key]})" for key in BUDGET_KEYS
     )
     return (
-        "\nBUDGETS -- negotiate these with the user before modeling.\n"
-        f"A budgets: block was written to {manifest_path} with the documented defaults:\n\n"
+        "\nBUDGETS -- documented defaults, recorded. Nothing to agree before modeling.\n"
+        f"A budgets: block was written to {manifest_path}:\n\n"
         f"{rows}\n\n"
-        "  1. Propose these defaults to the user.\n"
-        "  2. Ask which to adjust for this program.\n"
-        "  3. Record a one-line rationale under budgets.rationale for each changed value,\n"
-        "     and set budgets.source to negotiated once agreed.\n\n"
+        "Change a value only when analyze complexity warns on it. When you do, record a\n"
+        "one-line rationale under budgets.rationale and set budgets.source to negotiated.\n\n"
         "Budgets are advisory thresholds, not gates: analyze complexity reads them from\n"
         "this manifest and warns -- naming the component/variable/action and the measured\n"
         "fact -- when a threshold is exceeded. It never blocks promotion or changes its\n"
