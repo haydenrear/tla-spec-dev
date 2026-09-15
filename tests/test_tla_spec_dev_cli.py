@@ -86,6 +86,7 @@ def test_cli_scaffold_project_and_workflow_use_spec_root(tmp_path: Path) -> None
         "project",
         "--name",
         "CliProject",
+        "--full",
         cwd=tmp_path,
     )
     result_workflow = run_cli(
@@ -235,6 +236,7 @@ def test_cli_open_ticket_and_close_ticket_use_spec_root(tmp_path: Path) -> None:
         "project",
         "--name",
         "CliProject",
+        "--full",
         cwd=tmp_path,
     )
     result_workflow = run_cli(

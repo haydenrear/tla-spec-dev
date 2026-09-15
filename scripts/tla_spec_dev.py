@@ -64,40 +64,40 @@ def run_scaffold_project(args: argparse.Namespace) -> int:
     from scripts import onboard_program_model
 
     repo_root = Path(args.repo_root).resolve()
+    full = bool(getattr(args, "full", False))
     written = onboard_program_model.scaffold(
         repo_root=repo_root,
         name=args.name,
         force=args.force,
         dry_run=args.dry_run,
         spec_root=Path(args.spec_root),
+        full=full,
     )
     spec_root = args.spec_root
     print(f"scaffolded program model files: {len(written)}")
     print(
-        "\nThese are PLACEHOLDERS to restructure, not a finished baseline.\n"
-        "The baseline is not complete until it has both views and both adapter mappings:\n"
-        f"  - {spec_root}/program_model/Internal.tla + Internal.cfg  -> spec-unit cases\n"
-        f"  - {spec_root}/program_model/External.tla + External.cfg  -> Test Graph cases\n"
-        f"  - {spec_root}/program_model/case_adapters.toml           -> spec-unit adapters\n"
-        f"  - {spec_root}/program_model/providers.py                 -> agent-authored effect providers\n"
-        f"  - {spec_root}/program_model/effect_provider_usage.yaml   -> provider scope and limits\n"
-        f"  - {spec_root}/program_model/testgraph_bindings.yml       -> Test Graph adapters\n"
-        f"  - {spec_root}/program_model/adapters.py                  -> both, plus projector/assertion\n"
-        "\nTest Graph adapters are foundational to every project, not an add-on for\n"
-        "distributed systems. Without the External view the public surface is never validated.\n"
-        "\nRead references/testgraph_adapters.md and references/effect_providers.md, "
-        "then diff your tree against\n"
-        "examples/distributed_history/specs/program_model/ before calling onboarding done."
+        "\nThese are placeholders: replace the scaffolded state, actions and invariants\n"
+        "with this repository's real ones. The baseline is\n"
+        f"  - {spec_root}/program_model/Core.tla + Internal.tla + Internal.cfg  -> the model TLC checks\n"
+        f"  - {spec_root}/program_model/spec_manifest.yaml                     -> ports, invariants, budgets\n"
+        + (
+            f"  - {spec_root}/program_model/External.tla + External.cfg          -> Test Graph cases (optional layer)\n"
+            f"  - {spec_root}/program_model/adapters.py, providers.py, *.toml/yml  -> generated-case adapters (optional layer)\n"
+            if full
+            else "Optional later: `scaffold project --full` adds the External view, adapters and providers.\n"
+        )
     )
     from scripts.budgets import budget_prompt
 
     print(budget_prompt(f"{spec_root}/program_model/spec_manifest.yaml"))
     print("next:")
-    print("  1. Propose the budgets above to the user and record the agreed values.")
-    print("  2. Replace the placeholder semantics with this repository's real behavior.")
-    print(f"  3. scripts/run_tlc.sh {spec_root}/program_model/Internal.tla {spec_root}/program_model/Internal.cfg")
-    print(f"  4. scripts/run_tlc.sh {spec_root}/program_model/External.tla {spec_root}/program_model/External.cfg")
-    print(f"  5. tla-spec-dev --spec-root {spec_root} scaffold workflow")
+    print("  1. Replace the placeholder semantics with this repository's real behavior.")
+    print(f"  2. scripts/run_tlc.sh {spec_root}/program_model/Internal.tla {spec_root}/program_model/Internal.cfg")
+    if full:
+        print(f"  3. scripts/run_tlc.sh {spec_root}/program_model/External.tla {spec_root}/program_model/External.cfg")
+        print(f"  4. tla-spec-dev --spec-root {spec_root} scaffold workflow")
+    else:
+        print(f"  3. tla-spec-dev --spec-root {spec_root} scaffold workflow")
     return 0
 
 
@@ -501,6 +501,11 @@ def build_parser() -> argparse.ArgumentParser:
     scaffold_project.add_argument("--name", help="Program/module name. Defaults to the repository directory name.")
     scaffold_project.add_argument("--force", action="store_true", help="Overwrite existing program-model files.")
     scaffold_project.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
+    scaffold_project.add_argument(
+        "--full",
+        action="store_true",
+        help="Also emit the optional layer: External view, generated-case adapters, effect providers, Test Graph bindings, TLC projection.",
+    )
     scaffold_project.set_defaults(
         func=run_scaffold_project,
         command_path="tla-spec-dev scaffold project",

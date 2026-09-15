@@ -140,16 +140,18 @@ def discover_baseline(repo_root: Path, spec_root: Path, fallback_module: str) ->
             manifest_path=manifest_path if manifest_path.exists() else None,
             layout="three_module",
         )
+        # Advisory, never a refusal (2026-09-14). This used to raise SystemExit
+        # on a baseline missing any of thirteen files, and neither --force nor
+        # SKILL_GATES=off got past it -- it refused on the skill's own
+        # examples/distributed_history. An agent told "the model is incomplete"
+        # stops; the workflow scaffold copies whatever the baseline has.
         missing = missing_baseline_files(program_dir)
         if missing:
-            details = "\n".join(f"- {program_dir / name}" for name in missing)
-            raise SystemExit(
-                "the accepted program model is incomplete. Every project needs BOTH views "
-                "and BOTH adapter mappings; without them the public surface is never "
-                "validated.\nMissing baseline files:\n"
-                + details
-                + "\n\nRead references/testgraph_adapters.md and diff against "
-                "examples/distributed_history/specs/program_model/."
+            details = "\n".join(f"  - {program_dir / name}" for name in missing)
+            print(
+                "WARNING: the accepted program model is missing baseline files; "
+                "scaffolding the workflow from what is there:\n" + details,
+                file=sys.stderr,
             )
         return baseline
 

@@ -134,10 +134,14 @@ def test_budget_prompt_and_scaffold_comments_use_advisory_language() -> None:
     assert "hard gates" not in prompt.lower()
 
 
-def test_budget_prompt_instructs_negotiation_and_rationale() -> None:
+def test_budget_prompt_does_not_stop_the_agent_to_negotiate() -> None:
+    """2026-09-14: the prompt used to say "Propose these defaults to the user"
+    before modeling. An unattended agent reads that as a stop. Defaults are
+    recorded; a rationale is asked for only when a value changes."""
     prompt = budget_prompt("specs/program_model/spec_manifest.yaml")
-    assert "Propose these defaults to the user" in prompt
-    assert "Ask which to adjust for this program" in prompt
+    assert "Nothing to agree before modeling" in prompt
+    assert "Propose these defaults to the user" not in prompt
+    assert "Ask which to adjust" not in prompt
     assert "one-line rationale" in prompt
     for key in BUDGET_KEYS:
         assert key in prompt
@@ -161,7 +165,7 @@ def test_scaffold_project_emits_budgets_and_prompt(tmp_path: Path) -> None:
     manifest_text = manifest.read_text()
     assert "budgets:" in manifest_text
     assert load_budgets(manifest, warn=False) == DEFAULT_BUDGETS
-    assert "Propose these defaults to the user" in result.stdout
+    assert "Nothing to agree before modeling" in result.stdout
     assert "one-line rationale" in result.stdout
     # VAL-04: generated manifest and epilog speak the advisory doctrine.
     assert "hard gates" not in manifest_text.lower()
@@ -187,5 +191,5 @@ def test_scaffold_workflow_emits_budgets_and_prompt(tmp_path: Path) -> None:
         assert "hard gates" not in manifest_text.lower(), manifest
         assert "advisory" in manifest_text, manifest
         assert "justification:" in manifest_text, manifest
-    assert "Propose these defaults to the user" in result.stdout
+    assert "Nothing to agree before modeling" in result.stdout
     assert "hard gates" not in result.stdout.lower()

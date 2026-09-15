@@ -10,9 +10,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts.onboard_program_model import (
+    OPTIONAL_BASELINE_FILES,
     REQUIRED_BASELINE_FILES,
     has_test_graph,
     missing_baseline_files,
+    missing_optional_baseline_files,
     scaffold,
 )
 
@@ -30,19 +32,37 @@ def test_onboard_program_model_creates_only_program_model(tmp_path: Path) -> Non
 
 @pytest.mark.parametrize("name", REQUIRED_BASELINE_FILES)
 def test_scaffold_emits_every_required_baseline_file(tmp_path: Path, name: str) -> None:
-    """A scaffold that omits any of these produces an unusable baseline.
-
-    Internal.tla/External.tla and the two adapter mappings are the whole point of
-    the workflow: without them the project has no generative integration testing.
-    """
+    """The minimum baseline: model, cfg, manifest. Nothing else is required."""
     scaffold(tmp_path, "SkillManager", force=False, dry_run=False)
 
     assert (tmp_path / "specs/program_model" / name).exists()
     assert missing_baseline_files(tmp_path / "specs/program_model") == []
 
 
-def test_scaffold_emits_both_views_and_both_adapter_mappings(tmp_path: Path) -> None:
+def test_default_scaffold_is_the_minimum(tmp_path: Path) -> None:
+    """2026-09-14: the default used to emit thirteen files and call anything
+    less "not complete". The optional layer is opt-in via --full."""
     scaffold(tmp_path, "SkillManager", force=False, dry_run=False)
+    program_model = tmp_path / "specs/program_model"
+
+    assert set(REQUIRED_BASELINE_FILES).isdisjoint(OPTIONAL_BASELINE_FILES)
+    assert missing_optional_baseline_files(program_model) == list(OPTIONAL_BASELINE_FILES)
+    manifest = (program_model / "spec_manifest.yaml").read_text(encoding="utf-8")
+    assert "External.tla" not in manifest
+    assert "Propose the budgets" not in manifest
+    assert "tlc_projection.py" not in manifest
+
+
+@pytest.mark.parametrize("name", OPTIONAL_BASELINE_FILES)
+def test_full_scaffold_emits_the_optional_layer(tmp_path: Path, name: str) -> None:
+    scaffold(tmp_path, "SkillManager", force=False, dry_run=False, full=True)
+
+    assert (tmp_path / "specs/program_model" / name).exists()
+    assert missing_optional_baseline_files(tmp_path / "specs/program_model") == []
+
+
+def test_scaffold_emits_both_views_and_both_adapter_mappings(tmp_path: Path) -> None:
+    scaffold(tmp_path, "SkillManager", force=False, dry_run=False, full=True)
     program_model = tmp_path / "specs/program_model"
 
     assert "EXTENDS Core" in (program_model / "Internal.tla").read_text(encoding="utf-8")
@@ -99,19 +119,27 @@ def test_scaffold_emits_both_views_and_both_adapter_mappings(tmp_path: Path) -> 
 
 
 def test_scaffold_emits_example_spec_unit_adapter_test(tmp_path: Path) -> None:
-    scaffold(tmp_path, "SkillManager", force=False, dry_run=False)
+    scaffold(tmp_path, "SkillManager", force=False, dry_run=False, full=True)
     tests_dir = tmp_path / "specs/program_model/tests"
 
     assert (tests_dir / "test_spec_unit_adapters.py").exists()
     assert (tests_dir / "test_program_model_onboarding.py").exists()
 
 
-def test_scaffold_warns_when_repo_has_no_test_graph(tmp_path: Path, capsys) -> None:
-    scaffold(tmp_path, "SkillManager", force=False, dry_run=False)
+def test_full_scaffold_notes_a_missing_test_graph_without_blocking(tmp_path: Path, capsys) -> None:
+    scaffold(tmp_path, "SkillManager", force=False, dry_run=False, full=True)
 
     output = capsys.readouterr().out
-    assert "NO test_graph PROJECT FOUND" in output
-    assert "will NOT be validated" in output
+    assert "no test_graph project" in output
+    assert "Optional" in output
+    assert "Do not skip" not in output
+    assert "NOT be validated" not in output
+
+
+def test_minimum_scaffold_says_nothing_about_test_graph(tmp_path: Path, capsys) -> None:
+    scaffold(tmp_path, "SkillManager", force=False, dry_run=False)
+
+    assert "test_graph" not in capsys.readouterr().out
 
 
 def test_scaffold_is_quiet_when_test_graph_exists(tmp_path: Path, capsys) -> None:
@@ -121,8 +149,8 @@ def test_scaffold_is_quiet_when_test_graph_exists(tmp_path: Path, capsys) -> Non
 
     assert has_test_graph(tmp_path)
 
-    scaffold(tmp_path, "SkillManager", force=False, dry_run=False)
-    assert "NO test_graph PROJECT FOUND" not in capsys.readouterr().out
+    scaffold(tmp_path, "SkillManager", force=False, dry_run=False, full=True)
+    assert "no test_graph project" not in capsys.readouterr().out
 
 
 @pytest.mark.skipif(shutil.which("tlc2") is None, reason="tlc2 is not installed")
@@ -137,7 +165,7 @@ def test_scaffolded_views_model_check_cleanly(tmp_path: Path, module: str, confi
     the scaffold ships a spec that errors, the first thing they see is a failure
     they did not cause.
     """
-    scaffold(tmp_path, "SkillManager", force=False, dry_run=False)
+    scaffold(tmp_path, "SkillManager", force=False, dry_run=False, full=True)
     program_model = tmp_path / "specs" / "program_model"
 
     result = subprocess.run(
@@ -178,7 +206,7 @@ def test_onboard_program_model_uses_custom_spec_root(tmp_path: Path) -> None:
 
     assert tmp_path / "project/specs/program_model/spec_manifest.yaml" in written
     assert (tmp_path / "project/specs/program_model/Internal.tla").exists()
-    assert (tmp_path / "project/specs/program_model/External.tla").exists()
+    assert not (tmp_path / "project/specs/program_model/External.tla").exists()
     generated_test = (
         tmp_path / "project/specs/program_model/tests/test_program_model_onboarding.py"
     ).read_text(encoding="utf-8")
