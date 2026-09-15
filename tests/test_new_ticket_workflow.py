@@ -82,7 +82,10 @@ def test_skill_requires_two_minute_case_generation_budget() -> None:
     assert "perform bounded discovery of the state explosion" in skill
     assert "accidental complexity" in skill
     assert "Provide concrete recommendations" in skill
-    assert "discuss the tradeoff with the user" in skill
+    # 2026-09-14: the card no longer tells the agent to stop and discuss; it
+    # records the tradeoff for the user and continues.
+    assert "record the tradeoff for the user" in skill
+    assert "discuss the tradeoff with the user" not in skill
     # RP-05 (CM-01-DF-01/AC-DF-01): this used to assert the literal prose
     # "hard two-minute budget", which the c72d03a docs refresh rewrote to
     # "hard wall-time budget: `budgets.tlc_seconds` ... default 120 seconds" --
