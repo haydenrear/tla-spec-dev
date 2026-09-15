@@ -207,7 +207,7 @@ def test_start_ticket_scaffolds_ticket_local_current_and_desired_from_plan(tmp_p
     (tmp_path / "specs" / "testgraph").mkdir()
     (tmp_path / "specs" / "testgraph" / "bindings.yml").write_text("actions: {}\n", encoding="utf-8")
 
-    written = scaffold_ticket_directory(tmp_path, "AUTH-127", force=False, dry_run=False)
+    written = scaffold_ticket_directory(tmp_path, "AUTH-127", force=False, dry_run=False, with_current=True)
     ticket_dir = tmp_path / "specs" / "tickets" / "AUTH-127"
 
     assert ticket_dir / "ticket.yaml" in written
@@ -254,6 +254,42 @@ def test_start_ticket_records_custom_ticket_root_in_close_guidance(tmp_path: Pat
     assert "close ticket AUTH-131 --ticket-root work/items" in readme
 
 
+def test_open_ticket_is_desired_only_by_default_and_close_promotes_it(tmp_path: Path) -> None:
+    """2026-09-14: a ticket used to get current/ AND desired/ and had to make
+    them semantically equal before close would run. Now it gets desired/, edits
+    it, and close promotes it. No convergence loop, no guard, no weakening."""
+    write_program_model(tmp_path)
+    scaffold(tmp_path, "AUTH-140", "Desired-only ticket", force=False, dry_run=False)
+    written = scaffold_ticket_directory(tmp_path, "AUTH-140", force=False, dry_run=False)
+    ticket_dir = tmp_path / "specs" / "tickets" / "AUTH-140"
+
+    assert not (ticket_dir / "current").exists()
+    assert (ticket_dir / "desired" / "ProgramModel.tla").exists()
+    assert not any("current" in path.parts for path in written)
+    state = json.loads((ticket_dir / "ticket.yaml").read_text(encoding="utf-8"))
+    assert state["current_dir"] is None
+    readme = (ticket_dir / "README.md").read_text(encoding="utf-8")
+    assert "must match" not in readme
+    assert "never edit the plan" in readme
+
+    desired_tla = stub_program_model("DesiredOnly")
+    (ticket_dir / "desired" / "ProgramModel.tla").write_text(desired_tla, encoding="utf-8")
+    (tmp_path / "specs" / "desired_program_model" / "ticket_plan.yaml").write_text(
+        "tickets:\n  - id: AUTH-140\n    status: done\n", encoding="utf-8"
+    )
+
+    result = create_ticket_history_entry(
+        repo_root=tmp_path, spec_root=Path("specs"), ticket_ref="AUTH-140", summary="desired only", result_paths=[]
+    )
+
+    manifest = json.loads((result.entry_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["desired_only"] is True
+    assert manifest["accept_new"] is False
+    assert manifest["guard_weakening"]["weakened"] is False
+    assert not ticket_dir.exists()
+    assert (tmp_path / "specs" / "current" / "ProgramModel.tla").read_text(encoding="utf-8") == desired_tla
+
+
 def test_close_ticket_moves_ticket_directory_to_history_and_promotes_desired(tmp_path: Path) -> None:
     write_program_model(tmp_path)
     scaffold(tmp_path, "AUTH-128", "Close parallel ticket", force=False, dry_run=False)
@@ -264,7 +300,7 @@ def test_close_ticket_moves_ticket_directory_to_history_and_promotes_desired(tmp
     seeded_stale = tmp_path / "specs" / "current" / "seeded_stale_adapter.py"
     seeded_stale.write_text("DROPPED_BY_THE_TICKET = True\n", encoding="utf-8")
 
-    scaffold_ticket_directory(tmp_path, "AUTH-128", force=False, dry_run=False)
+    scaffold_ticket_directory(tmp_path, "AUTH-128", force=False, dry_run=False, with_current=True)
     ticket_dir = tmp_path / "specs" / "tickets" / "AUTH-128"
     for model_dir in ["current", "desired"]:
         (ticket_dir / model_dir / "seeded_stale_adapter.py").unlink()
@@ -363,7 +399,7 @@ tickets:
 def test_close_ticket_requires_ticket_current_to_match_desired(tmp_path: Path) -> None:
     write_program_model(tmp_path)
     scaffold(tmp_path, "AUTH-129", "Reject divergent ticket", force=False, dry_run=False)
-    scaffold_ticket_directory(tmp_path, "AUTH-129", force=False, dry_run=False)
+    scaffold_ticket_directory(tmp_path, "AUTH-129", force=False, dry_run=False, with_current=True)
     ticket_dir = tmp_path / "specs" / "tickets" / "AUTH-129"
     (ticket_dir / "current" / "ProgramModel.tla").write_text("current\n", encoding="utf-8")
     (ticket_dir / "desired" / "ProgramModel.tla").write_text("desired\n", encoding="utf-8")
@@ -393,7 +429,7 @@ def test_close_ticket_requires_ticket_current_to_match_desired(tmp_path: Path) -
 def _ticket_fixture(tmp_path: Path, ticket_id: str, *, status: str, divergent: bool) -> Path:
     write_program_model(tmp_path)
     scaffold(tmp_path, ticket_id, "Gate fixture", force=False, dry_run=False)
-    scaffold_ticket_directory(tmp_path, ticket_id, force=False, dry_run=False)
+    scaffold_ticket_directory(tmp_path, ticket_id, force=False, dry_run=False, with_current=True)
     ticket_dir = tmp_path / "specs" / "tickets" / ticket_id
     desired_tla = stub_program_model("Desired")
     (ticket_dir / "desired" / "ProgramModel.tla").write_text(desired_tla, encoding="utf-8")
@@ -474,7 +510,7 @@ def test_complexity_ledger_rejection_warns_and_the_close_proceeds(tmp_path: Path
 def test_close_ticket_accept_new_promotes_divergent_desired(tmp_path: Path) -> None:
     write_program_model(tmp_path)
     scaffold(tmp_path, "AUTH-131", "Accept new ticket", force=False, dry_run=False)
-    scaffold_ticket_directory(tmp_path, "AUTH-131", force=False, dry_run=False)
+    scaffold_ticket_directory(tmp_path, "AUTH-131", force=False, dry_run=False, with_current=True)
     ticket_dir = tmp_path / "specs" / "tickets" / "AUTH-131"
     (ticket_dir / "current" / "ProgramModel.tla").write_text("stale current\n", encoding="utf-8")
     desired_tla = stub_program_model("Accepted")
@@ -510,7 +546,7 @@ def test_close_ticket_accept_new_promotes_divergent_desired(tmp_path: Path) -> N
 def test_close_ticket_divergence_error_explains_how_to_prepare(tmp_path: Path) -> None:
     write_program_model(tmp_path)
     scaffold(tmp_path, "AUTH-132", "Divergent ticket guidance", force=False, dry_run=False)
-    scaffold_ticket_directory(tmp_path, "AUTH-132", force=False, dry_run=False)
+    scaffold_ticket_directory(tmp_path, "AUTH-132", force=False, dry_run=False, with_current=True)
     ticket_dir = tmp_path / "specs" / "tickets" / "AUTH-132"
     (ticket_dir / "current" / "ProgramModel.tla").write_text("current\n", encoding="utf-8")
     (ticket_dir / "desired" / "ProgramModel.tla").write_text("desired\n", encoding="utf-8")
@@ -542,7 +578,7 @@ def test_close_ticket_divergence_error_explains_how_to_prepare(tmp_path: Path) -
 def test_close_ticket_requires_ticket_adapters_to_match_desired(tmp_path: Path) -> None:
     write_program_model(tmp_path)
     scaffold(tmp_path, "AUTH-130", "Reject divergent adapter", force=False, dry_run=False)
-    scaffold_ticket_directory(tmp_path, "AUTH-130", force=False, dry_run=False)
+    scaffold_ticket_directory(tmp_path, "AUTH-130", force=False, dry_run=False, with_current=True)
     ticket_dir = tmp_path / "specs" / "tickets" / "AUTH-130"
     current_adapter = ticket_dir / "current" / "adapters" / "unit" / "adapter.py"
     desired_adapter = ticket_dir / "desired" / "adapters" / "unit" / "adapter.py"

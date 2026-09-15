@@ -20,6 +20,7 @@ def main() -> int:
     parser.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
     parser.add_argument("--force", action="store_true", help="Overwrite existing ticket-local files.")
     parser.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
+    parser.add_argument("--with-current", action="store_true", help="Also seed a ticket-local current/ for the two-directory loop.")
     args = parser.parse_args()
 
     written = scaffold_ticket_directory(
@@ -30,6 +31,7 @@ def main() -> int:
         spec_root=args.spec_root,
         ticket_root=args.ticket_root,
         print_next_steps=True,
+        with_current=args.with_current,
     )
     print(f"scaffolded ticket-local workflow files: {len(written)}")
     return 0

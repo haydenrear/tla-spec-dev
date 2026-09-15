@@ -438,7 +438,25 @@ def ticket_readme(
     source_current: Path,
     spec_root: Path = Path("specs"),
     ticket_root: Path = Path("tickets"),
+    with_current: bool = False,
 ) -> str:
+    current_line = (
+        "- `current/`: the whole-program state this ticket started from (opened with `--with-current`).\n"
+        if with_current
+        else ""
+    )
+    step_2 = (
+        """2. Implement the ticket, then update `current/` to the behavior that actually
+   landed. A `current/` that diverges from `desired/` at close is accepted as
+   `desired/` and the receipt says so."""
+        if with_current
+        else "2. Implement the ticket."
+    )
+    close_validates = (
+        "Closing accepts `desired/` (a divergent `current/` is recorded, never refused), replaces"
+        if with_current
+        else "Closing replaces"
+    )
     return f"""# Ticket {ticket_id}: {title}
 
 This directory is the active, ticket-local spec workflow for one ticket.
@@ -446,28 +464,27 @@ This directory is the active, ticket-local spec workflow for one ticket.
 Layout:
 
 - `ticket.yaml`: copied ticket-plan entry and lifecycle metadata.
-- `current/`: the whole-program state this ticket started from.
-- `desired/`: the whole-program state that should be true after this ticket.
+{current_line}- `desired/`: the whole-program state that should be true after this ticket.
 - `testgraph/`: copied Test Graph bindings/selectors/assertions when present.
 - `results/`: ticket-local TLC, adapter, Test Graph, and review evidence.
 
 Workflow:
 
-1. Edit `desired/` first. It starts as a copy of the project current model;
-   change its TLA+, configs, generated-case metadata, spec adapters, tests, and
-   Test Graph bindings so it represents the whole-program state after this
-   ticket is done.
-2. Implement the ticket, then update `current/` to the behavior that actually
-   landed. At close time, ticket `current/` and `desired/` must match.
+1. Edit `desired/`. It starts as a copy of the project current model; change
+   its TLA+, configs and, when the project has them, generated-case metadata,
+   spec adapters, tests, and Test Graph bindings so it represents the
+   whole-program state after this ticket is done. Run TLC on it once.
+{step_2}
 3. If this ticket adds spec-unit or Test Graph coverage, keep those adapters,
    tests, bindings, selectors, and assertions in the ticket directory.
-4. Run TLC, generated spec-unit adapters, and Test Graph validation as needed.
-5. Mark the global ticket-plan entry closed.
-6. Run `{ticket_close_command(ticket_id, spec_root, ticket_root)}`. Closing validates ticket
-   `current/ == desired/`, replaces project `specs/current` with ticket
-   `desired/`, merges ticket Test Graph config back into project specs,
-   snapshots this directory into history, and removes the active ticket
-   directory.
+4. Run TLC and, when the project has them, generated spec-unit adapters and
+   Test Graph validation.
+5. Mark the global ticket-plan entry done.
+6. Run `{ticket_close_command(ticket_id, spec_root, ticket_root)}`. {close_validates}
+   project `specs/current` with ticket `desired/`, merges ticket Test Graph
+   config back into project specs, snapshots this directory into history, and
+   removes the active ticket directory. If it refuses, rerun with `--force`
+   and say why in `--summary`; never edit the plan's status to get past it.
 
 Starting source: `{source_current}`
 
@@ -481,21 +498,27 @@ def ticket_next_steps(
     ticket_dir: Path,
     spec_root: Path = Path("specs"),
     ticket_root: Path = Path("tickets"),
+    with_current: bool = False,
 ) -> str:
+    step_4 = (
+        f"""  4. Implement the ticket, then update {ticket_dir / "current"} to match the
+     landed behavior. At close, a divergent current is accepted as desired."""
+        if with_current
+        else "  4. Implement the ticket."
+    )
     return f"""
 Next ticket workflow steps for {ticket_id}:
-  1. Edit {ticket_dir / "desired"} first. Update the TLA+ model/configs so
-     they describe the whole-program ending state after this ticket.
-  2. Add or update ticket-local spec-unit adapters/tests under
-     {ticket_dir / "desired"} when the desired behavior needs local
-     conformance coverage.
-  3. Add or update ticket-local Test Graph adapters/bindings/selectors under
+  1. Edit {ticket_dir / "desired"}. Update the TLA+ model/configs so they
+     describe the whole-program state after this ticket. Run TLC on it once.
+  2. Optional: ticket-local spec-unit adapters/tests under
+     {ticket_dir / "desired"} when the project has the generated-case layer.
+  3. Optional: ticket-local Test Graph adapters/bindings/selectors under
      {ticket_dir / "testgraph"} or {ticket_dir / "test_graph"} when the
-     behavior needs external integration coverage.
-  4. Implement the ticket, then update {ticket_dir / "current"} to match the
-     landed behavior. Before close, ticket current and desired must be equal.
-  5. Mark {ticket_id} closed/done in the project ticket plan and run:
+     project has one.
+{step_4}
+  5. Mark {ticket_id} done in the project ticket plan and run:
      {ticket_close_command(ticket_id, spec_root, ticket_root)}
+     If the close refuses, rerun it with --force and say why in --summary.
 """
 
 
@@ -512,6 +535,7 @@ def ticket_state_payload(
     source_project_desired: Path,
     spec_root: Path,
     seed_manifest: dict[str, Any] | None = None,
+    with_current: bool = True,
 ) -> dict[str, Any]:
     return {
         "schema_version": "tla-spec-dev.ticket-workflow.v1",
@@ -524,7 +548,7 @@ def ticket_state_payload(
         "ticket_dir": str(ticket_dir),
         "source_current": str(source_current),
         "source_project_desired": str(source_project_desired),
-        "current_dir": "current",
+        "current_dir": "current" if with_current else None,
         "desired_dir": "desired",
         "results_dir": "results",
         "testgraph_dir": "testgraph",
@@ -975,12 +999,10 @@ def ticket_workflow_test(ticket_id: str) -> str:
 TICKET_ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_ticket_workflow_scaffold_points_to_local_current_and_desired() -> None:
-    current = TICKET_ROOT / "current/spec_manifest.yaml"
+def test_ticket_workflow_scaffold_points_to_local_desired() -> None:
     desired = TICKET_ROOT / "desired/spec_manifest.yaml"
     ticket = TICKET_ROOT / "ticket.yaml"
 
-    assert current.exists()
     assert desired.exists()
     assert ticket.exists()
     assert "{ticket_id}" in ticket.read_text(encoding="utf-8")
@@ -996,7 +1018,15 @@ def scaffold_ticket_directory(
     spec_root: Path = Path("specs"),
     ticket_root: Path = Path("tickets"),
     print_next_steps: bool = False,
+    with_current: bool = False,
 ) -> list[Path]:
+    """Open a ticket workspace.
+
+    Default (2026-09-14): `desired/` only. The ticket edits the model it wants
+    and the close promotes it. `with_current=True` also seeds `current/` for
+    the older two-directory loop, in which a divergent `current/` at close is
+    accepted as `desired/` rather than refused.
+    """
     fallback_module = _module_name(repo_root.name)
     baseline = discover_baseline(repo_root, spec_root, fallback_module)
     specs_dir = baseline.spec_root
@@ -1042,7 +1072,8 @@ def scaffold_ticket_directory(
     desired_dir = ticket_dir / "desired"
     skip_project_tests = {PROJECT_WORKFLOW_TEST}
     written: list[Path] = []
-    written.extend(copy_workflow_tree(source_current, current_dir, force=force, dry_run=dry_run, skip_paths=skip_project_tests))
+    if with_current:
+        written.extend(copy_workflow_tree(source_current, current_dir, force=force, dry_run=dry_run, skip_paths=skip_project_tests))
     written.extend(copy_workflow_tree(source_current, desired_dir, force=force, dry_run=dry_run, skip_paths=skip_project_tests))
     seed_manifest = {
         "source": str(source_current),
@@ -1069,16 +1100,16 @@ def scaffold_ticket_directory(
         source_project_desired=source_project_desired,
         spec_root=spec_root,
         seed_manifest=seed_manifest,
+        with_current=with_current,
     )
     files = [
-        (ticket_dir / "README.md", ticket_readme(resolved_ticket_id, title, source_current, spec_root, ticket_root)),
+        (ticket_dir / "README.md", ticket_readme(resolved_ticket_id, title, source_current, spec_root, ticket_root, with_current=with_current)),
         (ticket_dir / "ticket.yaml", json.dumps(ticket_payload, indent=2, sort_keys=True) + "\n"),
         (ticket_dir / "tests" / "test_ticket_workflow.py", ticket_workflow_test(resolved_ticket_id)),
         (ticket_dir / "results" / ".gitkeep", ""),
         # MF-019: every ticket opens with the complexity-ledger input already
-        # scaffolded, carrying TODO sentinels that FAIL the close gate. The
-        # standing objective is therefore a step you fill in, never a step you
-        # can omit -- an unfilled template cannot be closed through.
+        # scaffolded. It is advisory: an unfilled one is recorded as rejected
+        # and the close proceeds with one warning line.
         (ticket_dir / "results" / "complexity_ledger.yaml", complexity_ledger.TEMPLATE),
     ]
     for path, content in files:
@@ -1086,7 +1117,7 @@ def scaffold_ticket_directory(
             written.append(path)
 
     if print_next_steps:
-        print(ticket_next_steps(resolved_ticket_id, ticket_dir, spec_root, ticket_root))
+        print(ticket_next_steps(resolved_ticket_id, ticket_dir, spec_root, ticket_root, with_current=with_current))
 
     return written
 

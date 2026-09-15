@@ -135,6 +135,7 @@ def run_open_ticket(args: argparse.Namespace) -> int:
         spec_root=Path(args.spec_root),
         ticket_root=args.ticket_root,
         print_next_steps=True,
+        with_current=bool(getattr(args, "with_current", False)),
     )
     print(f"scaffolded ticket-local workflow files: {len(written)}")
     return 0
@@ -293,13 +294,20 @@ def spec_unit_target_dirs(args: argparse.Namespace, specs_dir: Path) -> list[Pat
     if args.scope == "project":
         return [project_current]
     if args.ticket:
-        return unique_paths([project_current, specs_dir / "tickets" / args.ticket / "current"])
+        return unique_paths([project_current, ticket_model_dir(specs_dir / "tickets" / args.ticket)])
     ticket_id = active_ticket_id(specs_dir)
     if ticket_id:
-        ticket_current = specs_dir / "tickets" / ticket_id / "current"
-        if ticket_current.exists():
-            return unique_paths([project_current, ticket_current])
+        ticket_model = ticket_model_dir(specs_dir / "tickets" / ticket_id)
+        if ticket_model.exists():
+            return unique_paths([project_current, ticket_model])
     return [project_current]
+
+
+def ticket_model_dir(ticket_dir: Path) -> Path:
+    """The ticket's executable model: `current/` when the ticket was opened
+    with --with-current, otherwise `desired/` (the default since 2026-09-14)."""
+    current = ticket_dir / "current"
+    return current if current.exists() else ticket_dir / "desired"
 
 
 def unique_paths(paths: list[Path]) -> list[Path]:
@@ -549,6 +557,11 @@ def build_parser() -> argparse.ArgumentParser:
     open_ticket.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
     open_ticket.add_argument("--force", action="store_true", help="Overwrite existing ticket-local files, and reopen a ticket the plan already marks terminal (SKILL_GATES=off also allows the reopen).")
     open_ticket.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
+    open_ticket.add_argument(
+        "--with-current",
+        action="store_true",
+        help="Also seed a ticket-local current/ (the older two-directory loop). Default: desired/ only.",
+    )
     open_ticket.set_defaults(
         func=run_open_ticket,
         command_path="tla-spec-dev open ticket",
