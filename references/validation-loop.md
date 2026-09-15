@@ -1,10 +1,16 @@
 # The current→desired validation loop
 
 After implementation starts, this is the loop that finishes the ticket. Its goal
-is a single convergence: drive **`specs/current` to `specs/desired_program_model`**
-while every named graph stays green, then promote. It composes two smaller loops
-you already have — spec-double-compiler's desired/current migration loop and
-test-graph's smart failure loop — into one close-out.
+is to land the ticket's `desired/` model and get the named graphs green, then
+promote. It composes two things you already have — spec-double-compiler's ticket
+close and test-graph's smart failure loop — into one close-out.
+
+**It is bounded.** Two laps per layer, then stop: record the failure as
+evidence, close the spec ticket with `--force`, and report what stayed red in
+the PR body. A third lap has never turned a red layer green in this
+programme's evals; what it did was spend the ticket's remaining tokens. The
+spec ticket is a planning artifact, not the deliverable; the code and the
+regression graphs are.
 
 **Parent-only:** for an integration repo, every command here runs at the
 integration **parent** worktree, which holds all constituent files as plain
@@ -13,8 +19,9 @@ after fan-out, per `references/agent-tag-pr.md`.
 
 ## The four validation layers
 
-Each iteration proves the slice at four layers. Require green at each before
-advancing the model:
+Each iteration proves the slice at up to four layers. Run the ones the ticket
+has; a project without the optional spec layer (no `case_adapters.toml`, no
+`specWorkflow` graph) runs layers 2 and 3 only:
 
 1. **Spec unit tests** — the generated spec-double self-tests / spec-unit adapters
    for the ticket.
@@ -65,12 +72,12 @@ reporting format: `references/goal-signal.md`.
 
 ## The loop, per slice
 
-Repeat until the ticket-local model has converged:
+At most two laps:
 
-1. **Advance the model toward desired.** Update ticket-local `desired/` with
-   anything learned from the last slice (ticket breakdown, status, validation
-   commands). Update ticket-local `current/` to the whole-program behavior that
-   actually landed, preserving baseline behavior unless this slice changed it.
+1. **Advance the model.** Update ticket-local `desired/` with anything learned
+   from the last slice (ticket breakdown, status, validation commands). There is
+   no ticket-local `current/` unless the ticket was opened with `--with-current`;
+   `desired/` is the whole-program model after this ticket.
 2. **Update adapters/tests first.** Add or update the ticket-local spec-unit
    adapters and, if the observable surface moved, the External/Internal test-graph
    adapters and nodes — before or alongside the code.
@@ -81,23 +88,22 @@ Repeat until the ticket-local model has converged:
    single failed node from its saved context (`run.py <graph> --resume-from-build
    <dir> --run-only-node <id>`), iterate on that node, then rerun the whole graph
    once from the start to confirm ordering and fresh context.
-5. **Close the slice's ticket.** When ticket-local `current` semantically equals
-   ticket-local `desired`, record evidence and close:
+5. **Close the slice's ticket.** Record evidence and close:
    ```bash
    tla-spec-dev --spec-root specs close ticket <ticket> \
      --result <evidence-path> --summary "<what landed>"
    ```
    Close moves the ticket dir to history, replaces project `specs/current` with the
    ticket's `desired/`, and merges ticket-local test-graph artifacts into project
-   specs.
+   specs. If it refuses, rerun with `--force` and say why in the summary; never
+   edit the plan's status to get past it.
 6. **Commit** the spec change, close record, and evidence together.
 
 ## Convergence and promotion
 
-Keep looping slices until **project `specs/current` semantically equals
-`specs/desired_program_model`** and the full named graph set (including the spec
-graph) is green. Then promote the converged model into the accepted baseline and
-clean up the workflow directories:
+When every slice's ticket has closed and the named graph set is green, or
+when the two-lap bound is spent and the reds are recorded, promote the model
+into the accepted baseline and clean up the workflow directories:
 
 ```bash
 python <tla-spec-dev>/scripts/close_tickets.py --repo-root . \
@@ -111,11 +117,11 @@ you return to `references/complete.md` to finish the PR and issue.
 
 ## Definition of done for the loop
 
-- [ ] Spec unit tests green (`run spec-unit-tests --ticket <ticket>`)
+- [ ] Spec unit tests green (`run spec-unit-tests --ticket <ticket>`), when the project has them
 - [ ] Repo unit tests green
 - [ ] Named test_graph graphs green (smart-failure-loop clean, full rerun clean)
-- [ ] tla-spec-dev spec graph green (`specWorkflow`)
-- [ ] Every ticket closed in `ticket_plan.yaml`; `current == desired`
+- [ ] tla-spec-dev spec graph green (`specWorkflow`), when the project has one
+- [ ] Every ticket closed in `ticket_plan.yaml` (forced closes recorded in the summary)
 - [ ] Model promoted into `program_model`; workflow dirs cleaned
 - [ ] Evidence recorded and committed
 
