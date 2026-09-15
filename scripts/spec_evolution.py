@@ -1664,8 +1664,8 @@ def record_complexity_ledger(
         # The rejected entry is part of the append-only record, and
         # previous_entry() skips rejections so it never becomes a baseline.
         print(
-            f"WARNING: complexity ledger rejected this close ({len(verdict.errors)} "
-            f"issue(s)); see {rel(path)}",
+            f"WARNING: complexity ledger input rejected ({len(verdict.errors)} "
+            f"issue(s)); recorded as rejected, the close proceeds. See {rel(path)}",
             file=sys.stderr,
         )
     else:

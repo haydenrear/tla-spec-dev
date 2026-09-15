@@ -117,8 +117,11 @@ integers, enums as sets.
    --summary "<what landed>" --result <evidence>`. The close promotes
    `desired/` into project `current`, snapshots the ticket into
    `specs/.history/`, and records the complexity ledger. The ledger input
-   under `results/complexity_ledger.yaml` is optional; an unfilled one is
-   recorded as such and the close proceeds.
+   under `results/complexity_ledger.yaml` is optional. An unfilled or
+   rejected one is recorded as rejected and the close still proceeds: a
+   close whose output says `WARNING: complexity ledger ... rejected` has
+   closed the ticket and written its history entry. Do not run the close
+   again; a rerun refuses to overwrite the entry it just wrote.
 5. Before closing, **attribute what the ticket hit**: for each regression or
    defect found, name the TLA+ action it happened inside
    (`<Module>.<Action>`, or `UNMODELED/<bin>`), and report it in the PR.

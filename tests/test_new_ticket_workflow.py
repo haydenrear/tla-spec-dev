@@ -505,7 +505,7 @@ def test_complexity_ledger_rejection_warns_and_the_close_proceeds(tmp_path: Path
     )
 
     assert result.entry_dir.is_dir()
-    assert "complexity ledger rejected this close" in capsys.readouterr().err
+    assert "complexity ledger input rejected" in capsys.readouterr().err
     ledger = json.loads((tmp_path / "specs" / "results" / "complexity_ledger.json").read_text(encoding="utf-8"))
     assert ledger["entries"][-1]["verdict"] == "rejected"
 
