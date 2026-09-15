@@ -193,6 +193,18 @@ verdict graders hardened after a blind review:
 | `catch-the-drift` | **1.00** | $1.86 | the account survives into `snapshot()`; the model tree matches the shipped one byte for byte |
 | `scaffold-a-program-model` | **1.00** | $12.02 | SANY on every module; TLC clean on `Internal` (2,325 distinct states), `External` (223) and a `Scenario_ReleaseHandoff` witness the session wrote itself (13) |
 
+Re-measured 2026-09-15 on the `fix/simpler-diagrams` branch (four-file minimum
+baseline, desired-only tickets, the 224-line card), same command, one run each:
+
+| case | score | cost | turns | evidence behind it |
+|---|---|---|---|---|
+| `catch-the-drift` | **1.00** | $0.81 | 25 | same three verdicts; the account survives into `snapshot()`, the model tree is byte-identical |
+| `scaffold-a-program-model` | **1.00** | $3.87 | 66 | SANY on every module; TLC clean on `Internal` (169 distinct states) and a `HandoffWitness` the session wrote itself; no External view was written and no grader needed one |
+
+The same graders, the same fixture, a third of the cost and turns. The
+difference is what the skill asked for: the session built the model the
+graders check and stopped, instead of the thirteen-file shape.
+
 **Read the middle of that table, not the left.** Three earlier runs of the same
 case scored 1.00, 0.75, 0.25 and 0.50, and only one of those numbers was about
 the model: the 1.00 was scored while `tla-spec-dev` failed on all three
