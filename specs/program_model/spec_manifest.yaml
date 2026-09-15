@@ -239,8 +239,8 @@ effects:
         # CD-10 (audit run 3, gap R3-3a): RunSpecUnitTests' shipped dispatch
         # spawns the generated-case runner (`python
         # scripts/run_generated_case_adapters.py ...`, built at
-        # scripts/tla_spec_dev.py:385 (run_generated_case_adapters.py) and
-        # executed at scripts/tla_spec_dev.py:449 (subprocess.run) whenever a
+        # scripts/tla_spec_dev.py:395 (run_generated_case_adapters.py) and
+        # executed at scripts/tla_spec_dev.py:459 (subprocess.run) whenever a
         # target carries a generated case package.
         # That command line does not match test_process's `*pytest*` -- only
         # the `uv run --with pytest -m pytest` child at
@@ -259,7 +259,7 @@ effects:
         # (scripts/spec_evolution.py:1088 (shutil.rmtree) via
         # scripts/spec_evolution.py:1283 (replace_tree), the GitHub #22
         # data-loss mechanism), and unlink of seeded paths the ticket dropped
-        # (scripts/spec_evolution.py:1180 (target.unlink)). filesystem.write
+        # (scripts/spec_evolution.py:1244 (target.unlink)). filesystem.write
         # on spec_tree never covered these -- the schema distinguishes
         # filesystem.delete precisely so a delete cannot hide under a write.
         spec_tree_delete:
@@ -303,10 +303,10 @@ effects:
           target: "**/programs/case-*"
         # CD-10 (audit run 3, gap R3-3b): CloseTicket spawns `git rev-parse
         # ...` for history-entry provenance
-        # (scripts/spec_evolution.py:142 (subprocess.run), via
-        # scripts/spec_evolution.py:2101 (git_metadata) at ticket close,
-        # scripts/spec_evolution.py:2215 (git_metadata) at workflow close, and
-        # scripts/spec_evolution.py:1859 (git_metadata) on ticket
+        # (scripts/spec_evolution.py:206 (subprocess.run), via
+        # scripts/spec_evolution.py:2191 (git_metadata) at ticket close,
+        # scripts/spec_evolution.py:2306 (git_metadata) at workflow close, and
+        # scripts/spec_evolution.py:1930 (git_metadata) on ticket
         # retirement -- THREE call sites, not the two this sentence claimed
         # before #318's review counted them). The
         # fail-open branch on git error is out-of-model; the spawn itself is
@@ -363,7 +363,7 @@ effects:
     # effect", and only the second is true. The CLI records no budgets:
     # budget_prompt only prints negotiation instructions
     # (scripts/budgets.py:74-94 (def budget_prompt), printed at
-    # scripts/tla_spec_dev.py:94 (budget_prompt) and
+    # scripts/tla_spec_dev.py:92 (budget_prompt) and
     # scripts/tla_spec_dev.py:121 (budget_prompt)); the budgets block itself is
     # emitted at scaffold time under ScaffoldProject/ScaffoldWorkflow's
     # spec_tree, and recording user-negotiated values is an agent edit, not a

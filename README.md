@@ -197,9 +197,9 @@ python3 scripts/tla_spec_dev.py --spec-root specs close ticket TICKET-123 \
   --result specs/results/tlc.txt
 ```
 
-`open ticket` creates `specs/tickets/TICKET-123/current` and `desired` for
-parallel ticket work. `close ticket` moves that ticket directory into
-history, validates ticket `current/ == desired/`, replaces project
+`open ticket` creates `specs/tickets/TICKET-123/desired` for parallel
+ticket work (add `--with-current` for a ticket-local `current/` too). `close ticket` moves that ticket directory into
+history, promotes the ticket `desired/` (there is no ticket `current/` unless opened `--with-current`), replaces project
 `specs/current` with ticket `desired/`, and merges ticket-local Test Graph
 artifacts back into project specs.
 
