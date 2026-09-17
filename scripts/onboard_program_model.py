@@ -1015,6 +1015,12 @@ def manifest(module: str, package: str, spec_root_text: str = "specs", full: boo
     config: Internal.cfg
     spec: InternalSpec
     generates: spec_unit"""
+    # Hoisted rather than nested: a triple-quoted string inside this f-string
+    # needs PEP 701 (Python 3.12), and the CLI shim runs whatever `python3`
+    # is first on PATH -- 3.9 on stock macOS, where the whole CLI failed to
+    # import with "f-string: expecting '}'".
+    external_invariant = "\n  - ExternalInvariant" if full else ""
+    projection = "\n  projection: tlc_projection.py" if full else ""
     return f"""module: {module}
 package: {package}
 
@@ -1135,8 +1141,7 @@ ports:
         result: {module}State
 
 invariants:
-  - InternalInvariant{"""
-  - ExternalInvariant""" if full else ""}
+  - InternalInvariant{external_invariant}
 
 finite_model:
   Actors:
@@ -1153,8 +1158,7 @@ finite_model:
 
 case_codegen:
   style: explicit_transition_cases
-  generation_status: planned{"""
-  projection: tlc_projection.py""" if full else ""}
+  generation_status: planned{projection}
 """
 
 
