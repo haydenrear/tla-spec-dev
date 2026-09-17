@@ -76,3 +76,33 @@ slice. The unit count moves in SI-02. Decided by SI-08.
 
 `SI-01-DF-01` and `SI-01-DF-02`, appended to `specs/results/deferred_findings_final.yaml`
 (35 → 37 rows). Budget 5, mode `batch`, 2 used.
+
+## `test_score_tools.py` — the "run once before close" file
+
+Excluded from the ordinary suite because it takes ~13 minutes, so the assignment
+asks for it once. It was run **three** times here, and the reason is worth
+recording: it is the one file for which no baseline existed, which is the same
+gap that nearly made the spec-unit result unreadable.
+
+| run | tree | result |
+|---|---|---|
+| 1 | this branch | 1 failed, 115 passed in 793.29s (0:13:13) |
+| 2 | pre-move checkout of `4d563e2d` | 116 passed in 796.67s (0:13:16) |
+| 3 | this branch, after the fix | 116 passed in 764.60s (0:12:44) |
+
+Run 1's single failure was
+`test_a_blinded_card_carries_the_scope_and_nothing_that_identifies_it`, which pins
+`subject["scope"] == ["scripts"]` for the real `rm04_scripts` subject. Run 2 — the
+pre-move baseline — is what establishes that the failure was **mine** and not
+pre-existing.
+
+It was a real consequence, not a cosmetic one. That subject's scope is what the
+complexity instrument is pointed at; left at `scripts` it would have aimed at a
+directory that no longer exists and the measurement would have gone quietly
+vacuous, which is the same silent-vacuity class as the enumeration roots and the
+forbidden-surface pathspecs. So `subjects.toml` moved and the pinned literal moved
+with it. The scope stays visible on a blinded card on purpose ("what to read:
+kept") — the new path names the SKILL, never the arm label, so it discloses
+nothing identifying.
+
+New failures against the pre-move baseline: **none**.
