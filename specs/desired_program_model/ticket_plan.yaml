@@ -1,0 +1,722 @@
+# This file is part of the desired program model.
+# It is the CANONICAL plan for epic/self-improvement-substrate. GitHub issues
+# mirror it for handoff; they do not replace it.
+version: 1
+name: self-improvement-substrate
+updated: "2026-09-17"
+schedule_revision: 1
+purpose: "Make tla-spec-dev one plugin and one loop: the substrate improves because of what agents ran into while using it, and the epic agent is the one writer of the model, the matrix, the scorecard row and the plugin."
+
+planning_rules:
+  current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
+  unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.
+  graph_rule: Add graph or integration nodes only after current-model validation passes.
+  semantic_model_rule: Do not add test graph nodes, pytest jobs, CI workflow steps, integration harnesses, or validation scripts as TLA+ program state/actions.
+  evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
+  desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes.
+  promotion_rule: When specs/current equals specs/desired_program_model, promote the converged model to specs/program_model.
+  # Owner decision at kickoff, 2026-09-17. It overrides git-epic-workflow
+  # SKILL.md rule 5 and epic-ticket.md §3 for this epic and every epic after it;
+  # SI-07 writes it into the skill.
+  model_ownership_rule: >-
+    The EPIC AGENT owns the TLA+ work. It scaffolds each ticket's desired and
+    current state before dispatch, manages validation, places the attribution
+    anchors, and closes and promotes the spec ticket at wave merge. A ticket
+    agent moves current toward desired, runs the spec tests, and may make SMALL
+    edits to desired; a structural change to desired comes back to the epic
+    agent rather than being made in the ticket. Ticket agents never run
+    `close ticket`, `close_tickets.py`, or `--accept-new`.
+
+status:
+  workflow: self-improvement-substrate
+  active_ticket: SI-01
+  active_ticket_title: "Migrate the skill surface into a plugin: tla-spec-dev / skills/spec-double-2"
+  desired_module: TlaSpecDevCli
+  phase: planning
+  epic_branch: epic/self-improvement-substrate
+  epic_issue: "https://github.com/haydenrear/tla-spec-dev/issues/333"
+
+service_catalog:
+  existing_boundaries:
+    - "spec-double-compiler skill surface at the repository root"
+    - "five workflow skills, each its own repository, installed separately in three home tiers"
+    - "tla-spec-dev CLI (scripts/tla_spec_dev.py), modelled by specs/program_model/TlaSpecDevCli.tla"
+  desired_boundaries:
+    - "one skill-manager plugin `tla-spec-dev` whose skills/ holds spec-double-2 and the five nested workflow skills"
+    - "one improvement record: a finding carries an anchor, a skill-change disposition, and the goal it moved"
+    - "one writer: the epic agent applies model deltas, anchors, card rows and proposed skill changes at wave close"
+  adapter_boundaries:
+    - "specs/program_model/production_adapters.py — import roots move when the surface moves"
+  known_gaps:
+    - "13 skill-feedback findings are `recorded-local` and never left the file"
+    - "39 deferred rows carry no skill-change field"
+    - "no instrument scores whether the process improved the substrate"
+
+deferment_policy:
+  mode: batch
+  blocking: escalate
+  budget: 5
+  # CUMULATIVE ledger carrying every prior epic's findings: 33 rows at kickoff.
+  # Append this epic's findings; never truncate, re-template or reorder it —
+  # sealed close-history records point into it by ID.
+  backlog: "specs/results/deferred_findings_final.yaml"
+
+review_policy:
+  cadence: wave
+  gate: true
+  merges: owner
+  milestones: []
+  artifact_root: "specs/results/epic-self-improvement-substrate/review"
+  walkthrough: required
+
+# Baselines were measured on b7a7d203, the epic branch's base, before any ticket
+# landed. Evidence: specs/results/epic-self-improvement-substrate/baseline/kickoff.md
+epic_goals:
+  - id: GOAL-one-unit
+    kind: integration
+    statement: "The substrate installs, syncs and improves as one plugin rather than seven separately versioned units."
+    metric: "installed units belonging to this substrate, in the root home and the project home; the three test graphs and both eval cases green on the plugin layout"
+    harness: "skt status in both home tiers; test_graph graphs specWorkflow, cliWorkflow, effectProviderExamples; examples/agent_integration/eval-plugin both cases"
+    baseline:
+      value: "6 units across 6 repositories (spec-double-compiler + the five workflow skills), each installed in root, project and every worktree home"
+      measured_at: "b7a7d203"
+      evidence: "specs/results/epic-self-improvement-substrate/baseline/kickoff.md"
+    target: "one installed unit for this substrate; zero standalone copies of the five migrated skills in root or project home; every listed graph and eval case green on the new layout"
+    evaluation_ticket: "SI-08"
+    evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-one-unit"
+
+  - id: GOAL-findings-become-changes
+    kind: eval
+    statement: "A finding that names a skill ends as an applied change, or a declined one with a reason on the record — never as `recorded-local`."
+    metric: "findings by disposition across skill_feedback.md, both deferred backlogs, and the matrix"
+    harness: "python3 scripts/improvement_ledger.py (built by SI-04); advisory, exit 0 always"
+    baseline:
+      value: "37 skill-feedback blocks: 13 recorded-local, 4 wontfix; 33 + 6 deferred rows with no skill-change field at all"
+      measured_at: "b7a7d203"
+      evidence: "specs/results/epic-self-improvement-substrate/baseline/kickoff.md"
+    target: "every finding carries skill_change: applied | declined(<reason>) | not-a-skill; 0 recorded-local at epic close"
+    evaluation_ticket: "SI-08"
+    evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-findings-become-changes"
+
+  - id: GOAL-blockers-propose
+    kind: eval
+    statement: "An agent that hits a blocker in the substrate proposes the change, in the PR or in its response."
+    metric: "the improvement card, scored by two blind judges over the wide-lane refusal cases and this epic's own ticket PRs"
+    harness: "judged procedure: the improvement card (SI-03), two blind judges per subject, dispatched per references/blind_dispatch.md, evidence under the goal evidence_root"
+    baseline:
+      value: "no such instrument exists"
+      measured_at: "b7a7d203"
+      evidence: "specs/results/epic-self-improvement-substrate/baseline/kickoff.md"
+    target: "NO TARGET ON THE NUMBER — the goal is decided by whether the card runs, discriminates between a PR that proposes and one that does not, and the two judges agree within 1"
+    evaluation_ticket: "SI-08"
+    evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-blockers-propose"
+
+  - id: GOAL-epic-owns-the-model
+    kind: quality
+    statement: "At every wave close the epic agent has applied the wave's model delta, placed every anchor, written the card row, and applied or declined every proposed skill change — and ticket PRs no longer carry model edits."
+    metric: "the four required blocks present in each wave review artifact; files under specs/ touched by ticket PRs other than results/"
+    harness: "scripts/validate_epic_plan.py --verbose (warns, never errors, on a missing block); git diff --name-only over each ticket PR filtered to specs/"
+    baseline:
+      value: "the artifact schema has no such blocks — human-review.md §3.4 is prose; ticket agents open and close their own spec tickets today"
+      measured_at: "b7a7d203"
+      evidence: "specs/results/epic-self-improvement-substrate/baseline/kickoff.md"
+    target: "four blocks in every wave artifact from wave 4 on (wave 1–3 artifacts are the baseline shape), and no ticket PR after SI-07 changes a file under specs/ except under results/"
+    evaluation_ticket: "SI-08"
+    evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-epic-owns-the-model"
+
+  - id: GOAL-no-new-gates
+    kind: quality
+    statement: "Nothing this epic adds refuses. Every new check warns, prints one line, and exits 0."
+    metric: "new refusal paths in the epic diff; the force/override cases in the skill-manager wide lane"
+    harness: "grep -rnE 'SystemExit|sys.exit\\([^0]|refuse' over the epic's new code; wide lane w-epic-*-force-*, w-sdc-forced-close-*, w-giw-wt-new-dirty-ok"
+    baseline:
+      value: "the drop-gates work of 2026-09-14: --force / SKILL_GATES=off everywhere, and the predecessor measured that a gate here reads to an agent as a stop"
+      measured_at: "b7a7d203"
+      evidence: "specs/results/epic-self-improvement-substrate/baseline/kickoff.md"
+    target: "zero new refusal paths; every new check has a one-line warning form; the force cases stay green"
+    evaluation_ticket: "SI-08"
+    evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-no-new-gates"
+
+  - id: GOAL-progressive-disclosure
+    kind: quality
+    statement: "The plugin discloses progressively: little loads at session start, a card is short, and the rest is reached through a reference map when the task needs it."
+    metric: "words of skill description (loaded every session) and words of card body (loaded when the skill is used), per skill and in total"
+    harness: "the word-count script recorded in the baseline evidence, re-run over skills/*/SKILL.md; plus the wide lane's budget graders (Bash <= 4) to show the cut did not cost turns"
+    baseline:
+      value: "descriptions 923 words over the six units that become the plugin; card bodies 15,479 words total, ranging 933 (discovery) to 4,114 (git-epic-workflow)"
+      measured_at: "b7a7d203"
+      evidence: "specs/results/epic-self-improvement-substrate/baseline/kickoff.md"
+    target: "descriptions <= 600 words in total; every card body <= 1,500 words with the remainder behind the reference map; no wide-lane budget case regresses"
+    evaluation_ticket: "SI-08"
+    evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-progressive-disclosure"
+
+  - id: GOAL-evals-one-command
+    kind: integration
+    statement: "An eval for any skill in the plugin runs against this checkout in one command, without a shim plugin or a units-override file."
+    metric: "eval cases runnable in one command, and how many skills in the plugin have at least one"
+    harness: "claude plugin eval <plugin dir> over the plugin's own evals/, each case reported green, red, or UNDECIDED"
+    baseline:
+      value: "2 cases, reachable only through examples/agent_integration/eval-plugin (a symlink shim built because plugin eval refuses a directory over 20,000 entries and specs/ alone is 20,493); the wide lane needs units-override.txt"
+      measured_at: "b7a7d203"
+      evidence: "specs/results/epic-self-improvement-substrate/baseline/kickoff.md"
+    target: "at least one case per nested skill, all runnable in one command against the checkout; every case green or explicitly UNDECIDED with a reason"
+    evaluation_ticket: "SI-08"
+    evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-evals-one-command"
+
+tickets:
+  - id: SI-01
+    title: "Migrate the skill surface into a plugin: tla-spec-dev / skills/spec-double-2"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/334"
+    schedule_revision: 1
+    depends_on: []
+    blocks: ["SI-02", "SI-08"]
+    wave: 1
+    promotion_order: 10
+    promotion_predecessor: null
+    role: implementation
+    objective: "This repository becomes a skill-manager plugin named tla-spec-dev whose skill surface lives at skills/spec-double-2/, so that a skill change and the model change it came from are one edit in one worktree."
+    desired_actions: []
+    implementation_scope:
+      - ".claude-plugin/plugin.json, skill-manager-plugin.toml"
+      - "skills/spec-double-2/ (SKILL.md, references, scripts, templates, prompts, spec_double_compiler, skill-scripts, skill-manager.toml)"
+      - "skill-scripts/install-tla-spec-dev.sh, install-tlc2.sh — every SKILL_DIR-derived path"
+      - "test_graph/sources/tla_spec_dev_cli_install.py, reference_adapters_resolve.py"
+      - "examples/agent_integration/eval-plugin (symlinks and bin/tla-spec-dev)"
+      - "scripts/check_citations.py CITATION_SCOPE and every scripts/<x>.py:LINE citation"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters:
+        - "specs/program_model/production_adapters.py import roots"
+      unit_tests:
+        - "uv run --python 3.12 --with pytest --with pyyaml --with jinja2 --with hypothesis python -m pytest tests -q --ignore=tests/test_score_tools.py"
+      graph_after_unit_pass:
+        - "specWorkflow"
+        - "cliWorkflow"
+        - "effectProviderExamples"
+    conflict_keys:
+      production:
+        - "SKILL.md"
+        - "references/**"
+        - "scripts/**"
+        - "templates/**"
+        - "prompts/**"
+        - "spec_double_compiler/**"
+        - "skill-scripts/**"
+        - "skill-manager.toml"
+        - "skill-project.toml"
+        - ".claude-plugin/**"
+        - "skills/spec-double-2/**"
+        - "examples/agent_integration/eval-plugin/**"
+      tla: ["specs/program_model/TlaSpecDevCli.tla (comments naming script paths; no action change)"]
+      adapters: ["specs/program_model/production_adapters.py"]
+      test_graph: ["test_graph/sources/**"]
+      workflow: []
+    goals:
+      - goal: GOAL-one-unit
+        contribution: enabling
+        expected_effect: "none — enabling only; it unblocks SI-02, which is what moves the unit count"
+        local_signal: "python3 skills/spec-double-2/scripts/tla_spec_dev.py --help from a fresh clone, plus the three graphs"
+    acceptance:
+      commands:
+        - "uv run --python 3.12 --with pytest --with pyyaml --with jinja2 --with hypothesis python -m pytest tests -q --ignore=tests/test_score_tools.py"
+      assertions:
+        - "The CLI resolves from the checkout, not from an installed clone."
+        - "Every moved path is repaired in scripts, citations, tests and the eval shim."
+      evidence: []
+
+  - id: SI-02
+    title: "Nest the five workflow skills as constituents and retire their standalone installs"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/335"
+    schedule_revision: 1
+    depends_on: ["SI-01"]
+    blocks: ["SI-04", "SI-05", "SI-06", "SI-08", "SI-10"]
+    wave: 2
+    promotion_order: 20
+    promotion_predecessor: "SI-01"
+    role: implementation
+    objective: "git-epic-workflow, git-issue-workflow, git-issue, discovery and test-graph become plain tracked files under skills/, versioned and installed with spec-double-2 as one unit; the homes stop carrying them separately."
+    desired_actions: []
+    implementation_scope:
+      - "skills/{git-epic-workflow,git-issue-workflow,git-issue,discovery,test-graph}/ as tracked files, .git stripped before the first commit"
+      - "intra-bundle skill-imports rewrites and hardcoded ${SKILL_MANAGER_HOME}/skills/<unit>/ paths (25 occurrences at kickoff)"
+      - "README.md — the exact home migration command sequence"
+      - "the two unpublished commits already in the project home (git-issue 1f91074b, git-issue-workflow 4eeb350b) are the bytes to nest, not the remote tips"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - "uv run --python 3.12 --with pytest --with pyyaml --with jinja2 --with hypothesis python -m pytest tests -q --ignore=tests/test_score_tools.py"
+      graph_after_unit_pass:
+        - "cliWorkflow"
+    conflict_keys:
+      production:
+        - "skills/git-epic-workflow/**"
+        - "skills/git-issue-workflow/**"
+        - "skills/git-issue/**"
+        - "skills/discovery/**"
+        - "skills/test-graph/**"
+        - "integration.toml"
+        - "skill-manager-plugin.toml"
+        - "README.md"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-one-unit
+        contribution: direct
+        expected_effect: "installed units belonging to this substrate go from 6 to 1 in both home tiers"
+        local_signal: "skt check in a fresh project home; plugin-repository/scripts/verify.sh"
+    acceptance:
+      commands:
+        - "skt status in the root home and the project home"
+      assertions:
+        - "No skill-imports names a contained skill as a separate unit."
+        - "No hardcoded skills/<unit>/ path inside the bundle survives."
+        - "The unpublished project-home commits are present in the nested bytes."
+      evidence: []
+
+  - id: SI-04
+    title: "One improvement record: attribution carries a skill-change disposition, and the ledger reads it"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/337"
+    schedule_revision: 1
+    depends_on: ["SI-02"]
+    blocks: ["SI-03", "SI-07", "SI-08"]
+    wave: 3
+    promotion_order: 30
+    promotion_predecessor: "SI-02"
+    role: implementation
+    objective: "Unify attribution, the matrix, the skill-change disposition and the goal link into ONE record schema, and ship one reader for it. A finding anchored to a skill is consumed only by a change to that skill."
+    desired_actions: []
+    implementation_scope:
+      - "references/bug_attribution.md — one field on every record kind: skill_change: none | proposed(<unit>, <diff or issue>) | applied(<commit>) | declined(<reason>)"
+      - "references/consumption.md — the rule extended to skill-anchored findings"
+      - "examples/validation/agent_rounds/SELF-IMPROVEMENT-MATRIX.md — the column"
+      - "scripts/improvement_ledger.py — new; reads skill_feedback.md, both backlogs and the matrix; advisory, exit 0 always"
+      - "scripts/disposition.py — decide whether the ledger wraps or replaces it; do not ship two readers"
+      - "scripts/skill_feedback.py — emit the field"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters:
+        - "tests/test_skill_feedback.py, tests/test_disposition_requirement.py"
+      unit_tests:
+        - "uv run --python 3.12 --with pytest --with pyyaml --with jinja2 --with hypothesis python -m pytest tests -q --ignore=tests/test_score_tools.py"
+      graph_after_unit_pass: []
+    conflict_keys:
+      production:
+        - "references/bug_attribution.md"
+        - "references/consumption.md"
+        - "scripts/improvement_ledger.py"
+        - "scripts/disposition.py"
+        - "scripts/skill_feedback.py"
+        - "examples/validation/agent_rounds/SELF-IMPROVEMENT-MATRIX.md"
+      tla: []
+      adapters: ["tests/test_skill_feedback.py", "tests/test_disposition_requirement.py"]
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-findings-become-changes
+        contribution: direct
+        expected_effect: "the field and its reader exist; the ledger prints today's baseline (13 recorded-local, 39 rows with no disposition) on its first run"
+        local_signal: "python3 scripts/improvement_ledger.py on the current tree"
+      - goal: GOAL-no-new-gates
+        contribution: guard
+        expected_effect: "the ledger warns and exits 0; no refusal path added"
+        local_signal: "grep -nE 'SystemExit|sys.exit\\([^0]' scripts/improvement_ledger.py"
+    acceptance:
+      commands:
+        - "python3 scripts/improvement_ledger.py"
+      assertions:
+        - "Every record kind carries skill_change."
+        - "One reader, not two."
+      evidence: []
+
+  - id: SI-05
+    title: "An issue met in tla-spec-dev owes tla-spec-dev a change, at close-out"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/338"
+    schedule_revision: 1
+    depends_on: ["SI-02"]
+    blocks: ["SI-07", "SI-08"]
+    wave: 3
+    promotion_order: 40
+    promotion_predecessor: "SI-04"
+    role: implementation
+    objective: "A finding whose target is in this repository owes a proposed change to this repository, in the same PR when the file is in the worktree. Consume the 13 recorded-local findings as the first batch. The close proceeds either way."
+    desired_actions: ["CloseTicket"]
+    implementation_scope:
+      - "the 13 recorded-local findings in specs/results/skill_feedback.md, whose targets are scripts/analyze_complexity.py, scripts/extract_spec_manifest.py, scripts/spec_evolution.py::promote_current_tree, scripts/scaffold_spec_workflow.py"
+      - "scripts/spec_evolution.py create_ticket_history_entry — the close-out warning line"
+      - "scripts/new_ticket_workflow.py ticket_readme / ticket_next_steps"
+      - "references/migration.md Phase 6"
+    current_increment:
+      model_state: []
+      model_actions:
+        - "CloseTicket — result text gains the warning; no guard change (the epic agent makes this edit)"
+      adapters: []
+      unit_tests:
+        - "uv run --python 3.12 --with pytest --with pyyaml --with jinja2 --with hypothesis python -m pytest tests -q --ignore=tests/test_score_tools.py"
+      graph_after_unit_pass:
+        - "specWorkflow"
+    conflict_keys:
+      production:
+        - "specs/results/skill_feedback.md"
+        - "scripts/spec_evolution.py"
+        - "scripts/new_ticket_workflow.py"
+        - "scripts/analyze_complexity.py"
+        - "scripts/extract_spec_manifest.py"
+        - "scripts/scaffold_spec_workflow.py"
+        - "references/migration.md"
+      tla: ["specs/**/TlaSpecDevCli.tla CloseTicket result string (epic agent applies)"]
+      adapters: []
+      test_graph: ["test_graph/sources/** specWorkflow close node"]
+      workflow: []
+    goals:
+      - goal: GOAL-findings-become-changes
+        contribution: direct
+        expected_effect: "recorded-local findings go from 13 to 0; each becomes an applied change, a filed issue with a diff, or declined with a reason"
+        local_signal: "grep -c 'status: recorded-local' specs/results/skill_feedback.md before and after"
+      - goal: GOAL-no-new-gates
+        contribution: guard
+        expected_effect: "close ticket prints one warning line per finding with no proposal and still closes"
+        local_signal: "close a scratch ticket with an unproposed finding and confirm exit 0"
+    acceptance:
+      commands:
+        - "grep -c 'status: recorded-local' specs/results/skill_feedback.md"
+      assertions:
+        - "A proposal is a diff or an issue with a diff; prose alone counts as missing."
+        - "The close proceeds when a proposal is absent."
+      evidence: []
+
+  - id: SI-06
+    title: "Implementation skills propose a change when blocked, and stop editing the model"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/339"
+    schedule_revision: 1
+    depends_on: ["SI-02"]
+    blocks: ["SI-07", "SI-09", "SI-08"]
+    wave: 3
+    promotion_order: 50
+    promotion_predecessor: "SI-05"
+    role: implementation
+    objective: "One shape in each ticket-side skill: a `## Skill changes proposed` PR section, and the new boundary that the epic agent owns the model while the ticket agent moves current toward desired and may make only small edits to desired."
+    desired_actions: []
+    implementation_scope:
+      - "skills/git-issue-workflow: SKILL.md Role 3, references/complete.md, references/validation-loop.md, references/epic-ticket.md"
+      - "skills/git-issue: SKILL.md issue template, references/regression-close.md, references/spec-workflow.md"
+      - "skills/discovery, skills/test-graph: one paragraph each"
+      - "debugging is OUT of scope by owner decision at kickoff — it stays standalone, and editing it would cost the cross-repo publish this epic exists to remove"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production:
+        - "skills/git-issue-workflow/SKILL.md"
+        - "skills/git-issue-workflow/references/**"
+        - "skills/git-issue/SKILL.md"
+        - "skills/git-issue/references/**"
+        - "skills/discovery/SKILL.md"
+        - "skills/test-graph/SKILL.md"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-blockers-propose
+        contribution: direct
+        expected_effect: "the section is present in every ticket PR of this epic; a wide-lane refusal case produces a proposal where the round of 2026-09-15 produced none"
+        local_signal: "rerun one wide-lane refusal case against this checkout with --keep and read the response for the section"
+      - goal: GOAL-epic-owns-the-model
+        contribution: enabling
+        expected_effect: "none — enabling only; it states the ticket-agent half of the boundary SI-07 enforces from the epic side"
+        local_signal: "N/A: the boundary is measured over ticket PRs by SI-08"
+    acceptance:
+      commands: []
+      assertions:
+        - "The section is three columns and asks the agent to run nothing new."
+        - "'none met' is a legitimate and common answer."
+      evidence: []
+
+  - id: SI-10
+    title: "The plugin carries its own evals, runnable in one command"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/343"
+    schedule_revision: 1
+    depends_on: ["SI-02"]
+    blocks: ["SI-08"]
+    wave: 3
+    promotion_order: 60
+    promotion_predecessor: "SI-06"
+    role: implementation
+    objective: "Evals move into the plugin and run against the checkout in one command: no symlink shim, no units-override.txt. At least one case per nested skill, and the entry-count limit that forced the shim is resolved rather than worked around."
+    desired_actions: []
+    implementation_scope:
+      - "the plugin's own evals/ directory and its cases"
+      - "the 20,000-entry limit: decide between a plugin directory that excludes specs/, and a documented exclusion; record which and why"
+      - "examples/agent_integration/eval-plugin — retire or reduce to what the new layout still needs"
+      - "references/plugin_evals.md — the running instructions this repository is the organizational home for"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production:
+        - "evals/**"
+        - "skills/*/evals/**"
+        - "references/plugin_evals.md"
+        - "examples/agent_integration/eval-plugin/**"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-evals-one-command
+        contribution: direct
+        expected_effect: "cases go from 2 behind a shim to at least one per nested skill, run by one command against the checkout"
+        local_signal: "claude plugin eval <plugin dir> --case <one case> on this checkout"
+      - goal: GOAL-no-new-gates
+        contribution: guard
+        expected_effect: "an eval reports; it does not block a close"
+        local_signal: "N/A: no gate is added by this ticket"
+    acceptance:
+      commands: []
+      assertions:
+        - "No case needs a units-override.txt to reach this checkout."
+        - "A case that cannot decide reports UNDECIDED rather than red."
+      evidence: []
+
+  - id: SI-03
+    title: "The improvement card: score the loop, not the artifact"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/336"
+    schedule_revision: 1
+    depends_on: ["SI-04"]
+    blocks: ["SI-09", "SI-08"]
+    wave: 4
+    promotion_order: 70
+    promotion_predecessor: "SI-10"
+    role: implementation
+    objective: "A second judged card whose subject is the loop: blockers reported, a change proposed with each, applied or declined on the record, the anchor placed and the model updated, and honesty. It reads the record SI-04 defines."
+    desired_actions: []
+    implementation_scope:
+      - "references/eval_scorecard.md § 'Changing this card' — version the new card beside it; old cards stay sealed"
+      - "the improvement card itself, with anchors, two blind judges, and cite-the-artifact rules extended rather than restated"
+      - "examples/validation/scorecards/score_tools.py — the new card kind, check and audit"
+      - "specs/results/scorecards/SELF-IMPROVEMENT.md, INSTRUMENT-LOG.toml"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters:
+        - "tests/test_score_tools.py — new cases for the new kind, kept fast"
+      unit_tests:
+        - "uv run --python 3.12 --with pytest --with pyyaml --with jinja2 --with hypothesis python -m pytest tests/test_score_tools.py -q"
+      graph_after_unit_pass: []
+    conflict_keys:
+      production:
+        - "references/eval_scorecard.md"
+        - "references/improvement_card.md"
+        - "examples/validation/scorecards/score_tools.py"
+        - "specs/results/scorecards/**"
+      tla: []
+      adapters: ["tests/test_score_tools.py"]
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-blockers-propose
+        contribution: direct
+        expected_effect: "the instrument exists and discriminates; no target on the number"
+        local_signal: "score_tools.py check on a scaffolded card, plus a probe subject that should score 0 and one that should score high"
+      - goal: GOAL-findings-become-changes
+        contribution: enabling
+        expected_effect: "none — enabling only; it makes the disposition visible across epics in SELF-IMPROVEMENT.md"
+        local_signal: "N/A: SI-04 carries the measurement"
+    acceptance:
+      commands:
+        - "python3 examples/validation/scorecards/score_tools.py check"
+      assertions:
+        - "The audit executes every reading rule the card declares."
+        - "The judge packet is defined, and the contamination note says what the judge received."
+      evidence: []
+
+  - id: SI-07
+    title: "The epic agent owns the model and propagates subagent reports"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/340"
+    schedule_revision: 1
+    depends_on: ["SI-04", "SI-05", "SI-06"]
+    blocks: ["SI-09", "SI-08"]
+    wave: 4
+    promotion_order: 80
+    promotion_predecessor: "SI-03"
+    role: implementation
+    objective: "Write the kickoff rule into the skill: the epic agent scaffolds desired/current per ticket, owns every TLA+ edit, places anchors, and at wave close applies or declines each proposed skill change in four required blocks of the review artifact."
+    desired_actions: []
+    implementation_scope:
+      - "skills/git-epic-workflow/SKILL.md rules 1, 5, 7, 10, 13 — rule 5 reverses: ticket agents no longer open or close spec tickets"
+      - "skills/git-epic-workflow/references/epic-ticket.md §3, §6 — the epic agent scaffolds and closes"
+      - "skills/git-epic-workflow/references/human-review.md §3.4 — the four required blocks"
+      - "skills/git-epic-workflow/references/finalize.md — the card delta and improvement_ledger.py beside the goal table"
+      - "skills/git-epic-workflow/scripts/validate_epic_plan.py — warns, never errors, on a missing block"
+      - "skills/git-epic-workflow/references/worktree-lifecycle.md §3 — say which home reconciliation is now moot and which is not"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production:
+        - "skills/git-epic-workflow/**"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-epic-owns-the-model
+        contribution: direct
+        expected_effect: "four blocks in every wave artifact from wave 4 on; the ticket-agent model-edit path is removed from the skill"
+        local_signal: "render this epic's wave 1-3 artifacts through the new template and count the blocks"
+      - goal: GOAL-no-new-gates
+        contribution: guard
+        expected_effect: "the validator warns on a missing block and exits 0"
+        local_signal: "uv run --script skills/git-epic-workflow/scripts/validate_epic_plan.py specs/desired_program_model/ticket_plan.yaml"
+    acceptance:
+      commands: []
+      assertions:
+        - "Rule 5 and epic-ticket.md agree with planning_rules.model_ownership_rule."
+        - "Nothing in the change refuses."
+      evidence: []
+
+  - id: SI-09
+    title: "Progressive disclosure: every card short, the rest behind the reference map"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/342"
+    schedule_revision: 1
+    depends_on: ["SI-03", "SI-06", "SI-07"]
+    blocks: ["SI-08"]
+    wave: 5
+    promotion_order: 90
+    promotion_predecessor: "SI-07"
+    role: implementation
+    objective: "Cut what loads before it is needed. Descriptions shrink to what selects the skill; each card becomes an operational card with a reference map; the history and the rationale move to references. It runs last because it touches every card the other tickets edit."
+    desired_actions: []
+    implementation_scope:
+      - "skills/*/SKILL.md — description and body, all six cards"
+      - "skills/*/references/** — the pages the cut moves text into"
+      - "the 224-line card of the predecessor branch is the worked shape to follow"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production:
+        - "skills/*/SKILL.md"
+        - "skills/*/references/**"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-progressive-disclosure
+        contribution: direct
+        expected_effect: "descriptions 923 -> <= 600 words; every card body <= 1,500 words, from a range of 933-4,114"
+        local_signal: "the word-count script from the baseline evidence, re-run over skills/*/SKILL.md"
+      - goal: GOAL-no-new-gates
+        contribution: guard
+        expected_effect: "no instruction is lost in the cut; a rule that moves to a reference is still reachable from the map"
+        local_signal: "N/A: SI-08's wide-lane run is the check"
+    acceptance:
+      commands: []
+      assertions:
+        - "Nothing load-bearing is deleted; it is moved and linked."
+        - "No wide-lane budget case regresses."
+      evidence: []
+
+  - id: SI-08
+    title: "Evaluation: run the improvement card on this epic and a blind adopter, and decide the goals"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/341"
+    schedule_revision: 1
+    depends_on: ["SI-01", "SI-02", "SI-03", "SI-04", "SI-05", "SI-06", "SI-07", "SI-09", "SI-10"]
+    blocks: []
+    wave: 6
+    promotion_order: 100
+    promotion_predecessor: "SI-09"
+    role: evaluation
+    owns_goals:
+      - GOAL-one-unit
+      - GOAL-findings-become-changes
+      - GOAL-blockers-propose
+      - GOAL-epic-owns-the-model
+      - GOAL-no-new-gates
+      - GOAL-progressive-disclosure
+      - GOAL-evals-one-command
+    objective: "Measure every goal on the integrated epic tip from a fresh clone, then run a blind adopter through one small ticket under the plugin and score its PR on the improvement card. Report baseline -> measured -> target per clause; never edit a target."
+    desired_actions: []
+    implementation_scope:
+      - "measurement only; no behavioral delta"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass:
+        - "specWorkflow"
+        - "cliWorkflow"
+        - "effectProviderExamples"
+    conflict_keys:
+      production: ["specs/results/epic-self-improvement-substrate/goals/**"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-one-unit
+        contribution: guard
+        expected_effect: "decides the goal; adds no behavioral delta"
+        local_signal: "N/A: this ticket is the measurement"
+      - goal: GOAL-findings-become-changes
+        contribution: guard
+        expected_effect: "decides the goal; adds no behavioral delta"
+        local_signal: "N/A: this ticket is the measurement"
+      - goal: GOAL-blockers-propose
+        contribution: guard
+        expected_effect: "decides the goal; adds no behavioral delta"
+        local_signal: "N/A: this ticket is the measurement"
+      - goal: GOAL-epic-owns-the-model
+        contribution: guard
+        expected_effect: "decides the goal; adds no behavioral delta"
+        local_signal: "N/A: this ticket is the measurement"
+      - goal: GOAL-no-new-gates
+        contribution: guard
+        expected_effect: "decides the goal; adds no behavioral delta"
+        local_signal: "N/A: this ticket is the measurement"
+      - goal: GOAL-progressive-disclosure
+        contribution: guard
+        expected_effect: "decides the goal; adds no behavioral delta"
+        local_signal: "N/A: this ticket is the measurement"
+      - goal: GOAL-evals-one-command
+        contribution: guard
+        expected_effect: "decides the goal; adds no behavioral delta"
+        local_signal: "N/A: this ticket is the measurement"
+    acceptance:
+      commands:
+        - "the harness named on each goal, run on the integrated epic tip from a fresh clone"
+      assertions:
+        - "Every goal reports baseline -> measured -> target, one verdict per clause."
+        - "A run that ends on the turn ceiling is UNDECIDED, not red."
+        - "Blindness claims state what each judge and the adopter reported receiving."
+      evidence: []
